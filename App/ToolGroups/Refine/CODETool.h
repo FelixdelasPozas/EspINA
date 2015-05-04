@@ -25,6 +25,7 @@
 // ESPINA
 #include <Support/Widgets/Tool.h>
 #include <GUI/Widgets/SpinBoxAction.h>
+#include <GUI/Widgets/NumericalInput.h>
 
 namespace ESPINA {
   class CODETool
@@ -69,10 +70,12 @@ namespace ESPINA {
   private:
     virtual void onToolEnabled(bool enabled);
 
+    void initOptionWidgets();
+
   private:
-    QAction*       m_toggle;
-    SpinBoxAction* m_radius;
-    QAction*       m_apply;
+    QAction       *m_toggle;
+    QWidgetAction *m_nestedOptions;
+    GUI::Widgets::NumericalInput *m_radius;
   };
 
 } // namespace ESPINA

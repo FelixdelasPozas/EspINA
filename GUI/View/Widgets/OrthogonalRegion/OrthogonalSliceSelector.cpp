@@ -19,22 +19,19 @@
 */
 
 // ESPINA
-#include "GUI/View/Widgets/OrthogonalRegion/SliceSelector.h"
-#include "Representation.h"
+#include "GUI/View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h"
+#include "OrthogonalRepresentation.h"
 #include <GUI/View/View2D.h>
 
 // Qt
 #include <QPushButton>
 
-using ESPINA::RenderView;
-using ESPINA::View2D;
-using ESPINA::Plane;
-using ESPINA::Nm;
+using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
-SliceSelector::SliceSelector(Representation &roi)
-: m_representation{roi}
+OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentation &region)
+: m_representation{region}
 , m_view          {nullptr}
 , m_plane         {Plane::UNDEFINED}
 , m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
@@ -43,39 +40,39 @@ SliceSelector::SliceSelector(Representation &roi)
 }
 
 //----------------------------------------------------------------------------
-SliceSelector::SliceSelector(SliceSelector &selector)
-: m_representation{selector.m_representation}
-, m_view          {selector.m_view}
-, m_plane         {selector.m_plane}
-, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
-, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "")}
-, m_label         {selector.m_label}
+OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalSliceSelector &selector)
+: m_representation     {selector.m_representation}
+, m_view       {selector.m_view}
+, m_plane      {selector.m_plane}
+, m_lowerWidget{RenderView::createButton(":/espina/from_slice.svg", "")}
+, m_upperWidget{RenderView::createButton(":/espina/to_slice.svg",   "")}
+, m_label      {selector.m_label}
 {
 }
 
 //----------------------------------------------------------------------------
-SliceSelector::~SliceSelector()
+OrthogonalSliceSelector::~OrthogonalSliceSelector()
 {
   delete m_lowerWidget;
   delete m_upperWidget;
 }
 
 //----------------------------------------------------------------------------
-QWidget* SliceSelector::lowerWidget() const
+QWidget* OrthogonalSliceSelector::lowerWidget() const
 {
   return m_lowerWidget;
 }
 
 //----------------------------------------------------------------------------
-QWidget* SliceSelector::rightWidget() const
+QWidget* OrthogonalSliceSelector::rightWidget() const
 {
   return m_upperWidget;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::SliceSelectorSPtr SliceSelector::clone(RenderView *view, Plane plane)
+SliceSelectorSPtr OrthogonalSliceSelector::clone(RenderView *view, Plane plane)
 {
-  auto selector = std::make_shared<SliceSelector>(*this);
+  auto selector = std::make_shared<OrthogonalSliceSelector>(*this);
 
   selector->m_view  = view;
   selector->m_plane = plane;
@@ -84,7 +81,7 @@ ESPINA::SliceSelectorSPtr SliceSelector::clone(RenderView *view, Plane plane)
           selector.get(),   SLOT(update()));
 
   connect(&(selector->m_representation), SIGNAL(boundsChanged(Bounds)),
-          selector.get(),                SLOT(update()));
+          selector.get(),        SLOT(update()));
 
   connect(selector->m_lowerWidget, SIGNAL(clicked(bool)),
           selector.get(),          SLOT(lowerWidgetClicked()));
@@ -99,7 +96,7 @@ ESPINA::SliceSelectorSPtr SliceSelector::clone(RenderView *view, Plane plane)
 
 
 //----------------------------------------------------------------------------
-void SliceSelector::update()
+void OrthogonalSliceSelector::update()
 {
   if(m_view)
   {
@@ -118,19 +115,19 @@ void SliceSelector::update()
 }
 
 //----------------------------------------------------------------------------
-void SliceSelector::lowerWidgetClicked()
+void OrthogonalSliceSelector::lowerWidgetClicked()
 {
   moveEdge(Lower);
 }
 
 //----------------------------------------------------------------------------
-void SliceSelector::upperWidgetClicked()
+void OrthogonalSliceSelector::upperWidgetClicked()
 {
   moveEdge(Upper);
 }
 
 //----------------------------------------------------------------------------
-void SliceSelector::moveEdge(Edge edge)
+void OrthogonalSliceSelector::moveEdge(Edge edge)
 {
   Q_ASSERT(m_view);
 
@@ -151,7 +148,7 @@ void SliceSelector::moveEdge(Edge edge)
 }
 
 //----------------------------------------------------------------------------
-QString SliceSelector::lowerLabel() const
+QString OrthogonalSliceSelector::lowerLabel() const
 {
   switch (m_plane)
   {
@@ -167,7 +164,7 @@ QString SliceSelector::lowerLabel() const
 }
 
 //----------------------------------------------------------------------------
-QString SliceSelector::upperLabel() const
+QString OrthogonalSliceSelector::upperLabel() const
 {
   switch (m_plane)
   {
@@ -183,43 +180,43 @@ QString SliceSelector::upperLabel() const
 }
 
 //----------------------------------------------------------------------------
-int SliceSelector::normalIndex() const
+int OrthogonalSliceSelector::normalIndex() const
 {
-  return ESPINA::normalCoordinateIndex(m_plane);
+  return normalCoordinateIndex(m_plane);
 }
 
 //----------------------------------------------------------------------------
-Nm SliceSelector::voxelCenter() const
+Nm OrthogonalSliceSelector::voxelCenter() const
 {
   return m_view->crosshair()[normalIndex()];
 }
 
 //----------------------------------------------------------------------------
-Nm SliceSelector::voxelSize() const
+Nm OrthogonalSliceSelector::voxelSize() const
 {
   return m_view->sceneResolution()[normalIndex()];
 }
 
 //----------------------------------------------------------------------------
-Nm SliceSelector::halfVoxelSize() const
+Nm OrthogonalSliceSelector::halfVoxelSize() const
 {
   return voxelSize()/2;
 }
 
 //----------------------------------------------------------------------------
-Nm SliceSelector::lowerSlice() const
+Nm OrthogonalSliceSelector::lowerSlice() const
 {
   return voxelCenter() - halfVoxelSize();
 }
 
 //----------------------------------------------------------------------------
-Nm SliceSelector::upperSlice() const
+Nm OrthogonalSliceSelector::upperSlice() const
 {
   return voxelCenter() + halfVoxelSize();
 }
 
 //----------------------------------------------------------------------------
-void SliceSelector::updateLabel()
+void OrthogonalSliceSelector::updateLabel()
 {
   QString tooltip = tr("<b>%1</b><br>Place %2 at %3 nm").arg(m_label);
 

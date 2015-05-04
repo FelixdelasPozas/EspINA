@@ -38,8 +38,8 @@ const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-SeedThreshold::SeedThreshold(QObject* parent)
-: QWidgetAction{parent}
+SeedThreshold::SeedThreshold(QWidget* parent)
+: QWidget      {parent}
 , m_lthLabel   {nullptr}
 , m_uthLabel   {nullptr}
 , m_lth        {nullptr}
@@ -49,14 +49,6 @@ SeedThreshold::SeedThreshold(QObject* parent)
   ESPINA_SETTINGS(settings);
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
   m_threshold[1] = settings.value(UTHRESHOLD, DEFAULT_THRESHOLD).toInt();
-}
-
-//------------------------------------------------------------------------
-QWidget* SeedThreshold::createWidget(QWidget* parent)
-{
-  auto w      = new QWidget(parent);
-  auto layout = new QHBoxLayout();
-  w->setLayout(layout);
 
   // Lower Threshold Widget
   m_lthLabel = new QLabel(tr("Lower Th."));
@@ -88,12 +80,14 @@ QWidget* SeedThreshold::createWidget(QWidget* parent)
   connect(this, SIGNAL(upperThresholdChanged(int)),
           m_uth, SLOT(setValue(int)));
 
+  auto layout = new QHBoxLayout();
+
   layout->addWidget(m_lthLabel);
   layout->addWidget(m_lth);
   layout->addWidget(m_uthLabel);
   layout->addWidget(m_uth);
 
-  return w;
+  setLayout(layout);
 }
 
 //-----------------------------------------------------------------------------
@@ -109,12 +103,7 @@ void SeedThreshold::setSymmetricalThreshold(bool symmetrical)
 //-----------------------------------------------------------------------------
 void SeedThreshold::setLowerThreshold(int th)
 {
-  if (th < MIN_THRESHOLD)
-    m_threshold[0] = MIN_THRESHOLD;
-  else if (th > MAX_THRESHOLD)
-    m_threshold[0] = MAX_THRESHOLD;
-  else
-    m_threshold[0] = th;
+  m_threshold[0] = validThreshold(th);
 
   ESPINA_SETTINGS(settings);
   settings.setValue(LTHRESHOLD, m_threshold[0]);
@@ -128,15 +117,23 @@ void SeedThreshold::setLowerThreshold(int th)
 //-----------------------------------------------------------------------------
 void SeedThreshold::setUpperThreshold(int th)
 {
-  if (th < MIN_THRESHOLD)
-    m_threshold[1] = MIN_THRESHOLD;
-  else if (th > MAX_THRESHOLD)
-    m_threshold[1] = MAX_THRESHOLD;
-  else
-    m_threshold[1] = th;
+  m_threshold[1] = validThreshold(th);
 
   ESPINA_SETTINGS(settings);
   settings.setValue(UTHRESHOLD, m_threshold[1]);
 
   emit upperThresholdChanged(m_threshold[1]);
 }
+
+//-----------------------------------------------------------------------------
+int SeedThreshold::validThreshold(int value) const
+{
+  return validRangedValue(value, MIN_THRESHOLD, MAX_THRESHOLD);
+}
+
+//-----------------------------------------------------------------------------
+int SeedThreshold::validRangedValue(int value, int min, int max) const
+{
+  return std::max(min, std::min(value, max));
+}
+

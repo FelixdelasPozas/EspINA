@@ -19,19 +19,20 @@
 */
 
 // ESPINA
-#include "Widget2D.h"
-#include "vtkWidget2D.h"
-#include "Representation.h"
+#include "OrthogonalWidget2D.h"
+#include "vtkOrthogonalWidget2D.h"
+#include "OrthogonalRepresentation.h"
+
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
-using SliceWidgetAdapter = EspinaInteractorAdapter<vtkWidget2D>;
+using SliceWidgetAdapter = EspinaInteractorAdapter<vtkOrthogonalWidget2D>;
 
 //----------------------------------------------------------------------------
-class Widget2D::Command
+class OrthogonalWidget2D::Command
 : public vtkCommand
 {
 public:
@@ -43,30 +44,30 @@ public:
   static Command *New()
   { return new Command(); }
 
-  void setRepresentation(Representation *representation)
-  { m_representation = representation; }
+  void setRepresentation(OrthogonalRepresentation *region)
+  { m_region = region; }
 
   virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
 private:
   explicit Command() {}
 
-  Representation *m_representation;
+  OrthogonalRepresentation *m_region;
 };
 
 //----------------------------------------------------------------------------
-void Widget2D::Command::Execute(vtkObject *caller, long unsigned int eventId, void *callData)
+void OrthogonalWidget2D::Command::Execute(vtkObject *caller, long unsigned int eventId, void *callData)
 {
-  auto widget = static_cast<vtkWidget2D *>(caller);
+  auto widget = static_cast<vtkOrthogonalWidget2D *>(caller);
 
-  m_representation->setBounds(widget->GetBounds());
+  m_region->setBounds(widget->GetBounds());
 }
 
 
 //----------------------------------------------------------------------------
-Widget2D::Widget2D(Representation &representation)
+OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentation &representation)
 : m_representation(representation)
-, m_widget(vtkSmartPointer<vtkWidget2D>::New())
+, m_widget(vtkSmartPointer<vtkOrthogonalWidget2D>::New())
 , m_command(vtkSmartPointer<Command>::New())
 , m_index(0)
 , m_slice(0)
@@ -75,7 +76,7 @@ Widget2D::Widget2D(Representation &representation)
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::setPlane(Plane plane)
+void OrthogonalWidget2D::setPlane(Plane plane)
 {
   m_index = normalCoordinateIndex(plane);
 
@@ -83,31 +84,31 @@ void Widget2D::setPlane(Plane plane)
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::setRepresentationDepth(Nm depth)
+void OrthogonalWidget2D::setRepresentationDepth(Nm depth)
 {
   m_widget->SetDepth(depth);
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr Widget2D::clone()
+EspinaWidget2DSPtr OrthogonalWidget2D::clone()
 {
-  return std::make_shared<Widget2D>(m_representation);
+  return std::make_shared<OrthogonalWidget2D>(m_representation);
 }
 
 //----------------------------------------------------------------------------
-bool Widget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
-{
-  return true;
-}
-
-//----------------------------------------------------------------------------
-bool Widget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
+bool OrthogonalWidget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
   return true;
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::initializeImplementation(RenderView *view)
+bool OrthogonalWidget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void OrthogonalWidget2D::initializeImplementation(RenderView *view)
 {
   onModeChanged      (m_representation.mode());
   onResolutionChanged(m_representation.resolution());
@@ -115,53 +116,53 @@ void Widget2D::initializeImplementation(RenderView *view)
   onColorChanged     (m_representation.representationColor());
   onPatternChanged   (m_representation.representationPattern());
 
-  connect(&m_representation, SIGNAL(modeChanged(Representation::Mode)),
-          this,              SLOT(onModeChanged(Representation::Mode)));
+  connect(&m_representation, SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
+          this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
   connect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
-          this,              SLOT(onResolutionChanged(NmVector3)));
+          this,      SLOT(onResolutionChanged(NmVector3)));
 
   connect(&m_representation, SIGNAL(boundsChanged(Bounds)),
-          this,              SLOT(onBoundsChanged(Bounds)));
+          this,      SLOT(onBoundsChanged(Bounds)));
 
   connect(&m_representation, SIGNAL(colorChanged(QColor)),
-          this,              SLOT(onColorChanged(QColor)));
+          this,      SLOT(onColorChanged(QColor)));
 
   connect(&m_representation, SIGNAL(patternChanged(int)),
-          this,              SLOT(onPatternChanged(int)));
+          this,      SLOT(onPatternChanged(int)));
 
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::uninitializeImplementation()
+void OrthogonalWidget2D::uninitializeImplementation()
 {
-  disconnect(&m_representation, SIGNAL(modeChanged(Representation::Mode)),
-             this,              SLOT(onModeChanged(Representation::Mode)));
+  disconnect(&m_representation, SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
+             this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
   disconnect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
-             this,              SLOT(onResolutionChanged(NmVector3)));
+             this,      SLOT(onResolutionChanged(NmVector3)));
 
   disconnect(&m_representation, SIGNAL(boundsChanged(Bounds)),
-             this,              SLOT(onBoundsChanged(Bounds)));
+             this,      SLOT(onBoundsChanged(Bounds)));
 
   disconnect(&m_representation, SIGNAL(colorChanged(QColor)),
-             this,              SLOT(onColorChanged(QColor)));
+             this,      SLOT(onColorChanged(QColor)));
 
   disconnect(&m_representation, SIGNAL(patternChanged(int)),
-             this,              SLOT(onPatternChanged(int)));
+             this,      SLOT(onPatternChanged(int)));
 
   m_widget->RemoveObserver(m_command);
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *Widget2D::vtkWidget()
+vtkAbstractWidget *OrthogonalWidget2D::vtkWidget()
 {
   return m_widget;
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::setCrosshair(const NmVector3 &crosshair)
+void OrthogonalWidget2D::setCrosshair(const NmVector3 &crosshair)
 {
   m_slice = crosshair[m_index];
 
@@ -169,9 +170,9 @@ void Widget2D::setCrosshair(const NmVector3 &crosshair)
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::onModeChanged(const Representation::Mode mode)
+void OrthogonalWidget2D::onModeChanged(const OrthogonalRepresentation::Mode mode)
 {
-  if (mode == Representation::Mode::RESIZABLE)
+  if (mode == OrthogonalRepresentation::Mode::RESIZABLE)
   {
     m_widget->ProcessEventsOn();
   }
@@ -182,18 +183,18 @@ void Widget2D::onModeChanged(const Representation::Mode mode)
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::onResolutionChanged(const NmVector3 &resolution)
+void OrthogonalWidget2D::onResolutionChanged(const NmVector3 &resolution)
 {
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::onBoundsChanged(const Bounds &bounds)
+void OrthogonalWidget2D::onBoundsChanged(const Bounds &bounds)
 {
   m_widget->SetBounds(bounds);
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::onColorChanged(const QColor &color)
+void OrthogonalWidget2D::onColorChanged(const QColor &color)
 {
   double rgb[3] = {color.redF(), color.greenF(), color.blueF()};
 
@@ -201,26 +202,7 @@ void Widget2D::onColorChanged(const QColor &color)
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::onPatternChanged(const int pattern)
+void OrthogonalWidget2D::onPatternChanged(const int pattern)
 {
   m_widget->setRepresentationPattern(pattern);
 }
-
-
-//
-//
-// //----------------------------------------------------------------------------
-// OrthogonalRegion::OrthogonalRegion(Bounds bounds)
-// : m_bounds     {bounds}
-// , m_pattern    {0xFFFF}
-// , m_command    {vtkSmartPointer<vtkOrthogonalRegionCommand>::New()}
-// {
-//   m_command->setWidget(this);
-//
-//   m_resolution[0] = m_resolution[1] = m_resolution[2] = 1;
-//
-//   // default color
-//   m_color[0] = m_color[1] = 1.0;
-//   m_color[2] = 0.0;
-// }
-//

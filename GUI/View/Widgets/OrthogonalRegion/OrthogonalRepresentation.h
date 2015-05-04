@@ -35,7 +35,7 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class Representation
+          class OrthogonalRepresentation
           : public QObject
           {
             Q_OBJECT
@@ -43,9 +43,9 @@ namespace ESPINA
             enum class Mode { FIXED, RESIZABLE };
 
           public:
-            explicit Representation();
+            explicit OrthogonalRepresentation();
 
-            explicit Representation(const NmVector3 &resolution, const Bounds &bounds);
+            explicit OrthogonalRepresentation(const NmVector3 &resolution, const Bounds &bounds);
 
             void setMode(const Mode mode);
 
@@ -75,7 +75,7 @@ namespace ESPINA
             int representationPattern() const;
 
           signals:
-            void modeChanged(const Representation::Mode mode);
+            void modeChanged(const OrthogonalRepresentation::Mode mode);
 
             void resolutionChanged(const NmVector3 &resolution);
 

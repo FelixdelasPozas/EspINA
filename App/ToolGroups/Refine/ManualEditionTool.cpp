@@ -25,7 +25,6 @@
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Widgets/SliderAction.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>

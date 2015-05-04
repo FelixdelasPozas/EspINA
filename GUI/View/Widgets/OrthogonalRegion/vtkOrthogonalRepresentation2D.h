@@ -48,7 +48,7 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class EspinaGUI_EXPORT vtkRepresentation2D
+          class EspinaGUI_EXPORT vtkOrthogonalRepresentation2D
           : public vtkWidgetRepresentation
           {
             //BTX
@@ -58,11 +58,11 @@ namespace ESPINA
           public:
             // Description:
             // Instantiate the class.
-            static vtkRepresentation2D *New();
+            static vtkOrthogonalRepresentation2D *New();
 
             // Description:
             // Standard methods for the class.
-            vtkTypeMacro(vtkRepresentation2D,vtkWidgetRepresentation);
+            vtkTypeMacro(vtkOrthogonalRepresentation2D,vtkWidgetRepresentation);
             void PrintSelf(ostream& os, vtkIndent indent);
 
             void reset();
@@ -118,8 +118,8 @@ namespace ESPINA
             void setRepresentationPattern(int);
 
           protected:
-            vtkRepresentation2D();
-            ~vtkRepresentation2D();
+            vtkOrthogonalRepresentation2D();
+            ~vtkOrthogonalRepresentation2D();
 
             // Manage how the representation appears
             double LastEventPosition[3];
@@ -171,8 +171,8 @@ namespace ESPINA
             void updateEdgePattern(vtkProperty *edge);
 
           private:
-            vtkRepresentation2D(const vtkRepresentation2D&);  //Not implemented
-            void operator=(const vtkRepresentation2D&);  //Not implemented
+            vtkOrthogonalRepresentation2D(const vtkOrthogonalRepresentation2D&);  //Not implemented
+            void operator=(const vtkOrthogonalRepresentation2D&);  //Not implemented
 
             Plane  m_plane;
             Nm     m_slice;

@@ -44,9 +44,9 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/Measures/MeasureWidget.h
   View/Widgets/Measures/MeasureEventHandler.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
-  View/Widgets/OrthogonalRegion/Widget2D.h
-  View/Widgets/OrthogonalRegion/Representation.h
-  View/Widgets/OrthogonalRegion/SliceSelector.h
+  View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h
+  View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
+  View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
   View/CoordinateSystem.h
@@ -67,7 +67,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/TagSelector.h
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
-  Widgets/SliderAction.h
+  Widgets/NumericalInput.h
   Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -177,11 +177,11 @@ set (GUI_SOURCES
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
-  View/Widgets/OrthogonalRegion/Representation.cpp
-  View/Widgets/OrthogonalRegion/Widget2D.cpp
-  View/Widgets/OrthogonalRegion/SliceSelector.cpp
-  View/Widgets/OrthogonalRegion/vtkWidget2D.cpp
-  View/Widgets/OrthogonalRegion/vtkRepresentation2D.cpp
+  View/Widgets/OrthogonalRegion/OrthogonalRepresentation.cpp
+  View/Widgets/OrthogonalRegion/OrthogonalWidget2D.cpp
+  View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.cpp
+  View/Widgets/OrthogonalRegion/vtkOrthogonalWidget2D.cpp
+  View/Widgets/OrthogonalRegion/vtkOrthogonalRepresentation2D.cpp
   View/Widgets/ROI/ROIWidget.cpp
   View/Widgets/SelectionMeasure/Widget2D.cpp
   View/Widgets/SelectionMeasure/Widget3D.cpp
@@ -205,7 +205,7 @@ set (GUI_SOURCES
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
-  Widgets/SliderAction.cpp
+  Widgets/NumericalInput.cpp
   Widgets/TaskProgress.cpp
   View/CoordinateSystem.cpp
   )

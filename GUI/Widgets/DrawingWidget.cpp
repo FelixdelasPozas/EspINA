@@ -21,63 +21,44 @@
 #include "DrawingWidget.h"
 #include "ActionSelector.h"
 #include "CategorySelector.h"
-#include "SliderAction.h"
+#include "NumericalInput.h"
+
 #include <GUI/EventHandlers/CircularBrush.h>
 #include <GUI/EventHandlers/SphericalBrush.h>
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/View/Widgets/Contour/ContourWidget.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/Widgets/Styles.h>
+#include <Support/Widgets/Tool.h>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
 const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 const QString CONTOUR_DISTANCE("ManualEditionTools::ContourDistance");
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
 
 //------------------------------------------------------------------------
 DrawingWidget::DrawingWidget(Support::Context &context)
 : m_context             (context)
 , m_painterSelector     {new ActionSelector()}
+, m_nestedWidgets       {new QWidgetAction(this)}
 , m_categorySelector    {new CategorySelector(context.model())}
-, m_radiusWidget        {new SliderAction()}
-, m_opacityWidget       {new SliderAction()}
-, m_eraserWidget        {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
+, m_radiusWidget        {new NumericalInput()}
+, m_opacityWidget       {new NumericalInput()}
+, m_eraserWidget        {Tool::createToolButton(":/espina/eraser.png", tr("Erase"))}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
 , m_showOpacityControls {true}
 , m_showEraserControls  {true}
 , m_enabled             {true}
 {
-  ESPINA_SETTINGS(settings);
-  m_brushRadius     = settings.value(BRUSH_RADIUS,  20).toInt();
-  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
-  int opacity       = settings.value(BRUSH_OPACITY, 50).toInt();
-
-  m_radiusWidget->setValue(m_brushRadius);
-  m_radiusWidget->setSliderMinimum(5);
-  m_radiusWidget->setSliderMaximum(40);
-  m_radiusWidget->setLabelText(tr("Radius Size"));
-
-  connect(m_radiusWidget, SIGNAL(valueChanged(int)),
-          this,           SLOT(changeRadius(int)));
-
-  m_opacityWidget->setSliderMinimum(1);
-  m_opacityWidget->setSliderMaximum(100);
-  m_opacityWidget->setValue(opacity);
-  m_opacityWidget->setLabelText(tr("Opacity"));
-
-  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
-          this,            SLOT(changeOpacity(int)));
-
-  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,               SLOT(onCategoryChange(CategoryAdapterSPtr)));
-
-  m_eraserWidget->setCheckable(true);
-
-  connect(m_eraserWidget, SIGNAL(toggled(bool)),
-          this,           SLOT(setEraserMode(bool)));
-
   initPainters();
+
+  initDrawingControls();
+
   setControlVisibility(false);
 }
 
@@ -85,9 +66,9 @@ DrawingWidget::DrawingWidget(Support::Context &context)
 DrawingWidget::~DrawingWidget()
 {
   ESPINA_SETTINGS(settings);
-  settings.setValue(BRUSH_RADIUS, m_brushRadius);
+  settings.setValue(BRUSH_RADIUS,     m_brushRadius);
   settings.setValue(CONTOUR_DISTANCE, m_contourDistance);
-  settings.setValue(BRUSH_OPACITY, m_opacityWidget->value());
+  settings.setValue(BRUSH_OPACITY,    m_opacityWidget->value());
   settings.sync();
 
   if (m_currentPainter)
@@ -180,10 +161,11 @@ QList<QAction *> DrawingWidget::actions() const
   m_painterSelector->setChecked(checked);
 
   actions << m_painterSelector;
-  actions << m_categorySelector;
-  actions << m_eraserWidget;
-  actions << m_radiusWidget;
-  actions << m_opacityWidget;
+  actions << m_nestedWidgets;
+  //actions << m_categorySelector;
+  //actions << m_eraserWidget;
+  //actions << m_radiusWidget;
+  //actions << m_opacityWidget;
 
   return actions;
 }
@@ -270,12 +252,16 @@ void DrawingWidget::initPainters()
                                            tr("Modify segmentation drawing 3D spheres"),
                                            m_sphericalPainter);
 
-  m_contourPainter         = std::make_shared<ContourPainter>();
+  auto contourPainter = std::make_shared<ContourPainter>();
+
+  ESPINA_SETTINGS(settings);
+  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
+  contourPainter->setMinimumPointDistance(m_contourDistance);
   m_contourPainterAction   = registerPainter(QIcon(":/espina/lasso.png"),
                                              tr("Modify segmentation drawing contours"),
-                                             m_contourPainter);
+                                             contourPainter);
+  m_contourPainter = contourPainter;
 
-  std::dynamic_pointer_cast<ContourPainter>(m_contourPainter)->setMinimumPointDistance(m_contourDistance);
 
   m_currentPainter = m_circularPainter;
   m_painterSelector->setDefaultAction(m_circularPainterAction);
@@ -285,6 +271,83 @@ void DrawingWidget::initPainters()
   connect(m_painterSelector, SIGNAL(actionCanceled()),
           this,              SLOT(unsetPainter()));
 }
+
+//------------------------------------------------------------------------
+void DrawingWidget::initDrawingControls()
+{
+  ESPINA_SETTINGS(settings);
+
+  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
+
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
+
+  initCategoryWidget(layout);
+  initEraseWidget   (layout);
+  initRadiusWidget  (layout, settings);
+  initOpacityWidget (layout, settings);
+
+  widget->setLayout(layout);
+  Support::Widgets::Styles::setNestedStyle(widget);
+
+  m_nestedWidgets->setDefaultWidget(widget);
+}
+
+
+//------------------------------------------------------------------------
+void DrawingWidget::initCategoryWidget(QHBoxLayout *layout)
+{
+  layout->addWidget(m_categorySelector);
+
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,               SLOT(onCategoryChange(CategoryAdapterSPtr)));
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::initEraseWidget(QHBoxLayout *layout)
+{
+  m_eraserWidget->setCheckable(true);
+
+  connect(m_eraserWidget, SIGNAL(toggled(bool)),
+          this,           SLOT(setEraserMode(bool)));
+
+  layout->addWidget(m_eraserWidget);
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::initRadiusWidget(QHBoxLayout *layout, const QSettings &settings)
+{
+  layout->addWidget(m_radiusWidget);
+
+  m_brushRadius = settings.value(BRUSH_RADIUS,  20).toInt();
+
+  m_radiusWidget->setValue(m_brushRadius);
+  m_radiusWidget->setMinimum(5);
+  m_radiusWidget->setMaximum(40);
+  m_radiusWidget->setSpinBoxVisibility(false);
+  m_radiusWidget->setLabelText(tr("Radius Size"));
+
+  connect(m_radiusWidget, SIGNAL(valueChanged(int)),
+          this,           SLOT(changeRadius(int)));
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::initOpacityWidget(QHBoxLayout *layout, const QSettings &settings)
+{
+  layout->addWidget(m_opacityWidget);
+
+  int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
+
+  m_opacityWidget->setMinimum(1);
+  m_opacityWidget->setMaximum(100);
+  m_opacityWidget->setValue(opacity);
+  m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setLabelText(tr("Opacity"));
+
+  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
+          this,            SLOT(changeOpacity(int)));
+}
+
 
 //------------------------------------------------------------------------
 QAction *DrawingWidget::registerPainter(const QIcon    &icon,
@@ -334,11 +397,12 @@ QAction *DrawingWidget::registerBrush(const QIcon     &icon,
 //------------------------------------------------------------------------
 void DrawingWidget::setControlVisibility(bool visible)
 {
-
   if(m_showCategoryControls) m_categorySelector->setVisible(visible);
   if(m_showRadiusControls)   m_radiusWidget    ->setVisible(visible);
   if(m_showOpacityControls)  m_opacityWidget   ->setVisible(visible);
   if(m_showEraserControls)   m_eraserWidget    ->setVisible(visible);
+
+  m_nestedWidgets->setVisible(visible);
 }
 
 //-----------------------------------------------------------------------------

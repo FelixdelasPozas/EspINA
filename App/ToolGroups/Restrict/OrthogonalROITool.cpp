@@ -24,8 +24,7 @@
 #include "RestrictToolGroup.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Selectors/PixelSelector.h>
-#include <GUI/View/Widgets/OrthogonalRegion/Widget2D.h>
-#include <GUI/View/Widgets/OrthogonalRegion/SliceSelector.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Undo/ROIUndoCommand.h>
 
@@ -77,7 +76,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 , m_resizeROI    {new QAction(QIcon(":/espina/resize_roi.svg"), tr("Resize Orthogonal Region of Interest"), this)}
 , m_applyROI     {new QAction(QIcon(":/espina/roi_go.svg"), tr("Define Orthogonal Region of Interest"), this)}
 , m_enabled      {true}
-, m_factory      {new WidgetFactory(std::make_shared<Widget2D>(m_roiRepresentation), EspinaWidget3DSPtr())}
+, m_factory      {new WidgetFactory(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), EspinaWidget3DSPtr())}
 , m_resizeHandler{new EventHandler()}
 , m_defineHandler{new PixelSelector()}
 , m_settings     {settings}

@@ -22,30 +22,23 @@
 // ESPINA
 #include "CODETool.h"
 
+#include <Support/Widgets/Styles.h>
+
+#include <QHBoxLayout>
+
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
 CODETool::CODETool(const QString& icon, const QString& tooltip)
-: m_toggle {new QAction(this)}
-, m_radius {new SpinBoxAction(this)}
-, m_apply  {new QAction(this)}
+: m_toggle       {new QAction(QIcon(icon), tooltip, this)}
+, m_nestedOptions{new QWidgetAction(this)}
+, m_radius       {new NumericalInput()}
 {
-  m_toggle->setIcon(QIcon(icon));
-  m_toggle->setToolTip(tooltip);
   m_toggle->setCheckable(true);
 
-  m_radius->setLabelText(tr("Radius"));
-  m_radius->setSpinBoxMaximum(99);
-
-  m_apply->setIcon(QIcon(":/espina/tick.png"));
-
-  toggleToolWidgets(false);
-
-  connect(m_toggle, SIGNAL(toggled(bool)),
-          this,     SLOT(toggleToolWidgets(bool)));
-
-  connect(m_apply, SIGNAL(triggered(bool)),
-          this,    SIGNAL(applyClicked()));
+  initOptionWidgets();
 }
 
 //------------------------------------------------------------------------
@@ -53,7 +46,7 @@ QList<QAction *> CODETool::actions() const
 {
   QList<QAction *> actions;
 
-  actions << m_toggle << m_radius << m_apply;
+  actions << m_toggle << m_nestedOptions;
 
   return actions;
 }
@@ -67,8 +60,7 @@ void CODETool::abortOperation()
 void CODETool::toggleToolWidgets(bool toggle)
 {
   m_toggle->setChecked(toggle);
-  m_radius->setVisible(toggle);
-  m_apply ->setVisible(toggle);
+  m_nestedOptions->setVisible(toggle);
 
   emit toggled(toggle);
 }
@@ -77,11 +69,40 @@ void CODETool::toggleToolWidgets(bool toggle)
 void CODETool::onToolEnabled(bool enabled)
 {
   m_toggle->setEnabled(enabled);
-  m_radius->setEnabled(enabled);
-  m_apply ->setEnabled(enabled);
+  m_nestedOptions->setEnabled(enabled);
 
   if(m_toggle->isChecked() && !enabled)
   {
     toggleToolWidgets(false);
   }
+}
+
+//------------------------------------------------------------------------
+void CODETool::initOptionWidgets()
+{
+  connect(m_toggle, SIGNAL(toggled(bool)),
+          this,     SLOT(toggleToolWidgets(bool)));
+
+  m_radius->setLabelText(tr("Radius"));
+  m_radius->setMinimum(1);
+  m_radius->setMaximum(99);
+  m_radius->setSliderVisibility(false);
+
+  auto apply = Tool::createToolButton(":/espina/tick.png", tr("Apply"));
+
+  connect(apply, SIGNAL(clicked(bool)),
+          this,  SIGNAL(applyClicked()));
+
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
+
+  layout->addWidget(m_radius);
+  layout->addWidget(apply);
+
+  widget->setLayout(layout);
+
+  Styles::setNestedStyle(widget);
+
+  m_nestedOptions->setDefaultWidget(widget);
+  m_nestedOptions->setVisible(false);
 }

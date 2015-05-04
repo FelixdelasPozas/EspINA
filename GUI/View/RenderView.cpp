@@ -474,8 +474,8 @@ void RenderView::onRenderRequest()
   //qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
   if (m_lastRender < renderTime)
   {
-    qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
-    m_timer.restart();
+//     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
+//     m_timer.restart();
     display(readyManagers,  renderTime);
 
     //qDebug() << viewName() << ": Update actors:" << renderTime;
@@ -511,7 +511,7 @@ void RenderView::onRenderRequest()
 
   if (m_requiresRender)
   {
-    qDebug() << viewName() << "Rendering frame" << renderTime;
+//     qDebug() << viewName() << "Rendering frame" << renderTime;
     mainRenderer()->ResetCameraClippingRange();
     renderWindow()->Render();
     m_view->update();

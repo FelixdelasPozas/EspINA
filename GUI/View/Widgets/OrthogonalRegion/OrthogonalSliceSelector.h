@@ -36,21 +36,21 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class Representation;
+          class OrthogonalRepresentation;
 
-          class EspinaGUI_EXPORT SliceSelector
-          : public ESPINA::SliceSelector
+          class EspinaGUI_EXPORT OrthogonalSliceSelector
+          : public SliceSelector
           {
             Q_OBJECT
           public:
-            /** \brief OrthogonalRegion::SliceSelector class constructor.
+            /** \brief OrthogonalSliceSelector constructor.
              *
              */
-            explicit SliceSelector(Representation &region);
+            explicit OrthogonalSliceSelector(OrthogonalRepresentation &region);
 
-            explicit SliceSelector(SliceSelector &selector);
+            explicit OrthogonalSliceSelector(OrthogonalSliceSelector &selector);
 
-            virtual ~SliceSelector();
+            virtual ~OrthogonalSliceSelector();
 
             virtual QWidget *lowerWidget () const;
 
@@ -107,7 +107,7 @@ namespace ESPINA
             void updateLabel();
 
           private:
-            Representation &m_representation;
+            OrthogonalRepresentation &m_representation;
 
             RenderView *m_view;
             Plane       m_plane;

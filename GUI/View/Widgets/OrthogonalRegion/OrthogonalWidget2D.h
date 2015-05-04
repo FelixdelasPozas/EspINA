@@ -19,12 +19,12 @@
 */
 
 
-#ifndef ESPINA_RECTANGULAR_REGION_H
-#define ESPINA_RECTANGULAR_REGION_H
+#ifndef ESPINA_ORTHOGONAL_WIDGET_2D_H
+#define ESPINA_ORTHOGONAL_WIDGET_2D_H
 
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget2.h>
-#include "Representation.h"
+#include "OrthogonalRepresentation.h"
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -42,15 +42,15 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class vtkWidget2D;
+          class vtkOrthogonalWidget2D;
 
-          class Widget2D
+          class OrthogonalWidget2D
           : public EspinaWidget2D
           {
             Q_OBJECT
 
           public:
-            explicit Widget2D(Representation &representation);
+            explicit OrthogonalWidget2D(OrthogonalRepresentation &representation);
 
             virtual void setPlane(Plane plane) override;
 
@@ -73,7 +73,7 @@ namespace ESPINA
             virtual void setCrosshair(const NmVector3& crosshair) override;
 
           private slots:
-            void onModeChanged(const Representation::Mode mode);
+            void onModeChanged(const OrthogonalRepresentation::Mode mode);
 
             void onResolutionChanged(const NmVector3 &resolution);
 
@@ -86,9 +86,9 @@ namespace ESPINA
           private:
             class Command;
 
-            Representation &m_representation;
+            OrthogonalRepresentation &m_representation;
 
-            vtkSmartPointer<vtkWidget2D> m_widget;
+            vtkSmartPointer<vtkOrthogonalWidget2D> m_widget;
             vtkSmartPointer<Command>     m_command;
 
             int m_index;
@@ -100,4 +100,4 @@ namespace ESPINA
   }
 }// namespace ESPINA
 
-#endif // ESPINA_RECTANGULAR_REGION_H
+#endif // ESPINA_ORTHOGONAL_WIDGET_2D_H

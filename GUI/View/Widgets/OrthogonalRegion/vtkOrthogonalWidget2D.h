@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Core/Utils/Bounds.h>
-#include "GUI/View/Widgets/OrthogonalRegion/Widget2D.h"
+#include "GUI/View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h"
 
 // VTK
 #include "vtkAbstractWidget.h"
@@ -39,17 +39,17 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class EspinaGUI_EXPORT vtkWidget2D
+          class EspinaGUI_EXPORT vtkOrthogonalWidget2D
           : public vtkAbstractWidget
           {
           public:
             // Description:
             // Instantiate the object.
-            static vtkWidget2D *New();
+            static vtkOrthogonalWidget2D *New();
 
             // Description:
             // Standard class methods for type information and printing.
-            vtkTypeMacro(vtkWidget2D, vtkAbstractWidget);
+            vtkTypeMacro(vtkOrthogonalWidget2D, vtkAbstractWidget);
             void PrintSelf(ostream& os, vtkIndent indent);
 
             void SetPlane(Plane plane);
@@ -73,9 +73,9 @@ namespace ESPINA
             void setRepresentationPattern(int);
 
           protected:
-            vtkWidget2D();
+            vtkOrthogonalWidget2D();
 
-            virtual ~vtkWidget2D();
+            virtual ~vtkOrthogonalWidget2D();
 
           private:
             void ensureRepresentationIsAvailable();
@@ -105,8 +105,8 @@ namespace ESPINA
             int    m_pattern;
 
           private:
-            vtkWidget2D(const vtkWidget2D&);  //Not implemented
-            void operator=(const vtkWidget2D&);  //Not implemented
+            vtkOrthogonalWidget2D(const vtkOrthogonalWidget2D&);  //Not implemented
+            void operator=(const vtkOrthogonalWidget2D&);  //Not implemented
           };
         }
       }

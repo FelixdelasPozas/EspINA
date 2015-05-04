@@ -17,20 +17,19 @@
  *
  */
 
-#include "Representation.h"
+#include "OrthogonalRepresentation.h"
 
 using namespace ESPINA;
-using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
-Representation::Representation()
-: Representation{{1,1,1},{0, 1, 0, 1, 0, 1}}
+OrthogonalRepresentation::OrthogonalRepresentation()
+: OrthogonalRepresentation{{1,1,1},{0, 1, 0, 1, 0, 1}}
 {
 }
 
 //----------------------------------------------------------------------------
-Representation::Representation(const NmVector3 &resolution, const Bounds &bounds)
+OrthogonalRepresentation::OrthogonalRepresentation(const NmVector3 &resolution, const Bounds &bounds)
 : m_mode(Mode::RESIZABLE)
 , m_resolution(resolution)
 , m_bounds(bounds)
@@ -41,7 +40,7 @@ Representation::Representation(const NmVector3 &resolution, const Bounds &bounds
 }
 
 //----------------------------------------------------------------------------
-void Representation::setMode(const Representation::Mode mode)
+void OrthogonalRepresentation::setMode(const OrthogonalRepresentation::Mode mode)
 {
   if (m_mode != mode)
   {
@@ -52,13 +51,13 @@ void Representation::setMode(const Representation::Mode mode)
 }
 
 //----------------------------------------------------------------------------
-Representation::Mode Representation::mode() const
+OrthogonalRepresentation::Mode OrthogonalRepresentation::mode() const
 {
   return m_mode;
 }
 
 //----------------------------------------------------------------------------
-void Representation::setResolution(const NmVector3 &resolution)
+void OrthogonalRepresentation::setResolution(const NmVector3 &resolution)
 {
   if (m_resolution != resolution)
   {
@@ -69,13 +68,13 @@ void Representation::setResolution(const NmVector3 &resolution)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 Representation::resolution() const
+NmVector3 OrthogonalRepresentation::resolution() const
 {
   return m_resolution;
 }
 
 //----------------------------------------------------------------------------
-void Representation::setBounds(const Bounds &bounds)
+void OrthogonalRepresentation::setBounds(const Bounds &bounds)
 {
   if (m_bounds != bounds)
   {
@@ -86,13 +85,13 @@ void Representation::setBounds(const Bounds &bounds)
 }
 
 //----------------------------------------------------------------------------
-Bounds Representation::bounds() const
+Bounds OrthogonalRepresentation::bounds() const
 {
   return m_bounds;
 }
 
 //----------------------------------------------------------------------------
-void Representation::setColor(const QColor &color)
+void OrthogonalRepresentation::setColor(const QColor &color)
 {
   if (m_color != color)
   {
@@ -103,13 +102,13 @@ void Representation::setColor(const QColor &color)
 }
 
 //----------------------------------------------------------------------------
-QColor Representation::representationColor() const
+QColor OrthogonalRepresentation::representationColor() const
 {
   return m_color;
 }
 
 //----------------------------------------------------------------------------
-void Representation::setRepresentationPattern(int pattern)
+void OrthogonalRepresentation::setRepresentationPattern(int pattern)
 {
   if (m_pattern != pattern)
   {
@@ -120,7 +119,7 @@ void Representation::setRepresentationPattern(int pattern)
 }
 
 //----------------------------------------------------------------------------
-int Representation::representationPattern() const
+int OrthogonalRepresentation::representationPattern() const
 {
   return m_pattern;
 }

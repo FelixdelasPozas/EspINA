@@ -27,8 +27,8 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/WidgetFactory.h>
-#include <GUI/View/Widgets/OrthogonalRegion/SliceSelector.h>
-#include <GUI/View/Widgets/OrthogonalRegion/Representation.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h>
 
 // Qt
 #include <QUndoCommand>
@@ -151,9 +151,9 @@ namespace ESPINA
     void hideSliceSelectors();
 
   private:
-    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::SliceSelector;
+    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
     using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
-    using Representation        = GUI::View::Widgets::OrthogonalRegion::Representation;
+    using Representation        = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
     using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
 
     Support::Context &m_context;

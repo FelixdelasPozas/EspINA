@@ -28,240 +28,261 @@
 #include <QAction>
 #include <QMap>
 
+class QPushButton;
+class QHBoxLayout;
+class QSettings;
+class QWidgetAction;
 class ActionSelector;
 
 namespace ESPINA
 {
-  class CategorySelector;
-  class SliderAction;
-
-  class DrawingWidget
-  : public QObject
+  namespace GUI
   {
-    Q_OBJECT
+    namespace Widgets
+    {
+      class CategorySelector;
+      class NumericalInput;
 
-  public:
-    explicit DrawingWidget(Support::Context &context);
+      class DrawingWidget
+      : public QObject
+      {
+        Q_OBJECT
 
-    virtual ~DrawingWidget();
+      public:
+        explicit DrawingWidget(Support::Context &context);
 
-    void setDrawingColor(const QColor &color);
+        virtual ~DrawingWidget();
 
-    void setDrawingBorderColor(const QColor &color);
+        void setDrawingColor(const QColor &color);
 
-    void setBrushImage(const QImage &image);
+        void setDrawingBorderColor(const QColor &color);
 
-    void clearBrushImage();
+        void setBrushImage(const QImage &image);
 
-    CategoryAdapterSPtr selectedCategory() const;
-    
-    void setMaskProperties(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
+        void clearBrushImage();
 
-    /** \brief Shows/hides category controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showCategoryControls(bool value)
-    { m_showCategoryControls = value; }
+        CategoryAdapterSPtr selectedCategory() const;
 
-    /** \brief Shows/hides radius controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showRadiusControls(bool value)
-    { m_showRadiusControls = value; }
+        void setMaskProperties(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
 
-    /** \brief Shows/hides opacity controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showOpacityControls(bool value)
-    { m_showOpacityControls = value; }
+        /** \brief Shows/hides category controls.
+         * \param[in] value true for show.
+         *
+         */
+        void showCategoryControls(bool value)
+        { m_showCategoryControls = value; }
 
-    /** \brief Shows/hides eraser controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showEraserControls(bool value)
-    { m_showEraserControls = value; }
+        /** \brief Shows/hides radius controls.
+         * \param[in] value true for show.
+         *
+         */
+        void showRadiusControls(bool value)
+        { m_showRadiusControls = value; }
 
-    /** \brief Returns true if the category controls are visible, false otherwise.
-     *
-     */
-    bool categoryControlsVisibility()
-    { return m_showCategoryControls; }
+        /** \brief Shows/hides opacity controls.
+         * \param[in] value true for show.
+         *
+         */
+        void showOpacityControls(bool value)
+        { m_showOpacityControls = value; }
 
-    /** \brief Returns true if the radius controls are visible, false otherwise.
-     *
-     */
-    bool radiusControlsVisibility()
-    { return m_showRadiusControls; }
+        /** \brief Shows/hides eraser controls.
+         * \param[in] value true for show.
+         *
+         */
+        void showEraserControls(bool value)
+        { m_showEraserControls = value; }
 
-    /** \brief Returns true if the opacity controls are visible, false otherwise.
-     *
-     */
-    bool opacityControlsVisibility()
-    { return m_showOpacityControls; }
+        /** \brief Returns true if the category controls are visible, false otherwise.
+         *
+         */
+        bool categoryControlsVisibility()
+        { return m_showCategoryControls; }
 
-    /** \brief Returns true if the eraser controls are visible, false otherwise.
-     *
-     */
-    bool eraserControlsVisibility()
-    { return m_showEraserControls; }
+        /** \brief Returns true if the radius controls are visible, false otherwise.
+         *
+         */
+        bool radiusControlsVisibility()
+        { return m_showRadiusControls; }
 
-    /** \brief Sets pencil 2d icon.
-     * \param[in] icon QIcon object.
-     *
-     */
-    void setPencil2DIcon(QIcon icon)
-    { m_circularPainterAction->setIcon(icon); }
+        /** \brief Returns true if the opacity controls are visible, false otherwise.
+         *
+         */
+        bool opacityControlsVisibility()
+        { return m_showOpacityControls; }
 
-    /** \brief Sets pencil 3d icon.
-     * \param[in] icon QIcon object.
-     *
-     */
-    void setPencil3DIcon(QIcon icon)
-    { m_sphericalPainterAction->setIcon(icon); }
+        /** \brief Returns true if the eraser controls are visible, false otherwise.
+         *
+         */
+        bool eraserControlsVisibility()
+        { return m_showEraserControls; }
 
-    /** \brief Sets pencil 2d text,
-     * \param[in] text text for the control.
-     *
-     */
-    void setPencil2DText(QString text)
-    { m_circularPainterAction->setText(text); }
+        /** \brief Sets pencil 2d icon.
+         * \param[in] icon QIcon object.
+         *
+         */
+        void setPencil2DIcon(QIcon icon)
+        { m_circularPainterAction->setIcon(icon); }
 
-    /** \brief Sets pencil 3d text.
-     * \param[in] text text for the control.
-     *
-     */
-    void setPencil3DText(QString text)
-    { m_sphericalPainterAction->setText(text); }
+        /** \brief Sets pencil 3d icon.
+         * \param[in] icon QIcon object.
+         *
+         */
+        void setPencil3DIcon(QIcon icon)
+        { m_sphericalPainterAction->setIcon(icon); }
 
-    void setCategory(CategoryAdapterSPtr category);
+        /** \brief Sets pencil 2d text,
+         * \param[in] text text for the control.
+         *
+         */
+        void setPencil2DText(QString text)
+        { m_circularPainterAction->setText(text); }
 
-    /** \brief Disables eraser tool
-     *
-     */
-    void setCanErase(bool value);
+        /** \brief Sets pencil 3d text.
+         * \param[in] text text for the control.
+         *
+         */
+        void setPencil3DText(QString text)
+        { m_sphericalPainterAction->setText(text); }
 
-    QList<QAction *> actions() const;
+        void setCategory(CategoryAdapterSPtr category);
 
-    void abortOperation();
+        /** \brief Disables eraser tool
+         *
+         */
+        void setCanErase(bool value);
 
-    void stopDrawing();
+        QList<QAction *> actions() const;
 
-    void setEnabled(bool value);
+        void abortOperation();
 
-    bool enabled()
-    { return m_enabled; }
+        void stopDrawing();
 
-  signals:
-    void strokeStarted(BrushPainter *painter, RenderView *view);
+        void setEnabled(bool value);
 
-    void maskPainted(BinaryMaskSPtr<unsigned char> mask);
+        bool enabled()
+        { return m_enabled; }
 
-    void categoryChanged(CategoryAdapterSPtr category);
+      signals:
+        void strokeStarted(BrushPainter *painter, RenderView *view);
 
-  private slots:
-    /** \brief Changes the selector for the operation.
-     *
-     */
-    void changePainter(QAction *action);
+        void maskPainted(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Unsets the selector and disables the tool.
-     *
-     */
-    void unsetPainter();
+        void categoryChanged(CategoryAdapterSPtr category);
 
-    /** \brief Changes the radius for the operation.
-     * \param[in] value radius value.
-     *
-     */
-    void changeRadius(int value);
+      private slots:
+        /** \brief Changes the selector for the operation.
+         *
+         */
+        void changePainter(QAction *action);
 
-    /** \brief Modifies the GUI when the radius changes.
-     *
-     */
-    void radiusChanged(int);
+        /** \brief Unsets the selector and disables the tool.
+         *
+         */
+        void unsetPainter();
 
-    /** \brief Changes the opacity for the operation.
-     * \param[in] value opacity slider value.
-     */
-    void changeOpacity(int value);
+        /** \brief Changes the radius for the operation.
+         * \param[in] value radius value.
+         *
+         */
+        void changeRadius(int value);
 
-    /** \brief Modifies the GUI when the eraser mode changes.
-     *
-     */
-    void setEraserMode(bool value);
+        /** \brief Modifies the GUI when the radius changes.
+         *
+         */
+        void radiusChanged(int);
 
-    /** \brief Modifies the GUI when the drawing mode changes.
-     * \param[in] value true if drawing.
-     */
-    void drawingModeChanged(bool value);
+        /** \brief Changes the opacity for the operation.
+         * \param[in] value opacity slider value.
+         */
+        void changeOpacity(int value);
 
-    /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
-     * \param[in] inUse true if selector is in use.
-     */
-    void selectorInUse(bool inUse);
+        /** \brief Modifies the GUI when the eraser mode changes.
+         *
+         */
+        void setEraserMode(bool value);
 
-    /** \brief Updates the tool when the category selector changes.
-     * \param[in] unused unused value.
-     */
-    void onCategoryChange(CategoryAdapterSPtr unused);
+        /** \brief Modifies the GUI when the drawing mode changes.
+         * \param[in] value true if drawing.
+         */
+        void drawingModeChanged(bool value);
 
-    /** \brief Updates the UI when the drawing mode gets changed.
-     *
-     */
-    void onDrawingModeChange(DrawingMode mode);
+        /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
+         * \param[in] inUse true if selector is in use.
+         */
+        void selectorInUse(bool inUse);
 
-  private:
-    void initPainters();
+        /** \brief Updates the tool when the category selector changes.
+         * \param[in] unused unused value.
+         */
+        void onCategoryChange(CategoryAdapterSPtr unused);
 
-    QAction *registerPainter(const QIcon    &icon,
-                             const QString  &description,
-                             MaskPainterSPtr painter);
+        /** \brief Updates the UI when the drawing mode gets changed.
+         *
+         */
+        void onDrawingModeChange(DrawingMode mode);
 
-    QAction *registerBrush(const QIcon     &icon,
-                           const QString   &description,
-                           BrushPainterSPtr painter);
+      private:
+        void initPainters();
 
-    /** \brief Helper method to hide/show the controls of the tool.
-     *
-     */
-    void setControlVisibility(bool visible);
+        void initDrawingControls();
 
-  private:
-    Support::Context &m_context;
+        void initCategoryWidget(QHBoxLayout *layout);
 
-    BrushPainterSPtr m_circularPainter;
-    BrushPainterSPtr m_sphericalPainter;
-    MaskPainterSPtr  m_contourPainter;
-    MaskPainterSPtr  m_currentPainter;
+        void initEraseWidget(QHBoxLayout *layout);
 
-    ActionSelector   *m_painterSelector;
-    CategorySelector *m_categorySelector;
-    QMap<QAction *, MaskPainterSPtr> m_painters;
+        void initRadiusWidget(QHBoxLayout *layout, const QSettings &settings);
 
-    SliderAction *m_radiusWidget;
-    SliderAction *m_opacityWidget;
-    QAction      *m_eraserWidget;
+        void initOpacityWidget(QHBoxLayout *layout, const QSettings &settings);
 
-    QAction *m_circularPainterAction;
-    QAction *m_sphericalPainterAction;
-    QAction *m_contourPainterAction;
+        QAction *registerPainter(const QIcon    &icon,
+                                 const QString  &description,
+                                 MaskPainterSPtr painter);
 
-    bool m_showCategoryControls;
-    bool m_showRadiusControls;
-    bool m_showOpacityControls;
-    bool m_showEraserControls;
+        QAction *registerBrush(const QIcon     &icon,
+                               const QString   &description,
+                               BrushPainterSPtr painter);
 
-    bool m_enabled;
+        /** \brief Helper method to hide/show the controls of the tool.
+         *
+         */
+        void setControlVisibility(bool visible);
 
-    // Shared painter widgets needs to retain it's values.
-    int m_brushRadius;
-    int m_contourDistance;
-    ContourWidgetSPtr m_contourWidget;
-  };
+      private:
+        Support::Context &m_context;
+
+        BrushPainterSPtr m_circularPainter;
+        BrushPainterSPtr m_sphericalPainter;
+        MaskPainterSPtr  m_contourPainter;
+        MaskPainterSPtr  m_currentPainter;
+
+        ActionSelector   *m_painterSelector;
+        QWidgetAction    *m_nestedWidgets;
+        CategorySelector *m_categorySelector;
+        QMap<QAction *, MaskPainterSPtr> m_painters;
+
+        NumericalInput *m_radiusWidget;
+        NumericalInput *m_opacityWidget;
+        QPushButton   *m_eraserWidget;
+
+        QAction *m_circularPainterAction;
+        QAction *m_sphericalPainterAction;
+        QAction *m_contourPainterAction;
+
+        bool m_showCategoryControls;
+        bool m_showRadiusControls;
+        bool m_showOpacityControls;
+        bool m_showEraserControls;
+
+        bool m_enabled;
+
+        // Shared painter widgets needs to retain it's values.
+        int m_brushRadius;
+        int m_contourDistance;
+        ContourWidgetSPtr m_contourWidget;
+      };
+    }
+  }
 }
 
 #endif // ESPINA_DRAWING_WIDGET_H

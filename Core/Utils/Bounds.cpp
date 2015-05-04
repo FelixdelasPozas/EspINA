@@ -392,11 +392,17 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
 }
 
 //-----------------------------------------------------------------------------
-bool ESPINA::contains(const Bounds &bounds, const Axis axis, const Nm pos)
+bool ESPINA::contains(const Bounds &bounds, const Axis dir, const Nm pos)
 {
-  auto index = idx(axis);
+  auto index = idx(dir);
 
-  return bounds[2*index]  <= pos && pos <= bounds[2*index+1];
+  auto lowerContained = bounds.areLowerIncluded(dir)? [](double a, double b){return a <= b;}
+                                                    : [](double a, double b){return a <  b;};
+
+  auto upperContained = bounds.areUpperIncluded(dir)? [](double a, double b){return a >= b;}
+                                                    : [](double a, double b){return a >  b;};
+
+  return lowerContained(bounds[2*index], pos) && upperContained(pos, bounds[2*index+1]);
 }
 
 

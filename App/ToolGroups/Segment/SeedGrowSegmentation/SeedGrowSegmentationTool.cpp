@@ -28,8 +28,10 @@
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Widgets/CategorySelector.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
+#include <Support/Widgets/Styles.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -39,8 +41,11 @@
 #include <QUndoStack>
 #include <QSettings>
 #include <QMessageBox>
+#include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support::Widgets;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
@@ -100,8 +105,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context       &context)
 : m_context         (context)
-, m_categorySelector{new CategorySelector(context.model())}
 , m_selectorSwitch  {new ActionSelector()}
+, m_nestedOptions   {new QWidgetAction(this)}
+, m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
 , m_settings        {settings}
@@ -146,6 +152,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
     m_selectorSwitch->setDefaultAction(action);
   }
 
+  initOptionWidgets();
+
   m_roi->setValue(Axis::X, m_settings->xSize());
   m_roi->setValue(Axis::Y, m_settings->ySize());
   m_roi->setValue(Axis::Z, m_settings->zSize());
@@ -160,16 +168,14 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
           this,             SLOT(unsetSelector()));
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
-  connect(m_categorySelector, SIGNAL(widgetCreated()),
-          this, SLOT(onCategorySelectorWidgetCreation()));
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
   delete m_categorySelector;
-  delete m_selectorSwitch;
   delete m_seedThreshold;
+  delete m_selectorSwitch;
   delete m_roi;
 }
 
@@ -186,9 +192,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   }
 
   actions << m_selectorSwitch;
-  actions << m_categorySelector;
-  actions << m_seedThreshold;
-  actions << m_roi;
+  actions << m_nestedOptions;
 
   return actions;
 }
@@ -202,6 +206,24 @@ void SeedGrowSegmentationTool::abortOperation()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
 {
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initOptionWidgets()
+{
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
+
+  layout->addWidget(m_categorySelector);
+  layout->addWidget(m_seedThreshold);
+  layout->addWidget(m_roi);
+
+  widget->setLayout(layout);
+
+  Styles::setNestedStyle(widget);
+
+  m_nestedOptions->setDefaultWidget(widget);
+  m_nestedOptions->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -411,17 +433,11 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onCategorySelectorWidgetCreation()
-{
-  onCategoryChanged(m_categorySelector->selectedCategory());
-}
-
-//-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategoryROI)
 {
   if (applyCategoryROI)
   {
-    onCategorySelectorWidgetCreation();
+    onCategoryChanged(m_categorySelector->selectedCategory());
   }
   else
   {
@@ -434,8 +450,7 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
 {
-  m_categorySelector->setVisible(value);
-  m_seedThreshold->setVisible(value);
+  m_nestedOptions->setVisible(value);
   m_roi->setVisible(value);
 }
 
