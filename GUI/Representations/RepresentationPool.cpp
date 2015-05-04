@@ -216,7 +216,6 @@ bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Actors actors)
 {
-  //Q_ASSERT(notHasBeenProcessed(t));
   if (notHasBeenProcessed(t))
   {
     if (actorsChanged(actors))

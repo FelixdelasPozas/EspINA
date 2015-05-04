@@ -140,9 +140,12 @@ void RepresentationManager::hide(TimeStamp t)
 
     qDebug() << debugName() << "Requested hide" << t;
 
-    waitForDisplay();
+    if(hasRepresentations())
+    {
+      waitForDisplay();
 
-    emitRenderRequest(t);
+      emitRenderRequest(t);
+    }
   }
 
   for (auto child : m_childs)
@@ -235,9 +238,12 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp t)
   {
     m_crosshair = crosshair;
 
-    if (isActive() && hasRepresentations())
+    if (isActive())
     {
-      waitForDisplay();
+      if(hasRepresentations())
+      {
+        waitForDisplay();
+      }
 
       changeCrosshair(crosshair, t);
     }
@@ -251,9 +257,12 @@ void RepresentationManager::onSceneResolutionChanged(const NmVector3 &resolution
   {
     m_resolution = resolution;
 
-    if (isActive() && hasRepresentations())
+    if (isActive())
     {
-      waitForDisplay();
+      if(hasRepresentations())
+      {
+        waitForDisplay();
+      }
 
       changeSceneResolution(m_resolution, t);
     }
@@ -269,7 +278,10 @@ void RepresentationManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp
 
     if (isActive())
     {
-      waitForDisplay();
+      if(hasRepresentations())
+      {
+        waitForDisplay();
+      }
 
       changeSceneBounds(m_bounds, t);
     }
@@ -310,7 +322,6 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
-
   qDebug() << debugName() << "Requested to emit renderRequested at" << t;
   if(t > m_lastRenderRequestTime)
   {

@@ -38,6 +38,8 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 //----------------------------------------------------------------------------
 void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
+  QMutexLocker lock(&m_mutex);
+
   Q_ASSERT(!m_sources.contains(item));
 
   m_sources << item;
@@ -46,7 +48,10 @@ void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
-  Q_ASSERT(m_sources.contains(item));
+  QMutexLocker lock(&m_mutex);
+
+  if(!m_sources.contains(item)) return;
+  // Q_ASSERT(m_sources.contains(item));
 
   m_actors.remove(item);
   m_sources.removeOne(item);
@@ -161,14 +166,14 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
+  QMutexLocker lock(&m_mutex);
   //qDebug() << "Task" << description() << "running" << " - " << this;
 
   // Local copy needed to prevent condition race on same TimeStamp
   // (usually due to invalidation view item representations)
-  m_mutex.lock();
+
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
-  m_mutex.unlock();
 
   auto it = updateList.begin();
   while (canExecute() && it != updateList.end())

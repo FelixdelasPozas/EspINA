@@ -82,6 +82,7 @@ namespace ESPINA
       mapper->SetVolumeRayCastFunction(composite);
       mapper->IntermixIntersectingGeometryOff();
       mapper->SetInputData(volume);
+      mapper->SetNumberOfThreads(1);
       mapper->Update();
 
       auto color = m_colorEngine->color(segmentation);
