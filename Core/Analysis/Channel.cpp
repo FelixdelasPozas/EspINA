@@ -50,7 +50,6 @@ const double NO_HUE  = -1.0;
 
 const double MIN_OPACITY  =  0.0;
 const double MAX_OPACITY  =  1.0;
-const double AUTO_OPACITY = -1.0;
 
 const double MIN_SATURATION = 0.0;
 const double MAX_SATURATION = 1.0;
@@ -63,7 +62,7 @@ Channel::Channel(InputSPtr input)
 , m_brightness{0.0}
 , m_contrast  {1.0}
 , m_hue       {NO_HUE}
-, m_opacity   {AUTO_OPACITY}
+, m_opacity   {MAX_OPACITY}
 , m_saturation{0.0}
 {
 }
@@ -274,7 +273,9 @@ void Channel::setHue(double hue)
 //------------------------------------------------------------------------
 void Channel::setOpacity(double opacity)
 {
-  if (opacity < MIN_OPACITY && opacity != AUTO_OPACITY)
+  if(opacity == -1.0) opacity = 1.0; // Fix for older espina seg files.
+
+  if (opacity < MIN_OPACITY)
   {
     m_opacity = MIN_OPACITY;
   } else if (opacity > MAX_OPACITY)

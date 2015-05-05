@@ -564,28 +564,24 @@ void ClassificationLayout::changeCategoryColor()
 {
   // sanity checks, not really necessary
   QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
-
-  if (indexList.size() != 1)
-    return;
-
   auto item = ClassificationLayout::item(indexList.first());
 
-  if (!isCategory(item))
-    return;
-
-  auto category = categoryPtr(item);
-
-  HueSelectorDialog hueSelector(category->color().hue());
-  hueSelector.setModal(true);
-
-  if(hueSelector.exec() == QDialog::Accepted)
+  if (indexList.size() == 1 && isCategory(item))
   {
-    m_context.undoStack()->beginMacro("Change category color");
-    m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
-                                                               m_context.representationInvalidator(),
-                                                               category,
-                                                               hueSelector.hueValue()));
-    m_context.undoStack()->endMacro();
+    auto category = categoryPtr(item);
+
+    HueSelectorDialog hueSelector(category->color().hue());
+    hueSelector.setModal(true);
+
+    if(hueSelector.exec() == QDialog::Accepted)
+    {
+      m_context.undoStack()->beginMacro("Change category color");
+      m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
+                                                                 m_context.representationInvalidator(),
+                                                                 category,
+                                                                 hueSelector.hueValue()));
+      m_context.undoStack()->endMacro();
+    }
   }
 }
 

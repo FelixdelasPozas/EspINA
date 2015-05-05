@@ -30,7 +30,10 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
+#include <GUI/View/RepresentationInvalidator.h>
 #include <Support/Context.h>
+
+using ESPINA::GUI::View::RepresentationInvalidator;
 
 class QCloseEvent;
 
@@ -124,7 +127,7 @@ namespace ESPINA
     /** \brief Apply the changes of the UI to the channel.
      *
      */
-    void onChangesAccpeted();
+    void onChangesAccepted();
 
     /** \brief Resets the channel to previous values.
      *
@@ -184,9 +187,13 @@ namespace ESPINA
     ModelAdapterSPtr   m_model;
     SchedulerSPtr      m_scheduler;
 
-    ManualPipelineSources m_sources;
-    GUI::View::ViewState  m_viewState;
-    View2D               *m_view;
+    Timer                     m_timer;
+    RepresentationInvalidator m_invalidator;
+    ManualPipelineSources     m_sources;
+    GUI::View::ViewState      m_viewState;
+    std::shared_ptr<View2D>   m_view;
+
+    RepresentationInvalidator &m_contextInvalidator;
 
     HueSelector      *m_hueSelector;
 

@@ -69,14 +69,16 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
-: m_spacingModified{false}
-, m_edgesModified  {false}
-, m_channel        {channel}
-, m_model          {context.model()}
-, m_scheduler      {context.scheduler()}
-, m_sources        {context.representationInvalidator()}
-, m_viewState      {context.timer(), context.representationInvalidator()}
-, m_view           {new View2D(m_viewState, Plane::XY)}
+: m_spacingModified   {false}
+, m_edgesModified     {false}
+, m_channel           {channel}
+, m_model             {context.model()}
+, m_scheduler         {context.scheduler()}
+, m_invalidator       {m_timer}
+, m_sources           {m_invalidator}
+, m_viewState         {m_timer, m_invalidator}
+, m_view              {new View2D(m_viewState, Plane::XY)}
+, m_contextInvalidator(context.representationInvalidator())
 {
   setupUi(this);
 
@@ -84,7 +86,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 
   /// PROPERTIES TAB
   connect(okCancelBox, SIGNAL(accepted()),
-          this,        SLOT(onChangesAccpeted()));
+          this,        SLOT(onChangesAccepted()));
   connect(okCancelBox, SIGNAL(rejected()),
           this,        SLOT(onChangesRejected()));
 
@@ -129,7 +131,6 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 //------------------------------------------------------------------------
 ChannelInspector::~ChannelInspector()
 {
-  delete m_view;
 }
 
 //------------------------------------------------------------------------
@@ -159,7 +160,10 @@ void ChannelInspector::onOpacityCheckChanged(int value)
   opacitySlider->setEnabled(!value);
 
   if (value)
-    m_channel->setOpacity(-1.0);
+  {
+    auto opacity = 1.0/m_model->channels().size();
+    m_channel->setOpacity(opacity);
+  }
   else
     m_channel->setOpacity(opacityBox->value()/100.);
 
@@ -284,11 +288,12 @@ void ChannelInspector::applyModifications()
 //------------------------------------------------------------------------
 void ChannelInspector::invalidateChannelRepresentation()
 {
+  m_viewState.timer().increment();
   m_sources.updateRepresentation(toViewItemList(m_channel.get()), m_view->timeStamp());
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::onChangesAccpeted()
+void ChannelInspector::onChangesAccepted()
 {
   if (hueBox->value() == -1)
   {
@@ -311,7 +316,7 @@ void ChannelInspector::onChangesAccpeted()
     applyEdgesChanges();
   }
 
-  m_viewState.representationInvalidator().invalidateRepresentations(toViewItemList(m_channel.get()));
+  m_contextInvalidator.invalidateRepresentations(toViewItemList(m_channel.get()));
 }
 
 //------------------------------------------------------------------------
@@ -499,9 +504,11 @@ void ChannelInspector::initSliceView()
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
   m_view->setScaleVisibility(true);
-  mainLayout->insertWidget(0, m_view, 1);
+  mainLayout->insertWidget(0, m_view.get(), 1);
 
   m_view->addRepresentationManager(sliceManager);
+
+  updateSceneState(m_viewState, toViewItemList(m_channel));
 }
 
 //------------------------------------------------------------------------

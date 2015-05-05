@@ -126,6 +126,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
       actor->SetDisplayExtent(extent);
       actor->GetMapper()->SetNumberOfThreads(1);
       actor->GetMapper()->UpdateWholeExtent();
+      actor->SetOpacity(opacity(state));
       actor->Update();
 
       actors << actor;
