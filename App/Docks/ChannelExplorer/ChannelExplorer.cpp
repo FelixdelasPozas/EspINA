@@ -465,16 +465,17 @@ void ChannelExplorer::showInformation()
 void ChannelExplorer::activateChannel()
 {
   QModelIndex currentIndex = m_gui->view->currentIndex();
-  if (!currentIndex.parent().isValid())
-    return;
 
-  auto index = m_sort->mapToSource(currentIndex);
-  auto currentItem = itemAdapter(index);
-
-  if (ItemAdapter::Type::CHANNEL == currentItem->type())
+  if (currentIndex.parent().isValid())
   {
-    auto currentChannel = channelPtr(currentItem);
-    //TODO URGENT //m_context.activeChannel = currentChannel;
+    auto index       = m_sort->mapToSource(currentIndex);
+    auto currentItem = itemAdapter(index);
+
+    if (isChannel(currentItem))
+    {
+      auto currentChannel = channelPtr(currentItem);
+      getSelection(m_context)->setActiveChannel(currentChannel);
+    }
   }
 }
 

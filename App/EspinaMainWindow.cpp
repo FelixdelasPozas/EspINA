@@ -581,18 +581,17 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-    // TODO
-//    if (!m_model->isEmpty())
-//    {
-//      auto problemList = checkAnalysisConsistency();
-//
-//      if (!problemList.empty())
-//      {
-//        ProblemListDialog dialog(problemList);
-//
-//        dialog.exec();
-//      }
-//    }
+   if (!m_context.model()->isEmpty())
+   {
+     auto problemList = checkAnalysisConsistency();
+
+     if (!problemList.empty())
+     {
+       ProblemListDialog dialog(problemList);
+
+       dialog.exec();
+     }
+   }
   }
 
   emit analysisChanged();

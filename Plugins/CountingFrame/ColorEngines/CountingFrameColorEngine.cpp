@@ -34,7 +34,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
   m_excludedLUT->SetNumberOfTableValues(2);
   m_excludedLUT->Build();
   m_excludedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_excludedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.2);
+  m_excludedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.6);
   m_excludedLUT->Modified();
 
   m_includedLUT = LUTSPtr::New();
@@ -62,7 +62,7 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
     if (extension->isExcluded())
     {
       r = 255;
-      a =  50;
+      a = 125;
     } else
     {
       g = 255;
