@@ -37,7 +37,7 @@ namespace ESPINA
   {
     RepresentationGroup        Group;
     RepresentationPoolSList    Pools;
-    RepresentationManagerSList Managers;
+    GUI::Representations::RepresentationManagerSList Managers;
     RepresentationSwitchSList  Switches;
     QIcon                      Icon;
     QString                    Description;

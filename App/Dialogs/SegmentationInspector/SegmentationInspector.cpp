@@ -246,7 +246,7 @@ void SegmentationInspector::updateWindowTitle()
 //------------------------------------------------------------------------
 SelectionSPtr SegmentationInspector::selection() const
 {
-  return ESPINA::Support::contextSelection(m_context);
+  return ESPINA::Support::getSelection(m_context);
 }
 
 

@@ -25,10 +25,13 @@
 #include "SeedGrowSegmentationHistoryWidget.h"
 #include "SeedGrowSegmentationHistory.h"
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
+#include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Widgets/CategorySelector.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
+#include <Support/Widgets/Styles.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -38,8 +41,11 @@
 #include <QUndoStack>
 #include <QSettings>
 #include <QMessageBox>
+#include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support::Widgets;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
@@ -99,8 +105,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context       &context)
 : m_context         (context)
-, m_categorySelector{new CategorySelector(context.model())}
 , m_selectorSwitch  {new ActionSelector()}
+, m_nestedOptions   {new QWidgetAction(this)}
+, m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
 , m_settings        {settings}
@@ -145,6 +152,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
     m_selectorSwitch->setDefaultAction(action);
   }
 
+  initOptionWidgets();
+
   m_roi->setValue(Axis::X, m_settings->xSize());
   m_roi->setValue(Axis::Y, m_settings->ySize());
   m_roi->setValue(Axis::Z, m_settings->zSize());
@@ -159,16 +168,14 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
           this,             SLOT(unsetSelector()));
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
-  connect(m_categorySelector, SIGNAL(widgetCreated()),
-          this, SLOT(onCategorySelectorWidgetCreation()));
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
   delete m_categorySelector;
-  delete m_selectorSwitch;
   delete m_seedThreshold;
+  delete m_selectorSwitch;
   delete m_roi;
 }
 
@@ -185,9 +192,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   }
 
   actions << m_selectorSwitch;
-  actions << m_categorySelector;
-  actions << m_seedThreshold;
-  actions << m_roi;
+  actions << m_nestedOptions;
 
   return actions;
 }
@@ -201,6 +206,24 @@ void SeedGrowSegmentationTool::abortOperation()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
 {
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initOptionWidgets()
+{
+  auto widget = new QWidget();
+  auto layout = new QHBoxLayout();
+
+  layout->addWidget(m_categorySelector);
+  layout->addWidget(m_seedThreshold);
+  layout->addWidget(m_roi);
+
+  widget->setLayout(layout);
+
+  Styles::setNestedStyle(widget);
+
+  m_nestedOptions->setDefaultWidget(widget);
+  m_nestedOptions->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -239,8 +262,7 @@ void SeedGrowSegmentationTool::unsetSelector()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
-  if (selectedItems.size() != 1)
-    return;
+  if (selectedItems.size() != 1) return;
 
   auto element = selectedItems.first();
 
@@ -249,11 +271,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   auto pointBounds = element.first->bounds();
   NmVector3 seedPoint{(pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
-  Q_ASSERT(ItemAdapter::Type::CHANNEL == element.second->type());
-  auto channel = m_context.ActiveChannel;
+  Q_ASSERT(isChannel(element.second));
+  auto channel = inputChannel();
 
-  if (!channel)
-    return;
+  if (!channel) return;
 
   // FIXME: merged analysis channel's don't have outputs????
   Q_ASSERT(channel->output());
@@ -262,7 +283,6 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   NmVector3 seed;
   Bounds    seedBounds;
-  ROISPtr   roi;
 
   for (int i = 0; i < 3; ++i)
   {
@@ -270,7 +290,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  auto currentROI = m_context.activeROI()->currentROI();
+  auto currentROI = m_context.roiProvider()->currentROI();
 
   if (!currentROI && m_roi->applyROI())
   {
@@ -279,27 +299,20 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     auto ySize = std::max(m_roi->value(Axis::Y), (unsigned int) 2);
     auto zSize = std::max(m_roi->value(Axis::Z), (unsigned int) 2);
 
-    Bounds bounds{seed[0]-xSize/2, seed[0]+xSize/2,
-                  seed[1]-ySize/2, seed[1]+ySize/2,
-                  seed[2]-zSize/2, seed[2]+zSize/2};
-
+    auto bounds  = OrthogonalROITool::createRegion(seed, xSize, ySize, zSize);
     auto spacing = channel->output()->spacing();
     auto origin  = channel->position();
 
     bounds = intersection(bounds, channel->bounds(), spacing);
 
-    roi = std::make_shared<ROI>(bounds, spacing, origin);
-  }
-  else
-  {
-    roi = currentROI;
+    currentROI = std::make_shared<ROI>(bounds, spacing, origin);
   }
 
   auto validSeed = true;
 
-  if(roi != nullptr)
+  if(currentROI)
   {
-    validSeed = contains(roi.get(), seed, volume->spacing());
+    validSeed = contains(currentROI.get(), seed, volume->spacing());
   }
 
   validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
@@ -318,9 +331,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
-    if(roi != nullptr)
+
+    if(currentROI)
     {
-      filter->setROI(roi->clone());
+      filter->setROI(currentROI->clone());
     }
 
     m_executingTasks[filter.get()] = filter;
@@ -331,9 +345,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     Task::submit(filter);
 
-    if (currentROI)
+    if (currentROI == m_context.roiProvider()->currentROI())
     {
-      m_context.activeROI()->clear();
+      m_context.roiProvider()->clear();
     }
   }
   else
@@ -366,7 +380,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     segmentation->setCategory(category);
 
     SampleAdapterSList samples;
-    samples << QueryAdapter::sample(m_context.ActiveChannel);
+    samples << QueryAdapter::sample(inputChannel());
     Q_ASSERT(samples.size() == 1);
 
     auto undoStack = m_context.undoStack();
@@ -419,17 +433,11 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onCategorySelectorWidgetCreation()
-{
-  onCategoryChanged(m_categorySelector->selectedCategory());
-}
-
-//-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategoryROI)
 {
   if (applyCategoryROI)
   {
-    onCategorySelectorWidgetCreation();
+    onCategoryChanged(m_categorySelector->selectedCategory());
   }
   else
   {
@@ -442,9 +450,14 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
 {
-  m_categorySelector->setVisible(value);
-  m_seedThreshold->setVisible(value);
+  m_nestedOptions->setVisible(value);
   m_roi->setVisible(value);
+}
+
+//-----------------------------------------------------------------------------
+ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
+{
+  return getActiveChannel(m_context);
 }
 
 //-----------------------------------------------------------------------------

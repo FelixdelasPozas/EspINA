@@ -19,10 +19,10 @@
 */
 
 
-#ifndef ESPINA_THRESHOLD_ACTION
-#define ESPINA_THRESHOLD_ACTION
+#ifndef ESPINA_SEED_THRESHOLD_H
+#define ESPINA_SEED_THRESHOLD_H
 
-#include <QWidgetAction>
+#include <QWidget>
 
 class QSpinBox;
 class QLabel;
@@ -30,16 +30,14 @@ class QLabel;
 namespace ESPINA
 {
   class SeedThreshold
-  : public QWidgetAction
+  : public QWidget
   {
     Q_OBJECT
   public:
     /** \brief SeedThreshold class constructor.
      * \param[in] parent raw pointer of the parent of this object.
      */
-    explicit SeedThreshold(QObject* parent = nullptr);
-
-    virtual QWidget* createWidget(QWidget* parent) override;
+    explicit SeedThreshold(QWidget* parent = nullptr);
 
     /** \brief Returns lower threshold value.
      *
@@ -81,6 +79,11 @@ namespace ESPINA
     void upperThresholdChanged(int);
 
   private:
+    int validThreshold(int value) const;
+    
+    int validRangedValue(int value, int min, int max) const;
+
+  private:
     QLabel   *m_lthLabel, *m_uthLabel;
     QSpinBox *m_lth, *m_uth;
 
@@ -90,4 +93,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // ESPINA_THRESHOLD_ACTION
+#endif // ESPINA_SEED_THRESHOLD_H

@@ -21,13 +21,13 @@
 #define ESPINA_SLICE_3D_MANAGER_H
 
 // ESPINA
-#include <GUI/Representations/PoolManager.h>
+#include <GUI/Representations/Managers/PoolManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA {
 
   class Slice3DManager
-  : public PoolManager
+  : public GUI::Representations::Managers::PoolManager
   {
     Q_OBJECT
   public:
@@ -64,7 +64,7 @@ namespace ESPINA {
 
     virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    virtual RepresentationManagerSPtr cloneImplementation() override;
+    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
     void connectPools();
 

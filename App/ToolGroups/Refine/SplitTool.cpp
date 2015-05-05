@@ -148,7 +148,7 @@ namespace ESPINA
       // TODO viewState->addWidget(m_widget);
       //TODO m_viewManager->setSelectionEnabled(false);
 
-      auto selectedSegs = contextSelection(m_context)->segmentations();
+      auto selectedSegs = getSelectedSegmentations(m_context);
       Q_ASSERT(selectedSegs.size() == 1);
       auto segmentation = selectedSegs.first();
       widget->setSegmentationBounds(segmentation->bounds());
@@ -181,7 +181,7 @@ namespace ESPINA
   void SplitTool::applyCurrentState()
   {
     auto widget      = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
-    auto selectedSeg = contextSelection(m_context)->segmentations().first();
+    auto selectedSeg = getSelection(m_context)->segmentations().first();
 
     if (widget->planeIsValid())
     {
@@ -258,7 +258,7 @@ namespace ESPINA
           segmentations << segmentation.get();
         }
 
-        contextSelection(m_context)->set(segmentations);
+        getSelection(m_context)->set(segmentations);
 
         auto undoStack = m_context.undoStack();
         undoStack->beginMacro("Split Segmentation");

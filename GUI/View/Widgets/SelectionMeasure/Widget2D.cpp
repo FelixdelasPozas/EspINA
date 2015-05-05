@@ -140,6 +140,7 @@ void Widget2D::uninitializeImplementation()
 
   disconnect(m_selection.get(), SIGNAL(selectionChanged()),
              this,              SLOT(onSelectionChanged()));
+
   desynchronizeSelectionChanges();
 }
 
@@ -180,10 +181,8 @@ void Widget2D::desynchronizeSelectionChanges()
 //----------------------------------------------------------------------------
 void Widget2D::updateVisibility()
 {
-  auto bounds = m_widget->bounds();
-
-  bool visible = bounds[2*m_index]  <= m_slice
-              && bounds[2*m_index+1] > m_slice;
+  auto axis    = toAxis(m_index);
+  auto visible = contains(m_widget->bounds(), axis, m_slice);
 
   m_widget->SetEnabled(visible);
 }

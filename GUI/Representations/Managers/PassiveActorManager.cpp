@@ -19,13 +19,15 @@
  */
 
 // ESPINA
-#include <GUI/Representations/PassiveActorManager.h>
+#include <GUI/Representations/Managers/PassiveActorManager.h>
 #include <GUI/View/RenderView.h>
 
 // VTK
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //----------------------------------------------------------------------------
 PassiveActorManager::PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews, ManagerFlags flags)

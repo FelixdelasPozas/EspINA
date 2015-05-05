@@ -44,7 +44,7 @@ namespace ESPINA
 
       SchedulerSPtr              scheduler() const;
       ModelAdapterSPtr           model() const;
-      ROIAccumulatorSPtr         activeROI() const;
+      ROIAccumulatorSPtr         roiProvider();
       GUI::View::ViewState      &viewState();
       ColorEngineSPtr            colorEngine() const;
       QUndoStack *               undoStack();
@@ -53,8 +53,6 @@ namespace ESPINA
 
       Timer &timer();
       GUI::View::RepresentationInvalidator &representationInvalidator();
-
-      ChannelAdapterPtr ActiveChannel;//Move to selection
 
     private:
       using Invalidator = GUI::View::RepresentationInvalidator;
@@ -72,7 +70,11 @@ namespace ESPINA
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
     };
 
-    ESPINA::GUI::View::SelectionSPtr contextSelection(Context &context);
+    ESPINA::GUI::View::SelectionSPtr getSelection(Context &context);
+
+    ChannelAdapterPtr getActiveChannel(Context &context);
+
+    SegmentationAdapterList getSelectedSegmentations(Context &context);
   }
 }
 

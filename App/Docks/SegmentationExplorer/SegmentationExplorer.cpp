@@ -88,7 +88,7 @@ SegmentationExplorer::SegmentationExplorer(Support::Context &context,
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
           this, SLOT(updateSearchFilter()));
 
-  connect(contextSelection(context).get(), SIGNAL(selectionStateChanged()),
+  connect(getSelection(context).get(), SIGNAL(selectionStateChanged()),
           this,                     SLOT(onSelectionChanged()));
 
   setWidget(m_gui);
@@ -274,7 +274,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  contextSelection(m_context)->set(currentSelection);
+  getSelection(m_context)->set(currentSelection);
   this->blockSignals(false);
 }
 

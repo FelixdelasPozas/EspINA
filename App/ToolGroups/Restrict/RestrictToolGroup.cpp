@@ -40,9 +40,9 @@ public:
   virtual void undo() override;
 
 private:
-  ROISPtr        m_ROI;
+  ROISPtr            m_ROI;
   RestrictToolGroup *m_tool;
-  ROISPtr        m_prevROI;
+  ROISPtr            m_prevROI;
 };
 
 //-----------------------------------------------------------------------------
@@ -153,36 +153,6 @@ RestrictToolGroup::~RestrictToolGroup()
   setCurrentROI(nullptr);
 }
 
-// //-----------------------------------------------------------------------------
-// void ROIToolsGroup::setEnabled(bool value)
-// {
-//   if(m_enabled != value)
-//   {
-//     //   m_manualROITool   ->setEnabled(value);
-//     m_ortogonalROITool->setEnabled(value);
-//     m_cleanROITool    ->setEnabled(value);
-//
-//     if (!value)
-//     {
-//       setCurrentROI(nullptr);
-//     }
-//
-//     m_enabled = value;
-//   }
-// }
-
-// //-----------------------------------------------------------------------------
-// ToolSList ROIToolsGroup::tools()
-// {
-//   ToolSList availableTools;
-//
-// //   availableTools << m_manualROITool;
-//   availableTools << m_ortogonalROITool;
-//   availableTools << m_cleanROITool;
-//
-//   return availableTools;
-// }
-
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
@@ -213,7 +183,6 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 
     // TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
   }
-  //TODO m_viewManager->updateViews();
 
   emit roiChanged(roi);
 }
@@ -280,7 +249,6 @@ void RestrictToolGroup::setVisible(bool visible)
   }
 
   m_visible = visible;
-  //TODO m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -288,37 +256,36 @@ void RestrictToolGroup::onManualROIDefined(Selector::Selection strokes)
 {
   commitPendingOrthogonalROI(nullptr);
 
-  auto undoStack = m_context.undoStack();
+  undoStackPush(new DefineManualROICommand{strokes.first().first, this});
 
-  if(hasValidROI())
-  {
-    undoStack->beginMacro("Modify Region Of Interest");
-  }
-  else
-  {
-    undoStack->beginMacro("Create Region Of Interest");
-  }
-  undoStack->push(new DefineManualROICommand{strokes.first().first, this});
-  undoStack->endMacro();
+  m_context.roiProvider()->setProvider(this);
 }
 
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::onOrthogonalROIDefined(ROISPtr roi)
 {
+  undoStackPush(new DefineOrthogonalROICommand{roi, this});
+
+  m_context.roiProvider()->setProvider(this);
+
+  emit roiChanged(roi);
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::undoStackPush(QUndoCommand *command)
+{
   auto undoStack = m_context.undoStack();
 
   if(hasValidROI())
   {
-    undoStack->beginMacro("Modify Region Of Interest");
+    undoStack->beginMacro(tr("Modify Region Of Interest"));
   }
   else
   {
-    undoStack->beginMacro("Create Region Of Interest");
+    undoStack->beginMacro(tr("Create Region Of Interest"));
   }
-  undoStack->push(new DefineOrthogonalROICommand{roi, this});
+  undoStack->push(command);
   undoStack->endMacro();
-
-  emit roiChanged(roi);
 }
 
 //-----------------------------------------------------------------------------

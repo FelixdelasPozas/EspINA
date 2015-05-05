@@ -60,13 +60,6 @@ namespace ESPINA
     class CoronalBehaviour;
 
   public:
-    enum SliceSelectionTypes
-    {
-      None=0x0, From = 0x1, To = 0x2
-    };
-    Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
-
-  public:
     /** \brief View2D class constructor.
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
@@ -151,20 +144,12 @@ namespace ESPINA
      */
     void setScaleVisibility(bool visible);
 
-    /// Set Slice Selection flags to all registered Slice Views
-    void addSliceSelectors(SliceSelectorSPtr widget,
-                           SliceSelectionType selector);
-
-    /// Unset Slice Selection flags to all registered Slice Views
-    void removeSliceSelectors(SliceSelectorSPtr widget);
-
   signals:
     void channelSelected(ChannelAdapterPtr);
 
     void segmentationSelected(SegmentationAdapterPtr, bool);
 
   protected:
-
     virtual void resetImplementation();
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
@@ -179,7 +164,7 @@ namespace ESPINA
 
     virtual void removeActor(vtkProp *actor) override;
 
-    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 
     virtual void resetCameraImplementation();
 
@@ -189,7 +174,7 @@ namespace ESPINA
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
-    virtual void configureManager(RepresentationManagerSPtr manager);
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     virtual void normalizeWorldPosition(NmVector3 &point) const;
 
@@ -267,11 +252,15 @@ namespace ESPINA
      * \param[in] center point to center camera on.
      *
      */
-    virtual void moveCamera(const NmVector3 &point);
+    virtual void moveCamera(const NmVector3 &point) override;
 
-    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) override;
 
-    virtual void onSceneBoundsChanged(const Bounds &bounds);
+    virtual void onSceneBoundsChanged(const Bounds &bounds) override;
+
+    virtual void addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type) override;
+
+    virtual void removeSliceSelectors(SliceSelectorSPtr selector) override;
 
     /** \brief Updates the view when the scroll widget changes its value.
      * \param[in] value new value.
@@ -348,9 +337,6 @@ namespace ESPINA
   { return view2D_cast(view) != nullptr; }
 
   using View2DSPtr = std::shared_ptr<View2D>;
-
-  Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
-
 } // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_H

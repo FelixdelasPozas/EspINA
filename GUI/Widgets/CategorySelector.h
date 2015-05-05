@@ -25,77 +25,70 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Widgets/QComboTreeView.h>
 
 // Qt
-#include <QWidgetAction>
 #include <QLabel>
 #include <QSpinBox>
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT CategorySelector
-  : public QWidgetAction
+  namespace GUI
   {
-    Q_OBJECT
-  public:
-    /** \brief CategorySelector class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] parent, raw pointer of the QObject parent of this one.
-     *
-     */
-    explicit CategorySelector(ModelAdapterSPtr model,
-                              QObject         *parent = nullptr);
+    namespace Widgets
+    {
 
-    /** \brief Overrides QWidgetAction::createWidget().
-     *
-     */
-    virtual QWidget* createWidget(QWidget* parent) override;
+      class EspinaGUI_EXPORT CategorySelector
+      : public QComboTreeView
+      {
+        Q_OBJECT
+      public:
+        /** \brief CategorySelector class constructor.
+         * \param[in] model model adapter smart pointer.
+         * \param[in] parent raw pointer of the QObject parent of this one.
+         *
+         */
+        explicit CategorySelector(ModelAdapterSPtr model,
+                                  QObject         *parent = nullptr);
 
-    /** \brief Selects the given category in the widget.
-     * \param[in] category, smart pointer of the category adapter to select.
-     *
-     */
-    void selectCategory(CategoryAdapterSPtr category);
+        /** \brief Selects the given category in the widget.
+         * \param[in] category smart pointer of the category adapter to select.
+         *
+         */
+        void selectCategory(CategoryAdapterSPtr category);
 
-    /** \brief Returns the categoty selected in the widget.
-     *
-     */
-    CategoryAdapterSPtr selectedCategory();
+        /** \brief Returns the categoty selected in the widget.
+         *
+         */
+        CategoryAdapterSPtr selectedCategory();
 
-  signals:
-    void categoryChanged(CategoryAdapterSPtr);
-    void widgetCreated();
+      signals:
+        void categoryChanged(CategoryAdapterSPtr);
 
-  private slots:
-  	/** \brief Signals the change of category in the widget.
-  	 * \param[in] index, model index of the new category.
-  	 *
-  	 */
-    void categorySelected(const QModelIndex& index);
+      private slots:
+        /** \brief Signals the change of category in the widget.
+         * \param[in] index, model index of the new category.
+         *
+         */
+        void categorySelected(const QModelIndex& index);
 
-    /** \brief Helper method to release memory when a widget is destroyed.
-     * \param[in] object, raw pointer of the destroyed object.
-     *
-     */
-    void onWidgetDestroyed(QObject* object);
+        /** \brief Invalidates the state of all the objects in the selector.
+         *
+         */
+        void invalidateState();
 
-    /** \brief Invalidates the state of all the objects in the selector.
-     *
-     */
-    void invalidateState();
+        /** \brief Resets the model of all the objects in the selector.
+         *
+         */
+        void resetRootItem();
 
-    /** \brief Resets the model of all the objects in the selector.
-     *
-     */
-    void resetRootItem();
+      private:
+        ModelAdapterSPtr    m_model;
+        CategoryAdapterSPtr m_selectedCategory;
+      };
 
-  private:
-    ModelAdapterSPtr m_model;
-    QList<QObject *> m_pool;
-
-    CategoryAdapterSPtr m_selectedCategory;
-  };
-
+    }
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_CATEGORY_SELECTOR_H

@@ -22,6 +22,7 @@
 #include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //----------------------------------------------------------------------------
 SliceManager::SliceManager(RepresentationPoolSPtr poolXY,

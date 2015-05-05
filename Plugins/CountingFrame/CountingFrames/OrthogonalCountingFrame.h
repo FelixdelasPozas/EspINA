@@ -33,20 +33,20 @@ namespace ESPINA
   class vtkCountingFrameCommand;
   class CountingFrameExtension;
 
-  const QString ORTOGONAL_CF = QObject::tr("Ortogonal");
+  const QString ORTOGONAL_CF = QObject::tr("Orthogonal");
 
-  class CountingFramePlugin_EXPORT OrtogonalCountingFrame
+  class CountingFramePlugin_EXPORT OrthogonalCountingFrame
   : public CountingFrame
   {
   public:
-    static OrtogonalCountingFrame *New(CountingFrameExtension *extension,
-                                         const Bounds &bounds,
-                                         Nm inclusion[3],
-                                         Nm exclusion[3],
-                                         SchedulerSPtr scheduler)
-    { return new OrtogonalCountingFrame(extension, bounds, inclusion, exclusion, scheduler);}
+    static OrthogonalCountingFrame *New(CountingFrameExtension *extension,
+                                        const Bounds &bounds,
+                                        Nm inclusion[3],
+                                        Nm exclusion[3],
+                                        SchedulerSPtr scheduler)
+    { return new OrthogonalCountingFrame(extension, bounds, inclusion, exclusion, scheduler);}
 
-    virtual ~OrtogonalCountingFrame();
+    virtual ~OrthogonalCountingFrame();
 
     virtual CFType cfType() const
     { return CF::ORTOGONAL; }
@@ -56,7 +56,7 @@ namespace ESPINA
     virtual void updateCountingFrameImplementation();
 
   protected:
-    explicit OrtogonalCountingFrame(CountingFrameExtension *extension,
+    explicit OrthogonalCountingFrame(CountingFrameExtension *extension,
                                     const Bounds &bounds,
                                     Nm inclusion[3],
                                     Nm exclusion[3],

@@ -39,7 +39,7 @@ namespace ESPINA
 
     void reusePreviousValue(TimeStamp t);
 
-    R value(TimeStamp t, R invalid) const;
+    R value(TimeStamp t, R invalid = R()) const;
 
     void invalidate();
 

@@ -125,6 +125,7 @@ qt4_wrap_cpp(GUI_MOCS
 
 set (GUI_SOURCES
   ${GUI_MOCS}
+  ${GUI_DIR}/ColorEngines/IntensitySelectionHighlighter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp

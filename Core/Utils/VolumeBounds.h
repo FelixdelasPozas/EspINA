@@ -119,6 +119,12 @@ namespace ESPINA
       Bounds bounds() const
       { return m_bounds; }
 
+      /** \brief Implicit bounds conversion
+       *
+       */
+      operator Bounds() const
+      { return m_bounds; }
+
       /** \brief Dumps the volume bounds to a string for printing.
        *
        */

@@ -31,7 +31,7 @@ namespace ESPINA {
     Q_OBJECT
 
   public:
-    explicit BasicRepresentationSwitch(RepresentationManagerSPtr manager, ViewTypeFlags supportedViews, Timer &timer);
+    explicit BasicRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager, ViewTypeFlags supportedViews, Timer &timer);
 
     virtual ViewTypeFlags supportedViews();
 
@@ -47,7 +47,7 @@ namespace ESPINA {
     void onSwitchValue();
 
   private:
-    RepresentationManagerSPtr m_manager;
+    GUI::Representations::RepresentationManagerSPtr m_manager;
 
     ViewTypeFlags m_flags;
   };

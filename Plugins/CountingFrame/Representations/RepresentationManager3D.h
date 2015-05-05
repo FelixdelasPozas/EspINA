@@ -29,7 +29,7 @@ namespace ESPINA
   namespace CF
   {
     class RepresentationManager3D
-    : public RepresentationManager
+    : public GUI::Representations::RepresentationManager
     {
       Q_OBJECT
     public:
@@ -42,11 +42,14 @@ namespace ESPINA
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
     protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const        { return false; };
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const
+      { return false; }
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const { return false; };
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const
+      { return false; }
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const            { return false; };
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const
+      { return false; }
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -60,23 +63,21 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual bool hasRepresentations() const { return false; };
+      virtual bool hasRepresentations() const override;
 
-      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
       virtual void onShow(TimeStamp t) override;
 
       virtual void onHide(TimeStamp t) override;
 
-      virtual void displayRepresentations(TimeStamp t) {};
+      virtual void displayRepresentations(TimeStamp t) override;
 
-      virtual void hideRepresentations(TimeStamp t) {};
+      virtual void hideRepresentations(TimeStamp t) override;
 
-      virtual RepresentationManagerSPtr cloneImplementation();
+      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
-      Nm slicingPosition(TimeStamp t) const;
-
-      vtkCountingFrameWidget *createWidget(CountingFrame *cf);
+      vtkCountingFrame3DWidget *createWidget(CountingFrame *cf);
 
       void showWidget(vtkCountingFrameWidget *widget);
 
@@ -85,6 +86,7 @@ namespace ESPINA
       void deleteWidget(CountingFrame *cf);
 
     private:
+      TimeStamp              m_requestTime;
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;
       QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;

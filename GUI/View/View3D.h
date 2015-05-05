@@ -106,7 +106,7 @@ namespace ESPINA
 
     virtual vtkRenderer *mainRenderer() const;
 
-    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 
     virtual void resetCameraImplementation();
 

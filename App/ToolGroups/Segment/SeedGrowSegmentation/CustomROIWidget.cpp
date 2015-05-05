@@ -28,35 +28,26 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-CustomROIWidget::CustomROIWidget(QObject* parent)
-: QWidgetAction{parent}
-, m_useROI     {true}
+CustomROIWidget::CustomROIWidget(QWidget* parent)
+: QWidget {parent}
+, m_useROI{true}
 {
   for(int i = 0; i < 3; ++i)
   {
     m_values    [i] = 0;
-    m_labelROI  [i] = nullptr;
-    m_spinBoxROI[i] = nullptr;
   }
-}
 
-
-//------------------------------------------------------------------------
-QWidget* CustomROIWidget::createWidget(QWidget* parent)
-{
-  QWidget *widget = new QWidget(parent);
-
-  QCheckBox *roiCheckBox = new QCheckBox(tr("Apply ROI"), parent);
+  auto roiCheckBox = new QCheckBox(tr("Apply ROI"), this);
   roiCheckBox->setCheckState(m_useROI?Qt::Checked:Qt::Unchecked);
 
   QString labels[3] = {"X:", "Y:", "Z:"};
   for(int i = 0; i < 3; ++i)
   {
-    m_labelROI[i] = new QLabel(widget);
+    m_labelROI[i] = new QLabel(this);
     m_labelROI[i]->setText(labels[i]);
     m_labelROI[i]->setVisible(m_useROI);
 
-    m_spinBoxROI[i] = new QSpinBox(widget);
+    m_spinBoxROI[i] = new QSpinBox(this);
     m_spinBoxROI[i]->setVisible(m_useROI);
     m_spinBoxROI[i]->setAlignment(Qt::AlignRight);
     m_spinBoxROI[i]->setMinimum(0);
@@ -72,7 +63,7 @@ QWidget* CustomROIWidget::createWidget(QWidget* parent)
   connect(m_spinBoxROI[2], SIGNAL(valueChanged(int)),
           this,            SLOT(onZSizeChanged(int)));
 
-  QHBoxLayout *mainLaout = new QHBoxLayout(widget);
+  auto mainLaout = new QHBoxLayout(this);
   mainLaout->addWidget(roiCheckBox);
   for (int i = 0; i < 3; ++i)
   {
@@ -80,24 +71,10 @@ QWidget* CustomROIWidget::createWidget(QWidget* parent)
     mainLaout->addWidget(m_spinBoxROI[i]);
   }
 
-  widget->setLayout(mainLaout);
+  setLayout(mainLaout);
 
   connect(roiCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(onApplyROIChanged(bool)));
-
-  return widget;
-}
-
-//------------------------------------------------------------------------
-void CustomROIWidget::deleteWidget(QWidget* widget)
-{
-  QWidgetAction::deleteWidget(widget);
-
-  for(int i = 0; i < 3; ++i)
-  {
-    m_labelROI  [i] = nullptr;
-    m_spinBoxROI[i] = nullptr;
-  }
 }
 
 //------------------------------------------------------------------------
@@ -106,7 +83,8 @@ void CustomROIWidget::setValue(Axis axis, unsigned int value)
   int i = idx(axis);
 
   m_values[i] = value;
-  if (m_spinBoxROI[i]) m_spinBoxROI[i]->setValue(value);
+
+  m_spinBoxROI[i]->setValue(value);
 }
 
 //------------------------------------------------------------------------

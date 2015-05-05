@@ -73,7 +73,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-const int CONTEXTUAL_BAR_HEIGHT = 44;
+const int CONTEXTUAL_BAR_HEIGHT = 60;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -461,7 +461,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   emit analysisAboutToBeClosed();
 
-  contextSelection(m_context)->clear();
+  getSelection(m_context)->clear();
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
@@ -581,6 +581,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
+    // TODO
 //    if (!m_model->isEmpty())
 //    {
 //      auto problemList = checkAnalysisConsistency();
@@ -1272,7 +1273,7 @@ void EspinaMainWindow::createToolbars()
   m_mainBarGroup = new QActionGroup(this);
   m_mainBarGroup->setExclusive(true);
   m_mainBarGroup->setEnabled(true);
-  m_mainBarGroup->setVisible(false);
+  m_mainBarGroup->setVisible(true);
 
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
@@ -1411,9 +1412,9 @@ void EspinaMainWindow::assignActiveChannel()
 
   if (!model->channels().isEmpty())
   {
-    auto activeChannel = model->channels().first().get();
+    auto channel = model->channels().first().get();
 
-    m_context.ActiveChannel = activeChannel;
+    getSelection(m_context)->setActiveChannel(channel);
   }
 }
 

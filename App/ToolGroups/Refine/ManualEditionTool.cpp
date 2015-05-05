@@ -25,7 +25,6 @@
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Widgets/SliderAction.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -81,7 +80,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_factory      {context.factory()}
 , m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
-, m_selection    {contextSelection(context)}
+, m_selection    {getSelection(context)}
 , m_filterFactory{new ManualFilterFactory()}
 , m_context      (context)
 , m_drawingWidget(context)
@@ -161,7 +160,7 @@ void ManualEditionTool::updateReferenceItem() const
     {
       auto channels = m_selection->channels();
 
-      m_referenceItem = channels.isEmpty() ? m_context.ActiveChannel : channels.first();
+      m_referenceItem = channels.isEmpty()?activeChannel():channels.first();
     }
 
     m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
@@ -202,6 +201,12 @@ SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
 
   auto segmentation = reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem);
   return m_model->smartPointer(segmentation);
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterPtr ManualEditionTool::activeChannel() const
+{
+  return getActiveChannel(m_context);
 }
 
 //------------------------------------------------------------------------

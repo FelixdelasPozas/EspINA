@@ -30,6 +30,12 @@ Tool::Tool()
 }
 
 //----------------------------------------------------------------------------
+QPushButton *Tool::createToolButton(const QString &icon, const QString &tooltip)
+{
+  return createToolButton(QIcon(icon), tooltip);
+}
+
+//----------------------------------------------------------------------------
 QPushButton *Tool::createToolButton(const QIcon &icon, const QString &tooltip)
 {
   auto button = new QPushButton();
