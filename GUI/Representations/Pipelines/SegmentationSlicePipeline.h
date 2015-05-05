@@ -24,16 +24,6 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
-#include <QColor>
-
-// VTK
-#include <vtkSmartPointer.h>
-#include <vtkImageReslice.h>
-#include <vtkImageMapToColors.h>
-#include <vtkImageActor.h>
-#include <vtkImageMapper3D.h>
-#include <vtkImageData.h>
-
 namespace ESPINA
 {
   class SegmentationSlicePipeline

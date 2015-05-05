@@ -38,143 +38,155 @@ class vtkSphereSource;
 
 namespace ESPINA
 {
-
-  class EspinaGUI_EXPORT vtkPlaneContourRepresentationGlyph
-  : public vtkPlaneContourRepresentation
+  namespace GUI
   {
-  public:
-    // Description:
-    // Instantiate this class.
-    static vtkPlaneContourRepresentationGlyph *New();
+    namespace View
+    {
+      namespace Widgets
+      {
+        namespace Contour
+        {
 
-    // Description:
-    // Standard methods for instances of this class.
-    vtkTypeMacro(vtkPlaneContourRepresentationGlyph,vtkPlaneContourRepresentation);
-    void PrintSelf(ostream& os, vtkIndent indent);
+          class EspinaGUI_EXPORT vtkPlaneContourRepresentationGlyph
+          : public vtkPlaneContourRepresentation
+          {
+          public:
+            // Description:
+            // Instantiate this class.
+            static vtkPlaneContourRepresentationGlyph *New();
 
-    // Description:
-    // This is the property used when the handle is not active
-    // (the mouse is not near the handle)
-    vtkGetObjectMacro(Property,vtkProperty);
+            // Description:
+            // Standard methods for instances of this class.
+            vtkTypeMacro(vtkPlaneContourRepresentationGlyph,vtkPlaneContourRepresentation);
+            void PrintSelf(ostream& os, vtkIndent indent);
 
-    // Description:
-    // This is the property used when the user is interacting
-    // with the handle.
-    vtkGetObjectMacro(ActiveProperty,vtkProperty);
+            // Description:
+            // This is the property used when the handle is not active
+            // (the mouse is not near the handle)
+            vtkGetObjectMacro(Property,vtkProperty);
 
-    // Description:
-    // This is the property used by the lines.
-    vtkGetObjectMacro(LinesProperty,vtkProperty);
+            // Description:
+            // This is the property used when the user is interacting
+            // with the handle.
+            vtkGetObjectMacro(ActiveProperty,vtkProperty);
 
-    // Description:
-    // These are the methods that the widget and its representation use to
-    // communicate with each other.
-    virtual void SetRenderer(vtkRenderer *ren);
-    virtual void BuildRepresentation();
-    virtual void StartWidgetInteraction(double eventPos[2]);
-    virtual void WidgetInteraction(double eventPos[2]);
-    virtual int ComputeInteractionState(int X, int Y, int modified = 0);
+            // Description:
+            // This is the property used by the lines.
+            vtkGetObjectMacro(LinesProperty,vtkProperty);
 
-    // Description:
-    // Methods to make this class behave as a vtkProp.
-    virtual void GetActors(vtkPropCollection *);
-    virtual void ReleaseGraphicsResources(vtkWindow *);
-    virtual int RenderOverlay(vtkViewport *viewport);
-    virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-    virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-    virtual int HasTranslucentPolygonalGeometry();
+            // Description:
+            // These are the methods that the widget and its representation use to
+            // communicate with each other.
+            virtual void SetRenderer(vtkRenderer *ren);
+            virtual void BuildRepresentation();
+            virtual void StartWidgetInteraction(double eventPos[2]);
+            virtual void WidgetInteraction(double eventPos[2]);
+            virtual int ComputeInteractionState(int X, int Y, int modified = 0);
 
-    // Description:
-    // Get the points in this contour as a vtkPolyData.
-    virtual vtkPolyData *GetContourRepresentationAsPolyData();
+            // Description:
+            // Methods to make this class behave as a vtkProp.
+            virtual void GetActors(vtkPropCollection *);
+            virtual void ReleaseGraphicsResources(vtkWindow *);
+            virtual int RenderOverlay(vtkViewport *viewport);
+            virtual int RenderOpaqueGeometry(vtkViewport *viewport);
+            virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+            virtual int HasTranslucentPolygonalGeometry();
 
-    // Description:
-    // Controls whether the contour widget should always appear on top
-    // of other actors in the scene. (In effect, this will disable OpenGL
-    // Depth buffer tests while rendering the contour).
-    // Default is to set it to false.
-    vtkSetMacro(AlwaysOnTop, int);
-    vtkGetMacro(AlwaysOnTop, int);
-    vtkBooleanMacro( AlwaysOnTop, int );
+            // Description:
+            // Get the points in this contour as a vtkPolyData.
+            virtual vtkPolyData *GetContourRepresentationAsPolyData();
 
-    // Description:
-    // Convenience method to set the line color.
-    // Ideally one should use GetLinesProperty()->SetColor().
-    void SetLineColor(double r, double g, double b);
+            // Description:
+            // Controls whether the contour widget should always appear on top
+            // of other actors in the scene. (In effect, this will disable OpenGL
+            // Depth buffer tests while rendering the contour).
+            // Default is to set it to false.
+            vtkSetMacro(AlwaysOnTop, int);
+            vtkGetMacro(AlwaysOnTop, int);
+            vtkBooleanMacro( AlwaysOnTop, int );
 
-    // Description:
-    // Return the bounds of the representation
-    virtual double *GetBounds();
+            // Description:
+            // Convenience method to set the line color.
+            // Ideally one should use GetLinesProperty()->SetColor().
+            void SetLineColor(double r, double g, double b);
 
-    // spacing is needed for interaction calculations, together with bounds
-    vtkSetVector2Macro(Spacing, double);
+            // Description:
+            // Return the bounds of the representation
+            virtual double *GetBounds();
 
-    double Distance2BetweenPoints(int displayPosX, int displayPosY, int node);
+            // spacing is needed for interaction calculations, together with bounds
+            vtkSetVector2Macro(Spacing, double);
 
-    // get/set polygon color
-    virtual void setPolygonColor(const QColor &color);
-    virtual QColor getPolygonColor() const;
+            double Distance2BetweenPoints(int displayPosX, int displayPosY, int node);
 
-  protected:
-    vtkPlaneContourRepresentationGlyph();
-    ~vtkPlaneContourRepresentationGlyph();
+            // get/set polygon color
+            virtual void setPolygonColor(const QColor &color);
+            virtual QColor getPolygonColor() const;
 
-    // Render the cursor
-    vtkSmartPointer<vtkActor>          Actor;
-    vtkSmartPointer<vtkPolyDataMapper> Mapper;
-    vtkSmartPointer<vtkGlyph3D>        Glypher;
-    vtkSmartPointer<vtkActor>          ActiveActor;
-    vtkSmartPointer<vtkPolyDataMapper> ActiveMapper;
-    vtkSmartPointer<vtkSphereSource>   ActiveSource;
-    vtkSmartPointer<vtkPolyData>       FocalData;
-    vtkSmartPointer<vtkPoints>         FocalPoint;
+          protected:
+            vtkPlaneContourRepresentationGlyph();
+            ~vtkPlaneContourRepresentationGlyph();
 
-    vtkSmartPointer<vtkPolyData>       Lines;
-    vtkSmartPointer<vtkPolyDataMapper> LinesMapper;
-    vtkSmartPointer<vtkActor>          LinesActor;
+            // Render the cursor
+            vtkSmartPointer<vtkActor>          Actor;
+            vtkSmartPointer<vtkPolyDataMapper> Mapper;
+            vtkSmartPointer<vtkGlyph3D>        Glypher;
+            vtkSmartPointer<vtkActor>          ActiveActor;
+            vtkSmartPointer<vtkPolyDataMapper> ActiveMapper;
+            vtkSmartPointer<vtkSphereSource>   ActiveSource;
+            vtkSmartPointer<vtkPolyData>       FocalData;
+            vtkSmartPointer<vtkPoints>         FocalPoint;
 
-    // Support picking
-    double LastPickPosition[3];
-    double LastEventPosition[2];
+            vtkSmartPointer<vtkPolyData>       Lines;
+            vtkSmartPointer<vtkPolyDataMapper> LinesMapper;
+            vtkSmartPointer<vtkActor>          LinesActor;
 
-    // Methods to manipulate the cursor
-    void Translate(double eventPos[2]);
-    void Scale(double eventPos[2]);
-    void ShiftContour(double eventPos[2]);
-    void ScaleContour(double eventPos[2]);
+            // Support picking
+            double LastPickPosition[3];
+            double LastEventPosition[2];
 
-    void ComputeCentroid(double* ioCentroid);
+            // Methods to manipulate the cursor
+            void Translate(double eventPos[2]);
+            void Scale(double eventPos[2]);
+            void ShiftContour(double eventPos[2]);
+            void ScaleContour(double eventPos[2]);
 
-    // Properties used to control the appearance of selected objects and
-    // the manipulator in general.
-    vtkProperty *Property;
-    vtkProperty *ActiveProperty;
-    vtkProperty *LinesProperty;
-    void CreateDefaultProperties();
+            void ComputeCentroid(double* ioCentroid);
 
-    // Distance between where the mouse event happens and where the
-    // widget is focused - maintain this distance during interaction.
-    double InteractionOffset[2];
+            // Properties used to control the appearance of selected objects and
+            // the manipulator in general.
+            vtkProperty *Property;
+            vtkProperty *ActiveProperty;
+            vtkProperty *LinesProperty;
+            void CreateDefaultProperties();
 
-    int AlwaysOnTop;
-    double Spacing[2];
+            // Distance between where the mouse event happens and where the
+            // widget is focused - maintain this distance during interaction.
+            double InteractionOffset[2];
 
-    virtual void BuildLines();
+            int AlwaysOnTop;
+            double Spacing[2];
 
-    // toggles the use of a filled polygon as part of the representation
-    virtual void UseContourPolygon(bool value);
+            virtual void BuildLines();
 
-  private:
-    vtkPlaneContourRepresentationGlyph(const vtkPlaneContourRepresentationGlyph&); //Not implemented
-    void operator=(const vtkPlaneContourRepresentationGlyph&); //Not implemented
+            // toggles the use of a filled polygon as part of the representation
+            virtual void UseContourPolygon(bool value);
 
-    vtkSmartPointer<vtkActor> m_polygon;
-    vtkSmartPointer<vtkContourToPolygonFilter> m_polygonFilter;
-    vtkSmartPointer<vtkPolyDataMapper> m_polygonMapper;
-    bool useContourPolygon;
-    QColor m_polygonColor;
-  };
+          private:
+            vtkPlaneContourRepresentationGlyph(const vtkPlaneContourRepresentationGlyph&); //Not implemented
+            void operator=(const vtkPlaneContourRepresentationGlyph&); //Not implemented
 
+            vtkSmartPointer<vtkActor> m_polygon;
+            vtkSmartPointer<vtkContourToPolygonFilter> m_polygonFilter;
+            vtkSmartPointer<vtkPolyDataMapper> m_polygonMapper;
+            bool useContourPolygon;
+            QColor m_polygonColor;
+          };
+
+        } // namespace Contour
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // _VTKPLANECONTOURREPRESENTATIONGLYPH_H_

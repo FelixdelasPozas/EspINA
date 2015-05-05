@@ -24,23 +24,16 @@
 // ESPINA
 #include <GUI/EventHandlers/MaskPainter.h>
 
-
 namespace ESPINA
 {
-  class ContourWidget;
-  
   class ContourPainter
   : public MaskPainter
   {
+      Q_OBJECT
     public:
       ContourPainter();
 
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
-
-      /** \brief Sets the contour widget of this painter.
-       *
-       */
-      void setContourWidget(ContourWidget *widget);
 
       /** \brief Sets the minimum distance between contour points when doing a stroke.
        * \param[in] distance minimum distance between points in a stroke.
@@ -48,28 +41,32 @@ namespace ESPINA
        */
       void setMinimumPointDistance(Nm distance);
 
-      /** \brief Returns the minimum distance between points in a stroke.
+      /** \brief Helper method to update the widgets parameters.
        *
        */
-      Nm minimumPointDistance() const
-      { return m_minDistance; }
+      void updateWidgetsValues() const;
+
+      /** \brief Removes contours from widgets.
+       *
+       */
+      void clearContours() const;
+
+    signals:
+      void configure(Nm distance, QColor color, NmVector3 spacing) const;
+      void rasterize() const;
 
     private:
       virtual void updateCursor(DrawingMode mode);
 
       virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
 
-      /** \brief Helper method to update the contour border and mode properties.
-       *
-       */
-      void updateContourWidget();
-
     private:
       Nm             m_minDistance;
       bool           m_tracking;
       NmVector3      m_maskSpacing;
-      ContourWidget *m_widget;
   };
+
+  using ContourPainterSPtr = std::shared_ptr<ContourPainter>;
 
 } // namespace ESPINA
 

@@ -21,12 +21,15 @@
 #define ESPINA_DRAWING_WIDGET_H
 
 #include <GUI/EventHandlers/BrushPainter.h>
+#include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <GUI/Types.h>
 #include <Support/Context.h>
 
 #include <QAction>
 #include <QMap>
+
+using ESPINA::GUI::View::Widgets::WidgetFactorySPtr;
 
 class QPushButton;
 class QHBoxLayout;
@@ -223,6 +226,8 @@ namespace ESPINA
         void onDrawingModeChange(DrawingMode mode);
 
       private:
+        void loadSettings();
+
         void initPainters();
 
         void initDrawingControls();
@@ -231,9 +236,11 @@ namespace ESPINA
 
         void initEraseWidget(QHBoxLayout *layout);
 
-        void initRadiusWidget(QHBoxLayout *layout, const QSettings &settings);
+        void initRasterizeWidget(QHBoxLayout *layout);
 
-        void initOpacityWidget(QHBoxLayout *layout, const QSettings &settings);
+        void initRadiusWidget(QHBoxLayout *layout);
+
+        void initOpacityWidget(QHBoxLayout *layout);
 
         QAction *registerPainter(const QIcon    &icon,
                                  const QString  &description,
@@ -251,10 +258,10 @@ namespace ESPINA
       private:
         Support::Context &m_context;
 
-        BrushPainterSPtr m_circularPainter;
-        BrushPainterSPtr m_sphericalPainter;
-        MaskPainterSPtr  m_contourPainter;
-        MaskPainterSPtr  m_currentPainter;
+        BrushPainterSPtr   m_circularPainter;
+        BrushPainterSPtr   m_sphericalPainter;
+        ContourPainterSPtr m_contourPainter;
+        MaskPainterSPtr    m_currentPainter;
 
         ActionSelector   *m_painterSelector;
         QWidgetAction    *m_nestedWidgets;
@@ -264,6 +271,7 @@ namespace ESPINA
         NumericalInput *m_radiusWidget;
         NumericalInput *m_opacityWidget;
         QPushButton   *m_eraserWidget;
+        QPushButton   *m_rasterizeWidget;
 
         QAction *m_circularPainterAction;
         QAction *m_sphericalPainterAction;
@@ -279,7 +287,9 @@ namespace ESPINA
         // Shared painter widgets needs to retain it's values.
         int m_brushRadius;
         int m_contourDistance;
-        ContourWidgetSPtr m_contourWidget;
+        int m_opacity;
+
+        WidgetFactorySPtr m_contourWidgetfactory;
       };
     }
   }

@@ -49,12 +49,6 @@ CleanROITool::CleanROITool(Support::Context &context,
 //-----------------------------------------------------------------------------
 CleanROITool::~CleanROITool()
 {
-  disconnect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
-             this,        SLOT(onROIChanged()));
-
-  disconnect(m_cleanROI, SIGNAL(triggered(bool)),
-             this,       SLOT(cancelROI()));
-
   delete m_cleanROI;
 }
 

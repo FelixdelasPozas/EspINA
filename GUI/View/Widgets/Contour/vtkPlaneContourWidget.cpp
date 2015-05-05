@@ -20,10 +20,12 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentation.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
+
+// VTK
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
 #include <vtkRenderWindowInteractor.h>
@@ -49,6 +51,7 @@
 #include <QObject>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Contour;
 
 vtkStandardNewMacro(vtkPlaneContourWidget);
 
@@ -64,11 +67,11 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , ContinuousDrawTolerance{40}
 , mouseButtonDown        {false}
 , m_polygonColor         {Qt::black}
-, m_parent               {nullptr}
-, m_contourMode          {DrawingMode::PAINTING}
-, m_actualContourMode      {DrawingMode::PAINTING}
-, m_actorShift           {0}
+, m_mode                 {DrawingMode::PAINTING}
+, m_actualMode           {DrawingMode::PAINTING}
+, m_depth                {0}
 , m_slice                {0}
+, m_parent               {nullptr}
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -121,7 +124,7 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
       property->SetSpecular(0.0);
     }
 
-    rep->setShift(this->m_actorShift);
+    rep->setShift(this->m_depth);
     rep->setSlice(this->m_slice);
   }
 }
@@ -201,9 +204,9 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       // around.
       if ((self->FollowCursor || self->ContinuousDraw) && (rep->GetNumberOfNodes() == 0))
       {
-        self->m_parent->startContourFromWidget();
+        self->m_parent->rasterize();
         auto repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
-        switch(self->m_actualContourMode)
+        switch(self->m_actualMode)
         {
           case DrawingMode::PAINTING:
             repGlyph->SetLineColor(0,0,1);
@@ -241,7 +244,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         self->WidgetState = vtkPlaneContourWidget::Manipulate;
         self->EventCallbackCommand->SetAbortFlag(1);
         self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-        self->m_contourMode = self->m_actualContourMode;
+        self->m_mode = self->m_actualMode;
       }
       else
       {
@@ -300,7 +303,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       }
 
       // start a new contour
-      self->m_parent->startContourFromWidget();
+      self->m_parent->rasterize();
       self->SelectAction(w);
       break;
     }
@@ -376,7 +379,7 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
     rep->NeedToRenderOff();
   }
 
-  self->m_contourMode = self->m_actualContourMode;
+  self->m_mode = self->m_actualMode;
 }
 
 //----------------------------------------------------------------------------
@@ -414,7 +417,7 @@ void vtkPlaneContourWidget::AddNode()
       this->Render();
       this->EventCallbackCommand->SetAbortFlag(1);
       this->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-      this->m_contourMode = this->m_actualContourMode;
+      this->m_mode = this->m_actualMode;
 
       // change cursor
       int X = this->Interactor->GetEventPosition()[0];
@@ -624,7 +627,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
             self->WidgetState = vtkPlaneContourWidget::Manipulate;
             self->EventCallbackCommand->SetAbortFlag(1);
             self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-            self->m_contourMode = self->m_actualContourMode;
+            self->m_mode = self->m_actualMode;
             return;
           }
         }
@@ -724,6 +727,8 @@ void vtkPlaneContourWidget::ResetAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
 {
+  if(!this->Interactor) return;
+
   if (!this->WidgetRep)
   {
     this->CreateDefaultRepresentation();
@@ -744,14 +749,14 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     rep->NeedToRenderOff();
     rep->VisibilityOff();
     this->WidgetState = vtkPlaneContourWidget::Start;
-    brushMode = m_actualContourMode;
+    brushMode = m_actualMode;
   }
   else
   {
     rep->Initialize(pd);
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
-    brushMode = m_contourMode;
+    brushMode = m_mode;
     rep->NeedToRenderOn();
   }
 
@@ -981,12 +986,12 @@ QColor vtkPlaneContourWidget::getPolygonColor()
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::setContourMode(DrawingMode mode)
 {
-  m_actualContourMode = mode;
+  m_actualMode = mode;
 
   if (this->WidgetState != vtkPlaneContourWidget::Manipulate)
   {
     auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
-    switch(m_actualContourMode)
+    switch(m_actualMode)
     {
       case DrawingMode::PAINTING:
         rep->SetLineColor(0,0,1);
@@ -1010,12 +1015,12 @@ void vtkPlaneContourWidget::setContourMode(DrawingMode mode)
 //----------------------------------------------------------------------------
 DrawingMode vtkPlaneContourWidget::contourMode()
 {
-  auto result = m_actualContourMode;
+  auto result = m_actualMode;
 
   auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   if(rep->GetClosedLoop())
   {
-    result = m_contourMode;
+    result = m_mode;
   }
 
   return result;
@@ -1024,9 +1029,9 @@ DrawingMode vtkPlaneContourWidget::contourMode()
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::setActorsShift(Nm value)
 {
-  if(value == m_actorShift) return;
+  if(value == m_depth) return;
 
-  m_actorShift = value;
+  m_depth = value;
   if(this->WidgetRep)
   {
     reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep)->setShift(value);

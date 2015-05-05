@@ -57,7 +57,7 @@ namespace ESPINA
     /** \brief Returns the drawing mode of the painter.
      *
      */
-    DrawingMode drawingMode()
+    DrawingMode drawingMode() const
     { return m_mode; }
 
     /** \brief Sets the color of the painter.
@@ -69,7 +69,7 @@ namespace ESPINA
     /** \brief Returns the color of the painter.
      *
      */
-    QColor color()
+    QColor color() const
     { return m_color; };
 
     void setMaskProperties(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
@@ -113,11 +113,13 @@ namespace ESPINA
     DrawingMode currentMode() const;
 
   signals:
-    void drawingModeChanged(DrawingMode mode);
+    void drawingModeChanged(DrawingMode mode) const;
 
-    void startPainting();
+    void startPainting() const;
 
-    void stopPainting(BinaryMaskSPtr<unsigned char> mask);
+    void stopPainting(BinaryMaskSPtr<unsigned char> mask) const;
+
+    void clear() const;
 
   private:
     void updateDrawingMode();

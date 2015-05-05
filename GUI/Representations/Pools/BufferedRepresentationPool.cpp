@@ -204,12 +204,15 @@ void BufferedRepresentationPool::updatePipelines(RepresentationUpdaterSList upda
 {
   updatePriorities();
 
-  for (auto updater : updaters)
+  if(hasSources())
   {
-    Task::submit(updater);
-  }
+    for (auto updater : updaters)
+    {
+      Task::submit(updater);
+    }
 
-  checkCurrentActors();
+    checkCurrentActors();
+  }
 }
 
 //-----------------------------------------------------------------------------

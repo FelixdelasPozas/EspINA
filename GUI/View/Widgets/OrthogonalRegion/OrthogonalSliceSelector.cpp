@@ -31,7 +31,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
 OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentation &region)
-: m_representation{region}
+: m_representation(region)
 , m_view          {nullptr}
 , m_plane         {Plane::UNDEFINED}
 , m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
@@ -41,7 +41,7 @@ OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentation &regio
 
 //----------------------------------------------------------------------------
 OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalSliceSelector &selector)
-: m_representation     {selector.m_representation}
+: m_representation(selector.m_representation)
 , m_view       {selector.m_view}
 , m_plane      {selector.m_plane}
 , m_lowerWidget{RenderView::createButton(":/espina/from_slice.svg", "")}

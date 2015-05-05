@@ -59,6 +59,7 @@
 #include <QtGlobal>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Contour;
 
 vtkStandardNewMacro(vtkPlaneContourRepresentationGlyph);
 
@@ -645,6 +646,10 @@ void vtkPlaneContourRepresentationGlyph::GetActors(vtkPropCollection *pc)
   this->Actor->GetActors(pc);
   this->ActiveActor->GetActors(pc);
   this->LinesActor->GetActors(pc);
+  if(m_polygon)
+  {
+    this->m_polygon->GetActors(pc);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -653,11 +658,17 @@ void vtkPlaneContourRepresentationGlyph::ReleaseGraphicsResources(vtkWindow *win
   this->Actor->ReleaseGraphicsResources(win);
   this->ActiveActor->ReleaseGraphicsResources(win);
   this->LinesActor->ReleaseGraphicsResources(win);
+  if(m_polygon)
+  {
+    this->m_polygon->ReleaseGraphicsResources(win);
+  }
 }
 
 //----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::RenderOverlay(vtkViewport *viewport)
 {
+  if(this->GetNumberOfNodes() == 0) return 0;
+
   int count = 0;
   count += this->LinesActor->RenderOverlay(viewport);
   if (this->Actor->GetVisibility())
@@ -670,6 +681,11 @@ int vtkPlaneContourRepresentationGlyph::RenderOverlay(vtkViewport *viewport)
     count += this->ActiveActor->RenderOverlay(viewport);
   }
 
+  if(m_polygon && this->m_polygon->GetVisibility())
+  {
+    count += this->m_polygon->RenderOverlay(viewport);
+  }
+
   return count;
 }
 
@@ -679,15 +695,23 @@ int vtkPlaneContourRepresentationGlyph::RenderOpaqueGeometry(vtkViewport *viewpo
   // Since we know RenderOpaqueGeometry gets called first, will do the build here
   this->BuildRepresentation();
 
+  if(this->GetNumberOfNodes() == 0) return 0;
+
   int count = 0;
   count += this->LinesActor->RenderOpaqueGeometry(viewport);
   if (this->Actor->GetVisibility())
   {
     count += this->Actor->RenderOpaqueGeometry(viewport);
   }
+
   if (this->ActiveActor->GetVisibility())
   {
     count += this->ActiveActor->RenderOpaqueGeometry(viewport);
+  }
+
+  if(m_polygon && this->m_polygon->GetVisibility())
+  {
+    count += this->m_polygon->RenderOpaqueGeometry(viewport);
   }
 
   return count;
@@ -696,6 +720,8 @@ int vtkPlaneContourRepresentationGlyph::RenderOpaqueGeometry(vtkViewport *viewpo
 //----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::RenderTranslucentPolygonalGeometry(vtkViewport *viewport)
 {
+  if(this->GetNumberOfNodes() == 0) return 0;
+
   int count = 0;
   count += this->LinesActor->RenderTranslucentPolygonalGeometry(viewport);
   if (this->Actor->GetVisibility())
@@ -708,12 +734,20 @@ int vtkPlaneContourRepresentationGlyph::RenderTranslucentPolygonalGeometry(vtkVi
     count += this->ActiveActor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
+  if(m_polygon && this->m_polygon->GetVisibility())
+  {
+    count += this->m_polygon->RenderTranslucentPolygonalGeometry(viewport);
+  }
+
+
   return count;
 }
 
 //----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::HasTranslucentPolygonalGeometry()
 {
+  if(this->GetNumberOfNodes() == 0) return 0;
+
   int result = 0;
   result |= this->LinesActor->HasTranslucentPolygonalGeometry();
   if (this->Actor->GetVisibility())
@@ -724,6 +758,11 @@ int vtkPlaneContourRepresentationGlyph::HasTranslucentPolygonalGeometry()
   if (this->ActiveActor->GetVisibility())
   {
     result |= this->ActiveActor->HasTranslucentPolygonalGeometry();
+  }
+
+  if(m_polygon && this->m_polygon->GetVisibility())
+  {
+    result |= this->m_polygon->HasTranslucentPolygonalGeometry();
   }
 
   return result;
@@ -813,11 +852,8 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 
       this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.blueF());
       this->m_polygon->GetProperty()->SetOpacity(m_polygonColor.alphaF());
+      this->m_polygon->Modified();
 
-      double position[3];
-      this->m_polygon->GetPosition(position);
-      position[normalCoordinateIndex(this->Orientation)] += this->PlaneShift;
-      this->m_polygon->SetPosition(position);
       this->Renderer->AddActor(this->m_polygon);
       this->useContourPolygon = true;
       break;

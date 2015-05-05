@@ -86,14 +86,18 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
 
       // solid slice
       auto slice = vtkImage(volume, sliceBounds);
+      int extent[6];
+      slice->GetExtent(extent);
 
       auto shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
       shiftScaleFilter->SetInputData(slice);
+      shiftScaleFilter->SetNumberOfThreads(1);
       shiftScaleFilter->SetShift(static_cast<int>(brightness(state)*255));
       shiftScaleFilter->SetScale(contrast(state));
       shiftScaleFilter->SetClampOverflow(true);
+      shiftScaleFilter->SetUpdateExtent(extent);
       shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
-      shiftScaleFilter->Update();
+      shiftScaleFilter->UpdateWholeExtent();
 
       auto color = stain(state);
       auto lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -109,16 +113,19 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
 
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
+      mapToColors->SetUpdateExtent(extent);
       mapToColors->SetLookupTable(lut);
       mapToColors->SetNumberOfThreads(1);
-      mapToColors->Update();
+      mapToColors->UpdateWholeExtent();
 
       auto actor = vtkSmartPointer<vtkImageActor>::New();
       actor->SetInterpolate(false);
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-      actor->SetDisplayExtent(slice->GetExtent());
-      actor->SetOpacity(0.99);
+      actor->GetMapper()->SetUpdateExtent(extent);
+      actor->SetDisplayExtent(extent);
+      actor->GetMapper()->SetNumberOfThreads(1);
+      actor->GetMapper()->UpdateWholeExtent();
       actor->Update();
 
       actors << actor;

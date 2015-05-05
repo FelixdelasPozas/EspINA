@@ -135,26 +135,46 @@ void PassiveActorManager::disconnectPools()
 //----------------------------------------------------------------------------
 void PassiveActorManager::displayRepresentations(const TimeStamp t)
 {
-  auto currentActors = m_pool->actors(t);
+  auto currentActors = m_viewActors;
+  auto futureActors  = m_pool->actors(t);
 
-  for (auto it = currentActors.begin(); it != currentActors.end(); ++it)
+  qDebug() << "passive display" << t << "current" << currentActors.size() << "future" << futureActors.size();
+
+  if(currentActors.empty())
   {
-    auto item = it.key();
-
-    auto previousActors = toSet(m_viewActors[item]);
-    auto itemActors     = toSet(it.value());
-
-    for (auto oldActor : previousActors.subtract(itemActors))
+    m_viewActors = futureActors;
+    for(auto item: m_viewActors.keys())
     {
-      m_view->removeActor(oldActor);
+      for(auto actor: m_viewActors[item])
+      {
+        m_view->addActor(actor);
+      }
     }
-
-    for (auto newActor : itemActors.subtract(previousActors))
+  }
+  else
+  {
+    for (auto it = currentActors.begin(); it != currentActors.end(); ++it)
     {
-      m_view->addActor(newActor);
-    }
+      auto item = it.key();
 
-    m_viewActors[item] = it.value();
+      auto oldActors = toSet(it.value());
+      auto newActors = toSet(futureActors[item]);
+
+      if(oldActors != newActors)
+      {
+        for (auto oldActor : oldActors.subtract(newActors))
+        {
+          m_view->removeActor(oldActor);
+        }
+
+        for (auto newActor : newActors.subtract(oldActors))
+        {
+          m_view->addActor(newActor);
+        }
+
+        m_viewActors[item] = futureActors[item];
+      }
+    }
   }
 
   for(auto actors : m_viewActors)

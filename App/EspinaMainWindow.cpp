@@ -73,7 +73,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-const int CONTEXTUAL_BAR_HEIGHT = 44;
+const int CONTEXTUAL_BAR_HEIGHT = 60;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -100,6 +100,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_mainBarGroup {this}
 , m_activeToolGroup{nullptr}
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy{false}
@@ -396,6 +397,7 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
 {
+  m_mainBarGroup.addAction(toolGroup);
   m_mainBar->addAction(toolGroup);
 
   connect(toolGroup, SIGNAL(activated(ToolGroup*)),
@@ -579,6 +581,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
+    // TODO
 //    if (!m_model->isEmpty())
 //    {
 //      auto problemList = checkAnalysisConsistency();
@@ -1266,6 +1269,10 @@ void EspinaMainWindow::createToolbars()
   m_mainBar->setMovable(false);
   m_mainBar->setObjectName("Main ToolBar");
   m_mainBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+  m_mainBarGroup.setExclusive(true);
+  m_mainBarGroup.setEnabled(true);
+  m_mainBarGroup.setVisible(true);
 
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);

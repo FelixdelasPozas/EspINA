@@ -30,7 +30,6 @@ PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidat
 //-----------------------------------------------------------------------------
 PipelineSources::~PipelineSources()
 {
-
 }
 
 //-----------------------------------------------------------------------------

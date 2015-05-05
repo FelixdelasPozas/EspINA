@@ -21,7 +21,7 @@
 #ifndef ESPINA_VTKVOXELCONTOUR2D_H_
 #define ESPINA_VTKVOXELCONTOUR2D_H_
 
-#include "GUI/EspinaGUI_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // VTK
 #include <vtkPolyDataAlgorithm.h>
@@ -30,9 +30,9 @@
  * \brief Creates a 2D contour given a 3d volume and a slice between the bounds.
  *
  *  This filter only works for slices in the axial plane (extent[4] == extent[5]),
- *  like those used by ESPINA, it's not a generic marching cubes for 2D or 3d volumes.
+ *  it's not a generic marching cubes for 2D or 3d volumes.
  */
-class EspinaGUI_EXPORT vtkVoxelContour2D
+class EspinaCore_EXPORT vtkVoxelContour2D
 : public vtkPolyDataAlgorithm
 {
   public:

@@ -134,7 +134,7 @@ RepresentationPipeline::Actors SliceManager::actors(TimeStamp t)
 {
   Q_ASSERT(validPlane());
 
-  return  planePool()->actors(t);
+  return planePool()->actors(t);
 }
 
 //----------------------------------------------------------------------------

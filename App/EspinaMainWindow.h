@@ -359,8 +359,9 @@ namespace ESPINA
     QMenu           *m_panelsMenu;
 
     // ToolBars
-    QToolBar          *m_mainBar;
-    QToolBar          *m_contextualBar;
+    QToolBar           *m_mainBar;
+    QActionGroup        m_mainBarGroup;
+    QToolBar           *m_contextualBar;
     ToolGroupPtr        m_activeToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;

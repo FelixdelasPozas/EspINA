@@ -216,7 +216,6 @@ bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Actors actors)
 {
-  //Q_ASSERT(notHasBeenProcessed(t));
   if (notHasBeenProcessed(t))
   {
     if (actorsChanged(actors))
@@ -250,6 +249,13 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
   if (removeSources(sources))
   {
     updateRepresentationsAt(t);
+  }
+
+  if(sources.size() == 0)
+  {
+    emit actorsInvalidated();
+
+    onActorsReady(t, RepresentationPipeline::Actors());
   }
 
   Q_ASSERT(m_sourcesCount - sources.size() >= 0);

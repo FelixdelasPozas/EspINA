@@ -23,6 +23,17 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkImageReslice.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageData.h>
+#include <vtkImageConstantPad.h>
+
+// Qt
+
 using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
@@ -77,28 +88,64 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
       auto slice = vtkImage(volume, sliceBounds);
+      int extent[6], paddedExtent[6];
+      slice->GetExtent(extent);
+
+      std::memcpy(paddedExtent, extent, 6*sizeof(int));
+      bool needsPadding = false;
+
+      for(auto i: {0,1,2})
+      {
+        if(i != planeIndex && extent[2*i] == extent[2*i+1])
+        {
+          needsPadding = true;
+          ++paddedExtent[2*i+1];
+        }
+      }
+
+      if(needsPadding)
+      {
+        auto pad = vtkSmartPointer<vtkImageConstantPad>::New();
+        pad->SetInputData(slice);
+        pad->SetOutputWholeExtent(paddedExtent);
+        pad->SetConstant(SEG_BG_VALUE);
+        pad->SetNumberOfThreads(1);
+        pad->SetUpdateExtentToWholeExtent();
+        pad->ReleaseDataFlagOn();
+        pad->UpdateWholeExtent();
+
+        slice = pad->GetOutput();
+        std::memcpy(extent, paddedExtent, 6*sizeof(int));
+      }
 
       auto color       = m_colorEngine->color(segmentation);
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
       mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
+      mapToColors->SetUpdateExtent(extent);
       mapToColors->SetNumberOfThreads(1);
-      mapToColors->Update();
+      mapToColors->UpdateInformation();
+      mapToColors->UpdateWholeExtent();
 
       auto actor = vtkSmartPointer<vtkImageActor>::New();
-      actor->SetInterpolate(false);
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+      actor->GetMapper()->SetUpdateExtent(extent);
+      actor->GetMapper()->SetNumberOfThreads(1);
+      actor->GetMapper()->UpdateInformation();
+      actor->GetMapper()->UpdateWholeExtent();
       actor->SetOpacity(opacity(state) * color.alphaF());
+      actor->SetPickable(false);
+      actor->SetInterpolate(false);
+      actor->SetDisplayExtent(extent);
+      actor->Update();
 
       // need to reposition the actor so it will always be over the channels actors'
       double pos[3];
       actor->GetPosition(pos);
       pos[planeIndex] += segmentationDepth(state);
       actor->SetPosition(pos);
-
-      actor->SetDisplayExtent(slice->GetExtent());
-      actor->Update();
+      actor->Modified();
 
       actors << actor;
     }

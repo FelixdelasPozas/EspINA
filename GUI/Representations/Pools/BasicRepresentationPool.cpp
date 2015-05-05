@@ -44,7 +44,10 @@ void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &cro
   m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
-  Task::submit(m_updater);
+  if(hasSources())
+  {
+    Task::submit(m_updater);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -54,7 +57,10 @@ void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crossh
   m_updater->setCrosshair(crosshair);
   m_updater->setTimeStamp(t);
 
-  Task::submit(m_updater);
+  if(hasSources())
+  {
+    Task::submit(m_updater);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -64,7 +70,10 @@ void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &
   m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
-  Task::submit(m_updater);
+  if(hasSources())
+  {
+    Task::submit(m_updater);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -73,7 +82,10 @@ void BasicRepresentationPool::updateRepresentationsImlementationAt(TimeStamp t, 
   m_updater->setTimeStamp(t);
   m_updater->setUpdateList(modifiedItems);
 
-  Task::submit(m_updater);
+  if(hasSources())
+  {
+    Task::submit(m_updater);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -93,5 +105,8 @@ void BasicRepresentationPool::onSettingsChanged(const RepresentationState &setti
 {
   m_updater->setSettings(settings);
 
-  Task::submit(m_updater);
+  if(hasSources())
+  {
+    Task::submit(m_updater);
+  }
 }
