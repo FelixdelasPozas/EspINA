@@ -66,6 +66,8 @@ namespace ESPINA
       NmVector3      m_maskSpacing;
   };
 
+  using ContourPainterSPtr = std::shared_ptr<ContourPainter>;
+
 } // namespace ESPINA
 
 #endif // ESPINA_CONTOUR_PAINTER_H_

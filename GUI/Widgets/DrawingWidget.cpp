@@ -59,9 +59,9 @@ DrawingWidget::DrawingWidget(Support::Context &context)
 , m_showEraserControls  {true}
 , m_enabled             {true}
 {
-  initPainters();
+  loadSettings();
 
-  m_contourWidgetfactory = std::make_shared<WidgetFactory>(std::make_shared<ContourWidget2D>(m_contourPainter), EspinaWidget3DSPtr());
+  initPainters();
 
   initDrawingControls();
 
@@ -72,9 +72,10 @@ DrawingWidget::DrawingWidget(Support::Context &context)
 DrawingWidget::~DrawingWidget()
 {
   ESPINA_SETTINGS(settings);
+
   settings.setValue(BRUSH_RADIUS,     m_brushRadius);
   settings.setValue(CONTOUR_DISTANCE, m_contourDistance);
-  settings.setValue(BRUSH_OPACITY,    m_opacityWidget->value());
+  settings.setValue(BRUSH_OPACITY,    m_opacity);
   settings.sync();
 
   if (m_currentPainter)
@@ -87,7 +88,7 @@ DrawingWidget::~DrawingWidget()
 void DrawingWidget::setDrawingColor(const QColor &color)
 {
   auto alphaColor = color;
-  alphaColor.setAlphaF(m_opacityWidget->value()/100.0);
+  alphaColor.setAlphaF(m_opacity/100.0);
 
   for (auto painter : m_painters)
   {
@@ -187,8 +188,7 @@ void DrawingWidget::stopDrawing()
     if(m_currentPainter.get() == m_contourPainter.get())
     {
       m_rasterizeWidget->setVisible(false);
-      auto contourPainter = std::dynamic_pointer_cast<ContourPainter>(m_contourPainter);
-      contourPainter->clearContours();
+      m_contourPainter->clearContours();
     }
   }
 }
@@ -242,6 +242,16 @@ void DrawingWidget::unsetPainter()
 }
 
 //------------------------------------------------------------------------
+void DrawingWidget::loadSettings()
+{
+  ESPINA_SETTINGS(settings);
+
+  m_opacity         = settings.value(BRUSH_OPACITY,    50).toInt();
+  m_brushRadius     = settings.value(BRUSH_RADIUS,     20).toInt();
+  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
+}
+
+//------------------------------------------------------------------------
 void DrawingWidget::initPainters()
 {
   auto circularBrush      = std::make_shared<CircularBrush>();
@@ -256,16 +266,14 @@ void DrawingWidget::initPainters()
                                            tr("Modify segmentation drawing 3D spheres"),
                                            m_sphericalPainter);
 
-  auto contourPainter = std::make_shared<ContourPainter>();
 
-  ESPINA_SETTINGS(settings);
-  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
-  contourPainter->setMinimumPointDistance(m_contourDistance);
+  m_contourPainter       = std::make_shared<ContourPainter>();
+  m_contourWidgetfactory = std::make_shared<WidgetFactory>(std::make_shared<ContourWidget2D>(m_contourPainter), EspinaWidget3DSPtr());
+
+  m_contourPainter->setMinimumPointDistance(m_contourDistance);
   m_contourPainterAction   = registerPainter(QIcon(":/espina/lasso.png"),
                                              tr("Modify segmentation drawing contours"),
-                                             contourPainter);
-  m_contourPainter = contourPainter;
-
+                                             m_contourPainter);
 
   m_currentPainter = m_circularPainter;
   m_painterSelector->setDefaultAction(m_circularPainterAction);
@@ -279,18 +287,14 @@ void DrawingWidget::initPainters()
 //------------------------------------------------------------------------
 void DrawingWidget::initDrawingControls()
 {
-  ESPINA_SETTINGS(settings);
-
-  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
-
   auto widget = new QWidget();
   auto layout = new QHBoxLayout();
 
   initCategoryWidget (layout);
   initEraseWidget    (layout);
+  initRadiusWidget   (layout);
+  initOpacityWidget  (layout);
   initRasterizeWidget(layout);
-  initRadiusWidget   (layout, settings);
-  initOpacityWidget  (layout, settings);
 
   widget->setLayout(layout);
   Support::Widgets::Styles::setNestedStyle(widget);
@@ -331,11 +335,9 @@ void DrawingWidget::initRasterizeWidget(QHBoxLayout *layout)
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initRadiusWidget(QHBoxLayout *layout, const QSettings &settings)
+void DrawingWidget::initRadiusWidget(QHBoxLayout *layout)
 {
   layout->addWidget(m_radiusWidget);
-
-  m_brushRadius = settings.value(BRUSH_RADIUS,  20).toInt();
 
   m_radiusWidget->setValue(m_brushRadius);
   m_radiusWidget->setMinimum(5);
@@ -348,15 +350,13 @@ void DrawingWidget::initRadiusWidget(QHBoxLayout *layout, const QSettings &setti
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initOpacityWidget(QHBoxLayout *layout, const QSettings &settings)
+void DrawingWidget::initOpacityWidget(QHBoxLayout *layout)
 {
   layout->addWidget(m_opacityWidget);
 
-  int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
-
   m_opacityWidget->setMinimum(1);
   m_opacityWidget->setMaximum(100);
-  m_opacityWidget->setValue(opacity);
+  m_opacityWidget->setValue(m_opacity);
   m_opacityWidget->setSpinBoxVisibility(false);
   m_opacityWidget->setLabelText(tr("Opacity"));
 
@@ -396,11 +396,7 @@ QAction *DrawingWidget::registerBrush(const QIcon     &icon,
 {
   auto action = registerPainter(icon, description, painter);
 
-  auto brush = std::dynamic_pointer_cast<BrushPainter>(painter);
-  if(brush)
-  {
-    brush->setRadius(m_brushRadius);
-  }
+  painter->setRadius(m_brushRadius);
 
   connect(painter.get(), SIGNAL(radiusChanged(int)),
           this,          SLOT(radiusChanged(int)));
@@ -430,7 +426,7 @@ void DrawingWidget::changeRadius(int value)
 
     m_contourDistance = value;
 
-    std::dynamic_pointer_cast<ContourPainter>(m_contourPainter)->setMinimumPointDistance(m_contourDistance);
+    m_contourPainter->setMinimumPointDistance(m_contourDistance);
   }
   else
   {
@@ -553,14 +549,6 @@ void DrawingWidget::selectorInUse(bool value)
 
   if (value)
   {
-    auto color = m_categorySelector->selectedCategory()->color();
-    color.setAlphaF(m_opacityWidget->value()/100.0);
-
-    for(auto painter: m_painters)
-    {
-      painter->setColor(color);
-    }
-
     if(selector == m_contourPainter.get())
     {
       m_rasterizeWidget->setVisible(true);
@@ -568,9 +556,7 @@ void DrawingWidget::selectorInUse(bool value)
       m_radiusWidget->setValue(m_contourDistance);
 
       m_context.viewState().addWidgets(m_contourWidgetfactory);
-
-      auto contourPainter = std::dynamic_pointer_cast<ContourPainter>(m_contourPainter);
-      contourPainter->setMinimumPointDistance(m_contourDistance);
+      m_contourPainter->setMinimumPointDistance(m_contourDistance);
     }
     else
     {

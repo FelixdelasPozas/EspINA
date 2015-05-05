@@ -278,6 +278,8 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   m_dilate.setRadius(settings.value(DILATE_RADIUS, 3).toInt());
   m_open  .setRadius(settings.value(OPEN_RADIUS,   3).toInt());
   m_close .setRadius(settings.value(CLOSE_RADIUS,  3).toInt());
+
+  updateAvailableActionsForSelection();
 }
 
 //------------------------------------------------------------------------

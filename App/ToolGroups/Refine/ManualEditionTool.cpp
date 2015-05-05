@@ -171,6 +171,8 @@ void ManualEditionTool::updateReferenceItem() const
     m_drawingWidget.stopDrawing();
   }
 
+  brushColor = GUI::ColorEngines::selectedColor(brushColor.hue());
+
   m_drawingWidget.setDrawingColor(brushColor);
   m_drawingWidget.setCanErase(validVolume);
 

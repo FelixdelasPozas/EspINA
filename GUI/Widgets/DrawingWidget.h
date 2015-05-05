@@ -21,6 +21,7 @@
 #define ESPINA_DRAWING_WIDGET_H
 
 #include <GUI/EventHandlers/BrushPainter.h>
+#include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Types.h>
 #include <Support/Context.h>
@@ -225,6 +226,8 @@ namespace ESPINA
         void onDrawingModeChange(DrawingMode mode);
 
       private:
+        void loadSettings();
+
         void initPainters();
 
         void initDrawingControls();
@@ -235,9 +238,9 @@ namespace ESPINA
 
         void initRasterizeWidget(QHBoxLayout *layout);
 
-        void initRadiusWidget(QHBoxLayout *layout, const QSettings &settings);
+        void initRadiusWidget(QHBoxLayout *layout);
 
-        void initOpacityWidget(QHBoxLayout *layout, const QSettings &settings);
+        void initOpacityWidget(QHBoxLayout *layout);
 
         QAction *registerPainter(const QIcon    &icon,
                                  const QString  &description,
@@ -255,10 +258,10 @@ namespace ESPINA
       private:
         Support::Context &m_context;
 
-        BrushPainterSPtr m_circularPainter;
-        BrushPainterSPtr m_sphericalPainter;
-        MaskPainterSPtr  m_contourPainter;
-        MaskPainterSPtr  m_currentPainter;
+        BrushPainterSPtr   m_circularPainter;
+        BrushPainterSPtr   m_sphericalPainter;
+        ContourPainterSPtr m_contourPainter;
+        MaskPainterSPtr    m_currentPainter;
 
         ActionSelector   *m_painterSelector;
         QWidgetAction    *m_nestedWidgets;
@@ -284,6 +287,7 @@ namespace ESPINA
         // Shared painter widgets needs to retain it's values.
         int m_brushRadius;
         int m_contourDistance;
+        int m_opacity;
 
         WidgetFactorySPtr m_contourWidgetfactory;
       };

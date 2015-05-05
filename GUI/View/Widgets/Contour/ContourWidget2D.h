@@ -24,6 +24,7 @@
 
 // ESPINA
 #include <GUI/EventHandlers/MaskPainter.h>
+#include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/View/Widgets/EspinaWidget2.h>
 
 // VTK
@@ -63,7 +64,7 @@ namespace ESPINA
               using Contour = struct ContourData;
 
             public:
-              explicit ContourWidget2D(MaskPainterSPtr handler);
+              explicit ContourWidget2D(ContourPainterSPtr handler);
               virtual ~ContourWidget2D();
 
               virtual void setPlane(Plane plane);
@@ -119,14 +120,15 @@ namespace ESPINA
             private:
               friend class vtkPlaneContourWidget;
 
+              ContourPainterSPtr m_handler;
+              Contour            m_storedContour;
               vtkSmartPointer<vtkPlaneContourWidget> m_widget;
-              MaskPainterSPtr m_handler;
-              Contour         m_storedContour;
-              int             m_slice;
-              int             m_index;
-              NmVector3       m_spacing;
+
+              int       m_slice;
+              int       m_index;
+              NmVector3 m_spacing;
           };
-        
+
         } // namespace Contour
       } // namespace Widgets
     } // namespace View

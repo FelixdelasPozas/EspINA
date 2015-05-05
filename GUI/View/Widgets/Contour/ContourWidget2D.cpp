@@ -31,31 +31,28 @@ using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Contour;
 
 //----------------------------------------------------------------------------
-ContourWidget2D::ContourWidget2D(MaskPainterSPtr handler)
-: m_widget {vtkSmartPointer<vtkPlaneContourWidget>::New()}
-, m_handler{handler}
+ContourWidget2D::ContourWidget2D(ContourPainterSPtr handler)
+: m_handler{handler}
+, m_widget {vtkSmartPointer<vtkPlaneContourWidget>::New()}
 , m_slice  {0}
 , m_index  {0}
 {
   m_widget->setParentWidget(this);
 
-  auto contourPainter = std::dynamic_pointer_cast<ContourPainter>(handler);
-  Q_ASSERT(contourPainter);
+  connect(m_handler.get(), SIGNAL(clear()),
+          this,            SLOT(initialize()));
 
-  connect(contourPainter.get(), SIGNAL(clear()),
-          this,                 SLOT(initialize()));
+  connect(m_handler.get(), SIGNAL(rasterize()),
+          this,            SLOT(rasterize()));
 
-  connect(contourPainter.get(), SIGNAL(rasterize()),
-          this,                 SLOT(rasterize()));
+  connect(m_handler.get(), SIGNAL(drawingModeChanged(DrawingMode)),
+          this,            SLOT(setDrawingMode(DrawingMode)));
 
-  connect(contourPainter.get(), SIGNAL(drawingModeChanged(DrawingMode)),
-          this,                 SLOT(setDrawingMode(DrawingMode)));
+  connect(m_handler.get(), SIGNAL(configure(Nm, QColor, NmVector3)),
+          this,            SLOT(configure(Nm, QColor, NmVector3)));
 
-  connect(contourPainter.get(), SIGNAL(configure(Nm, QColor, NmVector3)),
-          this,                 SLOT(configure(Nm, QColor, NmVector3)));
-
-  connect(this,                 SIGNAL(contour(BinaryMaskSPtr<unsigned char>)),
-          contourPainter.get(), SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)));
+  connect(this,            SIGNAL(contour(BinaryMaskSPtr<unsigned char>)),
+          m_handler.get(), SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)));
 }
 
 //----------------------------------------------------------------------------
@@ -80,9 +77,7 @@ void ContourWidget2D::setRepresentationDepth(Nm depth)
 //----------------------------------------------------------------------------
 EspinaWidget2DSPtr ContourWidget2D::clone()
 {
-  auto maskPainter = std::dynamic_pointer_cast<MaskPainter>(m_handler);
-
-  return std::make_shared<ContourWidget2D>(maskPainter);
+  return std::make_shared<ContourWidget2D>(m_handler);
 }
 
 //----------------------------------------------------------------------------
