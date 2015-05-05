@@ -19,7 +19,7 @@
 */
 
 
-#include "CountingFrames/OrtogonalCountingFrame.h"
+#include "CountingFrames/OrthogonalCountingFrame.h"
 
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/vtkCountingFrameSliceWidget.h"
@@ -38,7 +38,7 @@ using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelExt,
+OrthogonalCountingFrame::OrthogonalCountingFrame(CountingFrameExtension *channelExt,
                                                const Bounds &bounds,
                                                Nm inclusion[3],
                                                Nm exclusion[3],
@@ -51,12 +51,12 @@ OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelEx
 
 
 //-----------------------------------------------------------------------------
-OrtogonalCountingFrame::~OrtogonalCountingFrame()
+OrthogonalCountingFrame::~OrthogonalCountingFrame()
 {
 }
 
 //-----------------------------------------------------------------------------
-void OrtogonalCountingFrame::updateCountingFrameImplementation()
+void OrthogonalCountingFrame::updateCountingFrameImplementation()
 {
   Nm Left   = m_bounds[0] + m_inclusion[0];
   Nm Top    = m_bounds[2] + m_inclusion[1];
@@ -82,13 +82,13 @@ void OrtogonalCountingFrame::updateCountingFrameImplementation()
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> OrtogonalCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
+vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
                                                                                Nm right, Nm bottom, Nm back)
 {
-  vtkSmartPointer<vtkPolyData>  region   = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPoints>    vertex   = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces    = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray>  faceData = vtkSmartPointer<vtkIntArray>::New();
+  auto region   = vtkSmartPointer<vtkPolyData>::New();
+  auto vertex   = vtkSmartPointer<vtkPoints>::New();
+  auto faces    = vtkSmartPointer<vtkCellArray>::New();
+  auto faceData = vtkSmartPointer<vtkIntArray>::New();
 
   vtkIdType frontFace[4], leftFace[4] , topFace[4];
   vtkIdType backFace[4] , rightFace[4], bottomFace[4];

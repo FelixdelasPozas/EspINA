@@ -96,6 +96,8 @@ namespace ESPINA
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
+    ChannelAdapterPtr activeChannel() const;
+
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
@@ -112,8 +114,10 @@ namespace ESPINA
     FilterFactorySPtr m_filterFactory;
     Support::Context &m_context;
 
+    using DrawingTool = GUI::Widgets::DrawingWidget;
+
     // mutable needed by updateReferenceItem() const
-    mutable DrawingWidget      m_drawingWidget;
+    mutable DrawingTool        m_drawingWidget;
     mutable Mode               m_mode;
     mutable ViewItemAdapterPtr m_referenceItem;
 

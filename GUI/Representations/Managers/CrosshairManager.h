@@ -36,77 +36,85 @@ class vtkActor;
 
 namespace ESPINA
 {
-  class CrosshairManager
-  : public RepresentationManager
+  namespace GUI
   {
-    public:
-      /** \brief Crosshair class protected constructor.
-       *
-       */
-      explicit CrosshairManager();
+    namespace Representations
+    {
+      namespace Managers
+      {
+        class CrosshairManager
+        : public RepresentationManager
+        {
+        public:
+          /** \brief Crosshair class protected constructor.
+           *
+           */
+          explicit CrosshairManager(ViewTypeFlags supportedViews);
 
-      virtual TimeRange readyRangeImplementation() const;
+          virtual TimeRange readyRangeImplementation() const;
 
-      virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
-    private:
-      virtual bool hasRepresentations() const;
+        private:
+          virtual bool hasRepresentations() const;
 
-      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
 
-      virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
+          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
 
-      virtual void displayRepresentations(TimeStamp t);
+          virtual void displayRepresentations(TimeStamp t);
 
-      virtual void hideRepresentations(TimeStamp t );
+          virtual void hideRepresentations(TimeStamp t );
 
-      virtual void onHide(TimeStamp t);
+          virtual void onHide(TimeStamp t);
 
-      virtual void onShow(TimeStamp t);
+          virtual void onShow(TimeStamp t);
 
-      virtual RepresentationManagerSPtr cloneImplementation();
+          virtual RepresentationManagerSPtr cloneImplementation();
 
-      /** \brief Configure the 2D actors for the given crosshair.
-       * \param[in] crosshair crosshair point.
-       *
-       */
-      void configure2DActors(const NmVector3 &crosshair);
+          /** \brief Configure the 2D actors for the given crosshair.
+           * \param[in] crosshair crosshair point.
+           *
+           */
+          void configure2DActors(const NmVector3 &crosshair);
 
-      /** \brief Configure the 3D actors for the given crosshair.
-       * \param[in] crosshair crosshair point.
-       *
-       */
-      void configure3DActors(const NmVector3 &crosshair);
+          /** \brief Configure the 3D actors for the given crosshair.
+           * \param[in] crosshair crosshair point.
+           *
+           */
+          void configure3DActors(const NmVector3 &crosshair);
 
-      /** \brief Configure the actors for 2D views.
-       * \param[in] index normal coordinate index of the actors.
-       * \param[in] point1 inital point of the crosshair line.
-       * \param[in] point2 final point of the crosshair line.
-       *
-       */
-      void setPointInternal(int index, double *point1, double *point2);
+          /** \brief Configure the actors for 2D views.
+           * \param[in] index normal coordinate index of the actors.
+           * \param[in] point1 inital point of the crosshair line.
+           * \param[in] point2 final point of the crosshair line.
+           *
+           */
+          void setPointInternal(int index, double *point1, double *point2);
 
-      /** \brief Updates the actors with the crosshair associated to t.
-       *
-       */
-      void updateCrosshairs(const TimeStamp t);
+          /** \brief Updates the actors with the crosshair associated to t.
+           *
+           */
+          void updateCrosshairs(const TimeStamp t);
 
-    private:
-      vtkSmartPointer<vtkPoints>         m_points[3];
-      vtkSmartPointer<vtkCellArray>      m_cells[3];
-      vtkSmartPointer<vtkPolyData>       m_datas[3];
-      vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];
-      vtkSmartPointer<vtkActor>          m_actors[3];
+        private:
+          vtkSmartPointer<vtkPoints>         m_points[3];
+          vtkSmartPointer<vtkCellArray>      m_cells[3];
+          vtkSmartPointer<vtkPolyData>       m_datas[3];
+          vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];
+          vtkSmartPointer<vtkActor>          m_actors[3];
 
-      RangedValue<NmVector3> m_crosshairs;
-  };
-
+          RangedValue<NmVector3> m_crosshairs;
+        };
+      }
+    }
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_CROSSHAIR_MANAGER_H_

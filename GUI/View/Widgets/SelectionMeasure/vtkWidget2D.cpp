@@ -35,7 +35,23 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
-vtkStandardNewMacro(vtkWidget2D);
+namespace ESPINA
+{
+  namespace GUI
+  {
+    namespace View
+    {
+      namespace Widgets
+      {
+        namespace SelectionMeasure
+        {
+          // Using namespace prevents collisions with other widgets
+          vtkStandardNewMacro(vtkWidget2D);
+        }
+      }
+    }
+  }
+}
 
 //----------------------------------------------------------------------------
 vtkWidget2D::vtkWidget2D()

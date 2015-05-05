@@ -57,6 +57,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
@@ -191,7 +192,7 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
           {
             if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
             {
-              neuroItem = QueryAdapter::sample(pickedItem).get();
+              neuroItem = QueryAdapter::sample(channelPtr(pickedItem)).get();
             }
             finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
             finished = !multiselection;

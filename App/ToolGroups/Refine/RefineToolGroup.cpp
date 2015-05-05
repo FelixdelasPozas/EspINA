@@ -56,7 +56,7 @@ RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory
   connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
           this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
 
-  connect(contextSelection(context).get(), SIGNAL(selectionChanged()),
+  connect(getSelection(context).get(), SIGNAL(selectionChanged()),
           this,                            SLOT(enableCurrentSelectionActions()));
 
   enableCurrentSelectionActions();
@@ -71,7 +71,7 @@ RefineToolGroup::~RefineToolGroup()
 //-----------------------------------------------------------------------------
 void RefineToolGroup::enableCurrentSelectionActions()
 {
-  auto selection     = contextSelection(m_context)->segmentations();
+  auto selection     = getSelection(m_context)->segmentations();
   auto selectionSize = selection.size();
 
   auto noSegmentation       = (selectionSize == 0);

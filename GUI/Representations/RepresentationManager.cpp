@@ -24,6 +24,7 @@
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags)
@@ -138,7 +139,7 @@ void RepresentationManager::hide(TimeStamp t)
   {
     onHide(t);
 
-    qDebug() << debugName() << "Requested hide" << t;
+    //qDebug() << debugName() << "Requested hide" << t;
 
     waitForDisplay();
 
@@ -187,24 +188,24 @@ void RepresentationManager::display(TimeStamp t)
 
   if (isActive())
   {
-    qDebug() << debugName() << "Display" << t << "actors";
+    //qDebug() << debugName() << "Display" << t << "actors";
     displayRepresentations(t);
   }
   else
   {
-    qDebug() << debugName() << "Hide at" << t;
+    //qDebug() << debugName() << "Hide at" << t;
     hideRepresentations(t);
   }
 
   if (!hasNewerFrames(t))
   {
-    qDebug() << debugName() << "Displayed las frame" << t;
+    //qDebug() << debugName() << "Displayed las frame" << t;
     idle();
   }
-  else
-  {
-    qDebug() << debugName() << "Pending Frames at" << t;
-  }
+//   else
+//   {
+//     qDebug() << debugName() << "Pending Frames at" << t;
+//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -311,12 +312,12 @@ Bounds RepresentationManager::currentSceneBounds() const
 void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
 
-  qDebug() << debugName() << "Requested to emit renderRequested at" << t;
+  //qDebug() << debugName() << "Requested to emit renderRequested at" << t;
   if(t > m_lastRenderRequestTime)
   {
     m_lastRenderRequestTime = t;
 
-    qDebug() << debugName() << "Emit renderRequested at" << t;
+    //qDebug() << debugName() << "Emit renderRequested at" << t;
 
     emit renderRequested();
   }
@@ -331,14 +332,14 @@ void RepresentationManager::invalidateRepresentations()
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
-  qDebug() << debugName() << "Wait for display";
+  //qDebug() << debugName() << "Wait for display";
   m_status = Status::PENDING_DISPLAY;
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::idle()
 {
-  qDebug() << debugName() << "Is idle";
+  //qDebug() << debugName() << "Is idle";
   m_status = Status::IDLE;
 }
 

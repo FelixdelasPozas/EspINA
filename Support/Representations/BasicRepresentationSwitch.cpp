@@ -22,6 +22,7 @@
 #include <Support/Widgets/Tool.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //----------------------------------------------------------------------------
 BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,

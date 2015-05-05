@@ -22,7 +22,7 @@
 #ifndef GUI_COLORENGINES_INTENSITYSELECTIONHIGHTLIGHTER_H_
 #define GUI_COLORENGINES_INTENSITYSELECTIONHIGHTLIGHTER_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
 #include <GUI/ColorEngines/SelectionHighlighter.h>
@@ -33,7 +33,7 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
-      
+
       class EspinaGUI_EXPORT IntensitySelectionHighlighter
       : public SelectionHighlighter
       {
@@ -47,7 +47,7 @@ namespace ESPINA
       QColor defaultColor(const Hue color);
 
       QColor selectedColor(const Hue color);
-    
+
     } // namespace ColorEngines
   } // namespace GUI
 } // namespace ESPINA

@@ -30,6 +30,7 @@
 #include <GUI/View/Selection.h>
 #include "CoordinateSystem.h"
 #include "EventHandler.h"
+#include <GUI/Widgets/SliceSelector.h>
 
 // Qt
 #include <QObject>
@@ -101,6 +102,16 @@ namespace ESPINA
          */
         void removeWidgets(Widgets::WidgetFactorySPtr factory);
 
+        /** \brief Adds slice selector to all views sharing the view state
+         *
+         */
+        void addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type);
+
+        /** \brief Removes slice selector from all views sharing the view state
+         *
+         */
+        void removeSliceSelectors(SliceSelectorSPtr selector);
+
         CoordinateSystemSPtr coordinateSystem() const;
 
         void resetCamera();
@@ -124,6 +135,8 @@ namespace ESPINA
         void focusViewOn(const NmVector3 &point);
 
       signals:
+        void eventHandlerChanged();
+
         void crosshairChanged(const NmVector3 &point, TimeStamp t);
 
         void sceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
@@ -133,6 +146,10 @@ namespace ESPINA
         void widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
         void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
+        void sliceSelectorAdded(SliceSelectorSPtr selector, SliceSelectionType type);
+
+        void sliceSelectorRemoved(SliceSelectorSPtr selector);
 
         void viewFocusChanged();
 

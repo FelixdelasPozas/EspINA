@@ -36,6 +36,7 @@
 
 // Qt
 #include <QWidget>
+#include <QElapsedTimer>
 
 class vtkRenderer;
 class vtkProp;
@@ -79,12 +80,12 @@ namespace ESPINA
     /** \brief Adds a representation manager to the view
      *
      */
-    void addRepresentationManager(RepresentationManagerSPtr manager);
+    void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     /** \brief Removes a representation manager from the view
      *
      */
-    void removeRepresentationManager(RepresentationManagerSPtr manager);
+    void removeRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     /** \brief Returns the bounds in world coordinates that contains all of the objects in the view.
      * \param[in] cropToSceneBounds true to crop the bounds to the limits of the actual view, false otherwise.
@@ -277,11 +278,11 @@ namespace ESPINA
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 
-    virtual void configureManager(RepresentationManagerSPtr manager) {}
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager) {}
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) = 0;
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) = 0;
 
     virtual void resetCameraImplementation() = 0;
 
@@ -291,15 +292,15 @@ namespace ESPINA
 
     void connectSignals();
 
-    RepresentationManagerSList pendingManagers() const;
+    GUI::Representations::RepresentationManagerSList pendingManagers() const;
 
-    RepresentationManagerSList pendingManagers(RepresentationManagerSList managers) const;
+    GUI::Representations::RepresentationManagerSList pendingManagers(GUI::Representations::RepresentationManagerSList managers) const;
 
-    TimeStamp latestReadyTimeStamp(RepresentationManagerSList managers) const;
+    TimeStamp latestReadyTimeStamp(GUI::Representations::RepresentationManagerSList managers) const;
 
-    void display(RepresentationManagerSList managers, TimeStamp t);
+    void display(GUI::Representations::RepresentationManagerSList managers, TimeStamp t);
 
-    RepresentationManager::ManagerFlags managerFlags() const;
+    GUI::Representations::RepresentationManager::ManagerFlags managerFlags() const;
 
     void deleteInactiveWidgetManagers();
 
@@ -314,6 +315,10 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
 
+    virtual void addSliceSelectors(SliceSelectorSPtr  widget, SliceSelectionType selector) {};
+
+    virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
+
     void onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
     void onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
@@ -323,17 +328,19 @@ namespace ESPINA
   protected:
     ContextualMenuSPtr         m_contextMenu;
     QVTKWidget                *m_view;
-    RepresentationManagerSList m_managers;
+    GUI::Representations::RepresentationManagerSList m_managers;
 
   private:
     GUI::View::ViewState &m_state;
     SelectionSPtr         m_selection;
 
+    QElapsedTimer m_timer;
     ViewType      m_type;
     bool          m_requiresCameraReset;
     bool          m_requiresFocusChange;
+    bool          m_requiresRender;
     TimeStamp     m_lastRender;
-    QMap<GUI::View::Widgets::WidgetFactorySPtr, RepresentationManagerSPtr> m_widgetManagers;
+    QMap<GUI::View::Widgets::WidgetFactorySPtr, GUI::Representations::RepresentationManagerSPtr> m_widgetManagers;
 
   };
 

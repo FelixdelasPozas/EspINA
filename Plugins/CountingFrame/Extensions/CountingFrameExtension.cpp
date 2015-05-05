@@ -22,7 +22,7 @@
 #include "CountingFrameExtension.h"
 
 #include "CountingFrames/CountingFrame.h"
-#include "CountingFrames/OrtogonalCountingFrame.h"
+#include "CountingFrames/OrthogonalCountingFrame.h"
 #include <CountingFrames/AdaptiveCountingFrame.h>
 #include <CountingFrameManager.h>
 #include <Core/Analysis/Segmentation.h>
@@ -193,7 +193,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 
   if (CFType::ORTOGONAL == type)
   {
-    cf = OrtogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
+    cf = OrthogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
   } else if (CFType::ADAPTIVE == type)
   {
     cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);

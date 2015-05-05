@@ -51,8 +51,8 @@ namespace ESPINA {
       CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
 
     signals:
-      void countingFrameCreated(CountingFrame *);
-      void countingFrameDeleted(CountingFrame *);
+      void countingFrameCreated(CountingFrame *cf);
+      void countingFrameDeleted(CountingFrame *cf);
 
     private:
       QMap<CountingFrame *, ChannelPtr> m_countingFrames;

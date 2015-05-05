@@ -29,13 +29,19 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <GUI/Widgets/CategorySelector.h>
 #include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Widgets/Tool.h>
 
 class QUndoStack;
 namespace ESPINA
 {
+  namespace GUI {
+    namespace Widgets
+    {
+      class CategorySelector;
+    }
+  }
+
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationTool
@@ -83,6 +89,8 @@ namespace ESPINA
   private:
     virtual void onToolEnabled(bool enabled);
 
+    void initOptionWidgets();
+
     /** \brief Adds a selector to the list of selectors.
      * \param[in] action QAction object raw pointer to add as selector action.
      * \param[in] selector selector smart pointer to add.
@@ -91,6 +99,8 @@ namespace ESPINA
     void addVoxelSelector(QAction *action, SelectorSPtr selector);
 
     void setSettingsVisibility(bool value);
+
+    ChannelAdapterPtr inputChannel() const;
 
   private slots:
   /** \brief Changes the current selector.
@@ -121,11 +131,6 @@ namespace ESPINA
      */
     void onCategoryChanged(CategoryAdapterSPtr category);
 
-    /** \brief Updates the ROI values on category widget creation.
-     *
-     */
-    void onCategorySelectorWidgetCreation();
-
     /** \brief Updates ROI values.
      * \param[in] update true if category ROI values have to be applied.
      *
@@ -137,10 +142,13 @@ namespace ESPINA
     void hideSettings();
 
   private:
+    using CategorySelector = GUI::Widgets::CategorySelector;
+
     Support::Context &m_context;
 
-    CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;
+    QWidgetAction    *m_nestedOptions;
+    CategorySelector *m_categorySelector;
     SeedThreshold    *m_seedThreshold;
     CustomROIWidget  *m_roi;
 

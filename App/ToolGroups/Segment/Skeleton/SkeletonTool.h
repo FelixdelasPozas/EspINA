@@ -42,7 +42,13 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  class CategorySelector;
+  namespace GUI
+  {
+    namespace Widgets
+    {
+      class CategorySelector;
+    }
+  }
   class DoubleSpinBoxAction;
   class SkeletonToolStatusAction;
 
@@ -158,7 +164,7 @@ namespace ESPINA
   private:
     Support::Context &m_context;
 
-    CategorySelector         *m_categorySelector;
+    GUI::Widgets::CategorySelector         *m_categorySelector;
     DoubleSpinBoxAction      *m_toleranceWidget;
     SkeletonToolStatusAction *m_toolStatus;
     EventHandlerSPtr          m_handler;

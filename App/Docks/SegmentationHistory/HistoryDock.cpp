@@ -39,7 +39,7 @@ HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
 
   setWindowTitle(tr("History"));
 
-  connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+  connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
           this,                              SLOT(updateDock()));
 }
 
@@ -74,7 +74,7 @@ void HistoryDock::updateDock()
   SegmentationAdapterPtr segmentation = nullptr;
   bool changeWidget = false;
 
-  auto selection = contextSelection(m_context)->segmentations();
+  auto selection = getSelection(m_context)->segmentations();
 
   if (selection.size() == 1)
   {

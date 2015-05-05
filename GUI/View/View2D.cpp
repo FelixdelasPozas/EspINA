@@ -82,6 +82,7 @@
 #include <vtkRendererCollection.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
@@ -713,28 +714,29 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           {
             updateScaleValue();
           }
-
-          // to avoid interfering with ctrl use in the event handler/selector
-          if (!eventHandler())
+          else if (me->button() == Qt::LeftButton)
           {
-            if ((e->type() == QEvent::MouseButtonPress) && (me->button() == Qt::LeftButton))
+            if ((e->type() == QEvent::MouseButtonPress))
             {
               if (me->modifiers() == Qt::CTRL)
               {
                 centerCrosshairOnMousePosition(xPos, yPos);
               }
-              else
+              else if (!eventHandler())
               {
                 bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
                 selectPickedItems(xPos, yPos, appendSelectedItems);
               }
             }
-
-            m_view->setCursor(Qt::ArrowCursor);
+          }
+          // to avoid interfering with ctrl use in the event handler/selector
+          if (eventHandler())
+          {
+            m_view->setCursor(eventHandler()->cursor());
           }
           else
           {
-            m_view->setCursor(eventHandler()->cursor());
+            m_view->setCursor(Qt::ArrowCursor);
           }
         }
 
@@ -936,47 +938,6 @@ void View2D::setScaleVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::addSliceSelectors(SliceSelectorSPtr widget,
-                               SliceSelectionType selectors)
-{
-  auto sliceSelector = widget->clone();
-
-  sliceSelector->setPlane(m_plane);
-  sliceSelector->setView (this);
-
-  QWidget *fromWidget = sliceSelector->leftWidget();
-  QWidget *toWidget   = sliceSelector->rightWidget();
-
-  bool showFrom = selectors.testFlag(SliceSelectionTypes::From);
-  bool showTo   = selectors.testFlag(SliceSelectionTypes::To  );
-
-  fromWidget->setVisible(showFrom);
-  toWidget  ->setVisible(showTo  );
-
-  m_fromLayout->addWidget (fromWidget );
-  m_toLayout->insertWidget(0, toWidget);
-
-  m_sliceSelectors << SliceSelectorPair(widget, sliceSelector);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
-{
-  SliceSelectorPair requestedsliceSelectors;
-
-  for (auto sliceSelectors : m_sliceSelectors)
-  {
-    if (sliceSelectors.first == widget)
-    {
-      requestedsliceSelectors = sliceSelectors;
-      break;
-    }
-  }
-
-  m_sliceSelectors.removeOne(requestedsliceSelectors);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::updateScaleValue()
 {
   double *world,   worldWidth;
@@ -1057,6 +1018,41 @@ void View2D::onSceneBoundsChanged(const Bounds &bounds)
 
   updateWidgetLimits(bounds);
 }
+
+//-----------------------------------------------------------------------------
+void View2D::addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type)
+{
+  auto sliceSelector = selector->clone(this, m_plane);
+
+  auto fromWidget = sliceSelector->lowerWidget();
+  auto toWidget   = sliceSelector->rightWidget();
+
+  fromWidget->setVisible(type.testFlag(SliceSelectionTypes::From));
+  toWidget  ->setVisible(type.testFlag(SliceSelectionTypes::To));
+
+  m_fromLayout->addWidget (fromWidget );
+  m_toLayout->insertWidget(0, toWidget);
+
+  m_sliceSelectors << SliceSelectorPair(selector, sliceSelector);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  SliceSelectorPair requestedsliceSelectors;
+
+  for (auto sliceSelectors : m_sliceSelectors)
+  {
+    if (sliceSelectors.first == widget)
+    {
+      requestedsliceSelectors = sliceSelectors;
+      break;
+    }
+  }
+
+  m_sliceSelectors.removeOne(requestedsliceSelectors);
+}
+
 
 //-----------------------------------------------------------------------------
 void View2D::setCameraState(CameraState state)

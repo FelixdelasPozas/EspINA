@@ -37,236 +37,243 @@
 
 namespace ESPINA
 {
-  class RepresentationManager;
-  using RepresentationManagerSPtr  = std::shared_ptr<RepresentationManager>;
-  using RepresentationManagerSList = QList<RepresentationManagerSPtr>;
-
   class RenderView;
 
-  class EspinaGUI_EXPORT RepresentationManager
-  : public QObject
+  namespace GUI
   {
-    Q_OBJECT
-  public:
-    enum class Status: int8_t {
-      IDLE,
-      PENDING_DISPLAY
-    };
-
-    enum FlagValue
+    namespace Representations
     {
-      HAS_ACTORS   = 0x1,
-      EXPORTS_3D   = 0x2,
-      NEEDS_ACTORS = 0x4
-    };
+      class RepresentationManager;
+      using RepresentationManagerSPtr  = std::shared_ptr<RepresentationManager>;
+      using RepresentationManagerSList = QList<RepresentationManagerSPtr>;
 
-  Q_DECLARE_FLAGS(ManagerFlags, FlagValue)
+      class EspinaGUI_EXPORT RepresentationManager
+      : public QObject
+      {
+        Q_OBJECT
+      public:
+        enum class Status: int8_t {
+          IDLE,
+          PENDING_DISPLAY
+        };
 
-  public:
-    virtual ~RepresentationManager()
-    {}
+        enum FlagValue
+        {
+          HAS_ACTORS   = 0x1,
+          EXPORTS_3D   = 0x2,
+          NEEDS_ACTORS = 0x4
+        };
 
-    /** \brief Sets the name of the representation manager
-     *
-     */
-    void setName(const QString &name);
+        Q_DECLARE_FLAGS(ManagerFlags, FlagValue)
 
-    /** \brief Returns the name of the representation manager
-     *
-     */
-    QString name() const;
+      public:
+        virtual ~RepresentationManager()
+        {}
 
-    /** \brief Sets the description of the representation manager
-     *
-     */
-    void setDescription(const QString &description);
+        /** \brief Sets the name of the representation manager
+         *
+         */
+        void setName(const QString &name);
 
-    /** \brief Returns the description of the representation manager
-     *
-     */
-    QString description() const;
+        /** \brief Returns the name of the representation manager
+         *
+         */
+        QString name() const;
 
-    /** \brief Sets the icon of the representation manager
-     *
-     */
-    void setIcon(const QIcon &icon);
+        /** \brief Sets the description of the representation manager
+         *
+         */
+        void setDescription(const QString &description);
 
-    /** \brief Returns the icon of the representation manager
-     *
-     */
-    QIcon icon() const;
+        /** \brief Returns the description of the representation manager
+         *
+         */
+        QString description() const;
 
-    bool hasActors() const;
+        /** \brief Sets the icon of the representation manager
+         *
+         */
+        void setIcon(const QIcon &icon);
 
-    bool needsActors() const;
+        /** \brief Returns the icon of the representation manager
+         *
+         */
+        QIcon icon() const;
 
-    bool exports3D() const;
+        bool hasActors() const;
 
-    ManagerFlags flags() const;
+        bool needsActors() const;
 
-    ViewTypeFlags supportedViews() const
-    { return m_supportedViews; }
+        bool exports3D() const;
 
-    /** \brief Returns if managed representations are visible or not
-     *
-     */
-    bool representationsVisibility() const
-    { return m_isActive; }
+        ManagerFlags flags() const;
 
-    /** \brief Shows all representations
-     *
-     */
-    void show(TimeStamp t);
+        ViewTypeFlags supportedViews() const
+        { return m_supportedViews; }
 
-    /** \brief Hides all representations
-     *
-     */
-    void hide(TimeStamp t);
+        /** \brief Returns if managed representations are visible or not
+         *
+         */
+        bool representationsVisibility() const
+        { return m_isActive; }
 
-    /** \brief Returns if the manager has been requested to display its actors
-     *
-     */
-    bool isActive() const;
+        /** \brief Shows all representations
+         *
+         */
+        void show(TimeStamp t);
 
-    /** \brief Returns true if the manager is idle, false otherwise
-     *
-     */
-    bool isIdle() const;
+        /** \brief Hides all representations
+         *
+         */
+        void hide(TimeStamp t);
 
-    /** \brief Returns the range of ready pipelines.
-     *
-     */
-    TimeRange readyRange() const;
+        /** \brief Returns if the manager has been requested to display its actors
+         *
+         */
+        bool isActive() const;
 
-    /** \brief Updates view's actors with those available at the given time.
-     *
-     */
-    void display(TimeStamp t);
+        /** \brief Returns true if the manager is idle, false otherwise
+         *
+         */
+        bool isIdle() const;
 
-    /** \brief Returns the item picked
-     *
-     */
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
+        /** \brief Returns the range of ready pipelines.
+         *
+         */
+        TimeRange readyRange() const;
 
-    /** \brief Returns a new instance of the class.
-     *
-     */
-    RepresentationManagerSPtr clone();
+        /** \brief Updates view's actors with those available at the given time.
+         *
+         */
+        void display(TimeStamp t);
 
-    QString debugName() const;
+        /** \brief Returns the item picked
+         *
+         */
+        virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
-  public slots:
-    void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
+        /** \brief Returns a new instance of the class.
+         *
+         */
+        RepresentationManagerSPtr clone();
 
-    void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+        QString debugName() const;
 
-    void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
+      public slots:
+        void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
 
-  signals:
-    void renderRequested();
+        void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
 
-  protected slots:
-    void emitRenderRequest(TimeStamp t);
+        void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
-    void invalidateRepresentations();
+      signals:
+        void renderRequested();
 
-    void waitForDisplay();
+      protected slots:
+        void emitRenderRequest(TimeStamp t);
 
-    void idle();
+        void invalidateRepresentations();
 
-  protected:
-    explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
+        void waitForDisplay();
 
-    void setFlag(const FlagValue flag, const bool value);
+        void idle();
 
-    /** \brief Returns if the manager should react to the requested crosshair change
-     *
-     */
-    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
+      protected:
+        explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
-    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
+        void setFlag(const FlagValue flag, const bool value);
 
-    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
+        /** \brief Returns if the manager should react to the requested crosshair change
+         *
+         */
+        virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
-    NmVector3 currentCrosshair() const;
+        virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
-    NmVector3 currentSceneResolution() const;
+        virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
 
-    Bounds currentSceneBounds() const;
+        NmVector3 currentCrosshair() const;
 
-  private:
-    virtual TimeRange readyRangeImplementation() const = 0;
+        NmVector3 currentSceneResolution() const;
 
-    virtual bool hasRepresentations() const = 0;
+        Bounds currentSceneBounds() const;
 
-    void updateRepresentations(TimeStamp t);
+      private:
+        virtual TimeRange readyRangeImplementation() const = 0;
 
-    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) = 0;
+        virtual bool hasRepresentations() const = 0;
 
-    /** \brief Performs the actual crosshair change for the underlying representations
-     *
-     */
-    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
+        void updateRepresentations(TimeStamp t);
 
-    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) {}
+        virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) = 0;
 
-    virtual void changeSceneBounds(const Bounds &bounds, TimeStamp t) {}
+        /** \brief Performs the actual crosshair change for the underlying representations
+         *
+         */
+        virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
 
-    bool hasNewerFrames(TimeStamp t) const;
+        virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) {}
 
-    virtual void displayRepresentations(TimeStamp t) = 0;
+        virtual void changeSceneBounds(const Bounds &bounds, TimeStamp t) {}
 
-    virtual void hideRepresentations(TimeStamp t) = 0;
+        bool hasNewerFrames(TimeStamp t) const;
 
-    virtual void onShow(TimeStamp t) = 0;
+        virtual void displayRepresentations(TimeStamp t) = 0;
 
-    virtual void onHide(TimeStamp t) = 0;
+        virtual void hideRepresentations(TimeStamp t) = 0;
 
-    virtual RepresentationManagerSPtr cloneImplementation() = 0;
+        virtual void onShow(TimeStamp t) = 0;
 
-    /** \brief Sets the view where representation are managed
-     *
-     */
-    void setView(RenderView *view);
+        virtual void onHide(TimeStamp t) = 0;
 
-    friend class RenderView;
+        virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
-  protected:
-    RenderView *m_view;
+        /** \brief Sets the view where representation are managed
+         *
+         */
+        void setView(RenderView *view);
 
-  private:
-    QString      m_name;
-    QIcon        m_icon;
-    QString      m_description;
-    bool         m_isActive;
-    Status       m_status;
-    ManagerFlags m_flags;
+        friend class ESPINA::RenderView;
 
-    ViewTypeFlags m_supportedViews;
-    TimeStamp     m_lastRenderRequestTime;
+      protected:
+        RenderView *m_view;
 
-    NmVector3 m_crosshair;
-    NmVector3 m_resolution; // CoordinateSystem?
-    Bounds    m_bounds;
+      private:
+        QString      m_name;
+        QIcon        m_icon;
+        QString      m_description;
+        bool         m_isActive;
+        Status       m_status;
+        ManagerFlags m_flags;
 
-    RepresentationManagerSList m_childs;
-  };
+        ViewTypeFlags m_supportedViews;
+        TimeStamp     m_lastRenderRequestTime;
 
-  class RepresentationManager2D
-  {
-  public:
-    /** \brief Class RepresentationManager2D virtual destructor.
-     *
-     */
-    virtual ~RepresentationManager2D()
-    {};
+        NmVector3 m_crosshair;
+        NmVector3 m_resolution; // CoordinateSystem?
+        Bounds    m_bounds;
 
-    virtual void setPlane(Plane plane) = 0;
+        RepresentationManagerSList m_childs;
+      };
 
-    virtual void setRepresentationDepth(Nm depth) = 0;
-  };
+      class RepresentationManager2D
+      {
+      public:
+        /** \brief Class RepresentationManager2D virtual destructor.
+         *
+         */
+        virtual ~RepresentationManager2D()
+        {};
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::ManagerFlags)
+        virtual void setPlane(Plane plane) = 0;
+
+        virtual void setRepresentationDepth(Nm depth) = 0;
+      };
+
+      Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::ManagerFlags)
+
+    } // namespace Representations
+  } // namespace GUI
 }// namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_MANAGER_H

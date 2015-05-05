@@ -90,7 +90,6 @@
     <file>voi_brush2D.svg</file>
     <file>voi_brush3D.svg</file>
     <file>voi_brush2D-erase.svg</file>
-    <file>show_crosshairs2D.svg</file>
     <file>voi_brush3D-erase.svg</file>
     <file>roi_out.svg</file>
     <file>voi.svg</file>
@@ -120,6 +119,8 @@
     <file>database.png</file>
     <file>skelCreate.png</file>
     <file>skelModify.png</file>
-    <file>crosshair_planes.svg</file>
+    <file>crosshairs_switch.svg</file>
+    <file>crosshairs2D_switch.svg</file>
+    <file>crosshairs3D_switch.svg</file>
   </qresource>
 </RCC>

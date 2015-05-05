@@ -56,7 +56,7 @@ namespace ESPINA
      * \param[in] undoStack QUndoStack object raw pointer.
      * \param[in] parent QWidget raw pointer of the parent of this object.
      */
-    RestrictToolGroup(ROISettings*            settings,
+    RestrictToolGroup(ROISettings*      settings,
                       Support::Context &context);
 
     /** \brief VolumeOfInteresetTools class virtual destructor.
@@ -104,6 +104,8 @@ namespace ESPINA
     void onManualROIDefined(Selector::Selection strokes);
 
     void onOrthogonalROIDefined(ROISPtr roi);
+
+    void undoStackPush(QUndoCommand *command);
 
   private:
     /** \brief Add orthogonal ROI to accumulator if any is already defined

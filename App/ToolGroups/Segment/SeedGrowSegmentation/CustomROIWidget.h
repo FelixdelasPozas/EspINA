@@ -26,7 +26,7 @@
 #include <Core/Utils/Spatial.h>
 
 // Qt
-#include <QWidgetAction>
+#include <QWidget>
 #include <QLabel>
 #include <QSpinBox>
 
@@ -34,7 +34,7 @@ namespace ESPINA
 {
 
   class CustomROIWidget
-  : public QWidgetAction
+  : public QWidget
   {
     Q_OBJECT
 
@@ -43,17 +43,7 @@ namespace ESPINA
      * \param[in] parent, raw pointer to the parent of this object.
      *
      */
-    explicit CustomROIWidget(QObject* parent=nullptr);
-
-    /** \brief Overrides QWidgetAction::createWidget().
-     *
-     */
-    virtual QWidget* createWidget(QWidget* parent) override;
-
-    /** \brief Overrides QWidgetAction::deleteWidget().
-     *
-     */
-    virtual void deleteWidget(QWidget* widget) override;
+    explicit CustomROIWidget(QWidget* parent=nullptr);
 
     /** \brief Returns the value of the applyROI flag.
      *
@@ -68,38 +58,38 @@ namespace ESPINA
     void setValue(Axis axis, unsigned int value);
 
     /** \brief Returns the value of the ROI for a specified axis.
-     * \param[in] axis, axis for the value.
+     * \param[in] axis for the value.
      */
     unsigned int value(Axis axis) const
     { return m_values[idx(axis)]; }
 
   private slots:
-  	/** \brief Modifies the GUI if the ROI is to be used.
-  	 * \param[in] val, true if the ROI values are going to be used.
-  	 *
-  	 */
+    /** \brief Modifies the GUI if the ROI is to be used.
+     * \param[in] val true if the ROI values are going to be used.
+     *
+     */
     void onApplyROIChanged(bool val);
 
-  	/** \brief Updates the value of the ROI on the X axis.
-  	 *
-  	 */
+    /** \brief Updates the value of the ROI on the X axis.
+     *
+     */
     void onXSizeChanged(int value);
 
-  	/** \brief Updates the value of the ROI on the Y axis.
-  	 *
-  	 */
+    /** \brief Updates the value of the ROI on the Y axis.
+     *
+     */
     void onYSizeChanged(int value);
 
-  	/** \brief Updates the value of the ROI on the Z axis.
-  	 *
-  	 */
+    /** \brief Updates the value of the ROI on the Z axis.
+     *
+     */
     void onZSizeChanged(int value);
 
   signals:
     void useROI(bool);
 
   private:
-    bool    m_useROI;
+    bool m_useROI;
 
     unsigned int m_values    [3];
     QLabel      *m_labelROI  [3];

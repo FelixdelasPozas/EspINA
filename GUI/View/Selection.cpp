@@ -172,6 +172,23 @@ void Selection::set(ViewItemAdapterList selection)
 }
 
 //----------------------------------------------------------------------------
+void Selection::setActiveChannel(ChannelAdapterPtr channel)
+{
+  if (m_activeChannel != channel)
+  {
+    m_activeChannel = channel;
+
+    emit activeChannelChanged(channel);
+  }
+}
+
+//----------------------------------------------------------------------------
+ChannelAdapterPtr Selection::activeChannel() const
+{
+  return m_activeChannel;
+}
+
+//----------------------------------------------------------------------------
 ViewItemAdapterList Selection::items() const
 {
   ViewItemAdapterList selectedItems;
