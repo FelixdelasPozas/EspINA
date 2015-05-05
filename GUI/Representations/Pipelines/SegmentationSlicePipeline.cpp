@@ -132,7 +132,6 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
       actor->GetMapper()->SetUpdateExtent(extent);
       actor->GetMapper()->SetNumberOfThreads(1);
-      actor->GetMapper()->StreamingOff();
       actor->GetMapper()->UpdateInformation();
       actor->GetMapper()->UpdateWholeExtent();
       actor->SetOpacity(opacity(state) * color.alphaF());

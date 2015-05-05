@@ -100,6 +100,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_mainBarGroup {this}
 , m_activeToolGroup{nullptr}
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy{false}
@@ -170,7 +171,6 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_roiSettings;
   delete m_colorEngineMenu;
   delete m_dynamicMenuRoot;
-  delete m_mainBarGroup;
 }
 
 //------------------------------------------------------------------------
@@ -397,7 +397,7 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
 {
-  m_mainBarGroup->addAction(toolGroup);
+  m_mainBarGroup.addAction(toolGroup);
   m_mainBar->addAction(toolGroup);
 
   connect(toolGroup, SIGNAL(activated(ToolGroup*)),
@@ -1270,10 +1270,9 @@ void EspinaMainWindow::createToolbars()
   m_mainBar->setObjectName("Main ToolBar");
   m_mainBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-  m_mainBarGroup = new QActionGroup(this);
-  m_mainBarGroup->setExclusive(true);
-  m_mainBarGroup->setEnabled(true);
-  m_mainBarGroup->setVisible(true);
+  m_mainBarGroup.setExclusive(true);
+  m_mainBarGroup.setEnabled(true);
+  m_mainBarGroup.setVisible(true);
 
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
