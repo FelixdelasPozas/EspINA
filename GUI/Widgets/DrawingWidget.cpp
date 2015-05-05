@@ -187,7 +187,6 @@ void DrawingWidget::stopDrawing()
   {
     if(m_currentPainter.get() == m_contourPainter.get())
     {
-      m_rasterizeWidget->setVisible(false);
       m_contourPainter->clearContours();
     }
   }
@@ -247,7 +246,7 @@ void DrawingWidget::loadSettings()
   ESPINA_SETTINGS(settings);
 
   m_opacity         = settings.value(BRUSH_OPACITY,    50).toInt();
-  m_brushRadius     = settings.value(BRUSH_RADIUS,     20).toInt();
+    m_brushRadius     = settings.value(BRUSH_RADIUS,     20).toInt();
   m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
 }
 
