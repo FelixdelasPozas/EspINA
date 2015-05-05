@@ -74,12 +74,6 @@ namespace ESPINA
     virtual SettingsPanelSList settingsPanels() const;
 
     virtual QList<MenuEntry> menuEntries() const;
-
-  private:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    SchedulerSPtr    m_scheduler;
-    QUndoStack*      m_undoStack;
   };
 } // namespace ESPINA
 

@@ -72,7 +72,6 @@ FilterTypeList SegmhaImporterPlugin::SegmhaFilterFactory::providedFilters() cons
 
 //-----------------------------------------------------------------------------
 SegmhaImporterPlugin::SegmhaImporterPlugin()
-: m_undoStack    {nullptr}
 {
 }
 
@@ -88,10 +87,6 @@ SegmhaImporterPlugin::~SegmhaImporterPlugin()
 //-----------------------------------------------------------------------------
 void SegmhaImporterPlugin::init(Support::Context &context)
 {
-  m_model       = context.model();
-  m_factory     = context.factory();
-  m_scheduler   = context.scheduler();
-  m_undoStack   = context.undoStack();
 }
 
 //------------------------------------------------------------------------
