@@ -131,6 +131,10 @@ namespace ESPINA
          */
         SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 
+        void onChannelsModified(ChannelAdapterList channels);
+
+        void onSegmentationsModified(SegmentationAdapterList segmentations);
+
         ChannelAdapterList         m_channels;
         SegmentationAdapterList    m_segmentations;
         ChannelAdapterPtr          m_activeChannel;

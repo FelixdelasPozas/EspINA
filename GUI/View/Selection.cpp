@@ -24,8 +24,10 @@
 #include "Selection.h"
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::Core::Utils;
 
@@ -42,14 +44,20 @@ ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)
   m_channels.clear();
 
   for (auto channel : modifiedChannels)
+  {
     channel->setSelected(false);
+  }
 
   for(auto channel: channelList)
   {
     if(modifiedChannels.contains(channel))
+    {
       modifiedChannels.removeOne(channel);
+    }
     else
+    {
       modifiedChannels << channel;
+    }
 
     channel->setSelected(true);
     m_channels << channel;
@@ -68,9 +76,6 @@ void Selection::set(ChannelAdapterList selection)
     if(!modifiedChannels.empty())
     {
       emit selectionStateChanged(modifiedChannels);
-
-      auto viewItems = toList<ViewItemAdapter, ChannelAdapter>(modifiedChannels);
-      m_invalidator.invalidateRepresentations(viewItems);
     }
 
     emit selectionStateChanged();
@@ -81,17 +86,24 @@ void Selection::set(ChannelAdapterList selection)
 SegmentationAdapterList Selection::setSegmentations(SegmentationAdapterList segmentationList)
 {
   auto modifiedSegmentations = segmentations();
-  m_segmentations.clear();
 
   for(auto segmentation: modifiedSegmentations)
+  {
     segmentation->setSelected(false);
+  }
+
+  m_segmentations.clear();
 
   for(auto segmentation: segmentationList)
   {
     if (modifiedSegmentations.contains(segmentation))
+    {
       modifiedSegmentations.removeOne(segmentation);
+    }
     else
+    {
       modifiedSegmentations << segmentation;
+    }
 
     segmentation->setSelected(true);
     m_segmentations << segmentation;
@@ -101,18 +113,34 @@ SegmentationAdapterList Selection::setSegmentations(SegmentationAdapterList segm
 }
 
 //----------------------------------------------------------------------------
+void Selection::onChannelsModified(ChannelAdapterList channels)
+{
+  if(!channels.isEmpty())
+  {
+    emit selectionStateChanged(channels);
+  }
+}
+
+//----------------------------------------------------------------------------
+void Selection::onSegmentationsModified(SegmentationAdapterList segmentations)
+{
+  if(!segmentations.isEmpty())
+  {
+    emit selectionStateChanged(segmentations);
+
+    auto invalidItems = toList<ViewItemAdapter>(segmentations);
+    m_invalidator.invalidateRepresentations(invalidItems);
+  }
+}
+
+//----------------------------------------------------------------------------
 void Selection::set(SegmentationAdapterList selection)
 {
   if(selection != m_segmentations)
   {
     auto modifiedSegmentations = setSegmentations(selection);
 
-    if(!modifiedSegmentations.empty())
-    {
-      emit selectionStateChanged(modifiedSegmentations);
-      auto viewItems = toList<ViewItemAdapter, SegmentationAdapter>(modifiedSegmentations);
-      m_invalidator.invalidateRepresentations(viewItems);
-    }
+    onSegmentationsModified(modifiedSegmentations);
 
     emit selectionStateChanged();
   }
@@ -131,10 +159,10 @@ void Selection::set(ViewItemAdapterList selection)
       switch(item->type())
       {
         case ItemAdapter::Type::CHANNEL:
-          channels << dynamic_cast<ChannelAdapterPtr>(item);
+          channels << channelPtr(item);
           break;
         case ItemAdapter::Type::SEGMENTATION:
-          segmentations << dynamic_cast<SegmentationAdapterPtr>(item);
+          segmentations << segmentationPtr(item);
           break;
         default:
           Q_ASSERT(false); // NOTE: SAMPLES?
@@ -149,27 +177,14 @@ void Selection::set(ViewItemAdapterList selection)
       emit selectionStateChanged();
     }
 
-    ViewItemAdapterList viewItems;
-    if(!modifiedSegmentations.empty())
-    {
-      emit selectionStateChanged(modifiedSegmentations);
-      viewItems << toList<ViewItemAdapter, SegmentationAdapter>(modifiedSegmentations);
-    }
+    onChannelsModified(modifiedChannels);
+    onSegmentationsModified(modifiedSegmentations);
 
-    if(!modifiedChannels.empty())
-    {
-      emit selectionStateChanged(modifiedChannels);
-      viewItems << toList<ViewItemAdapter, ChannelAdapter>(modifiedChannels);
-    }
 
     emit selectionChanged();
     emit selectionChanged(m_channels);
     emit selectionChanged(m_segmentations);
 
-    if(!viewItems.empty())
-    {
-      m_invalidator.invalidateRepresentations(viewItems);
-    }
   }
 }
 
@@ -196,10 +211,14 @@ ViewItemAdapterList Selection::items() const
   ViewItemAdapterList selectedItems;
 
   for(auto channel: m_channels)
+  {
     selectedItems << channel;
+  }
 
   for(auto segmentation: m_segmentations)
+  {
     selectedItems << segmentation;
+  }
 
   return selectedItems;
 }
