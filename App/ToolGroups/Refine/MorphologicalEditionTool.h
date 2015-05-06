@@ -53,7 +53,7 @@ namespace ESPINA
 
       virtual QList<Filter::Type> availableFilterDelegates() const;
 
-      virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
+      virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
       bool isCloseFilter       (const Filter::Type &type) const;

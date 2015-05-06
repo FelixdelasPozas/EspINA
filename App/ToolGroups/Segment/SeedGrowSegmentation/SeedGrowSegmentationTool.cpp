@@ -90,14 +90,15 @@ QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegat
 }
 
 //-----------------------------------------------------------------------------
-FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(FilterSPtr filter)
+FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(SegmentationAdapterPtr segmentation,
+                                                                        FilterSPtr             filter)
 throw (Unknown_Filter_Type_Exception)
 {
   if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
 
   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
 
-  return std::make_shared<SeedGrowSegmentationHistory>(sgsFilter);
+  return std::make_shared<SeedGrowSegmentationHistory>(segmentation, sgsFilter);
 }
 
 //-----------------------------------------------------------------------------

@@ -20,6 +20,7 @@
 
 #include <Core/EspinaTypes.h>
 #include <QMap>
+#include <QDebug>
 
 namespace ESPINA
 {

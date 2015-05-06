@@ -48,8 +48,8 @@ namespace ESPINA
   public:
     /** \brief SegmentationExplorer class constructor.
      */
-    explicit SegmentationExplorer(Support::Context &context,
-                                  FilterDelegateFactorySPtr delegateFactory);
+    explicit SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
+                                  Support::Context &context);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *

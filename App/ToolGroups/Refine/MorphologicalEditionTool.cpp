@@ -146,7 +146,8 @@ QList<Filter::Type> MorphologicalEditionTool::MorphologicalFilterFactory::availa
 }
 
 //------------------------------------------------------------------------
-FilterDelegateSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createDelegate(FilterSPtr filter)
+FilterDelegateSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createDelegate(SegmentationAdapterPtr segmentation,
+                                                                                        FilterSPtr             filter)
 throw (Unknown_Filter_Type_Exception)
 {
   QString title;

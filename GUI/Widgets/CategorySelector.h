@@ -45,11 +45,11 @@ namespace ESPINA
       public:
         /** \brief CategorySelector class constructor.
          * \param[in] model model adapter smart pointer.
-         * \param[in] parent raw pointer of the QObject parent of this one.
+         * \param[in] parent of the widget
          *
          */
         explicit CategorySelector(ModelAdapterSPtr model,
-                                  QObject         *parent = nullptr);
+                                  QWidget         *parent = nullptr);
 
         /** \brief Selects the given category in the widget.
          * \param[in] category smart pointer of the category adapter to select.

@@ -68,8 +68,21 @@ void RangedValue<R>::addValue(R representation, TimeStamp t)
   {
     m_lastTime = t;
   }
+  else
+  {
+    qWarning() << "Adding previous value";
+  }
+
+  auto needSort = !m_times.isEmpty() && t < m_times.last();
 
   m_times << t;
+
+  if (needSort)
+  {
+    qWarning() << "Sorting unordered time stamp";
+    qSort(m_times);
+  }
+
   m_representations[t] = representation;
 }
 
@@ -83,39 +96,35 @@ void RangedValue<R>::reusePreviousValue(TimeStamp t)
 template<typename R>
 R RangedValue<R>::value(TimeStamp t, R invalid) const
 {
-  R result = invalid;
+  TimeStamp valueTime = 0;
 
-  if(!m_times.empty())
+  if (m_times.isEmpty())
   {
-    if(m_times.contains(t))
-    {
-      result = m_representations.value(t, invalid);
-    }
-    else
-    {
-      if(m_lastTime <= t && m_times.last() < t)
-      {
-        result = m_representations.value(m_times.last(), invalid);
-      }
-      else
-      {
-        auto i = 0;
-        auto time = m_times.first();
-        auto previousTime = time;
-
-        while(time < t)
-        {
-          previousTime = time;
-          time = m_times[++i];
-        }
-
-        Q_ASSERT(previousTime < t && time > t);
-        result = m_representations.value(previousTime, invalid);
-      }
-    }
+    qWarning() << "Accessing invalid value";
+  }
+  else
+  {
+    valueTime = m_times.first();
   }
 
-  return result;
+  int  i     = 1;
+  bool found = false;
+
+  while (!found && i < m_times.size())
+  {
+    auto nextTime = m_times[i];
+
+    found = nextTime > t;
+
+    if (!found)
+    {
+      valueTime = nextTime;
+    }
+
+    ++i;
+  }
+
+  return m_representations.value(valueTime, invalid);
 }
 
 
@@ -130,54 +139,29 @@ void RangedValue<R>::invalidate()
 template<typename R>
 void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
 {
-  if(!m_times.empty())
+  if (m_times.isEmpty()) return;
+
+  bool found                = false;
+  auto validTime            = m_times.takeFirst();
+  auto validRepresentations = m_representations[validTime];
+
+  while (!found && !m_times.isEmpty())
   {
-    if(m_times.contains(t))
+    auto nextTime = m_times.takeFirst();
+
+    found = nextTime > t;
+
+    if (!found)
     {
-      while(m_times.first() != t)
-      {
-        m_representations.remove(m_times.first());
-        m_times.removeOne(m_times.first());
-      }
-    }
-    else
-    {
-      if(m_lastTime <= t && m_times.last() < t)
-      {
-        auto rep = m_representations[m_times.last()];
-        m_times.clear();
-        m_representations.clear();
+      m_representations.remove(validTime);
 
-        m_times << t;
-        m_representations[t] = rep;
-      }
-      else
-      {
-        auto i = 0;
-        auto time = m_times.first();
-        auto previousTime = time;
-        TimeRange rangeToDelete;
-
-        while(time < t)
-        {
-          previousTime = time;
-          rangeToDelete << previousTime;
-          time = m_times[++i];
-        }
-
-        auto rep = m_representations[previousTime];
-
-        for(auto deletedTime: rangeToDelete)
-        {
-          m_times.removeOne(deletedTime);
-          m_representations.remove(deletedTime);
-        }
-
-        m_times.insert(0, t);
-        m_representations[t] = rep;
-      }
+      validTime            = nextTime;
+      validRepresentations = m_representations[nextTime];
     }
   }
+
+  m_times.prepend(t);
+  m_representations[t] = validRepresentations;
 }
 
 template<typename R>

@@ -21,6 +21,7 @@
 
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 #include <QMessageBox>
 #include <QUndoStack>
@@ -76,12 +77,14 @@ public:
    *                       If this value is 0 no post-proccessing will be executed
    *  \param[in] parent the undo command which will trigger this one
    */
-  SGSFilterModification(SeedGrowSegmentationFilterSPtr filter,
+  SGSFilterModification(SegmentationAdapterPtr         segmentation,
+                        SeedGrowSegmentationFilterSPtr filter,
                         ROISPtr                        roi,
                         int                            threshold,
                         int                            closeRadius,
                         QUndoCommand                  *parent = nullptr)
   : QUndoCommand(parent)
+  , m_segmentation(segmentation)
   , m_filter(filter)
   , m_ROI(roi)
   , m_threshold(threshold)
@@ -118,6 +121,8 @@ public:
     m_filter->setClosingRadius(m_closingRadius);
 
     update();
+
+    invalidateRepresentations();
   }
 
   virtual void undo()
@@ -139,6 +144,8 @@ public:
     {
       update();
     }
+
+    invalidateRepresentations();
   }
 
 private:
@@ -149,24 +156,32 @@ private:
     QApplication::restoreOverrideCursor();
   }
 
+  void invalidateRepresentations()
+  {
+    m_segmentation->invalidateRepresentations();
+  }
+
 private:
+  SegmentationAdapterPtr         m_segmentation;
   SeedGrowSegmentationFilterSPtr m_filter;
 
   ROISPtr m_ROI,           m_oldROI;
   int     m_threshold,     m_oldThreshold;
   int     m_closingRadius, m_oldClosingRadius;
 
-  Bounds m_oldBounds;
+  Bounds                 m_oldBounds;
   itkVolumeType::Pointer m_oldVolume;
   BoundsList             m_editedRegions;
   //itkVolumeType::Pointer m_newVolume;
 };
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
+SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SegmentationAdapterPtr         segmentation,
+                                                                     SeedGrowSegmentationFilterSPtr filter,
                                                                      RestrictToolGroup             *roiTools,
-                                                                     Support::Context        &context)
+                                                                     Support::Context              &context)
 : m_context(context)
+, m_segmentation(segmentation)
 , m_gui(new Ui::SeedGrowSegmentationHistoryWidget())
 , m_filter(filter)
 , m_roiTools(roiTools)
@@ -256,53 +271,43 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 {
   auto output = m_filter->output(0);
 
-  if (output->isEdited())
+  if (!output->isEdited() || discardChangesConfirmed())
   {
-    QMessageBox msg;
-    msg.setText(tr("Filter contains segmentations that have been manually modified by the user."
-                   "Updating this filter will result in losing user modifications."
-                   "Do you want to proceed?"));
-    msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    auto volume = volumetricData(output);
 
-    if (msg.exec() != QMessageBox::Yes)
-      return;
-  }
+    auto spacing = volume->spacing();
+    auto roi     = m_roiTools->currentROI();
+    auto seed    = m_filter->seed();
 
-  auto volume = volumetricData(output);
+    if (!roi  || contains(roi.get(), seed, spacing))
+    {
+      auto undoStack = m_context.undoStack();
+      auto threshold = m_gui->threshold->value();
+      auto radius    = m_gui->closingRadius->value();
 
-  auto spacing = volume->spacing();
-  auto roi     = m_roiTools->currentROI();
-  auto seed    = m_filter->seed();
+      undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
+      undoStack->push(new SGSFilterModification(m_segmentation, m_filter, roi, threshold, radius));
+      undoStack->endMacro();
 
-  if (roi && !contains(roi.get(), seed, spacing))
-  {
-    QMessageBox::warning(this,
-                         tr("Seed Grow Segmentation"),
-                         tr("Segmentation couldn't be modified. Seed is outside ROI"));
-                         return;
-  }
+      if (m_filter->isTouchingROI())
+      {
+        auto message = tr("New segmentation may be incomplete due to ROI restriction.");
 
-  auto undoStack = m_context.undoStack();
-  undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
-  {
-    // TODO 2015-04-20 Invalidate segmentation represenations
-    undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
-  }
-  undoStack->endMacro();
+        GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+      }
 
-  if (m_filter->isTouchingROI())
-  {
-    QMessageBox warning;
-    warning.setIcon(QMessageBox::Warning);
-    warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
-    warning.setText(tr("New segmentation may be incomplete due to ROI restriction."));
-    warning.exec();
-  }
+      auto currentFilterROI = m_filter->roi();
+      if (currentFilterROI)
+      {
+        m_roiTools->setCurrentROI(currentFilterROI->clone());
+      }
+    }
+    else
+    {
+      auto message = tr("Segmentation couldn't be modified. Seed is outside ROI");
 
-  auto currentFilterROI = m_filter->roi();
-  if (currentFilterROI)
-  {
-    m_roiTools->setCurrentROI(currentFilterROI->clone());
+      GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+    }
   }
 }
 
@@ -323,4 +328,20 @@ void SeedGrowSegmentationHistoryWidget::setApplyClosing(bool value)
 void SeedGrowSegmentationHistoryWidget::setClosingRadius(int value)
 {
   m_gui->closingRadius->setValue(value);
+}
+
+//----------------------------------------------------------------------------
+QString SeedGrowSegmentationHistoryWidget::dialogTitle() const
+{
+  return tr("Seed Grow Segmentation");
+}
+
+//----------------------------------------------------------------------------
+bool SeedGrowSegmentationHistoryWidget::discardChangesConfirmed() const
+{
+  auto message = tr("Filter contains segmentations that have been manually modified by the user."
+                    "Updating this filter will result in losing user modifications."
+                    "Do you want to proceed?");
+
+  return GUI::DefaultDialogs::UserConfirmation(dialogTitle() ,message);
 }

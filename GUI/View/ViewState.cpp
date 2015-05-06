@@ -199,6 +199,8 @@ void ViewState::changeCrosshair(const NmVector3 &point)
   {
     m_crosshair = point;
 
+    m_timer.activate(); // we need to increment on every crosshair change
+                        // to improve speed on consecutive slice changes
     auto t = m_timer.increment();
 
     //qDebug() << "crosshair changed to" << point;

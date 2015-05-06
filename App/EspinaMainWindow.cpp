@@ -1321,11 +1321,11 @@ void EspinaMainWindow::createDefaultPanels()
   auto channelExplorer = new ChannelExplorer(m_context);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
-  auto segmentationExplorer = new SegmentationExplorer(m_context, m_filterDelegateFactory);
+  auto segmentationExplorer = new SegmentationExplorer(m_filterDelegateFactory, m_context);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 
-//   auto segmentationHistory = new HistoryDock(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
-//   registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
+  auto segmentationHistory = new HistoryDock(m_filterDelegateFactory, m_context);
+  registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 }
 
 //------------------------------------------------------------------------

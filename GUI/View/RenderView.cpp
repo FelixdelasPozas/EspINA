@@ -482,6 +482,8 @@ void RenderView::onRenderRequest()
     m_requiresRender = true;
     m_lastRender     = renderTime;
 
+    m_state.timer().activate();
+
     deleteInactiveWidgetManagers();
   }
 

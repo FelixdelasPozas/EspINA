@@ -42,7 +42,7 @@ throw (Unknown_Filter_Type_Exception)
 
     if (!m_factories.contains(type)) throw Unknown_Filter_Type_Exception();
 
-    m_instances.insert(segmentation, Factory(m_factories[type]->createDelegate(filter), type));
+    m_instances.insert(segmentation, Factory(m_factories[type]->createDelegate(segmentation, filter), type));
   }
 
   return m_instances[segmentation].first;

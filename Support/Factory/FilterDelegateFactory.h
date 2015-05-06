@@ -45,7 +45,7 @@ namespace ESPINA {
      *
      * \param[in] filter for which the delegate will be creted
      */
-    virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception) = 0;
+    virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception) = 0;
   };
 
   using SpecificFilterDelegateFactorySPtr = std::shared_ptr<SpecificFilterDelegateFactory>;

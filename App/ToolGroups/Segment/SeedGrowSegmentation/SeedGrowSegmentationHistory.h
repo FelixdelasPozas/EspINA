@@ -33,12 +33,8 @@ namespace ESPINA {
   {
     Q_OBJECT
   public:
-    SeedGrowSegmentationHistory(SeedGrowSegmentationFilterSPtr filter)
-    : m_filter(filter)
-    , m_widgetCount(0)
-    , m_roiSettings(nullptr)
-    , m_roiTools(nullptr)
-    {}
+    SeedGrowSegmentationHistory(SegmentationAdapterPtr         segmentation,
+                                SeedGrowSegmentationFilterSPtr filter);
 
     virtual ~SeedGrowSegmentationHistory();
 
@@ -56,6 +52,7 @@ namespace ESPINA {
     void onWidgetDestroyed();
 
   private:
+    SegmentationAdapterPtr         m_segmentation;
     SeedGrowSegmentationFilterSPtr m_filter;
 
     int m_widgetCount;

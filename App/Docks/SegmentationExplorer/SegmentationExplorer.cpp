@@ -59,8 +59,8 @@ public:
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(Support::Context &context,
-                                           FilterDelegateFactorySPtr delegateFactory)
+SegmentationExplorer::SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
+                                           Support::Context &context)
 : SelectableView(context.viewState())
 , m_context(context)
 , m_gui    {new GUI()}

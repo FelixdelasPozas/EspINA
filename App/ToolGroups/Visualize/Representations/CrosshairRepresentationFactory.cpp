@@ -51,7 +51,7 @@ Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::C
 }
 
 //----------------------------------------------------------------------------
-void CrosshairRepresentationFactory::createCrosshair2D(Representation &representation, Support::Context &context)
+void CrosshairRepresentationFactory::createCrosshair2D(Representation &representation, Support::Context &context) const
 {
   createCrosshair(":espina/crosshairs2D_switch.svg",
                   QObject::tr("Shows/Hides the crosshair in the 2D views."),
@@ -61,7 +61,7 @@ void CrosshairRepresentationFactory::createCrosshair2D(Representation &represent
 }
 
 //----------------------------------------------------------------------------
-void CrosshairRepresentationFactory::createCrosshair3D(Representation &representation, Support::Context &context)
+void CrosshairRepresentationFactory::createCrosshair3D(Representation &representation, Support::Context &context) const
 {
   createCrosshair(":espina/crosshairs3D_switch.svg",
                   QObject::tr("Shows/Hides the crosshair in the 3D view."),
@@ -75,7 +75,7 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
                                                      const QString   &description,
                                                      Representation  &representation,
                                                      ViewTypeFlags    flags,
-                                                     Support::Context &context)
+                                                     Support::Context &context) const
 {
   auto crossManager = std::make_shared<CrosshairManager>(flags);
   auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, flags, context.timer());

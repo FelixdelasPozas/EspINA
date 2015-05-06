@@ -50,6 +50,8 @@ namespace ESPINA
     virtual ~Timer()
     {};
 
+    void activate();
+
     /** \brief Returns the current TimeStamp of the timer.
      *
      */
@@ -77,6 +79,14 @@ namespace ESPINA
     void tic(TimeStamp time);
 
   private:
+    void resetImplemenation();
+
+    bool willOverflow() const;
+
+    static const TimeStamp MAXIMUM_TIME_STAMP;
+
+  private:
+    bool      m_canIncrement;
     TimeStamp m_timeStamp;
     QMutex    m_mutex;
   };

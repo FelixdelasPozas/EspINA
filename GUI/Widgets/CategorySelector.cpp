@@ -28,7 +28,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
 
 //------------------------------------------------------------------------
-CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
+CategorySelector::CategorySelector(ModelAdapterSPtr model, QWidget* parent)
 : QComboTreeView    {parent}
 , m_model           {model}
 , m_selectedCategory{nullptr}

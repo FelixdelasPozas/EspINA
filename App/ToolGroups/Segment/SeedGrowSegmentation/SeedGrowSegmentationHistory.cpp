@@ -25,6 +25,16 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+SeedGrowSegmentationHistory::SeedGrowSegmentationHistory(SegmentationAdapterPtr         segmentation,
+                                                         SeedGrowSegmentationFilterSPtr filter)
+: m_segmentation(segmentation)
+, m_filter(filter)
+, m_widgetCount(0)
+, m_roiSettings(nullptr)
+, m_roiTools(nullptr)
+{}
+
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationHistory::~SeedGrowSegmentationHistory()
 {
   delete m_roiTools;
@@ -53,7 +63,7 @@ QWidget *SeedGrowSegmentationHistory::createWidget(Support::Context &context)
   m_widgetCount++;
   m_roiTools->setVisible(true);
 
-  auto widget = new SeedGrowSegmentationHistoryWidget(m_filter, m_roiTools, context);
+  auto widget = new SeedGrowSegmentationHistoryWidget(m_segmentation, m_filter, m_roiTools, context);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed()));
@@ -65,6 +75,7 @@ QWidget *SeedGrowSegmentationHistory::createWidget(Support::Context &context)
 
   connect(widget, SIGNAL(applyClosingChanged(bool)),
           this,   SIGNAL(applyClosingChanged(bool)));
+
   connect(this,   SIGNAL(applyClosingChanged(bool)),
           widget, SLOT(setApplyClosing(bool)));
 

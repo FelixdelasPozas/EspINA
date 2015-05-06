@@ -27,25 +27,32 @@ using namespace ESPINA;
 
 const TimeStamp Timer::INVALID_TIME_STAMP = 0;
 const TimeStamp Timer::INITIAL_TIME_STAMP = 1;
+const TimeStamp Timer::MAXIMUM_TIME_STAMP = std::numeric_limits<std::uint64_t>::max();
 
 //------------------------------------------------------------------------
 Timer::Timer(TimeStamp time)
-: m_timeStamp  {time}
+: m_timeStamp{time}
 {
 }
 
 //------------------------------------------------------------------------
 TimeStamp Timer::increment()
 {
-  ++m_timeStamp;
+  QMutexLocker lock(&m_mutex);
+  if (m_canIncrement)
+  {
+    m_canIncrement = false;
 
-  if(m_timeStamp == std::numeric_limits<std::uint64_t>::max())
-  {
-    reset();
-  }
-  else
-  {
-    emit tic(m_timeStamp);
+    if(willOverflow())
+    {
+      resetImplemenation();
+    }
+    else
+    {
+      ++m_timeStamp;
+
+      emit tic(m_timeStamp);
+    }
   }
 
   return m_timeStamp;
@@ -54,9 +61,9 @@ TimeStamp Timer::increment()
 //------------------------------------------------------------------------
 TimeStamp Timer::reset()
 {
-  m_timeStamp = INITIAL_TIME_STAMP;
+  QMutexLocker lock(&m_mutex);
 
-  emit reset(m_timeStamp);
+  resetImplemenation();
 
   return m_timeStamp;
 }
@@ -65,4 +72,24 @@ TimeStamp Timer::reset()
 bool Timer::isValid(TimeStamp t)
 {
   return t != INVALID_TIME_STAMP;
+}
+
+//------------------------------------------------------------------------
+void Timer::resetImplemenation()
+{
+  m_timeStamp = INITIAL_TIME_STAMP;
+
+  emit reset(m_timeStamp);
+}
+
+//------------------------------------------------------------------------
+bool Timer::willOverflow() const
+{
+  return m_timeStamp == MAXIMUM_TIME_STAMP;
+}
+
+//------------------------------------------------------------------------
+void Timer::activate()
+{
+  m_canIncrement = true;
 }

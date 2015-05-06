@@ -45,9 +45,10 @@ namespace ESPINA {
   {
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
+    explicit SeedGrowSegmentationHistoryWidget(SegmentationAdapterPtr         segmentation,
+                                               SeedGrowSegmentationFilterSPtr filter,
                                                RestrictToolGroup             *roiTools,
-                                               Support::Context        &context);
+                                               Support::Context              &context);
     virtual ~SeedGrowSegmentationHistoryWidget();
 
   public slots:
@@ -69,8 +70,14 @@ namespace ESPINA {
     void modifyFilter();
 
   private:
+    QString dialogTitle() const;
+
+    bool discardChangesConfirmed() const;
+
+  private:
     Support::Context &m_context;
 
+    SegmentationAdapterPtr                 m_segmentation;
     Ui::SeedGrowSegmentationHistoryWidget *m_gui;
     SeedGrowSegmentationFilterSPtr         m_filter;
 
