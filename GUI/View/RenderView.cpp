@@ -471,7 +471,6 @@ void RenderView::onRenderRequest()
   auto readyManagers = pendingManagers();
   auto renderTime    = latestReadyTimeStamp(readyManagers);
 
-  //qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
   if (m_lastRender < renderTime)
   {
 //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();

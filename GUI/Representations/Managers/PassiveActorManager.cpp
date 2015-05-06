@@ -138,8 +138,6 @@ void PassiveActorManager::displayRepresentations(const TimeStamp t)
   auto currentActors = m_viewActors;
   auto futureActors  = m_pool->actors(t);
 
-  qDebug() << "passive display" << t << "current" << currentActors.size() << "future" << futureActors.size();
-
   if(currentActors.empty())
   {
     m_viewActors = futureActors;

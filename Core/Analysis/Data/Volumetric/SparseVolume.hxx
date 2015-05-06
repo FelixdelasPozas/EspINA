@@ -231,6 +231,11 @@ namespace ESPINA
          */
         virtual void setSpacing(const NmVector3& spacing) = 0;
 
+        /** \brief Sets the origin of the block.
+         *
+         */
+        virtual void setOrigin(const NmVector3& origin) = 0;
+
         /** \brief Returns the memory consumption for the block in bytes.
          *
          */
@@ -280,6 +285,9 @@ namespace ESPINA
       virtual void setSpacing(const NmVector3& spacing)
       { m_mask->setSpacing(spacing); }
 
+      virtual void setOrigin(const NmVector3& origin)
+      { m_mask->setOrigin(origin); }
+
       virtual size_t memoryUsage() const
       { return m_mask->memoryUsage(); }
 
@@ -326,7 +334,16 @@ namespace ESPINA
       { return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion()); }
 
       virtual void setSpacing(const NmVector3& spacing)
-      { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
+      {
+        m_image->SetSpacing(ItkSpacing<T>(spacing));
+        m_image->Update();
+      }
+
+      virtual void setOrigin(const NmVector3& origin)
+      {
+        m_image->SetOrigin(ItkPoint<T>(origin));
+        m_image->Update();
+      }
 
       virtual size_t memoryUsage() const
       { return m_image->GetBufferedRegion().GetNumberOfPixels()*sizeof(typename T::ValueType); }
@@ -462,6 +479,11 @@ namespace ESPINA
     //NOTE: 2015-04-20 Review when tiling support added
     //NmVector3 shift = m_origin - origin;
     m_origin = origin;
+
+    for(auto block: m_blocks)
+    {
+      block->setOrigin(origin);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -537,7 +559,9 @@ namespace ESPINA
     //QReadLocker lock(&m_mutex);
 
     if (!bounds.areValid())
+    {
       throw Invalid_Image_Bounds_Exception();
+    }
 
     VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
 

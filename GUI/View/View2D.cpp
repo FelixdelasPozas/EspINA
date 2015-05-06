@@ -1004,6 +1004,8 @@ void View2D::onSceneResolutionChanged(const NmVector3 &reslotuion)
   updateWidgetLimits(sceneBounds());
 
   m_scrollBar->setValue(sliceIndex);
+
+  resetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -1017,6 +1019,8 @@ void View2D::onSceneBoundsChanged(const Bounds &bounds)
   updateThumbnailBounds(bounds);
 
   updateWidgetLimits(bounds);
+
+  resetCamera();
 }
 
 //-----------------------------------------------------------------------------

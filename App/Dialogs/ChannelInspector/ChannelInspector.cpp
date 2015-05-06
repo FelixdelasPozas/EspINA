@@ -78,7 +78,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 , m_sources           {m_invalidator}
 , m_viewState         {m_timer, m_invalidator}
 , m_view              {new View2D(m_viewState, Plane::XY)}
-, m_contextInvalidator(context.representationInvalidator())
+, m_contextViewState  (context.viewState())
 {
   setupUi(this);
 
@@ -149,8 +149,8 @@ void ChannelInspector::onSpacingChanged()
 
   changeChannelSpacing();
 
-  applyModifications();
   m_view->resetCamera();
+  applyModifications();
 }
 
 //------------------------------------------------------------------------
@@ -281,6 +281,7 @@ void ChannelInspector::applyModifications()
 {
   if (isVisible())
   {
+    updateSceneState(m_viewState, toViewItemList(m_channel));
     invalidateChannelRepresentation();
   }
 }
@@ -316,7 +317,8 @@ void ChannelInspector::onChangesAccepted()
     applyEdgesChanges();
   }
 
-  m_contextInvalidator.invalidateRepresentations(toViewItemList(m_channel.get()));
+  updateSceneState(m_contextViewState, toViewItemList(m_channel));
+  m_contextViewState.representationInvalidator().invalidateRepresentations(m_channel.get());
 }
 
 //------------------------------------------------------------------------

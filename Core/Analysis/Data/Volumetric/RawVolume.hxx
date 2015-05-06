@@ -189,6 +189,7 @@ namespace ESPINA
     NmVector3    m_origin;
     NmVector3    m_spacing;
     VolumeBounds m_bounds;
+    QReadWriteLock m_mutex;
 
     typename T::Pointer m_image;
   };
@@ -240,6 +241,8 @@ namespace ESPINA
   template<typename T>
   Bounds RawVolume<T>::bounds() const
   {
+    QReadLocker lock(&m_mutex);
+
     return m_bounds.bounds();
   }
 
@@ -247,9 +250,10 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::setOrigin(const NmVector3& origin)
   {
-    //QWriteLocker lock(&m_mutex);
+    QWriteLocker lock(&m_mutex);
     //NmVector3 shift = m_origin - origin;
     m_image->SetOrigin(ItkPoint<T>(origin));
+    m_image->Update();
 
     m_origin = origin;
     m_bounds = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
@@ -259,7 +263,8 @@ namespace ESPINA
   template<typename T>
   NmVector3 RawVolume<T>::origin() const
   {
-    //QReadLocker lock(&m_mutex);
+    QReadLocker lock(&m_mutex);
+
     return m_origin;
   }
 
@@ -267,10 +272,12 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    //QWriteLocker lock(&m_mutex);
+    QWriteLocker lock(&m_mutex);
+
     if (m_spacing != spacing)
     {
       m_image->SetSpacing(ItkSpacing<T>(spacing));
+      m_image->Update();
 
       m_spacing = spacing;
       m_bounds  = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
@@ -281,7 +288,8 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer RawVolume<T>::itkImage() const
   {
-    //QReadLocker lock(&m_mutex);
+    QReadLocker lock(&m_mutex);
+
     return m_image;
   }
 
@@ -289,10 +297,12 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer RawVolume<T>::itkImage(const Bounds& bounds) const
   {
-    //QReadLocker lock(&m_mutex);
+    QReadLocker lock(&m_mutex);
 
     if (!bounds.areValid())
+    {
       throw Invalid_Image_Bounds_Exception();
+    }
 
     VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
 
@@ -304,6 +314,16 @@ namespace ESPINA
     }
 
     auto region = equivalentRegion<T>(m_image, expectedBounds.bounds());
+
+    if(!m_image->GetLargestPossibleRegion().IsInside(region))
+    {
+      qDebug() << "avoiding itk::exception";
+      region.Print(std::cout);
+      m_image->GetLargestPossibleRegion().Print(std::cout);
+      std::cout << std::flush;
+
+      region.Crop(m_image->GetLargestPossibleRegion());
+    }
 
     auto extractor = itk::ExtractImageFilter<T,T>::New();
     extractor->SetInput(m_image);
@@ -367,7 +387,8 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::isValid() const
   {
-    //QReadLocker lock(&m_mutex);
+    QReadLocker lock(&m_mutex);
+
     return m_bounds.areValid();
   }
 

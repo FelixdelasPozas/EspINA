@@ -337,13 +337,13 @@ void RepresentationManager::emitRenderRequest(TimeStamp t)
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateRepresentations()
 {
+  // qDebug() << debugName() << "last render timestamp invalid";
   m_lastRenderRequestTime = Timer::INVALID_TIME_STAMP;
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
-  //qDebug() << debugName() << "Wait for display";
   m_status = Status::PENDING_DISPLAY;
 }
 

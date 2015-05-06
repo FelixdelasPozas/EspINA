@@ -193,7 +193,7 @@ namespace ESPINA
     GUI::View::ViewState      m_viewState;
     std::shared_ptr<View2D>   m_view;
 
-    RepresentationInvalidator &m_contextInvalidator;
+    GUI::View::ViewState      &m_contextViewState;
 
     HueSelector      *m_hueSelector;
 
