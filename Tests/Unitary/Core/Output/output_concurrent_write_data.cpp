@@ -27,53 +27,68 @@
  */
 #include "testing_support_dummy_filter.h"
 
+#include <thread>
+#include <iostream>
+#include <vector>
+
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-int output_replace_data( int argc, char** argv )
+int output_concurrent_write_data( int argc, char** argv )
 {
-  static Bounds modified{1,2,3,4,5,6};
-
-  class NoProxyData
-  : public DummyData
-  {
-  public:
-    struct Invalid_Create_Proxy_Exception{};
-
-  public:
-    virtual Bounds bounds() const
-    { return modified; }
-    virtual DataSPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
-  };
-
   bool error = false;
 
   DummyFilter filter;
 
   Output output(&filter, 0, NmVector3{1,1,1});
 
-  DataSPtr data{new DummyData()};
+  auto data = make_shared<DummyData>();
+
   output.setData(data);
 
-  if (output.readLockData<Data>(data->type())->bounds() == modified) {
-    cerr << "Unxpected data bounds" << endl;
+  if (!output.isValid()) {
+    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
     error = true;
   }
 
-  DataSPtr noProxyData{new NoProxyData()};
-  try {
-    output.setData(noProxyData);
-  } catch (NoProxyData::Invalid_Create_Proxy_Exception &e) 
-  {
-    cerr << "Output is creating a new data proxy instead of replacing proxy delegate" << endl;
-    error = true;
+  vector<thread> threads;
+
+  threads.push_back(thread([&error, &output, data](){
+    auto writeData = output.writeLockData<Data>(data->type());
+
+    cout << "Write Task started" << endl;
+
+    if (writeData->spacing() != data->spacing()) {
+      cerr << "Unxpected output data spacing" << endl;
+      error = true;
+    }
+
+    usleep(1000);
+
+    writeData->setSpacing({2, 2, 2});
+
+    cout << "Write Task finished" << endl;
+  }));
+
+  threads.push_back(thread([&error, &output, data](){
+    auto readData = output.readLockData<Data>(data->type());
+
+    cout << "Read Task started" << endl;
+
+    if (readData->spacing() != NmVector3{2, 2, 2}) {
+      cerr << "Unxpected output data spacing" << endl;
+      error = true;
+    }
+
+    cout << "Read Task finished" << endl;
+  }));
+
+
+  for(auto& thread : threads){
+    thread.join();
   }
 
-  if (output.readLockData<Data>(data->type())->bounds() != modified) {
-    cerr << "Unxpected data bounds" << endl;
-    error = true;
-  }
 
   return error;
 }

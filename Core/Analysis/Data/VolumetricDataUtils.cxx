@@ -24,6 +24,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/VolumeBounds.h>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Analysis/Output.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -76,26 +77,18 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const Bounds &bounds)
+  vtkSmartPointer<vtkImageData> vtkImage(const Output::ReadLockData<VolumetricData<T>> &volume, const Bounds &bounds)
   {
     typename T::Pointer image = volume->itkImage(bounds);
-    return vtkImage<T>(image, bounds);
-  }
 
-  //-----------------------------------------------------------------------------
-  template<class T>
-  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const Bounds &bounds)
-  {
-    auto volume = volumetricData(output);
-    typename T::Pointer image = volume->itkImage(bounds);
     return vtkImage<T>(image, bounds);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool isSegmentationVoxel(const VolumetricDataSPtr<T> volume, const NmVector3 &point)
+  bool isSegmentationVoxel(const Output::ReadLockData<VolumetricData<T>> &volume, const NmVector3 &point)
   {
-    Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
+    Bounds bounds{point};
 
     bool result = contains(volume->bounds(), bounds, volume->spacing());
 
@@ -130,8 +123,21 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  template<typename T>
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  {
+    if (!bounds.areValid())
+    {
+      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+    }
+
+    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->draw(drawnVolume);
+  }
+
+  //-----------------------------------------------------------------------------
   template<class T>
-  void expandAndDraw(VolumetricDataSPtr<T> volume, const BinaryMaskSPtr<unsigned char> &mask)
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, const BinaryMaskSPtr<unsigned char> &mask)
   {
     volume->resize(boundingBox(mask->bounds().bounds(), volume->bounds()));
     volume->draw(mask, mask->foregroundValue());
@@ -139,7 +145,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void fitToContents(VolumetricDataSPtr<T> volume, typename T::ValueType bgValue)
+  void fitToContents(Output::WriteLockData<VolumetricData<T>> &volume, typename T::ValueType bgValue)
   {
     auto bounds = minimalBounds<T>(volume->itkImage(), bgValue);
     volume->resize(bounds);

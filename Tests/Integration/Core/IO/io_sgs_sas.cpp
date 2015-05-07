@@ -101,7 +101,7 @@ int io_sgs_sas( int argc, char** argv )
   auto sgsFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   sgsFilter->update();
 
-  auto generateMesh = meshData(sgsFilter->output(0));
+  auto generateMesh = readLockMesh(sgsFilter->output(0));
 
   auto sgsSegmentation = std::make_shared<Segmentation>(getInput(sgsFilter, 0));
   sgsSegmentation->setNumber(1);
@@ -154,7 +154,7 @@ int io_sgs_sas( int argc, char** argv )
   }
   else
   {
-    auto volume = volumetricData(loadedOuptut);
+    auto volume = readLockVolume(loadedOuptut);
     
     if (!volume->isValid())
     {
@@ -186,7 +186,7 @@ int io_sgs_sas( int argc, char** argv )
   }
   else
   {
-    auto mesh = meshData(loadedOuptut);
+    auto mesh = readLockMesh(loadedOuptut);
 
     if (!mesh->mesh())
     {

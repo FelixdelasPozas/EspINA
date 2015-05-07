@@ -106,12 +106,6 @@ namespace ESPINA
 
   using RawSkeletonPtr  = RawSkeleton *;
   using RawSkeletonSPtr = std::shared_ptr<RawSkeleton>;
-
-  /** \brief Obtains and returns the RawSkeleton smart pointer of the specified Output.
-   * \param[in] output, Output object smart pointer.
-   */
-  RawSkeletonSPtr rawSkeleton(OutputSPtr output);
-
 } // namespace ESPINA
 
 #endif // ESPINA_RAW_SKELETON_H_

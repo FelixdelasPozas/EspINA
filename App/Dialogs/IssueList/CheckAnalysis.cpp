@@ -170,12 +170,12 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void CheckSegmentationTask::checkVolumeIsEmpty() const
   {
-    auto volume = volumetricData(m_segmentation->output());
-    if (volume == nullptr || volume->isEmpty())
+    auto volume = readLockVolume(m_segmentation->output());
+    if (volume.isNull() || volume->isEmpty())
     {
-      if (volume == nullptr)
+      if (volume.isNull())
       {
-        qWarning() << QString("ViewItem %1 problem. Volume is null.").arg(m_segmentation->data().toString());
+        qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_segmentation->data().toString());
       }
 
       Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume associated but is empty."), tr("Delete segmentation.") };
@@ -186,16 +186,17 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void CheckSegmentationTask::checkMeshIsEmpty() const
   {
-    auto mesh = meshData(m_segmentation->output());
+    auto mesh = readLockMesh(m_segmentation->output());
 
-    if (mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
+    if (mesh.isNull() || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
     {
-      if (mesh == nullptr || mesh->mesh() == nullptr)
+      if (mesh.isNull() || mesh->mesh() == nullptr)
       {
-        qWarning() << QString("ViewItem %1 problem. Mesh is null or redirects to null.").arg(m_segmentation->data().toString());
+        qWarning() << tr("ViewItem %1 problem. Mesh is null or redirects to null.").arg(m_segmentation->data().toString());
       }
 
       Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a mesh associated but is empty."), tr("Delete segmentation") };
+
       emit issue(segIssue);
     }
   }
@@ -203,13 +204,13 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void CheckSegmentationTask::checkSkeletonIsEmpty() const
   {
-    auto skeleton = skeletonData(m_segmentation->output());
+    auto skeleton = readLockSkeleton(m_segmentation->output());
 
-    if (skeleton == nullptr || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
+    if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
     {
-      if (skeleton == nullptr || skeleton->skeleton() == nullptr)
+      if (skeleton.isNull() || skeleton->skeleton() == nullptr)
       {
-        qWarning() << QString("ViewItem %1 problem. Skeleton is null or redirects to null.").arg(m_segmentation->data().toString());
+        qWarning() << tr("ViewItem %1 problem. Skeleton is null or redirects to null.").arg(m_segmentation->data().toString());
       }
 
       Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a skeleton associated but is empty."), tr("Delete segmentation") };
@@ -253,10 +254,10 @@ namespace ESPINA
   {
     if(hasVolumetricData(m_channel->output()))
     {
-      auto volume = volumetricData(m_channel->output());
-      if(volume == nullptr)
+      auto volume = readLockVolume(m_channel->output());
+      if(volume.isNull())
       {
-        qWarning() << QString("ViewItem %1 problem. Volume is null.").arg(m_channel->data().toString());
+        qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_channel->data().toString());
 
         Issue channelIssue{m_channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume associated but can't find it."), tr("Delete channel.")};
         emit issue(channelIssue);

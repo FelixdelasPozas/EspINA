@@ -127,13 +127,11 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
       m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
     }
 
-    DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
     volume->draw(output, bounds);
 
-    MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
-
     m_outputs[0]->setData(volume);
-    m_outputs[0]->setData(mesh);
+    m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
     m_outputs[0]->setSpacing(spacing); // it may change after re-execution
 
     m_prevRadius = m_radius;

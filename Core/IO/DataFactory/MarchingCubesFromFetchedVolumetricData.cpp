@@ -39,13 +39,13 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
       auto volume = createVolumetricData(output, storage, path);
       Q_ASSERT(volume);
 
-      auto data = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+      data = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
       data->setFetchContext(storage, path, QString::number(output->id()));
 
       output->setData(data);
     }
 
-    data = meshData(output, DataUpdatePolicy::Ignore);
+    data = writeLockMesh(output, DataUpdatePolicy::Ignore);
   }
 
   return data;
@@ -61,5 +61,5 @@ ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::create
     output->setData(data);
   }
 
-  return volumetricData(output, DataUpdatePolicy::Ignore);
+  return writeLockVolume(output, DataUpdatePolicy::Ignore);
 }

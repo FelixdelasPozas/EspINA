@@ -86,9 +86,15 @@ namespace ESPINA
   bool EspinaCore_EXPORT hasSkeletonData(OutputSPtr output);
 
   /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output.
-   * \param[in] output, Output object smart pointer.
+   * \param[in] output Output object smart pointer
    */
-  SkeletonDataSPtr EspinaCore_EXPORT skeletonData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+  Output::ReadLockData<SkeletonData> EspinaCore_EXPORT readLockSkeleton(OutputSPtr       output,
+                                                                            DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                            throw (Unavailable_Output_Data_Exception);
+
+  Output::WriteLockData<SkeletonData> EspinaCore_EXPORT writeLockSkeleton(OutputSPtr       output,
+                                                                              DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                              throw (Unavailable_Output_Data_Exception);
 
 } // namespace ESPINA
 

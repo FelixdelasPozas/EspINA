@@ -29,8 +29,6 @@
 #include <Core/Extensions/ExtensionFactory.h>
 
 // ESPINA
-#include <GUI/Model/ModelAdapter.h>
-#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>

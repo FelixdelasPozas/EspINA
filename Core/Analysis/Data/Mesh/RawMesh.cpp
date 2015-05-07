@@ -90,11 +90,3 @@ size_t RawMesh::memoryUsage() const
 
   return 0;
 }
-
-//----------------------------------------------------------------------------
-RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)
-{
-  RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMesh>(output->data(MeshData::TYPE));
-  Q_ASSERT(meshData.get());
-  return meshData;
-}

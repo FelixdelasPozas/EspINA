@@ -69,7 +69,7 @@ namespace ESPINA
       virtual NmVector3 spacing() const
       { return m_data->spacing(); }
 
-      virtual TimeStamp lastModified() override
+      virtual TimeStamp lastModified() const override
       { return m_data->lastModified(); }
 
       virtual BoundsList editedRegions() const override

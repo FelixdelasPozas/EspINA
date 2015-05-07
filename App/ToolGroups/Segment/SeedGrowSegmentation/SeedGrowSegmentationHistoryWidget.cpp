@@ -98,7 +98,7 @@ public:
   virtual void redo()
   {
     auto output = m_filter->output(0);
-    auto volume = volumetricData(output);
+    auto volume = readLockVolume(output);
 //     int volumeSize = 1;
 //     for (auto dir : {Axis::X, Axis::Y, Axis::Z})
 //     {
@@ -133,7 +133,7 @@ public:
     m_filter->setClosingRadius(m_oldClosingRadius);
 
     auto output = m_filter->output(0);
-    auto volume = volumetricData(output);
+    auto volume = readLockVolume(output);
 
     if (m_oldVolume.IsNotNull())
     {
@@ -273,7 +273,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   if (!output->isEdited() || discardChangesConfirmed())
   {
-    auto volume = volumetricData(output);
+    auto volume = readLockVolume(output);
 
     auto spacing = volume->spacing();
     auto roi     = m_roiTools->currentROI();

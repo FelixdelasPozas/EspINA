@@ -50,7 +50,7 @@ EdgesAnalyzer::~EdgesAnalyzer()
 void EdgesAnalyzer::run()
 {
   //qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
-  auto volume  = volumetricData(m_extension->m_extendedItem->output());
+  auto volume  = readLockVolume(m_extension->m_extendedItem->output());
 
   m_useDistanceToBounds = 0;
 
@@ -83,7 +83,7 @@ void EdgesAnalyzer::run()
 }
 
 //------------------------------------------------------------------------
-void EdgesAnalyzer::analyzeEdge(DefaultVolumetricDataSPtr volume, const Bounds& edgeBounds)
+void EdgesAnalyzer::analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds& edgeBounds)
 {
   using Intensity = int;
   using Frequency = long long int;

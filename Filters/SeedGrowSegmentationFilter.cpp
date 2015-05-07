@@ -77,6 +77,11 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 }
 
 //------------------------------------------------------------------------
+SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
+{
+}
+
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
   for (auto token : state.split(';'))
@@ -259,8 +264,8 @@ void SeedGrowSegmentationFilter::execute()
 {
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
-  auto input = volumetricData(m_inputs[0]->output());
-  if (!input) throw Invalid_Input_Data_Exception();
+  auto input = readLockVolume(m_inputs[0]->output());
+  if (!input->isValid()) throw Invalid_Input_Data_Exception();
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 
@@ -358,7 +363,6 @@ void SeedGrowSegmentationFilter::execute()
   auto spacing = m_inputs[0]->output()->spacing();
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(output, bounds, spacing);
-  auto mesh   = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
 
   if (!m_outputs.contains(0))
   {
@@ -366,7 +370,7 @@ void SeedGrowSegmentationFilter::execute()
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
 
   m_outputs[0]->setSpacing(spacing);
 
@@ -404,7 +408,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
   if (!m_ROI) return false;
 
-  auto volume    = volumetricData(m_outputs[0], DataUpdatePolicy::Ignore);
+  auto volume    = readLockVolume(m_outputs[0], DataUpdatePolicy::Ignore);
   auto spacing   = volume->spacing();
   auto boundsSeg = volume->bounds();
 
@@ -428,14 +432,14 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
                           boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
 
     // later the bounds are constrained to the channel bounds.
-    auto input = volumetricData(m_inputs[0]->output());
+    auto input       = readLockVolume(m_inputs[0]->output());
     auto validBounds = intersection(extendedBounds, input->bounds(), spacing);
 
     // correct intersection bounds.
     auto intersectionBounds = intersection(validBounds, m_ROI->bounds(), spacing);
-    auto roiImage = m_ROI->itkImage(intersectionBounds);
+    auto roiImage           = m_ROI->itkImage(intersectionBounds);
 
-    auto region = roiImage->GetLargestPossibleRegion();
+    auto region      = roiImage->GetLargestPossibleRegion();
     auto regionIndex = region.GetIndex();
     auto regionLimit = regionIndex;
 

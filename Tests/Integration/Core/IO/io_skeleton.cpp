@@ -143,7 +143,7 @@ int io_skeleton( int argc, char** argv )
   }
   else
   {
-    auto loadedSkeleton = skeletonData(loadedOuptut);
+    auto loadedSkeleton = readLockSkeleton(loadedOuptut);
     
     if (!loadedSkeleton->isValid())
     {

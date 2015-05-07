@@ -57,7 +57,7 @@ public:
     {
       output->filter()->update();
 
-      data = volumetricData(output, DataUpdatePolicy::Ignore);
+      data = writeLockVolume(output, DataUpdatePolicy::Ignore);
     }
     else
     {

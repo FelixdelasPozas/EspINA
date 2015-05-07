@@ -37,7 +37,8 @@ bool TestOpacity(ChannelSPtr channel, double opacity) {
   bool error = false;
  
   channel->setOpacity(opacity);
-  if (channel->opacity() != opacity) {
+  if (channel->opacity() != abs(opacity))
+  {
     cerr << "Unexepected opacity value:" << opacity << endl;
     error = true;
   }
@@ -53,12 +54,12 @@ int channel_set_opacity(int argc, char** argv )
 
   ChannelSPtr channel(new Channel(getInput(filter, 0)));
   
-  if (channel->opacity() != -1.0) {
+  if (channel->opacity() != 1.0) {
     cerr << "Unexepected initial opacity value" << endl;
     error = true;
   }
   
-  error |= TestOpacity(channel, -1.0);
+  error |= TestOpacity(channel, -1.0); // This should change to 1.0
   error |= TestOpacity(channel,  0.0);
   error |= TestOpacity(channel,  0.5);
   error |= TestOpacity(channel,  1.0);

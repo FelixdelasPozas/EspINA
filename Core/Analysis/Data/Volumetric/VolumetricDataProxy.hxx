@@ -178,7 +178,7 @@ namespace ESPINA
       m_data->undo();
     }
 
-    virtual TimeStamp lastModified()
+    virtual TimeStamp lastModified() const
     {
       //QReadLocker lock(&m_lock);
       return m_data->lastModified();

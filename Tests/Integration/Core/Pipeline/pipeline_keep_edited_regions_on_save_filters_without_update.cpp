@@ -118,7 +118,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   auto sgs = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
-  auto sgsVolume = volumetricData(sgs->output(0));
+  auto sgsVolume = writeLockVolume(sgs->output(0));
 
   Bounds modificationBounds{0,1,0,2,0,3};
 
@@ -212,7 +212,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   }
   else
   {
-    auto volume = volumetricData(reloadedSGSOuptut);
+    auto volume = readLockVolume(reloadedSGSOuptut);
 
     if (volume->editedRegions().isEmpty())
     {

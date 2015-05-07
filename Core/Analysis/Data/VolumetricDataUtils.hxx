@@ -51,15 +51,7 @@ namespace ESPINA
    *
    */
   template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const Bounds &bounds);
-
-  /** \brief Return the vtkImageData of specified bounds equivalent to the volumetric data of the specified output.
-   * \param[in] output output containing the volumetric data.
-   * \param[in] bounds bounds of the output to transform.
-   *
-   */
-  template<class T>
-  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const Bounds &bounds);
+  vtkSmartPointer<vtkImageData> vtkImage(const Output::ReadLockData<VolumetricData<T>> &volume, const Bounds &bounds);
 
   /** \brief Volume's voxel's index at given spatial position.
    * \param[in] x x coordinate.
@@ -97,8 +89,11 @@ namespace ESPINA
   template<typename T>
   void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
 
+  template<typename T>
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
+
   template<class T>
-  void expandAndDraw(VolumetricDataSPtr<T> volume, const BinaryMaskSPtr<unsigned char> &mask);
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, const BinaryMaskSPtr<unsigned char> &mask);
 
   /** \brief Resizes the image to the minimum bounds that can contain the volume.
    * \param[in] volume volume to transform.

@@ -72,7 +72,7 @@ namespace ESPINA
 
     if (isVisible(state) && hasVolumetricData(segmentation->output()))
     {
-      auto data = volumetricData(segmentation->output());
+      auto data   = readLockVolume(segmentation->output());
       auto volume = vtkImage(data, data->bounds());
 
       auto mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();

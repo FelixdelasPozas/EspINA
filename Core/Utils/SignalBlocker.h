@@ -25,34 +25,36 @@
 
 // ESPINA
 #include <Core/Analysis/Data.h>
+#include <Core/Analysis/Output.h>
 
 namespace ESPINA
 {
-  class EspinaCore_EXPORT ChangeSignalDelayer
+  template<typename T>
+  class EspinaCore_EXPORT SignalBlocker
   {
     public:
       /** \brief ChangeSignalDelayer class constructor.
-       * \param[in] data, Data smart pointer.
+       * \param[in] data Data smart pointer.
        *
        * Delays the emission of the dataChanged signal of the data.
        */
-      explicit ChangeSignalDelayer(DataSPtr data)
-      : m_data(data)
+      explicit SignalBlocker(T &data)
+      : m_object(data)
       {
-        m_data->blockSignals(true);
+        m_object->blockSignals(true);
       }
 
       /** \brief ChangeSignalDelayer class destructor.
        *
        */
-      ~ChangeSignalDelayer()
+      ~SignalBlocker()
       {
-        m_data->blockSignals(false);
-        m_data->updateModificationTime();
+        m_object->blockSignals(false);
+        m_object->updateModificationTime();
       }
 
     private:
-      DataSPtr m_data;
+      T &m_object;
   };
 
 } /* namespace ESPINA */

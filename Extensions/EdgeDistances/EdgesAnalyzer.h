@@ -35,32 +35,32 @@ namespace ESPINA
   : public Task
   {
   public:
-  	/** \brief EdgesAnalyzer class constructor.
-  	 * \param[in] extension, ChannelEdges raw pointer.
-  	 * \param[in] scheduler, scheduler smart pointer.
-  	 *
-  	 */
+    /** \brief EdgesAnalyzer class constructor.
+     * \param[in] extension ChannelEdges raw pointer.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit EdgesAnalyzer(ChannelEdges *extension,
                            SchedulerSPtr scheduler = SchedulerSPtr());
 
-  	/** \brief EdgesAnalyzer class destructor.
-  	 *
-  	 */
+    /** \brief EdgesAnalyzer class destructor.
+     *
+     */
     virtual ~EdgesAnalyzer();
 
   protected:
-  	/** \brief Computes the edges of a channel.
-  	 *
-  	 */
+    /** \brief Computes the edges of a channel.
+     *
+     */
     virtual void run();
 
   private:
-  	/** \brief Analizes the edge of a volume.
-  	 * \param[in] volume, volumetric volume smart pointer to analyze.
-  	 * \param[in] edgeBounds, bounds of the edge of the volume.
-  	 *
-  	 */
-    void analyzeEdge(DefaultVolumetricDataSPtr volume, const Bounds &edgeBounds);
+    /** \brief Analizes the edge of a volume.
+     * \param[in] volume volumetric volume smart pointer to analyze.
+     * \param[in] edgeBounds bounds of the edge of the volume.
+     *
+     */
+    void analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds &edgeBounds);
 
   private:
     int m_useDistanceToBounds;

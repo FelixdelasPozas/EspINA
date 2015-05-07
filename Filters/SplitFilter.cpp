@@ -64,7 +64,7 @@ void SplitFilter::execute()
   if (!canExecute()) return;
 
   Q_ASSERT(m_inputs.size() == 1);
-  auto volume = volumetricData(m_inputs.first()->output());
+  auto volume = readLockVolume(m_inputs.first()->output());
 
   if (nullptr == m_stencil && !fetchCacheStencil())
   {
@@ -147,14 +147,12 @@ void SplitFilter::execute()
       DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
       volume->draw(volumes[i], bounds);
 
-      MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
-
       if (!m_outputs.contains(i))
       {
         m_outputs[i] = std::make_shared<Output>(this, i, spacing);
       }
       m_outputs[i]->setData(volume);
-      m_outputs[i]->setData(mesh);
+      m_outputs[i]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[i].get()));
       m_outputs[i]->setSpacing(spacing);
 
       emit progress(75 + 25*i);

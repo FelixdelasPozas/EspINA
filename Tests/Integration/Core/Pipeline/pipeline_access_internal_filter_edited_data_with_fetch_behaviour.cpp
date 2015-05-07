@@ -91,19 +91,19 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(channelInput()));
+  auto channel = std::make_shared<Channel>(channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -115,10 +115,10 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
 
   SchedulerSPtr scheduler;
 
-  FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
+  auto sgs = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
-  auto sgsVolume = volumetricData(sgs->output(0));
+  auto sgsVolume = writeLockVolume(sgs->output(0));
 
   Bounds modificationBounds{0,1,0,2,0,3};
 
@@ -136,10 +136,10 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
     error = true;
   }
 
-  FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
+  auto dilate = std::make_shared<DilateFilter>(getInputs(sgs), "Dilate", scheduler);
   dilate->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(dilate, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(dilate, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -165,7 +165,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedDilateOuptut = loadedSegmentation->output();
-  auto loadedDilateVolume = volumetricData(loadedDilateOuptut);
+  auto loadedDilateVolume = readLockVolume(loadedDilateOuptut);
 
   if (loadedDilateVolume->editedRegions().size() != 0)
   {
@@ -173,7 +173,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
     error = true;
   }
 
-  TemporalStorageSPtr tmpStorage(new TemporalStorage());
+  auto tmpStorage = std::make_shared<TemporalStorage>();
   for (auto snapshot : loadedDilateVolume->snapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))
@@ -191,7 +191,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
   }
 
   auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
-  auto loadedSGSVolume = volumetricData(loadedSGSOutput);
+  auto loadedSGSVolume = readLockVolume(loadedSGSOutput);
 
   if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(loadedSGSVolume->itkImage(modificationBounds), SEG_BG_VALUE))
   {

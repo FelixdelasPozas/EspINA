@@ -117,7 +117,7 @@ int pipeline_update_fetch_output( int argc, char** argv )
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedOuptut       = loadedSegmentation->output();
-  auto volume             = volumetricData(loadedOuptut);
+  auto volume             = readLockVolume(loadedOuptut);
 
   if (volume->editedRegions().size() != 0)
   {

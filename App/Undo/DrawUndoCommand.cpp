@@ -23,7 +23,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/Utils/ChangeSignalDelayer.h>
+#include <Core/Utils/SignalBlocker.h>
 #include <Undo/DrawUndoCommand.h>
 
 using namespace ESPINA;
@@ -42,9 +42,9 @@ void DrawUndoCommand::redo()
 {
   if (m_hasVolume)
   {
-    auto volume = volumetricData(m_output);
+    auto volume = writeLockVolume(m_output);
 
-    ChangeSignalDelayer inhibitor(volume);
+    SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
     m_bounds = volume->bounds();
     expandAndDraw(volume, m_mask);
   }
@@ -56,10 +56,8 @@ void DrawUndoCommand::redo()
     auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_bounds, strokeSpacing);
     volume->draw(m_mask);
 
-    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
     m_output->setData(volume);
-    m_output->setData(mesh);
+    m_output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_output.get()));
   }
 
   m_segmentation->invalidateRepresentations();
@@ -70,9 +68,9 @@ void DrawUndoCommand::undo()
 {
   if (m_hasVolume)
   {
-    auto volume = volumetricData(m_segmentation->output());
+    auto volume = writeLockVolume(m_segmentation->output());
 
-    ChangeSignalDelayer inhibitor(volume);
+    SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
     volume->undo();
     volume->resize(m_bounds);
   }

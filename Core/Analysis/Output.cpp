@@ -61,8 +61,9 @@ void Output::setSpacing(const NmVector3& spacing)
 {
   if (m_spacing != spacing)
   {
-    for(auto data : m_data)
+    for(auto type : m_data.keys())
     {
+      auto data = writeLockData<Data>(type);
       if (data->isValid())
       {
         data->setSpacing(spacing);
@@ -213,9 +214,7 @@ void Output::setData(Output::DataSPtr data)
     m_data[type] = data->createProxy();
   }
 
-  auto base  = m_data.value(type).get();
-  auto proxy = dynamic_cast<DataProxy *>(base);
-  proxy->set(data);
+  proxy(type)->set(data);
 
   // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful
@@ -234,20 +233,6 @@ void Output::setData(Output::DataSPtr data)
 void Output::removeData(const Data::Type& type)
 {
   m_data.remove(type);
-}
-
-//----------------------------------------------------------------------------
-Output::DataSPtr Output::data(const Data::Type& type) const
-throw (Unavailable_Output_Data_Exception)
-{
-  if (m_data.contains(type))
-  {
-    return m_data.value(type);
-  }
-  else
-  {
-    throw Unavailable_Output_Data_Exception();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -286,7 +271,7 @@ void Output::update()
 //----------------------------------------------------------------------------
 void Output::update(const Data::Type &type)
 {
-  auto requestedData = data(type);
+  auto requestedData = data<Data>(type);
 
   if (!requestedData->isValid())
   {
@@ -307,7 +292,7 @@ void Output::update(const Data::Type &type)
         update(dependencyType);
       }
 
-      auto currentData = data(type);
+      auto currentData = data<Data>(type);
       if (dependencies.isEmpty() || requestedData == currentData)
       {
         m_filter->update();
@@ -315,8 +300,6 @@ void Output::update(const Data::Type &type)
     }
   }
 }
-
-
 
 //----------------------------------------------------------------------------
 bool Output::isSegmentationOutput() const
@@ -337,4 +320,18 @@ bool Output::isSegmentationOutput() const
   }
 
   return false;
+}
+
+// //----------------------------------------------------------------------------
+// Output::DataSPtr Output::data(const Data::Type& type) const
+// throw (Unavailable_Output_Data_Exception)
+// {
+// }
+
+//----------------------------------------------------------------------------
+DataProxy *Output::proxy(const Data::Type &type)
+{
+  auto base  = m_data.value(type).get();
+
+  return dynamic_cast<DataProxy *>(base);
 }

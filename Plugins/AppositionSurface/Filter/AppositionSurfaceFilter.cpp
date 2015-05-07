@@ -99,8 +99,9 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
   {
     Q_ASSERT(m_inputs.size() == 1 && hasVolumetricData(m_inputs[0]->output()));
 
-    auto inputVolume = volumetricData(m_inputs[0]->output());
-    if(inputVolume != nullptr)
+    auto inputVolume = readLockVolume(m_inputs[0]->output());
+
+    if(inputVolume->isValid())
     {
       update = (m_lastModifiedMesh < inputVolume->lastModified());
     }
@@ -122,7 +123,7 @@ void AppositionSurfaceFilter::execute()
   emit progress(0);
   if (!canExecute()) return;
 
-  m_input = volumetricData(m_inputs[0]->output())->itkImage();
+  m_input = readLockVolume(m_inputs[0]->output())->itkImage();
   m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
 
   itkVolumeType::SizeType bounds;
@@ -133,9 +134,11 @@ void AppositionSurfaceFilter::execute()
   padder->SetPadUpperBound(bounds);
   padder->SetConstant(0); // extend with black pixels
   padder->Update();
+
   itkVolumeType::Pointer padImage = padder->GetOutput();
 
   emit progress(20);
+
   if (!canExecute()) return;
 
   itkVolumeType::RegionType region = padImage->GetLargestPossibleRegion();
@@ -307,9 +310,7 @@ void AppositionSurfaceFilter::execute()
   double meshVTKBounds[6];
   m_ap->GetBounds(meshVTKBounds);
 
-  Bounds meshBounds{meshVTKBounds[0], meshVTKBounds[1], meshVTKBounds[2], meshVTKBounds[3], meshVTKBounds[4], meshVTKBounds[5]};
-
-  auto volumeOutput = std::make_shared<RasterizedVolume<itkVolumeType>>(meshOutput, meshBounds, outpuSpacing);
+  Bounds meshBounds{meshVTKBounds};
 
   if(!m_outputs.contains(0))
   {
@@ -317,7 +318,7 @@ void AppositionSurfaceFilter::execute()
   }
 
   m_outputs[0]->setData(meshOutput);
-  m_outputs[0]->setData(volumeOutput);
+  m_outputs[0]->setData(std::make_shared<RasterizedVolume<itkVolumeType>>(m_outputs[0].get(), meshBounds, outpuSpacing));
   m_outputs[0]->setSpacing(outpuSpacing);
 
   emit progress(100);

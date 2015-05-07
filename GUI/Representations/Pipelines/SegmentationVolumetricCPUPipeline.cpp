@@ -71,7 +71,7 @@ namespace ESPINA
 
     if (isVisible(state) && hasVolumetricData(segmentation->output()))
     {
-      auto data = volumetricData(item->output());
+      auto data = readLockVolume(item->output());
       auto volume = vtkImage(data, data->bounds());
 
       auto composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();

@@ -383,17 +383,18 @@ double stdDev(const vtkSmartPointer<vtkDoubleArray> dataArray, const double mean
 bool AppositionSurfaceExtension::computeInformation() const
 {
   bool validInformation = false;
-  auto segMesh = meshData(m_extendedItem->output());
+  auto segMesh = readLockMesh(m_extendedItem->output());
 
-  if (segMesh)
+  if (segMesh->isValid())
   {
     // vtkPolyData *asMesh = dynamic_cast<vtkPolyData *>(segMesh->mesh()->GetProducer()->GetOutputDataObject(0));
     auto asMesh = segMesh->mesh();
 
-    vtkSmartPointer<vtkDoubleArray> gaussCurvature = vtkSmartPointer<vtkDoubleArray>::New();	 
-    vtkSmartPointer<vtkDoubleArray> meanCurvature  = vtkSmartPointer<vtkDoubleArray>::New();
-    vtkSmartPointer<vtkDoubleArray> maxCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
-    vtkSmartPointer<vtkDoubleArray> minCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
+    auto gaussCurvature = vtkSmartPointer<vtkDoubleArray>::New();
+    auto meanCurvature  = vtkSmartPointer<vtkDoubleArray>::New();
+    auto maxCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
+    auto minCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
+
     computeCurvatures(asMesh, gaussCurvature, meanCurvature, minCurvature, maxCurvature);
 
     auto area = computeArea(asMesh);
@@ -419,9 +420,13 @@ bool AppositionSurfaceExtension::computeInformation() const
     updateInfoCache(STD_DEV_MAX_CURVATURE, stdDev(maxCurvature, meanMaxCurvature));
 
     if(m_originSegmentation != nullptr)
+    {
       updateInfoCache(SYNAPSE, m_originSegmentation->data().toString());
+    }
     else
+    {
       updateInfoCache(SYNAPSE, tr("Unknown"));
+    }
 
     validInformation = true;
   }

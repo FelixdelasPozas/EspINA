@@ -92,16 +92,14 @@ void FreeFormSource::execute(Output::Id id)
   emit progress(75);
   if (!canExecute()) return;
 
-  auto mesh = MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
-
   auto spacing = m_mask->spacing();
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 
   emit progress(100);

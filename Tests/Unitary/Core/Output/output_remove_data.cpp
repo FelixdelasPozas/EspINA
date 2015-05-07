@@ -56,7 +56,7 @@ int output_remove_data( int argc, char** argv )
 
   try
   {
-    auto unexpectedData = output.data(data->type());
+    auto unexpectedData = output.readLockData<Data>(data->type());
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
   }

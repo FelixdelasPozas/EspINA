@@ -92,7 +92,21 @@ namespace ESPINA
    *  This function ensures the output is up to date by callig mesh data update first
    *  If the output doesn't contain the requested data type an expection will be thrownn
    */
-  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(OutputSPtr       output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                throw (Unavailable_Output_Data_Exception);
+
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(Output          *output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                throw (Unavailable_Output_Data_Exception);
+
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(Output          *output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                  throw (Unavailable_Output_Data_Exception);
+
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(OutputSPtr       output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                  throw (Unavailable_Output_Data_Exception);
 
   /** \brief Returns whether output has any mesh data or not
    *

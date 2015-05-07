@@ -382,7 +382,7 @@ void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 
     if(hasVolumetricData(m_item->output()))
     {
-      m_origin = volumetricData(item->output())->origin();
+      m_origin = readLockVolume(item->output())->origin();
     }
     else
     {
@@ -463,7 +463,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 
   if(hasVolumetricData(m_item->output()))
   {
-    auto volume = volumetricData(m_item->output());
+    auto volume = readLockVolume(m_item->output());
     if(!m_drawing && !intersect(m_previewBounds, volume->bounds()))
     {
       return false;
@@ -611,7 +611,7 @@ void BrushSelector::startPreview(RenderView* view)
   {
     m_brushPipeline->setEraseMode();
 
-    auto volume = volumetricData(m_item->output());
+    auto volume = readLockVolume(m_item->output());
     if (!intersect(previewBounds.bounds(), volume->bounds()))
     {
       m_lut = nullptr;
@@ -849,7 +849,7 @@ void BrushSelector::updateSliceChange()
   }
 
   NmVector3 nmSpacing { m_spacing[0], m_spacing[1], m_spacing[2] };
-  auto volume = volumetricData(m_item->output());
+  auto volume = readLockVolume(m_item->output());
   m_previewBounds = m_previewView->previewBounds(false);
   if(!intersect(volume->bounds(), m_previewBounds))
     return;

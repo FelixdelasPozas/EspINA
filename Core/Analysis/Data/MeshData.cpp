@@ -98,10 +98,31 @@ DataSPtr MeshData::createProxy() const
 }
 
 //----------------------------------------------------------------------------
-ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
+Output::ReadLockData<MeshData> ESPINA::readLockMesh(OutputSPtr output, DataUpdatePolicy policy)
 throw (Unavailable_Output_Data_Exception)
 {
-  return outputData<MeshData>(output, policy);
+  return outputReadLockData<MeshData>(output.get(), policy);
+}
+
+//----------------------------------------------------------------------------
+Output::ReadLockData<MeshData> ESPINA::readLockMesh(Output *output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
+{
+  return outputReadLockData<MeshData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<MeshData> ESPINA::writeLockMesh(Output *output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
+{
+  return outputWriteLockData<MeshData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<MeshData> ESPINA::writeLockMesh(OutputSPtr output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
+{
+  return outputWriteLockData<MeshData>(output.get(), policy);
 }
 
 //----------------------------------------------------------------------------

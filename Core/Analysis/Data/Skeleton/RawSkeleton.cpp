@@ -97,13 +97,4 @@ namespace ESPINA
   {
     return m_spacing;
   }
-
-  //----------------------------------------------------------------------------
-  RawSkeletonSPtr rawSkeleton(OutputSPtr output)
-  {
-    auto skeletonData = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
-    Q_ASSERT(skeletonData);
-    return skeletonData;
-  }
-
 } // namespace EspINA

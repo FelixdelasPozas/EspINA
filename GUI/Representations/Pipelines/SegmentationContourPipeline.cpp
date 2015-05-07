@@ -79,7 +79,7 @@ namespace ESPINA
 
     if (isVisible(state) && hasVolumetricData(segmentation->output()))
     {
-      auto volume = volumetricData(segmentation->output());
+      auto volume = readLockVolume(segmentation->output());
       Bounds sliceBounds = volume->bounds();
 
       Nm reslicePoint = crosshairPosition(m_plane, state);
@@ -160,7 +160,6 @@ namespace ESPINA
         // need to reposition the actor so it will always be over the channels actors'
         double pos[3];
         actor->GetPosition(pos);
-        qDebug() << segmentationDepth(state);
         pos[planeIndex] += segmentationDepth(state);
         actor->SetPosition(pos);
 

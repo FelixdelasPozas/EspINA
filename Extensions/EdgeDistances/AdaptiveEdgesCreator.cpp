@@ -93,7 +93,7 @@ void AdaptiveEdgesCreator::run()
   auto channel = m_extension->extendedItem();
   //qDebug() << "Channel Bounds" << channel->bounds().toString();
 
-  auto volume = volumetricData(channel->output());
+  auto volume = readLockVolume(channel->output());
   auto bounds = volume->bounds();
 
   itkVolumeType::Pointer itkImage = volume->itkImage();

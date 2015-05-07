@@ -58,6 +58,8 @@ namespace ESPINA
   public:
     using Type = QString;
 
+    enum class Access { READ, WRITE};
+
   public:
     /** \brief Data class constructor.
      *
@@ -91,7 +93,7 @@ namespace ESPINA
     /** \brief Returns the time stamp of the last modification to the data.
      *
      */
-    virtual TimeStamp lastModified()
+    virtual TimeStamp lastModified() const
     { return m_timeStamp; }
 
     /** \brief Returns the list of bounds of the edited regions of the data.
@@ -242,7 +244,7 @@ namespace ESPINA
     QMutex m_mutex;
 
     friend class Output;
-    friend class ChangeSignalDelayer;
+    template<typename T> friend class SignalBlocker;
   };
 
   enum class DataUpdatePolicy { Request, Ignore};

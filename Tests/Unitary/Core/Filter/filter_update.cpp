@@ -50,7 +50,7 @@ int filter_update( int argc, char** argv )
     error = true;
   }
 
-  auto volume = volumetricData(output);
+  auto volume = writeLockVolume(output);
   itkVolumeType::IndexType index;
   index.Fill(0);
   volume->draw(index);
