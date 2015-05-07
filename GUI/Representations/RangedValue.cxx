@@ -17,155 +17,156 @@
 
 #include <GUI/Representations/RangedValue.hxx>
 
-using namespace ESPINA;
-
-template<typename R>
-RangedValue<R>::RangedValue()
-: m_lastTime{0}
+namespace ESPINA
 {
-}
-
-template<typename R>
-TimeRange RangedValue<R>::timeRange() const
-{
-  TimeRange range;
-
-  if (!m_times.isEmpty())
+  template<typename R>
+  RangedValue<R>::RangedValue()
+  : m_lastTime{0}
   {
-    for (TimeStamp i = m_times.first(); i <= m_lastTime; ++i)
+  }
+
+  template<typename R>
+  TimeRange RangedValue<R>::timeRange() const
+  {
+    TimeRange range;
+
+    if (!m_times.isEmpty())
     {
-      range << i;
+      for (TimeStamp i = m_times.first(); i <= m_lastTime; ++i)
+      {
+        range << i;
+      }
     }
+
+    return range;
   }
 
-  return range;
-}
-
-template<typename R>
-R RangedValue<R>::last() const
-{
-  R result;
-
-  if (!m_times.isEmpty())
+  template<typename R>
+  R RangedValue<R>::last() const
   {
-    Q_ASSERT(m_representations.contains(m_times.last()));
-    result = m_representations[m_times.last()];
+    R result;
+
+    if (!m_times.isEmpty())
+    {
+      Q_ASSERT(m_representations.contains(m_times.last()));
+      result = m_representations[m_times.last()];
+    }
+
+    return result;
   }
 
-  return result;
-}
-
-template<typename R>
-TimeStamp RangedValue<R>::lastTime() const
-{
-  return m_lastTime;
-}
-
-template<typename R>
-void RangedValue<R>::addValue(R representation, TimeStamp t)
-{
-  if(m_lastTime < t)
+  template<typename R>
+  TimeStamp RangedValue<R>::lastTime() const
   {
+    return m_lastTime;
+  }
+
+  template<typename R>
+  void RangedValue<R>::addValue(R representation, TimeStamp t)
+  {
+    if(m_lastTime < t)
+    {
+      m_lastTime = t;
+    }
+    else
+    {
+      qWarning() << "Adding previous value";
+    }
+
+    auto needSort = !m_times.isEmpty() && t < m_times.last();
+
+    m_times << t;
+
+    if (needSort)
+    {
+      qWarning() << "Sorting unordered time stamp";
+      qSort(m_times);
+    }
+
+    m_representations[t] = representation;
+  }
+
+  template<typename R>
+  void RangedValue<R>::reusePreviousValue(TimeStamp t)
+  {
+    Q_ASSERT(!m_times.isEmpty() && m_lastTime <= t);
     m_lastTime = t;
   }
-  else
+
+  template<typename R>
+  R RangedValue<R>::value(TimeStamp t, R invalid) const
   {
-    qWarning() << "Adding previous value";
-  }
+    TimeStamp valueTime = 0;
 
-  auto needSort = !m_times.isEmpty() && t < m_times.last();
-
-  m_times << t;
-
-  if (needSort)
-  {
-    qWarning() << "Sorting unordered time stamp";
-    qSort(m_times);
-  }
-
-  m_representations[t] = representation;
-}
-
-template<typename R>
-void RangedValue<R>::reusePreviousValue(TimeStamp t)
-{
-  Q_ASSERT(!m_times.isEmpty() && m_lastTime <= t);
-  m_lastTime = t;
-}
-
-template<typename R>
-R RangedValue<R>::value(TimeStamp t, R invalid) const
-{
-  TimeStamp valueTime = 0;
-
-  if (m_times.isEmpty())
-  {
-    qWarning() << "Accessing invalid value";
-  }
-  else
-  {
-    valueTime = m_times.first();
-  }
-
-  int  i     = 1;
-  bool found = false;
-
-  while (!found && i < m_times.size())
-  {
-    auto nextTime = m_times[i];
-
-    found = nextTime > t;
-
-    if (!found)
+    if (m_times.isEmpty())
     {
-      valueTime = nextTime;
+      qWarning() << "Accessing invalid value";
+    }
+    else
+    {
+      valueTime = m_times.first();
     }
 
-    ++i;
-  }
+    int  i     = 1;
+    bool found = false;
 
-  return m_representations.value(valueTime, invalid);
-}
-
-
-template<typename R>
-void RangedValue<R>::invalidate()
-{
-  m_lastTime = 0;
-  m_times.clear();
-  m_representations.clear();
-}
-
-template<typename R>
-void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
-{
-  if (m_times.isEmpty()) return;
-
-  bool found                = false;
-  auto validTime            = m_times.takeFirst();
-  auto validRepresentations = m_representations[validTime];
-
-  while (!found && !m_times.isEmpty())
-  {
-    auto nextTime = m_times.takeFirst();
-
-    found = nextTime > t;
-
-    if (!found)
+    while (!found && i < m_times.size())
     {
-      m_representations.remove(validTime);
+      auto nextTime = m_times[i];
 
-      validTime            = nextTime;
-      validRepresentations = m_representations[nextTime];
+      found = nextTime > t;
+
+      if (!found)
+      {
+        valueTime = nextTime;
+      }
+
+      ++i;
     }
+
+    return m_representations.value(valueTime, invalid);
   }
 
-  m_times.prepend(t);
-  m_representations[t] = validRepresentations;
-}
 
-template<typename R>
-bool RangedValue<R>::isEmpty() const
-{
-  return m_representations.isEmpty();
+  template<typename R>
+  void RangedValue<R>::invalidate()
+  {
+    m_lastTime = 0;
+    m_times.clear();
+    m_representations.clear();
+  }
+
+  template<typename R>
+  void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
+  {
+    if (m_times.isEmpty()) return;
+
+    bool found                = false;
+    auto validTime            = m_times.takeFirst();
+    auto validRepresentations = m_representations[validTime];
+
+    while (!found && !m_times.isEmpty())
+    {
+      auto nextTime = m_times.takeFirst();
+
+      found = nextTime > t;
+
+      if (!found)
+      {
+        m_representations.remove(validTime);
+
+        validTime            = nextTime;
+        validRepresentations = m_representations[nextTime];
+      }
+    }
+
+    m_times.prepend(t);
+    m_representations[t] = validRepresentations;
+  }
+
+  template<typename R>
+  bool RangedValue<R>::isEmpty() const
+  {
+    return m_representations.isEmpty();
+  }
 }

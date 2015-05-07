@@ -107,7 +107,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                                    Support::Context       &context)
 : m_context         (context)
 , m_selectorSwitch  {new ActionSelector()}
-, m_nestedOptions   {new QWidgetAction(this)}
+, m_toolWidgets   {this}
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
@@ -120,9 +120,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
   filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
-    auto action = new QAction(QIcon(":/espina/pixelSelector.svg"),
-                              tr("Create segmentation based on selected pixel (Ctrl +)"),
-                              m_selectorSwitch);
+    auto action = Tool::createAction(":/espina/pixelSelector.svg",
+                                     tr("Create segmentation based on selected pixel (Ctrl +)"),
+                                     m_selectorSwitch);
 
     auto selector = std::make_shared<PixelSelector>();
     selector->setMultiSelection(false);
@@ -132,9 +132,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 
 
   { // Best Pixel Selector
-    auto action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
-                              tr("Create segmentation based on best pixel (Ctrl +)"),
-                              m_selectorSwitch);
+    auto action = Tool::createAction(":/espina/bestPixelSelector.svg",
+                                     tr("Create segmentation based on best pixel (Ctrl +)"),
+                                     m_selectorSwitch);
 
     auto selector = std::make_shared<BestPixelSelector>();
     selector->setMultiSelection(false);
@@ -193,7 +193,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   }
 
   actions << m_selectorSwitch;
-  actions << m_nestedOptions;
+  actions << &m_toolWidgets;
 
   return actions;
 }
@@ -212,19 +212,11 @@ void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initOptionWidgets()
 {
-  auto widget = new QWidget();
-  auto layout = new QHBoxLayout();
+  m_toolWidgets.addWidget(m_categorySelector);
+  m_toolWidgets.addWidget(m_seedThreshold);
+  m_toolWidgets.addWidget(m_roi);
 
-  layout->addWidget(m_categorySelector);
-  layout->addWidget(m_seedThreshold);
-  layout->addWidget(m_roi);
-
-  widget->setLayout(layout);
-
-  Styles::setNestedStyle(widget);
-
-  m_nestedOptions->setDefaultWidget(widget);
-  m_nestedOptions->setVisible(false);
+  m_toolWidgets.setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -451,8 +443,7 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
 {
-  m_nestedOptions->setVisible(value);
-  m_roi->setVisible(value);
+  m_toolWidgets.setVisible(value);
 }
 
 //-----------------------------------------------------------------------------

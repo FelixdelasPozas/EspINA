@@ -19,8 +19,33 @@
 */
 
 #include "Tool.h"
+#include "Styles.h"
+#include <QPushButton>
+#include <QAction>
+#include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
+
+//----------------------------------------------------------------------------
+Tool::NestedWidgets::NestedWidgets(QObject *parent)
+: QWidgetAction(parent)
+, m_layout(new QHBoxLayout())
+{
+  auto widget = new QWidget();
+
+  widget->setLayout(m_layout);
+
+  Styles::setNestedStyle(widget);
+
+  setDefaultWidget(widget);
+}
+
+//----------------------------------------------------------------------------
+void Tool::NestedWidgets::addWidget(QWidget *widget)
+{
+  m_layout->addWidget(widget);
+}
 
 //----------------------------------------------------------------------------
 Tool::Tool()
@@ -30,13 +55,30 @@ Tool::Tool()
 }
 
 //----------------------------------------------------------------------------
-QPushButton *Tool::createToolButton(const QString &icon, const QString &tooltip)
+QAction *Tool::createAction(const QString &icon, const QString &tooltip, QObject *parent)
 {
-  return createToolButton(QIcon(icon), tooltip);
+  return createAction(QIcon(icon), tooltip, parent);
 }
 
 //----------------------------------------------------------------------------
-QPushButton *Tool::createToolButton(const QIcon &icon, const QString &tooltip)
+QAction *Tool::createAction(const QIcon &icon, const QString &tooltip, QObject *parent)
+{
+  auto action = new QAction(parent);
+
+  action->setIcon(icon);
+  action->setToolTip(tooltip);
+
+  return action;
+}
+
+//----------------------------------------------------------------------------
+QPushButton *Tool::createButton(const QString &icon, const QString &tooltip)
+{
+  return createButton(QIcon(icon), tooltip);
+}
+
+//----------------------------------------------------------------------------
+QPushButton *Tool::createButton(const QIcon &icon, const QString &tooltip)
 {
   auto button = new QPushButton();
 

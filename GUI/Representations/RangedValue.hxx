@@ -53,8 +53,8 @@ namespace ESPINA
     TimeStamp m_lastTime;
     QMap<TimeStamp, R> m_representations;
   };
-
-  #include "RangedValue.cxx"
 }
+
+#include "RangedValue.cxx"
 
 #endif // ESPINA_RANGED_VALUE_H

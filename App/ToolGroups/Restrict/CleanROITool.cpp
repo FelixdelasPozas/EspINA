@@ -35,7 +35,7 @@ CleanROITool::CleanROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
 : m_context  (context)
 , m_toolGroup{toolGroup}
-, m_cleanROI {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
+, m_cleanROI {Tool::createAction(":/espina/voi_clean.svg", tr("Clean Volume Of Interest"), this)}
 {
   m_cleanROI->setEnabled(false);
 

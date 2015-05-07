@@ -35,7 +35,7 @@ MeasureTool::MeasureTool(ViewState &viewState)
 : m_viewState(viewState)
 , m_handler  {new MeasureEventHandler()}
 , m_factory  {new WidgetFactory(std::make_shared<MeasureWidget>(m_handler.get()), EspinaWidget3DSPtr())}
-, m_action   {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
+, m_action   {Tool::createAction(":/espina/measure.png", tr("Segmentation Measures Tool"),this)}
 {
   m_action->setCheckable(true);
   connect(m_action, SIGNAL(triggered(bool)), this, SLOT(onToolActivated(bool)), Qt::QueuedConnection);

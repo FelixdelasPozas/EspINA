@@ -24,7 +24,11 @@
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/View/Widgets/WidgetFactory.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/Widgets/Styles.h>
+#include <Support/ContextFactories.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -40,166 +44,194 @@
 #include <QApplication>
 #include <QToolButton>
 #include <QMessageBox>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <QDebug>
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::Support::Widgets;
+using namespace ESPINA::Support::ContextFactories;
+
+const Filter::Type SPLIT_FILTER    = "SplitFilter";
+const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
+
+//-----------------------------------------------------------------------------
+FilterTypeList SplitTool::SplitFilterFactory::providedFilters() const
 {
-  const Filter::Type SPLIT_FILTER    = "SplitFilter";
-  const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
+  FilterTypeList filters;
 
-  //-----------------------------------------------------------------------------
-  FilterTypeList SplitTool::SplitFilterFactory::providedFilters() const
+  filters << SPLIT_FILTER;
+  filters << SPLIT_FILTER_V4;
+
+  return filters;
+}
+
+//-----------------------------------------------------------------------------
+FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          inputs,
+                                                       const Filter::Type& type,
+                                                       SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+{
+  if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
+
+  auto filter = std::make_shared<SplitFilter>(inputs, type, scheduler);
+
+  if (!m_dataFactory)
   {
-    FilterTypeList filters;
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
+  }
+  filter->setDataFactory(m_dataFactory);
 
-    filters << SPLIT_FILTER;
-    filters << SPLIT_FILTER_V4;
+  return filter;
+}
 
-    return filters;
+//------------------------------------------------------------------------
+SplitTool::SplitTool(Support::Context &context)
+: m_context(context)
+, m_factory(new WidgetFactory(EspinaWidget2DSPtr(), EspinaWidget3DSPtr()))
+, m_toggle {Tool::createAction(":/espina/planar_split.svg",tr("Split segmentation"), this)}
+, m_widgets{this}
+, m_apply  {Tool::createButton(":/espina/tick.png", tr("Apply current state"))}
+, m_widget {nullptr}
+, m_handler{new SplitToolEventHandler()}
+{
+  registerFilterFactory(m_context, std::make_shared<SplitFilterFactory>());
+
+  m_toggle->setCheckable(true);
+  connect(m_toggle, SIGNAL(toggled(bool)),
+          this,     SLOT(toggleWidgetsVisibility(bool)));
+
+  initSplitWidgets();
+
+  connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+          m_toggle,        SLOT(setChecked(bool)));
+}
+
+//------------------------------------------------------------------------
+SplitTool::~SplitTool()
+{
+  delete m_apply;
+  delete m_toggle;
+
+//   if(m_widget)
+//   {
+//     //TODO m_context.viewState().removeWidget(m_widget);
+//   }
+//
+//   if(m_context.viewState().eventHandler() == m_handler)
+//   {
+//     m_context.viewState().setEventHandler(nullptr);
+//   }
+}
+
+//------------------------------------------------------------------------
+QList<QAction *> SplitTool::actions() const
+{
+  QList<QAction *> actions;
+
+  actions << m_toggle
+          << &m_widgets;
+
+  return actions;
+}
+
+//------------------------------------------------------------------------
+void SplitTool::abortOperation()
+{
+  m_toggle->setChecked(false);
+}
+
+//------------------------------------------------------------------------
+void SplitTool::onToolEnabled(bool enabled)
+{
+  m_toggle->setEnabled(enabled);
+}
+
+
+//-----------------------------------------------------------------------------
+void SplitTool::initSplitWidgets()
+{
+  m_widgets.addWidget(m_apply);
+  m_widgets.setVisible(false);
+
+  connect(m_apply, SIGNAL(clicked(bool)),
+          this,    SLOT(applyCurrentState()));
+}
+
+//------------------------------------------------------------------------
+GUI::View::ViewState &SplitTool::viewState() const
+{
+  return m_context.viewState();
+}
+
+//------------------------------------------------------------------------
+void SplitTool::showCuttingPlane()
+{
+  auto selectedSegs = getSelectedSegmentations(m_context);
+  Q_ASSERT(selectedSegs.size() == 1);
+
+  auto segmentation = selectedSegs.first();
+  //     widget->setSegmentationBounds(segmentation->bounds());
+
+  viewState().setEventHandler(m_handler);
+  viewState().addWidgets(m_factory);
+}
+
+
+//------------------------------------------------------------------------
+void SplitTool::hideCuttingPlane()
+{
+  viewState().unsetEventHandler(m_handler);
+  viewState().removeWidgets(m_factory);
+}
+
+//------------------------------------------------------------------------
+void SplitTool::toggleWidgetsVisibility(bool visible)
+{
+  if (visible)
+  {
+    showCuttingPlane();
+  }
+  else
+  {
+    hideCuttingPlane();
+
+    emit splittingStopped();
   }
 
-  //-----------------------------------------------------------------------------
-  FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          inputs,
-                                                         const Filter::Type& type,
-                                                         SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+  m_toggle->blockSignals(true);
+  m_toggle->setChecked(visible);
+  m_toggle->blockSignals(false);
+
+  m_widgets.setVisible(visible);
+}
+
+
+//------------------------------------------------------------------------
+void SplitTool::applyCurrentState()
+{
+  auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
+
+  if (widget->planeIsValid())
   {
-    if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
-
-    auto filter = std::make_shared<SplitFilter>(inputs, type, scheduler);
-
-    if (!m_dataFactory)
-    {
-      m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
-    }
-    filter->setDataFactory(m_dataFactory);
-
-    return filter;
-  }
-
-  //------------------------------------------------------------------------
-  SplitTool::SplitTool(Support::Context &context)
-  : m_planarSplitAction{new QAction(QIcon(":/espina/planar_split.svg"),tr("Split segmentation"), this)}
-  , m_applyButton      {new QAction(QIcon(":/espina/tick.png"), tr("Apply current state"), this)}
-  , m_context          (context)
-  , m_widget           {nullptr}
-  , m_handler          {new SplitToolEventHandler()}
-  {
-    m_planarSplitAction->setCheckable(true);
-    m_planarSplitAction->setChecked(false);
-    m_applyButton->setVisible(false);
-    m_applyButton->setCheckable(false);
-
-    connect(m_planarSplitAction, SIGNAL(triggered(bool)),
-            this,                SLOT(initTool(bool)));
-    connect(m_applyButton, SIGNAL(triggered()),
-            this,          SLOT(applyCurrentState()));
-    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-            this,            SLOT(initTool(bool)));
-
-    m_context.factory()->registerFilterFactory(std::make_shared<SplitFilterFactory>());
-  }
-
-  //------------------------------------------------------------------------
-  SplitTool::~SplitTool()
-  {
-    delete m_planarSplitAction;
-
-    if(m_widget)
-    {
-      //TODO m_context.viewState().removeWidget(m_widget);
-    }
-
-    if(m_context.viewState().eventHandler() == m_handler)
-    {
-      m_context.viewState().setEventHandler(nullptr);
-    }
-  }
-
-  //------------------------------------------------------------------------
-  QList<QAction *> SplitTool::actions() const
-  {
-    QList<QAction *> actions;
-
-    actions << m_planarSplitAction;
-    actions << m_applyButton;
-
-    return actions;
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::abortOperation()
-  {
-    initTool(false);
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::initTool(bool value)
-  {
-    auto viewState = &m_context.viewState();
-
-    if(value)
-    {
-      if (m_widget) return;
-
-      auto widget    = PlanarSplitWidget::New();
-
-      m_widget = EspinaWidgetSPtr{widget};
-      viewState->setEventHandler(m_handler);
-      // TODO viewState->addWidget(m_widget);
-      //TODO m_viewManager->setSelectionEnabled(false);
-
-      auto selectedSegs = getSelectedSegmentations(m_context);
-      Q_ASSERT(selectedSegs.size() == 1);
-      auto segmentation = selectedSegs.first();
-      widget->setSegmentationBounds(segmentation->bounds());
-      m_widget->setEnabled(true);
-
-      //TODO m_viewManager->updateViews();
-    }
-    else
-    {
-      if(m_widget == nullptr) return;
-
-      m_widget->setEnabled(false);
-      //TODO viewState->removeWidget(m_widget);
-      viewState->unsetEventHandler(m_handler);
-      //TODO m_viewManager->setSelectionEnabled(true);
-      // TODO m_viewManager->updateViews();
-
-      m_widget = nullptr;
-
-      emit splittingStopped();
-    }
-
-    m_planarSplitAction->blockSignals(true);
-    m_planarSplitAction->setChecked(value);
-    m_planarSplitAction->blockSignals(false);
-    m_applyButton->setVisible(value);
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::applyCurrentState()
-  {
-    auto widget      = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
     auto selectedSeg = getSelection(m_context)->segmentations().first();
 
-    if (widget->planeIsValid())
-    {
-      InputSList inputs;
-      inputs << selectedSeg->asInput();
+    InputSList inputs;
+    inputs << selectedSeg->asInput();
 
-      auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+    auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
-      auto spacing = selectedSeg->output()->spacing();
-      auto bounds = selectedSeg->bounds();
-      int extent[6]{vtkMath::Round((bounds[0]+spacing[0]/2)/spacing[0]),
-                    vtkMath::Round((bounds[1]+spacing[0]/2)/spacing[0]),
-                    vtkMath::Round((bounds[2]+spacing[1]/2)/spacing[1]),
-                    vtkMath::Round((bounds[3]+spacing[1]/2)/spacing[1]),
-                    vtkMath::Round((bounds[4]+spacing[2]/2)/spacing[2]),
-                    vtkMath::Round((bounds[5]+spacing[2]/2)/spacing[2])};
+    auto spacing = selectedSeg->output()->spacing();
+    auto bounds  = selectedSeg->bounds();
 
-      vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+    int extent[6]{vtkMath::Round((bounds[0]+spacing[0]/2)/spacing[0]),
+      vtkMath::Round((bounds[1]+spacing[0]/2)/spacing[0]),
+      vtkMath::Round((bounds[2]+spacing[1]/2)/spacing[1]),
+      vtkMath::Round((bounds[3]+spacing[1]/2)/spacing[1]),
+      vtkMath::Round((bounds[4]+spacing[2]/2)/spacing[2]),
+      vtkMath::Round((bounds[5]+spacing[2]/2)/spacing[2])};
+
+      auto plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
       plane2stencil->SetInput(widget->getImplicitPlane(spacing));
       plane2stencil->SetOutputOrigin(0,0,0);
       plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
@@ -217,9 +249,58 @@ namespace ESPINA
               this,         SLOT(createSegmentations()));
 
       Task::submit(filter);
+  }
+  else
+  {
+    auto title   = tr("Planar Split");
+    auto message = tr("Operation has NO effect. "
+                      "Defined plane does not split the selected "
+                      "segmentation into 2 segmentations.");
+
+    GUI::DefaultDialogs::InformationMessage(title, message);
+  }
+}
+
+//------------------------------------------------------------------------
+void SplitTool::createSegmentations()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  auto filter = dynamic_cast<FilterPtr>(sender());
+  Q_ASSERT(m_executingTasks.keys().contains(filter));
+
+  if(!filter->isAborted())
+  {
+    if (filter->numberOfOutputs() == 2)
+    {
+      auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
+      auto category = m_executingTasks.value(filter).segmentation->category();
+
+      SegmentationAdapterList  segmentations;
+      SegmentationAdapterSList segmentationsList;
+
+      for(auto i: {0, 1})
+      {
+        auto segmentation  = m_context.factory()->createSegmentation(m_executingTasks[filter].adapter, i);
+        segmentation->setCategory(category);
+
+        segmentationsList << segmentation;
+        segmentations << segmentation.get();
+      }
+
+      getSelection(m_context)->set(segmentations);
+
+      auto undoStack = m_context.undoStack();
+      undoStack->beginMacro("Split Segmentation");
+      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_context.model()));
+      undoStack->push(new AddSegmentations(segmentationsList, sample, m_context.model()));
+      undoStack->endMacro();
+
+      toggleWidgetsVisibility(false);
     }
     else
     {
+      QApplication::restoreOverrideCursor();
       QMessageBox warning;
       warning.setWindowModality(Qt::WindowModal);
       warning.setWindowTitle(tr("ESPINA"));
@@ -231,79 +312,19 @@ namespace ESPINA
     }
   }
 
-  //------------------------------------------------------------------------
-  void SplitTool::createSegmentations()
-  {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+  QApplication::restoreOverrideCursor();
+  m_executingTasks.remove(filter);
+}
 
-    auto filter = dynamic_cast<FilterPtr>(sender());
-    Q_ASSERT(m_executingTasks.keys().contains(filter));
+//-----------------------------------------------------------------------------
+SplitToolEventHandler::SplitToolEventHandler()
+{
+  setCursor(Qt::CrossCursor);
+}
 
-    if(!filter->isAborted())
-    {
-      if (filter->numberOfOutputs() == 2)
-      {
-        auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
-        auto category = m_executingTasks.value(filter).segmentation->category();
-
-        SegmentationAdapterList  segmentations;
-        SegmentationAdapterSList segmentationsList;
-
-        for(auto i: {0, 1})
-        {
-          auto segmentation  = m_context.factory()->createSegmentation(m_executingTasks[filter].adapter, i);
-          segmentation->setCategory(category);
-
-          segmentationsList << segmentation;
-          segmentations << segmentation.get();
-        }
-
-        getSelection(m_context)->set(segmentations);
-
-        auto undoStack = m_context.undoStack();
-        undoStack->beginMacro("Split Segmentation");
-        undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_context.model()));
-        undoStack->push(new AddSegmentations(segmentationsList, sample, m_context.model()));
-        undoStack->endMacro();
-
-        initTool(false);
-      }
-      else
-      {
-        QApplication::restoreOverrideCursor();
-        QMessageBox warning;
-        warning.setWindowModality(Qt::WindowModal);
-        warning.setWindowTitle(tr("ESPINA"));
-        warning.setIcon(QMessageBox::Warning);
-        warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
-        warning.setStandardButtons(QMessageBox::Yes);
-        warning.exec();
-        return;
-      }
-    }
-
-    QApplication::restoreOverrideCursor();
-    m_executingTasks.remove(filter);
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::onToolEnabled(bool enabled)
-  {
-    m_planarSplitAction->setEnabled(enabled);
-  }
-
-
-  //-----------------------------------------------------------------------------
-  SplitToolEventHandler::SplitToolEventHandler()
-  {
-    setCursor(Qt::CrossCursor);
-  }
-
-  //------------------------------------------------------------------------
-  bool SplitToolEventHandler::filterEvent(QEvent *e, RenderView *view)
-  {
-    // passive handler
-    return false;
-  }
-
-} // namespace ESPINA
+//------------------------------------------------------------------------
+bool SplitToolEventHandler::filterEvent(QEvent *e, RenderView *view)
+{
+  // passive handler
+  return false;
+}

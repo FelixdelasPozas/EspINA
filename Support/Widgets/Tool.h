@@ -27,11 +27,16 @@
 #include <memory>
 
 // Qt
-#include <QPushButton>
 #include <QCursor>
+#include <QWidgetAction>
+#include <QObject>
 
+class QHBoxLayout;
 class QAction;
 class QEvent;
+class QIcon;
+class QPushButton;
+class QString;
 
 namespace ESPINA
 {
@@ -40,6 +45,19 @@ namespace ESPINA
   class EspinaSupport_EXPORT Tool
   : public QObject
   {
+  public:
+    class NestedWidgets
+    : public QWidgetAction
+    {
+    public:
+      explicit NestedWidgets(QObject *parent);
+
+      void addWidget(QWidget *widget);
+
+    private:
+      QHBoxLayout *m_layout;
+    };
+
   public:
     explicit Tool();
 
@@ -56,9 +74,13 @@ namespace ESPINA
 
     virtual QList<QAction *> actions() const = 0;
 
-    static QPushButton *createToolButton(const QString &icon, const QString &tooltip);
+    static QAction *createAction( const QString &icon, const QString &tooltip, QObject *parent );
 
-    static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
+    static QAction *createAction(const QIcon &icon, const QString &tooltip, QObject *parent);
+
+    static QPushButton *createButton(const QString &icon, const QString &tooltip);
+
+    static QPushButton *createButton(const QIcon &icon, const QString &tooltip);
 
     virtual void abortOperation() = 0;
 

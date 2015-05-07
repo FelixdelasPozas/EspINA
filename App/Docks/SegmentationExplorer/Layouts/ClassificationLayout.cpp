@@ -259,46 +259,47 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   CategoryAdapterList    categories;
   SegmentationAdapterSet segmentations;
 
-  if (!selectedItems(categories, segmentations)) return;
-
-  if (categories.isEmpty())
+  if (selectedItems(categories, segmentations))
   {
-    DefaultContextualMenu contextMenu(segmentations.toList(), m_context);
+    if (categories.isEmpty())
+    {
+      DefaultContextualMenu contextMenu(segmentations.toList(), m_context);
+
+      contextMenu.addSeparator();
+
+      auto selectAll = contextMenu.addAction(tr("Select segmentations of the same category"));
+      connect(selectAll, SIGNAL(triggered(bool)),
+              this,      SLOT(selectCategorySegmentations()));
+
+      contextMenu.exec(pos);
+      return;
+    }
+
+    QMenu contextMenu;
+
+    auto createNode = contextMenu.addAction(tr("Create Category"));
+    createNode->setIcon(QIcon(":espina/create_node.png"));
+    connect(createNode, SIGNAL(triggered(bool)),
+            this,       SLOT(createCategory()));
+
+    auto createSubNode = contextMenu.addAction(tr("Create Subcategory"));
+    createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
+    connect(createSubNode, SIGNAL(triggered(bool)),
+            this,          SLOT(createSubCategory()));
+
+    auto changeColor = contextMenu.addAction(tr("Change Category Color"));
+    changeColor->setIcon(QIcon(":espina/rainbow.svg"));
+    connect(changeColor, SIGNAL(triggered(bool)),
+            this,        SLOT(changeCategoryColor()));
 
     contextMenu.addSeparator();
 
-    auto selectAll = contextMenu.addAction(tr("Select segmentations of the same category"));
+    auto selectAll = contextMenu.addAction(tr("Select category segmentations"));
     connect(selectAll, SIGNAL(triggered(bool)),
-            this,      SLOT(selectCategoryAdapters()));
+            this,      SLOT(selectCategorySegmentations()));
 
     contextMenu.exec(pos);
-    return;
   }
-
-  QMenu contextMenu;
-
-  QAction *createNode = contextMenu.addAction(tr("Create Category"));
-  createNode->setIcon(QIcon(":espina/create_node.png"));
-  connect(createNode, SIGNAL(triggered(bool)),
-          this,       SLOT(createCategory()));
-
-  QAction *createSubNode = contextMenu.addAction(tr("Create Subcategory"));
-  createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
-  connect(createSubNode, SIGNAL(triggered(bool)),
-          this,          SLOT(createSubCategory()));
-
-  QAction *changeColor = contextMenu.addAction(tr("Change Category Color"));
-  changeColor->setIcon(QIcon(":espina/rainbow.svg"));
-  connect(changeColor, SIGNAL(triggered(bool)),
-          this,        SLOT(changeCategoryColor()));
-
-  contextMenu.addSeparator();
-
-  QAction *selectAll = contextMenu.addAction(tr("Select category segmentations"));
-  connect(selectAll, SIGNAL(triggered(bool)),
-          this,      SLOT(selectCategoryAdapters()));
-
-  contextMenu.exec(pos);
 }
 
 //------------------------------------------------------------------------
@@ -586,7 +587,7 @@ void ClassificationLayout::changeCategoryColor()
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::selectCategoryAdapters()
+void ClassificationLayout::selectCategorySegmentations()
 {
    auto index = m_view->selectionModel()->currentIndex();
 

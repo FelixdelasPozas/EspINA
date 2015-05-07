@@ -105,7 +105,7 @@ namespace ESPINA
     /** \brief Selects all segmentations from a category.
      *
      */
-    void selectCategoryAdapters();
+    void selectCategorySegmentations();
 
     /** \brief Manages the segmentation drag-and-drop into a category.
      * \param[in] segmentations list of segmentation adapters raw pointers of the elements that have been dropped.

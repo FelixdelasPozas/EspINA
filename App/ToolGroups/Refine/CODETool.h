@@ -73,8 +73,8 @@ namespace ESPINA {
     void initOptionWidgets();
 
   private:
-    QAction       *m_toggle;
-    QWidgetAction *m_nestedOptions;
+    QAction             *m_toggle;
+    Tool::NestedWidgets  m_toolWidgets;
     GUI::Widgets::NumericalInput *m_radius;
   };
 

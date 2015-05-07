@@ -43,7 +43,7 @@ using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 SelectionMeasureTool::SelectionMeasureTool(GUI::View::ViewState &viewState)
 : m_viewState(viewState)
 , m_factory  {new WidgetFactory(std::make_shared<Widget2D>(viewState.selection()), std::make_shared<Widget3D>(viewState.selection()))}
-, m_action   {new QAction(QIcon(":/espina/measure3D.png"), tr("Measure Selection"),this) }
+, m_action   {Tool::createAction(":/espina/measure3D.png", tr("Measure Selection"),this) }
 {
   m_action->setCheckable(true);
 

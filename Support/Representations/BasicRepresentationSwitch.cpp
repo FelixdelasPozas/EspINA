@@ -20,6 +20,7 @@
 #include "BasicRepresentationSwitch.h"
 
 #include <Support/Widgets/Tool.h>
+#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -44,7 +45,7 @@ ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews()
 //----------------------------------------------------------------------------
 QWidget* BasicRepresentationSwitch::widget()
 {
-  auto widget = Tool::createToolButton(m_manager->icon(), m_manager->description());
+  auto widget = Tool::createButton(m_manager->icon(), m_manager->description());
 
   widget->setCheckable(true);
   widget->setChecked(isActive());

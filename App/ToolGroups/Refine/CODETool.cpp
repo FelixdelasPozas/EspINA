@@ -25,6 +25,7 @@
 #include <Support/Widgets/Styles.h>
 
 #include <QHBoxLayout>
+#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
@@ -32,9 +33,9 @@ using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
 CODETool::CODETool(const QString& icon, const QString& tooltip)
-: m_toggle       {new QAction(QIcon(icon), tooltip, this)}
-, m_nestedOptions{new QWidgetAction(this)}
-, m_radius       {new NumericalInput()}
+: m_toggle     {Tool::createAction(icon, tooltip, this)}
+, m_toolWidgets{this}
+, m_radius     {new NumericalInput()}
 {
   m_toggle->setCheckable(true);
 
@@ -46,7 +47,8 @@ QList<QAction *> CODETool::actions() const
 {
   QList<QAction *> actions;
 
-  actions << m_toggle << m_nestedOptions;
+  actions << m_toggle
+          << &m_toolWidgets;
 
   return actions;
 }
@@ -60,7 +62,7 @@ void CODETool::abortOperation()
 void CODETool::toggleToolWidgets(bool toggle)
 {
   m_toggle->setChecked(toggle);
-  m_nestedOptions->setVisible(toggle);
+  m_toolWidgets.setVisible(toggle);
 
   emit toggled(toggle);
 }
@@ -69,7 +71,7 @@ void CODETool::toggleToolWidgets(bool toggle)
 void CODETool::onToolEnabled(bool enabled)
 {
   m_toggle->setEnabled(enabled);
-  m_nestedOptions->setEnabled(enabled);
+  m_toolWidgets.setEnabled(enabled);
 
   if(m_toggle->isChecked() && !enabled)
   {
@@ -88,21 +90,14 @@ void CODETool::initOptionWidgets()
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
 
-  auto apply = Tool::createToolButton(":/espina/tick.png", tr("Apply"));
+  auto apply = Tool::createButton(":/espina/tick.png", tr("Apply"));
 
   connect(apply, SIGNAL(clicked(bool)),
           this,  SIGNAL(applyClicked()));
 
-  auto widget = new QWidget();
-  auto layout = new QHBoxLayout();
 
-  layout->addWidget(m_radius);
-  layout->addWidget(apply);
+  m_toolWidgets.addWidget(m_radius);
+  m_toolWidgets.addWidget(apply);
 
-  widget->setLayout(layout);
-
-  Styles::setNestedStyle(widget);
-
-  m_nestedOptions->setDefaultWidget(widget);
-  m_nestedOptions->setVisible(false);
+  m_toolWidgets.setVisible(false);
 }

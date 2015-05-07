@@ -72,6 +72,7 @@ set (Support_SOURCES
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
+  ContextFactories.cpp
   Widgets/ActionGroupWidget.cpp
   Widgets/DockWidget.cpp
   Widgets/TabularReport.cpp

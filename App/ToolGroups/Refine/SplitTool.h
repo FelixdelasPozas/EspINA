@@ -51,76 +51,85 @@ namespace ESPINA
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
-      private:
-        mutable DataFactorySPtr m_dataFactory;
+    private:
+      mutable DataFactorySPtr m_dataFactory;
     };
 
-    public:
-      /** \brief SplitTool class constructor.
-       * \param[in] context ESPINA context
-       *
-       */
-      SplitTool(Support::Context &context);
+  public:
+    /** \brief SplitTool class constructor.
+     * \param[in] context ESPINA context
+     *
+     */
+    SplitTool(Support::Context &context);
 
-      /** \brief SplitTool class virtual destructor.
-       *
-       */
-      virtual ~SplitTool();
+    /** \brief SplitTool class virtual destructor.
+     *
+     */
+    virtual ~SplitTool();
 
-      virtual QList<QAction *> actions() const override;
+    virtual QList<QAction *> actions() const override;
 
-      virtual void abortOperation() override;
+    virtual void abortOperation() override;
 
-    signals:
-      void splittingStopped();
-
-    public slots:
-      /** \brief Initializes/De-initializes the tool.
-       * \param[in] enable, boolean value indicating the activation of the tool.
-       */
-      void initTool(bool enable);
-
-      /** \brief Splits the segmentation using the current state of the tool.
-       *
-       */
-      void applyCurrentState();
-
-      /** \brief Creates the segmentations and adds them to the model.
-       *
-       */
-      void createSegmentations();
-
-      /** \brief Stops current operation.
-       *
-       */
-      void stopSplitting()
-      { initTool(false); }
+  signals:
+    void splittingStopped();
 
   private:
     virtual void onToolEnabled(bool enabled);
 
-    private:
-      struct Data
-      {
-        FilterSPtr              adapter;
-        SegmentationAdapterSPtr segmentation;
+    void initSplitWidgets();
 
-        Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
-        : adapter{adapterP}, segmentation{segmentationP}
-        {};
+    GUI::View::ViewState &viewState() const;
 
-        Data(): adapter{nullptr}, segmentation{nullptr}
-        {};
-      };
+    void showCuttingPlane();
 
-      QAction *m_planarSplitAction;
-      QAction *m_applyButton;
+    void hideCuttingPlane();
 
-      Support::Context &m_context;
+  private slots:
+    void toggleWidgetsVisibility(bool enable);
 
-      EspinaWidgetSPtr m_widget;
-      SplitToolEventHandlerSPtr m_handler;
-      QMap<FilterPtr, struct Data> m_executingTasks;
+    /** \brief Splits the segmentation using the current state of the tool.
+     *
+     */
+    void applyCurrentState();
+
+    /** \brief Creates the segmentations and adds them to the model.
+     *
+     */
+    void createSegmentations();
+
+    /** \brief Stops current operation.
+     *
+     */
+    void stopSplitting()
+    { toggleWidgetsVisibility(false); }
+
+  private:
+    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
+
+    struct Data
+    {
+      FilterSPtr              adapter;
+      SegmentationAdapterSPtr segmentation;
+
+      Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
+      : adapter{adapterP}, segmentation{segmentationP}
+      {};
+
+      Data(): adapter{nullptr}, segmentation{nullptr}
+      {};
+    };
+
+    Support::Context &m_context;
+    WidgetFactorySPtr m_factory;
+
+    QAction            *m_toggle;
+    Tool::NestedWidgets m_widgets;
+    QPushButton        *m_apply;
+
+    EspinaWidgetSPtr             m_widget;
+    SplitToolEventHandlerSPtr    m_handler;
+    QMap<FilterPtr, struct Data> m_executingTasks;
   };
 
   using SplitToolPtr  = SplitTool *;
@@ -129,19 +138,19 @@ namespace ESPINA
   class SplitToolEventHandler
   : public EventHandler
   {
-    public:
-      /** \brief SplitToolEventHandler class constructor.
-       *
-       */
-      explicit SplitToolEventHandler();
+  public:
+    /** \brief SplitToolEventHandler class constructor.
+     *
+     */
+    explicit SplitToolEventHandler();
 
-      /** \brief SplitToolEventHandler class destructor.
-       *
-       */
-      ~SplitToolEventHandler()
-      {}
+    /** \brief SplitToolEventHandler class destructor.
+     *
+     */
+    ~SplitToolEventHandler()
+    {}
 
-      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
+    virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 
 } // namespace ESPINA

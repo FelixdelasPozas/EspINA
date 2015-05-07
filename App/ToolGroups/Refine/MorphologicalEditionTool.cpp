@@ -236,11 +236,11 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   m_context.factory()->registerFilterFactory(m_filterFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_filterFactory);
 
-  m_addition = new QAction(QIcon(":/espina/add.svg"), tr("Merge selected segmentations"), this);
+  m_addition = Tool::createAction(":/espina/add.svg", tr("Merge selected segmentations"), this);
   connect(m_addition, SIGNAL(triggered(bool)),
           this, SLOT(mergeSegmentations()));
 
-  m_subtract = new QAction(QIcon(":/espina/remove.svg"), tr("Subtract selected segmentations"), this);
+  m_subtract = Tool::createAction(":/espina/remove.svg", tr("Subtract selected segmentations"), this);
   connect(m_subtract, SIGNAL(triggered(bool)),
           this, SLOT(subtractSegmentations()));
 
@@ -269,7 +269,7 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
           this,                              SLOT(updateAvailableActionsForSelection()));
 
-  m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), this);
+  m_fill = Tool::createAction(":/espina/fillHoles.svg", tr("Fill internal holes in selected segmentations"), this);
   connect(m_fill, SIGNAL(triggered(bool)),
           this,   SLOT(fillHoles()));
 

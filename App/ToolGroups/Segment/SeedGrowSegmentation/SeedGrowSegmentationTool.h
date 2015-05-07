@@ -146,8 +146,9 @@ namespace ESPINA
 
     Support::Context &m_context;
 
-    ActionSelector   *m_selectorSwitch;
-    QWidgetAction    *m_nestedOptions;
+    ActionSelector     *m_selectorSwitch;
+    Tool::NestedWidgets m_toolWidgets;
+
     CategorySelector *m_categorySelector;
     SeedThreshold    *m_seedThreshold;
     CustomROIWidget  *m_roi;

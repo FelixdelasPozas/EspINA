@@ -48,7 +48,7 @@ AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
                                              Support::Context        &context)
 : m_plugin (plugin)
 , m_context(context)
-, m_action (new QAction(QIcon(":/AppSurface.svg"), tr("Apposition Surface Tools"), this))
+, m_action (Tool::createAction(":/AppSurface.svg", tr("Apposition Surface Tools"), this))
 {
   setToolTip("Create a synaptic apposition surface from selected segmentations.");
 
@@ -56,7 +56,7 @@ AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
           this,     SLOT(createSAS()));
 
   connect(getSelection(context).get(), SIGNAL(selectionChanged()),
-          this,                            SLOT(selectionChanged()));
+          this,                        SLOT(selectionChanged()));
 
   selectionChanged();
 }

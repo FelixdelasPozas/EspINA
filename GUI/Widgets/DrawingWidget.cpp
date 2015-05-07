@@ -51,8 +51,8 @@ DrawingWidget::DrawingWidget(Support::Context &context)
 , m_categorySelector    {new CategorySelector(context.model())}
 , m_radiusWidget        {new NumericalInput()}
 , m_opacityWidget       {new NumericalInput()}
-, m_eraserWidget        {Tool::createToolButton(":/espina/eraser.png", tr("Erase"))}
-, m_rasterizeWidget     {Tool::createToolButton(":/espina/tick.png", tr("Rasterize the contour"))}
+, m_eraserWidget        {Tool::createButton(":/espina/eraser.png", tr("Erase"))}
+, m_rasterizeWidget     {Tool::createButton(":/espina/tick.png", tr("Rasterize the contour"))}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
 , m_showOpacityControls {true}
