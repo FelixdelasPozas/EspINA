@@ -25,17 +25,20 @@
 #include <Core/Analysis/Channel.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+
+using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {
   //------------------------------------------------------------------------
   CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-  : Task          {scheduler}
-  , m_issuesNum   {0}
-  , m_totalTaskNum{0}
+  : Task           {scheduler}
+  , m_issuesNum    {0}
+  , m_totalTasks   {0}
   , m_finishedTasks{0}
   {
-    setDescription("Issues checker");
+    setDescription(tr("Issues checker"));
     setPriority(Priority::LOW);
 
     qRegisterMetaType<Issue>("Issue");
@@ -55,7 +58,7 @@ namespace ESPINA
       m_taskList << std::make_shared<CheckTask>(scheduler, sample, model);
     }
 
-    m_totalTaskNum = m_taskList.size();
+    m_totalTasks = m_taskList.size();
   }
 
   //------------------------------------------------------------------------
@@ -85,10 +88,10 @@ namespace ESPINA
   void CheckAnalysis::finishedTask()
   {
     ++m_finishedTasks;
-    auto progressValue = m_finishedTasks * 100 / m_totalTaskNum;
+    auto progressValue = m_finishedTasks * 100 / m_totalTasks;
     reportProgress(progressValue);
 
-    if(m_totalTaskNum - m_finishedTasks == 0)
+    if(m_totalTasks - m_finishedTasks == 0)
     {
       if(!m_issues.empty())
       {
@@ -108,21 +111,31 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void CheckTask::run()
   {
-    switch(m_item->type())
+    auto item = static_cast<ItemAdapterPtr>(m_item.get());
+
+    if(isSegmentation(item))
     {
-      case ItemAdapter::Type::SEGMENTATION:
-        checkViewItemOutputs();
-        checkSegmentationHasChannel();
-        checkSegmentationRelations();
-        break;
-      case ItemAdapter::Type::CHANNEL:
+      checkViewItemOutputs();
+      checkSegmentationHasChannel();
+      checkSegmentationRelations();
+    }
+    else
+    {
+      if(isChannel(item))
+      {
         checkViewItemOutputs();
         checkChannelRelations();
-        break;
-      case ItemAdapter::Type::SAMPLE:
-        break;
-      default:
-        break;
+      }
+      else
+      {
+        if(isSample(item))
+        {
+        }
+        else
+        {
+          Q_ASSERT(false);
+        }
+      }
     }
   }
 

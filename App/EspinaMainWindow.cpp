@@ -591,9 +591,9 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::showIssuesDialog(IssueList problems) const
+void EspinaMainWindow::showIssuesDialog(IssueList issues) const
 {
-  IssueListDialog dialog(problems);
+  IssueListDialog dialog(issues);
 
   dialog.exec();
 }

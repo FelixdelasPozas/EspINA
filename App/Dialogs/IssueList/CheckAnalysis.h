@@ -69,7 +69,7 @@ namespace ESPINA
       IssueList       m_issues;
       QList<TaskSPtr> m_taskList;
       int             m_issuesNum;
-      int             m_totalTaskNum;
+      int             m_totalTasks;
       int             m_finishedTasks;
   };
 
