@@ -113,20 +113,6 @@ namespace ESPINA {
     const OutputSPtr output() const
     { return m_viewItem->output(); }
 
-//     /** \brief Returns the data of the specified type of the item.
-//      * \param[in] type data type.
-//      *
-//      */
-//     DataSPtr outputData(Data::Type type)
-//     { return m_viewItem->data(type); }
-
-//     /** \brief Returns the data of the specified type of the item.
-//      * \param[in] type data type.
-//      *
-//      */
-//     const DataSPtr outputData(Data::Type type) const
-//     { return m_viewItem->data(type); }
-
     Bounds bounds() const
     { return output()->bounds(); }
 

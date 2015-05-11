@@ -112,6 +112,20 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
+  Output::ReadLockData<SkeletonData> readLockSkeleton(Output *output, DataUpdatePolicy policy)
+  throw (Unavailable_Output_Data_Exception)
+  {
+    return outputReadLockData<SkeletonData>(output, policy);
+  }
+
+  //----------------------------------------------------------------------------
+  Output::WriteLockData<SkeletonData> writeLockSkeleton(Output *output, DataUpdatePolicy policy)
+  throw (Unavailable_Output_Data_Exception)
+  {
+    return outputWriteLockData<SkeletonData>(output, policy);
+  }
+
+  //----------------------------------------------------------------------------
   Output::WriteLockData<SkeletonData> writeLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
   throw (Unavailable_Output_Data_Exception)
   {

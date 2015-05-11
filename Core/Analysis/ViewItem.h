@@ -81,18 +81,6 @@ namespace ESPINA {
     Output::Id outputId() const
     { return m_input->output()->id(); }
 
-//     /** \brief Returns the data object of the type specified that represents this item.
-//      * \param[in] type data type.
-//      *
-//      */
-//     DataSPtr data(Data::Type type);
-//
-//     /** \brief Returns the data object of the type specified that represents this item.
-//      * \param[in] type data type.
-//      *
-//      */
-//     const DataSPtr data(Data::Type type) const;
-
     /** \brief Changes the output.
      * \param[in] input input object smart pointer.
      *

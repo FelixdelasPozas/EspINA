@@ -65,7 +65,7 @@ namespace ESPINA
      * \param[in] proxy SegmentationExplorer::Layout raw pointer.
      *
      */
-    void addLayout(const QString id, Layout *proxy);
+    void addLayout(const QString &id, Layout *proxy);
 
     virtual bool eventFilter(QObject *sender, QEvent* e);
 

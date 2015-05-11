@@ -322,12 +322,6 @@ bool Output::isSegmentationOutput() const
   return false;
 }
 
-// //----------------------------------------------------------------------------
-// Output::DataSPtr Output::data(const Data::Type& type) const
-// throw (Unavailable_Output_Data_Exception)
-// {
-// }
-
 //----------------------------------------------------------------------------
 DataProxy *Output::proxy(const Data::Type &type)
 {
