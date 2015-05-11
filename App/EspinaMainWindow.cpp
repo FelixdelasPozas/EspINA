@@ -38,7 +38,7 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/ListUtils.hxx>
-#include <Dialogs/CheckAnalysis/CheckAnalysis.h>
+#include <Dialogs/IssueList/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
@@ -581,20 +581,21 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-   if (!m_context.model()->isEmpty())
-   {
-     auto problemList = checkAnalysisConsistency();
-
-     if (!problemList.empty())
-     {
-       ProblemListDialog dialog(problemList);
-
-       dialog.exec();
-     }
-   }
+    if (!m_context.model()->isEmpty())
+    {
+      checkAnalysisConsistency();
+    }
   }
 
   emit analysisChanged();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::showIssuesDialog(IssueList problems) const
+{
+  IssueListDialog dialog(problems);
+
+  dialog.exec();
 }
 
 //------------------------------------------------------------------------
@@ -1389,12 +1390,14 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 }
 
 //------------------------------------------------------------------------
-ProblemList EspinaMainWindow::checkAnalysisConsistency()
+void EspinaMainWindow::checkAnalysisConsistency()
 {
-  CheckAnalysis checker(m_context.scheduler(), m_context.model());
-  checker.exec();
+  auto checkerTask = std::make_shared<CheckAnalysis>(m_context.scheduler(), m_context.model());
 
-  return checker.getProblems();
+  connect(checkerTask.get(), SIGNAL(issuesFound(IssueList)),
+          this,              SLOT(showIssuesDialog(IssueList)));
+
+  checkerTask->submit(checkerTask);
 }
 
 //------------------------------------------------------------------------

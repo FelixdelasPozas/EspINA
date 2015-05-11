@@ -22,21 +22,19 @@
 #define ESPINA_CHECK_ANALYSIS_H_
 
 // ESPINA
-#include <Dialogs/ProblemList/ProblemListDialog.h>
+#include <Dialogs/IssueList/IssueListDialog.h>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QDialog>
-#include "ui_CheckAnalysisDialog.h"
 
 namespace ESPINA
 {
   //------------------------------------------------------------------------
   class CheckAnalysis
-  : public QDialog
-  , public Ui::CheckAnalysisDialog
+  : public Task
   {
-    Q_OBJECT
+      Q_OBJECT
     public:
       /** \brief CheckAnalysis class constructor.
        * \param[in] scheduler scheduler smart pointer.
@@ -48,30 +46,31 @@ namespace ESPINA
       /** \brief CheckAnalysis virtual destructor.
        *
        */
-      virtual ~CheckAnalysis()
-      {};
+      virtual ~CheckAnalysis();
 
-      /** \brief Returns the problem list. To be called after the dialog has executed.
-       *
-       */
-      ProblemList getProblems()
-      { return m_problems; }
+    signals:
+      void issuesFound(IssueList issues);
+
+    protected:
+      virtual void run() override final;
 
     protected slots:
-      /** \brief Remove task from the list add increase progress bar.
+      /** \brief Remove task from the list add increase progress value.
        *
        */
       void finishedTask();
 
-      /** \brief Adds a problem to the problem list.
+      /** \brief Adds a issue to the issue list.
        *
        */
-      void addProblem(Problem problem);
+      void addIssue(Issue issue);
 
     private:
-      ProblemList     m_problems;
+      IssueList       m_issues;
       QList<TaskSPtr> m_taskList;
-      int             m_problemsNum;
+      int             m_issuesNum;
+      int             m_totalTaskNum;
+      int             m_finishedTasks;
   };
 
   //------------------------------------------------------------------------
@@ -102,44 +101,41 @@ namespace ESPINA
       {}
 
     signals:
-      /** \brief Signal emitted when a problem has been found with the item being checked.
-       * \param[out] Problem, problem description.
+      /** \brief Signal emitted when a issue has been found with the item being checked.
+       * \param[out] issue issue struct.
        */
-      void problem(Problem) const;
+      void issue(Issue issue) const;
 
     protected:
-      /** \brief Implements Task::run().
-       *
-       */
-      virtual void run() override;
+      virtual void run() override final;
 
     private:
-      /** \brief Checks if a segmentation volume is empty, emits problem(Problem) if it is.
+      /** \brief Checks if a segmentation volume is empty, emits issue(Issue) if it is.
        *
        */
       void checkVolumeIsEmpty() const;
 
-      /** \brief Checks if a segmentation mesh is empty, emits problem(Problem) if it is.
+      /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
        *
        */
       void checkMeshIsEmpty() const;
 
-      /** \brief Checks if the segmentation has a channel assigned as a location, emits problem(Problem) if not.
+      /** \brief Checks if the segmentation has a channel assigned as a location, emits issue(Issue) if not.
        *
        */
       void checkSegmentationHasChannel() const;
 
-      /** \brief Checks segmentation relations and emits problem(Problem) for each problem found.
+      /** \brief Checks segmentation relations and emits issue(Issue) for each problem found.
        *
        */
       void checkSegmentationRelations() const;
 
-      /** \brief Checks channel relations and emits problem(Problem) for each problem found.
+      /** \brief Checks channel relations and emits issue(Issue) for each problem found.
        *
        */
       void checkChannelRelations() const;
 
-      /** \brief Checks ViewItem output for existence and emits problem(Problem) for each problem found.
+      /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
        * Returns true if no problem are found, and false otherwise.
        *
        */

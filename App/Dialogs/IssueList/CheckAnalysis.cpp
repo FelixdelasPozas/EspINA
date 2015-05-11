@@ -19,26 +19,26 @@
  */
 
 // ESPINA
-#include "CheckAnalysis.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
+#include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 namespace ESPINA
 {
   //------------------------------------------------------------------------
   CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-  : m_problemsNum{0}
+  : Task          {scheduler}
+  , m_issuesNum   {0}
+  , m_totalTaskNum{0}
+  , m_finishedTasks{0}
   {
-    setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
-    qRegisterMetaType<Problem>("Problem");
+    setDescription("Issues checker");
+    setPriority(Priority::LOW);
 
-    m_progress->setMinimum(0);
-    m_progress->setMaximum(model->segmentations().size() + model->channels().size() + model->samples().size());
-    m_progress->setValue(0);
+    qRegisterMetaType<Issue>("Issue");
 
     for(auto seg: model->segmentations())
     {
@@ -55,44 +55,54 @@ namespace ESPINA
       m_taskList << std::make_shared<CheckTask>(scheduler, sample, model);
     }
 
+    m_totalTaskNum = m_taskList.size();
+  }
+
+  //------------------------------------------------------------------------
+  CheckAnalysis::~CheckAnalysis()
+  {
+  }
+
+  //------------------------------------------------------------------------
+  void CheckAnalysis::run()
+  {
     for(auto task: m_taskList)
     {
       connect(task.get(), SIGNAL(finished()),
-              this,       SLOT(finishedTask()));
-      connect(task.get(), SIGNAL(problem(Problem)),
-              this,       SLOT(addProblem(Problem)));
+              this,       SLOT(finishedTask()), Qt::DirectConnection);
+      connect(task.get(), SIGNAL(issue(Issue)),
+              this,       SLOT(addIssue(Issue)), Qt::DirectConnection);
+
       task->submit(task);
     }
+    m_taskList.clear();
+
+    pause();
+    canExecute(); // stops this thread until the other have finished.
   }
 
   //------------------------------------------------------------------------
   void CheckAnalysis::finishedTask()
   {
-    auto senderTask = qobject_cast<CheckTask *>(sender());
-    Q_ASSERT(senderTask);
+    ++m_finishedTasks;
+    auto progressValue = m_finishedTasks * 100 / m_totalTaskNum;
+    reportProgress(progressValue);
 
-    m_progress->setValue(m_progress->value()+1);
-
-    for(auto task: m_taskList)
-      if(task.get() == senderTask)
+    if(m_totalTaskNum - m_finishedTasks == 0)
+    {
+      if(!m_issues.empty())
       {
-        disconnect(task.get(), SIGNAL(finished()),
-                   this,       SLOT(finishedTask()));
-        disconnect(task.get(), SIGNAL(problem(Problem)),
-                   this,       SLOT(addProblem(Problem)));
-        m_taskList.removeOne(task);
-        break;
+        emit issuesFound(m_issues);
       }
 
-    if(m_taskList.empty())
-      close();
+      resume();
+    }
   }
 
   //------------------------------------------------------------------------
-  void CheckAnalysis::addProblem(Problem problem)
+  void CheckAnalysis::addIssue(Issue issue)
   {
-    m_problems << problem;
-    m_numProblems->setText(QString().number(++m_problemsNum));
+    m_issues << issue;
   }
 
   //------------------------------------------------------------------------
@@ -129,8 +139,8 @@ namespace ESPINA
             auto volume = volumetricData(seg->output());
             if(volume == nullptr || volume->isEmpty())
             {
-              Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume data associated but is empty or null."), tr("Delete segmentation.")};
-              emit problem(segProblem);
+              Issue segIssue{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume data associated but is empty or null."), tr("Delete segmentation.")};
+              emit issue(segIssue);
             }
           }
         }
@@ -143,8 +153,8 @@ namespace ESPINA
             auto volume = volumetricData(channel->output());
             if(volume == nullptr)
             {
-              Problem channelProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume data associated but is null."), tr("Delete channel.")};
-              emit problem(channelProblem);
+              Issue channelIssue{channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume data associated but is null."), tr("Delete channel.")};
+              emit issue(channelIssue);
             }
           }
         }
@@ -166,8 +176,8 @@ namespace ESPINA
 
       if(mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
       {
-        Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a mesh data associated but is empty or null."), tr("Delete segmentation")};
-        emit problem(segProblem);
+        Issue segIssue{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a mesh data associated but is empty or null."), tr("Delete segmentation")};
+        emit issue(segIssue);
       }
     }
   }
@@ -180,8 +190,8 @@ namespace ESPINA
 
     if(channels.empty())
     {
-      Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any channel."), tr("Delete segmentation.")};
-      emit problem(segProblem);
+      Issue segIssue{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any channel."), tr("Delete segmentation.")};
+      emit issue(segIssue);
     }
   }
 
@@ -193,8 +203,8 @@ namespace ESPINA
 
     if(relations.empty())
     {
-      Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any sample."), tr("Delete segmentation.")};
-      emit problem(segProblem);
+      Issue segIssue{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any sample."), tr("Delete segmentation.")};
+      emit issue(segIssue);
     }
   }
 
@@ -206,8 +216,8 @@ namespace ESPINA
 
     if(relations.empty())
     {
-      Problem segProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel is not related to any sample."), tr("Change relations in the \"Channel Explorer\" dialog.")};
-      emit problem(segProblem);
+      Issue segIssue{channel->data().toString(), Severity::CRITICAL, tr("Channel is not related to any sample."), tr("Change relations in the \"Channel Explorer\" dialog.")};
+      emit issue(segIssue);
     }
   }
 
@@ -220,8 +230,8 @@ namespace ESPINA
 
     if (output == nullptr)
     {
-      Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have an output."), tr("Delete item.") };
-      emit problem(segProblem);
+      Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have an output."), tr("Delete item.") };
+      emit issue(segIssue);
     }
     else
     {
@@ -240,15 +250,15 @@ namespace ESPINA
 
       if (numberOfDatas == 0)
       {
-        Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have any data."), tr("Delete item.") };
-        emit problem(segProblem);
+        Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have any data."), tr("Delete item.") };
+        emit issue(segIssue);
       }
     }
 
     if (filter == nullptr)
     {
-      Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have a filter."), tr("Delete item.")};
-      emit problem(segProblem);
+      Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have a filter."), tr("Delete item.")};
+      emit issue(segIssue);
     }
   }
 
