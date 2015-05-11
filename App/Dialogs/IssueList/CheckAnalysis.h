@@ -46,7 +46,8 @@ namespace ESPINA
       /** \brief CheckAnalysis virtual destructor.
        *
        */
-      virtual ~CheckAnalysis();
+      virtual ~CheckAnalysis()
+      {};
 
     signals:
       void issuesFound(IssueList issues);
@@ -86,7 +87,6 @@ namespace ESPINA
        */
       explicit CheckTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
       : Task   {scheduler}
-      , m_item {item}
       , m_model{model}
       {
         setHidden(true);
@@ -106,36 +106,26 @@ namespace ESPINA
       void issue(Issue issue) const;
 
     protected:
-      /** \brief Checks if a segmentation volume is empty, emits issue(Issue) if it is.
+      /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
        *
        */
-      void checkVolumeIsEmpty() const;
+      virtual void checkVolumeIsEmpty() const = 0;
 
       /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
        *
        */
-      void checkMeshIsEmpty() const;
+      virtual void checkMeshIsEmpty() const = 0;
 
-      /** \brief Checks if the segmentation has a channel assigned as a location, emits issue(Issue) if not.
+      /** \brief Checks if a segmentation skeleton is empty, emits issue(Issue) if it is.
        *
        */
-      void checkSegmentationHasChannel() const;
-
-      /** \brief Checks segmentation relations and emits issue(Issue) for each problem found.
-       *
-       */
-      void checkSegmentationRelations() const;
-
-      /** \brief Checks channel relations and emits issue(Issue) for each problem found.
-       *
-       */
-      void checkChannelRelations() const;
+      virtual void checkSkeletonIsEmpty() const = 0;
 
       /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
        * Returns true if no problem are found, and false otherwise.
        *
        */
-      void checkViewItemOutputs() const;
+      void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
 
       NeuroItemAdapterSPtr m_item;
       ModelAdapterSPtr     m_model;
@@ -152,9 +142,7 @@ namespace ESPINA
        * \param[in] item, neuro item adapter smart pointer that will be tested.
        * \param[in] model, model adapter smart pointer containing the item.
        */
-      explicit CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-      : CheckTask{scheduler, item, model}
-      {}
+      explicit CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
       /** \brief CheckSegmentationTask class virtual destructor.
        *
@@ -164,6 +152,19 @@ namespace ESPINA
 
     protected:
       virtual void run() override final;
+
+      virtual void checkVolumeIsEmpty() const override final;
+
+      virtual void checkMeshIsEmpty() const override final;
+
+      virtual void checkSkeletonIsEmpty() const override final;
+
+      void checkRelations() const;
+
+      void checkHasChannel() const;
+
+    private:
+      SegmentationAdapterSPtr m_segmentation;
   };
 
   //------------------------------------------------------------------------
@@ -177,9 +178,7 @@ namespace ESPINA
        * \param[in] item, neuro item adapter smart pointer that will be tested.
        * \param[in] model, model adapter smart pointer containing the item.
        */
-      explicit CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-      : CheckTask{scheduler, item, model}
-      {};
+      explicit CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
       /** \brief CheckChannelTask class virtual destructor.
        *
@@ -189,6 +188,19 @@ namespace ESPINA
 
     protected:
       virtual void run() override final;
+
+      virtual void checkVolumeIsEmpty() const override final;
+
+      virtual void checkMeshIsEmpty() const override final
+      {};
+
+      virtual void checkSkeletonIsEmpty() const override final
+      {};
+
+      void checkRelations() const;
+
+    private:
+      ChannelAdapterSPtr m_channel;
   };
 
   //------------------------------------------------------------------------
@@ -202,9 +214,7 @@ namespace ESPINA
        * \param[in] item, neuro item adapter smart pointer that will be tested.
        * \param[in] model, model adapter smart pointer containing the item.
        */
-      explicit CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-      : CheckTask{scheduler, item, model}
-      {};
+      explicit CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
       /** \brief CheckSampleTask class virtual destructor.
        *
@@ -214,6 +224,18 @@ namespace ESPINA
 
     protected:
       virtual void run() override final;
+
+      virtual void checkVolumeIsEmpty() const override final
+      {};
+
+      virtual void checkMeshIsEmpty() const override final
+      {};
+
+      virtual void checkSkeletonIsEmpty() const override final
+      {};
+
+    private:
+      SampleAdapterSPtr m_sample;
   };
 
 } // namespace ESPINA
