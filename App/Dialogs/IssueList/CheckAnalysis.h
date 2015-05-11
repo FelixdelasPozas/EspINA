@@ -69,7 +69,6 @@ namespace ESPINA
       IssueList       m_issues;
       QList<TaskSPtr> m_taskList;
       int             m_issuesNum;
-      int             m_totalTasks;
       int             m_finishedTasks;
   };
 
@@ -107,9 +106,6 @@ namespace ESPINA
       void issue(Issue issue) const;
 
     protected:
-      virtual void run() override final;
-
-    private:
       /** \brief Checks if a segmentation volume is empty, emits issue(Issue) if it is.
        *
        */
@@ -143,6 +139,81 @@ namespace ESPINA
 
       NeuroItemAdapterSPtr m_item;
       ModelAdapterSPtr     m_model;
+  };
+
+  //------------------------------------------------------------------------
+  class CheckSegmentationTask
+  : public CheckTask
+  {
+      Q_OBJECT
+    public:
+      /** \brief CheckSegmentationTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] item, neuro item adapter smart pointer that will be tested.
+       * \param[in] model, model adapter smart pointer containing the item.
+       */
+      explicit CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+      : CheckTask{scheduler, item, model}
+      {}
+
+      /** \brief CheckSegmentationTask class virtual destructor.
+       *
+       */
+      virtual ~CheckSegmentationTask()
+      {};
+
+    protected:
+      virtual void run() override final;
+  };
+
+  //------------------------------------------------------------------------
+  class CheckChannelTask
+  : public CheckTask
+  {
+      Q_OBJECT
+    public:
+      /** \brief CheckChannelTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] item, neuro item adapter smart pointer that will be tested.
+       * \param[in] model, model adapter smart pointer containing the item.
+       */
+      explicit CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+      : CheckTask{scheduler, item, model}
+      {};
+
+      /** \brief CheckChannelTask class virtual destructor.
+       *
+       */
+      virtual ~CheckChannelTask()
+      {};
+
+    protected:
+      virtual void run() override final;
+  };
+
+  //------------------------------------------------------------------------
+  class CheckSampleTask
+  : public CheckTask
+  {
+      Q_OBJECT
+    public:
+      /** \brief CheckSampleTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] item, neuro item adapter smart pointer that will be tested.
+       * \param[in] model, model adapter smart pointer containing the item.
+       */
+      explicit CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+      : CheckTask{scheduler, item, model}
+      {};
+
+      /** \brief CheckSampleTask class virtual destructor.
+       *
+       */
+      virtual ~CheckSampleTask()
+      {};
+
+    protected:
+      virtual void run() override final;
   };
 
 } // namespace ESPINA

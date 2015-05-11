@@ -25,9 +25,6 @@
 #include <Core/Analysis/Channel.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Model/Utils/SegmentationUtils.h>
-
-using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {
@@ -35,7 +32,6 @@ namespace ESPINA
   CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
   : Task           {scheduler}
   , m_issuesNum    {0}
-  , m_totalTasks   {0}
   , m_finishedTasks{0}
   {
     setDescription(tr("Issues checker"));
@@ -45,20 +41,18 @@ namespace ESPINA
 
     for(auto seg: model->segmentations())
     {
-      m_taskList << std::make_shared<CheckTask>(scheduler, seg, model);
+      m_taskList << std::make_shared<CheckSegmentationTask>(scheduler, seg, model);
     }
 
     for(auto channel: model->channels())
     {
-      m_taskList << std::make_shared<CheckTask>(scheduler, channel, model);
+      m_taskList << std::make_shared<CheckChannelTask>(scheduler, channel, model);
     }
 
     for(auto sample: model->samples())
     {
-      m_taskList << std::make_shared<CheckTask>(scheduler, sample, model);
+      m_taskList << std::make_shared<CheckSampleTask>(scheduler, sample, model);
     }
-
-    m_totalTasks = m_taskList.size();
   }
 
   //------------------------------------------------------------------------
@@ -78,7 +72,6 @@ namespace ESPINA
 
       task->submit(task);
     }
-    m_taskList.clear();
 
     pause();
     canExecute(); // stops this thread until the other have finished.
@@ -88,10 +81,10 @@ namespace ESPINA
   void CheckAnalysis::finishedTask()
   {
     ++m_finishedTasks;
-    auto progressValue = m_finishedTasks * 100 / m_totalTasks;
+    auto progressValue = m_finishedTasks * 100 / m_taskList.size();
     reportProgress(progressValue);
 
-    if(m_totalTasks - m_finishedTasks == 0)
+    if(m_taskList.size() - m_finishedTasks == 0)
     {
       if(!m_issues.empty())
       {
@@ -106,37 +99,6 @@ namespace ESPINA
   void CheckAnalysis::addIssue(Issue issue)
   {
     m_issues << issue;
-  }
-
-  //------------------------------------------------------------------------
-  void CheckTask::run()
-  {
-    auto item = static_cast<ItemAdapterPtr>(m_item.get());
-
-    if(isSegmentation(item))
-    {
-      checkViewItemOutputs();
-      checkSegmentationHasChannel();
-      checkSegmentationRelations();
-    }
-    else
-    {
-      if(isChannel(item))
-      {
-        checkViewItemOutputs();
-        checkChannelRelations();
-      }
-      else
-      {
-        if(isSample(item))
-        {
-        }
-        else
-        {
-          Q_ASSERT(false);
-        }
-      }
-    }
   }
 
   //------------------------------------------------------------------------
@@ -274,5 +236,27 @@ namespace ESPINA
       emit issue(segIssue);
     }
   }
+
+  //------------------------------------------------------------------------
+  void CheckSegmentationTask::run()
+  {
+    checkViewItemOutputs();
+    checkSegmentationHasChannel();
+    checkSegmentationRelations();
+  }
+
+  //------------------------------------------------------------------------
+  void CheckChannelTask::run()
+  {
+    checkViewItemOutputs();
+    checkChannelRelations();
+  }
+
+  //------------------------------------------------------------------------
+  void CheckSampleTask::run()
+  {
+    // this page is intentionally left blank :-)
+  }
+
 
 } // namespace ESPINA
