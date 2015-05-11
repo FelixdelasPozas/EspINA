@@ -19,30 +19,30 @@
  */
 
 // ESPINA
-#include "ProblemListDialog.h"
+#include <Dialogs/IssueList/IssueListDialog.h>
 
 namespace ESPINA
 {
   //------------------------------------------------------------------------
-  ProblemListDialog::ProblemListDialog(ProblemList problemList)
+  IssueListDialog::IssueListDialog(IssueList issuesList)
   {
     setupUi(this);
     setWindowTitle(tr("Current session problems"));
-    m_problemTable->setAlternatingRowColors(true);
-    m_problemTable->setRowCount(problemList.size());
-    m_problemTable->setColumnCount(4);
-    m_problemTable->setSortingEnabled(true);
+    m_issueTable->setAlternatingRowColors(true);
+    m_issueTable->setRowCount(issuesList.size());
+    m_issueTable->setColumnCount(4);
+    m_issueTable->setSortingEnabled(true);
     QStringList headerLabels;
     headerLabels << tr("Element");
     headerLabels << tr("Severity");
     headerLabels << tr("Problem");
     headerLabels << tr("Suggestion");
-    m_problemTable->setHorizontalHeaderLabels(headerLabels);
+    m_issueTable->setHorizontalHeaderLabels(headerLabels);
 
     int row = 0;
-    for(auto problem: problemList)
+    for(auto problem: issuesList)
     {
-      ProblemTableWidgetItem *item = new ProblemTableWidgetItem(problem.element);
+      IssueTableWidgetItem *item = new IssueTableWidgetItem(problem.element);
       item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 
       QTableWidgetItem *severity = new QTableWidgetItem();
@@ -69,22 +69,22 @@ namespace ESPINA
       QTableWidgetItem *suggestion = new QTableWidgetItem(problem.suggestion);
       suggestion->setFlags(suggestion->flags() ^ Qt::ItemIsEditable);
 
-      m_problemTable->setItem(row, 0, item);
-      m_problemTable->setItem(row, 1, severity);
-      m_problemTable->setItem(row, 2, description);
-      m_problemTable->setItem(row, 3, suggestion);
+      m_issueTable->setItem(row, 0, item);
+      m_issueTable->setItem(row, 1, severity);
+      m_issueTable->setItem(row, 2, description);
+      m_issueTable->setItem(row, 3, suggestion);
       ++row;
     }
 
-    m_problemTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-    m_problemTable->horizontalHeader()->setStretchLastSection(true);
-    m_problemTable->adjustSize();
-    m_problemTable->sortByColumn(0, Qt::AscendingOrder);
-    m_problemTable->horizontalHeader()->setSortIndicatorShown(true);
+    m_issueTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+    m_issueTable->horizontalHeader()->setStretchLastSection(true);
+    m_issueTable->adjustSize();
+    m_issueTable->sortByColumn(0, Qt::AscendingOrder);
+    m_issueTable->horizontalHeader()->setSortIndicatorShown(true);
   }
 
   //------------------------------------------------------------------------
-  ProblemListDialog::~ProblemListDialog()
+  IssueListDialog::~IssueListDialog()
   {
   }
 

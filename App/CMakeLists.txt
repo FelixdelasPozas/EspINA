@@ -18,7 +18,7 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
-  Dialogs/CheckAnalysis/CheckAnalysis.h
+  Dialogs/IssueList/CheckAnalysis.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
@@ -73,9 +73,8 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
-  Dialogs/CheckAnalysis/CheckAnalysisDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
-  Dialogs/ProblemList/ProblemListDialog.ui
+  Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
@@ -105,9 +104,9 @@ set (ESPINA_SOURCES
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
-  Dialogs/CheckAnalysis/CheckAnalysis.cpp
+  Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/HueSelector/HueSelector.cpp
-  Dialogs/ProblemList/ProblemListDialog.cpp
+  Dialogs/IssueList/IssueListDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
   Dialogs/RawInformation/RawInformationDialog.cpp

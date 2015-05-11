@@ -29,7 +29,7 @@
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
-#include <Dialogs/ProblemList/ProblemListDialog.h>
+#include <Dialogs/IssueList/IssueListDialog.h>
 #include "ToolGroups/Visualize/VisualizeToolGroup.h"
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
 #include "ToolGroups/Refine/RefineToolGroup.h"
@@ -213,6 +213,11 @@ namespace ESPINA
 
     void onColorEngineModified();
 
+    /** \brief Shows the issues dialog with the given issues.
+     *
+     */
+    void showIssuesDialog(IssueList problems) const;
+
   private:
     void restoreRepresentationSwitchSettings();
 
@@ -254,10 +259,10 @@ namespace ESPINA
      */
     void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
-    /** \brief Runs a series of test on the analysis to check for errors.
+    /** \brief Runs a series of test on the analysis to check for issues.
      *
      */
-    ProblemList checkAnalysisConsistency();
+    void checkAnalysisConsistency();
 
     /** \brief Creates activity menu.
      *

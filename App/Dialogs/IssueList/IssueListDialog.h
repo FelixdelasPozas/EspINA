@@ -18,71 +18,75 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_PROBLEM_LIST_DIALOG_H_
-#define ESPINA_PROBLEM_LIST_DIALOG_H_
+#ifndef ESPINA_ISSUE_LIST_DIALOG_H_
+#define ESPINA_ISSUE_LIST_DIALOG_H_
 
 // Qt
 #include <QDialog>
-#include "ui_ProblemListDialog.h"
+#include "ui_IssueListDialog.h"
 
 // C++
 #include <cstdint>
 
 namespace ESPINA
 {
-  /** \brief Enumeration of problem severity.
+  /** \brief Enumeration of issue severity.
    *
    */
   enum class Severity : std::int8_t { CRITICAL = 0, WARNING = 1, INFORMATION = 2 };
 
-  /** \brief Struct that contains problem description
+  /** \brief Struct that contains issue description
    *
    */
-  struct Problem
+  struct Issue
   {
-      QString element;     // Element that has the problem.
-      Severity severity;   // Severity of the problem.
-      QString message;     // Description of the problem.
-      QString suggestion;  // Suggestion of a solution to the problem.
+      QString element;     // Element that has the issue.
+      Severity severity;   // Severity of the issue.
+      QString message;     // Description of the issue.
+      QString suggestion;  // Suggestion of a solution to the issue.
 
-      Problem(QString inputElement, Severity inputSeverity, QString inputMessage, QString inputSuggestion)
+      Issue(QString inputElement, Severity inputSeverity, QString inputMessage, QString inputSuggestion)
       : element(inputElement), severity(inputSeverity), message(inputMessage), suggestion(inputSuggestion) {};
 
       // required by qRegisterMetaType
-      Problem(): element(QString()), severity(Severity::CRITICAL), message(QString()), suggestion(QString()) {};
+      Issue(): element(QString()), severity(Severity::CRITICAL), message(QString()), suggestion(QString()) {};
   };
 
-  using ProblemList = QList<Problem>;
+  using IssueList = QList<Issue>;
 
-  class ProblemListDialog
+  class IssueListDialog
   : public QDialog
-  , public Ui::ProblemListDialog
+  , public Ui::IssueListDialog
   {
     public:
-      /** \brief ProblemListDialog class constructor.
-       * \param[in] problems, list of problem descriptions as Problem structs.
+      /** \brief IssueListDialog class constructor.
+       * \param[in] issuesList, list of problem descriptions as Issue structs.
        *
        */
-      explicit ProblemListDialog(ProblemList problemsList);
-      virtual ~ProblemListDialog();
+      explicit IssueListDialog(IssueList issuesList);
+
+      /** \brief IssueListDialog class virtual destructor.
+       *
+       */
+      virtual ~IssueListDialog();
   };
 
-  class ProblemTableWidgetItem
+  class IssueTableWidgetItem
   : public QTableWidgetItem
   {
     public:
-      /** \brief ProblemTableWidgetItem class constructor.
+      /** \brief IssueTableWidgetItem class constructor.
        * \param[in] text, data of the item.
        *
        */
-      ProblemTableWidgetItem(const QString &text)
+      IssueTableWidgetItem(const QString &text)
       : QTableWidgetItem(text)
       {}
 
-      /** \brief ProblemTableWidget class virtual destructor.
+      /** \brief IssueTableWidget class virtual destructor.
        *
        */
-      virtual ~ProblemTableWidgetItem()
+      virtual ~IssueTableWidgetItem()
       {};
 
       /** \brief less-than operator for QTableWidgetItem sorting.
@@ -108,4 +112,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // ESPINA_PROBLEM_LIST_DIALOG_H_
+#endif // ESPINA_ISSUE_LIST_DIALOG_H_
