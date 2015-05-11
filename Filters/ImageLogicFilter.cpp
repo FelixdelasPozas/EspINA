@@ -92,7 +92,7 @@ void ImageLogicFilter::execute(Output::Id oId)
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::addition()
 {
-  auto firstVolume    = volumetricData(m_inputs[0]->output());
+  auto firstVolume    = readLockVolume(m_inputs[0]->output());
   auto boundingBounds = firstVolume->bounds();
   auto spacing        = firstVolume->spacing();
 
@@ -101,7 +101,7 @@ void ImageLogicFilter::addition()
 
   for(auto input: m_inputs)
   {
-    auto inputVolume = volumetricData(input->output());
+    auto inputVolume = readLockVolume(input->output());
     boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, spacing);
   }
 
@@ -112,10 +112,10 @@ void ImageLogicFilter::addition()
 
   for(auto input: m_inputs)
   {
-    auto inputImage = volumetricData(input->output())->itkImage();
-    auto region = inputImage->GetLargestPossibleRegion();
+    auto inputImage  = readLockVolume(input->output())->itkImage();
+    auto region      = inputImage->GetLargestPossibleRegion();
     auto inputBounds = equivalentBounds<itkVolumeType>(inputImage, region);
-    auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{inputBounds, input->output()->spacing()}};
+    auto mask        = std::make_shared<BinaryMask<unsigned char>>(inputBounds, input->output()->spacing());
     mask->setForegroundValue(SEG_VOXEL_VALUE);
 
     BinaryMask<unsigned char>::region_iterator mit(mask.get(), inputBounds);
@@ -141,21 +141,19 @@ void ImageLogicFilter::addition()
     m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
-  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::subtraction()
 {
-  auto firstVolume = volumetricData(m_inputs[0]->output());
-  auto bounds = firstVolume->bounds();
-  auto spacing = firstVolume->spacing();
+  auto firstVolume = readLockVolume(m_inputs[0]->output());
+  auto bounds      = firstVolume->bounds();
+  auto spacing     = firstVolume->spacing();
 
-  auto outputVolume = new SparseVolume<itkVolumeType>{bounds, spacing};
+  auto outputVolume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
   outputVolume->draw(firstVolume->itkImage());
 
   for(auto i = 1; i < m_inputs.size(); ++i)
@@ -163,10 +161,10 @@ void ImageLogicFilter::subtraction()
     if(intersect(bounds, m_inputs[i]->output()->bounds(), spacing))
     {
       auto intersectionBounds = intersection(m_inputs[0]->output()->bounds(), m_inputs[i]->output()->bounds(), spacing);
-      auto inputImage = volumetricData(m_inputs[i]->output())->itkImage(intersectionBounds);
-      auto region = inputImage->GetLargestPossibleRegion();
-      auto inputBounds = equivalentBounds<itkVolumeType>(inputImage, region);
-      auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{inputBounds, m_inputs[i]->output()->spacing()}};
+      auto inputImage         = readLockVolume(m_inputs[i]->output())->itkImage(intersectionBounds);
+      auto region             = inputImage->GetLargestPossibleRegion();
+      auto inputBounds        = equivalentBounds<itkVolumeType>(inputImage, region);
+      auto mask               = std::make_shared<BinaryMask<unsigned char>>(inputBounds, m_inputs[i]->output()->spacing());
       mask->setForegroundValue(SEG_BG_VALUE);
 
       BinaryMask<unsigned char>::region_iterator mit(mask.get(), inputBounds);
@@ -193,14 +191,11 @@ void ImageLogicFilter::subtraction()
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
-  DefaultVolumetricDataSPtr volume{outputVolume};
-  MeshDataSPtr              mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
-
-  m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setData(outputVolume);
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 }
 
@@ -220,13 +215,19 @@ void ImageLogicFilter::restoreState(const State& state)
 State ImageLogicFilter::state() const
 {
   State state;
+
   if(m_operation == Operation::ADDITION)
+  {
     state = State("Operation=ADDITION");
-  else
-    if(m_operation == Operation::SUBTRACTION)
+  }
+  else if(m_operation == Operation::SUBTRACTION)
+  {
       state = State("Operation=SUBTRACTION");
-    else
+  }
+  else
+  {
       Q_ASSERT(false);
+  }
 
   return state;
 }

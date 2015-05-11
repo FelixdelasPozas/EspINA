@@ -121,11 +121,6 @@ namespace ESPINA
 
   using RawMeshPtr = RawMesh *;
   using RawMeshSPtr = std::shared_ptr<RawMesh>;
-
-  /** \brief Obtains and returns the RawMesh smart pointer of the specified Output.
-   * \param[in] output, Output object smart pointer.
-   */
-  RawMeshSPtr rawMesh(OutputSPtr output);
 }
 
 #endif // ESPINA_RAW_MESH_H

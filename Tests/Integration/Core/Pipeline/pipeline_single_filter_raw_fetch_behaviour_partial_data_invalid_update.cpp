@@ -136,7 +136,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
   }
   else
   {
-    auto volume = volumetricData(loadedOuptut);
+    auto volume = readLockVolume(loadedOuptut);
 
     if (volume->editedRegions().size() != 0)
     {
@@ -162,7 +162,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
   }
   else
   {
-    auto data = loadedOuptut->data(MeshData::TYPE);
+    auto data = loadedOuptut->readLockData<Data>(MeshData::TYPE);
 
     if (data->isValid())
     {
@@ -170,7 +170,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
       error = true;
     }
 
-    auto mesh = meshData(loadedOuptut);
+    auto mesh = readLockMesh(loadedOuptut);
     if (mesh->isValid())
     {
       cerr << "Expected invalid mesh data" << endl;

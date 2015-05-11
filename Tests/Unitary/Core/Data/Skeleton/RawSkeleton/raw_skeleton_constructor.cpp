@@ -119,7 +119,7 @@ int raw_skeleton_constructor( int argc, char** argv )
     error = true;
   }
 
-  auto skeletondata = ESPINA::skeletonData(output);
+  auto skeletondata = readLockSkeleton(output);
   if(skeletondata->skeleton() != skeleton->skeleton())
   {
     std::cerr << "Unexpected SkeletonData in output." << std::endl;

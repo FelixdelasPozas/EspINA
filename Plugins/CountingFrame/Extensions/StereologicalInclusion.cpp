@@ -426,7 +426,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
 
   if (hasVolumetricData(output))
   {
-  auto volume = volumetricData(m_extendedItem->output());
+  auto volume = readLockVolume(m_extendedItem->output());
   auto image  = volume->itkImage(intersection);
 
   ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());

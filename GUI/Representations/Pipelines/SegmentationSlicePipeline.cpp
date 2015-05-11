@@ -76,7 +76,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    auto volume = volumetricData(segmentation->output());
+    auto volume = readLockVolume(segmentation->output());
     Bounds sliceBounds = volume->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
@@ -158,7 +158,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
 bool SegmentationSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
 {
   Q_ASSERT(hasVolumetricData(item->output()));
-  auto volume = volumetricData(item->output());
+  auto volume = readLockVolume(item->output());
   return isSegmentationVoxel(volume, point);
 }
 

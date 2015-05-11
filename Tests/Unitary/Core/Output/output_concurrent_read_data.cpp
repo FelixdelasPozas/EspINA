@@ -27,53 +27,64 @@
  */
 #include "testing_support_dummy_filter.h"
 
+#include <thread>
+#include <iostream>
+#include <vector>
+
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-int output_replace_data( int argc, char** argv )
+int output_concurrent_read_data( int argc, char** argv )
 {
-  static Bounds modified{1,2,3,4,5,6};
-
-  class NoProxyData
-  : public DummyData
-  {
-  public:
-    struct Invalid_Create_Proxy_Exception{};
-
-  public:
-    virtual Bounds bounds() const
-    { return modified; }
-    virtual DataSPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
-  };
-
   bool error = false;
 
   DummyFilter filter;
 
   Output output(&filter, 0, NmVector3{1,1,1});
 
-  DataSPtr data{new DummyData()};
+  auto data = make_shared<DummyData>();
+
   output.setData(data);
 
-  if (output.readLockData<Data>(data->type())->bounds() == modified) {
-    cerr << "Unxpected data bounds" << endl;
+  if (!output.isValid()) {
+    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
     error = true;
   }
 
-  DataSPtr noProxyData{new NoProxyData()};
-  try {
-    output.setData(noProxyData);
-  } catch (NoProxyData::Invalid_Create_Proxy_Exception &e) 
+  vector<thread> threads;
+  int numTasks         = 2;
+  int numFinishedTasks = 0;
+
+  for(int i = 0; i < numTasks; ++i)
   {
-    cerr << "Output is creating a new data proxy instead of replacing proxy delegate" << endl;
-    error = true;
+    threads.push_back(thread([&error, &output, &numFinishedTasks, data, i](){
+      auto readData = output.readLockData<Data>(data->type());
+
+      if (readData->bounds() != data->bounds()) {
+        cerr << "Unxpected output data bounds" << endl;
+        error = true;
+      }
+
+      if (i == 0)
+      {
+        usleep(1000);
+        numFinishedTasks++;
+      }
+      else if (numFinishedTasks == 1)
+      {
+        cerr << "Unxpected finalization order" << endl;
+        error = true;
+      }
+
+      cout << "Task " << i << " finished" << endl;
+    }));
   }
 
-  if (output.readLockData<Data>(data->type())->bounds() != modified) {
-    cerr << "Unxpected data bounds" << endl;
-    error = true;
+  for(auto& thread : threads){
+    thread.join();
   }
+
 
   return error;
 }

@@ -189,7 +189,6 @@ namespace ESPINA
     NmVector3    m_origin;
     NmVector3    m_spacing;
     VolumeBounds m_bounds;
-    QReadWriteLock m_mutex;
 
     typename T::Pointer m_image;
   };
@@ -241,8 +240,6 @@ namespace ESPINA
   template<typename T>
   Bounds RawVolume<T>::bounds() const
   {
-    QReadLocker lock(&m_mutex);
-
     return m_bounds.bounds();
   }
 
@@ -250,7 +247,6 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::setOrigin(const NmVector3& origin)
   {
-    QWriteLocker lock(&m_mutex);
     //NmVector3 shift = m_origin - origin;
     m_image->SetOrigin(ItkPoint<T>(origin));
     m_image->Update();
@@ -263,8 +259,6 @@ namespace ESPINA
   template<typename T>
   NmVector3 RawVolume<T>::origin() const
   {
-    QReadLocker lock(&m_mutex);
-
     return m_origin;
   }
 
@@ -272,8 +266,6 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    QWriteLocker lock(&m_mutex);
-
     if (m_spacing != spacing)
     {
       m_image->SetSpacing(ItkSpacing<T>(spacing));
@@ -288,8 +280,6 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer RawVolume<T>::itkImage() const
   {
-    QReadLocker lock(&m_mutex);
-
     return m_image;
   }
 
@@ -297,8 +287,6 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer RawVolume<T>::itkImage(const Bounds& bounds) const
   {
-    QReadLocker lock(&m_mutex);
-
     if (!bounds.areValid())
     {
       throw Invalid_Image_Bounds_Exception();
@@ -387,8 +375,6 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::isValid() const
   {
-    QReadLocker lock(&m_mutex);
-
     return m_bounds.areValid();
   }
 
@@ -467,7 +453,6 @@ namespace ESPINA
   template<typename T>
   Snapshot RawVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
-    //QReadLocker lock(&m_mutex);
     Snapshot snapshot;
 /*
     auto compactedBounds = compactedBlocks();
@@ -498,8 +483,6 @@ namespace ESPINA
   template<typename T>
   Snapshot RawVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
-    //QReadLocker lock(&m_mutex);
-
     Snapshot regionsSnapshot;
 
 //     BoundsList regions = this->editedRegions();
@@ -520,8 +503,6 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-    //QWriteLocker lock(&m_mutex);
-
 //     auto restoredEditedRegions = this->editedRegions();
 //
 //     for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
@@ -547,7 +528,6 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::undo()
   {
-    //QWriteLocker lock(&m_mutex);
   }
 
   //-----------------------------------------------------------------------------
@@ -556,7 +536,6 @@ namespace ESPINA
   {
     if(!isValid()) return true;
 
-    //QReadLocker lock(&m_mutex);
     itk::ImageRegionIterator<T> it(m_image, m_image->GetLargestPossibleRegion());
     it.GoToBegin();
     while (!it.IsAtEnd())

@@ -316,7 +316,7 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
   if (hasMeshData(output))
   {
-    segmentationPolyData->DeepCopy(meshData(output)->mesh());
+    segmentationPolyData->DeepCopy(readLockMesh(output)->mesh());
     for(int face = 0; face < 6; ++face)
     {
       //qDebug() << "Computing distance to face"<< face;
@@ -333,7 +333,7 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   }
 //   else if (hasSkeletonData(output))
 //   {
-//     segmentationPolyData->DeepCopy(skeletonData(output)->skeleton());
+//     segmentationPolyData->DeepCopy(readLockSkeleton(output)->skeleton());
 //   }
   else
   {

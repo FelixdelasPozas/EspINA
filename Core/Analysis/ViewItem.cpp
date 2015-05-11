@@ -52,18 +52,6 @@ const OutputSPtr ViewItem::output() const
 }
 
 //------------------------------------------------------------------------
-DataSPtr ViewItem::data(Data::Type type)
-{
-  return m_input->output()->data(type);
-}
-
-//------------------------------------------------------------------------
-const DataSPtr ViewItem::data(Data::Type type) const
-{
-  return m_input->output()->data(type);
-}
-
-//------------------------------------------------------------------------
 void ViewItem::changeOutput(InputSPtr input)
 {
   if (m_input->filter())

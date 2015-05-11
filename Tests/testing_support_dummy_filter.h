@@ -50,12 +50,16 @@ namespace ESPINA {
   : public Data
   {
   public:
+    explicit DummyData()
+    : m_spacing{1, 1, 1}
+    {}
+
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
     virtual bool isEmpty() const {return false;}
     virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
-    virtual void setSpacing(const NmVector3& spacing){}
-    virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
+    virtual void setSpacing(const NmVector3& spacing){ m_spacing = spacing; }
+    virtual NmVector3 spacing() const {return m_spacing;}
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
@@ -70,6 +74,8 @@ namespace ESPINA {
   private:
     virtual QList<Data::Type> updateDependencies() const
     { return QList<Data::Type>(); }
+
+    NmVector3 m_spacing;
   };
 
   using DummyDataSPtr = std::shared_ptr<DummyData>;

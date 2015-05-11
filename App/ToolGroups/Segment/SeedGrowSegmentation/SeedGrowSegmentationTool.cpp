@@ -272,7 +272,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   // FIXME: merged analysis channel's don't have outputs????
   Q_ASSERT(channel->output());
 
-  auto volume = volumetricData(channel->output());
+  auto volume = readLockVolume(channel->output());
 
   NmVector3 seed;
   Bounds    seedBounds;

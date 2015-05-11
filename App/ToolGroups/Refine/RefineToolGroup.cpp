@@ -97,7 +97,7 @@ void RefineToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
 
   auto segmentation = segmentationPtr(item);
 
-  auto volume = volumetricData(segmentation->output());
+  auto volume = writeLockVolume(segmentation->output());
 
   auto undoStack = m_context.undoStack();
 

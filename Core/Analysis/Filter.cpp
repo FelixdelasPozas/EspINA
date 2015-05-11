@@ -181,7 +181,7 @@ void Filter::restoreEditedRegions()
       QXmlStreamReader xml(buffer);
 
       OutputSPtr output;
-      DataSPtr   data;
+      Output::WriteLockData<Data> data;
       BoundsList editedRegions;
 
       while (!xml.atEnd())
@@ -199,15 +199,15 @@ void Filter::restoreEditedRegions()
           }
           else if (isDataSection(xml) && output)
           {
-            data = output->data(parseDataType(xml));
+            data = output->writeLockData<Data>(parseDataType(xml));
 
-            Q_ASSERT(data);
+            //Q_ASSERT(data);
 
             editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            Q_ASSERT(data);
+            //Q_ASSERT(data);
             editedRegions << parseEditedRegionsBounds(xml);
           }
         }
@@ -215,7 +215,6 @@ void Filter::restoreEditedRegions()
         {
           if (isDataSection(xml))
           {
-            Q_ASSERT(data);
             data->setEditedRegions(editedRegions);
             data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
           }

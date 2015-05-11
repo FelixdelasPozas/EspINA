@@ -69,7 +69,7 @@ namespace ESPINA
     { return TYPE; }
 
     virtual DataSPtr createProxy() const final
-    { return DataSPtr{new VolumetricDataProxy<T>()}; }
+    { return std::make_shared<VolumetricDataProxy<T>>(); }
 
     /** \brief Set the origin of the image.
      * \param[in] origin origin of this image.
@@ -183,14 +183,29 @@ namespace ESPINA
   template<class T> using VolumetricDataPtr  = VolumetricData<T> *;
   template<class T> using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
 
-  using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+  using DefaultVolumetricData     = VolumetricData<itkVolumeType>;
+  using DefaultVolumetricDataSPtr = std::shared_ptr<DefaultVolumetricData>;
 
   /** \brief Obtains and returns the VolumetricData smart pointer in the specified Output.
    * \param[in] output Output object smart pointer.
    *
    *  This function ensures the output is up to date by callig ouput::update() first
    */
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+  Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(Output          *output,
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                               throw (Unavailable_Output_Data_Exception);
+
+  Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(OutputSPtr       output,
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                               throw (Unavailable_Output_Data_Exception);
+
+  Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(Output          *output,
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                                 throw (Unavailable_Output_Data_Exception);
+
+  Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(OutputSPtr       output,
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request)
+                                                                                 throw (Unavailable_Output_Data_Exception);
 
   /** \brief Returns true if the output has a volumetric data and false otherwise.
    * \param[in] output, Output object smart pointer.

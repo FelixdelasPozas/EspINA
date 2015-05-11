@@ -74,7 +74,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
 
   if (isVisible(state) && hasVolumetricData(channel->output()))
   {
-    auto volume       = volumetricData(channel->output());
+    auto volume       = readLockVolume(channel->output());
     auto sliceBounds  = volume->bounds();
     auto reslicePoint = crosshairPosition(m_plane, state);
 

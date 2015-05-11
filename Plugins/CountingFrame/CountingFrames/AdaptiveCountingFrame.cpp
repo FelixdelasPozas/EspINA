@@ -61,7 +61,7 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
   //qDebug() << "Updating CountingFrame Implementation";
-  auto volume  = volumetricData(m_channel->output());
+  auto volume  = readLockVolume(m_channel->output());
   auto origin  = volume->origin();
   auto spacing = volume->spacing();
 

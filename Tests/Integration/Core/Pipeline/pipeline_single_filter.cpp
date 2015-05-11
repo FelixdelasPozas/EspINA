@@ -96,7 +96,7 @@ int pipeline_single_filter( int argc, char** argv )
   FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
   segFilter->update();
 
-  auto segVolume = volumetricData(segFilter->output(0));
+  auto segVolume = readLockVolume(segFilter->output(0));
   if (segVolume->editedRegions().size() != 0)
   {
     cerr << "Unexpeceted number of SGS edited regions" << endl;
@@ -144,7 +144,7 @@ int pipeline_single_filter( int argc, char** argv )
   }
   else
   {
-    auto volume = volumetricData(loadedOuptut);
+    auto volume = readLockVolume(loadedOuptut);
 
     if (!volume->isValid())
     {
@@ -176,7 +176,7 @@ int pipeline_single_filter( int argc, char** argv )
   }
   else
   {
-    auto mesh = meshData(loadedOuptut);
+    auto mesh = readLockMesh(loadedOuptut);
 
     if (!mesh->mesh())
     {

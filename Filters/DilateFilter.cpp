@@ -58,8 +58,9 @@ void DilateFilter::execute()
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
   auto input       = m_inputs[0];
-  auto inputVolume = volumetricData(input->output());
-  if (!inputVolume) throw Invalid_Input_Data_Exception();
+  auto inputVolume = readLockVolume(input->output());
+
+  if (!inputVolume->isValid()) throw Invalid_Input_Data_Exception();
 
   emit progress(0);
   if (!canExecute()) return;
@@ -102,6 +103,7 @@ void DilateFilter::execute()
   filter->Update();
 
   emit progress(100);
+
   if (!canExecute()) return;
 
   finishExecution(filter->GetOutput());

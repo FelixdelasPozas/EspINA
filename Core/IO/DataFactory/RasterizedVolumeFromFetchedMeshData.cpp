@@ -51,7 +51,7 @@ namespace ESPINA
 
         if (mesh)
         {
-          data = std::make_shared<RasterizedVolume<itkVolumeType>>(mesh, bounds, spacing);
+          data = std::make_shared<RasterizedVolume<itkVolumeType>>(output.get(), bounds, spacing);
         }
       }
     }
@@ -64,19 +64,17 @@ namespace ESPINA
                                                                           TemporalStorageSPtr storage,
                                                                           const QString      &path)
   {
-    MeshDataSPtr data;
-
     if (!hasMeshData(output))
     {
-      data = std::make_shared<RawMesh>();
+      auto data = std::make_shared<RawMesh>();
 
       data->setFetchContext(storage, path, QString::number(output->id()));
       output->setData(data);
     }
 
-    data = meshData(output, DataUpdatePolicy::Ignore);
+    auto mesh = writeLockMesh(output, DataUpdatePolicy::Ignore);
 
-    return data;
+    return mesh;
   }
 
 } // namespace ESPINA

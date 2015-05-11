@@ -178,7 +178,7 @@ void ManualEditionTool::updateReferenceItem() const
 
 
   auto output  = m_referenceItem->output();
-  auto origin  = volumetricData(output)->origin();
+  auto origin  = readLockVolume(output)->origin();
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);
@@ -225,9 +225,10 @@ void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(mask->bounds().bounds(), spacing, origin);
   volume->draw(mask);
 
-  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
   filter->addOutputData(0, volume);
+
+  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(filter->output(0).get());
+
   filter->addOutputData(0, mesh);
 
   auto segmentation = m_factory->createSegmentation(filter, 0);
@@ -276,7 +277,7 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 
   if (!showStroke)
   {
-    auto volume = volumetricData(m_referenceItem->output());
+    auto volume = readLockVolume(m_referenceItem->output());
     auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
 
     auto strokePainter = painter->strokePainter();

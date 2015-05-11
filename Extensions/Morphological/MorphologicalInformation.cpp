@@ -156,9 +156,9 @@ void MorphologicalInformation::updateInformation() const
 //   qDebug() << "Updating" << m_seg->data().toString() << ID;
   Q_ASSERT(hasVolumetricData(m_extendedItem->output()));
 
-  auto segVolume = volumetricData(m_extendedItem->output());
+  auto segVolume = readLockVolume(m_extendedItem->output());
 
-  bool          validInfo = segVolume != nullptr;
+  bool          validInfo = !segVolume.isNull();
   LabelMapType *labelMap  = nullptr;
 
   if (validInfo)

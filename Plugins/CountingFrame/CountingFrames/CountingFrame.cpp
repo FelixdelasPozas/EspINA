@@ -289,7 +289,7 @@ void CountingFrame::onCountingFrameApplied()
 Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 {
   auto channel = m_extension->extendedItem();
-  auto volume  = volumetricData(channel->output());
+  auto volume  = readLockVolume(channel->output());
 
   VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
 

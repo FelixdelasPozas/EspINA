@@ -44,7 +44,7 @@ public:
   {
     auto output = m_filter->output(0);
 
-    auto volume = volumetricData(output);
+    auto volume = readLockVolume(output);
 
     if (!m_oldVolume && (output->isEdited() /*|| volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE*/))
     {
@@ -82,14 +82,15 @@ public:
     m_filter->setRadius(m_oldRadius);
 
     auto output = m_filter->output(0);
-    auto volume = volumetricData(output);
+    auto volume = writeLockVolume(output);
 
     if (m_oldVolume.IsNotNull())
     {
       volume->resize(m_oldBounds);
       volume->draw(m_oldVolume);
       volume->setEditedRegions(m_editedRegions);
-    } else
+    }
+    else
     {
       update();
     }
@@ -163,7 +164,7 @@ void CODEHistoryWidget::modifyFilter()
       return;
   }
 
-  auto volume  = volumetricData(output);
+  auto volume  = readLockVolume(output);
 
   auto undoStack = m_context.undoStack();
 

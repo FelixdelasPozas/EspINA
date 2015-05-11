@@ -217,7 +217,7 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   Q_ASSERT(intersectionBounds.areValid());
   auto region = equivalentRegion<itkVolumeType>(channelOrigin, channelSpacing, intersectionBounds);
 
-  auto preview = volumetricData(channel->output())->itkImage(intersectionBounds);
+  auto preview = readLockVolume(channel->output())->itkImage(intersectionBounds);
   itk::ImageRegionConstIterator<itkVolumeType> it(preview, region);
   it.GoToBegin();
 

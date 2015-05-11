@@ -33,6 +33,7 @@
 // ESPINA
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Data.h"
+#include "DataProxy.h"
 #include <Core/Utils/NmVector3.h>
 
 // Qt
@@ -51,6 +52,39 @@ namespace ESPINA
   : public QObject
   {
     Q_OBJECT
+  private:
+    class Locker
+    {
+    public:
+      explicit Locker(QReadWriteLock &locker)
+      : m_locker(locker)
+      {}
+
+      virtual ~Locker()
+      { m_locker.unlock();}
+
+    protected:
+      QReadWriteLock &m_locker;
+    };
+
+    class ReadLocker
+    : public Locker
+    {
+    public:
+      explicit ReadLocker(QReadWriteLock &locker)
+      : Locker(locker)
+      { m_locker.lockForRead(); }
+    };
+
+    class WriteLocker
+    : public Locker
+    {
+    public:
+      explicit WriteLocker(QReadWriteLock &locker)
+      : Locker(locker)
+      { m_locker.lockForWrite(); }
+    };
+
   public:
     using DataTypeList = QList<Data::Type>;
     using Id = int;
@@ -60,8 +94,66 @@ namespace ESPINA
     using EditedRegionSPtr  = std::shared_ptr<EditedRegion>;
     using EditedRegionSList = QList<EditedRegionSPtr>;
 
-    using DataSPtr  = std::shared_ptr<Data>;
-    using DataSList = QList<DataSPtr>;
+    using DataSPtr      = std::shared_ptr<Data>;
+    using ConstDataSPtr = std::shared_ptr<const Data>;
+    using DataSList     = QList<DataSPtr>;
+
+    template<typename T>
+    class ReadLockData
+    {
+    public:
+      explicit ReadLockData()
+      {}
+
+      explicit ReadLockData(std::shared_ptr<T> data)
+      : m_dataProxy(data)
+      , m_locker{new ReadLocker(dynamic_cast<DataProxy *>(data.get())->m_lock)}
+      {}
+
+      bool isNull() const
+      { return !m_dataProxy || !m_locker; }
+
+      operator std::shared_ptr<const T>() const
+      { return std::const_pointer_cast<const T>(m_dataProxy); }
+
+      const T * operator -> () const
+      { return m_dataProxy.get(); }
+
+    protected:
+      explicit ReadLockData(std::shared_ptr<T> data, Locker *locker)
+      : m_dataProxy(data)
+      , m_locker(locker)
+      {}
+
+    protected:
+      std::shared_ptr<T> m_dataProxy;
+
+    private:
+      std::unique_ptr<Locker> m_locker;
+    };
+
+    template<typename T>
+    class WriteLockData
+    : public ReadLockData<T>
+    {
+    public:
+      explicit WriteLockData()
+      {}
+
+      explicit WriteLockData(std::shared_ptr<T> data)
+      : ReadLockData<T>(data, new WriteLocker(dynamic_cast<DataProxy *>(data.get())->m_lock))
+      {
+      }
+
+      operator std::shared_ptr<T>()
+      { return this->m_dataProxy; }
+
+       operator DataSPtr()
+      { return this->m_dataProxy; }
+
+      T * operator ->()
+      { return this->m_dataProxy.get(); }
+    };
 
   public:
     /** \brief Output class constructor.
@@ -139,7 +231,17 @@ namespace ESPINA
      * \param[in] type data type.
      *
      */
-    DataSPtr data(const Data::Type& type) const throw (Unavailable_Output_Data_Exception);
+    template<typename T>
+    ReadLockData<T> readLockData(const Data::Type &type) const throw (Unavailable_Output_Data_Exception)
+    {  return ReadLockData<T>(data<T>(type)); }
+
+    /** \brief Returns the data of the specified type.
+     * \param[in] type data type.
+     *
+     */
+    template<typename T>
+    WriteLockData<T> writeLockData(const Data::Type &type) throw (Unavailable_Output_Data_Exception)
+    { return WriteLockData<T>(data<T>(type)); }
 
     /** \brief Returns true if the output has a data of the specified type.
      * \param[in] type data type.
@@ -173,7 +275,7 @@ namespace ESPINA
     /** \brief Returns the time stamp of the last modification.
      *
      */
-    TimeStamp lastModified()
+    TimeStamp lastModified() const
     { return m_timeStamp; }
 
     /** \brief Increments modification time for the output.
@@ -197,6 +299,17 @@ namespace ESPINA
     void modified();
 
   private:
+    template<typename T>
+    std::shared_ptr<T> data(const Data::Type &type) const throw (Unavailable_Output_Data_Exception)
+    {
+      if (!m_data.contains(type)) throw Unavailable_Output_Data_Exception();
+
+      return std::dynamic_pointer_cast<T>(m_data.value(type));
+    }
+
+    DataProxy *proxy(const Data::Type &type);
+
+  private:
     static TimeStamp s_tick;
     static const int INVALID_OUTPUT_ID;
 
@@ -209,13 +322,13 @@ namespace ESPINA
 
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataSPtr> m_data;
+    QMap<Data::Type, DataSPtr>       m_data;
   };
 
   using OutputIdList = QList<Output::Id>;
 
-  template <class T>
-  std::shared_ptr<T> outputData(OutputSPtr output, DataUpdatePolicy policy)
+  template <typename T>
+  Output::ReadLockData<T> outputReadLockData(Output *output, DataUpdatePolicy policy)
   {
     auto type = T::TYPE;
 
@@ -224,9 +337,20 @@ namespace ESPINA
       output->update(type);
     }
 
-    auto data = output->data(type);
+    return output->readLockData<T>(type);
+  }
 
-    return std::dynamic_pointer_cast<T>(data);
+  template <typename T>
+  Output::WriteLockData<T> outputWriteLockData(Output *output, DataUpdatePolicy policy)
+  {
+    auto type = T::TYPE;
+
+    if (policy == DataUpdatePolicy::Request)
+    {
+      output->update(type);
+    }
+
+    return output->writeLockData<T>(type);
   }
 
 } // namespace ESPINA

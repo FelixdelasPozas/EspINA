@@ -118,7 +118,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
   sgs->update();
 
-  auto sgsVolume = volumetricData(sgs->output(0));
+  auto sgsVolume = readLockVolume(sgs->output(0));
 
   Bounds modificationBounds{0,1,0,2,0,3};
 
@@ -165,7 +165,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedDilateOuptut = loadedSegmentation->output();
-  auto loadedDilateVolume = volumetricData(loadedDilateOuptut);
+  auto loadedDilateVolume = readLockVolume(loadedDilateOuptut);
 
   if (loadedDilateVolume->editedRegions().size() != 0)
   {
@@ -191,7 +191,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   }
 
   auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
-  auto loadedSGSVolume = volumetricData(loadedSGSOutput);
+  auto loadedSGSVolume = readLockVolume(loadedSGSOutput);
 
   if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(loadedSGSVolume->itkImage(modificationBounds), SEG_BG_VALUE))
   {

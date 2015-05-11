@@ -74,7 +74,7 @@ namespace ESPINA
 
     if(isVisible(state) && hasMeshData(segmentation->output()))
     {
-      auto data = meshData(segmentation->output());
+      auto data = readLockMesh(segmentation->output());
 
       auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
       decimate->ReleaseDataFlagOn();

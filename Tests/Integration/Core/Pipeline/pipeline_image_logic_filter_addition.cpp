@@ -170,7 +170,7 @@ int pipeline_image_logic_filter_addition( int argc, char** argv )
 //   }
 //   else
 //   {
-//     auto volume = volumetricData(loadedOuptut);
+//     auto volume = readLockVolume(loadedOuptut);
 //
 //     if (!volume->isValid())
 //     {
@@ -202,7 +202,7 @@ int pipeline_image_logic_filter_addition( int argc, char** argv )
 //   }
 //   else
 //   {
-//     auto mesh = meshData(loadedOuptut);
+//     auto mesh = readLockMesh(loadedOuptut);
 //
 //     if (!mesh->mesh())
 //     {

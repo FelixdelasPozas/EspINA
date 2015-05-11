@@ -221,20 +221,19 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      auto volume = label2volume->GetOutput();
+      auto segmentationVolume = label2volume->GetOutput();
 
       auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
-      Bounds    bounds  = equivalentBounds<itkVolumeType>(volume, volume->GetLargestPossibleRegion());
-      NmVector3 spacing = ToNmVector3<itkVolumeType>(volume->GetSpacing());
+      Bounds    bounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
+      NmVector3 spacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
 
-      DefaultVolumetricDataSPtr volumetricData{new SparseVolume<itkVolumeType>(bounds, spacing)};
-      volumetricData->draw(volume);
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      volume->draw(segmentationVolume);
 
-      MeshDataSPtr meshData{new MarchingCubesMesh<itkVolumeType>(volumetricData)};
 
-      output->setData(volumetricData);
-      output->setData(meshData);
+      output->setData(volume);
+      output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
       output->setSpacing(spacing);
 
       sourceFilter->addOutput(id, output);

@@ -37,20 +37,14 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DrawUndoCommand class constructor.
-     * \param[in] seg, segmentation adapter pointer of the segmentation going to be modified.
-     * \param[in] mask, Mask to modify segmentation with.
+     * \param[in] seg segmentation adapter pointer of the segmentation going to be modified.
+     * \param[in] mask Mask to modify segmentation with.
      */
     explicit DrawUndoCommand(SegmentationAdapterSPtr seg,
                              BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Overrides QUndoCommand::redo().
-     *
-     */
     virtual void redo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
     virtual void undo() override;
 
   private:

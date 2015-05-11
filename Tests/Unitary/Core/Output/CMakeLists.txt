@@ -5,6 +5,8 @@ create_test_sourcelist(TEST_SOURCES Output_Tests.cpp # this file is created by t
   #output_update_filter.cpp
   output_replace_data.cpp
   output_remove_data.cpp
+  output_concurrent_read_data.cpp
+  output_concurrent_write_data.cpp
 )
 
 add_executable(Output_Tests "" ${TEST_SOURCES})
@@ -16,3 +18,5 @@ add_test("\"Output: Create Valid Output\""   Output_Tests output_valid_output)
 #add_test("\"Output: Update Filter\""         Output_Tests output_update_filter)
 add_test("\"Output: Replace Data\""          Output_Tests output_replace_data)
 add_test("\"Output: Remove Data\""           Output_Tests output_remove_data)
+add_test("\"Output: Concurrent Read Data\""  Output_Tests output_concurrent_read_data)
+add_test("\"Output: Concurrent Write Data\"" Output_Tests output_concurrent_write_data)

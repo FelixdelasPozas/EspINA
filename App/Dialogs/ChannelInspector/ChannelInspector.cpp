@@ -326,7 +326,7 @@ void ChannelInspector::onChangesRejected()
 {
   bool modified = false;
 
-  auto volume = volumetricData(m_channel->output());
+  auto volume = readLockVolume(m_channel->output());
   NmVector3 spacing = volume->spacing();
 
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != spacing[2])
@@ -516,7 +516,7 @@ void ChannelInspector::initSliceView()
 //------------------------------------------------------------------------
 void ChannelInspector::initSpacingSettings()
 {
-  auto volume = volumetricData(m_channel->output());
+  auto volume = readLockVolume(m_channel->output());
   NmVector3 spacing = volume->spacing();
 
   // prefer dots instead of commas

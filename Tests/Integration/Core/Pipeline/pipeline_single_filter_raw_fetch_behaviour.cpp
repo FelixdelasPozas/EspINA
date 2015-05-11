@@ -95,9 +95,9 @@ int pipeline_single_filter_raw_fetch_behaviour( int argc, char** argv )
   FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
   segFilter->update();
 
-  auto generateMesh = meshData(segFilter->output(0));
+  auto generateMesh = readLockMesh(segFilter->output(0));
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -138,7 +138,7 @@ int pipeline_single_filter_raw_fetch_behaviour( int argc, char** argv )
   }
   else
   {
-    auto volume = volumetricData(loadedOuptut);
+    auto volume = readLockVolume(loadedOuptut);
     
     if (!volume->isValid())
     {
@@ -170,7 +170,7 @@ int pipeline_single_filter_raw_fetch_behaviour( int argc, char** argv )
   }
   else
   {
-    auto mesh = meshData(loadedOuptut);
+    auto mesh = readLockMesh(loadedOuptut);
 
     if (!mesh->mesh())
     {

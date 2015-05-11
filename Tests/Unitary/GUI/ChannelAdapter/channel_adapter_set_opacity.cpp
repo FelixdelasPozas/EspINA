@@ -39,7 +39,7 @@ bool TestOpacity(ChannelAdapterSPtr channel, double opacity) {
   bool error = false;
 
   channel->setOpacity(opacity);
-  if (channel->opacity() != opacity) {
+  if (channel->opacity() != abs(opacity)) { // now -1 is changed to 1
     cerr << "Unexepected opacity value:" << opacity << endl;
     error = true;
   }
@@ -59,8 +59,9 @@ int channel_adapter_set_opacity(int argc, char** argv )
   auto filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
   auto channel = factory.createChannel(filter, 0);
 
-  if (channel->opacity() != -1.0) {
+  if (channel->opacity() != 1.0) {
     cerr << "Unexepected initial opacity value" << endl;
+
     error = true;
   }
 

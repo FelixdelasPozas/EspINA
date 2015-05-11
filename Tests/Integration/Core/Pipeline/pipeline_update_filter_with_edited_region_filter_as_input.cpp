@@ -118,7 +118,7 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
   auto sgs = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
-  auto sgsVolume = volumetricData(sgs->output(0));
+  auto sgsVolume = writeLockVolume(sgs->output(0));
 
   Bounds modificationBounds{0,1,0,2,0,3};
 

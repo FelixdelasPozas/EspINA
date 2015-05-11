@@ -45,6 +45,8 @@ namespace ESPINA
      */
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
+    virtual ~SeedGrowSegmentationFilter();
+
     virtual void restoreState(const State& state);
 
     virtual State state() const;

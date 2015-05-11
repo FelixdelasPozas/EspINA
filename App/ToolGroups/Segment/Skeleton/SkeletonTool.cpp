@@ -240,9 +240,9 @@ void SkeletonTool::initTool(bool value)
 
       if(hasSkeletonData(m_item->output()))
       {
-        auto skeleton = skeletonData(m_item->output());
-        connect(skeleton.get(), SIGNAL(dataChanged()),
-                this          , SLOT(updateWidgetRepresentation()));
+//         auto skeleton = readLockSkeleton(m_item->output());
+//         connect(skeleton->get(), SIGNAL(dataChanged()),
+//                 this           , SLOT(updateWidgetRepresentation()));
       }
     }
 
@@ -291,7 +291,7 @@ void SkeletonTool::initTool(bool value)
         //             rep->setVisible(false);
         //           }
 
-        widget->initialize(skeletonData(m_item->output())->skeleton());
+        widget->initialize(readLockSkeleton(m_item->output())->skeleton());
       }
     }
 
@@ -343,9 +343,9 @@ void SkeletonTool::initTool(bool value)
         //             rep->setVisible(true);
         //           }
 
-        auto skeleton = skeletonData(m_item->output());
-        disconnect(skeleton.get(), SIGNAL(dataChanged()),
-                   this          , SLOT(updateWidgetRepresentation()));
+//         auto skeleton = readLockSkeleton(m_item->output());
+//         disconnect(skeleton.get(), SIGNAL(dataChanged()),
+//                    this          , SLOT(updateWidgetRepresentation()));
 
         SegmentationAdapterList selection;
         selection << m_item;
@@ -409,9 +409,9 @@ void SkeletonTool::checkItemRemoval(SegmentationAdapterSList segmentations)
       //           rep->setVisible(true);
       //         }
 
-      auto skeleton = skeletonData(m_item->output());
-      disconnect(skeleton.get(), SIGNAL(dataChanged()),
-                 this          , SLOT(updateWidgetRepresentation()));
+//       auto skeleton = readLockSkeleton(m_item->output());
+//       disconnect(skeleton.get(), SIGNAL(dataChanged()),
+//                  this          , SLOT(updateWidgetRepresentation()));
 
       m_item = nullptr;
       initTool(false);
@@ -471,9 +471,9 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
       {
         auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
 
-        m_undoStack->beginMacro(tr("Modify segmentation's skeleton"));
-        m_undoStack->push(new ModifySkeletonCommand(skeletonData(m_item->output()), widget->getSkeleton()));
-        m_undoStack->endMacro();
+//         m_undoStack->beginMacro(tr("Modify segmentation's skeleton"));
+//         m_undoStack->push(new ModifySkeletonCommand(readLockSkeleton(m_item->output()), widget->getSkeleton()));
+//         m_undoStack->endMacro();
       }
     }
     else

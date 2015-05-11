@@ -49,7 +49,7 @@ namespace ESPINA
 //         filter->m_lastModifiedMesh = data->lastModified();
     } else
     {
-      data = meshData(output, DataUpdatePolicy::Ignore);
+      data = writeLockMesh(output, DataUpdatePolicy::Ignore);
     }
 
     return data;

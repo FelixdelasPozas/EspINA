@@ -68,7 +68,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(c
 
   if (isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto data = skeletonData(segmentation->output());
+    auto data = readLockSkeleton(segmentation->output());
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(data->skeleton());

@@ -70,7 +70,7 @@ namespace ESPINA
 
     if(isVisible(state) && hasMeshData(segmentation->output()))
     {
-      auto data = meshData(segmentation->output());
+      auto data = readLockMesh(segmentation->output());
 
       auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
       mapper->ReleaseDataFlagOn();

@@ -77,7 +77,7 @@ namespace ESPINA
 
     if (isVisible(state) && hasSkeletonData(segmentation->output()))
     {
-      auto data = skeletonData(segmentation->output());
+      auto data = readLockSkeleton(segmentation->output());
       Bounds sliceBounds = data->bounds();
 
       Nm reslicePoint = crosshairPosition(m_plane, state);

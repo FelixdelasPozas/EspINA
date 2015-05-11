@@ -51,13 +51,14 @@ namespace ESPINA
   {
   public:
     /** \brief RasterizedVolume class constructor.
-     * \param[in] mesh, MeshData smart pointer to be rasterized.
-     * \param[in] bounds, bounds of the volume.
-     * \param[in] spacing, spacing of the volume.
-     * \param[in] origin, origin of the volume.
+     * \param[in] output to obtain the mesh data from
+     * \param[in] bounds bounds of the volume.
+     * \param[in] spacing spacing of the volume.
+     * \param[in] origin origin of the volume.
      *
+     * NOTE: this data doesn't updates the output to access its mesh data
      */
-    explicit RasterizedVolume(MeshDataSPtr    mesh,
+    explicit RasterizedVolume(Output          *output,
                               const Bounds    &bounds,
                               const NmVector3 &spacing = NmVector3{1,1,1},
                               const NmVector3 &origin = NmVector3{0,0,0});
@@ -101,19 +102,19 @@ namespace ESPINA
     virtual QList<Data::Type> updateDependencies() const override;
 
 
-    vtkSmartPointer<vtkPolyData> m_mesh;
+    Output                      *m_output;
     mutable unsigned long int    m_rasterizationTime;
     mutable QMutex               m_mutex;
   };
 
-  template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
+  template<class T> using RasterizedVolumePtr  = RasterizedVolume<T> *;
   template<class T> using RasterizedVolumeSPtr = std::shared_ptr<RasterizedVolume<T>>;
 
   //----------------------------------------------------------------------------
   template<typename T>
-  RasterizedVolume<T>::RasterizedVolume(MeshDataSPtr mesh, const Bounds &meshBounds, const NmVector3 &spacing, const NmVector3 &origin)
+  RasterizedVolume<T>::RasterizedVolume(Output *output, const Bounds &meshBounds, const NmVector3 &spacing, const NmVector3 &origin)
   : SparseVolume<T>(meshBounds, spacing, origin)
-  , m_mesh             {mesh->mesh()}
+  , m_output            {output}
   , m_rasterizationTime{0}
   {
   }
@@ -244,8 +245,9 @@ namespace ESPINA
   {
     this->m_mutex.lock();
 
+    auto mesh = readLockMesh(m_output, DataUpdatePolicy::Ignore)->mesh();
     // try to see if already rasterized while waiting in the mutex.
-    if (!this->m_blocks.empty() && m_rasterizationTime == m_mesh->GetMTime())
+    if (!this->m_blocks.empty() && m_rasterizationTime == mesh->GetMTime())
     {
       // already rasterized
       this->m_mutex.unlock();
@@ -256,11 +258,11 @@ namespace ESPINA
     double meshBounds[6];
     double point[3];
 
-    vtkSmartPointer<vtkImplicitPolyDataDistance> distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-    distance->SetInput(m_mesh);
+    auto distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    distance->SetInput(mesh);
     distance->SetTolerance(0);
 
-    m_mesh->GetBounds(meshBounds);
+    mesh->GetBounds(meshBounds);
     auto rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
 
     auto region = equivalentRegion<T>(this->m_origin, this->m_spacing, rasterizationBounds);
@@ -284,7 +286,7 @@ namespace ESPINA
 
       ++it;
     }
-    m_rasterizationTime = m_mesh->GetMTime();
+    m_rasterizationTime = mesh->GetMTime();
 
     const_cast<RasterizedVolume<T> *>(this)->setBlock(image, false);
 

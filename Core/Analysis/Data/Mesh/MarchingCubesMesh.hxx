@@ -49,9 +49,11 @@ namespace ESPINA
   {
   public:
     /** \brief MarchingCubesMesh class constructor.
-     * \param[in] volume volume to use source for marching cubes algorithm.
+     * \param[in] output to obtain the volumetric data from
+     *
+     * NOTE: this data doesn't updates the output to access its volumetric data
      */
-    explicit MarchingCubesMesh(VolumetricDataSPtr<T> volume);
+    explicit MarchingCubesMesh(Output *output);
 
     /** \brief MarchingCubesMesh class virtual destructor.
      *
@@ -65,18 +67,13 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
 
     virtual bool isValid() const
-    {
-      return m_volume->isValid();
-    }
+    { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->isValid(); }
 
     virtual bool isEmpty() const
-    { return m_volume->isEmpty(); }
+    { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->isEmpty(); }
 
-    /** \brief Overrides MeshData::bounds() const.
-     *
-     */
     virtual Bounds bounds() const override
-    { return m_volume->bounds(); }
+    { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->bounds(); }
 
     virtual void setSpacing(const NmVector3& spacing);
 
@@ -90,7 +87,7 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh);
 
-    virtual TimeStamp lastModified() override;
+    virtual TimeStamp lastModified() const override;
 
   private:
     /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
@@ -102,15 +99,15 @@ namespace ESPINA
 
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    VolumetricDataSPtr<T> m_volume;
+    Output *m_output;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
     TimeStamp m_lastVolumeModification;
   };
 
   //----------------------------------------------------------------------------
   template <typename T>
-  MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
-  : m_volume{volume}
+  MarchingCubesMesh<T>::MarchingCubesMesh(Output *output)
+  : m_output{output}
   , m_mesh  {nullptr}
   , m_lastVolumeModification{VTK_UNSIGNED_LONG_LONG_MAX}
   {
@@ -155,7 +152,7 @@ namespace ESPINA
   template <typename T>
   NmVector3 MarchingCubesMesh<T>::spacing() const
   {
-    return m_volume->spacing();
+    return m_output->spacing();
   }
 
   //----------------------------------------------------------------------------
@@ -169,10 +166,7 @@ namespace ESPINA
   template <typename T>
   size_t MarchingCubesMesh<T>::memoryUsage() const
   {
-    if (m_mesh)
-      return m_mesh->GetActualMemorySize()*1024;
-
-    return 0;
+    return m_mesh?m_mesh->GetActualMemorySize()*1024:0;
   }
 
   //----------------------------------------------------------------------------
@@ -203,9 +197,10 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  TimeStamp MarchingCubesMesh<T>::lastModified()
+  TimeStamp MarchingCubesMesh<T>::lastModified() const
   {
-    updateMesh(); // updates the mesh only if necessary.
+    const_cast<MarchingCubesMesh<T> *>(this)->updateMesh(); // updates the mesh only if necessary.
+    
     return Data::lastModified();
   }
 
@@ -213,10 +208,11 @@ namespace ESPINA
   template <typename T>
   void MarchingCubesMesh<T>::updateMesh()
   {
-    if(m_lastVolumeModification == m_volume->lastModified())
-      return;
+    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
 
-    vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
+    if(m_lastVolumeModification == volume->lastModified()) return;
+
+    auto image = vtkImage(volume, volume->bounds());
 
     int extent[6];
     image->GetExtent(extent);
@@ -248,11 +244,14 @@ namespace ESPINA
     marchingCubes->Update();
 
     if(!m_mesh)
+    {
       m_mesh = vtkSmartPointer<vtkPolyData>::New();
+    }
 
     m_mesh->DeepCopy(marchingCubes->GetOutput());
 
-    m_lastVolumeModification = m_volume->lastModified();
+    m_lastVolumeModification = volume->lastModified();
+
     updateModificationTime();
   }
 

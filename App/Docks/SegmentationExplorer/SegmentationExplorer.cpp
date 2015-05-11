@@ -120,7 +120,7 @@ void SegmentationExplorer::reset()
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Layout* proxy)
+void SegmentationExplorer::addLayout(const QString &id, SegmentationExplorer::Layout* proxy)
 {
   m_layoutNames << id;
   m_layouts << proxy;
