@@ -39,8 +39,8 @@ NumericalInput::NumericalInput(QWidget *parent)
 {
   m_slider->setOrientation(Qt::Horizontal);
   m_slider->setFixedWidth(80);
-  m_slider->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
+  m_slider->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
   m_spinBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
   connect(m_slider, SIGNAL(valueChanged(int)),

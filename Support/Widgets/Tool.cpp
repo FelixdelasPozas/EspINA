@@ -32,8 +32,9 @@ Tool::NestedWidgets::NestedWidgets(QObject *parent)
 : QWidgetAction(parent)
 , m_layout(new QHBoxLayout())
 {
-  auto widget = new QWidget();
+  m_layout->setMargin(0);
 
+  auto widget = new QWidget();
   widget->setLayout(m_layout);
 
   Styles::setNestedStyle(widget);

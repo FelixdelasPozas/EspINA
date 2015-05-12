@@ -47,7 +47,7 @@ using namespace ESPINA::GUI::View::Widgets::Contour;
 DrawingWidget::DrawingWidget(Support::Context &context)
 : m_context             (context)
 , m_painterSelector     {new ActionSelector()}
-, m_nestedWidgets       {new QWidgetAction(this)}
+, m_nestedWidgets       {new Tool::NestedWidgets(this)}
 , m_categorySelector    {new CategorySelector(context.model())}
 , m_radiusWidget        {new NumericalInput()}
 , m_opacityWidget       {new NumericalInput()}
@@ -166,6 +166,8 @@ QList<QAction *> DrawingWidget::actions() const
 
   auto checked = m_currentPainter && m_context.viewState().eventHandler() == m_currentPainter;
   m_painterSelector->setChecked(checked);
+
+  setControlVisibility(checked);
 
   actions << m_painterSelector;
   actions << m_nestedWidgets;
@@ -286,57 +288,49 @@ void DrawingWidget::initPainters()
 //------------------------------------------------------------------------
 void DrawingWidget::initDrawingControls()
 {
-  auto widget = new QWidget();
-  auto layout = new QHBoxLayout();
-
-  initCategoryWidget (layout);
-  initEraseWidget    (layout);
-  initRadiusWidget   (layout);
-  initOpacityWidget  (layout);
-  initRasterizeWidget(layout);
-
-  widget->setLayout(layout);
-  Support::Widgets::Styles::setNestedStyle(widget);
-
-  m_nestedWidgets->setDefaultWidget(widget);
+  initCategoryWidget();
+  initEraseWidget();
+  initRadiusWidget();
+  initOpacityWidget();
+  initRasterizeWidget();
 }
 
 
 //------------------------------------------------------------------------
-void DrawingWidget::initCategoryWidget(QHBoxLayout *layout)
+void DrawingWidget::initCategoryWidget()
 {
-  layout->addWidget(m_categorySelector);
+  m_nestedWidgets->addWidget(m_categorySelector);
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChange(CategoryAdapterSPtr)));
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initEraseWidget(QHBoxLayout *layout)
+void DrawingWidget::initEraseWidget()
 {
   m_eraserWidget->setCheckable(true);
 
   connect(m_eraserWidget, SIGNAL(toggled(bool)),
           this,           SLOT(setEraserMode(bool)));
 
-  layout->addWidget(m_eraserWidget);
+  m_nestedWidgets->addWidget(m_eraserWidget);
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initRasterizeWidget(QHBoxLayout *layout)
+void DrawingWidget::initRasterizeWidget()
 {
   m_rasterizeWidget->setVisible(false);
 
   connect(m_rasterizeWidget,      SIGNAL(clicked(bool)),
           m_contourPainter.get(), SIGNAL(rasterize()));
 
-  layout->addWidget(m_rasterizeWidget);
+  m_nestedWidgets->addWidget(m_rasterizeWidget);
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initRadiusWidget(QHBoxLayout *layout)
+void DrawingWidget::initRadiusWidget()
 {
-  layout->addWidget(m_radiusWidget);
+  m_nestedWidgets->addWidget(m_radiusWidget);
 
   m_radiusWidget->setValue(m_brushRadius);
   m_radiusWidget->setMinimum(5);
@@ -349,9 +343,9 @@ void DrawingWidget::initRadiusWidget(QHBoxLayout *layout)
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::initOpacityWidget(QHBoxLayout *layout)
+void DrawingWidget::initOpacityWidget()
 {
-  layout->addWidget(m_opacityWidget);
+  m_nestedWidgets->addWidget(m_opacityWidget);
 
   m_opacityWidget->setMinimum(1);
   m_opacityWidget->setMaximum(100);

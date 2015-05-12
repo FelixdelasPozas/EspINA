@@ -25,6 +25,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Types.h>
 #include <Support/Context.h>
+#include <Support/Widgets/Tool.h>
 
 #include <QAction>
 #include <QMap>
@@ -232,15 +233,15 @@ namespace ESPINA
 
         void initDrawingControls();
 
-        void initCategoryWidget(QHBoxLayout *layout);
+        void initCategoryWidget();
 
-        void initEraseWidget(QHBoxLayout *layout);
+        void initEraseWidget();
 
-        void initRasterizeWidget(QHBoxLayout *layout);
+        void initRasterizeWidget();
 
-        void initRadiusWidget(QHBoxLayout *layout);
+        void initRadiusWidget();
 
-        void initOpacityWidget(QHBoxLayout *layout);
+        void initOpacityWidget();
 
         QAction *registerPainter(const QIcon    &icon,
                                  const QString  &description,
@@ -263,9 +264,9 @@ namespace ESPINA
         ContourPainterSPtr m_contourPainter;
         MaskPainterSPtr    m_currentPainter;
 
-        ActionSelector   *m_painterSelector;
-        QWidgetAction    *m_nestedWidgets;
-        CategorySelector *m_categorySelector;
+        ActionSelector      *m_painterSelector;
+        Tool::NestedWidgets *m_nestedWidgets;
+        CategorySelector    *m_categorySelector;
         QMap<QAction *, MaskPainterSPtr> m_painters;
 
         NumericalInput *m_radiusWidget;

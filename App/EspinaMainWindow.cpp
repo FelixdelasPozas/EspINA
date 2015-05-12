@@ -73,7 +73,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-const int CONTEXTUAL_BAR_HEIGHT = 60;
+const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()

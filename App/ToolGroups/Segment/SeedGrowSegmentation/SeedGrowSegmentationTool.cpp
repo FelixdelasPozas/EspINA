@@ -190,6 +190,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
     bool active = m_context.viewState().eventHandler() == m_currentSelector;
 
     m_selectorSwitch->setChecked(active);
+    m_toolWidgets.setVisible(active);
   }
 
   actions << m_selectorSwitch;
