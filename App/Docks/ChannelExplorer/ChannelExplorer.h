@@ -26,6 +26,7 @@
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Context.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/View/RepresentationInvalidator.h>
 
 //Qt
 #include <QSortFilterProxyModel>
@@ -73,6 +74,8 @@ namespace ESPINA
     void activateChannel();
     /******************************************************/
 
+    void updateChannelRepresentations(QModelIndex index);
+
     /** \brief Opens a channel inspector dialog.
      *
      */
@@ -86,10 +89,11 @@ namespace ESPINA
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
-    Support::Context &m_context;
-    ModelAdapterSPtr m_model;
-    SchedulerSPtr    m_scheduler;
-    QUndoStack      *m_undoStack;
+    Support::Context          &m_context;
+    ModelAdapterSPtr           m_model;
+    SchedulerSPtr              m_scheduler;
+    QUndoStack                *m_undoStack;
+    ESPINA::GUI::View::RepresentationInvalidator &m_invalidator;
 
     std::shared_ptr<ChannelProxy>          m_channelProxy;
     std::shared_ptr<QSortFilterProxyModel> m_sort;

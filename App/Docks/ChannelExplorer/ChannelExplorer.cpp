@@ -55,6 +55,7 @@ ChannelExplorer::ChannelExplorer(Support::Context &context)
 , m_model       {context.model()}
 , m_scheduler   {context.scheduler()}
 , m_undoStack   {context.undoStack()}
+, m_invalidator (context.representationInvalidator())
 , m_channelProxy{new ChannelProxy(context.model())}
 , m_sort        {new QSortFilterProxyModel()}
 , m_gui         {new CentralWidget()}
@@ -88,8 +89,8 @@ ChannelExplorer::ChannelExplorer(Support::Context &context)
           this, SLOT(channelSelected()));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnChannel()));
-//   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-//           m_viewManager.get(), SLOT(updateChannelRepresentations()));
+   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
+           this, SLOT(updateChannelRepresentations(QModelIndex)));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
           this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
@@ -527,4 +528,12 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
           this,       SLOT(showInformation()));
 
   contextMenu.exec(e->globalPos());
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::updateChannelRepresentations(QModelIndex index)
+{
+  auto item = itemAdapter(m_sort->mapToSource(index));
+
+  m_invalidator.invalidateRepresentations(item);
 }
