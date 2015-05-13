@@ -133,7 +133,7 @@ public:
     m_filter->setClosingRadius(m_oldClosingRadius);
 
     auto output = m_filter->output(0);
-    auto volume = readLockVolume(output);
+    auto volume = writeLockVolume(output);
 
     if (m_oldVolume.IsNotNull())
     {
