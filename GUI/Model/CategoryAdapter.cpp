@@ -218,15 +218,15 @@ CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr ESPINA::categoryPtr(const QModelIndex& index)
+CategoryAdapterPtr ESPINA::toCategoryAdapterPtr(const QModelIndex& index)
 {
   return static_cast<CategoryAdapterPtr>(index.internalPointer());
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr ESPINA::categoryPtr(ItemAdapterPtr item)
+CategoryAdapterPtr ESPINA::toCategoryAdapterPtr(ItemAdapterPtr item)
 {
-  return static_cast<CategoryAdapterPtr>(item);
+  return dynamic_cast<CategoryAdapterPtr>(item);
 }
 
 //------------------------------------------------------------------------

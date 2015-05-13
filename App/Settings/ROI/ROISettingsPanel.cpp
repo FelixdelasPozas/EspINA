@@ -152,7 +152,7 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
   if (isCategory(itemPtr))
     return;
 
-  CategoryAdapterPtr category = categoryPtr(itemPtr);
+  CategoryAdapterPtr category = toCategoryAdapterPtr(itemPtr);
   if (m_activeCategory && m_activeCategory.get() != category)
   {
     // Check for changes

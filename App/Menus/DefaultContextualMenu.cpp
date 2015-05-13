@@ -111,7 +111,7 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
 
    ItemAdapterPtr categoryItem = itemAdapter(index);
    Q_ASSERT(isCategory(categoryItem));
-   CategoryAdapterPtr categoryAdapter = categoryPtr(categoryItem);
+   CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
 
    auto undoStack = m_context.undoStack();
    undoStack->beginMacro(tr("Change Category"));

@@ -167,7 +167,7 @@ QList<QAction *> DrawingWidget::actions() const
   auto checked = m_currentPainter && m_context.viewState().eventHandler() == m_currentPainter;
   m_painterSelector->setChecked(checked);
 
-  setControlVisibility(checked);
+  const_cast<DrawingWidget *>(this)->setControlVisibility(checked);
 
   actions << m_painterSelector;
   actions << m_nestedWidgets;

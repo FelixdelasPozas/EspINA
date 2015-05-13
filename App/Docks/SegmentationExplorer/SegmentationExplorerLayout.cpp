@@ -139,12 +139,17 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
   QModelIndexList res;
 
   Q_ASSERT(model() == index.model());
+
   for(int r = 0; r < model()->rowCount(index); r++)
   {
     auto child = index.child(r, 0);
+
     res << child;
+
     if (recursive)
+    {
       res << indices(child, recursive);
+    }
   }
 
   return res;

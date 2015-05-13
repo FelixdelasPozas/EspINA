@@ -117,7 +117,7 @@ public:
     {
       auto textEditor = static_cast<QLineEdit *>(editor);
       auto name       = textEditor->text();
-      auto category   = categoryPtr(item);
+      auto category   = toCategoryAdapterPtr(item);
 
       if (!category->parent()->subCategory(name))
       {
@@ -256,50 +256,81 @@ void ClassificationLayout::createSpecificControls(QHBoxLayout *specificControlLa
 //------------------------------------------------------------------------
 void ClassificationLayout::contextMenu(const QPoint &pos)
 {
-  CategoryAdapterList    categories;
-  SegmentationAdapterSet segmentations;
+  updateSelectedItems();
 
-  if (selectedItems(categories, segmentations))
+  bool segmentationsSelected     = !m_selectedSegmentations.isEmpty();
+  bool categoriesSelected        = !m_selectedCategories.isEmpty();
+  bool enableSegmentationActions = !categoriesSelected && segmentationsSelected;
+
+  QMenu *contextMenu = nullptr;
+
+  if (segmentationsSelected)
   {
-    if (categories.isEmpty())
+    contextMenu = new DefaultContextualMenu(m_selectedSegmentations, m_context);
+
+    for (auto action : contextMenu->actions())
     {
-      DefaultContextualMenu contextMenu(segmentations.toList(), m_context);
-
-      contextMenu.addSeparator();
-
-      auto selectAll = contextMenu.addAction(tr("Select segmentations of the same category"));
-      connect(selectAll, SIGNAL(triggered(bool)),
-              this,      SLOT(selectCategorySegmentations()));
-
-      contextMenu.exec(pos);
-      return;
+      action->setEnabled(enableSegmentationActions);
     }
 
-    QMenu contextMenu;
+    contextMenu->addSeparator();
+  }
 
-    auto createNode = contextMenu.addAction(tr("Create Category"));
-    createNode->setIcon(QIcon(":espina/create_node.png"));
+  if (categoriesSelected)
+  {
+    if (!segmentationsSelected)
+    {
+      contextMenu = new QMenu();
+    }
+
+    auto createNode = createCategoryAction(contextMenu,
+                                           tr("Create Category"),
+                                           ":espina/create_node.png");
     connect(createNode, SIGNAL(triggered(bool)),
             this,       SLOT(createCategory()));
 
-    auto createSubNode = contextMenu.addAction(tr("Create Subcategory"));
-    createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
+    auto createSubNode = createCategoryAction(contextMenu,
+                                              tr("Create Subcategory"),
+                                              ":espina/create_subnode.png");
     connect(createSubNode, SIGNAL(triggered(bool)),
             this,          SLOT(createSubCategory()));
 
-    auto changeColor = contextMenu.addAction(tr("Change Category Color"));
-    changeColor->setIcon(QIcon(":espina/rainbow.svg"));
+    auto changeColor = createCategoryAction(contextMenu,
+                                            tr("Change Category Color"),
+                                            ":espina/rainbow.svg");
     connect(changeColor, SIGNAL(triggered(bool)),
             this,        SLOT(changeCategoryColor()));
 
-    contextMenu.addSeparator();
-
-    auto selectAll = contextMenu.addAction(tr("Select category segmentations"));
-    connect(selectAll, SIGNAL(triggered(bool)),
-            this,      SLOT(selectCategorySegmentations()));
-
-    contextMenu.exec(pos);
+    contextMenu->addSeparator();
   }
+
+
+  if (segmentationsSelected)
+  {
+    auto selectSameCategory = contextMenu->addAction(tr("Select segmentations of the same category"));
+    selectSameCategory->setEnabled(!categoriesSelected);
+    connect(selectSameCategory, SIGNAL(triggered(bool)),
+            this,               SLOT(selectSameCategorySegmentations()));
+  }
+
+  if (categoriesSelected)
+  {
+    auto category = m_selectedCategories.first();
+
+    auto selectFromCategory = createCategoryAction(contextMenu, tr("Select %1 segmentations").arg(category->name()));
+    connect(selectFromCategory, SIGNAL(triggered(bool)),
+            this,               SLOT(selectCategorySegmentations()));
+
+    auto selectFromSubCategories = createCategoryAction(contextMenu, tr("Select %1 and sub-categories segmentations").arg(category->name()));
+    connect(selectFromSubCategories, SIGNAL(triggered(bool)),
+            this,                    SLOT(selectCategoryAndSubcategoriesSegmentations()));
+
+    selectFromSubCategories->setEnabled(selectFromSubCategories->isEnabled() && !category->subCategories().isEmpty());
+  }
+
+  contextMenu->exec(pos);
+
+  delete contextMenu;
 }
 
 //------------------------------------------------------------------------
@@ -332,7 +363,7 @@ void ClassificationLayout::deleteSelectedItems()
           }
           else
           {
-            auto category = categoryPtr(additionalItem);
+            auto category = toCategoryAdapterPtr(additionalItem);
             if (!additionalCategories.contains(category))
             {
               additionalCategories << category;
@@ -455,7 +486,7 @@ void ClassificationLayout::createCategory()
   {
     QString name = tr("New Category");
 
-    auto selectedCategory = categoryPtr(categoryItem);
+    auto selectedCategory = toCategoryAdapterPtr(categoryItem);
     auto parentCategory   = selectedCategory->parent();
 
     if (!parentCategory->subCategory(name))
@@ -482,12 +513,12 @@ void ClassificationLayout::createSubCategory()
   {
     QString name = tr("New Category");
 
-    auto category = categoryPtr(categorytItem);
+    auto category = toCategoryAdapterPtr(categorytItem);
     if (!category->subCategory(name))
     {
       auto undoStack = m_context.undoStack();
 
-      undoStack->beginMacro("Create Category");
+      undoStack->beginMacro(tr("Create Category"));
       undoStack->push(new AddCategoryCommand(m_context.model()->smartPointer(category), name, m_context.model(), category->color()));
       undoStack->endMacro();
     }
@@ -569,14 +600,14 @@ void ClassificationLayout::changeCategoryColor()
 
   if (indexList.size() == 1 && isCategory(item))
   {
-    auto category = categoryPtr(item);
+    auto category = toCategoryAdapterPtr(item);
 
     HueSelectorDialog hueSelector(category->color().hue());
     hueSelector.setModal(true);
 
     if(hueSelector.exec() == QDialog::Accepted)
     {
-      m_context.undoStack()->beginMacro("Change category color");
+      m_context.undoStack()->beginMacro(tr("Change category color"));
       m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
                                                                  m_context.representationInvalidator(),
                                                                  category,
@@ -587,41 +618,68 @@ void ClassificationLayout::changeCategoryColor()
 }
 
 //------------------------------------------------------------------------
+void ClassificationLayout::selectSameCategorySegmentations()
+{
+  Q_ASSERT(!m_selectedSegmentations.isEmpty());
+
+  QSet<CategoryAdapterPtr> categories;
+
+  for (auto segmentation : m_selectedSegmentations)
+  {
+    categories << segmentation->category().get();
+  }
+
+  QItemSelection selection;
+
+  for (auto category : categories)
+  {
+    selection.merge(selectCategorySegmentations(category), QItemSelectionModel::Select);
+  }
+
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+}
+
+//------------------------------------------------------------------------
 void ClassificationLayout::selectCategorySegmentations()
 {
-   auto index = m_view->selectionModel()->currentIndex();
+  Q_ASSERT(!m_selectedCategories.isEmpty());
 
-   if (!index.isValid()) return;
+  auto category  = m_selectedCategories.first();
+  auto selection = selectCategorySegmentations(category);
 
-   auto item = ClassificationLayout::item(index);
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+  m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
 
-   if (!isCategory(item))
-   {
-     index = index.parent();
+  displayCurrentIndex();
+}
 
-     if (!index.isValid()) return;
+//------------------------------------------------------------------------
+void ClassificationLayout::selectCategoryAndSubcategoriesSegmentations()
+{
+  Q_ASSERT(!m_selectedCategories.isEmpty());
 
-     item = ClassificationLayout::item(index);
+  QList<CategoryAdapterPtr> selectionCategories;
 
-     Q_ASSERT(isCategory(item));
-   }
+  selectionCategories << m_selectedCategories.first();
 
-   QItemSelection newSelection;
-   for(auto sortIndex: indices(index, true))
-   {
-     if (!sortIndex.isValid()) continue;
+  QItemSelection selection;
 
-     auto sortItem = ClassificationLayout::item(sortIndex);
+  while (!selectionCategories.isEmpty())
+  {
+    auto category = selectionCategories.takeFirst();
 
-     if (isSegmentation(sortItem))
-     {
-       QItemSelection selectedItem(sortIndex, sortIndex);
-       newSelection.merge(selectedItem, QItemSelectionModel::Select);
-     }
-   }
+    selection.merge(selectCategorySegmentations(category), QItemSelectionModel::Select);
 
-   m_view->selectionModel()->clearSelection();
-   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
+    for (auto subCategory : category->subCategories())
+    {
+      selectionCategories << subCategory.get();
+    }
+  }
+
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
 }
 
 //------------------------------------------------------------------------
@@ -664,7 +722,7 @@ bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, Segmen
     }
     else if (isCategory(item))
     {
-      categories << categoryPtr(item);
+      categories << toCategoryAdapterPtr(item);
     }
     else
     {
@@ -673,6 +731,31 @@ bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, Segmen
   }
 
   return !categories.isEmpty() || !segmentations.isEmpty();
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::updateSelectedItems()
+{
+  m_selectedCategories.clear();
+  m_selectedSegmentations.clear();
+
+  for(auto index : m_view->selectionModel()->selectedIndexes())
+  {
+    auto selectedItem = item(index);
+
+    if (isSegmentation(selectedItem))
+    {
+      m_selectedSegmentations << segmentationPtr(selectedItem);
+    }
+    else if (isCategory(selectedItem))
+    {
+      m_selectedCategories << toCategoryAdapterPtr(selectedItem);
+    }
+    else
+    {
+      Q_ASSERT(false);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -704,4 +787,58 @@ void ClassificationLayout::addDockButton(QPushButton *button, QHBoxLayout *layou
 bool ClassificationLayout::hasClassification() const
 {
  return m_context.model()->classification().get();
+}
+
+//------------------------------------------------------------------------
+QItemSelection ClassificationLayout::selectCategorySegmentations(CategoryAdapterPtr category) const
+{
+  auto categoryIndex    = index(category);
+  auto numSubCategories = category->subCategories().size();
+  auto rows             = categoryIndex.model()->rowCount(categoryIndex);
+  auto segmentations    = rows - numSubCategories;
+
+  QModelIndex topLeft, bottomRight;
+
+  if (segmentations > 0)
+  {
+    topLeft     = categoryIndex.child(numSubCategories, 0);
+    bottomRight = categoryIndex.child(rows - 1, 0);
+  }
+
+  return QItemSelection(topLeft, bottomRight);
+}
+
+//------------------------------------------------------------------------
+QAction *ClassificationLayout::createCategoryAction(QMenu *contextMenu, const QString &text)
+{
+  auto enableCategoryActions = m_selectedCategories.size() == 1
+                            && m_selectedSegmentations.isEmpty();
+
+  auto action = contextMenu->addAction(text);
+
+  action->setEnabled(enableCategoryActions);
+
+  return action;
+}
+
+//------------------------------------------------------------------------
+QAction *ClassificationLayout::createCategoryAction(QMenu *contextMenu, const QString &text, const QString &icon)
+{
+  auto action = createCategoryAction(contextMenu, text);
+
+  action->setIcon(QIcon(icon));
+
+  return action;
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::displayCurrentIndex()
+{
+  auto selectionModel = m_view->selectionModel();
+  auto selection      = selectionModel->selectedIndexes();
+
+  if (!selection.isEmpty())
+  {
+    selectionModel->setCurrentIndex(selection.first(), QItemSelectionModel::Select);
+  }
 }
