@@ -876,8 +876,8 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   GeneralSettingsDialog dialog;
 
-  dialog.registerPanel(SettingsPanelSPtr(new GeneralSettingsPanel(m_settings)));
-  dialog.registerPanel(m_view->settingsPanel());
+  dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_settings));
+  //dialog.registerPanel(m_view->settingsPanel());
   dialog.resize(800, 600);
 
   for(auto panel : m_availableSettingsPanels)

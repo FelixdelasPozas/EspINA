@@ -55,7 +55,7 @@ void CategorySelector::categorySelected(const QModelIndex& index)
   auto item = itemAdapter(index);
   Q_ASSERT(isCategory(item));
 
-  auto category = m_model->smartPointer(categoryPtr(item));
+  auto category = m_model->smartPointer(toCategoryAdapterPtr(item));
 
   if (m_selectedCategory != category)
   {

@@ -519,7 +519,7 @@ void ChannelProxy::sourceRowsAboutToBeMoved(const QModelIndex& sourceParent, int
 //   if (proxySourceParent.isValid())
 //   {
 //     ItemAdapterPtr sourceItem = itemAdapter(proxySourceParent);
-//     CategoryAdapterPtr sourceCategory = categoryPtr(sourceItem);
+//     CategoryAdapterPtr sourceCategory = toCategoryAdapterPtr(sourceItem);
 //     m_numCategories[sourceCategory] -=1;
 //   } else
 //   {
@@ -529,7 +529,7 @@ void ChannelProxy::sourceRowsAboutToBeMoved(const QModelIndex& sourceParent, int
 //   if (proxyDestionationParent.isValid())
 //   {
 //     ItemAdapterPtr destinationItem = itemAdapter(destinationParent);
-//     CategoryAdapterPtr destinationCategory = categoryPtr(destinationItem);
+//     CategoryAdapterPtr destinationCategory = toCategoryAdapterPtr(destinationItem);
 //
 //     m_numCategories[destinationCategory] +=1;
 //   } else

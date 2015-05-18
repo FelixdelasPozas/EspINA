@@ -549,7 +549,7 @@ QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) 
     else
     {
       // Neither Samples nor Segmentations have children
-      parentCategory = categoryPtr(parent);
+      parentCategory = toCategoryAdapterPtr(parent);
     }
     //WARNING: Now m_classification can be NULL, but even in that situation,
     //         it shouldn't report any children
@@ -568,7 +568,7 @@ QModelIndex ModelAdapter::index(ItemAdapterPtr item) const
   switch (item->type())
   {
     case ItemAdapter::Type::CATEGORY:
-      res = categoryIndex(categoryPtr(item));
+      res = categoryIndex(toCategoryAdapterPtr(item));
       break;
     case ItemAdapter::Type::SAMPLE:
       res = sampleIndex(samplePtr(item));
@@ -624,7 +624,7 @@ QModelIndex ModelAdapter::parent(const QModelIndex& child) const
   {
     case ItemAdapter::Type::CATEGORY:
     {
-      CategoryAdapterPtr category = categoryPtr(childItem);
+      CategoryAdapterPtr category = toCategoryAdapterPtr(childItem);
       return categoryIndex(category->parent());
     }
     case ItemAdapter::Type::SAMPLE:
@@ -810,7 +810,7 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
     auto parentItem = itemAdapter(parent);
     if (isCategory(parentItem))
     {
-      auto parentCategory = categoryPtr(parentItem);
+      auto parentCategory = toCategoryAdapterPtr(parentItem);
       count = parentCategory->subCategories().size();
     }
   }
@@ -938,7 +938,7 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
       emit dataChanged(index,index);
       if (isCategory(indexItem))
       {
-        CategoryAdapterPtr category = categoryPtr(indexItem);
+        CategoryAdapterPtr category = toCategoryAdapterPtr(indexItem);
         for(auto segmentation: m_segmentations)
         {
           if (segmentation->category().get() == category)

@@ -31,29 +31,29 @@ namespace ESPINA
   public:
 
   public:
-  	/** \brief ErrorHandler class destructor.
-  	 *
-  	 */
+    /** \brief ErrorHandler class destructor.
+     *
+     */
     virtual ~ErrorHandler()
     {}
 
     /** \brief Message to show in case of a warning.
-     * \param[in] msg, warning message.
+     * \param[in] msg warning message.
      *
      */
     virtual void warning(const QString& msg) = 0;
 
     /** \brief Message to show in case of an error.
-     * \param[in] msg, error message.
+     * \param[in] msg error message.
      *
      */
     virtual void error(const QString& msg) = 0;
 
     /** \brief Opens a dialog asking for the given file when it could't be found automatically.
-     * \param[in] file, QFileInfo onbject with the file information.
-     * \param[in] dir, initial directory for the open file dialog.
-     * \param[in] nameFilters, filters for the open file dialog.
-     * \param[in] hint, hint for the open file dialog.
+     * \param[in] file QFileInfo onbject with the file information.
+     * \param[in] dir initial directory for the open file dialog.
+     * \param[in] nameFilters filters for the open file dialog.
+     * \param[in] hint hint for the open file dialog.
      *
      */
     virtual QFileInfo fileNotFound(const QFileInfo& file,

@@ -118,22 +118,24 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
   auto sgs = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
-  auto sgsVolume = writeLockVolume(sgs->output(0));
-
   Bounds modificationBounds{0,1,0,2,0,3};
 
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
   {
-    cerr << "Unexpeceted non seg voxel value found" << endl;
-    error = true;
-  }
+    auto sgsVolume = writeLockVolume(sgs->output(0));
 
-  sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
+    {
+      cerr << "Unexpeceted non seg voxel value found" << endl;
+      error = true;
+    }
 
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
-  {
-    cerr << "Unexpeceted non bg voxel value found" << endl;
-    error = true;
+    sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
+
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
+    {
+      cerr << "Unexpeceted non bg voxel value found" << endl;
+      error = true;
+    }
   }
 
   auto dilate = std::make_shared<DilateFilter>(getInputs(sgs), "Dilate", scheduler);

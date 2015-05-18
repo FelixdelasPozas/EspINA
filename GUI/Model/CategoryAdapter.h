@@ -215,13 +215,13 @@ namespace ESPINA
    * \param[in] index, model index.
    *
    */
-  CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(const QModelIndex& index);
+  CategoryAdapterPtr EspinaGUI_EXPORT toCategoryAdapterPtr(const QModelIndex& index);
 
   /** \brief Returns the category adapter raw pointer of the item.
    * \param[in] item, item adapter raw pointer.
    *
    */
-  CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(ItemAdapterPtr item);
+  CategoryAdapterPtr EspinaGUI_EXPORT toCategoryAdapterPtr(ItemAdapterPtr item);
 
   /** \brief Prints the category and its sub-categories with the specified indentation.
    * \param[in] category, category adapter smart pointer.

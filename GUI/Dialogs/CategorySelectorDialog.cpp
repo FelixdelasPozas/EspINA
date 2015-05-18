@@ -44,7 +44,7 @@ CategoryAdapterSList CategorySelectorDialog::categories()
 
   for(auto index : m_categories->selectionModel()->selectedIndexes())
   {
-    auto category = categoryPtr(index);
+    auto category = toCategoryAdapterPtr(index);
     selection << m_model->smartPointer(category);
   }
 

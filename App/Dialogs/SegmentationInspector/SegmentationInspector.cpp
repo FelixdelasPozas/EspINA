@@ -308,7 +308,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
       case ItemAdapter::Type::CATEGORY:
       {
         auto item     = reinterpret_cast<ItemAdapterPtr>(itemData[RawPointerRole].value<quintptr>());
-        auto category = categoryPtr(item);
+        auto category = toCategoryAdapterPtr(item);
 
         for(auto segmentation : model->segmentations())
         {

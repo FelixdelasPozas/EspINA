@@ -91,19 +91,19 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(channelInput()));
+  auto channel = std::make_shared<Channel>(channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -113,33 +113,33 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
   InputSList inputs;
   inputs << channel->asInput();
 
-  SchedulerSPtr scheduler;
-
-  FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
+  auto sgs = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   sgs->update();
-
-  auto sgsVolume = writeLockVolume(sgs->output(0));
 
   Bounds modificationBounds{0,1,0,2,0,3};
 
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
   {
-    cerr << "Unexpeceted non seg voxel value found" << endl;
-    error = true;
+    auto sgsVolume = writeLockVolume(sgs->output(0));
+
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
+    {
+      cerr << "Unexpeceted non seg voxel value found" << endl;
+      error = true;
+    }
+
+    sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
+
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
+    {
+      cerr << "Unexpeceted non bg voxel value found" << endl;
+      error = true;
+    }
   }
 
-  sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
-
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
-  {
-    cerr << "Unexpeceted non bg voxel value found" << endl;
-    error = true;
-  }
-
-  FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
+  auto dilate = std::make_shared<DilateFilter>(getInputs(sgs), "Dilate", SchedulerSPtr());
   dilate->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(dilate, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(dilate, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);

@@ -53,19 +53,10 @@ namespace ESPINA
     void setDefaultDir(const QDir &dir)
     { m_defaultDir = dir; }
 
-    /** \brief Implements IO::ErrorHandler::warning().
-     *
-     */
     void warning(const QString &msg);
 
-    /** \brief Implements IO::ErrorHandler::error().
-     *
-     */
     void error(const QString &msg);
 
-    /** \brief Implements IO::ErrorHandler::fileNotFound().
-     *
-     */
     QFileInfo fileNotFound(const QFileInfo &file,
                            QDir dir = QDir(),
                            const QString &nameFilters = QString(),

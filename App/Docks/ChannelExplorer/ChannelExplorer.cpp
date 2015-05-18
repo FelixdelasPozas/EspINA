@@ -535,5 +535,5 @@ void ChannelExplorer::updateChannelRepresentations(QModelIndex index)
 {
   auto item = itemAdapter(m_sort->mapToSource(index));
 
-  m_invalidator.invalidateRepresentations(item);
+  m_invalidator.invalidateRepresentations(toViewItemList(item));
 }

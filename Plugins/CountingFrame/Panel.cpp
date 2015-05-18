@@ -415,7 +415,7 @@ void Panel::applyCategoryConstraint()
       auto item = itemAdapter(categoryyIndex);
       Q_ASSERT(isCategory(item));
 
-      auto category = categoryPtr(item);
+      auto category = toCategoryAdapterPtr(item);
 
       m_activeCF->setCategoryConstraint(category->classificationName());
     }

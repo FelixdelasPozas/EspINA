@@ -102,10 +102,11 @@ namespace ESPINA
      */
     void changeCategoryColor();
 
-    /** \brief Selects all segmentations from a category.
-     *
-     */
+    void selectSameCategorySegmentations();
+
     void selectCategorySegmentations();
+
+    void selectCategoryAndSubcategoriesSegmentations();
 
     /** \brief Manages the segmentation drag-and-drop into a category.
      * \param[in] segmentations list of segmentation adapters raw pointers of the elements that have been dropped.
@@ -135,6 +136,8 @@ namespace ESPINA
      */
     bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
 
+    void updateSelectedItems();
+
     void addCreateCategoryButton(QPushButton *button, QHBoxLayout *layout);
 
     void addCategoryDependentButton(QPushButton *button, QHBoxLayout *layout);
@@ -143,11 +146,22 @@ namespace ESPINA
 
     bool hasClassification() const;
 
+    QItemSelection selectCategorySegmentations(CategoryAdapterPtr category) const;
+
+    QAction *createCategoryAction(QMenu *contextMenu, const QString &text);
+
+    QAction *createCategoryAction(QMenu *contextMenu, const QString &text, const QString &icon);
+
+    void displayCurrentIndex();
+
   private:
     std::shared_ptr<ClassificationProxy> m_proxy;
     std::shared_ptr<SortFilter>          m_sort;
 
     CategoryItemDelegate *m_delegate;
+
+    CategoryAdapterList     m_selectedCategories;
+    SegmentationAdapterList m_selectedSegmentations;
   };
 
 } // namespace ESPINA

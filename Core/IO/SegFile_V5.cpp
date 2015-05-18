@@ -319,6 +319,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         } catch (...)
         {
           qDebug() << "Failed to create Channel: " << roVertex->uuid() << roVertex->name() << roVertex->state();
+          throw (Parse_Exception());
         }
         break;
       }
@@ -330,6 +331,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         } catch (...)
         {
           qDebug() << "Failed to create filter: " << roVertex->uuid() << roVertex->name() << roVertex->state();
+          throw (Parse_Exception());
         }
         break;
       }
