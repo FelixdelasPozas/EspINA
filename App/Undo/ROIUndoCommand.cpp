@@ -38,8 +38,11 @@ namespace ESPINA
     else
     {
       m_bounds = roi->bounds();
-      auto bounds = intersection(m_bounds, m_mask->bounds().bounds());
-      m_image = roi->itkImage(bounds);
+      if(intersect(m_bounds, m_mask->bounds().bounds(), roi->spacing()))
+      {
+        auto bounds = intersection(m_bounds, m_mask->bounds().bounds());
+        m_image = roi->itkImage(bounds);
+      }
     }
   }
 
@@ -74,7 +77,11 @@ namespace ESPINA
     {
       auto roi = m_toolGroup->currentROI();
       roi->resize(m_bounds);
-      roi->draw(m_image);
+
+      if(m_image)
+      {
+        roi->draw(m_image);
+      }
     }
   }
 

@@ -38,10 +38,13 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
   if(m_hasVolume)
   {
     auto volume = readLockVolume(seg->output());
-    auto bounds = intersection(volume->bounds(), mask->bounds().bounds());
-
     m_bounds = volume->bounds();
-    m_image  = volume->itkImage(bounds);
+
+    if(intersect(m_bounds, mask->bounds().bounds(), volume->spacing()))
+    {
+      auto bounds = intersection(m_bounds, mask->bounds().bounds());
+      m_image  = volume->itkImage(bounds);
+    }
   }
   else
   {
@@ -81,8 +84,11 @@ void DrawUndoCommand::undo()
   {
     auto volume = writeLockVolume(m_segmentation->output());
     SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
-    volume->draw(m_image);
     volume->resize(m_bounds);
+    if(m_image != nullptr)
+    {
+      volume->draw(m_image);
+    }
   }
   else
   {

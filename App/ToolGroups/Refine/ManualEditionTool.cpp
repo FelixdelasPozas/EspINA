@@ -278,8 +278,6 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
   if (!showStroke)
   {
     auto volume = readLockVolume(m_referenceItem->output());
-    auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
-
     auto strokePainter = painter->strokePainter();
 
     auto canvas = strokePainter->strokeCanvas();
@@ -289,10 +287,12 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     canvas->GetExtent(extent);
     auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-    m_validStroke = bounds.areValid();
+    m_validStroke = intersect(volume->bounds(), view->previewBounds(false), volume->spacing());
 
     if (m_validStroke)
     {
+      auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
+
       auto slice = volume->itkImage(bounds);
 
       itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());

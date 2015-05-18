@@ -251,6 +251,11 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
     up += 2;
   }
 
+  if(!res.areValid())
+  {
+    qWarning() << "Bounds::intersection() resulted in invalid bounds: " << res;
+  }
+
   return res;
 
 }

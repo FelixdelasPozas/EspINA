@@ -691,9 +691,11 @@ namespace ESPINA
         image->SetSpacing(ItkSpacing<T>(this->m_spacing));
       }
 
-      auto blockRegion = image->GetLargestPossibleRegion();
+      auto bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+      auto blockRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
       auto size = blockRegion.GetSize();
       auto index = blockRegion.GetIndex();
+
       if((size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
          (index[0] % s_blockSize == 0) && (index[1] % s_blockSize == 0) && (index[2] % s_blockSize == 0))
       {
