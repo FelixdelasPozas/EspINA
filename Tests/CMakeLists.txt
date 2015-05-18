@@ -82,7 +82,6 @@ set (CORE_SOURCES
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/AnalysisUtils.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
@@ -143,7 +142,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Utils/Timer.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
-target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
+target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} EspinaExtensionsTesting)
 
 qt4_wrap_cpp(PLUGIN_MOCS
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h

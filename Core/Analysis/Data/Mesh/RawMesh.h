@@ -90,9 +90,6 @@ namespace ESPINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    void undo()
-    { /* NOTE: not allowed */ };
-
     size_t memoryUsage() const;
 
   protected:

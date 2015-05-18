@@ -26,9 +26,9 @@
  * 
  */
 
+#include <Core/Utils/Vector3.hxx>
 #include "Bounds.h"
 
-#include "NmVector3.h"
 
 using namespace ESPINA;
 using namespace std;

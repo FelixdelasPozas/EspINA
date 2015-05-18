@@ -135,7 +135,7 @@ Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const Q
   }
   else
   {
-    snapshot << SparseVolume<itkVolumeType >::snapshot(storage, path, temporalStorageId(id));
+    snapshot << SparseVolume<itkVolumeType>::snapshot(storage, path, temporalStorageId(id));
   }
 
   return snapshot;

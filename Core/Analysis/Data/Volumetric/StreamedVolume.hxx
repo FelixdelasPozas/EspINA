@@ -128,9 +128,6 @@ namespace ESPINA {
     virtual void resize(const Bounds &bounds)
     {}
 
-    virtual void undo()
-    {}
-
     virtual bool isValid() const
     { return QFileInfo(m_fileName).exists(); }
 

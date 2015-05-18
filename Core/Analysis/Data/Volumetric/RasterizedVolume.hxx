@@ -123,9 +123,6 @@ namespace ESPINA
   template<typename T>
   size_t RasterizedVolume<T>::memoryUsage() const
   {
-    if(this->m_blocks.empty())
-      return 0;
-
     return SparseVolume<T>::memoryUsage();
   }
 
@@ -134,7 +131,9 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage() const
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::itkImage();
   }
@@ -144,7 +143,9 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage(const Bounds& bounds) const
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::itkImage(bounds);
   }
@@ -156,7 +157,9 @@ namespace ESPINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(brush, bounds, value);
   }
@@ -167,7 +170,9 @@ namespace ESPINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(mask, value);
   }
@@ -178,7 +183,9 @@ namespace ESPINA
   void RasterizedVolume<T>::draw(const typename T::Pointer volume)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(volume);
   }
@@ -189,7 +196,9 @@ namespace ESPINA
                                  const Bounds&             bounds)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(volume, bounds);
   }
@@ -200,7 +209,9 @@ namespace ESPINA
                                  const typename T::PixelType  value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(index, value);
   }
@@ -210,7 +221,9 @@ namespace ESPINA
   void RasterizedVolume<T>::resize(const Bounds &bounds)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::resize(bounds);
   }
@@ -220,10 +233,14 @@ namespace ESPINA
   bool RasterizedVolume<T>::isEmpty() const
   {
     if (!this->isValid())
+    {
       return true;
+    }
 
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::isEmpty();
   }
@@ -288,7 +305,7 @@ namespace ESPINA
     }
     m_rasterizationTime = mesh->GetMTime();
 
-    const_cast<RasterizedVolume<T> *>(this)->setBlock(image, false);
+    this->draw(image);
 
     this->m_mutex.unlock();
   }

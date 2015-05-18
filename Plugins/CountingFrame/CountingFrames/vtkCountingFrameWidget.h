@@ -22,9 +22,8 @@
 #ifndef VTKBOUNDINGFRAMEWIDGET_H
 #define VTKBOUNDINGFRAMEWIDGET_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "CountingFramePlugin_Export.h"
-
-#include <Core/Utils/NmVector3.h>
 
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>

@@ -39,7 +39,7 @@ int sparse_volume_load_edited_regions( int argc, char** argv )
 {
   bool error = false;
 
-  itkVolumeType::PixelType fg = 75;
+  itkVolumeType::PixelType fg = 255;
 
   Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
   SparseVolume<itkVolumeType> canvas(bounds);
@@ -128,15 +128,15 @@ int sparse_volume_load_edited_regions( int argc, char** argv )
 
     for (int i = 0; i < 2; ++i)
     {
-      auto restoedRegion = canvas.itkImage(regions[i]);
-      if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(restoedRegion, fg)) {
+      auto restoredRegion = canvas.itkImage(regions[i]);
+      if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(restoredRegion, fg)) {
         cerr << "Unexepected non fg voxel values on restored edited regions" << endl;
         error = true;
       }
     }
 
-    Bounds unredtoredBounds{-0.5, 3.5, -0.5, 3.5, 0.5, 2.5};
-    auto unrestoredRegion = canvas.itkImage(unredtoredBounds);
+    Bounds unresdtoredBounds{-0.5, 3.5, -0.5, 3.5, 0.5, 2.5};
+    auto unrestoredRegion = canvas.itkImage(unresdtoredBounds);
     if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(unrestoredRegion, SEG_BG_VALUE)) {
       cerr << "Unexepected non bg voxel values on non restored edited regions" << endl;
       error = true;

@@ -58,7 +58,7 @@ namespace ESPINA
   public:
     using Type = QString;
 
-    enum class Access { READ, WRITE};
+    enum class Access { READ, WRITE };
 
   public:
     /** \brief Data class constructor.
@@ -183,11 +183,6 @@ namespace ESPINA
      */
     bool isEdited() const
     { return !editedRegions().isEmpty(); }
-
-    /** \brief Undo last edition operation.
-     *
-     */
-    virtual void undo() = 0;
 
     /** \brief Return memory usage in bytes.
      *

@@ -20,8 +20,8 @@
 #ifndef ESPINA_REPRESENTATION_PIPELINE_H
 #define ESPINA_REPRESENTATION_PIPELINE_H
 
-#include <Core/Utils/NmVector3.h>
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Vector3.hxx>
 #include "RepresentationState.h"
 
 #include <QString>

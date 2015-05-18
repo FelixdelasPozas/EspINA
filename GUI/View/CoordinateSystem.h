@@ -18,8 +18,8 @@
 #ifndef ESPINA_GUI_VIEW_COORDINATE_SYSTEM_H
 #define ESPINA_GUI_VIEW_COORDINATE_SYSTEM_H
 
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/Vector3.hxx>
 #include <memory>
 
 namespace ESPINA

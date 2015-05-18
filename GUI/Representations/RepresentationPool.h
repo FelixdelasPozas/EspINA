@@ -20,7 +20,7 @@
 #ifndef ESPINA_REPRESENTATION_POOL_H
 #define ESPINA_REPRESENTATION_POOL_H
 
-#include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Representations/RangedValue.hxx>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"

@@ -28,9 +28,19 @@ namespace ESPINA
   : m_newROI   {nullptr}
   , m_toolGroup{toolsGroup}
   , m_mask     {mask}
+  , m_image    {nullptr}
   {
-    if(m_toolGroup->currentROI() == nullptr)
+    auto roi = m_toolGroup->currentROI();
+    if(roi == nullptr)
+    {
       m_newROI = ROISPtr{new ROI{mask}};
+    }
+    else
+    {
+      m_bounds = roi->bounds();
+      auto bounds = intersection(m_bounds, m_mask->bounds().bounds());
+      m_image = roi->itkImage(bounds);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -62,7 +72,9 @@ namespace ESPINA
     }
     else
     {
-      m_toolGroup->currentROI()->undo();
+      auto roi = m_toolGroup->currentROI();
+      roi->resize(m_bounds);
+      roi->draw(m_image);
     }
   }
 

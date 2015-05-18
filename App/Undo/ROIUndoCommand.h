@@ -27,6 +27,7 @@
 // Qt
 #include <QUndoStack>
 
+#include "Core/EspinaTypes.h"
 namespace ESPINA
 {
   class AddROIUndoCommand
@@ -52,6 +53,8 @@ namespace ESPINA
       ROISPtr                       m_newROI;
       RestrictToolGroup            *m_toolGroup;
       BinaryMaskSPtr<unsigned char> m_mask;
+      Bounds                        m_bounds;
+      itkVolumeType::Pointer        m_image;
   };
 
   class ClearROIUndoCommand

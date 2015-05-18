@@ -37,8 +37,6 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.hxx>
 
-#include <QReadWriteLock>
-
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkExtractImageFilter.h>
@@ -146,11 +144,6 @@ namespace ESPINA
      *
      */
     virtual void resize(const Bounds &bounds);
-
-    /** \brief Method to undo the last change made to the volume.
-     *
-     */
-    virtual void undo();
 
     virtual bool isValid() const;
 
@@ -522,12 +515,6 @@ namespace ESPINA
 //     }
 //
 //     this->setEditedRegions(restoredEditedRegions);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  void RawVolume<T>::undo()
-  {
   }
 
   //-----------------------------------------------------------------------------

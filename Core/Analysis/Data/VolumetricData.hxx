@@ -100,7 +100,7 @@ namespace ESPINA
      *
      */
     virtual void setBackgroundValue(const typename T::ValueType value)
-    {  m_bgValue = value; }
+    { m_bgValue = value; }
 
     /** \brief Return volume background value
      *

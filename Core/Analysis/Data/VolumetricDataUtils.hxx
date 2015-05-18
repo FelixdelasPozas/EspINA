@@ -34,6 +34,10 @@
 // ITK
 #include <itkExtractImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 namespace ESPINA
 {
@@ -141,6 +145,38 @@ namespace ESPINA
   {
     return number_of_pixels * sizeof(T) / 1024.0 / 1024.0;
   }
+
+  /** \brief Helper method to return an itk image iterator for a given image and region.
+   * \param[in] image itk image pointer.
+   * \param[in] bounds region to iterate.
+   *
+   */
+  template<typename T>
+  itk::ImageRegionIterator<T> itkImageRegionIterator(typename T::Pointer image, const Bounds &bounds);
+
+  /** \brief Helper method to return an itk image iterator for a given image and region.
+   * \param[in] image itk image pointer.
+   * \param[in] bounds region to iterate.
+   *
+   */
+  template<typename T>
+  itk::ImageRegionIteratorWithIndex<T> itkImageRegionIteratorWithIndex(typename T::Pointer image, const Bounds &bounds);
+
+  /** \brief Helper method to return an itk image iterator for a given image and region.
+   * \param[in] image itk image pointer.
+   * \param[in] bounds region to iterate.
+   *
+   */
+  template<typename T>
+  itk::ImageRegionConstIterator<T> itkImageRegionConstIterator(typename T::Pointer image, const Bounds &bounds);
+
+  /** \brief Helper method to return an itk image iterator for a given image and region.
+   * \param[in] image itk image pointer.
+   * \param[in] bounds region to iterate.
+   *
+   */
+  template<typename T>
+  itk::ImageRegionConstIteratorWithIndex<T> itkImageRegionConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds);
 }
 
 #include "Core/Analysis/Data/VolumetricDataUtils.cxx"

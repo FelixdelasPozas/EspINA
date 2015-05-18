@@ -32,32 +32,43 @@ using namespace ESPINA;
 DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<unsigned char> mask)
 : m_segmentation(seg)
 , m_mask(mask)
-, m_output(m_segmentation->output())
-, m_hasVolume(hasVolumetricData(m_output))
+, m_image{nullptr}
+, m_hasVolume(hasVolumetricData(seg->output()))
 {
+  if(m_hasVolume)
+  {
+    auto volume = readLockVolume(seg->output());
+    auto bounds = intersection(volume->bounds(), mask->bounds().bounds());
+
+    m_bounds = volume->bounds();
+    m_image  = volume->itkImage(bounds);
+  }
+  else
+  {
+    m_bounds = mask->bounds().bounds();
+    m_image  = mask->itkImage();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
+  auto output = m_segmentation->output();
+
   if (m_hasVolume)
   {
-    auto volume = writeLockVolume(m_output);
-
+    auto volume = writeLockVolume(output);
     SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
-    m_bounds = volume->bounds();
     expandAndDraw(volume, m_mask);
   }
   else
   {
-    m_bounds =  m_mask->bounds().bounds();
-    auto strokeSpacing = m_output->spacing();
-
+    auto strokeSpacing = m_segmentation->output()->spacing();
     auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_bounds, strokeSpacing);
-    volume->draw(m_mask);
+    volume->draw(m_image);
 
-    m_output->setData(volume);
-    m_output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_output.get()));
+    output->setData(volume);
+    output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
   }
 
   m_segmentation->invalidateRepresentations();
@@ -69,14 +80,13 @@ void DrawUndoCommand::undo()
   if (m_hasVolume)
   {
     auto volume = writeLockVolume(m_segmentation->output());
-
     SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
-    volume->undo();
+    volume->draw(m_image);
     volume->resize(m_bounds);
   }
   else
   {
-    m_output->removeData(VolumetricData<itkVolumeType>::TYPE);
+    m_segmentation->output()->removeData(VolumetricData<itkVolumeType>::TYPE);
   }
 
   m_segmentation->invalidateRepresentations();

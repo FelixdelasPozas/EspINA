@@ -26,11 +26,6 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
 
-// ITK
-#include <itkImageRegionConstIterator.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
@@ -213,4 +208,35 @@ namespace ESPINA
     return image;
   }
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  itk::ImageRegionIterator<T> itkImageIterator(typename T::Pointer image, const Bounds &bounds)
+  {
+    auto region = equivalentRegion<T>(image, bounds);
+    return itk::ImageRegionIterator<T>(image, region);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  itk::ImageRegionIteratorWithIndex<T> itkImageIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
+  {
+    auto region = equivalentRegion<T>(image, bounds);
+    return itk::ImageRegionIteratorWithIndex<T>(image, region);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  itk::ImageRegionConstIterator<T> itkImageConstIterator(typename T::Pointer image, const Bounds &bounds)
+  {
+    auto region = equivalentRegion<T>(image, bounds);
+    return itk::ImageRegionConstIterator<T>(image, region);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  itk::ImageRegionConstIteratorWithIndex<T> itkImageConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
+  {
+    auto region = equivalentRegion<T>(image, bounds);
+    return itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+  }
 } // namespace ESPINA

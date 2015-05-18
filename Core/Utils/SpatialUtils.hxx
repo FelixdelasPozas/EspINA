@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Core/Utils/Bounds.h>
-#include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Vector3.hxx>
 #include <Core/Utils/VolumeBounds.h>
 
 // VTK

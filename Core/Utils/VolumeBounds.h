@@ -29,11 +29,11 @@
 #ifndef ESPINA_VOLUME_BOUNDS_H
 #define ESPINA_VOLUME_BOUNDS_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
-#include "Core/Utils/NmVector3.h"
 #include "Bounds.h"
 
 // Qt

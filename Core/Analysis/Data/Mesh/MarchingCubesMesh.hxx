@@ -79,8 +79,6 @@ namespace ESPINA
 
     virtual NmVector3 spacing() const;
 
-    virtual void undo();
-
     virtual size_t memoryUsage() const;
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const override;
@@ -153,13 +151,6 @@ namespace ESPINA
   NmVector3 MarchingCubesMesh<T>::spacing() const
   {
     return m_output->spacing();
-  }
-
-  //----------------------------------------------------------------------------
-  template <typename T>
-  void MarchingCubesMesh<T>::undo()
-  {
-    // NOTE: ways to modify a mesh have not been implemented, so this is not allowed
   }
 
   //----------------------------------------------------------------------------

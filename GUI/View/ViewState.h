@@ -21,9 +21,9 @@
 #define ESPINA_VIEW_STATE_H
 
 // ESPINA
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Types.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <GUI/Utils/Timer.h>
