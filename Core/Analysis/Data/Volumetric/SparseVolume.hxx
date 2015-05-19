@@ -46,6 +46,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkMetaImageIO.h>
 #include <itkImageFileReader.h>
+#include <itkConstantPadImageFilter.h>
 
 // VTK
 #include <vtkImplicitFunction.h>
@@ -390,6 +391,11 @@ namespace ESPINA
 
         ++bit;
       }
+
+      if(value == SEG_BG_VALUE && isEmpty(index))
+      {
+        this->m_blocks.remove(index);
+      }
     }
 
     this->addEditedRegion(intersectionBounds);
@@ -618,6 +624,21 @@ namespace ESPINA
       {
         this->m_blocks.remove(index);
       }
+      else
+      {
+        auto block = this->m_blocks[index];
+        auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
+        auto blockIntersection = intersection(bounds, blockBounds);
+        auto region = equivalentRegion<T>(block, blockIntersection);
+        itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, region);
+        iit.GoToBegin();
+        while(!iit.IsAtEnd())
+        {
+          iit.Set(SEG_BG_VALUE);
+          ++iit;
+        }
+      }
+
     }
 
     this->updateModificationTime();
