@@ -221,8 +221,8 @@ namespace ESPINA
   }
 
 
-  using Nm = double;
-  using NmVector3 = Vector3<Nm>;
+  using Nm         = double;
+  using NmVector3  = Vector3<Nm>;
   using liVector3  = Vector3<long int>;
 }
 

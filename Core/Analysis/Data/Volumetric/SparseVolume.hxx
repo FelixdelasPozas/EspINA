@@ -111,7 +111,7 @@ namespace ESPINA
     virtual void setSpacing(const NmVector3& spacing);
 
     virtual NmVector3 spacing() const
-    { return this->m_spacing; }
+    { return m_spacing; }
 
     virtual const typename T::Pointer itkImage() const;
 
@@ -149,7 +149,7 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
 
   private:
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
@@ -210,11 +210,13 @@ namespace ESPINA
     { return QList<Data::Type>(); }
 
   protected:
+    using VolumetricData<T>::m_output;
+
     NmVector3    m_origin;
     NmVector3    m_spacing;
     VolumeBounds m_bounds;
 
-    static const int s_blockSize = 25; // initially blocks of 50x50x50 voxels =  125000 bytes per block.
+    const unsigned int s_blockSize = 25; // initially blocks of 50x50x50 voxels =  125000 bytes per block.
 
     QMap<liVector3, typename T::Pointer> m_blocks;
   };
@@ -226,7 +228,7 @@ namespace ESPINA
   , m_origin   {origin}
   , m_spacing  {spacing}
   {
-    this->m_bounds = VolumeBounds(bounds, this->m_spacing, this->m_origin);
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
 
     this->setBackgroundValue(0);
   }
@@ -245,14 +247,14 @@ namespace ESPINA
   template<typename T>
   size_t SparseVolume<T>::memoryUsage() const
   {
-    return std::pow(s_blockSize, 3) * this->m_blocks.size();
+    return std::pow(s_blockSize, 3) * m_blocks.size();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   Bounds SparseVolume<T>::bounds() const
   {
-    return this->m_bounds.bounds();
+    return m_bounds.bounds();
   }
 
   //-----------------------------------------------------------------------------
@@ -260,25 +262,25 @@ namespace ESPINA
   void SparseVolume<T>::setOrigin(const NmVector3& origin)
   {
     //NOTE: 2015-04-20 Review when tiling support added
-    //NmVector3 shift = this->m_origin - origin;
-    this->m_origin = origin;
+    //NmVector3 shift = m_origin - origin;
+    m_origin = origin;
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   NmVector3 SparseVolume<T>::origin() const
   {
-    return this->m_origin;
+    return m_origin;
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void SparseVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    if (this->m_spacing != spacing)
+    if (m_spacing != spacing)
     {
       auto itkSpacing = ItkSpacing<T>(spacing);
-      QMapIterator<liVector3, typename T::Pointer> it(this->m_blocks);
+      QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
       while(it.hasNext())
       {
         it.next();
@@ -286,11 +288,11 @@ namespace ESPINA
         it.value()->Update();
       }
 
-      this->m_spacing = spacing;
+      m_spacing = spacing;
 
-      auto region = equivalentRegion<T>(this->m_origin, spacing, this->m_bounds.bounds());
+      auto region = equivalentRegion<T>(m_origin, spacing, m_bounds.bounds());
 
-      this->m_bounds = volumeBounds<T>(this->m_origin, spacing, region);
+      m_bounds = volumeBounds<T>(m_origin, spacing, region);
     }
   }
 
@@ -298,7 +300,7 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage() const
   {
-    return itkImage(this->m_bounds.bounds());
+    return itkImage(m_bounds.bounds());
   }
 
   //-----------------------------------------------------------------------------
@@ -310,23 +312,23 @@ namespace ESPINA
       throw Invalid_Image_Bounds_Exception();
     }
 
-    VolumeBounds expectedBounds(bounds, this->m_spacing, this->m_origin);
+    VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
 
-    if (!contains(this->m_bounds, expectedBounds))
+    if (!contains(m_bounds, expectedBounds))
     {
-      qDebug() << this->m_bounds;
+      qDebug() << m_bounds;
       qDebug() << expectedBounds;
       throw Invalid_Image_Bounds_Exception();
     }
 
-    auto image = create_itkImage<T>(bounds, this->backgroundValue(), this->m_spacing, this->m_origin);
+    auto image = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
     auto affectedIndexes = toBlockIndexes(bounds);
 
     for(auto index: affectedIndexes)
     {
-      if(!this->m_blocks.contains(index)) continue;
+      if(!m_blocks.contains(index)) continue;
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
 
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto intersectionBounds = intersection(blockBounds, expectedBounds);
@@ -354,24 +356,24 @@ namespace ESPINA
                              const Bounds               &bounds,
                              const typename T::ValueType value)
   {
-    VolumeBounds requestedBounds(bounds, this->m_spacing, this->m_origin);
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(this->m_bounds, requestedBounds))
+    if (!intersect(m_bounds, requestedBounds))
     {
       return;
     }
 
-    auto intersectionBounds = intersection(this->m_bounds, requestedBounds).bounds();
+    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
     auto affectedIndexes = toBlockIndexes(intersectionBounds);
 
     for(auto index: affectedIndexes)
     {
-      if(!this->m_blocks.contains(index))
+      if(!m_blocks.contains(index))
       {
         createBlock(index);
       }
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
@@ -380,9 +382,9 @@ namespace ESPINA
       while(!bit.IsAtEnd())
       {
         auto index = bit.GetIndex();
-        NmVector3 point{index[0]*this->m_spacing[0] + this->m_spacing[0]/2,
-                        index[1]*this->m_spacing[1] + this->m_spacing[1]/2,
-                        index[2]*this->m_spacing[2] + this->m_spacing[2]/2};
+        NmVector3 point{index[0]*m_spacing[0] + m_spacing[0]/2,
+                        index[1]*m_spacing[1] + m_spacing[1]/2,
+                        index[2]*m_spacing[2] + m_spacing[2]/2};
 
         if (const_cast<vtkImplicitFunction *>(brush)->FunctionValue(point[0], point[1], point[2]) <= 0)
         {
@@ -394,7 +396,7 @@ namespace ESPINA
 
       if(value == SEG_BG_VALUE && isEmpty(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
     }
 
@@ -408,24 +410,24 @@ namespace ESPINA
   void SparseVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                              const typename T::ValueType value)
   {
-    VolumeBounds requestedBounds(mask->bounds(), this->m_spacing, this->m_origin);
+    VolumeBounds requestedBounds(mask->bounds(), m_spacing, m_origin);
 
-    if (!intersect(this->m_bounds, requestedBounds))
+    if (!intersect(m_bounds, requestedBounds))
     {
       return;
     }
 
-    auto intersectionBounds = intersection(this->m_bounds, requestedBounds).bounds();
+    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
     auto affectedIndexes = toBlockIndexes(intersectionBounds);
 
     for(auto index: affectedIndexes)
     {
-      if(!this->m_blocks.contains(index))
+      if(!m_blocks.contains(index))
       {
         createBlock(index);
       }
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
@@ -447,7 +449,7 @@ namespace ESPINA
 
       if(value == SEG_BG_VALUE && isEmpty(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
     }
 
@@ -461,23 +463,23 @@ namespace ESPINA
   {
     Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
-    VolumeBounds requestedBounds(bounds, this->m_spacing, this->m_origin);
-    if (!intersect(this->m_bounds, requestedBounds))
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
+    if (!intersect(m_bounds, requestedBounds))
     {
       return;
     }
 
-    auto intersectionBounds = intersection(this->m_bounds, requestedBounds).bounds();
+    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
     auto affectedIndexes = toBlockIndexes(intersectionBounds);
 
     for(auto index: affectedIndexes)
     {
-      if(!this->m_blocks.contains(index))
+      if(!m_blocks.contains(index))
       {
         createBlock(index);
       }
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
@@ -496,7 +498,7 @@ namespace ESPINA
 
       if(isEmpty(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
     }
 
@@ -509,24 +511,24 @@ namespace ESPINA
   void SparseVolume<T>::draw(const typename T::Pointer image,
                              const Bounds&             bounds)
   {
-    VolumeBounds requestedBounds(bounds, this->m_spacing, this->m_origin);
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(this->m_bounds, requestedBounds))
+    if (!intersect(m_bounds, requestedBounds))
     {
       return;
     }
 
-    auto intersectionBounds = intersection(this->m_bounds, requestedBounds).bounds();
+    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
     auto affectedIndexes = toBlockIndexes(intersectionBounds);
 
     for(auto index: affectedIndexes)
     {
-      if(!this->m_blocks.contains(index))
+      if(!m_blocks.contains(index))
       {
         createBlock(index);
       }
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
@@ -545,7 +547,7 @@ namespace ESPINA
 
       if(isEmpty(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
     }
 
@@ -558,9 +560,9 @@ namespace ESPINA
   void SparseVolume<T>::draw(const typename T::IndexType &index,
                              const typename T::ValueType  value)
   {
-    Bounds bounds { index[0] * this->m_spacing[0], index[0] * this->m_spacing[0],
-                    index[1] * this->m_spacing[1], index[1] * this->m_spacing[1],
-                    index[2] * this->m_spacing[2], index[2]	* this->m_spacing[2] };
+    Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
+                    index[1] * m_spacing[1], index[1] * m_spacing[1],
+                    index[2] * m_spacing[2], index[2]	* m_spacing[2] };
 
     draw(bounds, value);
   }
@@ -570,24 +572,24 @@ namespace ESPINA
   void SparseVolume<T>::draw(const Bounds               &bounds,
                              const typename T::ValueType value)
   {
-    VolumeBounds requestedBounds(bounds, this->m_spacing, this->m_origin);
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(this->m_bounds, requestedBounds))
+    if (!intersect(m_bounds, requestedBounds))
     {
       return;
     }
 
-    auto intersectionBounds = intersection(this->m_bounds, requestedBounds).bounds();
+    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
     auto affectedIndexes = toBlockIndexes(intersectionBounds);
 
     for (auto index : affectedIndexes)
     {
-      if (!this->m_blocks.contains(index))
+      if (!m_blocks.contains(index))
       {
         createBlock(index);
       }
 
-      auto block = this->m_blocks[index];
+      auto block = m_blocks[index];
       auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
@@ -603,7 +605,7 @@ namespace ESPINA
 
       if (value == SEG_BG_VALUE && isEmpty(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
     }
 
@@ -615,28 +617,28 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::resize(const Bounds &bounds)
   {
-    this->m_bounds = VolumeBounds(bounds, this->m_spacing, this->m_origin);
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
     auto affectedIndexes = toBlockIndexes(bounds);
 
-    for(auto index: this->m_blocks.keys())
+    for(auto index: m_blocks.keys())
     {
       if(!affectedIndexes.contains(index))
       {
-        this->m_blocks.remove(index);
+        m_blocks.remove(index);
       }
       else
       {
-        auto block = this->m_blocks[index];
-        auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-        auto blockIntersection = intersection(bounds, blockBounds);
-        auto region = equivalentRegion<T>(block, blockIntersection);
-        itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, region);
-        iit.GoToBegin();
-        while(!iit.IsAtEnd())
-        {
-          iit.Set(SEG_BG_VALUE);
-          ++iit;
-        }
+//         auto block = m_blocks[index];
+//         auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
+//         auto blockIntersection = intersection(bounds, blockBounds);
+//         auto region = equivalentRegion<T>(block, blockIntersection);
+//         itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, region);
+//         iit.GoToBegin();
+//         while(!iit.IsAtEnd())
+//         {
+//           iit.Set(SEG_BG_VALUE);
+//           ++iit;
+//         }
       }
 
     }
@@ -648,12 +650,12 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isValid() const
   {
-    return this->m_bounds.areValid();
+    return m_bounds.areValid();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
@@ -664,12 +666,12 @@ namespace ESPINA
     int i = 0;
     QFileInfo blockFile;
 
-    auto output  = this->m_output;
+    Q_ASSERT(m_output);
 
-    if (nullptr == output)
-    {
-      qWarning() << "Sparse Volume Fetch Data without output";
-    }
+    m_spacing = m_output->spacing();
+
+    // Bounds need to be updated before any possible drawing with invalid bounds
+    m_bounds = volumeBounds<T>(m_origin, m_spacing, bounds);
 
     if (!storage || path.isEmpty() || id.isEmpty()) return false;
 
@@ -682,10 +684,6 @@ namespace ESPINA
       if (blockFile.exists()) break;
     }
 
-    if (output)
-    {
-      this->m_spacing = output->spacing();
-    }
 
     while (blockFile.exists())
     {
@@ -694,27 +692,12 @@ namespace ESPINA
       reader->Update();
 
       auto image = reader->GetOutput();
+      image->SetSpacing(ItkSpacing<T>(m_spacing));
 
-      if (this->m_spacing == NmVector3() || output == nullptr)
-      {
-        for(int s=0; s < 3; ++s)
-        {
-          this->m_spacing[s] = image->GetSpacing()[s];
-        }
-
-        if (output)
-        {
-          output->setSpacing(this->m_spacing);
-        }
-      }
-      else
-      {
-        image->SetSpacing(ItkSpacing<T>(this->m_spacing));
-      }
-
-      auto bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+      auto bounds      = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
       auto blockRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
-      auto size = blockRegion.GetSize();
+
+      auto size  = blockRegion.GetSize();
       auto index = blockRegion.GetIndex();
 
       if((size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
@@ -743,7 +726,7 @@ namespace ESPINA
   {
     Snapshot snapshot;
 
-    QMapIterator<liVector3, typename T::Pointer> it(this->m_blocks);
+    QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
     int i = 0;
     while(it.hasNext())
     {
@@ -806,7 +789,7 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isEmpty() const
   {
-    return (!isValid() || this->m_blocks.isEmpty());
+    return (!isValid() || m_blocks.isEmpty());
   }
 
   //-----------------------------------------------------------------------------
@@ -880,14 +863,14 @@ namespace ESPINA
     bounds.setLowerInclusion(true);
     bounds.setUpperInclusion(false);
 
-    this->m_blocks[index] = create_itkImage<T>(bounds, this->backgroundValue(), this->m_spacing, this->m_origin);
+    m_blocks[index] = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   bool SparseVolume<T>::isEmpty(const liVector3 &index) const
   {
-    auto block  = this->m_blocks[index];
+    auto block  = m_blocks[index];
     auto region = block->GetLargestPossibleRegion();
     auto it     = itk::ImageRegionIterator<T>(block, region);
     it.GoToBegin();

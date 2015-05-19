@@ -80,7 +80,7 @@ int sparse_volume_load_edited_regions( int argc, char** argv )
       }
     }
 
-    TemporalStorageSPtr storage{new TemporalStorage()};
+    auto storage = std::make_shared<TemporalStorage>();
 
     auto editedRegionSnapshots = canvas.editedRegionsSnapshot(storage, "sparse", "0");
 

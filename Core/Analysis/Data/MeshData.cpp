@@ -54,7 +54,7 @@ Bounds MeshData::bounds() const
 }
 
 //----------------------------------------------------------------------------
-bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const Bounds &bounds)
 {
   bool dataFetched = false;
 
@@ -94,7 +94,7 @@ Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, co
 //----------------------------------------------------------------------------
 DataSPtr MeshData::createProxy() const
 {
-  return DataSPtr{ new MeshProxy() };
+  return std::make_shared<MeshProxy>();
 }
 
 //----------------------------------------------------------------------------

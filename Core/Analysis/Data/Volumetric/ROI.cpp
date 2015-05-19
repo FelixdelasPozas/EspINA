@@ -104,24 +104,20 @@ ROISPtr ROI::clone() const
 }
 
 //-----------------------------------------------------------------------------
-bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
 {
   auto volumeBounds = temporalStorageBoundsId(m_path, m_id);
 
-  m_isRectangular = m_storage->exists(volumeBounds);
+  Q_ASSERT(m_storage->exists(volumeBounds));
 
-  if (m_isRectangular)
-  {
-    m_bounds  = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
-    m_origin  = m_bounds.origin();
-    m_spacing = m_bounds.spacing();
+  m_bounds  = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
+  m_origin  = m_bounds.origin();
+  m_spacing = m_bounds.spacing();
 
-    return true;
-  }
-  else
-  {
-    return SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id);
-  }
+  // NOTE: ROIs saved as snapshots don't provide bound information as fetch context
+  m_isRectangular = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id, m_bounds);
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -129,11 +125,9 @@ Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const Q
 {
   Snapshot snapshot;
 
-  if (isOrthogonal())
-  {
-    snapshot << SnapshotData(temporalStorageBoundsId(path, id), serializeVolumeBounds(m_bounds));
-  }
-  else
+  snapshot << SnapshotData(temporalStorageBoundsId(path, id), serializeVolumeBounds(m_bounds));
+
+  if (!isOrthogonal())
   {
     snapshot << SparseVolume<itkVolumeType>::snapshot(storage, path, temporalStorageId(id));
   }

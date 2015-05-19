@@ -95,7 +95,7 @@ namespace ESPINA
 
     virtual QList<Data::Type> updateDependencies() const override;
 
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
 
     Output *m_output;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
@@ -119,9 +119,9 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
-    return MeshData::fetchDataImplementation(storage, path, id);
+    return MeshData::fetchDataImplementation(storage, path, id, bounds);
   }
 
 

@@ -203,7 +203,7 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
   {
     m_ROI = std::make_shared<ROI>(Bounds(),NmVector3(), NmVector3());
 
-    m_ROI->setFetchContext(storage(), prefix(), roiId());
+    m_ROI->setFetchContext(storage(), prefix(), roiId(), Bounds());
 
     if (!m_ROI->fetchData())
     {

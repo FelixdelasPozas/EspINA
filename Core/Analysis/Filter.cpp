@@ -153,7 +153,7 @@ void Filter::update()
     }
     else
     {
-      restoreEditedRegions();
+       restoreEditedRegions();
     }
   }
 }

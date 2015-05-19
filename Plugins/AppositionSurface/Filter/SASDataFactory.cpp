@@ -30,8 +30,9 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeshDataSPtr SASDataFactory::fetchMeshData(OutputSPtr          output,
-                                                TemporalStorageSPtr storage,
-                                                const QString      &path)
+                                             TemporalStorageSPtr storage,
+                                             const QString      &path,
+                                             const Bounds       &bounds)
   {
     MeshDataSPtr data;
 
@@ -39,7 +40,7 @@ namespace ESPINA
     {
       data = std::make_shared<RawMesh>();
 
-      data->setFetchContext(storage, path, QString::number(output->id()));
+      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
       output->setData(data);
 
 //         // update filter values to avoid unnecessary calls to update().

@@ -41,5 +41,5 @@ DummyFilter::DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr sche
 //------------------------------------------------------------------------
 DataSPtr DummyData::createProxy() const
 {
-  return DataSPtr{new DummyDataProxy()};
+  return std::make_shared<DummyDataProxy>();
 }

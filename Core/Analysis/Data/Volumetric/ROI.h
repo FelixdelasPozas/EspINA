@@ -82,33 +82,18 @@ namespace ESPINA
        */
       template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
 
-      /** \brief Overrides SparseVolume<T>::draw(vtkImplicitFunction, Bounds, T::valueType)
-       *
-       */
       void draw(const vtkImplicitFunction*     brush,
                 const Bounds&                  bounds,
                 const itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
-      /** \brief Overrides SparseVolume<T>::draw(BinaryMaskSPtr, T:ValueType)
-       *
-       */
       void draw(const BinaryMaskSPtr<unsigned char> mask,
                 const itkVolumeType::ValueType      value = SEG_VOXEL_VALUE) override;
 
-      /** \brief Overrides SparseVolume::draw(T::Pointer)
-       *
-       */
       void draw(const typename itkVolumeType::Pointer volume) override;
 
-      /** \brief Overrides SparseVolume::draw(T::Pointer, bounds)
-       *
-       */
       void draw(const typename itkVolumeType::Pointer volume,
                 const Bounds&                         bounds) override;
 
-      /** \brief Overrides SparseVolume::draw(T::IndexType, T::ValueType)
-       *
-       */
       void draw(const typename itkVolumeType::IndexType &index,
                 const typename itkVolumeType::ValueType  value = SEG_VOXEL_VALUE) override;
 
@@ -116,7 +101,7 @@ namespace ESPINA
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
 
   private:
     QString temporalStorageId(const QString &id) const
