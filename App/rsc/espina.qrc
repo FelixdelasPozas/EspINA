@@ -87,12 +87,12 @@
     <file>to_slice.svg</file>
     <file>pixelSelector.svg</file>
     <file>roi_go.svg</file>
-    <file>voi_brush2D.svg</file>
-    <file>voi_brush3D.svg</file>
-    <file>voi_brush2D-erase.svg</file>
-    <file>voi_brush3D-erase.svg</file>
+    <file>roi_brush2D.svg</file>
+    <file>roi_brush3D.svg</file>
+    <file>roi_brush2D-erase.svg</file>
+    <file>roi_brush3D-erase.svg</file>
     <file>roi_out.svg</file>
-    <file>voi.svg</file>
+    <file>roi.svg</file>
     <file>zoom_cursor.png</file>
     <file>segmentations_switch.svg</file>
     <file>segmentations_slice_switch.svg</file>
@@ -114,8 +114,8 @@
     <file>slice.png</file>
     <file>contour.png</file>
     <file>measure3D.png</file>
-    <file>voi_brush.svg</file>
-    <file>voi_clean.svg</file>
+    <file>roi_brush.svg</file>
+    <file>roi_clean.svg</file>
     <file>database.png</file>
     <file>skelCreate.png</file>
     <file>skelModify.png</file>

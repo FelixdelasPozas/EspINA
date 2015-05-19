@@ -30,6 +30,7 @@
 #include <vtkTubeFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::ROI;
 
 //-----------------------------------------------------------------------------
 ROIWidget::ROIWidget(ROISPtr roi)
@@ -37,120 +38,55 @@ ROIWidget::ROIWidget(ROISPtr roi)
 , m_color{Qt::yellow}
 {
   connect(m_ROI.get(), SIGNAL(dataChanged()),
-          this,        SLOT(updateROIRepresentations()), Qt::QueuedConnection);
+          this,        SLOT(onROIChanged()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
-ROIWidget::~ROIWidget()
+void ROIWidget::setPlane(Plane plane)
 {
-  disconnect(m_ROI.get(), SIGNAL(dataChanged()),
-             this,        SLOT(updateROIRepresentations()));
 
-  m_representations.clear();
-}
-
-//----------------------------------------------------------------------------
-void ROIWidget::updateActor(View2D *view)
-{
-  auto bounds = m_ROI->bounds();
-  auto index  = normalCoordinateIndex(view->plane());
-  auto pos    = view->crosshair()[index];
-
-  bounds[2 * index] = bounds[(2 * index) + 1] = pos;
-
-  bounds.setUpperInclusion(toAxis(index), true);
-
-  if (!intersect(m_ROI->bounds(), bounds))
-  {
-    if(m_representations[view].actor != nullptr)
-    {
-      m_representations[view].actor->SetVisibility(false);
-      view->refresh();
-    }
-    return;
-  }
-
-  auto image = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
-
-  if(m_representations[view].actor == nullptr)
-  {
-    m_representations[view].contour = vtkSmartPointer<vtkVoxelContour2D>::New();
-    m_representations[view].contour->SetInputData(image);
-    m_representations[view].contour->UpdateWholeExtent();
-
-    m_representations[view].mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_representations[view].mapper->SetInputConnection(m_representations[view].contour->GetOutputPort());
-    m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
-    m_representations[view].mapper->SetColorModeToDefault();
-    m_representations[view].mapper->ScalarVisibilityOff();
-    m_representations[view].mapper->StaticOff();
-    m_representations[view].mapper->UpdateWholeExtent();
-
-    m_representations[view].actor = vtkSmartPointer<vtkActor>::New();
-    m_representations[view].actor->SetMapper(m_representations[view].mapper);
-    m_representations[view].actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
-    m_representations[view].actor->GetProperty()->SetOpacity(1);
-    m_representations[view].actor->GetProperty()->Modified();
-    m_representations[view].actor->SetVisibility(true);
-    m_representations[view].actor->SetDragable(false);
-    m_representations[view].actor->Modified();
-
-    double position[3];
-    m_representations[view].actor->GetPosition(position);
-    position[index] += view->widgetDepth();
-    m_representations[view].actor->SetPosition(position);
-
-    //TODO view->addActor(m_representations[view].actor);
-  }
-  else
-  {
-    m_representations[view].contour->SetInputData(image);
-    m_representations[view].contour->SetUpdateExtent(image->GetExtent());
-    m_representations[view].contour->Update();
-
-    m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
-    m_representations[view].mapper->Update();
-
-    m_representations[view].actor->SetVisibility(true);
-    m_representations[view].actor->Modified();
-  }
-
-  view->refresh();
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::registerView(RenderView* view)
+void ROIWidget::setRepresentationDepth(Nm depth)
 {
-  auto view2d = dynamic_cast<View2D *>(view);
 
-  if(!view2d || m_representations.contains(view2d)) return;
-
-  connect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
-          this,   SLOT(sliceChanged(Plane, Nm)));
-
-  updateActor(view2d);
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::unregisterView(RenderView* view)
+Widgets::EspinaWidget2DSPtr ROIWidget::clone()
 {
-  auto view2d = dynamic_cast<View2D *>(view);
 
-  if(!view2d || !m_representations.contains(view2d)) return;
-
-  disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
-
-  // TODO view2d->removeActor(m_representations[view2d].actor);
-  m_representations.remove(view2d);
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::setEnabled(bool enable)
+bool ROIWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  for(auto pipeline: m_representations)
-  {
-    pipeline.actor->SetVisibility(enable);
-  }
+
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::initializeImplementation(RenderView *view)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::uninitializeImplementation()
+{
+
+}
+
+//-----------------------------------------------------------------------------
+vtkAbstractWidget *ROIWidget::vtkWidget()
+{
+
 }
 
 //-----------------------------------------------------------------------------
@@ -160,35 +96,89 @@ void ROIWidget::setColor(const QColor& color)
   {
     m_color = color;
 
-    for (auto pipeline : m_representations)
-    {
-      auto actorProp = pipeline.actor->GetProperty();
-      actorProp->SetColor(color.redF(), color.greenF(), color.blueF());
-    }
+    auto actorProp = m_actor->GetProperty();
+    actorProp->SetColor(color.redF(), color.greenF(), color.blueF());
   }
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::sliceChanged(Plane plane, Nm pos)
+void ROIWidget::setCrosshair(const NmVector3 &crosshair)
 {
-  auto rView = qobject_cast<View2D *>(sender());
-
-  for(auto view: m_representations.keys())
-  {
-    if(view == rView)
-    {
-      updateActor(view);
-      return;
-    }
-  }
 }
+
 
 //----------------------------------------------------------------------------
-void ROIWidget::updateROIRepresentations()
+void ROIWidget::onROIChanged()
 {
-  for(auto view: m_representations.keys())
-  {
-    updateActor(view);
-  }
+  updateActor(nullptr);
 }
 
+
+//----------------------------------------------------------------------------
+void ROIWidget::updateActor(RenderView *view)
+{
+//   auto bounds = m_ROI->bounds();
+//   auto index  = normalCoordinateIndex(view->plane());
+//   auto pos    = view->crosshair()[index];
+//
+//   bounds[2 * index] = bounds[(2 * index) + 1] = pos;
+//
+//   bounds.setUpperInclusion(toAxis(index), true);
+//
+//   if (!intersect(m_ROI->bounds(), bounds))
+//   {
+//     if(m_representations[view].actor != nullptr)
+//     {
+//       m_representations[view].actor->SetVisibility(false);
+//       view->refresh();
+//     }
+//     return;
+//   }
+//
+//   auto image = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
+//
+//   if(m_representations[view].actor == nullptr)
+//   {
+//     m_representations[view].contour = vtkSmartPointer<vtkVoxelContour2D>::New();
+//     m_representations[view].contour->SetInputData(image);
+//     m_representations[view].contour->UpdateWholeExtent();
+//
+//     m_representations[view].mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+//     m_representations[view].mapper->SetInputConnection(m_representations[view].contour->GetOutputPort());
+//     m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
+//     m_representations[view].mapper->SetColorModeToDefault();
+//     m_representations[view].mapper->ScalarVisibilityOff();
+//     m_representations[view].mapper->StaticOff();
+//     m_representations[view].mapper->UpdateWholeExtent();
+//
+//     m_representations[view].actor = vtkSmartPointer<vtkActor>::New();
+//     m_representations[view].actor->SetMapper(m_representations[view].mapper);
+//     m_representations[view].actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
+//     m_representations[view].actor->GetProperty()->SetOpacity(1);
+//     m_representations[view].actor->GetProperty()->Modified();
+//     m_representations[view].actor->SetVisibility(true);
+//     m_representations[view].actor->SetDragable(false);
+//     m_representations[view].actor->Modified();
+//
+//     double position[3];
+//     m_representations[view].actor->GetPosition(position);
+//     position[index] += view->widgetDepth();
+//     m_representations[view].actor->SetPosition(position);
+//
+//     //TODO view->addActor(m_representations[view].actor);
+//   }
+//   else
+//   {
+//     m_representations[view].contour->SetInputData(image);
+//     m_representations[view].contour->SetUpdateExtent(image->GetExtent());
+//     m_representations[view].contour->Update();
+//
+//     m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
+//     m_representations[view].mapper->Update();
+//
+//     m_representations[view].actor->SetVisibility(true);
+//     m_representations[view].actor->Modified();
+//   }
+//
+//   view->refresh();
+}

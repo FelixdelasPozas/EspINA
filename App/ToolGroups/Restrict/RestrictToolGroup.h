@@ -24,7 +24,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/EspinaWidget2.h>
 #include <Support/ROIProvider.h>
 #include <Support/Context.h>
 #include <ToolGroups/ToolGroup.h>
@@ -101,7 +101,7 @@ namespace ESPINA
     /** \brief Updates ROI accumulator when a new ROI is defined
      *
      */
-    void onManualROIDefined(Selector::Selection strokes);
+    void onManualROIDefined(BinaryMaskSPtr<unsigned char> roi);
 
     void onOrthogonalROIDefined(ROISPtr roi);
 
@@ -124,10 +124,11 @@ namespace ESPINA
     using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
     using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
+    using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
 
     Support::Context &m_context;
 
-//     ManualROIToolSPtr     m_manualROITool;
+    ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
 
@@ -135,8 +136,8 @@ namespace ESPINA
     bool   m_visible;
     QColor m_color;
 
-    ROISPtr          m_accumulator;
-    EspinaWidgetSPtr m_accumulatorWidget;
+    ROISPtr           m_accumulator;
+    WidgetFactorySPtr m_widgetFactory;
   };
 
 } // namespace ESPINA

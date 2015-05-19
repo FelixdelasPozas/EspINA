@@ -23,7 +23,7 @@
 
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "CleanROITool.h"
-// #include "ManualROITool.h"
+#include "ManualROITool.h"
 #include "OrthogonalROITool.h"
 #include <Undo/ROIUndoCommand.h>
 
@@ -80,8 +80,8 @@ public:
 private:
   const BinaryMaskSPtr<unsigned char> m_mask;
   RestrictToolGroup *m_tool;
-  ROISPtr        m_oROI;
-  bool           m_firstROI;
+  ROISPtr            m_oROI;
+  bool               m_firstROI;
 };
 
 //-----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
                                      Support::Context &context)
 : ToolGroup          {":/espina/toolgroup_restrict.svg", tr("Restrict")}
 , m_context          (context)
-// , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
+, m_manualROITool    {new ManualROITool(context, this)}
 , m_ortogonalROITool {new OrthogonalROITool(settings, context, this)}
 , m_cleanROITool     {new CleanROITool(context, this)}
 , m_enabled          {true}
@@ -141,10 +141,11 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
   setColor(m_color);
 
   addTool(m_ortogonalROITool);
+  addTool(m_manualROITool);
   addTool(m_cleanROITool);
 
-//   connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
-//           this,                     SLOT(onManualROIDefined(Selector::Selection)));
+  connect(m_manualROITool.get(),    SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
+          this,                     SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
   connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
           this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
 }
@@ -218,7 +219,7 @@ void RestrictToolGroup::setColor(const QColor& color)
 {
   m_color = color;
 
-//   m_manualROITool->setColor(color)
+  m_manualROITool->setColor(color);
   m_ortogonalROITool->setColor(color);
 }
 
@@ -254,11 +255,11 @@ void RestrictToolGroup::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void RestrictToolGroup::onManualROIDefined(Selector::Selection strokes)
+void RestrictToolGroup::onManualROIDefined(BinaryMaskSPtr<unsigned char> roi)
 {
   commitPendingOrthogonalROI(nullptr);
 
-  undoStackPush(new DefineManualROICommand{strokes.first().first, this});
+  undoStackPush(new DefineManualROICommand{roi, this});
 
   m_context.roiProvider()->setProvider(this);
 }

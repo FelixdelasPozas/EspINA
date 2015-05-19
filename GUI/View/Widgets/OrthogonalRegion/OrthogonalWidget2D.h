@@ -58,7 +58,6 @@ namespace ESPINA
 
             virtual EspinaWidget2DSPtr clone() override;
 
-          protected:
             virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
             virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;
