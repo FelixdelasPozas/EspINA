@@ -114,7 +114,6 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
   m_origin  = m_bounds.origin();
   m_spacing = m_bounds.spacing();
 
-  // NOTE: ROIs saved as snapshots don't provide bound information as fetch context
   m_isRectangular = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id, m_bounds);
 
   return true;

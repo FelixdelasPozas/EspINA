@@ -628,17 +628,24 @@ namespace ESPINA
       }
       else
       {
-//         auto block = m_blocks[index];
-//         auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-//         auto blockIntersection = intersection(bounds, blockBounds);
-//         auto region = equivalentRegion<T>(block, blockIntersection);
-//         itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, region);
-//         iit.GoToBegin();
-//         while(!iit.IsAtEnd())
-//         {
-//           iit.Set(SEG_BG_VALUE);
-//           ++iit;
-//         }
+         auto block = m_blocks[index];
+         auto blockRegion = block->GetLargestPossibleRegion();
+         auto blockBounds = equivalentBounds<T>(block, blockRegion);
+         auto blockIntersection = intersection(bounds, blockBounds);
+
+         // if the block is completely inside the new bounds there is no need to delete anything
+         if(blockIntersection == blockBounds) continue;
+
+         // clear voxels outside the new bounds
+         auto validRegion = equivalentRegion<T>(block, blockIntersection);
+         itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, blockRegion);
+         iit.SetExclusionRegion(validRegion);
+         iit.GoToBegin();
+         while(!iit.IsAtEnd())
+         {
+           iit.Set(SEG_BG_VALUE);
+           ++iit;
+         }
       }
 
     }
@@ -666,7 +673,11 @@ namespace ESPINA
     int i = 0;
     QFileInfo blockFile;
 
-    Q_ASSERT(m_output);
+    if(!m_output)
+    {
+      // TODO: this avoids ROI crashes when doing their fetchDataImpl.
+      return false;
+    }
 
     m_spacing = m_output->spacing();
 
@@ -684,7 +695,6 @@ namespace ESPINA
       if (blockFile.exists()) break;
     }
 
-
     while (blockFile.exists())
     {
       VolumeReader::Pointer reader = VolumeReader::New();
@@ -693,18 +703,19 @@ namespace ESPINA
 
       auto image = reader->GetOutput();
       image->SetSpacing(ItkSpacing<T>(m_spacing));
+      image->Update();
 
       auto bounds      = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
       auto blockRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
 
       auto size  = blockRegion.GetSize();
       auto index = blockRegion.GetIndex();
+      auto key   = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
-      if((size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
-         (index[0] % s_blockSize == 0) && (index[1] % s_blockSize == 0) && (index[2] % s_blockSize == 0))
+      if (!m_blocks.contains(key) &&
+          (size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
+          (index[0] % s_blockSize == 0) && (index[1] % s_blockSize == 0) && (index[2] % s_blockSize == 0))
       {
-        auto key = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
-        Q_ASSERT(!m_blocks.contains(key));
         m_blocks[key] = image;
       }
       else
