@@ -35,6 +35,7 @@
 #include <QAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
@@ -42,7 +43,7 @@ using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 //----------------------------------------------------------------------------
 SelectionMeasureTool::SelectionMeasureTool(GUI::View::ViewState &viewState)
 : m_viewState(viewState)
-, m_factory  {new WidgetFactory(std::make_shared<Widget2D>(viewState.selection()), std::make_shared<Widget3D>(viewState.selection()))}
+, m_factory  {new TemporalPrototypes(std::make_shared<Widget2D>(viewState.selection()), std::make_shared<Widget3D>(viewState.selection()))}
 , m_action   {Tool::createAction(":/espina/measure3D.png", tr("Measure Selection"),this) }
 {
   m_action->setCheckable(true);
@@ -77,11 +78,11 @@ void SelectionMeasureTool::onToolActivated(bool value)
 {
   if (value)
   {
-    m_viewState.addWidgets(m_factory);
+    m_viewState.addTemporalRepresentations(m_factory);
   }
   else
   {
-    m_viewState.removeWidgets(m_factory);
+    m_viewState.removeTemporalRepresentations(m_factory);
   }
 }
 

@@ -30,6 +30,7 @@
 #include <vtkTubeFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::ROI;
 
 //-----------------------------------------------------------------------------
@@ -54,9 +55,8 @@ void ROIWidget::setRepresentationDepth(Nm depth)
 }
 
 //-----------------------------------------------------------------------------
-Widgets::EspinaWidget2DSPtr ROIWidget::clone()
+TemporalRepresentation2DSPtr ROIWidget::clone()
 {
-
 }
 
 //-----------------------------------------------------------------------------

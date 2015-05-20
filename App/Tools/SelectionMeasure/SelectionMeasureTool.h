@@ -26,7 +26,6 @@
 
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 
 namespace ESPINA
 {
@@ -59,11 +58,11 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled);
 
   private:
-    using ViewState         = GUI::View::ViewState;
-    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
+    using ViewState              = GUI::View::ViewState;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     ViewState        &m_viewState;
-    WidgetFactorySPtr m_factory;
+    TemporalPrototypesSPtr m_factory;
     QAction          *m_action;
   };
 } // namespace ESPINA

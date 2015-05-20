@@ -18,7 +18,7 @@ EspinaWidget::~EspinaWidget()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaWidget::initialize(RenderView *view)
+void EspinaWidget::initializeWidget(RenderView *view)
 {
   auto widget     = vtkWidget();
   auto renderer   = view->mainRenderer();
@@ -31,7 +31,7 @@ void EspinaWidget::initialize(RenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaWidget::uninitialize()
+void EspinaWidget::uninitializeWidget()
 {
   auto widget = vtkWidget();
 
@@ -42,7 +42,7 @@ void EspinaWidget::uninitialize()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaWidget::show()
+void EspinaWidget::showWidget()
 {
   auto widget = vtkWidget();
 
@@ -50,7 +50,7 @@ void EspinaWidget::show()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaWidget::hide()
+void EspinaWidget::hideWidget()
 {
   auto widget = vtkWidget();
 
@@ -58,7 +58,7 @@ void EspinaWidget::hide()
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaWidget::isEnabled()
+bool EspinaWidget::isWidgetEnabled()
 {
   return vtkWidget()->GetEnabled();
 }

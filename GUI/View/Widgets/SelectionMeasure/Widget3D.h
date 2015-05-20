@@ -44,7 +44,7 @@ namespace ESPINA
           public:
             explicit Widget3D(SelectionSPtr selection);
 
-            virtual EspinaWidget3DSPtr clone();
+            virtual Representations::Managers::TemporalRepresentation3DSPtr clone();
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;

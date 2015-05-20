@@ -319,16 +319,20 @@ namespace ESPINA
 
     virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
 
-    void onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+    void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
 
-    void onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+    void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
 
     void onRenderRequest();
 
   protected:
+    using TemporalPrototypesSPtr     = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    using RepresentationManagerSPtr  = GUI::Representations::RepresentationManagerSPtr;
+    using RepresentationManagerSList = GUI::Representations::RepresentationManagerSList;
+
     ContextualMenuSPtr         m_contextMenu;
     QVTKWidget                *m_view;
-    GUI::Representations::RepresentationManagerSList m_managers;
+    RepresentationManagerSList m_managers;
 
   private:
     GUI::View::ViewState &m_state;
@@ -340,7 +344,7 @@ namespace ESPINA
     bool          m_requiresFocusChange;
     bool          m_requiresRender;
     TimeStamp     m_lastRender;
-    QMap<GUI::View::Widgets::WidgetFactorySPtr, GUI::Representations::RepresentationManagerSPtr> m_widgetManagers;
+    QMap<TemporalPrototypesSPtr, RepresentationManagerSPtr> m_temporalManagers;
 
   };
 

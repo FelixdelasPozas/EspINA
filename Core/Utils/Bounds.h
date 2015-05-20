@@ -288,5 +288,4 @@ namespace ESPINA
   bool EspinaCore_EXPORT areAdjacent(const Bounds &lhs, const Bounds &rhs);
 }
 
-
 #endif // ESPINA_BOUNDS_H

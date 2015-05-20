@@ -56,7 +56,7 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual EspinaWidget2DSPtr clone() override;
+            virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
             virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 

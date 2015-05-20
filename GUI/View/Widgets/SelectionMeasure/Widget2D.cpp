@@ -23,6 +23,7 @@
 #include <vtkCamera.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
@@ -98,7 +99,7 @@ void Widget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr Widget2D::clone()
+TemporalRepresentation2DSPtr Widget2D::clone()
 {
   return std::make_shared<Widget2D>(m_selection);
 }

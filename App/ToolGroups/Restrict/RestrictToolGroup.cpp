@@ -127,16 +127,16 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
                                      Support::Context &context)
-: ToolGroup          {":/espina/toolgroup_restrict.svg", tr("Restrict")}
-, m_context          (context)
-, m_manualROITool    {new ManualROITool(context, this)}
-, m_ortogonalROITool {new OrthogonalROITool(settings, context, this)}
-, m_cleanROITool     {new CleanROITool(context, this)}
-, m_enabled          {true}
-, m_visible          {true}
-, m_color            {Qt::yellow}
-, m_accumulator      {nullptr}
-, m_accumulatorWidget{nullptr}
+: ToolGroup         {":/espina/toolgroup_restrict.svg", tr("Restrict")}
+, m_context         (context)
+, m_manualROITool   {new ManualROITool(context, this)}
+, m_ortogonalROITool{new OrthogonalROITool(settings, context, this)}
+, m_cleanROITool    {new CleanROITool(context, this)}
+, m_enabled         {true}
+, m_visible         {true}
+, m_color           {Qt::yellow}
+, m_accumulator     {nullptr}
+, m_widgetFactory   {nullptr}
 {
   setColor(m_color);
 
@@ -164,7 +164,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
     // TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
 
     m_accumulator      .reset();
-    m_accumulatorWidget.reset();
+    //m_accumulatorWidget.reset();
   }
 
   if (roi && roi->isOrthogonal())
@@ -178,11 +178,11 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 
   if (roi && !roi->isOrthogonal())
   {
-    auto widget = std::make_shared<ROIWidget>(roi);
-    widget->setColor(m_color);
-
+//     auto widget = std::make_shared<ROIWidget>(roi);
+//     widget->setColor(m_color);
+//
     m_accumulator       = roi;
-    m_accumulatorWidget = widget;
+//     m_accumulatorWidget = widget;
 
     // TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
   }

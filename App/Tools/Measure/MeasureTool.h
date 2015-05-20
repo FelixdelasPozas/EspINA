@@ -23,9 +23,7 @@
 
 // ESPINA
 #include <GUI/View/ViewState.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <Support/Widgets/Tool.h>
-#include <Tools/Measure/MeasureTool.h>
 #include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 
 class QAction;
@@ -64,12 +62,12 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) {}
 
   private:
-    using ViewState         = GUI::View::ViewState;
-    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
+    using ViewState              = GUI::View::ViewState;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     ViewState              &m_viewState;
     MeasureEventHandlerSPtr m_handler;
-    WidgetFactorySPtr       m_factory;
+    TemporalPrototypesSPtr  m_prototypes;
     QAction                *m_action;
   };
 

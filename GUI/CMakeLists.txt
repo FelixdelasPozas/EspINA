@@ -128,7 +128,7 @@ set (GUI_SOURCES
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Pools/BasicRepresentationPool.cpp
   Representations/Managers/CrosshairManager.cpp 
-  Representations/Managers/WidgetManager.cpp
+  Representations/Managers/TemporalManager.cpp
   Representations/PipelineSourcesFilter.cpp
   Representations/PipelineSources.cpp
   Representations/ManualPipelineSources.cpp
@@ -162,7 +162,6 @@ set (GUI_SOURCES
   View/View3D.cpp
   View/RepresentationInvalidator.cpp
   View/Widgets/EspinaWidget2.cpp
-  View/Widgets/WidgetFactory.cpp
   View/Widgets/Contour/ContourWidget2D.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp

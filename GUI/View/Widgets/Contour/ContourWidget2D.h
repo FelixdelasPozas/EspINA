@@ -71,7 +71,7 @@ namespace ESPINA
 
               virtual void setRepresentationDepth(Nm depth);
 
-              virtual EspinaWidget2DSPtr clone();
+              virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
 
               /** \brief Resets all contours in all planes without rasterizing and uses the given contour list as initial data.
                * \param[in] contour initial contour.

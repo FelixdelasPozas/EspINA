@@ -24,8 +24,8 @@
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Widgets/Styles.h>
 #include <Support/ContextFactories.h>
@@ -49,7 +49,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
-using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::Support::ContextFactories;
 
@@ -88,7 +88,7 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
 : m_context(context)
-, m_factory(new WidgetFactory(EspinaWidget2DSPtr(), EspinaWidget3DSPtr()))
+, m_factory(new TemporalPrototypes(TemporalRepresentation2DSPtr(), TemporalRepresentation3DSPtr()))
 , m_toggle {Tool::createAction(":/espina/planar_split.svg",tr("Split segmentation"), this)}
 , m_widgets{this}
 , m_apply  {Tool::createButton(":/espina/tick.png", tr("Apply current state"))}
@@ -174,7 +174,7 @@ void SplitTool::showCuttingPlane()
   //     widget->setSegmentationBounds(segmentation->bounds());
 
   viewState().setEventHandler(m_handler);
-  viewState().addWidgets(m_factory);
+  viewState().addTemporalRepresentations(m_factory);
 }
 
 
@@ -182,7 +182,7 @@ void SplitTool::showCuttingPlane()
 void SplitTool::hideCuttingPlane()
 {
   viewState().unsetEventHandler(m_handler);
-  viewState().removeWidgets(m_factory);
+  viewState().removeTemporalRepresentations(m_factory);
 }
 
 //------------------------------------------------------------------------

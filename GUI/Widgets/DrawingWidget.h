@@ -30,8 +30,6 @@
 #include <QAction>
 #include <QMap>
 
-using ESPINA::GUI::View::Widgets::WidgetFactorySPtr;
-
 class QPushButton;
 class QHBoxLayout;
 class QSettings;
@@ -290,7 +288,9 @@ namespace ESPINA
         int m_contourDistance;
         int m_opacity;
 
-        WidgetFactorySPtr m_contourWidgetfactory;
+        using TemporalPrototypesSPtr = Representations::Managers::TemporalPrototypesSPtr;
+
+        TemporalPrototypesSPtr m_contourWidgetfactory;
       };
     }
   }

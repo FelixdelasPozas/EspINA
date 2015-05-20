@@ -64,19 +64,20 @@ private:
 };
 
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //-----------------------------------------------------------------------------
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
-                                     Support::Context &context,
+                                     Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
 : m_context      (context)
 , m_activeTool   {Tool::createAction(":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), this)}
 , m_resizeROI    {Tool::createAction(":/espina/resize_roi.svg", tr("Resize Orthogonal Region of Interest"), this)}
 , m_applyROI     {Tool::createAction(":/espina/roi_go.svg", tr("Define Orthogonal Region of Interest"), this)}
 , m_enabled      {true}
-, m_factory      {new WidgetFactory(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), EspinaWidget3DSPtr())}
+, m_prototypes   {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
 , m_resizeHandler{new EventHandler()}
 , m_defineHandler{new PixelSelector()}
 , m_settings     {settings}
@@ -226,7 +227,7 @@ void OrthogonalROITool::createOrthogonalWidget()
 
   showSliceSelectors();
 
-  m_context.viewState().addWidgets(m_factory);
+  m_context.viewState().addTemporalRepresentations(m_prototypes);
 }
 
 //-----------------------------------------------------------------------------
@@ -234,7 +235,7 @@ void OrthogonalROITool::destroyOrthogonalWidget()
 {
   hideSliceSelectors();
 
-  m_context.viewState().removeWidgets(m_factory);
+  m_context.viewState().removeTemporalRepresentations(m_prototypes);
 
   m_sliceSelector = nullptr;
 

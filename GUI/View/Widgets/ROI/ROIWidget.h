@@ -26,6 +26,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
+#include <Core/Utils/vtkVoxelContour2D.h>
 
 // VTK
 #include <vtkActor.h>
@@ -59,7 +60,7 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual EspinaWidget2DSPtr clone() override;
+            virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
             virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
@@ -85,7 +86,7 @@ namespace ESPINA
             ROISPtr m_ROI;
             QColor  m_color;
 
-            vtkSmartPointer<Contour::vtkContour2D> m_contour;
+            vtkSmartPointer<vtkVoxelContour2D> m_contour;
             vtkSmartPointer<vtkPolyDataMapper> m_mapper;
             vtkSmartPointer<vtkActor>          m_actor;
           };

@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "RenderView.h"
-#include "Widgets/WidgetFactory.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricData.hxx>
@@ -29,7 +28,7 @@
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
-#include <GUI/Representations/Managers/WidgetManager.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 
 // VTK
 #include <vtkMath.h>
@@ -52,7 +51,6 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
-using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
@@ -410,11 +408,11 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
           this,     SLOT(onSceneResolutionChanged(NmVector3)));
 
-  connect(&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-          this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
+          this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
 
-  connect(&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-          this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
+          this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
 
   connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
           this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
@@ -435,26 +433,26 @@ void RenderView::onFocusChanged()
   m_requiresFocusChange = true;
 }
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
+void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 {
-  if (factory->supportedViews().testFlag(m_type))
+  if (prototypes->supportedViews().testFlag(m_type))
   {
-    auto manager = std::make_shared<WidgetManager>(factory);
+    auto manager = std::make_shared<TemporalManager>(prototypes);
 
     addRepresentationManager(manager);
 
     manager->show(t);
 
-    m_widgetManagers[factory] = manager;
+    m_temporalManagers[prototypes] = manager;
   }
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsRemoved(WidgetFactorySPtr factory, TimeStamp t)
+void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr factory, TimeStamp t)
 {
   if (factory->supportedViews().testFlag(m_type))
   {
-    auto manager = m_widgetManagers[factory];
+    auto manager = m_temporalManagers[factory];
 
     manager->hide(t);
 
@@ -559,7 +557,7 @@ RepresentationManagerSList RenderView::pendingManagers() const
   RepresentationManagerSList result;
 
   result << pendingManagers(m_managers);
-  result << pendingManagers(m_widgetManagers.values());
+  result << pendingManagers(m_temporalManagers.values());
 
   return result;
 }
@@ -639,13 +637,13 @@ RepresentationManager::ManagerFlags RenderView::managerFlags() const
 //-----------------------------------------------------------------------------
 void RenderView::deleteInactiveWidgetManagers()
 {
-  auto factories = m_widgetManagers.keys();
+  auto factories = m_temporalManagers.keys();
 
   for (auto factory : factories)
   {
-    if (!m_widgetManagers[factory]->isActive())
+    if (!m_temporalManagers[factory]->isActive())
     {
-      m_widgetManagers.remove(factory);
+      m_temporalManagers.remove(factory);
     }
   }
 }

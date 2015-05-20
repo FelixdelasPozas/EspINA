@@ -27,7 +27,7 @@
 #include <GUI/EventHandlers/SphericalBrush.h>
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
+#include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Widgets/Styles.h>
 #include <Support/Widgets/Tool.h>
@@ -39,9 +39,10 @@ const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 const QString CONTOUR_DISTANCE("ManualEditionTools::ContourDistance");
 
 using namespace ESPINA;
-using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Contour;
+using namespace ESPINA::GUI::Widgets;
 
 //------------------------------------------------------------------------
 DrawingWidget::DrawingWidget(Support::Context &context)
@@ -269,7 +270,7 @@ void DrawingWidget::initPainters()
 
 
   m_contourPainter       = std::make_shared<ContourPainter>();
-  m_contourWidgetfactory = std::make_shared<WidgetFactory>(std::make_shared<ContourWidget2D>(m_contourPainter), EspinaWidget3DSPtr());
+  m_contourWidgetfactory = std::make_shared<TemporalPrototypes>(std::make_shared<ContourWidget2D>(m_contourPainter), TemporalRepresentation3DSPtr());
 
   m_contourPainter->setMinimumPointDistance(m_contourDistance);
   m_contourPainterAction   = registerPainter(QIcon(":/espina/lasso.png"),
@@ -548,7 +549,7 @@ void DrawingWidget::selectorInUse(bool value)
       m_radiusWidget->setLabelText(tr("Minimum Point Distance"));
       m_radiusWidget->setValue(m_contourDistance);
 
-      m_context.viewState().addWidgets(m_contourWidgetfactory);
+      m_context.viewState().addTemporalRepresentations(m_contourWidgetfactory);
       m_contourPainter->setMinimumPointDistance(m_contourDistance);
     }
     else
@@ -565,7 +566,7 @@ void DrawingWidget::selectorInUse(bool value)
 
       m_contourDistance = m_radiusWidget->value();
 
-      m_context.viewState().removeWidgets(m_contourWidgetfactory);
+      m_context.viewState().removeTemporalRepresentations(m_contourWidgetfactory);
     }
     else
     {

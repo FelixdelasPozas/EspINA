@@ -24,6 +24,9 @@
 #include "GUI/EspinaGUI_Export.h"
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Managers/TemporalManager.h>
+
+// VTK
 #include <vtkCommand.h>
 #include <vtkObjectFactory.h>
 
@@ -40,43 +43,28 @@ namespace ESPINA
     {
       namespace Widgets
       {
-        class EspinaWidget2D;
-        using EspinaWidget2DSPtr = std::shared_ptr<EspinaWidget2D>;
-
-        class EspinaWidget3D;
-        using EspinaWidget3DSPtr = std::shared_ptr<EspinaWidget3D>;
-
         class EspinaGUI_EXPORT EspinaWidget
-        : public QObject
         {
         public:
-          /** \brief EspinaWidget class constructor.
+          /** \brief Default constructor.
            *
            */
           explicit EspinaWidget();
 
-          /** \brief EspinaWidget class virtual destructor.
+          /** \brief Virtual destructor.
            *
            */
           virtual ~EspinaWidget();
 
-          void initialize(RenderView *view);
+          void initializeWidget(RenderView *view);
 
-          void uninitialize();
+          void uninitializeWidget();
 
-          void show();
+          void showWidget();
 
-          void hide();
+          void hideWidget();
 
-          bool isEnabled();
-
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
-
-          virtual void setCrosshair(const NmVector3 &crosshair) {}
-
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
-
-          virtual void setSceneResolution(const NmVector3 &resolution) {}
+          bool isWidgetEnabled();
 
         private:
           virtual void initializeImplementation(RenderView *view) = 0;
@@ -87,22 +75,45 @@ namespace ESPINA
         };
 
         class EspinaWidget2D
-        : public EspinaWidget
+        : public Representations::Managers::TemporalRepresentation2D
+        , public EspinaWidget
         {
         public:
-          virtual void setPlane(Plane plane) = 0;
+          virtual void initialize(RenderView *view) override
+          { initializeWidget(view); }
 
-          virtual void setRepresentationDepth(Nm depth) = 0;
+          virtual void uninitialize() override
+          { uninitializeWidget(); }
 
-          virtual EspinaWidget2DSPtr clone() = 0;
+          virtual void show() override
+          { showWidget(); }
 
+          virtual void hide() override
+          { hideWidget(); }
+
+          virtual bool isEnabled() override
+          { return isWidgetEnabled(); }
         };
 
         class EspinaWidget3D
-        : public EspinaWidget
+        : public Representations::Managers::TemporalRepresentation3D
+        , public EspinaWidget
         {
         public:
-          virtual EspinaWidget3DSPtr clone() = 0;
+          virtual void initialize(RenderView *view) override
+          { initializeWidget(view); }
+
+          virtual void uninitialize() override
+          { uninitializeWidget(); }
+
+          virtual void show() override
+          { showWidget(); }
+
+          virtual void hide() override
+          { hideWidget(); }
+
+          virtual bool isEnabled() override
+          { return isWidgetEnabled(); }
         };
 
       } // namespace Widgets

@@ -121,10 +121,10 @@ namespace ESPINA
     class DefineManualROICommand;
 
   private:
-    using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
-    using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
-    using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
+    using ManualROIToolSPtr      = std::shared_ptr<ManualROITool>;
+    using OrthogonalROIToolSPtr  = std::shared_ptr<OrthogonalROITool>;
+    using CleanROIToolSPtr       = std::shared_ptr<CleanROITool>;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     Support::Context &m_context;
 
@@ -136,8 +136,8 @@ namespace ESPINA
     bool   m_visible;
     QColor m_color;
 
-    ROISPtr           m_accumulator;
-    WidgetFactorySPtr m_widgetFactory;
+    ROISPtr                m_accumulator;
+    TemporalPrototypesSPtr m_widgetFactory;
   };
 
 } // namespace ESPINA

@@ -105,7 +105,7 @@ namespace ESPINA
     { toggleWidgetsVisibility(false); }
 
   private:
-    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     struct Data
     {
@@ -121,7 +121,7 @@ namespace ESPINA
     };
 
     Support::Context &m_context;
-    WidgetFactorySPtr m_factory;
+    TemporalPrototypesSPtr m_factory;
 
     QAction            *m_toggle;
     Tool::NestedWidgets m_widgets;

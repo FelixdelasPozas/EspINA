@@ -43,6 +43,7 @@
 #include <QKeyEvent>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Measures;
 
@@ -210,7 +211,7 @@ void MeasureWidget::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr MeasureWidget::clone()
+TemporalRepresentation2DSPtr MeasureWidget::clone()
 {
   return std::make_shared<MeasureWidget>(m_eventHandler);
 }

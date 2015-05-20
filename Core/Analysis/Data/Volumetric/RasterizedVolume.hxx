@@ -61,7 +61,7 @@ namespace ESPINA
     explicit RasterizedVolume(Output          *output,
                               const Bounds    &bounds,
                               const NmVector3 &spacing = NmVector3{1,1,1},
-                              const NmVector3 &origin = NmVector3{0,0,0});
+                              const NmVector3 &origin  = NmVector3{0,0,0});
 
     /** \brief RasterizedVolume class virtual destructor.
      *

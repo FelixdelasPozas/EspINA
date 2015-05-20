@@ -26,7 +26,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h>
 
@@ -153,8 +152,8 @@ namespace ESPINA
   private:
     using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
     using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
-    using Representation        = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
-    using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
+    using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     Support::Context &m_context;
 
@@ -164,9 +163,9 @@ namespace ESPINA
 
     bool             m_enabled;
 
-    ROISPtr           m_roi;
-    Representation    m_roiRepresentation;
-    WidgetFactorySPtr m_factory;
+    ROISPtr                m_roi;
+    Representation         m_roiRepresentation;
+    TemporalPrototypesSPtr m_prototypes;
 
     EventHandlerSPtr   m_resizeHandler;
     PixelSelectorSPtr  m_defineHandler;

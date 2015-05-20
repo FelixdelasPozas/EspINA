@@ -26,6 +26,7 @@
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
@@ -90,7 +91,7 @@ void OrthogonalWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr OrthogonalWidget2D::clone()
+TemporalRepresentation2DSPtr OrthogonalWidget2D::clone()
 {
   return std::make_shared<OrthogonalWidget2D>(m_representation);
 }
