@@ -44,7 +44,7 @@ namespace ESPINA
       /** \brief EventHandler class constructor.
        *
        */
-      explicit EventHandler();
+      EventHandler();
 
       /** \brief EventHandler class virtual destructor.
        *

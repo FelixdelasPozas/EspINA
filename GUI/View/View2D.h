@@ -241,10 +241,6 @@ namespace ESPINA
 
     inline int voxelSlice(const Nm position, const Plane plane) const;
 
-    bool eventHandlerFilterEvent(QEvent *event);
-
-    EventHandlerSPtr eventHandler() const;
-
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point);
 

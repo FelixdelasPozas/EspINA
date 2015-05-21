@@ -343,8 +343,30 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
+  if(eventHandlerFilterEvent(e))
+  {
+    return true;
+  }
+
   switch(e->type())
   {
+    case QEvent::Enter:
+      QWidget::enterEvent(e);
+
+      // get the focus this very moment
+      setFocus(Qt::OtherFocusReason);
+
+      if (eventHandler())
+      {
+        m_view->setCursor(eventHandler()->cursor());
+      }
+      else
+      {
+        m_view->setCursor(Qt::ArrowCursor);
+      }
+
+      e->accept();
+      break;
     case QEvent::MouseButtonPress:
       {
         auto me = static_cast<QMouseEvent*>(e);

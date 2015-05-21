@@ -34,14 +34,18 @@
 #include <vtkCamera.h>
 #include <vtkCoordinate.h>
 
+using namespace ESPINA::GUI::View::Widgets;
+
 vtkStandardNewMacro(vtkZoomSelectionWidgetRepresentation);
 
 //----------------------------------------------------------------------------
 vtkZoomSelectionWidgetRepresentation::vtkZoomSelectionWidgetRepresentation()
-: m_type(vtkZoomSelectionWidget::NONE)
-, m_displayPoints(vtkSmartPointer<vtkPoints>::New())
-, m_worldPoints(vtkSmartPointer<vtkPoints>::New())
-, m_lineActor(vtkSmartPointer<vtkActor>::New())
+: m_type         {vtkZoomSelectionWidget::NONE}
+, m_displayPoints{vtkSmartPointer<vtkPoints>::New()}
+, m_worldPoints  {vtkSmartPointer<vtkPoints>::New()}
+, m_lineActor    {vtkSmartPointer<vtkActor>::New()}
+, m_depth        {0}
+, m_slice        {0}
 {
   double point[3] = {-1,-1,-1};
   m_displayPoints->SetNumberOfPoints(5);
@@ -55,7 +59,9 @@ vtkZoomSelectionWidgetRepresentation::vtkZoomSelectionWidgetRepresentation()
   vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
   polyLine->GetPointIds()->SetNumberOfIds(5);
   for(unsigned int i = 0; i < 5; i++)
+  {
     polyLine->GetPointIds()->SetId(i,i);
+  }
 
   vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
   cells->InsertNextCell(polyLine);
@@ -87,12 +93,23 @@ vtkZoomSelectionWidgetRepresentation::~vtkZoomSelectionWidgetRepresentation()
 //----------------------------------------------------------------------------
 void vtkZoomSelectionWidgetRepresentation::SetWidgetType(vtkZoomSelectionWidget::WidgetType type)
 {
-  if (m_type != vtkZoomSelectionWidget::NONE || type == vtkZoomSelectionWidget::NONE)
-    return;
+  if (m_type == vtkZoomSelectionWidget::NONE && type != vtkZoomSelectionWidget::NONE)
+  {
+    m_type = type;
 
-  m_type = type;
+    DisplayPointsToWorldPoints();
+  }
+}
 
-  DisplayPointsToWorldPoints();
+//----------------------------------------------------------------------------
+void vtkZoomSelectionWidgetRepresentation::SetRepresentationDepth(Nm depth)
+{
+  if(m_depth != depth)
+  {
+    m_depth = depth;
+
+    DisplayPointsToWorldPoints();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -118,7 +135,9 @@ void vtkZoomSelectionWidgetRepresentation::StartWidgetInteraction(double e[2])
 {
   double displayPos[3] = { e[0], e[1], 0.0 };
   for(int i = 0; i < m_displayPoints->GetNumberOfPoints(); ++i)
+  {
     m_displayPoints->SetPoint(i, displayPos);
+  }
 
   DisplayPointsToWorldPoints();
   m_lineActor->SetVisibility(true);
@@ -244,7 +263,9 @@ int vtkZoomSelectionWidgetRepresentation::RenderOverlay(vtkViewport *viewport)
   int result = 0;
 
   if (m_lineActor->GetVisibility())
+  {
     result = m_lineActor->RenderOverlay(viewport);
+  }
 
   return result;
 }
@@ -257,7 +278,9 @@ int vtkZoomSelectionWidgetRepresentation::RenderOpaqueGeometry(vtkViewport *view
   int result = 0;
 
   if (m_lineActor->GetVisibility())
+  {
     result = m_lineActor->RenderOpaqueGeometry(viewport);
+  }
 
   return result;
 }
@@ -265,8 +288,7 @@ int vtkZoomSelectionWidgetRepresentation::RenderOpaqueGeometry(vtkViewport *view
 //----------------------------------------------------------------------------
 void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
 {
-  if (!Renderer)
-    return;
+  if (!Renderer) return;
 
   double worldPos[4], displayPos[3];
 
@@ -279,11 +301,19 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
     this->Renderer->GetWorldPoint(worldPos);
 
     if (m_type != vtkZoomSelectionWidget::VOLUME_WIDGET)
-      worldPos[m_type] += ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? 1 : -1);
+    {
+      worldPos[m_type] = m_slice + m_depth;
+    }
 
     m_worldPoints->SetPoint(i, worldPos[0], worldPos[1], worldPos[2]);
   }
   m_worldPoints->Modified();
 
   m_lineActor->GetMapper()->Update();
+}
+
+//----------------------------------------------------------------------------
+void vtkZoomSelectionWidgetRepresentation::SetSlice(Nm slice)
+{
+  m_slice = slice;
 }

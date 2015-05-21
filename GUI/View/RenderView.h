@@ -275,6 +275,10 @@ namespace ESPINA
 
     virtual void resetImplementation() = 0;
 
+    EventHandlerSPtr eventHandler() const;
+
+    bool eventHandlerFilterEvent(QEvent *event);
+
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 

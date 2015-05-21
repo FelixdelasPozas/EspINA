@@ -46,7 +46,7 @@
 #include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
 #include "ToolGroups/Explore/ResetZoom.h"
-#include "ToolGroups/Explore/ZoomAreaTool.h"
+#include "ToolGroups/Explore/ZoomTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -1293,7 +1293,7 @@ void EspinaMainWindow::createToolGroups()
 
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
   registerToolGroup(m_exploreToolGroup);
-  m_exploreToolGroup->addTool(std::make_shared<ZoomAreaTool>(viewState));
+  m_exploreToolGroup->addTool(std::make_shared<ZoomTool>(viewState));
   m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(viewState));
 
   m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);

@@ -54,6 +54,9 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/SelectionMeasure/Widget2D.h
   View/Widgets/SelectionMeasure/Widget3D.h
   View/Widgets/Contour/ContourWidget2D.h
+  View/Widgets/Zoom/ZoomWidget2D.h
+  View/Widgets/Zoom/ZoomWidget3D.h  
+  View/Widgets/Zoom/ZoomEventHandler.h  
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
@@ -167,7 +170,9 @@ set (GUI_SOURCES
   View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp
   View/Widgets/Contour/vtkPlaneContourWidget.cpp
   View/Widgets/Contour/vtkContourToPolygonFilter.cxx
-  View/Widgets/Zoom/ZoomSelectionWidget.cpp
+  View/Widgets/Zoom/ZoomWidget2D.cpp
+  View/Widgets/Zoom/ZoomWidget3D.cpp
+  View/Widgets/Zoom/ZoomEventHandler.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp

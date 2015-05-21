@@ -31,12 +31,15 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 
+using namespace ESPINA::GUI::View::Widgets;
+
 vtkStandardNewMacro(vtkZoomSelectionWidget);
 
 //----------------------------------------------------------------------------
 vtkZoomSelectionWidget::vtkZoomSelectionWidget()
-: WidgetState(Start)
-, m_type(NONE)
+: WidgetState{Start}
+, m_type     {NONE}
+, m_depth    {0}
 {
   // These are the event callbacks supported by this widget
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
@@ -59,22 +62,31 @@ vtkZoomSelectionWidget::~vtkZoomSelectionWidget()
 void vtkZoomSelectionWidget::SetWidgetType(vtkZoomSelectionWidget::WidgetType type)
 {
   if(this->m_type != NONE)
+  {
     return;
+  }
 
   m_type = type;
 
   if (WidgetRep)
+  {
     reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetWidgetType(m_type);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkZoomSelectionWidget::CreateDefaultRepresentation()
 {
   if(!WidgetRep)
+  {
     this->WidgetRep = vtkZoomSelectionWidgetRepresentation::New();
+  }
 
   this->WidgetRep->BuildRepresentation();
-  reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetWidgetType(m_type);
+
+  auto rep = reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep);
+  rep->SetWidgetType(m_type);
+  rep->SetRepresentationDepth(m_depth);
 }
 
 //----------------------------------------------------------------------------
@@ -82,8 +94,7 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
 {
   if (enabling) //-------------------------------------------------------------
   {
-    if (this->Enabled) //already enabled, just return
-      return;
+    if (this->Enabled) return; //already enabled, just return
 
     if (!this->Interactor)
     {
@@ -97,8 +108,8 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
     if (!this->CurrentRenderer)
     {
       this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(X, Y));
-      if (this->CurrentRenderer == nullptr)
-        return;
+
+      if (!this->CurrentRenderer) return;
     }
 
     // We're ready to enable
@@ -108,15 +119,21 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
 
     // listen for the events found in the EventTranslator
     if (!this->Parent)
+    {
       this->EventTranslator->AddEventsToInteractor(this->Interactor, this->EventCallbackCommand, this->Priority);
+    }
     else
+    {
       this->EventTranslator->AddEventsToParent(this->Parent, this->EventCallbackCommand, this->Priority);
+    }
 
     this->WidgetRep->BuildRepresentation();
     this->CurrentRenderer->AddViewProp(this->WidgetRep);
 
     if (this->WidgetState == vtkZoomSelectionWidget::Start)
+    {
       reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->VisibilityOff();
+    }
 
     this->InvokeEvent(vtkCommand::EnableEvent, nullptr);
   }
@@ -124,26 +141,30 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
   {
     vtkDebugMacro(<<"Disabling widget");
 
-    if (!this->Enabled) //already disabled, just return
-      return;
+    if (!this->Enabled) return; //already disabled, just return
 
     this->Enabled = 0;
 
     // don't listen for events any more
     if (!this->Parent)
+    {
       this->Interactor->RemoveObserver(this->EventCallbackCommand);
+    }
     else
+    {
       this->Parent->RemoveObserver(this->EventCallbackCommand);
+    }
 
     this->CurrentRenderer->RemoveViewProp(this->WidgetRep);
-
     this->InvokeEvent(vtkCommand::DisableEvent, nullptr);
     this->SetCurrentRenderer(nullptr);
   }
 
   // Should only render if there is no parent
   if (this->Interactor && !this->Parent)
+  {
     this->Interactor->Render();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -151,8 +172,7 @@ void vtkZoomSelectionWidget::SelectAction(vtkAbstractWidget *widget)
 {
   vtkZoomSelectionWidget *self = reinterpret_cast<vtkZoomSelectionWidget*>(widget);
 
-  if (self->WidgetState != vtkZoomSelectionWidget::Start)
-    return;
+  if (self->WidgetState != vtkZoomSelectionWidget::Start) return;
 
   // place first point
   int X = self->Interactor->GetEventPosition()[0];
@@ -176,8 +196,7 @@ void vtkZoomSelectionWidget::MoveAction(vtkAbstractWidget *widget)
   vtkZoomSelectionWidget *self = reinterpret_cast<vtkZoomSelectionWidget*>(widget);
 
   // Do nothing if in start or end mode
-  if (self->WidgetState != vtkZoomSelectionWidget::Define)
-    return;
+  if (self->WidgetState != vtkZoomSelectionWidget::Define) return;
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -197,8 +216,7 @@ void vtkZoomSelectionWidget::EndSelectAction(vtkAbstractWidget *widget)
   vtkZoomSelectionWidget *self = reinterpret_cast<vtkZoomSelectionWidget*>(widget);
 
   // Delegate the event consistent with the state
-  if (self->WidgetState != vtkZoomSelectionWidget::Define)
-    return;
+  if (self->WidgetState != vtkZoomSelectionWidget::Define) return;
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -213,3 +231,25 @@ void vtkZoomSelectionWidget::EndSelectAction(vtkAbstractWidget *widget)
   self->Render();
 }
 
+//----------------------------------------------------------------------------
+void vtkZoomSelectionWidget::setRepresentationDepth(ESPINA::Nm depth)
+{
+  if(m_depth != depth)
+  {
+    m_depth = depth;
+
+    if(WidgetRep)
+    {
+      reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetRepresentationDepth(depth);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void ESPINA::GUI::View::Widgets::vtkZoomSelectionWidget::SetSlice(Nm slice)
+{
+  if(WidgetRep)
+  {
+    reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetSlice(slice);
+  }
+}

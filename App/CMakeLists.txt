@@ -37,7 +37,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
   ToolGroups/Explore/ResetZoom.h
-  ToolGroups/Explore/ZoomAreaTool.h
+  ToolGroups/Explore/ZoomTool.h
   ToolGroups/Refine/CODEHistory.h
   ToolGroups/Refine/CODEHistoryWidget.h
   ToolGroups/Refine/CODETool.h
@@ -135,8 +135,8 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Explore/ResetZoom.cpp
+  ToolGroups/Explore/ZoomTool.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
-  ToolGroups/Explore/ZoomAreaTool.cpp
   ToolGroups/Restrict/CleanROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp
   ToolGroups/Restrict/ManualROITool.cpp

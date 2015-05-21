@@ -912,19 +912,6 @@ int View2D::voxelSlice(const Nm position, const Plane plane) const
 }
 
 //-----------------------------------------------------------------------------
-bool View2D::eventHandlerFilterEvent(QEvent *event)
-{
-  return eventHandler() && eventHandler()->filterEvent(event, this);
-}
-
-
-//-----------------------------------------------------------------------------
-EventHandlerSPtr View2D::eventHandler() const
-{
-  return state().eventHandler();
-}
-
-//-----------------------------------------------------------------------------
 void View2D::setScaleVisibility(bool visible)
 {
   if(m_scaleVisibility != visible)

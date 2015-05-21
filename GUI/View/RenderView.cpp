@@ -662,3 +662,15 @@ void RenderView::showSegmentationTooltip(const int x, const int y)
 
   m_view->setToolTip(toopTip);
 }
+
+//-----------------------------------------------------------------------------
+EventHandlerSPtr RenderView::eventHandler() const
+{
+  return state().eventHandler();
+}
+
+//-----------------------------------------------------------------------------
+bool RenderView::eventHandlerFilterEvent(QEvent *event)
+{
+  return eventHandler() && eventHandler()->filterEvent(event, this);
+}
