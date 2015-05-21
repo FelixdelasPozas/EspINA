@@ -256,16 +256,16 @@ void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
-    m_referenceItem->clearTemporalRepresentation();
+  m_referenceItem->clearTemporalRepresentation();
 
-    m_undoStack->beginMacro(tr("Modify Segmentation"));
-    m_undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
-    m_undoStack->endMacro();
+  m_undoStack->beginMacro(tr("Modify Segmentation"));
+  m_undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
+  m_undoStack->endMacro();
 
-    if(mask->foregroundValue() == SEG_BG_VALUE)
-    {
-      emit voxelsDeleted(m_referenceItem);
-    }
+  if(mask->foregroundValue() == SEG_BG_VALUE)
+  {
+    emit voxelsDeleted(m_referenceItem);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -71,11 +71,6 @@ namespace ESPINA
           virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
           virtual void setSceneResolution(const NmVector3 &resolution) {}
-
-        private:
-          virtual void initializeImplementation(RenderView *view) = 0;
-
-          virtual void uninitializeImplementation() = 0;
         };
 
         using TemporalRepresentationSPtr = std::shared_ptr<TemporalRepresentation>;

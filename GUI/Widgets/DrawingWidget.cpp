@@ -583,7 +583,10 @@ void DrawingWidget::onCategoryChange(CategoryAdapterSPtr category)
   auto color = category->color();
   color.setAlphaF(m_opacityWidget->value()/100.0);
 
-  setDrawingColor(color);
+  if (m_showCategoryControls)
+  {
+    setDrawingColor(color);
+  }
 
   emit categoryChanged(category);
 }

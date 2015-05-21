@@ -28,6 +28,8 @@
 #include <Undo/ROIUndoCommand.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets::ROI;
 
 class RestrictToolGroup::DefineOrthogonalROICommand
 : public QUndoCommand
@@ -135,8 +137,6 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
 , m_enabled         {true}
 , m_visible         {true}
 , m_color           {Qt::yellow}
-, m_accumulator     {nullptr}
-, m_widgetFactory   {nullptr}
 {
   setColor(m_color);
 
@@ -161,10 +161,10 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    // TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
+    m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
 
-    m_accumulator      .reset();
-    //m_accumulatorWidget.reset();
+    m_accumulator  .reset();
+    m_roiPrototypes.reset();
   }
 
   if (roi && roi->isOrthogonal())
@@ -178,13 +178,14 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 
   if (roi && !roi->isOrthogonal())
   {
-//     auto widget = std::make_shared<ROIWidget>(roi);
-//     widget->setColor(m_color);
-//
-    m_accumulator       = roi;
-//     m_accumulatorWidget = widget;
+    m_accumulator = roi;
 
-    // TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
+    auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
+    roi2D->setColor(m_color);
+
+    m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr());
+
+    m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
   }
 
   emit roiChanged(roi);
@@ -238,11 +239,11 @@ void RestrictToolGroup::setVisible(bool visible)
   {
     if (visible)
     {
-      //TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
+      m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
     }
     else
     {
-      //TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
+      m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
     }
   }
 

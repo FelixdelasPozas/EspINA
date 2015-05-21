@@ -32,10 +32,9 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 ManualROITool::ManualROITool(Support::Context  &context,
                              RestrictToolGroup *toolGroup)
-: m_undoStack      {context.undoStack()}
-, m_toolGroup      {toolGroup}
-, m_color          {Qt::yellow}
-, m_drawingWidget  {context}
+: m_undoStack    {context.undoStack()}
+, m_toolGroup    {toolGroup}
+, m_drawingWidget{context}
 {
   configureDrawingTools();
 
@@ -69,12 +68,7 @@ void ManualROITool::abortOperation()
 //-----------------------------------------------------------------------------
 void ManualROITool::setColor(const QColor& color)
 {
-  m_color = color;
-
-//   if (m_currentSelector)
-//   {
-//     m_currentSelector->setBrushColor(color);
-//   }
+  m_drawingWidget.setDrawingColor(color);
 }
 
 //-----------------------------------------------------------------------------

@@ -137,7 +137,7 @@ namespace ESPINA
     QColor m_color;
 
     ROISPtr                m_accumulator;
-    TemporalPrototypesSPtr m_widgetFactory;
+    TemporalPrototypesSPtr m_roiPrototypes;
   };
 
 } // namespace ESPINA

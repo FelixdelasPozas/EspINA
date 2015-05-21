@@ -83,7 +83,6 @@ namespace ESPINA
 
     ChannelAdapterPtr m_referenceItem;
 
-    QColor         m_color;
     DrawingTool    m_drawingWidget;
   };
 

@@ -49,16 +49,22 @@ namespace ESPINA
         namespace ROI
         {
           class EspinaGUI_EXPORT ROIWidget
-          : public EspinaWidget2D
+          : public Representations::Managers::TemporalRepresentation2D
           {
             Q_OBJECT
 
           public:
             explicit ROIWidget(ROISPtr roi);
 
-            virtual void setPlane(Plane plane) override;
+            virtual void initialize(RenderView *view);
 
-            virtual void setRepresentationDepth(Nm depth) override;
+            virtual void uninitialize();
+
+            virtual void show();
+
+            virtual void hide();
+
+            virtual bool isEnabled();
 
             virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
@@ -66,18 +72,20 @@ namespace ESPINA
 
             virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;
 
-            virtual void initializeImplementation(RenderView* view) override;
+            virtual void setPlane(Plane plane) override;
 
-            virtual void uninitializeImplementation() override;
-
-            virtual vtkAbstractWidget* vtkWidget() override;
+            virtual void setRepresentationDepth(Nm depth) override;
 
             void setColor(const QColor &color);
 
           private:
             virtual void setCrosshair(const NmVector3 &crosshair) override;
 
-            void updateActor(RenderView *view);
+            vtkSmartPointer<vtkImageData> currentSlice() const;
+
+            void updateCurrentSlice();
+
+            Nm normalCoordinate(const NmVector3 &value) const;
 
           private slots:
             void onROIChanged();
@@ -89,6 +97,13 @@ namespace ESPINA
             vtkSmartPointer<vtkVoxelContour2D> m_contour;
             vtkSmartPointer<vtkPolyDataMapper> m_mapper;
             vtkSmartPointer<vtkActor>          m_actor;
+
+            int   m_normalIndex;
+            Nm    m_depth;
+
+            Nm     m_reslicePosition;
+            bool   m_isEnabled;
+            RenderView *m_view;
           };
         }
       }
