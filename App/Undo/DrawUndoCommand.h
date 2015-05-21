@@ -50,8 +50,8 @@ namespace ESPINA
   private:
     SegmentationAdapterSPtr       m_segmentation;
     BinaryMaskSPtr<unsigned char> m_mask;
+    itkVolumeType::Pointer        m_image;
     Bounds                        m_bounds;
-    OutputSPtr                    m_output;
     bool                          m_hasVolume;
   };
 

@@ -23,8 +23,8 @@
 
 // ESPINA
 #include "GUI/Model/NeuroItemAdapter.h"
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/Vector3.hxx>
 
 namespace ESPINA
 {

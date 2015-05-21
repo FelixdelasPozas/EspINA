@@ -36,11 +36,15 @@ using namespace ESPINA;
 TimeStamp Data::s_tick = 0;
 
 //----------------------------------------------------------------------------
-void Data::setFetchContext(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+void Data::setFetchContext(const TemporalStorageSPtr storage,
+                           const QString &path,
+                           const QString &id,
+                           const Bounds  &bounds)
 {
-  m_storage = storage;
-  m_path    = path;
-  m_id      = id;
+  m_path        = path;
+  m_id          = id;
+  m_fetchBounds = bounds;
+  m_storage     = storage;
 }
 
 //----------------------------------------------------------------------------
@@ -52,5 +56,5 @@ QList<Data::Type> Data::dependencies() const
 //----------------------------------------------------------------------------
 bool Data::fetchData()
 {
-  return fetchDataImplementation(m_storage, m_path, m_id);
+  return fetchDataImplementation(m_storage, m_path, m_id, m_fetchBounds);
 }

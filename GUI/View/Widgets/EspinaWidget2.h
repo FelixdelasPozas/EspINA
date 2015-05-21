@@ -23,9 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 #include <Core/Utils/Spatial.h>
-#include <Core/Utils/NmVector3.h>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
 #include <vtkCommand.h>
 #include <vtkObjectFactory.h>
 

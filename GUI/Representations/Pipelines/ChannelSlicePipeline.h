@@ -21,8 +21,8 @@
 #define ESPINA_CHANNEL_SLICE_PIPELINE_H
 
 // ESPINA
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Model/ViewItemAdapter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/Representations/RepresentationState.h>

@@ -30,8 +30,8 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Core/EspinaTypes.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Analysis/Query.h>
+#include <Core/Utils/Vector3.hxx>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>

@@ -22,7 +22,7 @@
 #define ROI_SETTINGS_PANEL_H_
 
 // ESPINA
-#include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Settings/SettingsPanel.h>

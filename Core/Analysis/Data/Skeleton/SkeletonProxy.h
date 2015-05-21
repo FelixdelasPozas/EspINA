@@ -93,9 +93,6 @@ namespace ESPINA
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id)
       { return m_data->restoreEditedRegions(storage, path, id); }
 
-      virtual void undo()
-      { m_data->undo(); }
-
       virtual size_t memoryUsage() const
       { return m_data->memoryUsage(); }
 
@@ -106,7 +103,7 @@ namespace ESPINA
       { m_data->setSkeleton(skeleton); }
 
     protected:
-      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
       { return m_data->fetchData(); }
 
     private:

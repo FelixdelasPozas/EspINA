@@ -60,7 +60,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
+  bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const Bounds &bounds)
   {
     bool dataFetched = false;
 

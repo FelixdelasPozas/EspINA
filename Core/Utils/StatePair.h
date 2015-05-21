@@ -29,8 +29,8 @@
 #ifndef ESPINA_STATE_PAIR_H
 #define ESPINA_STATE_PAIR_H
 
+#include <Core/Utils/Vector3.hxx>
 #include <QString>
-#include "NmVector3.h"
 
 namespace ESPINA
 {

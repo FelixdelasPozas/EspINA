@@ -128,9 +128,6 @@ namespace ESPINA {
     virtual void resize(const Bounds &bounds)
     {}
 
-    virtual void undo()
-    {}
-
     virtual bool isValid() const
     { return QFileInfo(m_fileName).exists(); }
 
@@ -147,7 +144,7 @@ namespace ESPINA {
     {}
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
     { return false; }
 
 

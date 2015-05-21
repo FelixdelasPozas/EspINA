@@ -58,7 +58,7 @@ namespace ESPINA
   public:
     using Type = QString;
 
-    enum class Access { READ, WRITE};
+    enum class Access { READ, WRITE };
 
   public:
     /** \brief Data class constructor.
@@ -114,7 +114,7 @@ namespace ESPINA
      * \param[in] id identifier of stored data snapshosts
      *
      */
-    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id);
+    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds);
 
     /** \brief Recover data from Persistent Storage.
      */
@@ -184,11 +184,6 @@ namespace ESPINA
     bool isEdited() const
     { return !editedRegions().isEmpty(); }
 
-    /** \brief Undo last edition operation.
-     *
-     */
-    virtual void undo() = 0;
-
     /** \brief Return memory usage in bytes.
      *
      * Returns the amount of memory allocated by the object
@@ -221,7 +216,10 @@ namespace ESPINA
     void addEditedRegion(const Bounds &bounds)
     { m_editedRegions << bounds; }
 
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage,
+                                         const QString      &path,
+                                         const QString      &id,
+                                         const Bounds       &bounds) = 0;
 
   private:
     /** \brief Returns the list of data types on which this
@@ -238,6 +236,7 @@ namespace ESPINA
     TemporalStorageSPtr m_storage;
 
   private:
+    Bounds     m_fetchBounds;
     TimeStamp  m_timeStamp;
     BoundsList m_editedRegions;
 

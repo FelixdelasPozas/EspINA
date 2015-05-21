@@ -21,8 +21,8 @@
 #define ESPINA_POINT_TRACKER_H
 
 // ESPINA
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/View/EventHandler.h>
-#include <Core/Utils/NmVector3.h>
 
 namespace ESPINA
 {

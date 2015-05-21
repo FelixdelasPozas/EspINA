@@ -21,16 +21,13 @@
 #ifndef ESPINA_SKELETON_TOOL_WIDGET_H_
 #define ESPINA_SKELETON_TOOL_WIDGET_H_
 
+#include <Core/Utils/Vector3.hxx>
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
-#include <Core/Utils/NmVector3.h>
-
-
-// VTK
 #include <vtkSmartPointer.h>
 
 // Qt

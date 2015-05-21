@@ -42,6 +42,7 @@ namespace ESPINA
     setPriority(Priority::LOW);
 
     qRegisterMetaType<Issue>("Issue");
+    qRegisterMetaType<IssueList>("IssueList");
 
     for(auto seg: model->segmentations())
     {

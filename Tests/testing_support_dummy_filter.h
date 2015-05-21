@@ -65,10 +65,9 @@ namespace ESPINA {
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
     virtual DataSPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
-    virtual void undo() {};
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
     { return false; }
 
   private:
@@ -95,7 +94,7 @@ namespace ESPINA {
     { return m_data->bounds(); }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
     { return m_data->fetchData();}
 
   private:

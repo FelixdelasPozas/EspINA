@@ -28,19 +28,21 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
 {
   DataSPtr data;
 
+  Bounds bounds(info.value("bounds").toString());
+
   if ("VolumetricData" == info.value("type"))
   {
-    data = createVolumetricData(output, storage, path);
+    data = createVolumetricData(output, storage, path, bounds);
   }
   else if ("MeshData" == info.value("type"))
   {
     if (!hasMeshData(output))
     {
-      auto volume = createVolumetricData(output, storage, path);
+      auto volume = createVolumetricData(output, storage, path, bounds);
       Q_ASSERT(volume);
 
       data = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
-      data->setFetchContext(storage, path, QString::number(output->id()));
+      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
 
       output->setData(data);
     }
@@ -52,12 +54,15 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
 }
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path)
+DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetricData(OutputSPtr output,
+                                                                                       TemporalStorageSPtr storage,
+                                                                                       const QString &path,
+                                                                                       const Bounds &bounds)
 {
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
     auto data = std::make_shared<SparseVolume<itkVolumeType>>();
-    data->setFetchContext(storage, path, QString::number(output->id()));
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
     output->setData(data);
   }
 

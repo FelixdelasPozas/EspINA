@@ -28,15 +28,13 @@
 #ifndef ESPINA_OUTPUT_H
 #define ESPINA_OUTPUT_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Data.h"
 #include "DataProxy.h"
-#include <Core/Utils/NmVector3.h>
-
-// Qt
 #include <QMap>
 #include <QXmlStreamWriter>
 

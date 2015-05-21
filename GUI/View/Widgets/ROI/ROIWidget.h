@@ -25,9 +25,9 @@
 
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/vtkVoxelContour2D.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 

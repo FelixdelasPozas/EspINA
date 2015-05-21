@@ -25,9 +25,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
-#include <Core/Utils/NmVector3.h>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
 #include <vtkWidgetRepresentation.h>
 #include <vtkSmartPointer.h>
 

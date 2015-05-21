@@ -63,7 +63,6 @@ set (CORE_SOURCES
   Utils/AnalysisUtils.cpp
   Utils/Bounds.cpp
   Utils/Measure.cpp
-  Utils/NmVector3.cpp
   Utils/SparseBinaryVolume.cpp
   Utils/TemporalStorage.cpp
   Utils/VolumeBounds.cpp

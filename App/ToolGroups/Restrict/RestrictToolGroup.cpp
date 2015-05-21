@@ -109,11 +109,13 @@ void RestrictToolGroup::DefineManualROICommand::undo()
   }
   else
   {
-    m_tool->m_accumulator->undo();
+    // TODO: 12-05-2015 undo removed from data api
+    // m_tool->m_accumulator->undo();
 
     if (m_oROI)
     {
-      m_tool->m_accumulator->undo();
+      // TODO: 12-05-2015 undo removed from data api
+      // m_tool->m_accumulator->undo();
       m_tool->m_ortogonalROITool->setROI(m_oROI);
     }
   }

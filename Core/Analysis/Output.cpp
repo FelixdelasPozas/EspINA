@@ -211,7 +211,9 @@ void Output::setData(Output::DataSPtr data)
 
   if (!m_data.contains(type))
   {
-    m_data[type] = data->createProxy();
+    auto dataProxy = data->createProxy();
+    dataProxy->setOutput(this);
+    m_data[type] = dataProxy;
   }
 
   proxy(type)->set(data);

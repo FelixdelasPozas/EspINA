@@ -25,13 +25,14 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 DataSPtr RawDataFactory::createData(OutputSPtr           output,
-                                  TemporalStorageSPtr  storage,
-                                  const QString       &path,
-                                  QXmlStreamAttributes info)
+                                    TemporalStorageSPtr  storage,
+                                    const QString       &path,
+                                    QXmlStreamAttributes info)
 {
   DataSPtr data;
 
   const Data::Type requestedType = info.value("type").toString();
+  const Bounds bounds(info.value("bounds").toString());
 
   if (!output->hasData(requestedType))
   {
@@ -50,7 +51,7 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
 
     if (data)
     {
-      data->setFetchContext(storage, path, QString::number(output->id()));
+      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
       output->setData(data);
     }
   }

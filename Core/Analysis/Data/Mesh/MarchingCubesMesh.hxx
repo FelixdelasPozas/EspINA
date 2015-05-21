@@ -79,8 +79,6 @@ namespace ESPINA
 
     virtual NmVector3 spacing() const;
 
-    virtual void undo();
-
     virtual size_t memoryUsage() const;
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const override;
@@ -97,7 +95,7 @@ namespace ESPINA
 
     virtual QList<Data::Type> updateDependencies() const override;
 
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
 
     Output *m_output;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
@@ -121,9 +119,9 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
-    return MeshData::fetchDataImplementation(storage, path, id);
+    return MeshData::fetchDataImplementation(storage, path, id, bounds);
   }
 
 
@@ -153,13 +151,6 @@ namespace ESPINA
   NmVector3 MarchingCubesMesh<T>::spacing() const
   {
     return m_output->spacing();
-  }
-
-  //----------------------------------------------------------------------------
-  template <typename T>
-  void MarchingCubesMesh<T>::undo()
-  {
-    // NOTE: ways to modify a mesh have not been implemented, so this is not allowed
   }
 
   //----------------------------------------------------------------------------

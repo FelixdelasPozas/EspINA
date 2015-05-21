@@ -1,13 +1,13 @@
 #ifndef VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "CountingFramePlugin_Export.h"
 
 #include "vtkWidgetRepresentation.h"
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
-#include <Core/Utils/NmVector3.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;

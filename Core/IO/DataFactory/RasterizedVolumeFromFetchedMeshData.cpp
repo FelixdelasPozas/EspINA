@@ -30,11 +30,12 @@ namespace ESPINA
                                                            const QString       &path,
                                                            QXmlStreamAttributes info)
   {
-    DataSPtr data;
+    Bounds bounds(info.value("bounds").toString());
 
+    DataSPtr data;
     if ("MeshData" == info.value("type"))
     {
-      data = fetchMeshData(output, storage, path);
+      data = fetchMeshData(output, storage, path, bounds);
     }
     else if ("VolumetricData" == info.value("type"))
     {
@@ -42,16 +43,16 @@ namespace ESPINA
 
       output->setData(data);
 
-      data->setFetchContext(storage, path, QString::number(output->id()));
+      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
       if (!data->fetchData())
       {
-        auto mesh    = fetchMeshData(output, storage, path);
-        auto spacing = mesh->spacing();
-        auto bounds  = mesh->bounds();
+        auto mesh       = fetchMeshData(output, storage, path, bounds);
+        auto spacing    = mesh->spacing();
+        auto meshBounds = mesh->bounds();
 
         if (mesh)
         {
-          data = std::make_shared<RasterizedVolume<itkVolumeType>>(output.get(), bounds, spacing);
+          data = std::make_shared<RasterizedVolume<itkVolumeType>>(output.get(), meshBounds, spacing);
         }
       }
     }
@@ -62,13 +63,14 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr          output,
                                                                           TemporalStorageSPtr storage,
-                                                                          const QString      &path)
+                                                                          const QString      &path,
+                                                                          const Bounds       &bounds)
   {
     if (!hasMeshData(output))
     {
       auto data = std::make_shared<RawMesh>();
 
-      data->setFetchContext(storage, path, QString::number(output->id()));
+      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
       output->setData(data);
     }
 

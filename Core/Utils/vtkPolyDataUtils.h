@@ -25,10 +25,8 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/BinaryMask.hxx>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
 #include <vtkSmartPointer.h>
 
 class vtkPolyData;

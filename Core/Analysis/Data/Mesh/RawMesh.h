@@ -78,7 +78,7 @@ namespace ESPINA
     { return MeshData::snapshot(storage, path, id); };
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
-    { fetchDataImplementation(storage, path, id); }
+    { fetchDataImplementation(storage, path, id, bounds()); }
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_mesh; }
@@ -90,14 +90,11 @@ namespace ESPINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    void undo()
-    { /* NOTE: not allowed */ };
-
     size_t memoryUsage() const;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
-    { return MeshData::fetchDataImplementation(storage, path, id); }
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
+    { return MeshData::fetchDataImplementation(storage, path, id, bounds); }
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

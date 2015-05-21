@@ -431,6 +431,11 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     QDir autosavePath = m_settings->autosavePath();
     autosavePath.remove(AUTOSAVE_FILE);
   }
+  else
+  {
+    event->ignore();
+    return;
+  }
 
   removeTemporalDirectory();
 }

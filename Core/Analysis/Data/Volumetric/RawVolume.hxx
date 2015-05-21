@@ -37,8 +37,6 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.hxx>
 
-#include <QReadWriteLock>
-
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkExtractImageFilter.h>
@@ -147,11 +145,6 @@ namespace ESPINA
      */
     virtual void resize(const Bounds &bounds);
 
-    /** \brief Method to undo the last change made to the volume.
-     *
-     */
-    virtual void undo();
-
     virtual bool isValid() const;
 
     virtual bool isEmpty() const;
@@ -163,7 +156,7 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
 
   private:
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
@@ -380,7 +373,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
 //     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 //
@@ -522,12 +515,6 @@ namespace ESPINA
 //     }
 //
 //     this->setEditedRegions(restoredEditedRegions);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  void RawVolume<T>::undo()
-  {
   }
 
   //-----------------------------------------------------------------------------

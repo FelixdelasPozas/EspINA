@@ -25,11 +25,9 @@
 
 // ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkObjectFactory.h>

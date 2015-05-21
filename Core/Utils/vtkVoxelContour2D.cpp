@@ -20,10 +20,8 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/vtkVoxelContour2D.h>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
 #include <vtkObjectFactory.h> //for new() macro
 #include <vtkImageData.h>
 #include <vtkCellArray.h>
