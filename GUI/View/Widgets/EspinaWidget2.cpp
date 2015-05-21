@@ -46,7 +46,10 @@ void EspinaWidget::showWidget()
 {
   auto widget = vtkWidget();
 
-  widget->On();
+  if(!widget->GetEnabled())
+  {
+    widget->On();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -54,7 +57,10 @@ void EspinaWidget::hideWidget()
 {
   auto widget = vtkWidget();
 
-  widget->Off();
+  if(widget->GetEnabled())
+  {
+    widget->Off();
+  }
 }
 
 //-----------------------------------------------------------------------------

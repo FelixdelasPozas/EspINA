@@ -102,7 +102,6 @@ namespace ESPINA
             void setTitle(vtkAxisActor2D *actor, const Axis axis);
 
           private:
-            bool   m_enabled;
             Plane  m_plane;
             Bounds m_bounds;
 

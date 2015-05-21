@@ -21,6 +21,7 @@
 #include <GUI/View/RenderView.h>
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -74,13 +75,13 @@ void Widget2D::Command::Execute(vtkObject *caller, long unsigned int eventId, vo
 
 //----------------------------------------------------------------------------
 Widget2D::Widget2D(SelectionSPtr selection)
-: m_index(0)
-, m_selection(selection)
-, m_widget(vtkSmartPointer<vtkWidget2D>::New())
-, m_command(vtkSmartPointer<Command>::New())
-, m_camera(nullptr)
-, m_slice{0}
-, m_selectedSegmentations(selection->segmentations())
+: m_index                {0}
+, m_selection            {selection}
+, m_widget               {vtkSmartPointer<vtkWidget2D>::New()}
+, m_command              {vtkSmartPointer<Command>::New()}
+, m_camera               {nullptr}
+, m_slice                {0}
+, m_selectedSegmentations{selection->segmentations()}
 {
 }
 
@@ -95,13 +96,18 @@ void Widget2D::setPlane(Plane plane)
 //----------------------------------------------------------------------------
 void Widget2D::setRepresentationDepth(Nm depth)
 {
-
 }
 
 //----------------------------------------------------------------------------
 TemporalRepresentation2DSPtr Widget2D::clone()
 {
   return std::make_shared<Widget2D>(m_selection);
+}
+
+//----------------------------------------------------------------------------
+bool Widget2D::isEnabled()
+{
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -185,7 +191,10 @@ void Widget2D::updateVisibility()
   auto axis    = toAxis(m_index);
   auto visible = contains(m_widget->bounds(), axis, m_slice);
 
-  m_widget->SetEnabled(visible);
+  if(visible != m_widget->GetEnabled())
+  {
+    m_widget->SetEnabled(visible);
+  }
 }
 
 //----------------------------------------------------------------------------
