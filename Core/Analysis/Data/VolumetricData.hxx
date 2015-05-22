@@ -162,7 +162,7 @@ namespace ESPINA
      *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+                      const typename T::ValueType                 value = SEG_VOXEL_VALUE) = 0;
 
     /** \brief Resize the volume to the given bounds.
      * \param[in] bounds new bounds.

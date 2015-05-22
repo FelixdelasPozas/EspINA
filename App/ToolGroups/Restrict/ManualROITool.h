@@ -62,10 +62,6 @@ namespace ESPINA
   private slots:
     void updateReferenceItem(ChannelAdapterPtr channel);
 
-    void onStrokeStarted(BrushPainter *painter, RenderView *view);
-
-    void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
-
     void cancelROI();
 
     void ROIChanged();

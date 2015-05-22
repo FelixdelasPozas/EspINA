@@ -29,14 +29,14 @@ enum ROI_TYPE { NON_ORTHOGONAL, ORTHOGONAL };
 //-----------------------------------------------------------------------------
 ROI::ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin)
 : SparseVolume{bounds, spacing, origin}
-, m_isRectangular{true}
+, m_isOrthogonal{true}
 {
 }
 
 //-----------------------------------------------------------------------------
 ROI::ROI(const BinaryMaskSPtr<unsigned char> mask)
 : SparseVolume<itkVolumeType>{mask->bounds().bounds(), mask->spacing(), mask->origin()}
-, m_isRectangular{false}
+, m_isOrthogonal{false}
 {
   this->draw(mask, mask->foregroundValue());
 }
@@ -49,42 +49,50 @@ ROI::~ROI()
 //-----------------------------------------------------------------------------
 bool ROI::isOrthogonal() const
 {
-  return m_isRectangular;
+  return m_isOrthogonal;
 }
 
 //-----------------------------------------------------------------------------
 void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const itkVolumeType::ValueType value)
 {
-  m_isRectangular = false;
+  m_isOrthogonal = false;
   SparseVolume<itkVolumeType>::draw(brush, bounds, value);
 }
 
 //-----------------------------------------------------------------------------
 void ROI::draw(const BinaryMaskSPtr<unsigned char> mask, const itkVolumeType::ValueType value)
 {
-  m_isRectangular = false;
+  m_isOrthogonal = false;
   SparseVolume<itkVolumeType>::draw(mask, value);
 }
 
 //-----------------------------------------------------------------------------
 void ROI::draw(const itkVolumeType::Pointer volume)
 {
-  m_isRectangular = false;
+  m_isOrthogonal = false;
   SparseVolume<itkVolumeType>::draw(volume);
 }
 
 //-----------------------------------------------------------------------------
 void ROI::draw(const typename itkVolumeType::Pointer volume, const Bounds& bounds)
 {
-  m_isRectangular = false;
+  m_isOrthogonal = false;
   SparseVolume<itkVolumeType>::draw(volume, bounds);
+}
+
+//-----------------------------------------------------------------------------
+void ROI::draw(const Bounds                   &bounds,
+               const itkVolumeType::ValueType  value)
+{
+  m_isOrthogonal = false;
+  SparseVolume::draw(bounds, value);
 }
 
 //-----------------------------------------------------------------------------
 void ROI::draw(const typename itkVolumeType::IndexType &index,
                const itkVolumeType::ValueType           value)
 {
-  m_isRectangular = false;
+  m_isOrthogonal = false;
   SparseVolume::draw(index, value);
 }
 
@@ -114,7 +122,7 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
   m_origin  = m_bounds.origin();
   m_spacing = m_bounds.spacing();
 
-  m_isRectangular = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id, m_bounds);
+  m_isOrthogonal = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id, m_bounds);
 
   return true;
 }

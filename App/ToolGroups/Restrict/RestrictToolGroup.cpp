@@ -99,7 +99,7 @@ RestrictToolGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMa
 void RestrictToolGroup::DefineManualROICommand::redo()
 {
   m_tool->commitPendingOrthogonalROI(nullptr);
-  m_tool->addMask(m_mask);
+  m_tool->addManualROI(m_mask);
 }
 
 //-----------------------------------------------------------------------------
@@ -297,25 +297,36 @@ void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
 {
   // añadir previa OROI al acumulador
   auto prevROI = m_ortogonalROITool->currentROI();
+
   if (prevROI)
   {
-    auto mask = std::make_shared<BinaryMask<unsigned char>>(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
-    BinaryMask<unsigned char>::iterator it{mask.get()};
-    it.goToBegin();
-    while(!it.isAtEnd())
-    {
-      it.Set();
-      ++it;
-    }
-
-    addMask(mask);
+    addOrthogonalROI(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
   }
 
   m_ortogonalROITool->setROI(roi); // this roi can now be edited
 }
 
 //-----------------------------------------------------------------------------
-void RestrictToolGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
+void RestrictToolGroup::addOrthogonalROI(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+{
+  if (m_accumulator)
+  {
+    m_accumulator->resize(boundingBox(m_accumulator->bounds(), bounds));
+    m_accumulator->draw(bounds, SEG_VOXEL_VALUE);
+  }
+  else
+  {
+    auto roi = std::make_shared<ROI>(bounds, spacing, origin);
+
+    roi->draw(bounds, SEG_VOXEL_VALUE);
+
+    setCurrentROI(roi);
+  }
+
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::addManualROI(const BinaryMaskSPtr<unsigned char> mask)
 {
   if (m_accumulator)
   {

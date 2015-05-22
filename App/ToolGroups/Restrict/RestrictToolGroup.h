@@ -114,7 +114,9 @@ namespace ESPINA
      */
     void commitPendingOrthogonalROI(ROISPtr roi);
 
-    void addMask(const BinaryMaskSPtr<unsigned char> mask);
+    void addOrthogonalROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
+
+    void addManualROI(const BinaryMaskSPtr<unsigned char> mask);
 
   private:
     class DefineOrthogonalROICommand;

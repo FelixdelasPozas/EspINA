@@ -41,9 +41,6 @@ ManualROITool::ManualROITool(Support::Context  &context,
   connect(getSelection(context).get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this,                        SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
-  connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
-          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
-
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
 }
@@ -74,12 +71,6 @@ void ManualROITool::setColor(const QColor& color)
 //-----------------------------------------------------------------------------
 void ManualROITool::ROIChanged()
 {
-//   bool hasROI = m_toolGroup->hasValidROI();
-//
-//   auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
-//   disc->setHasROI(hasROI);
-//   auto sphere = dynamic_cast<SphericalBrushROISelector *>(m_sphericalBrushSelector.get());
-//   sphere->setHasROI(hasROI);
 }
 
 // //-----------------------------------------------------------------------------
@@ -141,63 +132,6 @@ void ManualROITool::updateReferenceItem(ChannelAdapterPtr channel)
   }
 
   m_referenceItem = channel;
-}
-
-//-----------------------------------------------------------------------------
-void ManualROITool::onStrokeStarted(BrushPainter *painter, RenderView *view)
-{
-  auto showStroke = true;
-
-  painter->setStrokeVisibility(showStroke);
-
-//   if (!showStroke)
-//   {
-//     auto volume = readLockVolume(m_referenceItem->output());
-//     auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
-//
-//     auto strokePainter = painter->strokePainter();
-//
-//     auto canvas = strokePainter->strokeCanvas();
-//     auto actor  = strokePainter->strokeActor();
-//
-//     int extent[6];
-//     canvas->GetExtent(extent);
-//     auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
-//
-//     m_validStroke = bounds.areValid();
-//
-//     if (m_validStroke)
-//     {
-//       auto slice = volume->itkImage(bounds);
-//
-//       itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
-//       it.GoToBegin();
-//
-//       while(!it.IsAtEnd())
-//       {
-//         auto index = it.GetIndex();
-//
-//         if(it.Value() == SEG_VOXEL_VALUE && isValid(index[0], index[1], index[2]))
-//         {
-//           auto pixel = static_cast<unsigned char*>(canvas->GetScalarPointer(index[0],index[1], index[2]));
-//           *pixel     = 1;
-//         }
-//         ++it;
-//       }
-//     }
-//
-//     m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_colorEngine);
-//
-//     m_temporalPipeline->setTemporalActor(actor, view);
-//     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
-//     m_referenceItem->invalidateRepresentations();
-//   }
-}
-
-//-----------------------------------------------------------------------------
-void ManualROITool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
-{
-
 }
 
 //-----------------------------------------------------------------------------

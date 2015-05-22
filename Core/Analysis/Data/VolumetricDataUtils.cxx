@@ -99,34 +99,38 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
     expandAndDraw<T>(volume.get(), drawnVolume, bounds);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
-    if (!bounds.areValid())
+    Bounds drawingBounds = bounds;
+
+    if (!drawingBounds.areValid())
     {
-      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
     }
 
-    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->resize(boundingBox(drawingBounds, volume->bounds()));
     volume->draw(drawnVolume);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
-    if (!bounds.areValid())
+    Bounds drawingBounds = bounds;
+
+    if (!drawingBounds.areValid())
     {
-      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
     }
 
-    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->resize(boundingBox(drawingBounds, volume->bounds()));
     volume->draw(drawnVolume);
   }
 
