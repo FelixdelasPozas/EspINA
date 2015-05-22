@@ -269,7 +269,8 @@ void SeedGrowSegmentationFilter::execute()
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 
-  emit progress(0);
+  reportProgress(0);
+
   if (!canExecute()) return;
 
   Bounds seedBounds;
@@ -310,7 +311,8 @@ void SeedGrowSegmentationFilter::execute()
     }
   }
 
-  emit progress(25);
+  reportProgress(25);
+
   if (!canExecute()) return;
 
   auto connectedFilter = ConnectedFilterType::New();
@@ -330,7 +332,7 @@ void SeedGrowSegmentationFilter::execute()
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
 
-  emit progress(50);
+  reportProgress(50);
   if (!canExecute()) return;
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
@@ -355,7 +357,7 @@ void SeedGrowSegmentationFilter::execute()
     output = closingFilter->GetOutput();
   }
 
-  emit progress(75);
+  reportProgress(75);
 
   if (!canExecute()) return;
 
@@ -387,7 +389,7 @@ void SeedGrowSegmentationFilter::execute()
 
   m_forceUpdate = false;
 
-  emit progress(100);
+  reportProgress(100);
 }
 
 //----------------------------------------------------------------------------

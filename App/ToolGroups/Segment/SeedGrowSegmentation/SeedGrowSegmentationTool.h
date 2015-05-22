@@ -45,7 +45,7 @@ namespace ESPINA
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
@@ -82,37 +82,31 @@ namespace ESPINA
      */
     virtual ~SeedGrowSegmentationTool();
 
-    virtual QList<QAction *> actions() const override;
-
     virtual void abortOperation() override;
 
   private:
     virtual void onToolEnabled(bool enabled);
 
-    void initOptionWidgets();
+    void initPixelSelectors();
 
-    /** \brief Adds a selector to the list of selectors.
-     * \param[in] action QAction object raw pointer to add as selector action.
-     * \param[in] selector selector smart pointer to add.
-     *
-     */
-    void addVoxelSelector(QAction *action, SelectorSPtr selector);
+    void initPixelSelector();
 
-    void setSettingsVisibility(bool value);
+    void initBestPixelSelctor();
+
+    void initSelector(SelectorSPtr selector);
+
+    void initSettingsWidgets();
+
+    void initCategorySelector();
+
+    void initROISelector();
 
     ChannelAdapterPtr inputChannel() const;
 
-  private slots:
-  /** \brief Changes the current selector.
-   * \param[in] action action associated to the selector.
-   *
-   */
-    void changeSelector(QAction *action);
+    SelectorSPtr activeSelector() const;
 
-    /** \brief Unsets the selector.
-     *
-     */
-    void unsetSelector();
+  private slots:
+    void setEventHandler(bool value);
 
     /** \brief Launches a seedgrow segmentation task based on the current selection.
      * \pararm[in] selectedItems, current selection.
@@ -137,17 +131,10 @@ namespace ESPINA
      */
     void updateCurrentCategoryROIValues(bool update);
 
-    void displaySettings();
-
-    void hideSettings();
-
   private:
     using CategorySelector = GUI::Widgets::CategorySelector;
 
     Support::Context &m_context;
-
-    ActionSelector     *m_selectorSwitch;
-    Tool::NestedWidgets m_toolWidgets;
 
     CategorySelector *m_categorySelector;
     SeedThreshold    *m_seedThreshold;
@@ -155,8 +142,8 @@ namespace ESPINA
 
     SeedGrowSegmentationSettings* m_settings;
 
-    QMap<QAction *, SelectorSPtr> m_voxelSelectors;
-    SelectorSPtr                  m_currentSelector;
+    SelectorSPtr m_bestPixelSelctor;
+    SelectorSPtr m_pixelSelector;
 
     std::shared_ptr<SGSFactory>  m_sgsFactory;
 

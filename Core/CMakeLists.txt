@@ -20,6 +20,7 @@ qt4_wrap_cpp(CORE_MOC
   Analysis/ViewItem.h
   MultiTasking/Scheduler.h
   MultiTasking/Task.h
+  MultiTasking/TaskGroupProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -60,6 +61,7 @@ set (CORE_SOURCES
   IO/ZipUtils.cpp
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
+  MultiTasking/TaskGroupProgress.cpp
   Utils/AnalysisUtils.cpp
   Utils/Bounds.cpp
   Utils/Measure.cpp

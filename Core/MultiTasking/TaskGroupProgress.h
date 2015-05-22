@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,27 +17,38 @@
  *
  */
 
-#ifndef ESPINA_GUI_WIDGETS_STYLES_H
-#define ESPINA_GUI_WIDGETS_STYLES_H
+#ifndef ESPINA_CORE_MULTITASKING_TASKGROUPPROGESS_H
+#define ESPINA_CORE_MULTITASKING_TASKGROUPPROGESS_H
 
-class QPushButton;
-class QString;
-class QWidget;
+#include "Task.h"
 
-namespace ESPINA
-{
-  namespace Support
-  {
-    namespace Widgets
-    {
-      namespace Styles
+namespace ESPINA {
+  namespace Core {
+    namespace MultiTasking {
+
+      /** \brief Reports the progress of a set of tasks
+       *
+       */
+      class TaskGroupProgress
+      : public QObject
       {
-         void setNestedStyle(QWidget *widget);
+        Q_OBJECT
+      public:
+        void showTaskProgress(TaskSPtr task);
 
-         QPushButton *createToolButton(const QString &icon, const QString &tooltip);
+      signals:
+        void progress(int value);
+
+      private slots:
+        void updateProgress();
+
+        void onTaskFinished();
+
+      private:
+        QList<TaskSPtr> m_tasks;
       };
     }
   }
 }
 
-#endif // ESPINA_GUI_WIDGETS_STYLES_H
+#endif // ESPINA_CORE_MULTITASKING_TASKGROUPPROGESS_H

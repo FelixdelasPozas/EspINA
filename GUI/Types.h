@@ -7,6 +7,11 @@ namespace ESPINA
 {
   namespace GUI
   {
+    namespace Widgets
+    {
+      class ProgressAction;
+    }
+
     namespace Representations
     {
       namespace Managers

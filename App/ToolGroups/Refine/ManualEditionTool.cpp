@@ -26,6 +26,7 @@
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/DrawingWidget.h>
+#include <GUI/Widgets/ProgressAction.h>
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>

@@ -22,6 +22,9 @@
 #define ESPINA_TOOL_H
 
 #include "Support/EspinaSupport_Export.h"
+#include <GUI/Types.h>
+
+#include <Core/MultiTasking/TaskGroupProgress.h>
 
 // C++
 #include <memory>
@@ -29,7 +32,6 @@
 // Qt
 #include <QCursor>
 #include <QWidgetAction>
-#include <QObject>
 
 class QHBoxLayout;
 class QAction;
@@ -53,6 +55,8 @@ namespace ESPINA
       explicit NestedWidgets(QObject *parent);
 
       void addWidget(QWidget *widget);
+
+      bool isEmpty() const;
 
     private:
       QHBoxLayout *m_layout;
@@ -87,15 +91,78 @@ namespace ESPINA
   private:
     virtual void onToolEnabled(bool enabled) = 0;
 
-  signals:
-    void changedActions();
-
   private:
     bool m_enabled;
   };
 
+  namespace Support
+  {
+    namespace Widgets
+    {
+
+      class EspinaSupport_EXPORT ProgressTool
+      : public Tool
+      {
+        Q_OBJECT
+
+      public:
+        explicit ProgressTool(const QString &icon, const QString &tooltip);
+
+        virtual ~ProgressTool();
+
+        /** \brief Enables/Disables the tool
+         * \param[in] value true to enable false otherwise.
+         *
+         * Disabled tools may still report progess of pending operations
+         *
+         */
+        void setEnabled(bool value);
+
+        /** \brief Returns true if the tool is enabled, false otherwise.
+         *
+         */
+        bool isEnabled() const;
+
+        /** \brief Changes tool behaviour to be checkable or not
+         *
+         *  Checked tools will display available options
+         *
+         */
+        void setCheckable(bool value);
+
+        QList<QAction *> actions() const;
+
+      public slots:
+        void setProgress(int value);
+
+      protected:
+        void addSettingsWidget(QWidget *widget);
+
+        void showTaskProgress(TaskSPtr task);
+
+      signals:
+        void triggered(bool value);
+
+        void toggled(bool value);
+
+      private slots:
+        void onActionToggled(bool value);
+
+      private:
+        bool m_enabled;
+
+        GUI::Widgets::ProgressAction *m_action;
+        Tool::NestedWidgets          *m_settings;
+
+        Core::MultiTasking::TaskGroupProgress m_taskProgress;
+      };
+    }
+  }
+
   using ToolSPtr  = std::shared_ptr<Tool>;
   using ToolSList = QList<ToolSPtr>;
+
+
 } // namespace ESPINA
 
 #endif // ESPINA_TOOL_H

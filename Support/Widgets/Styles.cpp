@@ -19,9 +19,11 @@
 
 #include "Styles.h"
 #include <QWidget>
+#include <QPushButton>
 
 using namespace ESPINA::Support::Widgets;
 
+//-----------------------------------------------------------------------------
 void Styles::setNestedStyle(QWidget *widget)
 {
   widget->setObjectName("NestedWidget");
@@ -36,4 +38,18 @@ void Styles::setNestedStyle(QWidget *widget)
                          "stop: 0.5 rgba(0,0,0,50),"
                          "stop:   1 rgba(0,0,0,20))}"
   );
+}
+
+//-----------------------------------------------------------------------------
+QPushButton* Styles::createToolButton(const QString& icon, const QString& tooltip)
+{
+  auto button = new QPushButton();
+
+  button->setIcon(QIcon(icon));
+  button->setIconSize(QSize(22, 22));
+  button->setMaximumSize(30, 30);
+  button->setFlat(true);
+  button->setToolTip(tooltip);
+
+  return button;
 }

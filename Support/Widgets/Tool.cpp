@@ -20,11 +20,13 @@
 
 #include "Tool.h"
 #include "Styles.h"
+#include <GUI/Widgets/ProgressAction.h>
 #include <QPushButton>
 #include <QAction>
 #include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
@@ -46,6 +48,12 @@ Tool::NestedWidgets::NestedWidgets(QObject *parent)
 void Tool::NestedWidgets::addWidget(QWidget *widget)
 {
   m_layout->addWidget(widget);
+}
+
+//----------------------------------------------------------------------------
+bool Tool::NestedWidgets::isEmpty() const
+{
+  return m_layout->isEmpty();
 }
 
 //----------------------------------------------------------------------------
@@ -107,4 +115,84 @@ void Tool::setEnabled(bool value)
 bool Tool::isEnabled() const
 {
   return m_enabled;
+}
+
+//----------------------------------------------------------------------------
+ProgressTool::ProgressTool(const QString &icon, const QString &tooltip)
+: Tool()
+, m_action  {new ProgressAction(icon, tooltip, this)}
+, m_settings{new Tool::NestedWidgets(this)}
+{
+  connect(m_action, SIGNAL(toggled(bool)),
+          this,     SLOT(onActionToggled(bool)));
+
+  connect(m_action, SIGNAL(triggered(bool)),
+          this,     SIGNAL(triggered(bool)));
+
+  connect(&m_taskProgress, SIGNAL(progress(int)),
+          m_action,        SLOT(setProgress(int)));
+
+  m_settings->setVisible(false);
+}
+
+//----------------------------------------------------------------------------
+ProgressTool::~ProgressTool()
+{
+  delete m_action;
+  delete m_settings;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setEnabled(bool value)
+{
+  m_action->setEnabled(value);
+  m_settings->setEnabled(value);
+}
+
+//----------------------------------------------------------------------------
+bool ProgressTool::isEnabled() const
+{
+  return m_action->isEnabled();
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setCheckable(bool value)
+{
+  m_action->setCheckable(value);
+}
+
+//----------------------------------------------------------------------------
+QList<QAction*> ProgressTool::actions() const
+{
+  QList<QAction *> result;
+
+  result << m_action << m_settings;
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setProgress(int value)
+{
+  m_action->setProgress(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::addSettingsWidget(QWidget* widget)
+{
+  m_settings->addWidget(widget);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::showTaskProgress(TaskSPtr task)
+{
+  m_taskProgress.showTaskProgress(task);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::onActionToggled(bool value)
+{
+  m_settings->setVisible(value && !m_settings->isEmpty());
+
+  emit toggled(value);
 }

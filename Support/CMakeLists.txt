@@ -20,6 +20,7 @@ qt4_wrap_cpp(Support_MOC
   Widgets/RepresentationTools.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
+  Widgets/Tool.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 

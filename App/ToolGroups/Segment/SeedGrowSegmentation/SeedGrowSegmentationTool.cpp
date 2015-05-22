@@ -105,70 +105,25 @@ throw (Unknown_Filter_Type_Exception)
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context       &context)
-: m_context         (context)
-, m_selectorSwitch  {new ActionSelector()}
-, m_toolWidgets   {this}
+: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel (Ctrl +)"))
+, m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}
 {
-  hideSettings();
+  setCheckable(true);
 
   m_context.factory()->registerFilterFactory(m_sgsFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
-  { // Pixel Selector
-    auto action = Tool::createAction(":/espina/pixelSelector.svg",
-                                     tr("Create segmentation based on selected pixel (Ctrl +)"),
-                                     m_selectorSwitch);
+  initPixelSelectors();
 
-    auto selector = std::make_shared<PixelSelector>();
-    selector->setMultiSelection(false);
+  initSettingsWidgets();
 
-    addVoxelSelector(action, selector);
-  }
-
-
-  { // Best Pixel Selector
-    auto action = Tool::createAction(":/espina/bestPixelSelector.svg",
-                                     tr("Create segmentation based on best pixel (Ctrl +)"),
-                                     m_selectorSwitch);
-
-    auto selector = std::make_shared<BestPixelSelector>();
-    selector->setMultiSelection(false);
-
-    QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
-
-    selector->setCursor(cursor);
-
-    selector->setBestPixelValue(m_settings->bestPixelValue());
-
-    connect(m_settings,     SIGNAL(bestValueChanged(int)),
-            selector.get(), SLOT(setBestPixelValue(int)));
-
-    addVoxelSelector(action, selector);
-
-    m_selectorSwitch->setDefaultAction(action);
-  }
-
-  initOptionWidgets();
-
-  m_roi->setValue(Axis::X, m_settings->xSize());
-  m_roi->setValue(Axis::Y, m_settings->ySize());
-  m_roi->setValue(Axis::Z, m_settings->zSize());
-
-  connect(m_settings, SIGNAL(applyCategoryROIChanged(bool)),
-          this,       SLOT(updateCurrentCategoryROIValues(bool)));
-
-  connect(m_selectorSwitch, SIGNAL(triggered(QAction*)),
-          this,             SLOT(changeSelector(QAction*)));
-
-  connect(m_selectorSwitch, SIGNAL(actionCanceled()),
-          this,             SLOT(unsetSelector()));
-  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(setEventHandler(bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -176,33 +131,13 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
   delete m_categorySelector;
   delete m_seedThreshold;
-  delete m_selectorSwitch;
   delete m_roi;
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction *> SeedGrowSegmentationTool::actions() const
-{
-  QList<QAction *> actions;
-
-  if (m_currentSelector)
-  {
-    bool active = m_context.viewState().eventHandler() == m_currentSelector;
-
-    m_selectorSwitch->setChecked(active);
-    m_toolWidgets.setVisible(active);
-  }
-
-  actions << m_selectorSwitch;
-  actions << &m_toolWidgets;
-
-  return actions;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::abortOperation()
 {
-  unsetSelector();
+  setEventHandler(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -211,46 +146,80 @@ void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::initOptionWidgets()
+void SeedGrowSegmentationTool::initPixelSelectors()
 {
-  m_toolWidgets.addWidget(m_categorySelector);
-  m_toolWidgets.addWidget(m_seedThreshold);
-  m_toolWidgets.addWidget(m_roi);
-
-  m_toolWidgets.setVisible(false);
+  initPixelSelector();
+  initBestPixelSelctor();
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::addVoxelSelector(QAction* action, SelectorSPtr selector)
+void SeedGrowSegmentationTool::initPixelSelector()
 {
-  m_selectorSwitch->addAction(action);
-  m_voxelSelectors[action] = selector;
+  m_pixelSelector = std::make_shared<PixelSelector>();
 
+  initSelector(m_pixelSelector);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initBestPixelSelctor()
+{
+  QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
+
+  auto selector = std::make_shared<BestPixelSelector>();
+
+  selector->setCursor(cursor);
+  selector->setBestPixelValue(m_settings->bestPixelValue());
+
+  connect(m_settings,     SIGNAL(bestValueChanged(int)),
+          selector.get(), SLOT(setBestPixelValue(int)));
+
+  m_bestPixelSelctor = selector;
+
+  initSelector(m_bestPixelSelctor);
+}
+
+void SeedGrowSegmentationTool::initSelector(SelectorSPtr selector)
+{
   selector->setMultiSelection(false);
   selector->setSelectionTag(Selector::CHANNEL);
 
-  connect(selector.get(),   SIGNAL(eventHandlerInUse(bool)),
-          m_selectorSwitch, SLOT(setChecked(bool)));
   connect(selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
           this,           SLOT(launchTask(Selector::Selection)));
+
+  //   connect(selector.get(),   SIGNAL(eventHandlerInUse(bool)),
+//           m_selectorSwitch, SLOT(setChecked(bool)));
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::changeSelector(QAction* action)
+void SeedGrowSegmentationTool::initSettingsWidgets()
 {
-  m_currentSelector = m_voxelSelectors[action];
+  initCategorySelector();
 
-  m_context.viewState().setEventHandler(m_currentSelector);
+  addSettingsWidget(m_seedThreshold);
 
-  displaySettings();
+  initROISelector();
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::unsetSelector()
+void SeedGrowSegmentationTool::initCategorySelector()
 {
-  m_context.viewState().unsetEventHandler(m_currentSelector);
-  m_currentSelector.reset();
-  hideSettings();
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
+
+  addSettingsWidget(m_categorySelector);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initROISelector()
+{
+  m_roi->setValue(Axis::X, m_settings->xSize());
+  m_roi->setValue(Axis::Y, m_settings->ySize());
+  m_roi->setValue(Axis::Z, m_settings->zSize());
+
+  connect(m_settings, SIGNAL(applyCategoryROIChanged(bool)),
+          this,       SLOT(updateCurrentCategoryROIValues(bool)));
+
+  addSettingsWidget(m_roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -331,8 +300,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
       filter->setROI(currentROI->clone());
     }
 
-    m_executingTasks[filter.get()] = filter;
+    m_executingTasks[filter.get()]   = filter;
     m_executingFilters[filter.get()] = filter;
+
+    showTaskProgress(filter);
 
     connect(filter.get(), SIGNAL(finished()),
             this,         SLOT(createSegmentation()));
@@ -442,25 +413,26 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
-{
-  m_toolWidgets.setVisible(value);
-}
-
-//-----------------------------------------------------------------------------
 ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 {
   return getActiveChannel(m_context);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::displaySettings()
+SelectorSPtr SeedGrowSegmentationTool::activeSelector() const
 {
-  setSettingsVisibility(true);
+  return m_bestPixelSelctor;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::hideSettings()
+void SeedGrowSegmentationTool::setEventHandler(bool value)
 {
-  setSettingsVisibility(false);
+  if (value)
+  {
+    m_context.viewState().setEventHandler(activeSelector());
+  }
+  else
+  {
+    m_context.viewState().unsetEventHandler(activeSelector());
+  }
 }
