@@ -23,11 +23,14 @@
 #define ESPINA_ZOOMWIDGET3D_H_
 
 // ESPINA
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/EspinaWidget2.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+
+using namespace ESPINA::GUI::Representations::Managers;
 
 namespace ESPINA
 {
@@ -57,7 +60,7 @@ namespace ESPINA
              */
             virtual ~ZoomWidget3D();
 
-            virtual EspinaWidget3DSPtr clone();
+            virtual TemporalRepresentation3DSPtr clone();
 
           private slots:
             /** \brief Handle mouse movements.

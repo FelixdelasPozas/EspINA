@@ -33,6 +33,8 @@
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
 #include <vtkCoordinate.h>
+#include <vtkMath.h>
+#include <vtkPlane.h>
 
 using namespace ESPINA::GUI::View::Widgets;
 
@@ -292,6 +294,24 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
 
   double worldPos[4], displayPos[3];
 
+  vtkSmartPointer<vtkPlane> viewPlane = nullptr;
+  double projectionDir[3]{0,0,0};
+  if(m_type == vtkZoomSelectionWidget::VOLUME_WIDGET)
+  {
+    auto camera = Renderer->GetActiveCamera();
+    camera->GetDirectionOfProjection(projectionDir);
+    viewPlane = vtkSmartPointer<vtkPlane>::New();
+    viewPlane->SetNormal(projectionDir);
+    viewPlane->SetOrigin(camera->GetPosition());
+
+    auto nearPlaneDist = camera->GetClippingRange()[0];
+    vtkMath::Normalize(projectionDir);
+    for(int i: {0,1,2})
+    {
+      projectionDir[i] *= nearPlaneDist;
+    }
+  }
+
   m_displayPoints->Modified();
   for (int i = 0; i < m_displayPoints->GetNumberOfPoints(); ++i)
   {
@@ -304,8 +324,13 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
     {
       worldPos[m_type] = m_slice + m_depth;
     }
+    else
+    {
+      double point[3]{worldPos[0], worldPos[1], worldPos[2]};
+      viewPlane->ProjectPoint(point, worldPos);
+    }
 
-    m_worldPoints->SetPoint(i, worldPos[0], worldPos[1], worldPos[2]);
+    m_worldPoints->SetPoint(i, worldPos[0]+projectionDir[0], worldPos[1]+projectionDir[1], worldPos[2]+projectionDir[2]);
   }
   m_worldPoints->Modified();
 

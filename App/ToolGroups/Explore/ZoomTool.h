@@ -28,6 +28,8 @@
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>
 
+using namespace ESPINA::GUI::Representations::Managers;
+
 namespace ESPINA
 {
   class RenderView;
@@ -62,10 +64,10 @@ namespace ESPINA
     private:
       virtual void onToolEnabled(bool enabled);
 
-      GUI::View::ViewState                 &m_viewState;
-      QAction                              *m_action;
-      ZoomEventHandlerSPtr                  m_handler;
-      GUI::View::Widgets::WidgetFactorySPtr m_factory;
+      GUI::View::ViewState  &m_viewState;
+      QAction               *m_action;
+      ZoomEventHandlerSPtr   m_handler;
+      TemporalPrototypesSPtr m_factory;
   };
 
 } // namespace ESPINA

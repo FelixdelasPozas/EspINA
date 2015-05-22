@@ -89,7 +89,7 @@ void ZoomWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr ZoomWidget2D::clone()
+TemporalRepresentation2DSPtr ZoomWidget2D::clone()
 {
   return std::make_shared<ZoomWidget2D>(m_eventHandler);
 }

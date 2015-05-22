@@ -58,7 +58,7 @@ ZoomWidget3D::~ZoomWidget3D()
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget3DSPtr ZoomWidget3D::clone()
+TemporalRepresentation3DSPtr ZoomWidget3D::clone()
 {
   return std::make_shared<ZoomWidget3D>(m_eventHandler);
 }

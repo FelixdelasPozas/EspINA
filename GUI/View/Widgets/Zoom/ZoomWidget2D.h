@@ -22,6 +22,7 @@
 #ifndef ESPINA_ZOOMWIDGET2D_H_
 #define ESPINA_ZOOMWIDGET2D_H_
 
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include "EspinaGUI_Export.h"
 
 // ESPINA
@@ -30,6 +31,8 @@
 
 // VTK
 #include <vtkSmartPointer.h>
+
+using namespace ESPINA::GUI::Representations::Managers;
 
 namespace ESPINA
 {
@@ -61,7 +64,7 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth);
 
-            virtual EspinaWidget2DSPtr clone();
+            virtual TemporalRepresentation2DSPtr clone();
 
           private slots:
             /** \brief Handle mouse movements.

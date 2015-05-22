@@ -21,10 +21,11 @@
 
 // ESPINA
 #include "ZoomTool.h"
-#include <GUI/View/Widgets/WidgetFactory.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget2D.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget3D.h>
 
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
 
@@ -35,7 +36,7 @@ ZoomTool::ZoomTool(GUI::View::ViewState &viewState)
 : m_viewState(viewState)
 , m_action   {Tool::createAction(":/espina/zoom_selection.png", tr("Zoom Tool"), this)}
 , m_handler  {new ZoomEventHandler()}
-, m_factory  {new WidgetFactory{std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get())}}
+, m_factory  {new TemporalPrototypes{std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get())}}
 {
   m_action->setCheckable(true);
 
@@ -72,11 +73,11 @@ void ZoomTool::onToolActivated(bool value)
   if (value)
   {
     m_viewState.setEventHandler(m_handler);
-    m_viewState.addWidgets(m_factory);
+    m_viewState.addTemporalRepresentations(m_factory);
   }
   else
   {
-    m_viewState.removeWidgets(m_factory);
+    m_viewState.removeTemporalRepresentations(m_factory);
     m_viewState.unsetEventHandler(m_handler);
   }
 }
