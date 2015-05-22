@@ -78,6 +78,10 @@ void SelectionMeasureTool::onToolActivated(bool value)
 {
   if (value)
   {
+    if(m_viewState.selection()->items().isEmpty())
+    {
+      m_viewState.selection()->set(toViewItemList(m_viewState.selection()->activeChannel()));
+    }
     m_viewState.addTemporalRepresentations(m_factory);
   }
   else
