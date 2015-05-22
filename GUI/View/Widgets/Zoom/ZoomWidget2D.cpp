@@ -138,7 +138,7 @@ void ZoomWidget2D::onMouseMovement(QPoint point, RenderView *view)
   if(m_view == view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
-    m_widget->MoveAction(m_widget);
+    m_view->renderWindow()->GetInteractor()->MouseMoveEvent();
   }
 }
 
@@ -147,10 +147,8 @@ void ZoomWidget2D::onLeftMousePress(QPoint point, RenderView *view)
 {
   if(m_view == view)
   {
-    auto slice = view->crosshair()[normalCoordinateIndex(m_plane)];
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
-    m_widget->SetSlice(slice);
-    m_widget->SelectAction(m_widget);
+    m_view->renderWindow()->GetInteractor()->LeftButtonPressEvent();
   }
 }
 
@@ -160,7 +158,7 @@ void ZoomWidget2D::onLeftMouseRelease(QPoint point, RenderView *view)
   if(m_view == view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
-    m_widget->EndSelectAction(m_widget);
+    m_view->renderWindow()->GetInteractor()->LeftButtonReleaseEvent();
   }
 }
 

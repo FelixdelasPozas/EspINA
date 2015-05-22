@@ -48,10 +48,10 @@ bool ZoomEventHandler::filterEvent(QEvent* e, RenderView* view)
 {
   static bool inClick = false;
   
-  if (isInUse() && e->type() == QEvent::MouseMove && e->type() == QEvent::MouseButtonPress && e->type() == QEvent::MouseButtonRelease)
+  if (e->type() == QEvent::MouseMove || e->type() == QEvent::MouseButtonPress || e->type() == QEvent::MouseButtonRelease)
   {
     auto me = static_cast<QMouseEvent *>(e);
-    auto position = me->globalPos();
+    auto position = me->pos();
 
     if (e->type() == QEvent::MouseMove && inClick)
     {

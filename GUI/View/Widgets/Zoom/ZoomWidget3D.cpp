@@ -74,7 +74,7 @@ void ZoomWidget3D::onLeftMousePress(QPoint point, RenderView* view)
   if(m_view == view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
-    m_widget->SelectAction(m_widget);
+    m_view->renderWindow()->GetInteractor()->LeftButtonPressEvent();
   }
 }
 
@@ -84,7 +84,7 @@ void ZoomWidget3D::onLeftMouseRelease(QPoint point, RenderView* view)
   if(m_view == view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
-    m_widget->EndSelectAction(m_widget);
+    m_view->renderWindow()->GetInteractor()->LeftButtonReleaseEvent();
   }
 }
 

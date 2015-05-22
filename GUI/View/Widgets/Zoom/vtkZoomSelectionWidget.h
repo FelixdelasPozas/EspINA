@@ -94,12 +94,12 @@ namespace ESPINA
              */
             void setRepresentationDepth(ESPINA::Nm depth);
 
+          protected:
             // Callback interface to capture events
             static void SelectAction(vtkAbstractWidget*);
             static void MoveAction(vtkAbstractWidget*);
             static void EndSelectAction(vtkAbstractWidget*);
 
-          protected:
             vtkZoomSelectionWidget();
             virtual ~vtkZoomSelectionWidget();
 
