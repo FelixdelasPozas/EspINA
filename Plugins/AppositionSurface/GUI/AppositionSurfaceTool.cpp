@@ -103,7 +103,7 @@ void AppositionSurfaceTool::selectionChanged()
   }
 
   setToolTip(toolTip);
-  setEnabled(enabled && isEnabled());
+  setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -157,7 +157,6 @@ void AppositionSurfaceTool::createSAS()
     }
   }
 }
-
 
 //-----------------------------------------------------------------------------
 void AppositionSurfaceTool::onToolEnabled(bool enabled)

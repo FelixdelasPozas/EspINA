@@ -41,6 +41,7 @@ QWidget* ProgressAction::createWidget(QWidget* parent)
   auto widget = new QWidget(parent);
 
   auto layout = new QVBoxLayout;
+  layout->setMargin(0);
   widget->setLayout(layout);
 
   auto button = createActionButton(widget);

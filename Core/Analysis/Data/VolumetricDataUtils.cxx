@@ -217,7 +217,9 @@ namespace ESPINA
   itk::ImageRegionIterator<T> itkImageIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionIterator<T>(image, region);
+    auto it = itk::ImageRegionIterator<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -225,7 +227,9 @@ namespace ESPINA
   itk::ImageRegionIteratorWithIndex<T> itkImageIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionIteratorWithIndex<T>(image, region);
+    auto it = itk::ImageRegionIteratorWithIndex<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -233,7 +237,9 @@ namespace ESPINA
   itk::ImageRegionConstIterator<T> itkImageConstIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionConstIterator<T>(image, region);
+    auto it = itk::ImageRegionConstIterator<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -241,6 +247,8 @@ namespace ESPINA
   itk::ImageRegionConstIteratorWithIndex<T> itkImageConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+    auto it =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 } // namespace ESPINA

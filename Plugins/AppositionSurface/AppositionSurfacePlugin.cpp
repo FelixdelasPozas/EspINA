@@ -287,7 +287,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
 bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
   bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
-  bool hasRequiredData = segmentation->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+  bool hasRequiredData = hasVolumetricData(segmentation->output());
 
   return (isValidCategory && hasRequiredData);
 }
