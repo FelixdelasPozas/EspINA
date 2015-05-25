@@ -210,6 +210,7 @@ set (GUI_SOURCES
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
+  Widgets/Styles.cpp
   Widgets/NumericalInput.cpp
   Widgets/TaskProgress.cpp
   View/CoordinateSystem.cpp

@@ -18,10 +18,12 @@
  */
 
 #include "Styles.h"
+
 #include <QWidget>
 #include <QPushButton>
+#include <QAction>
 
-using namespace ESPINA::Support::Widgets;
+using namespace ESPINA::GUI::Widgets;
 
 //-----------------------------------------------------------------------------
 void Styles::setNestedStyle(QWidget *widget)
@@ -41,11 +43,34 @@ void Styles::setNestedStyle(QWidget *widget)
 }
 
 //-----------------------------------------------------------------------------
+QAction* Styles::createToolAction(const QString& icon, const QString& tooltip, QObject* parent)
+{
+  return createToolAction(QIcon(icon), tooltip, parent);
+}
+
+//-----------------------------------------------------------------------------
+QAction* Styles::createToolAction(const QIcon& icon, const QString& tooltip, QObject* parent)
+{
+  auto action = new QAction(parent);
+
+  action->setIcon(icon);
+  action->setToolTip(tooltip);
+
+  return action;
+}
+
+//-----------------------------------------------------------------------------
 QPushButton* Styles::createToolButton(const QString& icon, const QString& tooltip)
+{
+  return createToolButton(QIcon(icon), tooltip);
+}
+
+//-----------------------------------------------------------------------------
+QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip)
 {
   auto button = new QPushButton();
 
-  button->setIcon(QIcon(icon));
+  button->setIcon(icon);
   button->setIconSize(QSize(22, 22));
   button->setMaximumSize(30, 30);
   button->setFlat(true);
@@ -53,3 +78,4 @@ QPushButton* Styles::createToolButton(const QString& icon, const QString& toolti
 
   return button;
 }
+

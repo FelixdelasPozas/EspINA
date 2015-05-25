@@ -20,13 +20,16 @@
 #ifndef ESPINA_GUI_WIDGETS_STYLES_H
 #define ESPINA_GUI_WIDGETS_STYLES_H
 
+class QAction;
+class QIcon;
+class QObject;
 class QPushButton;
 class QString;
 class QWidget;
 
 namespace ESPINA
 {
-  namespace Support
+  namespace GUI
   {
     namespace Widgets
     {
@@ -34,7 +37,13 @@ namespace ESPINA
       {
          void setNestedStyle(QWidget *widget);
 
+         QAction *createToolAction( const QString &icon, const QString &tooltip, QObject *parent );
+
+         QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
+
          QPushButton *createToolButton(const QString &icon, const QString &tooltip);
+
+         QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
       };
     }
   }

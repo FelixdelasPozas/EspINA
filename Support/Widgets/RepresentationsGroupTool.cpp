@@ -18,7 +18,6 @@
  */
 
 #include "RepresentationsGroupTool.h"
-#include "Styles.h"
 
 #include <QAction>
 #include <QWidgetAction>
@@ -66,7 +65,7 @@ RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, const QStr
   layout->addWidget(createSeparator(""));
 
   m_contentWidget->setLayout(layout);
-  Styles::setNestedStyle(m_contentWidget);
+  //Styles::setNestedStyle(m_contentWidget);
 
   m_content->setDefaultWidget(m_contentWidget);
   m_content->setVisible(m_globalSwitch->isChecked());

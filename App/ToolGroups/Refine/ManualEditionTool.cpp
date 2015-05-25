@@ -40,61 +40,35 @@
 
 using ESPINA::Filter;
 
-const Filter::Type SOURCE_FILTER    = "FreeFormSource";
-const Filter::Type SOURCE_FILTER_V4 = "EditorToolBar::FreeFormSource";
-
 using namespace ESPINA;
-
-//-----------------------------------------------------------------------------
-FilterTypeList ManualEditionTool::ManualFilterFactory::providedFilters() const
-{
-  FilterTypeList filters;
-
-  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
-
-  return filters;
-}
-
-//-----------------------------------------------------------------------------
-FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(InputSList          inputs,
-                                                           const Filter::Type& filter,
-                                                           SchedulerSPtr       scheduler) const
-throw(Unknown_Filter_Exception)
-{
-  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
-
-  auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
-
-  if (!m_dataFactory)
-  {
-    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
-  }
-
-  ffsFilter->setDataFactory(m_dataFactory);
-
-  return ffsFilter;
-}
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
-: m_model        {context.model()}
+: ProgressTool(":espina/manual_edition.svg", tr("Modify segmentations manually"))
+, m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
 , m_selection    {getSelection(context)}
-, m_filterFactory{new ManualFilterFactory()}
 , m_context      (context)
 , m_drawingWidget(context)
-, m_mode         {Mode::CREATION}
 , m_referenceItem{nullptr}
 , m_validStroke  {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
-  m_factory->registerFilterFactory(m_filterFactory);
+  setCheckable(true);
+
+  addSettingsWidget(&m_drawingWidget);
 
   connect(m_selection.get(), SIGNAL(selectionChanged()),
-          this,              SLOT(updateReferenceItem()));
+          this,              SLOT(onSelectionChanged()));
+
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(onToolToggled(bool)));
+
+  connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
+          this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
           this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
@@ -102,21 +76,12 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 
-  connect(&m_drawingWidget, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,             SLOT(onCategoryChange(CategoryAdapterSPtr)));
+  onSelectionChanged();
 }
 
 //------------------------------------------------------------------------
 ManualEditionTool::~ManualEditionTool()
 {
-}
-
-//------------------------------------------------------------------------
-QList<QAction *> ManualEditionTool::actions() const
-{
-  updateReferenceItem();
-
-  return m_drawingWidget.actions();
 }
 
 //------------------------------------------------------------------------
@@ -126,44 +91,47 @@ void ManualEditionTool::abortOperation()
 }
 
 //------------------------------------------------------------------------
+void ManualEditionTool::onSelectionChanged()
+{
+  auto segmentations = m_selection->segmentations();
+
+  bool validSelection = true;
+
+  if (segmentations.size() != 1)
+  {
+    validSelection = false;
+  }
+  else if (selectedSegmentation()->isBeingModified())
+  {
+    validSelection = false;
+  }
+
+  if (validSelection)
+  {
+    updateReferenceItem();
+  }
+
+  setEnabled(validSelection);
+}
+
+//------------------------------------------------------------------------
 void ManualEditionTool::updateReferenceItem() const
 {
   ViewItemAdapterPtr currentItem = m_referenceItem;
 
-  m_mode          = Mode::CREATION;
-  m_referenceItem = nullptr;
+  auto segmentation  = selectedSegmentation();
+  auto category      = segmentation->category();
+  auto brushColor    = m_colorEngine->color(segmentation);
 
-  auto brushColor = m_drawingWidget.selectedCategory()->color();
+  m_drawingWidget.setCategory(category);
+  m_drawingWidget.clearBrushImage();
 
-  auto segmentations = m_selection->segmentations();
+  m_referenceItem = segmentation;
 
-  if (segmentations.size() > 1) return;
-
-  if (segmentations.size() == 1)
-  {
-    auto segmentation = segmentations.first();
-    auto category     = segmentation->category();
-
-    brushColor        = m_colorEngine->color(segmentation);
-
-    m_drawingWidget.setCategory(category);
-    m_drawingWidget.clearBrushImage();
-
-    m_mode          = Mode::EDITION;
-    m_referenceItem = segmentation;
-  }
-
-  auto validVolume = !segmentations.isEmpty() && hasVolumetricData(m_referenceItem->output());
+  auto validVolume = hasVolumetricData(m_referenceItem->output());
 
   if (!validVolume)
   {
-    if(!m_referenceItem)
-    {
-      auto channels = m_selection->channels();
-
-      m_referenceItem = channels.isEmpty()?activeChannel():channels.first();
-    }
-
     m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
   }
 
@@ -177,7 +145,6 @@ void ManualEditionTool::updateReferenceItem() const
   m_drawingWidget.setDrawingColor(brushColor);
   m_drawingWidget.setCanErase(validVolume);
 
-
   auto output  = m_referenceItem->output();
   auto origin  = readLockVolume(output)->origin();
   auto spacing = output->spacing();
@@ -189,12 +156,6 @@ void ManualEditionTool::updateReferenceItem() const
 void ManualEditionTool::onToolEnabled(bool enabled)
 {
 
-}
-
-//------------------------------------------------------------------------
-bool ManualEditionTool::isCreationMode() const
-{
-  return Mode::CREATION == m_mode;
 }
 
 //------------------------------------------------------------------------
@@ -213,45 +174,11 @@ ChannelAdapterPtr ManualEditionTool::activeChannel() const
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
+SegmentationAdapterPtr ManualEditionTool::selectedSegmentation() const
 {
-  auto channel = channelPtr(m_referenceItem);
-  auto output  = channel->output();
+  Q_ASSERT(!m_selection->segmentations().isEmpty());
 
-  auto spacing = output->spacing();
-  auto origin  = channel->position();
-
-  auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-
-  auto volume = std::make_shared<SparseVolume<itkVolumeType>>(mask->bounds().bounds(), spacing, origin);
-  volume->draw(mask);
-
-  filter->addOutputData(0, volume);
-
-  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(filter->output(0).get());
-
-  filter->addOutputData(0, mesh);
-
-  auto segmentation = m_factory->createSegmentation(filter, 0);
-  segmentation->setCategory(m_drawingWidget.selectedCategory());
-
-  SampleAdapterSList samples;
-  samples << QueryAdapter::sample(channel);
-  Q_ASSERT(channel && (samples.size() == 1));
-
-  m_undoStack->beginMacro(tr("Add Segmentation"));
-  m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-  m_undoStack->endMacro();
-
-  SegmentationAdapterList list;
-  list << segmentation.get();
-  m_selection->clear();
-  m_selection->set(list);
-
-  m_mode          = Mode::EDITION;
-  m_referenceItem = segmentation.get();
-
-  m_drawingWidget.setCanErase(true);
+  return m_selection->segmentations().first();
 }
 
 //------------------------------------------------------------------------
@@ -272,44 +199,39 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
-  auto showStroke = isCreationMode();
+  painter->setStrokeVisibility(false);
 
-  painter->setStrokeVisibility(showStroke);
+  auto volume = readLockVolume(m_referenceItem->output());
+  auto strokePainter = painter->strokePainter();
 
-  if (!showStroke)
+  auto canvas = strokePainter->strokeCanvas();
+  auto actor  = strokePainter->strokeActor();
+
+  int extent[6];
+  canvas->GetExtent(extent);
+  auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
+
+  m_validStroke = intersect(volume->bounds(), view->previewBounds(false), volume->spacing());
+
+  if (m_validStroke)
   {
-    auto volume = readLockVolume(m_referenceItem->output());
-    auto strokePainter = painter->strokePainter();
+    auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
 
-    auto canvas = strokePainter->strokeCanvas();
-    auto actor  = strokePainter->strokeActor();
+    auto slice = volume->itkImage(bounds);
 
-    int extent[6];
-    canvas->GetExtent(extent);
-    auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
+    itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
+    it.GoToBegin();
 
-    m_validStroke = intersect(volume->bounds(), view->previewBounds(false), volume->spacing());
-
-    if (m_validStroke)
+    while(!it.IsAtEnd())
     {
-      auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
+      auto index = it.GetIndex();
 
-      auto slice = volume->itkImage(bounds);
-
-      itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
-      it.GoToBegin();
-
-      while(!it.IsAtEnd())
+      if(it.Value() == SEG_VOXEL_VALUE && isValid(index[0], index[1], index[2]))
       {
-        auto index = it.GetIndex();
-
-        if(it.Value() == SEG_VOXEL_VALUE && isValid(index[0], index[1], index[2]))
-        {
-          auto pixel = static_cast<unsigned char*>(canvas->GetScalarPointer(index[0],index[1], index[2]));
-          *pixel     = 1;
-        }
-        ++it;
+        auto pixel = static_cast<unsigned char*>(canvas->GetScalarPointer(index[0],index[1], index[2]));
+        *pixel     = 1;
       }
+      ++it;
     }
 
     m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_colorEngine);
@@ -323,19 +245,26 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 //------------------------------------------------------------------------
 void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 {
-  if (isCreationMode())
-  {
-    createSegmentation(mask);
-    updateReferenceItem();
-  }
-  else
-  {
-    modifySegmentation(mask);
-  }
+  modifySegmentation(mask);
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::onCategoryChange(CategoryAdapterSPtr category)
+void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
-  m_selection->clear();
+  m_context.viewState().setEventHandler(painter);
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onToolToggled(bool toggled)
+{
+  auto painter = m_drawingWidget.painter();
+
+  if (toggled)
+  {
+    m_context.viewState().setEventHandler(painter);
+  }
+  else
+  {
+    m_context.viewState().unsetEventHandler(painter);
+  }
 }

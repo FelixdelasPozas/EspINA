@@ -27,7 +27,6 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Support/Widgets/Styles.h>
 #include <Support/ContextFactories.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>

@@ -50,6 +50,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Restrict/OrthogonalROITool.h
   ToolGroups/Restrict/ManualROITool.h
   ToolGroups/Restrict/RestrictToolGroup.h
+  ToolGroups/Segment/Manual/ManualSegmentTool.h
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
@@ -141,6 +142,7 @@ set (ESPINA_SOURCES
   ToolGroups/Restrict/OrthogonalROITool.cpp
   ToolGroups/Restrict/ManualROITool.cpp
   ToolGroups/Restrict/RestrictToolGroup.cpp
+  ToolGroups/Segment/Manual/ManualSegmentTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp

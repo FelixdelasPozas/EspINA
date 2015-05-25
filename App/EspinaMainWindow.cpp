@@ -45,6 +45,7 @@
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
+#include "ToolGroups/Segment/Manual/ManualSegmentTool.h"
 #include "ToolGroups/Explore/ResetZoom.h"
 #include "ToolGroups/Explore/ZoomTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
@@ -1302,8 +1303,8 @@ void EspinaMainWindow::createToolGroups()
 
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
   registerToolGroup(m_segmentToolGroup);
-  auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context);
-  m_segmentToolGroup->addTool(sgsTool);
+  m_segmentToolGroup->addTool(std::make_shared<ManualSegmentTool>(m_context));
+  m_segmentToolGroup->addTool(std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context));
 
   m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
   registerToolGroup(m_refineToolGroup);

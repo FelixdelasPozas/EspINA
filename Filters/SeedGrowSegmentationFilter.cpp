@@ -320,9 +320,13 @@ void SeedGrowSegmentationFilter::execute()
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
 
   if(m_ROI != nullptr)
+  {
     connectedFilter->SetInput(extractFilter->GetOutput());
+  }
   else
+  {
     connectedFilter->SetInput(input->itkImage());
+  }
 
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
@@ -333,6 +337,7 @@ void SeedGrowSegmentationFilter::execute()
   connectedFilter->Update();
 
   reportProgress(50);
+
   if (!canExecute()) return;
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();

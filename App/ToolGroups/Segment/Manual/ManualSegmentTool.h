@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_MANUAL_EDITION_TOOL_H_
-#define ESPINA_MANUAL_EDITION_TOOL_H_
+#ifndef ESPINA_MANUAL_SEGMENT_TOOL_H_
+#define ESPINA_MANUAL_SEGMENT_TOOL_H_
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
@@ -30,7 +30,7 @@
 #include <GUI/EventHandlers/StrokePainter.h>
 #include <GUI/View/Selection.h>
 #include <GUI/Widgets/DrawingWidget.h>
-#include "SliceEditionPipeline.h"
+#include <ToolGroups/Refine/SliceEditionPipeline.h>
 
 class QUndoStack;
 
@@ -38,22 +38,39 @@ using namespace ESPINA::GUI::View;
 
 namespace ESPINA
 {
-  class ManualEditionTool
+  class ManualSegmentTool
   : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
+    enum class Mode
+    {
+      SINGLE_STROKE,
+      MULTI_STROKE
+    };
+
+    class ManualFilterFactory
+    : public FilterFactory
+    {
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      virtual FilterTypeList providedFilters() const;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory;
+    };
+
   public:
-    /** \brief ManualEditionTool class constructor.
+    /** \brief ManualSegmentTool class constructor.
      * \param[in] context to be used for this tool
      *
      */
-    ManualEditionTool(Support::Context &context);
+    ManualSegmentTool(Support::Context &context);
 
-    /** \brief ManualEditionTool class virtual destructor.
+    /** \brief ManualSegmentTool class virtual destructor.
      *
      */
-    virtual ~ManualEditionTool();
+    virtual ~ManualSegmentTool();
 
     virtual void abortOperation();
 
@@ -63,27 +80,35 @@ namespace ESPINA
   public slots:
     void onSelectionChanged();
 
-    void updateReferenceItem() const;
-
   private:
     virtual void onToolEnabled(bool enabled);
 
+    void initMultiStrokeWidgets();
+
+    void setInitialStroke();
+
+    void setMultiStroke();
+
+    void createSegmentation(BinaryMaskSPtr<unsigned char> mask);
+
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
+
+    bool isCreationMode() const;
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
     ChannelAdapterPtr activeChannel() const;
-
-    SegmentationAdapterPtr selectedSegmentation() const;
 
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
     void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    void onPainterChanged(MaskPainterSPtr painter);
+    void onCategoryChange(CategoryAdapterSPtr category);
 
     void onToolToggled(bool toggled);
+
+    void onStrokeModeToggled(bool toggled);
 
   protected:
     ModelAdapterSPtr  m_model;
@@ -91,21 +116,19 @@ namespace ESPINA
     QUndoStack       *m_undoStack;
     ColorEngineSPtr   m_colorEngine;
     SelectionSPtr     m_selection;
+    FilterFactorySPtr m_filterFactory;
     Support::Context &m_context;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
-    // mutable needed by updateReferenceItem() const
-    mutable DrawingTool        m_drawingWidget;
-    mutable ViewItemAdapterPtr m_referenceItem;
+    DrawingTool        m_drawingWidget;
+    Mode               m_mode;
+    bool               m_createSegmentation;
+    ViewItemAdapterPtr m_referenceItem;
 
     bool                      m_validStroke;
     SliceEditionPipelineSPtr  m_temporalPipeline;
   };
-
-  using ManualEditionToolPtr  = ManualEditionTool *;
-  using ManualEditionToolSPtr = std::shared_ptr<ManualEditionTool>;
-
 } // namespace ESPINA
 
-#endif // ESPINA_MANUAL_EDITION_TOOL_H_
+#endif // ESPINA_MANUAL_SEGMENT_TOOL_H_

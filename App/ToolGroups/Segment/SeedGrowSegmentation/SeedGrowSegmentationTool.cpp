@@ -31,7 +31,6 @@
 #include <GUI/Widgets/CategorySelector.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
-#include <Support/Widgets/Styles.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -105,7 +104,7 @@ throw (Unknown_Filter_Type_Exception)
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context       &context)
-: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel (Ctrl +)"))
+: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"))
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}

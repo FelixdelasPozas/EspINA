@@ -19,8 +19,8 @@
 */
 
 #include "Tool.h"
-#include "Styles.h"
 #include <GUI/Widgets/ProgressAction.h>
+#include <GUI/Widgets/Styles.h>
 #include <QPushButton>
 #include <QAction>
 #include <QHBoxLayout>

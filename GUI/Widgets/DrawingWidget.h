@@ -25,7 +25,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Types.h>
 #include <Support/Context.h>
-#include <Support/Widgets/Tool.h>
 
 #include <QAction>
 #include <QMap>
@@ -46,14 +45,16 @@ namespace ESPINA
       class NumericalInput;
 
       class DrawingWidget
-      : public QObject
+      : public QWidget
       {
         Q_OBJECT
 
       public:
-        explicit DrawingWidget(Support::Context &context);
+        explicit DrawingWidget(Support::Context &context, QWidget *parent = 0);
 
         virtual ~DrawingWidget();
+
+        MaskPainterSPtr painter() const;
 
         void setDrawingColor(const QColor &color);
 
@@ -119,34 +120,6 @@ namespace ESPINA
         bool eraserControlsVisibility()
         { return m_showEraserControls; }
 
-        /** \brief Sets pencil 2d icon.
-         * \param[in] icon QIcon object.
-         *
-         */
-        void setPencil2DIcon(QIcon icon)
-        { m_circularPainterAction->setIcon(icon); }
-
-        /** \brief Sets pencil 3d icon.
-         * \param[in] icon QIcon object.
-         *
-         */
-        void setPencil3DIcon(QIcon icon)
-        { m_sphericalPainterAction->setIcon(icon); }
-
-        /** \brief Sets pencil 2d text,
-         * \param[in] text text for the control.
-         *
-         */
-        void setPencil2DText(QString text)
-        { m_circularPainterAction->setText(text); }
-
-        /** \brief Sets pencil 3d text.
-         * \param[in] text text for the control.
-         *
-         */
-        void setPencil3DText(QString text)
-        { m_sphericalPainterAction->setText(text); }
-
         void setCategory(CategoryAdapterSPtr category);
 
         /** \brief Disables eraser tool
@@ -172,16 +145,15 @@ namespace ESPINA
 
         void categoryChanged(CategoryAdapterSPtr category);
 
-      private slots:
-        /** \brief Changes the selector for the operation.
-         *
-         */
-        void changePainter(QAction *action);
+        void painterChanged(MaskPainterSPtr painter);
 
-        /** \brief Unsets the selector and disables the tool.
-         *
-         */
-        void unsetPainter();
+      private slots:
+        void changePainter(bool checked);
+
+//         /** \brief Unsets the selector and disables the tool.
+//          *
+//          */
+//         void unsetPainter();
 
         /** \brief Changes the radius for the operation.
          * \param[in] value radius value.
@@ -209,11 +181,6 @@ namespace ESPINA
          */
         void drawingModeChanged(bool value);
 
-        /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
-         * \param[in] inUse true if selector is in use.
-         */
-        void selectorInUse(bool inUse);
-
         /** \brief Updates the tool when the category selector changes.
          * \param[in] unused unused value.
          */
@@ -229,8 +196,6 @@ namespace ESPINA
 
         void initPainters();
 
-        void initDrawingControls();
-
         void initCategoryWidget();
 
         void initEraseWidget();
@@ -241,18 +206,23 @@ namespace ESPINA
 
         void initOpacityWidget();
 
-        QAction *registerPainter(const QIcon    &icon,
-                                 const QString  &description,
-                                 MaskPainterSPtr painter);
+        void addWidget(QWidget *widget);
 
-        QAction *registerBrush(const QIcon     &icon,
-                               const QString   &description,
-                               BrushPainterSPtr painter);
+        QPushButton *registerPainter(const QString  &icon,
+                                     const QString  &description,
+                                     MaskPainterSPtr painter);
 
-        /** \brief Helper method to hide/show the controls of the tool.
-         *
-         */
+        QPushButton *registerBrush(const QString   &icon,
+                                   const QString   &description,
+                                   BrushPainterSPtr painter);
+
+        bool displayBrushControls() const;
+
+        bool displayContourControls() const;
+
         void setControlVisibility(bool visible);
+
+        void updateActiveControls();
 
       private:
         Support::Context &m_context;
@@ -262,19 +232,17 @@ namespace ESPINA
         ContourPainterSPtr m_contourPainter;
         MaskPainterSPtr    m_currentPainter;
 
-        ActionSelector      *m_painterSelector;
-        Tool::NestedWidgets *m_nestedWidgets;
-        CategorySelector    *m_categorySelector;
-        QMap<QAction *, MaskPainterSPtr> m_painters;
+        CategorySelector *m_categorySelector;
+        NumericalInput   *m_radiusWidget;
+        NumericalInput   *m_opacityWidget;
+        QPushButton      *m_eraserWidget;
+        QPushButton      *m_rasterizeWidget;
 
-        NumericalInput *m_radiusWidget;
-        NumericalInput *m_opacityWidget;
-        QPushButton   *m_eraserWidget;
-        QPushButton   *m_rasterizeWidget;
+        QPushButton *m_circularPainterAction;
+        QPushButton *m_sphericalPainterAction;
+        QPushButton *m_contourPainterAction;
 
-        QAction *m_circularPainterAction;
-        QAction *m_sphericalPainterAction;
-        QAction *m_contourPainterAction;
+        QMap<QPushButton *, MaskPainterSPtr> m_painters;
 
         bool m_showCategoryControls;
         bool m_showRadiusControls;

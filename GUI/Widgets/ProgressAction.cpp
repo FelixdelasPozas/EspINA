@@ -81,6 +81,7 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
   action->setToolTip(toolTip());
   action->setIconSize(QSize(iconSize(), iconSize()));
   action->setMaximumSize(buttonSize(), buttonSize());
+  action->setEnabled(isEnabled());
   action->setCheckable(isCheckable());
   action->setFlat(true);
 

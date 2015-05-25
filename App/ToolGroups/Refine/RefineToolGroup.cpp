@@ -84,7 +84,7 @@ void RefineToolGroup::enableCurrentSelectionActions()
     hasRequiredData = hasVolumetricData(selectedSegmentation->output());
   }
 
-  m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
+  //m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
   m_split        ->setEnabled(onlyOneSegmentation && hasRequiredData);
   // NOTE: morphological tools manage selection on their own, as it's tools
   // haven't a unique requirement.

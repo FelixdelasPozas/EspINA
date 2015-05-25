@@ -22,8 +22,6 @@
 // ESPINA
 #include "CODETool.h"
 
-#include <Support/Widgets/Styles.h>
-
 #include <QHBoxLayout>
 #include <QPushButton>
 
