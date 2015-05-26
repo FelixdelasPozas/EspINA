@@ -21,12 +21,20 @@
 // ESPINA
 #include "RefineToolGroup.h"
 
+#include "ManualEditionTool.h"
+#include "CODETool.h"
+
 #include <Core/Analysis/Output.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/DrawUndoCommand.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
+#include <Support/Widgets/RefineTool.h>
+#include <Filters/CloseFilter.h>
+#include <Filters/OpenFilter.h>
+#include <Filters/DilateFilter.h>
+#include <Filters/ErodeFilter.h>
 
 // Qt
 #include <QApplication>
@@ -35,59 +43,33 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 
-
 //-----------------------------------------------------------------------------
 RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
                                  Support::Context &context)
-: ToolGroup      {":/espina/toolgroup_refine.svg", tr("Refine")}
-, m_context      (context)
+: ToolGroup{":/espina/toolgroup_refine.svg", tr("Refine")}
+, m_context{context}
 {
-  // DESIGN: Consider using a base class for all refine tools to
-  //         manage enabling tools depending on current selection
+  auto morphologicalFactory = std::make_shared<MorphologicalFilterFactory>();
+  context.factory()->registerFilterFactory(morphologicalFactory);
+  filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
 
-  m_manualEdition = std::make_shared<ManualEditionTool>(context);
-  m_split         = std::make_shared<SplitTool>(context);
-  m_morphological = std::make_shared<MorphologicalEditionTool>(filterDelegateFactory, context);
+  auto manualEdition = std::make_shared<ManualEditionTool>(context);
+  m_split            = std::make_shared<SplitTool>(context);
 
-  addTool(m_manualEdition);
+  addTool(manualEdition);
   addTool(m_split);
-  addTool(m_morphological);
+  addTool(std::make_shared<CODETool<CloseFilter>> (tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , context));
+  addTool(std::make_shared<CODETool<OpenFilter>>  (tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , context));
+  addTool(std::make_shared<CODETool<DilateFilter>>(tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), context));
+  addTool(std::make_shared<CODETool<ErodeFilter>> (tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , context));
 
-  connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-          this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
-
-  connect(getSelection(context).get(), SIGNAL(selectionChanged()),
-          this,                            SLOT(enableCurrentSelectionActions()));
-
-  enableCurrentSelectionActions();
+  connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
+          this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
 }
 
 //-----------------------------------------------------------------------------
 RefineToolGroup::~RefineToolGroup()
 {
-  disconnect(this->parent());
-}
-
-//-----------------------------------------------------------------------------
-void RefineToolGroup::enableCurrentSelectionActions()
-{
-  auto selection     = getSelection(m_context)->segmentations();
-  auto selectionSize = selection.size();
-
-  auto noSegmentation       = (selectionSize == 0);
-  auto onlyOneSegmentation  = (selectionSize == 1);
-  auto hasRequiredData      = false;
-
-  if(onlyOneSegmentation)
-  {
-    auto selectedSegmentation = selection.first();
-    hasRequiredData = hasVolumetricData(selectedSegmentation->output());
-  }
-
-  //m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
-  m_split        ->setEnabled2(onlyOneSegmentation && hasRequiredData);
-  // NOTE: morphological tools manage selection on their own, as it's tools
-  // haven't a unique requirement.
 }
 
 //-----------------------------------------------------------------------------

@@ -29,6 +29,7 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
 #include <App/Settings/ROI/ROISettings.h>
@@ -315,12 +316,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   else
   {
-    QMessageBox box;
-    box.setWindowTitle(tr("Seed Grow Segmentation"));
-    box.setText(tr("The seed is not inside the channel or the region of interest."));
-    box.setStandardButtons(QMessageBox::Ok);
-    box.setIcon(QMessageBox::Information);
-    box.exec();
+    auto title = tr("Seed Grow Segmentation");
+    auto msg   = tr("The seed is not inside the channel or the region of interest.");
+
+    GUI::DefaultDialogs::InformationMessage(title, msg);
   }
 }
 

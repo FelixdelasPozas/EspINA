@@ -18,18 +18,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_EDITION_TOOLS_H_
-#define ESPINA_EDITION_TOOLS_H_
+#ifndef ESPINA_SUPPORT_REFINE_TOOL_H
+#define ESPINA_SUPPORT_REFINE_TOOL_H
 
 // ESPINA
-#include "ManualEditionTool.h"
-#include "SplitTool.h"
-#include "MorphologicalEditionTool.h"
 #include <ToolGroups/ToolGroup.h>
-#include <Core/Factory/FilterFactory.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/Selection.h>
-#include <GUI/ModelFactory.h>
+
+#include "SplitTool.h"
+#include <Support/Factory/FilterDelegateFactory.h>
 
 class QUndoStack;
 
@@ -41,20 +37,14 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief EditionTools class constructor.
-     * \param[in] context ESPINA context
      * \param[in] filterDelegateFactory factory
+     * \param[in] context ESPINA context
      *
      */
     explicit RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                             Support::Context   &context);
+                             Support::Context         &context);
 
     virtual ~RefineToolGroup();
-
-  public slots:
-    /** \brief Updates the tools based on current selection.
-     *
-     */
-    void enableCurrentSelectionActions();
 
   private slots:
     /** \brief Deletes a segmentation from the model if all its voxels have been erased.
@@ -63,15 +53,10 @@ namespace ESPINA
     void onVoxelDeletion(ViewItemAdapterPtr item);
 
   private:
-    Support::Context            &m_context;
-
-    ManualEditionToolSPtr        m_manualEdition;
-    SplitToolSPtr                m_split;
-    MorphologicalEditionToolSPtr m_morphological;
-
-    bool                         m_enabled;
+    Support::Context &m_context;
+    SplitToolSPtr     m_split;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINA_EDITION_TOOLS_H_
+#endif // ESPINA_SUPPORT_REFINE_TOOL_H

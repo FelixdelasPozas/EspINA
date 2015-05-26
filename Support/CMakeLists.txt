@@ -21,6 +21,7 @@ qt4_wrap_cpp(Support_MOC
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
   Widgets/Tool.h
+  Widgets/RefineTool.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -79,7 +80,7 @@ set (Support_SOURCES
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/Tool.cpp
-  ../GUI/Widgets/Styles.cpp
+  Widgets/RefineTool.cpp
   Widgets/RepresentationsGroupTool.cpp
   Widgets/RepresentationTools.cpp
   )

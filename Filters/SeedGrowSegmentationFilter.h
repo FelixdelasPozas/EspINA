@@ -43,7 +43,7 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      *
      */
-    explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
+    explicit SeedGrowSegmentationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
     virtual ~SeedGrowSegmentationFilter();
 

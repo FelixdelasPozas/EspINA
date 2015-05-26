@@ -42,8 +42,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Refine/CODEHistoryWidget.h
   ToolGroups/Refine/CODETool.h
   ToolGroups/Refine/ManualEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
   ToolGroups/Refine/RefineToolGroup.h
   ToolGroups/Refine/SplitTool.h
   ToolGroups/Restrict/CleanROITool.h
@@ -158,7 +156,6 @@ set (ESPINA_SOURCES
   ToolGroups/Refine/CODETool.cpp
   ToolGroups/Refine/RefineToolGroup.cpp
   ToolGroups/Refine/ManualEditionTool.cpp
-  ToolGroups/Refine/MorphologicalEditionTool.cpp
   ToolGroups/Refine/SliceEditionPipeline.cpp
   ToolGroups/Refine/SplitTool.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp

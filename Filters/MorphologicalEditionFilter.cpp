@@ -33,9 +33,9 @@ const unsigned int LABEL_VALUE = 255;
 
 
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
-                                                       Filter::Type  type,
-                                                       SchedulerSPtr scheduler)
+MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList          inputs,
+                                                       const Filter::Type &type,
+                                                       SchedulerSPtr       scheduler)
 : Filter         {inputs, type, scheduler}
 , m_radius       {0}
 , m_prevRadius   {m_radius}

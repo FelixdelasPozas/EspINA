@@ -159,7 +159,7 @@ namespace ESPINA
      * \param[in] scheduler smart pointer of the system scheduler.
      *
      */
-    explicit Filter(InputSList inputs, Type  type, SchedulerSPtr scheduler);
+    explicit Filter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
     /** \brief Returns the snapshot of the filter.
      *

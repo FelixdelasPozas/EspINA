@@ -59,7 +59,7 @@ const QString ROI_DEFINED    = "ROI";
 const QString V4_ROI         = "VOI";
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Filter       {inputs, type, scheduler}
 , m_lowerTh    {0}
 , m_prevLowerTh{m_lowerTh}

@@ -38,9 +38,9 @@ using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::
 using BinaryClosingFilter    = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-CloseFilter::CloseFilter(InputSList    inputs,
-                             Filter::Type  type,
-                             SchedulerSPtr scheduler)
+CloseFilter::CloseFilter(InputSList          inputs,
+                         const Filter::Type &type,
+                         SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }

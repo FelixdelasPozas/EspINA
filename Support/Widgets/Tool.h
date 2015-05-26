@@ -144,6 +144,8 @@ namespace ESPINA
         void toggled(bool value);
 
       protected:
+        Context &context();
+
         void addSettingsWidget(QWidget *widget);
 
         void showTaskProgress(TaskSPtr task);

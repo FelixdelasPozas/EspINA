@@ -181,6 +181,12 @@ void ProgressTool::setProgress(int value)
 }
 
 //----------------------------------------------------------------------------
+Context& ProgressTool::context()
+{
+  return m_context;
+}
+
+//----------------------------------------------------------------------------
 void ProgressTool::addSettingsWidget(QWidget* widget)
 {
   m_settings->addWidget(widget);

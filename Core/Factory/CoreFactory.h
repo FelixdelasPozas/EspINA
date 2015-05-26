@@ -72,7 +72,7 @@ namespace ESPINA
      *
      */
     template<typename T>
-    std::shared_ptr<T> createFilter(InputSList inputs, Filter::Type type) const
+    std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
     {
       auto filter = std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
       filter->setStorage(m_defaultStorage);

@@ -39,7 +39,7 @@ using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::
 using BinaryDilateFilter     = itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-DilateFilter::DilateFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+DilateFilter::DilateFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }

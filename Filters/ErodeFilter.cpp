@@ -38,9 +38,9 @@ using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::
 using BinaryErodeFilter      = itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-ErodeFilter::ErodeFilter(InputSList    inputs,
-                         Filter::Type  type,
-                         SchedulerSPtr scheduler)
+ErodeFilter::ErodeFilter(InputSList          inputs,
+                         const Filter::Type &type,
+                         SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }
