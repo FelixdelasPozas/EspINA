@@ -28,6 +28,8 @@ void EspinaWidget::initializeWidget(RenderView *view)
   widget->SetInteractor(interactor);
 
   initializeImplementation(view);
+
+  widget->On();
 }
 
 //-----------------------------------------------------------------------------
@@ -35,6 +37,7 @@ void EspinaWidget::uninitializeWidget()
 {
   auto widget = vtkWidget();
 
+  widget->Off();
   widget->SetInteractor(nullptr);
   widget->SetCurrentRenderer(nullptr);
 

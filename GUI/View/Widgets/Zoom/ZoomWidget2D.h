@@ -22,10 +22,10 @@
 #ifndef ESPINA_ZOOMWIDGET2D_H_
 #define ESPINA_ZOOMWIDGET2D_H_
 
-#include <GUI/Representations/Managers/TemporalManager.h>
 #include "EspinaGUI_Export.h"
 
 // ESPINA
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/EspinaWidget2.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>
 

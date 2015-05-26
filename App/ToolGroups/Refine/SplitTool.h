@@ -24,6 +24,7 @@
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/Tool.h>
@@ -32,13 +33,17 @@
 // Qt
 #include <QUndoStack>
 
+// VTK
+#include <vtkSmartPointer.h>
+
 class QAction;
+class vtkPlane;
+
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets;
 
 namespace ESPINA
 {
-  class SplitToolEventHandler;
-  using SplitToolEventHandlerSPtr = std::shared_ptr<SplitToolEventHandler>;
-
   class SplitTool
   : public Tool
   {
@@ -85,6 +90,27 @@ namespace ESPINA
 
     void hideCuttingPlane();
 
+  public slots:
+    /** \brief Helper method called by the widgets on creation.
+     *
+     */
+    void onWidgetCreated(PlanarSplitWidgetPtr widget);
+
+    /** \brief Helper method called by the widgets on destruction.
+     *
+     */
+    void onWidgetDestroyed(PlanarSplitWidgetPtr widget);
+
+    /** \brief Helper method called by the widget that has finished defining the splitting plane.
+     *
+     */
+    void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
+
+    /** \brief Disables the widget when the selection changes.
+     *
+     */
+    void onSelectionChanged();
+
   private slots:
     void toggleWidgetsVisibility(bool enable);
 
@@ -121,37 +147,20 @@ namespace ESPINA
     };
 
     Support::Context &m_context;
-    TemporalPrototypesSPtr m_factory;
 
     QAction            *m_toggle;
     Tool::NestedWidgets m_widgets;
     QPushButton        *m_apply;
 
-    EspinaWidgetSPtr             m_widget;
-    SplitToolEventHandlerSPtr    m_handler;
+    PlanarSplitEventHandlerSPtr  m_handler;
     QMap<FilterPtr, struct Data> m_executingTasks;
+    TemporalPrototypesSPtr       m_factory;
+    QList<PlanarSplitWidgetPtr>  m_splitWidgets;
+    vtkSmartPointer<vtkPlane>    m_splitPlane;
   };
 
   using SplitToolPtr  = SplitTool *;
   using SplitToolSPtr = std::shared_ptr<SplitTool>;
-
-  class SplitToolEventHandler
-  : public EventHandler
-  {
-  public:
-    /** \brief SplitToolEventHandler class constructor.
-     *
-     */
-    explicit SplitToolEventHandler();
-
-    /** \brief SplitToolEventHandler class destructor.
-     *
-     */
-    ~SplitToolEventHandler()
-    {}
-
-    virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
-  };
 
 } // namespace ESPINA
 

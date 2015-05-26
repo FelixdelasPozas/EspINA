@@ -26,6 +26,9 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
+#include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget2D.h>
+#include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget3D.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/ContextFactories.h>
 #include <Undo/AddSegmentations.h>
@@ -47,8 +50,11 @@
 #include <QPushButton>
 #include <QDebug>
 
+using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
+
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::Support::ContextFactories;
 
@@ -87,12 +93,10 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
 : m_context(context)
-, m_factory(new TemporalPrototypes(TemporalRepresentation2DSPtr(), TemporalRepresentation3DSPtr()))
 , m_toggle {Tool::createAction(":/espina/planar_split.svg",tr("Split segmentation"), this)}
 , m_widgets{this}
 , m_apply  {Tool::createButton(":/espina/tick.png", tr("Apply current state"))}
-, m_widget {nullptr}
-, m_handler{new SplitToolEventHandler()}
+, m_handler{new PlanarSplitEventHandler()}
 {
   registerFilterFactory(m_context, std::make_shared<SplitFilterFactory>());
 
@@ -102,8 +106,17 @@ SplitTool::SplitTool(Support::Context &context)
 
   initSplitWidgets();
 
-  connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-          m_toggle,        SLOT(setChecked(bool)));
+  connect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
+          this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
+
+  connect(m_handler.get(), SIGNAL(widgetDestroyed(PlanarSplitWidgetPtr)),
+          this,            SLOT(onWidgetDestroyed(PlanarSplitWidgetPtr)));
+
+  connect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
+          this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
+
+  m_factory = std::make_shared<TemporalPrototypes>(std::make_shared<PlanarSplitWidget2D>(m_handler.get()),
+                                                   std::make_shared<PlanarSplitWidget3D>(m_handler.get()));
 }
 
 //------------------------------------------------------------------------
@@ -112,15 +125,10 @@ SplitTool::~SplitTool()
   delete m_apply;
   delete m_toggle;
 
-//   if(m_widget)
-//   {
-//     //TODO m_context.viewState().removeWidget(m_widget);
-//   }
-//
-//   if(m_context.viewState().eventHandler() == m_handler)
-//   {
-//     m_context.viewState().setEventHandler(nullptr);
-//   }
+  if (m_context.viewState().eventHandler().get() == m_handler.get())
+  {
+    hideCuttingPlane();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -146,10 +154,11 @@ void SplitTool::onToolEnabled(bool enabled)
   m_toggle->setEnabled(enabled);
 }
 
-
 //-----------------------------------------------------------------------------
 void SplitTool::initSplitWidgets()
 {
+  m_apply->setEnabled(false);
+
   m_widgets.addWidget(m_apply);
   m_widgets.setVisible(false);
 
@@ -166,21 +175,37 @@ GUI::View::ViewState &SplitTool::viewState() const
 //------------------------------------------------------------------------
 void SplitTool::showCuttingPlane()
 {
-  auto selectedSegs = getSelectedSegmentations(m_context);
-  Q_ASSERT(selectedSegs.size() == 1);
+  connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+          m_toggle,        SLOT(setChecked(bool)));
 
-  auto segmentation = selectedSegs.first();
-  //     widget->setSegmentationBounds(segmentation->bounds());
+  auto selection = getSelection(m_context);
+  connect(selection.get(), SIGNAL(selectionChanged()),
+          this,            SLOT(onSelectionChanged()));
 
   viewState().setEventHandler(m_handler);
   viewState().addTemporalRepresentations(m_factory);
+
+  auto segmentation = getSelectedSegmentations(m_context).first();
+  for(auto widget: m_splitWidgets)
+  {
+    widget->setSegmentationBounds(segmentation->bounds());
+  }
 }
 
 
 //------------------------------------------------------------------------
 void SplitTool::hideCuttingPlane()
 {
+  disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+             m_toggle,        SLOT(setChecked(bool)));
+
+  auto selection = getSelection(m_context);
+  disconnect(selection.get(), SIGNAL(selectionChanged()),
+             this,            SLOT(onSelectionChanged()));
+
+  m_handler->blockSignals(true);
   viewState().unsetEventHandler(m_handler);
+  m_handler->blockSignals(false);
   viewState().removeTemporalRepresentations(m_factory);
 }
 
@@ -209,55 +234,81 @@ void SplitTool::toggleWidgetsVisibility(bool visible)
 //------------------------------------------------------------------------
 void SplitTool::applyCurrentState()
 {
-  auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
+  auto selectedSeg = getSelection(m_context)->segmentations().first();
 
-  if (widget->planeIsValid())
+  InputSList inputs;
+  inputs << selectedSeg->asInput();
+
+  auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+
+  auto spacing = selectedSeg->output()->spacing();
+  auto bounds = selectedSeg->bounds();
+
+  int extent[6]{ vtkMath::Round((bounds[0] + spacing[0] / 2) / spacing[0]),
+                 vtkMath::Round((bounds[1] + spacing[0] / 2) / spacing[0]),
+                 vtkMath::Round((bounds[2] + spacing[1] / 2) / spacing[1]),
+                 vtkMath::Round((bounds[3] + spacing[1] / 2) / spacing[1]),
+                 vtkMath::Round((bounds[4] + spacing[2] / 2) / spacing[2]),
+                 vtkMath::Round((bounds[5] + spacing[2] / 2) / spacing[2]) };
+
+  auto plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+  plane2stencil->SetInput(m_splitPlane);
+  plane2stencil->SetOutputOrigin(0, 0, 0);
+  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  plane2stencil->SetOutputWholeExtent(extent);
+  plane2stencil->Update();
+
+  vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
+
+  filter->setStencil(stencil);
+
+  Data data(filter, m_context.model()->smartPointer(selectedSeg));
+  m_executingTasks.insert(filter.get(), data);
+
+  connect(filter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
+
+  Task::submit(filter);
+}
+
+//------------------------------------------------------------------------
+void SplitTool::onWidgetCreated(PlanarSplitWidgetPtr widget)
+{
+  Q_ASSERT(!m_splitWidgets.contains(widget));
+  m_splitWidgets << widget;
+}
+
+//------------------------------------------------------------------------
+void SplitTool::onWidgetDestroyed(PlanarSplitWidgetPtr widget)
+{
+  Q_ASSERT(m_splitWidgets.contains(widget));
+  m_splitWidgets.removeOne(widget);
+}
+
+//------------------------------------------------------------------------
+void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
+{
+  auto valid = widget->planeIsValid();
+
+  m_apply->setEnabled(valid);
+
+  if(valid)
   {
-    auto selectedSeg = getSelection(m_context)->segmentations().first();
+    for(auto splitWidget: m_splitWidgets)
+    {
+      if(splitWidget == widget) continue;
 
-    InputSList inputs;
-    inputs << selectedSeg->asInput();
+      splitWidget->disableWidget();
+    }
 
-    auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
-
-    auto spacing = selectedSeg->output()->spacing();
-    auto bounds  = selectedSeg->bounds();
-
-    int extent[6]{vtkMath::Round((bounds[0]+spacing[0]/2)/spacing[0]),
-      vtkMath::Round((bounds[1]+spacing[0]/2)/spacing[0]),
-      vtkMath::Round((bounds[2]+spacing[1]/2)/spacing[1]),
-      vtkMath::Round((bounds[3]+spacing[1]/2)/spacing[1]),
-      vtkMath::Round((bounds[4]+spacing[2]/2)/spacing[2]),
-      vtkMath::Round((bounds[5]+spacing[2]/2)/spacing[2])};
-
-      auto plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-      plane2stencil->SetInput(widget->getImplicitPlane(spacing));
-      plane2stencil->SetOutputOrigin(0,0,0);
-      plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-      plane2stencil->SetOutputWholeExtent(extent);
-      plane2stencil->Update();
-
-      vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
-
-      filter->setStencil(stencil);
-
-      Data data(filter, m_context.model()->smartPointer(selectedSeg));
-      m_executingTasks.insert(filter.get(), data);
-
-      connect(filter.get(), SIGNAL(finished()),
-              this,         SLOT(createSegmentations()));
-
-      Task::submit(filter);
+    auto spacing = getSelection(m_context)->segmentations().first()->output()->spacing();
+    m_splitPlane = widget->getImplicitPlane(spacing);
   }
-  else
-  {
-    auto title   = tr("Planar Split");
-    auto message = tr("Operation has NO effect. "
-                      "Defined plane does not split the selected "
-                      "segmentation into 2 segmentations.");
+}
 
-    GUI::DefaultDialogs::InformationMessage(title, message);
-  }
+//------------------------------------------------------------------------
+void SplitTool::onSelectionChanged()
+{
+  abortOperation();
 }
 
 //------------------------------------------------------------------------
@@ -287,15 +338,16 @@ void SplitTool::createSegmentations()
         segmentations << segmentation.get();
       }
 
-      getSelection(m_context)->set(segmentations);
-
       auto undoStack = m_context.undoStack();
       undoStack->beginMacro("Split Segmentation");
       undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_context.model()));
       undoStack->push(new AddSegmentations(segmentationsList, sample, m_context.model()));
       undoStack->endMacro();
 
+      getSelection(m_context)->set(segmentations);
+
       toggleWidgetsVisibility(false);
+      m_splitPlane = nullptr;
     }
     else
     {
@@ -313,17 +365,4 @@ void SplitTool::createSegmentations()
 
   QApplication::restoreOverrideCursor();
   m_executingTasks.remove(filter);
-}
-
-//-----------------------------------------------------------------------------
-SplitToolEventHandler::SplitToolEventHandler()
-{
-  setCursor(Qt::CrossCursor);
-}
-
-//------------------------------------------------------------------------
-bool SplitToolEventHandler::filterEvent(QEvent *e, RenderView *view)
-{
-  // passive handler
-  return false;
 }

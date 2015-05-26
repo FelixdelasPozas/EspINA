@@ -42,8 +42,9 @@ qt4_wrap_cpp(GUI_MOC
   View/ViewState.h
   View/View3D.h
   View/RepresentationInvalidator.h
-  View/Widgets/Measures/MeasureWidget.h
   View/Widgets/Measures/MeasureEventHandler.h
+  View/Widgets/Measures/MeasureWidget.h
+  View/Widgets/PlanarSplit/PlanarSplitEventHandler.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
@@ -178,7 +179,10 @@ set (GUI_SOURCES
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
   View/Widgets/Measures/MeasureEventHandler.cpp
+  View/Widgets/PlanarSplit/PlanarSplitEventHandler.cpp
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget2D.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget3D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.cpp

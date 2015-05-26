@@ -104,17 +104,11 @@ bool ZoomWidget3D::acceptSceneResolutionChange(const NmVector3& resolution) cons
 void ZoomWidget3D::initializeImplementation(RenderView* view)
 {
   m_view = view;
-  m_widget->SetCurrentRenderer(view->mainRenderer());
-  m_widget->SetInteractor(view->renderWindow()->GetInteractor());
-  m_widget->On();
 }
 
 //----------------------------------------------------------------------------
 void ZoomWidget3D::uninitializeImplementation()
 {
-  m_widget->SetCurrentRenderer(nullptr);
-  m_widget->SetInteractor(nullptr);
-  m_widget->Off();
 }
 
 //----------------------------------------------------------------------------

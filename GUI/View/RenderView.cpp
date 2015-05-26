@@ -448,11 +448,11 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr factory, TimeStamp t)
+void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t)
 {
-  if (factory->supportedViews().testFlag(m_type))
+  if (prototypes->supportedViews().testFlag(m_type))
   {
-    auto manager = m_temporalManagers[factory];
+    auto manager = m_temporalManagers[prototypes];
 
     manager->hide(t);
 

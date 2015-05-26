@@ -33,7 +33,8 @@ using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 Selection::Selection(RepresentationInvalidator &invalidator)
-: m_invalidator(invalidator)
+: m_invalidator  (invalidator)
+, m_activeChannel{nullptr}
 {
 }
 
@@ -79,6 +80,9 @@ void Selection::set(ChannelAdapterList selection)
     }
 
     emit selectionStateChanged();
+
+    emit selectionChanged(m_channels);
+    emit selectionChanged();
   }
 }
 
@@ -140,9 +144,17 @@ void Selection::set(SegmentationAdapterList selection)
   {
     auto modifiedSegmentations = setSegmentations(selection);
 
-    onSegmentationsModified(modifiedSegmentations);
+    if(!modifiedSegmentations.isEmpty())
+    {
+      onSegmentationsModified(modifiedSegmentations);
+
+      emit selectionStateChanged(modifiedSegmentations);
+    }
 
     emit selectionStateChanged();
+
+    emit selectionChanged(m_segmentations);
+    emit selectionChanged();
   }
 }
 
@@ -184,7 +196,6 @@ void Selection::set(ViewItemAdapterList selection)
     emit selectionChanged();
     emit selectionChanged(m_channels);
     emit selectionChanged(m_segmentations);
-
   }
 }
 
