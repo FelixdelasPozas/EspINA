@@ -106,8 +106,6 @@ namespace ESPINA
     SelectorSPtr activeSelector() const;
 
   private slots:
-    void setEventHandler(bool value);
-
     /** \brief Launches a seedgrow segmentation task based on the current selection.
      * \pararm[in] selectedItems, current selection.
      *

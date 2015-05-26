@@ -85,7 +85,7 @@ void RefineToolGroup::enableCurrentSelectionActions()
   }
 
   //m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
-  m_split        ->setEnabled(onlyOneSegmentation && hasRequiredData);
+  m_split        ->setEnabled2(onlyOneSegmentation && hasRequiredData);
   // NOTE: morphological tools manage selection on their own, as it's tools
   // haven't a unique requirement.
 }

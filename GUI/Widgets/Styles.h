@@ -41,9 +41,15 @@ namespace ESPINA
 
          QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
 
-         QPushButton *createToolButton(const QString &icon, const QString &tooltip);
+         QPushButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
 
-         QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
+         QPushButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
+
+         constexpr int buttonSize()
+         { return 30; }
+
+         constexpr int iconSize()
+         { return 0.74*buttonSize(); }
       };
     }
   }

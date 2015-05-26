@@ -35,7 +35,7 @@ namespace ESPINA
   void SkeletonToolGroup::setEnabled(bool value)
   {
     m_enabled = value;
-    m_tool->setEnabled(value);
+    m_tool->setEnabled2(value);
   }
 
   //-----------------------------------------------------------------------------

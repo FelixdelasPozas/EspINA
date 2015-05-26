@@ -103,8 +103,8 @@ throw (Unknown_Filter_Type_Exception)
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
-                                                   Support::Context       &context)
-: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"))
+                                                   Support::Context             &context)
+: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
@@ -121,8 +121,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 
   initSettingsWidgets();
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(setEventHandler(bool)));
+  setEventHandler(activeSelector());
 }
 
 //-----------------------------------------------------------------------------
@@ -136,7 +135,7 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::abortOperation()
 {
-  setEventHandler(false);
+  deactivateEventHandler();
 }
 
 //-----------------------------------------------------------------------------
@@ -421,17 +420,4 @@ ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 SelectorSPtr SeedGrowSegmentationTool::activeSelector() const
 {
   return m_bestPixelSelctor;
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::setEventHandler(bool value)
-{
-  if (value)
-  {
-    m_context.viewState().setEventHandler(activeSelector());
-  }
-  else
-  {
-    m_context.viewState().unsetEventHandler(activeSelector());
-  }
 }

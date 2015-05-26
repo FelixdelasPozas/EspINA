@@ -60,22 +60,21 @@ QAction* Styles::createToolAction(const QIcon& icon, const QString& tooltip, QOb
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* Styles::createToolButton(const QString& icon, const QString& tooltip)
+QPushButton* Styles::createToolButton(const QString& icon, const QString& tooltip, QWidget *parent)
 {
-  return createToolButton(QIcon(icon), tooltip);
+  return createToolButton(QIcon(icon), tooltip, parent);
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip)
+QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip, QWidget *parent)
 {
-  auto button = new QPushButton();
+  auto button = new QPushButton(parent);
 
   button->setIcon(icon);
-  button->setIconSize(QSize(22, 22));
-  button->setMaximumSize(30, 30);
+  button->setIconSize(QSize(iconSize(), iconSize()));
+  button->setMaximumSize(buttonSize(), buttonSize());
   button->setFlat(true);
   button->setToolTip(tooltip);
 
   return button;
 }
-

@@ -80,7 +80,7 @@ throw(Unknown_Filter_Exception)
 
 //------------------------------------------------------------------------
 ManualSegmentTool::ManualSegmentTool(Support::Context &context)
-: ProgressTool(":espina/manual_segmentation.svg", tr("Create segmentations manually"))
+: ProgressTool(":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_undoStack    {context.undoStack()}
@@ -110,6 +110,9 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(onToolToggled(bool)));
 
+  connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
+          this,             SLOT(onPainterChanged(MaskPainterSPtr)));
+
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
           this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
 
@@ -118,6 +121,8 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 
   connect(&m_drawingWidget, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,             SLOT(onCategoryChange(CategoryAdapterSPtr)));
+
+  setEventHandler(m_drawingWidget.painter());
 }
 
 //------------------------------------------------------------------------
@@ -179,6 +184,9 @@ void ManualSegmentTool::initMultiStrokeWidgets()
           nextSegmentation, SLOT(setVisible(bool)));
 
   nextSegmentation->setVisible(false);
+
+  connect(nextSegmentation, SIGNAL(clicked(bool)),
+          this,             SLOT(startNextSegmentation()));
 
 
   addSettingsWidget(multiStroke);
@@ -355,18 +363,17 @@ void ManualSegmentTool::onCategoryChange(CategoryAdapterSPtr category)
 }
 
 //------------------------------------------------------------------------
+void ManualSegmentTool::onPainterChanged(MaskPainterSPtr painter)
+{
+  setEventHandler(painter);
+}
+
+//------------------------------------------------------------------------
 void ManualSegmentTool::onToolToggled(bool toggled)
 {
-  auto painter = m_drawingWidget.painter();
-
   if (toggled)
   {
     setInitialStroke();
-    m_context.viewState().setEventHandler(painter);
-  }
-  else
-  {
-    m_context.viewState().unsetEventHandler(painter);
   }
 }
 
@@ -375,14 +382,22 @@ void ManualSegmentTool::onStrokeModeToggled(bool toggled)
 {
   auto button = static_cast<QPushButton *>(sender());
 
+  m_mode = toggled?Mode::MULTI_STROKE:Mode::SINGLE_STROKE;
+
   if (toggled)
   {
     button->setIcon(QIcon(":espina/multi_stroke.svg"));
-    m_mode = Mode::MULTI_STROKE;
   }
   else
   {
     button->setIcon(QIcon(":espina/single_stroke.svg"));
-    m_mode = Mode::SINGLE_STROKE;
   }
+
+  setInitialStroke();
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::startNextSegmentation()
+{
+  setInitialStroke();
 }

@@ -40,27 +40,31 @@ namespace ESPINA {
       public slots:
         void setProgress(int progress);
 
+        void setActionEnabled(bool enabled);
+
+        void setActionChecked(bool checked);
+
       signals:
         void progressChanged(int value);
 
         void progressVisibilityChanged(bool visible);
+
+        void actionEnabled(bool enabled);
+
+        void actionChecked(bool checked);
 
       private:
         QPushButton *createActionButton(QWidget *parent);
 
         void createProgress(QWidget *parent);
 
-        inline int buttonSize() const;
+        static constexpr int progressHeight();
 
-        inline int iconSize() const;
+        static constexpr int progressMargin();
 
-        inline int progressHeight() const;
+        static constexpr int progressWitdh();
 
-        inline int progressMargin() const;
-
-        inline int progressWitdh() const;
-
-        inline int progressVerticalPosition() const;
+        static constexpr int progressVerticalPosition();
 
         inline bool displayProgress(int progress);
 

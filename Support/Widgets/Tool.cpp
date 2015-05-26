@@ -19,6 +19,7 @@
 */
 
 #include "Tool.h"
+#include <Support/Context.h>
 #include <GUI/Widgets/ProgressAction.h>
 #include <GUI/Widgets/Styles.h>
 #include <QPushButton>
@@ -27,6 +28,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
@@ -101,7 +103,7 @@ QPushButton *Tool::createButton(const QIcon &icon, const QString &tooltip)
 }
 
 //----------------------------------------------------------------------------
-void Tool::setEnabled(bool value)
+void Tool::setEnabled2(bool value)
 {
   if (m_enabled != value)
   {
@@ -118,8 +120,9 @@ bool Tool::isEnabled() const
 }
 
 //----------------------------------------------------------------------------
-ProgressTool::ProgressTool(const QString &icon, const QString &tooltip)
+ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context &context)
 : Tool()
+, m_context {context}
 , m_action  {new ProgressAction(icon, tooltip, this)}
 , m_settings{new Tool::NestedWidgets(this)}
 {
@@ -145,7 +148,7 @@ ProgressTool::~ProgressTool()
 //----------------------------------------------------------------------------
 void ProgressTool::setEnabled(bool value)
 {
-  m_action->setEnabled(value);
+  m_action->setActionEnabled(value);
   m_settings->setEnabled(value);
 }
 
@@ -190,9 +193,61 @@ void ProgressTool::showTaskProgress(TaskSPtr task)
 }
 
 //----------------------------------------------------------------------------
+void ProgressTool::setEventHandler(EventHandlerSPtr handler)
+{
+  if (m_handler)
+  {
+    disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+               this,            SLOT(onEventHandlerInUse(bool)));
+
+    deactivateEventHandler();
+  }
+
+  m_handler = handler;
+
+  if (m_handler)
+  {
+    activateEventHandler();
+
+    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,            SLOT(onEventHandlerInUse(bool)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::activateEventHandler()
+{
+  m_context.viewState().setEventHandler(m_handler);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::deactivateEventHandler()
+{
+  m_context.viewState().unsetEventHandler(m_handler);
+}
+
+//----------------------------------------------------------------------------
 void ProgressTool::onActionToggled(bool value)
 {
   m_settings->setVisible(value && !m_settings->isEmpty());
 
+  if (m_handler)
+  {
+    if (value)
+    {
+      activateEventHandler();
+    }
+    else
+    {
+      deactivateEventHandler();
+    }
+  }
+
   emit toggled(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::onEventHandlerInUse(bool isUsed)
+{
+  m_action->setActionChecked(isUsed);
 }

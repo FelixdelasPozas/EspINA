@@ -521,10 +521,10 @@ void MorphologicalEditionTool::updateAvailableActionsForSelection()
 
   m_addition->setEnabled(logicalEnabled);
   m_subtract->setEnabled(logicalEnabled);
-  m_close .setEnabled(morphologicalEnabled);
-  m_open  .setEnabled(morphologicalEnabled);
-  m_dilate.setEnabled(morphologicalEnabled);
-  m_erode .setEnabled(morphologicalEnabled);
+  m_close .setEnabled2(morphologicalEnabled);
+  m_open  .setEnabled2(morphologicalEnabled);
+  m_dilate.setEnabled2(morphologicalEnabled);
+  m_erode .setEnabled2(morphologicalEnabled);
   m_fill ->setEnabled(morphologicalEnabled);
 }
 

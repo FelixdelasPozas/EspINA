@@ -103,7 +103,7 @@ void AppositionSurfaceTool::selectionChanged()
   }
 
   setToolTip(toolTip);
-  setEnabled(enabled);
+  setEnabled2(enabled);
 }
 
 //-----------------------------------------------------------------------------

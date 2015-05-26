@@ -106,9 +106,13 @@ namespace ESPINA
 
     void onCategoryChange(CategoryAdapterSPtr category);
 
+    void onPainterChanged(MaskPainterSPtr painter);
+
     void onToolToggled(bool toggled);
 
     void onStrokeModeToggled(bool toggled);
+
+    void startNextSegmentation();
 
   protected:
     ModelAdapterSPtr  m_model;

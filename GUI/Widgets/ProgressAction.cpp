@@ -18,6 +18,7 @@
  */
 
 #include "ProgressAction.h"
+#include "Styles.h"
 
 #include <QLabel>
 #include <QHBoxLayout>
@@ -73,23 +74,40 @@ void ProgressAction::setProgress(int progress)
 
 
 //------------------------------------------------------------------------
+void ProgressAction::setActionEnabled(bool enabled)
+{
+  setEnabled(enabled);
+
+  emit actionEnabled(enabled);
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::setActionChecked(bool checked)
+{
+  setChecked(checked);
+
+  emit actionChecked(checked);
+}
+
+//------------------------------------------------------------------------
 QPushButton* ProgressAction::createActionButton(QWidget* parent)
 {
-  auto action = new QPushButton(parent);
+  auto action = Styles::createToolButton(icon(), toolTip(), parent);
 
-  action->setIcon(icon());
-  action->setToolTip(toolTip());
-  action->setIconSize(QSize(iconSize(), iconSize()));
-  action->setMaximumSize(buttonSize(), buttonSize());
   action->setEnabled(isEnabled());
   action->setCheckable(isCheckable());
-  action->setFlat(true);
 
   connect(action, SIGNAL(toggled(bool)),
           this,   SIGNAL(toggled(bool)));
 
   connect(action, SIGNAL(clicked(bool)),
           this,   SIGNAL(triggered(bool)));
+
+  connect(this,   SIGNAL(actionEnabled(bool)),
+          action, SLOT(setEnabled(bool)));
+
+  connect(this,   SIGNAL(actionChecked(bool)),
+          action, SLOT(setChecked(bool)));
 
 
   return action;
@@ -126,39 +144,27 @@ void ProgressAction::createProgress(QWidget* parent)
 }
 
 //------------------------------------------------------------------------
-int ProgressAction::buttonSize() const
+constexpr int ProgressAction::progressHeight()
 {
-  return 30;
+  return 0.2*Styles::buttonSize();
 }
 
 //------------------------------------------------------------------------
-int ProgressAction::iconSize() const
-{
-  return 0.74*buttonSize();
-}
-
-//------------------------------------------------------------------------
-int ProgressAction::progressHeight() const
-{
-  return 0.2*buttonSize();
-}
-
-//------------------------------------------------------------------------
-int ProgressAction::progressMargin() const
+constexpr int ProgressAction::progressMargin()
 {
   return 3;
 }
 
 //------------------------------------------------------------------------
-int ProgressAction::progressWitdh() const
+constexpr int ProgressAction::progressWitdh()
 {
-  return buttonSize() - 2*progressMargin();
+  return Styles::buttonSize() - 2*progressMargin();
 }
 
 //------------------------------------------------------------------------
-int ProgressAction::progressVerticalPosition() const
+constexpr int ProgressAction::progressVerticalPosition()
 {
-  return 0.6*buttonSize();
+  return 0.6*Styles::buttonSize();
 }
 
 //------------------------------------------------------------------------

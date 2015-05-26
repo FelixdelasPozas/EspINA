@@ -23,6 +23,7 @@
 
 #include "Support/EspinaSupport_Export.h"
 #include <GUI/Types.h>
+#include <GUI/View/EventHandler.h>
 
 #include <Core/MultiTasking/TaskGroupProgress.h>
 
@@ -69,7 +70,7 @@ namespace ESPINA
      * \param[in] value true to enable false otherwise.
      *
      */
-    void setEnabled(bool value);
+    void setEnabled2(bool value);
 
     /** \brief Returns true if the tool is enabled, false otherwise.
      *
@@ -97,6 +98,8 @@ namespace ESPINA
 
   namespace Support
   {
+    class Context;
+
     namespace Widgets
     {
 
@@ -106,7 +109,7 @@ namespace ESPINA
         Q_OBJECT
 
       public:
-        explicit ProgressTool(const QString &icon, const QString &tooltip);
+        explicit ProgressTool(const QString &icon, const QString &tooltip, Context &context);
 
         virtual ~ProgressTool();
 
@@ -135,24 +138,34 @@ namespace ESPINA
       public slots:
         void setProgress(int value);
 
-      protected:
-        void addSettingsWidget(QWidget *widget);
-
-        void showTaskProgress(TaskSPtr task);
-
       signals:
         void triggered(bool value);
 
         void toggled(bool value);
 
+      protected:
+        void addSettingsWidget(QWidget *widget);
+
+        void showTaskProgress(TaskSPtr task);
+
+        void setEventHandler(EventHandlerSPtr handler);
+
+        void activateEventHandler();
+
+        void deactivateEventHandler();
+
       private slots:
         void onActionToggled(bool value);
 
+        void onEventHandlerInUse(bool isUsed);
+
       private:
-        bool m_enabled;
+        Context &m_context;
 
         GUI::Widgets::ProgressAction *m_action;
         Tool::NestedWidgets          *m_settings;
+
+        EventHandlerSPtr m_handler;
 
         Core::MultiTasking::TaskGroupProgress m_taskProgress;
       };
