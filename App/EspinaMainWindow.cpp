@@ -54,6 +54,8 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/ModelFactory.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -626,29 +628,11 @@ void EspinaMainWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addToAnalysis()
 {
- //TODO 2015-04-20  Use default dialog and set available formats
-  QList<QUrl> urls;
-  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+  auto selectedFiles = DefaultDialogs::OpenFiles(QObject::tr("Add Data To Analysis"), m_context.factory()->supportedFileExtensions(), m_sessionFile.absoluteDir().absolutePath());
 
-  QFileDialog fileDialog(this);
-  fileDialog.setWindowTitle(tr("Add Data To Analysis"));
-  //fileDialog.setFilters(m_model->factory()->supportedFiles());
-  QStringList channelFiles;
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(channelFiles);
-  fileDialog.setDirectory(m_sessionFile.absoluteDir());
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
-  fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.resize(800, 480);
-  fileDialog.setSidebarUrls(urls);
-  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-
-  if (fileDialog.exec() == QFileDialog::Accepted)
+  if (!selectedFiles.isEmpty())
   {
-    addToAnalysis(fileDialog.selectedFiles());
+    addToAnalysis(selectedFiles);
   }
 }
 
@@ -687,6 +671,8 @@ void EspinaMainWindow::addToAnalysis(const QStringList files)
   }
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+
+  assignActiveChannel();
 
   for(auto file : files)
   {

@@ -73,8 +73,8 @@ namespace ESPINA {
        *
        */
       static QStringList OpenFiles(const QString& title,
-                                   const QString& filters = QString(),
-                                   const QString& path    = QString());
+                                   const QStringList& filters = QStringList(),
+                                   const QString& path        = QString());
 
       /** \brief Dialog for saving a file.
        * \param[in] title of the dialog.

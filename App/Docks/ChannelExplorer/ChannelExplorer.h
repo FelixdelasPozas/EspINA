@@ -86,6 +86,11 @@ namespace ESPINA
      */
     void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
 
+    /** \brief Updates the active channel on the channel proxy.
+     *
+     */
+    void onActiveChannelChanged(ChannelAdapterPtr channel);
+
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:

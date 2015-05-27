@@ -122,6 +122,15 @@ SplitTool::SplitTool(Support::Context &context)
 //------------------------------------------------------------------------
 SplitTool::~SplitTool()
 {
+  disconnect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
+             this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
+
+  disconnect(m_handler.get(), SIGNAL(widgetDestroyed(PlanarSplitWidgetPtr)),
+             this,            SLOT(onWidgetDestroyed(PlanarSplitWidgetPtr)));
+
+  disconnect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
+             this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
+
   delete m_apply;
   delete m_toggle;
 

@@ -37,6 +37,7 @@ using ChannelSet = QSet<ItemAdapterPtr>;
 //------------------------------------------------------------------------
 ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
 : QAbstractProxyModel{parent}
+, m_activeChannel{nullptr}
 {
   setSourceModel(sourceModel);
 }
@@ -117,11 +118,11 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
         QPixmap channelIcon(3,16);
         channelIcon.fill(proxyIndex.parent().data(role).value<QColor>());
         return channelIcon;
-//       }else if (Qt::FontRole == role)
-//       {
-//         QFont myFont;
-//         myFont.setBold(m_viewManager->activeChannel() == item);
-//         return myFont;
+       }else if (Qt::FontRole == role)
+       {
+         QFont myFont;
+         myFont.setBold(m_activeChannel == item);
+         return myFont;
       }else
         return item->data(role);
     default:
@@ -669,6 +670,34 @@ int ChannelProxy::numChannels(SampleAdapterPtr sample) const
 int ChannelProxy::numSubSamples(SampleAdapterPtr sample) const
 {
   return m_model->rowCount(m_model->sampleIndex(sample));
+}
+
+//------------------------------------------------------------------------
+void ChannelProxy::setActiveChannel(ChannelAdapterPtr channel)
+{
+  if (m_activeChannel != channel)
+  {
+    QList<QModelIndex> indexes;
+    QList<ChannelAdapterPtr> channels;
+    channels << m_activeChannel << channel;
+
+    for(auto sourceChannel: channels)
+    {
+      if(sourceChannel != nullptr)
+      {
+        auto index = m_model->channelIndex(sourceChannel);
+        auto proxyIndex = mapFromSource(index);
+        indexes << proxyIndex;
+      }
+    }
+
+    m_activeChannel = channel;
+
+    for(auto index: indexes)
+    {
+      emit dataChanged(index, index);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
