@@ -26,7 +26,7 @@
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/Widgets/Tool.h>
 #include <Support/Context.h>
 

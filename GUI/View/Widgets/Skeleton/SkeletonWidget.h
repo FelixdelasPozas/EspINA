@@ -26,8 +26,8 @@
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
-#include <GUI/View/Widgets/EspinaWidget2.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkSmartPointer.h>
 
 // Qt

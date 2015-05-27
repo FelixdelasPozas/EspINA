@@ -24,9 +24,9 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget2.h>
 #include "MeasureEventHandler.h"
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
 #include <vtkCommand.h>

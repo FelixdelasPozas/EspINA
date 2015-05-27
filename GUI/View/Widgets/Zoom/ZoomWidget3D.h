@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <GUI/Representations/Managers/TemporalManager.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>
 
 // VTK

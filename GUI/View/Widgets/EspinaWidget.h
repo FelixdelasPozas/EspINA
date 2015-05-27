@@ -18,10 +18,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_WIDGET_H
-#define ESPINA_WIDGET_H
+#ifndef ESPINA_GUI_WIDGET_H
+#define ESPINA_GUI_WIDGET_H
 
 #include "GUI/EspinaGUI_Export.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Managers/TemporalManager.h>
 
 // VTK
 #include <vtkCommand.h>
@@ -30,79 +33,92 @@
 // C++
 #include <memory>
 
+class vtkAbstractWidget;
 namespace ESPINA
 {
   class RenderView;
-
-  class EspinaGUI_EXPORT EspinaWidget
+  namespace GUI
   {
-  public:
-  	/** \brief EspinaWidget class constructor.
-  	 *
-  	 */
-    explicit EspinaWidget()
-    {}
+    namespace View
+    {
+      namespace Widgets
+      {
+        class EspinaGUI_EXPORT EspinaWidget
+        {
+        public:
+          /** \brief Default constructor.
+           *
+           */
+          explicit EspinaWidget();
 
-    /** \brief EspinaWidget class virtual destructor.
-     *
-     */
-    virtual ~EspinaWidget()
-    {}
+          /** \brief Virtual destructor.
+           *
+           */
+          virtual ~EspinaWidget();
 
-    /** \brief Registers the specified view.
-     * \brief view, raw pointer of the render view to register.
-     *
-     */
-    virtual void registerView  (RenderView *view) = 0;
+          void initializeWidget(RenderView *view);
 
-    /** \brief Unregisters the specified view.
-     * \brief view, raw pointer of the render view to unregister.
-     *
-     */
-    virtual void unregisterView(RenderView *view) = 0;
+          void uninitializeWidget();
 
-    /** \brief Enables/disables the widget.
-     * \param[in] enable, true to enable, false otherwise.
-     *
-     */
-    virtual void setEnabled(bool enable) = 0;
+          void showWidget();
 
-    /** \brief Returns true if the widget manipulates the segmentations in any way.
-     *
-     * Useful to disable the widget when the segmentation representations change.
-     *
-     */
-    virtual bool manipulatesSegmentations() const
-    { return false; };
-  };
+          void hideWidget();
 
-  using EspinaWidgetPtr  = EspinaWidget *;
-  using EspinaWidgetSPtr = std::shared_ptr<EspinaWidget>;
+          bool isWidgetEnabled();
 
+        private:
+          virtual void initializeImplementation(RenderView *view) = 0;
+
+          virtual void uninitializeImplementation() = 0;
+
+          virtual vtkAbstractWidget *vtkWidget() = 0;
+        };
+
+        class EspinaWidget2D
+        : public Representations::Managers::TemporalRepresentation2D
+        , public EspinaWidget
+        {
+        public:
+          virtual void initialize(RenderView *view) override
+          { initializeWidget(view); }
+
+          virtual void uninitialize() override
+          { uninitializeWidget(); }
+
+          virtual void show() override
+          { showWidget(); }
+
+          virtual void hide() override
+          { hideWidget(); }
+
+          virtual bool isEnabled() override
+          { return isWidgetEnabled(); }
+        };
+
+        class EspinaWidget3D
+        : public Representations::Managers::TemporalRepresentation3D
+        , public EspinaWidget
+        {
+        public:
+          virtual void initialize(RenderView *view) override
+          { initializeWidget(view); }
+
+          virtual void uninitialize() override
+          { uninitializeWidget(); }
+
+          virtual void show() override
+          { showWidget(); }
+
+          virtual void hide() override
+          { hideWidget(); }
+
+          virtual bool isEnabled() override
+          { return isWidgetEnabled(); }
+        };
+
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
-class vtkEspinaCommand
-: public vtkCommand
-{
-  public:
-    vtkTypeMacro(vtkEspinaCommand, vtkCommand);
-
-    /** \brief vtkEspinaCommand destructor.
-     *
-     */
-    virtual ~vtkEspinaCommand()
-    {}
-
-    /** \brief Sets the widget this vtkCommand executes to.
-     * \param[in] widget EspinaWidget raw pointer.
-     *
-     */
-    virtual void setWidget(ESPINA::EspinaWidgetPtr widget) = 0;
-
-    /** \brief Implements vtkCommand::Execute.
-     *
-     */
-    virtual void Execute(vtkObject *, unsigned long int, void*) = 0;
-};
-
-#endif // ESPINA_WIDGET_H
+#endif // ESPINA_GUI_WIDGET_H

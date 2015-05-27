@@ -23,7 +23,7 @@
 #define ESPINA_PLANAR_SPLIT_WIDGET3D_H_
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget2.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 
 // VTK

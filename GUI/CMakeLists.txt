@@ -166,7 +166,7 @@ set (GUI_SOURCES
   View/ViewState.cpp
   View/View3D.cpp
   View/RepresentationInvalidator.cpp
-  View/Widgets/EspinaWidget2.cpp
+  View/Widgets/EspinaWidget.cpp
   View/Widgets/Contour/ContourWidget2D.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp

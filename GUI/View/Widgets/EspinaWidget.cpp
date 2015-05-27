@@ -1,5 +1,5 @@
-#include <GUI/View/Widgets/EspinaWidget2.h>
 #include <GUI/View/RenderView.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkAbstractWidget.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>

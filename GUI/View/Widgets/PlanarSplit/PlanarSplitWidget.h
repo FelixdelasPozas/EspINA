@@ -28,9 +28,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Representations/Managers/TemporalManager.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
-
-// VTK
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkObjectFactory.h>

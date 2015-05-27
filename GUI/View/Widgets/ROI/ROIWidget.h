@@ -22,11 +22,9 @@
 #define ESPINA_ROI_WIDGET_H_
 
 #include "GUI/EspinaGUI_Export.h"
-#include <GUI/View/Widgets/EspinaWidget2.h>
-
-// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Core/Utils/vtkVoxelContour2D.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
 #include <vtkActor.h>

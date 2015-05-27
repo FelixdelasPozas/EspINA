@@ -23,7 +23,7 @@
 #define ESPINA_ORTHOGONAL_WIDGET_2D_H
 
 #include <Core/Utils/Bounds.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include "OrthogonalRepresentation.h"
 
 // VTK
