@@ -24,7 +24,6 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 
 //vtk
 #include <vtkDistanceWidget.h>

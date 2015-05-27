@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "View3D.h"
-#include "GUI/View/Widgets/EspinaWidget.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 

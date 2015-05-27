@@ -22,13 +22,12 @@
 // ESPINA
 #include "View2D.h"
 
-#include "PlanarBehaviour.h"
-#include "Widgets/EspinaWidget.h"
-#include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/View/PlanarBehaviour.h>
+#include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 
 // Debug
 #include <QDebug>

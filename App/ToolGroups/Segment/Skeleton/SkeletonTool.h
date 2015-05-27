@@ -26,7 +26,7 @@
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/EspinaWidget2.h>
 #include <Support/Widgets/Tool.h>
 #include <Support/Context.h>
 
@@ -164,12 +164,14 @@ namespace ESPINA
   private:
     Support::Context &m_context;
 
-    GUI::Widgets::CategorySelector         *m_categorySelector;
+    GUI::Widgets::CategorySelector *m_categorySelector;
     DoubleSpinBoxAction      *m_toleranceWidget;
     SkeletonToolStatusAction *m_toolStatus;
     EventHandlerSPtr          m_handler;
     QAction                  *m_action;
-    EspinaWidgetSPtr          m_widget;
+
+    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+    //EspinaWidgetSPtr          m_widget;
 
     // widget's return values
     SegmentationAdapterPtr       m_item;
