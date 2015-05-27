@@ -63,7 +63,7 @@ void SupportedFiles::addFilter(const QString &name, const QString &extension)
     m_filter += ";;";
   }
 
-  m_filter += QString("%1 (.%2)").arg(name).arg(extension);
+  m_filter += QString("%1 (*.%2)").arg(name).arg(extension);
 }
 
 //------------------------------------------------------------------------
@@ -147,7 +147,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
     fileNames = fileDialog.selectedFiles();
 
     auto extension = fileDialog.selectedFilter();
-    extension      = extension.mid(extension.indexOf("(.")+1,4);
+    extension      = extension.mid(extension.indexOf("(*.")+2,4);
 
     for (auto &fileName : fileNames)
     {

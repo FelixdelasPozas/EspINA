@@ -754,7 +754,7 @@ void EspinaMainWindow::saveAnalysis()
     suggestedFileName = m_sessionFile.baseName() + QString(".seg");
 
   auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-                                               SupportedFiles(QObject::tr("ESPINA Analysis"), "*.seg"),
+                                               SupportedFiles(QObject::tr("ESPINA Analysis"), "seg"),
                                                m_sessionFile.absolutePath(),
                                                QString("seg"),
                                                suggestedFileName);
