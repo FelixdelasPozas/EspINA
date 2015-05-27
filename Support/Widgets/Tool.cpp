@@ -122,7 +122,7 @@ bool Tool::isEnabled() const
 //----------------------------------------------------------------------------
 ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context &context)
 : Tool()
-, m_context {context}
+, m_context (context)
 , m_action  {new ProgressAction(icon, tooltip, this)}
 , m_settings{new Tool::NestedWidgets(this)}
 {

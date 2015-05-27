@@ -47,7 +47,7 @@ using namespace ESPINA::GUI::Model::Utils;
 RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
                                  Support::Context &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Refine")}
-, m_context{context}
+, m_context(context)
 {
   auto morphologicalFactory = std::make_shared<MorphologicalFilterFactory>();
   context.factory()->registerFilterFactory(morphologicalFactory);

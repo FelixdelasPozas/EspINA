@@ -51,7 +51,6 @@ int channel_adapter_set_opacity(int argc, char** argv )
 {
   bool error = false;
 
-
   SchedulerSPtr sch{new Scheduler(1e6)};
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);

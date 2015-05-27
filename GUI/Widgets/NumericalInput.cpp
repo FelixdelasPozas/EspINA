@@ -55,6 +55,7 @@ NumericalInput::NumericalInput(QWidget *parent)
   layout->addWidget(m_label);
   layout->addWidget(m_slider);
   layout->addWidget(m_spinBox);
+  layout->setMargin(0);
 
   setLayout(layout);
 }
