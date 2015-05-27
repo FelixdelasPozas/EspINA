@@ -67,13 +67,11 @@ void SupportedFiles::addFilter(const QString &name, const QString &extension)
 }
 
 //------------------------------------------------------------------------
-QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, const QString& path)
+QString DefaultDialogs::OpenFile(const QString& title, const QStringList& filters, const QString& path)
 {
   QString fileName;
-  QStringList extensions;
-  extensions << filters;
 
-  auto fileNames = OpenFiles(title, extensions, path);
+  auto fileNames = OpenFiles(title, filters, path);
   if (!fileNames.isEmpty())
   {
     fileName = fileNames.first();
@@ -93,6 +91,7 @@ QStringList DefaultDialogs::OpenFiles(const QString& title, const QStringList& f
   fileDialog.setNameFilters(filters);
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 

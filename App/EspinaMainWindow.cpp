@@ -500,30 +500,11 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis()
 {
-  //TODO 2015-04-20 Use default dialog
-  const QString title   = tr("Start New Analysis From File");
-  const QString filters = m_context.factory()->supportedFileExtensions().join(";;");
+  auto selectedFiles = DefaultDialogs::OpenFiles(tr("Start New Analysis From File"), m_context.factory()->supportedFileExtensions());
 
-  QList<QUrl> urls;
-  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
-
-  QFileDialog fileDialog(this);
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setWindowTitle(title);
-  fileDialog.setFilter(filters);
-  fileDialog.setDirectory(QDir());
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
-  fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.resize(800, 480);
-  fileDialog.setSidebarUrls(urls);
-  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-
-  if (fileDialog.exec() == QDialog::Accepted)
+  if (!selectedFiles.isEmpty())
   {
-    openAnalysis(fileDialog.selectedFiles());
+    openAnalysis(selectedFiles);
   }
 }
 
@@ -766,38 +747,19 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveAnalysis()
 {
-  //TODO 2015-04-20 Use default dialog
   QString suggestedFileName;
   if (m_sessionFile.suffix().toLower() == QString("seg"))
     suggestedFileName = m_sessionFile.fileName();
   else
     suggestedFileName = m_sessionFile.baseName() + QString(".seg");
 
-  QList<QUrl> urls;
-  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+  auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
+                                               SupportedFiles(QObject::tr("ESPINA Analysis"), "*.seg"),
+                                               m_sessionFile.absolutePath(),
+                                               QString("seg"),
+                                               suggestedFileName);
 
-  QFileDialog fileDialog(this);
-  fileDialog.selectFile(suggestedFileName);
-  fileDialog.setDefaultSuffix(QString(tr("seg")));
-  fileDialog.setWindowTitle(tr("Save ESPINA Analysis"));
-  fileDialog.setFilter(tr("ESPINA Analysis (*.seg)"));
-  fileDialog.setDirectory(m_sessionFile.absoluteDir());
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
-  fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.resize(800, 480);
-  fileDialog.setSidebarUrls(urls);
-  fileDialog.setConfirmOverwrite(true);
-  fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-
-  QString analysisFile;
-  if (fileDialog.exec() == QFileDialog::AcceptSave)
-    analysisFile = fileDialog.selectedFiles().first();
-  else
-    return;
+  if (analysisFile.isEmpty()) return;
 
   Q_ASSERT(analysisFile.toLower().endsWith(QString(tr(".seg"))));
 

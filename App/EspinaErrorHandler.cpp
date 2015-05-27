@@ -42,7 +42,10 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, cons
   {
     QString title     = (hint.isEmpty())        ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
     QDir    directory = (dir == QDir())         ? m_defaultDir : dir;
-    QString filters   = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1);; All files (*.*)").arg(file.suffix()) : nameFilters;
+    QString filter    = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1);; All files (*.*)").arg(file.suffix()) : nameFilters;
+
+    QStringList filters;
+    filters << filter;
 
     QApplication::changeOverrideCursor(Qt::ArrowCursor);
     auto filename = DefaultDialogs::OpenFile(title, filters, directory.absolutePath());
