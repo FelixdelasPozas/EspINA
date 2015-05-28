@@ -82,7 +82,7 @@ namespace ESPINA
      */
     virtual ~SeedGrowSegmentationTool();
 
-    virtual void abortOperation() override;
+    virtual void abortOperation();
 
   private:
     virtual void onToolEnabled(bool enabled);

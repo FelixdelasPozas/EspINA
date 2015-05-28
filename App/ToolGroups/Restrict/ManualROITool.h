@@ -33,7 +33,7 @@ namespace ESPINA
   class RestrictToolGroup;
 
   class ManualROITool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
@@ -50,8 +50,6 @@ namespace ESPINA
      */
     virtual ~ManualROITool();
 
-    virtual QList< QAction * > actions() const;
-
     virtual void abortOperation();
 
     void setColor(const QColor &color);
@@ -60,6 +58,8 @@ namespace ESPINA
     void roiDefined(BinaryMaskSPtr<unsigned char> mas);
 
   private slots:
+    void onPainterChanged(MaskPainterSPtr painter);
+
     void updateReferenceItem(ChannelAdapterPtr channel);
 
     void cancelROI();
@@ -79,7 +79,7 @@ namespace ESPINA
 
     ChannelAdapterPtr m_referenceItem;
 
-    DrawingTool    m_drawingWidget;
+    DrawingTool m_drawingWidget;
   };
 
   using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;

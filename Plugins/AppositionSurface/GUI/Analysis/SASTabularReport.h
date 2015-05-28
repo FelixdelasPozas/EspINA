@@ -48,9 +48,10 @@ namespace ESPINA
                        QWidget                *parent = nullptr,
                        Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
       : TabularReport(context, parent, flags)
-      , m_model{context.model()}
       , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
-      {};
+      {
+        setModel(context.model());
+      };
 
     protected slots:
       void exportInformation();
@@ -61,7 +62,6 @@ namespace ESPINA
       static QString extraPath(const QString &file = QString())
       { return "Extra/SASInformation/" + file; }
 
-      ModelAdapterSPtr m_model;
       SegmentationExtension::InfoTagList m_sasTags;
     };
 

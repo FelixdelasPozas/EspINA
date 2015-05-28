@@ -34,7 +34,7 @@ namespace ESPINA
   class RestrictToolGroup;
 
   class CleanROITool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:
@@ -50,10 +50,6 @@ namespace ESPINA
      */
     virtual ~CleanROITool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
-
   protected slots:
     void onROIChanged();
     void cancelROI();
@@ -64,7 +60,6 @@ namespace ESPINA
   private:
     Support::Context &m_context;
     RestrictToolGroup *m_toolGroup;
-    QAction           *m_cleanROI;
   };
 
   using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;

@@ -32,28 +32,32 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 ManualROITool::ManualROITool(Support::Context  &context,
                              RestrictToolGroup *toolGroup)
-: m_undoStack    {context.undoStack()}
+: ProgressTool(":espina/roi_manual.svg", tr("Manual ROI"), context)
+, m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context}
 {
+  setCheckable(true);
+
+  addSettingsWidget(&m_drawingWidget);
+
   configureDrawingTools();
 
   connect(getSelection(context).get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this,                        SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
+  connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
+          this,             SLOT(onPainterChanged(MaskPainterSPtr)));
+
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
+
+  setEventHandler(m_drawingWidget.painter());
 }
 
 //-----------------------------------------------------------------------------
 ManualROITool::~ManualROITool()
 {
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction *> ManualROITool::actions() const
-{
-  return m_drawingWidget.actions();
 }
 
 //-----------------------------------------------------------------------------
@@ -112,6 +116,12 @@ void ManualROITool::ROIChanged()
 void ManualROITool::cancelROI()
 {
 //   m_currentSelector->abortOperation();
+}
+
+//-----------------------------------------------------------------------------
+void ManualROITool::onPainterChanged(MaskPainterSPtr painter)
+{
+  setEventHandler(painter);
 }
 
 //-----------------------------------------------------------------------------

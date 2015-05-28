@@ -28,8 +28,8 @@ using namespace ESPINA;
 AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
 {
-  addTool(std::make_shared<MeasureTool>(context.viewState()));
-  addTool(std::make_shared<SelectionMeasureTool>(context.viewState()));
+  addTool(std::make_shared<MeasureTool>(context));
+  addTool(std::make_shared<SelectionMeasureTool>(context));
 }
 
 //----------------------------------------------------------------------------

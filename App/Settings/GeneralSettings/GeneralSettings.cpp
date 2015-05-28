@@ -43,7 +43,7 @@ GeneralSettings::~GeneralSettings()
 }
 
 //-----------------------------------------------------------------------------
-void GeneralSettings::setUserName(QString name)
+void GeneralSettings::setUserName(const QString &name)
 {
   m_userName = name;
 
@@ -61,7 +61,7 @@ void GeneralSettings::setAutosaveInterval(int min)
 }
 
 //-----------------------------------------------------------------------------
-void GeneralSettings::setAutosavePath(const QString path)
+void GeneralSettings::setAutosavePath(const QString &path)
 {
   m_autosavePath = QDir(path);
 

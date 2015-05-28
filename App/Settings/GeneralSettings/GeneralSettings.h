@@ -34,61 +34,60 @@ class QSettings;
 
 namespace ESPINA
 {
-
   const QString AUTOSAVE_PATH("Autosave::Path");
   const QString AUTOSAVE_INTERVAL("Autosave::Interval");
 
   class GeneralSettings
   {
-		public:
-			/** \brief GeneralSettings class constructor.
-			 *
-			 */
-			explicit GeneralSettings();
+  public:
+    /** \brief GeneralSettings class constructor.
+     *
+     */
+    explicit GeneralSettings();
 
-			/** \brief GeneralSettings class destructor.
-			 *
-			 */
-			~GeneralSettings();
+    /** \brief GeneralSettings class destructor.
+     *
+     */
+    ~GeneralSettings();
 
-			/** \brief Returns user name.
-			 *
-			 */
-			QString userName() const
-			{return m_userName;}
+    /** \brief Returns user name.
+     *
+     */
+    QString userName() const
+    {return m_userName;}
 
-			/** \brief Sets the user name.
-			 * \param[in] name, user name.
-			 *
-			 */
-			void setUserName(QString name);
+    /** \brief Sets the user name.
+     * \param[in] name, user name.
+     *
+     */
+    void setUserName(const QString &name);
 
-			/** \brief Returns auto-save interval time in minutes.
-			 *
-			 */
-			int autosaveInterval() const
-			{return m_autosaveInterval;}
+    /** \brief Returns auto-save interval time in minutes.
+     *
+     */
+    int autosaveInterval() const
+    {return m_autosaveInterval;}
 
-			/** \brief Sets the auto-save interval.
-			 * \param[in] min, minutes value.
-			 *
-			 */
-			void setAutosaveInterval(int min);
+    /** \brief Sets the auto-save interval.
+     * \param[in] min, minutes value.
+     *
+     */
+    void setAutosaveInterval(int min);
 
-			/** \brief Returns the path of the auto-save file.
-			 *
-			 */
-			QDir autosavePath() const {return m_autosavePath;}
+    /** \brief Returns the path of the auto-save file.
+     *
+     */
+    QDir autosavePath() const {return m_autosavePath;}
 
-			/** \brief Sets the auto-save path.
-			 *
-			 */
-			void setAutosavePath(const QString path);
+    /** \brief Sets the auto-save path.
+     *
+     */
+    void setAutosavePath(const QString &path);
 
-		private:
-			QString m_userName;
-			int     m_autosaveInterval;
-			QDir    m_autosavePath;
+  private:
+    QString m_userName;
+    int     m_autosaveInterval;
+    QDir    m_autosavePath;
   };
 
   using GeneralSettingsSPtr = std::shared_ptr<GeneralSettings>;

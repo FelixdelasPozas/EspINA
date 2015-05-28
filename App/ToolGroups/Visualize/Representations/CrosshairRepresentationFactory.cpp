@@ -78,11 +78,12 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
                                                      Support::Context &context) const
 {
   auto crossManager = std::make_shared<CrosshairManager>(flags);
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, flags, context.timer());
 
   crossManager->setName(QObject::tr("Crosshair"));
   crossManager->setIcon(QIcon(icon));
   crossManager->setDescription(description);
+
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, flags, context.timer(), context);
 
   representation.Managers << crossManager;
   representation.Switches << crossSwitch;

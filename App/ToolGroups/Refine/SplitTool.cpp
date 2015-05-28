@@ -29,6 +29,7 @@
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget2D.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget3D.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/ContextFactories.h>
 #include <Undo/AddSegmentations.h>
@@ -92,17 +93,13 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
-: m_context(context)
-, m_toggle {Tool::createAction(":/espina/planar_split.svg",tr("Split segmentation"), this)}
-, m_widgets{this}
-, m_apply  {Tool::createButton(":/espina/tick.png", tr("Apply current state"))}
+: RefineTool(":/espina/planar_split.svg", tr("Split segmentation"), context)
 , m_handler{new PlanarSplitEventHandler()}
 {
-  registerFilterFactory(m_context, std::make_shared<SplitFilterFactory>());
+  registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
-  m_toggle->setCheckable(true);
-  connect(m_toggle, SIGNAL(toggled(bool)),
-          this,     SLOT(toggleWidgetsVisibility(bool)));
+  connect(this,  SIGNAL(toggled(bool)),
+          this,  SLOT(toggleWidgetsVisibility(bool)));
 
   initSplitWidgets();
 
@@ -117,6 +114,8 @@ SplitTool::SplitTool(Support::Context &context)
 
   m_factory = std::make_shared<TemporalPrototypes>(std::make_shared<PlanarSplitWidget2D>(m_handler.get()),
                                                    std::make_shared<PlanarSplitWidget3D>(m_handler.get()));
+
+  setEventHandler(m_handler);
 }
 
 //------------------------------------------------------------------------
@@ -132,69 +131,48 @@ SplitTool::~SplitTool()
              this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
   delete m_apply;
-  delete m_toggle;
 
-  if (m_context.viewState().eventHandler().get() == m_handler.get())
-  {
-    hideCuttingPlane();
-  }
+//   if (context().viewState().eventHandler().get() == m_handler.get())
+//   {
+//     hideCuttingPlane();
+//   }
 }
 
 //------------------------------------------------------------------------
-QList<QAction *> SplitTool::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_toggle
-          << &m_widgets;
-
-  return actions;
-}
-
-//------------------------------------------------------------------------
-void SplitTool::abortOperation()
-{
-  m_toggle->setChecked(false);
-}
-
 //------------------------------------------------------------------------
 void SplitTool::onToolEnabled(bool enabled)
 {
-  m_toggle->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
 void SplitTool::initSplitWidgets()
 {
-  m_apply->setEnabled(false);
-
-  m_widgets.addWidget(m_apply);
-  m_widgets.setVisible(false);
+  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/tick.png", tr("Apply current state"));
 
   connect(m_apply, SIGNAL(clicked(bool)),
-          this,    SLOT(applyCurrentState()));
+          this,  SLOT(applyCurrentState()));
+
+  addSettingsWidget(m_apply);
 }
 
 //------------------------------------------------------------------------
 GUI::View::ViewState &SplitTool::viewState() const
 {
-  return m_context.viewState();
+  return context().viewState();
 }
 
 //------------------------------------------------------------------------
 void SplitTool::showCuttingPlane()
 {
-  connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-          m_toggle,        SLOT(setChecked(bool)));
 
-  auto selection = getSelection(m_context);
+  auto selection = getSelection(context());
   connect(selection.get(), SIGNAL(selectionChanged()),
           this,            SLOT(onSelectionChanged()));
 
-  viewState().setEventHandler(m_handler);
+  setEventHandler(m_handler);
   viewState().addTemporalRepresentations(m_factory);
 
-  auto segmentation = getSelectedSegmentations(m_context).first();
+  auto segmentation = getSelectedSegmentations(context()).first();
   for(auto widget: m_splitWidgets)
   {
     widget->setSegmentationBounds(segmentation->bounds());
@@ -205,16 +183,12 @@ void SplitTool::showCuttingPlane()
 //------------------------------------------------------------------------
 void SplitTool::hideCuttingPlane()
 {
-  disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-             m_toggle,        SLOT(setChecked(bool)));
+  auto selection = getSelection(context());
 
-  auto selection = getSelection(m_context);
   disconnect(selection.get(), SIGNAL(selectionChanged()),
              this,            SLOT(onSelectionChanged()));
 
-  m_handler->blockSignals(true);
-  viewState().unsetEventHandler(m_handler);
-  m_handler->blockSignals(false);
+  setEventHandler(nullptr);
   viewState().removeTemporalRepresentations(m_factory);
 }
 
@@ -231,24 +205,17 @@ void SplitTool::toggleWidgetsVisibility(bool visible)
 
     emit splittingStopped();
   }
-
-  m_toggle->blockSignals(true);
-  m_toggle->setChecked(visible);
-  m_toggle->blockSignals(false);
-
-  m_widgets.setVisible(visible);
 }
-
 
 //------------------------------------------------------------------------
 void SplitTool::applyCurrentState()
 {
-  auto selectedSeg = getSelection(m_context)->segmentations().first();
+  auto selectedSeg = getSelection(context())->segmentations().first();
 
   InputSList inputs;
   inputs << selectedSeg->asInput();
 
-  auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+  auto filter = context().factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
   auto spacing = selectedSeg->output()->spacing();
   auto bounds = selectedSeg->bounds();
@@ -271,7 +238,7 @@ void SplitTool::applyCurrentState()
 
   filter->setStencil(stencil);
 
-  Data data(filter, m_context.model()->smartPointer(selectedSeg));
+  Data data(filter, context().model()->smartPointer(selectedSeg));
   m_executingTasks.insert(filter.get(), data);
 
   connect(filter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
@@ -309,7 +276,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
       splitWidget->disableWidget();
     }
 
-    auto spacing = getSelection(m_context)->segmentations().first()->output()->spacing();
+    auto spacing = getSelection(context())->segmentations().first()->output()->spacing();
     m_splitPlane = widget->getImplicitPlane(spacing);
   }
 }
@@ -317,7 +284,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
 //------------------------------------------------------------------------
 void SplitTool::onSelectionChanged()
 {
-  abortOperation();
+  //TODO abort?
 }
 
 //------------------------------------------------------------------------
@@ -340,20 +307,20 @@ void SplitTool::createSegmentations()
 
       for(auto i: {0, 1})
       {
-        auto segmentation  = m_context.factory()->createSegmentation(m_executingTasks[filter].adapter, i);
+        auto segmentation  = context().factory()->createSegmentation(m_executingTasks[filter].adapter, i);
         segmentation->setCategory(category);
 
         segmentationsList << segmentation;
         segmentations << segmentation.get();
       }
 
-      auto undoStack = m_context.undoStack();
+      auto undoStack = context().undoStack();
       undoStack->beginMacro("Split Segmentation");
-      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_context.model()));
-      undoStack->push(new AddSegmentations(segmentationsList, sample, m_context.model()));
+      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), context().model()));
+      undoStack->push(new AddSegmentations(segmentationsList, sample, context().model()));
       undoStack->endMacro();
 
-      getSelection(m_context)->set(segmentations);
+      getSelection(context())->set(segmentations);
 
       toggleWidgetsVisibility(false);
       m_splitPlane = nullptr;
@@ -374,4 +341,16 @@ void SplitTool::createSegmentations()
 
   QApplication::restoreOverrideCursor();
   m_executingTasks.remove(filter);
+}
+
+//------------------------------------------------------------------------
+bool SplitTool::acceptsNInputs(int n) const
+{
+  return n > 0;
+}
+
+//------------------------------------------------------------------------
+bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
+{
+  return RefineTool::acceptsVolumetricSegmenations(segmentations);
 }

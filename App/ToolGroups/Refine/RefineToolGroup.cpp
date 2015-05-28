@@ -22,7 +22,10 @@
 #include "RefineToolGroup.h"
 
 #include "ManualEditionTool.h"
+#include "SplitTool.h"
 #include "CODETool.h"
+#include "FillHolesTool.h"
+#include "ImageLogicTool.h"
 
 #include <Core/Analysis/Output.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -53,23 +56,61 @@ RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory
   context.factory()->registerFilterFactory(morphologicalFactory);
   filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
 
-  auto manualEdition = std::make_shared<ManualEditionTool>(context);
-  m_split            = std::make_shared<SplitTool>(context);
-
-  addTool(manualEdition);
-  addTool(m_split);
-  addTool(std::make_shared<CODETool<CloseFilter>> (tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , context));
-  addTool(std::make_shared<CODETool<OpenFilter>>  (tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , context));
-  addTool(std::make_shared<CODETool<DilateFilter>>(tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), context));
-  addTool(std::make_shared<CODETool<ErodeFilter>> (tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , context));
-
-  connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-          this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
+  initManualEditionTool();
+  initSplitTool();
+  initCODETools();
+  initFillHolesTool();
+  initImageLogicTools();
 }
 
 //-----------------------------------------------------------------------------
 RefineToolGroup::~RefineToolGroup()
 {
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::initManualEditionTool()
+{
+  auto manualEdition = std::make_shared<ManualEditionTool>(m_context);
+
+  connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
+          this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
+
+  addTool(manualEdition);
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::initSplitTool()
+{
+  addTool(std::make_shared<SplitTool>(m_context));
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::initCODETools()
+{
+  addTool(std::make_shared<CODETool<CloseFilter>> (tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , m_context));
+  addTool(std::make_shared<CODETool<OpenFilter>>  (tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , m_context));
+  addTool(std::make_shared<CODETool<DilateFilter>>(tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), m_context));
+  addTool(std::make_shared<CODETool<ErodeFilter>> (tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , m_context));
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::initFillHolesTool()
+{
+  addTool(std::make_shared<FillHolesTool>(m_context));
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::initImageLogicTools()
+{
+  auto addition  = std::make_shared<ImageLogicTool>(":/espina/add.svg",    tr("Merge selected segmentations"),     m_context);
+  addition->setOperation(ImageLogicFilter::Operation::ADDITION);
+
+  auto substract = std::make_shared<ImageLogicTool>(":/espina/remove.svg", tr("Substract selected segmentations"), m_context);
+  substract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
+
+  addTool(addition);
+  addTool(substract);
 }
 
 //-----------------------------------------------------------------------------

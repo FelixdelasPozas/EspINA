@@ -27,7 +27,7 @@
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/RefineTool.h>
 #include <Support/Context.h>
 
 // Qt
@@ -45,7 +45,7 @@ using namespace ESPINA::GUI::View::Widgets;
 namespace ESPINA
 {
   class SplitTool
-  : public Tool
+  : public Support::Widgets::RefineTool
   {
     Q_OBJECT
 
@@ -71,10 +71,6 @@ namespace ESPINA
      *
      */
     virtual ~SplitTool();
-
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
 
   signals:
     void splittingStopped();
@@ -131,6 +127,11 @@ namespace ESPINA
     { toggleWidgetsVisibility(false); }
 
   private:
+    virtual bool acceptsNInputs(int n) const;
+
+    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+
+  private:
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     struct Data
@@ -146,11 +147,7 @@ namespace ESPINA
       {};
     };
 
-    Support::Context &m_context;
-
-    QAction            *m_toggle;
-    Tool::NestedWidgets m_widgets;
-    QPushButton        *m_apply;
+    QPushButton *m_apply;
 
     PlanarSplitEventHandlerSPtr  m_handler;
     QMap<FilterPtr, struct Data> m_executingTasks;

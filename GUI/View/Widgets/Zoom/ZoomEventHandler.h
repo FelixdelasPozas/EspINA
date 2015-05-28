@@ -53,6 +53,9 @@ namespace ESPINA
       void movement(QPoint point, RenderView *view);
       void leftPress(QPoint point, RenderView *view);
       void leftRelease(QPoint point, RenderView *view);
+
+  private:
+    bool m_inClick;
   };
 
   using ZoomEventHandlerSPtr = std::shared_ptr<ZoomEventHandler>;

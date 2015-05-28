@@ -33,37 +33,19 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 CleanROITool::CleanROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
-: m_context  (context)
+: ProgressTool(":/espina/roi_clean.svg", tr("Clean Volume Of Interest"), context)
+, m_context  (context)
 , m_toolGroup{toolGroup}
-, m_cleanROI {Tool::createAction(":/espina/roi_clean.svg", tr("Clean Volume Of Interest"), this)}
 {
-  m_cleanROI->setEnabled(false);
-
   connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
           this,        SLOT(onROIChanged()));
 
-  connect(m_cleanROI, SIGNAL(triggered(bool)),
-          this,       SLOT(cancelROI()));
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(cancelROI()));
 }
 
 //-----------------------------------------------------------------------------
 CleanROITool::~CleanROITool()
-{
-  delete m_cleanROI;
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction *> CleanROITool::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_cleanROI;
-
-  return actions;
-}
-
-//-----------------------------------------------------------------------------
-void CleanROITool::abortOperation()
 {
 }
 
@@ -80,7 +62,7 @@ void CleanROITool::cancelROI()
 //-----------------------------------------------------------------------------
 void CleanROITool::onROIChanged()
 {
-  m_cleanROI->setEnabled(m_toolGroup->hasValidROI());
+  setEnabled(m_toolGroup->hasValidROI());
 }
 
 //-----------------------------------------------------------------------------

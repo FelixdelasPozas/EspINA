@@ -63,7 +63,7 @@ namespace ESPINA
   };
 
   class EspinaGUI_EXPORT SkeletonTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:

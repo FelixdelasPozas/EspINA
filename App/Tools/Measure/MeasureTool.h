@@ -33,7 +33,7 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 namespace ESPINA
 {
   class MeasureTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
@@ -42,24 +42,22 @@ namespace ESPINA
      * \param[in] viewState
      *
      */
-    explicit MeasureTool(GUI::View::ViewState &viewState);
+    explicit MeasureTool(Support::Context &context);
 
     /** \brief MeasureTool class destructor.
      *
      */
     virtual ~MeasureTool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
+    virtual void abortOperation();
 
   signals:
     void stopMeasuring();
 
   private slots:
-    void onToolActivated(bool value);
-
     virtual void onToolEnabled(bool enabled) {}
+
+    void onToolActivated(bool value);
 
   private:
     using ViewState              = GUI::View::ViewState;
@@ -68,7 +66,6 @@ namespace ESPINA
     ViewState              &m_viewState;
     MeasureEventHandlerSPtr m_handler;
     TemporalPrototypesSPtr  m_prototypes;
-    QAction                *m_action;
   };
 
   using MeasureToolPtr  = MeasureTool *;

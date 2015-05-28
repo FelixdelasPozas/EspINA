@@ -32,7 +32,7 @@ using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
-Tool::NestedWidgets::NestedWidgets(QObject *parent)
+ProgressTool::NestedWidgets::NestedWidgets(QObject *parent)
 : QWidgetAction(parent)
 , m_layout(new QHBoxLayout())
 {
@@ -47,84 +47,28 @@ Tool::NestedWidgets::NestedWidgets(QObject *parent)
 }
 
 //----------------------------------------------------------------------------
-void Tool::NestedWidgets::addWidget(QWidget *widget)
+void ProgressTool::NestedWidgets::addWidget(QWidget *widget)
 {
   m_layout->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
-bool Tool::NestedWidgets::isEmpty() const
+bool ProgressTool::NestedWidgets::isEmpty() const
 {
   return m_layout->isEmpty();
 }
 
 //----------------------------------------------------------------------------
-Tool::Tool()
-: m_enabled{true}
-{
-
-}
-
-//----------------------------------------------------------------------------
-QAction *Tool::createAction(const QString &icon, const QString &tooltip, QObject *parent)
-{
-  return createAction(QIcon(icon), tooltip, parent);
-}
-
-//----------------------------------------------------------------------------
-QAction *Tool::createAction(const QIcon &icon, const QString &tooltip, QObject *parent)
-{
-  auto action = new QAction(parent);
-
-  action->setIcon(icon);
-  action->setToolTip(tooltip);
-
-  return action;
-}
-
-//----------------------------------------------------------------------------
-QPushButton *Tool::createButton(const QString &icon, const QString &tooltip)
-{
-  return createButton(QIcon(icon), tooltip);
-}
-
-//----------------------------------------------------------------------------
-QPushButton *Tool::createButton(const QIcon &icon, const QString &tooltip)
-{
-  auto button = new QPushButton();
-
-  button->setIcon(icon);
-  button->setIconSize(QSize(22, 22));
-  button->setMaximumSize(30, 30);
-  button->setFlat(true);
-  button->setToolTip(tooltip);
-
-  return button;
-}
-
-//----------------------------------------------------------------------------
-void Tool::setEnabled2(bool value)
-{
-  if (m_enabled != value)
-  {
-    onToolEnabled(value);
-  }
-
-  m_enabled = value;
-}
-
-//----------------------------------------------------------------------------
-bool Tool::isEnabled() const
-{
-  return m_enabled;
-}
-
-//----------------------------------------------------------------------------
 ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context &context)
-: Tool()
-, m_context (context)
+: ProgressTool{QIcon(icon), tooltip, context}
+{
+}
+
+//----------------------------------------------------------------------------
+ProgressTool::ProgressTool(const QIcon &icon, const QString &tooltip, Context &context)
+: m_context (context)
 , m_action  {new ProgressAction(icon, tooltip, this)}
-, m_settings{new Tool::NestedWidgets(this)}
+, m_settings{new ProgressTool::NestedWidgets(this)}
 {
   connect(m_action, SIGNAL(toggled(bool)),
           this,     SLOT(onActionToggled(bool)));
@@ -165,6 +109,18 @@ void ProgressTool::setCheckable(bool value)
 }
 
 //----------------------------------------------------------------------------
+void ProgressTool::setChecked(bool value)
+{
+  m_action->setActionChecked(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setToolTip(const QString &tooltip)
+{
+  m_action->setToolTip(tooltip);
+}
+
+//----------------------------------------------------------------------------
 QList<QAction*> ProgressTool::actions() const
 {
   QList<QAction *> result;
@@ -181,9 +137,21 @@ void ProgressTool::setProgress(int value)
 }
 
 //----------------------------------------------------------------------------
-Context& ProgressTool::context()
+Context& ProgressTool::context() const
 {
   return m_context;
+}
+
+//----------------------------------------------------------------------------
+SegmentationAdapterList ProgressTool::selectedSegmentations() const
+{
+  return getSelectedSegmentations(m_context);
+}
+
+//----------------------------------------------------------------------------
+QUndoStack *ProgressTool::undoStack() const
+{
+  return m_context.undoStack();
 }
 
 //----------------------------------------------------------------------------
@@ -201,19 +169,29 @@ void ProgressTool::showTaskProgress(TaskSPtr task)
 //----------------------------------------------------------------------------
 void ProgressTool::setEventHandler(EventHandlerSPtr handler)
 {
+  bool wasInUse = false;
+
   if (m_handler)
   {
+    wasInUse = m_handler->isInUse();
+
     disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
                this,            SLOT(onEventHandlerInUse(bool)));
 
-    deactivateEventHandler();
+    if (wasInUse)
+    {
+      deactivateEventHandler();
+    }
   }
 
   m_handler = handler;
 
   if (m_handler)
   {
-    activateEventHandler();
+    if (wasInUse)
+    {
+      activateEventHandler();
+    }
 
     connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
             this,            SLOT(onEventHandlerInUse(bool)));

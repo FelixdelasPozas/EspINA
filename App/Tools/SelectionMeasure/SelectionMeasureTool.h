@@ -33,23 +33,21 @@ namespace ESPINA
   class SelectionMeasureWidget;
 
   class SelectionMeasureTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:
     /** \brief RulerTool class constructor.
      * \param[in] viewState
      */
-    explicit SelectionMeasureTool(GUI::View::ViewState &viewState);
+    explicit SelectionMeasureTool(Support::Context &context);
 
     /** \brief RulerTool class destructor.
      *
      */
     virtual ~SelectionMeasureTool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
+    virtual void abortOperation();
 
   private slots:
     void onToolActivated(bool value);
@@ -61,9 +59,8 @@ namespace ESPINA
     using ViewState              = GUI::View::ViewState;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    ViewState        &m_viewState;
+    ViewState             &m_viewState;
     TemporalPrototypesSPtr m_factory;
-    QAction          *m_action;
   };
 } // namespace ESPINA
 

@@ -1238,29 +1238,28 @@ void EspinaMainWindow::createToolbars()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolGroups()
 {
-  auto &viewState = m_context.viewState();
-
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
-  registerToolGroup(m_exploreToolGroup);
-  m_exploreToolGroup->addTool(std::make_shared<ZoomTool>(viewState));
-  m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(viewState));
+  m_exploreToolGroup->addTool(std::make_shared<ZoomTool>(m_context));
+  m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(m_context));
 
   m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);
   //m_viewManager->setROIProvider(m_restrictToolGroup);
-  registerToolGroup(m_restrictToolGroup);
 
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
-  registerToolGroup(m_segmentToolGroup);
   m_segmentToolGroup->addTool(std::make_shared<ManualSegmentTool>(m_context));
   m_segmentToolGroup->addTool(std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context));
 
   m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
-  registerToolGroup(m_refineToolGroup);
 
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
-  registerToolGroup(m_visualizeToolGroup);
 
   m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
+
+  registerToolGroup(m_exploreToolGroup);
+  registerToolGroup(m_restrictToolGroup);
+  registerToolGroup(m_segmentToolGroup);
+  registerToolGroup(m_refineToolGroup);
+  registerToolGroup(m_visualizeToolGroup);
   registerToolGroup(m_analyzeToolGroup);
 }
 
@@ -1331,11 +1330,11 @@ void EspinaMainWindow::configureAutoSave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
-  auto representation = factory->createRepresentation(m_context);
+  auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D);
 
   for (auto repSwitch : representation.Switches)
   {
-    m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+    m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
   }
 
   m_view->addRepresentation(representation);

@@ -24,6 +24,7 @@
 #include "Support/EspinaSupport_Export.h"
 #include <GUI/Types.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 #include <Core/MultiTasking/TaskGroupProgress.h>
 
@@ -34,6 +35,7 @@
 #include <QCursor>
 #include <QWidgetAction>
 
+class QUndoStack;
 class QHBoxLayout;
 class QAction;
 class QEvent;
@@ -45,70 +47,35 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EspinaSupport_EXPORT Tool
-  : public QObject
-  {
-  public:
-    class NestedWidgets
-    : public QWidgetAction
-    {
-    public:
-      explicit NestedWidgets(QObject *parent);
-
-      void addWidget(QWidget *widget);
-
-      bool isEmpty() const;
-
-    private:
-      QHBoxLayout *m_layout;
-    };
-
-  public:
-    explicit Tool();
-
-    /** \brief Enables/Disables the tool.
-     * \param[in] value true to enable false otherwise.
-     *
-     */
-    void setEnabled2(bool value);
-
-    /** \brief Returns true if the tool is enabled, false otherwise.
-     *
-     */
-    bool isEnabled() const;
-
-    virtual QList<QAction *> actions() const = 0;
-
-    static QAction *createAction( const QString &icon, const QString &tooltip, QObject *parent );
-
-    static QAction *createAction(const QIcon &icon, const QString &tooltip, QObject *parent);
-
-    static QPushButton *createButton(const QString &icon, const QString &tooltip);
-
-    static QPushButton *createButton(const QIcon &icon, const QString &tooltip);
-
-    virtual void abortOperation() = 0;
-
-  private:
-    virtual void onToolEnabled(bool enabled) = 0;
-
-  private:
-    bool m_enabled;
-  };
-
   namespace Support
   {
     class Context;
 
     namespace Widgets
     {
-
       class EspinaSupport_EXPORT ProgressTool
-      : public Tool
+      : public QObject
       {
         Q_OBJECT
+      public:
+        class NestedWidgets
+        : public QWidgetAction
+        {
+        public:
+          explicit NestedWidgets(QObject *parent);
+
+          void addWidget(QWidget *widget);
+
+          bool isEmpty() const;
+
+        private:
+          QHBoxLayout *m_layout;
+        };
+
 
       public:
+        explicit ProgressTool(const QIcon &icon, const QString &tooltip, Context &context);
+
         explicit ProgressTool(const QString &icon, const QString &tooltip, Context &context);
 
         virtual ~ProgressTool();
@@ -133,7 +100,13 @@ namespace ESPINA
          */
         void setCheckable(bool value);
 
+        void setChecked(bool value);
+
+        void setToolTip(const QString &tooltip);
+
         QList<QAction *> actions() const;
+
+        virtual void abortOperation() {}
 
       public slots:
         void setProgress(int value);
@@ -144,7 +117,11 @@ namespace ESPINA
         void toggled(bool value);
 
       protected:
-        Context &context();
+        Context &context() const;
+
+        SegmentationAdapterList selectedSegmentations() const;
+
+        QUndoStack *undoStack() const;
 
         void addSettingsWidget(QWidget *widget);
 
@@ -165,7 +142,7 @@ namespace ESPINA
         Context &m_context;
 
         GUI::Widgets::ProgressAction *m_action;
-        Tool::NestedWidgets          *m_settings;
+        NestedWidgets                *m_settings;
 
         EventHandlerSPtr m_handler;
 
@@ -174,7 +151,7 @@ namespace ESPINA
     }
   }
 
-  using ToolSPtr  = std::shared_ptr<Tool>;
+  using ToolSPtr  = std::shared_ptr<Support::Widgets::ProgressTool>;
   using ToolSList = QList<ToolSPtr>;
 
 

@@ -25,7 +25,6 @@
 
 // ESPINA
 #include <Support/Representations/RepresentationUtils.h>
-#include <Support/Widgets/RepresentationTools.h>
 
 // Qt
 #include <QShortcut>
@@ -36,7 +35,6 @@ namespace ESPINA
   : public ToolGroup
   {
     Q_OBJECT
-
   public:
     /** \brief ViewTools class constructor.
      * \param[in] viewManager view manager smart pointer.
@@ -53,17 +51,11 @@ namespace ESPINA
      *
      */
     void addRepresentationSwitch(RepresentationGroup      group,
-                                 RepresentationSwitchSPtr repSwitch,
-                                 const QIcon             &groupIcon        = QIcon(),
-                                 const QString           &groupDescription = QString());
-
-  private slots:
-    void onRepresentationToolAdded(ToolSPtr tool);
+                                 RepresentationSwitchSPtr repSwitch);
 
   private:
     Support::Context &m_context;
-    Support::Widgets::RepresentationTools m_representationTools;
-    
+
     QShortcut *m_segmentationsShortcut;
   };
 

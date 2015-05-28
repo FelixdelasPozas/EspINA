@@ -83,18 +83,18 @@ FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
 
 //-----------------------------------------------------------------------------
 SkeletonTool::SkeletonTool(Support::Context &context)
-: m_context         (context)
+: ProgressTool(":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
+, m_context         (context) //TODO
 , m_categorySelector{new CategorySelector(context.model())}
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
 , m_toolStatus      {new SkeletonToolStatusAction(this)}
-, m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
 {
   m_context.factory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
 
-  m_action->setCheckable(true);
+  setCheckable(true);
 
-  connect(m_action, SIGNAL(triggered(bool)),
-          this,     SLOT(initTool(bool)));
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(initTool(bool)));
 
   connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
           this,                       SLOT(updateState()));

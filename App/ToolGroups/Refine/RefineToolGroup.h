@@ -24,7 +24,6 @@
 // ESPINA
 #include <ToolGroups/ToolGroup.h>
 
-#include "SplitTool.h"
 #include <Support/Factory/FilterDelegateFactory.h>
 
 class QUndoStack;
@@ -46,6 +45,17 @@ namespace ESPINA
 
     virtual ~RefineToolGroup();
 
+  private:
+    void initManualEditionTool();
+
+    void initSplitTool();
+
+    void initCODETools();
+
+    void initFillHolesTool();
+
+    void initImageLogicTools();
+
   private slots:
     /** \brief Deletes a segmentation from the model if all its voxels have been erased.
      *
@@ -54,7 +64,6 @@ namespace ESPINA
 
   private:
     Support::Context &m_context;
-    SplitToolSPtr     m_split;
   };
 
 } // namespace ESPINA

@@ -35,6 +35,8 @@ namespace ESPINA {
       public:
         explicit ProgressAction(const QString &icon, const QString &tooltip, QObject* parent);
 
+        explicit ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent);
+
         virtual QWidget* createWidget(QWidget* parent);
 
       public slots:

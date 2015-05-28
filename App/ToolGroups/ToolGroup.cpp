@@ -36,10 +36,7 @@ ToolGroup::ToolGroup(const QString &icon, const QString  &text, QObject *parent)
 //-----------------------------------------------------------------------------
 ToolGroup::~ToolGroup()
 {
-  for (auto tool : m_tools)
-  {
-    tool->abortOperation();
-  }
+  abortOperations();
 }
 
 //-----------------------------------------------------------------------------

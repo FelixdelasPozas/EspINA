@@ -22,29 +22,18 @@
 
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Utils/Timer.h>
+#include <Support/Widgets/Tool.h>
 #include <memory>
 #include <QWidget>
 
 namespace ESPINA
 {
   class RepresentationSwitch
-  : public QObject
+  : public Support::Widgets::ProgressTool
   {
+    Q_OBJECT
   public:
     virtual ~RepresentationSwitch() {}
-
-    void setSettingsVisibility(bool visible);
-
-    bool settingsVisible() const
-    { return m_settingsVisibility; }
-
-    void setActive(bool value);
-
-    void switchValue();
-
-    bool isActive() const;
-
-    virtual QWidget *widget() = 0;
 
     virtual ViewTypeFlags supportedViews() = 0;
 
@@ -52,16 +41,19 @@ namespace ESPINA
 
     virtual void hideRepresentations(TimeStamp t) = 0;
 
+    virtual void abortOperation();
+
   protected:
-    explicit RepresentationSwitch(Timer &timer);
+    explicit RepresentationSwitch(const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
 
   private:
-    virtual void onSettingsVisibilityChanged(bool visible) {}
+    virtual void onToolEnabled(bool enabled);
+
+  private slots:
+    void switchRepresentations(bool show);
 
   private:
     Timer &m_timer;
-    bool m_active;
-    bool m_settingsVisibility;
   };
 
   using RepresentationSwitchSPtr  = std::shared_ptr<RepresentationSwitch>;

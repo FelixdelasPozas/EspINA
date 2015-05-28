@@ -24,6 +24,7 @@
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget2D.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget3D.h>
+#include <Support/Context.h>
 
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View;
@@ -32,39 +33,29 @@ using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ZoomTool::ZoomTool(GUI::View::ViewState &viewState)
-: m_viewState(viewState)
-, m_action   {Tool::createAction(":/espina/zoom_selection.png", tr("Zoom Tool"), this)}
+ZoomTool::ZoomTool(Support::Context &context)
+: ProgressTool(":/espina/zoom_selection.png", tr("Zoom Tool"), context)
+, m_viewState(context.viewState())
 , m_handler  {new ZoomEventHandler()}
 , m_factory  {new TemporalPrototypes{std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get())}}
 {
-  m_action->setCheckable(true);
+  setCheckable(true);
 
-  connect(m_action, SIGNAL(toggled(bool)),
-          this,     SLOT(onToolActivated(bool)));
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(onToolActivated(bool)));
+
+  setEventHandler(m_handler);
 }
 
 //----------------------------------------------------------------------------
 ZoomTool::~ZoomTool()
 {
-  disconnect(m_action, SIGNAL(toggled(bool)),
-             this,     SLOT(onToolActivated(bool)));
-}
-
-//----------------------------------------------------------------------------
-QList<QAction*> ZoomTool::actions() const
-{
-  QList<QAction *> actionList;
-
-  actionList << m_action;
-
-  return actionList;
 }
 
 //----------------------------------------------------------------------------
 void ZoomTool::abortOperation()
 {
-  m_action->setChecked(false);
+  //setChecked(false);
 }
 
 //----------------------------------------------------------------------------
@@ -72,13 +63,11 @@ void ZoomTool::onToolActivated(bool value)
 {
   if (value)
   {
-    m_viewState.setEventHandler(m_handler);
     m_viewState.addTemporalRepresentations(m_factory);
   }
   else
   {
     m_viewState.removeTemporalRepresentations(m_factory);
-    m_viewState.unsetEventHandler(m_handler);
   }
 }
 

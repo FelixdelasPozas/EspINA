@@ -219,7 +219,7 @@ namespace ESPINA
     const unsigned int s_blockSize = 25;
     QMap<liVector3, typename T::Pointer> m_blocks;
 
-    mutable QReadWriteLock m_mutex;
+    mutable QReadWriteLock m_blockMutex;
   };
 
   //-----------------------------------------------------------------------------
@@ -322,7 +322,7 @@ namespace ESPINA
       throw Invalid_Image_Bounds_Exception();
     }
 
-    m_mutex.lockForRead();
+    m_blockMutex.lockForRead();
 
     auto image = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
     auto affectedIndexes = toBlockIndexes(bounds);
@@ -348,7 +348,7 @@ namespace ESPINA
       }
     }
 
-    m_mutex.unlock();
+    m_blockMutex.unlock();
 
     return image;
   }
@@ -660,7 +660,7 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
-    m_mutex.lockForWrite();
+    m_blockMutex.lockForWrite();
 
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
@@ -673,7 +673,7 @@ namespace ESPINA
 
     if(!m_output)
     {
-      m_mutex.unlock();
+      m_blockMutex.unlock();
       throw Invalid_Image_Output_Value_Exception();
     }
 
@@ -726,7 +726,7 @@ namespace ESPINA
       dataFetched = true;
     }
 
-    m_mutex.unlock();
+    m_blockMutex.unlock();
     return dataFetched && !error;
   }
 

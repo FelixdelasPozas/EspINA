@@ -36,23 +36,21 @@ namespace ESPINA
   class ZoomWidget;
   
   class ZoomTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
       Q_OBJECT
     public:
       /** \brief ZoomTool class constructor.
        *
        */
-      ZoomTool(GUI::View::ViewState &viewState);
+      ZoomTool(Support::Context &context);
 
       /** \brief ZoomTool class virtual destructor.
        *
        */
       virtual ~ZoomTool();
 
-      virtual QList<QAction *> actions() const override;
-
-      virtual void abortOperation() override;
+      virtual void abortOperation();
 
     private slots:
       /** \brief Activates the tool.
@@ -65,7 +63,6 @@ namespace ESPINA
       virtual void onToolEnabled(bool enabled);
 
       GUI::View::ViewState  &m_viewState;
-      QAction               *m_action;
       ZoomEventHandlerSPtr   m_handler;
       TemporalPrototypesSPtr m_factory;
   };

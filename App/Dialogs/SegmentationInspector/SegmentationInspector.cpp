@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
+
 #include <Docks/SegmentationHistory/EmptyHistory.h>
 #include <Docks/SegmentationHistory/DefaultHistory.h>
 #include <Support/Widgets/TabularReport.h>
@@ -63,7 +64,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}
 , m_segmentationSources {context.representationInvalidator()}
-, m_representations     {context.timer()}
 , m_view                {context.viewState(), true}
 , m_tabularReport       {context}
 {
@@ -455,7 +455,10 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
     for (auto repSwitch : representation.Switches)
     {
-      m_representations.addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+      for (auto action : repSwitch->actions())
+      {
+        m_toolbar.addAction(action);
+      }
     }
 
     for (auto manager : representation.Managers)
@@ -473,14 +476,6 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
       {
         pool->setPipelineSources(&m_segmentationSources);
       }
-    }
-  }
-
-  for (auto tool : m_representations.representationTools())
-  {
-    for (auto action : tool->actions())
-    {
-      m_toolbar.addAction(action);
     }
   }
 }

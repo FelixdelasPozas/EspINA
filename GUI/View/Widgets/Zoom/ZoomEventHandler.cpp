@@ -32,9 +32,12 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomEventHandler::ZoomEventHandler()
+: m_inClick(false)
 {
   QPixmap cursorBitmap;
+
   cursorBitmap.load(":/espina/zoom_cursor.png", "PNG", Qt::ColorOnly);
+
   setCursor(QCursor(cursorBitmap, 0, 0));
 }
 
@@ -46,29 +49,27 @@ ZoomEventHandler::~ZoomEventHandler()
 //----------------------------------------------------------------------------
 bool ZoomEventHandler::filterEvent(QEvent* e, RenderView* view)
 {
-  static bool inClick = false;
-  
   if (e->type() == QEvent::MouseMove || e->type() == QEvent::MouseButtonPress || e->type() == QEvent::MouseButtonRelease)
   {
     auto me = static_cast<QMouseEvent *>(e);
     auto position = me->pos();
 
-    if (e->type() == QEvent::MouseMove && inClick)
+    if (e->type() == QEvent::MouseMove && m_inClick)
     {
       emit movement(position, view);
       return true;
     }
 
-    if (e->type() == QEvent::MouseButtonPress && me->button() == Qt::LeftButton && !inClick)
+    if (e->type() == QEvent::MouseButtonPress && me->button() == Qt::LeftButton && !m_inClick)
     {
-      inClick = true;
+      m_inClick = true;
       emit leftPress(position, view);
       return true;
     }
 
-    if (e->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && inClick)
+    if (e->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && m_inClick)
     {
-      inClick = false;
+      m_inClick = false;
       emit leftRelease(position, view);
       return true;
     }

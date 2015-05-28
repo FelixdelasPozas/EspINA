@@ -63,26 +63,15 @@ using namespace ESPINA::Support::Representations::Utils;
 
 //----------------------------------------------------------------------------
 VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
-: ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
+: ToolGroup{":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
 , m_context(context)
-, m_representationTools{context.timer()}
 , m_segmentationsShortcut{new QShortcut(parent)}
 {
-  for (auto tool : m_representationTools.representationTools())
-  {
-    addTool(tool);
-  }
-
   m_segmentationsShortcut->setKey(Qt::Key_Space);
   m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
 
-  connect(&m_representationTools, SIGNAL(representationToolAdded(ToolSPtr)),
-          this,                   SLOT(onRepresentationToolAdded(ToolSPtr)));
-
-  auto segmentationTool = m_representationTools.segmentationRepresentations();
-
-  connect(m_segmentationsShortcut, SIGNAL(activated()),
-          segmentationTool.get(),  SLOT(toggleRepresentationsVisibility()));
+//   connect(m_segmentationsShortcut, SIGNAL(activated()),
+//           segmentationTool.get(),  SLOT(toggleRepresentationsVisibility()));
 }
 
 //----------------------------------------------------------------------------
@@ -93,15 +82,10 @@ VisualizeToolGroup::~VisualizeToolGroup()
 
 //----------------------------------------------------------------------------
 void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
-                                               RepresentationSwitchSPtr   repSwitch,
-                                               const QIcon               &groupIcon,
-                                               const QString             &groupDescription)
+                                               RepresentationSwitchSPtr   repSwitch)
 {
-  m_representationTools.addRepresentationSwitch(group, repSwitch, groupIcon, groupDescription);
-}
-
-//----------------------------------------------------------------------------
-void VisualizeToolGroup::onRepresentationToolAdded(ToolSPtr tool)
-{
-  addTool(tool);
+  if (repSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
+  {
+    addTool(repSwitch);
+  }
 }

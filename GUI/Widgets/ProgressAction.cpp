@@ -29,10 +29,16 @@ using namespace ESPINA::GUI::Widgets;
 
 //------------------------------------------------------------------------
 ProgressAction::ProgressAction(const QString &icon, const QString &tooltip, QObject* parent)
+: ProgressAction{QIcon(icon), tooltip, parent}
+{
+}
+
+//------------------------------------------------------------------------
+ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent)
 : QWidgetAction(parent)
 , m_progress(0)
 {
-  setIcon(QIcon(icon));
+  setIcon(icon);
   setToolTip(tooltip);
 }
 
@@ -96,6 +102,7 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
 
   action->setEnabled(isEnabled());
   action->setCheckable(isCheckable());
+  action->setChecked(isChecked());
 
   connect(action, SIGNAL(toggled(bool)),
           this,   SIGNAL(toggled(bool)));
@@ -108,7 +115,6 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
 
   connect(this,   SIGNAL(actionChecked(bool)),
           action, SLOT(setChecked(bool)));
-
 
   return action;
 }

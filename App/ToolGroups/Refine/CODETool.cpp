@@ -22,6 +22,7 @@
 // ESPINA
 #include "CODETool.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
 
@@ -61,9 +62,9 @@ void CODEToolBase::initOptionWidgets()
   m_radius->setLabelText(tr("Radius"));
   m_radius->setMinimum(1);
   m_radius->setMaximum(99);
-  //m_radius->setSliderVisibility(false);
+  m_radius->setSliderVisibility(false);
 
-  auto apply = Tool::createButton(":/espina/tick.png", tr("Apply"));
+  auto apply = Styles::createToolButton(":/espina/tick.png", tr("Apply"));
 
   connect(apply, SIGNAL(clicked(bool)),
           this,  SLOT(onApplyClicked()));

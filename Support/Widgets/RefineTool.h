@@ -78,121 +78,18 @@ namespace ESPINA
         bool acceptsVolumetricSegmenations(SegmentationAdapterList segmentations);
 
       private slots:
-        //     /** \brief Merge selected segmentations.
-        //      *
-        //      */
-        //     void mergeSegmentations();
-        //
-        //     /** \brief Substract one segmentation from the other.
-        //      *
-        //      */
-        //     void subtractSegmentations();
-        //
-        //     /** \brief Close the selected segmentation with the radius set on the associated QSpinBox.
-        //      *
-        //      */
-        //     void closeSegmentations();
-        //
-        //     /** \brief Open the selected segmentation with the radius set on the associated QSpinBox.
-        //      *
-        //      */
-        //     void openSegmentations();
-        //
-        //     /** \brief Dilate the selected segmentation with the radius set on the associated QSpinBox.
-        //      *
-        //      */
-        //     void dilateSegmentations();
-        //
-        //     /** \brief Erode the selected segmentation with the radius set on the associated QSpinBox.
-        //      *
-        //      */
-        //     void erodeSegmentations();
-        //
-        //     /** \brief Fills all internals holes in the selected segmentation.
-        //      *
-        //      */
-        //     void fillHoles();
-        //
-        //     /** \brief Changes/Deletes the segmentation when the morphological after the filter has finished.
-        //      *
-        //      */
-        //     void onMorphologicalFilterFinished();
-        //
-        //     /** \brief Changes the segmentation when the morphological after the filter has finished.
-        //      *
-        //      */
-        //     void onFillHolesFinished();
-        //
-        //     /** \brief Modifies the GUI when the close operation is toggled.
-        //      * \param[in] toggled, true if toggled.
-        //      *
-        //      */
-        //     void onCloseToggled(bool toggled);
-        //
-        //     /** \brief Modifies the GUI when the open operation is toggled.
-        //      * \param[in] toggled, true if toggled.
-        //      *
-        //      */
-        //     void onOpenToggled(bool toggled);
-        //
-        //     /** \brief Modifies the GUI when the dilate operation is toggled.
-        //      * \param[in] toggled, true if toggled.
-        //      *
-        //      */
-        //     void onDilateToggled(bool toggled);
-        //
-        //     /** \brief Modifies the GUI when the erode operation is toggled.
-        //      * \param[in] toggled, true if toggled.
-        //      *
-        //      */
-        //     void onErodeToggled(bool toggled);
-        //
         /** \brief
          *
          */
         void updateStatus();
-        //
-        //     /** \brief Changes the segmentation(s) when the image logic filter has finished.
-        //      *
-        //      */
-        //     void onImageLogicFilterFinished();
 
       private:
-        virtual void onToolEnabled(bool enabled) override;
+        virtual void onToolEnabled(bool enabled);
 
         virtual bool acceptsNInputs(int n) const = 0;
 
         virtual bool acceptsSelection(SegmentationAdapterList segmentations);
-
-
-      private:
-        //     struct FillHolesContext
-        //     {
-        //       FillHolesFilterSPtr    Task;
-        //       SegmentationAdapterPtr Segmentation;
-        //       QString                Operation;
-        //     };
-        //     struct ImageLogicContext
-        //     {
-        //       FilterSPtr                  Task;
-        //       ImageLogicFilter::Operation Operation;
-        //       SegmentationAdapterList     Segmentations;
-        //     };
-
-      private:
-        //     CODETool m_close;
-        //     CODETool m_open;
-        //     CODETool m_dilate;
-        //     CODETool m_erode;
-        //
-        //     QAction* m_fill;
-        //
-        //     QAction *m_addition;
-        //     QAction *m_subtract;
-        //
-        //     QMap<FillHolesFilterPtr, FillHolesContext>                m_executingFillHolesTasks;
-        //     QMap<ImageLogicFilterPtr, ImageLogicContext>              m_executingImageLogicTasks;
-      };
+     };
 
       //   using RefineToolPtr  = RefineTool *;
       //   using RefineToolSPtr = std::shared_ptr<RefineTool>;

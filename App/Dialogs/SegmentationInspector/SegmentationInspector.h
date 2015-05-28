@@ -28,7 +28,6 @@
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 #include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Widgets/TabularReport.h>
-#include <Support/Widgets/RepresentationTools.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Representations/ManualPipelineSources.h>
@@ -152,7 +151,6 @@ namespace ESPINA
     ManualPipelineSources m_segmentationSources;
 
     QToolBar            m_toolbar;
-    RepresentationTools m_representations;
     View3D              m_view;
     TabularReport       m_tabularReport;
   };

@@ -44,6 +44,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Refine/ManualEditionTool.h
   ToolGroups/Refine/RefineToolGroup.h
   ToolGroups/Refine/SplitTool.h
+  ToolGroups/Refine/FillHolesTool.h
+  ToolGroups/Refine/ImageLogicTool.h
   ToolGroups/Restrict/CleanROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
   ToolGroups/Restrict/ManualROITool.h
@@ -158,6 +160,8 @@ set (ESPINA_SOURCES
   ToolGroups/Refine/ManualEditionTool.cpp
   ToolGroups/Refine/SliceEditionPipeline.cpp
   ToolGroups/Refine/SplitTool.cpp
+  ToolGroups/Refine/FillHolesTool.cpp
+  ToolGroups/Refine/ImageLogicTool.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/ToolGroup.cpp
   Tools/Measure/MeasureTool.cpp
