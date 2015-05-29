@@ -280,13 +280,6 @@ namespace ESPINA
      */
     void checkAutosave();
 
-    /** \brief Adds a dock widget to the application.
-     * param[in] area, area of the widget.
-     * param[in] dock, raw pointer of the dock widget to add.
-     *
-     */
-    void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
-
     /** \brief Adds a tool group to the application.
      * \param[in] tools tool group raw pointer.
      *
@@ -361,7 +354,6 @@ namespace ESPINA
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngineMenu;
-    QMenu           *m_panelsMenu;
 
     // ToolBars
     QToolBar           *m_mainBar;

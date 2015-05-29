@@ -54,11 +54,16 @@ namespace ESPINA
 
     static QPushButton *createDockButton(const QString &icon, const QString &tooltip);
 
+    virtual void showEvent(QShowEvent *event);
+
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.
      *
      */
     virtual void reset() = 0;
+
+  signals:
+    void dockShown(bool visible);
   };
 }
 

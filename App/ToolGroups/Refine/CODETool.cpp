@@ -84,9 +84,9 @@ void CODEToolBase::onApplyClicked()
 {
   setEventHandler(nullptr);
 
-  auto selection = getSelection(context())->segmentations();
+  auto selection = getSelectedSegmentations();
 
-  Q_ASSERT(selection.size() > 0);
+  Q_ASSERT(!selection.isEmpty());
 
   for (auto segmentation :  selection)
   {
@@ -128,7 +128,7 @@ void CODEToolBase::onTaskFinished()
   if (!filter->isAborted())
   {
     auto taskContext = m_executingTasks[filter];
-    auto undoStack   = context().undoStack();
+    auto undoStack   = getUndoStack();
 
     if (filter->isOutputEmpty())
     {

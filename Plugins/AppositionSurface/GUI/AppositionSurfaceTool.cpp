@@ -54,8 +54,8 @@ AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(createSAS()));
 
-  connect(getSelection(context).get(), SIGNAL(selectionChanged()),
-          this,                        SLOT(selectionChanged()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(selectionChanged()));
 
   selectionChanged();
 }
@@ -72,7 +72,7 @@ void AppositionSurfaceTool::selectionChanged()
 
   bool enabled = false;
 
-  for(auto segmentation: selectedSegmentations())
+  for(auto segmentation: getSelectedSegmentations())
   {
     if (AppositionSurfacePlugin::isValidSynapse(segmentation))
     {
@@ -94,7 +94,7 @@ void AppositionSurfaceTool::selectionChanged()
 void AppositionSurfaceTool::createSAS()
 {
   auto model         = context().model();
-  auto segmentations = selectedSegmentations();
+  auto segmentations = getSelectedSegmentations();
 
   SegmentationAdapterList validSegmentations;
   for(auto seg: segmentations)

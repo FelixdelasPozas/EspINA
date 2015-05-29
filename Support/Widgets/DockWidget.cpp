@@ -38,3 +38,11 @@ QPushButton *DockWidget::createDockButton(const QString &icon, const QString &to
 
   return dockButton;
 }
+
+//------------------------------------------------------------------------
+void DockWidget::showEvent(QShowEvent *event)
+{
+  QWidget::showEvent(event);
+
+  emit dockShown(true);
+}

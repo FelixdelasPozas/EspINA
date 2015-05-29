@@ -30,34 +30,6 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  class SpinBoxAction;
-
-  class MorphologicalFilterFactory
-  : public FilterFactory
-  , public SpecificFilterDelegateFactory
-  {
-    virtual FilterTypeList providedFilters() const;
-
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
-    throw (Unknown_Filter_Exception);
-
-    virtual QList<Filter::Type> availableFilterDelegates() const;
-
-    virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
-
-  private:
-    bool isCloseFilter       (const Filter::Type &type) const;
-    bool isOpenFilter        (const Filter::Type &type) const;
-    bool isDilateFilter      (const Filter::Type &type) const;
-    bool isErodeFilter       (const Filter::Type &type) const;
-    bool isFillHolesFilter   (const Filter::Type &type) const;
-    bool isAdditionFilter    (const Filter::Type &type) const;
-    bool isSubstractionFilter(const Filter::Type &type) const;
-
-  private:
-    mutable DataFactorySPtr m_dataFactory;
-  };
-
   namespace Support
   {
     namespace Widgets

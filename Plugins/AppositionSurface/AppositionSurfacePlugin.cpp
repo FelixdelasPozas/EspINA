@@ -171,12 +171,6 @@ QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 }
 
 //-----------------------------------------------------------------------------
-QList<DockWidget *> AppositionSurfacePlugin::dockWidgets() const
-{
-  return QList<DockWidget *>();
-}
-
-//-----------------------------------------------------------------------------
 SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 {
   SettingsPanelSList settingsPanels;

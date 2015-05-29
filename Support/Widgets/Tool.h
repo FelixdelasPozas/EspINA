@@ -22,6 +22,9 @@
 #define ESPINA_TOOL_H
 
 #include "Support/EspinaSupport_Export.h"
+
+#include <Support/Context.h>
+
 #include <GUI/Types.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -35,7 +38,6 @@
 #include <QCursor>
 #include <QWidgetAction>
 
-class QUndoStack;
 class QHBoxLayout;
 class QAction;
 class QEvent;
@@ -49,12 +51,11 @@ namespace ESPINA
 
   namespace Support
   {
-    class Context;
-
     namespace Widgets
     {
       class EspinaSupport_EXPORT ProgressTool
       : public QObject
+      , protected WithContext
       {
         Q_OBJECT
       public:
@@ -71,7 +72,6 @@ namespace ESPINA
         private:
           QHBoxLayout *m_layout;
         };
-
 
       public:
         explicit ProgressTool(const QIcon &icon, const QString &tooltip, Context &context);
@@ -100,8 +100,6 @@ namespace ESPINA
          */
         void setCheckable(bool value);
 
-        void setChecked(bool value);
-
         void setToolTip(const QString &tooltip);
 
         QList<QAction *> actions() const;
@@ -111,18 +109,14 @@ namespace ESPINA
       public slots:
         void setProgress(int value);
 
+        void setChecked(bool value);
+
       signals:
         void triggered(bool value);
 
         void toggled(bool value);
 
       protected:
-        Context &context() const;
-
-        SegmentationAdapterList selectedSegmentations() const;
-
-        QUndoStack *undoStack() const;
-
         void addSettingsWidget(QWidget *widget);
 
         void showTaskProgress(TaskSPtr task);
@@ -139,8 +133,6 @@ namespace ESPINA
         void onEventHandlerInUse(bool isUsed);
 
       private:
-        Context &m_context;
-
         GUI::Widgets::ProgressAction *m_action;
         NestedWidgets                *m_settings;
 

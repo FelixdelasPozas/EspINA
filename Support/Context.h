@@ -27,16 +27,19 @@
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <QUndoStack>
 
+class QMainWindow;
 class QUndoStack;
 
 namespace ESPINA
 {
+
+class DockWidget;
   namespace Support
   {
     class Context
     {
     public:
-      explicit Context();
+      explicit Context(QMainWindow *mainWindow);
 
       Context(Context &context) = delete;
 
@@ -54,6 +57,8 @@ namespace ESPINA
       Timer &timer();
       GUI::View::RepresentationInvalidator &representationInvalidator();
 
+      void addPanel(DockWidget *panel);
+
     private:
       using Invalidator = GUI::View::RepresentationInvalidator;
       using ViewState   = GUI::View::ViewState;
@@ -68,13 +73,36 @@ namespace ESPINA
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr   m_factory;
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
+
+      QMainWindow *m_mainWindow;
     };
 
-    ESPINA::GUI::View::SelectionSPtr getSelection(Context &context);
+    GUI::View::SelectionSPtr getSelection(Context &context);
 
     ChannelAdapterPtr getActiveChannel(Context &context);
 
     SegmentationAdapterList getSelectedSegmentations(Context &context);
+
+    class WithContext
+    {
+    public:
+      explicit WithContext(Context &context);
+
+      Context &context();
+
+      ChannelAdapterPtr getActiveChannel() const;
+
+      GUI::View::SelectionSPtr getSelection() const;
+
+      SegmentationAdapterList getSelectedSegmentations() const;
+
+      GUI::View::ViewState &getViewState() const;
+
+      QUndoStack *getUndoStack() const;
+
+    private:
+      Context &m_context;
+    };
   }
 }
 

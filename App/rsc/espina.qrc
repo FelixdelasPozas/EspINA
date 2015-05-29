@@ -13,6 +13,9 @@
     <file>cancel.png</file>
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
+    <file>channel_explorer_switch.png</file>
+    <file>segmentation_explorer_switch.svg</file>
+    <file>segmentation_information_switch.svg</file>
     <file>channels_slice3D_switch.svg</file>
     <file>channels_slice_switch.png</file>
     <file>channels_switch.png</file>

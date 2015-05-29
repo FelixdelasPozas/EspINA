@@ -66,11 +66,11 @@ bool ImageLogicTool::acceptsSelection(SegmentationAdapterList segmentations)
 //------------------------------------------------------------------------
 void ImageLogicTool::applyFilter()
 {
-  auto segmentations = selectedSegmentations();
+  auto segmentations = getSelectedSegmentations();
 
   Q_ASSERT(segmentations.size() > 1);
 
-  getSelection(context())->clear();
+  getSelection()->clear();
 
   InputSList inputs;
   for(auto segmentation: segmentations)
@@ -118,22 +118,23 @@ void ImageLogicTool::onTaskFinished()
     Q_ASSERT(m_executingTasks.keys().contains(filter));
 
     auto taskContext = m_executingTasks[filter];
+    auto undoStack   = getUndoStack();
 
-    undoStack()->beginMacro(filter->description());
+    undoStack->beginMacro(filter->description());
 
     auto segmentation = context().factory()->createSegmentation(taskContext.Task, 0);
     segmentation->setCategory(taskContext.Segmentations.first()->category());
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
 
-    undoStack()->push(new AddSegmentations(segmentation, samples, context().model()));
+    undoStack->push(new AddSegmentations(segmentation, samples, context().model()));
 
     for(auto segmentation: taskContext.Segmentations)
     {
-      undoStack()->push(new RemoveSegmentations(segmentation, context().model()));
+      undoStack->push(new RemoveSegmentations(segmentation, context().model()));
     }
 
-    undoStack()->endMacro();
+    undoStack->endMacro();
 
     //REVIEW m_viewManager->updateViews();
   }

@@ -60,6 +60,7 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
+#include <Support/Widgets/PanelSwitch.h>
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -74,6 +75,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Support::Widgets;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
 const int CONTEXTUAL_BAR_HEIGHT = 44;
@@ -96,6 +98,7 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
+, m_context(this)
 , m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
 , m_channelReader{new ChannelReader()}
@@ -229,12 +232,6 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
             m_analyzeToolGroup->addTool(tool.second);
             break;
         }
-      }
-
-      for (auto dock : validPlugin->dockWidgets())
-      {
-        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
-        registerDockWidget(Qt::LeftDockWidgetArea, dock);
       }
 
       for(auto filterFactory: validPlugin->filterFactories())
@@ -385,16 +382,6 @@ void EspinaMainWindow::checkAutosave()
       autosavePath.remove(AUTOSAVE_FILE);
     }
   }
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* dock)
-{
-  connect(this, SIGNAL(analysisAboutToBeClosed()),
-          dock, SLOT(reset()));
-
-  m_panelsMenu->addAction(dock->toggleViewAction());
-  addDockWidget(area, dock);
 }
 
 //------------------------------------------------------------------------
@@ -1188,13 +1175,10 @@ void EspinaMainWindow::createViewMenu()
   m_viewMenu = new QMenu(tr("View"));
   m_view->createViewMenu(m_viewMenu);
 
-  m_panelsMenu = new QMenu(tr("Pannels"));
-
   menuBar()->addMenu(m_viewMenu);
 
   initColorEngines(m_viewMenu);
 
-  m_viewMenu->addMenu(m_panelsMenu);
   m_viewMenu->addSeparator();
 }
 
@@ -1272,14 +1256,26 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 //------------------------------------------------------------------------
 void EspinaMainWindow::createDefaultPanels()
 {
-  auto channelExplorer = new ChannelExplorer(m_context);
-  registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
+  auto channelExplorer       = new ChannelExplorer(m_context);
+  auto channelExplorerSwitch = std::make_shared<PanelSwitch>(channelExplorer,
+                                                             ":espina/channel_explorer_switch.png",
+                                                             tr("Display Channel Explorer"),
+                                                             m_context);
+  m_exploreToolGroup->addTool(channelExplorerSwitch);
 
-  auto segmentationExplorer = new SegmentationExplorer(m_filterDelegateFactory, m_context);
-  registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
+  auto segmentationExplorer       = new SegmentationExplorer(m_filterDelegateFactory, m_context);
+  auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>(segmentationExplorer,
+                                                                  ":espina/segmentation_explorer_switch.svg",
+                                                                  tr("Display Segmentation Explorer"),
+                                                                  m_context);
+  m_exploreToolGroup->addTool(segmentationExplorerSwitch);
 
-  auto segmentationHistory = new HistoryDock(m_filterDelegateFactory, m_context);
-  registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
+  auto segmentationHistory       = new HistoryDock(m_filterDelegateFactory, m_context);
+  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>(segmentationHistory,
+                                                                  ":espina/segmentation_information_switch.svg",
+                                                                  tr("Display Segmentation Information"),
+                                                                  m_context);
+  m_refineToolGroup->addTool(segmentationHistorySwitch);
 }
 
 //------------------------------------------------------------------------

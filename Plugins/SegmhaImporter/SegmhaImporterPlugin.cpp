@@ -118,12 +118,6 @@ QList<CategorizedTool> SegmhaImporterPlugin::tools() const
 }
 
 //------------------------------------------------------------------------
-QList<DockWidget *> SegmhaImporterPlugin::dockWidgets() const
-{
-  return QList<DockWidget *>();
-}
-
-//------------------------------------------------------------------------
 ChannelExtensionFactorySList SegmhaImporterPlugin::channelExtensionFactories() const
 {
   return ChannelExtensionFactorySList();

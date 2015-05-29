@@ -55,11 +55,11 @@ bool FillHolesTool::acceptsSelection(SegmentationAdapterList segmentations)
 //------------------------------------------------------------------------
 void FillHolesTool::fillHoles()
 {
-  auto segmentations = selectedSegmentations();
+  auto segmentations = getSelectedSegmentations();
 
   Q_ASSERT(segmentations.size() > 0);
 
-  for (auto segmentation :  segmentations)
+  for (auto segmentation : segmentations)
   {
     InputSList inputs;
 
@@ -97,9 +97,11 @@ void FillHolesTool::onTaskFinished()
 
     if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
-    undoStack()->beginMacro(taskContext.Operation);
-    undoStack()->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
-    undoStack()->endMacro();
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(taskContext.Operation);
+    undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
+    undoStack->endMacro();
   }
 
   m_executingTasks.remove(filter);

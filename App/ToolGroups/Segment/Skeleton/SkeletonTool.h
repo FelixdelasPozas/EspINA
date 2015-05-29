@@ -162,8 +162,6 @@ namespace ESPINA
     void updateReferenceItem();
 
   private:
-    Support::Context &m_context;
-
     GUI::Widgets::CategorySelector *m_categorySelector;
     DoubleSpinBoxAction      *m_toleranceWidget;
     SkeletonToolStatusAction *m_toolStatus;

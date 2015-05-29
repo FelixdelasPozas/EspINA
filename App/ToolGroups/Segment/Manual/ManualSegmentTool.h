@@ -97,8 +97,6 @@ namespace ESPINA
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
-    ChannelAdapterPtr activeChannel() const;
-
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
@@ -117,11 +115,8 @@ namespace ESPINA
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
-    QUndoStack       *m_undoStack;
     ColorEngineSPtr   m_colorEngine;
-    SelectionSPtr     m_selection;
     FilterFactorySPtr m_filterFactory;
-    Support::Context &m_context;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;
 

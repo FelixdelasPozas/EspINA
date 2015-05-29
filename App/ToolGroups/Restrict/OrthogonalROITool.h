@@ -148,8 +148,6 @@ namespace ESPINA
     using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    Support::Context &m_context;
-
     QPushButton *m_resizeROI;
     QPushButton *m_applyROI;
 

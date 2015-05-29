@@ -1,7 +1,5 @@
 /*
-
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
     This file is part of ESPINA.
 
     ESPINA is free software: you can redistribute it and/or modify
@@ -66,7 +64,7 @@ ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context 
 
 //----------------------------------------------------------------------------
 ProgressTool::ProgressTool(const QIcon &icon, const QString &tooltip, Context &context)
-: m_context (context)
+: WithContext(context)
 , m_action  {new ProgressAction(icon, tooltip, this)}
 , m_settings{new ProgressTool::NestedWidgets(this)}
 {
@@ -137,24 +135,6 @@ void ProgressTool::setProgress(int value)
 }
 
 //----------------------------------------------------------------------------
-Context& ProgressTool::context() const
-{
-  return m_context;
-}
-
-//----------------------------------------------------------------------------
-SegmentationAdapterList ProgressTool::selectedSegmentations() const
-{
-  return getSelectedSegmentations(m_context);
-}
-
-//----------------------------------------------------------------------------
-QUndoStack *ProgressTool::undoStack() const
-{
-  return m_context.undoStack();
-}
-
-//----------------------------------------------------------------------------
 void ProgressTool::addSettingsWidget(QWidget* widget)
 {
   m_settings->addWidget(widget);
@@ -201,13 +181,13 @@ void ProgressTool::setEventHandler(EventHandlerSPtr handler)
 //----------------------------------------------------------------------------
 void ProgressTool::activateEventHandler()
 {
-  m_context.viewState().setEventHandler(m_handler);
+  getViewState().setEventHandler(m_handler);
 }
 
 //----------------------------------------------------------------------------
 void ProgressTool::deactivateEventHandler()
 {
-  m_context.viewState().unsetEventHandler(m_handler);
+  getViewState().unsetEventHandler(m_handler);
 }
 
 //----------------------------------------------------------------------------

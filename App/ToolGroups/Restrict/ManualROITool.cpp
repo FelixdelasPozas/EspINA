@@ -43,8 +43,8 @@ ManualROITool::ManualROITool(Support::Context  &context,
 
   configureDrawingTools();
 
-  connect(getSelection(context).get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this,                        SLOT(updateReferenceItem(ChannelAdapterPtr)));
+  connect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,                 SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));

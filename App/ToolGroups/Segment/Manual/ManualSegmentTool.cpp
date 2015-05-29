@@ -83,11 +83,8 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 : ProgressTool(":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
-, m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
-, m_selection    {getSelection(context)}
 , m_filterFactory{new ManualFilterFactory()}
-, m_context      (context)
 , m_drawingWidget(context)
 , m_mode         {Mode::SINGLE_STROKE}
 , m_createSegmentation{true}
@@ -104,8 +101,8 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 
   initMultiStrokeWidgets();
 
-  connect(m_selection.get(), SIGNAL(selectionChanged()),
-          this,              SLOT(onSelectionChanged()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(onSelectionChanged()));
 
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(onToolToggled(bool)));
@@ -164,12 +161,6 @@ SegmentationAdapterSPtr ManualSegmentTool::referenceSegmentation() const
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterPtr ManualSegmentTool::activeChannel() const
-{
-  return getActiveChannel(m_context);
-}
-
-//------------------------------------------------------------------------
 void ManualSegmentTool::initMultiStrokeWidgets()
 {
   auto multiStroke      = Styles::createToolButton(":espina/single_stroke.svg", tr("Toggle single/multi stroke segmentations"));
@@ -203,9 +194,9 @@ void ManualSegmentTool::setInitialStroke()
     m_drawingWidget.stopDrawing();
   }
 
-  auto channels = m_selection->channels();
+  auto channels = getSelection()->channels();
 
-  m_referenceItem = channels.isEmpty()?activeChannel():channels.first();
+  m_referenceItem = channels.isEmpty()?getActiveChannel():channels.first();
 
   auto brushColor = m_drawingWidget.selectedCategory()->color();
 
@@ -256,14 +247,18 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   samples << QueryAdapter::sample(channel);
   Q_ASSERT(channel && (samples.size() == 1));
 
-  m_undoStack->beginMacro(tr("Add Segmentation"));
-  m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-  m_undoStack->endMacro();
+  auto undoStack = getUndoStack();
+
+  undoStack->beginMacro(tr("Add Segmentation"));
+  undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+  undoStack->endMacro();
 
   SegmentationAdapterList list;
   list << segmentation.get();
-  m_selection->clear();
-  m_selection->set(list);
+
+  // TODO: should set clear previous selection?
+  getSelection()->clear();
+  getSelection()->set(list);
 
   m_referenceItem = segmentation.get();
 }
@@ -273,9 +268,10 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   m_referenceItem->clearTemporalRepresentation();
 
-  m_undoStack->beginMacro(tr("Modify Segmentation"));
-  m_undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
-  m_undoStack->endMacro();
+  auto undoStack = getUndoStack();
+  undoStack->beginMacro(tr("Modify Segmentation"));
+  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
+  undoStack->endMacro();
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
@@ -359,7 +355,7 @@ void ManualSegmentTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualSegmentTool::onCategoryChange(CategoryAdapterSPtr category)
 {
-  m_selection->clear();
+  getSelection()->clear();
 }
 
 //------------------------------------------------------------------------

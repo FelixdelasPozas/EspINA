@@ -155,24 +155,20 @@ void SplitTool::initSplitWidgets()
   addSettingsWidget(m_apply);
 }
 
-//------------------------------------------------------------------------
-GUI::View::ViewState &SplitTool::viewState() const
-{
-  return context().viewState();
-}
 
 //------------------------------------------------------------------------
 void SplitTool::showCuttingPlane()
 {
+  auto selection = getSelection();
 
-  auto selection = getSelection(context());
   connect(selection.get(), SIGNAL(selectionChanged()),
           this,            SLOT(onSelectionChanged()));
 
   setEventHandler(m_handler);
-  viewState().addTemporalRepresentations(m_factory);
 
-  auto segmentation = getSelectedSegmentations(context()).first();
+  getViewState().addTemporalRepresentations(m_factory);
+
+  auto segmentation = getSelectedSegmentations().first();
   for(auto widget: m_splitWidgets)
   {
     widget->setSegmentationBounds(segmentation->bounds());
@@ -183,13 +179,13 @@ void SplitTool::showCuttingPlane()
 //------------------------------------------------------------------------
 void SplitTool::hideCuttingPlane()
 {
-  auto selection = getSelection(context());
+  auto selection = getSelection();
 
   disconnect(selection.get(), SIGNAL(selectionChanged()),
              this,            SLOT(onSelectionChanged()));
 
   setEventHandler(nullptr);
-  viewState().removeTemporalRepresentations(m_factory);
+  getViewState().removeTemporalRepresentations(m_factory);
 }
 
 //------------------------------------------------------------------------
@@ -210,7 +206,7 @@ void SplitTool::toggleWidgetsVisibility(bool visible)
 //------------------------------------------------------------------------
 void SplitTool::applyCurrentState()
 {
-  auto selectedSeg = getSelection(context())->segmentations().first();
+  auto selectedSeg = getSelectedSegmentations().first();
 
   InputSList inputs;
   inputs << selectedSeg->asInput();
@@ -276,7 +272,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
       splitWidget->disableWidget();
     }
 
-    auto spacing = getSelection(context())->segmentations().first()->output()->spacing();
+    auto spacing = getSelectedSegmentations().first()->output()->spacing();
     m_splitPlane = widget->getImplicitPlane(spacing);
   }
 }
@@ -314,13 +310,13 @@ void SplitTool::createSegmentations()
         segmentations << segmentation.get();
       }
 
-      auto undoStack = context().undoStack();
+      auto undoStack = getUndoStack();
       undoStack->beginMacro("Split Segmentation");
       undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), context().model()));
       undoStack->push(new AddSegmentations(segmentationsList, sample, context().model()));
       undoStack->endMacro();
 
-      getSelection(context())->set(segmentations);
+      getSelection()->set(segmentations);
 
       toggleWidgetsVisibility(false);
       m_splitPlane = nullptr;

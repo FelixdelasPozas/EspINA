@@ -80,8 +80,6 @@ namespace ESPINA
 
     void initSplitWidgets();
 
-    GUI::View::ViewState &viewState() const;
-
     void showCuttingPlane();
 
     void hideCuttingPlane();

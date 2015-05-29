@@ -76,7 +76,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
 : ProgressTool(":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
-, m_context      (context)
 , m_prototypes   {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
 , m_resizeHandler{new EventHandler()}
 , m_defineHandler{new PixelSelector()}
@@ -89,7 +88,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(setActive(bool)));
 
-  connect(&m_context.viewState(), SIGNAL(eventHandlerChanged()),
+  connect(&getViewState(), SIGNAL(eventHandlerChanged()),
           this,                   SLOT(onEventHandlerChanged()));
 
 }
@@ -206,7 +205,7 @@ void OrthogonalROITool::createOrthogonalWidget()
 
   showSliceSelectors();
 
-  m_context.viewState().addTemporalRepresentations(m_prototypes);
+  getViewState().addTemporalRepresentations(m_prototypes);
 }
 
 //-----------------------------------------------------------------------------
@@ -214,7 +213,7 @@ void OrthogonalROITool::destroyOrthogonalWidget()
 {
   hideSliceSelectors();
 
-  m_context.viewState().removeTemporalRepresentations(m_prototypes);
+  getViewState().removeTemporalRepresentations(m_prototypes);
 
   m_sliceSelector = nullptr;
 
@@ -241,7 +240,7 @@ void OrthogonalROITool::setDefinitionMode(bool value)
   m_applyROI->setChecked(value);
   m_applyROI->blockSignals(false);
 
-  auto &viewState = m_context.viewState();
+  auto &viewState = getViewState();
 
   if (value)
   {
@@ -263,7 +262,7 @@ void OrthogonalROITool::setDefinitionMode(bool value)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::onEventHandlerChanged()
 {
-  auto handler = m_context.viewState().eventHandler();
+  auto handler = getViewState().eventHandler();
 
   if (handler != m_resizeHandler)
   {
@@ -283,7 +282,7 @@ void OrthogonalROITool::setActive(bool value)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setResizable(bool resizable)
 {
-  auto viewState = &m_context.viewState();
+  auto viewState = &getViewState();
   if (resizable)
   {
     m_roiRepresentation.setRepresentationPattern(0xFFF0);
@@ -303,7 +302,7 @@ void OrthogonalROITool::setResizable(bool resizable)
 
   setRepresentationResizable(resizable);
 
-  m_context.viewState().refresh();
+  getViewState().refresh();
 
   m_resizeROI->blockSignals(true);
   m_resizeROI->setChecked(resizable);
@@ -315,14 +314,12 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
 {
   if (channels.isEmpty()) return;
 
-  auto activeChannel = getActiveChannel(m_context);
-
   bool validSelection = false;
   Selector::SelectionItem selectedChannel;
 
   for(auto channel: channels)
   {
-    if(channel.second == activeChannel)
+    if(channel.second == getActiveChannel())
     {
       validSelection  = true;
       selectedChannel = channel;
@@ -365,7 +362,7 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 {
   Q_ASSERT(m_roi);
 
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
 
   undoStack->beginMacro(tr("Resize Region of Interest"));
   undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
@@ -405,7 +402,7 @@ void OrthogonalROITool::showSliceSelectors()
 {
   if (m_sliceSelector && isResizable())
   {
-    m_context.viewState().addSliceSelectors(m_sliceSelector, From|To);
+    getViewState().addSliceSelectors(m_sliceSelector, From|To);
   }
 }
 
@@ -414,6 +411,6 @@ void OrthogonalROITool::hideSliceSelectors()
 {
   if (m_sliceSelector && isResizable())
   {
-    m_context.viewState().removeSliceSelectors(m_sliceSelector);
+    getViewState().removeSliceSelectors(m_sliceSelector);
   }
 }

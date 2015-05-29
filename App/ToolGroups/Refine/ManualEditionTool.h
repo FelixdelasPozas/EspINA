@@ -72,8 +72,6 @@ namespace ESPINA
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
-    ChannelAdapterPtr activeChannel() const;
-
     SegmentationAdapterPtr selectedSegmentation() const;
 
   private slots:
@@ -88,10 +86,7 @@ namespace ESPINA
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
-    QUndoStack       *m_undoStack;
     ColorEngineSPtr   m_colorEngine;
-    SelectionSPtr     m_selection;
-    Support::Context &m_context;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;
 

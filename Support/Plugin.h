@@ -114,11 +114,6 @@ namespace ESPINA
      */
     virtual QList<CategorizedTool> tools() const = 0;
 
-    /** \brief Returns a list of Dock Widgets provided by the plugin.
-     *
-     */
-    virtual QList<DockWidget *> dockWidgets() const = 0;
-
     /** \brief Returns a list of settings panels provided by the plugin.
      *
      */

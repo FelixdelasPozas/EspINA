@@ -47,10 +47,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 : ProgressTool(":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
-, m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
-, m_selection    {getSelection(context)}
-, m_context      (context)
 , m_drawingWidget(context)
 , m_referenceItem{nullptr}
 , m_validStroke  {true}
@@ -61,8 +58,8 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 
   addSettingsWidget(&m_drawingWidget);
 
-  connect(m_selection.get(), SIGNAL(selectionChanged()),
-          this,              SLOT(onSelectionChanged()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(onSelectionChanged()));
 
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(onToolToggled(bool)));
@@ -93,7 +90,7 @@ void ManualEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void ManualEditionTool::onSelectionChanged()
 {
-  auto segmentations = m_selection->segmentations();
+  auto segmentations = getSelectedSegmentations();
 
   bool validSelection = true;
 
@@ -168,17 +165,13 @@ SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterPtr ManualEditionTool::activeChannel() const
-{
-  return getActiveChannel(m_context);
-}
-
-//------------------------------------------------------------------------
 SegmentationAdapterPtr ManualEditionTool::selectedSegmentation() const
 {
-  Q_ASSERT(!m_selection->segmentations().isEmpty());
+  auto selection = getSelectedSegmentations();
 
-  return m_selection->segmentations().first();
+  Q_ASSERT(!selection.isEmpty());
+
+  return selection.first();
 }
 
 //------------------------------------------------------------------------
@@ -186,9 +179,11 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   m_referenceItem->clearTemporalRepresentation();
 
-  m_undoStack->beginMacro(tr("Modify Segmentation"));
-  m_undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
-  m_undoStack->endMacro();
+  auto undoStack = getUndoStack();
+
+  undoStack->beginMacro(tr("Modify Segmentation"));
+  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
+  undoStack->endMacro();
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
@@ -251,7 +246,7 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
-  m_context.viewState().setEventHandler(painter);
+  getViewState().setEventHandler(painter);
 }
 
 //------------------------------------------------------------------------
@@ -261,10 +256,10 @@ void ManualEditionTool::onToolToggled(bool toggled)
 
   if (toggled)
   {
-    m_context.viewState().setEventHandler(painter);
+    getViewState().setEventHandler(painter);
   }
   else
   {
-    m_context.viewState().unsetEventHandler(painter);
+    getViewState().unsetEventHandler(painter);
   }
 }

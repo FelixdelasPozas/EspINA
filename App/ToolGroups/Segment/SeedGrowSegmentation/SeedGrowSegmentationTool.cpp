@@ -412,7 +412,7 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 {
-  return getActiveChannel(m_context);
+  return getActiveChannel();
 }
 
 //-----------------------------------------------------------------------------
