@@ -136,6 +136,11 @@ namespace ESPINA
      */
     void activateToolGroup(ToolGroup *toolGroup);
 
+    /** \brief Notifies tool groups that a new exclusive tool is in use
+     *
+     */
+    void onExclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+
     /** \brief Sets the menu state as "open".
      *
      */
@@ -243,6 +248,18 @@ namespace ESPINA
     void createToolbars();
 
     void createToolGroups();
+
+    void createExploreToolGroup();
+
+    void createRestrictToolGroup();
+
+    void createSegmentToolGroup();
+
+    void createRefineToolGroup();
+
+    void createVisualizeToolGroup();
+
+    void createAnalyzeToolGroup();
 
     ToolGroupPtr createToolGroup(const QString &icon, const QString &title);
 

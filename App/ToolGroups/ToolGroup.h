@@ -64,8 +64,12 @@ namespace ESPINA
   public slots:
     void abortOperations();
 
+    void onExclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+
   signals:
     void activated(ToolGroup *tool);
+
+    void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
 
   private slots:
     void activate(bool value);
@@ -74,7 +78,7 @@ namespace ESPINA
     virtual void onToolAdded(ToolSPtr tool) {}
 
   private:
-    ToolSList m_tools;
+    QMap<QString, ToolSList> m_tools;
   };
 
   using ToolGroupPtr = ToolGroup *;

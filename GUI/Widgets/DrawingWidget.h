@@ -72,29 +72,25 @@ namespace ESPINA
          * \param[in] value true for show.
          *
          */
-        void showCategoryControls(bool value)
-        { m_showCategoryControls = value; }
+        void showCategoryControls(bool value);
 
         /** \brief Shows/hides radius controls.
          * \param[in] value true for show.
          *
          */
-        void showRadiusControls(bool value)
-        { m_showRadiusControls = value; }
+        void showRadiusControls(bool value);
 
         /** \brief Shows/hides opacity controls.
          * \param[in] value true for show.
          *
          */
-        void showOpacityControls(bool value)
-        { m_showOpacityControls = value; }
+        void showOpacityControls(bool value);
 
         /** \brief Shows/hides eraser controls.
          * \param[in] value true for show.
          *
          */
-        void showEraserControls(bool value)
-        { m_showEraserControls = value; }
+        void showEraserControls(bool value);
 
         /** \brief Returns true if the category controls are visible, false otherwise.
          *
@@ -126,8 +122,6 @@ namespace ESPINA
          *
          */
         void setCanErase(bool value);
-
-        QList<QAction *> actions() const;
 
         void abortOperation();
 
@@ -191,6 +185,8 @@ namespace ESPINA
          */
         void onDrawingModeChange(DrawingMode mode);
 
+        void updateVisibleControls();
+
       private:
         void loadSettings();
 
@@ -219,10 +215,6 @@ namespace ESPINA
         bool displayBrushControls() const;
 
         bool displayContourControls() const;
-
-        void setControlVisibility(bool visible);
-
-        void updateActiveControls();
 
       private:
         Support::Context &m_context;

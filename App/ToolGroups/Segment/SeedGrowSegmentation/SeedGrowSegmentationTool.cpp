@@ -114,6 +114,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_sgsFactory      {new SGSFactory()}
 {
   setCheckable(true);
+  setExclusive(true);
 
   m_context.factory()->registerFilterFactory(m_sgsFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);

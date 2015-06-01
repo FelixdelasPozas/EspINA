@@ -96,6 +96,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
   m_factory->registerFilterFactory(m_filterFactory);
 
   setCheckable(true);
+  setExclusive(true);
 
   addSettingsWidget(&m_drawingWidget);
 

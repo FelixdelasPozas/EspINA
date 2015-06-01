@@ -84,7 +84,6 @@ namespace ESPINA
          * \param[in] value true to enable false otherwise.
          *
          * Disabled tools may still report progess of pending operations
-         *
          */
         void setEnabled(bool value);
 
@@ -96,15 +95,31 @@ namespace ESPINA
         /** \brief Changes tool behaviour to be checkable or not
          *
          *  Checked tools will display available options
-         *
          */
         void setCheckable(bool value);
+
+        bool isChecked() const;
+
+        /** \brief Changes tool behaviour to be explicit or not
+         *
+         *  There can only be one excluive tool toogled in EspINA
+         */
+        void setExclusive(bool value);
+
+        /** \brief Sets the group name which tools are grouped with
+         *
+         */
+        void setGroupWith(const QString &name);
+
+        QString groupWith() const;
 
         void setToolTip(const QString &tooltip);
 
         QList<QAction *> actions() const;
 
         virtual void abortOperation() {}
+
+        void onExclusiveToolInUse(ProgressTool *tool);
 
       public slots:
         void setProgress(int value);
@@ -115,6 +130,8 @@ namespace ESPINA
         void triggered(bool value);
 
         void toggled(bool value);
+
+        void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
 
       protected:
         void addSettingsWidget(QWidget *widget);
@@ -135,6 +152,9 @@ namespace ESPINA
       private:
         GUI::Widgets::ProgressAction *m_action;
         NestedWidgets                *m_settings;
+
+        bool    m_isExlusive;
+        QString m_groupName;
 
         EventHandlerSPtr m_handler;
 

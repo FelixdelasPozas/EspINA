@@ -69,10 +69,10 @@ namespace ESPINA
       ModelAdapterSPtr     m_model;
       SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
+      DockWidget          *m_dockWidget;
       Support::Context    *m_context;
 
       NamedColorEngine     m_colorEngine;
-      DockWidget *         m_dockWidget;
 
       RepresentationFactorySPtr        m_representationFactory;
       ChannelExtensionFactorySPtr      m_channelExtensionFactory;

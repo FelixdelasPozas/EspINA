@@ -65,8 +65,10 @@ ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context 
 //----------------------------------------------------------------------------
 ProgressTool::ProgressTool(const QIcon &icon, const QString &tooltip, Context &context)
 : WithContext(context)
-, m_action  {new ProgressAction(icon, tooltip, this)}
-, m_settings{new ProgressTool::NestedWidgets(this)}
+, m_action    {new ProgressAction(icon, tooltip, this)}
+, m_settings  {new ProgressTool::NestedWidgets(this)}
+, m_isExlusive{false}
+, m_groupName {"zzzzzzzz"}
 {
   connect(m_action, SIGNAL(toggled(bool)),
           this,     SLOT(onActionToggled(bool)));
@@ -107,9 +109,33 @@ void ProgressTool::setCheckable(bool value)
 }
 
 //----------------------------------------------------------------------------
+bool ProgressTool::isChecked() const
+{
+  return m_action->isChecked();
+}
+
+//----------------------------------------------------------------------------
 void ProgressTool::setChecked(bool value)
 {
   m_action->setActionChecked(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setExclusive(bool value)
+{
+  m_isExlusive = value;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setGroupWith(const QString& name)
+{
+  m_groupName = name;
+}
+
+//----------------------------------------------------------------------------
+QString ProgressTool::groupWith() const
+{
+  return m_groupName;
 }
 
 //----------------------------------------------------------------------------
@@ -126,6 +152,15 @@ QList<QAction*> ProgressTool::actions() const
   result << m_action << m_settings;
 
   return result;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::onExclusiveToolInUse(ProgressTool* tool)
+{
+  if (this != tool && m_isExlusive && isChecked())
+  {
+    setChecked(false);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -205,6 +240,11 @@ void ProgressTool::onActionToggled(bool value)
     {
       deactivateEventHandler();
     }
+  }
+
+  if (value && m_isExlusive)
+  {
+    emit exclusiveToolInUse(this);
   }
 
   emit toggled(value);

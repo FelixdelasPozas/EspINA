@@ -66,6 +66,16 @@ namespace ESPINA
      */
     void createViewMenu(QMenu *menu);
 
+    /** \brief Returns a reference to the XZ panel
+     *
+     */
+    DockWidget *xzPanel();
+
+    /** \brief Returns a reference to the YZ panel
+     *
+     */
+    DockWidget *yzPanel();
+
     /** \brief Returns the view's settings panel.
      *
      */
@@ -121,7 +131,7 @@ namespace ESPINA
 
     QList<RenderView *> m_views;
 
-    QDockWidget *dock3D, *dockYZ, *dockXZ;
+    QDockWidget *dock3D, *m_yzPanel, *m_xzPanel;
     QAction     *m_showRuler, *m_showThumbnail;
   };
 

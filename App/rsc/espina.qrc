@@ -13,9 +13,10 @@
     <file>cancel.png</file>
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
-    <file>channel_explorer_switch.png</file>
+    <file>channel_explorer_switch.svg</file>
     <file>segmentation_explorer_switch.svg</file>
     <file>segmentation_information_switch.svg</file>
+    <file>channels_slice2D_switch.svg</file>
     <file>channels_slice3D_switch.svg</file>
     <file>channels_slice_switch.png</file>
     <file>channels_switch.png</file>
@@ -28,6 +29,8 @@
     <file>cross-minus.png</file>
     <file>cross-plus.png</file>
     <file>crossRegion.svg</file>
+    <file>xz_panel.svg</file>
+    <file>yz_panel.svg</file>
     <file>crosshairs2D_switch.svg</file>
     <file>crosshairs3D_switch.svg</file>
     <file>crosshairs_switch.svg</file>
@@ -61,14 +64,10 @@
     <file>next_segmentation.svg</file>
     <file>measure3D.png</file>
     <file>mesh.png</file>
-    <file>new-lasso.png</file>
-    <file>new-pencil2D.png</file>
-    <file>new-pencil3D.png</file>
     <file>newTag.svg</file>
     <file>non_traceable.png</file>
     <file>note.png</file>
-    <file>open.png</file>
-    <file>pencil.png</file>
+    <file>open.png</file>    
     <file>pixelSelector.svg</file>
     <file>planar_split.svg</file>
     <file>rainbow.svg</file>

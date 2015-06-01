@@ -38,6 +38,7 @@ ManualROITool::ManualROITool(Support::Context  &context,
 , m_drawingWidget{context}
 {
   setCheckable(true);
+  setExclusive(true);
 
   addSettingsWidget(&m_drawingWidget);
 

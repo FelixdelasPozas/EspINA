@@ -68,21 +68,21 @@ DefaultView::DefaultView(Support::Context &context,
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 
-  dockYZ = new QDockWidget(tr("ZY"), parent);
-  dockYZ->setObjectName("DockZY");
-  dockYZ->setWidget(m_viewYZ);
+  m_yzPanel = new DockWidget(tr("ZY"), parent);
+  m_yzPanel->setObjectName("DockZY");
+  m_yzPanel->setWidget(m_viewYZ);
 
-  dockXZ = new QDockWidget(tr("XZ"), parent);
-  dockXZ->setObjectName("xzDock");
-  dockXZ->setWidget(m_viewXZ);
+  m_xzPanel = new DockWidget(tr("XZ"), parent);
+  m_xzPanel->setObjectName("xzDock");
+  m_xzPanel->setWidget(m_viewXZ);
 
   dock3D = new QDockWidget(tr("3D"), parent);
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
-  parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
-  parent->addDockWidget(Qt::RightDockWidgetArea, dockXZ);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_yzPanel);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_xzPanel);
 
   initView(m_viewXY, parent);
   initView(m_viewXZ, parent);
@@ -126,8 +126,8 @@ void DefaultView::createViewMenu(QMenu* menu)
   //menu->addMenu(new CamerasMenu(m_viewManager, this));
 
   auto renderMenu = new QMenu(tr("Views"), this);
-  renderMenu->addAction(dockYZ->toggleViewAction());
-  renderMenu->addAction(dockXZ->toggleViewAction());
+  renderMenu->addAction(m_yzPanel->toggleViewAction());
+  renderMenu->addAction(m_xzPanel->toggleViewAction());
   renderMenu->addAction(dock3D->toggleViewAction());
   menu->addMenu(renderMenu);
 
@@ -160,6 +160,18 @@ void DefaultView::createViewMenu(QMenu* menu)
 
   setRulerVisibility(sr);
   showThumbnail(st);
+}
+
+//-----------------------------------------------------------------------------
+DockWidget* DefaultView::xzPanel()
+{
+  return m_xzPanel;
+}
+
+//-----------------------------------------------------------------------------
+DockWidget* DefaultView::yzPanel()
+{
+  return m_yzPanel;
 }
 
 //-----------------------------------------------------------------------------

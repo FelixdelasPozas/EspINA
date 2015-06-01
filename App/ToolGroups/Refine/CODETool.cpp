@@ -40,6 +40,9 @@ CODEToolBase::CODEToolBase(const QString &name, const QString& icon, const QStri
 , m_name(name)
 {
   setCheckable(true);
+  setExclusive(true);
+
+  setGroupWith("CODE");
 
   initOptionWidgets();
 }

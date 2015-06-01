@@ -98,6 +98,9 @@ SplitTool::SplitTool(Support::Context &context)
 {
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
+  setCheckable(true);
+  setExclusive(true);
+
   connect(this,  SIGNAL(toggled(bool)),
           this,  SLOT(toggleWidgetsVisibility(bool)));
 

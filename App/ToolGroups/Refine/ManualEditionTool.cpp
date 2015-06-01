@@ -55,6 +55,9 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
   setCheckable(true);
+  setExclusive(true);
+
+  m_drawingWidget.showCategoryControls(false);
 
   addSettingsWidget(&m_drawingWidget);
 

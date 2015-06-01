@@ -24,6 +24,20 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
+DockWidget::DockWidget(QWidget* parent)
+: QDockWidget(parent)
+{
+
+}
+
+//------------------------------------------------------------------------
+DockWidget::DockWidget(const QString& title, QWidget* parent, Qt::WindowFlags flags)
+: QDockWidget(title, parent, flags)
+{
+
+}
+
+//------------------------------------------------------------------------
 QPushButton *DockWidget::createDockButton(const QString &icon, const QString &tooltip)
 {
   auto dockButton = new QPushButton();

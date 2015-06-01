@@ -46,8 +46,8 @@ ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObjec
 QWidget* ProgressAction::createWidget(QWidget* parent)
 {
   auto widget = new QWidget(parent);
-
   auto layout = new QVBoxLayout;
+
   layout->setMargin(0);
   widget->setLayout(layout);
 
@@ -105,7 +105,7 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
   action->setChecked(isChecked());
 
   connect(action, SIGNAL(toggled(bool)),
-          this,   SIGNAL(toggled(bool)));
+          this,   SLOT(onActionToggled(bool)));
 
   connect(action, SIGNAL(clicked(bool)),
           this,   SIGNAL(triggered(bool)));
@@ -177,6 +177,14 @@ constexpr int ProgressAction::progressVerticalPosition()
 bool ProgressAction::displayProgress(int progress)
 {
   return 0 < progress && progress < 100;
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::onActionToggled(bool value)
+{
+  setChecked(value);
+
+  emit toggled(value);
 }
 
 

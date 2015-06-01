@@ -71,7 +71,7 @@ DrawingWidget::DrawingWidget(Support::Context &context, QWidget *parent)
 
   m_painters.key(m_currentPainter)->setChecked(true);
 
-  setControlVisibility(true);
+  updateVisibleControls();
 }
 
 //------------------------------------------------------------------------
@@ -163,28 +163,44 @@ void DrawingWidget::setMaskProperties(const NmVector3 &spacing, const NmVector3 
 }
 
 //------------------------------------------------------------------------
+void DrawingWidget::showCategoryControls(bool value)
+{
+  m_showCategoryControls = value;
+
+  updateVisibleControls();
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::showRadiusControls(bool value)
+{
+  m_showRadiusControls = value;
+
+  updateVisibleControls();
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::showEraserControls(bool value)
+{
+  m_showOpacityControls = value;
+
+  updateVisibleControls();
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::showOpacityControls(bool value)
+{
+  m_showEraserControls = value;
+
+  updateVisibleControls();
+}
+
+//------------------------------------------------------------------------
 void DrawingWidget::setCategory(CategoryAdapterSPtr category)
 {
   if (m_categorySelector->selectedCategory() != category)
   {
     m_categorySelector->selectCategory(category);
   }
-}
-
-//------------------------------------------------------------------------
-QList<QAction *> DrawingWidget::actions() const
-{
-  QList<QAction *> actions;
-
-//   auto checked = m_currentPainter && m_context.viewState().eventHandler() == m_currentPainter;
-//   m_painterSelector->setChecked(checked);
-//
-//   const_cast<DrawingWidget *>(this)->setControlVisibility(checked);
-//
-//   actions << m_painterSelector;
-//   //actions << m_nestedWidgets;
-
-  return actions;
 }
 
 //------------------------------------------------------------------------
@@ -248,9 +264,7 @@ void DrawingWidget::changePainter(bool  checked)
     m_context.viewState().addTemporalRepresentations(m_contourWidgetfactory);
   }
 
-  setControlVisibility(checked);
-
-  updateActiveControls();
+  updateVisibleControls();
 
   emit painterChanged(m_currentPainter);
 }
@@ -437,19 +451,15 @@ bool DrawingWidget::displayContourControls() const
   return m_currentPainter == m_contourPainter;
 }
 
-//------------------------------------------------------------------------
-void DrawingWidget::setControlVisibility(bool visible)
-{
-  m_categorySelector->setVisible(visible && m_showCategoryControls);
-  m_radiusWidget    ->setVisible(visible && m_showRadiusControls  && displayBrushControls());
-  m_opacityWidget   ->setVisible(visible && m_showOpacityControls && displayBrushControls());
-  m_eraserWidget    ->setVisible(visible && m_showEraserControls);
-  m_rasterizeWidget ->setVisible(visible && displayContourControls());
-}
-
 //-----------------------------------------------------------------------------
-void DrawingWidget::updateActiveControls()
+void DrawingWidget::updateVisibleControls()
 {
+  m_categorySelector->setVisible(m_showCategoryControls);
+  m_radiusWidget    ->setVisible(m_showRadiusControls  && displayBrushControls());
+  m_opacityWidget   ->setVisible(m_showOpacityControls && displayBrushControls());
+  m_eraserWidget    ->setVisible(m_showEraserControls);
+  m_rasterizeWidget ->setVisible(displayContourControls());
+
   if (displayContourControls())
   {
     m_radiusWidget->setLabelText(tr("Minimum Point Distance"));
