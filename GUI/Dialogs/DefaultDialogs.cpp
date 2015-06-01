@@ -50,6 +50,35 @@ SupportedFiles &SupportedFiles::addFormat(const QString &name, const QString &ex
 }
 
 //------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addCSVFormat()
+{
+  addFormat(QObject::tr("CSV Text File"), "csv");
+
+  return *this;
+}
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addExcelFormat()
+{
+  addFormat(QObject::tr("Excel Sheet"), "xls");
+
+  return *this;
+}
+
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addSegFormat()
+{
+  addFormat(QObject::tr("EspINA Analysis"), "seg");
+
+  return *this;
+}
+
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addTxtFormat()
+{
+  addFormat(QObject::tr("Text File"), "txt");
+}
+
+//------------------------------------------------------------------------
 SupportedFiles::operator QString() const
 {
   return m_filter;
@@ -87,6 +116,7 @@ QStringList DefaultDialogs::OpenFiles(const QString& title, const QStringList& f
 
   QFileDialog fileDialog;
   fileDialog.setWindowTitle(title);
+  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDirectory(path);
   fileDialog.setNameFilters(filters);
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
@@ -132,6 +162,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
 
   QFileDialog fileDialog;
   fileDialog.setWindowTitle(title);
+  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDefaultSuffix(suffix);
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile(suggestion);

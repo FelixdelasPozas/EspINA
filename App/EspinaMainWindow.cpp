@@ -1275,7 +1275,7 @@ void EspinaMainWindow::createDefaultPanels()
                                                                   ":espina/segmentation_information_switch.svg",
                                                                   tr("Display Segmentation Information"),
                                                                   m_context);
-  m_refineToolGroup->addTool(segmentationHistorySwitch);
+  m_analyzeToolGroup->addTool(segmentationHistorySwitch);
 }
 
 //------------------------------------------------------------------------

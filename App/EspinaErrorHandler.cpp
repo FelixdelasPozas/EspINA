@@ -26,7 +26,6 @@
 // Qt
 #include <QUrl>
 #include <QDesktopServices>
-#include <QFileDialog>
 #include <QApplication>
 #include <QMessageBox>
 

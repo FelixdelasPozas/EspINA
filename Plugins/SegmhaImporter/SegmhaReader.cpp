@@ -36,7 +36,6 @@
 // Qt
 #include <QApplication>
 #include <QDebug>
-#include <QFileDialog>
 
 // VTK
 #include <vtkImageReslice.h>

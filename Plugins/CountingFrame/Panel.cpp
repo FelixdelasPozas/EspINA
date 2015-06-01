@@ -36,7 +36,6 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
 
-#include <QFileDialog>
 #include <qinputdialog.h>
 #include <QPainter>
 

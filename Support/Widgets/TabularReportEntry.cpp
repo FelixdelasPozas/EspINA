@@ -32,14 +32,15 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
-#include <QFileDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include <QItemDelegate>
 #include <qvarlengtharray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
 
@@ -218,11 +219,10 @@ void TabularReport::Entry::saveSelectedInformation()
 //------------------------------------------------------------------------
 void TabularReport::Entry::extractInformation()
 {
-  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1 Data").arg(m_category),
-                                                  QString("%1.xls").arg(m_category.replace("/","-")),
-                                                  filter);
+  auto title      = tr("Export %1 Data").arg(m_category);
+  auto suggestion = QString("%1.xls").arg(m_category.replace("/","-"));
+  auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
   if (fileName.isEmpty())
     return;
@@ -231,19 +231,22 @@ void TabularReport::Entry::extractInformation()
   if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
     fileName += tr(".xls");
 
-  bool result = false;
+  bool exported = false;
 
-  if (fileName.endsWith(".csv"))
+  if (fileName.toLower().endsWith(".csv"))
   {
-    result = exportToCSV(fileName);
+    exported = exportToCSV(fileName);
   }
-  else
+  else if (fileName.toLower().endsWith(".xls"))
   {
-    result = exportToXLS(fileName);
+    exported = exportToXLS(fileName);
   }
 
-  if (!result)
-    QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
+  if (!exported)
+  {
+    auto message = tr("Couldn't export %1").arg(fileName);
+    DefaultDialogs::InformationMessage(title, message);
+  }
 }
 
 //------------------------------------------------------------------------

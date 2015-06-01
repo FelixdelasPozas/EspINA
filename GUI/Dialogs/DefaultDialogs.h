@@ -42,6 +42,14 @@ namespace ESPINA {
 
       operator QString() const;
 
+      SupportedFiles& addCSVFormat();
+
+      SupportedFiles& addExcelFormat();
+
+      SupportedFiles& addSegFormat();
+
+      SupportedFiles& addTxtFormat();
+
     private:
       void addFilter(const QString &name, const QString &extension);
 

@@ -12,9 +12,10 @@ using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFramePlugin::CountingFramePlugin()
-: m_undoStack                   {nullptr}
-, m_colorEngine                 {NamedColorEngine()}
-, m_dockWidget                  {nullptr}
+: m_undoStack  {nullptr}
+, m_colorEngine{NamedColorEngine()}
+, m_dockWidget {nullptr}
+, m_context    {nullptr}
 {
 }
 

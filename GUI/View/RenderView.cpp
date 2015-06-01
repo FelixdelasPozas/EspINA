@@ -29,6 +29,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // VTK
 #include <vtkMath.h>
@@ -49,6 +50,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Representations;
@@ -193,19 +195,15 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 //-----------------------------------------------------------------------------
 void RenderView::takeSnapshot()
 {
-  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
-  fileDialog.setObjectName("SaveSnapshotFileDialog");
-  fileDialog.setWindowTitle("Save Scene As Image");
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-  fileDialog.setDefaultSuffix(QString(tr("png")));
-  fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.selectFile("");
+  auto title      = tr("Save scene as image");
+  auto suggestion = tr("snapshot.png");
+  auto formats    = SupportedFiles(tr("PNG Image"),  "png")
+                        .addFormat(tr("JPEG Image"), "jpg");
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".png", suggestion);
 
-  if (fileDialog.exec() == QDialog::Accepted)
+  if (!fileName.isEmpty())
   {
-    const QString selectedFile = fileDialog.selectedFiles().first();
-
-    QStringList splittedName = selectedFile.split(".");
+    QStringList splittedName = fileName.split(".");
     QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
 
     QStringList validFileExtensions;
@@ -228,7 +226,7 @@ void RenderView::takeSnapshot()
       {
         vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();
@@ -242,7 +240,7 @@ void RenderView::takeSnapshot()
         writer->ProgressiveOff();
         writer->WriteToMemoryOff();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();
@@ -251,12 +249,9 @@ void RenderView::takeSnapshot()
     }
     else
     {
-      QMessageBox msgBox;
-      QString message(tr("Snapshot not exported. Unrecognized extension "));
-      message.append(extension).append(".");
-      msgBox.setIcon(QMessageBox::Critical);
-      msgBox.setText(message);
-      msgBox.exec();
+      auto message = tr("Snapshot not exported. Unrecognized extension ");
+
+      DefaultDialogs::InformationMessage(title, message);
     }
   }
 }
