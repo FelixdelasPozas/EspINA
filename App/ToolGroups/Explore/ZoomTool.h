@@ -60,8 +60,6 @@ namespace ESPINA
       void onToolActivated(bool value);
 
     private:
-      virtual void onToolEnabled(bool enabled);
-
       GUI::View::ViewState  &m_viewState;
       ZoomEventHandlerSPtr   m_handler;
       TemporalPrototypesSPtr m_factory;

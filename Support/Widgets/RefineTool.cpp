@@ -62,11 +62,13 @@ void RefineTool::updateStatus()
 {
   auto selection = getSelectedSegmentations();
 
-  setEnabled(acceptsNInputs(selection.size()) && acceptsSelection(selection));
+  setEnabled(acceptsNInputs(selection.size())
+          && selectionIsNotBeingModified(selection)
+          && acceptsSelection(selection));
 }
 
 //------------------------------------------------------------------------
-void RefineTool::onToolEnabled(bool enabled)
+void RefineTool::onToolGroupActivated()
 {
   updateStatus();
 }
@@ -75,4 +77,20 @@ void RefineTool::onToolEnabled(bool enabled)
 bool RefineTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
   return true;
+}
+
+//------------------------------------------------------------------------
+bool RefineTool::selectionIsNotBeingModified(SegmentationAdapterList segmentations)
+{
+  bool beingModified = false;
+
+  int i = 0;
+
+  while (!beingModified && i < segmentations.size())
+  {
+    beingModified = segmentations[i]->isBeingModified();
+    ++i;
+  }
+
+  return !beingModified;
 }

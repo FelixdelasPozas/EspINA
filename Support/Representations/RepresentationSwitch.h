@@ -46,9 +46,6 @@ namespace ESPINA
   protected:
     explicit RepresentationSwitch(const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
 
-  private:
-    virtual void onToolEnabled(bool enabled);
-
   private slots:
     void switchRepresentations(bool show);
 

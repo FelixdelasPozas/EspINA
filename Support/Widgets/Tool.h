@@ -117,6 +117,8 @@ namespace ESPINA
 
         QList<QAction *> actions() const;
 
+        virtual void onToolGroupActivated() {}
+
         virtual void abortOperation() {}
 
         void onExclusiveToolInUse(ProgressTool *tool);

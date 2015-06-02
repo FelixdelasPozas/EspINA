@@ -66,8 +66,6 @@ namespace ESPINA
     void updateReferenceItem() const;
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
     SegmentationAdapterSPtr referenceSegmentation() const;

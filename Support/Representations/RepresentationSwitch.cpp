@@ -42,11 +42,6 @@ void RepresentationSwitch::abortOperation()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationSwitch::onToolEnabled(bool enabled)
-{
-}
-
-//-----------------------------------------------------------------------------
 void RepresentationSwitch::switchRepresentations(bool show)
 {
   auto t = m_timer.increment();

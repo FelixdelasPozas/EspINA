@@ -46,6 +46,8 @@ namespace ESPINA
          */
         virtual ~RefineTool();
 
+        virtual void onToolGroupActivated() override;
+
       protected:
         bool acceptsVolumetricSegmenations(SegmentationAdapterList segmentations);
 
@@ -56,11 +58,11 @@ namespace ESPINA
         void updateStatus();
 
       private:
-        virtual void onToolEnabled(bool enabled);
-
         virtual bool acceptsNInputs(int n) const = 0;
 
         virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+
+        bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
      };
 
       //   using RefineToolPtr  = RefineTool *;

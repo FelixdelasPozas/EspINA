@@ -81,8 +81,6 @@ namespace ESPINA
     void onSelectionChanged();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void initMultiStrokeWidgets();
 
     void setInitialStroke();

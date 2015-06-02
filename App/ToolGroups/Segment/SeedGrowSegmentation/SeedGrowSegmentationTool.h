@@ -85,8 +85,6 @@ namespace ESPINA
     virtual void abortOperation();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void initPixelSelectors();
 
     void initPixelSelector();

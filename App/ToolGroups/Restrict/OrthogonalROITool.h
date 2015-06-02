@@ -116,7 +116,7 @@ namespace ESPINA
     void updateRegionRepresentation();
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    virtual void onToolGroupActivated();
 
     void initControls();
 

@@ -148,7 +148,7 @@ namespace ESPINA
     void checkItemRemoval(SegmentationAdapterSList segmentations);
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    virtual void onToolGroupActivated();
 
     /** \brief Helper method to manage the visibility of widgets.
      * \param[in] value true to set visible false otherwise.

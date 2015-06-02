@@ -161,21 +161,25 @@ namespace ESPINA
 
     auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
-    if (fileName.isEmpty())
-      return;
+    bool exported = false;
 
-    bool result = false;
-    if (fileName.endsWith(".csv"))
+    if (!fileName.isEmpty())
     {
-      result = exportToCSV(fileName);
-    }
-    else if (fileName.endsWith(".xls"))
-    {
-      result = exportToXLS(fileName);
+      if (fileName.toLower().endsWith(".csv"))
+      {
+        exported = exportToCSV(fileName);
+      }
+      else if (fileName.toLower().endsWith(".xls"))
+      {
+        exported = exportToXLS(fileName);
+      }
     }
 
-    if (!result)
-      QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
+    if (!exported)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(title, message);
+    }
   }
 
   //------------------------------------------------------------------------
@@ -221,22 +225,23 @@ namespace ESPINA
     auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
     auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
-    if (fileName.isEmpty())
-      return;
+    bool exported = false;
 
-    bool result = false;
+    if (!fileName.isEmpty())
+    {
+      if (fileName.toLower().endsWith(".csv"))
+      {
+        exported = exportToCSV(fileName);
+      }
+      else if (fileName.toLower().endsWith(".xls"))
+      {
+        exported = exportToXLS(fileName);
+      }
+    }
 
-    if (fileName.toLower().endsWith(".csv"))
+    if (!exported)
     {
-      result = exportToCSV(fileName);
-    }
-    else if (fileName.toLower().endsWith(".xls"))
-    {
-      result = exportToXLS(fileName);
-    }
-    else
-    {
-      auto message = tr("Couldn't export %1").arg(fileName);
+      auto message = tr("Unable to export %1").arg(fileName);
       DefaultDialogs::InformationMessage(title, message);
     }
   }

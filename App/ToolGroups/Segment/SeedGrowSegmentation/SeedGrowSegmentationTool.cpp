@@ -141,11 +141,6 @@ void SeedGrowSegmentationTool::abortOperation()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
-{
-}
-
-//-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initPixelSelectors()
 {
   initPixelSelector();

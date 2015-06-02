@@ -364,7 +364,7 @@ void SkeletonTool::initTool(bool value)
 
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onToolEnabled(bool enabled)
+void SkeletonTool::onToolGroupActivated()
 {
   // TODO: 27-05-2015 SkeletonTool/Widget refactorization
 //  if (m_widget)
@@ -372,6 +372,7 @@ void SkeletonTool::onToolEnabled(bool enabled)
 //    m_widget->setEnabled(enabled);
 //  }
 
+  bool enabled = true;
   m_action->setEnabled(enabled);
   m_categorySelector->setEnabled(enabled);
   m_toleranceWidget->setEnabled(enabled);

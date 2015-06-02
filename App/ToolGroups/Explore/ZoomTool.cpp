@@ -70,8 +70,3 @@ void ZoomTool::onToolActivated(bool value)
     m_viewState.removeTemporalRepresentations(m_factory);
   }
 }
-
-//----------------------------------------------------------------------------
-void ZoomTool::onToolEnabled(bool enabled)
-{
-}

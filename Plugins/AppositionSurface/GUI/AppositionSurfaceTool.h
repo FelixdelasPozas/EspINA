@@ -60,9 +60,6 @@ namespace ESPINA
      */
     virtual ~AppositionSurfaceTool();
 
-  private:
-    virtual void onToolEnabled(bool enabled);
-
   private slots:
     /** \brief Changes action enabled/disabled depending on the actual selection.
      *

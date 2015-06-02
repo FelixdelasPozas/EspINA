@@ -43,12 +43,6 @@ ResetZoom::~ResetZoom()
 }
 
 //----------------------------------------------------------------------------
-void ResetZoom::onToolEnabled(bool enabled)
-{
-
-}
-
-//----------------------------------------------------------------------------
 void ResetZoom::resetViews()
 {
   m_viewState.resetCamera();

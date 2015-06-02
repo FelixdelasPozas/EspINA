@@ -131,7 +131,8 @@ namespace ESPINA
 
     QList<RenderView *> m_views;
 
-    QDockWidget *dock3D, *m_yzPanel, *m_xzPanel;
+    DockWidget  *m_yzPanel, *m_xzPanel;
+    QDockWidget *dock3D;
     QAction     *m_showRuler, *m_showThumbnail;
   };
 

@@ -53,11 +53,6 @@ void CODEToolBase::abortOperation()
 }
 
 //------------------------------------------------------------------------
-void CODEToolBase::onToolEnabled(bool enabled)
-{
-}
-
-//------------------------------------------------------------------------
 void CODEToolBase::initOptionWidgets()
 {
   m_radius = new NumericalInput();
@@ -99,8 +94,6 @@ void CODEToolBase::onApplyClicked()
 
     auto filter = createFilter(inputs, m_type);
 
-    qDebug()<< m_radius->value();
-
     filter->setRadius(m_radius->value());
     filter->setDescription(tr("%1 %2").arg(m_name)
     .arg(segmentation->data(Qt::DisplayRole)
@@ -111,6 +104,8 @@ void CODEToolBase::onApplyClicked()
     task.Task         = filter;
     task.Operation    = tr("%1 Segmentation").arg(m_name);
     task.Segmentation = segmentation;
+
+    segmentation->setBeingModified(true);
 
     m_executingTasks[filter.get()] = task;
 
@@ -155,6 +150,8 @@ void CODEToolBase::onTaskFinished()
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
       undoStack->endMacro();
     }
+
+    taskContext.Segmentation->setBeingModified(false);
   }
 
   m_executingTasks.remove(filter);

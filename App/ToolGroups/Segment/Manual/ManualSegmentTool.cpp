@@ -141,12 +141,6 @@ void ManualSegmentTool::onSelectionChanged()
 }
 
 //------------------------------------------------------------------------
-void ManualSegmentTool::onToolEnabled(bool enabled)
-{
-
-}
-
-//------------------------------------------------------------------------
 bool ManualSegmentTool::isCreationMode() const
 {
   return m_createSegmentation;

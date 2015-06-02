@@ -89,7 +89,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
           this, SLOT(setActive(bool)));
 
   connect(&getViewState(), SIGNAL(eventHandlerChanged()),
-          this,                   SLOT(onEventHandlerChanged()));
+          this,            SLOT(onEventHandlerChanged()));
 
 }
 
@@ -150,17 +150,12 @@ Bounds OrthogonalROITool::createRegion(const NmVector3 &centroid, const Nm xSize
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::onToolEnabled(bool enabled)
+void OrthogonalROITool::onToolGroupActivated()
 {
-  setDefinitionMode(enabled);
+  setDefinitionMode(true);
 
-  if (!enabled)
-  {
-    setResizable(false);
-  }
-
-  m_resizeROI->setEnabled(enabled && m_roi);
-  setEnabled(enabled);
+  m_resizeROI->setEnabled(m_roi != nullptr);
+  setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------

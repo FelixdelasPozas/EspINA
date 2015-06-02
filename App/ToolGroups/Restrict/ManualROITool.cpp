@@ -146,12 +146,6 @@ void ManualROITool::updateReferenceItem(ChannelAdapterPtr channel)
 }
 
 //-----------------------------------------------------------------------------
-void ManualROITool::onToolEnabled(bool enabled)
-{
-
-}
-
-//-----------------------------------------------------------------------------
 void ManualROITool::configureDrawingTools()
 {
   m_drawingWidget.setDrawingColor(Qt::yellow);

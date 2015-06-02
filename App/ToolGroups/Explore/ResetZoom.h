@@ -45,9 +45,6 @@ namespace ESPINA
      */
     virtual ~ResetZoom();
 
-  private:
-    virtual void onToolEnabled(bool enabled);
-
   private slots:
     /** \brief Slot to activate when the action gets triggered. Resets the views
      * via ViewManager.

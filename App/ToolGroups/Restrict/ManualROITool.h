@@ -67,8 +67,6 @@ namespace ESPINA
     void ROIChanged();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void configureDrawingTools();
 
   private:

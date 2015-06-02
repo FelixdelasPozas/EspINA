@@ -141,8 +141,3 @@ void AppositionSurfaceTool::createSAS()
     }
   }
 }
-
-//-----------------------------------------------------------------------------
-void AppositionSurfaceTool::onToolEnabled(bool enabled)
-{
-}

@@ -76,8 +76,6 @@ namespace ESPINA
     void splittingStopped();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void initSplitWidgets();
 
     void showCuttingPlane();

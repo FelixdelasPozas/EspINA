@@ -153,12 +153,6 @@ void ManualEditionTool::updateReferenceItem() const
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::onToolEnabled(bool enabled)
-{
-
-}
-
-//------------------------------------------------------------------------
 SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
 {
   Q_ASSERT(m_referenceItem);

@@ -54,12 +54,13 @@ void MorphologicalEditionFilter::restoreState(const State& state)
   for (auto token : state.split(';'))
   {
     QStringList tokens = token.split('=');
-    if (tokens.size() != 2)
-      continue;
 
-    if ("Radius" == tokens[0])
+    if (tokens.size() == 2)
     {
-      m_prevRadius = m_radius = tokens[1].toInt();
+      if ("Radius" == tokens[0])
+      {
+        m_prevRadius = m_radius = tokens[1].toInt();
+      }
     }
   }
 }

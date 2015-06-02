@@ -57,8 +57,6 @@ namespace ESPINA {
   private:
     void initOptionWidgets();
 
-    virtual void onToolEnabled(bool enabled);
-
     virtual bool acceptsNInputs(int n) const override;
 
     virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type& type) = 0;

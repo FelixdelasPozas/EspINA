@@ -948,6 +948,7 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
     {
       for(auto tool : toolGroup->tools())
       {
+        tool->onToolGroupActivated();
         for(auto action : tool->actions())
         {
           m_contextualBar->addAction(action);
