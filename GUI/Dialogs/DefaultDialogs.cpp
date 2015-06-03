@@ -212,6 +212,7 @@ void DefaultDialogs::InformationMessage(const QString& title, const QString& mes
   dialog.setWindowTitle(title);
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
+  dialog.setModal(true);
 
   dialog.exec();
 }

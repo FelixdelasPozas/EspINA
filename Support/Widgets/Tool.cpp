@@ -149,7 +149,12 @@ QList<QAction*> ProgressTool::actions() const
 {
   QList<QAction *> result;
 
-  result << m_action << m_settings;
+  result << m_action;
+
+  if(!m_settings->isEmpty())
+  {
+    result << m_settings;
+  }
 
   return result;
 }

@@ -150,6 +150,8 @@ namespace ESPINA
     ManualPipelineSources m_channelSources;
     ManualPipelineSources m_segmentationSources;
 
+    RepresentationList m_representations;
+
     QToolBar            m_toolbar;
     View3D              m_view;
     TabularReport       m_tabularReport;

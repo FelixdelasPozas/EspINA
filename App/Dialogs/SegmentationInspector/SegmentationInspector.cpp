@@ -71,6 +71,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   setAttribute(Qt::WA_DeleteOnClose, true);
   setAcceptDrops(true);
+  setWindowModality(Qt::WindowModality::ApplicationModal);
 
   for(auto segmentation : segmentations)
   {
@@ -85,8 +86,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   restoreGeometryState();
 
-   connect(selection().get(), SIGNAL(selectionChanged()),
-           this,              SLOT(updateSelection()));
+  connect(selection().get(), SIGNAL(selectionChanged()),
+          this,              SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -183,6 +184,8 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
       removeChannel(channelToBeRemoved.get());
     }
   }
+
+  updateSelection();
 
   m_view.refresh();
 
@@ -378,13 +381,19 @@ void SegmentationInspector::updateSelection()
     {
       if (m_selectedSegmentation != segmentation)
       {
-        disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
-                   this, SLOT(updateSelection()));
+        if(m_selectedSegmentation)
+        {
+          disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
+                     this, SLOT(updateSelection()));
+        }
 
         m_selectedSegmentation = segmentation;
 
-        connect(m_selectedSegmentation, SIGNAL(outputModified()),
-                this, SLOT(updateSelection()));
+        if(m_selectedSegmentation)
+        {
+          connect(m_selectedSegmentation, SIGNAL(outputModified()),
+                  this, SLOT(updateSelection()));
+        }
       }
 
       try
@@ -411,11 +420,6 @@ void SegmentationInspector::updateSelection()
 void SegmentationInspector::configureLayout()
 {
   layout()->setMenuBar(&m_toolbar);
-//   m_historyScrollArea->widget()->setMinimumWidth(250);
-//   m_historyScrollArea->setMinimumWidth(150);
-
-//   QVBoxLayout *historyLayout = new QVBoxLayout();
-//   historyLayout->addWidget(m_historyScrollArea);
 
   m_viewport         ->setLayout(createViewLayout());
   m_historyScrollArea->setWidget(new EmptyHistory());
@@ -452,6 +456,8 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
   for (auto factory : representations)
   {
     auto representation = factory->createRepresentation(m_context, ViewType::VIEW_3D);
+
+    m_representations << representation;
 
     for (auto repSwitch : representation.Switches)
     {
