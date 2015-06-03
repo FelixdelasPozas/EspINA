@@ -98,7 +98,6 @@ public:
   virtual void redo()
   {
     auto output = m_filter->output(0);
-    auto volume = readLockVolume(output);
 //     int volumeSize = 1;
 //     for (auto dir : {Axis::X, Axis::Y, Axis::Z})
 //     {
@@ -108,6 +107,7 @@ public:
     // if (!m_oldVolume && (output->isEdited() || volumeSize < MAX_UNDO_SIZE))
     if (!m_oldVolume && output->isEdited())
     {
+      auto volume = readLockVolume(output);
       m_oldBounds     = volume->bounds();
       m_oldVolume     = volume->itkImage();
       m_editedRegions = volume->editedRegions();
@@ -133,10 +133,10 @@ public:
     m_filter->setClosingRadius(m_oldClosingRadius);
 
     auto output = m_filter->output(0);
-    auto volume = writeLockVolume(output);
 
     if (m_oldVolume.IsNotNull())
     {
+      auto volume = writeLockVolume(output);
       volume->resize(m_oldBounds);
       volume->draw(m_oldVolume);
       volume->setEditedRegions(m_editedRegions);
