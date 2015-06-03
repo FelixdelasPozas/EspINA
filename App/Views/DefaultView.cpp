@@ -68,21 +68,21 @@ DefaultView::DefaultView(Support::Context &context,
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 
-  m_yzPanel = new DockWidget(tr("ZY"), parent);
-  m_yzPanel->setObjectName("DockZY");
-  m_yzPanel->setWidget(m_viewYZ);
+  m_panelYZ = new DockWidget(tr("ZY"), parent);
+  m_panelYZ->setObjectName("DockZY");
+  m_panelYZ->setWidget(m_viewYZ);
 
-  m_xzPanel = new DockWidget(tr("XZ"), parent);
-  m_xzPanel->setObjectName("xzDock");
-  m_xzPanel->setWidget(m_viewXZ);
+  m_panelXZ = new DockWidget(tr("XZ"), parent);
+  m_panelXZ->setObjectName("xzDock");
+  m_panelXZ->setWidget(m_viewXZ);
 
-  dock3D = new QDockWidget(tr("3D"), parent);
-  dock3D->setObjectName("Dock3D");
-  dock3D->setWidget(m_view3D);
+  m_panel3D = new DockWidget(tr("3D"), parent);
+  m_panel3D->setObjectName("Dock3D");
+  m_panel3D->setWidget(m_view3D);
 
-  parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
-  parent->addDockWidget(Qt::RightDockWidgetArea, m_yzPanel);
-  parent->addDockWidget(Qt::RightDockWidgetArea, m_xzPanel);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_panel3D);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelYZ);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelXZ);
 
   initView(m_viewXY, parent);
   initView(m_viewXZ, parent);
@@ -126,9 +126,9 @@ void DefaultView::createViewMenu(QMenu* menu)
   //menu->addMenu(new CamerasMenu(m_viewManager, this));
 
   auto renderMenu = new QMenu(tr("Views"), this);
-  renderMenu->addAction(m_yzPanel->toggleViewAction());
-  renderMenu->addAction(m_xzPanel->toggleViewAction());
-  renderMenu->addAction(dock3D->toggleViewAction());
+  renderMenu->addAction(m_panelYZ->toggleViewAction());
+  renderMenu->addAction(m_panelXZ->toggleViewAction());
+  renderMenu->addAction(m_panel3D->toggleViewAction());
   menu->addMenu(renderMenu);
 
   ESPINA_SETTINGS(settings);
@@ -163,15 +163,21 @@ void DefaultView::createViewMenu(QMenu* menu)
 }
 
 //-----------------------------------------------------------------------------
-DockWidget* DefaultView::xzPanel()
+DockWidget* DefaultView::panelXZ()
 {
-  return m_xzPanel;
+  return m_panelXZ;
 }
 
 //-----------------------------------------------------------------------------
-DockWidget* DefaultView::yzPanel()
+DockWidget* DefaultView::panelYZ()
 {
-  return m_yzPanel;
+  return m_panelYZ;
+}
+
+//-----------------------------------------------------------------------------
+DockWidget *DefaultView::panel3D()
+{
+  return m_panel3D;
 }
 
 //-----------------------------------------------------------------------------

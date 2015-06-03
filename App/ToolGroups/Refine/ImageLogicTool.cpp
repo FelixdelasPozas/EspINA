@@ -75,6 +75,7 @@ void ImageLogicTool::applyFilter()
   InputSList inputs;
   for(auto segmentation: segmentations)
   {
+    segmentation->setBeingModified(true);
     inputs << segmentation->asInput();
   }
 
@@ -132,6 +133,7 @@ void ImageLogicTool::onTaskFinished()
     for(auto segmentation: taskContext.Segmentations)
     {
       undoStack->push(new RemoveSegmentations(segmentation, context().model()));
+      segmentation->setBeingModified(false);
     }
 
     undoStack->endMacro();

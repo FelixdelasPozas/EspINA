@@ -75,6 +75,8 @@ void FillHolesTool::fillHoles()
     taskContext.Operation    = tr("Fill Segmentation Holes");
     taskContext.Segmentation = segmentation;
 
+    segmentation->setBeingModified(true);
+
     m_executingTasks[filter.get()] = taskContext;
 
     showTaskProgress(filter);
@@ -102,6 +104,8 @@ void FillHolesTool::onTaskFinished()
     undoStack->beginMacro(taskContext.Operation);
     undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
     undoStack->endMacro();
+
+    taskContext.Segmentation->setBeingModified(false);
   }
 
   m_executingTasks.remove(filter);

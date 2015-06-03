@@ -108,9 +108,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
 , m_mainBarGroup {this}
 , m_activeToolGroup{nullptr}
+, m_view(new DefaultView(m_context, this))
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy{false}
-, m_view(new DefaultView(m_context, this))
 , m_dynamicMenuRoot{new DynamicMenuNode()}
 , m_errorHandler(new EspinaErrorHandler(this))
 {
@@ -1319,19 +1319,26 @@ void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
 
-  auto xzPanelSwitch = std::make_shared<PanelSwitch>(m_view->xzPanel(),
-                                                     ":espina/xz_panel.svg",
+  auto panelSwitchXY = std::make_shared<PanelSwitch>(m_view->panelXZ(),
+                                                     ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
-  xzPanelSwitch->setGroupWith("view_2D_panels_xz");
-  m_visualizeToolGroup->addTool(xzPanelSwitch);
+  panelSwitchXY->setGroupWith("view_panels");
+  m_visualizeToolGroup->addTool(panelSwitchXY);
 
-  auto yzPanelSwitch = std::make_shared<PanelSwitch>(m_view->yzPanel(),
-                                                     ":espina/yz_panel.svg",
+  auto panelSwitchYZ = std::make_shared<PanelSwitch>(m_view->panelYZ(),
+                                                     ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
-  xzPanelSwitch->setGroupWith("view_2D_panels_yz");
-  m_visualizeToolGroup->addTool(yzPanelSwitch);
+  panelSwitchYZ->setGroupWith("view_panels");
+  m_visualizeToolGroup->addTool(panelSwitchYZ);
+
+  auto panelSwitch3D = std::make_shared<PanelSwitch>(m_view->panel3D(),
+                                                     ":espina/panel_3d.svg",
+                                                     tr("Display YZ View"),
+                                                     m_context);
+  panelSwitch3D->setGroupWith("view_panels");
+  m_visualizeToolGroup->addTool(panelSwitch3D);
 
   registerToolGroup(m_visualizeToolGroup);
 }

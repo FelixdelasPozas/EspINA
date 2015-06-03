@@ -104,6 +104,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 
     auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
+    groupSwitch(sliceSwitch);
 
     representation.Managers << sliceManager;
     representation.Switches << sliceSwitch;
@@ -117,6 +118,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
 
     auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer, context);
+    groupSwitch(slice3DSwitch);
 
     representation.Managers << slice3DManager;
     representation.Switches << slice3DSwitch;
@@ -148,6 +150,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   contourManager->setDescription(QObject::tr("Segmentation Contour Representation"));
 
   auto contourSwitch = std::make_shared<BasicRepresentationSwitch>(contourManager, ViewType::VIEW_2D, timer, context);
+  groupSwitch(contourSwitch);
 
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
   representation.Managers << contourManager;
@@ -222,12 +225,14 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   poolVolumetricGPU->setSettings(volumetricSettings);
 
   auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricCPUManager, ViewType::VIEW_3D, timer, context);
+  groupSwitch(volumetricCPUSwitch);
 
   volumetricGPUManager->setName(QObject::tr("Volumetric GPU Representation"));
   volumetricGPUManager->setIcon(QIcon(":espina/voxelGPU.png"));
   volumetricGPUManager->setDescription(QObject::tr("Segmentation Volumetric Representation By GPU"));
 
   auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricGPUManager, ViewType::VIEW_3D, timer, context);
+  groupSwitch(volumetricGPUSwitch);
 
   representation.Pools    << poolVolumetricCPU << poolVolumetricGPU;
   representation.Managers << volumetricCPUManager << volumetricGPUManager;
@@ -257,6 +262,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   meshManager->setDescription(QObject::tr("Mesh Representation"));
 
   auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>(meshManager, ViewType::VIEW_3D, timer, context);
+  groupSwitch(meshSwitch);
 
   poolSmoothedMesh->setSettings(meshesSettings);
 
@@ -265,8 +271,15 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   smoothedMeshManager->setDescription(QObject::tr("Smoothed Mesh Representation"));
 
   auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>(smoothedMeshManager, ViewType::VIEW_3D, timer, context);
+  groupSwitch(smoothedMeshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;
   representation.Switches << meshSwitch << smoothedMeshSwitch;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::groupSwitch(ToolSPtr tool) const
+{
+  tool->setGroupWith("segmentation_reps");
 }
