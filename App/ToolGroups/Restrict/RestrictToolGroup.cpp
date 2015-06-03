@@ -23,11 +23,13 @@
 
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "CleanROITool.h"
-// #include "ManualROITool.h"
+#include "ManualROITool.h"
 #include "OrthogonalROITool.h"
 #include <Undo/ROIUndoCommand.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets::ROI;
 
 class RestrictToolGroup::DefineOrthogonalROICommand
 : public QUndoCommand
@@ -80,8 +82,8 @@ public:
 private:
   const BinaryMaskSPtr<unsigned char> m_mask;
   RestrictToolGroup *m_tool;
-  ROISPtr        m_oROI;
-  bool           m_firstROI;
+  ROISPtr            m_oROI;
+  bool               m_firstROI;
 };
 
 //-----------------------------------------------------------------------------
@@ -97,7 +99,7 @@ RestrictToolGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMa
 void RestrictToolGroup::DefineManualROICommand::redo()
 {
   m_tool->commitPendingOrthogonalROI(nullptr);
-  m_tool->addMask(m_mask);
+  m_tool->addManualROI(m_mask);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,24 +129,23 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
                                      Support::Context &context)
-: ToolGroup          {":/espina/toolgroup_restrict.svg", tr("Restrict")}
-, m_context          (context)
-// , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
-, m_ortogonalROITool {new OrthogonalROITool(settings, context, this)}
-, m_cleanROITool     {new CleanROITool(context, this)}
-, m_enabled          {true}
-, m_visible          {true}
-, m_color            {Qt::yellow}
-, m_accumulator      {nullptr}
-, m_accumulatorWidget{nullptr}
+: ToolGroup         {":/espina/toolgroup_restrict.svg", tr("Restrict")}
+, m_context         (context)
+, m_manualROITool   {new ManualROITool(context, this)}
+, m_ortogonalROITool{new OrthogonalROITool(settings, context, this)}
+, m_cleanROITool    {new CleanROITool(context, this)}
+, m_enabled         {true}
+, m_visible         {true}
+, m_color           {Qt::yellow}
 {
   setColor(m_color);
 
   addTool(m_ortogonalROITool);
+  addTool(m_manualROITool);
   addTool(m_cleanROITool);
 
-//   connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
-//           this,                     SLOT(onManualROIDefined(Selector::Selection)));
+  connect(m_manualROITool.get(),    SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
+          this,                     SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
   connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
           this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
 }
@@ -160,10 +161,10 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    // TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
+    m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
 
-    m_accumulator      .reset();
-    m_accumulatorWidget.reset();
+    m_accumulator  .reset();
+    m_roiPrototypes.reset();
   }
 
   if (roi && roi->isOrthogonal())
@@ -177,13 +178,14 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 
   if (roi && !roi->isOrthogonal())
   {
-    auto widget = std::make_shared<ROIWidget>(roi);
-    widget->setColor(m_color);
+    m_accumulator = roi;
 
-    m_accumulator       = roi;
-    m_accumulatorWidget = widget;
+    auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
+    roi2D->setColor(m_color);
 
-    // TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
+    m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr());
+
+    m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
   }
 
   emit roiChanged(roi);
@@ -218,7 +220,7 @@ void RestrictToolGroup::setColor(const QColor& color)
 {
   m_color = color;
 
-//   m_manualROITool->setColor(color)
+  m_manualROITool->setColor(color);
   m_ortogonalROITool->setColor(color);
 }
 
@@ -237,11 +239,11 @@ void RestrictToolGroup::setVisible(bool visible)
   {
     if (visible)
     {
-      //TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
+      m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
     }
     else
     {
-      //TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
+      m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
     }
   }
 
@@ -254,11 +256,11 @@ void RestrictToolGroup::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void RestrictToolGroup::onManualROIDefined(Selector::Selection strokes)
+void RestrictToolGroup::onManualROIDefined(BinaryMaskSPtr<unsigned char> roi)
 {
   commitPendingOrthogonalROI(nullptr);
 
-  undoStackPush(new DefineManualROICommand{strokes.first().first, this});
+  undoStackPush(new DefineManualROICommand{roi, this});
 
   m_context.roiProvider()->setProvider(this);
 }
@@ -295,25 +297,36 @@ void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
 {
   // añadir previa OROI al acumulador
   auto prevROI = m_ortogonalROITool->currentROI();
+
   if (prevROI)
   {
-    auto mask = std::make_shared<BinaryMask<unsigned char>>(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
-    BinaryMask<unsigned char>::iterator it{mask.get()};
-    it.goToBegin();
-    while(!it.isAtEnd())
-    {
-      it.Set();
-      ++it;
-    }
-
-    addMask(mask);
+    addOrthogonalROI(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
   }
 
   m_ortogonalROITool->setROI(roi); // this roi can now be edited
 }
 
 //-----------------------------------------------------------------------------
-void RestrictToolGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
+void RestrictToolGroup::addOrthogonalROI(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+{
+  if (m_accumulator)
+  {
+    m_accumulator->resize(boundingBox(m_accumulator->bounds(), bounds));
+    m_accumulator->draw(bounds, SEG_VOXEL_VALUE);
+  }
+  else
+  {
+    auto roi = std::make_shared<ROI>(bounds, spacing, origin);
+
+    roi->draw(bounds, SEG_VOXEL_VALUE);
+
+    setCurrentROI(roi);
+  }
+
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::addManualROI(const BinaryMaskSPtr<unsigned char> mask)
 {
   if (m_accumulator)
   {

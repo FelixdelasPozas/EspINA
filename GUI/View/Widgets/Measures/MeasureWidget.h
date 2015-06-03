@@ -24,9 +24,9 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget2.h>
 #include "MeasureEventHandler.h"
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
 #include <vtkCommand.h>
@@ -78,7 +78,7 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth);
 
-            virtual EspinaWidget2DSPtr clone();
+            virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;

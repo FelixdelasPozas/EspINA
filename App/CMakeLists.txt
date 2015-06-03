@@ -37,18 +37,20 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
   ToolGroups/Explore/ResetZoom.h
-  ToolGroups/Explore/ZoomAreaTool.h
+  ToolGroups/Explore/ZoomTool.h
   ToolGroups/Refine/CODEHistory.h
   ToolGroups/Refine/CODEHistoryWidget.h
   ToolGroups/Refine/CODETool.h
   ToolGroups/Refine/ManualEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
   ToolGroups/Refine/RefineToolGroup.h
   ToolGroups/Refine/SplitTool.h
+  ToolGroups/Refine/FillHolesTool.h
+  ToolGroups/Refine/ImageLogicTool.h
   ToolGroups/Restrict/CleanROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
+  ToolGroups/Restrict/ManualROITool.h
   ToolGroups/Restrict/RestrictToolGroup.h
+  ToolGroups/Segment/Manual/ManualSegmentTool.h
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
@@ -134,11 +136,13 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Explore/ResetZoom.cpp
+  ToolGroups/Explore/ZoomTool.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
-  ToolGroups/Explore/ZoomAreaTool.cpp
   ToolGroups/Restrict/CleanROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp
+  ToolGroups/Restrict/ManualROITool.cpp
   ToolGroups/Restrict/RestrictToolGroup.cpp
+  ToolGroups/Segment/Manual/ManualSegmentTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
@@ -154,9 +158,10 @@ set (ESPINA_SOURCES
   ToolGroups/Refine/CODETool.cpp
   ToolGroups/Refine/RefineToolGroup.cpp
   ToolGroups/Refine/ManualEditionTool.cpp
-  ToolGroups/Refine/MorphologicalEditionTool.cpp
   ToolGroups/Refine/SliceEditionPipeline.cpp
   ToolGroups/Refine/SplitTool.cpp
+  ToolGroups/Refine/FillHolesTool.cpp
+  ToolGroups/Refine/ImageLogicTool.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/ToolGroup.cpp
   Tools/Measure/MeasureTool.cpp

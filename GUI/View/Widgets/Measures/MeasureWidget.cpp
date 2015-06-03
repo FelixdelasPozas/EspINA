@@ -24,7 +24,6 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 
 //vtk
 #include <vtkDistanceWidget.h>
@@ -43,6 +42,7 @@
 #include <QKeyEvent>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Measures;
 
@@ -210,7 +210,7 @@ void MeasureWidget::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr MeasureWidget::clone()
+TemporalRepresentation2DSPtr MeasureWidget::clone()
 {
   return std::make_shared<MeasureWidget>(m_eventHandler);
 }

@@ -21,6 +21,7 @@
 #include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
@@ -34,7 +35,7 @@ Widget3D::Widget3D(SelectionSPtr selection)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget3DSPtr Widget3D::clone()
+TemporalRepresentation3DSPtr Widget3D::clone()
 {
   return std::make_shared<Widget3D>(m_selection);
 }

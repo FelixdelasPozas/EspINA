@@ -36,33 +36,60 @@ ToolGroup::ToolGroup(const QString &icon, const QString  &text, QObject *parent)
 //-----------------------------------------------------------------------------
 ToolGroup::~ToolGroup()
 {
-  for (auto tool : m_tools)
-  {
-    tool->abortOperation();
-  }
+  abortOperations();
 }
 
 //-----------------------------------------------------------------------------
 void ToolGroup::addTool(ToolSPtr tool)
 {
+  connect(tool.get(), SIGNAL(exclusiveToolInUse(Support::Widgets::ProgressTool*)),
+          this,       SIGNAL(exclusiveToolInUse(Support::Widgets::ProgressTool*)));
+
   onToolAdded(tool);
 
-  m_tools << tool;
+  m_tools[tool->groupWith()] << tool;
 }
 
 //-----------------------------------------------------------------------------
 void ToolGroup::abortOperations()
 {
-  for (auto tool : m_tools)
+  for (auto groupTools : m_tools)
   {
-    tool->abortOperation();
+    for (auto groupTool : groupTools)
+    {
+      groupTool->abortOperation();
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ToolGroup::onExclusiveToolInUse(Support::Widgets::ProgressTool* tool)
+{
+  for (auto groupTools : m_tools)
+  {
+    for (auto groupTool : groupTools)
+    {
+      groupTool->onExclusiveToolInUse(tool);
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
 ToolSList ToolGroup::tools() const
 {
-  return m_tools;
+  ToolSList tools;
+
+  auto groups = m_tools.keys();
+
+  qSort(groups);
+
+  for (auto group : groups)
+  {
+    tools << m_tools[group];
+  }
+
+
+  return tools;
 }
 
 //-----------------------------------------------------------------------------

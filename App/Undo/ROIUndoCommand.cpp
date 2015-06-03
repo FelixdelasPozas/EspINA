@@ -33,7 +33,7 @@ namespace ESPINA
     auto roi = m_toolGroup->currentROI();
     if(roi == nullptr)
     {
-      m_newROI = ROISPtr{new ROI{mask}};
+      m_newROI = std::make_shared<ROI>(mask);
     }
     else
     {

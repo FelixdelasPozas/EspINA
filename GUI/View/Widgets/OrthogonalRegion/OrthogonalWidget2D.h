@@ -23,7 +23,7 @@
 #define ESPINA_ORTHOGONAL_WIDGET_2D_H
 
 #include <Core/Utils/Bounds.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include "OrthogonalRepresentation.h"
 
 // VTK
@@ -56,9 +56,8 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual EspinaWidget2DSPtr clone() override;
+            virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
-          protected:
             virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
             virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;

@@ -63,7 +63,7 @@ namespace ESPINA
   };
 
   class EspinaGUI_EXPORT SkeletonTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:
@@ -148,7 +148,7 @@ namespace ESPINA
     void checkItemRemoval(SegmentationAdapterSList segmentations);
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    virtual void onToolGroupActivated();
 
     /** \brief Helper method to manage the visibility of widgets.
      * \param[in] value true to set visible false otherwise.
@@ -162,14 +162,14 @@ namespace ESPINA
     void updateReferenceItem();
 
   private:
-    Support::Context &m_context;
-
-    GUI::Widgets::CategorySelector         *m_categorySelector;
+    GUI::Widgets::CategorySelector *m_categorySelector;
     DoubleSpinBoxAction      *m_toleranceWidget;
     SkeletonToolStatusAction *m_toolStatus;
     EventHandlerSPtr          m_handler;
     QAction                  *m_action;
-    EspinaWidgetSPtr          m_widget;
+
+    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+    //EspinaWidgetSPtr          m_widget;
 
     // widget's return values
     SegmentationAdapterPtr       m_item;

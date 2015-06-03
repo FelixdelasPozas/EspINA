@@ -21,83 +21,138 @@
 
 // ESPINA
 #include "CODETool.h"
-
-#include <Support/Widgets/Styles.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
+#include <Undo/RemoveSegmentations.h>
+#include <Undo/ReplaceOutputCommand.h>
 
 #include <QHBoxLayout>
 #include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
-CODETool::CODETool(const QString& icon, const QString& tooltip)
-: m_toggle     {Tool::createAction(icon, tooltip, this)}
-, m_toolWidgets{this}
-, m_radius     {new NumericalInput()}
+CODEToolBase::CODEToolBase(const QString &name, const QString& icon, const QString& tooltip, Support::Context& context)
+: RefineTool(icon, tooltip, context)
+, m_name(name)
 {
-  m_toggle->setCheckable(true);
+  setCheckable(true);
+  setExclusive(true);
+
+  setGroupWith("CODE");
 
   initOptionWidgets();
 }
 
 //------------------------------------------------------------------------
-QList<QAction *> CODETool::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_toggle
-          << &m_toolWidgets;
-
-  return actions;
-}
-
-//------------------------------------------------------------------------
-void CODETool::abortOperation()
+void CODEToolBase::abortOperation()
 {
 }
 
 //------------------------------------------------------------------------
-void CODETool::toggleToolWidgets(bool toggle)
+void CODEToolBase::initOptionWidgets()
 {
-  m_toggle->setChecked(toggle);
-  m_toolWidgets.setVisible(toggle);
-
-  emit toggled(toggle);
-}
-
-//------------------------------------------------------------------------
-void CODETool::onToolEnabled(bool enabled)
-{
-  m_toggle->setEnabled(enabled);
-  m_toolWidgets.setEnabled(enabled);
-
-  if(m_toggle->isChecked() && !enabled)
-  {
-    toggleToolWidgets(false);
-  }
-}
-
-//------------------------------------------------------------------------
-void CODETool::initOptionWidgets()
-{
-  connect(m_toggle, SIGNAL(toggled(bool)),
-          this,     SLOT(toggleToolWidgets(bool)));
+  m_radius = new NumericalInput();
 
   m_radius->setLabelText(tr("Radius"));
   m_radius->setMinimum(1);
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
 
-  auto apply = Tool::createButton(":/espina/tick.png", tr("Apply"));
+  auto apply = Styles::createToolButton(":/espina/tick.png", tr("Apply"));
 
   connect(apply, SIGNAL(clicked(bool)),
-          this,  SIGNAL(applyClicked()));
+          this,  SLOT(onApplyClicked()));
 
+  addSettingsWidget(m_radius);
+  addSettingsWidget(apply);
+}
 
-  m_toolWidgets.addWidget(m_radius);
-  m_toolWidgets.addWidget(apply);
+//------------------------------------------------------------------------
+bool CODEToolBase::acceptsNInputs(int n) const
+{
+  return n > 0;
+}
 
-  m_toolWidgets.setVisible(false);
+//------------------------------------------------------------------------
+void CODEToolBase::onApplyClicked()
+{
+  setEventHandler(nullptr);
+
+  auto selection = getSelectedSegmentations();
+
+  Q_ASSERT(!selection.isEmpty());
+
+  for (auto segmentation :  selection)
+  {
+    InputSList inputs;
+
+    inputs << segmentation->asInput();
+
+    auto filter = createFilter(inputs, m_type);
+
+    filter->setRadius(m_radius->value());
+    filter->setDescription(tr("%1 %2").arg(m_name)
+    .arg(segmentation->data(Qt::DisplayRole)
+    .toString()));
+
+    TaskContext task;
+
+    task.Task         = filter;
+    task.Operation    = tr("%1 Segmentation").arg(m_name);
+    task.Segmentation = segmentation;
+
+    segmentation->setBeingModified(true);
+
+    m_executingTasks[filter.get()] = task;
+
+    showTaskProgress(filter);
+
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(onTaskFinished()));
+
+    Task::submit(filter);
+  }
+}
+
+//------------------------------------------------------------------------
+void CODEToolBase::onTaskFinished()
+{
+  auto filter = dynamic_cast<MorphologicalEditionFilterPtr>(sender());
+
+  if (!filter->isAborted())
+  {
+    auto taskContext = m_executingTasks[filter];
+    auto undoStack   = getUndoStack();
+
+    if (filter->isOutputEmpty())
+    {
+      auto name    = taskContext.Segmentation->data(Qt::DisplayRole).toString();
+      auto title   = taskContext.Operation;
+      auto message = tr("%1 segmentation will be deleted by %2 operation.\n"
+                        "Do you want to continue with the operation?").arg(name).arg(taskContext.Operation);
+
+      if (DefaultDialogs::UserConfirmation(title, message))
+      {
+        undoStack->beginMacro(taskContext.Operation);
+        undoStack->push(new RemoveSegmentations(taskContext.Segmentation, context().model()));
+        undoStack->endMacro();
+      }
+    }
+    else
+    {
+      if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+
+      undoStack->beginMacro(taskContext.Operation);
+      undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
+      undoStack->endMacro();
+    }
+
+    taskContext.Segmentation->setBeingModified(false);
+  }
+
+  m_executingTasks.remove(filter);
 }

@@ -39,26 +39,9 @@ using namespace ESPINA::GUI::View;
 namespace ESPINA
 {
   class ManualEditionTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
-
-    enum class Mode
-    {
-      CREATION,
-      EDITION
-    };
-
-    class ManualFilterFactory
-    : public FilterFactory
-    {
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-
-      virtual FilterTypeList providedFilters() const;
-
-    private:
-      mutable DataFactorySPtr m_dataFactory;
-    };
 
   public:
     /** \brief ManualEditionTool class constructor.
@@ -72,53 +55,41 @@ namespace ESPINA
      */
     virtual ~ManualEditionTool();
 
-    virtual QList<QAction *> actions() const;
-
     virtual void abortOperation();
 
   signals:
     void voxelsDeleted(ViewItemAdapterPtr item);
 
   public slots:
-    /** \brief Updates the reference item for the tool.
-     *
-     */
+    void onSelectionChanged();
+
     void updateReferenceItem() const;
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
-    void createSegmentation(BinaryMaskSPtr<unsigned char> mask);
-
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
-
-    bool isCreationMode() const;
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
-    ChannelAdapterPtr activeChannel() const;
+    SegmentationAdapterPtr selectedSegmentation() const;
 
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
     void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    void onCategoryChange(CategoryAdapterSPtr category);
+    void onPainterChanged(MaskPainterSPtr painter);
+
+    void onToolToggled(bool toggled);
 
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
-    QUndoStack       *m_undoStack;
     ColorEngineSPtr   m_colorEngine;
-    SelectionSPtr     m_selection;
-    FilterFactorySPtr m_filterFactory;
-    Support::Context &m_context;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     // mutable needed by updateReferenceItem() const
     mutable DrawingTool        m_drawingWidget;
-    mutable Mode               m_mode;
     mutable ViewItemAdapterPtr m_referenceItem;
 
     bool                      m_validStroke;

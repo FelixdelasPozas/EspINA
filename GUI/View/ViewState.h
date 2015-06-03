@@ -94,13 +94,13 @@ namespace ESPINA
          * \param[in] widget espina widget smart pointer.
          *
          */
-        void addWidgets(Widgets::WidgetFactorySPtr factory);
+        void addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory);
 
         /** \brief Removes a widget to the view.
          * \param[in] widget espina widget smart pointer.
          *
          */
-        void removeWidgets(Widgets::WidgetFactorySPtr factory);
+        void removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory);
 
         /** \brief Adds slice selector to all views sharing the view state
          *
@@ -143,9 +143,9 @@ namespace ESPINA
 
         void sceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
-        void widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+        void widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
 
-        void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+        void widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
 
         void sliceSelectorAdded(SliceSelectorSPtr selector, SliceSelectionType type);
 

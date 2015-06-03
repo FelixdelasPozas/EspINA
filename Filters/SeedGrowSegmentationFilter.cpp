@@ -59,7 +59,7 @@ const QString ROI_DEFINED    = "ROI";
 const QString V4_ROI         = "VOI";
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Filter       {inputs, type, scheduler}
 , m_lowerTh    {0}
 , m_prevLowerTh{m_lowerTh}
@@ -269,7 +269,8 @@ void SeedGrowSegmentationFilter::execute()
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 
-  emit progress(0);
+  reportProgress(0);
+
   if (!canExecute()) return;
 
   Bounds seedBounds;
@@ -310,7 +311,8 @@ void SeedGrowSegmentationFilter::execute()
     }
   }
 
-  emit progress(25);
+  reportProgress(25);
+
   if (!canExecute()) return;
 
   auto connectedFilter = ConnectedFilterType::New();
@@ -318,9 +320,13 @@ void SeedGrowSegmentationFilter::execute()
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
 
   if(m_ROI != nullptr)
+  {
     connectedFilter->SetInput(extractFilter->GetOutput());
+  }
   else
+  {
     connectedFilter->SetInput(input->itkImage());
+  }
 
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
@@ -330,7 +336,8 @@ void SeedGrowSegmentationFilter::execute()
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
 
-  emit progress(50);
+  reportProgress(50);
+
   if (!canExecute()) return;
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
@@ -355,7 +362,7 @@ void SeedGrowSegmentationFilter::execute()
     output = closingFilter->GetOutput();
   }
 
-  emit progress(75);
+  reportProgress(75);
 
   if (!canExecute()) return;
 
@@ -387,7 +394,7 @@ void SeedGrowSegmentationFilter::execute()
 
   m_forceUpdate = false;
 
-  emit progress(100);
+  reportProgress(100);
 }
 
 //----------------------------------------------------------------------------

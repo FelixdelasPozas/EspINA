@@ -21,9 +21,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget2.h>
-
 #include <GUI/View/Selection.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 class vtkCamera;
 namespace ESPINA
@@ -51,7 +50,9 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth);
 
-            virtual EspinaWidget2DSPtr clone();
+            virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
+
+            virtual bool isEnabled() override;
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;

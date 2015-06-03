@@ -104,6 +104,13 @@ ChannelExplorer::ChannelExplorer(Support::Context &context)
 
   updateTooltips(0);
 
+  auto selection = m_context.viewState().selection();
+
+  connect(selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,            SLOT(onActiveChannelChanged(ChannelAdapterPtr)));
+
+  onActiveChannelChanged(selection->activeChannel());
+
   setWidget(m_gui);
 }
 
@@ -493,6 +500,12 @@ void ChannelExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapter
     m_model->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
     m_model->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
   }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::onActiveChannelChanged(ChannelAdapterPtr channel)
+{
+  m_channelProxy->setActiveChannel(channel);
 }
 
 //------------------------------------------------------------------------

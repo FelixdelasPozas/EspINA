@@ -50,6 +50,35 @@ SupportedFiles &SupportedFiles::addFormat(const QString &name, const QString &ex
 }
 
 //------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addCSVFormat()
+{
+  addFormat(QObject::tr("CSV Text File"), "csv");
+
+  return *this;
+}
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addExcelFormat()
+{
+  addFormat(QObject::tr("Excel Sheet"), "xls");
+
+  return *this;
+}
+
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addSegFormat()
+{
+  addFormat(QObject::tr("EspINA Analysis"), "seg");
+
+  return *this;
+}
+
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addTxtFormat()
+{
+  addFormat(QObject::tr("Text File"), "txt");
+}
+
+//------------------------------------------------------------------------
 SupportedFiles::operator QString() const
 {
   return m_filter;
@@ -63,11 +92,11 @@ void SupportedFiles::addFilter(const QString &name, const QString &extension)
     m_filter += ";;";
   }
 
-  m_filter += QString("%1 (.%2)").arg(name).arg(extension);
+  m_filter += QString("%1 (*.%2)").arg(name).arg(extension);
 }
 
 //------------------------------------------------------------------------
-QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, const QString& path)
+QString DefaultDialogs::OpenFile(const QString& title, const QStringList& filters, const QString& path)
 {
   QString fileName;
 
@@ -81,16 +110,18 @@ QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, c
 }
 
 //------------------------------------------------------------------------
-QStringList DefaultDialogs::OpenFiles(const QString& title, const QString& filters, const QString& path)
+QStringList DefaultDialogs::OpenFiles(const QString& title, const QStringList& filters, const QString& path)
 {
   QStringList fileNames;
 
   QFileDialog fileDialog;
   fileDialog.setWindowTitle(title);
+  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDirectory(path);
+  fileDialog.setNameFilters(filters);
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilter(filters);
   fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
@@ -131,6 +162,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
 
   QFileDialog fileDialog;
   fileDialog.setWindowTitle(title);
+  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDefaultSuffix(suffix);
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile(suggestion);
@@ -146,7 +178,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
     fileNames = fileDialog.selectedFiles();
 
     auto extension = fileDialog.selectedFilter();
-    extension      = extension.mid(extension.indexOf("(.")+1,4);
+    extension      = extension.mid(extension.indexOf("(*.")+2,4);
 
     for (auto &fileName : fileNames)
     {
@@ -180,6 +212,7 @@ void DefaultDialogs::InformationMessage(const QString& title, const QString& mes
   dialog.setWindowTitle(title);
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
+  dialog.setModal(true);
 
   dialog.exec();
 }

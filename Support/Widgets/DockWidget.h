@@ -39,12 +39,12 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DockWidget class constructor.
-     * \param[in] parent, raw pointer of the parent widget of this one.
+     * \param[in] parent raw pointer of the parent widget of this one.
      *
      */
-    explicit DockWidget(QWidget *parent = nullptr)
-    : QDockWidget(parent)
-    {}
+    explicit DockWidget(QWidget *parent = nullptr);
+
+    explicit DockWidget(const QString& title, QWidget* parent = 0, Qt::WindowFlags flags = 0);
 
     /** \brief DockWidget class virtual destructor.
      *
@@ -54,11 +54,16 @@ namespace ESPINA
 
     static QPushButton *createDockButton(const QString &icon, const QString &tooltip);
 
+    virtual void showEvent(QShowEvent *event);
+
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.
      *
      */
-    virtual void reset() = 0;
+    virtual void reset() {};
+
+  signals:
+    void dockShown(bool visible);
   };
 }
 

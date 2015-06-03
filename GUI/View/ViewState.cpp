@@ -21,6 +21,7 @@
 #include "ViewState.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
@@ -161,14 +162,14 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 }
 
 //----------------------------------------------------------------------------
-void ViewState::addWidgets(Widgets::WidgetFactorySPtr factory)
+void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
   auto t = m_timer.increment();
   emit widgetsAdded(factory, t);
 }
 
 //----------------------------------------------------------------------------
-void ViewState::removeWidgets(Widgets::WidgetFactorySPtr factory)
+void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
   auto t = m_timer.increment();
   emit widgetsRemoved(factory, t);

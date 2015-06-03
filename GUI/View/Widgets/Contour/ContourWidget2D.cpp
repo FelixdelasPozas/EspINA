@@ -27,6 +27,7 @@
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Contour;
 
@@ -75,7 +76,7 @@ void ContourWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-EspinaWidget2DSPtr ContourWidget2D::clone()
+TemporalRepresentation2DSPtr ContourWidget2D::clone()
 {
   return std::make_shared<ContourWidget2D>(m_handler);
 }

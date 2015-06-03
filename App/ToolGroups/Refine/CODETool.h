@@ -23,27 +23,22 @@
 #define ESPINA_CODE_TOOL_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/RefineTool.h>
+
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Widgets/NumericalInput.h>
+#include <Filters/MorphologicalEditionFilter.h>
+#include <GUI/ModelFactory.h>
 
 namespace ESPINA {
-  class CODETool
-  : public Tool
+
+  class CODEToolBase
+  : public Support::Widgets::RefineTool
   {
     Q_OBJECT
 
   public:
-    /** \brief CODETool class constructor.
-     * \param[in] icon tool icon.
-     * \param[in] tooltip tooltip of the tool.
-     *
-     */
-    explicit CODETool(const QString&icon, const QString& tooltip);
-
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
+    explicit CODEToolBase(const QString &name, const QString& icon, const QString& tooltip, Support::Context& context);
 
     /** \brief Sets the radius value.
      * \param[in] value value of the radius.
@@ -57,26 +52,50 @@ namespace ESPINA {
     int radius() const
     { return m_radius->value(); }
 
-  public slots:
-    /** \brief Hide/show the tool widgets.
-     * \param[in] visible true to set visible, false otherwise.
-     */
-    void toggleToolWidgets(bool visible);
-
-  signals:
-    void toggled(bool);
-    void applyClicked();
+    virtual void abortOperation();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
     void initOptionWidgets();
 
+    virtual bool acceptsNInputs(int n) const override;
+
+    virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type& type) = 0;
+
+  private slots:
+    void onApplyClicked();
+
+    void onTaskFinished();
+
   private:
-    QAction             *m_toggle;
-    Tool::NestedWidgets  m_toolWidgets;
+    struct TaskContext
+    {
+      MorphologicalEditionFilterSPtr Task;
+      SegmentationAdapterPtr         Segmentation;
+      QString                        Operation;
+    };
+
+    QString      m_name;
+    Filter::Type m_type;
+
+    QMap<MorphologicalEditionFilterPtr, TaskContext> m_executingTasks;
     GUI::Widgets::NumericalInput *m_radius;
   };
+
+  template<typename T>
+  class CODETool
+  : public CODEToolBase
+  {
+  public:
+    explicit CODETool(const QString& name, const QString& icon, const QString& tooltip, Support::Context& context)
+    : CODEToolBase(name, icon, tooltip, context) {}
+
+  private:
+    virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type &type) override
+    {
+      return this->context().factory()->template createFilter<T>(inputs, type);
+    }
+  };
+
 
 } // namespace ESPINA
 

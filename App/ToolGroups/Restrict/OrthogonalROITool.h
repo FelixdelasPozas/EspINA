@@ -26,13 +26,13 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h>
 
 // Qt
 #include <QUndoCommand>
 
+class QPushButton;
 class QAction;
 namespace ESPINA
 {
@@ -40,7 +40,7 @@ namespace ESPINA
   class RestrictToolGroup;
 
   class OrthogonalROITool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:
@@ -56,10 +56,6 @@ namespace ESPINA
      *
      */
     virtual ~OrthogonalROITool();
-
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
 
     /** \brief Sets ROI to be resized by this tool
      *
@@ -120,7 +116,9 @@ namespace ESPINA
     void updateRegionRepresentation();
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    virtual void onToolGroupActivated();
+
+    void initControls();
 
     /** \brief Creates the rectangular region widget for the current roi
      *
@@ -133,12 +131,6 @@ namespace ESPINA
     void destroyOrthogonalWidget();
 
     void disableOrthogonalWidget();
-
-    /** \brief Changes Orthogonal ROI action buttons visibility
-     *
-     *  \param[in] visibliy when visibility is true, action buttons are displayed
-     */
-    void setActionVisibility(bool visiblity);
 
     bool isResizable() const;
 
@@ -153,20 +145,17 @@ namespace ESPINA
   private:
     using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
     using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
-    using Representation        = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
-    using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
+    using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    Support::Context &m_context;
-
-    QAction         *m_activeTool;
-    QAction         *m_resizeROI;
-    QAction         *m_applyROI;
+    QPushButton *m_resizeROI;
+    QPushButton *m_applyROI;
 
     bool             m_enabled;
 
-    ROISPtr           m_roi;
-    Representation    m_roiRepresentation;
-    WidgetFactorySPtr m_factory;
+    ROISPtr                m_roi;
+    Representation         m_roiRepresentation;
+    TemporalPrototypesSPtr m_prototypes;
 
     EventHandlerSPtr   m_resizeHandler;
     PixelSelectorSPtr  m_defineHandler;

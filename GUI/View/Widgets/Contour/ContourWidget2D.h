@@ -25,9 +25,7 @@
 // ESPINA
 #include <GUI/EventHandlers/MaskPainter.h>
 #include <GUI/EventHandlers/ContourPainter.h>
-#include <GUI/View/Widgets/EspinaWidget2.h>
-
-// VTK
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
@@ -71,7 +69,7 @@ namespace ESPINA
 
               virtual void setRepresentationDepth(Nm depth);
 
-              virtual EspinaWidget2DSPtr clone();
+              virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
 
               /** \brief Resets all contours in all planes without rasterizing and uses the given contour list as initial data.
                * \param[in] contour initial contour.

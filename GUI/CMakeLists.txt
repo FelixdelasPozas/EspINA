@@ -42,8 +42,9 @@ qt4_wrap_cpp(GUI_MOC
   View/ViewState.h
   View/View3D.h
   View/RepresentationInvalidator.h
-  View/Widgets/Measures/MeasureWidget.h
   View/Widgets/Measures/MeasureEventHandler.h
+  View/Widgets/Measures/MeasureWidget.h
+  View/Widgets/PlanarSplit/PlanarSplitEventHandler.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
@@ -54,6 +55,9 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/SelectionMeasure/Widget2D.h
   View/Widgets/SelectionMeasure/Widget3D.h
   View/Widgets/Contour/ContourWidget2D.h
+  View/Widgets/Zoom/ZoomWidget2D.h
+  View/Widgets/Zoom/ZoomWidget3D.h  
+  View/Widgets/Zoom/ZoomEventHandler.h  
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
@@ -64,6 +68,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
   Widgets/NoteEditor.h
+  Widgets/ProgressAction.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
   Widgets/SchedulerProgress.h
@@ -128,7 +133,7 @@ set (GUI_SOURCES
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Pools/BasicRepresentationPool.cpp
   Representations/Managers/CrosshairManager.cpp 
-  Representations/Managers/WidgetManager.cpp
+  Representations/Managers/TemporalManager.cpp
   Representations/PipelineSourcesFilter.cpp
   Representations/PipelineSources.cpp
   Representations/ManualPipelineSources.cpp
@@ -161,19 +166,23 @@ set (GUI_SOURCES
   View/ViewState.cpp
   View/View3D.cpp
   View/RepresentationInvalidator.cpp
-  View/Widgets/EspinaWidget2.cpp
-  View/Widgets/WidgetFactory.cpp
+  View/Widgets/EspinaWidget.cpp
   View/Widgets/Contour/ContourWidget2D.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp
   View/Widgets/Contour/vtkPlaneContourWidget.cpp
   View/Widgets/Contour/vtkContourToPolygonFilter.cxx
-  View/Widgets/Zoom/ZoomSelectionWidget.cpp
+  View/Widgets/Zoom/ZoomWidget2D.cpp
+  View/Widgets/Zoom/ZoomWidget3D.cpp
+  View/Widgets/Zoom/ZoomEventHandler.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
   View/Widgets/Measures/MeasureEventHandler.cpp
+  View/Widgets/PlanarSplit/PlanarSplitEventHandler.cpp
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget2D.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget3D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.cpp
@@ -200,10 +209,12 @@ set (GUI_SOURCES
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
+  Widgets/ProgressAction.cpp
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
+  Widgets/Styles.cpp
   Widgets/NumericalInput.cpp
   Widgets/TaskProgress.cpp
   View/CoordinateSystem.cpp

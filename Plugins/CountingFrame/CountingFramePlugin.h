@@ -53,8 +53,6 @@ namespace ESPINA
 
       virtual QList<CategorizedTool> tools() const;
 
-      virtual QList<DockWidget *> dockWidgets() const;
-
       virtual FilterFactorySList filterFactories() const;
 
       virtual SettingsPanelSList settingsPanels() const;
@@ -71,9 +69,10 @@ namespace ESPINA
       ModelAdapterSPtr     m_model;
       SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
+      DockWidget          *m_dockWidget;
+      Support::Context    *m_context;
 
       NamedColorEngine     m_colorEngine;
-      DockWidget *         m_dockWidget;
 
       RepresentationFactorySPtr        m_representationFactory;
       ChannelExtensionFactorySPtr      m_channelExtensionFactory;

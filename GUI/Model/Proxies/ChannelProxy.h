@@ -54,44 +54,20 @@ namespace ESPINA
   	 */
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
-  	/** \brief Overrides QAbstractProxyModel::data().
-  	 *
-  	 */
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;
 
-  	/** \brief Overrides QAbstractProxyModel::hasChildren().
-  	 *
-  	 */
     virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const override;
 
-  	/** \brief Implements QAbstractProxyModel::rowCount().
-  	 *
-  	 */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
-  	/** \brief Implements QAbstractProxyModel::columnCount().
-  	 *
-  	 */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
 
-    /** \brief Implements QAbstractProxyModel::parent().
-  	 *
-  	 */
     virtual QModelIndex parent(const QModelIndex& child) const;
 
-    /** \brief Implements QAbstractProxyModel::index().
-  	 *
-  	 */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Implements QAbstractProxyModel::mapFromSource().
-  	 *
-  	 */
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
 
-    /** \brief Implements QAbstractProxyModel::mapToSource().
-  	 *
-  	 */
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
   	/** \brief Overrides QAbrstractProxyModel::flags().
@@ -136,6 +112,12 @@ namespace ESPINA
   	 *
   	 */
     QModelIndexList channels(QModelIndex sampleIndex, bool recursive=false) const;
+
+    /** \brief Sets the active channel.
+     * \param[in] channel ChannelAdapter raw pointer.
+     *
+     */
+    void setActiveChannel(ChannelAdapterPtr channel);
 
   signals:
     void channelsDragged(ChannelAdapterList sources, SampleAdapterPtr destination);
@@ -237,6 +219,7 @@ namespace ESPINA
 
     SampleAdapterList m_samples;
     mutable QMap<SampleAdapterPtr, ItemAdapterList> m_channels;
+    ChannelAdapterPtr m_activeChannel;
   };
 
 } // namespace ESPINA

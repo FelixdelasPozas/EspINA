@@ -1,7 +1,5 @@
 /*
-
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
     This file is part of ESPINA.
 
     ESPINA is free software: you can redistribute it and/or modify
@@ -19,16 +17,20 @@
 */
 
 #include "Tool.h"
-#include "Styles.h"
+#include <Support/Context.h>
+#include <GUI/Widgets/ProgressAction.h>
+#include <GUI/Widgets/Styles.h>
 #include <QPushButton>
 #include <QAction>
 #include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
-Tool::NestedWidgets::NestedWidgets(QObject *parent)
+ProgressTool::NestedWidgets::NestedWidgets(QObject *parent)
 : QWidgetAction(parent)
 , m_layout(new QHBoxLayout())
 {
@@ -43,68 +45,218 @@ Tool::NestedWidgets::NestedWidgets(QObject *parent)
 }
 
 //----------------------------------------------------------------------------
-void Tool::NestedWidgets::addWidget(QWidget *widget)
+void ProgressTool::NestedWidgets::addWidget(QWidget *widget)
 {
   m_layout->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
-Tool::Tool()
-: m_enabled{true}
+bool ProgressTool::NestedWidgets::isEmpty() const
 {
-
+  return m_layout->isEmpty();
 }
 
 //----------------------------------------------------------------------------
-QAction *Tool::createAction(const QString &icon, const QString &tooltip, QObject *parent)
+ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context &context)
+: ProgressTool{QIcon(icon), tooltip, context}
 {
-  return createAction(QIcon(icon), tooltip, parent);
 }
 
 //----------------------------------------------------------------------------
-QAction *Tool::createAction(const QIcon &icon, const QString &tooltip, QObject *parent)
+ProgressTool::ProgressTool(const QIcon &icon, const QString &tooltip, Context &context)
+: WithContext(context)
+, m_action    {new ProgressAction(icon, tooltip, this)}
+, m_settings  {new ProgressTool::NestedWidgets(this)}
+, m_isExlusive{false}
+, m_groupName {"zzzzzzzz"}
 {
-  auto action = new QAction(parent);
+  connect(m_action, SIGNAL(toggled(bool)),
+          this,     SLOT(onActionToggled(bool)));
 
-  action->setIcon(icon);
-  action->setToolTip(tooltip);
+  connect(m_action, SIGNAL(triggered(bool)),
+          this,     SIGNAL(triggered(bool)));
 
-  return action;
+  connect(&m_taskProgress, SIGNAL(progress(int)),
+          m_action,        SLOT(setProgress(int)));
+
+  m_settings->setVisible(false);
 }
 
 //----------------------------------------------------------------------------
-QPushButton *Tool::createButton(const QString &icon, const QString &tooltip)
+ProgressTool::~ProgressTool()
 {
-  return createButton(QIcon(icon), tooltip);
+  delete m_action;
+  delete m_settings;
 }
 
 //----------------------------------------------------------------------------
-QPushButton *Tool::createButton(const QIcon &icon, const QString &tooltip)
+void ProgressTool::setEnabled(bool value)
 {
-  auto button = new QPushButton();
-
-  button->setIcon(icon);
-  button->setIconSize(QSize(22, 22));
-  button->setMaximumSize(30, 30);
-  button->setFlat(true);
-  button->setToolTip(tooltip);
-
-  return button;
+  m_action->setActionEnabled(value);
+  m_settings->setEnabled(value);
 }
 
 //----------------------------------------------------------------------------
-void Tool::setEnabled(bool value)
+bool ProgressTool::isEnabled() const
 {
-  if (m_enabled != value)
+  return m_action->isEnabled();
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setCheckable(bool value)
+{
+  m_action->setCheckable(value);
+}
+
+//----------------------------------------------------------------------------
+bool ProgressTool::isChecked() const
+{
+  return m_action->isChecked();
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setChecked(bool value)
+{
+  m_action->setActionChecked(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setExclusive(bool value)
+{
+  m_isExlusive = value;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setGroupWith(const QString& name)
+{
+  m_groupName = name;
+}
+
+//----------------------------------------------------------------------------
+QString ProgressTool::groupWith() const
+{
+  return m_groupName;
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setToolTip(const QString &tooltip)
+{
+  m_action->setToolTip(tooltip);
+}
+
+//----------------------------------------------------------------------------
+QList<QAction*> ProgressTool::actions() const
+{
+  QList<QAction *> result;
+
+  result << m_action;
+
+  if(!m_settings->isEmpty())
   {
-    onToolEnabled(value);
+    result << m_settings;
   }
 
-  m_enabled = value;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-bool Tool::isEnabled() const
+void ProgressTool::onExclusiveToolInUse(ProgressTool* tool)
 {
-  return m_enabled;
+  if (this != tool && m_isExlusive && isChecked())
+  {
+    setChecked(false);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setProgress(int value)
+{
+  m_action->setProgress(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::addSettingsWidget(QWidget* widget)
+{
+  m_settings->addWidget(widget);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::showTaskProgress(TaskSPtr task)
+{
+  m_taskProgress.showTaskProgress(task);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setEventHandler(EventHandlerSPtr handler)
+{
+  bool wasInUse = false;
+
+  if (m_handler)
+  {
+    wasInUse = m_handler->isInUse();
+
+    disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+               this,            SLOT(onEventHandlerInUse(bool)));
+
+    if (wasInUse)
+    {
+      deactivateEventHandler();
+    }
+  }
+
+  m_handler = handler;
+
+  if (m_handler)
+  {
+    if (wasInUse)
+    {
+      activateEventHandler();
+    }
+
+    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,            SLOT(onEventHandlerInUse(bool)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::activateEventHandler()
+{
+  getViewState().setEventHandler(m_handler);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::deactivateEventHandler()
+{
+  getViewState().unsetEventHandler(m_handler);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::onActionToggled(bool value)
+{
+  m_settings->setVisible(value && !m_settings->isEmpty());
+
+  if (m_handler)
+  {
+    if (value)
+    {
+      activateEventHandler();
+    }
+    else
+    {
+      deactivateEventHandler();
+    }
+  }
+
+  if (value && m_isExlusive)
+  {
+    emit exclusiveToolInUse(this);
+  }
+
+  emit toggled(value);
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::onEventHandlerInUse(bool isUsed)
+{
+  m_action->setActionChecked(isUsed);
 }

@@ -99,34 +99,38 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
     expandAndDraw<T>(volume.get(), drawnVolume, bounds);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
-    if (!bounds.areValid())
+    Bounds drawingBounds = bounds;
+
+    if (!drawingBounds.areValid())
     {
-      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
     }
 
-    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->resize(boundingBox(drawingBounds, volume->bounds()));
     volume->draw(drawnVolume);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, typename T::Pointer drawnVolume, const Bounds &bounds)
   {
-    if (!bounds.areValid())
+    Bounds drawingBounds = bounds;
+
+    if (!drawingBounds.areValid())
     {
-      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
     }
 
-    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->resize(boundingBox(drawingBounds, volume->bounds()));
     volume->draw(drawnVolume);
   }
 
@@ -213,7 +217,9 @@ namespace ESPINA
   itk::ImageRegionIterator<T> itkImageIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionIterator<T>(image, region);
+    auto it = itk::ImageRegionIterator<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -221,7 +227,9 @@ namespace ESPINA
   itk::ImageRegionIteratorWithIndex<T> itkImageIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionIteratorWithIndex<T>(image, region);
+    auto it = itk::ImageRegionIteratorWithIndex<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -229,7 +237,9 @@ namespace ESPINA
   itk::ImageRegionConstIterator<T> itkImageConstIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionConstIterator<T>(image, region);
+    auto it = itk::ImageRegionConstIterator<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 
   //-----------------------------------------------------------------------------
@@ -237,6 +247,8 @@ namespace ESPINA
   itk::ImageRegionConstIteratorWithIndex<T> itkImageConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    return itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+    auto it =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+    it.GoToBegin();
+    return it;
   }
 } // namespace ESPINA

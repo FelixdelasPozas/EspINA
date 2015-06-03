@@ -55,10 +55,9 @@ namespace ESPINA
 
 //----------------------------------------------------------------------------
 vtkWidget2D::vtkWidget2D()
-: m_enabled(false)
-, m_plane(Plane::UNDEFINED)
-, m_up(vtkSmartPointer<vtkAxisActor2D>::New())
-, m_right(vtkSmartPointer<vtkAxisActor2D>::New())
+: m_plane  {Plane::UNDEFINED}
+, m_up     {vtkSmartPointer<vtkAxisActor2D>::New()}
+, m_right  {vtkSmartPointer<vtkAxisActor2D>::New()}
 {
   m_up->SetVisibility(false);
   m_up->SetPoint1(0,0);
@@ -96,15 +95,14 @@ vtkWidget2D::~vtkWidget2D()
 //----------------------------------------------------------------------------
 void vtkWidget2D::CreateDefaultRepresentation()
 {
-
 }
 
 //----------------------------------------------------------------------------
 void vtkWidget2D::SetEnabled(int enabled)
 {
-  if (enabled != m_enabled && CurrentRenderer)
+  if (enabled != Enabled && CurrentRenderer)
   {
-    m_enabled = enabled;
+    Enabled = enabled;
 
     if (enabled)
     {
@@ -126,7 +124,7 @@ void vtkWidget2D::SetEnabled(int enabled)
 //----------------------------------------------------------------------------
 void vtkWidget2D::drawActors()
 {
-  bool validActors = (m_plane != Plane::UNDEFINED) && m_bounds.areValid() && m_enabled;
+  bool validActors = (m_plane != Plane::UNDEFINED) && m_bounds.areValid() && Enabled;
   if (validActors)
   {
     // Beware, here be dragons...

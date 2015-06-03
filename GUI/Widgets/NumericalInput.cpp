@@ -40,8 +40,11 @@ NumericalInput::NumericalInput(QWidget *parent)
   m_slider->setOrientation(Qt::Horizontal);
   m_slider->setFixedWidth(80);
 
-  m_slider->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
-  m_spinBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+  m_slider->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Maximum);
+  m_spinBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Maximum);
+
+  connect(m_spinBox, SIGNAL(valueChanged(int)),
+          m_slider, SLOT(setValue(int)));
 
   connect(m_slider, SIGNAL(valueChanged(int)),
           this,     SLOT(setValue(int)));
@@ -52,6 +55,7 @@ NumericalInput::NumericalInput(QWidget *parent)
   layout->addWidget(m_label);
   layout->addWidget(m_slider);
   layout->addWidget(m_spinBox);
+  layout->setMargin(2);
 
   setLayout(layout);
 }
@@ -64,7 +68,7 @@ NumericalInput::~NumericalInput()
 //------------------------------------------------------------------------
 void NumericalInput::setValue(int value)
 {
-  m_slider ->setValue(value);
+  //m_slider ->setValue(value);
   m_spinBox->setValue(value);
 
   emit valueChanged(value);

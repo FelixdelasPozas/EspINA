@@ -13,13 +13,14 @@ include_directories(
 
 qt4_wrap_cpp(Support_MOC
   Plugin.h
-  Representations/BasicRepresentationSwitch.h
+  Representations/RepresentationSwitch.h
   Representations/Slice3DManager.h
   Widgets/DockWidget.h
-  Widgets/RepresentationsGroupTool.h
-  Widgets/RepresentationTools.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
+  Widgets/Tool.h
+  Widgets/RefineTool.h
+  Widgets/PanelSwitch.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -78,9 +79,8 @@ set (Support_SOURCES
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/Tool.cpp
-  Widgets/Styles.cpp
-  Widgets/RepresentationsGroupTool.cpp
-  Widgets/RepresentationTools.cpp
+  Widgets/PanelSwitch.cpp
+  Widgets/RefineTool.cpp
   )
 
 set(Support_EXTERNAL_LIBS

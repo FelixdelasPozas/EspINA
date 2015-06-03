@@ -38,9 +38,9 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      *
      */
-    explicit DilateFilter(InputSList    inputs,
-                          Filter::Type  type,
-                          SchedulerSPtr scheduler);
+    explicit DilateFilter(InputSList          inputs,
+                          const Filter::Type &type,
+                          SchedulerSPtr       scheduler);
 
     /** \brief DilateFilter class virtual destructor.
      *

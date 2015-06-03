@@ -24,7 +24,6 @@
 #include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
 
 // Qt
-#include <QFileDialog>
 
 // ITK
 #include <itkImageFileReader.h>

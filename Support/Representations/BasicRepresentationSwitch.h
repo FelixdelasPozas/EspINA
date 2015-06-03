@@ -28,23 +28,17 @@ namespace ESPINA {
   class BasicRepresentationSwitch
   : public RepresentationSwitch
   {
-    Q_OBJECT
-
   public:
-    explicit BasicRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager, ViewTypeFlags supportedViews, Timer &timer);
+    explicit BasicRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                       ViewTypeFlags supportedViews,
+                                       Timer &timer,
+                                       Support::Context &context);
 
     virtual ViewTypeFlags supportedViews();
-
-    virtual QWidget* widget();
 
     virtual void showRepresentations(TimeStamp t) override;
 
     virtual void hideRepresentations(TimeStamp t) override;
-
-  private slots:
-    void onButtonToggled(bool active);
-
-    void onSwitchValue();
 
   private:
     GUI::Representations::RepresentationManagerSPtr m_manager;

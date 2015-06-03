@@ -20,40 +20,29 @@
 #include "BasicRepresentationSwitch.h"
 
 #include <Support/Widgets/Tool.h>
+#include <GUI/Widgets/Styles.h>
 #include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Widgets;
 
 //----------------------------------------------------------------------------
 BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews,
-                                                     Timer                    &timer)
-: RepresentationSwitch(timer)
+                                                     Timer                    &timer,
+                                                     Support::Context         &context)
+: RepresentationSwitch(manager->icon(), manager->description(), timer, context)
 , m_manager(manager)
 , m_flags(supportedViews)
 {
-  setActive(m_manager->representationsVisibility());
+  setChecked(m_manager->representationsVisibility());
 }
 
 //----------------------------------------------------------------------------
 ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews()
 {
   return m_flags;
-}
-
-//----------------------------------------------------------------------------
-QWidget* BasicRepresentationSwitch::widget()
-{
-  auto widget = Tool::createButton(m_manager->icon(), m_manager->description());
-
-  widget->setCheckable(true);
-  widget->setChecked(isActive());
-
-  connect(widget, SIGNAL(toggled(bool)),
-          this,   SLOT(onButtonToggled(bool)));
-
-  return widget;
 }
 
 //----------------------------------------------------------------------------
@@ -66,16 +55,4 @@ void BasicRepresentationSwitch::showRepresentations(TimeStamp t)
 void BasicRepresentationSwitch::hideRepresentations(TimeStamp t)
 {
   m_manager->hide(t);
-}
-
-//----------------------------------------------------------------------------
-void BasicRepresentationSwitch::onButtonToggled(bool active)
-{
-  setActive(active);
-}
-
-//----------------------------------------------------------------------------
-void BasicRepresentationSwitch::onSwitchValue()
-{
-  switchValue();
 }

@@ -37,9 +37,9 @@ using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::
 using BinaryOpenFilter       = itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-OpenFilter::OpenFilter(InputSList    inputs,
-                             Filter::Type  type,
-                             SchedulerSPtr scheduler)
+OpenFilter::OpenFilter(InputSList          inputs,
+                       const Filter::Type &type,
+                       SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }

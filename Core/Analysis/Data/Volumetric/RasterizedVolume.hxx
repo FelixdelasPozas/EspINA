@@ -61,7 +61,7 @@ namespace ESPINA
     explicit RasterizedVolume(Output          *output,
                               const Bounds    &bounds,
                               const NmVector3 &spacing = NmVector3{1,1,1},
-                              const NmVector3 &origin = NmVector3{0,0,0});
+                              const NmVector3 &origin  = NmVector3{0,0,0});
 
     /** \brief RasterizedVolume class virtual destructor.
      *
@@ -113,9 +113,9 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   template<typename T>
   RasterizedVolume<T>::RasterizedVolume(Output *output, const Bounds &meshBounds, const NmVector3 &spacing, const NmVector3 &origin)
-  : SparseVolume<T>(meshBounds, spacing, origin)
-  , m_output            {output}
-  , m_rasterizationTime{0}
+  : SparseVolume<T>    {meshBounds, spacing, origin}
+  , m_output           {output}
+  , m_rasterizationTime{std::numeric_limits<unsigned long long>::max()}
   {
   }
 
@@ -292,20 +292,24 @@ namespace ESPINA
       auto index = it.GetIndex();
 
       for(auto i: {0,1,2})
+      {
         point[i] = index[i] * this->m_spacing[i];
+      }
 
       if (std::abs(distance->EvaluateFunction(point)) <= minSpacing)
       {
         it.Set(SEG_VOXEL_VALUE);
       }
       else
+      {
         it.Set(SEG_BG_VALUE);
+      }
 
       ++it;
     }
     m_rasterizationTime = mesh->GetMTime();
 
-    this->draw(image);
+    SparseVolume<T>::draw(image);
 
     this->m_mutex.unlock();
   }

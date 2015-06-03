@@ -40,6 +40,10 @@ namespace ESPINA
     void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;
     void createMeshRepresentation      (Representation &representation, Support::Context &context) const;
 
+    void groupSwitch(ToolSPtr tool) const;
+
+    void groupSwitch3D(ToolSPtr tool) const;
+
   private:
     static const unsigned int WINDOW_SIZE;
   };

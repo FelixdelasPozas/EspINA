@@ -167,9 +167,10 @@ namespace ESPINA {
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
      */
-    void reportProgress(int value)
-    { emit progress(value); }
+    void reportProgress(int value);
 
+    int progress() const
+    { return m_progress; }
 
   public slots:
     /** \brief Sets task priority.
@@ -288,6 +289,7 @@ namespace ESPINA {
     QWaitCondition m_pauseCondition;
 
     QString  m_description;
+    int      m_progress;
 
     friend class Scheduler;
   };

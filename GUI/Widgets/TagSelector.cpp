@@ -30,7 +30,6 @@
 
 // Qt
 #include <ui_TagSelector.h>
-#include <QFileDialog>
 #include <QInputDialog>
 #include <QTextStream>
 

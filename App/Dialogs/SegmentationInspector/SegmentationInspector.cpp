@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
+
 #include <Docks/SegmentationHistory/EmptyHistory.h>
 #include <Docks/SegmentationHistory/DefaultHistory.h>
 #include <Support/Widgets/TabularReport.h>
@@ -63,7 +64,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}
 , m_segmentationSources {context.representationInvalidator()}
-, m_representations     {context.timer()}
 , m_view                {context.viewState(), true}
 , m_tabularReport       {context}
 {
@@ -71,6 +71,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   setAttribute(Qt::WA_DeleteOnClose, true);
   setAcceptDrops(true);
+  setWindowModality(Qt::WindowModality::ApplicationModal);
 
   for(auto segmentation : segmentations)
   {
@@ -85,8 +86,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   restoreGeometryState();
 
-   connect(selection().get(), SIGNAL(selectionChanged()),
-           this,              SLOT(updateSelection()));
+  connect(selection().get(), SIGNAL(selectionChanged()),
+          this,              SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -183,6 +184,8 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
       removeChannel(channelToBeRemoved.get());
     }
   }
+
+  updateSelection();
 
   m_view.refresh();
 
@@ -378,13 +381,19 @@ void SegmentationInspector::updateSelection()
     {
       if (m_selectedSegmentation != segmentation)
       {
-        disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
-                   this, SLOT(updateSelection()));
+        if(m_selectedSegmentation)
+        {
+          disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
+                     this, SLOT(updateSelection()));
+        }
 
         m_selectedSegmentation = segmentation;
 
-        connect(m_selectedSegmentation, SIGNAL(outputModified()),
-                this, SLOT(updateSelection()));
+        if(m_selectedSegmentation)
+        {
+          connect(m_selectedSegmentation, SIGNAL(outputModified()),
+                  this, SLOT(updateSelection()));
+        }
       }
 
       try
@@ -411,11 +420,6 @@ void SegmentationInspector::updateSelection()
 void SegmentationInspector::configureLayout()
 {
   layout()->setMenuBar(&m_toolbar);
-//   m_historyScrollArea->widget()->setMinimumWidth(250);
-//   m_historyScrollArea->setMinimumWidth(150);
-
-//   QVBoxLayout *historyLayout = new QVBoxLayout();
-//   historyLayout->addWidget(m_historyScrollArea);
 
   m_viewport         ->setLayout(createViewLayout());
   m_historyScrollArea->setWidget(new EmptyHistory());
@@ -453,9 +457,14 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
   {
     auto representation = factory->createRepresentation(m_context, ViewType::VIEW_3D);
 
+    m_representations << representation;
+
     for (auto repSwitch : representation.Switches)
     {
-      m_representations.addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+      for (auto action : repSwitch->actions())
+      {
+        m_toolbar.addAction(action);
+      }
     }
 
     for (auto manager : representation.Managers)
@@ -473,14 +482,6 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
       {
         pool->setPipelineSources(&m_segmentationSources);
       }
-    }
-  }
-
-  for (auto tool : m_representations.representationTools())
-  {
-    for (auto action : tool->actions())
-    {
-      m_toolbar.addAction(action);
     }
   }
 }

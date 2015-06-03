@@ -74,6 +74,19 @@ namespace ESPINA {
     bool isVisible() const
     { return m_isVisible; }
 
+    /** \brief Sets whether or not the item is being modified
+     * \param[in] value true if being modified, false otherwise
+     *
+     */
+    void setBeingModified(bool value)
+    { m_isBeingModified = value; }
+
+    /** \brief Returns true if the item is being modified
+     *
+     */
+    bool isBeingModified() const
+    { return m_isBeingModified; }
+
     /** \brief Returns the item as a input smart pointer.
      *
      */
@@ -153,6 +166,8 @@ namespace ESPINA {
 
     bool m_isSelected;
     bool m_isVisible;
+    bool m_isBeingModified;
+
     RepresentationPipelineSPtr m_temporalRepresentation;
   };
 

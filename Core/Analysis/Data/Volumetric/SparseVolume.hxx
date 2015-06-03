@@ -39,8 +39,6 @@
 #include <Core/Utils/Vector3.hxx>
 #include <Core/Utils/SpatialUtils.hxx>
 
-#include <QReadWriteLock>
-
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkExtractImageFilter.h>
@@ -53,10 +51,12 @@
 
 // Qt
 #include <QMap>
+#include <QReadWriteLock>
 
 namespace ESPINA
 {
   struct Invalid_Image_Bounds_Exception{};
+  struct Invalid_Image_Output_Value_Exception{};
 
   /*! \brief Volume representation intended to save memory and speed up
    *  edition operations
@@ -216,9 +216,10 @@ namespace ESPINA
     NmVector3    m_spacing;
     VolumeBounds m_bounds;
 
-    const unsigned int s_blockSize = 25; // initially blocks of 50x50x50 voxels =  125000 bytes per block.
-
+    const unsigned int s_blockSize = 25;
     QMap<liVector3, typename T::Pointer> m_blocks;
+
+    mutable QReadWriteLock m_blockMutex;
   };
 
   //-----------------------------------------------------------------------------
@@ -321,6 +322,8 @@ namespace ESPINA
       throw Invalid_Image_Bounds_Exception();
     }
 
+    m_blockMutex.lockForRead();
+
     auto image = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
     auto affectedIndexes = toBlockIndexes(bounds);
 
@@ -334,9 +337,7 @@ namespace ESPINA
       auto intersectionBounds = intersection(blockBounds, expectedBounds);
 
       auto iit = itkImageIterator<T>(image, intersectionBounds);
-      iit.GoToBegin();
       auto bit = itkImageConstIterator<T>(block, intersectionBounds);
-      bit.GoToBegin();
 
       while(!iit.IsAtEnd())
       {
@@ -346,6 +347,8 @@ namespace ESPINA
         ++bit;
       }
     }
+
+    m_blockMutex.unlock();
 
     return image;
   }
@@ -378,7 +381,6 @@ namespace ESPINA
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
       auto bit = itkImageIteratorWithIndex<T>(block, blockIntersection);
-      bit.GoToBegin();
       while(!bit.IsAtEnd())
       {
         auto index = bit.GetIndex();
@@ -434,7 +436,6 @@ namespace ESPINA
       BinaryMask<unsigned char>::region_iterator mit(mask.get(), blockIntersection);
       mit.goToBegin();
       auto bit = itkImageIteratorWithIndex<T>(block, blockIntersection);
-      bit.GoToBegin();
 
       while(!mit.isAtEnd())
       {
@@ -484,9 +485,7 @@ namespace ESPINA
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
       auto iit = itkImageConstIterator<T>(image, blockIntersection);
-      iit.GoToBegin();
       auto bit = itkImageIterator<T>(block, blockIntersection);
-      bit.GoToBegin();
 
       while(!iit.IsAtEnd())
       {
@@ -533,9 +532,7 @@ namespace ESPINA
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
       auto iit = itkImageConstIterator<T>(image, blockIntersection);
-      iit.GoToBegin();
       auto bit = itkImageIterator<T>(block, blockIntersection);
-      bit.GoToBegin();
 
       while(!iit.IsAtEnd())
       {
@@ -594,7 +591,6 @@ namespace ESPINA
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
       auto bit = itkImageIterator<T>(block, blockIntersection);
-      bit.GoToBegin();
 
       while (!bit.IsAtEnd())
       {
@@ -664,6 +660,8 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
   {
+    m_blockMutex.lockForWrite();
+
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
@@ -675,8 +673,8 @@ namespace ESPINA
 
     if(!m_output)
     {
-      // TODO: this avoids ROI crashes when doing their fetchDataImpl.
-      return false;
+      m_blockMutex.unlock();
+      throw Invalid_Image_Output_Value_Exception();
     }
 
     m_spacing = m_output->spacing();
@@ -728,6 +726,7 @@ namespace ESPINA
       dataFetched = true;
     }
 
+    m_blockMutex.unlock();
     return dataFetched && !error;
   }
 

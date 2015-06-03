@@ -159,7 +159,7 @@ void Filter::update()
 }
 
 //----------------------------------------------------------------------------
-Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+Filter::Filter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Task         {scheduler}
 , m_analysis   {nullptr}
 , m_type       {type}

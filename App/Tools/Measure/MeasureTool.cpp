@@ -22,37 +22,34 @@
 #include "MeasureTool.h"
 #include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Measures;
 
 //----------------------------------------------------------------------------
-MeasureTool::MeasureTool(ViewState &viewState)
-: m_viewState(viewState)
-, m_handler  {new MeasureEventHandler()}
-, m_factory  {new WidgetFactory(std::make_shared<MeasureWidget>(m_handler.get()), EspinaWidget3DSPtr())}
-, m_action   {Tool::createAction(":/espina/measure.png", tr("Segmentation Measures Tool"),this)}
+MeasureTool::MeasureTool(Support::Context &context)
+: ProgressTool(":/espina/measure.png", tr("Segmentation Measures Tool"), context)
+, m_viewState(context.viewState())
+, m_handler   {new MeasureEventHandler()}
+, m_prototypes{new TemporalPrototypes(std::make_shared<MeasureWidget>(m_handler.get()), TemporalRepresentation3DSPtr())}
 {
-  m_action->setCheckable(true);
-  connect(m_action, SIGNAL(triggered(bool)), this, SLOT(onToolActivated(bool)), Qt::QueuedConnection);
+  setCheckable(true);
+
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(onToolActivated(bool)), Qt::QueuedConnection);
+
+  setEventHandler(m_handler);
 }
 
 //----------------------------------------------------------------------------
 MeasureTool::~MeasureTool()
 {
-}
-
-//----------------------------------------------------------------------------
-QList< QAction* > MeasureTool::actions() const
-{
-  QList<QAction *> actions;
-  actions << m_action;
-
-  return actions;
 }
 
 //----------------------------------------------------------------------------
@@ -65,13 +62,11 @@ void MeasureTool::onToolActivated(bool value)
 {
   if (value)
   {
-    m_viewState.setEventHandler(m_handler);
-    m_viewState.addWidgets(m_factory);
+    m_viewState.addTemporalRepresentations(m_prototypes);
   }
   else
   {
-    m_viewState.removeWidgets(m_factory);
-    m_viewState.unsetEventHandler(m_handler);
+    m_viewState.removeTemporalRepresentations(m_prototypes);
 
     emit stopMeasuring();
   }

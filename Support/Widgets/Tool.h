@@ -23,13 +23,20 @@
 
 #include "Support/EspinaSupport_Export.h"
 
+#include <Support/Context.h>
+
+#include <GUI/Types.h>
+#include <GUI/View/EventHandler.h>
+#include <GUI/Model/SegmentationAdapter.h>
+
+#include <Core/MultiTasking/TaskGroupProgress.h>
+
 // C++
 #include <memory>
 
 // Qt
 #include <QCursor>
 #include <QWidgetAction>
-#include <QObject>
 
 class QHBoxLayout;
 class QAction;
@@ -42,60 +49,126 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EspinaSupport_EXPORT Tool
-  : public QObject
+  namespace Support
   {
-  public:
-    class NestedWidgets
-    : public QWidgetAction
+    namespace Widgets
     {
-    public:
-      explicit NestedWidgets(QObject *parent);
+      class EspinaSupport_EXPORT ProgressTool
+      : public QObject
+      , protected WithContext
+      {
+        Q_OBJECT
+      public:
+        class NestedWidgets
+        : public QWidgetAction
+        {
+        public:
+          explicit NestedWidgets(QObject *parent);
 
-      void addWidget(QWidget *widget);
+          void addWidget(QWidget *widget);
 
-    private:
-      QHBoxLayout *m_layout;
-    };
+          bool isEmpty() const;
 
-  public:
-    explicit Tool();
+        private:
+          QHBoxLayout *m_layout;
+        };
 
-    /** \brief Enables/Disables the tool.
-     * \param[in] value true to enable false otherwise.
-     *
-     */
-    void setEnabled(bool value);
+      public:
+        explicit ProgressTool(const QIcon &icon, const QString &tooltip, Context &context);
 
-    /** \brief Returns true if the tool is enabled, false otherwise.
-     *
-     */
-    bool isEnabled() const;
+        explicit ProgressTool(const QString &icon, const QString &tooltip, Context &context);
 
-    virtual QList<QAction *> actions() const = 0;
+        virtual ~ProgressTool();
 
-    static QAction *createAction( const QString &icon, const QString &tooltip, QObject *parent );
+        /** \brief Enables/Disables the tool
+         * \param[in] value true to enable false otherwise.
+         *
+         * Disabled tools may still report progess of pending operations
+         */
+        void setEnabled(bool value);
 
-    static QAction *createAction(const QIcon &icon, const QString &tooltip, QObject *parent);
+        /** \brief Returns true if the tool is enabled, false otherwise.
+         *
+         */
+        bool isEnabled() const;
 
-    static QPushButton *createButton(const QString &icon, const QString &tooltip);
+        /** \brief Changes tool behaviour to be checkable or not
+         *
+         *  Checked tools will display available options
+         */
+        void setCheckable(bool value);
 
-    static QPushButton *createButton(const QIcon &icon, const QString &tooltip);
+        bool isChecked() const;
 
-    virtual void abortOperation() = 0;
+        /** \brief Changes tool behaviour to be explicit or not
+         *
+         *  There can only be one excluive tool toogled in EspINA
+         */
+        void setExclusive(bool value);
 
-  private:
-    virtual void onToolEnabled(bool enabled) = 0;
+        /** \brief Sets the group name which tools are grouped with
+         *
+         */
+        void setGroupWith(const QString &name);
 
-  signals:
-    void changedActions();
+        QString groupWith() const;
 
-  private:
-    bool m_enabled;
-  };
+        void setToolTip(const QString &tooltip);
 
-  using ToolSPtr  = std::shared_ptr<Tool>;
+        QList<QAction *> actions() const;
+
+        virtual void onToolGroupActivated() {}
+
+        virtual void abortOperation() {}
+
+        void onExclusiveToolInUse(ProgressTool *tool);
+
+      public slots:
+        void setProgress(int value);
+
+        void setChecked(bool value);
+
+      signals:
+        void triggered(bool value);
+
+        void toggled(bool value);
+
+        void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+
+      protected:
+        void addSettingsWidget(QWidget *widget);
+
+        void showTaskProgress(TaskSPtr task);
+
+        void setEventHandler(EventHandlerSPtr handler);
+
+        void activateEventHandler();
+
+        void deactivateEventHandler();
+
+      private slots:
+        void onActionToggled(bool value);
+
+        void onEventHandlerInUse(bool isUsed);
+
+      private:
+        GUI::Widgets::ProgressAction *m_action;
+        NestedWidgets                *m_settings;
+
+        bool    m_isExlusive;
+        QString m_groupName;
+
+        EventHandlerSPtr m_handler;
+
+        Core::MultiTasking::TaskGroupProgress m_taskProgress;
+      };
+    }
+  }
+
+  using ToolSPtr  = std::shared_ptr<Support::Widgets::ProgressTool>;
   using ToolSList = QList<ToolSPtr>;
+
+
 } // namespace ESPINA
 
 #endif // ESPINA_TOOL_H

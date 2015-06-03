@@ -27,6 +27,7 @@
 
 // ESPINA
 #include "NoteEditor.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <ui_NoteEditor.h>
@@ -34,6 +35,7 @@
 #include <QTextStream>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 class NoteEditor::GUI
 : public  Ui::NoteEditor
@@ -81,17 +83,19 @@ QString NoteEditor::text()
 //----------------------------------------------------------------------------
 void NoteEditor::exportNote()
 {
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1").arg(windowTitle()),
-                                                  QString("%1.txt").arg(windowTitle()),
-                                                  tr("Text File (*.txt)"));
-  if (fileName.isEmpty())
-    return;
 
-  QFile file(fileName);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
-  QTextStream out(&file);
+  auto title      = tr("Export %1").arg(windowTitle());
+  auto suggestion = QString("%1.txt").arg(windowTitle());
+  auto formats    = SupportedFiles().addTxtFormat();
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".txt", suggestion);
 
-  out << m_gui->textEdit->toPlainText();
-  file.close();
+  if (!fileName.isEmpty())
+  {
+    QFile file(fileName);
+    file.open(QIODevice::WriteOnly |  QIODevice::Text);
+    QTextStream out(&file);
+
+    out << m_gui->textEdit->toPlainText();
+    file.close();
+  }
 }

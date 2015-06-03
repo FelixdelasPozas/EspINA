@@ -57,6 +57,7 @@ Task::Task(SchedulerSPtr scheduler)
 , m_needsRestart    {false}
 , m_id              {0}
 , m_hidden          {false}
+, m_progress        {0}
 {
   prepareToRun();
 
@@ -82,6 +83,13 @@ Task::~Task()
   }
 }
 
+//-----------------------------------------------------------------------------
+void Task::reportProgress(int value)
+{
+  m_progress = value;
+
+  emit progress(value);
+}
 //-----------------------------------------------------------------------------
 void Task::setPriority(Priority value)
 {
@@ -292,6 +300,8 @@ void Task::prepareToRun()
   m_isAborted        = false;
   m_hasFinished      = false;
   m_isPaused         = false;
+
+  m_progress = 0;
 }
 
 //-----------------------------------------------------------------------------

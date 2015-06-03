@@ -42,6 +42,14 @@ namespace ESPINA {
 
       operator QString() const;
 
+      SupportedFiles& addCSVFormat();
+
+      SupportedFiles& addExcelFormat();
+
+      SupportedFiles& addSegFormat();
+
+      SupportedFiles& addTxtFormat();
+
     private:
       void addFilter(const QString &name, const QString &extension);
 
@@ -60,9 +68,9 @@ namespace ESPINA {
        * Returns the file name specified by the user.
        *
        */
-      static QString OpenFile(const QString& title,
-                              const QString& filters = QString(),
-                              const QString& path    = QString());
+      static QString OpenFile(const QString     &title,
+                              const QStringList &filters = QStringList(),
+                              const QString     &path    = QString());
 
       /** \brief Dialog for asking the user for a unspecified group of files.
        * \param[in] title of the dialog.
@@ -72,9 +80,9 @@ namespace ESPINA {
        * Returns the file names specified by the user.
        *
        */
-      static QStringList OpenFiles(const QString& title,
-                                   const QString& filters = QString(),
-                                   const QString& path    = QString());
+      static QStringList OpenFiles(const QString     &title,
+                                   const QStringList &filters = QStringList(),
+                                   const QString     &path    = QString());
 
       /** \brief Dialog for saving a file.
        * \param[in] title of the dialog.

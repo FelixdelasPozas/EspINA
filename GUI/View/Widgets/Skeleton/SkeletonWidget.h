@@ -26,8 +26,8 @@
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
-#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkSmartPointer.h>
 
 // Qt
@@ -35,14 +35,16 @@
 
 class vtkPolyData;
 
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets;
+
 namespace ESPINA
 {
   class vtkSkeletonWidget;
   class vtkSkeletonWidgetCommand;
 
   class EspinaGUI_EXPORT SkeletonWidget
-  : public EventHandler
-  , public EspinaWidget
+  : public EspinaWidget2D
   {
     Q_OBJECT
     public:
@@ -58,16 +60,9 @@ namespace ESPINA
        */
       virtual ~SkeletonWidget();
 
-      virtual void registerView(RenderView *view);
-
-      virtual void unregisterView(RenderView *view);
-
-      virtual void setEnabled(bool enable);
-
-      bool filterEvent(QEvent *e, RenderView *view) override;
-
       /** \brief Sets the minimum distance between points.
        * \param[in] value minimum distance between points.
+       *
        */
       void setTolerance(const double value);
 
@@ -93,6 +88,31 @@ namespace ESPINA
        */
       void initialize(vtkSmartPointer<vtkPolyData> pd);
 
+//      virtual void registerView(RenderView *view);
+//
+//      virtual void unregisterView(RenderView *view);
+//
+//      virtual void setEnabled(bool enable);
+//
+//      bool filterEvent(QEvent *e, RenderView *view) override;
+
+      virtual void setPlane(Plane plane) {};
+
+      virtual void setRepresentationDepth(Nm depth) {};
+
+      virtual TemporalRepresentation2DSPtr clone() { return std::make_shared<SkeletonWidget>();};
+
+    protected:
+      virtual bool isEnabled() {return true;};
+
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {return false;};
+
+      virtual void setCrosshair(const NmVector3 &crosshair) {}
+
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {return false;};
+
+      virtual void setSceneResolution(const NmVector3 &resolution) {}
+
     public slots:
       void changeSlice(Plane, Nm);
 
@@ -103,6 +123,12 @@ namespace ESPINA
     private:
       friend class vtkSkeletonWidgetCommand;
 
+      virtual void initializeImplementation(RenderView *view) {};
+
+      virtual void uninitializeImplementation() {};
+
+      virtual vtkAbstractWidget *vtkWidget() {return nullptr;};
+
       vtkSmartPointer<vtkSkeletonWidgetCommand> m_command;
       QMap<RenderView *, vtkSkeletonWidget*>    m_widgets;
       double                                    m_tolerance;
@@ -110,17 +136,17 @@ namespace ESPINA
   };
 
   class vtkSkeletonWidgetCommand
-  : public vtkEspinaCommand
+  : public vtkCommand
   {
     public:
-      vtkTypeMacro(vtkSkeletonWidgetCommand, vtkEspinaCommand);
+      vtkTypeMacro(vtkSkeletonWidgetCommand, vtkCommand);
 
       static vtkSkeletonWidgetCommand *New()
       { return new vtkSkeletonWidgetCommand(); }
 
       void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
-      void setWidget(EspinaWidgetPtr widget)
+      void setWidget(EspinaWidget2D *widget)
       { m_widget = dynamic_cast<SkeletonWidget *>(widget); }
 
     private:

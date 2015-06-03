@@ -60,6 +60,7 @@ namespace ESPINA
     QHBoxLayout* layout = new QHBoxLayout();
 
     widget->setLayout(layout);
+    layout->setMargin(0);
 
     m_label   = new QLabel(m_text);
     m_spinBox = new QSpinBox();

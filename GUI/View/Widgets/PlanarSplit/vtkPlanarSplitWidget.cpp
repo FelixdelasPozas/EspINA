@@ -23,6 +23,7 @@
 #include "vtkPlanarSplitRepresentation2D.h"
 
 // vtk
+#include <vtkCommand.h>
 #include <vtkHandleWidget.h>
 #include <vtkHandleRepresentation.h>
 #include <vtkCallbackCommand.h>
@@ -35,58 +36,16 @@
 #include <vtkPoints.h>
 #include <vtkWidgetEventTranslator.h>
 
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets;
 
 vtkStandardNewMacro(vtkPlanarSplitWidget);
-
-// The widget observes its two handles.
-// Here we create the command/observer classes to respond to the
-// handle widgets.
-
-namespace ESPINA
-{
-  class vtkPlanarSplitWidgetCallback
-  : public vtkCommand
-  {
-  public:
-  	/** \brief Creates a new instance.
-  	 *
-  	 */
-    static vtkPlanarSplitWidgetCallback *New()
-    { return new vtkPlanarSplitWidgetCallback; }
-
-    /** \brief Implements vtkCommand::execute().
-     *
-     */
-    virtual void Execute(vtkObject*, unsigned long eventId, void*)
-    {
-      switch(eventId)
-      {
-        case vtkCommand::StartInteractionEvent:
-          this->m_widget->StartHandleInteraction(this->m_handleNumber);
-          break;
-        case vtkCommand::InteractionEvent:
-          this->m_widget->HandleInteraction(this->m_handleNumber);
-          break;
-        case vtkCommand::EndInteractionEvent:
-          this->m_widget->StopHandleInteraction(this->m_handleNumber);
-          break;
-      }
-    }
-
-    int m_handleNumber;
-    vtkPlanarSplitWidget *m_widget;
-  };
-}
 
 //----------------------------------------------------------------------
 vtkPlanarSplitWidget::vtkPlanarSplitWidget()
 {
   this->m_slice = 0;
-  this->m_shift = 0;
+  this->m_depth = 0;
   this->ManagesCursor = 0;
 
   this->WidgetState = vtkPlanarSplitWidget::Start;
@@ -110,7 +69,8 @@ vtkPlanarSplitWidget::vtkPlanarSplitWidget()
   // Set up the callbacks on the two handles
   this->m_planarSplitWidgetCallback1 = vtkPlanarSplitWidgetCallback::New();
   this->m_planarSplitWidgetCallback1->m_handleNumber = 0;
-  this->m_planarSplitWidgetCallback1->m_widget = this;
+  this->m_planarSplitWidgetCallback1->m_widget       = this;
+
   this->m_point1Widget->AddObserver(vtkCommand::StartInteractionEvent, this->m_planarSplitWidgetCallback1,
                                   this->Priority);
   this->m_point1Widget->AddObserver(vtkCommand::InteractionEvent, this->m_planarSplitWidgetCallback1,
@@ -120,7 +80,8 @@ vtkPlanarSplitWidget::vtkPlanarSplitWidget()
 
   this->m_planarSplitWidgetCallback2 = vtkPlanarSplitWidgetCallback::New();
   this->m_planarSplitWidgetCallback2->m_handleNumber = 1;
-  this->m_planarSplitWidgetCallback2->m_widget = this;
+  this->m_planarSplitWidgetCallback2->m_widget       = this;
+
   this->m_point2Widget->AddObserver(vtkCommand::StartInteractionEvent, this->m_planarSplitWidgetCallback2,
                                   this->Priority);
   this->m_point2Widget->AddObserver(vtkCommand::InteractionEvent, this->m_planarSplitWidgetCallback2,
@@ -139,7 +100,7 @@ vtkPlanarSplitWidget::vtkPlanarSplitWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkPlanarSplitWidget::EndSelectAction);
-  m_plane = Plane::XY;
+  m_plane = Plane::UNDEFINED;
   m_permanentlyDisabled = false;
 
   m_segmentationBounds[0] = 0;
@@ -165,20 +126,23 @@ vtkPlanarSplitWidget::~vtkPlanarSplitWidget()
 //----------------------------------------------------------------------
 void vtkPlanarSplitWidget::CreateDefaultRepresentation()
 {
+  if(Plane::UNDEFINED == m_plane) return;
+
   if (!this->WidgetRep)
   {
     this->WidgetRep = vtkPlanarSplitRepresentation2D::New();
   }
 
   reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->InstantiateHandleRepresentation();
-  reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setOrientation(m_plane);
+  reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setPlane(m_plane);
   reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setSlice(m_slice);
+  reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setRepresentationDepth(m_depth);
 }
 
 //----------------------------------------------------------------------
 void vtkPlanarSplitWidget::SetEnabled(int enabling)
 {
-  if(m_permanentlyDisabled) return;
+  if(m_permanentlyDisabled || m_plane == Plane::UNDEFINED) return;
 
   if(this->WidgetRep == nullptr)
   {
@@ -306,7 +270,9 @@ void vtkPlanarSplitWidget::SetEnabled(int enabling)
 
   // Should only render if there is no parent
   if (this->Interactor && !this->Parent)
+  {
     this->Interactor->Render();
+  }
 }
 
 // The following methods are the callbacks that the measure widget responds to
@@ -360,14 +326,21 @@ void vtkPlanarSplitWidget::AddPointAction(vtkAbstractWidget *w)
 
       self->GrabFocus(self->EventCallbackCommand);
       if (state == vtkPlanarSplitRepresentation2D::NearP1)
+      {
         self->CurrentHandle = 0;
+      }
       else
+      {
         if (state == vtkPlanarSplitRepresentation2D::NearP2)
+        {
           self->CurrentHandle = 1;
+        }
+      }
 
       self->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
     }
   }
+
   // Clean up
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Render();
@@ -426,6 +399,7 @@ void vtkPlanarSplitWidget::EndSelectAction(vtkAbstractWidget *w)
   self->WidgetRep->BuildRepresentation();
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Render();
+  self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
 }
 
 // This is a callback that is active when the user is manipulating the
@@ -523,22 +497,30 @@ vtkSmartPointer<vtkPoints> vtkPlanarSplitWidget::getPoints()
 }
 
 //----------------------------------------------------------------------
-void vtkPlanarSplitWidget::setOrientation(Plane plane)
+void vtkPlanarSplitWidget::setPlane(Plane plane)
 {
-  m_plane = plane;
-  if (this->WidgetRep)
+  if(m_plane == Plane::UNDEFINED && plane != Plane::UNDEFINED)
   {
-    reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setOrientation(m_plane);
+    m_plane = plane;
+
+    if (this->WidgetRep)
+    {
+      reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setPlane(m_plane);
+    }
   }
 }
 
 //----------------------------------------------------------------------
-void vtkPlanarSplitWidget::setShift(const Nm shift)
+void vtkPlanarSplitWidget::setRepresentationDepth(const Nm depth)
 {
-  m_shift = shift;
-  if (this->WidgetRep)
+  if(m_depth != depth)
   {
-    reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setShift(shift);
+    m_depth = depth;
+
+    if (this->WidgetRep)
+    {
+      reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setRepresentationDepth(depth);
+    }
   }
 }
 
@@ -551,15 +533,19 @@ void vtkPlanarSplitWidget::PrintSelf(ostream &os, vtkIndent indent)
 //----------------------------------------------------------------------
 void vtkPlanarSplitWidget::disableWidget()
 {
+  if(Plane::UNDEFINED == m_plane) return;
+
   this->SetEnabled(false);
   this->SetProcessEvents(false);
-  m_permanentlyDisabled = true;
   static_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->removeBoundsActor();
+  m_permanentlyDisabled = true;
 }
 
 //----------------------------------------------------------------------
 void vtkPlanarSplitWidget::setSegmentationBounds(double *bounds)
 {
+  if(Plane::UNDEFINED == m_plane) return;
+
   memcpy(m_segmentationBounds, bounds, sizeof(double)*6);
   if (this->WidgetRep)
   {

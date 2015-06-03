@@ -32,36 +32,28 @@ namespace ESPINA
 {
 
   class ResetZoom
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
-    public:
-      /** \brief ResetZoom class constructor.
-       */
-      explicit ResetZoom(GUI::View::ViewState &state);
+  public:
+    /** \brief ResetZoom class constructor.
+     */
+    explicit ResetZoom(Support::Context &context);
 
-      /** \brief ResetZoom class destructor.
-       *
-       */
-      virtual ~ResetZoom();
+    /** \brief ResetZoom class destructor.
+     *
+     */
+    virtual ~ResetZoom();
 
-      virtual QList<QAction *> actions() const override;
-
-      virtual void abortOperation() override;
-
-    private slots:
-      /** \brief Slot to activate when the action gets triggered. Resets the views
-       * via ViewManager.
-       *
-       */
-      void resetViews();
+  private slots:
+    /** \brief Slot to activate when the action gets triggered. Resets the views
+     * via ViewManager.
+     *
+     */
+    void resetViews();
 
   private:
-    virtual void onToolEnabled(bool enabled) override;
-
-    private:
-      GUI::View::ViewState &m_viewState;
-      QAction      *m_action;
+    GUI::View::ViewState &m_viewState;
   };
 
   using ResetZoomSPtr = std::shared_ptr<ResetZoom>;

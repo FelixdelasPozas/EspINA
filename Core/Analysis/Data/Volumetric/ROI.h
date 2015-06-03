@@ -94,6 +94,10 @@ namespace ESPINA
       void draw(const typename itkVolumeType::Pointer volume,
                 const Bounds&                         bounds) override;
 
+      void draw(const Bounds                           &bounds,
+                const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
+
+
       void draw(const typename itkVolumeType::IndexType &index,
                 const typename itkVolumeType::ValueType  value = SEG_VOXEL_VALUE) override;
 
@@ -111,7 +115,7 @@ namespace ESPINA
     { return QString("%1/%2.bin").arg(path).arg(temporalStorageId(id)); }
 
   private:
-    bool m_isRectangular;
+    bool m_isOrthogonal;
   };
 
   //-----------------------------------------------------------------------------

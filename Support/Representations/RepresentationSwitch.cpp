@@ -22,50 +22,36 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationSwitch::RepresentationSwitch(Timer &timer)
-: m_timer(timer)
-, m_active(false)
-, m_settingsVisibility(false)
+RepresentationSwitch::RepresentationSwitch(const QIcon &icon,
+                                           const QString &description,
+                                           Timer &timer,
+                                           Support::Context &context)
+: ProgressTool(icon, description, context)
+, m_timer(timer)
+{
+  setCheckable(true);
+
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(switchRepresentations(bool)));
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationSwitch::abortOperation()
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationSwitch::setSettingsVisibility(bool visible)
+void RepresentationSwitch::switchRepresentations(bool show)
 {
-  m_settingsVisibility = visible;
+  auto t = m_timer.increment();
 
-  onSettingsVisibilityChanged(visible);
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationSwitch::setActive(bool value)
-{
-  if (m_active != value)
+  if (show)
   {
-    m_active = value;
-
-    auto t = m_timer.increment();
-
-    if (m_active)
-    {
-      showRepresentations(t);
-    }
-    else
-    {
-      hideRepresentations(t);
-    }
+    showRepresentations(t);
   }
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationSwitch::switchValue()
-{
-  setActive(!m_active);
-}
-
-//-----------------------------------------------------------------------------
-bool RepresentationSwitch::isActive() const
-{
-  return m_active;
+  else
+  {
+    hideRepresentations(t);
+  }
 }

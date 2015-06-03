@@ -28,35 +28,35 @@
 
 namespace ESPINA
 {
-	class EspinaFilters_EXPORT CloseFilter
-	: public MorphologicalEditionFilter
-	{
-		public:
-			/** \brief CloseFilter class constructor.
-			 * \param[in] inputs, list of input smart pointers.
-			 * \param[in] type, CloseFilter type.
-			 * \param[in] scheduler, scheduler smart pointer.
-			 *
-			 */
-			explicit CloseFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
+  class EspinaFilters_EXPORT CloseFilter
+  : public MorphologicalEditionFilter
+  {
+  public:
+    /** \brief CloseFilter class constructor.
+     * \param[in] inputs, list of input smart pointers.
+     * \param[in] type, CloseFilter type.
+     * \param[in] scheduler, scheduler smart pointer.
+     *
+     */
+    explicit CloseFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
-			/** \brief CloseFilter class virtual destructor.
-			 *
-			 */
-			virtual ~CloseFilter();
+    /** \brief CloseFilter class virtual destructor.
+     *
+     */
+    virtual ~CloseFilter();
 
-		protected:
-			/** \brief Implements Filter::execute().
-			 *
-			 */
-			virtual void execute()
-			{	execute(0); }
+  protected:
+    /** \brief Implements Filter::execute().
+     *
+     */
+    virtual void execute()
+    {	execute(0); }
 
-			/** \brief Implements Filter::execute(id).
-			 *
-			 */
-			virtual void execute(Output::Id id);
-	};
+    /** \brief Implements Filter::execute(id).
+     *
+     */
+    virtual void execute(Output::Id id);
+  };
 
 } // namespace ESPINA
 

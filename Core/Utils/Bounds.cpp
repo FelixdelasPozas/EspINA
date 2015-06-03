@@ -407,7 +407,7 @@ bool ESPINA::contains(const Bounds &bounds, const Axis dir, const Nm pos)
   auto upperContained = bounds.areUpperIncluded(dir)? [](double a, double b){return a >= b;}
                                                     : [](double a, double b){return a >  b;};
 
-  return lowerContained(bounds[2*index], pos) && upperContained(pos, bounds[2*index+1]);
+  return lowerContained(bounds[2*index], pos) && upperContained(bounds[2*index+1], pos);
 }
 
 

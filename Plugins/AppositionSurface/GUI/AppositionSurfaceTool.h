@@ -44,7 +44,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
@@ -60,20 +60,6 @@ namespace ESPINA
      */
     virtual ~AppositionSurfaceTool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
-
-    /** \brief Sets the tooltip of the action.
-     * \param[in] tooltip tooltip text.
-     *
-     */
-    void setToolTip(const QString &tooltip)
-    { m_action->setToolTip(tooltip); }
-
-  private:
-    virtual void onToolEnabled(bool enabled);
-
   private slots:
     /** \brief Changes action enabled/disabled depending on the actual selection.
      *
@@ -87,9 +73,6 @@ namespace ESPINA
 
   private:
     AppositionSurfacePlugin *m_plugin;
-    Support::Context        &m_context;
-
-    QAction *m_action;
   };
 
   using SASToolPtr   = AppositionSurfaceTool *;

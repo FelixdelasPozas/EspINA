@@ -7,12 +7,17 @@ namespace ESPINA
 {
   namespace GUI
   {
-    namespace View
+    namespace Widgets
     {
-      namespace Widgets
+      class ProgressAction;
+    }
+
+    namespace Representations
+    {
+      namespace Managers
       {
-        class WidgetFactory;
-        using WidgetFactorySPtr = std::shared_ptr<WidgetFactory>;
+        class TemporalPrototypes;
+        using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
       }
     }
   }

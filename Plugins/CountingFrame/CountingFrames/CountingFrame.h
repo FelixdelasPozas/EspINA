@@ -30,7 +30,6 @@
 #include "vtkCountingFrame3DWidget.h"
 #include "CountingFrameInteractorAdapter.h"
 #include <Tasks/ApplyCountingFrame.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 #include <Core/Utils/Bounds.h>
 
 #include <vtkSmartPointer.h>
@@ -38,6 +37,8 @@
 
 namespace ESPINA
 {
+  class RenderView;
+
   namespace CF {
 
     enum CFType
@@ -51,7 +52,6 @@ namespace ESPINA
 
     class CountingFramePlugin_EXPORT CountingFrame
     : public QObject
-    , public EspinaWidget
     {
       Q_OBJECT
     protected:
@@ -247,10 +247,10 @@ namespace ESPINA
     using CountingFrameList = QList<CountingFrame *>;
 
     class vtkCountingFrameCommand
-    : public vtkEspinaCommand
+    : public vtkCommand
     {
     public:
-      vtkTypeMacro(vtkCountingFrameCommand, vtkEspinaCommand);
+      vtkTypeMacro(vtkCountingFrameCommand, vtkCommand);
 
       /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
        *
@@ -260,8 +260,8 @@ namespace ESPINA
 
       virtual void Execute(vtkObject *, unsigned long int, void*) override;
 
-      virtual void setWidget(EspinaWidgetPtr widget) override
-      { m_widget = dynamic_cast<CountingFrame *>(widget); }
+      virtual void setWidget(CountingFrame *widget)
+      { m_widget = widget; }
 
     private:
       /** \brief vtkCountingFrameCommand class private constructor.

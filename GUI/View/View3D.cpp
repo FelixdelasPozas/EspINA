@@ -20,9 +20,9 @@
 
 // ESPINA
 #include "View3D.h"
-#include "GUI/View/Widgets/EspinaWidget.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QApplication>
@@ -56,6 +56,7 @@
 #include <vtkPropPicker.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations;
 
@@ -343,8 +344,30 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
+  if(eventHandlerFilterEvent(e))
+  {
+    return true;
+  }
+
   switch(e->type())
   {
+    case QEvent::Enter:
+      QWidget::enterEvent(e);
+
+      // get the focus this very moment
+      setFocus(Qt::OtherFocusReason);
+
+      if (eventHandler())
+      {
+        m_view->setCursor(eventHandler()->cursor());
+      }
+      else
+      {
+        m_view->setCursor(Qt::ArrowCursor);
+      }
+
+      e->accept();
+      break;
     case QEvent::MouseButtonPress:
       {
         auto me = static_cast<QMouseEvent*>(e);
@@ -415,19 +438,16 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
 //-----------------------------------------------------------------------------
 void View3D::exportScene()
 {
-  QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("All supported formats (*.x3d *.pov *.vrml);; POV-Ray files (*.pov);; VRML files (*.vrml);; X3D format (*.x3d)"));
-  fileDialog.setObjectName("SaveSceneFileDialog");
-  fileDialog.setWindowTitle("Save View as a 3D Scene");
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-  fileDialog.setDefaultSuffix(QString(tr("vrml")));
-  fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.selectFile("");
+  auto title      = tr("Export 3D scene");
+  auto suggestion = tr("scene.vrml");
+  auto formats    = SupportedFiles(tr("POV-Ray files"), "pov")
+                        .addFormat(tr("X3D format"),    "x3d")
+                        .addFormat(tr("VRML files"),    "vrml");
+  auto fileName = DefaultDialogs::SaveFile(title, formats, "", ".vrml", suggestion);
 
-  if (fileDialog.exec() == QDialog::Accepted)
+  if (!fileName.isEmpty())
   {
-    const QString selectedFile = fileDialog.selectedFiles().first();
-
-    QStringList splittedName = selectedFile.split(".");
+    QStringList splittedName = fileName.split(".");
     QString extension = splittedName[((splittedName.size())-1)].toUpper();
 
     QStringList validFileExtensions;
@@ -440,7 +460,7 @@ void View3D::exportScene()
         vtkPOVExporter *exporter = vtkPOVExporter::New();
         exporter->DebugOn();
         exporter->SetGlobalWarningDisplay(true);
-        exporter->SetFileName(selectedFile.toUtf8());
+        exporter->SetFileName(fileName.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -452,7 +472,7 @@ void View3D::exportScene()
       {
         vtkVRMLExporter *exporter = vtkVRMLExporter::New();
         exporter->DebugOn();
-        exporter->SetFileName(selectedFile.toUtf8());
+        exporter->SetFileName(fileName.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -464,7 +484,7 @@ void View3D::exportScene()
       {
         vtkX3DExporter *exporter = vtkX3DExporter::New();
         exporter->DebugOn();
-        exporter->SetFileName(selectedFile.toUtf8());
+        exporter->SetFileName(fileName.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -474,12 +494,8 @@ void View3D::exportScene()
     }
     else
     {
-      QMessageBox msgBox;
-      QString message(tr("Scene not exported. Unrecognized extension "));
-      message.append(extension).append(".");
-      msgBox.setIcon(QMessageBox::Critical);
-      msgBox.setText(message);
-      msgBox.exec();
+      auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
+      DefaultDialogs::InformationMessage(title, message);
     }
   }
 }

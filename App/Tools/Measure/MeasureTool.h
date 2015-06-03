@@ -23,9 +23,7 @@
 
 // ESPINA
 #include <GUI/View/ViewState.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <Support/Widgets/Tool.h>
-#include <Tools/Measure/MeasureTool.h>
 #include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 
 class QAction;
@@ -35,7 +33,7 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 namespace ESPINA
 {
   class MeasureTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
@@ -44,33 +42,30 @@ namespace ESPINA
      * \param[in] viewState
      *
      */
-    explicit MeasureTool(GUI::View::ViewState &viewState);
+    explicit MeasureTool(Support::Context &context);
 
     /** \brief MeasureTool class destructor.
      *
      */
     virtual ~MeasureTool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
+    virtual void abortOperation();
 
   signals:
     void stopMeasuring();
 
   private slots:
-    void onToolActivated(bool value);
-
     virtual void onToolEnabled(bool enabled) {}
 
+    void onToolActivated(bool value);
+
   private:
-    using ViewState         = GUI::View::ViewState;
-    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
+    using ViewState              = GUI::View::ViewState;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     ViewState              &m_viewState;
     MeasureEventHandlerSPtr m_handler;
-    WidgetFactorySPtr       m_factory;
-    QAction                *m_action;
+    TemporalPrototypesSPtr  m_prototypes;
   };
 
   using MeasureToolPtr  = MeasureTool *;

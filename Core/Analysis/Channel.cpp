@@ -34,7 +34,6 @@
 
 // Qt
 #include <QDebug>
-#include <QFileDialog>
 
 using namespace ESPINA;
 

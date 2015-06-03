@@ -101,7 +101,7 @@ namespace ESPINA
     /** \brief Updates ROI accumulator when a new ROI is defined
      *
      */
-    void onManualROIDefined(Selector::Selection strokes);
+    void onManualROIDefined(BinaryMaskSPtr<unsigned char> roi);
 
     void onOrthogonalROIDefined(ROISPtr roi);
 
@@ -114,20 +114,23 @@ namespace ESPINA
      */
     void commitPendingOrthogonalROI(ROISPtr roi);
 
-    void addMask(const BinaryMaskSPtr<unsigned char> mask);
+    void addOrthogonalROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
+
+    void addManualROI(const BinaryMaskSPtr<unsigned char> mask);
 
   private:
     class DefineOrthogonalROICommand;
     class DefineManualROICommand;
 
   private:
-    using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
-    using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
+    using ManualROIToolSPtr      = std::shared_ptr<ManualROITool>;
+    using OrthogonalROIToolSPtr  = std::shared_ptr<OrthogonalROITool>;
+    using CleanROIToolSPtr       = std::shared_ptr<CleanROITool>;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     Support::Context &m_context;
 
-//     ManualROIToolSPtr     m_manualROITool;
+    ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
 
@@ -135,8 +138,8 @@ namespace ESPINA
     bool   m_visible;
     QColor m_color;
 
-    ROISPtr          m_accumulator;
-    EspinaWidgetSPtr m_accumulatorWidget;
+    ROISPtr                m_accumulator;
+    TemporalPrototypesSPtr m_roiPrototypes;
   };
 
 } // namespace ESPINA

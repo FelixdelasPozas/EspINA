@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "RenderView.h"
-#include "Widgets/WidgetFactory.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricData.hxx>
@@ -29,7 +28,8 @@
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
-#include <GUI/Representations/Managers/WidgetManager.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // VTK
 #include <vtkMath.h>
@@ -50,9 +50,9 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
-using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
@@ -195,19 +195,15 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 //-----------------------------------------------------------------------------
 void RenderView::takeSnapshot()
 {
-  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
-  fileDialog.setObjectName("SaveSnapshotFileDialog");
-  fileDialog.setWindowTitle("Save Scene As Image");
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-  fileDialog.setDefaultSuffix(QString(tr("png")));
-  fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.selectFile("");
+  auto title      = tr("Save scene as image");
+  auto suggestion = tr("snapshot.png");
+  auto formats    = SupportedFiles(tr("PNG Image"),  "png")
+                        .addFormat(tr("JPEG Image"), "jpg");
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".png", suggestion);
 
-  if (fileDialog.exec() == QDialog::Accepted)
+  if (!fileName.isEmpty())
   {
-    const QString selectedFile = fileDialog.selectedFiles().first();
-
-    QStringList splittedName = selectedFile.split(".");
+    QStringList splittedName = fileName.split(".");
     QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
 
     QStringList validFileExtensions;
@@ -230,7 +226,7 @@ void RenderView::takeSnapshot()
       {
         vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();
@@ -244,7 +240,7 @@ void RenderView::takeSnapshot()
         writer->ProgressiveOff();
         writer->WriteToMemoryOff();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();
@@ -253,12 +249,9 @@ void RenderView::takeSnapshot()
     }
     else
     {
-      QMessageBox msgBox;
-      QString message(tr("Snapshot not exported. Unrecognized extension "));
-      message.append(extension).append(".");
-      msgBox.setIcon(QMessageBox::Critical);
-      msgBox.setText(message);
-      msgBox.exec();
+      auto message = tr("Snapshot not exported. Unrecognized extension ");
+
+      DefaultDialogs::InformationMessage(title, message);
     }
   }
 }
@@ -410,11 +403,11 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
           this,     SLOT(onSceneResolutionChanged(NmVector3)));
 
-  connect(&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-          this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
+          this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
 
-  connect(&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-          this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
+          this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
 
   connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
           this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
@@ -435,26 +428,26 @@ void RenderView::onFocusChanged()
   m_requiresFocusChange = true;
 }
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
+void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 {
-  if (factory->supportedViews().testFlag(m_type))
+  if (prototypes->supportedViews().testFlag(m_type))
   {
-    auto manager = std::make_shared<WidgetManager>(factory);
+    auto manager = std::make_shared<TemporalManager>(prototypes);
 
     addRepresentationManager(manager);
 
     manager->show(t);
 
-    m_widgetManagers[factory] = manager;
+    m_temporalManagers[prototypes] = manager;
   }
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsRemoved(WidgetFactorySPtr factory, TimeStamp t)
+void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t)
 {
-  if (factory->supportedViews().testFlag(m_type))
+  if (prototypes->supportedViews().testFlag(m_type))
   {
-    auto manager = m_widgetManagers[factory];
+    auto manager = m_temporalManagers[prototypes];
 
     manager->hide(t);
 
@@ -559,7 +552,7 @@ RepresentationManagerSList RenderView::pendingManagers() const
   RepresentationManagerSList result;
 
   result << pendingManagers(m_managers);
-  result << pendingManagers(m_widgetManagers.values());
+  result << pendingManagers(m_temporalManagers.values());
 
   return result;
 }
@@ -639,13 +632,13 @@ RepresentationManager::ManagerFlags RenderView::managerFlags() const
 //-----------------------------------------------------------------------------
 void RenderView::deleteInactiveWidgetManagers()
 {
-  auto factories = m_widgetManagers.keys();
+  auto factories = m_temporalManagers.keys();
 
   for (auto factory : factories)
   {
-    if (!m_widgetManagers[factory]->isActive())
+    if (!m_temporalManagers[factory]->isActive())
     {
-      m_widgetManagers.remove(factory);
+      m_temporalManagers.remove(factory);
     }
   }
 }
@@ -663,4 +656,16 @@ void RenderView::showSegmentationTooltip(const int x, const int y)
   }
 
   m_view->setToolTip(toopTip);
+}
+
+//-----------------------------------------------------------------------------
+EventHandlerSPtr RenderView::eventHandler() const
+{
+  return state().eventHandler();
+}
+
+//-----------------------------------------------------------------------------
+bool RenderView::eventHandlerFilterEvent(QEvent *event)
+{
+  return eventHandler() && eventHandler()->filterEvent(event, this);
 }

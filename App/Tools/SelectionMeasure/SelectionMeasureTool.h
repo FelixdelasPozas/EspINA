@@ -26,7 +26,6 @@
 
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 
 namespace ESPINA
 {
@@ -34,37 +33,31 @@ namespace ESPINA
   class SelectionMeasureWidget;
 
   class SelectionMeasureTool
-  : public Tool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
   public:
     /** \brief RulerTool class constructor.
      * \param[in] viewState
      */
-    explicit SelectionMeasureTool(GUI::View::ViewState &viewState);
+    explicit SelectionMeasureTool(Support::Context &context);
 
     /** \brief RulerTool class destructor.
      *
      */
     virtual ~SelectionMeasureTool();
 
-    virtual QList<QAction *> actions() const override;
-
-    virtual void abortOperation() override;
+    virtual void abortOperation();
 
   private slots:
     void onToolActivated(bool value);
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    using ViewState              = GUI::View::ViewState;
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-  private:
-    using ViewState         = GUI::View::ViewState;
-    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
-
-    ViewState        &m_viewState;
-    WidgetFactorySPtr m_factory;
-    QAction          *m_action;
+    ViewState             &m_viewState;
+    TemporalPrototypesSPtr m_factory;
   };
 } // namespace ESPINA
 

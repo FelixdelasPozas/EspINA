@@ -132,7 +132,7 @@ namespace ESPINA
      *
      */
     template<typename T>
-    std::shared_ptr<T> createFilter(InputSList inputs, Filter::Type type) const
+    std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
     {
       return m_factory->createFilter<T>(inputs, type);
     }

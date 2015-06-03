@@ -399,12 +399,9 @@ void TabularReport::rowsRemoved(const QModelIndex &parent, int start, int end)
 //------------------------------------------------------------------------
 void TabularReport::exportInformation()
 {
-  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-
   auto title      = tr("Export Raw Data");
   auto suggestion = tr("raw information.xls");
-  auto formats    = SupportedFiles(tr("Excel Sheet"), "xls")
-                        .addFormat(tr("CSV Text File"), "csv");
+  auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
   if (fileName.isEmpty())

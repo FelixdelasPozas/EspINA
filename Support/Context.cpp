@@ -17,9 +17,11 @@
 
 #include "Context.h"
 #include "Utils/FactoryUtils.h"
+#include "Widgets/DockWidget.h"
 #include <Core/MultiTasking/Scheduler.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 #include <QUndoStack>
+#include <QMainWindow>
 
 
 const int PERIOD_uSEC = 16000; // 16ms
@@ -29,7 +31,7 @@ using namespace ESPINA::GUI::View;
 using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
-Context::Context()
+Context::Context(QMainWindow *mainWindow)
 : m_invalidator(m_timer)
 , m_viewState(m_timer, m_invalidator)
 , m_model(new ModelAdapter())
@@ -37,6 +39,7 @@ Context::Context()
 , m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler, &m_invalidator))
 , m_colorEngine(std::make_shared<MultiColorEngine>())
+, m_mainWindow(mainWindow)
 {
   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
                   &m_timer,       SLOT(increment()));
@@ -108,6 +111,12 @@ RepresentationInvalidator &Context::representationInvalidator()
 }
 
 //------------------------------------------------------------------------
+void Context::addPanel(DockWidget *panel)
+{
+  m_mainWindow->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, panel);
+}
+
+//------------------------------------------------------------------------
 SelectionSPtr Support::getSelection(Context &context)
 {
   return context.viewState().selection();
@@ -123,4 +132,47 @@ ChannelAdapterPtr Support::getActiveChannel(Context &context)
 SegmentationAdapterList Support::getSelectedSegmentations(Context &context)
 {
   return getSelection(context)->segmentations();
+}
+
+//------------------------------------------------------------------------
+WithContext::WithContext(Context &context)
+: m_context(context)
+{
+
+}
+
+//------------------------------------------------------------------------
+Context &WithContext::context()
+{
+  return m_context;
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterPtr WithContext::getActiveChannel() const
+{
+  return Support::getActiveChannel(m_context);
+}
+
+//------------------------------------------------------------------------
+SelectionSPtr WithContext::getSelection() const
+{
+  return Support::getSelection(m_context);
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterList WithContext::getSelectedSegmentations() const
+{
+  return getSelection()->segmentations();
+}
+
+//------------------------------------------------------------------------
+ViewState &WithContext::getViewState() const
+{
+  return m_context.viewState();
+}
+
+//------------------------------------------------------------------------
+QUndoStack *WithContext::getUndoStack() const
+{
+  return m_context.undoStack();
 }

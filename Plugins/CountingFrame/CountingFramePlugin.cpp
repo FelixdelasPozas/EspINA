@@ -4,15 +4,18 @@
 #include "ColorEngines/CountingFrameColorEngine.h"
 #include "Extensions/CountingFrameFactories.h"
 #include "Representations/RepresentationFactory.h"
+#include <Support/Widgets/PanelSwitch.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFramePlugin::CountingFramePlugin()
-: m_undoStack                   {nullptr}
-, m_colorEngine                 {NamedColorEngine()}
-, m_dockWidget                  {nullptr}
+: m_undoStack  {nullptr}
+, m_dockWidget {nullptr}
+, m_context    {nullptr}
+, m_colorEngine{NamedColorEngine()}
 {
 }
 
@@ -24,6 +27,8 @@ CountingFramePlugin::~CountingFramePlugin()
 //------------------------------------------------------------------------
 void CountingFramePlugin::init(Support::Context &context)
 {
+  m_context = &context;
+
   m_scheduler   = context.scheduler();
   m_undoStack   = context.undoStack();
 
@@ -85,17 +90,14 @@ FilterFactorySList CountingFramePlugin::filterFactories() const
 //------------------------------------------------------------------------
 QList<CategorizedTool> CountingFramePlugin::tools() const
 {
-  return QList<CategorizedTool>();
-}
+  QList<CategorizedTool> tools;
 
-//------------------------------------------------------------------------
-QList<DockWidget *> CountingFramePlugin::dockWidgets() const
-{
-  QList<DockWidget *> docks;
+  auto tool = std::make_shared<PanelSwitch>(m_dockWidget, ":cf-switch2D.svg", tr("Stereological Counting Frame"), *m_context);
+  tool->setGroupWith("counting_frame");
 
-  docks << m_dockWidget;
+  tools << CategorizedTool(ToolCategory::ANALYZE, tool);
 
-  return docks;
+  return tools;
 }
 
 //------------------------------------------------------------------------

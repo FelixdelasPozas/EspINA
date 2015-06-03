@@ -21,9 +21,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget2.h>
-
 #include <GUI/View/Selection.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace ESPINA
 {
@@ -44,7 +43,7 @@ namespace ESPINA
           public:
             explicit Widget3D(SelectionSPtr selection);
 
-            virtual EspinaWidget3DSPtr clone();
+            virtual Representations::Managers::TemporalRepresentation3DSPtr clone();
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;

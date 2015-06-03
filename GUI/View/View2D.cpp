@@ -22,13 +22,12 @@
 // ESPINA
 #include "View2D.h"
 
-#include "PlanarBehaviour.h"
-#include "Widgets/EspinaWidget.h"
-#include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/View/PlanarBehaviour.h>
+#include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 
 // Debug
 #include <QDebug>
@@ -909,19 +908,6 @@ Nm View2D::voxelCenter(const Nm position, const Plane plane) const
 int View2D::voxelSlice(const Nm position, const Plane plane) const
 {
   return state().coordinateSystem()->voxelSlice(position, plane);
-}
-
-//-----------------------------------------------------------------------------
-bool View2D::eventHandlerFilterEvent(QEvent *event)
-{
-  return eventHandler() && eventHandler()->filterEvent(event, this);
-}
-
-
-//-----------------------------------------------------------------------------
-EventHandlerSPtr View2D::eventHandler() const
-{
-  return state().eventHandler();
 }
 
 //-----------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "ResetZoom.h"
+#include <Support/Context.h>
 
 // Qt
 #include <QAction>
@@ -28,32 +29,16 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ResetZoom::ResetZoom(GUI::View::ViewState &state)
-: m_viewState(state)
-, m_action   {Tool::createAction(":/espina/zoom_reset.png",tr("Reset Zoom"),this)}
+ResetZoom::ResetZoom(Support::Context &context)
+: ProgressTool(":/espina/zoom_reset.png", tr("Reset Zoom"), context)
+, m_viewState(context.viewState())
 {
-  connect(m_action, SIGNAL(triggered(bool)),
-          this,     SLOT(resetViews()));
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(resetViews()));
 }
 
 //----------------------------------------------------------------------------
 ResetZoom::~ResetZoom()
-{
-  delete m_action;
-}
-
-//----------------------------------------------------------------------------
-QList<QAction *> ResetZoom::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_action;
-
-  return actions;
-}
-
-//----------------------------------------------------------------------------
-void ResetZoom::abortOperation()
 {
 }
 
@@ -62,21 +47,4 @@ void ResetZoom::resetViews()
 {
   m_viewState.resetCamera();
   m_viewState.refresh();
-}
-
-//----------------------------------------------------------------------------
-void ResetZoom::onToolEnabled(bool enabled)
-{
-  m_action->setEnabled(enabled);
-
-  if (enabled)
-  {
-    connect(m_action, SIGNAL(triggered(bool)),
-            this,     SLOT(resetViews()));
-  }
-  else
-  {
-    disconnect(m_action, SIGNAL(triggered(bool)),
-               this,     SLOT(resetViews()));
-  }
 }

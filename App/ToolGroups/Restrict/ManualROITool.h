@@ -17,83 +17,67 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ESPINA_BRUSH_ROI_H
-#define ESPINA_BRUSH_ROI_H
+#ifndef ESPINA_MANUAL_ROI_TOOL_H
+#define ESPINA_MANUAL_ROI_TOOL_H
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <App/ToolGroups/Edition/ManualEditionTool.h>
+#include <Support/Context.h>
+#include <GUI/Widgets/DrawingWidget.h>
 
 // Qt
 #include <QUndoStack>
 
-class QAction;
 namespace ESPINA
 {
-  class ROIToolsGroup;
+  class RestrictToolGroup;
 
   class ManualROITool
-  : public ManualEditionTool
+  : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
+
   public:
     /** \brief ManualROITool class constructor.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] context to be used for this tool
      * \param[in] toolGroup ROIToolsGroup raw pointer containing ROI accumulator.
      */
-    explicit ManualROITool(ModelAdapterSPtr model,
-                           ViewManagerSPtr  viewManager,
-                           QUndoStack      *undoStack,
-                           ROIToolsGroup   *toolGroup);
+    explicit ManualROITool(Support::Context  &context,
+                           RestrictToolGroup *toolGroup);
 
     /** \brief ManualROITool class virtual destructor.
      *
      */
     virtual ~ManualROITool();
 
+    virtual void abortOperation();
+
     void setColor(const QColor &color);
 
   signals:
-    void roiDefined(Selector::Selection);
+    void roiDefined(BinaryMaskSPtr<unsigned char> mas);
 
-  protected slots:
-    void drawingModeChanged(bool) override;
+  private slots:
+    void onPainterChanged(MaskPainterSPtr painter);
 
-    void changeSelector(QAction *selectorAction) override;
+    void updateReferenceItem(ChannelAdapterPtr channel);
 
-    void selectorInUse(bool value) override;
-
-    void drawStroke(Selector::Selection) override;
-
-    /** \brief Updates the selector parameters based on application selected items.
-     *
-     */
-    void updateReferenceItem();
-
-    /** \brief Aborts current tool operation.
-     *
-     */
     void cancelROI();
 
-    /** \brief Updates the selectors parameters based on ROI existence or not.
-     *
-     */
     void ROIChanged();
 
   private:
-    /** \brief Shows/hides controls for this tool.
-     * \param[in] value, true to show controls, false otherwise.
-     */
-    void setControlVisibility(bool value);
+    void configureDrawingTools();
 
   private:
-    QUndoStack    *m_undoStack;
-    ROIToolsGroup *m_toolGroup;
-    QColor         m_color;
+    using DrawingTool = GUI::Widgets::DrawingWidget;
+
+    QUndoStack        *m_undoStack;
+    RestrictToolGroup *m_toolGroup;
+
+    ChannelAdapterPtr m_referenceItem;
+
+    DrawingTool m_drawingWidget;
   };
 
   using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;

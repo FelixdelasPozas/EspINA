@@ -83,21 +83,20 @@ FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
 
 //-----------------------------------------------------------------------------
 SkeletonTool::SkeletonTool(Support::Context &context)
-: m_context         (context)
+: ProgressTool(":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
 , m_toolStatus      {new SkeletonToolStatusAction(this)}
-, m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
 {
-  m_context.factory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
+  this->context().factory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
 
-  m_action->setCheckable(true);
+  setCheckable(true);
 
-  connect(m_action, SIGNAL(triggered(bool)),
-          this,     SLOT(initTool(bool)));
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(initTool(bool)));
 
-  connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
-          this,                       SLOT(updateState()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(updateState()));
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
@@ -118,11 +117,12 @@ SkeletonTool::SkeletonTool(Support::Context &context)
 //-----------------------------------------------------------------------------
 SkeletonTool::~SkeletonTool()
 {
-  if(m_widget)
-  {
-    m_widget->setEnabled(false);
-    m_widget = nullptr;
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if(m_widget)
+//  {
+//    m_widget->setEnabled(false);
+//    m_widget = nullptr;
+//  }
 }
 
 //-----------------------------------------------------------------------------
@@ -130,7 +130,7 @@ void SkeletonTool::updateState()
 {
   if(!isEnabled()) return;
 
-  auto selection = getSelection(m_context)->segmentations();
+  auto selection = getSelectedSegmentations();
   auto validItem = (selection.size() <= 1);
 
   m_action->setEnabled(validItem);
@@ -147,7 +147,7 @@ void SkeletonTool::updateState()
   }
   else
   {
-    auto activeChannel = getActiveChannel(m_context);
+    auto activeChannel = getActiveChannel();
 
     if(activeChannel)
     {
@@ -161,10 +161,11 @@ void SkeletonTool::updateState()
     m_item = nullptr;
     m_itemCategory = m_categorySelector->selectedCategory();
 
-    if(m_widget)
-    {
-      initTool(false);
-    }
+    //TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//    if(m_widget)
+//    {
+//      initTool(false);
+//    }
     m_toleranceWidget->setSpinBoxMinimum(1);
   }
 
@@ -188,7 +189,7 @@ QList<QAction*> SkeletonTool::actions() const
 //-----------------------------------------------------------------------------
 void SkeletonTool::updateReferenceItem()
 {
-  auto selectedSegs = getSelection(m_context)->segmentations();
+  auto selectedSegs = getSelectedSegmentations();
 
   if (selectedSegs.size() != 1)
   {
@@ -211,16 +212,17 @@ void SkeletonTool::updateWidgetRepresentation()
 {
   auto skeleton = dynamic_cast<SkeletonData *>(sender());
 
-  if(!m_widget)
-  {
-    disconnect(skeleton, SIGNAL(dataChanged()),
-               this       , SLOT(updateWidgetRepresentation()));
-  }
-  else
-  {
-    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-    widget->initialize(skeleton->skeleton());
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if(!m_widget)
+//  {
+//    disconnect(skeleton, SIGNAL(dataChanged()),
+//               this       , SLOT(updateWidgetRepresentation()));
+//  }
+//  else
+//  {
+//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+//    widget->initialize(skeleton->skeleton());
+//  }
 }
 
 //-----------------------------------------------------------------------------
@@ -228,7 +230,7 @@ void SkeletonTool::initTool(bool value)
 {
   if (value)
   {
-    auto activeChannel = getActiveChannel(m_context);
+    auto activeChannel = getActiveChannel();
 
     if(!activeChannel) return;
 
@@ -248,11 +250,11 @@ void SkeletonTool::initTool(bool value)
 
     auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-    auto selection = getSelection(m_context)->segmentations();
+    auto selection = getSelectedSegmentations();
     auto color     = m_categorySelector->selectedCategory()->color();
     if(selection.size() == 1)
     {
-      color = m_context.colorEngine()->color(selection.first());
+      color = context().colorEngine()->color(selection.first());
     }
 
     auto widget = new SkeletonWidget();
@@ -266,15 +268,16 @@ void SkeletonTool::initTool(bool value)
     m_toleranceWidget->setStepping(minimumDistance);
     widget->setTolerance(minimumDistance);
 
-    m_widget.reset(widget);
-
-    m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-    m_handler->setCursor(Qt::CrossCursor);
+    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//    m_widget.reset(widget);
+//
+//    m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
+//    m_handler->setCursor(Qt::CrossCursor);
 
     connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
             this,            SLOT(eventHandlerToogled(bool)));
 
-    m_context.viewState().setEventHandler(m_handler);
+    getViewState().setEventHandler(m_handler);
     //TODO m_vm->setSelectionEnabled(false);
     // TODO URGENT m_vm->addWidget(m_widget);
     widget->setSpacing(spacing);
@@ -295,42 +298,42 @@ void SkeletonTool::initTool(bool value)
       }
     }
 
-    m_widget->setEnabled(true);
+//    m_widget->setEnabled(true);
 
-    connect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+    connect(context().model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
             this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
   }
   else
   {
-    if(!m_widget) return; // can be called twice on undo/redo action combinations.
+//    if(!m_widget) return; // can be called twice on undo/redo action combinations.
 
     m_action->blockSignals(true);
     m_action->setChecked(false);
     m_action->blockSignals(false);
 
-    disconnect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+    disconnect(context().model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
                this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
     disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
                this,            SLOT(eventHandlerToogled(bool)));
 
-    m_widget->setEnabled(false);
+//    m_widget->setEnabled(false);
     //TODO URGENT m_vm->removeWidget(m_widget);
 
-    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-    Q_ASSERT(widget);
-    disconnect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
-               this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
-
-    disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
-               m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
+//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+//    Q_ASSERT(widget);
+//    disconnect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+//               this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
+//
+//    disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
+//               m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
     m_toolStatus->reset();
 
-    m_context.viewState().unsetEventHandler(m_handler);
+    getViewState().unsetEventHandler(m_handler);
     m_handler.reset();
     //TODO m_vm->setSelectionEnabled(true);
-    m_widget.reset();
+    //m_widget.reset();
 
     if(m_item)
     {
@@ -351,7 +354,7 @@ void SkeletonTool::initTool(bool value)
         selection << m_item;
 
         m_item->invalidateRepresentations();
-        getSelection(m_context)->set(selection);
+        getSelection()->set(selection);
       }
     }
   }
@@ -361,13 +364,15 @@ void SkeletonTool::initTool(bool value)
 
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onToolEnabled(bool enabled)
+void SkeletonTool::onToolGroupActivated()
 {
-  if (m_widget)
-  {
-    m_widget->setEnabled(enabled);
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if (m_widget)
+//  {
+//    m_widget->setEnabled(enabled);
+//  }
 
+  bool enabled = true;
   m_action->setEnabled(enabled);
   m_categorySelector->setEnabled(enabled);
   m_toleranceWidget->setEnabled(enabled);
@@ -385,11 +390,12 @@ void SkeletonTool::setControlsVisibility(bool value)
 //-----------------------------------------------------------------------------
 void SkeletonTool::toleranceValueChanged(double value)
 {
-  if(m_widget)
-  {
-    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-    widget->setTolerance(value);
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if(m_widget)
+//  {
+//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+//    widget->setTolerance(value);
+//  }
 }
 
 //-----------------------------------------------------------------------------
@@ -423,26 +429,28 @@ void SkeletonTool::checkItemRemoval(SegmentationAdapterSList segmentations)
 //-----------------------------------------------------------------------------
 void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
 {
-  if(m_widget)
-  {
-    dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if(m_widget)
+//  {
+//    dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
+//  }
 }
 
 //-----------------------------------------------------------------------------
 void SkeletonTool::eventHandlerToogled(bool toggled)
 {
-  if (!toggled && m_widget)
-  {
-    initTool(false);
-  }
+  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+//  if (!toggled && m_widget)
+//  {
+//    initTool(false);
+//  }
 }
 
 //-----------------------------------------------------------------------------
 void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
 {
-  auto m_undoStack = m_context.undoStack();
-  auto model     = m_context.model();
+  auto undoStack = getUndoStack();
+  auto model       = context().model();
 
   if(m_item)
   {
@@ -453,23 +461,23 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
       {
         if(m_item->output()->numberOfDatas() == 1)
         {
-          m_undoStack->beginMacro(tr("Remove Segmentation"));
-          m_undoStack->push(new RemoveSegmentations(m_item, model));
-          m_undoStack->endMacro();
+          undoStack->beginMacro(tr("Remove Segmentation"));
+          undoStack->push(new RemoveSegmentations(m_item, model));
+          undoStack->endMacro();
 
           m_item = nullptr;
           initTool(false);
         }
         else
         {
-          m_undoStack->beginMacro(tr("Remove Skeleton from segmentation"));
-          m_undoStack->push(new RemoveDataCommand(m_item->output(), SkeletonData::TYPE));
-          m_undoStack->endMacro();
+          undoStack->beginMacro(tr("Remove Skeleton from segmentation"));
+          undoStack->push(new RemoveDataCommand(m_item->output(), SkeletonData::TYPE));
+          undoStack->endMacro();
         }
       }
       else
       {
-        auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+//        auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
 
 //         m_undoStack->beginMacro(tr("Modify segmentation's skeleton"));
 //         m_undoStack->push(new ModifySkeletonCommand(readLockSkeleton(m_item->output()), widget->getSkeleton()));
@@ -480,29 +488,29 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     {
       if(polyData->GetNumberOfLines() == 0) return;
 
-      auto widget    = dynamic_cast<SkeletonWidget *>(m_widget.get());
-      auto itemOuput = m_item->output();
-      auto data      = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing());
+//      auto widget    = dynamic_cast<SkeletonWidget *>(m_widget.get());
+//      auto itemOuput = m_item->output();
+//      auto data      = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing());
 
-      m_undoStack->beginMacro(tr("Add Skeleton to segmentation"));
-      m_undoStack->push(new AddDataCommand(itemOuput, data));
-      m_undoStack->endMacro();
+//      m_undoStack->beginMacro(tr("Add Skeleton to segmentation"));
+//      m_undoStack->push(new AddDataCommand(itemOuput, data));
+//      m_undoStack->endMacro();
     }
   }
   else
   {
     if(polyData->GetNumberOfLines() == 0) return;
 
-    auto activeChannel = getActiveChannel(m_context);
+    auto activeChannel = getActiveChannel();
 
     auto spacing  = activeChannel->output()->spacing();
-    auto filter   = m_context.factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+    auto filter   = context().factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
     auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
     auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
     output->setData(skeleton);
 
     filter->addOutput(0, output);
-    auto segmentation = m_context.factory()->createSegmentation(filter, 0);
+    auto segmentation = context().factory()->createSegmentation(filter, 0);
     auto category = m_categorySelector->selectedCategory();
     Q_ASSERT(category);
 
@@ -512,9 +520,9 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     samples << QueryAdapter::sample(activeChannel);
     Q_ASSERT(samples.size() == 1);
 
-    m_undoStack->beginMacro(tr("Add Segmentation"));
-    m_undoStack->push(new AddSegmentations(segmentation, samples, model));
-    m_undoStack->endMacro();
+    undoStack->beginMacro(tr("Add Segmentation"));
+    undoStack->push(new AddSegmentations(segmentation, samples, model));
+    undoStack->endMacro();
 
     m_item = segmentation.get();
 
@@ -538,7 +546,7 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     SegmentationAdapterList selection;
     selection << m_item;
 
-    getSelection(m_context)->set(selection);
+    getSelection()->set(selection);
     m_item->invalidateRepresentations();
   }
 

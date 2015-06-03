@@ -25,10 +25,10 @@
 // ESPINA
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/InformationSelector.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QAbstractItemView>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
@@ -36,6 +36,7 @@
 const QString SEGMENTATION_GROUP = "Segmentation";
 const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
@@ -153,27 +154,32 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void SASTabularReport::exportInformation()
   {
-    QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Export Raw Data"),
-                                                    QString("Raw information with SAS data.xls"),
-                                                    filter);
+    auto title      = tr("Export SAS Data");
+    auto suggestion = tr("Raw information with SAS data.xls");
+    auto formats    = SupportedFiles(tr("Excel Sheet"), "xls")
+                          .addFormat(tr("CSV Text File"), "csv");
 
-    if (fileName.isEmpty())
-      return;
+    auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
-    bool result = false;
-    if (fileName.endsWith(".csv"))
+    bool exported = false;
+
+    if (!fileName.isEmpty())
     {
-      result = exportToCSV(fileName);
-    }
-    else if (fileName.endsWith(".xls"))
-    {
-      result = exportToXLS(fileName);
+      if (fileName.toLower().endsWith(".csv"))
+      {
+        exported = exportToCSV(fileName);
+      }
+      else if (fileName.toLower().endsWith(".xls"))
+      {
+        exported = exportToXLS(fileName);
+      }
     }
 
-    if (!result)
-      QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
+    if (!exported)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(title, message);
+    }
   }
 
   //------------------------------------------------------------------------
@@ -214,32 +220,30 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void SASTabularReport::Entry::extractInformation()
   {
-    QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Export %1 Data").arg(m_category),
-                                                    QString("%1 with SAS data.xls").arg(m_category.replace("/","-")),
-                                                    filter);
+    auto title      = tr("Export %1 Data").arg(m_category);
+    auto suggestion = QString("%1 SAS information.xls").arg(m_category.replace("/","-"));
+    auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
+    auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
-    if (fileName.isEmpty())
-      return;
+    bool exported = false;
 
-    // some users are used to not enter an extension, and expect a default xls output.
-    if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
-      fileName += tr(".xls");
-
-    bool result = false;
-
-    if (fileName.endsWith(".csv"))
+    if (!fileName.isEmpty())
     {
-      result = exportToCSV(fileName);
-    }
-    else
-    {
-      result = exportToXLS(fileName);
+      if (fileName.toLower().endsWith(".csv"))
+      {
+        exported = exportToCSV(fileName);
+      }
+      else if (fileName.toLower().endsWith(".xls"))
+      {
+        exported = exportToXLS(fileName);
+      }
     }
 
-    if (!result)
-      QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
+    if (!exported)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(title, message);
+    }
   }
 
 } // namespace ESPINA

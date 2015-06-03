@@ -31,7 +31,7 @@ namespace ESPINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(InputSList inputs, Filter::Type& type, SchedulerSPtr scheduler)
+      explicit DummyFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
       : Filter(inputs, type, scheduler)
       { m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});}
 

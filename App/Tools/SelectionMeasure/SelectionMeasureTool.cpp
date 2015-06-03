@@ -27,6 +27,7 @@
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/View/Widgets/SelectionMeasure/Widget2D.h>
 #include <GUI/View/Widgets/SelectionMeasure/Widget3D.h>
+#include <Support/Context.h>
 
 // VTK
 #include <vtkMath.h>
@@ -35,20 +36,21 @@
 #include <QAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
 //----------------------------------------------------------------------------
-SelectionMeasureTool::SelectionMeasureTool(GUI::View::ViewState &viewState)
-: m_viewState(viewState)
-, m_factory  {new WidgetFactory(std::make_shared<Widget2D>(viewState.selection()), std::make_shared<Widget3D>(viewState.selection()))}
-, m_action   {Tool::createAction(":/espina/measure3D.png", tr("Measure Selection"),this) }
+SelectionMeasureTool::SelectionMeasureTool(Support::Context &context)
+: ProgressTool(":/espina/measure3D.png", tr("Measure Selection"), context)
+, m_viewState(context.viewState())
+, m_factory  {new TemporalPrototypes(std::make_shared<Widget2D>(m_viewState.selection()), std::make_shared<Widget3D>(m_viewState.selection()))}
 {
-  m_action->setCheckable(true);
+  setCheckable(true);
 
-  connect(m_action, SIGNAL(toggled(bool)),
-          this,     SLOT(onToolActivated(bool)));
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(onToolActivated(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -59,17 +61,7 @@ SelectionMeasureTool::~SelectionMeasureTool()
 //----------------------------------------------------------------------------
 void SelectionMeasureTool::abortOperation()
 {
-  m_action->setChecked(false);
-}
-
-//----------------------------------------------------------------------------
-QList<QAction*> SelectionMeasureTool::actions() const
-{
-  QList<QAction *> actionList;
-
-  actionList << m_action;
-
-  return actionList;
+  //m_action->setChecked(false);
 }
 
 //----------------------------------------------------------------------------
@@ -77,15 +69,14 @@ void SelectionMeasureTool::onToolActivated(bool value)
 {
   if (value)
   {
-    m_viewState.addWidgets(m_factory);
+    if(m_viewState.selection()->items().isEmpty())
+    {
+      m_viewState.selection()->set(toViewItemList(m_viewState.selection()->activeChannel()));
+    }
+    m_viewState.addTemporalRepresentations(m_factory);
   }
   else
   {
-    m_viewState.removeWidgets(m_factory);
+    m_viewState.removeTemporalRepresentations(m_factory);
   }
-}
-
-//----------------------------------------------------------------------------
-void SelectionMeasureTool::onToolEnabled(bool enabled)
-{
 }
