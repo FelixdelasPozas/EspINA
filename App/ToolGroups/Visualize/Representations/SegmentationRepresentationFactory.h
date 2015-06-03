@@ -42,6 +42,8 @@ namespace ESPINA
 
     void groupSwitch(ToolSPtr tool) const;
 
+    void groupSwitch3D(ToolSPtr tool) const;
+
   private:
     static const unsigned int WINDOW_SIZE;
   };

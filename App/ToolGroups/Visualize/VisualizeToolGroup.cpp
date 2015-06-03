@@ -84,8 +84,8 @@ VisualizeToolGroup::~VisualizeToolGroup()
 void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
                                                RepresentationSwitchSPtr   repSwitch)
 {
-  if (repSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
-  {
+  //if (repSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
+  //{
     addTool(repSwitch);
-  }
+  //}
 }

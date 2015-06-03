@@ -1417,7 +1417,7 @@ void EspinaMainWindow::configureAutoSave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
-  auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D);
+  auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D|ViewType::VIEW_3D);
 
   for (auto repSwitch : representation.Switches)
   {

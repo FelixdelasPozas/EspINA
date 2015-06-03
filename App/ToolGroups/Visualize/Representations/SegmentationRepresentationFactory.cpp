@@ -281,5 +281,11 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 //----------------------------------------------------------------------------
 void SegmentationRepresentationFactory::groupSwitch(ToolSPtr tool) const
 {
-  tool->setGroupWith("segmentation_reps");
+  tool->setGroupWith("2_segmentation_reps");
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::groupSwitch3D(ToolSPtr tool) const
+{
+  tool->setGroupWith("2_segmentation_reps_3D");
 }
