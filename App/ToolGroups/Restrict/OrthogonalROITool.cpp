@@ -82,6 +82,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 , m_settings     {settings}
 {
   setCheckable(true);
+  setExclusive(true);
 
   initControls();
 
