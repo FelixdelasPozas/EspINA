@@ -321,12 +321,20 @@ int vtkPlanarSplitRepresentation2D::ComputeInteractionState(int vtkNotUsed(X), i
   int handle2State = this->Point2Representation->GetInteractionState();
 
   if (handle1State == vtkHandleRepresentation::Nearby)
+  {
     this->InteractionState = NearP1;
+  }
   else
+  {
     if (handle2State == vtkHandleRepresentation::Nearby)
+    {
       this->InteractionState = NearP2;
+    }
     else
+    {
       this->InteractionState = Outside;
+    }
+  }
 
   return this->InteractionState;
 }

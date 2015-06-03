@@ -59,19 +59,10 @@ void PlanarSplitWidget::emitSetSignal()
 //-----------------------------------------------------------------------------
 void vtkSplitCommand::Execute(vtkObject *caller, unsigned long eventId, void *callData)
 {
-  auto widget2d = dynamic_cast<vtkPlanarSplitWidget *>(caller);
-  if(widget2d != nullptr)
+  auto widget2d = static_cast<vtkPlanarSplitWidget *>(caller);
+  auto widget3d = static_cast<vtkImplicitPlaneWidget2 *>(caller);
+  if(widget2d != nullptr || widget3d != nullptr)
   {
-    widget2d->RemoveObserver(this);
     m_widget->emitSetSignal();
-  }
-  else
-  {
-    auto widget3d = static_cast<vtkImplicitPlaneWidget2 *>(caller);
-    if(widget3d != nullptr)
-    {
-      widget3d->RemoveObserver(this);
-      m_widget->emitSetSignal();
-    }
   }
 }

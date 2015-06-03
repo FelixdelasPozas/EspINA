@@ -49,7 +49,6 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QDebug>
 
 using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
 
@@ -124,6 +123,11 @@ SplitTool::SplitTool(Support::Context &context)
 //------------------------------------------------------------------------
 SplitTool::~SplitTool()
 {
+//   if (context().viewState().eventHandler().get() == m_handler.get())
+//   {
+//     hideCuttingPlane();
+//   }
+
   disconnect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
              this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
 
@@ -134,11 +138,6 @@ SplitTool::~SplitTool()
              this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
   delete m_apply;
-
-//   if (context().viewState().eventHandler().get() == m_handler.get())
-//   {
-//     hideCuttingPlane();
-//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -228,7 +227,6 @@ void SplitTool::applyCurrentState()
   plane2stencil->Update();
 
   vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
-
   filter->setStencil(stencil);
 
   Data data(filter, context().model()->smartPointer(selectedSeg));
@@ -277,7 +275,8 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
 //------------------------------------------------------------------------
 void SplitTool::onSelectionChanged()
 {
-  //TODO abort?
+  toggleWidgetsVisibility(false);
+  m_splitPlane = nullptr;
 }
 
 //------------------------------------------------------------------------
@@ -315,8 +314,7 @@ void SplitTool::createSegmentations()
 
       getSelection()->set(segmentations);
 
-      toggleWidgetsVisibility(false);
-      m_splitPlane = nullptr;
+      setChecked(false);
     }
     else
     {

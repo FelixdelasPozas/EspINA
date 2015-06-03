@@ -36,9 +36,6 @@
 #include <vtkPoints.h>
 #include <vtkWidgetEventTranslator.h>
 
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets;
 
@@ -329,10 +326,16 @@ void vtkPlanarSplitWidget::AddPointAction(vtkAbstractWidget *w)
 
       self->GrabFocus(self->EventCallbackCommand);
       if (state == vtkPlanarSplitRepresentation2D::NearP1)
+      {
         self->CurrentHandle = 0;
+      }
       else
+      {
         if (state == vtkPlanarSplitRepresentation2D::NearP2)
+        {
           self->CurrentHandle = 1;
+        }
+      }
 
       self->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
     }
@@ -396,6 +399,7 @@ void vtkPlanarSplitWidget::EndSelectAction(vtkAbstractWidget *w)
   self->WidgetRep->BuildRepresentation();
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Render();
+  self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
 }
 
 // This is a callback that is active when the user is manipulating the
