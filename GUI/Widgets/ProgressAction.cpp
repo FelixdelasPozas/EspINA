@@ -105,7 +105,7 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
   action->setChecked(isChecked());
 
   connect(action, SIGNAL(toggled(bool)),
-          this,   SLOT(onActionToggled(bool)));
+          this,   SLOT(setChecked(bool)));
 
   connect(action, SIGNAL(clicked(bool)),
           this,   SIGNAL(triggered(bool)));
@@ -178,13 +178,3 @@ bool ProgressAction::displayProgress(int progress)
 {
   return 0 < progress && progress < 100;
 }
-
-//------------------------------------------------------------------------
-void ProgressAction::onActionToggled(bool value)
-{
-  setChecked(value);
-
-  emit toggled(value);
-}
-
-

@@ -70,9 +70,6 @@ namespace ESPINA {
 
         inline bool displayProgress(int progress);
 
-      private slots:
-        void onActionToggled(bool value);
-
       private:
         int  m_progress;
       };

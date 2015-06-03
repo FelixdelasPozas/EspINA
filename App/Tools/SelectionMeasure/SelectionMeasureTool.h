@@ -53,9 +53,6 @@ namespace ESPINA
     void onToolActivated(bool value);
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
-  private:
     using ViewState              = GUI::View::ViewState;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 

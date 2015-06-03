@@ -80,8 +80,3 @@ void SelectionMeasureTool::onToolActivated(bool value)
     m_viewState.removeTemporalRepresentations(m_factory);
   }
 }
-
-//----------------------------------------------------------------------------
-void SelectionMeasureTool::onToolEnabled(bool enabled)
-{
-}
