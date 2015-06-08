@@ -56,6 +56,8 @@ namespace ESPINA
 
     virtual void showEvent(QShowEvent *event);
 
+    virtual void hideEvent(QHideEvent *event);
+
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.
      *

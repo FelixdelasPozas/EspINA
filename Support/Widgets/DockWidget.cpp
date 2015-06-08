@@ -60,3 +60,11 @@ void DockWidget::showEvent(QShowEvent *event)
 
   emit dockShown(true);
 }
+
+//------------------------------------------------------------------------
+void DockWidget::hideEvent(QHideEvent *event)
+{
+  QWidget::hideEvent(event);
+
+  emit dockShown(false);
+}
