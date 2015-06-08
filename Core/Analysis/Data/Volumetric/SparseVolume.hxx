@@ -373,6 +373,11 @@ namespace ESPINA
     {
       if(!m_blocks.contains(index))
       {
+        if(value == this->backgroundValue())
+        {
+          continue;
+        }
+
         createBlock(index);
       }
 
@@ -396,7 +401,7 @@ namespace ESPINA
         ++bit;
       }
 
-      if(value == SEG_BG_VALUE && isEmpty(index))
+      if(value == this->backgroundValue() && isEmpty(index))
       {
         m_blocks.remove(index);
       }
@@ -426,6 +431,11 @@ namespace ESPINA
     {
       if(!m_blocks.contains(index))
       {
+        if(value == this->backgroundValue())
+        {
+          continue;
+        }
+
         createBlock(index);
       }
 
@@ -448,7 +458,7 @@ namespace ESPINA
         ++bit;
       }
 
-      if(value == SEG_BG_VALUE && isEmpty(index))
+      if(value == this->backgroundValue() && isEmpty(index))
       {
         m_blocks.remove(index);
       }
@@ -583,6 +593,11 @@ namespace ESPINA
     {
       if (!m_blocks.contains(index))
       {
+        if(value == this->backgroundValue())
+        {
+          continue;
+        }
+
         createBlock(index);
       }
 
@@ -599,7 +614,7 @@ namespace ESPINA
         ++bit;
       }
 
-      if (value == SEG_BG_VALUE && isEmpty(index))
+      if (value == this->backgroundValue() && isEmpty(index))
       {
         m_blocks.remove(index);
       }
