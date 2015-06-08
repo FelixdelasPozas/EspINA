@@ -251,6 +251,21 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
   {
     auto reslicePoint = crosshair[index];
 
+    if(m_points[index]->GetNumberOfPoints() != 7)
+    {
+      m_points[index]->SetNumberOfPoints(7);
+
+      m_cells[index]->Reset();
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        auto line = vtkLine::New();
+        line->GetPointIds()->SetId(0, i);
+        line->GetPointIds()->SetId(1, i + 1);
+        m_cells[index]->InsertNextCell(line);
+        line->Delete();
+      }
+    }
+
     if (sceneBounds[2*index] <= reslicePoint && reslicePoint < sceneBounds[2*index+1])
     {
       auto sliceBounds = sceneBounds;
@@ -265,25 +280,15 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
       double cp4[3] = { sliceBounds[0], sliceBounds[3], sliceBounds[5] };
       double cp5[3] = { sliceBounds[0], sliceBounds[2], sliceBounds[5] };
 
-      m_points[index]->Reset();
-      m_points[index]->InsertNextPoint(cp0);
-      m_points[index]->InsertNextPoint(cp1);
-      m_points[index]->InsertNextPoint(cp2);
-      m_points[index]->InsertNextPoint(cp3);
-      m_points[index]->InsertNextPoint(cp4);
-      m_points[index]->InsertNextPoint(cp5);
-      m_points[index]->InsertNextPoint(cp0);
+      m_points[index]->SetPoint(0, cp0);
+      m_points[index]->SetPoint(1, cp1);
+      m_points[index]->SetPoint(2, cp2);
+      m_points[index]->SetPoint(3, cp3);
+      m_points[index]->SetPoint(4, cp4);
+      m_points[index]->SetPoint(5, cp5);
+      m_points[index]->SetPoint(6, cp0);
       m_points[index]->Modified();
 
-      m_cells[index]->Reset();
-      for (unsigned int i = 0; i < 6; i++)
-      {
-        auto line = vtkLine::New();
-        line->GetPointIds()->SetId(0, i);
-        line->GetPointIds()->SetId(1, i + 1);
-        m_cells[index]->InsertNextCell(line);
-        line->Delete();
-      }
       m_cells[index]->Modified();
       m_datas[index]->Modified();
       m_mappers[index]->Update();
