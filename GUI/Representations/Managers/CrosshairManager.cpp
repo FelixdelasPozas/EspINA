@@ -43,10 +43,21 @@ CrosshairManager::CrosshairManager(ViewTypeFlags supportedViews)
 {
   double colors[3][3]{ { 0, 1, 1 }, { 0, 0, 1 },  { 1, 0, 1 } };
 
+  double point[3]{0.0,0.0,0.0};
   for(auto index: {0,1,2})
   {
     m_points[index]  = vtkSmartPointer<vtkPoints>::New();
+    m_points[index]->SetNumberOfPoints(2);
+    m_points[index]->SetPoint(0, point);
+    m_points[index]->SetPoint(1, point);
+    m_points[index]->Modified();
+
     m_cells[index]   = vtkSmartPointer<vtkCellArray>::New();
+    auto line = vtkSmartPointer<vtkLine>::New();
+    line->GetPointIds()->SetId(0, 0);
+    line->GetPointIds()->SetId(1, 1);
+    m_cells[index]->InsertNextCell(line);
+    m_cells[index]->Modified();
 
     m_datas[index]   = vtkSmartPointer<vtkPolyData>::New();
     m_datas[index]->SetPoints(m_points[index]);
@@ -284,15 +295,9 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
 //-----------------------------------------------------------------------------
 void CrosshairManager::setPointInternal(int index, double *point1, double *point2)
 {
-  m_points[index]->Reset();
-  m_points[index]->InsertNextPoint(point1);
-  m_points[index]->InsertNextPoint(point2);
+  m_points[index]->SetPoint(0, point1);
+  m_points[index]->SetPoint(1, point2);
   m_points[index]->Modified();
-  m_cells[index]->Reset();
-  auto line = vtkSmartPointer<vtkLine>::New();
-  line->GetPointIds()->SetId(0, 0);
-  line->GetPointIds()->SetId(1, 1);
-  m_cells[index]->InsertNextCell(line);
   m_cells[index]->Modified();
   m_datas[index]->Modified();
   m_mappers[index]->Update();
