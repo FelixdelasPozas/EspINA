@@ -319,8 +319,6 @@ void vtkOrthogonalWidget2D::SetSlice(Nm pos)
   auto rep = reinterpret_cast<vtkOrthogonalRepresentation2D*>(this->WidgetRep);
   rep->SetSlice(pos);
   m_slice = pos;
-
-  this->Render();
 }
 
 //----------------------------------------------------------------------
@@ -333,8 +331,6 @@ void vtkOrthogonalWidget2D::SetBounds(Bounds bounds)
 
   rep->SetOrthogonalBounds(dBounds);
   m_bounds = bounds;
-
-  this->Render();
 }
 
 //----------------------------------------------------------------------
@@ -353,7 +349,6 @@ Bounds vtkOrthogonalWidget2D::GetBounds()
   m_bounds[4] = dBounds[4];
   m_bounds[5] = dBounds[5];
 
-  this->Render();
   this->EventCallbackCommand->SetAbortFlag(0);
 
   return m_bounds;

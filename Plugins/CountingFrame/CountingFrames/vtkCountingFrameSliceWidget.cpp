@@ -310,7 +310,6 @@ void vtkCountingFrameSliceWidget::SetSlice(ESPINA::Nm pos)
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetSlice(pos);
   Slice = pos;
-  this->Render();
 }
 
 //----------------------------------------------------------------------
@@ -338,7 +337,6 @@ void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> 
 
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
-  this->Render();
 }
 
 //----------------------------------------------------------------------
