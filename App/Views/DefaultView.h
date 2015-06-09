@@ -93,6 +93,11 @@ namespace ESPINA
      */
     void saveSessionSettings(TemporalStorageSPtr storage);
 
+    /** \brief Returs the RenderViews' group.
+     *
+     */
+    QList<RenderView *> renderviews() const;
+
   private slots:
     /** \brief Shows/hides the view's ruler.
      * \param[in] visible, true to show the ruler, false to hide.
@@ -113,8 +118,6 @@ namespace ESPINA
     void initView(RenderView *view, QMainWindow *parent);
 
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
-
-    void addRepresentationPool(RepresentationPoolSPtr pool, const QString &group);
 
   private:
     ModelAdapterSPtr m_model;

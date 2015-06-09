@@ -563,6 +563,7 @@ void View3D::setCameraState(CameraState state)
   {
     auto camera = m_renderer->GetActiveCamera();
 
+    camera->SetViewUp(state.upVector[0], state.upVector[1], state.upVector[2]);
     camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
     camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
 
@@ -576,16 +577,18 @@ RenderView::CameraState View3D::cameraState()
   CameraState state;
 
   auto camera = m_renderer->GetActiveCamera();
-  double cameraPos[3], focalPoint[3];
+  double cameraPos[3], focalPoint[3], up[3];
 
   camera->GetFocalPoint(focalPoint);
   camera->GetPosition(cameraPos);
+  camera->GetViewUp(up);
 
-  state.plane = Plane::UNDEFINED;
-  state.slice = -1;
+  state.plane          = Plane::UNDEFINED;
+  state.slice          = -1;
   state.cameraPosition = NmVector3{cameraPos[0], cameraPos[1], cameraPos[2]};
-  state.focalPoint = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
-  state.heightLength = -1;
+  state.focalPoint     = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
+  state.upVector       = NmVector3{up[0], up[1], up[2]};
+  state.heightLength   = -1;
 
   return state;
 }

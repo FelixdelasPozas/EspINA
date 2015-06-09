@@ -58,9 +58,10 @@ namespace ESPINA
       int       slice;           // Only used in View2D
       NmVector3 cameraPosition;
       NmVector3 focalPoint;
+      NmVector3 upVector;
       double    heightLength;    // Only used in View2D
 
-      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
+      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), upVector(NmVector3{}), heightLength(0) {};
     };
 
   public:

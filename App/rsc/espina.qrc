@@ -125,5 +125,9 @@
     <file>zoom_reset.png</file>
     <file>zoom_selection.png</file>
     <file>zoom_tools.png</file>
+    <file>visualBookmarks.svg</file>
+    <file>visualBookmarks_add.svg</file>
+    <file>visualBookmarks_remove.svg</file>
+    <file>visualBookmarks_apply.svg</file>
   </qresource>
 </RCC>

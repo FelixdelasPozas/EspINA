@@ -20,13 +20,10 @@
 
 // ESPINA
 #include "DefaultView.h"
-
 #include <App/EspinaMainWindow.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
-
-#include <Menus/CamerasMenu.h>
 #include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt
@@ -235,6 +232,15 @@ void DefaultView::initView(RenderView* view, QMainWindow *parent)
 
   connect(parent, SIGNAL(analysisClosed()),
           view,   SLOT(reset()));
+}
+
+//-----------------------------------------------------------------------------
+QList<RenderView*> ESPINA::DefaultView::renderviews() const
+{
+  QList<RenderView *> result;
+  result << m_viewXY << m_viewXZ << m_viewYZ << m_view3D;
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------

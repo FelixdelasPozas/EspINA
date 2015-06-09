@@ -30,7 +30,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationHistory/EmptyHistory.h
   Docks/SegmentationHistory/HistoryDock.h
   EspinaMainWindow.h
-  Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
   Settings/ROI/ROISettingsPanel.h
@@ -38,6 +37,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/View2D/View2DSettingsPanel.h
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/ZoomTool.h
+  ToolGroups/Explore/VisualBookmarks.h
   ToolGroups/Refine/CODEHistory.h
   ToolGroups/Refine/CODEHistoryWidget.h
   ToolGroups/Refine/CODETool.h
@@ -122,7 +122,6 @@ set (ESPINA_SOURCES
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
-  Menus/CamerasMenu.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
   RecentDocuments.cpp
@@ -137,6 +136,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Explore/ResetZoom.cpp
   ToolGroups/Explore/ZoomTool.cpp
+  ToolGroups/Explore/VisualBookmarks.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
   ToolGroups/Restrict/CleanROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp

@@ -43,11 +43,12 @@
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
-#include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
-#include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
-#include "ToolGroups/Segment/Manual/ManualSegmentTool.h"
-#include "ToolGroups/Explore/ResetZoom.h"
-#include "ToolGroups/Explore/ZoomTool.h"
+#include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
+#include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
+#include <ToolGroups/Explore/ResetZoom.h>
+#include <ToolGroups/Explore/ZoomTool.h>
+#include <ToolGroups/Explore/VisualBookmarks.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -1264,8 +1265,12 @@ void EspinaMainWindow::createExploreToolGroup()
                                                                   tr("Display Segmentation Explorer"),
                                                                   m_context);
 
-  auto zoomTool  = std::make_shared<ZoomTool>(m_context);
-  auto resetZoom = std::make_shared<ResetZoom>(m_context);
+  auto zoomTool      = std::make_shared<ZoomTool>(m_context);
+  auto resetZoom     = std::make_shared<ResetZoom>(m_context);
+  auto bookmarksTool = std::make_shared<VisualBookmarks>(m_context, m_view->renderviews());
+
+  connect(this,                SIGNAL(analysisClosed()),
+          bookmarksTool.get(), SLOT(clear()));
 
   channelExplorerSwitch     ->setGroupWith("explorer");
   segmentationExplorerSwitch->setGroupWith("explorer");
@@ -1273,10 +1278,13 @@ void EspinaMainWindow::createExploreToolGroup()
   zoomTool ->setGroupWith("zoom");
   resetZoom->setGroupWith("zoom");
 
+  bookmarksTool->setGroupWith("visual bookmarks");
+
   m_exploreToolGroup->addTool(channelExplorerSwitch);
   m_exploreToolGroup->addTool(segmentationExplorerSwitch);
   m_exploreToolGroup->addTool(zoomTool);
   m_exploreToolGroup->addTool(resetZoom);
+  m_exploreToolGroup->addTool(bookmarksTool);
 
   registerToolGroup(m_exploreToolGroup);
 }
