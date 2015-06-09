@@ -38,7 +38,7 @@ ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentati
                                                QUndoCommand*          parent)
 : QUndoCommand  {parent}
 , m_segmentation{segmentation}
-, m_formerTags  {tags}
+, m_tags        {tags}
 {
 }
 
@@ -64,23 +64,21 @@ void ChangeSegmentationTags::swapTags()
     currentTags = m_segmentation->information(SegmentationTags::TAGS).toString().split(";");
   }
 
-  if (currentTags.isEmpty() && !m_formerTags.isEmpty())
+  if(!m_tags.isEmpty())
   {
     auto extension = retrieveOrCreateExtension<SegmentationTags>(m_segmentation);
-    extension->setTags(m_formerTags);
-    m_formerTags.clear();
+    extension->setTags(m_tags);
   }
-  else if (!currentTags.isEmpty() && !m_formerTags.isEmpty())
+  else
   {
-    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
-    extension->setTags(m_formerTags);
-    m_formerTags = currentTags;
+    if(!currentTags.isEmpty())
+    {
+      auto extension = m_segmentation->extension(SegmentationTags::TYPE);
+      m_segmentation->deleteExtension(extension);
+    }
   }
-  if (!currentTags.isEmpty() && m_formerTags.isEmpty())
-  {
-    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
-    m_segmentation->deleteExtension(extension);
-    m_formerTags = currentTags;
-  }
+
+  m_tags = currentTags;
+
   m_segmentation->notifyModification();
 }

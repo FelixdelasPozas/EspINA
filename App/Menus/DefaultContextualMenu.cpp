@@ -132,6 +132,46 @@ void DefaultContextualMenu::manageTags()
   {
     QStandardItemModel tags;
 
+    QMap<QString, int> tagOcurrence;
+
+    for(auto segmentation: m_segmentations)
+    {
+      if(segmentation->hasExtension(SegmentationTags::TYPE))
+      {
+        auto tags = segmentation->extension(SegmentationTags::TYPE)->information(SegmentationTags::TAGS).toString().split(";");
+        for(auto tag: tags)
+        {
+          tagOcurrence[tag] += 1;
+        }
+      }
+    }
+
+    for(auto tag: SegmentationTags::availableTags())
+    {
+      Qt::CheckState state;
+      if(tagOcurrence[tag] == m_segmentations.size())
+      {
+        state = Qt::Checked;
+      }
+      else
+      {
+        if(tagOcurrence[tag] == 0)
+        {
+          state = Qt::Unchecked;
+        }
+        else
+        {
+          state = Qt::PartiallyChecked;
+        }
+      }
+      QStandardItem *item = new QStandardItem(tag);
+      item->setCheckable(true);
+      item->setCheckState(state);
+
+      tags.appendRow(item);
+    }
+    tags.sort(0);
+
     TagSelector tagSelector(dialogTitle(), tags);
     if (tagSelector.exec())
     {
@@ -145,20 +185,34 @@ void DefaultContextualMenu::manageTags()
           previousTags = currentTags;
         }
 
-        for (int r = 0; r < tags.rowCount(); ++r)
+        for (int i = 0; i < tags.rowCount(); ++i)
         {
-          QStandardItem *item = tags.item(r);
-          if (Qt::Checked == item->checkState())
+          QStandardItem *item = tags.item(i);
+          switch(item->checkState())
           {
-            if (!currentTags.contains(item->text()))
-              currentTags << item->text();
-          } else if (Qt::Unchecked == item->checkState())
-          {
-            currentTags.removeAll(item->text());
+            case Qt::Checked:
+              if (!currentTags.contains(item->text()))
+              {
+                currentTags << item->text();
+              }
+              break;
+            case Qt::Unchecked:
+              if (currentTags.contains(item->text()))
+              {
+                currentTags.removeAll(item->text());
+              }
+              break;
+            case Qt::PartiallyChecked:
+              // unchanged.
+            default:
+              break;
           }
         }
-        if (previousTags != currentTags)
+
+        if (previousTags.toSet() != currentTags.toSet())
+        {
           commands << new ChangeSegmentationTags(segmentation, currentTags);
+        }
       }
     }
 

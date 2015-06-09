@@ -46,7 +46,11 @@ namespace ESPINA
     static const InfoTag TAGS;
     static const Type    TYPE;
 
-    //static QStringListModel TagModel;
+    /** \brief returns the list of available tags.
+     *
+     */
+    static QStringList availableTags();
+
   public:
     /** \brief SegmentationTags class constructor.
      * \param[in] infoCache, cache object.
@@ -59,50 +63,26 @@ namespace ESPINA
      */
     virtual ~SegmentationTags();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return false; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const
-    { return m_tags.join(","); }
+    { return m_tags.join(";"); }
 
-    /** \brief Implements Extension::snapshot().
-     *
-     */
     virtual Snapshot snapshot() const
     { return Snapshot(); }
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
     virtual InfoTagList availableInformations() const;
 
-    /** \brief Overrides Extension::tooltipText() const.
-     *
-     */
     virtual QString toolTipText() const override;
 
     /** \brief Adds a tag.
@@ -112,19 +92,19 @@ namespace ESPINA
     void addTag(const QString &tag);
 
     /** \brief Adds multiple tags.
-     * \param[in] tags, text string list.
+     * \param[in] tags text string list.
      *
      */
     void addTags(const QStringList &tags);
 
     /** \brief Removes a tag.
-     * \param[in] tag, text string.
+     * \param[in] tag text string.
      *
      */
     void removeTag(const QString &tag);
 
     /** \brief Sets the tags.
-     * \param[in] tags, text string list.
+     * \param[in] tags text string list.
      *
      */
     void setTags(const QStringList &tags);
@@ -136,29 +116,33 @@ namespace ESPINA
     { return m_tags; }
 
   protected:
-    /** \brief Implements Extension::OnExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Segmentation* item);
 
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
     virtual QVariant cacheFail(const QString& tag) const;
 
   private:
     /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).
+     * \param[in] tag text string.
      *
      */
     void addTagImplementation(const QString &tag);
 
-    /** \brief Updates available tags for all extensions.
+    /** \brief Adds the tags to the available tags counter.
+     * \param[in] tag text string.
      *
      */
-    void updateAvailableTags();
+    void addToAvailableTags(const QString &tag);
+
+    /** \brief Removes the tag from the available tags counter.
+     * \param[in] tag text string.
+     *
+     */
+    void removeFromAvailableTags(const QString &tag);
 
     QStringList m_tags;
-    static QStringList s_availableTags;
+
+    static QReadWriteLock s_mutex;
+    static QMap<QString, unsigned int> s_availableTags;
   };
 
   using SegmentationTagsPtr  = SegmentationTags *;

@@ -71,7 +71,7 @@ namespace ESPINA
 
   private:
     SegmentationAdapterPtr m_segmentation;
-    QStringList            m_formerTags;
+    QStringList            m_tags;
   };
 } // namespace ESPINA
 

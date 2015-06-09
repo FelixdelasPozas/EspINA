@@ -35,7 +35,9 @@ using namespace ESPINA;
 
 const QString                        SegmentationTags::TYPE = "SegmentationTags";
 const SegmentationExtension::InfoTag SegmentationTags::TAGS = "Tags";
-QStringList SegmentationTags::s_availableTags;
+
+QMap<QString, unsigned int> SegmentationTags::s_availableTags;
+QReadWriteLock              SegmentationTags::s_mutex;
 
 //------------------------------------------------------------------------
 SegmentationTags::SegmentationTags(const InfoCache &infoCache)
@@ -46,6 +48,13 @@ SegmentationTags::SegmentationTags(const InfoCache &infoCache)
 //------------------------------------------------------------------------
 SegmentationTags::~SegmentationTags()
 {
+  if(!m_tags.empty())
+  {
+    for(auto tag: m_tags)
+    {
+      removeFromAvailableTags(tag);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -68,7 +77,9 @@ QString SegmentationTags::toolTipText() const
 {
   QString toolTip;
   if (!tags().isEmpty())
+  {
     toolTip = condition(":/espina/tag.svg", tags().join(","));
+  }
 
   return toolTip;
 }
@@ -80,7 +91,7 @@ void SegmentationTags::addTag(const QString &tag)
 
   m_tags.sort();
 
-  updateAvailableTags();
+  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
@@ -93,7 +104,7 @@ void SegmentationTags::addTags(const QStringList &tags)
 
   m_tags.sort();
 
-  updateAvailableTags();
+  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
@@ -104,12 +115,19 @@ void SegmentationTags::removeTag(const QString &tag)
     m_tags.removeOne(tag);
   }
 
-  updateAvailableTags();
+  removeFromAvailableTags(tag);
+
+  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
 void SegmentationTags::setTags(const QStringList &tags)
 {
+  for(auto tag: m_tags)
+  {
+    removeFromAvailableTags(tag);
+  }
+
   m_tags.clear();
 
   addTags(tags);
@@ -118,7 +136,7 @@ void SegmentationTags::setTags(const QStringList &tags)
 //------------------------------------------------------------------------
 QVariant SegmentationTags::cacheFail(const QString& tag) const
 {
-  return (TAGS == tag)?state():QVariant();
+  return (TAGS == tag)? state() : QVariant();
 }
 
 //------------------------------------------------------------------------
@@ -128,21 +146,44 @@ void SegmentationTags::addTagImplementation(const QString &tag)
   {
     m_tags << tag.trimmed();
   }
+
+  addToAvailableTags(tag.trimmed());
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::updateAvailableTags()
+QStringList SegmentationTags::availableTags()
 {
-  QStringList tags;
+  QReadLocker lock(&s_mutex);
 
-  for(auto entry: m_infoCache.values())
+  return s_availableTags.keys();
+}
+
+//------------------------------------------------------------------------
+void SegmentationTags::addToAvailableTags(const QString& tag)
+{
+  QWriteLocker lock(&s_mutex);
+
+  if(s_availableTags.keys().contains(tag))
   {
-  	if(!entry.isValid())
-  		continue;
+    s_availableTags[tag] += 1;
+  }
+  else
+  {
+    s_availableTags.insert(tag, 1);
+  }
+}
 
-  	tags << entry.toStringList();
-	}
+//------------------------------------------------------------------------
+void SegmentationTags::removeFromAvailableTags(const QString& tag)
+{
+  QWriteLocker lock(&s_mutex);
 
-  tags.removeDuplicates();
- 	s_availableTags = tags;
+  Q_ASSERT(s_availableTags.keys().contains(tag));
+
+  s_availableTags[tag] -= 1;
+
+  if(s_availableTags[tag] == 0)
+  {
+    s_availableTags.remove(tag);
+  }
 }
