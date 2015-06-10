@@ -21,6 +21,7 @@
 // ESPINA
 #include "DefaultView.h"
 #include <App/EspinaMainWindow.h>
+#include <Dialogs/View3DDialog/3DDialog.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
@@ -57,7 +58,6 @@ DefaultView::DefaultView(Support::Context &context,
 , m_viewXY{new View2D(context.viewState(), Plane::XY)}
 , m_viewYZ{new View2D(context.viewState(), Plane::YZ)}
 , m_viewXZ{new View2D(context.viewState(), Plane::XZ)}
-, m_view3D{new View3D(context.viewState(), false)}
 {
 
   setObjectName("viewXY");
@@ -73,18 +73,15 @@ DefaultView::DefaultView(Support::Context &context,
   m_panelXZ->setObjectName("xzDock");
   m_panelXZ->setWidget(m_viewXZ);
 
-  m_panel3D = new DockWidget(tr("3D"), parent);
-  m_panel3D->setObjectName("Dock3D");
-  m_panel3D->setWidget(m_view3D);
+  m_dialog3D = new Dialog3D(context);
 
-  parent->addDockWidget(Qt::RightDockWidgetArea, m_panel3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, m_panelYZ);
   parent->addDockWidget(Qt::RightDockWidgetArea, m_panelXZ);
 
   initView(m_viewXY, parent);
   initView(m_viewXZ, parent);
   initView(m_viewYZ, parent);
-  initView(m_view3D, parent);
+  initDialog3D(m_dialog3D, parent);
 
   parent->setCentralWidget(this);
 }
@@ -92,6 +89,12 @@ DefaultView::DefaultView(Support::Context &context,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
+  if(m_dialog3D->isVisible())
+  {
+    m_dialog3D->hide();
+  }
+
+  delete m_dialog3D;
 }
 
 //-----------------------------------------------------------------------------
@@ -125,7 +128,7 @@ void DefaultView::createViewMenu(QMenu* menu)
   auto renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(m_panelYZ->toggleViewAction());
   renderMenu->addAction(m_panelXZ->toggleViewAction());
-  renderMenu->addAction(m_panel3D->toggleViewAction());
+  renderMenu->addAction(m_dialog3D->toggleViewAction());
   menu->addMenu(renderMenu);
 
   ESPINA_SETTINGS(settings);
@@ -172,9 +175,9 @@ DockWidget* DefaultView::panelYZ()
 }
 
 //-----------------------------------------------------------------------------
-DockWidget *DefaultView::panel3D()
+Dialog3D* DefaultView::dialog3D()
 {
-  return m_panel3D;
+  return m_dialog3D;
 }
 
 //-----------------------------------------------------------------------------
@@ -235,12 +238,17 @@ void DefaultView::initView(RenderView* view, QMainWindow *parent)
 }
 
 //-----------------------------------------------------------------------------
+void DefaultView::initDialog3D(Dialog3D *dialog, QMainWindow *parent)
+{
+  auto view = dialog->renderView();
+
+  initView(view, parent);
+}
+
+//-----------------------------------------------------------------------------
 QList<RenderView*> ESPINA::DefaultView::renderviews() const
 {
-  QList<RenderView *> result;
-  result << m_viewXY << m_viewXZ << m_viewYZ << m_view3D;
-
-  return result;
+  return m_views;
 }
 
 //-----------------------------------------------------------------------------

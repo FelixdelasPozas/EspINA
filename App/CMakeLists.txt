@@ -22,6 +22,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/HueSelector/HueSelector.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
+  Dialogs/View3DDialog/3DDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
@@ -79,6 +80,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
+  Dialogs/View3DDialog/3DDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Docks/SegmentationHistory/DefaultHistory.ui
@@ -112,6 +114,7 @@ set (ESPINA_SOURCES
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
   Dialogs/RawInformation/RawInformationDialog.cpp
+  Dialogs/View3DDialog/3DDialog.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp

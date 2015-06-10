@@ -39,7 +39,7 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  class CamerasMenu;
+  class Dialog3D;
 
   class DefaultView
   : QWidget
@@ -76,7 +76,10 @@ namespace ESPINA
      */
     DockWidget *panelYZ();
 
-    DockWidget *panel3D();
+    /** \brief Returns a reference to the 3D dialog.
+     *
+     */
+    Dialog3D *dialog3D();
 
     /** \brief Returns the view's settings panel.
      *
@@ -117,26 +120,29 @@ namespace ESPINA
   private:
     void initView(RenderView *view, QMainWindow *parent);
 
+    void initDialog3D(Dialog3D *dialog, QMainWindow *parent);
+
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
   private:
-    ModelAdapterSPtr m_model;
-    GUI::View::ViewState &    m_viewState;
+    ModelAdapterSPtr      m_model;
+    GUI::View::ViewState &m_viewState;
 
     PipelineSourcesFilter m_channelSources;
     PipelineSourcesFilter m_segmentationSources;
 
-    RepresentationPoolSList    m_channelPools;
-    RepresentationPoolSList    m_segmentationPools;
-    RepresentationPoolSList    m_autonomousPools;
+    RepresentationPoolSList m_channelPools;
+    RepresentationPoolSList m_segmentationPools;
+    RepresentationPoolSList m_autonomousPools;
+
     GUI::Representations::RepresentationManagerSList m_repManagers;
 
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
-    View3D *m_view3D;
 
     QList<RenderView *> m_views;
 
-    DockWidget  *m_panelYZ, *m_panelXZ, *m_panel3D;
+    DockWidget  *m_panelYZ, *m_panelXZ;
+    Dialog3D    *m_dialog3D;
     QAction     *m_showRuler, *m_showThumbnail;
   };
 

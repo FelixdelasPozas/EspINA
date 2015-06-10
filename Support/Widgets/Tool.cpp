@@ -117,7 +117,10 @@ bool ProgressTool::isChecked() const
 //----------------------------------------------------------------------------
 void ProgressTool::setChecked(bool value)
 {
-  m_action->setActionChecked(value);
+  if(isChecked() != value)
+  {
+    m_action->setActionChecked(value);
+  }
 }
 
 //----------------------------------------------------------------------------

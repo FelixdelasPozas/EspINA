@@ -23,6 +23,7 @@
 #include "Dialogs/About/AboutDialog.h"
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
+#include <Dialogs/View3DDialog/3DDialog.h>
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include "Docks/SegmentationHistory/HistoryDock.h"
@@ -1341,12 +1342,10 @@ void EspinaMainWindow::createVisualizeToolGroup()
   panelSwitchYZ->setGroupWith("view_panels");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
-  auto panelSwitch3D = std::make_shared<PanelSwitch>(m_view->panel3D(),
-                                                     ":espina/panel_3d.svg",
-                                                     tr("Display YZ View"),
-                                                     m_context);
-  panelSwitch3D->setGroupWith("view_panels");
-  m_visualizeToolGroup->addTool(panelSwitch3D);
+  auto dialog3dTool = m_view->dialog3D()->tool();
+  dialog3dTool->setGroupWith("view_panels");
+
+  m_visualizeToolGroup->addTool(dialog3dTool);
 
   registerToolGroup(m_visualizeToolGroup);
 }
