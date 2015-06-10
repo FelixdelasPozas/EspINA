@@ -121,6 +121,7 @@ namespace ESPINA
   private:
     class DefineOrthogonalROICommand;
     class DefineManualROICommand;
+    class ConsumeROICommand;
 
   private:
     using ManualROIToolSPtr      = std::shared_ptr<ManualROITool>;

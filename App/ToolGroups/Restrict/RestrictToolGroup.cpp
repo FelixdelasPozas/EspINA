@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "RestrictToolGroup.h"
-
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "CleanROITool.h"
 #include "ManualROITool.h"
@@ -67,6 +66,39 @@ void RestrictToolGroup::DefineOrthogonalROICommand::undo()
   m_tool->m_ortogonalROITool->setROI(m_prevROI);
 }
 
+//-----------------------------------------------------------------------------
+class RestrictToolGroup::ConsumeROICommand
+: public QUndoCommand
+{
+  public:
+    explicit ConsumeROICommand(RestrictToolGroup *tool);
+
+    virtual void redo() override;
+
+    virtual void undo() override;
+  private:
+    RestrictToolGroup *m_tool;
+    ROISPtr m_roi;
+};
+
+//-----------------------------------------------------------------------------
+RestrictToolGroup::ConsumeROICommand::ConsumeROICommand(RestrictToolGroup *tool)
+: m_tool{tool}
+, m_roi {tool->currentROI()}
+{
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::ConsumeROICommand::redo()
+{
+  m_tool->setCurrentROI(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::ConsumeROICommand::undo()
+{
+  m_tool->setCurrentROI(m_roi);
+}
 
 //-----------------------------------------------------------------------------
 class RestrictToolGroup::DefineManualROICommand
@@ -84,14 +116,19 @@ private:
   RestrictToolGroup *m_tool;
   ROISPtr            m_oROI;
   bool               m_firstROI;
+
+  itkVolumeType::Pointer m_image;
+  Bounds                 m_ROIbounds;
 };
 
 //-----------------------------------------------------------------------------
 RestrictToolGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMaskSPtr<unsigned char> mask, RestrictToolGroup* tool)
-: m_mask{mask}
-, m_tool{tool}
-, m_oROI{tool->m_ortogonalROITool->currentROI()}
-, m_firstROI{tool->m_accumulator == nullptr}
+: m_mask     {mask}
+, m_tool     {tool}
+, m_oROI     {tool->m_ortogonalROITool->currentROI()}
+, m_firstROI {tool->m_accumulator == nullptr}
+, m_image    {nullptr}
+, m_ROIbounds{Bounds()}
 {
 }
 
@@ -99,6 +136,19 @@ RestrictToolGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMa
 void RestrictToolGroup::DefineManualROICommand::redo()
 {
   m_tool->commitPendingOrthogonalROI(nullptr);
+
+  if(!m_firstROI)
+  {
+    auto currentROI = m_tool->currentROI();
+    m_ROIbounds = currentROI->bounds();
+
+    if(intersect(currentROI->bounds(), m_mask->bounds().bounds(), m_mask->spacing()))
+    {
+      auto bounds = intersection(currentROI->bounds(), m_mask->bounds().bounds());
+      m_image  = currentROI->itkImage(bounds);
+    }
+  }
+
   m_tool->addManualROI(m_mask);
 }
 
@@ -111,21 +161,21 @@ void RestrictToolGroup::DefineManualROICommand::undo()
   }
   else
   {
-    // TODO: 12-05-2015 undo removed from data api
-    // m_tool->m_accumulator->undo();
+    auto currentROI = m_tool->currentROI();
+    currentROI->resize(m_ROIbounds);
+
+    if(m_image)
+    {
+      currentROI->draw(m_image);
+    }
 
     if (m_oROI)
     {
-      // TODO: 12-05-2015 undo removed from data api
-      // m_tool->m_accumulator->undo();
       m_tool->m_ortogonalROITool->setROI(m_oROI);
     }
   }
 }
 
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
                                      Support::Context &context)
@@ -211,8 +261,7 @@ ROISPtr RestrictToolGroup::currentROI()
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::consumeROI()
 {
-  // TODO: Must be undoable
-  setCurrentROI(nullptr);
+  undoStackPush(new ConsumeROICommand{this});
 }
 
 //-----------------------------------------------------------------------------

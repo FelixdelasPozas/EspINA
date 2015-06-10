@@ -153,10 +153,6 @@ Bounds OrthogonalROITool::createRegion(const NmVector3 &centroid, const Nm xSize
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::onToolGroupActivated()
 {
-  setDefinitionMode(true);
-
-  m_resizeROI->setEnabled(m_roi != nullptr);
-  setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -273,6 +269,9 @@ void OrthogonalROITool::onEventHandlerChanged()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setActive(bool value)
 {
+  setDefinitionMode(value);
+
+  m_resizeROI->setEnabled(m_roi != nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -346,7 +345,6 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
       auto roi    = std::make_shared<ROI>(bounds, pickedChannel->output()->spacing(), pickedChannel->position());
 
       setResizable(true);
-        //setDefinitionMode(false   );
 
       emit roiDefined(roi);
     }
