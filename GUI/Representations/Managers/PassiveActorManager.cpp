@@ -138,43 +138,65 @@ void PassiveActorManager::displayRepresentations(const TimeStamp t)
   auto currentActors = m_viewActors;
   auto futureActors  = m_pool->actors(t);
 
-  if(currentActors.empty())
+  auto currentSegs = currentActors.keys().toSet();
+  auto futureSegs  = futureActors.keys().toSet();
+
+  auto temporalSet = currentSegs;
+  auto toRemove    = temporalSet.subtract(futureSegs);
+
+  temporalSet    = currentSegs;
+  auto toCompare = temporalSet.intersect(futureSegs);
+
+  temporalSet    = futureSegs;
+  auto toAdd     = temporalSet.subtract(currentSegs);
+
+  // remove
+  for(auto item: toRemove)
   {
-    m_viewActors = futureActors;
-    for(auto item: m_viewActors.keys())
+    for(auto actor: currentActors[item])
     {
-      for(auto actor: m_viewActors[item])
-      {
-        m_view->addActor(actor);
-      }
+      m_view->removeActor(actor);
     }
-  }
-  else
-  {
-    for (auto it = currentActors.begin(); it != currentActors.end(); ++it)
-    {
-      auto item = it.key();
 
-      auto oldActors = toSet(it.value());
-      auto newActors = toSet(futureActors[item]);
-
-      if(oldActors != newActors)
-      {
-        for (auto oldActor : oldActors.subtract(newActors))
-        {
-          m_view->removeActor(oldActor);
-        }
-
-        for (auto newActor : newActors.subtract(oldActors))
-        {
-          m_view->addActor(newActor);
-        }
-
-        m_viewActors[item] = futureActors[item];
-      }
-    }
+    m_viewActors.remove(item);
   }
 
+  // compare
+  for(auto item: toCompare)
+  {
+    auto oldActors = toSet(m_viewActors[item]);
+    auto newActors = toSet(futureActors[item]);
+
+    if(oldActors != newActors)
+    {
+      auto temporalSet = oldActors;
+      for (auto oldActor : temporalSet.subtract(newActors))
+      {
+        m_view->removeActor(oldActor);
+      }
+
+      temporalSet = newActors;
+      for (auto newActor : temporalSet.subtract(oldActors))
+      {
+        m_view->addActor(newActor);
+      }
+    }
+
+    m_viewActors[item] = futureActors[item];
+  }
+
+  // add
+  for(auto item: toAdd)
+  {
+    for(auto actor: futureActors[item])
+    {
+      m_view->addActor(actor);
+    }
+
+    m_viewActors.insert(item, futureActors[item]);
+  }
+
+  // set flag
   for(auto actors : m_viewActors)
   {
     if(!actors.isEmpty())
