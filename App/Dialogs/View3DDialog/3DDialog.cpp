@@ -44,6 +44,8 @@ Dialog3D::Dialog3D(Support::Context   &context)
   setWindowModality(Qt::WindowModality::NonModal);
   setWindowTitle("View 3D");
 
+  layout()->setMenuBar(&m_toolbar);
+
   initView3D();
 
   restoreGeometryState();
@@ -99,7 +101,7 @@ void Dialog3D::restoreGeometryState()
 {
   ESPINA_SETTINGS(settings);
 
-  QByteArray geometry = settings.value(GEOMETRY_SETTINGS_KEY, QByteArray()).toByteArray();
+  auto geometry = settings.value(GEOMETRY_SETTINGS_KEY, QByteArray()).toByteArray();
   if (!geometry.isEmpty())
   {
     restoreGeometry(geometry);
@@ -145,4 +147,18 @@ void Dialog3D::onToggled(bool checked)
   }
 
   emit dialogVisible(checked);
+}
+
+//------------------------------------------------------------------------
+void Dialog3D::addRepresentationSwitch(RepresentationSwitchSPtr repSwitch)
+{
+  if(!m_switches.contains(repSwitch))
+  {
+    m_switches << repSwitch;
+
+    for(auto action: repSwitch->actions())
+    {
+      m_toolbar.addAction(action);
+    }
+  }
 }

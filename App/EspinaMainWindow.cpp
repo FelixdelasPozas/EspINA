@@ -1428,7 +1428,10 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 
   for (auto repSwitch : representation.Switches)
   {
-    m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+    if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
+    {
+      m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+    }
   }
 
   m_view->addRepresentation(representation);

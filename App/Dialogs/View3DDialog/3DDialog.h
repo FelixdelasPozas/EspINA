@@ -24,11 +24,14 @@
 // ESPINA
 #include <GUI/View/View3D.h>
 #include <Support/Context.h>
+#include <Support/Representations/RepresentationFactory.h>
+#include <Support/SupportTypes.h>
 #include <Support/Widgets/Tool.h>
 #include "ui_3DDialog.h"
 
 // Qt
 #include <QDialog>
+#include <QToolBar>
 
 namespace ESPINA
 {
@@ -71,6 +74,11 @@ namespace ESPINA
      */
     std::shared_ptr<Support::Widgets::ProgressTool> tool();
 
+    /** \brief Adds a representation switch to the toolbar.
+     *
+     */
+    void addRepresentationSwitch(RepresentationSwitchSPtr repSwitch);
+
   signals:
     void dialogVisible(bool);
 
@@ -99,8 +107,10 @@ namespace ESPINA
   private:
     static const QString GEOMETRY_SETTINGS_KEY;
 
-    Support::Context &m_context;
-    View3D            m_view3D;
+    Support::Context         &m_context;
+    View3D                    m_view3D;
+    QToolBar                  m_toolbar;
+    RepresentationSwitchSList m_switches;
   };
 
 } // namespace ESPINA

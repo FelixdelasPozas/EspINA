@@ -100,6 +100,14 @@ DefaultView::~DefaultView()
 //-----------------------------------------------------------------------------
 void DefaultView::addRepresentation(const Representation& representation)
 {
+  for(auto repSwitch: representation.Switches)
+  {
+    if(repSwitch->supportedViews().testFlag(ViewType::VIEW_3D))
+    {
+      m_dialog3D->addRepresentationSwitch(repSwitch);
+    }
+  }
+
   for (auto manager : representation.Managers)
   {
     addRepresentationManager(manager);
