@@ -68,6 +68,8 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
 {
   setupUI();
+
+  onCrosshairChanged(state.crosshair());
 }
 
 //-----------------------------------------------------------------------------
@@ -112,19 +114,19 @@ void View3D::onCrosshairChanged(const NmVector3 &point)
 {
   if (m_showCrosshairPlaneSelectors)
   {
-    int iCenter[3] = {
-      vtkMath::Round(point[0]/sceneResolution()[0]),
-      vtkMath::Round(point[1]/sceneResolution()[1]),
-      vtkMath::Round(point[2]/sceneResolution()[2])
-    };
+    auto resolution = sceneResolution();
+
+    int iCenter[3] = { vtkMath::Round(point[0]/resolution[0]),
+                       vtkMath::Round(point[1]/resolution[1]),
+                       vtkMath::Round(point[2]/resolution[2]) };
 
     m_axialScrollBar   ->blockSignals(true);
     m_coronalScrollBar ->blockSignals(true);
     m_sagittalScrollBar->blockSignals(true);
 
-    m_axialScrollBar   ->setValue(iCenter[0]);
+    m_sagittalScrollBar->setValue(iCenter[0]);
     m_coronalScrollBar ->setValue(iCenter[1]);
-    m_sagittalScrollBar->setValue(iCenter[2]);
+    m_axialScrollBar   ->setValue(iCenter[2]);
 
     m_axialScrollBar   ->blockSignals(false);
     m_coronalScrollBar ->blockSignals(false);
@@ -140,7 +142,7 @@ void View3D::moveCamera(const NmVector3 &point)
 }
 
 //-----------------------------------------------------------------------------
-void View3D::onSceneResolutionChanged(const NmVector3 &reslotuion)
+void View3D::onSceneResolutionChanged(const NmVector3 &resolution)
 {
   updateScrollBarsLimits();
 }
@@ -529,14 +531,38 @@ void View3D::updateViewActions(RepresentationManager::ManagerFlags flags)
 void View3D::scrollBarMoved(int value)
 {
   NmVector3 point;
+  auto bar = qobject_cast<QScrollBar *>(sender());
+
+  Plane plane{Plane::UNDEFINED};
+
+  if(bar == m_axialScrollBar)
+  {
+    plane = Plane::XY;
+  }
+  else
+  {
+    if(bar == m_coronalScrollBar)
+    {
+      plane = Plane::XZ;
+    }
+    else
+    {
+      if(bar == m_sagittalScrollBar)
+      {
+        plane = Plane::YZ;
+      }
+    }
+  }
+
+  if(plane == Plane::UNDEFINED)
+  {
+    qWarning() << "unknown signal sender" << __FILE__ << __LINE__;
+    return;
+  }
 
   auto resolution = sceneResolution();
 
-  point[0] = m_axialScrollBar   ->value() * resolution[0];
-  point[1] = m_coronalScrollBar ->value() * resolution[1];
-  point[2] = m_sagittalScrollBar->value() * resolution[2];
-
-  emit crosshairChanged(point);
+  emit crosshairPlaneChanged(plane, value * resolution[normalCoordinateIndex(plane)]);
 }
 
 //-----------------------------------------------------------------------------
@@ -547,12 +573,12 @@ void View3D::updateScrollBarsLimits()
     auto bounds     = sceneBounds();
     auto resolution = sceneResolution();
 
-    m_axialScrollBar   ->setMinimum(vtkMath::Round(bounds[0]/resolution[0]));
-    m_axialScrollBar   ->setMaximum(vtkMath::Round(bounds[1]/resolution[0])-1);
-    m_coronalScrollBar ->setMinimum(vtkMath::Round(bounds[2]/resolution[1]));
-    m_coronalScrollBar ->setMaximum(vtkMath::Round(bounds[3]/resolution[1])-1);
-    m_sagittalScrollBar->setMinimum(vtkMath::Round(bounds[4]/resolution[2]));
-    m_sagittalScrollBar->setMaximum(vtkMath::Round(bounds[5]/resolution[2])-1);
+    m_sagittalScrollBar->setMinimum(vtkMath::Round((bounds[0]+(resolution[0]/2))/resolution[0]));
+    m_sagittalScrollBar->setMaximum(vtkMath::Round((bounds[1]+(resolution[0]/2))/resolution[0])-1);
+    m_coronalScrollBar ->setMinimum(vtkMath::Round((bounds[2]+(resolution[1]/2))/resolution[1]));
+    m_coronalScrollBar ->setMaximum(vtkMath::Round((bounds[3]+(resolution[1]/2))/resolution[1])-1);
+    m_axialScrollBar   ->setMinimum(vtkMath::Round((bounds[4]+(resolution[2]/2))/resolution[2]));
+    m_axialScrollBar   ->setMaximum(vtkMath::Round((bounds[5]+(resolution[2]/2))/resolution[2])-1);
   }
 }
 
