@@ -19,11 +19,18 @@
   <property name="windowTitle">
    <string>Segmentation Information</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../../rsc/espina.qrc">
+    <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QSplitter" name="m_splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="m_upperWidget" native="true">
       <property name="sizePolicy">
@@ -39,7 +46,7 @@
           <enum>Qt::Horizontal</enum>
          </property>
          <property name="childrenCollapsible">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <widget class="QWidget" name="m_viewport" native="true">
           <property name="sizePolicy">
@@ -73,8 +80,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>284</width>
-                <height>150</height>
+                <width>273</width>
+                <height>323</height>
                </rect>
               </property>
              </widget>

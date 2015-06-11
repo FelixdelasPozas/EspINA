@@ -42,17 +42,13 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-using namespace ESPINA::Support;
-
-namespace ESPINA
-{
-  const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
-  const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
-}
-
 using namespace ESPINA;
+using namespace ESPINA::Support;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support::Representations::Utils;
+
+const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
+const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
@@ -84,20 +80,20 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   configureLayout();
 
-  restoreGeometryState();
-
   connect(selection().get(), SIGNAL(selectionChanged()),
           this,              SLOT(updateSelection()));
 
   updateWindowTitle();
 
   updateSelection();
+
+  restoreGeometryState();
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::closeEvent(QCloseEvent *e)
 {
-  saveGeometry();
+  saveGeometryState();
 
   emit inspectorClosed(this);
 
@@ -127,7 +123,7 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
     {
       if (channels.size() > 1)
       {
-        qWarning() << "Channel tiling is not supported.";
+        qWarning() << "Channel tiling is not supported." << __FILE__ << __LINE__;
       }
 
       addChannel(channels.first().get());
@@ -138,8 +134,7 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 //------------------------------------------------------------------------
 void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentation)
 {
-  if (!m_segmentations.contains(segmentation))
-    return;
+  if (!m_segmentations.contains(segmentation)) return;
 
   m_segmentations.removeOne(segmentation);
 
@@ -211,8 +206,7 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
 {
-  if (!m_channels.contains(channel))
-    return;
+  if (!m_channels.contains(channel)) return;
 
   m_channels.removeOne(channel);
 
@@ -230,7 +224,9 @@ void SegmentationInspector::updateWindowTitle()
   {
     title += segmentation->data().toString();
     if(segmentation != m_segmentations.last())
+    {
       title += QString(" + ");
+    }
   }
 
   title += QString(" [");
@@ -239,7 +235,9 @@ void SegmentationInspector::updateWindowTitle()
   {
     title += channel->data().toString();
     if (channel != m_channels.last())
+    {
       title += QString(" + ");
+    }
   }
   title += QString("]");
 
@@ -251,7 +249,6 @@ SelectionSPtr SegmentationInspector::selection() const
 {
   return ESPINA::Support::getSelection(m_context);
 }
-
 
 //------------------------------------------------------------------------
 void SegmentationInspector::showEvent(QShowEvent *event)
@@ -265,7 +262,9 @@ void SegmentationInspector::showEvent(QShowEvent *event)
 void SegmentationInspector::dragEnterEvent(QDragEnterEvent *event)
 {
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
+  {
     event->acceptProposedAction();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -274,9 +273,13 @@ void SegmentationInspector::dragMoveEvent(QDragMoveEvent *event)
   // TODO: show the drop area of the drag before entering the dialog
   // (probably needs a signal from origin widget to all possible target widgets)
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
+  {
     event->accept();
+  }
   else
+  {
     event->ignore();
+  }
 }
 
 typedef QMap<int, QVariant> ItemData;
@@ -284,8 +287,8 @@ typedef QMap<int, QVariant> ItemData;
 //------------------------------------------------------------------------
 void SegmentationInspector::dropEvent(QDropEvent *event)
 {
-//   TODO + WARNING: this dropEvent() only works for Category (or "Type") layout
-//   but right now that is the only layout with drag & drop enabled
+  // TODO + WARNING: this dropEvent() only works for Category (or "Type") layout
+  // but right now that is the only layout with drag & drop enabled
   QByteArray encoded = event->mimeData()->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
 
@@ -427,12 +430,12 @@ void SegmentationInspector::configureLayout()
 }
 
 //------------------------------------------------------------------------
-QVBoxLayout *SegmentationInspector::createViewLayout()
+QHBoxLayout *SegmentationInspector::createViewLayout()
 {
-  auto layout = new QVBoxLayout();
+  auto layout = new QHBoxLayout();
 
   layout->addWidget(&m_view);
-  layout->setSizeConstraint(QLayout::SetMinimumSize);
+  layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
   return layout;
 }
@@ -504,16 +507,16 @@ void SegmentationInspector::restoreGeometryState()
 {
   ESPINA_SETTINGS(settings);
 
-  QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
+  auto geometry = settings.value(GEOMETRY_SETTINGS_KEY, QByteArray()).toByteArray();
   if (!geometry.isEmpty())
   {
     restoreGeometry(geometry);
   }
 
-  QByteArray state = settings.value(SegmentationInspectorSplitterKey, QByteArray()).toByteArray();
-  if (!state.isEmpty())
+  auto infoSplitterState = settings.value(INFORMATION_SPLITTER_SETTINGS_KEY, QByteArray()).toByteArray();
+  if (!infoSplitterState.isEmpty())
   {
-    m_splitter->restoreState(state);
+    m_splitter->restoreState(infoSplitterState);
   }
 }
 
@@ -522,7 +525,7 @@ void SegmentationInspector::saveGeometryState()
 {
   ESPINA_SETTINGS(settings);
 
-  settings.setValue(SegmentationInspectorSettingsKey, this->saveGeometry());
-  settings.setValue(SegmentationInspectorSplitterKey, m_splitter->saveState());
+  settings.setValue(GEOMETRY_SETTINGS_KEY, this->saveGeometry());
+  settings.setValue(INFORMATION_SPLITTER_SETTINGS_KEY, m_splitter->saveState());
   settings.sync();
 }

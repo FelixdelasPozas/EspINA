@@ -132,13 +132,16 @@ namespace ESPINA
 
     void saveGeometryState();
 
-    QVBoxLayout *createViewLayout();
+    QHBoxLayout *createViewLayout();
 
     QHBoxLayout *createReportLayout();
 
     SelectionSPtr selection() const;
 
   private:
+    static const QString GEOMETRY_SETTINGS_KEY;
+    static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
+
     Support::Context         &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
 
