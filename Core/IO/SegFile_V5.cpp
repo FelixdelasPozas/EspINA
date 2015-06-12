@@ -430,7 +430,7 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
 
   QXmlStreamReader xml(extensions);
 
-  auto type = QString();
+  auto type  = QString();
   auto cache = ChannelExtension::InfoCache();
   auto state = State();
 
@@ -444,29 +444,28 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
         cache = ChannelExtension::InfoCache();
         state = State();
       }
-      else
-        if (xml.name() == "Info")
-        {
-          QString name = xml.attributes().value("Name").toString();
-          cache[name] = xml.readElementText();
-        }
-        else
-          if (xml.name() == "State")
-          {
-            state = xml.readElementText();
-          }
-    }
-    else
-      if (xml.isEndElement() && xml.name() == "Extension")
+      else if (xml.name() == "Info")
       {
-        createChannelExtension(channel, type, cache, state);
+        QString name = xml.attributes().value("Name").toString();
+        cache[name] = xml.readElementText();
       }
+      else if (xml.name() == "State")
+      {
+        state = xml.readElementText();
+      }
+    }
+    else if (xml.isEndElement() && xml.name() == "Extension")
+    {
+      createChannelExtension(channel, type, cache, state);
+    }
 
-      xml.readNext();
+    xml.readNext();
   }
 
   if (xml.hasError())
+  {
     qDebug() << "channel loadExtensions error:" << xml.errorString();
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -78,7 +78,8 @@ namespace ESPINA
      *  a factory to obtain such extensions, otherwise read only information will
      *  be available after loading them.
      */
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;
+    virtual ChannelExtensionFactorySList channelExtensionFactories() const
+    { return ChannelExtensionFactorySList(); }
 
     /** \brief Returns a list of segmentation extension factories.
      *
@@ -86,43 +87,51 @@ namespace ESPINA
      *  a factory to obtain such extensions, otherwise read only information will
      *  be available after loading them.
      */
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
+    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const
+    { return SegmentationExtensionFactorySList(); }
 
     /** \brief Returns a list of filter factories provided by the plugin.
      *
      */
-    virtual FilterFactorySList filterFactories() const = 0;
+    virtual FilterFactorySList filterFactories() const
+    { return FilterFactorySList(); }
 
     /** \brief Returns a list of analysis readers provided by the plugin.
      *
      */
-    virtual AnalysisReaderSList analysisReaders() const = 0;
+    virtual AnalysisReaderSList analysisReaders() const
+    { return AnalysisReaderSList(); }
 
     /** \brief Returns a list of color engines provided by the plugin.
      *
      */
-    virtual NamedColorEngineSList colorEngines() const = 0;
+    virtual NamedColorEngineSList colorEngines() const
+    { return NamedColorEngineSList(); }
 
     /** \brief Returns a list of ToolGroups provided by the plugin.
      *
      */
-    virtual RepresentationFactorySList representationFactories() const = 0;
+    virtual RepresentationFactorySList representationFactories() const
+    { return RepresentationFactorySList(); }
 
     /** \brief Returns a list of tools provided by the plugin.
      *
      *  Each tool is asigned to one of the available categories
      */
-    virtual QList<CategorizedTool> tools() const = 0;
+    virtual QList<CategorizedTool> tools() const
+    { return QList<CategorizedTool>(); }
 
     /** \brief Returns a list of settings panels provided by the plugin.
      *
      */
-    virtual SettingsPanelSList settingsPanels() const = 0;
+    virtual SettingsPanelSList settingsPanels() const
+    { return SettingsPanelSList(); }
 
     /** \brief Returns a list of menu entries to add to the main application.
      *
      */
-    virtual QList<MenuEntry> menuEntries() const = 0;
+    virtual QList<MenuEntry> menuEntries() const
+    { return QList<MenuEntry>(); }
 
   public slots:
     /** \brief Perform operations when an analysis is closed.

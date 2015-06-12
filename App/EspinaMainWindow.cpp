@@ -302,38 +302,13 @@ void EspinaMainWindow::enableWidgets(bool value)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createActivityMenu()
-{
-  auto sigMapper = new QSignalMapper(this);
-
-  auto activityMenu = new QMenu(tr("acceptmodeActivity"));
-  menuBar()->addMenu(activityMenu);
-
-  auto analyze = new QAction(tr("Analyze"),activityMenu);
-  activityMenu->addAction(analyze);
-  sigMapper->setMapping(analyze,QString("analyze"));
-  connect(analyze,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
-
-  auto reload = new QAction(tr("Reload"),activityMenu);
-  activityMenu->addAction(reload);
-  sigMapper->setMapping(reload,QString("Reload"));
-  connect(reload,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
-
-  auto segment = new QAction(tr("Segment"),activityMenu);
-  activityMenu->addAction(segment);
-  sigMapper->setMapping(segment,QString("segment"));
-  connect(segment,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
-
-  connect(sigMapper,SIGNAL(mapped(QString)),this, SLOT(setActivity(QString)));
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
 {
-  DynamicMenuNode *node = m_dynamicMenuRoot;
+  auto node = m_dynamicMenuRoot;
+
   for(int i=0; i < entry.first.size(); i++)
   {
-    QString entryName = entry.first[i];
+    auto entryName = entry.first[i];
 
     int index = -1;
     for(int m=0; m<node->submenus.size(); m++)
@@ -348,7 +323,7 @@ void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
 
     if (-1 == index)
     {
-      DynamicMenuNode *subnode = new DynamicMenuNode();
+      auto subnode = new DynamicMenuNode();
       if (node == m_dynamicMenuRoot)
         subnode->menu = menuBar()->addMenu(entryName);
       else

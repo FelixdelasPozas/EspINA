@@ -98,6 +98,12 @@ class DockWidget;
 
       GUI::View::ViewState &getViewState() const;
 
+      ModelFactorySPtr getFactory() const;
+
+      SchedulerSPtr getScheduler() const;
+
+      ModelAdapterSPtr getModel() const;
+
       QUndoStack *getUndoStack() const;
 
     private:

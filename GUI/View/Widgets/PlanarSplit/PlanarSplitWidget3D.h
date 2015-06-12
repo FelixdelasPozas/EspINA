@@ -66,9 +66,6 @@ namespace ESPINA
 
             virtual void disableWidget() override;
 
-            virtual bool isEnabled() override final
-            { return true; }
-
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 

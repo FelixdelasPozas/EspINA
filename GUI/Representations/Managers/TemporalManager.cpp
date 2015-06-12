@@ -170,8 +170,6 @@ void TemporalManager::onHide(TimeStamp t)
 //------------------------------------------------------------------------
 void TemporalManager::displayRepresentations(TimeStamp t)
 {
-  if (!m_representation->isEnabled()) m_representation->show();
-
   auto action = m_pendingActions.value(t, Action(INIT, NmVector3()));
 
   if (action.first == CROSSHAIR)
@@ -197,4 +195,37 @@ void TemporalManager::hideRepresentations(TimeStamp t)
 RepresentationManagerSPtr TemporalManager::cloneImplementation()
 {
   return std::make_shared<TemporalManager>(m_prototypes, flags());
+}
+
+
+//------------------------------------------------------------------------
+AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()
+: m_normalIndex{0}
+, m_reslicePosition{0.0}
+{
+
+}
+
+//------------------------------------------------------------------------
+void AcceptOnlyPlaneCrosshairChanges::acceptChangesOnPlane(Plane plane)
+{
+  m_normalIndex = normalCoordinateIndex(plane);
+}
+
+//------------------------------------------------------------------------
+bool AcceptOnlyPlaneCrosshairChanges::acceptPlaneCrosshairChange(const NmVector3 &crosshair) const
+{
+  return normalCoordinate(crosshair) != m_reslicePosition;
+}
+
+//------------------------------------------------------------------------
+void AcceptOnlyPlaneCrosshairChanges::changeReslicePosition(const NmVector3 &crosshair)
+{
+  m_reslicePosition = normalCoordinate(crosshair);
+}
+
+//------------------------------------------------------------------------
+Nm AcceptOnlyPlaneCrosshairChanges::normalCoordinate(const NmVector3 &value) const
+{
+  return value[m_normalIndex];
 }

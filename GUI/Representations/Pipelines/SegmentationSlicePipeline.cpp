@@ -20,6 +20,7 @@
 // ESPINA
 #include <GUI/Representations/Pipelines/SegmentationSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/View/Utils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
@@ -30,7 +31,6 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
-#include <vtkImageConstantPad.h>
 
 // Qt
 
@@ -38,6 +38,7 @@ using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::View::Utils;
 
 IntensitySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 
@@ -88,35 +89,11 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
       auto slice = vtkImage(volume, sliceBounds);
-      int extent[6], paddedExtent[6];
+
+      addPadding(slice, planeIndex);
+
+      int extent[6];
       slice->GetExtent(extent);
-
-      std::memcpy(paddedExtent, extent, 6*sizeof(int));
-      bool needsPadding = false;
-
-      for(auto i: {0,1,2})
-      {
-        if(i != planeIndex && extent[2*i] == extent[2*i+1])
-        {
-          needsPadding = true;
-          ++paddedExtent[2*i+1];
-        }
-      }
-
-      if(needsPadding)
-      {
-        auto pad = vtkSmartPointer<vtkImageConstantPad>::New();
-        pad->SetInputData(slice);
-        pad->SetOutputWholeExtent(paddedExtent);
-        pad->SetConstant(SEG_BG_VALUE);
-        pad->SetNumberOfThreads(1);
-        pad->SetUpdateExtentToWholeExtent();
-        pad->ReleaseDataFlagOn();
-        pad->UpdateWholeExtent();
-
-        slice = pad->GetOutput();
-        std::memcpy(extent, paddedExtent, 6*sizeof(int));
-      }
 
       auto color       = m_colorEngine->color(segmentation);
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
@@ -141,11 +118,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       actor->Update();
 
       // need to reposition the actor so it will always be over the channels actors'
-      double pos[3];
-      actor->GetPosition(pos);
-      pos[planeIndex] += segmentationDepth(state);
-      actor->SetPosition(pos);
-      actor->Modified();
+      repositionActor(actor, segmentationDepth(state), planeIndex);
 
       actors << actor;
     }

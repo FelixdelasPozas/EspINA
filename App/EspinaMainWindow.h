@@ -281,11 +281,6 @@ namespace ESPINA
      */
     void checkAnalysisConsistency();
 
-    /** \brief Creates activity menu.
-     *
-     */
-    void createActivityMenu();
-
     /** \brief Creates dynamic menu.
      * \param[in] entry pair of (QStringList, Action *) object to add.
      *

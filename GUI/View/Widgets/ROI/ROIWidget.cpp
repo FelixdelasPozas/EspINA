@@ -37,17 +37,14 @@ using namespace ESPINA::GUI::View::Widgets::ROI;
 ROIWidget::ROIWidget(ROISPtr roi)
 : m_ROI{roi}
 , m_color{Qt::yellow}
-, m_normalIndex{0}
 , m_depth{0.0}
-, m_reslicePosition{0.0}
-, m_isEnabled{false}
 {
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::setPlane(Plane plane)
 {
-  m_normalIndex = normalCoordinateIndex(plane);
+  acceptChangesOnPlane(plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -69,7 +66,7 @@ TemporalRepresentation2DSPtr ROIWidget::clone()
 //-----------------------------------------------------------------------------
 bool ROIWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return normalCoordinate(crosshair) != m_reslicePosition;
+  return acceptPlaneCrosshairChange(crosshair);
 }
 
 //-----------------------------------------------------------------------------
@@ -119,20 +116,12 @@ void ROIWidget::uninitialize()
 void ROIWidget::show()
 {
   m_actor->SetVisibility(true);
-  m_isEnabled = true;
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::hide()
 {
   m_actor->SetVisibility(false);
-  m_isEnabled = false;
-}
-
-//-----------------------------------------------------------------------------
-bool ROIWidget::isEnabled()
-{
-  return m_isEnabled;
 }
 
 //-----------------------------------------------------------------------------
@@ -150,7 +139,7 @@ void ROIWidget::setColor(const QColor& color)
 //-----------------------------------------------------------------------------
 void ROIWidget::setCrosshair(const NmVector3 &crosshair)
 {
-  m_reslicePosition = normalCoordinate(crosshair);
+  changeReslicePosition(crosshair);
 
   updateCurrentSlice();
 }
@@ -210,10 +199,4 @@ void ROIWidget::updateCurrentSlice()
 
   m_actor->SetVisibility(isVisible);
   m_actor->Modified();
-}
-
-//----------------------------------------------------------------------------
-Nm ROIWidget::normalCoordinate(const NmVector3 &value) const
-{
-  return value[m_normalIndex];
 }

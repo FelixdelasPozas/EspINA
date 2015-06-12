@@ -55,7 +55,7 @@ namespace ESPINA
     void setColor(const QColor &color);
 
   signals:
-    void roiDefined(BinaryMaskSPtr<unsigned char> mas);
+    void roiDefined(BinaryMaskSPtr<unsigned char> mask);
 
   private slots:
     void onPainterChanged(MaskPainterSPtr painter);

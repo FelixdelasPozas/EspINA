@@ -166,7 +166,25 @@ SegmentationAdapterList WithContext::getSelectedSegmentations() const
 }
 
 //------------------------------------------------------------------------
-ViewState &WithContext::getViewState() const
+ModelFactorySPtr WithContext::getFactory() const
+{
+  return m_context.factory();
+}
+
+//------------------------------------------------------------------------
+SchedulerSPtr WithContext::getScheduler() const
+{
+  return m_context.scheduler();
+}
+
+//------------------------------------------------------------------------
+ModelAdapterSPtr WithContext::getModel() const
+{
+  return m_context.model();
+}
+
+//------------------------------------------------------------------------
+ESPINA::GUI::View::ViewState &WithContext::getViewState() const
 {
   return m_context.viewState();
 }

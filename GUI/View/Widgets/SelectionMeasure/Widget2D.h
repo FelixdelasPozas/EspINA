@@ -52,8 +52,6 @@ namespace ESPINA
 
             virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
 
-            virtual bool isEnabled() override;
-
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 

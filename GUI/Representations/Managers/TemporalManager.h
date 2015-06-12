@@ -62,8 +62,6 @@ namespace ESPINA
            */
           virtual void hide() = 0;
 
-          virtual bool isEnabled() = 0;
-
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
           virtual void setCrosshair(const NmVector3 &crosshair) {}
@@ -143,17 +141,17 @@ namespace ESPINA
           virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
 
         private:
-          virtual bool hasRepresentations() const;
+          virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
-          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t);
+          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-          virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t);
+          virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-          virtual void onShow(TimeStamp t);
+          virtual void onShow(TimeStamp t) override;
 
-          virtual void onHide(TimeStamp t);
+          virtual void onHide(TimeStamp t) override;
 
           virtual void displayRepresentations(TimeStamp t);
 
@@ -174,6 +172,30 @@ namespace ESPINA
           RangedValue<Action> m_pendingActions;
 
           TemporalRepresentationSPtr  m_representation;
+        };
+
+        class AcceptOnlyPlaneCrosshairChanges
+        {
+        protected:
+          AcceptOnlyPlaneCrosshairChanges();
+
+          void acceptChangesOnPlane(Plane plane);
+
+          bool acceptPlaneCrosshairChange(const NmVector3 &crosshair) const;
+
+          void changeReslicePosition(const NmVector3 &crosshair);
+
+          int slicingCoordinate() const
+          { return m_normalIndex; }
+
+          Nm reslicePosition() const
+          { return m_reslicePosition; }
+
+          Nm normalCoordinate(const NmVector3 &value) const;
+
+        protected:
+          int   m_normalIndex;
+          Nm    m_reslicePosition;
         };
       }
     }

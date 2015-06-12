@@ -48,6 +48,7 @@ namespace ESPINA
         {
           class EspinaGUI_EXPORT ROIWidget
           : public Representations::Managers::TemporalRepresentation2D
+          , private Representations::Managers::AcceptOnlyPlaneCrosshairChanges
           {
             Q_OBJECT
 
@@ -61,8 +62,6 @@ namespace ESPINA
             virtual void show();
 
             virtual void hide();
-
-            virtual bool isEnabled();
 
             virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
@@ -83,8 +82,6 @@ namespace ESPINA
 
             void updateCurrentSlice();
 
-            Nm normalCoordinate(const NmVector3 &value) const;
-
           private slots:
             void onROIChanged();
 
@@ -92,15 +89,12 @@ namespace ESPINA
             ROISPtr m_ROI;
             QColor  m_color;
 
+            Nm m_depth;
+
             vtkSmartPointer<vtkVoxelContour2D> m_contour;
             vtkSmartPointer<vtkPolyDataMapper> m_mapper;
             vtkSmartPointer<vtkActor>          m_actor;
 
-            int   m_normalIndex;
-            Nm    m_depth;
-
-            Nm     m_reslicePosition;
-            bool   m_isEnabled;
             RenderView *m_view;
           };
         }

@@ -164,6 +164,7 @@ set (GUI_SOURCES
   View/View2D.cpp
   View/PlanarBehaviour.cpp
   View/ViewState.cpp
+  View/Utils.cpp
   View/View3D.cpp
   View/RepresentationInvalidator.cpp
   View/Widgets/EspinaWidget.cpp

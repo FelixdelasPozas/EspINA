@@ -38,12 +38,12 @@
 
 namespace ESPINA
 {
-	/** \brief Sets the id of an item with a previous user confirmation.
-	 * \param[in] item, item to set id.
-	 * \param[in] id, id to seek confirmation.
-	 * \param[in] list, list of items.
-	 *
-	 */
+  /** \brief Sets the id of an item with a previous user confirmation.
+   * \param[in] item, item to set id.
+   * \param[in] id, id to seek confirmation.
+   * \param[in] list, list of items.
+   *
+   */
   template<typename I, typename L>
   void SetUniqueIdWithUserConfirmation(I& item, QString id, const L& list)
   {

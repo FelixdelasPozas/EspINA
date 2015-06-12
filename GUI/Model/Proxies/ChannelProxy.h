@@ -37,21 +37,21 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-  	/** \brief ChannelProxy class constructor.
-  	 * \param[in] sourceModel, model adapter smart pointer.
-  	 * \param[in] parent, raw pointer of the parent of this object.
-  	 *
-  	 */
+    /** \brief ChannelProxy class constructor.
+     * \param[in] sourceModel, model adapter smart pointer.
+     * \param[in] parent, raw pointer of the parent of this object.
+     *
+     */
     explicit ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent = 0);
 
-  	/** \brief ChannelProxy class destructor.
-  	 *
-  	 */
+    /** \brief ChannelProxy class destructor.
+     *
+     */
     virtual ~ChannelProxy();
 
-  	/** \brief Sets the source model for the proxy.
-  	 *
-  	 */
+    /** \brief Sets the source model for the proxy.
+     *
+     */
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;

@@ -90,9 +90,6 @@ namespace ESPINA
 
           virtual void hide() override
           { hideWidget(); }
-
-          virtual bool isEnabled() override
-          { return isWidgetEnabled(); }
         };
 
         class EspinaWidget3D
@@ -111,9 +108,6 @@ namespace ESPINA
 
           virtual void hide() override
           { hideWidget(); }
-
-          virtual bool isEnabled() override
-          { return isWidgetEnabled(); }
         };
 
       } // namespace Widgets

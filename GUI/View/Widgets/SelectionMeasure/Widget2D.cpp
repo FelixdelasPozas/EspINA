@@ -105,12 +105,6 @@ TemporalRepresentation2DSPtr Widget2D::clone()
 }
 
 //----------------------------------------------------------------------------
-bool Widget2D::isEnabled()
-{
-  return true;
-}
-
-//----------------------------------------------------------------------------
 bool Widget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
   return true;
