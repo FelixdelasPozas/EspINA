@@ -123,11 +123,6 @@ SplitTool::SplitTool(Support::Context &context)
 //------------------------------------------------------------------------
 SplitTool::~SplitTool()
 {
-//   if (context().viewState().eventHandler().get() == m_handler.get())
-//   {
-//     hideCuttingPlane();
-//   }
-
   disconnect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
              this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
 
@@ -160,8 +155,6 @@ void SplitTool::showCuttingPlane()
   connect(selection.get(), SIGNAL(selectionChanged()),
           this,            SLOT(onSelectionChanged()));
 
-  setEventHandler(m_handler);
-
   getViewState().addTemporalRepresentations(m_factory);
 
   auto segmentation = getSelectedSegmentations().first();
@@ -180,7 +173,6 @@ void SplitTool::hideCuttingPlane()
   disconnect(selection.get(), SIGNAL(selectionChanged()),
              this,            SLOT(onSelectionChanged()));
 
-  setEventHandler(nullptr);
   getViewState().removeTemporalRepresentations(m_factory);
 }
 
@@ -208,6 +200,8 @@ void SplitTool::applyCurrentState()
   inputs << selectedSeg->asInput();
 
   auto filter = context().factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+
+  showTaskProgress(filter);
 
   auto spacing = selectedSeg->output()->spacing();
   auto bounds = selectedSeg->bounds();
@@ -275,8 +269,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
 //------------------------------------------------------------------------
 void SplitTool::onSelectionChanged()
 {
-  toggleWidgetsVisibility(false);
-  m_splitPlane = nullptr;
+  setChecked(false);
 }
 
 //------------------------------------------------------------------------
@@ -312,9 +305,9 @@ void SplitTool::createSegmentations()
       undoStack->push(new AddSegmentations(segmentationsList, sample, context().model()));
       undoStack->endMacro();
 
-      getSelection()->set(segmentations);
+      deactivateEventHandler();
 
-      setChecked(false);
+      getSelection()->set(toViewItemList(segmentations[1]));
     }
     else
     {

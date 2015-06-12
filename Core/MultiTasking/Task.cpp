@@ -90,6 +90,7 @@ void Task::reportProgress(int value)
 
   emit progress(value);
 }
+
 //-----------------------------------------------------------------------------
 void Task::setPriority(Priority value)
 {
@@ -154,7 +155,6 @@ bool Task::hasFinished() const
 //-----------------------------------------------------------------------------
 void Task::submit(TaskSPtr task)
 {
-
   if (task->m_scheduler != nullptr)
   {
     QMutexLocker lock(&task->m_submissionMutex);

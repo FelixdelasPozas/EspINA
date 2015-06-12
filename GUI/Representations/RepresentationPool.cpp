@@ -279,16 +279,6 @@ void RepresentationPool::onTimeStampUpdated(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
-{
-  ViewItemAdapterList sources;
-
-  sources << item;
-
-  onRepresentationModified(sources, m_validActors.lastTime());
-}
-
-//-----------------------------------------------------------------------------
 bool RepresentationPool::isEnabled() const
 {
   return m_numObservers > 0 && hasSources();

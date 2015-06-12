@@ -149,8 +149,6 @@ namespace ESPINA
 
     void onTimeStampUpdated(TimeStamp t);
 
-    void onRepresentationsInvalidated(ViewItemAdapterPtr item);
-
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 

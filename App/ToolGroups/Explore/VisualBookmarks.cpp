@@ -155,8 +155,8 @@ void VisualBookmarks::initWidgets()
           this,     SLOT(apply()));
 
   addSettingsWidget(m_add);
-  addSettingsWidget(m_combobox);
   addSettingsWidget(m_remove);
+  addSettingsWidget(m_combobox);
   addSettingsWidget(m_apply);
 }
 

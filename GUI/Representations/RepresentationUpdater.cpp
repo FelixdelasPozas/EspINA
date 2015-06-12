@@ -99,7 +99,14 @@ void RepresentationUpdater::setUpdateList(ViewItemAdapterList sources)
 {
   QMutexLocker lock(&m_mutex);
 
-  m_requestedSources = sources;
+  for(auto item: sources)
+  {
+    if(!m_requestedSources.contains(item))
+    {
+      m_requestedSources << item;
+    }
+  }
+
   m_updateList = &m_requestedSources;
 }
 
@@ -191,6 +198,7 @@ void RepresentationUpdater::run()
 
   if (hasValidTimeStamp() && canExecute())
   {
+    m_requestedSources.clear();
     emit actorsReady(timeStamp(), m_actors);
   }
 }

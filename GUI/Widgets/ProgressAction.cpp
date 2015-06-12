@@ -90,6 +90,8 @@ void ProgressAction::setActionEnabled(bool enabled)
 //------------------------------------------------------------------------
 void ProgressAction::setActionChecked(bool checked)
 {
+  if(isChecked() == checked) return;
+
   setChecked(checked);
 
   emit actionChecked(checked);
