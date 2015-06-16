@@ -34,9 +34,8 @@ namespace ESPINA
     class EspinaCore_EXPORT AnalysisReader
     {
     public:
-      using Extensions  = QStringList;
-      using Description = QString;
-      using ExtensionDescriptionList = QStringList;
+      using Extensions    = QStringList;
+      using Description   = QString;
       using ExtensionList = QMap<Description, Extensions>;
 
     public:
@@ -50,22 +49,6 @@ namespace ESPINA
        *
        */
       virtual QString type() const = 0;
-
-      /** \brief Returns a list of descriptions of the type of files the reader can process.
-       *
-       */
-      ExtensionDescriptionList fileExtensionDescriptions() const
-      {
-        ExtensionDescriptionList list;
-        ExtensionList extensions = supportedFileExtensions();
-
-        for (auto description : extensions.keys())
-        {
-          list << QString("%1 (*.%2)").arg(description, extensions[description].join(" *."));
-        }
-
-        return list;
-      }
 
       /** \brief Returns a list of file extensions the reader can process.
        *
@@ -84,7 +67,6 @@ namespace ESPINA
     };
   } // namespace IO
 
-  using FileExtensions      = IO::AnalysisReader::ExtensionDescriptionList;
   using AnalysisReaderPtr   = IO::AnalysisReader *;
   using AnalysisReaderList  = QList<AnalysisReaderPtr>;
   using AnalysisReaderSPtr  = std::shared_ptr<IO::AnalysisReader>;

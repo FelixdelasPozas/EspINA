@@ -441,7 +441,7 @@ void View3D::exportScene()
 {
   auto title      = tr("Export 3D scene");
   auto suggestion = tr("scene.vrml");
-  auto formats    = SupportedFiles(tr("POV-Ray files"), "pov")
+  auto formats    = SupportedFormats(tr("POV-Ray files"), "pov")
                         .addFormat(tr("X3D format"),    "x3d")
                         .addFormat(tr("VRML files"),    "vrml");
   auto fileName = DefaultDialogs::SaveFile(title, formats, "", ".vrml", suggestion);

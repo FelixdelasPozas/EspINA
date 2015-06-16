@@ -86,7 +86,7 @@ void NoteEditor::exportNote()
 
   auto title      = tr("Export %1").arg(windowTitle());
   auto suggestion = QString("%1.txt").arg(windowTitle());
-  auto formats    = SupportedFiles().addTxtFormat();
+  auto formats    = SupportedFormats().addTxtFormat();
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".txt", suggestion);
 
   if (!fileName.isEmpty())

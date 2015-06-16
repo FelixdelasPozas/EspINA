@@ -60,18 +60,18 @@ AnalysisSPtr SegFile::load(const QFileInfo& file, CoreFactorySPtr factory, Error
       throw(IO_Error_Exception());
     }
     // NOTE: it may be necessary to select another reader depending on the file content
-    loader = SegFileLoaderSPtr { new SegFile_V4() };
+    loader = std::make_shared<SegFile_V4>();
   }
   else
   {
     // NOTE: it may be necessary to select another reader depending on the file content
-    loader = SegFileLoaderSPtr { new SegFile_V5() };
+    loader = std::make_shared<SegFile_V5>();
   }
 
   CoreFactorySPtr coreFactory = factory;
   if (coreFactory == nullptr)
   {
-    coreFactory = CoreFactorySPtr(new CoreFactory());
+    coreFactory = std::make_shared<CoreFactory>();
   }
 
   return loader->load(zip, coreFactory, handler);

@@ -209,7 +209,8 @@ AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()
 //------------------------------------------------------------------------
 void AcceptOnlyPlaneCrosshairChanges::acceptChangesOnPlane(Plane plane)
 {
-  m_normalIndex = normalCoordinateIndex(plane);
+  m_reslicePlane = plane;
+  m_normalIndex  = normalCoordinateIndex(plane);
 }
 
 //------------------------------------------------------------------------

@@ -185,17 +185,21 @@ namespace ESPINA
 
           void changeReslicePosition(const NmVector3 &crosshair);
 
-          int slicingCoordinate() const
+          int slicingNormal() const
           { return m_normalIndex; }
 
           Nm reslicePosition() const
           { return m_reslicePosition; }
 
+          Plane reslicePlane() const
+          { return m_reslicePlane; }
+
           Nm normalCoordinate(const NmVector3 &value) const;
 
-        protected:
+        private:
           int   m_normalIndex;
           Nm    m_reslicePosition;
+          Plane m_reslicePlane;
         };
       }
     }

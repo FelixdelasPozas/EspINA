@@ -22,6 +22,7 @@
 #include <Core/Utils/vtkVoxelContour2D.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+#include <GUI/View/Utils.h>
 #include <vtkImageCanvasSource2D.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
@@ -32,6 +33,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::ROI;
+using namespace ESPINA::GUI::View::Utils;
 
 //-----------------------------------------------------------------------------
 ROIWidget::ROIWidget(ROISPtr roi)
@@ -156,10 +158,11 @@ void ROIWidget::onROIChanged()
 vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
 {
   auto bounds = m_ROI->bounds();
+  auto normal = slicingNormal();
 
-  bounds[2 * m_normalIndex] = bounds[(2 * m_normalIndex) + 1] = m_reslicePosition;
+  bounds[2 * normal] = bounds[(2 * normal) + 1] = reslicePosition();
 
-  bounds.setUpperInclusion(toAxis(m_normalIndex), true);
+  bounds.setUpperInclusion(toAxis(normal), true);
 
   vtkSmartPointer<vtkImageData> slice;
 
@@ -190,11 +193,7 @@ void ROIWidget::updateCurrentSlice()
     m_mapper->UpdateWholeExtent();
     m_mapper->Update();
 
-
-    double position[3];
-    m_actor->GetPosition(position);
-    position[m_normalIndex] += m_depth;
-    m_actor->SetPosition(position);
+    repositionActor(m_actor, m_depth, slicingNormal());
   }
 
   m_actor->SetVisibility(isVisible);

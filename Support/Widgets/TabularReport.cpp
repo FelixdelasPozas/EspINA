@@ -401,7 +401,7 @@ void TabularReport::exportInformation()
 {
   auto title      = tr("Export Raw Data");
   auto suggestion = tr("raw information.xls");
-  auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
+  auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
   if (fileName.isEmpty())

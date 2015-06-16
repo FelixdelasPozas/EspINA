@@ -694,7 +694,7 @@ void Panel::updateSegmentations()
 void Panel::saveActiveCountingFrameDescription()
 {
   auto title    = tr("Save Counting Frame Description");
-  auto formats  = SupportedFiles(tr("Text File"), "txt");
+  auto formats  = SupportedFormats(tr("Text File"), "txt");
 //                       .addFormat(tr("Excel Sheet"), "xls");
   auto fileName = DefaultDialogs::SaveFile(title, formats);
 

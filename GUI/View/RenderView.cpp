@@ -197,7 +197,7 @@ void RenderView::takeSnapshot()
 {
   auto title      = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
-  auto formats    = SupportedFiles(tr("PNG Image"),  "png")
+  auto formats    = SupportedFormats(tr("PNG Image"),  "png")
                         .addFormat(tr("JPEG Image"), "jpg");
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".png", suggestion);
 

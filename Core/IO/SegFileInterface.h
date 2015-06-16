@@ -40,62 +40,62 @@ namespace ESPINA
       class EspinaCore_EXPORT SegFileInterface
       {
       public:
-      	/** \brief SegFileInterface class destructor.
-      	 *
-      	 */
+        /** \brief SegFileInterface class destructor.
+         *
+         */
         virtual ~SegFileInterface()
         {}
 
-      	/** \brief Loads an analysis from a QuaZip file.
-      	 * \param[in] zip, QuaZip handler.
-      	 * \param[in] factory, factory smart pointer to create objects.
-      	 * \param[in] handler, error handler. smart pointer.
-      	 *
-      	 */
+        /** \brief Loads an analysis from a QuaZip file.
+         * \param[in] zip QuaZip handler.
+         * \param[in] factory factory smart pointer to create objects.
+         * \param[in] handler error handler. smart pointer.
+         *
+         */
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory,
                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
-      	/** \brief Saves an analysis to a QuaZip file.
-      	 * \param[in] analysis, analysis to save.
-      	 * \param[in] zip, QuaZip handler.
-      	 * \param[in] handler, error handler smart pointer.
-      	 *
-      	 */
+        /** \brief Saves an analysis to a QuaZip file.
+         * \param[in] analysis analysis to save.
+         * \param[in] zip QuaZip handler.
+         * \param[in] handler error handler smart pointer.
+         *
+         */
         virtual void save(AnalysisPtr     analysis,
                           QuaZip&         zip,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
       protected:
-      	/** \brief Adds a file to a QuaZip file.
-      	 * \param[in] fileName, file name.
-      	 * \param[in] content, content of the file.
-      	 * \param[in] zip, QuaZip handler.
-      	 * \param[in] handler, error handler smart pointer.
-      	 *
-      	 */
+        /** \brief Adds a file to a QuaZip file.
+         * \param[in] fileName file name.
+         * \param[in] content content of the file.
+         * \param[in] zip QuaZip handler.
+         * \param[in] handler error handler smart pointer.
+         *
+         */
         static void addFileToZip(const QString&    fileName,
                                  const QByteArray& content,
                                  QuaZip&           zip,
                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
-      	/** \brief Reads a file from a QuaZip file.
-      	 * \param[in] fileName, file name to read.
-      	 * \param[in] zip, QuaZip handler.
-      	 * \param[in] handler, error handler smart pointer.
-      	 *
-      	 */
+        /** \brief Reads a file from a QuaZip file.
+         * \param[in] fileName file name to read.
+         * \param[in] zip QuaZip handler.
+         * \param[in] handler error handler smart pointer.
+         *
+         */
         static QByteArray readFileFromZip(const QString&  fileName,
-                                   QuaZip&         zip,
-                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
-
-      	/** \brief Reads current file from a QuaZip file.
-      	 * \param[in] zip, QuaZip handler.
-      	 * \param[in] handler, error handler smart pointer.
-      	 *
-      	 */
-        static QByteArray readCurrentFileFromZip(QuaZip&          zip,
+                                          QuaZip&         zip,
                                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+
+        /** \brief Reads current file from a QuaZip file.
+         * \param[in] zip QuaZip handler.
+         * \param[in] handler error handler smart pointer.
+         *
+         */
+        static QByteArray readCurrentFileFromZip(QuaZip&          zip,
+                                                 ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       };
     }
   }

@@ -33,18 +33,22 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
-QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, const QString& nameFilters, const QString& hint)
+QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo &file,
+                                           QDir dir,
+                                           const SupportedFormats &filters,
+                                           const QString &hint)
 {
   QString key = file.absoluteFilePath();
 
   if (!m_files.contains(key))
   {
-    QString title     = (hint.isEmpty())        ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
-    QDir    directory = (dir == QDir())         ? m_defaultDir : dir;
-    QString filter    = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1);; All files (*.*)").arg(file.suffix()) : nameFilters;
+    QString title     = (hint.isEmpty())? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
+    QDir    directory = (dir == QDir()) ? m_defaultDir : dir;
 
-    QStringList filters;
-    filters << filter;
+    if (filters == SupportedFormats().addAllFormat())
+    {
+      filters.addFormat(QObject::tr("%1 files").arg(file.suffix()), file.suffix());
+    }
 
     QApplication::changeOverrideCursor(Qt::ArrowCursor);
     auto filename = DefaultDialogs::OpenFile(title, filters, directory.absolutePath());

@@ -40,15 +40,15 @@ namespace ESPINA
   : public IO::ErrorHandler
   {
   public:
-  	/** \brief EspinaErrorHandler class constructor.
-  	 * \param[in] parent, QWidget raw pointer of the parent of this object.
-  	 */
+    /** \brief EspinaErrorHandler class constructor.
+     * \param[in] parent QWidget raw pointer of the parent of this object.
+     */
     EspinaErrorHandler(QWidget *parent = nullptr)
     : m_parent(parent)
-  	{};
+    {};
 
     /** \brief Sets the default directory.
-     * \param[in] dir, QDir const reference.
+     * \param[in] dir QDir const reference.
      */
     void setDefaultDir(const QDir &dir)
     { m_defaultDir = dir; }
@@ -59,7 +59,7 @@ namespace ESPINA
 
     QFileInfo fileNotFound(const QFileInfo &file,
                            QDir dir = QDir(),
-                           const QString &nameFilters = QString(),
+                           const GUI::SupportedFormats &filters = GUI::SupportedFormats().addAllFormat(),
                            const QString &hint = QString());
 
   private:

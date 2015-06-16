@@ -30,73 +30,9 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
-SupportedFiles::SupportedFiles()
-{
-
-}
-
-//------------------------------------------------------------------------
-SupportedFiles::SupportedFiles(const QString &name, const QString &extension)
-{
-  addFilter(name, extension);
-}
-
-//------------------------------------------------------------------------
-SupportedFiles &SupportedFiles::addFormat(const QString &name, const QString &extension)
-{
-  addFilter(name, extension);
-
-  return *this;
-}
-
-//------------------------------------------------------------------------
-SupportedFiles &SupportedFiles::addCSVFormat()
-{
-  addFormat(QObject::tr("CSV Text File"), "csv");
-
-  return *this;
-}
-//------------------------------------------------------------------------
-SupportedFiles &SupportedFiles::addExcelFormat()
-{
-  addFormat(QObject::tr("Excel Sheet"), "xls");
-
-  return *this;
-}
-
-//------------------------------------------------------------------------
-SupportedFiles &SupportedFiles::addSegFormat()
-{
-  addFormat(QObject::tr("EspINA Analysis"), "seg");
-
-  return *this;
-}
-
-//------------------------------------------------------------------------
-SupportedFiles &SupportedFiles::addTxtFormat()
-{
-  addFormat(QObject::tr("Text File"), "txt");
-}
-
-//------------------------------------------------------------------------
-SupportedFiles::operator QString() const
-{
-  return m_filter;
-}
-
-//------------------------------------------------------------------------
-void SupportedFiles::addFilter(const QString &name, const QString &extension)
-{
-  if (!m_filter.isEmpty())
-  {
-    m_filter += ";;";
-  }
-
-  m_filter += QString("%1 (*.%2)").arg(name).arg(extension);
-}
-
-//------------------------------------------------------------------------
-QString DefaultDialogs::OpenFile(const QString& title, const QStringList& filters, const QString& path)
+QString DefaultDialogs::OpenFile(const QString       &title,
+                                 const SupportedFormats &filters,
+                                 const QString       &path)
 {
   QString fileName;
 
@@ -110,7 +46,9 @@ QString DefaultDialogs::OpenFile(const QString& title, const QStringList& filter
 }
 
 //------------------------------------------------------------------------
-QStringList DefaultDialogs::OpenFiles(const QString& title, const QStringList& filters, const QString& path)
+QStringList DefaultDialogs::OpenFiles(const QString       &title,
+                                      const SupportedFormats &filters,
+                                      const QString       &path)
 {
   QStringList fileNames;
 
@@ -135,7 +73,7 @@ QStringList DefaultDialogs::OpenFiles(const QString& title, const QStringList& f
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::SaveFile(const QString& title,
-                                 const SupportedFiles& filters,
+                                 const SupportedFormats& filters,
                                  const QString& path,
                                  const QString& suffix,
                                  const QString& suggestion)
@@ -153,7 +91,7 @@ QString DefaultDialogs::SaveFile(const QString& title,
 
 //------------------------------------------------------------------------
 QStringList DefaultDialogs::SaveFiles(const QString& title,
-                                      const SupportedFiles& filters,
+                                      const SupportedFormats& filters,
                                       const QString& path,
                                       const QString& suffix,
                                       const QString& suggestion)
@@ -177,8 +115,10 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
   {
     fileNames = fileDialog.selectedFiles();
 
-    auto extension = fileDialog.selectedFilter();
-    extension      = extension.mid(extension.indexOf("(*.")+2,4);
+    QRegExp regExp("\\*\\.[a-zA-Z0-9]+"); // file extension *.XXX
+    regExp.indexIn(fileDialog.selectedFilter());
+
+    auto extension = regExp.cap().remove("*");
 
     for (auto &fileName : fileNames)
     {

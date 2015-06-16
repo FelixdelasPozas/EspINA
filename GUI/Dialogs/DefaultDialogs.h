@@ -23,6 +23,7 @@
 #define ESPINA_GUI_DEFAULTDIALOGS_H
 
 #include "GUI/EspinaGUI_Export.h"
+#include <GUI/SupportedFormats.h>
 
 // Qt
 #include <QFileDialog>
@@ -30,32 +31,6 @@
 
 namespace ESPINA {
   namespace GUI {
-
-    class SupportedFiles
-    {
-    public:
-      SupportedFiles();
-
-      SupportedFiles(const QString &name, const QString &extension);
-
-      SupportedFiles &addFormat(const QString &name, const QString &extension);
-
-      operator QString() const;
-
-      SupportedFiles& addCSVFormat();
-
-      SupportedFiles& addExcelFormat();
-
-      SupportedFiles& addSegFormat();
-
-      SupportedFiles& addTxtFormat();
-
-    private:
-      void addFilter(const QString &name, const QString &extension);
-
-    private:
-      QString m_filter;
-    };
 
     class EspinaGUI_EXPORT DefaultDialogs
     {
@@ -68,9 +43,9 @@ namespace ESPINA {
        * Returns the file name specified by the user.
        *
        */
-      static QString OpenFile(const QString     &title,
-                              const QStringList &filters = QStringList(),
-                              const QString     &path    = QString());
+      static QString OpenFile(const QString        &title,
+                              const SupportedFormats &filters = SupportedFormats().addAllFormat(),
+                              const QString        &path    = QString());
 
       /** \brief Dialog for asking the user for a unspecified group of files.
        * \param[in] title of the dialog.
@@ -80,9 +55,9 @@ namespace ESPINA {
        * Returns the file names specified by the user.
        *
        */
-      static QStringList OpenFiles(const QString     &title,
-                                   const QStringList &filters = QStringList(),
-                                   const QString     &path    = QString());
+      static QStringList OpenFiles(const QString        &title,
+                                   const SupportedFormats &filters = SupportedFormats().addAllFormat(),
+                                   const QString        &path    = QString());
 
       /** \brief Dialog for saving a file.
        * \param[in] title of the dialog.
@@ -95,7 +70,7 @@ namespace ESPINA {
        *
        */
       static QString SaveFile(const QString& title,
-                              const SupportedFiles& filters = SupportedFiles(QObject::tr("All"), "*"),
+                              const SupportedFormats& filters = SupportedFormats().addAllFormat(),
                               const QString& path           = QString(),
                               const QString& suffix         = QString(),
                               const QString& suggestion     = QString());
@@ -111,7 +86,7 @@ namespace ESPINA {
        *
        */
       static QStringList SaveFiles(const QString& title,
-                                   const SupportedFiles& filters = SupportedFiles(QObject::tr("All"), "*"),
+                                   const SupportedFormats& filters = SupportedFormats().addAllFormat(),
                                    const QString& path           = QString(),
                                    const QString& suffix         = QString(),
                                    const QString& suggestion     = QString());

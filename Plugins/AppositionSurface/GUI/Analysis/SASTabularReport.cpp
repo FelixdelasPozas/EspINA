@@ -156,7 +156,7 @@ namespace ESPINA
   {
     auto title      = tr("Export SAS Data");
     auto suggestion = tr("Raw information with SAS data.xls");
-    auto formats    = SupportedFiles(tr("Excel Sheet"), "xls")
+    auto formats    = SupportedFormats(tr("Excel Sheet"), "xls")
                           .addFormat(tr("CSV Text File"), "csv");
 
     auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
@@ -222,7 +222,7 @@ namespace ESPINA
   {
     auto title      = tr("Export %1 Data").arg(m_category);
     auto suggestion = QString("%1 SAS information.xls").arg(m_category.replace("/","-"));
-    auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
+    auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
     auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
     bool exported = false;

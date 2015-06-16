@@ -466,7 +466,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis()
 {
-  auto selectedFiles = DefaultDialogs::OpenFiles(tr("Start New Analysis From File"), m_context.factory()->supportedFileExtensions());
+  auto title = tr("Start New Analysis From File");
+  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions());
 
   if (!selectedFiles.isEmpty())
   {
@@ -575,7 +576,8 @@ void EspinaMainWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addToAnalysis()
 {
-  auto selectedFiles = DefaultDialogs::OpenFiles(QObject::tr("Add Data To Analysis"), m_context.factory()->supportedFileExtensions(), m_sessionFile.absoluteDir().absolutePath());
+  auto title = tr("Add Data To Analysis");
+  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions(), m_sessionFile.absoluteDir().absolutePath());
 
   if (!selectedFiles.isEmpty())
   {
@@ -720,7 +722,7 @@ void EspinaMainWindow::saveAnalysis()
     suggestedFileName = m_sessionFile.baseName() + QString(".seg");
 
   auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-                                               SupportedFiles(QObject::tr("ESPINA Analysis"), "seg"),
+                                               SupportedFormats(QObject::tr("ESPINA Analysis"), "seg"),
                                                m_sessionFile.absolutePath(),
                                                QString("seg"),
                                                suggestedFileName);

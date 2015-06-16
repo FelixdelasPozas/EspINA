@@ -221,7 +221,7 @@ void TabularReport::Entry::extractInformation()
 {
   auto title      = tr("Export %1 Data").arg(m_category);
   auto suggestion = QString("%1.xls").arg(m_category.replace("/","-"));
-  auto formats    = SupportedFiles().addExcelFormat().addCSVFormat();
+  auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
   if (fileName.isEmpty())

@@ -9,6 +9,7 @@
 #define ESPINA_IO_ERRORHANDLER_H
 
 #include "Core/EspinaCore_Export.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDir>
@@ -58,7 +59,7 @@ namespace ESPINA
      */
     virtual QFileInfo fileNotFound(const QFileInfo& file,
                                    QDir dir = QDir(),
-                                   const QString &nameFilters = QString(),
+                                   const GUI::SupportedFormats&filters = ESPINA::GUI::SupportedFormats().addAllFormat(),
                                    const QString &hint = QString()) = 0;
   };
 

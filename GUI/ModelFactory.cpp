@@ -29,11 +29,12 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(CoreFactorySPtr factory,
                            SchedulerSPtr scheduler,
-                           GUI::View::RepresentationInvalidator *invalidator)
+                           View::RepresentationInvalidator *invalidator)
 : m_factory(factory)
 , m_scheduler(scheduler)
 , m_invalidator(invalidator)
@@ -97,20 +98,26 @@ SegmentationExtensionTypeList ModelFactory::availableSegmentationExtensions() co
 }
 
 //------------------------------------------------------------------------
-FileExtensions ModelFactory::supportedFileExtensions()
+SupportedFormats ModelFactory::supportedFileExtensions()
 {
-  FileExtensions extensions;
+  SupportedFormats extensions;
+
+  QStringList supportedExtensions;
 
   for(auto extension : m_readerExtensions.keys())
   {
-    extensions << QString("*.%1").arg(extension);
+    supportedExtensions << extension;
   }
 
-  extensions = QStringList(QObject::tr("All Supported Files (%1)").arg(extensions.join(" ")));
+  extensions.addFormat(QObject::tr("All Supported Files"), supportedExtensions);
 
   for(auto loader : m_readers)
   {
-    extensions << loader->fileExtensionDescriptions();
+    auto loaderExtensions = loader->supportedFileExtensions();
+    for (auto it = loaderExtensions.begin(); it != loaderExtensions.end(); ++it)
+    {
+      extensions.addFormat(it.key(), it.value());
+    }
   }
 
   return extensions;
