@@ -67,6 +67,7 @@ namespace ESPINA
       void addIssue(Issue issue);
 
     private:
+      QMutex          m_progressMutex;
       IssueList       m_issues;
       QList<TaskSPtr> m_taskList;
       int             m_issuesNum;

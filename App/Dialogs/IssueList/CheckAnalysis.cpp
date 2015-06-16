@@ -80,6 +80,8 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void CheckAnalysis::finishedTask()
   {
+    QMutexLocker lock(&m_progressMutex);
+
     ++m_finishedTasks;
     auto progressValue = m_finishedTasks * 100 / m_taskList.size();
     reportProgress(progressValue);
