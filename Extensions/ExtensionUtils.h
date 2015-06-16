@@ -59,7 +59,8 @@ namespace ESPINA
     {
       extension = std::shared_ptr<Extension>{new Extension()};
       item->addExtension(extension);
-    } else
+    }
+    else
     {
       auto base = item->extension(Extension::TYPE);
       extension = std::dynamic_pointer_cast<Extension>(base);
