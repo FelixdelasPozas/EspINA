@@ -74,7 +74,7 @@ namespace ESPINA
       { return snapshot(storage, path, id); }
 
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
-      { fetchDataImplementation(storage, path, id, bounds()); }
+      { /*fetchDataImplementation(storage, path, id, bounds()); */}
 
       virtual vtkSmartPointer<vtkPolyData> skeleton() const
       { return m_skeleton; }
@@ -88,7 +88,7 @@ namespace ESPINA
       size_t memoryUsage() const;
 
     protected:
-      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
       { return SkeletonData::fetchDataImplementation(storage, path, id, bounds); }
 
     private:

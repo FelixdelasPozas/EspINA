@@ -57,7 +57,6 @@ namespace ESPINA
     virtual void set(DataSPtr data)
     {
       m_data = std::dynamic_pointer_cast<MeshData>(data);
-      m_data->setOutput(this->m_output);
     }
 
     virtual Bounds bounds() const override
@@ -108,7 +107,7 @@ namespace ESPINA
     { m_data->setMesh(mesh); }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
     { return m_data->fetchData(); }
 
   private:

@@ -32,7 +32,7 @@
 
 // ESPINA
 #include "Core/EspinaTypes.h"
-#include <Core/Utils/Bounds.h>
+#include <Core/Utils/VolumeBounds.h>
 #include "Persistent.h"
 
 #include <QMutex>
@@ -77,13 +77,6 @@ namespace ESPINA
      */
     virtual DataSPtr createProxy() const = 0;
 
-    /** \brief Sets the data output.
-     * \param[in] output Output object smart pointer.
-     *
-     */
-    void setOutput(OutputPtr output)
-    { m_output = output; }
-
     /** \brief Returns the list of data types on which this
      *         data type relies on
      *
@@ -114,7 +107,7 @@ namespace ESPINA
      * \param[in] id identifier of stored data snapshosts
      *
      */
-    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds);
+    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
 
     /** \brief Recover data from Persistent Storage.
      */
@@ -198,8 +191,7 @@ namespace ESPINA
      *
      */
     explicit Data()
-    : m_output   {nullptr}
-    , m_timeStamp{s_tick++}
+    : m_timeStamp{s_tick++}
     , m_mutex(QMutex::Recursive)
     {
     }
@@ -219,7 +211,7 @@ namespace ESPINA
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage,
                                          const QString      &path,
                                          const QString      &id,
-                                         const Bounds       &bounds) = 0;
+                                         const VolumeBounds &bounds) = 0;
 
   private:
     /** \brief Returns the list of data types on which this
@@ -229,20 +221,18 @@ namespace ESPINA
     virtual QList<Data::Type> updateDependencies() const = 0;
 
   protected:
-    OutputPtr  m_output;
-
     QString             m_path;
     QString             m_id;
     TemporalStorageSPtr m_storage;
 
   private:
-    Bounds     m_fetchBounds;
-    TimeStamp  m_timeStamp;
-    BoundsList m_editedRegions;
+    VolumeBounds m_fetchBounds;
+    TimeStamp    m_timeStamp;
+    BoundsList   m_editedRegions;
 
     QMutex m_mutex;
 
-    friend class Output;
+    //friend class Output;
     template<typename T> friend class SignalBlocker;
   };
 

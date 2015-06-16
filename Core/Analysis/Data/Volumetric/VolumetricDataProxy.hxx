@@ -56,7 +56,6 @@ namespace ESPINA
     virtual void set(DataSPtr data)
     {
       m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
-      m_data->setOutput(this->m_output);
     }
 
     virtual size_t memoryUsage() const
@@ -203,7 +202,7 @@ namespace ESPINA
     }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
     { return m_data->fetchData(); }
 
   private:

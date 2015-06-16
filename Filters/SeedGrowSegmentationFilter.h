@@ -145,11 +145,8 @@ namespace ESPINA
      */
      bool computeTouchesROIValue() const;
 
-     QString roiPrefix() const
-     { return prefix() + "roi/"; }
-
      QString roiId() const
-     { return "roi"; }
+     { return "sgs"; }
 
   private:
     int       m_lowerTh, m_prevLowerTh;

@@ -112,7 +112,7 @@ ROISPtr ROI::clone() const
 }
 
 //-----------------------------------------------------------------------------
-bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
 {
   auto volumeBounds = temporalStorageBoundsId(m_path, m_id);
 
@@ -122,14 +122,7 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
   m_origin  = m_bounds.origin();
   m_spacing = m_bounds.spacing();
 
-  try
-  {
-    m_isOrthogonal = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id, m_bounds);
-  }
-  catch(...)
-  {
-    m_isOrthogonal = true;
-  }
+  m_isOrthogonal = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, temporalStorageId(id), m_bounds);
 
   return true;
 }

@@ -149,7 +149,7 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
@@ -210,8 +210,6 @@ namespace ESPINA
     { return QList<Data::Type>(); }
 
   protected:
-    using VolumetricData<T>::m_output;
-
     NmVector3    m_origin;
     NmVector3    m_spacing;
     VolumeBounds m_bounds;
@@ -673,11 +671,10 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   {
-    m_blockMutex.lockForWrite();
+    QWriteLocker lock(&m_blockMutex);
 
-    // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
     bool dataFetched = false;
@@ -686,16 +683,9 @@ namespace ESPINA
     int i = 0;
     QFileInfo blockFile;
 
-    if(!m_output)
-    {
-      m_blockMutex.unlock();
-      throw Invalid_Image_Output_Value_Exception();
-    }
-
-    m_spacing = m_output->spacing();
-
     // Bounds need to be updated before any possible drawing with invalid bounds
-    m_bounds = volumeBounds<T>(m_origin, m_spacing, bounds);
+    m_bounds  = bounds;//volumeBounds<T>(m_origin, m_spacing, bounds);
+    m_spacing = bounds.spacing();
 
     if (!storage || path.isEmpty() || id.isEmpty()) return false;
 
@@ -706,6 +696,7 @@ namespace ESPINA
     {
       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
       if (blockFile.exists()) break;
+      //qDebug() << blockFile.absoluteFilePath() << "not found";
     }
 
     while (blockFile.exists())
@@ -741,7 +732,6 @@ namespace ESPINA
       dataFetched = true;
     }
 
-    m_blockMutex.unlock();
     return dataFetched && !error;
   }
 

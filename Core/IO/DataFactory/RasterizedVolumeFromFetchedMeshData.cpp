@@ -30,7 +30,7 @@ namespace ESPINA
                                                            const QString       &path,
                                                            QXmlStreamAttributes info)
   {
-    Bounds bounds(info.value("bounds").toString());
+    VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
 
     DataSPtr data;
     if ("MeshData" == info.value("type"))
@@ -64,7 +64,7 @@ namespace ESPINA
   MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr          output,
                                                                           TemporalStorageSPtr storage,
                                                                           const QString      &path,
-                                                                          const Bounds       &bounds)
+                                                                          const VolumeBounds &bounds)
   {
     if (!hasMeshData(output))
     {

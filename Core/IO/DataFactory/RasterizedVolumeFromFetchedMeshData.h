@@ -39,7 +39,7 @@ namespace ESPINA
       /** \brief Helper method to fetch a mesh from storate.
        *
        */
-      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const Bounds &bounds);
+      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const VolumeBounds &bounds);
   };
 
 } // namespace ESPINA

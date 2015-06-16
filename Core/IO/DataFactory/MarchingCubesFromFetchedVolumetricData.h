@@ -36,7 +36,7 @@ namespace ESPINA
     /** \brief Helper method to fetch a volume from storage.
      *
      */
-    virtual DefaultVolumetricDataSPtr createVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const Bounds &bounds);
+    virtual DefaultVolumetricDataSPtr createVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const VolumeBounds &bounds);
   };
 } // namespace ESPINA
 

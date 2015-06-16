@@ -32,7 +32,7 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
   DataSPtr data;
 
   const Data::Type requestedType = info.value("type").toString();
-  const Bounds bounds(info.value("bounds").toString());
+  const VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
 
   if (!output->hasData(requestedType))
   {
@@ -55,7 +55,6 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
       output->setData(data);
     }
   }
-
 
   return data;
 }

@@ -36,7 +36,7 @@ namespace ESPINA
       {};
 
     protected:
-      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const Bounds &bounds) override;
+      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, const VolumeBounds &bounds) override;
   };
 
 } // namespace ESPINA

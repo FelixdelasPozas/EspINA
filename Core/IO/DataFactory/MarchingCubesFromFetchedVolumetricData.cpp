@@ -28,7 +28,7 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
 {
   DataSPtr data;
 
-  Bounds bounds(info.value("bounds").toString());
+  VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
 
   if ("VolumetricData" == info.value("type"))
   {
@@ -54,10 +54,10 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
 }
 
 //----------------------------------------------------------------------------
-DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetricData(OutputSPtr output,
+DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetricData(OutputSPtr          output,
                                                                                        TemporalStorageSPtr storage,
-                                                                                       const QString &path,
-                                                                                       const Bounds &bounds)
+                                                                                       const QString      &path,
+                                                                                       const VolumeBounds &bounds)
 {
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {

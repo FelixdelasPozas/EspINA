@@ -71,7 +71,7 @@ namespace ESPINA
 
   protected:
     // Default implementation
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override = 0;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override = 0;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const

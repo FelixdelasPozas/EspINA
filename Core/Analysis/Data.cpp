@@ -39,7 +39,7 @@ TimeStamp Data::s_tick = 0;
 void Data::setFetchContext(const TemporalStorageSPtr storage,
                            const QString &path,
                            const QString &id,
-                           const Bounds  &bounds)
+                           const VolumeBounds &bounds)
 {
   m_path        = path;
   m_id          = id;

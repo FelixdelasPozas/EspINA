@@ -54,7 +54,7 @@ Bounds MeshData::bounds() const
 }
 
 //----------------------------------------------------------------------------
-bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const Bounds &bounds)
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)
 {
   bool dataFetched = false;
 

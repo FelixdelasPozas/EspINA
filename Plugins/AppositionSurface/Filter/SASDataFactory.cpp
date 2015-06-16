@@ -32,7 +32,7 @@ namespace ESPINA
   MeshDataSPtr SASDataFactory::fetchMeshData(OutputSPtr          output,
                                              TemporalStorageSPtr storage,
                                              const QString      &path,
-                                             const Bounds       &bounds)
+                                             const VolumeBounds &bounds)
   {
     MeshDataSPtr data;
 
@@ -55,6 +55,5 @@ namespace ESPINA
 
     return data;
   }
-
 } // namespace ESPINA
 

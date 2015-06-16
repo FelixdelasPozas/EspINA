@@ -156,7 +156,7 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
@@ -373,7 +373,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+  bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   {
 //     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 //
