@@ -329,7 +329,6 @@ void RepresentationManager::emitRenderRequest(TimeStamp t)
     m_lastRenderRequestTime = t;
 
     //qDebug() << debugName() << "Emit renderRequested at" << t;
-
     emit renderRequested();
   }
 }

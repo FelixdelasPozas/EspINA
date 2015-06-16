@@ -40,9 +40,10 @@ void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
   QMutexLocker lock(&m_mutex);
 
-  Q_ASSERT(!m_sources.contains(item));
-
-  m_sources << item;
+  if(!m_sources.contains(item))
+  {
+    m_sources << item;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -50,11 +51,20 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
   QMutexLocker lock(&m_mutex);
 
-  if(!m_sources.contains(item)) return;
-  // Q_ASSERT(m_sources.contains(item));
+  if(m_actors.keys().contains(item))
+  {
+    m_actors.remove(item);
+  }
 
-  m_actors.remove(item);
-  m_sources.removeOne(item);
+  if(m_sources.contains(item))
+  {
+    m_sources.removeOne(item);
+  }
+
+  if(m_requestedSources.contains(item))
+  {
+    m_requestedSources.removeOne(item);
+  }
 }
 
 //----------------------------------------------------------------------------

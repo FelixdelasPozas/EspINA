@@ -571,13 +571,24 @@ void View3D::updateScrollBarsLimits()
   {
     auto bounds     = sceneBounds();
     auto resolution = sceneResolution();
+    int axialMax = 0, axialMin = 0, coronalMax = 0, coronalMin = 0, sagittalMax = 0, sagittalMin = 0;
 
-    m_sagittalScrollBar->setMinimum(vtkMath::Round((bounds[0]+(resolution[0]/2))/resolution[0]));
-    m_sagittalScrollBar->setMaximum(vtkMath::Round((bounds[1]+(resolution[0]/2))/resolution[0])-1);
-    m_coronalScrollBar ->setMinimum(vtkMath::Round((bounds[2]+(resolution[1]/2))/resolution[1]));
-    m_coronalScrollBar ->setMaximum(vtkMath::Round((bounds[3]+(resolution[1]/2))/resolution[1])-1);
-    m_axialScrollBar   ->setMinimum(vtkMath::Round((bounds[4]+(resolution[2]/2))/resolution[2]));
-    m_axialScrollBar   ->setMaximum(vtkMath::Round((bounds[5]+(resolution[2]/2))/resolution[2])-1);
+    if(bounds.areValid())
+    {
+      sagittalMin = vtkMath::Round((bounds[0]+(resolution[0]/2))/resolution[0]);
+      sagittalMax = vtkMath::Round((bounds[1]+(resolution[0]/2))/resolution[0])-1;
+      coronalMin  = vtkMath::Round((bounds[2]+(resolution[1]/2))/resolution[1]);
+      coronalMax  = vtkMath::Round((bounds[3]+(resolution[1]/2))/resolution[1])-1;
+      axialMin    = vtkMath::Round((bounds[4]+(resolution[2]/2))/resolution[2]);
+      axialMax    = vtkMath::Round((bounds[5]+(resolution[2]/2))/resolution[2])-1;
+    }
+
+    m_sagittalScrollBar->setMinimum(sagittalMin);
+    m_sagittalScrollBar->setMaximum(sagittalMax);
+    m_coronalScrollBar ->setMinimum(coronalMin);
+    m_coronalScrollBar ->setMaximum(coronalMax);
+    m_axialScrollBar   ->setMinimum(axialMin);
+    m_axialScrollBar   ->setMaximum(axialMax);
   }
 }
 

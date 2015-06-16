@@ -185,11 +185,6 @@ TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 //-----------------------------------------------------------------------------
 void RepresentationPool::incrementObservers()
 {
-//   if(m_numObservers == 0)
-//   {
-//     onSettingsChanged(m_poolState);
-//   }
-//
   ++m_numObservers;
 }
 
@@ -251,16 +246,14 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
     updateRepresentationsAt(t);
   }
 
-  if(sources.size() == 0)
+  if(m_sourcesCount == 0)
   {
+    m_validActors.invalidate();
+
     emit actorsInvalidated();
 
     onActorsReady(t, RepresentationPipeline::Actors());
   }
-
-  Q_ASSERT(m_sourcesCount - sources.size() >= 0);
-
-  m_sourcesCount -= sources.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -334,6 +327,8 @@ bool RepresentationPool::removeSources(ViewItemAdapterList sources)
       removed = true;
     }
   }
+
+  m_sourcesCount -= sources.size();
 
   return removed;
 }

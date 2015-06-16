@@ -19,12 +19,14 @@
 
 namespace ESPINA
 {
+  //-----------------------------------------------------------------------------
   template<typename R>
   RangedValue<R>::RangedValue()
   : m_lastTime{0}
   {
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   TimeRange RangedValue<R>::timeRange() const
   {
@@ -41,6 +43,7 @@ namespace ESPINA
     return range;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   R RangedValue<R>::last() const
   {
@@ -55,12 +58,14 @@ namespace ESPINA
     return result;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   TimeStamp RangedValue<R>::lastTime() const
   {
     return m_lastTime;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::addValue(R representation, TimeStamp t)
   {
@@ -86,6 +91,7 @@ namespace ESPINA
     m_representations[t] = representation;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::reusePreviousValue(TimeStamp t)
   {
@@ -93,6 +99,7 @@ namespace ESPINA
     m_lastTime = t;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   R RangedValue<R>::value(TimeStamp t, R invalid) const
   {
@@ -127,7 +134,7 @@ namespace ESPINA
     return m_representations.value(valueTime, invalid);
   }
 
-
+  //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::invalidate()
   {
@@ -136,6 +143,7 @@ namespace ESPINA
     m_representations.clear();
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
   {
@@ -164,6 +172,7 @@ namespace ESPINA
     m_representations[t] = validRepresentations;
   }
 
+  //-----------------------------------------------------------------------------
   template<typename R>
   bool RangedValue<R>::isEmpty() const
   {

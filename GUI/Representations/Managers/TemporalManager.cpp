@@ -29,7 +29,6 @@ TemporalPrototypes::TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D,
 : m_prototype2D(prototype2D)
 , m_prototype3D(prototype3D)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -203,7 +202,6 @@ AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()
 : m_normalIndex{0}
 , m_reslicePosition{0.0}
 {
-
 }
 
 //------------------------------------------------------------------------

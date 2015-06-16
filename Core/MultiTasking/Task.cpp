@@ -197,7 +197,9 @@ bool Task::canExecute()
     bool notify = m_pendingUserPause;
 
     if (notify)
+    {
       emit paused();
+    }
 
     m_isRunning    = false;
     m_isPaused     = true;
@@ -207,7 +209,9 @@ bool Task::canExecute()
     m_pendingPause = false;
 
     if (notify)
+    {
       emit resumed();
+    }
   }
 
   return !(m_isAborted || m_needsRestart);

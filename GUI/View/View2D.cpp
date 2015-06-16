@@ -849,10 +849,13 @@ void View2D::updateThumbnailBounds(const Bounds &bounds)
 //-----------------------------------------------------------------------------
 void View2D::updateWidgetLimits(const Bounds &bounds)
 {
-//  if(!bounds.areValid()) return;
+  int sliceMin = 0, sliceMax = 0;
 
-  int sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
-  int sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
+  if(bounds.areValid())
+  {
+    sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
+    sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
+  }
 
   updateSpinBoxLimits  (sliceMin, sliceMax);
   updateScrollBarLimits(sliceMin, sliceMax);
