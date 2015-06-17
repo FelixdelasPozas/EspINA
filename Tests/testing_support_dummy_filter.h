@@ -67,7 +67,7 @@ namespace ESPINA {
     virtual size_t memoryUsage() const {return 0;}
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
     { return false; }
 
   private:
@@ -94,7 +94,7 @@ namespace ESPINA {
     { return m_data->bounds(); }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
     { return m_data->fetchData();}
 
   private:

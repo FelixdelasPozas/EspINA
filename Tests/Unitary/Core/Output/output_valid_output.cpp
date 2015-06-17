@@ -39,7 +39,7 @@ int output_valid_output( int argc, char** argv )
 
   Output output(&filter, 0, NmVector3{1,1,1});
 
-  DataSPtr data{new DummyData()};
+  auto data = std::make_shared<DummyData>();
   output.setData(data);
 
   if (!output.isValid()) {

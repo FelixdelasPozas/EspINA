@@ -140,6 +140,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/View/RepresentationInvalidator.cpp
   ${GUI_DIR}/Utils/Timer.cpp
+  ${GUI_DIR}/SupportedFormats.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} EspinaExtensionsTesting)
