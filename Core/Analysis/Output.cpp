@@ -110,11 +110,17 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
-      auto region = data->editedRegions()[i];
-      xml.writeStartElement("EditedRegion");
-      xml.writeAttribute("id",     QString::number(i));
-      xml.writeAttribute("bounds", region.toString());
-      xml.writeEndElement();
+      // We need to crop the edited regions bounds in case
+      // the data bounds have been reduced to prevent
+      // out of bounds data requests
+      auto editedBounds = intersection(data->bounds(), data->editedRegions()[i]);
+      if (editedBounds.areValid())
+      {
+        xml.writeStartElement("EditedRegion");
+        xml.writeAttribute("id",     QString::number(i));
+        xml.writeAttribute("bounds", editedBounds.toString());
+        xml.writeEndElement();
+      }
     }
     xml.writeEndElement();
 

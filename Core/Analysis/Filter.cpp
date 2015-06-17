@@ -47,6 +47,7 @@ namespace ESPINA {
 //   {
 //     virtual DataProxySPtr createProxy() const;
 //   };
+
   namespace OutputParser
   {
     bool isOutputSection(const QXmlStreamReader& xml)
@@ -101,7 +102,8 @@ Snapshot Filter::snapshot() const
     xml.writeStartDocument();
     xml.writeStartElement("Filter");
     xml.writeAttribute("Type", m_type);
-    for(OutputSPtr output : m_outputs)
+
+    for(auto output : m_outputs)
     {
       xml.writeStartElement("Output");
       xml.writeAttribute("id",      QString::number(output->id()));
@@ -223,13 +225,6 @@ void Filter::restoreEditedRegions()
     }
   }
 }
-
-// //----------------------------------------------------------------------------
-// void Filter::clearPreviousOutputs()
-// {
-//   m_outputs.clear();
-//   m_invalidateSortoredOutputs = true;
-// }
 
 //----------------------------------------------------------------------------
 bool Filter::validStoredInformation() const

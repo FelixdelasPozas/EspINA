@@ -478,16 +478,20 @@ namespace ESPINA
   {
     Snapshot regionsSnapshot;
 
-//     BoundsList regions = this->editedRegions();
-//     // TODO: Simplify edited regions volumes
-//
-//     int regionId = 0;
-//     for(auto region : regions)
-//     {
-//       auto snapshotId = editedRegionSnapshotId(id, regionId);
-//       regionsSnapshot << createSnapshot<T>(itkImage(region), storage, path, snapshotId);
-//       ++regionId;
-//     }
+    BoundsList regions = this->editedRegions();
+    // TODO: Simplify edited regions volumes
+
+    int regionId = 0;
+    for(auto region : regions)
+    {
+      auto editedBounds = intersection(region, bounds());
+      if (editedBounds.areValid())
+      {
+        auto snapshotId    = editedRegionSnapshotId(id, regionId);
+        regionsSnapshot << createSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        ++regionId;
+      }
+    }
 
     return regionsSnapshot;
   }
@@ -496,25 +500,25 @@ namespace ESPINA
   template<typename T>
   void RawVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-//     auto restoredEditedRegions = this->editedRegions();
-//
-//     for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
-//     {
-//       QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
-//
-//       if (filename.exists())
-//       {
-//         auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
-//
-//         expandAndDraw<T>(this, editedRegion);
-//       }
-//       else
-//       {
-//         qWarning() << "Unable to locate edited region file:" << filename.absoluteFilePath();
-//       }
-//     }
-//
-//     this->setEditedRegions(restoredEditedRegions);
+    auto restoredEditedRegions = this->editedRegions();
+
+    for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
+    {
+      QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
+
+      if (filename.exists())
+      {
+        auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
+
+        expandAndDraw<T>(this, editedRegion);
+      }
+      else
+      {
+        qWarning() << "Unable to locate edited region file:" << filename.absoluteFilePath();
+      }
+    }
+
+    this->setEditedRegions(restoredEditedRegions);
   }
 
   //-----------------------------------------------------------------------------

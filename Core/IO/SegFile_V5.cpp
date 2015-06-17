@@ -33,6 +33,7 @@
 #include <Core/Analysis/Persistent.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
@@ -634,16 +635,21 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   for(auto v : analysis->content()->vertices())
   {
     PersistentPtr item = dynamic_cast<PersistentPtr>(v.get());
-    for(auto data : item->snapshot())
+
+    try
     {
-      try
+      for(auto data : item->snapshot())
       {
         addFileToZip(data.first, data.second, zip, handler);
       }
-      catch (const IO_Error_Exception &e)
-      {
-        throw (e);
-      }
+    }
+    catch (Invalid_Image_Bounds_Exception &e)
+    {
+      throw(e);
+    }
+    catch (const IO_Error_Exception &e)
+    {
+      throw(e);
     }
   }
 

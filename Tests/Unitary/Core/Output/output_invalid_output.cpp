@@ -51,7 +51,7 @@ public:
   virtual bool isEmpty() const { return true; }
 
 protected:
-  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   { return false; }
 
 private:
@@ -72,7 +72,7 @@ public:
   { m_data = std::dynamic_pointer_cast<InvalidData>(data); }
 
 protected:
-  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const Bounds &bounds)
+  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   { return false; }
 
 private:
@@ -81,7 +81,7 @@ private:
 
 DataSPtr InvalidData::createProxy() const
 {
-  return DataSPtr{new InvalidDataProxy()};
+  return std::make_shared<InvalidDataProxy>();
 }
 
 int output_invalid_output( int argc, char** argv )

@@ -232,7 +232,6 @@ namespace ESPINA
 
     QMutex m_mutex;
 
-    //friend class Output;
     template<typename T> friend class SignalBlocker;
   };
 

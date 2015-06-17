@@ -767,9 +767,13 @@ namespace ESPINA
     int regionId = 0;
     for(auto region : regions)
     {
-      auto snapshotId = editedRegionSnapshotId(id, regionId);
-      regionsSnapshot << createSnapshot<T>(itkImage(region), storage, path, snapshotId);
-      ++regionId;
+      auto editedBounds = intersection(region, bounds());
+      if (editedBounds.areValid())
+      {
+        auto snapshotId    = editedRegionSnapshotId(id, regionId);
+        regionsSnapshot << createSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        ++regionId;
+      }
     }
 
     return regionsSnapshot;
