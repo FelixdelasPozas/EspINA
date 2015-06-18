@@ -17,10 +17,14 @@
  *
  */
 
+// ESPINA
 #include "RepresentationPool.h"
 
-#include <QApplication>
+// VTK
 #include <vtkProp.h>
+
+// Qt
+#include <QApplication>
 
 using namespace ESPINA;
 
@@ -124,10 +128,7 @@ void RepresentationPool::setSceneResolution(const NmVector3 &resolution, TimeSta
 {
   m_resolution = resolution;
 
-  if (notHasBeenProcessed(t))
-  {
-    setSceneResolutionImplementation(resolution, t);
-  }
+  setSceneResolutionImplementation(resolution, t);
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +206,7 @@ ViewItemAdapterList RepresentationPool::sources() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 {
-  return t > m_validActors.lastTime();
+  return m_validActors.isEmpty() || t > m_validActors.lastTime();
 }
 
 //-----------------------------------------------------------------------------

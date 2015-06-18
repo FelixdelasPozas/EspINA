@@ -90,7 +90,6 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
       m_currentPos = innerPosition(m_currentPos + distance);
     }
   }
-
 //   std::cout << "Current Position: " << m_currentPos << std::endl;
 
   return invalid;
