@@ -368,7 +368,7 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::isValid() const
   {
-    return m_bounds.areValid();
+    return m_bounds.areValid() && !this->needFetch();
   }
 
   //-----------------------------------------------------------------------------

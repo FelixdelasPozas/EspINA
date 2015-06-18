@@ -61,7 +61,9 @@ DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetr
 {
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
-    auto data = std::make_shared<SparseVolume<itkVolumeType>>();
+    // NOTE: As a consequence of passing actual volume bounds stored in the output file
+    //       we could try to remove bounds from fetch context API as needFetch/fetchBounds workaround
+    auto data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
     data->setFetchContext(storage, path, QString::number(output->id()), bounds);
     output->setData(data);
   }

@@ -74,7 +74,7 @@ namespace ESPINA
       { return snapshot(storage, path, id); }
 
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
-      { /*fetchDataImplementation(storage, path, id, bounds()); */}
+      { fetchDataImplementation(storage, path, id, VolumeBounds(bounds(), m_spacing, m_origin)); }
 
       virtual vtkSmartPointer<vtkPolyData> skeleton() const
       { return m_skeleton; }

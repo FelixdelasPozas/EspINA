@@ -40,7 +40,6 @@
 
 using namespace ESPINA;
 
-
 namespace ESPINA {
 //   class ReadOnlyData
 //   : public Data
@@ -93,6 +92,7 @@ Snapshot Filter::snapshot() const
 {
   Snapshot snapshot;
 
+//   qDebug() << "Snapshot Request: " << m_type << uuid();
   if (!m_outputs.isEmpty())
   {
     QByteArray       buffer;
@@ -246,13 +246,13 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
-  //qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
+//   qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
     //qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    //qDebug() << buffer;
+//     qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {

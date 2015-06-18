@@ -59,6 +59,15 @@ namespace ESPINA
         m_data = std::dynamic_pointer_cast<SkeletonData>(data);
       }
 
+      virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+      { return m_data->setFetchContext(storage, path, id, bounds); }
+
+      virtual bool needFetch() const
+      { return m_data->needFetch(); }
+
+      virtual Bounds fetchBounds() const
+      { return m_data->fetchBounds(); }
+
       virtual Bounds bounds() const override
       { return m_data->bounds(); }
 

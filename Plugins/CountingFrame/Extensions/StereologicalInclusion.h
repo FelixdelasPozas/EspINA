@@ -92,7 +92,7 @@ namespace ESPINA
 
   private:
     bool isExcludedByCountingFrame(CountingFrame *cf);
-    bool isRealCollision(const Bounds& interscetion);
+    bool isRealCollision(const Bounds& collisionBounds);
     void checkSampleCountingFrames();
 
   private:

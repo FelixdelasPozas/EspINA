@@ -110,7 +110,21 @@ namespace ESPINA
        *  empty region, and thus invalid.
        */
       bool areValid() const
-      { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
+      {
+        bool valid = true;
+        int i = 0;
+        while (valid && i < 3)
+        {
+          auto lb = m_bounds[2*i];
+          auto ub = m_bounds[2*i+1];
+
+          valid = lb <= ub && !(lb == ub && !m_lowerInclusion[i] && !m_upperInclusion[i]);
+
+          ++i;
+        }
+
+        return valid;
+      }
 
       /** \brief Bounds operator[int]
        *

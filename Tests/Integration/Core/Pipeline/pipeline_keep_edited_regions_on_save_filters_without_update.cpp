@@ -91,7 +91,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
+  auto factory = std::make_shared<CoreFactory>();
   factory->registerFilterFactory(make_shared<TestFilterFactory>());
 
   Analysis analysis;
@@ -118,10 +118,12 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   auto sgs = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
+  Bounds originalBounds;
   Bounds modificationBounds{0,1,0,2,0,3};
-
   {
     auto sgsVolume = writeLockVolume(sgs->output(0));
+
+    originalBounds = sgsVolume->bounds();
 
     if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
     {
@@ -215,6 +217,12 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   else
   {
     auto volume = readLockVolume(reloadedSGSOuptut);
+
+    if (originalBounds != volume->bounds())
+    {
+      cerr << "Unexpeceted volume bounds" << endl;
+      error = true;
+    }
 
     if (volume->editedRegions().isEmpty())
     {

@@ -38,15 +38,15 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
   {
     if (VolumetricData<itkVolumeType>::TYPE == requestedType)
     {
-      data = std::make_shared<SparseVolume<itkVolumeType>>();
+      data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
     }
     else if (MeshData::TYPE == requestedType)
     {
-      data = std::make_shared<RawMesh>();
+      data = std::make_shared<RawMesh>(bounds.spacing(), bounds.origin());
     }
     else if (SkeletonData::TYPE == requestedType)
     {
-      data = std::make_shared<RawSkeleton>();
+      data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
     }
 
     if (data)

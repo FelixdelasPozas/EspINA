@@ -41,10 +41,12 @@ void Data::setFetchContext(const TemporalStorageSPtr storage,
                            const QString &id,
                            const VolumeBounds &bounds)
 {
+  QMutexLocker lock(&m_mutex);
   m_path        = path;
   m_id          = id;
   m_fetchBounds = bounds;
   m_storage     = storage;
+  m_needFetch   = true;
 }
 
 //----------------------------------------------------------------------------
@@ -56,5 +58,9 @@ QList<Data::Type> Data::dependencies() const
 //----------------------------------------------------------------------------
 bool Data::fetchData()
 {
+  QMutexLocker lock(&m_mutex);
+
+  m_needFetch = false;
+
   return fetchDataImplementation(m_storage, m_path, m_id, m_fetchBounds);
 }

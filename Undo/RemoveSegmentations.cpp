@@ -91,24 +91,28 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 //------------------------------------------------------------------------
 void RemoveSegmentations::redo()
 {
+  m_model->beginBatchMode();
   for(auto relation : m_relations)
   {
     m_model->deleteRelation(relation);
   }
 
   m_model->remove(m_segmentations);
+  m_model->endBatchMode();
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentations::undo()
 {
+  m_model->beginBatchMode();
   m_model->add(m_segmentations);
 
   for(Relation relation : m_relations)
   {
     m_model->addRelation(relation);
   }
+  m_model->endBatchMode();
 }
 
 // //------------------------------------------------------------------------

@@ -77,8 +77,8 @@ namespace ESPINA
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
     { return MeshData::snapshot(storage, path, id); };
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
-    { /*fetchDataImplementation(storage, path, id, bounds());*/ }
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+    { fetchDataImplementation(storage, path, id, VolumeBounds(bounds(), spacing(), m_origin)); }
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_mesh; }

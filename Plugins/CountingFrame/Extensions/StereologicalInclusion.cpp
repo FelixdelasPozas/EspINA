@@ -276,7 +276,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto output  = m_extendedItem->output();
   auto inputBB = output->bounds();
   auto spacing = output->spacing();
-  //qDebug() << "Input:" << inputBB.toString();
+//   qDebug() << "InputBB:" << inputBB;
 
   auto region       = cf->polyData();
   auto regionPoints = region->GetPoints();
@@ -357,7 +357,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
     Bounds sliceBB = pointBounds(slicePoints);
     if (intersect(inputBB, sliceBB, spacing) && isRealCollision(intersection(inputBB, sliceBB, spacing)))
-      return false;//;
+    {
+      return false;
+    }
   }
 
   // If no internal collision was detected, then the input was indeed outside our
@@ -419,7 +421,7 @@ bool StereologicalInclusion::isOnEdge() const
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
+bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 {
   using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
 
@@ -427,15 +429,20 @@ bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
 
   if (hasVolumetricData(output))
   {
-    auto volume = readLockVolume(m_extendedItem->output());
-    auto image  = volume->itkImage(intersection);
+    auto volume = readLockVolume(output);
+    auto bounds = intersection(volume->bounds(), collisionBounds, volume->spacing());
 
-    auto it = ImageIterator(image, image->GetLargestPossibleRegion());
-    it.GoToBegin();
-    while (!it.IsAtEnd())
+    if (bounds.areValid())
     {
-      if (it.Get() != volume->backgroundValue()) return true;
-      ++it;
+      auto image  = volume->itkImage(bounds);
+
+      auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+      it.GoToBegin();
+      while (!it.IsAtEnd())
+      {
+        if (it.Get() != volume->backgroundValue()) return true;
+        ++it;
+      }
     }
   }
   else

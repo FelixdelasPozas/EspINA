@@ -82,6 +82,8 @@ namespace ESPINA
      */
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
+    explicit SparseVolume(const VolumeBounds& bounds);
+
     /** \brief SparseVolume class constructor
      * \param[in] volume initial content of the sparse volume.
      * \param[in] bounds bounds of the empty volume.
@@ -230,6 +232,12 @@ namespace ESPINA
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
 
     this->setBackgroundValue(0);
+  }
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  SparseVolume<T>::SparseVolume(const VolumeBounds& bounds)
+  : SparseVolume<T>(bounds, bounds.spacing(), bounds.origin())
+  {
   }
 
   //-----------------------------------------------------------------------------
@@ -488,8 +496,8 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block = m_blocks[index];
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
+      auto block             = m_blocks[index];
+      auto blockBounds       = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
       auto blockIntersection = intersection(blockBounds, intersectionBounds);
 
       auto iit = itkImageConstIterator<T>(image, blockIntersection);
@@ -666,7 +674,7 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isValid() const
   {
-    return m_bounds.areValid();
+    return m_bounds.areValid() && !this->needFetch();
   }
 
   //-----------------------------------------------------------------------------

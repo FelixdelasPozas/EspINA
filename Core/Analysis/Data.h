@@ -107,11 +107,17 @@ namespace ESPINA
      * \param[in] id identifier of stored data snapshosts
      *
      */
-    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
+    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
 
     /** \brief Recover data from Persistent Storage.
      */
     bool fetchData();
+
+    virtual bool needFetch() const
+    { return m_needFetch; }
+
+    virtual Bounds fetchBounds() const
+    { return m_fetchBounds; }
 
     /** \brief Clears the edited regions list.
      *
@@ -191,7 +197,8 @@ namespace ESPINA
      *
      */
     explicit Data()
-    : m_timeStamp{s_tick++}
+    : m_needFetch(false)
+    , m_timeStamp{s_tick++}
     , m_mutex(QMutex::Recursive)
     {
     }
@@ -226,12 +233,12 @@ namespace ESPINA
     TemporalStorageSPtr m_storage;
 
   private:
+    bool         m_needFetch;
     VolumeBounds m_fetchBounds;
     TimeStamp    m_timeStamp;
     BoundsList   m_editedRegions;
 
     QMutex m_mutex;
-
     template<typename T> friend class SignalBlocker;
   };
 

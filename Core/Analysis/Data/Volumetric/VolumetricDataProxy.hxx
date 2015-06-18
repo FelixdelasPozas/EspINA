@@ -58,6 +58,15 @@ namespace ESPINA
       m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
     }
 
+    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+    { return m_data->setFetchContext(storage, path, id, bounds); }
+
+    virtual bool needFetch() const
+    { return m_data->needFetch(); }
+
+    virtual Bounds fetchBounds() const
+    { return m_data->fetchBounds(); }
+
     virtual size_t memoryUsage() const
     {
       return m_data->memoryUsage();

@@ -71,6 +71,8 @@ int output_concurrent_write_data( int argc, char** argv )
     cout << "Write Task finished" << endl;
   }));
 
+  usleep(100);
+
   threads.push_back(thread([&error, &output, data](){
     auto readData = output.readLockData<Data>(data->type());
 

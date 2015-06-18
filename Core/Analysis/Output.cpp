@@ -104,16 +104,18 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   for(auto data : m_data)
   {
+    auto bounds = data->needFetch()?data->fetchBounds():data->bounds();
+
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
-    xml.writeAttribute("bounds",  data->bounds().toString());
+    xml.writeAttribute("bounds",  bounds.toString());
 
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       // We need to crop the edited regions bounds in case
       // the data bounds have been reduced to prevent
       // out of bounds data requests
-      auto editedBounds = intersection(data->bounds(), data->editedRegions()[i]);
+      auto editedBounds = intersection(bounds, data->editedRegions()[i]);
       if (editedBounds.areValid())
       {
         xml.writeStartElement("EditedRegion");
@@ -304,6 +306,7 @@ void Output::update(const Data::Type &type)
         m_filter->update();
       }
     }
+    Q_ASSERT(requestedData->isValid());
   }
 }
 
