@@ -81,17 +81,15 @@ namespace ESPINA
     Q_OBJECT
     public:
       /** \brief CheckTask class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] item, neuro item adapter smart pointer that will be tested.
-       * \param[in] model, model adapter smart pointer containing the item.
+       * \param[in] scheduler smart pointer.
+       * \param[in] model adapter smart pointer containing the item.
        *
        */
-      explicit CheckTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+      explicit CheckTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
       : Task   {scheduler}
       , m_model{model}
       {
         setHidden(true);
-        setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
       }
 
       /** \brief CheckTask class virtual destructor.
@@ -105,6 +103,20 @@ namespace ESPINA
        * \param[out] issue issue struct.
        */
       void issue(Issue issue) const;
+
+  protected:
+      ModelAdapterSPtr m_model;
+  };
+
+  class CheckDataTask
+  : public CheckTask
+  {
+  public:
+      explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+      : CheckTask{scheduler, model}
+      {
+        setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
+      }
 
     protected:
       /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
@@ -129,12 +141,11 @@ namespace ESPINA
       void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
 
       NeuroItemAdapterSPtr m_item;
-      ModelAdapterSPtr     m_model;
   };
 
   //------------------------------------------------------------------------
   class CheckSegmentationTask
-  : public CheckTask
+  : public CheckDataTask
   {
       Q_OBJECT
     public:
@@ -170,7 +181,7 @@ namespace ESPINA
 
   //------------------------------------------------------------------------
   class CheckChannelTask
-  : public CheckTask
+  : public CheckDataTask
   {
       Q_OBJECT
     public:
@@ -206,7 +217,7 @@ namespace ESPINA
 
   //------------------------------------------------------------------------
   class CheckSampleTask
-  : public CheckTask
+  : public CheckDataTask
   {
       Q_OBJECT
     public:
@@ -237,6 +248,18 @@ namespace ESPINA
 
     private:
       SampleAdapterSPtr m_sample;
+  };
+
+  class CheckDuplicatedSegmentationsTask
+  : public CheckTask
+  {
+  public:
+    explicit CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model);
+
+  private:
+    virtual void run() override final;
+
+    Issue possibleDuplication(SegmentationAdapterPtr seg1, SegmentationAdapterPtr seg2) const;
   };
 
 } // namespace ESPINA
