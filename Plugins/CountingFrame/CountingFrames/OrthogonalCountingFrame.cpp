@@ -18,16 +18,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "CountingFrames/OrthogonalCountingFrame.h"
-
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/vtkCountingFrameSliceWidget.h"
 #include "CountingFrames/vtkCountingFrame3DWidget.h"
 
+// ESPINA
 #include <Core/Analysis/Channel.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+
+// VTK
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkPolyData.h>
@@ -69,7 +71,7 @@ void OrthogonalCountingFrame::updateCountingFrameImplementation()
                                             Right, Bottom, Back);
 
   m_channelEdges = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
-                                             m_bounds[1], m_bounds[3], m_bounds[5]);
+                                           m_bounds[1], m_bounds[3], m_bounds[5]);
 
   auto channel = m_extension->extendedItem();
   auto spacing = channel->output()->spacing();
@@ -143,7 +145,8 @@ vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createRectangularRegion(Nm
 
   region->SetPoints(vertex);
   region->SetPolys(faces);
-  vtkCellData *data = region->GetCellData();
+
+  auto data = region->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
 

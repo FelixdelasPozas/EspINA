@@ -18,10 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "vtkCountingFrameRepresentationYZ.h"
+
+// ESPINA
 #include <GUI/View/View2D.h>
 
+// VTK
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
@@ -49,8 +52,8 @@ void vtkCountingFrameRepresentationYZ::SetSlice(ESPINA::Nm pos)
   {
     double sliceBounds[6];
     regionBounds(slice, sliceBounds);
-    visible = sliceBounds[0] + InclusionOffset[0] <= Slice
-           && Slice <= sliceBounds[1] - ExclusionOffset[0];
+    visible = (sliceBounds[0] + InclusionOffset[0] <= Slice) &&
+              (Slice <= sliceBounds[1] - ExclusionOffset[0]);
     slice++;
   }
 
@@ -62,25 +65,34 @@ void vtkCountingFrameRepresentationYZ::SetSlice(ESPINA::Nm pos)
       if (fabs(Slice - (lastSliceBounds[1]-(SlicingStep[0]/2)-ExclusionOffset[0])) < SlicingStep[0])
       {
         this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
-      } else
+      }
+      else
       {
         this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
       }
     }
+
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+    }
 
     CreateRegion();
-  } else
+  }
+  else
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+    }
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::CreateRegion()
 {
+  if(Region.GetPointer() == nullptr) return;
+
 //   std::cout << "Created YZ FACE" << std::endl;
   double LB[3], RB[3];
   this->Region->GetPoint(0, LB);
@@ -93,13 +105,15 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   int UpperSlice = sliceNumber(LB[2] + InclusionOffset[2]);
   int LowerSlice = sliceNumber(RB[2] - ExclusionOffset[2]);
   if (UpperSlice == LowerSlice)
+  {
     UpperSlice--;
+  }
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
   int numRepSlices = LowerSlice - UpperSlice + 1;
-  if (numRepSlices == 0)
-    return;
+
+  if (numRepSlices == 0) return;
 
   unsigned int numIntervals = numRepSlices - 1;
   unsigned int numVertex    = numRepSlices * 2;
@@ -119,16 +133,16 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   this->Vertex->SetNumberOfPoints(numVertex);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgePolyData[i]->GetLines()->Reset();
+  }
 
-  this->EdgePolyData[LEFT]->GetLines()->Allocate(
-    this->EdgePolyData[LEFT]->GetLines()->EstimateSize(1,2));
+  this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
   this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(0);
   this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(1);
 
-  this->EdgePolyData[TOP]->GetLines()->Allocate(
-    this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
+  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
   for(unsigned int interval=0; interval < numIntervals; interval++)
   {
     this->EdgePolyData[TOP]->GetLines()->InsertNextCell(2);
@@ -136,14 +150,12 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
     this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(2*interval+3);
   }
 
-  this->EdgePolyData[RIGHT]->GetLines()->Allocate(
-    this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(1,2));
+  this->EdgePolyData[RIGHT]->GetLines()->Allocate(this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
   this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(numVertex-2);
   this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(numVertex-1);
 
-  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(
-    this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(numIntervals,2));
+  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(numIntervals,2));
   for(unsigned int interval=0; interval < numIntervals; interval++)
   {
     this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
@@ -158,32 +170,52 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
     int interval = slice - UpperSlice;
     // Bottom
     Region->GetPoint(slice*4+0,point);
-    point[0]  = Slice + SlicingStep[0];
+    point[0]  = Slice + Depth;
     point[1] -= ExclusionOffset[1];
     if (slice == 0)
+    {
       point[2] += InclusionOffset[2];
-    else if (slice == NumSlices - 1)
-      point[2] -= ExclusionOffset[2];
+    }
     else
-      point[2] += SlicingStep[2]/2;
+    {
+      if (slice == NumSlices - 1)
+      {
+        point[2] -= ExclusionOffset[2];
+      }
+      else
+      {
+        point[2] += SlicingStep[2] / 2;
+      }
+    }
 
     this->Vertex->SetPoint(2*interval, point);
     // Top
     Region->GetPoint(slice*4+1,point);
-    point[0]  = Slice + SlicingStep[0];
+    point[0]  = Slice + Depth;
     point[1] += InclusionOffset[1];
     if (slice == 0)
+    {
       point[2] += InclusionOffset[2];
-    else if (slice == NumSlices - 1)
-      point[2] -= ExclusionOffset[2];
+    }
     else
-      point[2] += SlicingStep[2]/2;
+    {
+      if (slice == NumSlices - 1)
+      {
+        point[2] -= ExclusionOffset[2];
+      }
+      else
+      {
+        point[2] += SlicingStep[2] / 2;
+      }
+    }
 
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgePolyData[i]->Modified();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -191,17 +223,21 @@ void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[2] - p1[2];
 
-  ESPINA::Nm offset   = InclusionOffset[2] + shift;
+  ESPINA::Nm offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     ESPINA::Nm nextLeftEdge = realLeftEdge() + offset;
     ESPINA::Nm rightEdgeLimit  = rightEdge() - SlicingStep[2];
 
     if (nextLeftEdge > rightEdgeLimit)
+    {
       offset = rightEdgeLimit - realLeftEdge();
+    }
     else
     {
       double firstSliceBounds[6];
@@ -215,7 +251,7 @@ void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
 
       bool collision = false;
       int  slice = firstSlice;
-      // cheack all visible slices
+      // check all visible slices
       while (!collision && slice < lastSlice)
       {
         double sliceBounds[6];
@@ -225,7 +261,9 @@ void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
       }
 
       if (collision)
+      {
         InclusionOffset[1] = ExclusionOffset[1] = 0;
+      }
     }
   }
 
@@ -241,14 +279,18 @@ void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
   ESPINA::Nm offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     ESPINA::Nm nextRightEdge = realRightEdge() - offset;
     ESPINA::Nm leftEdgeLimit = leftEdge() + SlicingStep[3];
 
     if (leftEdgeLimit > nextRightEdge)
+    {
       offset = realRightEdge() - leftEdgeLimit;
+    }
     else
     {
       double firstSliceBounds[6];
@@ -262,7 +304,7 @@ void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
 
       bool collision = false;
       int  slice = firstSlice;
-      // cheack all visible slices
+      // check all visible slices
       while (!collision && slice < lastSlice)
       {
         double sliceBounds[6];
@@ -272,7 +314,9 @@ void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
       }
 
       if (collision)
+      {
         InclusionOffset[1] = ExclusionOffset[1] = 0;
+      }
     }
   }
 
@@ -284,12 +328,13 @@ void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
 {
-
   double shift = p2[1] - p1[1];
   ESPINA::Nm offset = InclusionOffset[1] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -303,7 +348,7 @@ void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -313,7 +358,9 @@ void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset -= shift;
+    }
   }
 
 
@@ -329,7 +376,9 @@ void vtkCountingFrameRepresentationYZ::MoveBottomEdge(double* p1, double* p2)
   ESPINA::Nm offset = ExclusionOffset[1] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -343,7 +392,7 @@ void vtkCountingFrameRepresentationYZ::MoveBottomEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -353,7 +402,9 @@ void vtkCountingFrameRepresentationYZ::MoveBottomEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset += shift;
+    }
   }
 
   ExclusionOffset[1] = offset;

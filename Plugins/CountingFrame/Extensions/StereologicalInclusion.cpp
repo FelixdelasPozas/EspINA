@@ -18,10 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Plugin
 #include "StereologicalInclusion.h"
-
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
+
+// ESPINA
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Utils/Conditions.h>
@@ -31,10 +33,12 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Category.h>
 
+// VTK
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <itkImageRegionIterator.h>
 
+// Qt
 #include <QDebug>
 #include <QApplication>
 
@@ -59,10 +63,10 @@ SegmentationExtension::InfoTag StereologicalInclusion::cfTag(CountingFrame *cf)
 
 //------------------------------------------------------------------------
 StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::InfoCache& infoCache)
-: SegmentationExtension(infoCache)
-, m_isInitialized(false)
-, m_isUpdated(false)
-, m_isExcluded(false)
+: SegmentationExtension{infoCache}
+, m_isInitialized      {false}
+, m_isUpdated          {false}
+, m_isExcluded         {false}
 {
 }
 
@@ -117,7 +121,8 @@ QVariant StereologicalInclusion::cacheFail(const QString& tag) const
   if (EDGE_TAG == tag)
   {
     isOnEdge();
-  } else
+  }
+  else
   {
     //evaluateCountingFrames();
   }
@@ -156,12 +161,10 @@ QString StereologicalInclusion::toolTipText() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
-    QMutexLocker lock(&m_mutex);
+  QMutexLocker lock(&m_mutex);
 
   if (!m_exclusionCFs.contains(cf))
   {
-//     connect(cf, SIGNAL(modified(CountingFrame*)),
-//             this, SLOT(evaluateCountingFrame(CountingFrame*)));
     m_excludedByCF[cf->id()] = false; // Everybody is innocent until proven guilty
     m_exclusionCFs[cf] = false;
     m_isUpdated = false;
@@ -171,12 +174,10 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 {
-    QMutexLocker lock(&m_mutex);
+  QMutexLocker lock(&m_mutex);
 
   if (m_exclusionCFs.contains(cf))
   {
-//     disconnect(cf, SIGNAL(modified(CountingFrame*)),
-//                this, SLOT(evaluateCountingFrame(CountingFrame*)));
     m_exclusionCFs.remove(cf);
     m_excludedByCF.remove(cf->id());
     m_isUpdated = false;
@@ -184,13 +185,12 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::isExcluded() const
+bool StereologicalInclusion::isExcluded()
 {
-//   if (!m_isInitialized)
-//   {
-//     const_cast<StereologicalInclusion *>(this)->evaluateCountingFrames();
-//   }
-//
+  if(!m_isUpdated)
+  {
+    evaluateCountingFrames();
+  }
   return m_isExcluded;
 }
 
@@ -201,13 +201,13 @@ void StereologicalInclusion::evaluateCountingFrames()
 
   if (!m_isUpdated)
   {
-    if (!m_extendedItem)
-      return;
+    if (!m_extendedItem) return;
 
     if (m_excludedByCF.isEmpty())
     {
       m_isExcluded = isOnEdge();
-    } else
+    }
+    else
     {
       for (auto cf : m_exclusionCFs.keys())
       {
@@ -233,12 +233,10 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
   QVariant info;
   if (excluded)
   {
-    //info.setValue<QString>("Excluded");
     info.setValue<int>(0);
   }
   else
   {
-    //info.setValue<QString>("Included");
     info.setValue<int>(1);
   }
 
@@ -280,14 +278,15 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto spacing = output->spacing();
   //qDebug() << "Input:" << inputBB.toString();
 
-  auto          region       = cf->polyData();
-  vtkPoints    *regionPoints = region->GetPoints();
-  vtkCellArray *regionFaces  = region->GetPolys();
-  vtkCellData  *faceData     = region->GetCellData();
+  auto region       = cf->polyData();
+  auto regionPoints = region->GetPoints();
+  auto regionFaces  = region->GetPolys();
+  auto faceData     = region->GetCellData();
 
   //qDebug() << "Checking Counting Frame Exclusion: CF Read";
 
-  auto pointBounds = [] (vtkPoints *points) {
+  auto pointBounds = [] (vtkPoints *points)
+  {
     Bounds bounds;
     double values[6];
     points->GetBounds(values);
@@ -315,7 +314,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     regionFaces->GetCell(cellLocation, numPoints, pointIds);
     cellLocation += 1 + numPoints;
 
-    vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
+    auto facePoints = vtkSmartPointer<vtkPoints>::New();
     for (vtkIdType p=0; p < numPoints; ++p)
     {
       double point[3];
@@ -341,12 +340,14 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   }
 
   if (collisionDected)
+  {
     return false;
+  }
 
   // If no collision was detected we have to check for inclusion
   for (vtkIdType p = 0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
   {
-    vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
+    auto slicePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < 8; i++)
     {
       double point[3];
@@ -426,16 +427,16 @@ bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
 
   if (hasVolumetricData(output))
   {
-  auto volume = readLockVolume(m_extendedItem->output());
-  auto image  = volume->itkImage(intersection);
+    auto volume = readLockVolume(m_extendedItem->output());
+    auto image  = volume->itkImage(intersection);
 
-  ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());
-  it.GoToBegin();
-  while (!it.IsAtEnd())
-  {
-    if (it.Get() != volume->backgroundValue()) return true;
-    ++it;
-  }
+    auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+    it.GoToBegin();
+    while (!it.IsAtEnd())
+    {
+      if (it.Get() != volume->backgroundValue()) return true;
+      ++it;
+    }
   }
   else
   {
@@ -447,6 +448,12 @@ bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
 }
 
 //------------------------------------------------------------------------
+bool StereologicalInclusion::hasCountingFrames() const
+{
+  return m_exclusionCFs.size() != 0;
+}
+
+//------------------------------------------------------------------------
 void StereologicalInclusion::checkSampleCountingFrames()
 {
   auto samples = QueryContents::samples(m_extendedItem);
@@ -454,19 +461,23 @@ void StereologicalInclusion::checkSampleCountingFrames()
   if (samples.size() > 1)
   {
     qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
-  } else if (!samples.isEmpty())
+  }
+  else
   {
-    auto sample = samples.first();
-
-    for(auto channel : QueryContents::channels(sample))
+    if (!samples.isEmpty())
     {
-      if (channel->hasExtension(CountingFrameExtension::TYPE))
-      {
-        auto extension = retrieveExtension<CountingFrameExtension>(channel);
+      auto sample = samples.first();
 
-        for (auto cf : extension->countingFrames())
+      for(auto channel : QueryContents::channels(sample))
+      {
+        if (channel->hasExtension(CountingFrameExtension::TYPE))
         {
-          addCountingFrame(cf);
+          auto extension = retrieveExtension<CountingFrameExtension>(channel);
+
+          for (auto cf : extension->countingFrames())
+          {
+            addCountingFrame(cf);
+          }
         }
       }
     }

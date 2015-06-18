@@ -22,9 +22,12 @@
 #ifndef ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 #define ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 
+//Plugin
+#include <CountingFrameManager.h>
+
+// ESPINA
 #include <Core/Factory/ChannelExtensionFactory.h>
 #include <Core/Factory/SegmentationExtensionFactory.h>
-#include <CountingFrameManager.h>
 
 namespace ESPINA {
   namespace CF {

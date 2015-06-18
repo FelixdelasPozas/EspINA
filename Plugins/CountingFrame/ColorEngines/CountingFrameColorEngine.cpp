@@ -18,9 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "CountingFrameColorEngine.h"
 #include "Extensions/StereologicalInclusion.h"
+
+// ESPINA
 #include <Extensions/ExtensionUtils.h>
 
 using namespace ESPINA;
@@ -45,7 +47,6 @@ CountingFrameColorEngine::CountingFrameColorEngine()
   m_includedLUT->SetTableValue(1, 0.0, 1.0, 0.0, 1.0);
   m_includedLUT->Modified();
 }
-
 
 //-----------------------------------------------------------------------------
 QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
@@ -83,7 +84,9 @@ LUTSPtr CountingFrameColorEngine::lut(SegmentationAdapterPtr segmentation)
     auto extension = retrieveExtension<StereologicalInclusion>(segmentation);
 
     if (extension->isExcluded())
+    {
       res = m_excludedLUT;
+    }
   }
   return res;
 }

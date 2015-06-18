@@ -21,14 +21,14 @@
 #ifndef ESPINA_STEREOLOGICAL_INCLUSION_H
 #define ESPINA_STEREOLOGICAL_INCLUSION_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
+#include "CountingFrames/CountingFrame.h"
 
+// ESPINA
 #include <Core/Analysis/Extension.h>
 #include <Core/Utils/Bounds.h>
 
-#include <CountingFrames/CountingFrame.h>
-
-// Forward declaration
 class vtkPoints;
 class vtkPolyData;
 
@@ -75,10 +75,9 @@ namespace ESPINA
 
     void addCountingFrame(CountingFrame *cf);
     void removeCountingFrame(CountingFrame *cf);
-    //void setCountingFrames(CountingFrameList regions);
-
+    bool hasCountingFrames() const;
     // The Segmentation is excluded at least by a CF
-    bool isExcluded() const;
+    bool isExcluded();
 
     bool isOnEdge() const;
 

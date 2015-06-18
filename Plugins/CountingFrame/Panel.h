@@ -100,7 +100,9 @@ namespace ESPINA
   private:
     QModelIndex findCategoryIndex(const QString &classificationName);
 
-    void updateSegmentations();
+    void updateSegmentationRepresentations();
+
+    void updateSegmentationExtensions();
 
     /// Find margin values which discard all segmentations that
     /// touch the channel margins

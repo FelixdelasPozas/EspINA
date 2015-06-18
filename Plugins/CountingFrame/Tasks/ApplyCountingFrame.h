@@ -38,32 +38,17 @@ namespace ESPINA
     class ApplyCountingFrame
     : public Task
     {
+      Q_OBJECT
     public:
       explicit ApplyCountingFrame(CountingFrame *countingFrame,
                                   SchedulerSPtr scheduler = SchedulerSPtr());
       virtual ~ApplyCountingFrame();
-
-      bool hasBeenLaunched() const
-      {
-        return m_hasBeenLaunched;
-      }
-
-      void restart()
-      {
-        QMutexLocker lock(&m_mutex);
-        m_hasToBeRestarted = true;
-      }
 
     protected:
       virtual void run();
 
     private:
       CountingFrame *m_countingFrame;
-
-      bool m_hasBeenLaunched; //TODO: Move to Task API
-
-      QMutex m_mutex;
-      bool   m_hasToBeRestarted;
     };
 
     using ApplyCountingFramePtr  = ApplyCountingFrame *;

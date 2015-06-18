@@ -63,6 +63,8 @@ public:
 
   virtual void SetHighlighted(bool highlight);
 
+  void SetRepresentationDepth(ESPINA::Nm depth);
+
   // Description:
   // These are methods to communicate with the 3d_widget
   vtkSetVector3Macro(InclusionOffset, double);
@@ -159,6 +161,7 @@ protected:
 protected:
   vtkSmartPointer<vtkPolyData> Region;
   ESPINA::Nm Slice;
+  ESPINA::Nm Depth;
   ESPINA::NmVector3 SlicingStep;
 
   bool Init;

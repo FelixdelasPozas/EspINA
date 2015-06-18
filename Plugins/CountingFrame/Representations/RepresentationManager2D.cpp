@@ -26,7 +26,8 @@ using ESPINA::GUI::Representations::RepresentationManagerSPtr;
 //-----------------------------------------------------------------------------
 RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
 : RepresentationManager{supportedViews, ManagerFlags()}
-, m_plane{ESPINA::Plane::UNDEFINED}
+, m_plane  {ESPINA::Plane::UNDEFINED}
+, m_depth  {0}
 , m_manager(manager)
 {
   connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),

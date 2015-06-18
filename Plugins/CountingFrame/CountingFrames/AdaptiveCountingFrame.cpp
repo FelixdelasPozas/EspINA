@@ -18,24 +18,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "AdaptiveCountingFrame.h"
-
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
+#include "vtkCountingFrame3DWidget.h"
 
+// ESPINA
 #include <Core/Analysis/Channel.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 
+// VTK
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkRenderWindow.h>
-#include "vtkCountingFrame3DWidget.h"
-#include <GUI/View/View2D.h>
-#include <GUI/View/View3D.h>
-#include <Extensions/EdgeDistances/ChannelEdges.h>
-#include <Extensions/ExtensionUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -68,8 +69,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_inclusionVolume = 0;
 
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
-
-  vtkSmartPointer<vtkPolyData> channelEdges = edgesExtension->channelEdges();
+  auto channelEdges = edgesExtension->channelEdges();
 
   m_totalVolume = 0;
 
@@ -96,9 +96,9 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
   m_channelEdges = channelEdges;
 
-  vtkSmartPointer<vtkPoints>    regionVertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray>  faceData     = vtkSmartPointer<vtkIntArray>::New();
+  auto regionVertex = vtkSmartPointer<vtkPoints>::New();
+  auto faces        = vtkSmartPointer<vtkCellArray>::New();
+  auto faceData     = vtkSmartPointer<vtkIntArray>::New();
 
   for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
@@ -127,15 +127,18 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
       {
         zOffset -= frontSliceOffset*spacing[2];
       }
-    } else if (slice == backSlice)
+    }
+    else
     {
-      zOffset = -backOffset();
-      if (backSliceOffset > 0)
+      if (slice == backSlice)
       {
-        zOffset += backSliceOffset*spacing[2];
+        zOffset = -backOffset();
+        if (backSliceOffset > 0)
+        {
+          zOffset += backSliceOffset * spacing[2];
+        }
       }
     }
-
 
     channelEdges->GetPoint(4*slice+0, LB);
     LB[0] += leftOffset();
@@ -160,59 +163,65 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     RB[1] -= bottomOffset();
     RB[2] += zOffset;
     cell[3] = regionVertex->InsertNextPoint(RB);
+
     if (slice == frontSlice)
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
-    } else if (slice == backSlice)
+    }
+    else
     {
-      // Lower Inclusion Face
-      faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(EXCLUSION_FACE);
-    } else
-    {
-      Q_ASSERT(lastCell[0] != -1);
-      Q_ASSERT(lastCell[1] != -1);
-      Q_ASSERT(lastCell[2] != -1);
-      Q_ASSERT(lastCell[3] != -1);
-      // Create lateral faces
+      if (slice == backSlice)
+      {
+        // Lower Inclusion Face
+        faces->InsertNextCell(4, cell);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
+      else
+      {
+        Q_ASSERT(lastCell[0] != -1);
+        Q_ASSERT(lastCell[1] != -1);
+        Q_ASSERT(lastCell[2] != -1);
+        Q_ASSERT(lastCell[3] != -1);
+        // Create lateral faces
 
-      // Left Inclusion Face
-      vtkIdType left[4];
-      left[0] = lastCell[0];
-      left[1] = lastCell[1];
-      left[2] = cell[1];
-      left[3] = cell[0];
-      faces->InsertNextCell(4, left);
-      faceData->InsertNextValue(INCLUSION_FACE);
+        // Left Inclusion Face
+        vtkIdType left[4];
+        left[0] = lastCell[0];
+        left[1] = lastCell[1];
+        left[2] = cell[1];
+        left[3] = cell[0];
+        faces->InsertNextCell(4, left);
+        faceData->InsertNextValue(INCLUSION_FACE);
 
-      // Right Exclusion Face
-      vtkIdType right[4];
-      right[0] = lastCell[2];
-      right[1] = lastCell[3];
-      right[2] = cell[3];
-      right[3] = cell[2];
-      faces->InsertNextCell(4, right);
-      faceData->InsertNextValue(EXCLUSION_FACE);
+        // Right Exclusion Face
+        vtkIdType right[4];
+        right[0] = lastCell[2];
+        right[1] = lastCell[3];
+        right[2] = cell[3];
+        right[3] = cell[2];
+        faces->InsertNextCell(4, right);
+        faceData->InsertNextValue(EXCLUSION_FACE);
 
-      // Top Inclusion Face
-      vtkIdType top[4];
-      top[0] = lastCell[1];
-      top[1] = lastCell[2];
-      top[2] = cell[2];
-      top[3] = cell[1];
-      faces->InsertNextCell(4, top);
-      faceData->InsertNextValue(INCLUSION_FACE);
+        // Top Inclusion Face
+        vtkIdType top[4];
+        top[0] = lastCell[1];
+        top[1] = lastCell[2];
+        top[2] = cell[2];
+        top[3] = cell[1];
+        faces->InsertNextCell(4, top);
+        faceData->InsertNextValue(INCLUSION_FACE);
 
-      // Bottom Exclusion Face
-      vtkIdType bottom[4];
-      bottom[0] = lastCell[3];
-      bottom[1] = lastCell[0];
-      bottom[2] = cell[0];
-      bottom[3] = cell[3];
-      faces->InsertNextCell(4, bottom);
-      faceData->InsertNextValue(EXCLUSION_FACE);
+        // Bottom Exclusion Face
+        vtkIdType bottom[4];
+        bottom[0] = lastCell[3];
+        bottom[1] = lastCell[0];
+        bottom[2] = cell[0];
+        bottom[3] = cell[3];
+        faces->InsertNextCell(4, bottom);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
     }
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
@@ -230,7 +239,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_countingFrame->SetPoints(regionVertex);
   m_countingFrame->SetPolys(faces);
 
-  vtkCellData *data = m_countingFrame->GetCellData();
+  auto data = m_countingFrame->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
 

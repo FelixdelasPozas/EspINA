@@ -38,8 +38,6 @@ ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,
                                        SchedulerSPtr scheduler)
 : Task(scheduler)
 , m_countingFrame(countingFrame)
-, m_hasBeenLaunched(false)
-, m_hasToBeRestarted(true)
 {
 }
 
@@ -53,40 +51,27 @@ void ApplyCountingFrame::run()
 {
   setDescription(tr("Applying %1 CF").arg(m_countingFrame->id()));
 
-  m_hasBeenLaunched = true;
+  auto channel       = m_countingFrame->channel();
+  auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
-  while (m_hasToBeRestarted && canExecute())
+  if (segmentations.isEmpty())
   {
-    {
-      QMutexLocker lock(&m_mutex);
-      m_hasToBeRestarted = false;
-    }
-
-    auto channel       = m_countingFrame->channel();
-    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
-
-    if (segmentations.isEmpty())
-    {
-      return;
-    }
-
-    double taskProgress = 0;
-    double inc = 100.0 / segmentations.size();
-
-    for (auto segmentation : segmentations)
-    {
-      if (!canExecute() || m_hasToBeRestarted) break;
-
-      auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
-      extension->addCountingFrame(m_countingFrame);
-      extension->evaluateCountingFrame(m_countingFrame);
-
-      taskProgress += inc;
-
-      emit progress(taskProgress);
-    }
+    return;
   }
 
-  m_hasToBeRestarted = true;
-  m_hasBeenLaunched  = false;
+  double taskProgress = 0;
+  double inc = 100.0 / segmentations.size();
+
+  for (auto segmentation : segmentations)
+  {
+    if (!canExecute()) break;
+
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    extension->addCountingFrame(m_countingFrame);
+    extension->evaluateCountingFrame(m_countingFrame);
+
+    taskProgress += inc;
+
+    emit progress(taskProgress);
+  }
 }

@@ -23,10 +23,8 @@
 
 #include "CountingFramePlugin_Export.h"
 
+// ESPINA
 #include "vtkCountingFrameWidget.h"
-
-class vtkPolyData;
-class vtkPolyDataAlgorithm;
 
 class CountingFramePlugin_EXPORT vtkCountingFrame3DWidget
 : public vtkCountingFrameWidget
@@ -48,6 +46,8 @@ public:
   // this is an instance of the vtkCountingFrame3DRepresentation class.
   void CreateDefaultRepresentation();
 
+  virtual void setVisible(bool visible);
+
 protected:
   vtkCountingFrame3DWidget();
   ~vtkCountingFrame3DWidget();
@@ -56,15 +56,6 @@ protected:
   int WidgetState;
   enum _WidgetState {Start=0,Active};
 //ETX
-
-  // These methods handle events
-  static void SelectAction(vtkAbstractWidget*);
-  static void EndSelectAction(vtkAbstractWidget*);
-
-  // helper methods for cursor management
-  virtual void SetCursor(int state);
-
-  vtkPolyData *Volume;
 
 private:
   vtkCountingFrame3DWidget(const vtkCountingFrame3DWidget&);  //Not implemented

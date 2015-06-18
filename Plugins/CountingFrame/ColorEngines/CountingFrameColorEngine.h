@@ -22,10 +22,12 @@
 #ifndef ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
 #define ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
-#include <GUI/ColorEngines/ColorEngine.h>
 #include <Extensions/StereologicalInclusion.h>
+
+// ESPINA
+#include <GUI/ColorEngines/ColorEngine.h>
 
 namespace ESPINA
 {

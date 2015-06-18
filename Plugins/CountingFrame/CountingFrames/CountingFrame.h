@@ -22,16 +22,20 @@
 #ifndef ESPINA_COUNTING_FRAME_H
 #define ESPINA_COUNTING_FRAME_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
-#include <QStandardItemModel>
-
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
 #include "CountingFrameInteractorAdapter.h"
+
+// Qt
+#include <QStandardItemModel>
+
+// ESPINA
 #include <Tasks/ApplyCountingFrame.h>
 #include <Core/Utils/Bounds.h>
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
@@ -39,7 +43,8 @@ namespace ESPINA
 {
   class RenderView;
 
-  namespace CF {
+  namespace CF
+  {
 
     enum CFType
     {
@@ -151,16 +156,14 @@ namespace ESPINA
 
       void setCategoryConstraint(const QString &category);
 
-      QString categoryConstraint() const { return m_categoryConstraint; }
+      QString categoryConstraint() const
+      { return m_categoryConstraint; }
 
       vtkCountingFrameSliceWidget *createSliceWidget(RenderView *view);
       vtkCountingFrame3DWidget *createWidget(RenderView *view);
 
       void deleteSliceWidget(vtkCountingFrameSliceWidget *widget);
       void deleteWidget(vtkCountingFrame3DWidget *widget);
-
-      virtual void registerView(RenderView *) {};
-      virtual void unregisterView(RenderView *) {};
 
       void apply();
 
@@ -185,13 +188,11 @@ namespace ESPINA
 
       void setTotalVolume(double volume)
       {
-        //       QWriteLocker lock(&m_volumeMutex);
         m_totalVolume = volume;
       }
 
       void setInclusionVolume(double volume)
       {
-        //       QWriteLocker lock(&m_volumeMutex);
         m_inclusionVolume = volume;
       }
 
@@ -200,7 +201,6 @@ namespace ESPINA
 
     protected slots:
       void onCountingFrameApplied();
-      //     void sliceChanged(Plane, Nm);
 
     protected:
       SchedulerSPtr m_scheduler;
@@ -217,7 +217,7 @@ namespace ESPINA
 
       CountingFrameExtension *m_extension;
 
-      Id   m_id;
+      Id m_id;
 
       mutable QReadWriteLock m_marginsMutex;
       Nm                     m_inclusion[3];

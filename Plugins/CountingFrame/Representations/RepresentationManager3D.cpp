@@ -26,6 +26,7 @@ using namespace ESPINA::GUI::Representations;
 //-----------------------------------------------------------------------------
 RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
 : RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
+, m_requestTime{0}
 , m_manager(manager)
 {
   connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
@@ -152,7 +153,6 @@ RepresentationManagerSPtr RepresentationManager3D::cloneImplementation()
 vtkCountingFrame3DWidget *RepresentationManager3D::createWidget(CountingFrame *cf)
 {
   auto widget = cf->createWidget(m_view);
-  Q_ASSERT(widget);
 
   return widget;
 }

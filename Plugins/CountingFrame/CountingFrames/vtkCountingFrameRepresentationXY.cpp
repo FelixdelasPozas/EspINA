@@ -18,14 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "vtkCountingFrameRepresentationXY.h"
-#include <GUI/View/View2D.h>
 
+// ESPINA
+#include <GUI/View/View2D.h>
+#include <Core/Utils/Spatial.h>
+
+// VTK
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
-#include <Core/Utils/Spatial.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
@@ -43,14 +46,15 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
   double fs = frontSlice();
   double bs = backSlice();
 
-  if ((Slice < fs && !ESPINA::areEqual(Slice, fs, SlicingStep[2]))
-    ||(bs < Slice && !ESPINA::areEqual(Slice, bs, SlicingStep[2])))
+  if ((Slice < fs && !ESPINA::areEqual(Slice, fs, SlicingStep[2])) ||
+      (bs < Slice && !ESPINA::areEqual(Slice, bs, SlicingStep[2])))
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
     }
-  } else
+  }
+  else
   {
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
     {
@@ -58,7 +62,8 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
       if (ESPINA::areEqual(Slice, bs, SlicingStep[2]))
       {
         this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
-      } else
+      }
+      else
       {
         this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
       }
@@ -75,8 +80,7 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::CreateRegion()
 {
-  if (Region.GetPointer() == nullptr)
-    return;
+  if (Region.GetPointer() == nullptr) return;
 
   // Corners of the rectangular region
   this->Vertex->SetNumberOfPoints(4);
@@ -84,8 +88,7 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Reset();
-    this->EdgePolyData[i]->GetLines()->Allocate(
-      this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
+    this->EdgePolyData[i]->GetLines()->Allocate(this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
     this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
@@ -100,9 +103,8 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   Region->GetPoint(slice*4+2, RT);
   Region->GetPoint(slice*4+3, RB);
 
-  // Change its depth to be always on top of the XY plane
-  // according to Espina's Camera
-  LB[2] = LT[2] = RT[2] = RB[2] = -SlicingStep[2]; // TODO: make this constant private and use view->widgetDepth() instead.
+  // Change its depth to be always on top of the XY plane according to Espina's Camera
+  LB[2] = LT[2] = RT[2] = RB[2] = Depth;
 
   // Shift edges' points
   LB[0] += InclusionOffset[hCoord];
@@ -123,7 +125,9 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   this->Vertex->SetPoint(3, RB);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgePolyData[i]->Modified();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -134,7 +138,9 @@ void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
   ESPINA::Nm offset   = InclusionOffset[hCoord] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -158,7 +164,9 @@ void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset -= shift;
+    }
   }
 
   InclusionOffset[hCoord] = offset;
@@ -173,7 +181,9 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
   ESPINA::Nm offset = ExclusionOffset[hCoord] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -197,7 +207,9 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset += shift;
+    }
   }
 
   ExclusionOffset[hCoord] = offset;
@@ -211,7 +223,9 @@ void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
   ESPINA::Nm offset = InclusionOffset[vCoord] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -235,7 +249,9 @@ void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset -= shift;
+    }
   }
 
   InclusionOffset[vCoord] = offset;
@@ -250,7 +266,9 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
   ESPINA::Nm offset = ExclusionOffset[vCoord] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -274,7 +292,9 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset += shift;
+    }
   }
 
   ExclusionOffset[vCoord] = offset;

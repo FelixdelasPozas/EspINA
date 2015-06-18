@@ -21,9 +21,9 @@
 #ifndef ESPINA_CF_ORTOGONAL_COUNTING_FRAME_H
 #define ESPINA_CF_ORTOGONAL_COUNTING_FRAME_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
-#include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
+#include "CountingFrames/CountingFrame.h"
 
 namespace ESPINA
 {

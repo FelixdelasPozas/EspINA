@@ -30,7 +30,6 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QScrollBar>
-#include <QDebug>
 
 using namespace ESPINA;
 

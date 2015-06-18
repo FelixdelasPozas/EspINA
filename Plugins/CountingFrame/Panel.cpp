@@ -18,13 +18,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Plugin
 #include "Panel.h"
 #include "Dialogs/CFTypeSelectorDialog.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "Extensions/ExtensionUtils.h"
-
 #include "ui_Panel.h"
 
+// ESPINA
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
@@ -36,7 +37,8 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
 
-#include <qinputdialog.h>
+// Qt
+#include <QInputDialog>
 #include <QPainter>
 
 using namespace ESPINA;
@@ -133,7 +135,9 @@ private:
     for (auto cf : m_manager->countingFrames())
     {
       if (cf != editedCF)
+      {
         alreadyUsed |= cf->id() == requestedId;
+      }
     }
 
     if (alreadyUsed)
@@ -152,7 +156,9 @@ private:
     }
 
     if (accepted)
+    {
       editedCF->setId(requestedId);
+    }
 
     return accepted;
   }
@@ -191,16 +197,28 @@ QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
     if (Qt::DisplayRole == role || Qt::EditRole == role)
     {
       return cf->id();
-    } else if (Qt::CheckStateRole == role)
-    {
-      return cf->isVisible()?Qt::Checked:Qt::Unchecked;
     }
-  } else if (1 == c && Qt::DisplayRole == role)
+    else
+    {
+      if (Qt::CheckStateRole == role)
+      {
+        return cf->isVisible() ? Qt::Checked : Qt::Unchecked;
+      }
+    }
+  }
+  else
   {
+    if (1 == c && Qt::DisplayRole == role)
+    {
       return cf->typeName();
-  } else if (2 == c && Qt::DisplayRole == role)
-  {
-      return cf->extension()->extendedItem()->name();
+    }
+    else
+    {
+      if (2 == c && Qt::DisplayRole == role)
+      {
+        return cf->extension()->extendedItem()->name();
+      }
+    }
   }
 
   return QVariant();
@@ -214,14 +232,17 @@ bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, in
     auto cf = countingFrame(index);
 
     return changeId(cf, value.toString().trimmed());
-
-  } else if (Qt::CheckStateRole == role)
+  }
+  else
   {
-    auto cf = countingFrame(index);
+    if (Qt::CheckStateRole == role)
+    {
+      auto cf = countingFrame(index);
 
-    cf->setVisible(value.toBool());
+      cf->setVisible(value.toBool());
 
-    return true;
+      return true;
+    }
   }
 
   return QAbstractItemModel::setData(index, value, role);
@@ -230,14 +251,14 @@ bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, in
 //------------------------------------------------------------------------
 Qt::ItemFlags Panel::CFModel::flags(const QModelIndex& index) const
 {
-  Qt::ItemFlags f = QAbstractItemModel::flags(index);
+  auto flags = QAbstractItemModel::flags(index);
 
   if (0 == index.column())
   {
-    f = f | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled  | Qt::ItemIsUserCheckable;
+    flags = flags | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled  | Qt::ItemIsUserCheckable;
   }
 
-  return f;
+  return flags;
 }
 
 
@@ -248,12 +269,12 @@ const QString Panel::ID = "CountingFrameExtension";
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
              Support::Context &context)
-: m_manager(manager)
-, m_context(context)
-, m_gui(new GUI())
-, m_cfModel(new CFModel(m_manager))
-, m_useSlices(true)
-, m_activeCF(nullptr)
+: m_manager  {manager}
+, m_context  (context)
+, m_gui      {new GUI()}
+, m_cfModel  {new CFModel(m_manager)}
+, m_useSlices{true}
+, m_activeCF {nullptr}
 {
   setObjectName("CountingFrameDock");
 
@@ -268,77 +289,59 @@ Panel::Panel(CountingFrameManager *manager,
   m_gui->exportCF->setIcon(iconSave);
 
   connect(m_gui->exportCF, SIGNAL(clicked(bool)),
-          this, SLOT(saveActiveCountingFrameDescription()));
+          this,            SLOT(saveActiveCountingFrameDescription()));
 
   connect(m_gui->createCF, SIGNAL(clicked()),
-          this, SLOT(createCountingFrame()));
+          this,            SLOT(createCountingFrame()));
   connect(m_gui->resetCF, SIGNAL(clicked(bool)),
-          this, SLOT(resetActiveCountingFrame()));
+          this,           SLOT(resetActiveCountingFrame()));
   connect(m_gui->deleteCF, SIGNAL(clicked()),
-          this, SLOT(deleteActiveCountingFrame()));
+          this,            SLOT(deleteActiveCountingFrame()));
 
   connect(m_gui->countingFrames, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(updateUI(QModelIndex)));
+          this,                  SLOT(updateUI(QModelIndex)));
 
   connect(m_gui->leftMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,              SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->topMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,             SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->frontMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,               SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->rightMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,               SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->bottomMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,                SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->backMargin, SIGNAL(valueChanged(double)),
-          this, SLOT(updateActiveCountingFrameMargins()));
+          this,              SLOT(updateActiveCountingFrameMargins()));
 
   connect(m_gui->useCategoryConstraint, SIGNAL(toggled(bool)),
-          this, SLOT(enableCategoryConstraints(bool)));
+          this,                         SLOT(enableCategoryConstraints(bool)));
   connect(m_gui->categorySelector, SIGNAL(activated(QModelIndex)),
-          this, SLOT(applyCategoryConstraint()));
+          this,                    SLOT(applyCategoryConstraint()));
 
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
-          this, SLOT(onCountingFrameCreated(CountingFrame*)));
+          this,      SLOT(onCountingFrameCreated(CountingFrame*)));
 
   connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-          this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
+          this,                    SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
   connect(getSelection(context).get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this,                            SLOT(onChannelChanged(ChannelAdapterPtr)));
+          this,                        SLOT(onChannelChanged(ChannelAdapterPtr)));
 }
 
 //------------------------------------------------------------------------
 Panel::~Panel()
 {
+  for(auto cf: m_countingFrames)
+  {
+    deleteCountingFrame(cf);
+  }
+
   delete m_cfModel;
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Counting Frame Panel Plugin";
 //   qDebug() << "********************************************************";
 }
-
-// //------------------------------------------------------------------------
-// void Panel::initDockWidget(EspinaModel *model,
-//                                         QUndoStack  *undoStack,
-//                                         ViewManager *viewManager)
-// {
-//   m_espinaModel = model;
-//   m_viewManager = viewManager;
-//
-//   Channel::ExtensionPtr channelExtension = new CountingFrameExtension(this, m_viewManager);
-//   m_espinaModel->factory()->registerChannelExtension(channelExtension);
-//   Segmentation::InformationExtension segExtension = new StereologicalInclusion();
-//   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
-//   m_espinaModel->factory()->registerRenderer(new CountingFrameRenderer(this));
-//
-//
-//   m_gui->taxonomySelector->setModel(m_espinaModel);
-//   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
-//
-//   connect(m_viewManager->fitToSlices(), SIGNAL(toggled(bool)),
-//           this, SLOT(changeUnitMode(bool)));
-//   changeUnitMode(m_viewManager->fitToSlices()->isChecked());
-// }
 
 //------------------------------------------------------------------------
 void Panel::reset()
@@ -352,18 +355,11 @@ void Panel::reset()
   m_gui->resetCF ->setEnabled(false);
   m_gui->exportCF->setEnabled(false);
 
-  m_countingFrames.clear();
+  for(auto cf: m_countingFrames)
+  {
+    deleteCountingFrame(cf);
+  }
 }
-
-// //------------------------------------------------------------------------
-// IColorEngineProvider::EngineList Panel::colorEngines()
-// {
-//   EngineList engines;
-//   engines << Engine(tr("Counting Frame"), ColorEnginePtr(new CountingFrameColorEngine()));
-//
-//   return engines;
-// }
-
 
 //------------------------------------------------------------------------
 void Panel::deleteCountingFrame(CountingFrame *cf)
@@ -401,6 +397,10 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
   updateTable();
 
   updateUI(m_gui->countingFrames->model()->index(0,0));
+
+  updateSegmentationExtensions();
+
+  updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------
@@ -408,10 +408,10 @@ void Panel::applyCategoryConstraint()
 {
   if (m_activeCF && m_gui->useCategoryConstraint->isChecked())
   {
-    QModelIndex categoryyIndex = m_gui->categorySelector->currentModelIndex();
-    if (categoryyIndex.isValid())
+    auto categoryIndex = m_gui->categorySelector->currentModelIndex();
+    if (categoryIndex.isValid())
     {
-      auto item = itemAdapter(categoryyIndex);
+      auto item = itemAdapter(categoryIndex);
       Q_ASSERT(isCategory(item));
 
       auto category = toCategoryAdapterPtr(item);
@@ -436,12 +436,13 @@ void Panel::updateUI(QModelIndex index)
 
   if (validCF)
   {
-    CountingFrame *cf;// = m_countingFrames.value(index.row(), nullptr);
+    CountingFrame *cf;
     cf = m_cfModel->countingFrame(index);
     Q_ASSERT(cf);
 
     showInfo(cf);
-  } else
+  }
+  else
   {
     m_activeCF = nullptr;
 
@@ -498,8 +499,7 @@ void Panel::createCountingFrame()
       channel->addExtension(m_manager->createExtension(m_context.scheduler()));
     }
 
-
-    NmVector3 spacing = channel->output()->spacing();
+    auto spacing = channel->output()->spacing();
 
     Nm inclusion[3];
     Nm exclusion[3];
@@ -510,12 +510,10 @@ void Panel::createCountingFrame()
 
     auto extension = retrieveExtension<CountingFrameExtension>(channel);
 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     extension->createCountingFrame(type, inclusion, exclusion, constraint);
-
-    //m_gui->createCF->setEnabled(false);
+    QApplication::restoreOverrideCursor();
   }
-//
-//   updateSegmentations();
 }
 
 //------------------------------------------------------------------------
@@ -530,8 +528,6 @@ void Panel::resetActiveCountingFrame()
 
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(onMarginsComputed()));
-//     connect(task.get(), SIGNAL(progress(int)),
-//             this,       SLOT(reportProgess(int)));
 
     m_pendingCFs << PendingCF(m_activeCF, task);
 
@@ -542,8 +538,7 @@ void Panel::resetActiveCountingFrame()
 //------------------------------------------------------------------------
 void Panel::updateActiveCountingFrameMargins()
 {
-  if (!m_activeCF)
-    return;
+  if (!m_activeCF) return;
 
   Nm inclusion[3];
   Nm exclusion[3];
@@ -554,16 +549,12 @@ void Panel::updateActiveCountingFrameMargins()
   m_activeCF->setMargins(inclusion, exclusion);
 }
 
-
 //------------------------------------------------------------------------
 void Panel::deleteActiveCountingFrame()
 {
-  if (!m_activeCF)
-    return;
+  if (!m_activeCF) return;
 
   deleteCountingFrame(m_activeCF);
-
-  updateSegmentations();
 }
 
 //------------------------------------------------------------------------
@@ -600,8 +591,7 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void Panel::showInfo(CountingFrame* activeCF)
 {
-  if (!activeCF || !getActiveChannel(m_context))
-    return;
+  if (!activeCF || !getActiveChannel(m_context)) return;
 
   m_activeCF = activeCF;
 
@@ -630,6 +620,7 @@ void Panel::showInfo(CountingFrame* activeCF)
   m_gui->topMargin   ->setValue(activeCF->top() );
   m_gui->rightMargin ->setValue(activeCF->right() );
   m_gui->bottomMargin->setValue(activeCF->bottom());
+
   if (m_useSlices)
   {
     m_gui->frontMargin->setSingleStep(1);
@@ -645,7 +636,6 @@ void Panel::showInfo(CountingFrame* activeCF)
     m_gui->frontMargin ->setValue(activeCF->front());
     m_gui->backMargin  ->setValue(activeCF->back());
   }
-
 
   m_gui->leftMargin  ->blockSignals(false);
   m_gui->topMargin   ->blockSignals(false);
@@ -681,7 +671,7 @@ QModelIndex Panel::findCategoryIndex(const QString& classificationName)
 }
 
 //------------------------------------------------------------------------
-void Panel::updateSegmentations()
+void Panel::updateSegmentationRepresentations()
 {
   auto model         = m_context.model();
   auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
@@ -689,13 +679,27 @@ void Panel::updateSegmentations()
   m_context.representationInvalidator().invalidateRepresentations(segmentations);
 }
 
+//------------------------------------------------------------------------
+void Panel::updateSegmentationExtensions()
+{
+  for (auto seg: m_context.model()->segmentations())
+  {
+    if(seg->hasExtension(StereologicalInclusion::TYPE))
+    {
+      auto extension = retrieveExtension<StereologicalInclusion>(seg);
+      if(!extension->hasCountingFrames())
+      {
+        seg->deleteExtension(extension);
+      }
+    }
+  }
+}
 
 //------------------------------------------------------------------------
 void Panel::saveActiveCountingFrameDescription()
 {
   auto title    = tr("Save Counting Frame Description");
   auto formats  = SupportedFormats(tr("Text File"), "txt");
-//                       .addFormat(tr("Excel Sheet"), "xls");
   auto fileName = DefaultDialogs::SaveFile(title, formats);
 
   if (!fileName.isEmpty())
@@ -720,7 +724,8 @@ void Panel::changeUnitMode(bool useSlices)
   {
     m_gui->frontMargin->setSuffix("");
     m_gui->backMargin ->setSuffix("");
-  } else
+  }
+  else
   {
     m_gui->frontMargin->setSuffix(" nm");
     m_gui->backMargin ->setSuffix(" nm");
@@ -735,8 +740,8 @@ void Panel::reportProgess(int progress)
   QIcon icon(":/create-cf.svg");
 
   auto size = m_gui->createCF->size();
-  QPixmap original = icon.pixmap(size);
-  QPixmap inverted = icon.pixmap(size, QIcon::Disabled);
+  auto original = icon.pixmap(size);
+  auto inverted = icon.pixmap(size, QIcon::Disabled);
 
 //   QPainter painter(&pixmap);
 //   QRect rect = pixmap.rect();
@@ -746,8 +751,8 @@ void Panel::reportProgess(int progress)
 //   painter.fillRect(rect, gradient);
 //   painter.fillRect(rect, QColor(125,125,125,125));
 
-  QImage originalImage = original.toImage();
-  QImage invertedImage = inverted.toImage();
+  auto originalImage = original.toImage();
+  auto invertedImage = inverted.toImage();
 
   int width  = original.width();
   int height = original.height();
@@ -804,47 +809,6 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
-// //------------------------------------------------------------------------
-// // WARNING: if further changes are needed unify implementation
-// void Panel::computeOptimalMargins(ChannelPtr channel,
-//                                   Nm inclusion[3],
-//                                   Nm exclusion[3])
-// {
-//   auto spacing = channel->output()->spacing();
-//
-//   memset(inclusion, 0, 3*sizeof(Nm));
-//   memset(exclusion, 0, 3*sizeof(Nm));
-//
-//   const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
-//
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-//   for (auto segmentation : Query::segmentationsOnChannelSample(channel))
-//   {
-//     auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
-//
-//     Nm dist2Margin[6];
-//     extension->edgeDistance(dist2Margin);
-//
-//     auto bounds  = segmentation->output()->bounds();
-//     auto spacing = segmentation->output()->spacing();
-//
-//     for (int i=0; i < 3; i++)
-//     {
-//       Nm shift  = i < 2? 0.5:-0.5;
-//       Nm length = bounds.lenght(toAxis(i));
-//
-//       if (dist2Margin[2*i] < delta[i])
-//         inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
-//       //         if (dist2Margin[2*i+1] < delta[i])
-//       //           exclusion[i] = std::max(length, exclusion[i]);
-//     }
-//   }
-//   QApplication::restoreOverrideCursor();
-// //   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
-// //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
-// }
-
-
 //------------------------------------------------------------------------
 void Panel::inclusionMargins(double values[3])
 {
@@ -880,34 +844,34 @@ void Panel::exclusionMargins(double values[3])
 //------------------------------------------------------------------------
 void Panel::onMarginsComputed()
 {
-  TaskPtr task = dynamic_cast<TaskPtr>(sender());
-
+  auto task = dynamic_cast<TaskPtr>(sender());
   PendingCF                 pendingCF;
   ComputeOptimalMarginsSPtr optimalMargins;
 
   for(auto cf : m_pendingCFs)
   {
-    TaskPtr basePtr = cf.Task.get();
-    if (basePtr == task)
+    if (cf.Task.get() == task)
     {
       pendingCF      = cf;
       optimalMargins = cf.Task;
+      m_pendingCFs.removeOne(cf);
       break;
     }
   }
 
   Q_ASSERT(pendingCF.Task);
 
-  m_pendingCFs.removeOne(pendingCF);
+  if(!pendingCF.Task->isAborted())
+  {
+    Nm inclusion[3] = {0, 0, 0};
+    Nm exclusion[3] = {0, 0 ,0};
 
-  Nm inclusion[3] = {0, 0, 0};
-  Nm exclusion[3] = {0, 0 ,0};
+    optimalMargins->inclusion(inclusion);
+    optimalMargins->exclusion(exclusion);
 
-  //auto channel = optimalMargins->channel();
-  optimalMargins->inclusion(inclusion);
-
-  pendingCF.CF->setMargins(inclusion, exclusion);
-  //m_gui->createCF->setEnabled(m_pendingCFs.isEmpty());
+    pendingCF.CF->setMargins(inclusion, exclusion);
+    pendingCF.CF->apply();
+  }
 }
 
 
@@ -925,8 +889,6 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 
   updateTable();
 
-  //m_viewManager->addWidget(cf);
-
   m_activeCF = cf; // To make applyCategoryConstraint work
 
   updateUI(m_cfModel->index(m_cfModel->rowCount() - 1, 0));
@@ -935,7 +897,7 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 //------------------------------------------------------------------------
 void Panel::onCountingFrameApplied(CountingFrame *cf)
 {
-  updateSegmentations();
+  updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------

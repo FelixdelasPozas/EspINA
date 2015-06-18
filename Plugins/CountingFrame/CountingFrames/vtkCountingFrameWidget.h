@@ -22,12 +22,15 @@
 #ifndef VTKBOUNDINGFRAMEWIDGET_H
 #define VTKBOUNDINGFRAMEWIDGET_H
 
+// ESPINA
 #include <Core/Utils/Vector3.hxx>
 #include "CountingFramePlugin_Export.h"
 
+// VTK
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
+
+class vtkPolyData;
 
 /// Base class for bounding region widgets
 class CountingFramePlugin_EXPORT vtkCountingFrameWidget
@@ -39,16 +42,36 @@ public:
   vtkGetVector3Macro(InclusionOffset, ESPINA::Nm);
   vtkGetVector3Macro(ExclusionOffset, ESPINA::Nm);
 
+  /** \brief Sets the counting frame the widget will represent.
+   * \param[in] region Counting frame region as a polydata.
+   * \param[in] inclussionOffset
+   * \param[in] exclussionOffset
+   *
+   */
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                  ESPINA::Nm inclusionOffset[3],
                                  ESPINA::Nm exclusionOffset[3]) = 0;
 
+  /** \brief Sets widget visibility.
+   * \param[in] visible true to set visible and false otherwise.
+   *
+   */
+  virtual void setVisible(bool visible) = 0;
+
+  /** \brief Returns true if the widget is visible and false otherwise.
+   *
+   */
+  virtual bool isVisible() const
+  { return Visible; }
+
 protected:
   ESPINA::Nm InclusionOffset[3];
   ESPINA::Nm ExclusionOffset[3];
+  bool Visible;
 
 protected:
   vtkCountingFrameWidget()
+  : Visible{true}
   {
     memset(InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
     memset(ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));

@@ -19,6 +19,7 @@
  *
  */
 
+// Plugin
 #include "CountingFrameFactories.h"
 #include "CountingFrameExtension.h"
 
@@ -38,7 +39,9 @@ ChannelExtensionSPtr ChannelExtensionFactoryCF::createChannelExtension(const Cha
                                                                        const State& state) const
 {
   if (type != CountingFrameExtension::TYPE)
+  {
     throw Extension_Not_Provided_Exception();
+  }
 
   return m_manager->createExtension(m_scheduler, state);
 }
@@ -65,7 +68,9 @@ SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExte
                                                                                       const State& state) const
 {
   if (type != StereologicalInclusion::TYPE)
+  {
     throw Extension_Not_Provided_Exception();
+  }
 
   return SegmentationExtensionSPtr{new StereologicalInclusion(cache)};
 }

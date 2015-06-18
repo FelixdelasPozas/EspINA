@@ -21,9 +21,11 @@
 #ifndef VTK_COUNTING_FRAME_SLICE_WIDGET_H
 #define VTK_COUNTING_FRAME_SLICE_WIDGET_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
 #include "vtkCountingFrameWidget.h"
+
+// VTK
 #include <vtkWidgetRepresentation.h>
 
 class vtkPolyData;
@@ -42,10 +44,27 @@ public:
   vtkTypeMacro(vtkCountingFrameSliceWidget, vtkCountingFrameWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /** \brief Sets the plane of the widget.
+   *
+   */
   virtual void SetPlane(ESPINA::Plane plane);
 
+  /** \brief Sets the depth of the widget in the plane direction.
+   * \param[in] depth depth in Nm.
+   *
+   */
+  virtual void SetRepresentationDepth(ESPINA::Nm depth);
+
+  /** \brief Sets the slice the widget must represent.
+   * \param[in] pos slice in Nm.
+   *
+   */
   virtual void SetSlice(ESPINA::Nm pos);
 
+  /** \brief Sets the spacing between slices.
+   * \param[in] slicingStep spacing vector in Nm.
+   *
+   */
   virtual void SetSlicingStep(ESPINA::NmVector3 slicingStep);
 
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
@@ -57,7 +76,13 @@ public:
   // this is an instance of the vtkRectangularCountingFrameRepresentation class.
   void CreateDefaultRepresentation();
 
+  /** \brief Highlights the representation.
+   * \param[in] highlight true to highlight false otherwise.
+   *
+   */
   void SetHighlighted(bool highlight);
+
+  virtual void setVisible(bool visible);
 
 protected:
   vtkCountingFrameSliceWidget();
@@ -84,6 +109,7 @@ protected:
   ESPINA::Plane     Plane;
   ESPINA::Nm        Slice;
   ESPINA::NmVector3 SlicingStep;
+  ESPINA::Nm        Depth;
 
 private:
   vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented

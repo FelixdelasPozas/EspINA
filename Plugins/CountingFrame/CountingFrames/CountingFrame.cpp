@@ -18,15 +18,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Plugin
 #include "CountingFrames/CountingFrame.h"
-
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
+
+// ESPINA
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+
+// VTK
 #include <vtkRenderWindow.h>
 
 using namespace ESPINA;
@@ -37,29 +41,41 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      inclusion[3],
                              Nm                      exclusion[3],
                              SchedulerSPtr           scheduler)
-: INCLUSION_FACE(255)
-, EXCLUSION_FACE(0)
-, m_scheduler(scheduler)
-, m_inclusionVolume(0)
-, m_totalVolume(0)
-, m_extension(extension)
-, m_command{vtkSmartPointer<vtkCountingFrameCommand>::New()}
-, m_visible(true)
-, m_enable(true)
-, m_highlight(false)
+: INCLUSION_FACE   {255}
+, EXCLUSION_FACE   {0}
+, m_scheduler      {scheduler}
+, m_inclusionVolume{0}
+, m_totalVolume    {0}
+, m_extension      {extension}
+, m_command        {vtkSmartPointer<vtkCountingFrameCommand>::New()}
+, m_visible        {true}
+, m_enable         {true}
+, m_highlight      {false}
 {
   QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
   m_command->setWidget(this);
+
+  m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
+
+  connect(m_applyCountingFrame.get(), SIGNAL(finished()),
+          this,                       SLOT(onCountingFrameApplied()));
 }
 
 //-----------------------------------------------------------------------------
 CountingFrame::~CountingFrame()
 {
-  m_widgets2D.clear();
-  m_widgets3D.clear();
+  for(auto widget: m_widgets2D)
+  {
+    deleteSliceWidget(widget);
+  }
+
+  for(auto widget: m_widgets3D)
+  {
+    deleteWidget(widget);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -127,13 +143,23 @@ QString CountingFrame::description() const
 //-----------------------------------------------------------------------------
 void CountingFrame::setVisible(bool visible)
 {
+  if(m_visible == visible) return;
+
   QWriteLocker lockState(&m_stateMutex);
+
   m_visible = visible;
 
   QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D)
   {
     wa->SetEnabled(m_visible && m_enable);
+    wa->setVisible(m_visible);
+  }
+
+  for(auto wa: m_widgets3D)
+  {
+    wa->SetEnabled(m_visible && m_enable);
+    wa->setVisible(m_visible);
   }
 
   emit changedVisibility();
@@ -142,6 +168,8 @@ void CountingFrame::setVisible(bool visible)
 //-----------------------------------------------------------------------------
 void CountingFrame::setEnabled(bool enable)
 {
+  if(m_enable == enable) return;
+
   QWriteLocker lockState(&m_stateMutex);
   m_enable = enable;
 
@@ -182,13 +210,16 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
 
   auto view2D = view2D_cast(view);
   Q_ASSERT(view2D);
+  auto slice  = view2D->crosshair()[normalCoordinateIndex(view2D->plane())];
 
   auto widget = CountingFrame2DWidgetAdapter::New();
 
   widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+  widget->SetRepresentationDepth(view2D->widgetDepth());
   widget->SetPlane(view2D->plane());
   widget->SetSlicingStep(view2D->sceneResolution());
   widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+  widget->SetSlice(slice);
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
   widget->SetEnabled(true);
@@ -222,6 +253,12 @@ vtkCountingFrame3DWidget *CountingFrame::createWidget(RenderView *view)
 //-----------------------------------------------------------------------------
 void CountingFrame::deleteSliceWidget(vtkCountingFrameSliceWidget *widget)
 {
+  widget->setVisible(false);
+  widget->SetEnabled(false);
+  widget->SetInteractor(nullptr);
+  widget->SetCurrentRenderer(nullptr);
+  widget->RemoveObserver(m_command);
+
   m_widgets2D.removeOne(widget);
 
   widget->Delete();
@@ -231,6 +268,11 @@ void CountingFrame::deleteSliceWidget(vtkCountingFrameSliceWidget *widget)
 //-----------------------------------------------------------------------------
 void CountingFrame::deleteWidget(vtkCountingFrame3DWidget *widget)
 {
+  widget->setVisible(false);
+  widget->SetEnabled(false);
+  widget->SetInteractor(nullptr);
+  widget->SetCurrentRenderer(nullptr);
+
   m_widgets3D.removeOne(widget);
 
   widget->Delete();
@@ -244,7 +286,7 @@ void CountingFrame::updateCountingFrame()
     updateCountingFrameImplementation();
   }
 
-  { // We need to unlock m_widgetMutex before emiting the signal
+  { // We need to unlock m_widgetMutex before emitting the signal
     QMutexLocker lockWidgets(&m_widgetMutex);
     QReadLocker  lockMargins(&m_marginsMutex);
 
@@ -265,24 +307,18 @@ void CountingFrame::updateCountingFrame()
 //-----------------------------------------------------------------------------
 void CountingFrame::apply()
 {
-  QMutexLocker lock(&m_applyMutex);
-  if (m_applyCountingFrame)
-  {
-    m_applyCountingFrame->abort();
-  }
-
-  m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
-
-  connect(m_applyCountingFrame.get(), SIGNAL(finished()),
-          this,                       SLOT(onCountingFrameApplied()));
-
   Task::submit(m_applyCountingFrame);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::onCountingFrameApplied()
 {
-  emit applied(this);
+  auto task = qobject_cast<ApplyCountingFrame *>(sender());
+
+  if(!task->isAborted())
+  {
+    emit applied(this);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -302,7 +338,7 @@ vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
   QReadLocker lock(&m_channelEdgesMutex);
   //qDebug() << "Locking for copying edges" << thread();
 
-  vtkSmartPointer<vtkPolyData> edges = vtkSmartPointer<vtkPolyData>::New();
+  auto edges = vtkSmartPointer<vtkPolyData>::New();
   edges->DeepCopy(m_channelEdges);
   //qDebug() << "Edges copied" << thread();
 
@@ -315,7 +351,7 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
   QReadLocker lock(&m_countingFrameMutex);
   //qDebug() << "Locking for copying CF" << thread();
 
-  vtkSmartPointer<vtkPolyData> cf = vtkSmartPointer<vtkPolyData>::New();
+  auto cf = vtkSmartPointer<vtkPolyData>::New();
   cf->DeepCopy(m_countingFrame);
   //qDebug() << "CF copied" << thread();
 
@@ -339,11 +375,15 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
       {
         m_widget->m_inclusion[i] = inOffset[i];
         if (m_widget->m_inclusion[i] < 0)
+        {
           m_widget->m_inclusion[i] = 0;
+        }
 
         m_widget->m_exclusion[i] = exOffset[i];
         if (m_widget->m_exclusion[i] < 0)
+        {
           m_widget->m_exclusion[i] = 0;
+        }
       }
     }
 

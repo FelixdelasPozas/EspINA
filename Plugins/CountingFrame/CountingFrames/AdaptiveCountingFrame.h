@@ -21,9 +21,11 @@
 #ifndef ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
 #define ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
 
+// PLugin
 #include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
 
+// ESPINA
 #include <Core/Utils/Bounds.h>
 
 namespace ESPINA
