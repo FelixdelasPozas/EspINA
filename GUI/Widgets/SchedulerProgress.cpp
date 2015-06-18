@@ -30,6 +30,7 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QScrollBar>
+#include <QDebug>
 
 using namespace ESPINA;
 
@@ -99,12 +100,12 @@ throw (Duplicated_Task_Exception)
   m_mutex.unlock();
 
   connect(taskProgress.get(), SIGNAL(aborted()),
-          this, SLOT(onProgressAborted()));
+          this,               SLOT(onProgressAborted()));
 
   m_notification->layout()->addWidget(m_tasks[task].get());
 
   connect(task.get(), SIGNAL(progress(int)),
-          this, SLOT(updateProgress()));
+          this,       SLOT(updateProgress()));
 
   updateNotificationWidget();
 }
@@ -117,7 +118,7 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 
   m_notification->layout()->removeWidget(m_tasks[task].get());
 
-  m_tasks[task]->setParent(0); // In case the notification are is open
+  m_tasks[task]->setParent(0); // In case the notification area is open
   m_tasks.remove(task);
 
   if (m_tasks.isEmpty())
@@ -133,7 +134,7 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
   m_mutex.unlock();
 
   disconnect(task.get(), SIGNAL(progress(int)),
-             this, SLOT(updateProgress()));
+             this,       SLOT(updateProgress()));
 
   updateNotificationWidget();
   updateProgress();
@@ -184,10 +185,9 @@ void SchedulerProgress::updateProgress()
 void SchedulerProgress::onProgressAborted()
 {
   auto taskProgress = dynamic_cast<TaskProgress *>(sender());
-
-  onTaskRemoved(taskProgress->task());
+  taskProgress->m_cancelButton->setEnabled(false);
+  taskProgress->task()->abort();
 }
-
 
 //------------------------------------------------------------------------
 void SchedulerProgress::updateNotificationWidget()
@@ -196,7 +196,7 @@ void SchedulerProgress::updateNotificationWidget()
 
   auto wHeight = m_notification->height();
 
-  if (wHeight < m_notificationArea->height())
+  if (wHeight <= m_notificationArea->height())
   {
     m_notificationArea->setMaximumHeight(wHeight);
     m_notificationArea->setMinimumHeight(wHeight);
