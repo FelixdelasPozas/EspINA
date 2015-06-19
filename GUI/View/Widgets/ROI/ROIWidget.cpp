@@ -40,6 +40,7 @@ ROIWidget::ROIWidget(ROISPtr roi)
 : m_ROI{roi}
 , m_color{Qt::yellow}
 , m_depth{0.0}
+, m_view{nullptr}
 {
 }
 

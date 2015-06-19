@@ -65,9 +65,6 @@ namespace ESPINA
     virtual bool needFetch() const
     { return m_data->needFetch(); }
 
-    virtual Bounds fetchBounds() const
-    { return m_data->fetchBounds(); }
-
     virtual Bounds bounds() const override
     { return m_data->bounds(); }
 

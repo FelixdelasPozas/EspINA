@@ -116,9 +116,6 @@ namespace ESPINA
     virtual bool needFetch() const
     { return m_needFetch; }
 
-    virtual Bounds fetchBounds() const
-    { return m_fetchBounds; }
-
     /** \brief Clears the edited regions list.
      *
      */

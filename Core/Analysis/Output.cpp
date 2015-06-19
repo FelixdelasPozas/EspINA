@@ -104,7 +104,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   for(auto data : m_data)
   {
-    auto bounds = data->needFetch()?data->fetchBounds():data->bounds();
+    auto bounds = data->bounds();
 
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
