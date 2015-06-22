@@ -28,6 +28,7 @@
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Query.h"
+#include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
 #include "Core/Factory/CoreFactory.h"
 #include "Core/IO/SegFile.h"
 #include "Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h"
@@ -153,7 +154,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
     auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
     auto input     = inflateVertexV4(vertex_v4);
 
-    FilterSPtr inputFilter = std::dynamic_pointer_cast<Filter>(input);
+    auto inputFilter = std::dynamic_pointer_cast<Filter>(input);
     if (inputFilter)
     {
       Output::Id id = atoi(edge.relationship.c_str());
@@ -287,9 +288,9 @@ SegmentationSPtr SegFile_V4::Loader::createSegmentation(DirectedGraph::Vertex ro
 
   //filter->update(); // Existing outputs weren't stored in previous versions
 
-  SegmentationSPtr segmentation = m_factory->createSegmentation(filter, outputId);
+  auto segmentation = m_factory->createSegmentation(filter, outputId);
 
-  State roState = roVertex->state();
+  auto roState = roVertex->state();
   segmentation->setName(roVertex->name());
   segmentation->restoreState(roState);
   segmentation->setStorage(m_storage);
@@ -311,7 +312,7 @@ SegmentationSPtr SegFile_V4::Loader::createSegmentation(DirectedGraph::Vertex ro
 //-----------------------------------------------------------------------------
 void SegFile_V4::Loader::loadTrace()
 {
-  m_trace = DirectedGraphSPtr(new DirectedGraph());
+  m_trace = std::make_shared<DirectedGraph>();
 
   QTextStream textStream(readFileFromZip(TRACE_FILE, m_zip, m_handler));
 
@@ -431,6 +432,9 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
 
   const QUuid uuid = filter->uuid();
 
+  Bounds    bounds;
+  NmVector3 spacing;
+
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
   {
@@ -476,6 +480,13 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
 
           auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
           m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+
+          if (newFile.endsWith(".mhd"))
+          {
+            StreamedVolume<itkVolumeType> volume(m_storage->absoluteFilePath(newFile));
+            bounds  = volume.bounds();
+            spacing = volume.spacing();
+          }
         }
       } else if (file.contains("MeshOutputType/"))
       {
@@ -503,7 +514,6 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
   {
     QByteArray buffer;
     QXmlStreamWriter xml(&buffer);
-    NmVector3 unkownSpacing{0,0,0};
 
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
@@ -515,7 +525,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       {
         xml.writeStartElement("Output");
         xml.writeAttribute("id",      QString::number(output));
-        xml.writeAttribute("spacing", unkownSpacing.toString());
+        xml.writeAttribute("bounds",  bounds.toString());
+        xml.writeAttribute("spacing", spacing.toString());
 
         QString content(trc);
 
@@ -525,12 +536,14 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
           if ("SegmentationVolume" == lines[i])
           {
             xml.writeStartElement("Data");
-            xml.writeAttribute("type", "VolumetricData");
+            xml.writeAttribute("type",  "VolumetricData");
+            xml.writeAttribute("bounds", bounds.toString());
             xml.writeEndElement();
           } else if ("MeshOutputType" == lines[i])
           {
             xml.writeStartElement("Data");
-            xml.writeAttribute("type", "MeshData");
+            xml.writeAttribute("type",  "MeshData");
+            xml.writeAttribute("bounds", bounds.toString());
             xml.writeEndElement();
           }
         }

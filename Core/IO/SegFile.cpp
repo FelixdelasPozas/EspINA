@@ -47,7 +47,9 @@ AnalysisSPtr SegFile::load(const QFileInfo& file, CoreFactorySPtr factory, Error
   if (!zip.open(QuaZip::mdUnzip))
   {
     if (handler)
+    {
       handler->error("IOEspinaFile: Could not open file" + file.filePath());
+    }
 
     throw(IO_Error_Exception());
   }
@@ -68,8 +70,8 @@ AnalysisSPtr SegFile::load(const QFileInfo& file, CoreFactorySPtr factory, Error
     loader = std::make_shared<SegFile_V5>();
   }
 
-  CoreFactorySPtr coreFactory = factory;
-  if (coreFactory == nullptr)
+  auto coreFactory = factory;
+  if (!coreFactory)
   {
     coreFactory = std::make_shared<CoreFactory>();
   }
@@ -89,7 +91,9 @@ public:
   ~TmpSegFile()
   {
     if (m_tmpDir.exists(File.fileName()))
+    {
       m_tmpDir.remove(File.fileName());
+    }
   }
 
   QFile File;
