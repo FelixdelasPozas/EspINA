@@ -74,9 +74,9 @@ namespace ESPINA
         };
 
       public:
-        explicit ProgressTool(const QIcon &icon, const QString &tooltip, Context &context);
+        explicit ProgressTool(const QString &id, const QIcon &icon, const QString &tooltip, Context &context);
 
-        explicit ProgressTool(const QString &icon, const QString &tooltip, Context &context);
+        explicit ProgressTool(const QString &id, const QString &icon, const QString &tooltip, Context &context);
 
         virtual ~ProgressTool();
 
@@ -123,6 +123,23 @@ namespace ESPINA
 
         void onExclusiveToolInUse(ProgressTool *tool);
 
+        /** \brief Restores the settings of the tool from the given QSettings object.
+         * \param[in] settings.
+         *
+         */
+        virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+
+        /** \brief Saves the settings of the tool to the given QSettings object.
+         * \param[in] settings.
+         *
+         */
+        virtual void saveSettings(std::shared_ptr<QSettings> settings);
+
+        /** \brief Returns the unique identifier of the tool.
+         *
+         */
+        const QString id() const;
+
       public slots:
         void setProgress(int value);
 
@@ -157,6 +174,7 @@ namespace ESPINA
 
         bool    m_isExlusive;
         QString m_groupName;
+        const QString m_id;
 
         EventHandlerSPtr m_handler;
 

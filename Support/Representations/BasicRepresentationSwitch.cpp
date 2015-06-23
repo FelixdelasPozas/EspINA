@@ -32,7 +32,7 @@ BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr m
                                                      ViewTypeFlags             supportedViews,
                                                      Timer                    &timer,
                                                      Support::Context         &context)
-: RepresentationSwitch(manager->icon(), manager->description(), timer, context)
+: RepresentationSwitch(manager->name(), manager->icon(), manager->description(), timer, context)
 , m_manager(manager)
 , m_flags(supportedViews)
 {

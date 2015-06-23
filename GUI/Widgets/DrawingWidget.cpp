@@ -29,13 +29,13 @@
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <QHBoxLayout>
 #include <QPushButton>
 
-const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
-const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
-const QString CONTOUR_DISTANCE("ManualEditionTools::ContourDistance");
+const QString BRUSH_RADIUS("Brush radius");
+const QString BRUSH_OPACITY("Brush opacity");
+const QString CONTOUR_DISTANCE("Contour distance");
+const QString MODE("Drawing mode");
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -58,7 +58,10 @@ DrawingWidget::DrawingWidget(Support::Context &context, QWidget *parent)
 , m_showEraserControls  {true}
 , m_enabled             {true}
 {
-  loadSettings();
+  // default values.
+  m_opacity         = 50;
+  m_brushRadius     = 20;
+  m_contourDistance = 20;
 
   setLayout(new QHBoxLayout(this));
 
@@ -77,17 +80,6 @@ DrawingWidget::DrawingWidget(Support::Context &context, QWidget *parent)
 //------------------------------------------------------------------------
 DrawingWidget::~DrawingWidget()
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(BRUSH_RADIUS,     m_brushRadius);
-  settings.setValue(CONTOUR_DISTANCE, m_contourDistance);
-  settings.setValue(BRUSH_OPACITY,    m_opacity);
-  settings.sync();
-
-//   if (m_currentPainter)
-//   {
-//     m_context.viewState().unsetEventHandler(m_currentPainter);
-//   }
 }
 
 //------------------------------------------------------------------------
@@ -293,16 +285,6 @@ void DrawingWidget::changePainter(bool  checked)
 // }
 
 //------------------------------------------------------------------------
-void DrawingWidget::loadSettings()
-{
-  ESPINA_SETTINGS(settings);
-
-  m_opacity         = settings.value(BRUSH_OPACITY,    50).toInt();
-  m_brushRadius     = settings.value(BRUSH_RADIUS,     20).toInt();
-  m_contourDistance = settings.value(CONTOUR_DISTANCE, 20).toInt();
-}
-
-//------------------------------------------------------------------------
 void DrawingWidget::initPainters()
 {
   auto circularBrush      = std::make_shared<CircularBrush>();
@@ -443,6 +425,22 @@ QPushButton *DrawingWidget::registerBrush(const QString   &icon,
 bool DrawingWidget::displayBrushControls() const
 {
   return !displayContourControls();
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_opacity         = settings->value(BRUSH_OPACITY,    50).toInt();
+  m_brushRadius     = settings->value(BRUSH_RADIUS,     20).toInt();
+  m_contourDistance = settings->value(CONTOUR_DISTANCE, 20).toInt();
+}
+
+//------------------------------------------------------------------------
+void DrawingWidget::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(BRUSH_RADIUS,     m_brushRadius);
+  settings->setValue(CONTOUR_DISTANCE, m_contourDistance);
+  settings->setValue(BRUSH_OPACITY,    m_opacity);
 }
 
 //------------------------------------------------------------------------

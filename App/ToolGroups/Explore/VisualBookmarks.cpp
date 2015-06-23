@@ -31,9 +31,16 @@
 
 using namespace ESPINA;
 
+const QString PLANE       = QString("View's plane");
+const QString SLICE       = QString("View's slice");
+const QString POSITION    = QString("Camera position");
+const QString FOCAL_POINT = QString("Focal point");
+const QString UP_VECTOR   = QString("Up vector");
+const QString HEIGHT      = QString("Camera height");
+
 //-----------------------------------------------------------------------------
 VisualBookmarks::VisualBookmarks(Support::Context& context, QList<RenderView*> views)
-: ProgressTool(":/espina/visualBookmarks.svg", tr("Visual Bookmarks"), context)
+: ProgressTool(tr("VisualBookmarks"), ":/espina/visualBookmarks.svg", tr("Visual Bookmarks"), context)
 , m_views     {views}
 {
   setCheckable(true);
@@ -51,6 +58,100 @@ VisualBookmarks::~VisualBookmarks()
 void VisualBookmarks::abortOperation()
 {
   setChecked(false);
+}
+
+//-----------------------------------------------------------------------------
+void VisualBookmarks::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  for(auto bookmark: m_bookmarks)
+  {
+    settings->beginGroup(bookmark.id);
+    for(auto view: bookmark.states.keys())
+    {
+      settings->beginGroup(view);
+      auto data = bookmark.states[view];
+
+      settings->setValue(PLANE, normalCoordinateIndex(data.plane));
+      settings->setValue(SLICE, data.slice);
+      settings->setValue(HEIGHT, data.heightLength);
+
+      auto positionBuffer = serialize(data.cameraPosition);
+      settings->setValue(POSITION, positionBuffer);
+
+      auto upVectorBuffer = serialize(data.upVector);
+      settings->setValue(UP_VECTOR, upVectorBuffer);
+
+      auto focalPointBuffer = serialize(data.focalPoint);
+      settings->setValue(FOCAL_POINT, focalPointBuffer);
+
+      settings->endGroup();
+    }
+
+    settings->endGroup();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VisualBookmarks::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_bookmarks.clear();
+
+  for(auto id: settings->childGroups())
+  {
+    struct CameraPositions bookmark;
+
+    bookmark.id = id;
+
+    settings->beginGroup(id);
+
+    for(auto view: settings->childGroups())
+    {
+      settings->beginGroup(view);
+
+      RenderView::CameraState state;
+      state.plane = toPlane(settings->value(PLANE).toInt());
+      state.slice = settings->value(SLICE).toInt();
+      state.heightLength = settings->value(HEIGHT).toDouble();
+
+      auto positionArray = settings->value(POSITION).toByteArray();
+      state.cameraPosition = deserialize(positionArray);
+
+      auto upVectorArray = settings->value(UP_VECTOR).toByteArray();
+      state.upVector = deserialize(upVectorArray);
+
+      auto focalPointArray = settings->value(FOCAL_POINT).toByteArray();
+      state.focalPoint = deserialize(focalPointArray);
+
+      settings->endGroup();
+
+      bookmark.states.insert(view, state);
+    }
+
+    settings->endGroup();
+
+    m_bookmarks << bookmark;
+  }
+
+  auto enabled = !m_bookmarks.isEmpty();
+
+  if(!enabled)
+  {
+    resetComboBox();
+  }
+  else
+  {
+    m_combobox->clear();
+
+    for(auto bookmark: m_bookmarks)
+    {
+      m_combobox->insertItem(m_combobox->count(), bookmark.id);
+    }
+
+    m_combobox->setCurrentIndex(m_combobox->count()-1);
+  }
+
+  m_remove->setEnabled(enabled);
+  m_apply ->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -166,4 +267,30 @@ void VisualBookmarks::resetComboBox()
   m_combobox->clear();
   m_combobox->insertItem(0, tr("No bookmarks"));
   m_combobox->setCurrentIndex(0);
+}
+
+//-----------------------------------------------------------------------------
+QString VisualBookmarks::serialize(const NmVector3 &vector) const
+{
+  QString result = QString().number(vector[0]);
+  result.append(' ');
+  result += QString().number(vector[1]);
+  result.append(' ');
+  result += QString().number(vector[2]);
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+NmVector3 VisualBookmarks::deserialize(const QString &string) const
+{
+  NmVector3 vector;
+  auto parts = string.split(' ');
+
+  for(auto i: {0,1,2})
+  {
+    vector[i] = parts[i].toDouble();
+  }
+
+  return vector;
 }

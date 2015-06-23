@@ -17,7 +17,11 @@
  *
  */
 
+// ESPINA
 #include "Slice3DManager.h"
+#include <GUI/View/RenderView.h>
+
+// VTK
 #include <vtkProp.h>
 
 using namespace std;
@@ -205,6 +209,16 @@ void Slice3DManager::disconnectPools()
                this,       SLOT(invalidateRepresentations()));
 
     pool->decrementObservers();
+  }
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t)
+{
+  invalidatePreviousActors(t);
+  for(auto pool: m_pools)
+  {
+    pool->setSettings(settings);
   }
 }
 

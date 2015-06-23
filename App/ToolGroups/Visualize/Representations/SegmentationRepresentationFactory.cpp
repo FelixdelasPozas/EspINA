@@ -33,6 +33,7 @@
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
+#include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -102,7 +103,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
     sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
 
-    auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch     = std::make_shared<SegmentationRepresentationSwitch>(sliceManager, sliceSettings, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
     groupSwitch(sliceSwitch);
 
@@ -288,4 +289,43 @@ void SegmentationRepresentationFactory::groupSwitch(ToolSPtr tool) const
 void SegmentationRepresentationFactory::groupSwitch3D(ToolSPtr tool) const
 {
   tool->setGroupWith("2_segmentation_reps_3D");
+}
+
+//----------------------------------------------------------------------------
+SegmentationRepresentationSwitch::SegmentationRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                                                   std::shared_ptr<SegmentationSlicePoolSettings> settings,
+                                                                   ViewTypeFlags supportedViews,
+                                                                   Timer& timer,
+                                                                   Support::Context& context)
+: BasicRepresentationSwitch(manager, supportedViews, timer, context)
+, m_settings{settings}
+{
+  initWidgets();
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationSwitch::onOpacityChanged(int value)
+{
+  m_settings->setOpacity(static_cast<double>(value/100.0));
+
+  auto t = m_timer.increment();
+  m_manager->updateSettings(m_settings, t);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationSwitch::initWidgets()
+{
+  m_opacityWidget = new GUI::Widgets::NumericalInput();
+  m_opacityWidget->setLabelText(tr("Opacity"));
+
+  addSettingsWidget(m_opacityWidget);
+
+  m_opacityWidget->setMinimum(1);
+  m_opacityWidget->setMaximum(100);
+  m_opacityWidget->setValue(100);
+  m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setLabelText(tr("Opacity"));
+
+  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
+          this,            SLOT(onOpacityChanged(int)));
 }

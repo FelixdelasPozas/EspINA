@@ -85,6 +85,8 @@ namespace ESPINA
 
       void deleteWidget(CountingFrame *cf);
 
+      virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override {};
+
     private:
       TimeStamp              m_requestTime;
       CountingFrameManager  &m_manager;

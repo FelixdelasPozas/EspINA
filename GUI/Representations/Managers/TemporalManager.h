@@ -159,6 +159,8 @@ namespace ESPINA
 
           virtual RepresentationManagerSPtr cloneImplementation();
 
+          virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override {};
+
         private:
           TemporalPrototypesSPtr m_prototypes;
 

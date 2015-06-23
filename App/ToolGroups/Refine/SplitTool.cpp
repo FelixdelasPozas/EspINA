@@ -92,7 +92,7 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
-: RefineTool(":/espina/planar_split.svg", tr("Split segmentation"), context)
+: RefineTool(tr("SplitTool"), ":/espina/planar_split.svg", tr("Split segmentation"), context)
 , m_handler{new PlanarSplitEventHandler()}
 {
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());

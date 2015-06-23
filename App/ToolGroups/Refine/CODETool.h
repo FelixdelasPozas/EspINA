@@ -54,6 +54,10 @@ namespace ESPINA {
 
     virtual void abortOperation();
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
   private:
     void initOptionWidgets();
 
@@ -74,7 +78,6 @@ namespace ESPINA {
       QString                        Operation;
     };
 
-    QString      m_name;
     Filter::Type m_type;
 
     QMap<MorphologicalEditionFilterPtr, TaskContext> m_executingTasks;

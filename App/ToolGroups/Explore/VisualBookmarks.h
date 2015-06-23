@@ -53,6 +53,10 @@ namespace ESPINA
 
       virtual void abortOperation() override;
 
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
     public slots:
       /** \brief Clears the internal data and the resets the gui.
        *
@@ -76,6 +80,17 @@ namespace ESPINA
       void apply();
 
     private:
+      /** \brief Serializes the vector into a QString. Used to store settings.
+       * \param[in] vector NmVector3 object reference.
+       *
+       */
+      QString serialize(const NmVector3 &vector) const;
+
+      /** \brief Deserialized the QString into a vector. Used to load settings.
+       * \param[in] string QString object reference.
+       *
+       */
+      NmVector3 deserialize(const QString &string) const;
 
       /** \brief Helper method to initialize the additional widgets.
        *

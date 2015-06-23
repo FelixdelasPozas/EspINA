@@ -44,7 +44,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
-: ProgressTool(":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
+: ProgressTool(tr("ManualEditionTool"), ":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}
@@ -244,6 +244,18 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
   getViewState().setEventHandler(painter);
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_drawingWidget.restoreSettings(settings);
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  m_drawingWidget.saveSettings(settings);
 }
 
 //------------------------------------------------------------------------

@@ -62,6 +62,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/Visualize/VisualizeToolGroup.h
+  ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/ToolGroup.h
   Tools/Measure/MeasureTool.h
@@ -134,6 +135,7 @@ set (ESPINA_SOURCES
   Settings/ROI/ROISettingsPanel.cpp
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
+  Settings/Utils.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp

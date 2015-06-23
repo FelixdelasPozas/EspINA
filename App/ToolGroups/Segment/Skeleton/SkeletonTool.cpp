@@ -83,7 +83,7 @@ FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
 
 //-----------------------------------------------------------------------------
 SkeletonTool::SkeletonTool(Support::Context &context)
-: ProgressTool(":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
+: ProgressTool(tr("SkeletonTool"), ":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
 , m_toolStatus      {new SkeletonToolStatusAction(this)}

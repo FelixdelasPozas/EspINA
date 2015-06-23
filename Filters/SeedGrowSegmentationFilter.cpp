@@ -241,23 +241,11 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
   return snapshot;
 }
 
-// //----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::needUpdate() const
-// {
-//   return needUpdate(0);
-// }
-
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
   return m_outputs.isEmpty() || !validOutput(0) || ignoreStorageContent();
 }
-
-// //----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::execute()
-// {
-//   execute(0);
-// }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute()

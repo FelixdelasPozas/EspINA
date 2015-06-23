@@ -70,6 +70,8 @@ namespace ESPINA {
 
     void disconnectPools();
 
+    virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override;
+
   private slots:
     void checkRenderRequest();
 

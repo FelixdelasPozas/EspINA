@@ -84,12 +84,16 @@ namespace ESPINA
 
     virtual void abortOperation();
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
   private:
     void initPixelSelectors();
 
     void initPixelSelector();
 
-    void initBestPixelSelctor();
+    void initBestPixelSelector();
 
     void initSelector(SelectorSPtr selector);
 

@@ -74,6 +74,10 @@ namespace ESPINA
 
     virtual void abortOperation();
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
   signals:
     void voxelsDeleted(ViewItemAdapterPtr item);
 
@@ -81,6 +85,8 @@ namespace ESPINA
     void onSelectionChanged();
 
   private:
+    static const QString MODE;
+
     void initMultiStrokeWidgets();
 
     void setInitialStroke();

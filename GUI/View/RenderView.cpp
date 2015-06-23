@@ -447,6 +447,11 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
+    if(!m_temporalManagers.contains(prototypes))
+    {
+      qWarning() << "trying to remove a non existent manager";
+      return;
+    }
     auto manager = m_temporalManagers[prototypes];
 
     manager->hide(t);

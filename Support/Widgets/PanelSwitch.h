@@ -36,6 +36,10 @@ namespace ESPINA
       public:
         explicit PanelSwitch(DockWidget *dock, const QString &icon, const QString &tooltip, Context &context);
 
+        virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+        virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
       private slots:
         void showPanel(bool visible);
 

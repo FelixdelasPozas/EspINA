@@ -344,6 +344,16 @@ namespace ESPINA
 
     void analyzeChannelEdges();
 
+    /** \brief Updates the configuration of all the tools.
+     *
+     */
+    void updateToolsSettings();
+
+    /** \brief Saves the current tool settings to the session settings in the analysis.
+     *
+     */
+    void saveToolsSettings();
+
   private:
     // ESPINA
     Support::Context          m_context;

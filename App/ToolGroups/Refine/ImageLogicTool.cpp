@@ -25,19 +25,18 @@
 using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
 
-const Filter::Type IMAGE_LOGIC_FILTER = "ImageLogicFilter";
-const Filter::Type ADDITION_FILTER       = "AdditionFilter";
-const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
+const Filter::Type IMAGE_LOGIC_FILTER  = "ImageLogicFilter";
+const Filter::Type ADDITION_FILTER     = "AdditionFilter";
+const Filter::Type SUBSTRACTION_FILTER = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 ImageLogicTool::ImageLogicTool(const QString &icon, const QString &tooltip, Support::Context &context)
-: RefineTool(icon, tooltip, context)
+: RefineTool(tr("ImageLogicTool"), icon, tooltip, context)
 , m_operation(ImageLogicFilter::Operation::ADDITION)
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(applyFilter()));
 }
-
 
 //------------------------------------------------------------------------
 void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)

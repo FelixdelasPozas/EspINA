@@ -54,6 +54,10 @@ namespace ESPINA
 
     void setColor(const QColor &color);
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
   signals:
     void roiDefined(BinaryMaskSPtr<unsigned char> mask);
 

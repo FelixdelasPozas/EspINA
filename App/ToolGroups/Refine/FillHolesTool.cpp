@@ -28,7 +28,7 @@ const Filter::Type FILL_HOLES_FILTER  = "FillSegmentationHoles";
 
 //------------------------------------------------------------------------
 FillHolesTool::FillHolesTool(Support::Context &context)
-: RefineTool(":/espina/fillHoles.svg", tr("Fill internal holes in selected segmentations"),context)
+: RefineTool(tr("FillHolesTool"), ":/espina/fillHoles.svg", tr("Fill internal holes in selected segmentations"),context)
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
@@ -37,7 +37,6 @@ FillHolesTool::FillHolesTool(Support::Context &context)
 //------------------------------------------------------------------------
 void FillHolesTool::abortOperation()
 {
-
 }
 
 //------------------------------------------------------------------------

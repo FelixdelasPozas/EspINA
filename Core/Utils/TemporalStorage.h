@@ -28,6 +28,7 @@
 #include <QPair>
 #include <QDir>
 #include <QUuid>
+#include <QSettings>
 
 // C++
 #include <memory>
@@ -99,10 +100,21 @@ namespace ESPINA
      */
     bool exists(const QString &name);
 
+    /** \brief Returns the session settings for this storage.
+     *
+     */
+    std::shared_ptr<QSettings> sessionSettings();
+
+    /** \brief Syncs the settings with the changes made by other objects
+     *
+     */
+    void syncSessionSettings();
+
   private:
     QUuid m_uuid;
     QDir  m_storageDir;
     static QList<TemporalStorage *> s_Storages;
+    QSettings *m_settings;
   };
 
   using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;

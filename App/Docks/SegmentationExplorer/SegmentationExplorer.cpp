@@ -61,7 +61,8 @@ public:
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
                                            Support::Context &context)
-: SelectableView(context.viewState())
+: DockWidget(tr("SegmentationExplorerDock"))
+, SelectableView(context.viewState())
 , m_context(context)
 , m_gui    {new GUI()}
 , m_layout {nullptr}

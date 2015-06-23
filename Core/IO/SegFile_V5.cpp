@@ -85,7 +85,9 @@ AnalysisSPtr SegFile_V5::Loader::load()
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Could not load analysis classification"));
+    }
 
     throw(Classification_Not_Found_Exception());
   }
@@ -98,7 +100,9 @@ AnalysisSPtr SegFile_V5::Loader::load()
   catch (const ClassificationXML::Parse_Exception &e)
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Error while loading classification"));
+    }
 
     throw(Parse_Exception());
   }
@@ -135,7 +139,9 @@ DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices ver
   for (auto vertex : vertices)
   {
     if (vertex->uuid() == uuid)
+    {
       return vertex;
+    }
   }
 
   return DirectedGraph::Vertex();
@@ -181,7 +187,8 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
       id = ids[1].toInt();
     }
 
-    if (inputNumber <= lastOutput) {
+    if (inputNumber <= lastOutput)
+    {
       qWarning() << "Unordered outputs";
     }
     lastOutput = inputNumber;
@@ -234,10 +241,6 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 
   auto filter   = roOutput.first;
   auto outputId = roOutput.second;
-
-  //filter->update(outputId); // No tiene que hacer falta ya que ahora todos los filtros
-                              // van a restaurar su outputs
-
   auto channel = m_factory->createChannel(filter, outputId);
 
   channel->setName(roVertex->name());
@@ -317,7 +320,8 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         try
         {
           vertex = createChannel(roVertex);
-        } catch (...)
+        }
+        catch (...)
         {
           qDebug() << "Failed to create Channel: " << roVertex->uuid() << roVertex->name() << roVertex->state();
           throw (Parse_Exception());
@@ -329,7 +333,8 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         try
         {
           vertex = createFilter(roVertex);
-        } catch (...)
+        }
+        catch (...)
         {
           qDebug() << "Failed to create filter: " << roVertex->uuid() << roVertex->name() << roVertex->state();
           throw (Parse_Exception());
@@ -341,7 +346,8 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         try
         {
           vertex = createSegmentation(roVertex);
-        } catch (...)
+        }
+        catch (...)
         {
           qDebug() << "Failed to create segmentation: " << roVertex->name() << roVertex->state();
         }
@@ -445,19 +451,28 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
         cache = ChannelExtension::InfoCache();
         state = State();
       }
-      else if (xml.name() == "Info")
+      else
       {
-        QString name = xml.attributes().value("Name").toString();
-        cache[name] = xml.readElementText();
-      }
-      else if (xml.name() == "State")
-      {
-        state = xml.readElementText();
+        if (xml.name() == "Info")
+        {
+          QString name = xml.attributes().value("Name").toString();
+          cache[name] = xml.readElementText();
+        }
+        else
+        {
+          if (xml.name() == "State")
+          {
+            state = xml.readElementText();
+          }
+        }
       }
     }
-    else if (xml.isEndElement() && xml.name() == "Extension")
+    else
     {
-      createChannelExtension(channel, type, cache, state);
+      if (xml.isEndElement() && xml.name() == "Extension")
+      {
+        createChannelExtension(channel, type, cache, state);
+      }
     }
 
     xml.readNext();
@@ -480,7 +495,8 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
   {
     extension = m_factory->createSegmentationExtension(type, cache, state);
     //qDebug() << "Creating Segmentation Extension" << type;
-  } catch (const CoreFactory::Unknown_Type_Exception &e)
+  }
+  catch (const CoreFactory::Unknown_Type_Exception &e)
   {
     //qDebug() << "Creating ReadOnlySegmentationExtension" << type;
     extension = std::make_shared<ReadOnlySegmentationExtension>(type, cache, state);
@@ -494,8 +510,7 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 {
   QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
 
-  if (!segmentation->storage()->exists(xmlFile))
-    return;
+  if (!segmentation->storage()->exists(xmlFile)) return;
 
   QByteArray extensions = segmentation->storage()->snapshot(xmlFile);
 
@@ -517,6 +532,7 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
         state = State();
       }
       else
+      {
         if (xml.name() == "Info")
         {
           auto name = xml.attributes().value("Name").toString().replace("_", " ");
@@ -529,18 +545,23 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
           in >> cache[name];
         }
         else
+        {
           if (xml.name() == "State")
           {
             state = xml.readElementText();
           }
+        }
+      }
     }
     else
+    {
       if (xml.isEndElement() && xml.name() == "Extension")
       {
         createSegmentationExtension(segmentation, type, cache, state);
       }
+    }
 
-      xml.readNext();
+    xml.readNext();
   }
 
   if (xml.hasError())
@@ -574,7 +595,9 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   catch (const IO_Error_Exception &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Format Information.");
+    }
 
     throw (e);
   }
@@ -587,7 +610,9 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   catch (const IO_Error_Exception &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Classification.");
+    }
 
     throw(e);
   }
@@ -599,7 +624,9 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   catch (const IO_Error_Exception &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Classification.");
+    }
 
     throw(e);
   }
@@ -613,7 +640,9 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   catch (const IO_Error_Exception &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Pipeline.");
+    }
 
     throw (e);
   }
@@ -627,7 +656,9 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   catch (const IO_Error_Exception &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Pipeline.");
+    }
 
     throw (e);
   }
@@ -654,7 +685,12 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   }
 
   if(analysis->storage() != nullptr)
-    for (auto data : analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::Recursive))
+  {
+    Snapshot files;
+    files << analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::Recursive);
+    files << analysis->storage()->snapshots(QString("Settings"), TemporalStorage::Mode::Recursive);
+
+    for (auto data : files)
     {
       try
       {
@@ -663,10 +699,13 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
       catch (const IO_Error_Exception &e)
       {
         if (handler)
+        {
           handler->warning("Error while saving Extra content.");
+        }
 
         throw (e);
       }
     }
+  }
 }
 

@@ -48,6 +48,8 @@ const Filter::Type SOURCE_FILTER_V4 = "::FreeFormSource";
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
 
+const QString ManualSegmentTool::MODE = QString("Stroke mode");
+
 //-----------------------------------------------------------------------------
 FilterTypeList ManualSegmentTool::ManualFilterFactory::providedFilters() const
 {
@@ -80,7 +82,7 @@ throw(Unknown_Filter_Exception)
 
 //------------------------------------------------------------------------
 ManualSegmentTool::ManualSegmentTool(Support::Context &context)
-: ProgressTool(":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
+: ProgressTool(tr("ManualSegmentationTool"), ":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}
@@ -385,6 +387,24 @@ void ManualSegmentTool::onStrokeModeToggled(bool toggled)
   }
 
   setInitialStroke();
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_mode = static_cast<Mode>(settings->value(MODE).toInt());
+  settings->beginGroup("DrawingWidget");
+  m_drawingWidget.restoreSettings(settings);
+  settings->endGroup();
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(MODE, static_cast<int>(m_mode));
+  settings->beginGroup("DrawingWidget");
+  m_drawingWidget.saveSettings(settings);
+  settings->endGroup();
 }
 
 //------------------------------------------------------------------------

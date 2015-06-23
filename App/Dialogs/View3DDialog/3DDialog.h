@@ -43,6 +43,22 @@ namespace ESPINA
     }
   }
 
+  class Dialog3D;
+
+  class Dialog3DTool
+  : public Support::Widgets::ProgressTool
+  {
+    public:
+      explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
+    private:
+      Dialog3D *m_dialog;
+  };
+
   class Dialog3D
   : public QDialog
   , public Ui::View3DDialog
@@ -105,7 +121,7 @@ namespace ESPINA
     void saveGeometryState();
 
   private:
-    static const QString GEOMETRY_SETTINGS_KEY;
+    friend class Dialog3DTool;
 
     Support::Context         &m_context;
     View3D                    m_view3D;

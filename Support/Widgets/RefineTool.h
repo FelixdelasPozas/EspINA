@@ -39,7 +39,7 @@ namespace ESPINA
       {
         Q_OBJECT
       public:
-        explicit RefineTool(const QString& icon, const QString& tooltip, Support::Context& context);
+        explicit RefineTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context);
 
         /** \brief RefineTools class destructor.
          *

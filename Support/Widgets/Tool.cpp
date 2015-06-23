@@ -57,18 +57,19 @@ bool ProgressTool::NestedWidgets::isEmpty() const
 }
 
 //----------------------------------------------------------------------------
-ProgressTool::ProgressTool(const QString &icon, const QString &tooltip, Context &context)
-: ProgressTool{QIcon(icon), tooltip, context}
+ProgressTool::ProgressTool(const QString &id, const QString &icon, const QString &tooltip, Context &context)
+: ProgressTool{id, QIcon(icon), tooltip, context}
 {
 }
 
 //----------------------------------------------------------------------------
-ProgressTool::ProgressTool(const QIcon &icon, const QString &tooltip, Context &context)
+ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &tooltip, Context &context)
 : WithContext(context)
 , m_action    {new ProgressAction(icon, tooltip, this)}
 , m_settings  {new ProgressTool::NestedWidgets(this)}
 , m_isExlusive{false}
 , m_groupName {"zzzzzzzz"}
+, m_id        {id}
 {
   connect(m_action, SIGNAL(toggled(bool)),
           this,     SLOT(onActionToggled(bool)));
@@ -263,3 +264,22 @@ void ProgressTool::onEventHandlerInUse(bool isUsed)
 {
   m_action->setActionChecked(isUsed);
 }
+
+//----------------------------------------------------------------------------
+void ProgressTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  // Empty by default, reimplement if needed.
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  // Empty by default, reimplement if needed.
+}
+
+//----------------------------------------------------------------------------
+const QString ProgressTool::id() const
+{
+  return m_id;
+}
+

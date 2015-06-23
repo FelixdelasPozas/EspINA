@@ -95,6 +95,8 @@ namespace ESPINA
 
       bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
 
+      virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override {};
+
     private:
       Plane     m_plane;
       Nm        m_depth;

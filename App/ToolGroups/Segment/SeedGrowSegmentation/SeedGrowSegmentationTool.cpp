@@ -24,6 +24,8 @@
 #include "SeedGrowSegmentationSettings.h"
 #include "SeedGrowSegmentationHistoryWidget.h"
 #include "SeedGrowSegmentationHistory.h"
+#include "CustomROIWidget.h"
+#include <App/Settings/ROI/ROISettings.h>
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
@@ -32,7 +34,6 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
-#include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
@@ -49,6 +50,16 @@ using namespace ESPINA::Support::Widgets;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+
+const QString UPPER_THRESHOLD = QString("Upper threshold");
+const QString LOWER_THRESHOLD = QString("Lower threshold");
+const QString XSIZE           = QString("ROI X Size");
+const QString YSIZE           = QString("ROI Y Size");
+const QString ZSIZE           = QString("ROI Z Size");
+const QString APPLY_ROI       = QString("Apply category ROI");
+const QString CLOSING         = QString("Apply closing");
+const QString BEST_VALUE      = QString("Best value");
+const QString CATEGORY        = QString("Category selected");
 
 //-----------------------------------------------------------------------------
 FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
@@ -105,7 +116,7 @@ throw (Unknown_Filter_Type_Exception)
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context             &context)
-: ProgressTool(":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
+: ProgressTool(tr("SeedGrowSegmentation"), ":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
@@ -144,7 +155,7 @@ void SeedGrowSegmentationTool::abortOperation()
 void SeedGrowSegmentationTool::initPixelSelectors()
 {
   initPixelSelector();
-  initBestPixelSelctor();
+  initBestPixelSelector();
 }
 
 //-----------------------------------------------------------------------------
@@ -156,7 +167,7 @@ void SeedGrowSegmentationTool::initPixelSelector()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::initBestPixelSelctor()
+void SeedGrowSegmentationTool::initBestPixelSelector()
 {
   QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
 
@@ -173,6 +184,7 @@ void SeedGrowSegmentationTool::initBestPixelSelctor()
   initSelector(m_bestPixelSelctor);
 }
 
+//-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initSelector(SelectorSPtr selector)
 {
   selector->setMultiSelection(false);
@@ -180,9 +192,6 @@ void SeedGrowSegmentationTool::initSelector(SelectorSPtr selector)
 
   connect(selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
           this,           SLOT(launchTask(Selector::Selection)));
-
-  //   connect(selector.get(),   SIGNAL(eventHandlerInUse(bool)),
-//           m_selectorSwitch, SLOT(setChecked(bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -277,8 +286,6 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if (validSeed)
   {
-    //m_selectorSwitch->setEnabled(false);
-
     InputSList inputs;
 
     inputs << channel->asInput();
@@ -289,6 +296,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
+
+    // TODO: close algorithm and radius??
+    // filter->setClosingRadius(1);
 
     if(currentROI)
     {
@@ -346,9 +356,6 @@ void SeedGrowSegmentationTool::createSegmentation()
     undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
     undoStack->endMacro();
 
-//     m_viewManager->updateSegmentationRepresentations(segmentation.get());
-//     m_viewManager->updateViews();
-
     auto sgsFilter = m_executingFilters[filter];
     if(sgsFilter->isTouchingROI())
     {
@@ -379,15 +386,58 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
       ESPINA_SETTINGS(settings);
       settings.beginGroup(ROI_SETTINGS_GROUP);
 
-      xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
-      ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
-      zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+      xSize = settings.value(DEFAULT_ROI_X, 500).toInt();
+      ySize = settings.value(DEFAULT_ROI_Y, 500).toInt();
+      zSize = settings.value(DEFAULT_ROI_Z, 500).toInt();
     }
 
     m_roi->setValue(Axis::X, xSize.toInt());
     m_roi->setValue(Axis::Y, ySize.toInt());
     m_roi->setValue(Axis::Z, zSize.toInt());
   }
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_seedThreshold->setUpperThreshold(settings->value(UPPER_THRESHOLD).toInt());
+  m_seedThreshold->setLowerThreshold(settings->value(LOWER_THRESHOLD).toInt());
+
+  auto roiX = settings->value(XSIZE,500).toInt();
+  m_roi->setValue(Axis::X, roiX);
+  m_settings->setXSize(roiX);
+
+  auto roiY = settings->value(YSIZE,500).toInt();
+  m_roi->setValue(Axis::Y, roiY);
+  m_settings->setYSize(roiY);
+
+  auto roiZ = settings->value(ZSIZE,500).toInt();
+  m_roi->setValue(Axis::Z, roiZ);
+  m_settings->setZSize(roiZ);
+
+  auto applyROI = settings->value(APPLY_ROI, true).toBool();
+  m_roi->setApplyROI(applyROI);
+  m_settings->setApplyCategoryROI(applyROI);
+
+  auto closing = settings->value(CLOSING, 0).toInt();
+  m_settings->setClosing(closing);
+
+  m_settings->setBestPixelValue(settings->value(BEST_VALUE).toInt());
+  m_categorySelector->setCurrentIndex(settings->value(CATEGORY).toInt());
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(UPPER_THRESHOLD, m_seedThreshold->upperThreshold());
+  settings->setValue(LOWER_THRESHOLD, m_seedThreshold->lowerThreshold());
+  settings->setValue(XSIZE, m_settings->xSize());
+  settings->setValue(YSIZE, m_settings->ySize());
+  settings->setValue(ZSIZE, m_settings->zSize());
+  settings->setValue(APPLY_ROI, m_settings->applyCategoryROI());
+  settings->setValue(CLOSING, m_settings->closing());
+  settings->setValue(BEST_VALUE, m_settings->bestPixelValue());
+  settings->setValue(CATEGORY, m_categorySelector->currentIndex());
 }
 
 //-----------------------------------------------------------------------------

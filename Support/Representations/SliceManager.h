@@ -80,6 +80,8 @@ namespace ESPINA
 
     Nm normalCoordinate(const NmVector3 &value) const;
 
+    virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override;
+
   private:
     Plane m_plane;
     Nm    m_depth;

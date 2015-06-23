@@ -33,6 +33,7 @@
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
 #include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
+#include <App/Settings/Utils.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -520,6 +521,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     updateStatus(tr("File Loaded in %1m%2s").arg(mins).arg(secs));
 
+    updateToolsSettings();
+
     enableWidgets(true);
 
     assignActiveChannel();
@@ -700,6 +703,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
   if (!analyses.isEmpty())
   {
     mergedAnalysis = analyses.first();
+
     for(int i = 1; i < analyses.size(); ++i)
     {
       mergedAnalysis = merge(mergedAnalysis, analyses[i]);
@@ -735,6 +739,8 @@ void EspinaMainWindow::saveAnalysis()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
+
+  saveToolsSettings();
 
   m_view->saveSessionSettings(m_analysis->storage());
 
@@ -1462,4 +1468,65 @@ void EspinaMainWindow::analyzeChannelEdges()
       channel->addExtension(std::make_shared<ChannelEdges>(m_context.scheduler()));
     }
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::updateToolsSettings()
+{
+  auto settings = m_analysis->storage()->sessionSettings();
+  auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
+
+  for(auto toolgroup: toolgroups)
+  {
+    for(auto tool: toolgroup->tools())
+    {
+      if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
+
+      // needed to create a new QSettings with a filename, otherwise will use the application one.
+      QTemporaryFile dummy;
+      dummy.open();
+      dummy.close();
+
+      auto toolSettings = std::make_shared<QSettings>(dummy.fileName(), QSettings::IniFormat);
+
+      settings->beginGroup(tool->id());
+      copySettings(settings, toolSettings);
+      settings->endGroup();
+
+      tool->restoreSettings(toolSettings);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveToolsSettings()
+{
+  auto settings = m_analysis->storage()->sessionSettings();
+  auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
+
+  for(auto toolgroup: toolgroups)
+  {
+    for(auto tool: toolgroup->tools())
+    {
+      if(tool->id().isEmpty()) continue;
+
+      // needed to create a new QSettings with a filename, otherwise will use the application one.
+      QTemporaryFile dummy;
+      dummy.open();
+      dummy.close();
+
+      auto toolSettings = std::make_shared<QSettings>(dummy.fileName(), QSettings::IniFormat);
+
+      tool->saveSettings(toolSettings);
+
+      if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
+      {
+        settings->beginGroup(tool->id());
+        copySettings(toolSettings, settings);
+        settings->endGroup();
+      }
+    }
+  }
+
+  settings->sync();
 }

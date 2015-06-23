@@ -46,7 +46,7 @@ using namespace ESPINA::GUI;
 //-----------------------------------------------------------------------------
 AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
                                              Support::Context        &context)
-: ProgressTool(":/AppSurface.svg", tr("Apposition Surface Tools"), context)
+: ProgressTool(tr("AppositionSurfaceTool"), ":/AppSurface.svg", tr("Apposition Surface Tools"), context)
 , m_plugin (plugin)
 {
   setToolTip(tr("Create a synaptic apposition surface from selected segmentations."));

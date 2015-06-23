@@ -40,9 +40,10 @@ namespace ESPINA {
 
     virtual void hideRepresentations(TimeStamp t) override;
 
-  private:
+  protected:
     GUI::Representations::RepresentationManagerSPtr m_manager;
 
+  private:
     ViewTypeFlags m_flags;
   };
 }

@@ -157,6 +157,13 @@ namespace ESPINA
          */
         RepresentationManagerSPtr clone();
 
+        /** \brief Updates the settings of the representation.
+         * \param[in] settings representation settings object shared pointer.
+         * \param[in] t time stamp.
+         *
+         */
+        void updateSettings(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t);
+
         QString debugName() const;
 
       public slots:
@@ -170,9 +177,9 @@ namespace ESPINA
         void renderRequested();
 
       protected slots:
-        void emitRenderRequest(TimeStamp t);
-
         void invalidateRepresentations();
+
+        void emitRenderRequest(TimeStamp t);
 
         void waitForDisplay();
 
@@ -232,6 +239,13 @@ namespace ESPINA
          *
          */
         void setView(RenderView *view);
+
+        /** \brief Implements the settings updating in the manager.
+         * \param[in] settings representation settings shared pointer.
+         * \param[in] t time stamp.
+         *
+         */
+        virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) = 0;
 
         friend class ESPINA::RenderView;
 

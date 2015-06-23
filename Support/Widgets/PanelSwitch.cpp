@@ -25,9 +25,11 @@ using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
+const QString ENABLED = QString("Panel enabled");
+
 //----------------------------------------------------------------------------
 PanelSwitch::PanelSwitch(DockWidget *dock, const QString &icon, const QString &tooltip, Context &context)
-: ProgressTool(icon, tooltip, context)
+: ProgressTool(dock->title(), icon, tooltip, context)
 , m_dock(dock)
 {
   setCheckable(true);
@@ -50,6 +52,23 @@ void PanelSwitch::showPanel(bool visible)
   {
     m_dock->raise();
   }
+}
+
+//----------------------------------------------------------------------------
+void PanelSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  auto enabled = settings->value(ENABLED, true).toBool();
+
+  if(enabled != isChecked())
+  {
+    setChecked(enabled);
+  }
+}
+
+//----------------------------------------------------------------------------
+void PanelSwitch::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(ENABLED, isChecked());
 }
 
 //----------------------------------------------------------------------------

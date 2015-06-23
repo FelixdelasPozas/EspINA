@@ -238,3 +238,14 @@ Nm SliceManager::normalCoordinate(const NmVector3 &value) const
 {
   return value[normalCoordinateIndex(m_plane)];
 }
+
+//----------------------------------------------------------------------------
+void SliceManager::updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t)
+{
+  if(validPlane())
+  {
+    qDebug() << "update settings on plane" << normalCoordinateIndex(m_plane);
+    invalidatePreviousActors(t);
+    planePool()->setSettings(settings);
+  }
+}
