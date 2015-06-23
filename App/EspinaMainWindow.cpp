@@ -674,16 +674,14 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
     {
       QApplication::restoreOverrideCursor();
 
+      auto title   = tr("ESPINA");
       if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
       {
-        QMessageBox box(QMessageBox::Warning,
-                        tr("ESPINA"),
-                        tr("File \"%1\" could not be loaded.\n"
-                        "Do you want to remove it from recent documents list?")
-                        .arg(file),
-                        QMessageBox::Yes|QMessageBox::No);
+        auto message = tr("File \"%1\" could not be loaded.\n"
+                          "Do you want to remove it from recent documents list?")
+                          .arg(file);
 
-        if (box.exec() == QMessageBox::Yes)
+        if (DefaultDialogs::UserConfirmation(title, message))
         {
           m_recentDocuments1.removeDocument(file);
           m_recentDocuments2.updateDocumentList();
@@ -691,10 +689,8 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
       }
       else
       {
-        QMessageBox box(QMessageBox::Information,
-                        tr("ESPINA"),
-                        tr("The autosave file could not be loaded.\n"),
-                        QMessageBox::Ok);
+        auto message = tr("The autosave file could not be loaded.\n");
+        DefaultDialogs::InformationMessage(title, message);
       }
       QApplication::setOverrideCursor(Qt::WaitCursor);
     }
@@ -718,20 +714,24 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 void EspinaMainWindow::saveAnalysis()
 {
   QString suggestedFileName;
-  if (m_sessionFile.suffix().toLower() == QString("seg"))
+  if (m_sessionFile.suffix().toLower() == "seg")
+  {
     suggestedFileName = m_sessionFile.fileName();
+  }
   else
+  {
     suggestedFileName = m_sessionFile.baseName() + QString(".seg");
+  }
 
   auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-                                               SupportedFormats(QObject::tr("ESPINA Analysis"), "seg"),
+                                               SupportedFormats().addSegFormat(),
                                                m_sessionFile.absolutePath(),
-                                               QString("seg"),
+                                               "seg",
                                                suggestedFileName);
 
   if (analysisFile.isEmpty()) return;
 
-  Q_ASSERT(analysisFile.toLower().endsWith(QString(tr(".seg"))));
+  Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
@@ -778,9 +778,13 @@ void EspinaMainWindow::saveSessionAnalysis()
 void EspinaMainWindow::updateStatus(QString msg)
 {
   if (msg.isEmpty())
+  {
     statusBar()->clearMessage();
+  }
   else
+  {
     statusBar()->showMessage(msg);
+  }
 }
 
 //------------------------------------------------------------------------

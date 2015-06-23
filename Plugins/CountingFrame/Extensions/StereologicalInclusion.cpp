@@ -10,9 +10,9 @@
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    but WITHOUT ANY WARRANTY; without even the implied warranty of|| m_ex
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU General Public License for more details.m_exclusionCFs.is
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -197,22 +197,15 @@ bool StereologicalInclusion::isExcluded()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  Q_ASSERT(m_extendedItem);
+
   checkSampleCountingFrames();
 
-  if (!m_isUpdated)
+  if (!m_isUpdated && !m_exclusionCFs.isEmpty())
   {
-    if (!m_extendedItem) return;
-
-    if (m_excludedByCF.isEmpty())
+    for (auto cf : m_exclusionCFs.keys())
     {
-      m_isExcluded = isOnEdge();
-    }
-    else
-    {
-      for (auto cf : m_exclusionCFs.keys())
-      {
-        evaluateCountingFrame(cf);
-      }
+      evaluateCountingFrame(cf);
     }
 
     m_isInitialized = true;

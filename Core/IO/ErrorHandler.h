@@ -61,6 +61,18 @@ namespace ESPINA
                                    QDir dir = QDir(),
                                    const GUI::SupportedFormats&filters = ESPINA::GUI::SupportedFormats().addAllFormat(),
                                    const QString &hint = QString()) = 0;
+
+    static ESPINA::GUI::SupportedFormats SameFormat(const QFileInfo &file, bool addAll = true)
+    {
+      auto format = ESPINA::GUI::SupportedFormats(QObject::tr("%1 files").arg(file.suffix()), file.suffix());
+
+      if (addAll)
+      {
+        format.addAllFormat();
+      }
+
+      return format;
+    }
   };
 
   } // namespace IO

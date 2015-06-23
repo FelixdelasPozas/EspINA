@@ -79,7 +79,7 @@ void VolumetricStreamReader::execute()
   {
     if (handler())
     {
-      m_fileName = m_handler->fileNotFound(m_fileName);
+      m_fileName = m_handler->fileNotFound(m_fileName, QDir(), IO::ErrorHandler::SameFormat(m_fileName));
     }
 
     if (!m_fileName.exists())

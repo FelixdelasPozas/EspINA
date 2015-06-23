@@ -93,12 +93,12 @@ namespace ESPINA
 
     virtual bool isEmpty() const override;
 
-  private:
     /** \brief Private method to rasterize a mesh to create an T volume.
      *
      */
     void rasterize() const;
 
+  private:
     virtual QList<Data::Type> updateDependencies() const override;
 
 

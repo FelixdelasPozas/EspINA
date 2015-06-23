@@ -318,7 +318,9 @@ void AppositionSurfaceFilter::execute()
   }
 
   m_outputs[0]->setData(meshOutput);
-  m_outputs[0]->setData(std::make_shared<RasterizedVolume<itkVolumeType>>(m_outputs[0].get(), meshBounds, outpuSpacing));
+  auto volume = std::make_shared<RasterizedVolume<itkVolumeType>>(m_outputs[0].get(), meshBounds, outpuSpacing);
+  volume->rasterize();
+  m_outputs[0]->setData(volume);
   m_outputs[0]->setSpacing(outpuSpacing);
 
   emit progress(100);

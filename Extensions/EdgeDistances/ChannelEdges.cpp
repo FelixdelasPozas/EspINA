@@ -312,7 +312,7 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   auto output = segmentation->output();
 
   QReadLocker lock(&m_facesMutex);
-  //qDebug() << "Computing distances";
+//   qDebug() << "Computing distances";
   auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
   if (hasMeshData(output))
   {
