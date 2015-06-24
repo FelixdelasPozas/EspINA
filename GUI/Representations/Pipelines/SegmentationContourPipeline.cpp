@@ -130,7 +130,7 @@ namespace ESPINA
           mapper->SetInputData(tubes->GetOutput());
           mapper->Update();
 
-          tubes->SetRadius(voxelContour->getMinimumSpacing() * (widthToInteger(widthValue)/10.0));
+          tubes->SetRadius(voxelContour->getMinimumSpacing() * (static_cast<int>(widthValue)/10.0));
           tubes->UpdateWholeExtent();
 
           auto textureIcon = vtkSmartPointer<vtkImageCanvasSource2D>::New();
@@ -228,71 +228,19 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::widthToInteger(Width value)
-  {
-    int intValue;
-
-    switch(value)
-    {
-      case Width::huge:
-        intValue = 4;
-        break;
-      case Width::large:
-        intValue = 3;
-        break;
-      default:
-      case Width::medium:
-        intValue = 2;
-        break;
-      case Width::small:
-        intValue = 1;
-        break;
-      case Width::tiny:
-        intValue = 0;
-        break;
-    }
-
-    return intValue;
-  }
-
-  //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::patternToInteger(Pattern value)
-  {
-    int intValue;
-
-    switch(value)
-    {
-      case Pattern::dashed:
-        intValue = 2;
-        break;
-      case Pattern::dotted:
-        intValue = 1;
-        break;
-      case Pattern::normal:
-      default:
-        intValue = 0;
-        break;
-    }
-
-    return intValue;
-  }
-
-  //----------------------------------------------------------------------------
   SegmentationContourPipeline::Width SegmentationContourPipeline::representationWidth(RepresentationState state) const
   {
-    Width types[5]{Width::tiny, Width::small, Width::medium, Width::large, Width::huge };
     auto value = state.getValue<int>(WIDTH);
 
-    return types[value];
+    return static_cast<SegmentationContourPipeline::Width>(value);
   }
 
   //----------------------------------------------------------------------------
   SegmentationContourPipeline::Pattern SegmentationContourPipeline::representationPattern(RepresentationState state) const
   {
-    Pattern types[3]{Pattern::normal, Pattern::dotted, Pattern::dashed};
     auto value = state.getValue<int>(PATTERN);
 
-    return types[value];
+    return static_cast<SegmentationContourPipeline::Pattern>(value);
   }
 
 } // namespace ESPINA

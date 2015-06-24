@@ -101,7 +101,7 @@ void BasicRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr so
 }
 
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::onSettingsChanged(const RepresentationState &settings)
+void BasicRepresentationPool::applySettings(const RepresentationState &settings)
 {
   m_updater->setSettings(settings);
 

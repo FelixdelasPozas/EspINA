@@ -125,7 +125,7 @@ void BufferedRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &settings)
+void BufferedRepresentationPool::applySettings(const RepresentationState &settings)
 {
   for (auto updater : m_updateWindow.all())
   {

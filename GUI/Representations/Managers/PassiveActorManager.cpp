@@ -225,10 +225,3 @@ QSet<vtkProp *> PassiveActorManager::toSet(const RepresentationPipeline::ActorLi
 
   return set;
 }
-
-//----------------------------------------------------------------------------
-void PassiveActorManager::updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t)
-{
-  invalidatePreviousActors(t);
-  m_pool->setSettings(settings);
-}

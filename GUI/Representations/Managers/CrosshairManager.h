@@ -103,8 +103,6 @@ namespace ESPINA
            */
           void updateCrosshairs(const TimeStamp t);
 
-          virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override {};
-
         private:
           vtkSmartPointer<vtkPoints>         m_points[3];
           vtkSmartPointer<vtkCellArray>      m_cells[3];

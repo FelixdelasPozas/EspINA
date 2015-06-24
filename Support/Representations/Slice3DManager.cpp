@@ -213,16 +213,6 @@ void Slice3DManager::disconnectPools()
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t)
-{
-  invalidatePreviousActors(t);
-  for(auto pool: m_pools)
-  {
-    pool->setSettings(settings);
-  }
-}
-
-//----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
   auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());

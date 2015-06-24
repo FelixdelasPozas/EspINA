@@ -227,22 +227,6 @@ RepresentationManagerSPtr RepresentationManager::clone()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::updateSettings(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t)
-{
-  if(m_view)
-  {
-    invalidateRepresentations();
-    waitForDisplay();
-    updateSettingsImplementation(settings, t);
-  }
-
-  for(auto child: m_childs)
-  {
-    child->updateSettings(settings, t);
-  }
-}
-
-//-----------------------------------------------------------------------------
 QString RepresentationManager::debugName() const
 {
   return m_view->viewName() + "::" + name() + ":";

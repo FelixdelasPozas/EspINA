@@ -81,8 +81,6 @@ namespace ESPINA
 
           QSet<vtkProp *> toSet(const RepresentationPipeline::ActorList &list) const;
 
-          virtual void updateSettingsImplementation(std::shared_ptr<RepresentationPool::Settings> settings, TimeStamp t) override;
-
         private:
           RepresentationPoolSPtr m_pool;
         };

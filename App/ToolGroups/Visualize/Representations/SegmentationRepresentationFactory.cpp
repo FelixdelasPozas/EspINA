@@ -93,7 +93,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   poolSliceXZ->setSettings(sliceSettings);
   poolSliceYZ->setSettings(sliceSettings);
 
-  representation.Pools    << poolSliceXY << poolSliceXZ << poolSliceYZ;
+  representation.Pools << poolSliceXY << poolSliceXZ << poolSliceYZ;
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -208,7 +208,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
+  auto volumetricSettings   = std::make_shared<PoolSettings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(scheduler, pipelineVolumeCPU);
   auto volumetricCPUManager = std::make_shared<PassiveActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
@@ -247,7 +247,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
+  auto meshesSettings = std::make_shared<PoolSettings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineMesh);
   auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
@@ -306,10 +306,9 @@ SegmentationRepresentationSwitch::SegmentationRepresentationSwitch(GUI::Represen
 //----------------------------------------------------------------------------
 void SegmentationRepresentationSwitch::onOpacityChanged(int value)
 {
-  m_settings->setOpacity(static_cast<double>(value/100.0));
+  // TODO: increment timer, invalidate representations and propagate to manager?
 
-  auto t = m_timer.increment();
-  m_manager->updateSettings(m_settings, t);
+  m_settings->setOpacity(static_cast<double>(value/100.0));
 }
 
 //----------------------------------------------------------------------------
@@ -322,7 +321,7 @@ void SegmentationRepresentationSwitch::initWidgets()
 
   m_opacityWidget->setMinimum(1);
   m_opacityWidget->setMaximum(100);
-  m_opacityWidget->setValue(100);
+  m_opacityWidget->setValue(m_settings->opacity()*100);
   m_opacityWidget->setSpinBoxVisibility(false);
   m_opacityWidget->setLabelText(tr("Opacity"));
 

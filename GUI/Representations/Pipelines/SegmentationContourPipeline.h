@@ -61,16 +61,6 @@ namespace ESPINA
 
       virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
-      /** \brief Returns the integer value of the specified width value.
-       * \param[in] value Width value;
-       */
-      static int widthToInteger(Width value);
-
-      /** \brief Returns the integer value of the specified pattern value.
-       * \param[in] value Pattern value;
-       */
-      static int patternToInteger(Pattern value);
-
     private:
       /** \brief Helper method get the width value from the settings.
        * \param[in] state RepresentationState object.

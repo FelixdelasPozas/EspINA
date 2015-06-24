@@ -28,30 +28,18 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   SegmentationSlicePoolSettings::SegmentationSlicePoolSettings()
-  : m_opacity{0.6}
   {
+    setOpacity(0.6);
   }
-
   //----------------------------------------------------------------------------
   void SegmentationSlicePoolSettings::setOpacity(double value)
   {
-    m_opacity = value;
+    set<double>(OPACITY, value);
   }
   
   //----------------------------------------------------------------------------
   double SegmentationSlicePoolSettings::opacity() const
   {
-    return m_opacity;
+    return get<double>(OPACITY);
   }
-  
-  //----------------------------------------------------------------------------
-  RepresentationState SegmentationSlicePoolSettings::poolSettingsImplementation() const
-  {
-    RepresentationState state;
-
-    state.setValue(OPACITY, m_opacity);
-
-    return state;
-  }
-
 } // namespace ESPINA
