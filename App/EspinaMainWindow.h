@@ -354,6 +354,8 @@ namespace ESPINA
      */
     void saveToolsSettings();
 
+    const QList<ToolGroupPtr> toolGroups() const;
+
   private:
     // ESPINA
     Support::Context          m_context;

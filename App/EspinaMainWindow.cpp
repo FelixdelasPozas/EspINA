@@ -1475,20 +1475,20 @@ void EspinaMainWindow::analyzeChannelEdges()
 void EspinaMainWindow::updateToolsSettings()
 {
   auto settings = m_analysis->storage()->sessionSettings();
-  auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 
-  for(auto toolgroup: toolgroups)
+  for(auto toolgroup: toolGroups())
   {
     for(auto tool: toolgroup->tools())
     {
-      if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
+      if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
+      {
+        settings->beginGroup(tool->id());
+        SettingsContainer container;
+        container.copyFrom(settings);
+        settings->endGroup();
 
-      settings->beginGroup(tool->id());
-      SettingsContainer container;
-      container.copyFrom(settings);
-      settings->endGroup();
-
-      tool->restoreSettings(container.settings());
+        tool->restoreSettings(container.settings());
+      }
     }
   }
 }
@@ -1499,24 +1499,31 @@ void EspinaMainWindow::saveToolsSettings()
   auto settings = m_analysis->storage()->sessionSettings();
   auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 
-  for(auto toolgroup: toolgroups)
+  for(auto toolgroup: toolGroups())
   {
     for(auto tool: toolgroup->tools())
     {
-      if(tool->id().isEmpty()) continue;
-
-      SettingsContainer container;
-      auto toolSettings = container.settings();
-      tool->saveSettings(toolSettings);
-
-      if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
+      if(!tool->id().isEmpty())
       {
-        settings->beginGroup(tool->id());
-        container.copyTo(settings);
-        settings->endGroup();
+        SettingsContainer container;
+        auto toolSettings = container.settings();
+        tool->saveSettings(toolSettings);
+
+        if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
+        {
+          settings->beginGroup(tool->id());
+          container.copyTo(settings);
+          settings->endGroup();
+        }
       }
     }
   }
 
   settings->sync();
+}
+
+//------------------------------------------------------------------------
+const QList<ToolGroupPtr> EspinaMainWindow::toolGroups() const
+{
+  return QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 }
