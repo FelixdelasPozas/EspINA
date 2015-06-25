@@ -51,7 +51,8 @@ public:
 
 //------------------------------------------------------------------------
 ChannelExplorer::ChannelExplorer(Support::Context &context)
-: m_context(context)
+: DockWidget(tr("ChannelExplorerDock"))
+, m_context     (context)
 , m_model       {context.model()}
 , m_scheduler   {context.scheduler()}
 , m_undoStack   {context.undoStack()}

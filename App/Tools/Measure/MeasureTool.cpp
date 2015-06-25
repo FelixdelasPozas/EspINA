@@ -34,7 +34,7 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 
 //----------------------------------------------------------------------------
 MeasureTool::MeasureTool(Support::Context &context)
-: ProgressTool(":/espina/measure.png", tr("Segmentation Measures Tool"), context)
+: ProgressTool("MeasureTool", ":/espina/measure.png", tr("Segmentation Measures Tool"), context)
 , m_viewState(context.viewState())
 , m_handler   {new MeasureEventHandler()}
 , m_prototypes{new TemporalPrototypes(std::make_shared<MeasureWidget>(m_handler.get()), TemporalRepresentation3DSPtr())}

@@ -19,23 +19,27 @@
 */
 
 // ESPINA
+#include <vtkImplicitFunction.h>
 #include "CustomROIWidget.h"
 
 // Qt
 #include <QCheckBox>
 #include <QHBoxLayout>
 
+// C++
+#include <cstring>
+
 using namespace ESPINA;
+
+const unsigned int DEFAULT_ROI_VALUE = 500;
 
 //------------------------------------------------------------------------
 CustomROIWidget::CustomROIWidget(QWidget* parent)
 : QWidget {parent}
 , m_useROI{true}
 {
-  for(int i = 0; i < 3; ++i)
-  {
-    m_values    [i] = 0;
-  }
+  // default values
+  std::memset(m_values, DEFAULT_ROI_VALUE, sizeof(unsigned int)*3);
 
   auto roiCheckBox = new QCheckBox(tr("Apply ROI"), this);
   roiCheckBox->setCheckState(m_useROI?Qt::Checked:Qt::Unchecked);
@@ -53,7 +57,7 @@ CustomROIWidget::CustomROIWidget(QWidget* parent)
     m_spinBoxROI[i]->setMinimum(0);
     m_spinBoxROI[i]->setMaximum(100000);
     m_spinBoxROI[i]->setValue(m_values[i]);
-    m_spinBoxROI[i]->setSuffix("nm");
+    m_spinBoxROI[i]->setSuffix(" nm");
   }
 
   connect(m_spinBoxROI[0], SIGNAL(valueChanged(int)),
@@ -85,6 +89,12 @@ void CustomROIWidget::setValue(Axis axis, unsigned int value)
   m_values[i] = value;
 
   m_spinBoxROI[i]->setValue(value);
+}
+
+//------------------------------------------------------------------------
+void CustomROIWidget::setApplyROI(bool enabled)
+{
+  m_useROI = enabled;
 }
 
 //------------------------------------------------------------------------

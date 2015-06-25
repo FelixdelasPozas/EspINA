@@ -199,8 +199,9 @@ RepresentationManagerSPtr TemporalManager::cloneImplementation()
 
 //------------------------------------------------------------------------
 AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()
-: m_normalIndex{0}
+: m_normalIndex    {0}
 , m_reslicePosition{0.0}
+, m_reslicePlane   {Plane::UNDEFINED}
 {
 }
 

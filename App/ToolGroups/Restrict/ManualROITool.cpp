@@ -32,7 +32,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 ManualROITool::ManualROITool(Support::Context  &context,
                              RestrictToolGroup *toolGroup)
-: ProgressTool(":espina/roi_manual.svg", tr("Manual ROI"), context)
+: ProgressTool("ManualROI", ":espina/roi_manual.svg", tr("Manual ROI"), context)
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context}
@@ -143,6 +143,18 @@ void ManualROITool::updateReferenceItem(ChannelAdapterPtr channel)
   }
 
   m_referenceItem = channel;
+}
+
+//-----------------------------------------------------------------------------
+void ManualROITool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_drawingWidget.restoreSettings(settings);
+}
+
+//-----------------------------------------------------------------------------
+void ManualROITool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  m_drawingWidget.saveSettings(settings);
 }
 
 //-----------------------------------------------------------------------------

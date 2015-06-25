@@ -47,7 +47,7 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void onSettingsChanged(const RepresentationState &settings) override;
+    virtual void applySettings(const RepresentationState &settings) override;
 
   private:
     RepresentationUpdaterSPtr m_updater;

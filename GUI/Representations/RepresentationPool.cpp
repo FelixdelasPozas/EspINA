@@ -29,9 +29,9 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationState RepresentationPool::Settings::poolSettings()
+RepresentationState PoolSettings::settings()
 {
-  auto state = poolSettingsImplementation();
+  RepresentationState state;
 
   state.apply(m_state);
 
@@ -39,15 +39,9 @@ RepresentationState RepresentationPool::Settings::poolSettings()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationState RepresentationPool::Settings::poolSettingsImplementation() const
-{
-  return RepresentationState();
-}
-
-//-----------------------------------------------------------------------------
 RepresentationPool::RepresentationPool()
 : m_sources            {nullptr}
-, m_settings           {new Settings()}
+, m_settings           {new PoolSettings()}
 , m_numObservers       {0}
 , m_sourcesCount       {0}
 {
@@ -97,19 +91,31 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
+void RepresentationPool::setSettings(PoolSettingsSPtr settings)
 {
+  if(m_settings)
+  {
+    disconnect(m_settings.get(), SIGNAL(modified()),
+               this,             SLOT(onSettingsModified()));
+  }
+
   m_settings = settings;
 
-  m_poolState.apply(settings->poolSettings());
+  if(m_settings)
+  {
+    connect(m_settings.get(), SIGNAL(modified()),
+            this,             SLOT(onSettingsModified()));
 
-  onSettingsChanged(m_poolState);
+    m_poolState.apply(settings->settings());
+
+    applySettings(m_poolState);
+  }
 }
 
 //-----------------------------------------------------------------------------
 RepresentationState RepresentationPool::settings() const
 {
-  return m_settings->poolSettings();
+  return m_settings->settings();
 }
 
 //-----------------------------------------------------------------------------
@@ -270,6 +276,16 @@ void RepresentationPool::onTimeStampUpdated(TimeStamp t)
   {
     m_validActors.reusePreviousValue(t);
   }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSettingsModified()
+{
+  emit actorsInvalidated();
+
+  m_poolState.apply(m_settings->settings());
+
+  applySettings(m_poolState);
 }
 
 //-----------------------------------------------------------------------------

@@ -28,7 +28,7 @@
 namespace ESPINA
 {
   class SegmentationContourPoolSettings
-  : public RepresentationPool::Settings
+  : public PoolSettings
   {
     public:
       /** \brief SegmentationContourPoolSettings class constructor.
@@ -41,8 +41,6 @@ namespace ESPINA
        */
       virtual ~SegmentationContourPoolSettings()
       {};
-
-      virtual RepresentationState poolSettingsImplementation() const override;
 
       /** \brief Sets the Width value.
        *
@@ -60,9 +58,6 @@ namespace ESPINA
       double opacity() const;
 
     private:
-      SegmentationContourPipeline::Width   m_width;
-      SegmentationContourPipeline::Pattern m_pattern;
-      double m_opacity;
   };
 
 } // namespace ESPINA

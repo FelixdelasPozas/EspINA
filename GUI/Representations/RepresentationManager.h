@@ -170,9 +170,9 @@ namespace ESPINA
         void renderRequested();
 
       protected slots:
-        void emitRenderRequest(TimeStamp t);
-
         void invalidateRepresentations();
+
+        void emitRenderRequest(TimeStamp t);
 
         void waitForDisplay();
 

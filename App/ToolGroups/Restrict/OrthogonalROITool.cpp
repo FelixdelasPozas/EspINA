@@ -75,7 +75,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
-: ProgressTool(":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
+: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
 , m_prototypes   {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
 , m_resizeHandler{new EventHandler()}
 , m_defineHandler{new PixelSelector()}

@@ -28,11 +28,12 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Widgets;
 
 //----------------------------------------------------------------------------
-BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,
+BasicRepresentationSwitch::BasicRepresentationSwitch(const QString            &id,
+                                                     RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews,
                                                      Timer                    &timer,
                                                      Support::Context         &context)
-: RepresentationSwitch(manager->icon(), manager->description(), timer, context)
+: RepresentationSwitch(id, manager->icon(), manager->description(), timer, context)
 , m_manager(manager)
 , m_flags(supportedViews)
 {

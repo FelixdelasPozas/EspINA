@@ -20,8 +20,12 @@
 #ifndef ESPINA_SEGMENTATION_REPRESENTATION_FACTORY_H
 #define ESPINA_SEGMENTATION_REPRESENTATION_FACTORY_H
 
+#include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Representations/RepresentationPool.h>
+#include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
+#include <GUI/Widgets/NumericalInput.h>
 
 namespace ESPINA
 {
@@ -46,6 +50,27 @@ namespace ESPINA
 
   private:
     static const unsigned int WINDOW_SIZE;
+  };
+
+  class SegmentationRepresentationSwitch
+  : public BasicRepresentationSwitch
+  {
+      Q_OBJECT
+    public:
+      explicit SegmentationRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                                std::shared_ptr<SegmentationSlicePoolSettings> setting,
+                                                ViewTypeFlags supportedViews,
+                                                Timer &timer,
+                                                Support::Context &context);
+
+    private slots:
+      void onOpacityChanged(int value);
+
+    private:
+      void initWidgets();
+
+      std::shared_ptr<SegmentationSlicePoolSettings> m_settings;
+      GUI::Widgets::NumericalInput                  *m_opacityWidget;
   };
 }
 

@@ -92,7 +92,7 @@ QList<CategorizedTool> CountingFramePlugin::tools() const
 {
   QList<CategorizedTool> tools;
 
-  auto tool = std::make_shared<PanelSwitch>(m_dockWidget, ":cf-switch2D.svg", tr("Stereological Counting Frame"), *m_context);
+  auto tool = std::make_shared<PanelSwitch>("CFPanel", m_dockWidget, ":cf-switch2D.svg", tr("Stereological Counting Frame"), *m_context);
   tool->setGroupWith("counting_frame");
 
   tools << CategorizedTool(ToolCategory::ANALYZE, tool);

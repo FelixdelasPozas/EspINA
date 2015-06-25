@@ -90,9 +90,9 @@ namespace ESPINA
         sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
         sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-        auto slice        = vtkImage(volume, sliceBounds);
-        auto patternValue = representationPattern(state);
-        auto widthValue   = representationWidth(state);
+        auto slice   = vtkImage(volume, sliceBounds);
+        auto pattern = representationPattern(state);
+        auto width   = representationWidth(state);
 
         auto voxelContour = vtkSmartPointer<vtkVoxelContour2D>::New();
         voxelContour->SetInputData(slice);
@@ -115,7 +115,7 @@ namespace ESPINA
         actor->GetProperty()->Modified();
         actor->SetDragable(false);
 
-        if(widthValue != Width::tiny)
+        if(width != Width::TINY)
         {
           auto tubes = vtkSmartPointer<vtkTubeFilter>::New();
           tubes->SetInputData(voxelContour->GetOutput());
@@ -130,7 +130,7 @@ namespace ESPINA
           mapper->SetInputData(tubes->GetOutput());
           mapper->Update();
 
-          tubes->SetRadius(voxelContour->getMinimumSpacing() * (widthToInteger(widthValue)/10.0));
+          tubes->SetRadius(voxelContour->getMinimumSpacing() * (widthValue(width)/10.0));
           tubes->UpdateWholeExtent();
 
           auto textureIcon = vtkSmartPointer<vtkImageCanvasSource2D>::New();
@@ -153,7 +153,7 @@ namespace ESPINA
           mapper->SetInputData(voxelContour->GetOutput());
           mapper->Update();
 
-          actor->GetProperty()->SetLineStipplePattern(hexPatternValue(patternValue));
+          actor->GetProperty()->SetLineStipplePattern(hexPatternValue(pattern));
           actor->GetProperty()->Modified();
         }
 
@@ -185,19 +185,19 @@ namespace ESPINA
     textureIcon->SetDrawColor(255,255,255,255);  // solid white
     textureIcon->FillBox(0,31,0,31);             // for background
 
-    textureIcon->SetDrawColor(0,0,0,0); // transparent
+    textureIcon->SetDrawColor(0,0,0,0);          // transparent
 
     switch(value)
     {
-      case Pattern::dotted:
-        textureIcon->FillBox(16, 31, 0, 15);    // checkered pattern
+      case Pattern::DOTTED:
+        textureIcon->FillBox(16, 31, 0, 15);     // checkered pattern
         textureIcon->FillBox(0, 15, 16, 31);
         break;
-      case Pattern::dashed:
+      case Pattern::DASHED:
         textureIcon->FillBox(24, 31, 0, 7);      // small transparent square
         textureIcon->FillBox(0, 7, 24, 31);      // small transparent square
         break;
-      case Pattern::normal:
+      case Pattern::NORMAL:
       default:
         // nothing to do
         break;
@@ -212,13 +212,13 @@ namespace ESPINA
 
     switch(value)
     {
-      case Pattern::dotted:
+      case Pattern::DOTTED:
         linePattern = 0xAAAA;
         break;
-      case Pattern::dashed:
+      case Pattern::DASHED:
         linePattern = 0xFF00;
         break;
-      case Pattern::normal:
+      case Pattern::NORMAL:
       default:
         linePattern = 0xFFFF;
         break;
@@ -228,71 +228,43 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::widthToInteger(Width value)
-  {
-    int intValue;
-
-    switch(value)
-    {
-      case Width::huge:
-        intValue = 4;
-        break;
-      case Width::large:
-        intValue = 3;
-        break;
-      default:
-      case Width::medium:
-        intValue = 2;
-        break;
-      case Width::small:
-        intValue = 1;
-        break;
-      case Width::tiny:
-        intValue = 0;
-        break;
-    }
-
-    return intValue;
-  }
-
-  //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::patternToInteger(Pattern value)
-  {
-    int intValue;
-
-    switch(value)
-    {
-      case Pattern::dashed:
-        intValue = 2;
-        break;
-      case Pattern::dotted:
-        intValue = 1;
-        break;
-      case Pattern::normal:
-      default:
-        intValue = 0;
-        break;
-    }
-
-    return intValue;
-  }
-
-  //----------------------------------------------------------------------------
   SegmentationContourPipeline::Width SegmentationContourPipeline::representationWidth(RepresentationState state) const
   {
-    Width types[5]{Width::tiny, Width::small, Width::medium, Width::large, Width::huge };
     auto value = state.getValue<int>(WIDTH);
 
-    return types[value];
+    return toWidth(value);
   }
 
   //----------------------------------------------------------------------------
   SegmentationContourPipeline::Pattern SegmentationContourPipeline::representationPattern(RepresentationState state) const
   {
-    Pattern types[3]{Pattern::normal, Pattern::dotted, Pattern::dashed};
     auto value = state.getValue<int>(PATTERN);
 
-    return types[value];
+    return toPattern(value);
+  }
+
+  //----------------------------------------------------------------------------
+  int SegmentationContourPipeline::widthValue(Width width) const
+  {
+    return static_cast<int>(width);
+  }
+  
+  //----------------------------------------------------------------------------
+  int SegmentationContourPipeline::patternValue(Pattern pattern) const
+  {
+    return static_cast<int>(pattern);
+  }
+  
+  //----------------------------------------------------------------------------
+  SegmentationContourPipeline::Pattern SegmentationContourPipeline::toPattern(int value) const
+  {
+    return static_cast<SegmentationContourPipeline::Pattern>(value);
+  }
+  
+  //----------------------------------------------------------------------------
+  SegmentationContourPipeline::Width SegmentationContourPipeline::toWidth(int value) const
+  {
+    return static_cast<SegmentationContourPipeline::Width>(value);
   }
 
 } // namespace ESPINA

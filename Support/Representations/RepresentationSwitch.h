@@ -41,15 +41,13 @@ namespace ESPINA
 
     virtual void hideRepresentations(TimeStamp t) = 0;
 
-    virtual void abortOperation();
-
   protected:
-    explicit RepresentationSwitch(const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
+    explicit RepresentationSwitch(const QString &id, const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
 
   private slots:
     void switchRepresentations(bool show);
 
-  private:
+  protected:
     Timer &m_timer;
   };
 

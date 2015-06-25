@@ -27,19 +27,14 @@
 namespace ESPINA
 {
   class SegmentationSlicePoolSettings
-  : public RepresentationPool::Settings
+  : public PoolSettings
   {
     public:
-      explicit SegmentationSlicePoolSettings();
+      SegmentationSlicePoolSettings();
 
       void setOpacity(double value);
 
       double opacity() const;
-
-    private:
-      virtual RepresentationState poolSettingsImplementation() const override;
-
-      double m_opacity;
   };
 
   using SegmentationSlicePoolSettingsSPtr = std::shared_ptr<SegmentationSlicePoolSettings>;

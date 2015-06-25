@@ -74,6 +74,10 @@ namespace ESPINA
 
     virtual void abortOperation();
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
   signals:
     void voxelsDeleted(ViewItemAdapterPtr item);
 
@@ -119,6 +123,7 @@ namespace ESPINA
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     DrawingTool        m_drawingWidget;
+    QPushButton       *m_multiStroke;
     Mode               m_mode;
     bool               m_createSegmentation;
     ViewItemAdapterPtr m_referenceItem;

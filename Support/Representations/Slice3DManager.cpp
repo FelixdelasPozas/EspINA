@@ -17,7 +17,11 @@
  *
  */
 
+// ESPINA
 #include "Slice3DManager.h"
+#include <GUI/View/RenderView.h>
+
+// VTK
 #include <vtkProp.h>
 
 using namespace std;

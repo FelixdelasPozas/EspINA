@@ -86,16 +86,6 @@ namespace ESPINA
      */
     SettingsPanelSPtr settingsPanel();
 
-    /** \brief Loads view settings from storage.
-     * \param[in] storage temporal storage containing the settings file.
-     */
-    void loadSessionSettings(TemporalStorageSPtr storage);
-
-    /** \brief Saves view settings from storage.
-     * \param[in] storage temporal storage to save settings file.
-     */
-    void saveSessionSettings(TemporalStorageSPtr storage);
-
     /** \brief Returs the RenderViews' group.
      *
      */

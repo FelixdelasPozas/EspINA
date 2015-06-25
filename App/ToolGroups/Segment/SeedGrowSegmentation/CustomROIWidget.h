@@ -63,6 +63,12 @@ namespace ESPINA
     unsigned int value(Axis axis) const
     { return m_values[idx(axis)]; }
 
+    /** \brief Enables/Disables the use of the ROI.
+     * \param[in] enabled boolean value.
+     *
+     */
+    void setApplyROI(bool enabled);
+
   private slots:
     /** \brief Modifies the GUI if the ROI is to be used.
      * \param[in] val true if the ROI values are going to be used.

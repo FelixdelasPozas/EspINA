@@ -132,6 +132,18 @@ namespace ESPINA
         bool enabled()
         { return m_enabled; }
 
+        /** \brief Restores the internal values from the settings object.
+         * \param[in] settings.
+         *
+         */
+        void restoreSettings(std::shared_ptr<QSettings> settings);
+
+        /** \brief Saves the internal values to the settings object.
+         * \param[in] settings.
+         *
+         */
+        void saveSettings(std::shared_ptr<QSettings> settings);
+
       signals:
         void strokeStarted(BrushPainter *painter, RenderView *view);
 
@@ -143,11 +155,6 @@ namespace ESPINA
 
       private slots:
         void changePainter(bool checked);
-
-//         /** \brief Unsets the selector and disables the tool.
-//          *
-//          */
-//         void unsetPainter();
 
         /** \brief Changes the radius for the operation.
          * \param[in] value radius value.
@@ -188,7 +195,6 @@ namespace ESPINA
         void updateVisibleControls();
 
       private:
-        void loadSettings();
 
         void initPainters();
 

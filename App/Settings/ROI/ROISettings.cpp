@@ -30,46 +30,25 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 ROISettings::ROISettings()
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  m_xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
-  m_ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
-  m_zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+  m_xSize   = 500;
+  m_ySize   = 500;
+  m_zSize   = 500;
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setXSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  settings.setValue(DEFAULT_ROI_X, value);
-  settings.sync();
-
   m_xSize = value;
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setYSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  settings.setValue(DEFAULT_ROI_Y, value);
-  settings.sync();
-
   m_ySize = value;
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setZSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  settings.setValue(DEFAULT_ROI_Z, value);
-  settings.sync();
-
   m_zSize = value;
 }

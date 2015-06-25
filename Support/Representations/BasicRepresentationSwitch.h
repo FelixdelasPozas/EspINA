@@ -29,7 +29,8 @@ namespace ESPINA {
   : public RepresentationSwitch
   {
   public:
-    explicit BasicRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+    explicit BasicRepresentationSwitch(const QString &id,
+                                       GUI::Representations::RepresentationManagerSPtr manager,
                                        ViewTypeFlags supportedViews,
                                        Timer &timer,
                                        Support::Context &context);
@@ -40,9 +41,10 @@ namespace ESPINA {
 
     virtual void hideRepresentations(TimeStamp t) override;
 
-  private:
+  protected:
     GUI::Representations::RepresentationManagerSPtr m_manager;
 
+  private:
     ViewTypeFlags m_flags;
   };
 }

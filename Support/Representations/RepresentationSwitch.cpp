@@ -22,23 +22,18 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationSwitch::RepresentationSwitch(const QIcon &icon,
+RepresentationSwitch::RepresentationSwitch(const QString &id,
+                                           const QIcon &icon,
                                            const QString &description,
                                            Timer &timer,
                                            Support::Context &context)
-: ProgressTool(icon, description, context)
+: ProgressTool(id, icon, description, context)
 , m_timer(timer)
 {
   setCheckable(true);
 
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(switchRepresentations(bool)));
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationSwitch::abortOperation()
-{
-
 }
 
 //-----------------------------------------------------------------------------

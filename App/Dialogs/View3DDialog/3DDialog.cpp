@@ -30,7 +30,8 @@ using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString Dialog3D::GEOMETRY_SETTINGS_KEY = QString("View3D geometry");
+const QString ENABLED               = "Tool enabled";
+const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
@@ -120,7 +121,7 @@ void Dialog3D::saveGeometryState()
 //------------------------------------------------------------------------
 std::shared_ptr<ProgressTool> Dialog3D::tool()
 {
-  auto tool = std::make_shared<ProgressTool>(":espina/panel_3d.svg", tr("Display YZ View"), m_context);
+  auto tool = std::make_shared<Dialog3DTool>(m_context, this);
 
   tool->setCheckable(true);
   tool->setChecked(this->isVisible());
@@ -160,5 +161,47 @@ void Dialog3D::addRepresentationSwitch(RepresentationSwitchSPtr repSwitch)
     {
       m_toolbar.addAction(action);
     }
+  }
+}
+
+//------------------------------------------------------------------------
+Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
+: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display YZ View"), context)
+, m_dialog    {dialog}
+{
+}
+
+//------------------------------------------------------------------------
+void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  auto enabled = settings->value(ENABLED, false).toBool();
+
+  for(auto tool: m_dialog->m_switches)
+  {
+    if(tool->id().isEmpty()) continue;
+
+    settings->beginGroup(tool->id());
+    tool->restoreSettings(settings);
+    settings->endGroup();
+  }
+
+  if(isChecked() != enabled)
+  {
+    setChecked(enabled);
+  }
+}
+
+//------------------------------------------------------------------------
+void Dialog3DTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(ENABLED, isChecked());
+
+  for(auto tool: m_dialog->m_switches)
+  {
+    if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
+
+    settings->beginGroup(tool->id());
+    tool->saveSettings(settings);
+    settings->endGroup();
   }
 }

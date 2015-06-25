@@ -33,6 +33,7 @@
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
+#include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -92,7 +93,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   poolSliceXZ->setSettings(sliceSettings);
   poolSliceYZ->setSettings(sliceSettings);
 
-  representation.Pools    << poolSliceXY << poolSliceXZ << poolSliceYZ;
+  representation.Pools << poolSliceXY << poolSliceXZ << poolSliceYZ;
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -102,7 +103,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
     sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
 
-    auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch     = std::make_shared<SegmentationRepresentationSwitch>(sliceManager, sliceSettings, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
     groupSwitch(sliceSwitch);
 
@@ -117,7 +118,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     slice3DManager->setIcon(QIcon(":espina/segmentations_slice3D_switch.svg"));
     slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
 
-    auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer, context);
+    auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>("SegmentationSlice3DSwitch", slice3DManager, ViewType::VIEW_3D, timer, context);
     groupSwitch(slice3DSwitch);
 
     representation.Managers << slice3DManager;
@@ -149,7 +150,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   contourManager->setIcon(QIcon(":espina/contour.png"));
   contourManager->setDescription(QObject::tr("Segmentation Contour Representation"));
 
-  auto contourSwitch = std::make_shared<BasicRepresentationSwitch>(contourManager, ViewType::VIEW_2D, timer, context);
+  auto contourSwitch = std::make_shared<BasicRepresentationSwitch>("ContourSwitch", contourManager, ViewType::VIEW_2D, timer, context);
   groupSwitch(contourSwitch);
 
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
@@ -185,7 +186,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
   skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
   skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
 
-  auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>(skeletonManager2D, ViewType::VIEW_2D, timer, context);
+  auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>("SkeletonSwitch", skeletonManager2D, ViewType::VIEW_2D, timer, context);
 
   poolSkeleton3D->setSettings(skeletonSettings);
 
@@ -193,7 +194,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
   skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
   skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
 
-  auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>(skeletonManager3D, ViewType::VIEW_3D, timer, context);
+  auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>("Skeleton3DSwitch", skeletonManager3D, ViewType::VIEW_3D, timer, context);
 
   representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ << poolSkeleton3D;
   representation.Managers << skeletonManager2D << skeletonManager3D;
@@ -207,7 +208,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
+  auto volumetricSettings   = std::make_shared<PoolSettings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(scheduler, pipelineVolumeCPU);
   auto volumetricCPUManager = std::make_shared<PassiveActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
@@ -224,14 +225,14 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
 
   poolVolumetricGPU->setSettings(volumetricSettings);
 
-  auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricCPUManager, ViewType::VIEW_3D, timer, context);
+  auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>("VolumetricCPUSwitch", volumetricCPUManager, ViewType::VIEW_3D, timer, context);
   groupSwitch(volumetricCPUSwitch);
 
   volumetricGPUManager->setName(QObject::tr("Volumetric GPU Representation"));
   volumetricGPUManager->setIcon(QIcon(":espina/voxelGPU.png"));
   volumetricGPUManager->setDescription(QObject::tr("Segmentation Volumetric Representation By GPU"));
 
-  auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricGPUManager, ViewType::VIEW_3D, timer, context);
+  auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>("VolumetricGPUSwitch", volumetricGPUManager, ViewType::VIEW_3D, timer, context);
   groupSwitch(volumetricGPUSwitch);
 
   representation.Pools    << poolVolumetricCPU << poolVolumetricGPU;
@@ -246,7 +247,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
+  auto meshesSettings = std::make_shared<PoolSettings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineMesh);
   auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
@@ -261,7 +262,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   meshManager->setIcon(QIcon(":espina/mesh.png"));
   meshManager->setDescription(QObject::tr("Mesh Representation"));
 
-  auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>(meshManager, ViewType::VIEW_3D, timer, context);
+  auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>("MeshSwitch", meshManager, ViewType::VIEW_3D, timer, context);
   groupSwitch(meshSwitch);
 
   poolSmoothedMesh->setSettings(meshesSettings);
@@ -270,7 +271,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   smoothedMeshManager->setIcon(QIcon(":espina/smoothedmesh.png"));
   smoothedMeshManager->setDescription(QObject::tr("Smoothed Mesh Representation"));
 
-  auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>(smoothedMeshManager, ViewType::VIEW_3D, timer, context);
+  auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>("SmoothedMeshSwitch", smoothedMeshManager, ViewType::VIEW_3D, timer, context);
   groupSwitch(smoothedMeshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;
@@ -288,4 +289,42 @@ void SegmentationRepresentationFactory::groupSwitch(ToolSPtr tool) const
 void SegmentationRepresentationFactory::groupSwitch3D(ToolSPtr tool) const
 {
   tool->setGroupWith("2_segmentation_reps_3D");
+}
+
+//----------------------------------------------------------------------------
+SegmentationRepresentationSwitch::SegmentationRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                                                   std::shared_ptr<SegmentationSlicePoolSettings> settings,
+                                                                   ViewTypeFlags supportedViews,
+                                                                   Timer& timer,
+                                                                   Support::Context& context)
+: BasicRepresentationSwitch("SegSliceSwitch", manager, supportedViews, timer, context)
+, m_settings{settings}
+{
+  initWidgets();
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationSwitch::onOpacityChanged(int value)
+{
+  // TODO: increment timer, invalidate representations and propagate to manager?
+
+  m_settings->setOpacity(static_cast<double>(value/100.0));
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationSwitch::initWidgets()
+{
+  m_opacityWidget = new GUI::Widgets::NumericalInput();
+  m_opacityWidget->setLabelText(tr("Opacity"));
+
+  addSettingsWidget(m_opacityWidget);
+
+  m_opacityWidget->setMinimum(1);
+  m_opacityWidget->setMaximum(100);
+  m_opacityWidget->setValue(m_settings->opacity()*100);
+  m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setLabelText(tr("Opacity"));
+
+  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
+          this,            SLOT(onOpacityChanged(int)));
 }

@@ -32,8 +32,8 @@ using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
-RefineTool::RefineTool(const QString& icon, const QString& tooltip, Support::Context& context)
-: ProgressTool(icon, tooltip, context)
+RefineTool::RefineTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context)
+: ProgressTool(id, icon, tooltip, context)
 {
   connect(getSelection().get(), SIGNAL(selectionChanged()),
           this,                 SLOT(updateStatus()));

@@ -30,40 +30,51 @@
 
 namespace ESPINA
 {
+  class PoolSettings
+  : public QObject
+  {
+    Q_OBJECT
+  public:
+    virtual ~PoolSettings() {}
+
+    RepresentationState settings();
+
+    template<typename T>
+    void set(const QString &tag, const T value)
+    {
+      m_state.setValue<T>(tag, value);
+
+      if(m_state.hasPendingChanges())
+      {
+        emit modified();
+      }
+    }
+
+    template<typename T>
+    const T get(const QString &tag) const
+    {
+      return m_state.getValue<T>(tag);
+    }
+
+  signals:
+    void modified();
+
+  private:
+    RepresentationState m_state;
+  };
+
+  using PoolSettingsSPtr = std::shared_ptr<PoolSettings>;
+
   class RepresentationPool
   : public QObject
   {
     Q_OBJECT
-
-  public:
-    class Settings
-    {
-    public:
-      virtual ~Settings() {}
-
-      RepresentationState poolSettings();
-
-      template<typename T>
-      void set(const QString &tag, const T value)
-      {
-        m_state.setValue<T>(tag, value);
-      }
-
-    private:
-      virtual RepresentationState poolSettingsImplementation() const;
-
-    private:
-      RepresentationState m_state;
-    };
-
-    using SettingsSPtr = std::shared_ptr<Settings>;
-
   public:
     virtual ~RepresentationPool();
 
     void setPipelineSources(PipelineSources *sources);
 
-    void setSettings(SettingsSPtr settings);
+    void setSettings(PoolSettingsSPtr settings);
 
     RepresentationState settings() const;
 
@@ -149,6 +160,8 @@ namespace ESPINA
 
     void onTimeStampUpdated(TimeStamp t);
 
+    void onSettingsModified();
+
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
@@ -160,7 +173,7 @@ namespace ESPINA
 
     virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) = 0;
 
-    virtual void onSettingsChanged(const RepresentationState &settings) = 0;
+    virtual void applySettings(const RepresentationState &settings) = 0;
 
     void updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
 
@@ -184,7 +197,7 @@ namespace ESPINA
   private:
     PipelineSources    *m_sources;
 
-    SettingsSPtr        m_settings;
+    PoolSettingsSPtr    m_settings;
     RepresentationState m_poolState;
 
     NmVector3 m_crosshair;
@@ -205,7 +218,7 @@ namespace ESPINA
 
     if (m_poolState.isModified(tag))
     {
-      onSettingsChanged(m_poolState);
+      applySettings(m_poolState);
       m_poolState.commit();
     }
   }

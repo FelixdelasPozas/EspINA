@@ -33,6 +33,7 @@
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
 #include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
+#include <App/Settings/Utils.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -520,6 +521,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     updateStatus(tr("File Loaded in %1m%2s").arg(mins).arg(secs));
 
+    updateToolsSettings();
+
     enableWidgets(true);
 
     assignActiveChannel();
@@ -536,8 +539,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_mainBar->setEnabled(true);
     m_contextualBar->setEnabled(true);
-
-    m_view->loadSessionSettings(m_analysis->storage());
 
     if (!m_context.model()->isEmpty())
     {
@@ -700,6 +701,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
   if (!analyses.isEmpty())
   {
     mergedAnalysis = analyses.first();
+
     for(int i = 1; i < analyses.size(); ++i)
     {
       mergedAnalysis = merge(mergedAnalysis, analyses[i]);
@@ -736,7 +738,7 @@ void EspinaMainWindow::saveAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  m_view->saveSessionSettings(m_analysis->storage());
+  saveToolsSettings();
 
   IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
 
@@ -1239,12 +1241,14 @@ void EspinaMainWindow::createExploreToolGroup()
 {
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
 
-  auto channelExplorerSwitch = std::make_shared<PanelSwitch>(new ChannelExplorer(m_context),
+  auto channelExplorerSwitch = std::make_shared<PanelSwitch>("ChannelExplorer",
+                                                             new ChannelExplorer(m_context),
                                                              ":espina/channel_explorer_switch.svg",
                                                              tr("Display Channel Explorer"),
                                                              m_context);
 
-  auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>(new SegmentationExplorer(m_filterDelegateFactory, m_context),
+  auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
+                                                                  new SegmentationExplorer(m_filterDelegateFactory, m_context),
                                                                   ":espina/segmentation_explorer_switch.svg",
                                                                   tr("Display Segmentation Explorer"),
                                                                   m_context);
@@ -1311,14 +1315,16 @@ void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
 
-  auto panelSwitchXY = std::make_shared<PanelSwitch>(m_view->panelXZ(),
+  auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",
+                                                     m_view->panelXZ(),
                                                      ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
   panelSwitchXY->setGroupWith("view_panels");
   m_visualizeToolGroup->addTool(panelSwitchXY);
 
-  auto panelSwitchYZ = std::make_shared<PanelSwitch>(m_view->panelYZ(),
+  auto panelSwitchYZ = std::make_shared<PanelSwitch>("YZ",
+                                                     m_view->panelYZ(),
                                                      ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
@@ -1352,7 +1358,8 @@ void EspinaMainWindow::createDefaultPanels()
 {
 
   auto segmentationHistory       = new HistoryDock(m_filterDelegateFactory, m_context);
-  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>(segmentationHistory,
+  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>("SegmentationHistory",
+                                                                 segmentationHistory,
                                                                   ":espina/segmentation_information_switch.svg",
                                                                   tr("Display Segmentation Information"),
                                                                   m_context);
@@ -1462,4 +1469,61 @@ void EspinaMainWindow::analyzeChannelEdges()
       channel->addExtension(std::make_shared<ChannelEdges>(m_context.scheduler()));
     }
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::updateToolsSettings()
+{
+  auto settings = m_analysis->storage()->sessionSettings();
+
+  for(auto toolgroup: toolGroups())
+  {
+    for(auto tool: toolgroup->tools())
+    {
+      if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
+      {
+        settings->beginGroup(tool->id());
+        SettingsContainer container;
+        container.copyFrom(settings);
+        settings->endGroup();
+
+        tool->restoreSettings(container.settings());
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveToolsSettings()
+{
+  auto settings = m_analysis->storage()->sessionSettings();
+  auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
+
+  for(auto toolgroup: toolGroups())
+  {
+    for(auto tool: toolgroup->tools())
+    {
+      if(!tool->id().isEmpty())
+      {
+        SettingsContainer container;
+        auto toolSettings = container.settings();
+        tool->saveSettings(toolSettings);
+
+        if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
+        {
+          settings->beginGroup(tool->id());
+          container.copyTo(settings);
+          settings->endGroup();
+        }
+      }
+    }
+  }
+
+  settings->sync();
+}
+
+//------------------------------------------------------------------------
+const QList<ToolGroupPtr> EspinaMainWindow::toolGroups() const
+{
+  return QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 }

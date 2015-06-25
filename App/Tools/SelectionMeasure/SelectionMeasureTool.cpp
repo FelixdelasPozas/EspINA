@@ -43,7 +43,7 @@ using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
 //----------------------------------------------------------------------------
 SelectionMeasureTool::SelectionMeasureTool(Support::Context &context)
-: ProgressTool(":/espina/measure3D.png", tr("Measure Selection"), context)
+: ProgressTool("SelectionMeasureTool", ":/espina/measure3D.png", tr("Measure Selection"), context)
 , m_viewState(context.viewState())
 , m_factory  {new TemporalPrototypes(std::make_shared<Widget2D>(m_viewState.selection()), std::make_shared<Widget3D>(m_viewState.selection()))}
 {
@@ -61,7 +61,6 @@ SelectionMeasureTool::~SelectionMeasureTool()
 //----------------------------------------------------------------------------
 void SelectionMeasureTool::abortOperation()
 {
-  //m_action->setChecked(false);
 }
 
 //----------------------------------------------------------------------------

@@ -30,8 +30,8 @@ using namespace ESPINA;
 //----------------------------------------------------------------------------
 HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
                          Support::Context   &context)
-
-: m_context(context)
+: DockWidget(tr("HistoryDock"))
+, m_context(context)
 , m_delegateFactory(delegateFactory)
 , m_segmentation(nullptr)
 {

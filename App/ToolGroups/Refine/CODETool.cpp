@@ -34,10 +34,16 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support::Widgets;
 
+const QString RADIUS = "Radius";
+
 //------------------------------------------------------------------------
-CODEToolBase::CODEToolBase(const QString &name, const QString& icon, const QString& tooltip, Support::Context& context)
-: RefineTool(icon, tooltip, context)
-, m_name(name)
+CODEToolBase::CODEToolBase(const QString    &toolId,
+                           const QString    &name,
+                           const QString    &icon,
+                           const QString    &tooltip,
+                           Support::Context &context)
+: RefineTool(toolId, icon, tooltip, context)
+, m_name    {name}
 {
   setCheckable(true);
   setExclusive(true);
@@ -116,6 +122,18 @@ void CODEToolBase::onApplyClicked()
 
     Task::submit(filter);
   }
+}
+
+//------------------------------------------------------------------------
+void CODEToolBase::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_radius->setValue(settings->value(RADIUS, 1).toInt());
+}
+
+//------------------------------------------------------------------------
+void CODEToolBase::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(RADIUS, m_radius->value());
 }
 
 //------------------------------------------------------------------------

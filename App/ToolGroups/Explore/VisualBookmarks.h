@@ -33,7 +33,6 @@ class QPushButton;
 
 namespace ESPINA
 {
-  
   class VisualBookmarks
   : public ProgressTool
   {
@@ -52,6 +51,10 @@ namespace ESPINA
       virtual ~VisualBookmarks();
 
       virtual void abortOperation() override;
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
     public slots:
       /** \brief Clears the internal data and the resets the gui.
@@ -76,7 +79,6 @@ namespace ESPINA
       void apply();
 
     private:
-
       /** \brief Helper method to initialize the additional widgets.
        *
        */

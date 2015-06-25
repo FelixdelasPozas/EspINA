@@ -20,75 +20,46 @@
 
 // ESPINA
 #include "SeedGrowSegmentationSettings.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
-#include <QSettings>
-#include <QStringList>
 
 using namespace ESPINA;
 
-const QString BEST_PIXEL     ("SeedGrowSegmentation::BestPixelValue");
-const QString CLOSING        ("SeedGrowSegmentation::Closing");
-
-// new tags
-const QString DEFAULT_ROI_X_SIZE("SeedGrowSegmentation::DefaultROI::X_SIZE");
-const QString DEFAULT_ROI_Y_SIZE("SeedGrowSegmentation::DefaultROI::Y_SIZE");
-const QString DEFAULT_ROI_Z_SIZE("SeedGrowSegmentation::DefaultROI::Z_SIZE");
-const QString APPLY_CATEGORY_ROI("SeedGrowSegmentation::DefaultROI::APPLY_CATEGORY_ROI");
+const unsigned int DEFAULT_ROI_SIZE      = 500;
+const unsigned int DEFAULT_CLOSING_VALUE = 0;
+const unsigned int DEFAULT_BEST_PIXEL    = 0;
+const bool         DEFAULT_APPLY_ROI     = true;
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
 {
-  ESPINA_SETTINGS(settings);
-
-  m_xSize            = settings.value(DEFAULT_ROI_X_SIZE,  500).toInt();
-  m_ySize            = settings.value(DEFAULT_ROI_Y_SIZE,  500).toInt();
-  m_zSize            = settings.value(DEFAULT_ROI_Z_SIZE,  500).toInt();
-  m_closing          = settings.value(CLOSING           ,    0).toInt();
-  m_bestValue        = settings.value(BEST_PIXEL        ,    0).toInt();
-  m_applyCategoryROI = settings.value(APPLY_CATEGORY_ROI, true).toBool();
+  m_xSize            = DEFAULT_ROI_SIZE;
+  m_ySize            = DEFAULT_ROI_SIZE;
+  m_zSize            = DEFAULT_ROI_SIZE;
+  m_closing          = DEFAULT_CLOSING_VALUE;
+  m_bestValue        = DEFAULT_BEST_PIXEL;
+  m_applyCategoryROI = DEFAULT_APPLY_ROI;
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setXSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(DEFAULT_ROI_X_SIZE, value);
-  settings.sync();
   m_xSize = value;
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setYSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(DEFAULT_ROI_Y_SIZE, value);
-  settings.sync();
   m_ySize = value;
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setZSize(int value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(DEFAULT_ROI_Z_SIZE, value);
-  settings.sync();
-
   m_zSize = value;
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setApplyCategoryROI(bool value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(APPLY_CATEGORY_ROI, value);
-  settings.sync();
-
   m_applyCategoryROI = value;
 
   emit applyCategoryROIChanged(value);
@@ -97,11 +68,6 @@ void SeedGrowSegmentationSettings::setApplyCategoryROI(bool value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(BEST_PIXEL, value);
-  settings.sync();
-
   m_bestValue = value;
 
   emit bestValueChanged(value);
@@ -110,10 +76,5 @@ void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setClosing(int value)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue(CLOSING, value);
-  settings.sync();
-
   m_closing = value;
 }

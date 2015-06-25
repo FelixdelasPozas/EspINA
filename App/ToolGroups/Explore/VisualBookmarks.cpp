@@ -31,9 +31,16 @@
 
 using namespace ESPINA;
 
+const QString PLANE       = "View's plane";
+const QString SLICE       = "View's slice";
+const QString POSITION    = "Camera position";
+const QString FOCAL_POINT = "Focal point";
+const QString UP_VECTOR   = "Up vector";
+const QString HEIGHT      = "Camera height";
+
 //-----------------------------------------------------------------------------
 VisualBookmarks::VisualBookmarks(Support::Context& context, QList<RenderView*> views)
-: ProgressTool(":/espina/visualBookmarks.svg", tr("Visual Bookmarks"), context)
+: ProgressTool("VisualBookmarks", ":/espina/visualBookmarks.svg", tr("Visual Bookmarks"), context)
 , m_views     {views}
 {
   setCheckable(true);
@@ -51,6 +58,95 @@ VisualBookmarks::~VisualBookmarks()
 void VisualBookmarks::abortOperation()
 {
   setChecked(false);
+}
+
+//-----------------------------------------------------------------------------
+void VisualBookmarks::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  for(auto bookmark: m_bookmarks)
+  {
+    settings->beginGroup(bookmark.id);
+    for(auto view: bookmark.states.keys())
+    {
+      auto data = bookmark.states[view];
+
+      settings->beginGroup(view);
+
+      settings->setValue(PLANE, normalCoordinateIndex(data.plane));
+      settings->setValue(SLICE, data.slice);
+      settings->setValue(HEIGHT, data.heightLength);
+      settings->setValue(POSITION, data.cameraPosition.toString());
+      settings->setValue(UP_VECTOR, data.upVector.toString());
+      settings->setValue(FOCAL_POINT, data.focalPoint.toString());
+
+      settings->endGroup();
+    }
+
+    settings->endGroup();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VisualBookmarks::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_bookmarks.clear();
+
+  for(auto id: settings->childGroups())
+  {
+    struct CameraPositions bookmark;
+
+    bookmark.id = id;
+
+    settings->beginGroup(id);
+
+    for(auto view: settings->childGroups())
+    {
+      settings->beginGroup(view);
+
+      RenderView::CameraState state;
+      state.plane = toPlane(settings->value(PLANE, 3).toInt());
+      state.slice = settings->value(SLICE,0).toInt();
+      state.heightLength = settings->value(HEIGHT,0).toDouble();
+
+      auto positionString = settings->value(POSITION, NmVector3().toString()).toString();
+      state.cameraPosition = NmVector3(positionString);
+
+      auto upVectorString = settings->value(UP_VECTOR, NmVector3().toString()).toString();
+      state.upVector = NmVector3(upVectorString);
+
+      auto focalPointString = settings->value(FOCAL_POINT, NmVector3().toString()).toString();
+      state.focalPoint = NmVector3(focalPointString);
+
+      settings->endGroup();
+
+      bookmark.states.insert(view, state);
+    }
+
+    settings->endGroup();
+
+    m_bookmarks << bookmark;
+  }
+
+  auto enabled = !m_bookmarks.isEmpty();
+
+  if(!enabled)
+  {
+    resetComboBox();
+  }
+  else
+  {
+    m_combobox->clear();
+
+    for(auto bookmark: m_bookmarks)
+    {
+      m_combobox->insertItem(m_combobox->count(), bookmark.id);
+    }
+
+    m_combobox->setCurrentIndex(m_combobox->count()-1);
+  }
+
+  m_remove->setEnabled(enabled);
+  m_apply ->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------

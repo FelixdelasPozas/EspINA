@@ -269,7 +269,8 @@ const QString Panel::ID = "CountingFrameExtension";
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
              Support::Context &context)
-: m_manager  {manager}
+: DockWidget(tr("Counting Frame Dock"))
+, m_manager  {manager}
 , m_context  (context)
 , m_gui      {new GUI()}
 , m_cfModel  {new CFModel(m_manager)}
