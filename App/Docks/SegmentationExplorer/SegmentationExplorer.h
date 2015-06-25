@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Support/Widgets/DockWidget.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Context.h>
 
 // Qt
@@ -39,6 +39,7 @@ namespace ESPINA
   class SegmentationExplorer
   : public DockWidget
   , public SelectableView
+  , private Support::WithContext
   {
     Q_OBJECT
     class GUI;
@@ -48,8 +49,8 @@ namespace ESPINA
   public:
     /** \brief SegmentationExplorer class constructor.
      */
-    explicit SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
-                                  Support::Context &context);
+    explicit SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
+                                  Support::Context               &context);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *
@@ -115,7 +116,6 @@ namespace ESPINA
     void onSelectionChanged();
 
   protected:
-    Support::Context &m_context;
     GUI             *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;

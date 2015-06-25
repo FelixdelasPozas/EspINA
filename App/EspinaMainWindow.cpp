@@ -26,7 +26,7 @@
 #include <Dialogs/View3DDialog/3DDialog.h>
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Docks/SegmentationHistory/HistoryDock.h"
+#include "Docks/SegmentationInformation/SegmentationInformation.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
@@ -102,7 +102,6 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_context(this)
-, m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
@@ -467,7 +466,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_contextualBar->setEnabled(false);
   m_mainBar->actions().first()->setChecked(true);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
-  m_filterDelegateFactory->resetDelegates();
 
   emit analysisClosed();
 
@@ -1257,7 +1255,7 @@ void EspinaMainWindow::createExploreToolGroup()
                                                              m_context);
 
   auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
-                                                                  new SegmentationExplorer(m_filterDelegateFactory, m_context),
+                                                                  new SegmentationExplorer(m_filterRefiners, m_context),
                                                                   ":espina/segmentation_explorer_switch.svg",
                                                                   tr("Display Segmentation Explorer"),
                                                                   m_context);
@@ -1300,7 +1298,7 @@ void EspinaMainWindow::createSegmentToolGroup()
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
-  auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context);
+  auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
 
   manualSegment->setGroupWith("manual_segment");
   sgsSegment   ->setGroupWith("sgs_segment");
@@ -1314,7 +1312,7 @@ void EspinaMainWindow::createSegmentToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createRefineToolGroup()
 {
-  m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
+  m_refineToolGroup = new RefineToolGroup(m_filterRefiners, m_context);
 
   registerToolGroup(m_refineToolGroup);
 }
@@ -1366,13 +1364,13 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 void EspinaMainWindow::createDefaultPanels()
 {
 
-  auto segmentationHistory       = new HistoryDock(m_filterDelegateFactory, m_context);
-  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>("SegmentationHistory",
-                                                                 segmentationHistory,
-                                                                  ":espina/segmentation_information_switch.svg",
-                                                                  tr("Display Segmentation Information"),
-                                                                  m_context);
-  m_analyzeToolGroup->addTool(segmentationHistorySwitch);
+  auto segmentationInformation       = new SegmentationInformation(m_filterRefiners, m_context);
+  auto segmentationInformationSwitch = std::make_shared<PanelSwitch>("SegmentationInformation",
+                                                                     segmentationInformation,
+                                                                     ":espina/segmentation_information_switch.svg",
+                                                                     tr("Display Segmentation Information"),
+                                                                     m_context);
+  m_analyzeToolGroup->addTool(segmentationInformationSwitch);
 }
 
 //------------------------------------------------------------------------

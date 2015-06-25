@@ -84,16 +84,11 @@ const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
 
 class MorphologicalFilterFactory
 : public FilterFactory
-, public SpecificFilterDelegateFactory
 {
   virtual FilterTypeList providedFilters() const;
 
   virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
   throw (Unknown_Filter_Exception);
-
-  virtual QList<Filter::Type> availableFilterDelegates() const;
-
-  virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
 private:
   bool isCloseFilter       (const Filter::Type &type) const;
@@ -176,50 +171,50 @@ throw (Unknown_Filter_Exception)
   return morphologicalFilter;
 }
 
-//------------------------------------------------------------------------
-QList<Filter::Type> MorphologicalFilterFactory::availableFilterDelegates() const
-{
-  QList<Filter::Type> types;
+// //------------------------------------------------------------------------
+// QList<Filter::Type> MorphologicalFilterFactory::availableFilterDelegates() const
+// {
+//   QList<Filter::Type> types;
+//
+//   types << CLOSE_FILTER  << CLOSE_FILTER_V4
+//         << OPEN_FILTER   << OPEN_FILTER_V4
+//         << DILATE_FILTER << DILATE_FILTER_V4
+//         << ERODE_FILTER  << ERODE_FILTER_V4;
+//
+//   return types;
+// }
 
-  types << CLOSE_FILTER  << CLOSE_FILTER_V4
-        << OPEN_FILTER   << OPEN_FILTER_V4
-        << DILATE_FILTER << DILATE_FILTER_V4
-        << ERODE_FILTER  << ERODE_FILTER_V4;
-
-  return types;
-}
-
-//------------------------------------------------------------------------
-FilterDelegateSPtr MorphologicalFilterFactory::createDelegate(SegmentationAdapterPtr segmentation,
-                                                              FilterSPtr             filter)
-throw (Unknown_Filter_Type_Exception)
-{
-  QString title;
-
-  auto type = filter->type();
-
-  if (isCloseFilter(type))
-  {
-    title = QObject::tr("Close");
-  }
-  else if (isOpenFilter(type))
-  {
-    title = QObject::tr("Open");
-  }
-  else if (isDilateFilter(type))
-  {
-    title = QObject::tr("Dilate");
-  }
-  else if (isErodeFilter(type))
-  {
-    title = QObject::tr("Erode");
-  }
-
-  auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
-
-  return std::make_shared<CODEHistory>(title, codeFilter);
-
-}
+// //------------------------------------------------------------------------
+// FilterRefinerSPtr MorphologicalFilterFactory::createDelegate(SegmentationAdapterPtr segmentation,
+//                                                               FilterSPtr             filter)
+// throw (Unknown_Filter_Type_Exception)
+// {
+//   QString title;
+//
+//   auto type = filter->type();
+//
+//   if (isCloseFilter(type))
+//   {
+//     title = QObject::tr("Close");
+//   }
+//   else if (isOpenFilter(type))
+//   {
+//     title = QObject::tr("Open");
+//   }
+//   else if (isDilateFilter(type))
+//   {
+//     title = QObject::tr("Dilate");
+//   }
+//   else if (isErodeFilter(type))
+//   {
+//     title = QObject::tr("Erode");
+//   }
+//
+//   auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
+//
+//   return std::make_shared<CODEHistory>(title, codeFilter);
+//
+// }
 
 //------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isCloseFilter(const Filter::Type &type) const
@@ -266,14 +261,14 @@ bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) 
 
 
 //-----------------------------------------------------------------------------
-RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                                 Support::Context &context)
+RefineToolGroup::RefineToolGroup(Support::FilterRefinerRegister &filgerRefiners,
+                                 Support::Context               &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Refine")}
 , m_context(context)
 {
   auto morphologicalFactory = std::make_shared<MorphologicalFilterFactory>();
   context.factory()->registerFilterFactory(morphologicalFactory);
-  filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
+  //TODO filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
 
   initManualEditionTool();
   initSplitTool();

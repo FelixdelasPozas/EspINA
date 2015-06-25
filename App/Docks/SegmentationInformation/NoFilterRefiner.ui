@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ESPINA::DefaultHistory</class>
- <widget class="QWidget" name="ESPINA::DefaultHistory">
+ <class>NoFilterRefiner</class>
+ <widget class="QWidget" name="NoFilterRefiner">
   <property name="geometry">
    <rect>
     <x>0</x>

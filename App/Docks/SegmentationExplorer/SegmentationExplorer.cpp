@@ -59,20 +59,18 @@ public:
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
+SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
                                            Support::Context &context)
-: DockWidget(tr("SegmentationExplorerDock"))
+: DockWidget(tr("Segmentation Explorer"))
 , SelectableView(context.viewState())
-, m_context(context)
+, WithContext(context)
 , m_gui    {new GUI()}
 , m_layout {nullptr}
 {
   setObjectName("SegmentationExplorer");
 
-  setWindowTitle(tr("Segmentation Explorer"));
-
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout(tr("Category"), new ClassificationLayout(m_gui->view, delegateFactory, m_context));
+  addLayout(tr("Category"), new ClassificationLayout(m_gui->view, filterRefiners, context));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -89,8 +87,8 @@ SegmentationExplorer::SegmentationExplorer(FilterDelegateFactorySPtr delegateFac
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
           this, SLOT(updateSearchFilter()));
 
-  connect(getSelection(context).get(), SIGNAL(selectionStateChanged()),
-          this,                     SLOT(onSelectionChanged()));
+  connect(getSelection().get(), SIGNAL(selectionStateChanged()),
+          this,                 SLOT(onSelectionChanged()));
 
   setWidget(m_gui);
 
@@ -251,7 +249,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
     Bounds bounds = segmentation->output()->bounds();
     NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
 
-    m_context.viewState().focusViewOn(center);
+    getViewState().focusViewOn(center);
   }
 }
 
@@ -275,7 +273,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  getSelection(m_context)->set(currentSelection);
+  getSelection()->set(currentSelection);
   this->blockSignals(false);
 }
 

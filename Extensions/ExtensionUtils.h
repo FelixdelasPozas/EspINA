@@ -27,11 +27,11 @@
 
 namespace ESPINA
 {
-	/** \brief Templatized extension retrieval. The extended item must
-	 * be extended by the templated extension.
-	 * \param[in] item, extended item.
-	 *
-	 */
+  /** \brief Templatized extension retrieval. The extended item must
+   * be extended by the templated extension.
+   * \param[in] item to retrieve the extension from
+   *
+   */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveExtension(Extendible item)
   {
@@ -45,11 +45,11 @@ namespace ESPINA
     return extension;
   };
 
-	/** \brief Templatized extension retrieval. In the case the extended item
-	 * haven't got the extension, it's created and returned.
-	 * \param[in] item, extended item.
-	 *
-	 */
+  /** \brief Templatized extension retrieval. In the case the extended item
+   * haven't got the extension, it's created and returned.
+   * \param[in] item to retrieve or create the extension from
+   *
+   */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
   {

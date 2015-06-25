@@ -24,7 +24,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
 OrthogonalRepresentation::OrthogonalRepresentation()
-: OrthogonalRepresentation{{1,1,1},{0, 1, 0, 1, 0, 1}}
+: OrthogonalRepresentation({1,1,1},{0, 1, 0, 1, 0, 1})
 {
 }
 

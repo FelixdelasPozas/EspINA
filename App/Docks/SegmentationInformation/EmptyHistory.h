@@ -1,7 +1,6 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,29 +16,27 @@
  *
  */
 
-#ifndef ESPINA_FILTER_HISTORY_H
-#define ESPINA_FILTER_HISTORY_H
+#ifndef ESPINA_EMPTY_HISTORY_H
+#define ESPINA_EMPTY_HISTORY_H
 
-#include "Context.h"
+// Qt
+#include <QWidget>
 
-class QWidget;
+#include "ui_EmptyHistory.h"
 
-namespace ESPINA {
-
-  class FilterHistory
-  : public QObject
+namespace ESPINA
+{
+  class EmptyHistory
+  : public QWidget
   {
+    Q_OBJECT
   public:
-    virtual ~FilterHistory() {}
+    explicit EmptyHistory(QWidget* parent = 0, Qt::WindowFlags f = 0);
 
-    /** \brief Return a widget to display or modify filter parameters
-     *
-     */
-    virtual QWidget* createWidget(Support::Context &context) = 0;
+  private:
+    Ui::EmptyHistory *m_gui;
   };
-
-  using FilterDelegateSPtr = std::shared_ptr<FilterHistory>;
 
 } // namespace ESPINA
 
-#endif // ESPINA_FILTER_HISTORY_H
+#endif // ESPINA_EMPTY_HISTORY_H

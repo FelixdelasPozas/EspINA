@@ -16,40 +16,42 @@
  *
  */
 
-#include "FilterDelegateFactory.h"
+#include "FilterRefinerRegister.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
-void FilterDelegateFactory::registerFilterDelegateFactory(SpecificFilterDelegateFactorySPtr factory)
+void FilterRefinerRegister::registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type)
 {
-  for (auto filterType : factory->availableFilterDelegates())
-  {
-    m_factories[filterType] = factory;
-  }
+  m_register[type] = refiner;
 }
 
 //------------------------------------------------------------------------
-FilterDelegateSPtr FilterDelegateFactory::createDelegate(SegmentationAdapterPtr segmentation)
+QWidget *FilterRefinerRegister::createRefineWidget(SegmentationAdapterPtr segmentation, Context& context)
 throw (Unknown_Filter_Type_Exception)
 {
   auto filter = segmentation->filter();
   auto type   = filter->type();
 
-  if (!m_instances.contains(segmentation)
-    || m_instances[segmentation].second != type)
-  {
+  if (!m_register.contains(type)) throw Unknown_Filter_Type_Exception();
 
-    if (!m_factories.contains(type)) throw Unknown_Filter_Type_Exception();
+  return m_register[type]->createWidget(segmentation, context);
 
-    m_instances.insert(segmentation, Factory(m_factories[type]->createDelegate(segmentation, filter), type));
-  }
-
-  return m_instances[segmentation].first;
+//   if (!m_instances.contains(segmentation)
+//     || m_instances[segmentation].second != type)
+//   {
+//
+//     if (!m_register.contains(type)) throw Unknown_Filter_Type_Exception();
+//
+//     m_instances.insert(segmentation, Factory(m_register[type]->createWidget(segmentation, filter), type));
+//   }
+//
+//   return m_instances[segmentation].first;
 }
 
 //------------------------------------------------------------------------
-void FilterDelegateFactory::resetDelegates()
+void FilterRefinerRegister::unregisterFilterRefiners()
 {
-  m_instances.clear();
+  m_register.clear();
 }

@@ -21,8 +21,8 @@
 // ESPINA
 #include "SegmentationInspector.h"
 
-#include <Docks/SegmentationHistory/EmptyHistory.h>
-#include <Docks/SegmentationHistory/DefaultHistory.h>
+#include <Docks/SegmentationInformation/EmptyHistory.h>
+#include <Docks/SegmentationInformation/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -30,7 +30,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Support/FilterHistory.h>
+#include <Support/FilterRefiner.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 // Qt
@@ -51,12 +51,12 @@ const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString
 const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
-                                             FilterDelegateFactorySPtr delegateFactory,
-                                             Support::Context   &context)
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList         segmentations,
+                                             Support::FilterRefinerRegister &filterRefiners,
+                                             Support::Context               &context)
 : QWidget               {nullptr, Qt::WindowStaysOnTopHint}
 , m_context             (context)
-, m_delegateFactory     {delegateFactory}
+, m_register            {filterRefiners}
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}
 , m_segmentationSources {context.representationInvalidator()}
@@ -401,17 +401,16 @@ void SegmentationInspector::updateSelection()
 
       try
       {
-        auto delegate = m_delegateFactory->createDelegate(segmentation);
-        activeHistory = delegate->createWidget(m_context);
+        activeHistory = m_register.createRefineWidget(segmentation, m_context);
       }
       catch (...)
       {
-        activeHistory = new DefaultHistory(segmentation);
+        activeHistory = new NoFilterRefiner();
       }
     }
   }
 
-  if (nullptr == activeHistory)
+  if (!activeHistory)
   {
     activeHistory = new EmptyHistory();
   }

@@ -46,8 +46,8 @@ namespace ESPINA
      *
      */
     SegmentationTools(SeedGrowSegmentationSettings* settings,
-                      FilterDelegateFactorySPtr     filterDelegateFactory,
-                      Support::Context       &context);
+                      Support::FilterRefinerRegister &filterDelegateFactory,
+                      Support::Context              &context);
 
     /** \brief SegmentationTools class virtual destructor.
      *

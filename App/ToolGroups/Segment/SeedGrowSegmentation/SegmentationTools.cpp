@@ -25,10 +25,10 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SegmentationTools::SegmentationTools(SeedGrowSegmentationSettings* settings,
-                                     FilterDelegateFactorySPtr     filterDelegateFactory,
-                                     Support::Context       &context)
+                                     Support::FilterRefinerRegister &filterRefiners,
+                                     Support::Context               &context)
 : ToolGroup{":/espina/pixelSelector.svg", tr("Segmentation Tools")}
-, m_sgsTool{new SeedGrowSegmentationTool(settings, filterDelegateFactory, context)}
+, m_sgsTool{new SeedGrowSegmentationTool(settings, filterRefiners, context)}
 {
 
 }

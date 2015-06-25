@@ -16,36 +16,13 @@
  *
  */
 
-#ifndef ESPINA_DEFAULT_HISTORY_H
-#define ESPINA_DEFAULT_HISTORY_H
+#include "NoFilterRefiner.h"
 
-// Qt
-#include <QWidget>
+using namespace ESPINA;
 
-// ESPINA
-#include <GUI/Model/SegmentationAdapter.h>
-
-namespace ESPINA
+NoFilterRefiner::NoFilterRefiner(QWidget *parent, Qt::WindowFlags f)
+: QWidget(parent, f)
+, m_gui(new Ui::NoFilterRefiner())
 {
-
-  namespace Ui
-  {
-    class DefaultHistory;
-  }
-
-  class DefaultHistory
-  : public QWidget
-  {
-    Q_OBJECT
-  public:
-    explicit DefaultHistory(SegmentationAdapterPtr segmentation,
-                            QWidget               *parent = 0,
-                            Qt::WindowFlags        f = 0);
-
-  private:
-    Ui::DefaultHistory* m_gui;
-  };
-
-} // namespace ESPINA
-
-#endif // ESPINA_DEFAULT_HISTORY_H
+  m_gui->setupUi(this);
+}

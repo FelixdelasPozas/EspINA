@@ -90,11 +90,11 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 }
 
 //------------------------------------------------------------------------
-SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
-                                     FilterDelegateFactorySPtr delegateFactory,
-                                     Support::Context         &context)
+SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
+                                     Support::FilterRefinerRegister &filterRefiners,
+                                     Support::Context               &context)
 : m_context        (context)
-, m_delegateFactory{delegateFactory}
+, m_delegateFactory{filterRefiners}
 , m_view           {view}
 {
   connect(m_context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),

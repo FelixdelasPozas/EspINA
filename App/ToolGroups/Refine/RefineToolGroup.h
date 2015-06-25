@@ -24,7 +24,7 @@
 // ESPINA
 #include <ToolGroups/ToolGroup.h>
 
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 
 class QUndoStack;
 
@@ -40,8 +40,8 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                             Support::Context         &context);
+    explicit RefineToolGroup(Support::FilterRefinerRegister &filterRefiners,
+                             Support::Context               &context);
 
     virtual ~RefineToolGroup();
 

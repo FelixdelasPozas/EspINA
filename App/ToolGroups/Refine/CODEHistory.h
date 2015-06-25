@@ -16,22 +16,22 @@
  *
  */
 
-#ifndef ESPINA_CODE_HISTORY_H
-#define ESPINA_CODE_HISTORY_H
+#ifndef ESPINA_CODE_REFINER_H
+#define ESPINA_CODE_REFINER_H
 
 #include <Filters/MorphologicalEditionFilter.h>
-#include <Support/FilterHistory.h>
+#include <Support/FilterRefiner.h>
 
 namespace ESPINA {
 
-  class CODEHistory
-  : public FilterHistory
+  class CODEHistory //TODO
+  : public FilterRefiner
   {
    Q_OBJECT
   public:
     explicit CODEHistory(const QString &title, MorphologicalEditionFilterSPtr filter);
 
-    virtual QWidget *createWidget(Support::Context &context);
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
 
   signals:
     void radiusChanged(int);
@@ -43,4 +43,4 @@ namespace ESPINA {
   };
 }
 
-#endif // ESPINA_CODE_HISTORY_H
+#endif // ESPINA_CODE_REFINER_H

@@ -1,6 +1,7 @@
 /*
+ * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
- *
+
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,19 +17,29 @@
  *
  */
 
-#include "DefaultHistory.h"
+#ifndef ESPINA_FILTER_REFINER_H
+#define ESPINA_FILTER_REFINER_H
 
-#include "ui_DefaultHistory.h"
+#include "Context.h"
 
-using namespace ESPINA;
+class QWidget;
 
-DefaultHistory::DefaultHistory(SegmentationAdapterPtr segmentation,
-                               QWidget               *parent,
-                               Qt::WindowFlags        f)
-: QWidget(parent, f)
-, m_gui(new Ui::DefaultHistory())
-{
-  m_gui->setupUi(this);
+namespace ESPINA {
 
-  m_gui->m_segmantionName->setText(segmentation->data(Qt::DisplayRole).toString());
-}
+  class FilterRefiner
+  : public QObject
+  {
+  public:
+    virtual ~FilterRefiner() {}
+
+    /** \brief Create a widge to refine the filter
+     *
+     */
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context &context) = 0;
+  };
+
+  using FilterRefinerSPtr = std::shared_ptr<FilterRefiner>;
+
+} // namespace ESPINA
+
+#endif // ESPINA_FILTER_REFINER_H
