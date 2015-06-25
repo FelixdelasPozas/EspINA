@@ -35,8 +35,8 @@ namespace ESPINA
   : public RepresentationPipeline
   {
     public:
-      enum class Width: std::int8_t { tiny = 0, small = 1, medium = 2, large = 3, huge = 4 };
-      enum class Pattern: std::int8_t { normal = 0, dotted = 1, dashed = 2 } ;
+      enum class Width: std::int8_t { TINY, SMALL, MEDIUM, LARGE, BIG };
+      enum class Pattern: std::int8_t { NORMAL, DOTTED, DASHED } ;
       static QString WIDTH;
       static QString PATTERN;
 
@@ -83,6 +83,11 @@ namespace ESPINA
        *
        */
       int hexPatternValue(Pattern value) const;
+
+      int widthValue(Width width) const;
+      int patternValue(Pattern pattern) const;
+      Pattern toPattern(int value) const;
+      Width toWidth(int value) const;
 
     private:
       ColorEngineSPtr m_colorEngine;

@@ -50,7 +50,7 @@ namespace ESPINA {
         manager2D->setIcon(QIcon(":cf-switch2D.svg"));
         manager2D->setDescription(QObject::tr("Stereological Slice Counting Frame"));
 
-        auto switch2D  = std::make_shared<BasicRepresentationSwitch>(manager2D, ViewType::VIEW_2D, timer, context);
+        auto switch2D  = std::make_shared<BasicRepresentationSwitch>("CF2DSwitch", manager2D, ViewType::VIEW_2D, timer, context);
         switch2D->setChecked(true);
         switch2D->setGroupWith("counting_frame");
 
@@ -66,7 +66,7 @@ namespace ESPINA {
         manager3D->setIcon(QIcon(":cf-switch3D.svg"));
         manager3D->setDescription(QObject::tr("Stereological Counting Frame"));
 
-        auto switch3D  = std::make_shared<BasicRepresentationSwitch>(manager3D, ViewType::VIEW_3D, timer, context);
+        auto switch3D  = std::make_shared<BasicRepresentationSwitch>("CD3DSwitch", manager3D, ViewType::VIEW_3D, timer, context);
         switch3D->setGroupWith("counting_frame_3D");
 
         representation.Managers << manager3D;

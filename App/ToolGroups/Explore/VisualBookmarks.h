@@ -33,7 +33,6 @@ class QPushButton;
 
 namespace ESPINA
 {
-  
   class VisualBookmarks
   : public ProgressTool
   {
@@ -80,18 +79,6 @@ namespace ESPINA
       void apply();
 
     private:
-      /** \brief Serializes the vector into a QString. Used to store settings.
-       * \param[in] vector NmVector3 object reference.
-       *
-       */
-      QString serialize(const NmVector3 &vector) const;
-
-      /** \brief Deserialized the QString into a vector. Used to load settings.
-       * \param[in] string QString object reference.
-       *
-       */
-      NmVector3 deserialize(const QString &string) const;
-
       /** \brief Helper method to initialize the additional widgets.
        *
        */

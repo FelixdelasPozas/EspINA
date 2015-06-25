@@ -64,9 +64,6 @@ namespace ESPINA
 
         bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
      };
-
-      //   using RefineToolPtr  = RefineTool *;
-      //   using RefineToolSPtr = std::shared_ptr<RefineTool>;
     }
   }
 } // namespace ESPINA

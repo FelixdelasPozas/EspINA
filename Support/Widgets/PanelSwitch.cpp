@@ -25,11 +25,11 @@ using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString ENABLED = QString("Panel enabled");
+const QString ENABLED = "Panel enabled";
 
 //----------------------------------------------------------------------------
-PanelSwitch::PanelSwitch(DockWidget *dock, const QString &icon, const QString &tooltip, Context &context)
-: ProgressTool(dock->title(), icon, tooltip, context)
+PanelSwitch::PanelSwitch(const QString &id, DockWidget *dock, const QString &icon, const QString &tooltip, Context &context)
+: ProgressTool(id, icon, tooltip, context)
 , m_dock(dock)
 {
   setCheckable(true);

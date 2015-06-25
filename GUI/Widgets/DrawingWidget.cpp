@@ -32,10 +32,10 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-const QString BRUSH_RADIUS("Brush radius");
-const QString BRUSH_OPACITY("Brush opacity");
-const QString CONTOUR_DISTANCE("Contour distance");
-const QString MODE("Drawing mode");
+const QString BRUSH_RADIUS     = "Brush radius";
+const QString BRUSH_OPACITY    = "Brush opacity";
+const QString CONTOUR_DISTANCE = "Contour distance";
+const QString MODE             = "Drawing mode";
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -433,6 +433,9 @@ void DrawingWidget::restoreSettings(std::shared_ptr<QSettings> settings)
   m_opacity         = settings->value(BRUSH_OPACITY,    50).toInt();
   m_brushRadius     = settings->value(BRUSH_RADIUS,     20).toInt();
   m_contourDistance = settings->value(CONTOUR_DISTANCE, 20).toInt();
+
+  auto eraserEnabled = settings->value(MODE, false).toBool();
+  m_eraserWidget->setChecked(eraserEnabled);
 }
 
 //------------------------------------------------------------------------
@@ -441,6 +444,7 @@ void DrawingWidget::saveSettings(std::shared_ptr<QSettings> settings)
   settings->setValue(BRUSH_RADIUS,     m_brushRadius);
   settings->setValue(CONTOUR_DISTANCE, m_contourDistance);
   settings->setValue(BRUSH_OPACITY,    m_opacity);
+  settings->setValue(MODE,             m_eraserWidget->isChecked());
 }
 
 //------------------------------------------------------------------------

@@ -44,7 +44,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
-: ProgressTool(tr("ManualEditionTool"), ":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
+: ProgressTool("ManualEditionTool", ":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}

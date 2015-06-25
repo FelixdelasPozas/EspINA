@@ -83,7 +83,7 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
   crossManager->setIcon(QIcon(icon));
   crossManager->setDescription(description);
 
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, flags, context.timer(), context);
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("CrosshairSwitch", crossManager, flags, context.timer(), context);
   crossSwitch->setGroupWith("crosshair");
 
   representation.Managers << crossManager;

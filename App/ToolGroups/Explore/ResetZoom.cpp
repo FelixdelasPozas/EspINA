@@ -30,7 +30,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ResetZoom::ResetZoom(Support::Context &context)
-: ProgressTool(tr("ResetTool"), ":/espina/zoom_reset.png", tr("Reset Zoom"), context)
+: ProgressTool("ResetTool", ":/espina/zoom_reset.png", tr("Reset Zoom"), context)
 , m_viewState(context.viewState())
 {
   connect(this, SIGNAL(triggered(bool)),

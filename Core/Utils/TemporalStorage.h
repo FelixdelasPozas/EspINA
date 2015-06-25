@@ -42,7 +42,7 @@ namespace ESPINA
   class EspinaCore_EXPORT TemporalStorage
   {
   public:
-    enum class Mode: std::int8_t { Recursive = 1, NoRecursive = 2 };
+    enum class Mode: std::int8_t { RECURSIVE = 1, NORECURSIVE = 2 };
 
   public:
     /** \brief TemporalStorage class constructor.

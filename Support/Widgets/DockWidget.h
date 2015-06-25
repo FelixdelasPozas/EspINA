@@ -58,8 +58,6 @@ namespace ESPINA
 
     virtual void hideEvent(QHideEvent *event);
 
-    const QString title() const;
-
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.
      *
@@ -68,9 +66,6 @@ namespace ESPINA
 
   signals:
     void dockShown(bool visible);
-
-  private:
-    QString m_title;
   };
 }
 

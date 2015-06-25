@@ -33,7 +33,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 CleanROITool::CleanROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
-: ProgressTool(tr("CleanROI"), ":/espina/roi_clean.svg", tr("Clean Volume Of Interest"), context)
+: ProgressTool("CleanROI", ":/espina/roi_clean.svg", tr("Clean Volume Of Interest"), context)
 , m_context  (context)
 , m_toolGroup{toolGroup}
 {

@@ -227,16 +227,6 @@ void DefaultView::setFitToSlices(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::loadSessionSettings(TemporalStorageSPtr storage)
-{
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
-{
-}
-
-//-----------------------------------------------------------------------------
 void DefaultView::initView(RenderView* view, QMainWindow *parent)
 {
   m_views << view;

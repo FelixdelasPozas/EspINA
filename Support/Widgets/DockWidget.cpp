@@ -27,13 +27,11 @@ using namespace ESPINA;
 DockWidget::DockWidget(QWidget* parent)
 : QDockWidget(parent)
 {
-
 }
 
 //------------------------------------------------------------------------
 DockWidget::DockWidget(const QString& title, QWidget* parent, Qt::WindowFlags flags)
 : QDockWidget(title, parent, flags)
-, m_title{title}
 {
 }
 
@@ -67,10 +65,4 @@ void DockWidget::hideEvent(QHideEvent *event)
   QWidget::hideEvent(event);
 
   emit dockShown(false);
-}
-
-//------------------------------------------------------------------------
-const QString DockWidget::title() const
-{
-  return m_title;
 }

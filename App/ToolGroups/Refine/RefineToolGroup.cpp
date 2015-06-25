@@ -307,10 +307,10 @@ void RefineToolGroup::initSplitTool()
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initCODETools()
 {
-  addTool(std::make_shared<CODETool<CloseFilter>> (tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , m_context));
-  addTool(std::make_shared<CODETool<OpenFilter>>  (tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , m_context));
-  addTool(std::make_shared<CODETool<DilateFilter>>(tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), m_context));
-  addTool(std::make_shared<CODETool<ErodeFilter>> (tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , m_context));
+  addTool(std::make_shared<CODETool<CloseFilter>> ("CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , m_context));
+  addTool(std::make_shared<CODETool<OpenFilter>>  ("OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , m_context));
+  addTool(std::make_shared<CODETool<DilateFilter>>("DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), m_context));
+  addTool(std::make_shared<CODETool<ErodeFilter>> ("ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , m_context));
 }
 
 //-----------------------------------------------------------------------------

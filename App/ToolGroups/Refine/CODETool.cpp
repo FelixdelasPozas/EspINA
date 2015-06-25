@@ -34,11 +34,16 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support::Widgets;
 
-const QString RADIUS = QString("Radius");
+const QString RADIUS = "Radius";
 
 //------------------------------------------------------------------------
-CODEToolBase::CODEToolBase(const QString &name, const QString& icon, const QString& tooltip, Support::Context& context)
-: RefineTool(name, icon, tooltip, context)
+CODEToolBase::CODEToolBase(const QString    &toolId,
+                           const QString    &name,
+                           const QString    &icon,
+                           const QString    &tooltip,
+                           Support::Context &context)
+: RefineTool(toolId, icon, tooltip, context)
+, m_name    {name}
 {
   setCheckable(true);
   setExclusive(true);
@@ -96,14 +101,14 @@ void CODEToolBase::onApplyClicked()
     auto filter = createFilter(inputs, m_type);
 
     filter->setRadius(m_radius->value());
-    filter->setDescription(tr("%1 %2").arg(id())
+    filter->setDescription(tr("%1 %2").arg(m_name)
     .arg(segmentation->data(Qt::DisplayRole)
     .toString()));
 
     TaskContext task;
 
     task.Task         = filter;
-    task.Operation    = tr("%1 Segmentation").arg(id());
+    task.Operation    = tr("%1 Segmentation").arg(m_name);
     task.Segmentation = segmentation;
 
     segmentation->setBeingModified(true);
@@ -122,7 +127,7 @@ void CODEToolBase::onApplyClicked()
 //------------------------------------------------------------------------
 void CODEToolBase::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  m_radius->setValue(settings->value(RADIUS).toInt());
+  m_radius->setValue(settings->value(RADIUS, 1).toInt());
 }
 
 //------------------------------------------------------------------------

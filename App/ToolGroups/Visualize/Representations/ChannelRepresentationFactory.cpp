@@ -70,7 +70,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
     sliceManager->setIcon(QIcon(":espina/channels_slice2D_switch.svg"));
     sliceManager->setDescription(QObject::tr("Channel Slice Representation"));
 
-    auto sliceSwitch = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch = std::make_shared<BasicRepresentationSwitch>("ChannelSliceSwitch", sliceManager, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
     sliceSwitch->setGroupWith("1_channel_reps");
 
@@ -85,7 +85,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
     slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));
     slice3DManager->setDescription(QObject::tr("Channel 3D Slice Representation"));
 
-    auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer, context);
+    auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>("ChannelSlice3DSwitch", slice3DManager, ViewType::VIEW_3D, timer, context);
     slice3DSwitch->setGroupWith("1_channel_reps_3D");
 
     representation.Managers << slice3DManager;

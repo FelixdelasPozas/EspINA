@@ -540,8 +540,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_mainBar->setEnabled(true);
     m_contextualBar->setEnabled(true);
 
-    m_view->loadSessionSettings(m_analysis->storage());
-
     if (!m_context.model()->isEmpty())
     {
       checkAnalysisConsistency();
@@ -741,8 +739,6 @@ void EspinaMainWindow::saveAnalysis()
   m_busy = true;
 
   saveToolsSettings();
-
-  m_view->saveSessionSettings(m_analysis->storage());
 
   IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
 
@@ -1245,12 +1241,14 @@ void EspinaMainWindow::createExploreToolGroup()
 {
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
 
-  auto channelExplorerSwitch = std::make_shared<PanelSwitch>(new ChannelExplorer(m_context),
+  auto channelExplorerSwitch = std::make_shared<PanelSwitch>("ChannelExplorer",
+                                                             new ChannelExplorer(m_context),
                                                              ":espina/channel_explorer_switch.svg",
                                                              tr("Display Channel Explorer"),
                                                              m_context);
 
-  auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>(new SegmentationExplorer(m_filterDelegateFactory, m_context),
+  auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
+                                                                  new SegmentationExplorer(m_filterDelegateFactory, m_context),
                                                                   ":espina/segmentation_explorer_switch.svg",
                                                                   tr("Display Segmentation Explorer"),
                                                                   m_context);
@@ -1317,14 +1315,16 @@ void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
 
-  auto panelSwitchXY = std::make_shared<PanelSwitch>(m_view->panelXZ(),
+  auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",
+                                                     m_view->panelXZ(),
                                                      ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
   panelSwitchXY->setGroupWith("view_panels");
   m_visualizeToolGroup->addTool(panelSwitchXY);
 
-  auto panelSwitchYZ = std::make_shared<PanelSwitch>(m_view->panelYZ(),
+  auto panelSwitchYZ = std::make_shared<PanelSwitch>("YZ",
+                                                     m_view->panelYZ(),
                                                      ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
@@ -1358,7 +1358,8 @@ void EspinaMainWindow::createDefaultPanels()
 {
 
   auto segmentationHistory       = new HistoryDock(m_filterDelegateFactory, m_context);
-  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>(segmentationHistory,
+  auto segmentationHistorySwitch = std::make_shared<PanelSwitch>("SegmentationHistory",
+                                                                 segmentationHistory,
                                                                   ":espina/segmentation_information_switch.svg",
                                                                   tr("Display Segmentation Information"),
                                                                   m_context);
@@ -1482,18 +1483,12 @@ void EspinaMainWindow::updateToolsSettings()
     {
       if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
 
-      // needed to create a new QSettings with a filename, otherwise will use the application one.
-      QTemporaryFile dummy;
-      dummy.open();
-      dummy.close();
-
-      auto toolSettings = std::make_shared<QSettings>(dummy.fileName(), QSettings::IniFormat);
-
       settings->beginGroup(tool->id());
-      copySettings(settings, toolSettings);
+      SettingsContainer container;
+      container.copyFrom(settings);
       settings->endGroup();
 
-      tool->restoreSettings(toolSettings);
+      tool->restoreSettings(container.settings());
     }
   }
 }
@@ -1510,19 +1505,14 @@ void EspinaMainWindow::saveToolsSettings()
     {
       if(tool->id().isEmpty()) continue;
 
-      // needed to create a new QSettings with a filename, otherwise will use the application one.
-      QTemporaryFile dummy;
-      dummy.open();
-      dummy.close();
-
-      auto toolSettings = std::make_shared<QSettings>(dummy.fileName(), QSettings::IniFormat);
-
+      SettingsContainer container;
+      auto toolSettings = container.settings();
       tool->saveSettings(toolSettings);
 
       if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
       {
         settings->beginGroup(tool->id());
-        copySettings(toolSettings, settings);
+        container.copyTo(settings);
         settings->endGroup();
       }
     }

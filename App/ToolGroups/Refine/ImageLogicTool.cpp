@@ -31,7 +31,7 @@ const Filter::Type SUBSTRACTION_FILTER = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 ImageLogicTool::ImageLogicTool(const QString &icon, const QString &tooltip, Support::Context &context)
-: RefineTool(tr("ImageLogicTool"), icon, tooltip, context)
+: RefineTool("ImageLogicTool", icon, tooltip, context)
 , m_operation(ImageLogicFilter::Operation::ADDITION)
 {
   connect(this, SIGNAL(triggered(bool)),

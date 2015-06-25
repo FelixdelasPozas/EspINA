@@ -23,7 +23,6 @@
 #include "Utils.h"
 
 // Qt
-#include <QSettings>
 #include <QStringList>
 
 using namespace ESPINA;
@@ -50,3 +49,29 @@ void ESPINA::copySettings(std::shared_ptr<QSettings> from, std::shared_ptr<QSett
   }
 }
 
+//-----------------------------------------------------------------------------
+SettingsContainer::SettingsContainer()
+{
+  m_file.open();
+  m_file.close();
+
+  m_settings = std::make_shared<QSettings>(m_file.fileName(), QSettings::IniFormat);
+}
+
+//-----------------------------------------------------------------------------
+std::shared_ptr<QSettings> SettingsContainer::settings() const
+{
+  return m_settings;
+}
+
+//-----------------------------------------------------------------------------
+void SettingsContainer::copyFrom(std::shared_ptr<QSettings> settings)
+{
+  copySettings(settings, m_settings);
+}
+
+//-----------------------------------------------------------------------------
+void SettingsContainer::copyTo(std::shared_ptr<QSettings> settings)
+{
+  copySettings(m_settings, settings);
+}

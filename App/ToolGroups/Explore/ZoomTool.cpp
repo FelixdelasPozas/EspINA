@@ -34,7 +34,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomTool::ZoomTool(Support::Context &context)
-: ProgressTool(tr("ZoomTool"), ":/espina/zoom_selection.png", tr("Zoom Tool"), context)
+: ProgressTool("ZoomTool", ":/espina/zoom_selection.png", tr("Zoom Tool"), context)
 , m_viewState(context.viewState())
 , m_handler  {new ZoomEventHandler()}
 , m_factory  {new TemporalPrototypes{std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get())}}

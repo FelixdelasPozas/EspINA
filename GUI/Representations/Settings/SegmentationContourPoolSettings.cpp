@@ -29,8 +29,8 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   SegmentationContourPoolSettings::SegmentationContourPoolSettings()
   {
-    setWidth(SegmentationContourPipeline::Width::medium);
-    setPattern(SegmentationContourPipeline::Pattern::normal);
+    setWidth(SegmentationContourPipeline::Width::MEDIUM);
+    setPattern(SegmentationContourPipeline::Pattern::NORMAL);
     setOpacity(0.6);
   }
 

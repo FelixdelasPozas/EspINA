@@ -30,8 +30,8 @@ using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString ENABLED               = QString("Tool enabled");
-const QString GEOMETRY_SETTINGS_KEY = QString("View3D geometry");
+const QString ENABLED               = "Tool enabled";
+const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
@@ -166,7 +166,7 @@ void Dialog3D::addRepresentationSwitch(RepresentationSwitchSPtr repSwitch)
 
 //------------------------------------------------------------------------
 Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
-: ProgressTool(tr("Dialog3DTool"), ":espina/panel_3d.svg", tr("Display YZ View"), context)
+: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display YZ View"), context)
 , m_dialog    {dialog}
 {
 }

@@ -32,7 +32,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 ManualROITool::ManualROITool(Support::Context  &context,
                              RestrictToolGroup *toolGroup)
-: ProgressTool(tr("ManualROI"), ":espina/roi_manual.svg", tr("Manual ROI"), context)
+: ProgressTool("ManualROI", ":espina/roi_manual.svg", tr("Manual ROI"), context)
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context}

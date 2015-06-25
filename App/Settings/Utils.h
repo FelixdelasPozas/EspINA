@@ -25,10 +25,45 @@
 // C++
 #include <memory>
 
-class QSettings;
+// Qt
+#include <QTemporaryFile>
+#include <QSettings>
 
 namespace ESPINA
 {
+  /** \class TemporalSettings allocates a empty QSettings object.
+   *
+   */
+  class SettingsContainer
+  {
+    public:
+      /** \brief TemporalSettings class constructor.
+       *
+       */
+      SettingsContainer();
+
+      /** \brief Returns a shared pointer for the QSettings object.
+       *
+       */
+      std::shared_ptr<QSettings> settings() const;
+
+      /** \brief Copies the contents of the given settings to the internal settings.
+       * \param[i] settings QSettings object to copy keys from.
+       *
+       */
+      void copyFrom(std::shared_ptr<QSettings> settings);
+
+      /** \brief Copies the contents of the settings to the given settings object.
+       * \param[i] settings QSettings object to copy keys to.
+       *
+       */
+      void copyTo(std::shared_ptr<QSettings> settings);
+
+    private:
+      QTemporaryFile             m_file;
+      std::shared_ptr<QSettings> m_settings;
+  };
+
   /** \brief Copies settings from one file to the other settings file.
    * \param[in] from settings to copy from.
    * \param[in] to settings to copy to.

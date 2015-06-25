@@ -29,7 +29,8 @@ namespace ESPINA {
   : public RepresentationSwitch
   {
   public:
-    explicit BasicRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+    explicit BasicRepresentationSwitch(const QString &id,
+                                       GUI::Representations::RepresentationManagerSPtr manager,
                                        ViewTypeFlags supportedViews,
                                        Timer &timer,
                                        Support::Context &context);

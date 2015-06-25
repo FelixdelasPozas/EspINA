@@ -33,7 +33,7 @@ namespace ESPINA
 {
   QList<TemporalStorage *> TemporalStorage::s_Storages;
 
-  const QString SETTINGS_FILE = QString("Settings/SessionSettings.ini");
+  const QString SETTINGS_FILE = "Settings/SessionSettings.ini";
 
   //----------------------------------------------------------------------------
   bool removeRecursively(const QString & dirName)
@@ -169,7 +169,7 @@ namespace ESPINA
       QString relativeStoragePath = m_storageDir.relativeFilePath(file.absoluteFilePath());
       if (file.isDir())
       {
-        if (Mode::Recursive == mode)
+        if (Mode::RECURSIVE == mode)
         {
           result << snapshots(relativeStoragePath, mode);
         }
@@ -195,7 +195,9 @@ namespace ESPINA
   {
     QDir temporalPath = QDir::tempPath();
     if (!temporalPath.cd("espina"))
+    {
       return false;
+    }
 
     return removeRecursively(temporalPath.absolutePath());
   }
@@ -203,7 +205,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   std::shared_ptr<QSettings> TemporalStorage::sessionSettings()
   {
-    return std::make_shared<QSettings>(m_storageDir.absolutePath() + QString("/") + SETTINGS_FILE, QSettings::IniFormat);
+    return std::make_shared<QSettings>(m_storageDir.absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
   }
 
   //----------------------------------------------------------------------------

@@ -48,7 +48,7 @@ const Filter::Type SOURCE_FILTER_V4 = "::FreeFormSource";
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
 
-const QString ManualSegmentTool::MODE = QString("Stroke mode");
+const QString MODE = "Stroke mode";
 
 //-----------------------------------------------------------------------------
 FilterTypeList ManualSegmentTool::ManualFilterFactory::providedFilters() const
@@ -82,7 +82,7 @@ throw(Unknown_Filter_Exception)
 
 //------------------------------------------------------------------------
 ManualSegmentTool::ManualSegmentTool(Support::Context &context)
-: ProgressTool(tr("ManualSegmentationTool"), ":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
+: ProgressTool("ManualSegmentationTool", ":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}
@@ -160,15 +160,15 @@ SegmentationAdapterSPtr ManualSegmentTool::referenceSegmentation() const
 //------------------------------------------------------------------------
 void ManualSegmentTool::initMultiStrokeWidgets()
 {
-  auto multiStroke      = Styles::createToolButton(":espina/single_stroke.svg", tr("Toggle single/multi stroke segmentations"));
+  m_multiStroke         = Styles::createToolButton(":espina/single_stroke.svg", tr("Toggle single/multi stroke segmentations"));
   auto nextSegmentation = Styles::createToolButton(":espina/next_segmentation.svg", tr("Start a new multi-stroke segmentation"));
 
-  multiStroke->setCheckable(true);
+  m_multiStroke->setCheckable(true);
 
-  connect(multiStroke, SIGNAL(toggled(bool)),
-          this,        SLOT(onStrokeModeToggled(bool)));
+  connect(m_multiStroke, SIGNAL(toggled(bool)),
+          this,          SLOT(onStrokeModeToggled(bool)));
 
-  connect(multiStroke,      SIGNAL(toggled(bool)),
+  connect(m_multiStroke,    SIGNAL(toggled(bool)),
           nextSegmentation, SLOT(setVisible(bool)));
 
   nextSegmentation->setVisible(false);
@@ -177,7 +177,7 @@ void ManualSegmentTool::initMultiStrokeWidgets()
           this,             SLOT(startNextSegmentation()));
 
 
-  addSettingsWidget(multiStroke);
+  addSettingsWidget(m_multiStroke);
   addSettingsWidget(nextSegmentation);
 }
 
@@ -392,7 +392,9 @@ void ManualSegmentTool::onStrokeModeToggled(bool toggled)
 //------------------------------------------------------------------------
 void ManualSegmentTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  m_mode = static_cast<Mode>(settings->value(MODE).toInt());
+  auto multiStroke = settings->value(MODE, false).toBool();
+  m_multiStroke->setChecked(multiStroke); // signals take care of the rest of the configuration.
+
   settings->beginGroup("DrawingWidget");
   m_drawingWidget.restoreSettings(settings);
   settings->endGroup();
@@ -401,7 +403,8 @@ void ManualSegmentTool::restoreSettings(std::shared_ptr<QSettings> settings)
 //------------------------------------------------------------------------
 void ManualSegmentTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(MODE, static_cast<int>(m_mode));
+  settings->setValue(MODE, m_multiStroke->isChecked());
+
   settings->beginGroup("DrawingWidget");
   m_drawingWidget.saveSettings(settings);
   settings->endGroup();

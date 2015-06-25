@@ -85,8 +85,6 @@ namespace ESPINA
     void onSelectionChanged();
 
   private:
-    static const QString MODE;
-
     void initMultiStrokeWidgets();
 
     void setInitialStroke();
@@ -125,6 +123,7 @@ namespace ESPINA
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     DrawingTool        m_drawingWidget;
+    QPushButton       *m_multiStroke;
     Mode               m_mode;
     bool               m_createSegmentation;
     ViewItemAdapterPtr m_referenceItem;

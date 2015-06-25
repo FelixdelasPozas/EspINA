@@ -687,8 +687,8 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   if(analysis->storage() != nullptr)
   {
     Snapshot files;
-    files << analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::Recursive);
-    files << analysis->storage()->snapshots(QString("Settings"), TemporalStorage::Mode::Recursive);
+    files << analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::RECURSIVE);
+    files << analysis->storage()->snapshots(QString("Settings"), TemporalStorage::Mode::RECURSIVE);
 
     for (auto data : files)
     {

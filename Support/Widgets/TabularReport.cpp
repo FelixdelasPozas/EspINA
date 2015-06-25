@@ -123,7 +123,7 @@ TabularReport::~TabularReport()
   if (m_model)
   {
     auto storage = m_model->storage();
-    for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NoRecursive))
+    for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NORECURSIVE))
     {
       QFileInfo file(data.first);
 
