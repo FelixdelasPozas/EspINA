@@ -173,6 +173,19 @@ void ProgressTool::onExclusiveToolInUse(ProgressTool* tool)
 }
 
 //----------------------------------------------------------------------------
+void ProgressTool::trigger()
+{
+  if(m_action->isCheckable())
+  {
+    setChecked(!isChecked());
+  }
+  else
+  {
+    m_action->trigger();
+  }
+}
+
+//----------------------------------------------------------------------------
 void ProgressTool::setProgress(int value)
 {
   m_action->setProgress(value);
@@ -283,3 +296,14 @@ const QString ProgressTool::id() const
   return m_id;
 }
 
+//----------------------------------------------------------------------------
+void ProgressTool::setShortcut(QKeySequence keySequence)
+{
+  m_shortcutSequence = keySequence;
+}
+
+//----------------------------------------------------------------------------
+QKeySequence ProgressTool::shortcut() const
+{
+  return m_shortcutSequence;
+}

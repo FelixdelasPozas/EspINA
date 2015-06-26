@@ -48,6 +48,7 @@
 // Qt
 #include <QMainWindow>
 #include <QTimer>
+#include <QShortcut>
 
 // C++
 #include <cstdint>
@@ -249,6 +250,8 @@ namespace ESPINA
 
     void createToolGroups();
 
+    void createToolShortcuts();
+
     void createExploreToolGroup();
 
     void createRestrictToolGroup();
@@ -270,6 +273,11 @@ namespace ESPINA
     void restoreGeometry();
 
     void configureAutoSave();
+
+    /** \brief Enables/disables the tool shortcuts.
+     *
+     */
+    void enableToolShortcuts(bool value);
 
     /** \brief Registers representation factory
      *
@@ -369,6 +377,9 @@ namespace ESPINA
     GeneralSettingsSPtr           m_settings;
     ROISettings*                  m_roiSettings;
     SeedGrowSegmentationSettings *m_sgsSettings;
+
+    QShortcut          m_cancelShortcut;
+    QList<QShortcut *> m_toolShortcuts;
 
     // Menus
     QMenu           *m_addMenu;

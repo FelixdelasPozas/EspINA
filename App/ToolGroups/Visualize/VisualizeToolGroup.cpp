@@ -20,72 +20,28 @@
 
 // ESPINA
 #include "VisualizeToolGroup.h"
-
 #include <GUI/Utils/DefaultIcons.h>
 #include <Support/Representations/RepresentationUtils.h>
-
-// Qt
-#include <QIcon>
-#include <QAction>
-#include <QObject>
-#include <QEvent>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Support::Representations::Utils;
 
-// class VisualizeToolGroup::SettingsTool
-// : public Tool
-// {
-// public:
-//   SettingsTool()
-//   : m_showSettings{new QAction(DefaultIcons::Settings(), tr("Show Representation Options"), this)}
-//   {
-//   }
-//
-//   virtual QList<QAction *> actions() const
-//   {
-//     QList<QAction *> settingsActions;
-//
-//     settingsActions << m_showSettings;
-//
-//     return settingsActions;
-//   }
-//
-// private:
-//   virtual void onToolEnabled(bool enabled) override
-//   {
-//   }
-//
-// private:
-//   QAction *m_showSettings;
-// };
-
 //----------------------------------------------------------------------------
 VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
 : ToolGroup{":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
 , m_context(context)
-, m_segmentationsShortcut{new QShortcut(parent)}
 {
-  m_segmentationsShortcut->setKey(Qt::Key_Space);
-  m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
-
-//   connect(m_segmentationsShortcut, SIGNAL(activated()),
-//           segmentationTool.get(),  SLOT(toggleRepresentationsVisibility()));
 }
 
 //----------------------------------------------------------------------------
 VisualizeToolGroup::~VisualizeToolGroup()
 {
-  delete m_segmentationsShortcut;
 }
 
 //----------------------------------------------------------------------------
 void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
                                                RepresentationSwitchSPtr   repSwitch)
 {
-  //if (repSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
-  //{
-    addTool(repSwitch);
-  //}
+  addTool(repSwitch);
 }

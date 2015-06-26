@@ -105,6 +105,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 
     auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>("SegmentationSliceSwitch", sliceManager, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
+    sliceSwitch->setShortcut(Qt::Key_Space);
     groupSwitch(sliceSwitch);
 
     representation.Managers << sliceManager;

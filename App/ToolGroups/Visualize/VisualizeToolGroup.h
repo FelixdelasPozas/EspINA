@@ -21,13 +21,10 @@
 #ifndef ESPINA_EXPLORE_TOOL_GROUP_H
 #define ESPINA_EXPLORE_TOOL_GROUP_H
 
-#include <ToolGroups/ToolGroup.h>
 
 // ESPINA
+#include <ToolGroups/ToolGroup.h>
 #include <Support/Representations/RepresentationUtils.h>
-
-// Qt
-#include <QShortcut>
 
 namespace ESPINA
 {
@@ -55,8 +52,6 @@ namespace ESPINA
 
   private:
     Support::Context &m_context;
-
-    QShortcut *m_segmentationsShortcut;
   };
 
 } // namespace ESPINA

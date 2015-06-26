@@ -109,6 +109,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_cancelShortcut{Qt::Key_Escape, this, SLOT(cancelOperation()), SLOT(cancelOperation()), Qt::ApplicationShortcut}
 , m_mainBarGroup {this}
 , m_activeToolGroup{nullptr}
 , m_view(new DefaultView(m_context, this))
@@ -150,13 +151,13 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   m_colorEngineMenu->restoreUserSettings();
 
+  createToolShortcuts();
+
   closeCurrentAnalysis();
 
   restoreGeometry();
 
   configureAutoSave();
-
-  new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
@@ -170,6 +171,12 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
+  for(auto shortcut: m_toolShortcuts)
+  {
+    delete shortcut;
+  }
+  m_toolShortcuts.clear();
+
   delete m_exploreToolGroup;
   delete m_restrictToolGroup;
   delete m_segmentToolGroup;
@@ -446,6 +453,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_analysis.reset();
 
   enableWidgets(false);
+  enableToolShortcuts(false);
 
   updateSceneState(m_context.viewState(), ViewItemAdapterSList());
   m_context.viewState().resetCamera();
@@ -524,6 +532,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     updateToolsSettings();
 
     enableWidgets(true);
+    enableToolShortcuts(true);
 
     assignActiveChannel();
 
@@ -1364,6 +1373,43 @@ void EspinaMainWindow::createDefaultPanels()
                                                                   tr("Display Segmentation Information"),
                                                                   m_context);
   m_analyzeToolGroup->addTool(segmentationHistorySwitch);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::createToolShortcuts()
+{
+  QList<QKeySequence> alreadyUsed;
+  alreadyUsed << Qt::Key_Escape << Qt::CTRL+Qt::Key_S << Qt::CTRL+Qt::Key_Z << Qt::CTRL+Qt::SHIFT+Qt::Key_Z;
+
+  for(auto group: toolGroups())
+  {
+    for(auto tool: group->tools())
+    {
+      auto sequence = tool->shortcut();
+      if(!sequence.isEmpty())
+      {
+        if(!alreadyUsed.contains(sequence))
+        {
+          auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
+          m_toolShortcuts << shortcut;
+          connect(shortcut, SIGNAL(activated()), tool.get(), SLOT(trigger()));
+        }
+        else
+        {
+          qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::enableToolShortcuts(bool value)
+{
+  for(auto shortcut: m_toolShortcuts)
+  {
+    shortcut->setEnabled(value);
+  }
 }
 
 //------------------------------------------------------------------------

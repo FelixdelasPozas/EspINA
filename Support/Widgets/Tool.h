@@ -121,6 +121,16 @@ namespace ESPINA
 
         virtual void abortOperation() {}
 
+        /** \brief Sets the key sequence used for the activation of this tool.
+         * \param[in] keySequence QKeySequence object.
+         */
+        void setShortcut(QKeySequence keySequence);
+
+        /** \brief Returns the key sequence used for the activation of this tool.
+         *
+         */
+        QKeySequence shortcut() const;
+
         void onExclusiveToolInUse(ProgressTool *tool);
 
         /** \brief Restores the settings of the tool from the given QSettings object.
@@ -141,6 +151,8 @@ namespace ESPINA
         const QString id() const;
 
       public slots:
+        void trigger();
+
         void setProgress(int value);
 
         void setChecked(bool value);
@@ -175,6 +187,7 @@ namespace ESPINA
         bool    m_isExlusive;
         QString m_groupName;
         const QString m_id;
+        QKeySequence m_shortcutSequence;
 
         EventHandlerSPtr m_handler;
 
