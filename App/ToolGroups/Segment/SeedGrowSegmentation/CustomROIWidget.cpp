@@ -38,8 +38,7 @@ CustomROIWidget::CustomROIWidget(QWidget* parent)
 : QWidget {parent}
 , m_useROI{true}
 {
-  // default values
-  std::memset(m_values, DEFAULT_ROI_VALUE, sizeof(unsigned int)*3);
+  m_values[0] = m_values[1] = m_values[2] = DEFAULT_ROI_VALUE;
 
   auto roiCheckBox = new QCheckBox(tr("Apply ROI"), this);
   roiCheckBox->setCheckState(m_useROI?Qt::Checked:Qt::Unchecked);

@@ -51,27 +51,6 @@ namespace ESPINA
   private:
     static const unsigned int WINDOW_SIZE;
   };
-
-  class SegmentationRepresentationSwitch
-  : public BasicRepresentationSwitch
-  {
-      Q_OBJECT
-    public:
-      explicit SegmentationRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
-                                                std::shared_ptr<SegmentationSlicePoolSettings> setting,
-                                                ViewTypeFlags supportedViews,
-                                                Timer &timer,
-                                                Support::Context &context);
-
-    private slots:
-      void onOpacityChanged(int value);
-
-    private:
-      void initWidgets();
-
-      std::shared_ptr<SegmentationSlicePoolSettings> m_settings;
-      GUI::Widgets::NumericalInput                  *m_opacityWidget;
-  };
 }
 
 #endif // ESPINA_SEGMENTATION_REPRESENTATION_FACTORY_H
