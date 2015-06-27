@@ -64,8 +64,8 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filte
 : DockWidget(tr("Segmentation Explorer"))
 , SelectableView(context.viewState())
 , WithContext(context)
-, m_gui    {new GUI()}
-, m_layout {nullptr}
+, m_gui   {new GUI()}
+, m_layout{nullptr}
 {
   setObjectName("SegmentationExplorer");
 
@@ -86,6 +86,8 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filte
           this, SLOT(deleteSelectedItems()));
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
           this, SLOT(updateSearchFilter()));
+  connect(m_gui->selectedTags, SIGNAL(linkActivated(QString)),
+          this,                SLOT(onTagSelected(QString)));
 
   connect(getSelection().get(), SIGNAL(selectionStateChanged()),
           this,                 SLOT(onSelectionChanged()));
@@ -93,8 +95,7 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filte
   setWidget(m_gui);
 
   m_gui->view->installEventFilter(this);
-  m_gui->tagsLabel->setVisible(false);
-  m_gui->selectedTags->setVisible(false);
+  m_gui->selectedTags->setOpenExternalLinks(false);
 }
 
 //------------------------------------------------------------------------
@@ -130,7 +131,7 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 {
   if (sender == m_gui->view && QEvent::ContextMenu == e->type() && m_layout)
   {
-    QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
+    auto cme = static_cast<QContextMenuEvent *>(e);
 
     m_layout->contextMenu(cme->globalPos());
 
@@ -163,11 +164,14 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
 
   QStringList tags = tagSet.toList();
   tags.sort();
-  m_gui->selectedTags->setText(tags.join(", "));
 
-  bool tagVisibility = !tags.isEmpty();
-  m_gui->tagsLabel->setVisible(tagVisibility);
-  m_gui->selectedTags->setVisible(tagVisibility);
+  QString tagLinks;
+  for (auto tag : tags)
+  {
+    tagLinks += createTagLink(tag);
+  }
+
+  m_gui->selectedTags->setText(tagLinks);
 }
 
 //------------------------------------------------------------------------
@@ -233,8 +237,6 @@ void SegmentationExplorer::showSelectedItemsInformation()
   {
     m_layout->showSelectedItemsInformation();
   }
-
-  return;
 }
 
 //------------------------------------------------------------------------
@@ -244,12 +246,10 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 
   if (isSegmentation(item))
   {
-    auto segmentation = segmentationPtr(item);
+    auto segmentation       = segmentationPtr(item);
+    auto segmentationCenter = centroid(segmentation->bounds());
 
-    Bounds bounds = segmentation->output()->bounds();
-    NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
-
-    getViewState().focusViewOn(center);
+    getViewState().focusViewOn(segmentationCenter);
   }
 }
 
@@ -258,7 +258,8 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
 {
   ViewItemAdapterList currentSelection;
 
-  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+  auto selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+
   for(auto index: selectedIndexes)
   {
     auto item = m_layout->item(index);
@@ -317,4 +318,16 @@ void SegmentationExplorer::onSelectionChanged()
 
   // Update all visible items
   m_gui->view->viewport()->update();
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::onTagSelected(const QString& tag)
+{
+  m_gui->searchText->setText(tag);
+}
+
+//------------------------------------------------------------------------
+QString SegmentationExplorer::createTagLink(const QString& tag) const
+{
+  return QString("<a href=\"%1\">%1</a> ").arg(tag);
 }

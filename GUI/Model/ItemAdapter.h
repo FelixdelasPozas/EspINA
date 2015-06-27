@@ -139,9 +139,9 @@ namespace ESPINA
     virtual ItemAdapter::Type type() const = 0;
 
   public slots:
-		/** \brief Signals when the item has been modified.
-		 *
-		 */
+    /** \brief Signals when the item has been modified.
+     *
+     */
     virtual void notifyModification()
     { emit modified(this); }
 

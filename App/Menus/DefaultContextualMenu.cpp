@@ -326,7 +326,7 @@ void DefaultContextualMenu::createChangeCategoryMenu()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  QAction *tagsAction = addAction(tr("Tags"));
+  auto tagsAction = addAction(tr("Tags"));
   tagsAction->setIcon(QIcon(":/espina/tag.svg"));
 
   connect(tagsAction, SIGNAL(triggered(bool)),
@@ -337,7 +337,7 @@ void DefaultContextualMenu::createTagsEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createRenameEntry()
 {
-  QAction *action = addAction(tr("&Rename"));
+  auto action = addAction(tr("&Rename"));
   connect(action, SIGNAL(triggered(bool)),
           this, SLOT(renameSegmentation()));
 }
@@ -345,7 +345,7 @@ void DefaultContextualMenu::createRenameEntry()
 //------------------------------------------------------------------------
 QString DefaultContextualMenu::dialogTitle() const
 {
-  QString title = m_segmentations[0]->data().toString();
+  auto title = m_segmentations[0]->data().toString();
 
   if (m_segmentations.size() > 1)
   {
@@ -363,7 +363,7 @@ QString DefaultContextualMenu::dialogTitle() const
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  QAction *deleteAction = addAction(tr("Delete"));
+  auto deleteAction = addAction(tr("Delete"));
 
   connect(deleteAction, SIGNAL(triggered(bool)),
           this,         SLOT(deleteSelectedSementations()));

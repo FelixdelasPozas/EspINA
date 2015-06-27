@@ -232,9 +232,6 @@ namespace ESPINA
     Q_OBJECT
 
   public slots:
-    /** \brief Implements Extension::invalidate().
-     *
-     */
     virtual void invalidate()
     {
       Extension<Channel>::invalidate();
@@ -269,9 +266,6 @@ namespace ESPINA
     virtual bool validCategory(const QString &classificationName) const = 0;
 
   public slots:
-    /** \brief Implements Extension::invalidate().
-     *
-     */
     virtual void invalidate()
     {
       Extension<Segmentation>::invalidate();

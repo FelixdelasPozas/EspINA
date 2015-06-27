@@ -75,7 +75,7 @@ namespace ESPINA
      */
     void updateGUI(const QModelIndexList &selectedIndexes);
 
-  protected slots:
+  private slots:
     /** \brief Changes the layout of the view.
      * \param[in] index index of the new layout in the layout list.
      *
@@ -114,6 +114,10 @@ namespace ESPINA
      *
      */
     void onSelectionChanged();
+
+    void onTagSelected(const QString &tag);
+
+    QString createTagLink(const QString &tag) const;
 
   protected:
     GUI             *m_gui;

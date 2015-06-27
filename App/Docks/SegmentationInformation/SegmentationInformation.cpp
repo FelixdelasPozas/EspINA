@@ -25,6 +25,7 @@
 #include "ui_SegmentationInformation.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 
 #include <QDebug>
 #include <QLayout>
@@ -227,7 +228,12 @@ void SegmentationInformation::clearTags()
 //----------------------------------------------------------------------------
 void SegmentationInformation::showNotes()
 {
+  if (m_segmentation->hasExtension(SegmentationNotes::TYPE))
+  {
+    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
 
+    m_gui->notes->setText(extension->notes());
+  }
 }
 
 //----------------------------------------------------------------------------

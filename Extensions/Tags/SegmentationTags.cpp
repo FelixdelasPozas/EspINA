@@ -42,7 +42,12 @@ QReadWriteLock              SegmentationTags::s_mutex;
 //------------------------------------------------------------------------
 SegmentationTags::SegmentationTags(const InfoCache &infoCache)
 : SegmentationExtension{infoCache}
+, m_tags{infoCache[TAGS].toString().split(";")}
 {
+  for (auto tag : m_tags)
+  {
+    addToAvailableTags(tag);
+  }
 }
 
 //------------------------------------------------------------------------
