@@ -21,7 +21,6 @@
 // ESPINA
 #include "SegmentationInspector.h"
 
-#include <Docks/SegmentationInformation/EmptyHistory.h>
 #include <Docks/SegmentationInformation/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
@@ -365,57 +364,56 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 //------------------------------------------------------------------------
 void SegmentationInspector::updateSelection()
 {
-  auto activeHistory = m_historyScrollArea->widget();
-
-  if (activeHistory)
-  {
-    delete activeHistory;
-
-    activeHistory = nullptr;
-  }
-
-  auto selectedSegmentations = selection()->segmentations();
-
-  if (selectedSegmentations.size() == 1)
-  {
-    auto segmentation = selectedSegmentations.first();
-
-    if (m_segmentations.contains(segmentation))
-    {
-      if (m_selectedSegmentation != segmentation)
-      {
-        if(m_selectedSegmentation)
-        {
-          disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
-                     this, SLOT(updateSelection()));
-        }
-
-        m_selectedSegmentation = segmentation;
-
-        if(m_selectedSegmentation)
-        {
-          connect(m_selectedSegmentation, SIGNAL(outputModified()),
-                  this, SLOT(updateSelection()));
-        }
-      }
-
-      try
-      {
-        activeHistory = m_register.createRefineWidget(segmentation, m_context);
-      }
-      catch (...)
-      {
-        activeHistory = new NoFilterRefiner();
-      }
-    }
-  }
-
-  if (!activeHistory)
-  {
-    activeHistory = new EmptyHistory();
-  }
-
-  m_historyScrollArea->setWidget(activeHistory);
+//   auto activeHistory = m_historyScrollArea->widget();
+//
+//   if (activeHistory)
+//   {
+//     delete activeHistory;
+//
+//     activeHistory = nullptr;
+//   }
+//
+//   auto selectedSegmentations = selection()->segmentations();
+//
+//   if (selectedSegmentations.size() == 1)
+//   {
+//     auto segmentation = selectedSegmentations.first();
+//
+//     if (m_segmentations.contains(segmentation))
+//     {
+//       if (m_selectedSegmentation != segmentation)
+//       {
+//         if(m_selectedSegmentation)
+//         {
+//           disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
+//                      this, SLOT(updateSelection()));
+//         }
+//
+//         m_selectedSegmentation = segmentation;
+//
+//         if(m_selectedSegmentation)
+//         {
+//           connect(m_selectedSegmentation, SIGNAL(outputModified()),
+//                   this, SLOT(updateSelection()));
+//         }
+//       }
+//
+//       try
+//       {
+//         activeHistory = m_register.createRefineWidget(segmentation, m_context);
+//       }
+//       catch (...)
+//       {
+//         activeHistory = new NoFilterRefiner();
+//       }
+//     }
+//   }
+//   if (!activeHistory)
+//   {
+//     activeHistory = new EmptyHistory();
+//   }
+//
+//   m_historyScrollArea->setWidget(activeHistory);
 }
 
 //------------------------------------------------------------------------
@@ -423,9 +421,9 @@ void SegmentationInspector::configureLayout()
 {
   layout()->setMenuBar(&m_toolbar);
 
-  m_viewport         ->setLayout(createViewLayout());
-  m_historyScrollArea->setWidget(new EmptyHistory());
-  m_information      ->setLayout(createReportLayout());
+  m_viewport   ->setLayout(createViewLayout());
+  m_history    ->setVisible(false);
+  m_information->setLayout(createReportLayout());
 }
 
 //------------------------------------------------------------------------

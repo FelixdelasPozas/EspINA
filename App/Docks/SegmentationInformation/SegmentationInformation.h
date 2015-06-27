@@ -44,10 +44,12 @@ namespace ESPINA
 
     virtual void reset();
 
-  protected slots:
+  private slots:
     void onSelectionChanged(SegmentationAdapterList selection);
 
     void onOutputModified();
+
+    void onNotesModified();
 
   private:
     void showInformation(SegmentationAdapterPtr segmentation);

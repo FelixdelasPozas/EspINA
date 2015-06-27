@@ -28,7 +28,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
   Docks/SegmentationInformation/NoFilterRefiner.h
-  Docks/SegmentationInformation/EmptyHistory.h
   Docks/SegmentationInformation/SegmentationInformation.h
   EspinaMainWindow.h
   Menus/ColorEngineMenu.h
@@ -85,7 +84,6 @@ qt4_wrap_ui (ESPINA_UI
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Docks/SegmentationInformation/NoFilterRefiner.ui
-  Docks/SegmentationInformation/EmptyHistory.ui
   Docks/SegmentationInformation/SegmentationInformation.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
@@ -122,7 +120,6 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Docks/SegmentationInformation/NoFilterRefiner.cpp
-  Docks/SegmentationInformation/EmptyHistory.cpp
   Docks/SegmentationInformation/SegmentationInformation.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp

@@ -24,6 +24,7 @@
 
 #include <QObject>
 #include <QColor>
+#include <memory>
 
 namespace ESPINA
 {
@@ -92,6 +93,8 @@ namespace ESPINA
             QColor    m_color;
             int       m_pattern;
           };
+
+          using OrthogonalRepresentationSPtr = std::shared_ptr<OrthogonalRepresentation>;
         }
       }
     }

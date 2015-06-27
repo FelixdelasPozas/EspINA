@@ -19,7 +19,6 @@
 #include "SegmentationInformation.h"
 
 #include "NoFilterRefiner.h"
-#include "EmptyHistory.h"
 #include <Support/FilterRefiner.h>
 
 #include "ui_SegmentationInformation.h"
@@ -79,7 +78,7 @@ void SegmentationInformation::showEvent(QShowEvent *event)
           this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 
 
-  onSelectionChanged(getSelection()->segmentations());
+  onSelectionChanged(getSelectedSegmentations());
 }
 
 //----------------------------------------------------------------------------
@@ -98,7 +97,9 @@ void SegmentationInformation::onSelectionChanged(SegmentationAdapterList selecti
 {
   Q_ASSERT(isVisible());
 
-  if (selection.size() == 1)
+  auto validSelection = selection.size() == 1;
+
+  if (validSelection)
   {
     showInformation(selection.first());
   }
@@ -106,6 +107,8 @@ void SegmentationInformation::onSelectionChanged(SegmentationAdapterList selecti
   {
     hideInformation();
   }
+
+  m_gui->setEnabled(validSelection);
 }
 
 //----------------------------------------------------------------------------
@@ -114,6 +117,25 @@ void SegmentationInformation::onOutputModified()
   if (m_filter != m_segmentation->filter())
   {
     updateRefineWidget();
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationInformation::onNotesModified()
+{
+  if (m_segmentation)
+  {
+    auto note = m_gui->notes->toPlainText();
+
+    if (note.isEmpty())
+    {
+      safeDeleteExtension<SegmentationNotes>(m_segmentation);
+    }
+    else
+    {
+      auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation);
+      extension->setNotes(note);
+    }
   }
 }
 
@@ -133,6 +155,9 @@ void SegmentationInformation::showInformation(SegmentationAdapterPtr segmentatio
       connect(m_segmentation, SIGNAL(outputModified()),
                  this,        SLOT(onOutputModified()));
 
+      connect(m_gui->notes, SIGNAL(textChanged()),
+              this,         SLOT(onNotesModified()));
+
       showSegmentationName();
       updateRefineWidget();
       showTags();
@@ -149,6 +174,9 @@ void SegmentationInformation::hideInformation()
   {
     disconnect(m_segmentation, SIGNAL(outputModified()),
                this,           SLOT(onOutputModified()));
+
+    disconnect(m_gui->notes, SIGNAL(textChanged()),
+               this,         SLOT(onNotesModified()));
 
     clearSegmentationName();
     removeRefineWidget();

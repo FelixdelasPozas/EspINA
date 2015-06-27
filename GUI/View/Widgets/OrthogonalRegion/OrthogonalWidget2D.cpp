@@ -66,14 +66,14 @@ void OrthogonalWidget2D::Command::Execute(vtkObject *caller, long unsigned int e
 
 
 //----------------------------------------------------------------------------
-OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentation &representation)
+OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentationSPtr representation)
 : m_representation(representation)
 , m_widget(vtkSmartPointer<vtkOrthogonalWidget2D>::New())
 , m_command(vtkSmartPointer<Command>::New())
 , m_index(0)
 , m_slice(0)
 {
-  m_command->setRepresentation(&m_representation);
+  m_command->setRepresentation(m_representation.get());
 }
 
 //----------------------------------------------------------------------------
@@ -111,25 +111,25 @@ bool OrthogonalWidget2D::acceptSceneResolutionChange(const NmVector3 &resolution
 //----------------------------------------------------------------------------
 void OrthogonalWidget2D::initializeImplementation(RenderView *view)
 {
-  onModeChanged      (m_representation.mode());
-  onResolutionChanged(m_representation.resolution());
-  onBoundsChanged    (m_representation.bounds());
-  onColorChanged     (m_representation.representationColor());
-  onPatternChanged   (m_representation.representationPattern());
+  onModeChanged      (m_representation->mode());
+  onResolutionChanged(m_representation->resolution());
+  onBoundsChanged    (m_representation->bounds());
+  onColorChanged     (m_representation->representationColor());
+  onPatternChanged   (m_representation->representationPattern());
 
-  connect(&m_representation, SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
+  connect(m_representation.get(), SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
           this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
-  connect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
+  connect(m_representation.get(), SIGNAL(resolutionChanged(NmVector3)),
           this,      SLOT(onResolutionChanged(NmVector3)));
 
-  connect(&m_representation, SIGNAL(boundsChanged(Bounds)),
+  connect(m_representation.get(), SIGNAL(boundsChanged(Bounds)),
           this,      SLOT(onBoundsChanged(Bounds)));
 
-  connect(&m_representation, SIGNAL(colorChanged(QColor)),
+  connect(m_representation.get(), SIGNAL(colorChanged(QColor)),
           this,      SLOT(onColorChanged(QColor)));
 
-  connect(&m_representation, SIGNAL(patternChanged(int)),
+  connect(m_representation.get(), SIGNAL(patternChanged(int)),
           this,      SLOT(onPatternChanged(int)));
 
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
@@ -138,19 +138,19 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
 //----------------------------------------------------------------------------
 void OrthogonalWidget2D::uninitializeImplementation()
 {
-  disconnect(&m_representation, SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
+  disconnect(m_representation.get(), SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
              this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
-  disconnect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
+  disconnect(m_representation.get(), SIGNAL(resolutionChanged(NmVector3)),
              this,      SLOT(onResolutionChanged(NmVector3)));
 
-  disconnect(&m_representation, SIGNAL(boundsChanged(Bounds)),
+  disconnect(m_representation.get(), SIGNAL(boundsChanged(Bounds)),
              this,      SLOT(onBoundsChanged(Bounds)));
 
-  disconnect(&m_representation, SIGNAL(colorChanged(QColor)),
+  disconnect(m_representation.get(), SIGNAL(colorChanged(QColor)),
              this,      SLOT(onColorChanged(QColor)));
 
-  disconnect(&m_representation, SIGNAL(patternChanged(int)),
+  disconnect(m_representation.get(), SIGNAL(patternChanged(int)),
              this,      SLOT(onPatternChanged(int)));
 
   m_widget->RemoveObserver(m_command);
