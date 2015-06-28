@@ -16,29 +16,29 @@
  *
  */
 
-#include "CODEHistory.h"
+#include "CODERefiner.h"
 
-#include "CODEHistoryWidget.h"
+#include "CODERefineWidget.h"
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-CODEHistory::CODEHistory(const QString& title, MorphologicalEditionFilterSPtr filter)
-: m_filter{filter}
-, m_title{title}
+CODERefiner::CODERefiner(const QString& title)
+: m_title{title}
 {
 
 }
 
 //-----------------------------------------------------------------------------
-QWidget* CODEHistory::createWidget(SegmentationAdapterPtr segmentation, Support::Context& context)
+QWidget* CODERefiner::createWidget(SegmentationAdapterPtr segmentation, Support::Context& context)
 {
-  auto widget = new CODEHistoryWidget(m_title, m_filter, context);
+  auto filter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(segmentation->filter());
+  auto widget = new CODERefineWidget(m_title, segmentation, filter, context);
 
-  connect(widget, SIGNAL(radiusChanged(int)),
-          this,   SIGNAL(radiusChanged(int)));
-  connect(this,   SIGNAL(radiusChanged(int)),
-          widget, SLOT(setRadius(int)));
+//   connect(widget, SIGNAL(radiusChanged(int)),
+//           this,   SIGNAL(radiusChanged(int)));
+//   connect(this,   SIGNAL(radiusChanged(int)),
+//           widget, SLOT(setRadius(int)));
 
   return widget;
 }

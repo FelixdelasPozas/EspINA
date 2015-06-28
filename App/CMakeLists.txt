@@ -38,8 +38,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/ZoomTool.h
   ToolGroups/Explore/VisualBookmarks.h
-  ToolGroups/Refine/CODEHistory.h
-  ToolGroups/Refine/CODEHistoryWidget.h
+  ToolGroups/Refine/CODERefiner.h
+  ToolGroups/Refine/CODERefineWidget.h
   ToolGroups/Refine/CODETool.h
   ToolGroups/Refine/ManualEditionTool.h
   ToolGroups/Refine/RefineToolGroup.h
@@ -53,7 +53,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/Manual/ManualSegmentTool.h
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.h
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
@@ -89,8 +89,8 @@ qt4_wrap_ui (ESPINA_UI
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
-  ToolGroups/Refine/CODEHistoryWidget.ui
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
+  ToolGroups/Refine/CODERefineWidget.ui
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -148,7 +148,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Manual/ManualSegmentTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.cpp
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
@@ -156,8 +156,8 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/Refine/CODEHistory.cpp
-  ToolGroups/Refine/CODEHistoryWidget.cpp
+  ToolGroups/Refine/CODERefiner.cpp
+  ToolGroups/Refine/CODERefineWidget.cpp
   ToolGroups/Refine/CODETool.cpp
   ToolGroups/Refine/RefineToolGroup.cpp
   ToolGroups/Refine/ManualEditionTool.cpp

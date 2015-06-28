@@ -24,12 +24,12 @@
 
 namespace ESPINA {
 
-  class CODEHistory //TODO
+  class CODERefiner
   : public FilterRefiner
   {
    Q_OBJECT
   public:
-    explicit CODEHistory(const QString &title, MorphologicalEditionFilterSPtr filter);
+    explicit CODERefiner(const QString &title);
 
     virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
 
@@ -37,8 +37,6 @@ namespace ESPINA {
     void radiusChanged(int);
 
   private:
-    MorphologicalEditionFilterSPtr m_filter;
-
     QString m_title;
   };
 }

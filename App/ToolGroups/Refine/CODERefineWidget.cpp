@@ -16,8 +16,9 @@
  *
  */
 
-#include "CODEHistoryWidget.h"
-#include "ui_CODEHistoryWidget.h"
+#include "CODERefineWidget.h"
+
+#include "ui_CODERefineWidget.h"
 
 #include <QMessageBox>
 #include <QUndoStack>
@@ -115,12 +116,14 @@ private:
   //itkVolumeType::Pointer m_newVolume;
 };
 //----------------------------------------------------------------------------
-CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
-                                     MorphologicalEditionFilterSPtr filter,
-                                     Support::Context        &context)
-: m_context(context)
-, m_gui(new Ui::CODEHistoryWidget())
+CODERefineWidget::CODERefineWidget(const QString                 &title,
+                                   SegmentationAdapterPtr         segmentation,
+                                   MorphologicalEditionFilterSPtr filter,
+                                   Support::Context        &context)
+: WithContext(context)
+, m_gui(new Ui::CODERefineWidget())
 , m_title(title)
+, m_segmentation(segmentation)
 , m_filter(filter)
 {
   m_gui->setupUi(this);
@@ -135,12 +138,12 @@ CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
 }
 
 //----------------------------------------------------------------------------
-CODEHistoryWidget::~CODEHistoryWidget()
+CODERefineWidget::~CODERefineWidget()
 {
 }
 
 //----------------------------------------------------------------------------
-void CODEHistoryWidget::onRadiusChanged(int value)
+void CODERefineWidget::onRadiusChanged(int value)
 {
   m_gui->apply->setEnabled(true);
 
@@ -148,35 +151,34 @@ void CODEHistoryWidget::onRadiusChanged(int value)
 }
 
 //----------------------------------------------------------------------------
-void CODEHistoryWidget::modifyFilter()
+void CODERefineWidget::modifyFilter()
 {
   auto output = m_filter->output(0);
 
   if (output->isEdited())
   {
-    QMessageBox msg;
-    msg.setText(tr("Filter contains segmentations that have been manually modified by the user."
-    "Updating this filter will result in losing user modifications."
-    "Do you want to proceed?"));
-    msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    auto msg = tr("Filter contains segmentations that have been manually modified by the user."
+                  "Updating this filter will result in losing user modifications."
+                  "Do you want to proceed?");
 
-    if (msg.exec() != QMessageBox::Yes)
-      return;
+    if (!GUI::DefaultDialogs::UserConfirmation(m_title, msg)) return;
   }
 
   auto volume  = readLockVolume(output);
 
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Modify %1 Parameters").arg(m_title));
+  undoStack->beginMacro(tr("Modify %1 radius").arg(m_title));
   {
     undoStack->push(new CODEModification(m_filter, m_gui->radius->value()));
   }
   undoStack->endMacro();
+
+  m_segmentation->invalidateRepresentations();
 }
 
 //----------------------------------------------------------------------------
-void CODEHistoryWidget::setRadius(int value)
+void CODERefineWidget::setRadius(int value)
 {
   m_gui->radius->setValue(value);
 }

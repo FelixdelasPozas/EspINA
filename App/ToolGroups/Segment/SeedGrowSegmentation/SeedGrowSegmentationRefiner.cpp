@@ -17,7 +17,7 @@
  */
 
 #include "SeedGrowSegmentationRefiner.h"
-#include "SeedGrowSegmentationHistoryWidget.h"
+#include "SeedGrowSegmentationRefineWidget.h"
 
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
@@ -77,7 +77,7 @@ QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmen
   rw->RoiTools->setVisible(true);
 
   auto filter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter());
-  auto widget = new SeedGrowSegmentationHistoryWidget(segmentation, filter, rw->RoiTools, context);
+  auto widget = new SeedGrowSegmentationRefineWidget(segmentation, filter, rw->RoiTools, context);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed(QObject *)));

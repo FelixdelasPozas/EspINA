@@ -62,7 +62,7 @@ namespace ESPINA
 
     void clearSegmentationName();
 
-    void updateRefineWidget();
+    void addRefineWidget();
 
     void removeRefineWidget();
 

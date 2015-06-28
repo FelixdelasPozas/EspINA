@@ -16,8 +16,8 @@
  *
  */
 
-#include "SeedGrowSegmentationHistoryWidget.h"
-#include "ui_SeedGrowSegmentationHistoryWidget.h"
+#include "SeedGrowSegmentationRefineWidget.h"
+#include "ui_SeedGrowSegmentationRefineWidget.h"
 
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
@@ -176,13 +176,13 @@ private:
 };
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SegmentationAdapterPtr         segmentation,
+SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr         segmentation,
                                                                      SeedGrowSegmentationFilterSPtr filter,
                                                                      RestrictToolGroup             *roiTools,
                                                                      Support::Context              &context)
-: m_context(context)
+: WithContext(context)
 , m_segmentation(segmentation)
-, m_gui(new Ui::SeedGrowSegmentationHistoryWidget())
+, m_gui(new Ui::SeedGrowSegmentationRefineWidget())
 , m_filter(filter)
 , m_roiTools(roiTools)
 {
@@ -225,12 +225,12 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(Segmentatio
 }
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
+SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 {
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::onThresholdChanged(int value)
+void SeedGrowSegmentationRefineWidget::onThresholdChanged(int value)
 {
   m_gui->apply->setEnabled(true);
 
@@ -238,7 +238,7 @@ void SeedGrowSegmentationHistoryWidget::onThresholdChanged(int value)
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::onApplyClosingChanged(bool value)
+void SeedGrowSegmentationRefineWidget::onApplyClosingChanged(bool value)
 {
   m_gui->apply->setEnabled(true);
 
@@ -249,29 +249,29 @@ void SeedGrowSegmentationHistoryWidget::onApplyClosingChanged(bool value)
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::onClosingRadiusChanged(int value)
+void SeedGrowSegmentationRefineWidget::onClosingRadiusChanged(int value)
 {
   emit closingRadiusChanged(value);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::onROIChanged()
+void SeedGrowSegmentationRefineWidget::onROIChanged()
 {
   m_roiTools->setEnabled(true);
 }
 
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::onDiscardROIModifications()
+void SeedGrowSegmentationRefineWidget::onDiscardROIModifications()
 {
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
   undoStack->beginMacro(tr("Discard ROI modifications"));
   undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
   undoStack->endMacro();
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::modifyFilter()
+void SeedGrowSegmentationRefineWidget::modifyFilter()
 {
   auto output = m_filter->output(0);
 
@@ -285,7 +285,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
     if (!roi  || contains(roi.get(), seed, spacing))
     {
-      auto undoStack = m_context.undoStack();
+      auto undoStack = getUndoStack();
       auto threshold = m_gui->threshold->value();
       auto radius    = m_gui->closingRadius->value();
 
@@ -316,32 +316,32 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::setThreshold(int value)
+void SeedGrowSegmentationRefineWidget::setThreshold(int value)
 {
   m_gui->threshold->setValue(value);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::setApplyClosing(bool value)
+void SeedGrowSegmentationRefineWidget::setApplyClosing(bool value)
 {
   m_gui->applyClosing->setChecked(value);
   m_gui->closingRadius->setEnabled(value);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::setClosingRadius(int value)
+void SeedGrowSegmentationRefineWidget::setClosingRadius(int value)
 {
   m_gui->closingRadius->setValue(value);
 }
 
 //----------------------------------------------------------------------------
-QString SeedGrowSegmentationHistoryWidget::dialogTitle() const
+QString SeedGrowSegmentationRefineWidget::dialogTitle() const
 {
   return tr("Seed Grow Segmentation");
 }
 
 //----------------------------------------------------------------------------
-bool SeedGrowSegmentationHistoryWidget::discardChangesConfirmed() const
+bool SeedGrowSegmentationRefineWidget::discardChangesConfirmed() const
 {
   auto message = tr("Filter contains segmentations that have been manually modified by the user."
                     "Updating this filter will result in losing user modifications."

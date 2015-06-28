@@ -37,19 +37,20 @@ namespace ESPINA {
 
   namespace Ui
   {
-    class SeedGrowSegmentationHistoryWidget;
+    class SeedGrowSegmentationRefineWidget;
   }
 
-  class SeedGrowSegmentationHistoryWidget
+  class SeedGrowSegmentationRefineWidget
   : public QWidget
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationHistoryWidget(SegmentationAdapterPtr         segmentation,
-                                               SeedGrowSegmentationFilterSPtr filter,
-                                               RestrictToolGroup             *roiTools,
-                                               Support::Context              &context);
-    virtual ~SeedGrowSegmentationHistoryWidget();
+    explicit SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr         segmentation,
+                                              SeedGrowSegmentationFilterSPtr filter,
+                                              RestrictToolGroup             *roiTools,
+                                              Support::Context              &context);
+    virtual ~SeedGrowSegmentationRefineWidget();
 
   public slots:
     void setThreshold(int value);
@@ -75,11 +76,9 @@ namespace ESPINA {
     bool discardChangesConfirmed() const;
 
   private:
-    Support::Context &m_context;
-
-    SegmentationAdapterPtr                 m_segmentation;
-    Ui::SeedGrowSegmentationHistoryWidget *m_gui;
-    SeedGrowSegmentationFilterSPtr         m_filter;
+    SegmentationAdapterPtr                m_segmentation;
+    Ui::SeedGrowSegmentationRefineWidget *m_gui;
+    SeedGrowSegmentationFilterSPtr        m_filter;
 
     RestrictToolGroup *m_roiTools;
   };

@@ -27,7 +27,7 @@
 #include "FillHolesTool.h"
 #include "ImageLogicTool.h"
 
-#include <App/ToolGroups/Refine/CODEHistory.h>
+#include <App/ToolGroups/Refine/CODERefiner.h>
 #include <Core/Analysis/Output.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/CloseFilter.h>
@@ -85,6 +85,16 @@ const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
 class MorphologicalFilterFactory
 : public FilterFactory
 {
+public:
+  static FilterTypeList CloseFilters();
+
+  static FilterTypeList OpenFilters();
+
+  static FilterTypeList DilateFilters();
+
+  static FilterTypeList ErodeFilters();
+
+private:
   virtual FilterTypeList providedFilters() const;
 
   virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
@@ -104,18 +114,59 @@ private:
 };
 
 //------------------------------------------------------------------------
-FilterTypeList MorphologicalFilterFactory::providedFilters() const
+FilterTypeList MorphologicalFilterFactory::CloseFilters()
 {
   FilterTypeList filters;
 
   filters << CLOSE_FILTER;
   filters << CLOSE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::OpenFilters()
+{
+  FilterTypeList filters;
+
   filters << OPEN_FILTER;
   filters << OPEN_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::DilateFilters()
+{
+
+  FilterTypeList filters;
+
   filters << DILATE_FILTER;
   filters << DILATE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::ErodeFilters()
+{
+  FilterTypeList filters;
+
   filters << ERODE_FILTER;
   filters << ERODE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::providedFilters() const
+{
+  FilterTypeList filters;
+
+  filters << CloseFilters();
+  filters << OpenFilters();
+  filters << DilateFilters();
+  filters << ErodeFilters();
 
   return filters;
 }
@@ -171,51 +222,6 @@ throw (Unknown_Filter_Exception)
   return morphologicalFilter;
 }
 
-// //------------------------------------------------------------------------
-// QList<Filter::Type> MorphologicalFilterFactory::availableFilterDelegates() const
-// {
-//   QList<Filter::Type> types;
-//
-//   types << CLOSE_FILTER  << CLOSE_FILTER_V4
-//         << OPEN_FILTER   << OPEN_FILTER_V4
-//         << DILATE_FILTER << DILATE_FILTER_V4
-//         << ERODE_FILTER  << ERODE_FILTER_V4;
-//
-//   return types;
-// }
-
-// //------------------------------------------------------------------------
-// FilterRefinerSPtr MorphologicalFilterFactory::createDelegate(SegmentationAdapterPtr segmentation,
-//                                                               FilterSPtr             filter)
-// throw (Unknown_Filter_Type_Exception)
-// {
-//   QString title;
-//
-//   auto type = filter->type();
-//
-//   if (isCloseFilter(type))
-//   {
-//     title = QObject::tr("Close");
-//   }
-//   else if (isOpenFilter(type))
-//   {
-//     title = QObject::tr("Open");
-//   }
-//   else if (isDilateFilter(type))
-//   {
-//     title = QObject::tr("Dilate");
-//   }
-//   else if (isErodeFilter(type))
-//   {
-//     title = QObject::tr("Erode");
-//   }
-//
-//   auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
-//
-//   return std::make_shared<CODEHistory>(title, codeFilter);
-//
-// }
-
 //------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isCloseFilter(const Filter::Type &type) const
 {
@@ -268,7 +274,8 @@ RefineToolGroup::RefineToolGroup(Support::FilterRefinerRegister &filgerRefiners,
 {
   auto morphologicalFactory = std::make_shared<MorphologicalFilterFactory>();
   context.factory()->registerFilterFactory(morphologicalFactory);
-  //TODO filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
+
+  registerFilterRefiners(filgerRefiners);
 
   initManualEditionTool();
   initSplitTool();
@@ -280,6 +287,30 @@ RefineToolGroup::RefineToolGroup(Support::FilterRefinerRegister &filgerRefiners,
 //-----------------------------------------------------------------------------
 RefineToolGroup::~RefineToolGroup()
 {
+}
+
+//-----------------------------------------------------------------------------
+void RefineToolGroup::registerFilterRefiners(Support::FilterRefinerRegister &filterReginers)
+{
+  for (auto type : MorphologicalFilterFactory::CloseFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Close")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::OpenFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Open")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::DilateFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Dilate")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::ErodeFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Erode")), type);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -302,10 +333,10 @@ void RefineToolGroup::initSplitTool()
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initCODETools()
 {
-  addTool(std::make_shared<CODETool<CloseFilter>> ("CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , context()));
-  addTool(std::make_shared<CODETool<OpenFilter>>  ("OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , context()));
-  addTool(std::make_shared<CODETool<DilateFilter>>("DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), context()));
-  addTool(std::make_shared<CODETool<ErodeFilter>> ("ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , context()));
+  addTool(std::make_shared<CODETool<CloseFilter>> (CLOSE_FILTER, "CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , context()));
+  addTool(std::make_shared<CODETool<OpenFilter>>  (OPEN_FILTER,  "OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , context()));
+  addTool(std::make_shared<CODETool<DilateFilter>>(DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), context()));
+  addTool(std::make_shared<CODETool<ErodeFilter>> (ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , context()));
 }
 
 //-----------------------------------------------------------------------------

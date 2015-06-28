@@ -37,17 +37,6 @@ throw (Unknown_Filter_Type_Exception)
   if (!m_register.contains(type)) throw Unknown_Filter_Type_Exception();
 
   return m_register[type]->createWidget(segmentation, context);
-
-//   if (!m_instances.contains(segmentation)
-//     || m_instances[segmentation].second != type)
-//   {
-//
-//     if (!m_register.contains(type)) throw Unknown_Filter_Type_Exception();
-//
-//     m_instances.insert(segmentation, Factory(m_register[type]->createWidget(segmentation, filter), type));
-//   }
-//
-//   return m_instances[segmentation].first;
 }
 
 //------------------------------------------------------------------------

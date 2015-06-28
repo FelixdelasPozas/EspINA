@@ -122,7 +122,8 @@ void SegmentationInformation::onOutputModified()
 {
   if (m_filter != m_segmentation->filter())
   {
-    updateRefineWidget();
+    removeRefineWidget();
+    addRefineWidget();
   }
 }
 
@@ -179,7 +180,7 @@ void SegmentationInformation::showInformation(SegmentationAdapterPtr segmentatio
               this,         SLOT(onNotesModified()));
 
       showSegmentationName();
-      updateRefineWidget();
+      addRefineWidget();
       showTags();
       showNotes();
     }
@@ -223,7 +224,7 @@ void SegmentationInformation::clearSegmentationName()
 }
 
 //----------------------------------------------------------------------------
-void SegmentationInformation::updateRefineWidget()
+void SegmentationInformation::addRefineWidget()
 {
   Q_ASSERT(m_segmentation);
   Q_ASSERT(m_filter);

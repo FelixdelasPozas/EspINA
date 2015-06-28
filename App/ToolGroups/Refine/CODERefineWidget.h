@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef ESPINA_CODE_HISTORY_WIDGET_H
-#define ESPINA_CODE_HISTORY_WIDGET_H
+#ifndef ESPINA_CODE_REFINE_WIDGET_H
+#define ESPINA_CODE_REFINE_WIDGET_H
 
 // Qt
 #include <QWidget>
@@ -34,18 +34,20 @@ namespace ESPINA
 
   namespace Ui
   {
-    class CODEHistoryWidget;
+    class CODERefineWidget;
   }
 
-  class CODEHistoryWidget
+  class CODERefineWidget
   : public QWidget
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
-    explicit CODEHistoryWidget(const QString                  &title,
-                               MorphologicalEditionFilterSPtr filter,
-                               Support::Context        &context);
-    virtual ~CODEHistoryWidget();
+    explicit CODERefineWidget(const QString                  &title,
+                              SegmentationAdapterPtr         segmentation,
+                              MorphologicalEditionFilterSPtr filter,
+                              Support::Context        &context);
+    virtual ~CODERefineWidget();
 
   public slots:
     void setRadius(int value);
@@ -58,13 +60,13 @@ namespace ESPINA
     void modifyFilter();
 
   private:
-    Support::Context &m_context;
-    Ui::CODEHistoryWidget *m_gui;
+    Ui::CODERefineWidget *m_gui;
 
-    QString                        m_title;
+    QString                m_title;
+    SegmentationAdapterPtr m_segmentation;
     MorphologicalEditionFilterSPtr m_filter;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINA_CODE_HISTORY_WIDGET_H
+#endif // ESPINA_CODE_REFINE_WIDGET_H

@@ -64,9 +64,6 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   connect(getSelection().get(), SIGNAL(selectionChanged()),
           this,                 SLOT(onSelectionChanged()));
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(onToolToggled(bool)));
-
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 

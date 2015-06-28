@@ -22,7 +22,7 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
-#include "SeedGrowSegmentationHistoryWidget.h"
+#include "SeedGrowSegmentationRefineWidget.h"
 #include "CustomROIWidget.h"
 #include "SeedGrowSegmentationRefiner.h"
 #include <ToolGroups/Restrict/RestrictToolGroup.h>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ESPINA::SeedGrowSegmentationHistoryWidget</class>
- <widget class="QWidget" name="ESPINA::SeedGrowSegmentationHistoryWidget">
+ <class>ESPINA::SeedGrowSegmentationRefineWidget</class>
+ <widget class="QWidget" name="ESPINA::SeedGrowSegmentationRefineWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -166,7 +166,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../rsc/espina.qrc">
+         <iconset>
           <normaloff>:/espina/reset_roi.svg</normaloff>:/espina/reset_roi.svg</iconset>
         </property>
         <property name="iconSize">
@@ -309,7 +309,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../rsc/espina.qrc">
+        <iconset>
          <normaloff>:/espina/tick.png</normaloff>:/espina/tick.png</iconset>
        </property>
        <property name="iconSize">

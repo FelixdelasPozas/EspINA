@@ -38,7 +38,7 @@ namespace ESPINA {
     Q_OBJECT
 
   public:
-    explicit CODEToolBase(const QString &toolId, const QString &name, const QString& icon, const QString& tooltip, Support::Context& context);
+    explicit CODEToolBase(const Filter::Type type, const QString &toolId, const QString &name, const QString& icon, const QString& tooltip, Support::Context& context);
 
     /** \brief Sets the radius value.
      * \param[in] value value of the radius.
@@ -90,8 +90,8 @@ namespace ESPINA {
   : public CODEToolBase
   {
   public:
-    explicit CODETool(const QString &toolId, const QString& name, const QString& icon, const QString& tooltip, Support::Context& context)
-    : CODEToolBase(toolId, name, icon, tooltip, context) {}
+    explicit CODETool(const Filter::Type type, const QString &toolId, const QString& name, const QString& icon, const QString& tooltip, Support::Context& context)
+    : CODEToolBase(type, toolId, name, icon, tooltip, context) {}
 
   private:
     virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type &type) override

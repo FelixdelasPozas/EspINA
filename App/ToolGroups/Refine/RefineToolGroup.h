@@ -47,6 +47,8 @@ namespace ESPINA
     virtual ~RefineToolGroup();
 
   private:
+    void registerFilterRefiners(Support::FilterRefinerRegister& filterReginer);
+
     void initManualEditionTool();
 
     void initSplitTool();
