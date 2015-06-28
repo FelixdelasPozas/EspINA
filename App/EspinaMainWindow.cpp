@@ -136,6 +136,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_availableSettingsPanels << std::make_shared<MetaDataSettingsPanel>();
 #endif
 
+  setContextMenuPolicy(Qt::NoContextMenu);
+
   createMenus();
 
   createToolbars();
