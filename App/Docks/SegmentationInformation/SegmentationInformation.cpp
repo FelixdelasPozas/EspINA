@@ -66,6 +66,7 @@ SegmentationInformation::SegmentationInformation(FilterRefinerRegister &filterRe
 //----------------------------------------------------------------------------
 SegmentationInformation::~SegmentationInformation()
 {
+  reset();
 }
 
 //----------------------------------------------------------------------------

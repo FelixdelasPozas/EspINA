@@ -32,6 +32,7 @@ namespace ESPINA
 {
   class RefineToolGroup
   : public ToolGroup
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -61,9 +62,6 @@ namespace ESPINA
      *
      */
     void onVoxelDeletion(ViewItemAdapterPtr item);
-
-  private:
-    Support::Context &m_context;
   };
 
 } // namespace ESPINA

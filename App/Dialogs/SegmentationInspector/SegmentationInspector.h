@@ -46,6 +46,7 @@ namespace ESPINA
   class SegmentationInspector
   : public QWidget
   , public Ui::SegmentationInspector
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -136,13 +137,9 @@ namespace ESPINA
 
     QHBoxLayout *createReportLayout();
 
-    SelectionSPtr selection() const;
-
   private:
     static const QString GEOMETRY_SETTINGS_KEY;
     static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
-
-    Support::Context               &m_context;
     Support::FilterRefinerRegister &m_register;
 
     SegmentationAdapterList m_segmentations;

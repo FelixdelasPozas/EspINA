@@ -53,8 +53,8 @@ const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList         segmentations,
                                              Support::FilterRefinerRegister &filterRefiners,
                                              Support::Context               &context)
-: QWidget               {nullptr, Qt::WindowStaysOnTopHint}
-, m_context             (context)
+: QWidget               (nullptr, Qt::WindowStaysOnTopHint)
+, WithContext           (context)
 , m_register            {filterRefiners}
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}
@@ -73,14 +73,14 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
     addSegmentation(segmentation);
   }
 
-  initView3D(m_context.availableRepresentations());
+  initView3D(context.availableRepresentations());
 
   initReport();
 
   configureLayout();
 
-  connect(selection().get(), SIGNAL(selectionChanged()),
-          this,              SLOT(updateSelection()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -244,17 +244,11 @@ void SegmentationInspector::updateWindowTitle()
 }
 
 //------------------------------------------------------------------------
-SelectionSPtr SegmentationInspector::selection() const
-{
-  return ESPINA::Support::getSelection(m_context);
-}
-
-//------------------------------------------------------------------------
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  m_tabularReport.updateSelection(selection()->segmentations());
+  m_tabularReport.updateSelection(getSelectedSegmentations());
 }
 
 //------------------------------------------------------------------------
@@ -297,7 +291,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 
   while (!stream.atEnd())
   {
-    auto model = m_context.model();
+    auto model = getModel();
 
     int row, col;
     QMap<int, QVariant> itemData;
@@ -353,7 +347,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
 
   m_tabularReport.setFilter(m_segmentations);
-  m_tabularReport.updateSelection(selection()->segmentations());
+  m_tabularReport.updateSelection(getSelectedSegmentations());
 
   m_view.resetCamera();
   m_view.refresh();
@@ -455,7 +449,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
   for (auto factory : representations)
   {
-    auto representation = factory->createRepresentation(m_context, ViewType::VIEW_3D);
+    auto representation = factory->createRepresentation(context(), ViewType::VIEW_3D);
 
     m_representations << representation;
 
@@ -492,7 +486,7 @@ void SegmentationInspector::initReport()
   SegmentationExtension::InfoTagList tags;
   tags << tr("Name") << tr("Category");
 
-  m_tabularReport.setModel(m_context.model());
+  m_tabularReport.setModel(getModel());
   m_tabularReport.setFilter(m_segmentations);
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport.setMinimumHeight(0);

@@ -83,8 +83,6 @@ namespace ESPINA
 
     void onPainterChanged(MaskPainterSPtr painter);
 
-    void onToolToggled(bool toggled);
-
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
