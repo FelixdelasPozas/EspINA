@@ -27,7 +27,7 @@
 #include "FillHolesTool.h"
 #include "ImageLogicTool.h"
 
-#include <App/ToolGroups/Refine/CODEHistory.h>
+#include <App/ToolGroups/Refine/CODERefiner.h>
 #include <Core/Analysis/Output.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/CloseFilter.h>
@@ -84,16 +84,21 @@ const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
 
 class MorphologicalFilterFactory
 : public FilterFactory
-, public SpecificFilterDelegateFactory
 {
+public:
+  static FilterTypeList CloseFilters();
+
+  static FilterTypeList OpenFilters();
+
+  static FilterTypeList DilateFilters();
+
+  static FilterTypeList ErodeFilters();
+
+private:
   virtual FilterTypeList providedFilters() const;
 
   virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
   throw (Unknown_Filter_Exception);
-
-  virtual QList<Filter::Type> availableFilterDelegates() const;
-
-  virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
 private:
   bool isCloseFilter       (const Filter::Type &type) const;
@@ -109,18 +114,59 @@ private:
 };
 
 //------------------------------------------------------------------------
-FilterTypeList MorphologicalFilterFactory::providedFilters() const
+FilterTypeList MorphologicalFilterFactory::CloseFilters()
 {
   FilterTypeList filters;
 
   filters << CLOSE_FILTER;
   filters << CLOSE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::OpenFilters()
+{
+  FilterTypeList filters;
+
   filters << OPEN_FILTER;
   filters << OPEN_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::DilateFilters()
+{
+
+  FilterTypeList filters;
+
   filters << DILATE_FILTER;
   filters << DILATE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::ErodeFilters()
+{
+  FilterTypeList filters;
+
   filters << ERODE_FILTER;
   filters << ERODE_FILTER_V4;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::providedFilters() const
+{
+  FilterTypeList filters;
+
+  filters << CloseFilters();
+  filters << OpenFilters();
+  filters << DilateFilters();
+  filters << ErodeFilters();
 
   return filters;
 }
@@ -177,51 +223,6 @@ throw (Unknown_Filter_Exception)
 }
 
 //------------------------------------------------------------------------
-QList<Filter::Type> MorphologicalFilterFactory::availableFilterDelegates() const
-{
-  QList<Filter::Type> types;
-
-  types << CLOSE_FILTER  << CLOSE_FILTER_V4
-        << OPEN_FILTER   << OPEN_FILTER_V4
-        << DILATE_FILTER << DILATE_FILTER_V4
-        << ERODE_FILTER  << ERODE_FILTER_V4;
-
-  return types;
-}
-
-//------------------------------------------------------------------------
-FilterDelegateSPtr MorphologicalFilterFactory::createDelegate(SegmentationAdapterPtr segmentation,
-                                                              FilterSPtr             filter)
-throw (Unknown_Filter_Type_Exception)
-{
-  QString title;
-
-  auto type = filter->type();
-
-  if (isCloseFilter(type))
-  {
-    title = QObject::tr("Close");
-  }
-  else if (isOpenFilter(type))
-  {
-    title = QObject::tr("Open");
-  }
-  else if (isDilateFilter(type))
-  {
-    title = QObject::tr("Dilate");
-  }
-  else if (isErodeFilter(type))
-  {
-    title = QObject::tr("Erode");
-  }
-
-  auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
-
-  return std::make_shared<CODEHistory>(title, codeFilter);
-
-}
-
-//------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isCloseFilter(const Filter::Type &type) const
 {
  return CLOSE_FILTER == type || CLOSE_FILTER_V4 == type;
@@ -266,14 +267,15 @@ bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) 
 
 
 //-----------------------------------------------------------------------------
-RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                                 Support::Context &context)
+RefineToolGroup::RefineToolGroup(Support::FilterRefinerRegister &filgerRefiners,
+                                 Support::Context               &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Refine")}
-, m_context(context)
+, WithContext(context)
 {
   auto morphologicalFactory = std::make_shared<MorphologicalFilterFactory>();
   context.factory()->registerFilterFactory(morphologicalFactory);
-  filterDelegateFactory->registerFilterDelegateFactory(morphologicalFactory);
+
+  registerFilterRefiners(filgerRefiners);
 
   initManualEditionTool();
   initSplitTool();
@@ -288,9 +290,33 @@ RefineToolGroup::~RefineToolGroup()
 }
 
 //-----------------------------------------------------------------------------
+void RefineToolGroup::registerFilterRefiners(Support::FilterRefinerRegister &filterReginers)
+{
+  for (auto type : MorphologicalFilterFactory::CloseFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Close")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::OpenFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Open")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::DilateFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Dilate")), type);
+  }
+
+  for (auto type : MorphologicalFilterFactory::ErodeFilters())
+  {
+    filterReginers.registerFilterRefiner(std::make_shared<CODERefiner>(tr("Erode")), type);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void RefineToolGroup::initManualEditionTool()
 {
-  auto manualEdition = std::make_shared<ManualEditionTool>(m_context);
+  auto manualEdition = std::make_shared<ManualEditionTool>(context());
 
   connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
           this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
@@ -301,31 +327,31 @@ void RefineToolGroup::initManualEditionTool()
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initSplitTool()
 {
-  addTool(std::make_shared<SplitTool>(m_context));
+  addTool(std::make_shared<SplitTool>(context()));
 }
 
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initCODETools()
 {
-  addTool(std::make_shared<CODETool<CloseFilter>> ("CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , m_context));
-  addTool(std::make_shared<CODETool<OpenFilter>>  ("OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , m_context));
-  addTool(std::make_shared<CODETool<DilateFilter>>("DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), m_context));
-  addTool(std::make_shared<CODETool<ErodeFilter>> ("ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , m_context));
+  addTool(std::make_shared<CODETool<CloseFilter>> (CLOSE_FILTER, "CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close selected segmentations") , context()));
+  addTool(std::make_shared<CODETool<OpenFilter>>  (OPEN_FILTER,  "OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open selected segmentations")  , context()));
+  addTool(std::make_shared<CODETool<DilateFilter>>(DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate selected segmentations"), context()));
+  addTool(std::make_shared<CODETool<ErodeFilter>> (ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode selected segmentations") , context()));
 }
 
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initFillHolesTool()
 {
-  addTool(std::make_shared<FillHolesTool>(m_context));
+  addTool(std::make_shared<FillHolesTool>(context()));
 }
 
 //-----------------------------------------------------------------------------
 void RefineToolGroup::initImageLogicTools()
 {
-  auto addition  = std::make_shared<ImageLogicTool>(":/espina/add.svg",    tr("Merge selected segmentations"),     m_context);
+  auto addition  = std::make_shared<ImageLogicTool>(":/espina/add.svg",    tr("Merge selected segmentations"),     context());
   addition->setOperation(ImageLogicFilter::Operation::ADDITION);
 
-  auto substract = std::make_shared<ImageLogicTool>(":/espina/remove.svg", tr("Substract selected segmentations"), m_context);
+  auto substract = std::make_shared<ImageLogicTool>(":/espina/remove.svg", tr("Substract selected segmentations"), context());
   substract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
 
   addTool(addition);
@@ -337,41 +363,39 @@ void RefineToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
 {
   Q_ASSERT(item && isSegmentation(item) && hasVolumetricData(item->output()));
 
+  bool removeSegmentation = false;
+
   auto segmentation = segmentationPtr(item);
 
-  auto volume = writeLockVolume(segmentation->output());
-
-  auto undoStack = m_context.undoStack();
-
-  if (volume->isEmpty())
   {
-    undoStack->blockSignals(true);
-    do
-    {
-      undoStack->undo();
-    }
-    while(volume->isEmpty());
-    undoStack->blockSignals(false);
+    auto volume       = writeLockVolume(segmentation->output());
 
-    if(segmentation->output()->numberOfDatas() == 1)
+    if (volume->isEmpty())
     {
-      auto name = segmentation->data(Qt::DisplayRole).toString();
-      DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
-                                         tr("%1 will be deleted because all its voxels were erased.").arg(name));
-
-      undoStack->beginMacro("Remove Segmentation");
-      undoStack->push(new RemoveSegmentations(segmentation, m_context.model()));
+      removeSegmentation = true;
     }
     else
     {
-      auto output = segmentation->output();
-      undoStack->beginMacro("Remove Segmentation's volume");
-      undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
+      fitToContents(volume, SEG_BG_VALUE);
     }
-    undoStack->endMacro();
   }
-  else
+
+  if (removeSegmentation)
   {
-    fitToContents(volume, SEG_BG_VALUE);
+    getViewState().setEventHandler(EventHandlerSPtr());
+
+    auto name = segmentation->data(Qt::DisplayRole).toString();
+    DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
+                                       tr("%1 will be deleted because all its voxels were erased.").arg(name));
+
+    auto undoStack = getUndoStack();
+
+    undoStack->blockSignals(true);
+    undoStack->undo();
+    undoStack->blockSignals(false);
+
+    undoStack->beginMacro("Remove Segmentation");
+    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+    undoStack->endMacro();
   }
 }

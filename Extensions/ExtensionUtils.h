@@ -27,11 +27,11 @@
 
 namespace ESPINA
 {
-	/** \brief Templatized extension retrieval. The extended item must
-	 * be extended by the templated extension.
-	 * \param[in] item, extended item.
-	 *
-	 */
+  /** \brief Templatized extension retrieval. The extended item must
+   * be extended by the templated extension.
+   * \param[in] item to retrieve the extension from
+   *
+   */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveExtension(Extendible item)
   {
@@ -45,11 +45,11 @@ namespace ESPINA
     return extension;
   };
 
-	/** \brief Templatized extension retrieval. In the case the extended item
-	 * haven't got the extension, it's created and returned.
-	 * \param[in] item, extended item.
-	 *
-	 */
+  /** \brief Templatized extension retrieval. In the case the extended item
+   * haven't got the extension, it's created and returned.
+   * \param[in] item to retrieve or create the extension from
+   *
+   */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
   {
@@ -57,7 +57,7 @@ namespace ESPINA
 
     if (!item->hasExtension(Extension::TYPE))
     {
-      extension = std::shared_ptr<Extension>{new Extension()};
+      extension = std::make_shared<Extension>();
       item->addExtension(extension);
     }
     else
@@ -70,6 +70,20 @@ namespace ESPINA
 
     return extension;
   };
+
+  /** \brief Safe delete extension from item
+   * \param[in] item to get the extension deleted from
+   *
+   */
+  template<typename Extension, typename Extendible>
+  void safeDeleteExtension(Extendible item)
+  {
+    if (item->hasExtension(Extension::TYPE))
+    {
+      auto extension = std::make_shared<Extension>();
+      item->deleteExtension(extension);
+    }
+  }
 
 } // ESPINA
 

@@ -37,19 +37,19 @@ SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentatio
 
   if (EdgeDistance::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new EdgeDistance(cache, state)};
+    extension = std::make_shared<EdgeDistance>(cache, state);
   }
   else if (MorphologicalInformation::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new MorphologicalInformation(cache, state)};
+    extension = std::make_shared<MorphologicalInformation>(cache, state);
   }
   else if (SegmentationTags::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new SegmentationTags(cache)};
+    extension = std::make_shared<SegmentationTags>(cache);
   }
   else if (SegmentationNotes::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new SegmentationNotes(cache)};
+    extension = std::make_shared<SegmentationNotes>(cache);
   }
 
   return extension;

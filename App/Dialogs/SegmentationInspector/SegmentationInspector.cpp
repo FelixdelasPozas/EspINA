@@ -21,8 +21,7 @@
 // ESPINA
 #include "SegmentationInspector.h"
 
-#include <Docks/SegmentationHistory/EmptyHistory.h>
-#include <Docks/SegmentationHistory/DefaultHistory.h>
+#include <Docks/SegmentationInformation/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -30,7 +29,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Support/FilterHistory.h>
+#include <Support/FilterRefiner.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 // Qt
@@ -51,12 +50,12 @@ const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString
 const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
-                                             FilterDelegateFactorySPtr delegateFactory,
-                                             Support::Context   &context)
-: QWidget               {nullptr, Qt::WindowStaysOnTopHint}
-, m_context             (context)
-, m_delegateFactory     {delegateFactory}
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList         segmentations,
+                                             Support::FilterRefinerRegister &filterRefiners,
+                                             Support::Context               &context)
+: QWidget               (nullptr, Qt::WindowStaysOnTopHint)
+, WithContext           (context)
+, m_register            {filterRefiners}
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}
 , m_segmentationSources {context.representationInvalidator()}
@@ -74,14 +73,14 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
     addSegmentation(segmentation);
   }
 
-  initView3D(m_context.availableRepresentations());
+  initView3D(context.availableRepresentations());
 
   initReport();
 
   configureLayout();
 
-  connect(selection().get(), SIGNAL(selectionChanged()),
-          this,              SLOT(updateSelection()));
+  connect(getSelection().get(), SIGNAL(selectionChanged()),
+          this,                 SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -245,17 +244,11 @@ void SegmentationInspector::updateWindowTitle()
 }
 
 //------------------------------------------------------------------------
-SelectionSPtr SegmentationInspector::selection() const
-{
-  return ESPINA::Support::getSelection(m_context);
-}
-
-//------------------------------------------------------------------------
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  m_tabularReport.updateSelection(selection()->segmentations());
+  m_tabularReport.updateSelection(getSelectedSegmentations());
 }
 
 //------------------------------------------------------------------------
@@ -298,7 +291,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 
   while (!stream.atEnd())
   {
-    auto model = m_context.model();
+    auto model = getModel();
 
     int row, col;
     QMap<int, QVariant> itemData;
@@ -354,7 +347,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
 
   m_tabularReport.setFilter(m_segmentations);
-  m_tabularReport.updateSelection(selection()->segmentations());
+  m_tabularReport.updateSelection(getSelectedSegmentations());
 
   m_view.resetCamera();
   m_view.refresh();
@@ -365,58 +358,56 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 //------------------------------------------------------------------------
 void SegmentationInspector::updateSelection()
 {
-  auto activeHistory = m_historyScrollArea->widget();
-
-  if (activeHistory)
-  {
-    delete activeHistory;
-
-    activeHistory = nullptr;
-  }
-
-  auto selectedSegmentations = selection()->segmentations();
-
-  if (selectedSegmentations.size() == 1)
-  {
-    auto segmentation = selectedSegmentations.first();
-
-    if (m_segmentations.contains(segmentation))
-    {
-      if (m_selectedSegmentation != segmentation)
-      {
-        if(m_selectedSegmentation)
-        {
-          disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
-                     this, SLOT(updateSelection()));
-        }
-
-        m_selectedSegmentation = segmentation;
-
-        if(m_selectedSegmentation)
-        {
-          connect(m_selectedSegmentation, SIGNAL(outputModified()),
-                  this, SLOT(updateSelection()));
-        }
-      }
-
-      try
-      {
-        auto delegate = m_delegateFactory->createDelegate(segmentation);
-        activeHistory = delegate->createWidget(m_context);
-      }
-      catch (...)
-      {
-        activeHistory = new DefaultHistory(segmentation);
-      }
-    }
-  }
-
-  if (nullptr == activeHistory)
-  {
-    activeHistory = new EmptyHistory();
-  }
-
-  m_historyScrollArea->setWidget(activeHistory);
+//   auto activeHistory = m_historyScrollArea->widget();
+//
+//   if (activeHistory)
+//   {
+//     delete activeHistory;
+//
+//     activeHistory = nullptr;
+//   }
+//
+//   auto selectedSegmentations = selection()->segmentations();
+//
+//   if (selectedSegmentations.size() == 1)
+//   {
+//     auto segmentation = selectedSegmentations.first();
+//
+//     if (m_segmentations.contains(segmentation))
+//     {
+//       if (m_selectedSegmentation != segmentation)
+//       {
+//         if(m_selectedSegmentation)
+//         {
+//           disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
+//                      this, SLOT(updateSelection()));
+//         }
+//
+//         m_selectedSegmentation = segmentation;
+//
+//         if(m_selectedSegmentation)
+//         {
+//           connect(m_selectedSegmentation, SIGNAL(outputModified()),
+//                   this, SLOT(updateSelection()));
+//         }
+//       }
+//
+//       try
+//       {
+//         activeHistory = m_register.createRefineWidget(segmentation, m_context);
+//       }
+//       catch (...)
+//       {
+//         activeHistory = new NoFilterRefiner();
+//       }
+//     }
+//   }
+//   if (!activeHistory)
+//   {
+//     activeHistory = new EmptyHistory();
+//   }
+//
+//   m_historyScrollArea->setWidget(activeHistory);
 }
 
 //------------------------------------------------------------------------
@@ -424,9 +415,9 @@ void SegmentationInspector::configureLayout()
 {
   layout()->setMenuBar(&m_toolbar);
 
-  m_viewport         ->setLayout(createViewLayout());
-  m_historyScrollArea->setWidget(new EmptyHistory());
-  m_information      ->setLayout(createReportLayout());
+  m_viewport   ->setLayout(createViewLayout());
+  m_history    ->setVisible(false);
+  m_information->setLayout(createReportLayout());
 }
 
 //------------------------------------------------------------------------
@@ -458,7 +449,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
   for (auto factory : representations)
   {
-    auto representation = factory->createRepresentation(m_context, ViewType::VIEW_3D);
+    auto representation = factory->createRepresentation(context(), ViewType::VIEW_3D);
 
     m_representations << representation;
 
@@ -495,7 +486,7 @@ void SegmentationInspector::initReport()
   SegmentationExtension::InfoTagList tags;
   tags << tr("Name") << tr("Category");
 
-  m_tabularReport.setModel(m_context.model());
+  m_tabularReport.setModel(getModel());
   m_tabularReport.setFilter(m_segmentations);
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport.setMinimumHeight(0);

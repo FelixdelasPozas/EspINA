@@ -26,7 +26,7 @@
 #include <QWidget>
 
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <GUI/View/View3D.h>
@@ -46,6 +46,7 @@ namespace ESPINA
   class SegmentationInspector
   : public QWidget
   , public Ui::SegmentationInspector
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -54,9 +55,9 @@ namespace ESPINA
      * \param[in] delegateFactory
      * \param[in] context ESPINA context
      */
-    SegmentationInspector(SegmentationAdapterList   segmentations,
-                          FilterDelegateFactorySPtr delegateFactory,
-                          Support::Context         &context);
+    SegmentationInspector(SegmentationAdapterList         segmentations,
+                          Support::FilterRefinerRegister &filterRefiners,
+                          Support::Context               &context);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -136,14 +137,10 @@ namespace ESPINA
 
     QHBoxLayout *createReportLayout();
 
-    SelectionSPtr selection() const;
-
   private:
     static const QString GEOMETRY_SETTINGS_KEY;
     static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
-
-    Support::Context         &m_context;
-    FilterDelegateFactorySPtr m_delegateFactory;
+    Support::FilterRefinerRegister &m_register;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;

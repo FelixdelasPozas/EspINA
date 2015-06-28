@@ -52,9 +52,9 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit ClassificationLayout(CheckableTreeView        *view,
-                                  FilterDelegateFactorySPtr delegateFactory,
-                                  Support::Context   &context);
+    explicit ClassificationLayout(CheckableTreeView              *view,
+                                  Support::FilterRefinerRegister &filterRefiners,
+                                  Support::Context               &context);
 
     virtual ~ClassificationLayout();
 

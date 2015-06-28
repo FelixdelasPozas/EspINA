@@ -27,9 +27,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
-  Docks/SegmentationHistory/DefaultHistory.h
-  Docks/SegmentationHistory/EmptyHistory.h
-  Docks/SegmentationHistory/HistoryDock.h
+  Docks/SegmentationInformation/NoFilterRefiner.h
+  Docks/SegmentationInformation/SegmentationInformation.h
   EspinaMainWindow.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
@@ -39,8 +38,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/ZoomTool.h
   ToolGroups/Explore/VisualBookmarks.h
-  ToolGroups/Refine/CODEHistory.h
-  ToolGroups/Refine/CODEHistoryWidget.h
+  ToolGroups/Refine/CODERefiner.h
+  ToolGroups/Refine/CODERefineWidget.h
   ToolGroups/Refine/CODETool.h
   ToolGroups/Refine/ManualEditionTool.h
   ToolGroups/Refine/RefineToolGroup.h
@@ -53,8 +52,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Restrict/RestrictToolGroup.h
   ToolGroups/Segment/Manual/ManualSegmentTool.h
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
@@ -84,14 +83,14 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/View3DDialog/3DDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
-  Docks/SegmentationHistory/DefaultHistory.ui
-  Docks/SegmentationHistory/EmptyHistory.ui
+  Docks/SegmentationInformation/NoFilterRefiner.ui
+  Docks/SegmentationInformation/SegmentationInformation.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
-  ToolGroups/Refine/CODEHistoryWidget.ui
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
+  ToolGroups/Refine/CODERefineWidget.ui
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -120,9 +119,8 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
-  Docks/SegmentationHistory/DefaultHistory.cpp
-  Docks/SegmentationHistory/EmptyHistory.cpp
-  Docks/SegmentationHistory/HistoryDock.cpp
+  Docks/SegmentationInformation/NoFilterRefiner.cpp
+  Docks/SegmentationInformation/SegmentationInformation.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -149,8 +147,8 @@ set (ESPINA_SOURCES
   ToolGroups/Restrict/RestrictToolGroup.cpp
   ToolGroups/Segment/Manual/ManualSegmentTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
@@ -158,8 +156,8 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/Refine/CODEHistory.cpp
-  ToolGroups/Refine/CODEHistoryWidget.cpp
+  ToolGroups/Refine/CODERefiner.cpp
+  ToolGroups/Refine/CODERefineWidget.cpp
   ToolGroups/Refine/CODETool.cpp
   ToolGroups/Refine/RefineToolGroup.cpp
   ToolGroups/Refine/ManualEditionTool.cpp

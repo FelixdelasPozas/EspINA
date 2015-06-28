@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ESPINA::EmptyHistory</class>
- <widget class="QWidget" name="ESPINA::EmptyHistory">
+ <class>NoFilterRefiner</class>
+ <widget class="QWidget" name="NoFilterRefiner">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>303</width>
     <height>300</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>There are no segmentation selected.</string>
+      <string>Segmentaion cannot be modified</string>
      </property>
     </widget>
    </item>

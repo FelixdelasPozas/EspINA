@@ -43,24 +43,18 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** \brief ChangeSegmentationTags class constructor.
-  	 * \param[in] segmentation, raw pointer of the segmentation adapter.
-  	 * \param[in] tags, list of new tags.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief ChangeSegmentationTags class constructor.
+     * \param[in] segmentation whose tags are managed
+     * \param[in] tags added to the segmentation
+     * \param[in] parent undo command
+     *
+     */
     explicit ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
                                     const QStringList&  tags,
                                     QUndoCommand*       parent = nullptr);
 
-    /** \brief Overrides QUndoCommand::redo().
-     *
-     */
     virtual void redo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
     virtual void undo() override;
 
   private:

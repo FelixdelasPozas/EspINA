@@ -24,7 +24,7 @@
 // ESPINA
 #include "SegmentationExplorer.h"
 #include <GUI/Widgets/CheckableTreeView.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Representations/RepresentationFactory.h>
 
 // Qt
@@ -62,12 +62,13 @@ namespace ESPINA
   public:
     /** \brief Layout class constructor.
      * \param[in] view QTreeView raw pointer.
+     * \param[in] filterRefiners register of filter refiners
      * \param[in] context ESPINA context
      *
      */
-    explicit Layout(CheckableTreeView        *view,
-                    FilterDelegateFactorySPtr delegateFactory,
-                    Support::Context   &context);
+    explicit Layout(CheckableTreeView              *view,
+                    Support::FilterRefinerRegister &filterRefiners,
+                    Support::Context               &context);
 
     /** \brief Layout class virtual destructor.
      *
@@ -179,8 +180,8 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    Support::Context   &m_context;
-    FilterDelegateFactorySPtr m_delegateFactory;
+    Support::Context               &m_context;
+    Support::FilterRefinerRegister &m_delegateFactory;
 
     CheckableTreeView *m_view;
 

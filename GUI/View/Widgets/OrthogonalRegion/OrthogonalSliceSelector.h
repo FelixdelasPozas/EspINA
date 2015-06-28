@@ -23,6 +23,7 @@
 
 // ESPINA
 #include <GUI/Widgets/SliceSelector.h>
+#include "OrthogonalRepresentation.h"
 
 class QPushButton;
 
@@ -36,8 +37,6 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class OrthogonalRepresentation;
-
           class EspinaGUI_EXPORT OrthogonalSliceSelector
           : public SliceSelector
           {
@@ -46,7 +45,7 @@ namespace ESPINA
             /** \brief OrthogonalSliceSelector constructor.
              *
              */
-            explicit OrthogonalSliceSelector(OrthogonalRepresentation &region);
+            explicit OrthogonalSliceSelector(OrthogonalRepresentationSPtr region);
 
             explicit OrthogonalSliceSelector(OrthogonalSliceSelector &selector);
 
@@ -107,7 +106,7 @@ namespace ESPINA
             void updateLabel();
 
           private:
-            OrthogonalRepresentation &m_representation;
+            OrthogonalRepresentationSPtr m_representation;
 
             RenderView *m_view;
             Plane       m_plane;

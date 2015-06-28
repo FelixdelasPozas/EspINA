@@ -16,15 +16,29 @@
  *
  */
 
-#include "EmptyHistory.h"
+#ifndef ESPINA_CODE_REFINER_H
+#define ESPINA_CODE_REFINER_H
 
-#include "ui_EmptyHistory.h"
+#include <Filters/MorphologicalEditionFilter.h>
+#include <Support/FilterRefiner.h>
 
-using namespace ESPINA;
+namespace ESPINA {
 
-EmptyHistory::EmptyHistory(QWidget *parent, Qt::WindowFlags f)
-: QWidget(parent, f)
-, m_gui(new Ui::EmptyHistory())
-{
-  m_gui->setupUi(this);
+  class CODERefiner
+  : public FilterRefiner
+  {
+   Q_OBJECT
+  public:
+    explicit CODERefiner(const QString &title);
+
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
+
+  signals:
+    void radiusChanged(int);
+
+  private:
+    QString m_title;
+  };
 }
+
+#endif // ESPINA_CODE_REFINER_H

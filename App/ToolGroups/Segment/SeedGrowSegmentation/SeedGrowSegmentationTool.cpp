@@ -22,10 +22,9 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
-#include "SeedGrowSegmentationHistoryWidget.h"
-#include "SeedGrowSegmentationHistory.h"
+#include "SeedGrowSegmentationRefineWidget.h"
 #include "CustomROIWidget.h"
-#include <App/Settings/ROI/ROISettings.h>
+#include "SeedGrowSegmentationRefiner.h"
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
@@ -33,7 +32,8 @@
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Support/FilterHistory.h>
+#include <Support/FilterRefiner.h>
+#include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
@@ -46,6 +46,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
@@ -90,31 +91,20 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
   return sgsFilter;
 }
 
-//-----------------------------------------------------------------------------
-QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegates() const
-{
-  QList<Filter::Type> types;
-
-  types << SGS_FILTER << SGS_FILTER_V4;
-
-  return types;
-}
-
-//-----------------------------------------------------------------------------
-FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(SegmentationAdapterPtr segmentation,
-                                                                        FilterSPtr             filter)
-throw (Unknown_Filter_Type_Exception)
-{
-  if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
-
-  auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
-
-  return std::make_shared<SeedGrowSegmentationHistory>(segmentation, sgsFilter);
-}
+// //-----------------------------------------------------------------------------
+// FilterRefinerSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(SegmentationAdapterPtr segmentation,
+//                                                                         FilterSPtr             filter)
+// throw (Unknown_Filter_Type_Exception)
+// {
+//   if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
+//
+//   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
+//
+// }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                                   FilterDelegateFactorySPtr     filterDelegateFactory,
+                                                   FilterRefinerRegister        &filterRefiners,
                                                    Support::Context             &context)
 : ProgressTool("SeedGrowSegmentation", ":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
 , m_context         (context)
@@ -128,7 +118,13 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
   setExclusive(true);
 
   m_context.factory()->registerFilterFactory(m_sgsFactory);
-  filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
+
+  auto sgsRefiner = std::make_shared<SeedGrowSegmentationRefiner>();
+
+  for (auto type : m_sgsFactory->providedFilters())
+  {
+    filterRefiners.registerFilterRefiner(sgsRefiner, type);
+  }
 
   initPixelSelectors();
 

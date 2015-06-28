@@ -224,14 +224,8 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
   bool excluded = isExcludedByCountingFrame(cf);
 
   QVariant info;
-  if (excluded)
-  {
-    info.setValue<int>(0);
-  }
-  else
-  {
-    info.setValue<int>(1);
-  }
+
+  info.setValue<int>(excluded?0:1);
 
   {
     QMutexLocker lock(&m_mutex);

@@ -64,9 +64,6 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   connect(getSelection().get(), SIGNAL(selectionChanged()),
           this,                 SLOT(onSelectionChanged()));
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(onToolToggled(bool)));
-
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
@@ -77,6 +74,8 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 
   onSelectionChanged();
+
+  setEventHandler(m_drawingWidget.painter());
 }
 
 //------------------------------------------------------------------------
@@ -243,7 +242,7 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
-  getViewState().setEventHandler(painter);
+  setEventHandler(painter);
 }
 
 //------------------------------------------------------------------------
@@ -256,19 +255,4 @@ void ManualEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
 void ManualEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   m_drawingWidget.saveSettings(settings);
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::onToolToggled(bool toggled)
-{
-  auto painter = m_drawingWidget.painter();
-
-  if (toggled)
-  {
-    getViewState().setEventHandler(painter);
-  }
-  else
-  {
-    getViewState().unsetEventHandler(painter);
-  }
 }

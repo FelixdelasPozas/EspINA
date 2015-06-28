@@ -55,50 +55,26 @@ namespace ESPINA
      */
     virtual ~SegmentationNotes();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return false; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const
     { return State(); }
 
-    /** \brief Implements Extension::snapshot().
-     *
-     */
     virtual Snapshot snapshot() const
     { return Snapshot(); }
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
     virtual InfoTagList availableInformations() const;
 
-    /** \brief Overrides Extension::tooltipText().
-     *
-     */
     virtual QString toolTipText() const override;
 
     /** \brief Sets the notes.
@@ -124,10 +100,6 @@ namespace ESPINA
      */
     virtual QVariant cacheFail(const QString& tag) const;
   };
-
-  using SegmentationNotesPtr  = SegmentationNotes *;
-  using SegmentationNotesSPtr = std::shared_ptr<SegmentationNotes>;
-
 } // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_NOTES_H

@@ -24,7 +24,7 @@
 // ESPINA
 #include <ToolGroups/ToolGroup.h>
 
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 
 class QUndoStack;
 
@@ -32,6 +32,7 @@ namespace ESPINA
 {
   class RefineToolGroup
   : public ToolGroup
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -40,12 +41,14 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                             Support::Context         &context);
+    explicit RefineToolGroup(Support::FilterRefinerRegister &filterRefiners,
+                             Support::Context               &context);
 
     virtual ~RefineToolGroup();
 
   private:
+    void registerFilterRefiners(Support::FilterRefinerRegister& filterReginer);
+
     void initManualEditionTool();
 
     void initSplitTool();
@@ -61,9 +64,6 @@ namespace ESPINA
      *
      */
     void onVoxelDeletion(ViewItemAdapterPtr item);
-
-  private:
-    Support::Context &m_context;
   };
 
 } // namespace ESPINA

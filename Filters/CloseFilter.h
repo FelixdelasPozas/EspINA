@@ -46,15 +46,9 @@ namespace ESPINA
     virtual ~CloseFilter();
 
   protected:
-    /** \brief Implements Filter::execute().
-     *
-     */
     virtual void execute()
-    {	execute(0); }
+    { execute(0); }
 
-    /** \brief Implements Filter::execute(id).
-     *
-     */
     virtual void execute(Output::Id id);
   };
 

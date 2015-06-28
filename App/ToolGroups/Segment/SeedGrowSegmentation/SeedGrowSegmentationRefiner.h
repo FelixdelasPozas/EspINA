@@ -19,7 +19,7 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
 #define ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
 
-#include <Support/FilterHistory.h>
+#include <Support/FilterRefiner.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 
@@ -28,37 +28,41 @@ namespace ESPINA {
   class RestrictToolGroup;
   class ROISettings;
 
-  class SeedGrowSegmentationHistory
-  : public FilterHistory
+  class SeedGrowSegmentationRefiner
+  : public FilterRefiner
   {
     Q_OBJECT
   public:
-    SeedGrowSegmentationHistory(SegmentationAdapterPtr         segmentation,
-                                SeedGrowSegmentationFilterSPtr filter);
+    SeedGrowSegmentationRefiner();
 
-    virtual ~SeedGrowSegmentationHistory();
+    virtual ~SeedGrowSegmentationRefiner();
 
-    virtual QWidget *createWidget(Support::Context &context);
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
 
   signals:
-    void thresholdChanged(int);
-    void applyClosingChanged(bool);
-    void closingRadiusChanged(int);
+    void thresholdChanged(SegmentationAdapterPtr , int);
+    void applyClosingChanged(SegmentationAdapterPtr, bool);
+    void closingRadiusChanged(SegmentationAdapterPtr, int);
 
   private slots:
     /**
      *  Decrease widget count and hides ROI if no widgets are visible
      */
-    void onWidgetDestroyed();
+    void onWidgetDestroyed(QObject *widget);
 
   private:
-    SegmentationAdapterPtr         m_segmentation;
-    SeedGrowSegmentationFilterSPtr m_filter;
+    struct RefineWidget
+    {
+      RefineWidget(SegmentationAdapterPtr segmentation, Support::Context &context);
+      ~RefineWidget();
 
-    int m_widgetCount;
+      int                Count;
+      ROISettings       *RoiSettings;
+      RestrictToolGroup *RoiTools;
+    };
 
-    ROISettings   *m_roiSettings;
-    RestrictToolGroup *m_roiTools;
+    QMap<SegmentationAdapterPtr, RefineWidget *> m_refineWidgets;
+    QMap<QObject *, SegmentationAdapterPtr>      m_widgetSegmentation;
   };
 
 } // namespace ESPINA

@@ -75,9 +75,9 @@ void ToolGroup::onExclusiveToolInUse(Support::Widgets::ProgressTool* tool)
 }
 
 //-----------------------------------------------------------------------------
-ToolSList ToolGroup::tools() const
+ToolGroup::GroupedTools ToolGroup::groupedTools() const
 {
-  ToolSList tools;
+  GroupedTools tools;
 
   auto groups = m_tools.keys();
 
@@ -85,9 +85,8 @@ ToolSList ToolGroup::tools() const
 
   for (auto group : groups)
   {
-    tools << m_tools[group];
+    tools.append(m_tools[group]);
   }
-
 
   return tools;
 }

@@ -61,7 +61,7 @@ set (Support_SOURCES
   ${METADONA_SOURCES}
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
-  Factory/FilterDelegateFactory.cpp
+  Factory/FilterRefinerRegister.cpp
   Readers/ChannelReader.cpp
   Representations/BasicRepresentationSwitch.cpp
   Representations/RepresentationSwitch.cpp
@@ -71,6 +71,7 @@ set (Support_SOURCES
   ROIAccumulator.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
+  Utils/TagUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
   ContextFactories.cpp

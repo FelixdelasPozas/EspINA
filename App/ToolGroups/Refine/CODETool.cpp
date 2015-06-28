@@ -37,13 +37,15 @@ using namespace ESPINA::Support::Widgets;
 const QString RADIUS = "Radius";
 
 //------------------------------------------------------------------------
-CODEToolBase::CODEToolBase(const QString    &toolId,
-                           const QString    &name,
-                           const QString    &icon,
-                           const QString    &tooltip,
-                           Support::Context &context)
+CODEToolBase::CODEToolBase(const Filter::Type type,
+                           const QString     &toolId,
+                           const QString     &name,
+                           const QString     &icon,
+                           const QString     &tooltip,
+                           Support::Context  &context)
 : RefineTool(toolId, icon, tooltip, context)
-, m_name    {name}
+, m_type{type}
+, m_name{name}
 {
   setCheckable(true);
   setExclusive(true);

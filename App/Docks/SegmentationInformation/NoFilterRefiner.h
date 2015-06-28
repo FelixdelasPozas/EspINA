@@ -16,29 +16,29 @@
  *
  */
 
-#include "CODEHistory.h"
+#ifndef ESPINA_DEFAULT_HISTORY_H
+#define ESPINA_DEFAULT_HISTORY_H
 
-#include "CODEHistoryWidget.h"
+// Qt
+#include <QWidget>
 
-using namespace ESPINA;
+// ESPINA
+#include <GUI/Model/SegmentationAdapter.h>
+#include "ui_NoFilterRefiner.h"
 
-//-----------------------------------------------------------------------------
-CODEHistory::CODEHistory(const QString& title, MorphologicalEditionFilterSPtr filter)
-: m_filter{filter}
-, m_title{title}
+namespace ESPINA
 {
+  class NoFilterRefiner
+  : public QWidget
+  {
+    Q_OBJECT
+  public:
+    explicit NoFilterRefiner(QWidget *parent = 0, Qt::WindowFlags f = 0);
 
-}
+  private:
+    Ui::NoFilterRefiner *m_gui;
+  };
 
-//-----------------------------------------------------------------------------
-QWidget *CODEHistory::createWidget(Support::Context &context)
-{
-  auto widget = new CODEHistoryWidget(m_title, m_filter, context);
+} // namespace ESPINA
 
-  connect(widget, SIGNAL(radiusChanged(int)),
-          this,   SIGNAL(radiusChanged(int)));
-  connect(this,   SIGNAL(radiusChanged(int)),
-          widget, SLOT(setRadius(int)));
-
-  return widget;
-}
+#endif // ESPINA_DEFAULT_HISTORY_H

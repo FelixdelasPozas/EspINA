@@ -1,6 +1,7 @@
 /*
+ * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
- *
+
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,31 +17,29 @@
  *
  */
 
-#ifndef ESPINA_CODE_HISTORY_H
-#define ESPINA_CODE_HISTORY_H
+#ifndef ESPINA_FILTER_REFINER_H
+#define ESPINA_FILTER_REFINER_H
 
-#include <Filters/MorphologicalEditionFilter.h>
-#include <Support/FilterHistory.h>
+#include "Context.h"
+
+class QWidget;
 
 namespace ESPINA {
 
-  class CODEHistory
-  : public FilterHistory
+  class FilterRefiner
+  : public QObject
   {
-   Q_OBJECT
   public:
-    explicit CODEHistory(const QString &title, MorphologicalEditionFilterSPtr filter);
+    virtual ~FilterRefiner() {}
 
-    virtual QWidget *createWidget(Support::Context &context);
-
-  signals:
-    void radiusChanged(int);
-
-  private:
-    MorphologicalEditionFilterSPtr m_filter;
-
-    QString m_title;
+    /** \brief Create a widge to refine the filter
+     *
+     */
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context &context) = 0;
   };
-}
 
-#endif // ESPINA_CODE_HISTORY_H
+  using FilterRefinerSPtr = std::shared_ptr<FilterRefiner>;
+
+} // namespace ESPINA
+
+#endif // ESPINA_FILTER_REFINER_H

@@ -29,7 +29,7 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/Tool.h>
 
 class QUndoStack;
@@ -51,15 +51,11 @@ namespace ESPINA
 
     class SGSFactory
     : public FilterFactory
-    , public SpecificFilterDelegateFactory
     {
+    public:
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-
-      virtual QList<Filter::Type> availableFilterDelegates() const;
-
-      virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation, FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
       mutable DataFactorySPtr m_dataFactory;
@@ -68,14 +64,12 @@ namespace ESPINA
   public:
     /** \brief SeedGrowSegmentationTool class constructor.
      * \param[in] settings raw pointer to a SeedGrowSegmentationSettings object.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack raw pointer to a QUndoStack object.
+     * \param[in] filterRefiners register of filter refiners
+     * \param[in] context of current session
      */
-    explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                      FilterDelegateFactorySPtr     filterDelegateFactory,
-                                      Support::Context       &context);
+    explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings   *settings,
+                                      Support::FilterRefinerRegister &filterRefiners,
+                                      Support::Context               &context);
 
     /** \brief SeedGrowSegmentation class virtual destructor.
      *

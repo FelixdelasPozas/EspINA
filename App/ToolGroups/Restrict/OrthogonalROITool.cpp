@@ -76,10 +76,11 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
 : ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
-, m_prototypes   {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
-, m_resizeHandler{new EventHandler()}
-, m_defineHandler{new PixelSelector()}
-, m_settings     {settings}
+, m_roiRepresentation{new OrthogonalRepresentation()}
+, m_prototypes       {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
+, m_resizeHandler    {new EventHandler()}
+, m_defineHandler    {new PixelSelector()}
+, m_settings         {settings}
 {
   setCheckable(true);
   setExclusive(true);
@@ -139,7 +140,7 @@ void OrthogonalROITool::setVisible(bool visible)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setColor(const QColor& color)
 {
-  m_roiRepresentation.setColor(color);
+  m_roiRepresentation->setColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -185,8 +186,8 @@ void OrthogonalROITool::createOrthogonalWidget()
 {
   updateRegionRepresentation();
 
-  connect(&m_roiRepresentation, SIGNAL(boundsChanged(Bounds)),
-          this,                 SLOT(updateBounds(Bounds)));
+  connect(m_roiRepresentation.get(), SIGNAL(boundsChanged(Bounds)),
+          this,                      SLOT(updateBounds(Bounds)));
 
   connect(m_roi.get(), SIGNAL(dataChanged()),
           this,        SLOT(updateRegionRepresentation()));
@@ -209,7 +210,7 @@ void OrthogonalROITool::destroyOrthogonalWidget()
 
   m_sliceSelector = nullptr;
 
-  disconnect(&m_roiRepresentation, SIGNAL(boundsChanged(Bounds)),
+  disconnect(m_roiRepresentation.get(), SIGNAL(boundsChanged(Bounds)),
              this,                 SLOT(updateBounds(Bounds)));
 
   disconnect(m_roi.get(), SIGNAL(dataChanged()),
@@ -280,7 +281,7 @@ void OrthogonalROITool::setResizable(bool resizable)
   auto viewState = &getViewState();
   if (resizable)
   {
-    m_roiRepresentation.setRepresentationPattern(0xFFF0);
+    m_roiRepresentation->setRepresentationPattern(0xFFF0);
 
     showSliceSelectors();
 
@@ -288,7 +289,7 @@ void OrthogonalROITool::setResizable(bool resizable)
   }
   else
   {
-    m_roiRepresentation.setRepresentationPattern(0xFFFF);
+    m_roiRepresentation->setRepresentationPattern(0xFFFF);
 
     hideSliceSelectors();
 
@@ -366,9 +367,9 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::updateRegionRepresentation()
 {
-  m_roiRepresentation.blockSignals(true);
-  m_roiRepresentation.setBounds(m_roi->bounds());
-  m_roiRepresentation.blockSignals(false);
+  m_roiRepresentation->blockSignals(true);
+  m_roiRepresentation->setBounds(m_roi->bounds());
+  m_roiRepresentation->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -376,13 +377,13 @@ void OrthogonalROITool::setRepresentationResizable(const bool value)
 {
   auto mode = value?Representation::Mode::RESIZABLE:Representation::Mode::FIXED;
 
-  m_roiRepresentation.setMode(mode);
+  m_roiRepresentation->setMode(mode);
 }
 
 //-----------------------------------------------------------------------------
 bool OrthogonalROITool::isResizable() const
 {
-  return m_roiRepresentation.mode() == Representation::Mode::RESIZABLE;
+  return m_roiRepresentation->mode() == Representation::Mode::RESIZABLE;
 }
 
 //-----------------------------------------------------------------------------

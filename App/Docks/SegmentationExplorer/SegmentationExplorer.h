@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Support/Widgets/DockWidget.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Context.h>
 
 // Qt
@@ -39,6 +39,7 @@ namespace ESPINA
   class SegmentationExplorer
   : public DockWidget
   , public SelectableView
+  , private Support::WithContext
   {
     Q_OBJECT
     class GUI;
@@ -48,8 +49,8 @@ namespace ESPINA
   public:
     /** \brief SegmentationExplorer class constructor.
      */
-    explicit SegmentationExplorer(FilterDelegateFactorySPtr delegateFactory,
-                                  Support::Context &context);
+    explicit SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
+                                  Support::Context               &context);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *
@@ -74,7 +75,7 @@ namespace ESPINA
      */
     void updateGUI(const QModelIndexList &selectedIndexes);
 
-  protected slots:
+  private slots:
     /** \brief Changes the layout of the view.
      * \param[in] index index of the new layout in the layout list.
      *
@@ -114,8 +115,16 @@ namespace ESPINA
      */
     void onSelectionChanged();
 
+    void onTagSelected(const QString &tag);
+
+  private:
+    QModelIndexList selectedIndexes() const;
+
+    QString createTagLink(const QString &tag) const;
+
+    void updateTags(const QModelIndexList &selectedIndexes);
+
   protected:
-    Support::Context &m_context;
     GUI             *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;

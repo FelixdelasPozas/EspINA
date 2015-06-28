@@ -30,7 +30,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
-OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentation &region)
+OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentationSPtr region)
 : m_representation(region)
 , m_view          {nullptr}
 , m_plane         {Plane::UNDEFINED}
@@ -42,11 +42,11 @@ OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentation &regio
 //----------------------------------------------------------------------------
 OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalSliceSelector &selector)
 : m_representation(selector.m_representation)
-, m_view       {selector.m_view}
-, m_plane      {selector.m_plane}
-, m_lowerWidget{RenderView::createButton(":/espina/from_slice.svg", "")}
-, m_upperWidget{RenderView::createButton(":/espina/to_slice.svg",   "")}
-, m_label      {selector.m_label}
+, m_view          {selector.m_view}
+, m_plane         {selector.m_plane}
+, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
+, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "")}
+, m_label         {selector.m_label}
 {
 }
 
@@ -80,8 +80,8 @@ SliceSelectorSPtr OrthogonalSliceSelector::clone(RenderView *view, Plane plane)
   connect(selector->m_view, SIGNAL(crosshairPlaneChanged(Plane, Nm)),
           selector.get(),   SLOT(update()));
 
-  connect(&(selector->m_representation), SIGNAL(boundsChanged(Bounds)),
-          selector.get(),        SLOT(update()));
+  connect(selector->m_representation.get(), SIGNAL(boundsChanged(Bounds)),
+          selector.get(),                   SLOT(update()));
 
   connect(selector->m_lowerWidget, SIGNAL(clicked(bool)),
           selector.get(),          SLOT(lowerWidgetClicked()));
@@ -100,7 +100,7 @@ void OrthogonalSliceSelector::update()
 {
   if(m_view)
   {
-    auto bounds = m_representation.bounds();
+    auto bounds = m_representation->bounds();
 
     int i = normalIndex();
 
@@ -131,7 +131,7 @@ void OrthogonalSliceSelector::moveEdge(Edge edge)
 {
   Q_ASSERT(m_view);
 
-  auto bounds = m_representation.bounds();
+  auto bounds = m_representation->bounds();
 
   int i = normalIndex();
 
@@ -142,7 +142,7 @@ void OrthogonalSliceSelector::moveEdge(Edge edge)
     std::swap(bounds[2*i],bounds[2*i+1]);
   }
 
-  m_representation.setBounds(bounds);
+  m_representation->setBounds(bounds);
 
   update();
 }

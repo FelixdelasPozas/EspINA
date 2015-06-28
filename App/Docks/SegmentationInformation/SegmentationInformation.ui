@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SegmentationInformation</class>
+ <widget class="QWidget" name="SegmentationInformation">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>464</width>
+    <height>385</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Segmentation Information</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../rsc/espina.qrc">
+    <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>446</width>
+        <height>367</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Segmentation:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="segmentation">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="refineGroup">
+         <property name="title">
+          <string>Refine</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3"/>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="tagsGroup">
+         <property name="title">
+          <string>Tags</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="manageTags">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Create new tag</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../../rsc/espina.qrc">
+              <normaloff>:/espina/newTag.svg</normaloff>:/espina/newTag.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="tags">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="notesGroup">
+         <property name="title">
+          <string>Notes</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QTextEdit" name="notes"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../rsc/espina.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/Factory/FilterDelegateFactory.h>
 
 class QAction;
 class QUndoStack;

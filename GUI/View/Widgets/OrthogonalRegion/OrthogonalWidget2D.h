@@ -50,7 +50,7 @@ namespace ESPINA
             Q_OBJECT
 
           public:
-            explicit OrthogonalWidget2D(OrthogonalRepresentation &representation);
+            explicit OrthogonalWidget2D(OrthogonalRepresentationSPtr representation);
 
             virtual void setPlane(Plane plane) override;
 
@@ -85,7 +85,7 @@ namespace ESPINA
           private:
             class Command;
 
-            OrthogonalRepresentation &m_representation;
+            OrthogonalRepresentationSPtr m_representation;
 
             vtkSmartPointer<vtkOrthogonalWidget2D> m_widget;
             vtkSmartPointer<Command>     m_command;

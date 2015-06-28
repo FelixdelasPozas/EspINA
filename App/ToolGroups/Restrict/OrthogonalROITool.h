@@ -146,6 +146,7 @@ namespace ESPINA
     using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
     using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
     using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
+    using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     QPushButton *m_resizeROI;
@@ -154,7 +155,7 @@ namespace ESPINA
     bool             m_enabled;
 
     ROISPtr                m_roi;
-    Representation         m_roiRepresentation;
+    RepresentationSPtr     m_roiRepresentation;
     TemporalPrototypesSPtr m_prototypes;
 
     EventHandlerSPtr   m_resizeHandler;

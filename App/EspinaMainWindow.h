@@ -38,7 +38,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
@@ -364,10 +363,12 @@ namespace ESPINA
 
     const QList<ToolGroupPtr> toolGroups() const;
 
+    ToolSList availableTools() const;
+
   private:
     // ESPINA
-    Support::Context          m_context;
-    FilterDelegateFactorySPtr m_filterDelegateFactory;
+    Support::Context               m_context;
+    Support::FilterRefinerRegister m_filterRefiners;
     AnalysisSPtr              m_analysis;
 
     FilterFactorySPtr  m_filterFactory;
