@@ -266,7 +266,7 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
   if (segmentationsSelected)
   {
-    contextMenu = new DefaultContextualMenu(m_selectedSegmentations, m_context);
+    contextMenu = new DefaultContextualMenu(m_selectedSegmentations, context());
 
     for (auto action : contextMenu->actions())
     {
@@ -396,17 +396,17 @@ void ClassificationLayout::deleteSelectedItems()
       }
     }
 
-    auto undoStack = m_context.undoStack();
+    auto undoStack = getUndoStack();
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    m_context.undoStack()->beginMacro(tr("Remove Categories and Segmentations"));
+    undoStack->beginMacro(tr("Remove Categories and Segmentations"));
     deleteSegmentations(segmentations.toList());
 
     categories << additionalCategories;
 
     for(auto category : categories)
     {
-      auto model = m_context.model();
+      auto model = getModel();
       if (model->classification()->category(category->classificationName()))
       {
         undoStack->push(new RemoveCategoryCommand(category, model));
@@ -468,7 +468,7 @@ void ClassificationLayout::createCategory()
 {
   ItemAdapterPtr categoryItem = nullptr;
 
-  auto model        = m_context.model();
+  auto model        = getModel();
   auto currentIndex = m_view->currentIndex();
 
   if (currentIndex.isValid())
@@ -491,7 +491,7 @@ void ClassificationLayout::createCategory()
 
     if (!parentCategory->subCategory(name))
     {
-      auto undoStack = m_context.undoStack();
+      auto undoStack = getUndoStack();
       undoStack->beginMacro("Create Category");
       undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
       undoStack->endMacro();
@@ -516,10 +516,10 @@ void ClassificationLayout::createSubCategory()
     auto category = toCategoryAdapterPtr(categorytItem);
     if (!category->subCategory(name))
     {
-      auto undoStack = m_context.undoStack();
+      auto undoStack = getUndoStack();
 
       undoStack->beginMacro(tr("Create Category"));
-      undoStack->push(new AddCategoryCommand(m_context.model()->smartPointer(category), name, m_context.model(), category->color()));
+      undoStack->push(new AddCategoryCommand(getModel()->smartPointer(category), name, getModel(), category->color()));
       undoStack->endMacro();
     }
   }
@@ -529,10 +529,10 @@ void ClassificationLayout::createSubCategory()
 void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmentations,
                                                 CategoryAdapterPtr        category)
 {
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
 
   undoStack->beginMacro(tr("Change Segmentation's Category"));
-  undoStack->push(new ChangeCategoryCommand(segmentations, category, m_context));
+  undoStack->push(new ChangeCategoryCommand(segmentations, category, context()));
   undoStack->endMacro();
 }
 
@@ -563,9 +563,9 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 
   if (!validSubCategories.isEmpty())
   {
-    auto undoStack = m_context.undoStack();
+    auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Modify Classification"));
-    undoStack->push(new ReparentCategoryCommand(validSubCategories, category, m_context.model()));
+    undoStack->push(new ReparentCategoryCommand(validSubCategories, category, getModel()));
     undoStack->endMacro();
   }
 }
@@ -607,12 +607,13 @@ void ClassificationLayout::changeCategoryColor()
 
     if(hueSelector.exec() == QDialog::Accepted)
     {
-      m_context.undoStack()->beginMacro(tr("Change category color"));
-      m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
-                                                                 m_context.representationInvalidator(),
-                                                                 category,
-                                                                 hueSelector.hueValue()));
-      m_context.undoStack()->endMacro();
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Change category color"));
+      undoStack->push(new ChangeCategoryColorCommand(getModel(),
+                                                     context().representationInvalidator(),
+                                                     category,
+                                                     hueSelector.hueValue()));
+      undoStack->endMacro();
     }
   }
 }
@@ -786,7 +787,7 @@ void ClassificationLayout::addDockButton(QPushButton *button, QHBoxLayout *layou
 //------------------------------------------------------------------------
 bool ClassificationLayout::hasClassification() const
 {
- return m_context.model()->classification().get();
+ return getModel()->classification().get();
 }
 
 //------------------------------------------------------------------------

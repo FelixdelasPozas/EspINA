@@ -55,12 +55,12 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
                                              Support::Context               &context)
 : QWidget               (nullptr, Qt::WindowStaysOnTopHint)
 , WithContext           (context)
-, m_register            {filterRefiners}
-, m_selectedSegmentation{nullptr}
-, m_channelSources      {context.representationInvalidator()}
-, m_segmentationSources {context.representationInvalidator()}
-, m_view                {context.viewState(), true}
-, m_tabularReport       {context}
+, m_register            (filterRefiners)
+, m_selectedSegmentation(nullptr)
+, m_channelSources      (context.representationInvalidator())
+, m_segmentationSources (context.representationInvalidator())
+, m_view                (context.viewState(), true)
+, m_tabularReport       (context)
 {
   setupUi(this);
 
@@ -193,8 +193,6 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
   {
     m_channels << channel;
     m_channelSources.addSource(toViewItemList(channel), m_view.timeStamp());
-
-    m_channels << channel;
 
     m_view.refresh();
 

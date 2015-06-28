@@ -52,6 +52,7 @@ namespace ESPINA
 
   class SegmentationExplorer::Layout
   : public QObject
+  , protected Support::WithContext
   {
     Q_OBJECT
   protected:
@@ -84,7 +85,7 @@ namespace ESPINA
      *
      */
     virtual QAbstractItemModel *model()
-    {return m_context.model().get(); }
+    {return getModel().get(); }
 
     /** \brief Returns the ItemAdapter raw pointer of the QModelIndex passed as paramenter in this layout.
      * \param[in] index, const QModelIndex reference of the item.
@@ -97,7 +98,7 @@ namespace ESPINA
      * \param[in] item, ItemAdapter raw pointer of the item.
      */
     virtual QModelIndex index(ItemAdapterPtr item) const
-    { return m_context.model()->index(item); }
+    { return getModel()->index(item); }
 
     /** \brief Sets the regular expresion for the filter.
      * \param[in] regExpr, regular expresion to use as filter expression.
@@ -180,7 +181,6 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    Support::Context               &m_context;
     Support::FilterRefinerRegister &m_delegateFactory;
 
     CheckableTreeView *m_view;

@@ -93,12 +93,12 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
                                      Support::FilterRefinerRegister &filterRefiners,
                                      Support::Context               &context)
-: m_context        (context)
-, m_delegateFactory{filterRefiners}
-, m_view           {view}
+: WithContext      (context)
+, m_delegateFactory(filterRefiners)
+, m_view           (view)
 {
-  connect(m_context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
+  connect(context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+          this,                  SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
 //------------------------------------------------------------------------
@@ -110,10 +110,10 @@ SegmentationExplorer::Layout::~Layout()
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
 
   undoStack->beginMacro(tr("Delete Segmentations"));
-  undoStack->push(new RemoveSegmentations(segmentations, m_context.model()));
+  undoStack->push(new RemoveSegmentations(segmentations, getModel()));
   undoStack->endMacro();
 }
 
@@ -123,7 +123,7 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_delegateFactory, m_context);
+    inspector = new SegmentationInspector(segmentations, m_delegateFactory, context());
 
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
             this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
@@ -166,7 +166,7 @@ void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspect
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
 {
-  if (m_context.model()->segmentationRoot() == parent)
+  if (getModel()->segmentationRoot() == parent)
   {
     for(int row = start; row <= end; row++)
     {
@@ -206,8 +206,11 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
 QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
 {
   QString result;
+
   for(auto seg : segmentations)
+  {
     result += QString().number(reinterpret_cast<unsigned long long>(seg)) + QString("|");
+  }
 
   return result;
 }
@@ -225,26 +228,27 @@ void SegmentationExplorer::Layout::reset()
 //------------------------------------------------------------------------
 QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 {
-  QString result = QString().number(reinterpret_cast<unsigned long long>(segmentation)) + QString("|");
-  return result;
+  return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
 }
 
 //------------------------------------------------------------------------
 bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 {
-  SegmentationAdapterPtr leftSeg  = segmentationPtr(left);
-  SegmentationAdapterPtr rightSeg = segmentationPtr(right);
+  auto leftSeg  = segmentationPtr(left);
+  auto rightSeg = segmentationPtr(right);
 
   if (leftSeg->category()->name() == rightSeg->category()->name())
   {
     QRegExp numExtractor("(\\d+)");
     numExtractor.setMinimal(false);
 
-    auto stringLeft = leftSeg->data(Qt::DisplayRole).toString();
+    auto stringLeft  = leftSeg ->data(Qt::DisplayRole).toString();
     auto stringRight = rightSeg->data(Qt::DisplayRole).toString();
 
     if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
+    {
       return stringLeft < stringRight;
+    }
 
     numExtractor.indexIn(stringLeft);
     auto numLeft = numExtractor.cap(1).toInt();
@@ -253,9 +257,13 @@ bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
     auto numRight = numExtractor.cap(1).toInt();
 
     if (numLeft == numRight)
+    {
       return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
+    }
     else
+    {
       return numLeft < numRight;
+    }
   }
   else
   {
