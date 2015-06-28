@@ -19,7 +19,7 @@
 
 #include "BasicRepresentationSwitch.h"
 
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/Widgets/Styles.h>
 #include <QPushButton>
 

@@ -22,7 +22,7 @@
 #define ESPINA_MANUAL_EDITION_TOOL_H_
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/ModelAdapter.h>

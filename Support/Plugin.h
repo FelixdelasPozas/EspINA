@@ -29,8 +29,8 @@
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Widgets/DockWidget.h>
-#include "Widgets/Tool.h"
-#include "Context.h"
+#include <Support/Widgets/ProgressTool.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QtPlugin>
@@ -153,6 +153,6 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.2")
+Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.3")
 
 #endif // ESPINA_PLUGIN_H

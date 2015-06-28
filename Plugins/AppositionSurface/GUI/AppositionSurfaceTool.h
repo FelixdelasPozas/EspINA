@@ -21,7 +21,7 @@
 #ifndef APPOSITION_SURFACE_TOOL_H
 #define APPOSITION_SURFACE_TOOL_H
 
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 // Plugin
 #include "AppositionSurfacePlugin_Export.h"

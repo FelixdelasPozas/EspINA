@@ -119,7 +119,7 @@ namespace ESPINA
     /** \brief Save current analysis.
      *
      */
-    void saveAnalysis();
+    void saveAnalysisAs();
 
     /** \brief Saves the current analysis (auto-save).
      *
@@ -224,8 +224,6 @@ namespace ESPINA
     void showIssuesDialog(IssueList problems) const;
 
   private:
-    void restoreRepresentationSwitchSettings();
-
     void initColorEngines(QMenu *parentMenu);
 
     void registerColorEngine(const QString   &title,
@@ -356,6 +354,8 @@ namespace ESPINA
      */
     void updateToolsSettings();
 
+    void saveAnalysis(const QString &filename);
+
     /** \brief Saves the current tool settings to the session settings in the analysis.
      *
      */
@@ -384,7 +384,7 @@ namespace ESPINA
 
     // Menus
     QMenu           *m_addMenu;
-    QAction         *m_saveAnalysis;
+    QAction         *m_saveAnalysisAs;
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;

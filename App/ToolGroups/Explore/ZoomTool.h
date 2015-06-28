@@ -23,7 +23,7 @@
 #define ESPINA_ZOOM_TOOL_H_
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>

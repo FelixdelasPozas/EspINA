@@ -30,10 +30,14 @@ const double UNSELECTED_ALPHA = 0.6;
 //-----------------------------------------------------------------------------
 QColor CategoryColorEngine::color(SegmentationAdapterPtr seg)
 {
+  QColor color(Qt::red);
+
   if (seg && seg->category())
-    return seg->category()->color();
-  else
-    return Qt::red;
+  {
+    color = seg->category()->color();
+  }
+
+  return color;
 }
 
 //-----------------------------------------------------------------------------

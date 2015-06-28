@@ -55,6 +55,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
+#include <GUI/ColorEngines/PropertyColorEngine.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -293,7 +294,7 @@ bool EspinaMainWindow::isModelModified()
 void EspinaMainWindow::enableWidgets(bool value)
 {
   m_addMenu            ->setEnabled(value);
-  m_saveAnalysis       ->setEnabled(value);
+  m_saveAnalysisAs       ->setEnabled(value);
   m_saveSessionAnalysis->setEnabled(value);
   m_closeAnalysis      ->setEnabled(value);
   m_dynamicMenuRoot
@@ -434,7 +435,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     switch(res)
     {
       case QMessageBox::Yes:
-        saveAnalysis();
+        saveAnalysisAs();
         break;
       case QMessageBox::Cancel:
         return false;
@@ -722,7 +723,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysis()
+void EspinaMainWindow::saveAnalysisAs()
 {
   QString suggestedFileName;
   if (m_sessionFile.suffix().toLower() == "seg")
@@ -744,21 +745,7 @@ void EspinaMainWindow::saveAnalysis()
 
   Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_busy = true;
-
-  saveToolsSettings();
-
-  IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
-
-  QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));
-  m_busy = false;
-
-  m_recentDocuments1.addDocument(analysisFile);
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
+  saveAnalysis(analysisFile);
 
   QStringList fileParts = analysisFile.split(QDir::separator());
   setWindowTitle(fileParts[fileParts.size()-1]);
@@ -770,19 +757,7 @@ void EspinaMainWindow::saveAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveSessionAnalysis()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_busy = true;
-
-  IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
-
-  QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
-  m_busy = false;
-
-  m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
+  saveAnalysis(m_sessionFile.absoluteFilePath());
 }
 
 //------------------------------------------------------------------------
@@ -975,42 +950,6 @@ void EspinaMainWindow::onExclusiveToolInUse(ProgressTool* tool)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::restoreRepresentationSwitchSettings()
-{
-  const QString REP_MANAGERS = "ActiveRepresentationManagers";
-//TODO: recordar el estado del usuario
-//   QMap<QString, bool> viewSettings;
-//
-//   QStringList storedRenderers;
-//   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-//   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
-//   {
-//     storedRenderers = settings.value(RENDERERS).toStringList();
-//     storedRenderers.removeDuplicates();
-//
-//     for(auto name: storedRenderers)
-//       viewSettings[name] = settings.value(name).toBool();
-//   }
-//   else
-//   {
-//     // default init state: (can be overridden by seg file settings).
-//     // 2D -> cached slice renderer active, and the rest not included in XY view.
-//     // 3D -> all renderers included but initially inactive.
-//     storedRenderers << QString("Slice (Cached)");
-//     storedRenderers << QString("Contour");
-//     storedRenderers << QString("Skeleton");
-//     viewSettings[QString("Slice (Cached)")] = true;
-//     viewSettings[QString("Contour")] = false;
-//     viewSettings[QString("Skeleton")] = true;
-//     storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-//     storedRenderers.removeDuplicates();
-//
-//     settings.setValue(RENDERERS, storedRenderers);
-//   }
-//   settings.endGroup();
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 {
   auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
@@ -1022,8 +961,9 @@ void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 
   parentMenu->addMenu(m_colorEngineMenu);
 
-  registerColorEngine(tr("Number"), std::make_shared<NumberColorEngine>());
+  registerColorEngine(tr("Number"),   std::make_shared<NumberColorEngine>());
   registerColorEngine(tr("Category"), std::make_shared<CategoryColorEngine>());
+  registerColorEngine(tr("Property"), std::make_shared<PropertyColorEngine>());
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
 
@@ -1114,11 +1054,11 @@ void EspinaMainWindow::createFileMenu()
   connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
           this,                  SLOT(saveSessionAnalysis()));
 
-  m_saveAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
-  m_saveAnalysis->setEnabled(false);
+  m_saveAnalysisAs = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
+  m_saveAnalysisAs->setEnabled(false);
 
-  connect(m_saveAnalysis, SIGNAL(triggered(bool)),
-          this,           SLOT(saveAnalysis()));
+  connect(m_saveAnalysisAs, SIGNAL(triggered(bool)),
+          this,             SLOT(saveAnalysisAs()));
 
 
   m_closeAnalysis = fileMenu->addAction(tr("&Close"));
@@ -1541,6 +1481,26 @@ void EspinaMainWindow::updateToolsSettings()
       tool->restoreSettings(container.settings());
     }
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveAnalysis(const QString &filename)
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_busy = true;
+
+  saveToolsSettings();
+
+  IO::SegFile::save(m_analysis.get(), filename, m_errorHandler);
+
+  QApplication::restoreOverrideCursor();
+  updateStatus(tr("File Saved Successfully in %1").arg(filename));
+  m_busy = false;
+
+  m_recentDocuments1.addDocument(filename);
+  m_recentDocuments2.updateDocumentList();
+
+  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------

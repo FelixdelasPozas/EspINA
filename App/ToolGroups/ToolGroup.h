@@ -22,7 +22,7 @@
 #define ESPINA_TOOL_GROUP_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 // C++
 #include <memory>

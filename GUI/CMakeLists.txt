@@ -94,10 +94,11 @@ set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
+  ColorEngines/PropertyColorEngine.cpp
   ColorEngines/SelectionHighlighter.cpp
-  ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
   Dialogs/CategorySelectorDialog.cpp

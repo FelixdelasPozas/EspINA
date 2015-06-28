@@ -211,7 +211,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     if (m_pendingInformation.contains(segmentation))
     {
 
-      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+      auto task = m_pendingInformation[segmentation];
 
       progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
     }
@@ -250,7 +250,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       if (!m_pendingInformation.contains(segmentation)
        || m_pendingInformation[segmentation]->isAborted())
       {
-        InformationFetcherSPtr task{new InformationFetcher(segmentation, m_tags, m_scheduler)};
+        auto task = std::make_shared<InformationFetcher>(segmentation, m_tags, m_scheduler);
         m_pendingInformation[segmentation] = task;
 
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished

@@ -22,7 +22,7 @@
 
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Utils/Timer.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <memory>
 #include <QWidget>
 

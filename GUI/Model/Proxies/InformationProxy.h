@@ -97,9 +97,6 @@ namespace ESPINA
       { return m_progress; }
 
     protected:
-      /** \brief Implements Task::run().
-       *
-       */
       virtual void run()
       {
         for (int i = 0; i < m_tags.size(); ++i)

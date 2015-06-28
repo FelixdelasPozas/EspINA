@@ -30,7 +30,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Factory/FilterRefinerRegister.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 class QUndoStack;
 namespace ESPINA

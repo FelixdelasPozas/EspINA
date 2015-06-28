@@ -21,7 +21,7 @@
 #define ESPINA_ORTHOGONAL_ROI_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>

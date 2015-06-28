@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (C) 2015  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
-#define ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
+#ifndef ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
+#define ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
 
 #include <Support/Widgets/ProgressTool.h>
 
@@ -28,29 +28,12 @@ namespace ESPINA
   {
     namespace Widgets
     {
-      class PanelSwitch
-      : public ProgressTool
+      class ColorEngineSwitch
+      : ProgressTool
       {
-        Q_OBJECT
-
-      public:
-        explicit PanelSwitch(const QString &id, DockWidget *dock, const QString &icon, const QString &tooltip, Context &context);
-
-        virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
-
-        virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
-
-      private slots:
-        void showPanel(bool visible);
-
-      private:
-        virtual void abortOperation();
-
-      private:
-        DockWidget *m_dock;
       };
     }
   }
 }
 
-#endif // ESPINA_SUPPORT_WIDGETS_PANELSWITCH_H
+#endif // ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H

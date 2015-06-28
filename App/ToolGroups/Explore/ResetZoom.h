@@ -23,7 +23,7 @@
 #define ESPINA_RESET_ZOOM_TOOL_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/View/ViewState.h>
 
 class QAction;

@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_TOOL_H
-#define ESPINA_TOOL_H
+#ifndef ESPINA_PROGRESS_TOOL_H
+#define ESPINA_PROGRESS_TOOL_H
 
 #include "Support/EspinaSupport_Export.h"
 
@@ -202,4 +202,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // ESPINA_TOOL_H
+#endif // ESPINA_PROGRESS_TOOL_H

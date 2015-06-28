@@ -26,7 +26,7 @@
 #include <Support/Context.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/SupportTypes.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include "ui_3DDialog.h"
 
 // Qt
