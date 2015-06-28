@@ -49,6 +49,8 @@ namespace ESPINA
 
     void onOutputModified();
 
+    void manageTags();
+
     void onNotesModified();
 
   private:

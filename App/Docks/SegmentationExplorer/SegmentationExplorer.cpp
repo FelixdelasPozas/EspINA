@@ -135,6 +135,8 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 
     m_layout->contextMenu(cme->globalPos());
 
+    updateTags(selectedIndexes());
+
     return true;
   }
 
@@ -147,31 +149,7 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
   m_gui->showInformationButton->setEnabled(m_layout->hasInformationToShow());
   m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
 
-  QSet<QString> tagSet;
-  for(QModelIndex index : selectedIndexes)
-  {
-    auto item = m_layout->item(index);
-    if (isSegmentation(item))
-    {
-      auto segmentation = segmentationPtr(item);
-      if (segmentation->hasExtension(SegmentationTags::TYPE))
-      {
-        auto extension = retrieveExtension<SegmentationTags>(segmentation);
-        tagSet.unite(extension->tags().toSet());
-      }
-    }
-  }
-
-  QStringList tags = tagSet.toList();
-  tags.sort();
-
-  QString tagLinks;
-  for (auto tag : tags)
-  {
-    tagLinks += createTagLink(tag);
-  }
-
-  m_gui->selectedTags->setText(tagLinks);
+  updateTags(selectedIndexes);
 }
 
 //------------------------------------------------------------------------
@@ -258,9 +236,9 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
 {
   ViewItemAdapterList currentSelection;
 
-  auto selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+  auto indexes = selectedIndexes();
 
-  for(auto index: selectedIndexes)
+  for(auto index: indexes)
   {
     auto item = m_layout->item(index);
     if (isSegmentation(item))
@@ -269,9 +247,9 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
     }
   }
 
-  updateGUI(selectedIndexes);
+  updateGUI(indexes);
 
-  // signal blocking is necessary because we don't want to change our current selection indices,
+  // signal blocking is necessary because we don't want to change our current selection indexes,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
   getSelection()->set(currentSelection);
@@ -327,7 +305,47 @@ void SegmentationExplorer::onTagSelected(const QString& tag)
 }
 
 //------------------------------------------------------------------------
+QModelIndexList SegmentationExplorer::selectedIndexes() const
+{
+  return m_gui->view->selectionModel()->selectedIndexes();
+}
+
+//------------------------------------------------------------------------
 QString SegmentationExplorer::createTagLink(const QString& tag) const
 {
   return QString("<a href=\"%1\">%1</a> ").arg(tag);
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
+{
+  QSet<QString> tagSet;
+  for(QModelIndex index : selectedIndexes)
+  {
+    auto item = m_layout->item(index);
+    if (isSegmentation(item))
+    {
+      auto segmentation = segmentationPtr(item);
+      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      {
+        auto extension = retrieveExtension<SegmentationTags>(segmentation);
+        tagSet.unite(extension->tags().toSet());
+      }
+    }
+  }
+
+  QString tagLinks;
+
+  if (!tagSet.isEmpty())
+  {
+    QStringList tags = tagSet.toList();
+    tags.sort();
+
+    for (auto tag : tags)
+    {
+      tagLinks += createTagLink(tag);
+    }
+  }
+
+  m_gui->selectedTags->setText(tagLinks);
 }

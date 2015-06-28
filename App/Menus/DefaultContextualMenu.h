@@ -37,6 +37,7 @@ namespace ESPINA
 
   class DefaultContextualMenu
   : public ContextualMenu
+  , private Support::WithContext
   {
     Q_OBJECT
     public:
@@ -45,7 +46,7 @@ namespace ESPINA
        *
        */
       explicit DefaultContextualMenu(SegmentationAdapterList selection,
-                                     Support::Context &context,
+                                     Support::Context       &context,
                                      QWidget                *parent = nullptr);
 
       /** \brief DefaultContextualMenu class destructor.
@@ -125,8 +126,6 @@ namespace ESPINA
       QString dialogTitle() const;
 
     private:
-      Support::Context &m_context;
-
       QTreeView *m_classification;
       SegmentationAdapterList m_segmentations;
   };

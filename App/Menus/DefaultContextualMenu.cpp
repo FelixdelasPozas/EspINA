@@ -22,14 +22,12 @@
 #include "DefaultContextualMenu.h"
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
-#include <Extensions/Tags/SegmentationTags.h>
 #include <GUI/Widgets/NoteEditor.h>
-#include <GUI/Widgets/TagSelector.h>
 #include <Undo/ChangeSegmentationNotes.h>
-#include <Undo/ChangeSegmentationTags.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
+#include <Support/Utils/TagUtils.h>
 
 // Qt
 #include <QWidgetAction>
@@ -46,10 +44,10 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
-                                             Support::Context &context,
+                                             Support::Context       &context,
                                              QWidget                *parent)
-: ContextualMenu  {parent}
-, m_context       (context)
+: ContextualMenu  (parent)
+, WithContext     (context)
 , m_classification{nullptr}
 , m_segmentations {selection}
 {
@@ -93,7 +91,7 @@ void DefaultContextualMenu::addNote()
 
   if (!commands.isEmpty())
   {
-    auto undoStack = m_context.undoStack();
+    auto undoStack = getUndoStack();
 
     undoStack->beginMacro(tr("Add Notes"));
     for (auto command : commands)
@@ -113,10 +111,10 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
    Q_ASSERT(isCategory(categoryItem));
    CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
 
-   auto undoStack = m_context.undoStack();
+   auto undoStack = getUndoStack();
    undoStack->beginMacro(tr("Change Category"));
    {
-     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, m_context));
+     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, context()));
    }
    undoStack->endMacro();
 
@@ -126,115 +124,13 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
 //------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
-  QList<QUndoCommand *> commands;
-
-  if (!m_segmentations.isEmpty())
-  {
-    QStandardItemModel tags;
-
-    QMap<QString, int> tagOcurrence;
-
-    for(auto segmentation: m_segmentations)
-    {
-      if(segmentation->hasExtension(SegmentationTags::TYPE))
-      {
-        auto tags = segmentation->extension(SegmentationTags::TYPE)->information(SegmentationTags::TAGS).toString().split(";");
-        for(auto tag: tags)
-        {
-          tagOcurrence[tag] += 1;
-        }
-      }
-    }
-
-    for(auto tag: SegmentationTags::availableTags())
-    {
-      Qt::CheckState state;
-      if(tagOcurrence[tag] == m_segmentations.size())
-      {
-        state = Qt::Checked;
-      }
-      else
-      {
-        if(tagOcurrence[tag] == 0)
-        {
-          state = Qt::Unchecked;
-        }
-        else
-        {
-          state = Qt::PartiallyChecked;
-        }
-      }
-      QStandardItem *item = new QStandardItem(tag);
-      item->setCheckable(true);
-      item->setCheckState(state);
-
-      tags.appendRow(item);
-    }
-    tags.sort(0);
-
-    TagSelector tagSelector(dialogTitle(), tags);
-    if (tagSelector.exec())
-    {
-      for(auto segmentation : m_segmentations)
-      {
-        QStringList currentTags, previousTags;
-
-        if (segmentation->hasExtension(SegmentationTags::TYPE))
-        {
-          currentTags  = segmentation->information(SegmentationTags::TAGS).toString().split(";");
-          previousTags = currentTags;
-        }
-
-        for (int i = 0; i < tags.rowCount(); ++i)
-        {
-          QStandardItem *item = tags.item(i);
-          switch(item->checkState())
-          {
-            case Qt::Checked:
-              if (!currentTags.contains(item->text()))
-              {
-                currentTags << item->text();
-              }
-              break;
-            case Qt::Unchecked:
-              if (currentTags.contains(item->text()))
-              {
-                currentTags.removeAll(item->text());
-              }
-              break;
-            case Qt::PartiallyChecked:
-              // unchanged.
-            default:
-              break;
-          }
-        }
-
-        if (previousTags.toSet() != currentTags.toSet())
-        {
-          commands << new ChangeSegmentationTags(segmentation, currentTags);
-        }
-      }
-    }
-
-  }
-
-  if (!commands.isEmpty())
-  {
-    auto undoStack = m_context.undoStack();
-
-    undoStack->beginMacro(tr("Change Segmentation Tags"));
-    for (auto command : commands)
-    {
-      undoStack->push(command);
-    }
-    undoStack->endMacro();
-  }
+  Support::Utils::Tags::manageTags(m_segmentations, getUndoStack());
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::resetRootItem()
 {
-  m_classification->setRootIndex(m_context.model()->classificationRoot());
+  m_classification->setRootIndex(getModel()->classificationRoot());
 }
 
 //------------------------------------------------------------------------
@@ -248,7 +144,7 @@ void DefaultContextualMenu::renameSegmentation()
     QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
 
     bool exists = false;
-    for (auto existinSegmentation : m_context.model()->segmentations())
+    for (auto existinSegmentation : getModel()->segmentations())
     {
       exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
     }
@@ -266,7 +162,7 @@ void DefaultContextualMenu::renameSegmentation()
 
   if (renames.size() != 0)
   {
-    auto undoStack = m_context.undoStack();
+    auto undoStack = getUndoStack();
     undoStack->beginMacro(QString("Rename segmentations"));
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
@@ -278,9 +174,9 @@ void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
-  auto undoStack = m_context.undoStack();
+  auto undoStack = getUndoStack();
   undoStack->beginMacro("Delete Segmentations");
-  undoStack->push(new RemoveSegmentations(m_segmentations, m_context.model()));
+  undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
   undoStack->endMacro();
 
   emit deleteSegmentations();
@@ -306,7 +202,7 @@ void DefaultContextualMenu::createChangeCategoryMenu()
    QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
    QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
 
-   auto model = m_context.model();
+   auto model = getModel();
 
    m_classification = new QTreeView();
    m_classification->header()->setVisible(false);
@@ -342,23 +238,6 @@ void DefaultContextualMenu::createRenameEntry()
           this, SLOT(renameSegmentation()));
 }
 
-//------------------------------------------------------------------------
-QString DefaultContextualMenu::dialogTitle() const
-{
-  auto title = m_segmentations[0]->data().toString();
-
-  if (m_segmentations.size() > 1)
-  {
-    title.append(", " + m_segmentations[1]->data().toString());
-  }
-
-  if (m_segmentations.size() > 2)
-  {
-    title.append(", ...");
-  }
-
-  return title;
-}
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()

@@ -363,6 +363,8 @@ namespace ESPINA
 
     const QList<ToolGroupPtr> toolGroups() const;
 
+    ToolSList availableTools() const;
+
   private:
     // ESPINA
     Support::Context               m_context;

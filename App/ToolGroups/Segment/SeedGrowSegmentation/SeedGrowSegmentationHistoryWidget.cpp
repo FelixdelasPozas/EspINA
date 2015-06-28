@@ -190,11 +190,15 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(Segmentatio
 
   auto toolbar = new QToolBar();
 
-  for (auto tool : m_roiTools->tools())
+  // TODO: create aux function to populate toolbar with tool group actions
+  for (auto tools : m_roiTools->groupedTools())
   {
-    for (auto action : tool->actions())
+    for (auto tool : tools)
     {
-      toolbar->addAction(action);
+      for (auto action : tool->actions())
+      {
+        toolbar->addAction(action);
+      }
     }
   }
 

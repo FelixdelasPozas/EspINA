@@ -20,6 +20,7 @@
 
 #include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
+#include <Support/Utils/TagUtils.h>
 
 #include "ui_SegmentationInformation.h"
 #include <Extensions/Tags/SegmentationTags.h>
@@ -56,6 +57,10 @@ SegmentationInformation::SegmentationInformation(FilterRefinerRegister &filterRe
   setObjectName("Segmentation Information Panel");
 
   setWidget(m_gui);
+
+  connect(m_gui->manageTags, SIGNAL(clicked(bool)),
+          this,              SLOT(manageTags()));
+
 }
 
 //----------------------------------------------------------------------------
@@ -118,6 +123,20 @@ void SegmentationInformation::onOutputModified()
   {
     updateRefineWidget();
   }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationInformation::manageTags()
+{
+  Q_ASSERT(m_segmentation);
+
+  SegmentationAdapterList segmentations;
+
+  segmentations << m_segmentation;
+
+  Support::Utils::Tags::manageTags(segmentations, getUndoStack());
+
+  showTags();
 }
 
 //----------------------------------------------------------------------------

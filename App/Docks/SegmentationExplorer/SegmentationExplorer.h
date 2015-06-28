@@ -117,7 +117,12 @@ namespace ESPINA
 
     void onTagSelected(const QString &tag);
 
+  private:
+    QModelIndexList selectedIndexes() const;
+
     QString createTagLink(const QString &tag) const;
+
+    void updateTags(const QModelIndexList &selectedIndexes);
 
   protected:
     GUI             *m_gui;

@@ -71,6 +71,7 @@ set (Support_SOURCES
   ROIAccumulator.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
+  Utils/TagUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
   ContextFactories.cpp

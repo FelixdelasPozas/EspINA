@@ -940,13 +940,22 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
 
     if (toolGroup)
     {
-      for(auto tool : toolGroup->tools())
+      for(auto tools : toolGroup->groupedTools())
       {
-        tool->onToolGroupActivated();
-        for(auto action : tool->actions())
+        for (auto tool : tools)
         {
-          m_contextualBar->addAction(action);
+          tool->onToolGroupActivated();
+
+          for(auto action : tool->actions())
+          {
+            m_contextualBar->addAction(action);
+          }
         }
+
+//         auto separator = new QWidget();
+//         separator->setMinimumWidth(8);
+//         m_contextualBar->addWidget(separator);
+        m_contextualBar->addSeparator();
       }
     }
 
@@ -957,12 +966,10 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
 //------------------------------------------------------------------------
 void EspinaMainWindow::onExclusiveToolInUse(ProgressTool* tool)
 {
-  m_exploreToolGroup->onExclusiveToolInUse(tool);
-  m_restrictToolGroup->onExclusiveToolInUse(tool);
-  m_segmentToolGroup->onExclusiveToolInUse(tool);
-  m_refineToolGroup->onExclusiveToolInUse(tool);
-  m_visualizeToolGroup->onExclusiveToolInUse(tool);
-  m_analyzeToolGroup->onExclusiveToolInUse(tool);
+  for (auto toolGroup : toolGroups())
+  {
+    toolGroup->onExclusiveToolInUse(tool);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1379,23 +1386,23 @@ void EspinaMainWindow::createToolShortcuts()
   QList<QKeySequence> alreadyUsed;
   alreadyUsed << Qt::Key_Escape << Qt::CTRL+Qt::Key_S << Qt::CTRL+Qt::Key_Z << Qt::CTRL+Qt::SHIFT+Qt::Key_Z;
 
-  for(auto group: toolGroups())
+  for (auto tool : availableTools())
   {
-    for(auto tool: group->tools())
+    auto sequence = tool->shortcut();
+    if(!sequence.isEmpty())
     {
-      auto sequence = tool->shortcut();
-      if(!sequence.isEmpty())
+      if(!alreadyUsed.contains(sequence))
       {
-        if(!alreadyUsed.contains(sequence))
-        {
-          auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
-          m_toolShortcuts << shortcut;
-          connect(shortcut, SIGNAL(activated()), tool.get(), SLOT(trigger()));
-        }
-        else
-        {
-          qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
-        }
+        auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
+
+        m_toolShortcuts << shortcut;
+
+        connect(shortcut,   SIGNAL(activated()),
+                tool.get(), SLOT(trigger()));
+      }
+      else
+      {
+        qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
       }
     }
   }
@@ -1520,19 +1527,16 @@ void EspinaMainWindow::updateToolsSettings()
 {
   auto settings = m_analysis->storage()->sessionSettings();
 
-  for(auto toolgroup: toolGroups())
+  for(auto tool: availableTools())
   {
-    for(auto tool: toolgroup->tools())
+    if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
     {
-      if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
-      {
-        settings->beginGroup(tool->id());
-        SettingsContainer container;
-        container.copyFrom(settings);
-        settings->endGroup();
+      settings->beginGroup(tool->id());
+      SettingsContainer container;
+      container.copyFrom(settings);
+      settings->endGroup();
 
-        tool->restoreSettings(container.settings());
-      }
+      tool->restoreSettings(container.settings());
     }
   }
 }
@@ -1543,22 +1547,19 @@ void EspinaMainWindow::saveToolsSettings()
   auto settings = m_analysis->storage()->sessionSettings();
   auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 
-  for(auto toolgroup: toolGroups())
+  for(auto tool: availableTools())
   {
-    for(auto tool: toolgroup->tools())
+    if(!tool->id().isEmpty())
     {
-      if(!tool->id().isEmpty())
-      {
-        SettingsContainer container;
-        auto toolSettings = container.settings();
-        tool->saveSettings(toolSettings);
+      SettingsContainer container;
+      auto toolSettings = container.settings();
+      tool->saveSettings(toolSettings);
 
-        if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
-        {
-          settings->beginGroup(tool->id());
-          container.copyTo(settings);
-          settings->endGroup();
-        }
+      if(!toolSettings->allKeys().isEmpty() || !toolSettings->childGroups().isEmpty())
+      {
+        settings->beginGroup(tool->id());
+        container.copyTo(settings);
+        settings->endGroup();
       }
     }
   }
@@ -1569,5 +1570,28 @@ void EspinaMainWindow::saveToolsSettings()
 //------------------------------------------------------------------------
 const QList<ToolGroupPtr> EspinaMainWindow::toolGroups() const
 {
-  return QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
+  return QList<ToolGroupPtr>{
+    m_exploreToolGroup,
+    m_restrictToolGroup,
+    m_segmentToolGroup,
+    m_refineToolGroup,
+    m_visualizeToolGroup,
+    m_analyzeToolGroup
+  };
+}
+
+//------------------------------------------------------------------------
+ToolSList EspinaMainWindow::availableTools() const
+{
+  ToolSList availableTools;
+
+  for (auto toolGroup : toolGroups())
+  {
+    for (auto tools : toolGroup->groupedTools())
+    {
+      availableTools << tools;
+    }
+  }
+
+  return availableTools;
 }

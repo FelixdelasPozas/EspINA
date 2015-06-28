@@ -40,6 +40,9 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    using GroupedTools = QList<ToolSList>;
+
+  public:
     /** \brief ToolGroup class constructor.
      * \param[in] icon of the tool group.
      * \param[in] text of the tool group
@@ -53,7 +56,7 @@ namespace ESPINA
     /** \brief Returns the tools contained by the tool group
      *
      */
-    ToolSList tools() const;
+    GroupedTools groupedTools() const;
 
     /** \brief Adds a tool to the tool group
      *
