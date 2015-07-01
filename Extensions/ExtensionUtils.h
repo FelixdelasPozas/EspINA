@@ -84,7 +84,6 @@ namespace ESPINA
       item->deleteExtension(extension);
     }
   }
-
 } // ESPINA
 
 #endif // ESPINA_CF_EXTENSION_UTILS_H

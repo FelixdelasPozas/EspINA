@@ -54,17 +54,35 @@ namespace ESPINA
     using LUTMap = QMap<QString, LUTSPtr>;
 
   public:
+    /** \brief Color Engine constructor
+     * \param[in] id must be unique. It is used to store and retrieve information used
+     * \param[in] tootip description of the color engine
+     */
+    explicit ColorEngine(const QString &id, const QString &tooltip)
+    : m_id(id)
+    , m_tooltip(tooltip)
+    {}
+
+    /** \brief Returns the id of the Color Engine
+     *
+     */
+    QString id() const
+    { return m_id; }
+
+    QString tooltip() const
+    { return m_tooltip; }
+
     /** \brief Returns the color associated with the given segmentation.
      * \param[in] seg segmentation adapter raw pointer.
      *
      */
-    virtual QColor color(SegmentationAdapterPtr seg) = 0;
+    virtual QColor color(SegmentationAdapterPtr segmentation) = 0;
 
     /** \brief Returns the lut associated with the given segmentation.
      * \param[in] seg segmentation adapter raw pointer.
      *
      */
-    virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
+    virtual LUTSPtr lut (SegmentationAdapterPtr segmentation) = 0;
 
     /** \brief Returns the flags of the composition methods supported by the color engine.
      *
@@ -74,6 +92,10 @@ namespace ESPINA
   signals:
     void modified();
     void lutModified();
+
+  private:
+    QString m_id;
+    QString m_tooltip;
   };
 
   using ColorEngineSPtr  = std::shared_ptr<ColorEngine>;

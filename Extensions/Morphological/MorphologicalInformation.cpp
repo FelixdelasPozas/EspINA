@@ -61,7 +61,6 @@ const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid
 const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
 
 //TODO: Review values to be used from new ITK version
-//TODO: Make thread safe
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
                                                    const State &state)
@@ -82,9 +81,14 @@ MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::
     BinaryPrincipalMoments[i]  = -1;
     EquivalentEllipsoidSize[i] = -1;
   }
+
   for(int i=0; i<3; i++)
+  {
     for(int j=0; j<3; j++)
+    {
       BinaryPrincipalAxes[i][j] = -1;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -132,6 +136,7 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
 {
   if (tag == MORPHOLOGICAL_FD)
   {
+    QWriteLocker lock(&m_mutex);
     m_labelMap->SetComputeFeretDiameter(true);
   }
 
@@ -153,6 +158,7 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
 //------------------------------------------------------------------------
 void MorphologicalInformation::updateInformation() const
 {
+  QWriteLocker lock(&m_mutex);
 //   qDebug() << "Updating" << m_seg->data().toString() << ID;
   Q_ASSERT(hasVolumetricData(m_extendedItem->output()));
 

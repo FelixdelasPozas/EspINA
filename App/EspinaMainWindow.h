@@ -42,6 +42,7 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Widgets/ColorEngineSwitch.h>
 #include <Support/Context.h>
 
 // Qt
@@ -226,8 +227,9 @@ namespace ESPINA
   private:
     void initColorEngines(QMenu *parentMenu);
 
-    void registerColorEngine(const QString   &title,
-                             ColorEngineSPtr  colorEngine);
+    void createColorEngine(ColorEngineSPtr engine);
+
+    void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
     void initRepresentations();
 

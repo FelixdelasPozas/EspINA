@@ -24,6 +24,13 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+MultiColorEngine::MultiColorEngine()
+: ColorEngine("MultiColorEngine", tr("Combine multiple color engines"))
+{
+
+}
+
+//-----------------------------------------------------------------------------
 QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
 {
   if (m_engines.isEmpty())

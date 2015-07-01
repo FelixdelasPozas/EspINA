@@ -423,20 +423,11 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
 {
   for(auto extensionType : extensionInformations.keys())
   {
-    for (auto segmentation : m_model->segmentations())
+    if (extensionType != SEGMENTATION_GROUP)
     {
-      if (!segmentation->hasExtension(extensionType))
+      for (auto segmentation : m_model->segmentations())
       {
-        if (m_factory->availableSegmentationExtensions().contains(extensionType))
-        {
-          auto extension = m_factory->createSegmentationExtension(extensionType);
-          if(extension->validCategory(segmentation->category()->classificationName()))
-            segmentation->addExtension(extension);
-        }
-        else if (extensionType != SEGMENTATION_GROUP)
-        {
-          qWarning() << extensionType << " is not available";
-        }
+        addSegmentationExtension(segmentation, extensionType, m_factory);
       }
     }
   }

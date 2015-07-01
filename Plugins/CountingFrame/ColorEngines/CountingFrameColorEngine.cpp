@@ -30,6 +30,7 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()
+: ColorEngine("CountingFrameColorEngine", tr("Counting Frame"))
 {
   m_excludedLUT = LUTSPtr::New();
   m_excludedLUT->Allocate();

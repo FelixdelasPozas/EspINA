@@ -33,6 +33,8 @@ namespace ESPINA
   : public ColorEngine
   {
   public:
+    explicit MultiColorEngine();
+   
     virtual QColor color(SegmentationAdapterPtr seg);
 
     virtual LUTSPtr lut(SegmentationAdapterPtr seg);

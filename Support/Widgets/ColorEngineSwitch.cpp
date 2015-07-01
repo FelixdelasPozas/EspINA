@@ -18,3 +18,29 @@
  */
 
 #include "ColorEngineSwitch.h"
+
+using namespace ESPINA;
+using namespace ESPINA::Support;
+using namespace ESPINA::Support::Widgets;
+
+
+//------------------------------------------------------------------------
+ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context)
+: ColorEngineSwitch(engine, QIcon(icon), context)
+{
+
+}
+
+//------------------------------------------------------------------------
+ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, Context &context)
+: ProgressTool(engine->id(), icon, tr("Color by %1").arg(engine->tooltip()), context)
+, m_engine(engine)
+{
+
+}
+
+//------------------------------------------------------------------------
+ColorEngineSPtr ColorEngineSwitch::colorEngine() const
+{
+  return m_engine;
+}

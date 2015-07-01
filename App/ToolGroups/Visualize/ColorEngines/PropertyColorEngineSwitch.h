@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +17,19 @@
  *
  */
 
-#ifndef ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
-#define ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
+#ifndef ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#define ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
 
-#include <Support/Widgets/ProgressTool.h>
+#include <Support/Widgets/ColorEngineSwitch.h>
 
 namespace ESPINA
 {
-  namespace Support
+  class PropertyColorEngineSwitch
+  : public Support::Widgets::ColorEngineSwitch
   {
-    namespace Widgets
-    {
-      class ColorEngineSwitch
-      : public ProgressTool
-      {
-      public:
-        explicit ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context);
-
-        explicit ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, Context &context);
-
-        ColorEngineSPtr colorEngine() const;
-
-      private:
-        ColorEngineSPtr m_engine;
-      };
-
-      using ColorEngineSwitchSPtr = std::shared_ptr<ColorEngineSwitch>;
-    }
-  }
+  public:
+   
+  };
 }
 
-#endif // ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
+#endif // ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H

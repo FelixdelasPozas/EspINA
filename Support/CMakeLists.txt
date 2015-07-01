@@ -81,6 +81,7 @@ set (Support_SOURCES
   Widgets/TabularReportEntry.cpp
   Widgets/ProgressTool.cpp
   Widgets/PanelSwitch.cpp
+  Widgets/ColorEngineSwitch.cpp
   Widgets/RefineTool.cpp
   )
 

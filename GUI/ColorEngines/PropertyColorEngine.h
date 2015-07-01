@@ -21,6 +21,7 @@
 #define ESPINA_GUI_PROPERTYCOLORENGINE_H
 
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <Support/Context.h>
 
 namespace ESPINA
 {
@@ -28,15 +29,16 @@ namespace ESPINA
   {
     class PropertyColorEngine
     : public ColorEngine
+    , private Support::WithContext
     {
     public:
-      explicit PropertyColorEngine();
+      explicit PropertyColorEngine(Support::Context &context);
 
       void setProperty(const SegmentationExtension::InfoTag &property, double min, double max);
 
-      virtual QColor color(SegmentationAdapterPtr seg);
+      virtual QColor color(SegmentationAdapterPtr segmentation);
 
-      virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+      virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
 
       virtual Composition supportedComposition() const
       { return ColorEngine::Color; }
@@ -53,6 +55,7 @@ namespace ESPINA
       QColor m_minColor;
       QColor m_maxColor;
 
+      QString m_extensionType;
       SegmentationExtension::InfoTag m_property;
 
       QMap<QColor, LUTSPtr> m_luts;

@@ -38,6 +38,7 @@ namespace ESPINA
      *
      */
     explicit CategoryColorEngine()
+    : ColorEngine("CategoryColorEngine", tr("Category"))
     {}
 
     virtual QColor color(SegmentationAdapterPtr seg);

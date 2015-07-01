@@ -23,11 +23,14 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 
 //-----------------------------------------------------------------------------
-PropertyColorEngine::PropertyColorEngine()
-: m_minValue(0)
+PropertyColorEngine::PropertyColorEngine(Support::Context &context)
+: ColorEngine("PropertyColorEngine", tr("Property"))
+, WithContext(context)
+, m_minValue(0)
 , m_maxValue(10000)
 , m_minColor(Qt::blue)
 , m_maxColor(Qt::red)
+, m_extensionType("MorphologicalInformation")
 , m_property("Size")
 {
 }
@@ -41,13 +44,13 @@ void PropertyColorEngine::setProperty(const QString &property, double min, doubl
 }
 
 //-----------------------------------------------------------------------------
-QColor PropertyColorEngine::color(SegmentationAdapterPtr seg)
+QColor PropertyColorEngine::color(SegmentationAdapterPtr segmentation)
 {
-  Q_ASSERT(seg);
+  Q_ASSERT(segmentation);
 
   QColor color(Qt::gray);
 
-  auto info = seg->information(m_property);
+  auto info = segmentation->information(m_property);
 
   if (info.isValid() && info.canConvert<double>())
   {
@@ -65,18 +68,19 @@ QColor PropertyColorEngine::color(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr PropertyColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr PropertyColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
-  auto c = color(seg);
-  auto  seg_lut = LUTSPtr::New();
-  seg_lut->Allocate();
-  seg_lut->SetNumberOfTableValues(2);
-  seg_lut->Build();
-  seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), 1.0);
-  seg_lut->Modified();
+  auto  segColor = color(segmentation);
+  auto  segLUT   = LUTSPtr::New();
 
-  return seg_lut;
+  segLUT->Allocate();
+  segLUT->SetNumberOfTableValues(2);
+  segLUT->Build();
+  segLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  segLUT->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), 1.0);
+  segLUT->Modified();
+
+  return segLUT;
 }
 
 //-----------------------------------------------------------------------------
