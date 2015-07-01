@@ -70,7 +70,9 @@ AnalysisSPtr SegFile_V4::Loader::load()
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Could not load analysis classification"));
+    }
 
     throw (Classification_Not_Found_Exception());
   }
@@ -84,7 +86,9 @@ AnalysisSPtr SegFile_V4::Loader::load()
   catch (ClassificationXML::Parse_Exception &e)
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Error while loading classification"));
+    }
 
     throw (Parse_Exception());
   }
@@ -255,7 +259,9 @@ QString SegFile_V4::Loader::parseCategoryName(const State& state)
   {
     auto tokens = param.split("=");
     if ("Taxonomy" == tokens[0])
+    {
       category = tokens[1];
+    }
   }
 
   return category;
@@ -272,7 +278,9 @@ int SegFile_V4::Loader::parseOutputId(const State& state)
   {
     auto tokens = param.split("=");
     if ("Output" == tokens[0])
+    {
       id = tokens[1].toInt();
+    }
   }
 
   return id;
@@ -432,8 +440,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
 
   const QUuid uuid = filter->uuid();
 
-  Bounds    bounds;
-  NmVector3 spacing;
+  QMap<int, Bounds>    boundsMap;
+  QMap<int, NmVector3> spacingMap;
 
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
@@ -459,51 +467,83 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
           auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
           trcFiles[output].append(currentFile);
         }
-
-      } else if (file.contains("SegmentationVolume/"))
+      }
+      else
       {
-        auto oldFile = file.remove(0, 19);
-        auto parts   = oldFile.split("_");
-        auto vertex  = parts[0].toInt();
-        if (vertex == filterVertex)
+        if (file.contains("SegmentationVolume/"))
         {
-          auto newFile = QString("Filters/%1/").arg(uuid.toString());
-          if (parts[1].endsWith(".mhd"))
+          auto oldFile = file.remove(0, 19);
+          auto parts   = oldFile.split("_");
+          auto vertex  = parts[0].toInt();
+          if (vertex == filterVertex)
           {
-            newFile += QString("VolumetricData_%1").arg(parts[1]);
-          } else if (parts[1].endsWith(".raw"))
-          {
-            newFile += oldFile; // mhd internal references to raw files are not modified
-          } else {
-            Q_ASSERT(false);
-          }
+            auto newFile = QString("Filters/%1/").arg(uuid.toString());
+            if (parts[1].endsWith(".mhd", Qt::CaseInsensitive))
+            {
+              newFile += QString("VolumetricData_%1").arg(parts[1]);
+            }
+            else
+            {
+              if (parts[1].endsWith(".raw", Qt::CaseInsensitive))
+              {
+                newFile += oldFile; // mhd internal references to raw files are not modified
+              }
+              else
+              {
+                if(parts.size() > 2 && parts[2].endsWith(".mhd", Qt::CaseInsensitive))
+                {
+                  newFile += QString("%1_%2_EditedRegion_%3").arg(parts[0]).arg(parts[1]).arg(parts[2]);
+                }
+                else
+                {
+                  if(parts.size() > 2 && parts[2].endsWith(".raw", Qt::CaseInsensitive))
+                  {
+                    newFile += oldFile; // mhd internal references to raw files are not modified
+                  }
+                  else
+                  {
+                    Q_ASSERT(false);
+                  }
+                }
+              }
+            }
 
-          auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-          m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+            // TODO: qué hacer con los outputs que sólo tienen guardadas edited regions???
+            auto isEditedRegion = parts.size() > 2;
+            //////////////////////////////////////////////////////////////////////////////
 
-          if (newFile.endsWith(".mhd"))
-          {
-            StreamedVolume<itkVolumeType> volume(m_storage->absoluteFilePath(newFile));
-            bounds  = volume.bounds();
-            spacing = volume.spacing();
+            auto output = parts[1].split(".").first().toInt();
+
+            auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+            m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+
+            if (newFile.endsWith(".mhd", Qt::CaseInsensitive))
+            {
+              StreamedVolume<itkVolumeType> volume(m_storage->absoluteFilePath(newFile));
+              boundsMap.insert(output, volume.bounds());
+              spacingMap.insert(output, volume.spacing());
+            }
           }
         }
-      } else if (file.contains("MeshOutputType/"))
-      {
-        auto oldFile = file.remove(0, 15);
-        auto parts   = oldFile.split("_");
-        auto vertex  = parts[0].toInt();
-        if (vertex == filterVertex)
+        else
         {
-          auto newFile = QString("Filters/%1/").arg(uuid.toString());
-          Q_ASSERT(parts[1].endsWith(".vtp"));
-          auto strings = parts[1].split("-");
-          newFile += QString("MeshData_%1.vtp").arg(strings[0]);
+          if (file.contains("MeshOutputType/"))
+          {
+            auto oldFile = file.remove(0, 15);
+            auto parts   = oldFile.split("_");
+            auto vertex  = parts[0].toInt();
+            if (vertex == filterVertex)
+            {
+              auto newFile = QString("Filters/%1/").arg(uuid.toString());
+              Q_ASSERT(parts[1].endsWith(".vtp", Qt::CaseInsensitive));
+              auto strings = parts[1].split("-");
+              newFile += QString("MeshData_%1.vtp").arg(strings[0]);
 
-          auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-          m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+              auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+              m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+            }
+          }
         }
-
       }
     }
 
@@ -525,8 +565,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       {
         xml.writeStartElement("Output");
         xml.writeAttribute("id",      QString::number(output));
-        xml.writeAttribute("bounds",  bounds.toString());
-        xml.writeAttribute("spacing", spacing.toString());
+        xml.writeAttribute("bounds",  boundsMap[output].toString());
+        xml.writeAttribute("spacing", spacingMap[output].toString());
 
         QString content(trc);
 
@@ -537,14 +577,18 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
           {
             xml.writeStartElement("Data");
             xml.writeAttribute("type",  "VolumetricData");
-            xml.writeAttribute("bounds", bounds.toString());
+            xml.writeAttribute("bounds", boundsMap[output].toString());
             xml.writeEndElement();
-          } else if ("MeshOutputType" == lines[i])
+          }
+          else
           {
-            xml.writeStartElement("Data");
-            xml.writeAttribute("type",  "MeshData");
-            xml.writeAttribute("bounds", bounds.toString());
-            xml.writeEndElement();
+            if ("MeshOutputType" == lines[i])
+            {
+              xml.writeStartElement("Data");
+              xml.writeAttribute("type",  "MeshData");
+              xml.writeAttribute("bounds", boundsMap[output].toString());
+              xml.writeEndElement();
+            }
           }
         }
         xml.writeEndElement();
@@ -556,6 +600,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
     m_storage->saveSnapshot(SnapshotData(outputsFile, buffer));
   }
 }
+
 //-----------------------------------------------------------------------------
 SegFile_V4::SegFile_V4()
 {
