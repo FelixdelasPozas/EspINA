@@ -153,7 +153,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   loadPlugins(plugins);
 
-  m_colorEngineMenu->restoreUserSettings();
+  //m_colorEngineMenu->restoreUserSettings();
 
   createToolShortcuts();
 
@@ -188,7 +188,7 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_visualizeToolGroup;
   delete m_analyzeToolGroup;
   delete m_roiSettings;
-  delete m_colorEngineMenu;
+  //delete m_colorEngineMenu;
   delete m_dynamicMenuRoot;
 }
 
@@ -956,26 +956,26 @@ void EspinaMainWindow::onExclusiveToolInUse(ProgressTool* tool)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine)
+void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine, const QString &icon)
 {
-  registerColorEngine(std::make_shared<ColorEngineSwitch>(engine, ":espina/bla", m_context));
+  registerColorEngine(std::make_shared<ColorEngineSwitch>(engine, ":espina/color_engine_switch_" + icon + ".svg", m_context));
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 {
+
+  //m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
+
   auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
-
-  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
-
   connect(colorEngine.get(), SIGNAL(modified()),
           this,              SLOT(onColorEngineModified()));
 
-  parentMenu->addMenu(m_colorEngineMenu);
+  //parentMenu->addMenu(m_colorEngineMenu);
 
-  createColorEngine(std::make_shared<NumberColorEngine>());
-  createColorEngine(std::make_shared<CategoryColorEngine>());
-  createColorEngine(std::make_shared<PropertyColorEngine>(m_context));
+  createColorEngine(std::make_shared<NumberColorEngine>(), "number");
+  createColorEngine(std::make_shared<CategoryColorEngine>(), "category");
+  createColorEngine(std::make_shared<PropertyColorEngine>(m_context), "property");
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
 
@@ -984,7 +984,8 @@ void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwitch)
 {
   auto colorEngine = colorEngineSwitch->colorEngine();
-  m_colorEngineMenu->addColorEngine(colorEngine->tooltip(), colorEngine);
+  //m_colorEngineMenu->addColorEngine(colorEngine->tooltip(), colorEngine);
+  m_context.colorEngine()->add(colorEngine);
 
   m_visualizeToolGroup->addTool(colorEngineSwitch);
 }

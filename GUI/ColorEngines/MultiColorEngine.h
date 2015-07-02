@@ -32,6 +32,8 @@ namespace ESPINA
   class EspinaGUI_EXPORT MultiColorEngine
   : public ColorEngine
   {
+    Q_OBJECT
+
   public:
     explicit MultiColorEngine();
    
@@ -42,19 +44,23 @@ namespace ESPINA
     virtual ColorEngine::Composition supportedComposition() const;
 
     /** \brief Adds a color engine.
-     * \param[in] engine color engine to add.
+     * \param[in] engine to be added
      *
      */
     virtual void add(ColorEngineSPtr engine);
 
     /** \brief Removes a color engine.
-     * \param[in] engine color engine to remove.
+     * \param[in] engine to be removed
      *
      */
     virtual void remove(ColorEngineSPtr engine);
 
-  protected:
-    QList<ColorEngineSPtr> m_engines;
+  private slots:
+     void onColorEngineActivated(bool active);
+
+  private:
+    QList<ColorEngine *>   m_activeEngines;
+    QList<ColorEngineSPtr> m_availableEngines;
   };
 
   using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;

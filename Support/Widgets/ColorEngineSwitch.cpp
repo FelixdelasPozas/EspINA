@@ -28,7 +28,6 @@ using namespace ESPINA::Support::Widgets;
 ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context)
 : ColorEngineSwitch(engine, QIcon(icon), context)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -36,7 +35,12 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 : ProgressTool(engine->id(), icon, tr("Color by %1").arg(engine->tooltip()), context)
 , m_engine(engine)
 {
+  setCheckable(true);
 
+  setChecked(engine->isActive());
+
+  connect(this,         SIGNAL(toggled(bool)),
+          engine.get(), SLOT(setActive(bool)));
 }
 
 //------------------------------------------------------------------------

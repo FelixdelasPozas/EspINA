@@ -93,7 +93,7 @@ GUI::View::ViewState &Context::viewState()
 }
 
 //------------------------------------------------------------------------
-ColorEngineSPtr Context::colorEngine() const
+MultiColorEngineSPtr Context::colorEngine() const
 {
   return m_colorEngine;
 }

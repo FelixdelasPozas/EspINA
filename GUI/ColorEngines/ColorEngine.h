@@ -61,6 +61,7 @@ namespace ESPINA
     explicit ColorEngine(const QString &id, const QString &tooltip)
     : m_id(id)
     , m_tooltip(tooltip)
+    , m_active(false)
     {}
 
     /** \brief Returns the id of the Color Engine
@@ -69,8 +70,18 @@ namespace ESPINA
     QString id() const
     { return m_id; }
 
+    /** \brief Returns the tooltip of the Color Engine
+     *
+     */
     QString tooltip() const
     { return m_tooltip; }
+
+    /** \brief Returns if a color engine should be used
+     *
+     */
+    bool isActive() const
+    { return m_active; }
+
 
     /** \brief Returns the color associated with the given segmentation.
      * \param[in] seg segmentation adapter raw pointer.
@@ -89,13 +100,28 @@ namespace ESPINA
      */
     virtual Composition supportedComposition() const = 0;
 
+  public slots:
+    /** \brief Notifies Color Engine observers that it has been requested to be used
+     *
+     */
+    void setActive(bool active)
+    {
+      m_active = active;
+
+      emit activated(active);
+    }
+
   signals:
+    void activated(bool active);
+
     void modified();
+
     void lutModified();
 
   private:
     QString m_id;
     QString m_tooltip;
+    bool    m_active;
   };
 
   using ColorEngineSPtr  = std::shared_ptr<ColorEngine>;

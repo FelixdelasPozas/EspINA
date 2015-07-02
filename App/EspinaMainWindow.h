@@ -64,7 +64,7 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
   class ROISettings;
-  class ColorEngineMenu;
+  //class ColorEngineMenu;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -227,7 +227,7 @@ namespace ESPINA
   private:
     void initColorEngines(QMenu *parentMenu);
 
-    void createColorEngine(ColorEngineSPtr engine);
+    void createColorEngine(ColorEngineSPtr engine, const QString& icon);
 
     void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
@@ -391,7 +391,7 @@ namespace ESPINA
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
-    ColorEngineMenu *m_colorEngineMenu;
+    //ColorEngineMenu *m_colorEngineMenu;
 
     // ToolBars
     QToolBar           *m_mainBar;
