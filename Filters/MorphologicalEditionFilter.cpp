@@ -140,5 +140,6 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
   else
   {
     qWarning() << "MorphologicalEditionFilter: Empty Output;";
+    m_outputs.remove(0);
   }
 }
