@@ -25,7 +25,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="m_issueTable"/>
+    <widget class="QTableWidget" name="m_issueTable">
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <attribute name="horizontalHeaderCascadingSectionResizes">
+      <bool>true</bool>
+     </attribute>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

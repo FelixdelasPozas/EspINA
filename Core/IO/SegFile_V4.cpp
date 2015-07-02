@@ -440,8 +440,9 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
 
   const QUuid uuid = filter->uuid();
 
-  QMap<int, Bounds>    boundsMap;
-  QMap<int, NmVector3> spacingMap;
+  QMap<int, Bounds>    bounds;
+  QMap<int, NmVector3> spacings;
+  QMap<int, QList<QPair<int, Bounds>>> volumeEditedRegions;
 
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
@@ -472,56 +473,48 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       {
         if (file.contains("SegmentationVolume/"))
         {
-          auto oldFile = file.remove(0, 19);
-          auto parts   = oldFile.split("_");
-          auto vertex  = parts[0].toInt();
+          auto oldFile        = file.remove(0, 19);
+          auto parts          = oldFile.split(".");
+          auto ids            = parts[0].split("_");
+          auto extension      = parts[1].toLower();
+          auto vertex         = ids[0].toInt();
+          auto output         = ids[1].toInt();
+          auto editedRegionId = ids.size() == 3? ids[2].toInt():-1;
+
           if (vertex == filterVertex)
           {
             auto newFile = QString("Filters/%1/").arg(uuid.toString());
-            if (parts[1].endsWith(".mhd", Qt::CaseInsensitive))
+            if (extension == "mhd")
             {
-              newFile += QString("VolumetricData_%1").arg(parts[1]);
-            }
-            else
-            {
-              if (parts[1].endsWith(".raw", Qt::CaseInsensitive))
+              if(editedRegionId >= 0)
               {
-                newFile += oldFile; // mhd internal references to raw files are not modified
+                newFile += QString("%1_VolumetricData_EditedRegion_%2.mhd").arg(output).arg(editedRegionId);
               }
               else
               {
-                if(parts.size() > 2 && parts[2].endsWith(".mhd", Qt::CaseInsensitive))
-                {
-                  newFile += QString("%1_%2_EditedRegion_%3").arg(parts[0]).arg(parts[1]).arg(parts[2]);
-                }
-                else
-                {
-                  if(parts.size() > 2 && parts[2].endsWith(".raw", Qt::CaseInsensitive))
-                  {
-                    newFile += oldFile; // mhd internal references to raw files are not modified
-                  }
-                  else
-                  {
-                    Q_ASSERT(false);
-                  }
-                }
+                newFile += QString("VolumetricData_%1.mhd").arg(output);
               }
             }
-
-            // TODO: qué hacer con los outputs que sólo tienen guardadas edited regions???
-            auto isEditedRegion = parts.size() > 2;
-            //////////////////////////////////////////////////////////////////////////////
-
-            auto output = parts[1].split(".").first().toInt();
+            else if (extension == "raw")
+            {
+              newFile += oldFile; // mhd internal references to raw files are not modified
+            }
 
             auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
             m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
 
-            if (newFile.endsWith(".mhd", Qt::CaseInsensitive))
+            if (extension == "mhd")
             {
               StreamedVolume<itkVolumeType> volume(m_storage->absoluteFilePath(newFile));
-              boundsMap.insert(output, volume.bounds());
-              spacingMap.insert(output, volume.spacing());
+              if (editedRegionId >= 0)
+              {
+                volumeEditedRegions[output] << QPair<int, Bounds>(editedRegionId, volume.bounds());
+              }
+              else
+              {
+                bounds.insert(output, volume.bounds());
+                spacings.insert(output, volume.spacing());
+              }
             }
           }
         }
@@ -565,8 +558,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       {
         xml.writeStartElement("Output");
         xml.writeAttribute("id",      QString::number(output));
-        xml.writeAttribute("bounds",  boundsMap[output].toString());
-        xml.writeAttribute("spacing", spacingMap[output].toString());
+        xml.writeAttribute("bounds",  bounds[output].toString());
+        xml.writeAttribute("spacing", spacings[output].toString());
 
         QString content(trc);
 
@@ -577,7 +570,18 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
           {
             xml.writeStartElement("Data");
             xml.writeAttribute("type",  "VolumetricData");
-            xml.writeAttribute("bounds", boundsMap[output].toString());
+            xml.writeAttribute("bounds", bounds[output].toString());
+            for(auto editedRegion : volumeEditedRegions[output])
+            {
+              auto editedBounds = editedRegion.second;
+              if (editedBounds.areValid())
+              {
+                xml.writeStartElement("EditedRegion");
+                xml.writeAttribute("id",     QString::number(editedRegion.first));
+                xml.writeAttribute("bounds", editedBounds.toString());
+                xml.writeEndElement();
+              }
+            }
             xml.writeEndElement();
           }
           else
@@ -586,7 +590,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
             {
               xml.writeStartElement("Data");
               xml.writeAttribute("type",  "MeshData");
-              xml.writeAttribute("bounds", boundsMap[output].toString());
+              xml.writeAttribute("bounds", bounds[output].toString());
               xml.writeEndElement();
             }
           }
