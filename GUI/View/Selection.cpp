@@ -33,8 +33,8 @@ using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 Selection::Selection(RepresentationInvalidator &invalidator)
-: m_invalidator  (invalidator)
-, m_activeChannel{nullptr}
+: m_activeChannel{nullptr}
+, m_invalidator  (invalidator)
 {
 }
 

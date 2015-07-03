@@ -28,6 +28,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Widgets/PixelValueSelector.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Query.h>
@@ -64,6 +65,7 @@
 #include <itkStatisticsImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
 
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
@@ -71,6 +73,7 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
 : m_spacingModified   {false}
 , m_edgesModified     {false}
+, m_pixelSelector     {new PixelValueSelector(this)}
 , m_channel           {channel}
 , m_model             {context.model()}
 , m_scheduler         {context.scheduler()}
@@ -81,6 +84,12 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 , m_contextViewState  (context.viewState())
 {
   setupUi(this);
+
+  m_pixelSelector->setFixedHeight(24);
+
+  m_colorFrame->setLayout(new QHBoxLayout());
+  m_colorFrame->layout()->setMargin(0);
+  m_colorFrame->layout()->addWidget(m_pixelSelector);
 
   setWindowTitle(tr("Channel Inspector - %1").arg(channel->data().toString()));
 
@@ -102,8 +111,8 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 
   radioStackEdges->setChecked(!m_useDistanceToEdges);
   radioImageEdges->setChecked(m_useDistanceToEdges);
-  colorBox->setEnabled(m_useDistanceToEdges);
   colorLabel->setEnabled(m_useDistanceToEdges);
+  m_pixelSelector->setEnabled(m_useDistanceToEdges);
   thresholdBox->setEnabled(m_useDistanceToEdges);
   thresholdLabel->setEnabled(m_useDistanceToEdges);
 
@@ -112,10 +121,10 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 
   m_backgroundColor = (edgesExtension == nullptr) ? 0 : edgesExtension->backgroundColor();
   m_threshold = (edgesExtension == nullptr) ? 50 : edgesExtension->threshold();
-  colorBox->setValue(m_backgroundColor);
+  m_pixelSelector->setValue(m_backgroundColor);
   thresholdBox->setValue(m_threshold);
 
-  connect(colorBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorBgColor(int)));
+  connect(m_pixelSelector, SIGNAL(newValue(int)), this, SLOT(changeEdgeDetectorBgColor(int)));
   connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorThreshold(int)));
 
   if (edgesExtension)
@@ -281,7 +290,7 @@ void ChannelInspector::applyModifications()
 {
   if (isVisible())
   {
-    updateSceneState(m_viewState, toViewItemList(m_channel));
+    updateSceneState(m_viewState, toViewItemSList(m_channel));
     invalidateChannelRepresentation();
   }
 }
@@ -317,7 +326,7 @@ void ChannelInspector::onChangesAccepted()
     applyEdgesChanges();
   }
 
-  updateSceneState(m_contextViewState, toViewItemList(m_channel));
+  updateSceneState(m_contextViewState, toViewItemSList(m_channel));
   m_contextViewState.representationInvalidator().invalidateRepresentations(m_channel.get());
 }
 
@@ -397,14 +406,14 @@ void ChannelInspector::radioEdgesChanged(bool value)
   }
 
   colorLabel->setEnabled(radioImageEdges->isChecked());
-  colorBox->setEnabled(radioImageEdges->isChecked());
+  m_pixelSelector->setEnabled(radioImageEdges->isChecked());
   thresholdLabel->setEnabled(radioImageEdges->isChecked());
   thresholdBox->setEnabled(radioImageEdges->isChecked());
 
   changeEdgeDetectorBgColor(m_backgroundColor);
 
   m_edgesModified = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
-                    (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value())) ||
+                    (radioImageEdges->isChecked() && (m_backgroundColor != m_pixelSelector->value())) ||
                     (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
 }
 
@@ -412,7 +421,7 @@ void ChannelInspector::radioEdgesChanged(bool value)
 void ChannelInspector::changeEdgeDetectorBgColor(int value)
 {
   bool enabled = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
-                 (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value()));
+                 (radioImageEdges->isChecked() && (m_backgroundColor != m_pixelSelector->value()));
 
   QColor color;
   if (value != -1)
@@ -466,7 +475,7 @@ void ChannelInspector::applyEdgesChanges()
   if (radioImageEdges->isChecked())
   {
     m_useDistanceToEdges = true;
-    m_backgroundColor = colorBox->value();
+    m_backgroundColor = m_pixelSelector->value();
     m_threshold = thresholdBox->value();
   }
   else
@@ -510,7 +519,7 @@ void ChannelInspector::initSliceView()
 
   m_view->addRepresentationManager(sliceManager);
 
-  updateSceneState(m_viewState, toViewItemList(m_channel));
+  updateSceneState(m_viewState, toViewItemSList(m_channel));
 }
 
 //------------------------------------------------------------------------

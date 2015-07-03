@@ -31,6 +31,13 @@
 
 namespace ESPINA
 {
+  namespace GUI
+  {
+    namespace Widgets
+    {
+      class PixelValueSelector;
+    }
+  }
 
   class SeedGrowSegmentationSettings;
 
@@ -46,7 +53,7 @@ namespace ESPINA
      *
      */
     explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
-                                                Support::Context       &context);
+                                                Support::Context             &context);
 
     /** \brief SeedGrowSegmentationSettingsPanel class virtual destructor.
      *
@@ -71,12 +78,6 @@ namespace ESPINA
 
     virtual SettingsPanelPtr clone() override;
 
-  public slots:
-    /** \brief Modifies the color of the pixel value.
-     *
-     */
-    void displayColor(int value);
-
   private slots:
     /** \brief Manages the change of state of the taxonomical checkbox.
      * \param[in] state checkbox state.
@@ -84,16 +85,11 @@ namespace ESPINA
      */
     void changeTaxonomicalCheck(int state);
 
-    /** \brief Stores the Z value.
-     * \param[in] value unused value.
-     *
-     */
-    void zValueChanged(int unused);
-
   private:
-    Support::Context       &m_context;
+    Support::Context             &m_context;
     SeedGrowSegmentationSettings *m_settings;
-    bool                          m_zValueChanged;
+
+    GUI::Widgets::PixelValueSelector *m_pixelSelector;
   };
 
 } // namespace ESPINA

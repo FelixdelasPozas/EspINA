@@ -39,6 +39,14 @@ class QCloseEvent;
 
 namespace ESPINA
 {
+  namespace GUI
+  {
+    namespace Widgets
+    {
+      class PixelValueSelector;
+    }
+  }
+
   class ViewManager;
   class View2D;
   class HueSelector;
@@ -182,6 +190,8 @@ namespace ESPINA
   private:
     bool   m_spacingModified;
     bool   m_edgesModified;
+
+    GUI::Widgets::PixelValueSelector *m_pixelSelector;
 
     ChannelAdapterSPtr m_channel;
     ModelAdapterSPtr   m_model;

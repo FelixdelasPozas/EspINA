@@ -232,7 +232,7 @@ bool ESPINA::isChannel(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSPtr channel)
+ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSPtr channel)
 {
   ViewItemAdapterSList result;
 
@@ -242,13 +242,26 @@ ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSPtr channel)
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSList channels)
+ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSList channels)
 {
   ViewItemAdapterSList result;
 
   for (auto channel : channels)
   {
     result << channel;
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterList ESPINA::toViewItemList(ChannelAdapterSList channels)
+{
+  ViewItemAdapterList result;
+
+  for (auto channel : channels)
+  {
+    result << channel.get();
   }
 
   return result;

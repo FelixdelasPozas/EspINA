@@ -306,7 +306,6 @@ void CheckSampleTask::run()
 CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 : CheckTask(scheduler, model)
 {
-
 }
 
 //------------------------------------------------------------------------

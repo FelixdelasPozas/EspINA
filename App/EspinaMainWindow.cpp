@@ -129,9 +129,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
   factory->registerExtensionFactory(defaultExtensions);
 
-  //TODO 2015-04-20 Update ESPINA Settings
-//   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
-//   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
+  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_context);
+  m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_context);
 #if USE_METADONA
   m_availableSettingsPanels << std::make_shared<MetaDataSettingsPanel>();
 #endif
@@ -511,7 +510,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_analysis = mergedAnalysis;
 
-    updateSceneState(m_context.viewState(), toViewItemList(model->channels()));
+    updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
     m_context.viewState().resetCamera();
 
     auto bounds = m_context.viewState().coordinateSystem()->bounds();
@@ -811,7 +810,6 @@ void EspinaMainWindow::showPreferencesDialog()
   GeneralSettingsDialog dialog;
 
   dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_settings));
-  //dialog.registerPanel(m_view->settingsPanel());
   dialog.resize(800, 600);
 
   for(auto panel : m_availableSettingsPanels)
@@ -972,42 +970,6 @@ void EspinaMainWindow::onExclusiveToolInUse(ProgressTool* tool)
   {
     toolGroup->onExclusiveToolInUse(tool);
   }
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::restoreRepresentationSwitchSettings()
-{
-  const QString REP_MANAGERS = "ActiveRepresentationManagers";
-//TODO: recordar el estado del usuario
-//   QMap<QString, bool> viewSettings;
-//
-//   QStringList storedRenderers;
-//   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-//   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
-//   {
-//     storedRenderers = settings.value(RENDERERS).toStringList();
-//     storedRenderers.removeDuplicates();
-//
-//     for(auto name: storedRenderers)
-//       viewSettings[name] = settings.value(name).toBool();
-//   }
-//   else
-//   {
-//     // default init state: (can be overridden by seg file settings).
-//     // 2D -> cached slice renderer active, and the rest not included in XY view.
-//     // 3D -> all renderers included but initially inactive.
-//     storedRenderers << QString("Slice (Cached)");
-//     storedRenderers << QString("Contour");
-//     storedRenderers << QString("Skeleton");
-//     viewSettings[QString("Slice (Cached)")] = true;
-//     viewSettings[QString("Contour")] = false;
-//     viewSettings[QString("Skeleton")] = true;
-//     storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-//     storedRenderers.removeDuplicates();
-//
-//     settings.setValue(RENDERERS, storedRenderers);
-//   }
-//   settings.endGroup();
 }
 
 //------------------------------------------------------------------------
@@ -1527,18 +1489,21 @@ void EspinaMainWindow::analyzeChannelEdges()
 //------------------------------------------------------------------------
 void EspinaMainWindow::updateToolsSettings()
 {
-  auto settings = m_analysis->storage()->sessionSettings();
-
-  for(auto tool: availableTools())
+  if(m_settings->loadSEGfileSettings())
   {
-    if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
-    {
-      settings->beginGroup(tool->id());
-      SettingsContainer container;
-      container.copyFrom(settings);
-      settings->endGroup();
+    auto settings = m_analysis->storage()->sessionSettings();
 
-      tool->restoreSettings(container.settings());
+    for(auto tool: availableTools())
+    {
+      if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
+      {
+        settings->beginGroup(tool->id());
+        SettingsContainer container;
+        container.copyFrom(settings);
+        settings->endGroup();
+
+        tool->restoreSettings(container.settings());
+      }
     }
   }
 }

@@ -47,7 +47,20 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0,0">
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
@@ -56,12 +69,12 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="m_pixelValue">
-            <property name="maximum">
-             <number>255</number>
+           <widget class="QFrame" name="m_colorFrame">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
             </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
             </property>
            </widget>
           </item>
@@ -69,22 +82,6 @@
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>White</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="m_colorSample">
-            <property name="minimumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="text">
-             <string/>
             </property>
            </widget>
           </item>
@@ -245,7 +242,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="m_closing"/>
+         <widget class="QSpinBox" name="m_closing">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10</number>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_3">

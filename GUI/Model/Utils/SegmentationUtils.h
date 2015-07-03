@@ -44,6 +44,11 @@ namespace ESPINA
          */
         ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterList segmentations);
 
+        /** \brief Returns the equivalent list of View Item Adapter Pointers
+         *
+         */
+        ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSList segmentations);
+
         /** \brief Returns the equivalent list of View Item Adapter Smart Pointers
          *
          */

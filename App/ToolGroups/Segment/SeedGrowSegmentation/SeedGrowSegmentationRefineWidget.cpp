@@ -227,6 +227,7 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 {
+  m_roiTools->setCurrentROI(nullptr);
 }
 
 //----------------------------------------------------------------------------

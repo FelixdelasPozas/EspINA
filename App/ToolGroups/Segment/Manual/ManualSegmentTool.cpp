@@ -139,7 +139,10 @@ void ManualSegmentTool::abortOperation()
 //------------------------------------------------------------------------
 void ManualSegmentTool::onSelectionChanged()
 {
-  setInitialStroke();
+  if(isChecked())
+  {
+    setInitialStroke();
+  }
 }
 
 //------------------------------------------------------------------------

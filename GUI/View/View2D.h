@@ -286,8 +286,6 @@ namespace ESPINA
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_cameraReset;
     QPushButton    *m_snapshot;
-    QPushButton    *m_repManagerMenu;
-
 
     // VTK View
     vtkSmartPointer<vtkRenderer>     m_renderer;

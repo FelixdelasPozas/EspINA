@@ -56,3 +56,16 @@ ViewItemAdapterList ESPINA::GUI::Model::Utils::toViewItemList(SegmentationAdapte
 
   return result;
 }
+
+//------------------------------------------------------------------------
+ViewItemAdapterList ESPINA::GUI::Model::Utils::toViewItemList(SegmentationAdapterSList segmentations)
+{
+  ViewItemAdapterList result;
+
+  for (auto segmentation : segmentations)
+  {
+    result << segmentation.get();
+  }
+
+  return result;
+}
