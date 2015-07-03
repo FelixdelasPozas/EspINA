@@ -97,7 +97,6 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
-, m_repManagerMenu  {nullptr}
 , m_showThumbnail   {true}
 , m_inThumbnail     {false}
 , m_inThumbnailClick{true}
@@ -596,9 +595,9 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::scrollValueChanged(int value/*slice index */)
+void View2D::scrollValueChanged(int value)
 {
-  auto position = voxelCenter(value, m_plane);
+  auto position = (fitToSlices() ? voxelCenter(value, m_plane) : value);
 
   emit crosshairPlaneChanged(m_plane, position);
 }
@@ -853,8 +852,8 @@ void View2D::updateWidgetLimits(const Bounds &bounds)
 
   if(bounds.areValid())
   {
-    sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
     sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
+    sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
   }
 
   updateSpinBoxLimits  (sliceMin, sliceMax);
@@ -865,8 +864,16 @@ void View2D::updateWidgetLimits(const Bounds &bounds)
 void View2D::updateScrollBarLimits(int min, int max)
 {
   m_scrollBar->blockSignals(true);
-  m_scrollBar->setMinimum(min);
-  m_scrollBar->setMaximum(max);
+  if(fitToSlices())
+  {
+    m_scrollBar->setMinimum(min);
+    m_scrollBar->setMaximum(max);
+  }
+  else
+  {
+    m_scrollBar->setMinimum(voxelCenter(min, m_plane));
+    m_scrollBar->setMaximum(voxelCenter(max, m_plane));
+  }
   m_scrollBar->blockSignals(false);
 }
 
@@ -957,17 +964,13 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
   m_spinBox  ->blockSignals(true);
   m_scrollBar->blockSignals(true);
 
-  int slicingPos = voxelSlice(point[m_normalCoord], m_plane);
+  int slicingPos = (fitToSlices() ? voxelSlice(point[m_normalCoord], m_plane) : vtkMath::Round(point[m_normalCoord]));
 
   m_scrollBar->setValue(slicingPos);
 
   if (fitToSlices())
   {
     slicingPos++; // Correct 0 index
-  }
-  else
-  {
-    slicingPos = vtkMath::Round(point[m_normalCoord]);
   }
   m_spinBox->setValue(slicingPos);
 
@@ -1045,7 +1048,6 @@ void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
 
   m_sliceSelectors.removeOne(requestedsliceSelectors);
 }
-
 
 //-----------------------------------------------------------------------------
 void View2D::setCameraState(CameraState state)

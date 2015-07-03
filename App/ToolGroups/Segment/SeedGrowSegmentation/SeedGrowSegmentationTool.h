@@ -31,17 +31,13 @@
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/Tool.h>
+#include <GUI/Types.h>
+
+class QCheckBox;
 
 class QUndoStack;
 namespace ESPINA
 {
-  namespace GUI {
-    namespace Widgets
-    {
-      class CategorySelector;
-    }
-  }
-
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationTool
@@ -97,6 +93,10 @@ namespace ESPINA
 
     void initROISelector();
 
+    void initBestPixelWidgets();
+
+    void initCloseWidgets();
+
     ChannelAdapterPtr inputChannel() const;
 
     SelectorSPtr activeSelector() const;
@@ -125,19 +125,45 @@ namespace ESPINA
      */
     void updateCurrentCategoryROIValues(bool update);
 
+    /** \brief Updates the GUI when the selector changes.
+     * \param[in] state checkbox state.
+     *
+     */
+    void onSelectorChanged(int state);
+
+    /** \brief Updated the best pixel value.
+     * \param[in] value integer value in range [0-254]
+     *
+     */
+    void onNewPixelValue(int value);
+
+    /** \brief Updates the UI when the close check changes value.
+     * \param[in] state checkbox state.
+     *
+     */
+    void onCloseStateChanged(int state);
+
   private:
-    using CategorySelector = GUI::Widgets::CategorySelector;
+    using CategorySelector   = GUI::Widgets::CategorySelector;
+    using PixelValueSelector = GUI::Widgets::PixelValueSelector;
+    using NumericalInput     = GUI::Widgets::NumericalInput;
 
     Support::Context &m_context;
 
-    CategorySelector *m_categorySelector;
-    SeedThreshold    *m_seedThreshold;
-    CustomROIWidget  *m_roi;
+    CategorySelector   *m_categorySelector;
+    SeedThreshold      *m_seedThreshold;
+    QCheckBox          *m_useBestPixel;
+    QLabel             *m_colorLabel;
+    PixelValueSelector *m_colorSelector;
+    CustomROIWidget    *m_roi;
+    QCheckBox          *m_applyClose;
+    NumericalInput     *m_close;
 
     SeedGrowSegmentationSettings* m_settings;
 
-    SelectorSPtr m_bestPixelSelctor;
+    SelectorSPtr m_bestPixelSelector;
     SelectorSPtr m_pixelSelector;
+    SelectorSPtr m_activeSelector;
 
     std::shared_ptr<SGSFactory>  m_sgsFactory;
 

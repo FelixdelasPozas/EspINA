@@ -34,12 +34,11 @@ class QSettings;
 
 namespace ESPINA
 {
-  const QString AUTOSAVE_PATH("Autosave::Path");
-  const QString AUTOSAVE_INTERVAL("Autosave::Interval");
-
   class GeneralSettings
   {
   public:
+    static const QString LOAD_SEG_SETTINGS_KEY;
+
     /** \brief GeneralSettings class constructor.
      *
      */
@@ -57,7 +56,7 @@ namespace ESPINA
     {return m_userName;}
 
     /** \brief Sets the user name.
-     * \param[in] name, user name.
+     * \param[in] name user name.
      *
      */
     void setUserName(const QString &name);
@@ -69,7 +68,7 @@ namespace ESPINA
     {return m_autosaveInterval;}
 
     /** \brief Sets the auto-save interval.
-     * \param[in] min, minutes value.
+     * \param[in] min minutes value.
      *
      */
     void setAutosaveInterval(int min);
@@ -77,17 +76,33 @@ namespace ESPINA
     /** \brief Returns the path of the auto-save file.
      *
      */
-    QDir autosavePath() const {return m_autosavePath;}
+    QDir autosavePath() const
+    {return m_autosavePath;}
 
     /** \brief Sets the auto-save path.
      *
      */
     void setAutosavePath(const QString &path);
 
+    /** \brief Enables/disables the loading of any settings file included
+     * in the SEG file.
+     * \param[in] enable true to enable and false otherwise.
+     *
+     */
+    void setLoadSEGfileSettings(bool enable);
+
+    /** \brief Returns true if any settings file included in the SEG file must
+     *  be loaded.
+     *
+     */
+    bool loadSEGfileSettings() const
+    { return m_loadSEGSettings; }
+
   private:
     QString m_userName;
     int     m_autosaveInterval;
     QDir    m_autosavePath;
+    bool    m_loadSEGSettings;
   };
 
   using GeneralSettingsSPtr = std::shared_ptr<GeneralSettings>;

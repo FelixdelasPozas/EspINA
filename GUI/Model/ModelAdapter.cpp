@@ -94,7 +94,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     }
     endInsertRows();
 
-    auto addedChannels = toViewItemList(m_channels);
+    auto addedChannels = toViewItemSList(m_channels);
     addedItems << addedChannels;
     emit channelsAdded(addedChannels);
   }

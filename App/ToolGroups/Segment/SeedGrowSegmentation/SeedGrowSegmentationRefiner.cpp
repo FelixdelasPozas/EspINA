@@ -48,6 +48,7 @@ SeedGrowSegmentationRefiner::RefineWidget::RefineWidget(SegmentationAdapterPtr s
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::RefineWidget::~RefineWidget()
 {
+  RoiTools->setCurrentROI(nullptr);
   RoiTools->setVisible(false);
 
   delete RoiTools;

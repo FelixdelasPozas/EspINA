@@ -25,9 +25,9 @@
 
 namespace ESPINA
 {
-  const QString DEFAULT_ROI_X("DefaultOrthogonalROI::X");
-  const QString DEFAULT_ROI_Y("DefaultOrthogonalROI::Y");
-  const QString DEFAULT_ROI_Z("DefaultOrthogonalROI::Z");
+  const QString DEFAULT_ROI_X_SIZE_KEY("X Size");
+  const QString DEFAULT_ROI_Y_SIZE_KEY("Y Size");
+  const QString DEFAULT_ROI_Z_SIZE_KEY("Z Size");
   const QString ROI_SETTINGS_GROUP("Orthogonal ROI Settings");
 
   class ROISettings
@@ -81,6 +81,13 @@ namespace ESPINA
     {return m_zSize;}
 
   private:
+    /** \brief Helper method to set the values to ESPINA general settings.
+     * \param[in] key key string reference.
+     * \param[in] value integer value.
+     *
+     */
+    void set(const QString &key, int value);
+
     int m_xSize, m_ySize, m_zSize;
   };
 

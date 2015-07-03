@@ -23,6 +23,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
+#include <Support/Settings/EspinaSettings.h>
 
 namespace ESPINA
 {
@@ -100,25 +101,56 @@ namespace ESPINA
     { return m_bestValue; }
 
     /** \brief Sets the closing flag value.
-     * \param[in] value true to apply a morpholofical close operation after a seedgrow segmentation operation.
+     * \param[in] value true to apply a morphological close operation after a seedgrow segmentation operation.
      */
-    void setClosing(int value);
+    void setCloseRadius(int value);
 
     /** \brief Returns true if a closing operation is applied after a seedgrow segmentation operation.
      *
      */
-    int closing() const {return m_closing;}
+    int closeRadius() const
+    {return m_radius;}
+
+    /** \brief Enables/disables the close morphological operation after a successful seedgrow operation.
+     * \param[in] enable true to enable and false otherwise.
+     *
+     */
+    void setApplyClose(bool enable);
+
+    /** \brief Returns true if after a seedgrow operation a morphological close will be applied to the result.
+     *
+     */
+    bool applyClose() const
+    { return m_applyClose; }
 
   signals:
     void applyCategoryROIChanged(bool value);
     void bestValueChanged(int value);
 
   private:
-    int  m_xSize, m_ySize, m_zSize, m_closing;
+    static const QString SGS_GROUP;
+    template<typename T> void set(const QString &key, T value);
+
+    int  m_xSize, m_ySize, m_zSize, m_radius;
     int  m_bestValue;
     bool m_applyCategoryROI;
+    bool m_applyClose;
   };
 
 } // namespace ESPINA
+
+template<typename T>
+inline void ESPINA::SeedGrowSegmentationSettings::set(const QString& key, T value)
+{
+  ESPINA_SETTINGS(settings);
+
+
+
+  settings.beginGroup(SGS_GROUP);
+  settings.setValue(key, value);
+  settings.endGroup();
+
+  settings.sync();
+}
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_H

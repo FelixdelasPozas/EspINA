@@ -32,6 +32,7 @@
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <Support/Context.h>
+#include <GUI/Types.h>
 
 using ESPINA::GUI::View::RepresentationInvalidator;
 
@@ -179,9 +180,16 @@ namespace ESPINA
 
     void changeSegmentationSpacing();
 
+    /** \brief Initializes the pixel value selector widget.
+     *
+     */
+    void initPixelValueSelector();
+
   private:
     bool   m_spacingModified;
     bool   m_edgesModified;
+
+    GUI::Widgets::PixelValueSelector *m_pixelSelector;
 
     ChannelAdapterSPtr m_channel;
     ModelAdapterSPtr   m_model;

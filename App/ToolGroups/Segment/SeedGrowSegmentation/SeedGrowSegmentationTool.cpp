@@ -30,6 +30,9 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Widgets/PixelValueSelector.h>
+#include <GUI/Widgets/NumericalInput.h>
+#include <GUI/Widgets/Styles.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
@@ -42,6 +45,7 @@
 #include <QUndoStack>
 #include <QSettings>
 #include <QMessageBox>
+#include <QCheckBox>
 #include <QHBoxLayout>
 
 using namespace ESPINA;
@@ -58,7 +62,8 @@ const QString XSIZE           = "ROI X Size";
 const QString YSIZE           = "ROI Y Size";
 const QString ZSIZE           = "ROI Z Size";
 const QString APPLY_ROI       = "Apply category ROI";
-const QString CLOSING         = "Apply closing";
+const QString APPLY_CLOSE     = "Apply close";
+const QString CLOSE_RADIUS    = "Close radius";
 const QString BEST_VALUE      = "Best value";
 const QString CATEGORY        = "Category selected";
 
@@ -91,17 +96,6 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
   return sgsFilter;
 }
 
-// //-----------------------------------------------------------------------------
-// FilterRefinerSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(SegmentationAdapterPtr segmentation,
-//                                                                         FilterSPtr             filter)
-// throw (Unknown_Filter_Type_Exception)
-// {
-//   if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
-//
-//   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
-//
-// }
-
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterRefinerRegister        &filterRefiners,
@@ -110,7 +104,12 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
+, m_useBestPixel    {new QCheckBox(tr("Use Best Pixel Selector"))}
+, m_colorLabel      {new QLabel(tr("Pixel Color:"))}
+, m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}
+, m_applyClose      {new QCheckBox(tr("Apply Close"))}
+, m_close           {new NumericalInput()}
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}
 {
@@ -127,6 +126,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
   }
 
   initPixelSelectors();
+
+  m_activeSelector = m_bestPixelSelector;
 
   initSettingsWidgets();
 
@@ -157,7 +158,9 @@ void SeedGrowSegmentationTool::initPixelSelectors()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initPixelSelector()
 {
+  QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
   m_pixelSelector = std::make_shared<PixelSelector>();
+  m_pixelSelector->setCursor(cursor);
 
   initSelector(m_pixelSelector);
 }
@@ -175,9 +178,9 @@ void SeedGrowSegmentationTool::initBestPixelSelector()
   connect(m_settings,     SIGNAL(bestValueChanged(int)),
           selector.get(), SLOT(setBestPixelValue(int)));
 
-  m_bestPixelSelctor = selector;
+  m_bestPixelSelector = selector;
 
-  initSelector(m_bestPixelSelctor);
+  initSelector(m_bestPixelSelector);
 }
 
 //-----------------------------------------------------------------------------
@@ -197,7 +200,11 @@ void SeedGrowSegmentationTool::initSettingsWidgets()
 
   addSettingsWidget(m_seedThreshold);
 
+  initBestPixelWidgets();
+
   initROISelector();
+
+  initCloseWidgets();
 }
 
 //-----------------------------------------------------------------------------
@@ -220,6 +227,51 @@ void SeedGrowSegmentationTool::initROISelector()
           this,       SLOT(updateCurrentCategoryROIValues(bool)));
 
   addSettingsWidget(m_roi);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initBestPixelWidgets()
+{
+  auto enabled = (m_bestPixelSelector.get() == activeSelector().get());
+
+  m_useBestPixel->setChecked(enabled);
+
+  connect(m_useBestPixel, SIGNAL(stateChanged(int)),
+          this,           SLOT(onSelectorChanged(int)));
+
+  m_colorLabel->setVisible(enabled);
+  m_colorSelector->setFixedHeight(20);
+  m_colorSelector->setFixedWidth(150);
+  m_colorSelector->setVisible(enabled);
+
+  connect(m_colorSelector, SIGNAL(newValue(int)),
+          this,            SLOT(onNewPixelValue(int)));
+
+  m_colorSelector->setValue(m_settings->bestPixelValue());
+
+  addSettingsWidget(m_useBestPixel);
+  addSettingsWidget(m_colorLabel);
+  addSettingsWidget(m_colorSelector);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::initCloseWidgets()
+{
+  auto enabled = (m_settings->applyClose());
+
+  m_applyClose->setChecked(enabled);
+
+  connect(m_applyClose, SIGNAL(stateChanged(int)),
+          this,         SLOT(onCloseStateChanged(int)));
+
+  m_close->setVisible(enabled);
+  m_close->setLabelText(tr("Radius"));
+  m_close->setSliderVisibility(false);
+  m_close->setMinimum(1);
+  m_close->setMaximum(10);
+
+  addSettingsWidget(m_applyClose);
+  addSettingsWidget(m_close);
 }
 
 //-----------------------------------------------------------------------------
@@ -293,8 +345,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
 
-    // TODO: close algorithm and radius??
-    // filter->setClosingRadius(1);
+    if(m_applyClose->isChecked())
+    {
+      filter->setClosingRadius(m_close->value());
+    }
 
     if(currentROI)
     {
@@ -382,9 +436,9 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
       ESPINA_SETTINGS(settings);
       settings.beginGroup(ROI_SETTINGS_GROUP);
 
-      xSize = settings.value(DEFAULT_ROI_X, 500).toInt();
-      ySize = settings.value(DEFAULT_ROI_Y, 500).toInt();
-      zSize = settings.value(DEFAULT_ROI_Z, 500).toInt();
+      xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toInt();
+      ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toInt();
+      zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toInt();
     }
 
     m_roi->setValue(Axis::X, xSize.toInt());
@@ -415,8 +469,11 @@ void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settin
   m_roi->setApplyROI(applyROI);
   m_settings->setApplyCategoryROI(applyROI);
 
-  auto closing = settings->value(CLOSING, 0).toInt();
-  m_settings->setClosing(closing);
+  auto applyClose = settings->value(APPLY_CLOSE, false).toBool();
+  m_settings->setApplyClose(applyClose);
+
+  auto radius = settings->value(CLOSE_RADIUS, 0).toInt();
+  m_settings->setCloseRadius(radius);
 
   m_settings->setBestPixelValue(settings->value(BEST_VALUE, 0).toInt());
   m_categorySelector->setCurrentIndex(settings->value(CATEGORY, 0).toInt());
@@ -431,7 +488,8 @@ void SeedGrowSegmentationTool::saveSettings(std::shared_ptr<QSettings> settings)
   settings->setValue(YSIZE, m_settings->ySize());
   settings->setValue(ZSIZE, m_settings->zSize());
   settings->setValue(APPLY_ROI, m_settings->applyCategoryROI());
-  settings->setValue(CLOSING, m_settings->closing());
+  settings->setValue(APPLY_CLOSE, m_settings->applyClose());
+  settings->setValue(CLOSE_RADIUS, m_settings->closeRadius());
   settings->setValue(BEST_VALUE, m_settings->bestPixelValue());
   settings->setValue(CATEGORY, m_categorySelector->currentIndex());
 }
@@ -452,6 +510,24 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 }
 
 //-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onSelectorChanged(int state)
+{
+  auto enabled = (state == Qt::Checked);
+
+  m_colorLabel->setVisible(enabled);
+  m_colorSelector->setVisible(enabled);
+
+  if(enabled)
+  {
+    setEventHandler(m_bestPixelSelector);
+  }
+  else
+  {
+    setEventHandler(m_pixelSelector);
+  }
+}
+
+//-----------------------------------------------------------------------------
 ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 {
   return getActiveChannel();
@@ -460,5 +536,21 @@ ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 //-----------------------------------------------------------------------------
 SelectorSPtr SeedGrowSegmentationTool::activeSelector() const
 {
-  return m_bestPixelSelctor;
+  return m_activeSelector;
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onNewPixelValue(int value)
+{
+  m_settings->setBestPixelValue(value);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onCloseStateChanged(int state)
+{
+  auto checked = (state == Qt::Checked);
+
+  m_settings->setApplyClose(checked);
+
+  m_close->setVisible(checked);
 }

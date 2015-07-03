@@ -81,31 +81,31 @@ namespace ESPINA
      */
     Dialog3D *dialog3D();
 
-    /** \brief Returns the view's settings panel.
-     *
-     */
-    SettingsPanelSPtr settingsPanel();
-
     /** \brief Returs the RenderViews' group.
      *
      */
     QList<RenderView *> renderviews() const;
 
+    /* Used by other classes */
+    static const QString FIT_TO_SLICES_KEY;
+
   private slots:
     /** \brief Shows/hides the view's ruler.
-     * \param[in] visible, true to show the ruler, false to hide.
+     * \param[in] visible true to show the ruler, false to hide.
      */
     void setRulerVisibility(bool visible);
 
     /** \brief Shows/hides the thumbnail in 2D views.
-     * \param[in] visible, true to show the thumbnail, false to hide.
+     * \param[in] visible true to show the thumbnail, false to hide.
+     *
      */
     void showThumbnail(bool visible);
 
-    /** \brief Toggles "fit to slices" boolean value.
-     * \param[in] unused unused value.
+    /** \brief Enables/disables fit to slices.
+     * \param[in] enabled true to enable and false otherwise.
+     *
      */
-    void setFitToSlices(bool unused);
+    void setFitToSlices(bool enabled);
 
   private:
     void initView(RenderView *view, QMainWindow *parent);
@@ -133,7 +133,6 @@ namespace ESPINA
 
     DockWidget  *m_panelYZ, *m_panelXZ;
     Dialog3D    *m_dialog3D;
-    QAction     *m_showRuler, *m_showThumbnail;
   };
 
 

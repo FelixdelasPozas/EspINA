@@ -250,6 +250,7 @@ namespace ESPINA
       SampleAdapterSPtr m_sample;
   };
 
+  //------------------------------------------------------------------------
   class CheckDuplicatedSegmentationsTask
   : public CheckTask
   {

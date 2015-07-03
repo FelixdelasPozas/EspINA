@@ -224,8 +224,6 @@ namespace ESPINA
     void showIssuesDialog(IssueList problems) const;
 
   private:
-    void restoreRepresentationSwitchSettings();
-
     void initColorEngines(QMenu *parentMenu);
 
     void registerColorEngine(const QString   &title,
