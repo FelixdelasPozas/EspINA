@@ -492,7 +492,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
               }
               else
               {
-                newFile += QString("VolumetricData_%1.mhd").arg(output);
+                newFile += QString("%1_VolumetricData.mhd").arg(output);
               }
             }
             else if (extension == "raw")
