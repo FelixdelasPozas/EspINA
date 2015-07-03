@@ -20,14 +20,17 @@
 #include "PropertyColorEngineSwitch.h"
 
 #include <GUI/ColorEngines/PropertyColorEngine.h>
-#include <GUI/Widgets/HueSelector.h>
+#include <GUI/Widgets/ColorBar.h>
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Utils/Format.h>
+#include <GUI/Utils/ColorRange.h>
 #include <QComboBox>
 #include <QLabel>
+#include <QLayout>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::Support;
@@ -59,13 +62,14 @@ void PropertyColorEngineSwitch::createPropertySelector()
 //-----------------------------------------------------------------------------
 void PropertyColorEngineSwitch::createColorRange()
 {
-  auto hueSelector = new HueSelector();
+  auto colorBar = new ColorBar(valueColorEngine()->colorRange());
 
-  hueSelector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
-  hueSelector->setFixedHeight(20);
-  hueSelector->setHueValue(0);
+  colorBar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  colorBar->setFixedHeight(20);
+  colorBar->setMinimumWidth(80);
+  colorBar->setMaximumWidth(80);
 
-  addSettingsWidget(hueSelector);
+  addSettingsWidget(colorBar);
 }
 
 //-----------------------------------------------------------------------------

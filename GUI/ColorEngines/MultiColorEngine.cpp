@@ -133,6 +133,9 @@ void MultiColorEngine::add(ColorEngineSPtr engine)
     connect(engine.get(), SIGNAL(activated(bool)),
             this,         SLOT(onColorEngineActivated(bool)));
 
+    connect(engine.get(), SIGNAL(modified()),
+            this,         SIGNAL(modified()));
+
     if (engine->isActive() && !m_activeEngines.contains(engine.get()))
     {
       m_activeEngines << engine.get();
@@ -150,6 +153,9 @@ void MultiColorEngine::remove(ColorEngineSPtr engine)
 
   disconnect(engine.get(), SIGNAL(activated(bool)),
              this,         SLOT(onColorEngineActivated(bool)));
+
+  disconnect(engine.get(), SIGNAL(modified()),
+             this,         SIGNAL(modified()));
 
   if (engine->isActive())
   {

@@ -18,30 +18,37 @@
  */
 
 #include "PropertyColorEngine.h"
+#include <GUI/Utils/ColorRange.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
 PropertyColorEngine::PropertyColorEngine(Support::Context &context)
 : ColorEngine("PropertyColorEngine", tr("Property"))
 , WithContext(context)
-, m_minValue(0)
-, m_maxValue(10000)
-, m_minColor(Qt::blue)
-, m_maxColor(Qt::red)
 , m_extensionType("MorphologicalInformation")
 , m_measure("Size")
+, m_colorRange(new RangeHSV(0, 10000))
 {
+}
+
+//-----------------------------------------------------------------------------
+PropertyColorEngine::~PropertyColorEngine()
+{
+  delete m_colorRange;
 }
 
 //-----------------------------------------------------------------------------
 void PropertyColorEngine::setMeasure(const QString &measure, double min, double max)
 {
   m_measure  = measure;
-  m_minValue = min;
-  m_maxValue = max;
+  m_colorRange->setMinimumValue(min);
+  m_colorRange->setMaximumValue(max);
+
+  emit modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -55,14 +62,7 @@ QColor PropertyColorEngine::color(SegmentationAdapterPtr segmentation)
 
   if (info.isValid() && info.canConvert<double>())
   {
-    auto value = adjustRange(info.toDouble());
-
-    auto f = interpolateFactor(value);
-    auto h = m_minColor.hueF()        + f*(m_maxColor.hueF()        - m_minColor.hueF());
-    auto s = m_minColor.saturationF() + f*(m_maxColor.saturationF() - m_minColor.saturationF());
-    auto v = m_minColor.valueF()      + f*(m_maxColor.valueF()      - m_minColor.valueF());
-
-    color.setHsvF(h,s,v);
+    color = m_colorRange->color(info.toDouble());
   }
 
   return color;
@@ -82,16 +82,4 @@ LUTSPtr PropertyColorEngine::lut(SegmentationAdapterPtr segmentation)
   segLUT->Modified();
 
   return segLUT;
-}
-
-//-----------------------------------------------------------------------------
-double PropertyColorEngine::adjustRange(double value) const
-{
-  return qMax(m_minValue, qMin(value, m_maxValue));
-}
-
-//-----------------------------------------------------------------------------
-double PropertyColorEngine::interpolateFactor(double value) const
-{
-  return (value - m_minValue) / (m_maxValue - m_minValue);
 }

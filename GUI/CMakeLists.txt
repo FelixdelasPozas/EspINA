@@ -151,6 +151,7 @@ set (GUI_SOURCES
   Representations/RepresentationWindow.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
+  Utils/ColorRange.cpp
   Utils/DefaultIcons.cpp
   Utils/Format.cpp
   Utils/QtModelUtils.cpp
@@ -210,6 +211,7 @@ set (GUI_SOURCES
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/ColorBar.cpp
   Widgets/DrawingWidget.cpp
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp

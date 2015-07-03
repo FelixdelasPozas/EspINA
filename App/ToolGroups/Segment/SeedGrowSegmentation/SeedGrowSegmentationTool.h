@@ -34,9 +34,8 @@
 #include <GUI/Types.h>
 
 class QCheckBox;
->>>>>>> develop
-
 class QUndoStack;
+
 namespace ESPINA
 {
   class SeedGrowSegmentationSettings;

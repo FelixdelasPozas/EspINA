@@ -36,6 +36,8 @@ namespace ESPINA
       public:
         explicit PropertyColorEngine(Support::Context &context);
 
+        virtual ~PropertyColorEngine();
+
         void setMeasure(const SegmentationExtension::InfoTag &measure, double min, double max);
 
         QString measure() const
@@ -48,21 +50,14 @@ namespace ESPINA
         virtual Composition supportedComposition() const
         { return ColorEngine::Color; }
 
-      private:
-        double adjustRange(double value) const;
-
-        double interpolateFactor(double value) const;
+        Utils::RangeHSV *colorRange() const
+        { return m_colorRange; }
 
       private:
-        double m_minValue;
-        double m_maxValue;
-
-        QColor m_minColor;
-        QColor m_maxColor;
-
         QString m_extensionType;
         SegmentationExtension::InfoTag m_measure;
 
+        Utils::RangeHSV      *m_colorRange;
         QMap<QColor, LUTSPtr> m_luts;
       };
     }

@@ -34,7 +34,7 @@ ProgressTool::NestedWidgets::NestedWidgets(QObject *parent)
 : QWidgetAction(parent)
 , m_layout(new QHBoxLayout())
 {
-  m_layout->setMargin(0);
+  m_layout->setContentsMargins(4, 0, 4, 0);
 
   auto widget = new QWidget();
   widget->setLayout(m_layout);

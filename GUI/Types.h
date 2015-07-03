@@ -28,6 +28,12 @@ namespace ESPINA
         using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
       }
     }
+
+   namespace Utils
+   {
+     class ColorRange;
+     class RangeHSV;
+   }
   }
 }
 
