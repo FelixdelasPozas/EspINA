@@ -31,22 +31,13 @@
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/Tool.h>
+#include <GUI/Types.h>
 
 class QCheckBox;
 
 class QUndoStack;
 namespace ESPINA
 {
-  namespace GUI
-  {
-    namespace Widgets
-    {
-      class CategorySelector;
-      class PixelValueSelector;
-      class NumericalInput;
-    }
-  }
-
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationTool

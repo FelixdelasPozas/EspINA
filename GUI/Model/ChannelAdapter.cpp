@@ -253,16 +253,3 @@ ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSList channels)
 
   return result;
 }
-
-//------------------------------------------------------------------------
-ViewItemAdapterList ESPINA::toViewItemList(ChannelAdapterSList channels)
-{
-  ViewItemAdapterList result;
-
-  for (auto channel : channels)
-  {
-    result << channel.get();
-  }
-
-  return result;
-}

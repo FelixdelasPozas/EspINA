@@ -38,23 +38,6 @@ namespace ESPINA
          *
          */
         bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
-
-        /** \brief Returns the equivalent list of View Item Adapter Pointers
-         *
-         */
-        ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterList segmentations);
-
-        /** \brief Returns the equivalent list of View Item Adapter Pointers
-         *
-         */
-        ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSList segmentations);
-
-        /** \brief Returns the equivalent list of View Item Adapter Smart Pointers
-         *
-         */
-        ViewItemAdapterSList EspinaGUI_EXPORT toViewItemSList(SegmentationAdapterSList segmentations);
-
-        //void addIfNotContained(ItemAdapterSList)
       }
     }
   }

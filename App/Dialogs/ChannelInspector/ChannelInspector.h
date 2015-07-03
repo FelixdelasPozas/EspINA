@@ -32,6 +32,7 @@
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <Support/Context.h>
+#include <GUI/Types.h>
 
 using ESPINA::GUI::View::RepresentationInvalidator;
 
@@ -39,14 +40,6 @@ class QCloseEvent;
 
 namespace ESPINA
 {
-  namespace GUI
-  {
-    namespace Widgets
-    {
-      class PixelValueSelector;
-    }
-  }
-
   class ViewManager;
   class View2D;
   class HueSelector;
@@ -186,6 +179,11 @@ namespace ESPINA
     void changeChannelSpacing();
 
     void changeSegmentationSpacing();
+
+    /** \brief Initializes the pixel value selector widget.
+     *
+     */
+    void initPixelValueSelector();
 
   private:
     bool   m_spacingModified;

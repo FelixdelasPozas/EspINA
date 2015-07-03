@@ -85,12 +85,6 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 {
   setupUi(this);
 
-  m_pixelSelector->setFixedHeight(24);
-
-  m_colorFrame->setLayout(new QHBoxLayout());
-  m_colorFrame->layout()->setMargin(0);
-  m_colorFrame->layout()->addWidget(m_pixelSelector);
-
   setWindowTitle(tr("Channel Inspector - %1").arg(channel->data().toString()));
 
   /// PROPERTIES TAB
@@ -106,6 +100,8 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 
   /// EDGES TAB
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+
+  initPixelValueSelector();
 
   m_useDistanceToEdges = !edgesExtension->useDistanceToBounds();
 
@@ -128,7 +124,9 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorThreshold(int)));
 
   if (edgesExtension)
+  {
     changeEdgeDetectorBgColor(m_backgroundColor);
+  }
 
   tabWidget->setCurrentIndex(0);
 
@@ -651,4 +649,15 @@ void ChannelInspector::changeSegmentationSpacing()
   }
 
   QApplication::restoreOverrideCursor();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initPixelValueSelector()
+{
+  m_pixelSelector->setFixedHeight(24);
+
+  auto layout = new QHBoxLayout();
+  layout->setMargin(0);
+  layout->addWidget(m_pixelSelector);
+  m_colorFrame->setLayout(layout);
 }

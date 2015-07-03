@@ -21,6 +21,7 @@
 // ESPINA
 #include "DefaultView.h"
 #include <App/EspinaMainWindow.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/View3DDialog/3DDialog.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
@@ -39,6 +40,7 @@
 #include <QMenu>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Support::Representations::Utils;
@@ -240,8 +242,9 @@ void DefaultView::setFitToSlices(bool enabled)
     m_viewState.setFitToSlices(enabled);
     m_viewState.coordinateSystem()->setResolution(resolution);
 
-    auto items = toViewItemList(m_model->channels()) + GUI::Model::Utils::toViewItemList(m_model->segmentations());
-    m_viewState.representationInvalidator().invalidateRepresentations(items);
+    auto channelList = toRawList<ViewItemAdapter>(m_model->channels());
+    auto segmentationList = toRawList<ViewItemAdapter>(m_model->segmentations());
+    m_viewState.representationInvalidator().invalidateRepresentations(channelList + segmentationList);
 
     ESPINA_SETTINGS(settings);
     settings.beginGroup(DEFAULT_VIEW_SETTINGS);

@@ -16,8 +16,10 @@
  */
 
 #include "SegmentationUtils.h"
+#include <Core/Utils/ListUtils.hxx>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ItemAdapterPtr item)
@@ -29,43 +31,4 @@ SegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ItemAdapterPtr
 bool ESPINA::GUI::Model::Utils::isSegmentation(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SEGMENTATION == item->type();
-}
-
-//------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::GUI::Model::Utils::toViewItemSList(SegmentationAdapterSList segmentations)
-{
-  ViewItemAdapterSList result;
-
-  for (auto segmentation : segmentations)
-  {
-    result << segmentation;
-  }
-
-  return result;
-}
-
-//------------------------------------------------------------------------
-ViewItemAdapterList ESPINA::GUI::Model::Utils::toViewItemList(SegmentationAdapterList segmentations)
-{
-  ViewItemAdapterList result;
-
-  for (auto segmentation : segmentations)
-  {
-    result << segmentation;
-  }
-
-  return result;
-}
-
-//------------------------------------------------------------------------
-ViewItemAdapterList ESPINA::GUI::Model::Utils::toViewItemList(SegmentationAdapterSList segmentations)
-{
-  ViewItemAdapterList result;
-
-  for (auto segmentation : segmentations)
-  {
-    result << segmentation.get();
-  }
-
-  return result;
 }

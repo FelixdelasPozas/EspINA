@@ -433,19 +433,21 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
-    if(m_temporalManagers.keys().contains(prototypes))
+    if(!m_temporalManagers.contains(prototypes))
+    {
+      auto manager = std::make_shared<TemporalManager>(prototypes);
+
+      addRepresentationManager(manager);
+
+      manager->show(t);
+
+      m_temporalManagers[prototypes] = manager;
+    }
+    else
     {
       qWarning() << "tried to add already present prototypes.";
       return;
     }
-
-    auto manager = std::make_shared<TemporalManager>(prototypes);
-
-    addRepresentationManager(manager);
-
-    manager->show(t);
-
-    m_temporalManagers[prototypes] = manager;
   }
 }
 
@@ -454,19 +456,22 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
-    if(!m_temporalManagers.keys().contains(prototypes))
+    if(m_temporalManagers.contains(prototypes))
+    {
+      auto manager = m_temporalManagers[prototypes];
+
+      manager->hide(t);
+
+      removeRepresentationManager(manager);
+
+      //NOTE: managers should be removed after processing render request of t
+      //      so they can hide its representations
+    }
+    else
     {
       qWarning() << "trying to remove a non existent manager";
       return;
     }
-    auto manager = m_temporalManagers[prototypes];
-
-    manager->hide(t);
-
-    removeRepresentationManager(manager);
-
-    //NOTE: managers should be removed after processing render request of t
-    //      so they can hide its representations
   }
 }
 

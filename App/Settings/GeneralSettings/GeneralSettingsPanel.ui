@@ -33,7 +33,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="userName">
+         <widget class="QLineEdit" name="m_userName">
           <property name="toolTip">
            <string/>
           </property>
@@ -71,7 +71,7 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QLineEdit" name="autosavePath">
+       <widget class="QLineEdit" name="m_autosavePath">
         <property name="toolTip">
          <string>Path where temporal auto-save files are stored</string>
         </property>
@@ -81,7 +81,7 @@
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QSpinBox" name="autosaveInterval">
+       <widget class="QSpinBox" name="m_autosaveInterval">
         <property name="toolTip">
          <string>Time interval at which auto-saves are performed</string>
         </property>

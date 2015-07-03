@@ -25,20 +25,13 @@
 // ESPINA
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Context.h>
+#include <GUI/Types.h>
 
 // Qt
 #include "ui_SeedGrowSegmentationSettingsPanel.h"
 
 namespace ESPINA
 {
-  namespace GUI
-  {
-    namespace Widgets
-    {
-      class PixelValueSelector;
-    }
-  }
-
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationsSettingsPanel
