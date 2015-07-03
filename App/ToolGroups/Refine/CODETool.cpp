@@ -148,7 +148,7 @@ void CODEToolBase::onTaskFinished()
     auto taskContext = m_executingTasks[filter];
     auto undoStack   = getUndoStack();
 
-    if (filter->isOutputEmpty())
+    if (!filter->validOutput(0))
     {
       auto name    = taskContext.Segmentation->data(Qt::DisplayRole).toString();
       auto title   = taskContext.Operation;

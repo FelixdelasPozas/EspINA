@@ -15,6 +15,9 @@ namespace ESPINA
     namespace Widgets
     {
       class ProgressAction;
+      class PixelValueSelector;
+      class CategorySelector;
+      class NumericalInput;
     }
 
     namespace Representations

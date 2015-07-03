@@ -62,7 +62,7 @@ namespace ESPINA
 
         return result;
       }
-      
+
       template <typename T, typename F>
       QList<T *> toRawList(const F &list)
       {

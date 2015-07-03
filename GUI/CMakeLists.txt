@@ -70,6 +70,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/InformationSelector.h
   Widgets/NoteEditor.h
   Widgets/ProgressAction.h
+  Widgets/PixelValueSelector.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
   Widgets/SchedulerProgress.h
@@ -215,6 +216,7 @@ set (GUI_SOURCES
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
   Widgets/ProgressAction.cpp
+  Widgets/PixelValueSelector.cpp
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp

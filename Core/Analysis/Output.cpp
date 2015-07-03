@@ -162,7 +162,8 @@ Bounds Output::bounds() const
     if (bounds.areValid())
     {
       bounds = boundingBox(bounds, data->bounds());
-    } else
+    }
+    else
     {
       bounds = data->bounds();
     }
@@ -306,6 +307,7 @@ void Output::update(const Data::Type &type)
         m_filter->update();
       }
     }
+
     Q_ASSERT(requestedData->isValid());
   }
 }

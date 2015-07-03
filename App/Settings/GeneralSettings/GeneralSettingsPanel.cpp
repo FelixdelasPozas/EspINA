@@ -30,23 +30,24 @@ GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettingsSPtr settings)
 {
   setupUi(this);
 
-  userName        ->setText (m_settings->userName());
-  autosavePath    ->setText (m_settings->autosavePath().absolutePath());
-  autosaveInterval->setValue(m_settings->autosaveInterval());
+  m_userName        ->setText(m_settings->userName());
+  m_autosavePath    ->setText(m_settings->autosavePath().absolutePath());
+  m_autosaveInterval->setValue(m_settings->autosaveInterval());
+  m_loadSEGSettings ->setChecked(m_settings->loadSEGfileSettings());
 }
 
 //------------------------------------------------------------------------
 GeneralSettingsPanel::~GeneralSettingsPanel()
 {
-  //qDebug() << "Destroying General Settings Panel";
 }
 
 //------------------------------------------------------------------------
 void GeneralSettingsPanel::acceptChanges()
 {
-  m_settings->setUserName(userName->text());
-  m_settings->setAutosavePath(autosavePath->text());
-  m_settings->setAutosaveInterval(autosaveInterval->value());
+  m_settings->setUserName(m_userName->text());
+  m_settings->setAutosavePath(m_autosavePath->text());
+  m_settings->setAutosaveInterval(m_autosaveInterval->value());
+  m_settings->setLoadSEGfileSettings(m_loadSEGSettings->isChecked());
 }
 
 //------------------------------------------------------------------------
@@ -57,9 +58,10 @@ void GeneralSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool GeneralSettingsPanel::modified() const
 {
-  return userName->text()          != m_settings->userName()
-      || autosavePath->text()      != m_settings->autosavePath().absolutePath()
-      || autosaveInterval->value() != m_settings->autosaveInterval();
+  return m_userName->text()             != m_settings->userName()
+      || m_autosavePath->text()         != m_settings->autosavePath().absolutePath()
+      || m_autosaveInterval->value()    != m_settings->autosaveInterval()
+      || m_loadSEGSettings->isChecked() != m_settings->loadSEGfileSettings();
 }
 
 //------------------------------------------------------------------------

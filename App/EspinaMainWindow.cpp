@@ -131,9 +131,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
   factory->registerExtensionFactory(defaultExtensions);
 
-  //TODO 2015-04-20 Update ESPINA Settings
-//   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
-//   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
+  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_context);
+  m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_context);
 #if USE_METADONA
   m_availableSettingsPanels << std::make_shared<MetaDataSettingsPanel>();
 #endif
@@ -519,7 +518,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     }
     m_analysis = mergedAnalysis;
 
-    updateSceneState(m_context.viewState(), toViewItemList(model->channels()));
+    updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
     m_context.viewState().resetCamera();
 
     auto bounds = m_context.viewState().coordinateSystem()->bounds();
@@ -793,7 +792,6 @@ void EspinaMainWindow::showPreferencesDialog()
   GeneralSettingsDialog dialog;
 
   dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_settings));
-  //dialog.registerPanel(m_view->settingsPanel());
   dialog.resize(800, 600);
 
   for(auto panel : m_availableSettingsPanels)
@@ -1483,18 +1481,21 @@ void EspinaMainWindow::analyzeChannelEdges()
 //------------------------------------------------------------------------
 void EspinaMainWindow::updateToolsSettings()
 {
-  auto settings = m_analysis->storage()->sessionSettings();
-
-  for(auto tool: availableTools())
+  if(m_settings->loadSEGfileSettings())
   {
-    if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
-    {
-      settings->beginGroup(tool->id());
-      SettingsContainer container;
-      container.copyFrom(settings);
-      settings->endGroup();
+    auto settings = m_analysis->storage()->sessionSettings();
 
-      tool->restoreSettings(container.settings());
+    for(auto tool: availableTools())
+    {
+      if(!tool->id().isEmpty() && settings->childGroups().contains(tool->id()))
+      {
+        settings->beginGroup(tool->id());
+        SettingsContainer container;
+        container.copyFrom(settings);
+        settings->endGroup();
+
+        tool->restoreSettings(container.settings());
+      }
     }
   }
 }

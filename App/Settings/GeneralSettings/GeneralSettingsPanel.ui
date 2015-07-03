@@ -7,13 +7,43 @@
     <x>0</x>
     <y>0</y>
     <width>359</width>
-    <height>263</height>
+    <height>305</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>User</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="text">
+           <string>Name:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="m_userName">
+          <property name="toolTip">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
@@ -41,7 +71,7 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QLineEdit" name="autosavePath">
+       <widget class="QLineEdit" name="m_autosavePath">
         <property name="toolTip">
          <string>Path where temporal auto-save files are stored</string>
         </property>
@@ -51,7 +81,7 @@
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QSpinBox" name="autosaveInterval">
+       <widget class="QSpinBox" name="m_autosaveInterval">
         <property name="toolTip">
          <string>Time interval at which auto-saves are performed</string>
         </property>
@@ -76,31 +106,17 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Segmentation</string>
+      <string>SEG Files</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QLabel" name="label">
-          <property name="toolTip">
-           <string/>
-          </property>
-          <property name="text">
-           <string>User Name:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="userName">
-          <property name="toolTip">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QCheckBox" name="m_loadSEGSettings">
+        <property name="text">
+         <string>Load settings stored inside the file.</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

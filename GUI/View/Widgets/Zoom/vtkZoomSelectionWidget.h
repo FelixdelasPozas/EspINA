@@ -59,7 +59,7 @@ namespace ESPINA
             // widget in the scene. Note that the representation is a subclass of vtkProp
             // so it can be added to the renderer independent of the widget.
             void SetRepresentation(vtkWidgetRepresentation *r)
-                  { this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
+            { this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
             // Description:
             // Create the default widget representation if one is not set.

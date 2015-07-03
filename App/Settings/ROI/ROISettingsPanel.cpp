@@ -24,6 +24,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <App/Views/DefaultView.h>
 
 // VTK
 #include <vtkMath.h>
@@ -34,10 +35,8 @@
 
 using namespace ESPINA;
 
-const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
-
 //------------------------------------------------------------------------
-ROISettingsPanel::ROISettingsPanel(ROISettings            *settings,
+ROISettingsPanel::ROISettingsPanel(ROISettings      *settings,
                                    Support::Context &context)
 : m_context       (context)
 , m_settings      {settings}
@@ -49,18 +48,8 @@ ROISettingsPanel::ROISettingsPanel(ROISettings            *settings,
   m_ySize->setValue(m_settings->ySize());
   m_zSize->setValue(m_settings->zSize());
 
-  ESPINA_SETTINGS(espinaSettings);
-
-  if (espinaSettings.value(FIT_TO_SLICES).toBool())
-  {
-    m_zSize->setSuffix(" slices");
-    m_zCategorySize->setSuffix(" slices");
-  }
-  else
-  {
-    m_zSize->setSuffix(" nm");
-    m_zCategorySize->setSuffix(" nm");
-  }
+  m_zSize->setSuffix(" nm");
+  m_zCategorySize->setSuffix(" nm");
 
   auto model = context.model().get();
 
@@ -73,7 +62,7 @@ ROISettingsPanel::ROISettingsPanel(ROISettings            *settings,
   }
 
   connect(m_categorySelector, SIGNAL(activated(QModelIndex)),
-          this, SLOT(updateCategoryROI(QModelIndex)));
+          this,               SLOT(updateCategoryROI(QModelIndex)));
 
   m_categorySelector->setRootModelIndex(model->classificationRoot());
 }
@@ -145,14 +134,12 @@ void ROISettingsPanel::writeCategoryProperties()
 //------------------------------------------------------------------------
 void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
 {
-  if (!index.isValid())
-    return;
+  if (!index.isValid()) return;
 
-  ItemAdapterPtr itemPtr = itemAdapter(index);
-  if (isCategory(itemPtr))
-    return;
+  auto itemPtr = itemAdapter(index);
+  if (isCategory(itemPtr)) return;
 
-  CategoryAdapterPtr category = toCategoryAdapterPtr(itemPtr);
+  auto category = toCategoryAdapterPtr(itemPtr);
   if (m_activeCategory && m_activeCategory.get() != category)
   {
     // Check for changes
@@ -163,7 +150,9 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
       msg.setText(tr("The properties of the category \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeCategory->data().toString()));
       msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
       if (msg.exec() == QMessageBox::Yes)
+      {
         writeCategoryProperties();
+      }
     }
   }
 
@@ -179,9 +168,9 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
     m_activeCategory->addProperty(Category::DIM_Z(), QVariant(m_settings->zSize()));
   }
 
-  QVariant xSize = category->property(Category::DIM_X());
-  QVariant ySize = category->property(Category::DIM_Y());
-  QVariant zSize = category->property(Category::DIM_Z());
+  auto xSize = category->property(Category::DIM_X());
+  auto ySize = category->property(Category::DIM_Y());
+  auto zSize = category->property(Category::DIM_Z());
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {

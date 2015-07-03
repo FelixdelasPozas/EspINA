@@ -20,6 +20,9 @@
 // ESPINA
 #include "ViewState.h"
 
+// VTK
+#include <vtkMath.h>
+
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
@@ -152,7 +155,18 @@ void ViewState::setCrosshairPlane(const Plane plane, const Nm position)
 //----------------------------------------------------------------------------
 NmVector3 ViewState::crosshairPoint(const NmVector3 &point) const
 {
-  return m_fitToSlices?voxelCenter(point):point;
+  if(m_fitToSlices)
+  {
+    return voxelCenter(point);
+  }
+  else
+  {
+    Nm x = vtkMath::Floor(point[0]);
+    Nm y = vtkMath::Floor(point[1]);
+    Nm z = vtkMath::Floor(point[2]);
+
+    return NmVector3{x,y,z};
+  }
 }
 
 //----------------------------------------------------------------------------

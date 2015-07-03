@@ -47,7 +47,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit ROISettingsPanel(ROISettings            *settings,
+    explicit ROISettingsPanel(ROISettings      *settings,
                               Support::Context &context);
 
     /** \brief ROISettingsPanel class virtual destructor.

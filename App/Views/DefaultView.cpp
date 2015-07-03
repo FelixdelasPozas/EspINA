@@ -21,10 +21,12 @@
 // ESPINA
 #include "DefaultView.h"
 #include <App/EspinaMainWindow.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/View3DDialog/3DDialog.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt
@@ -38,28 +40,28 @@
 #include <QMenu>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Support::Representations::Utils;
 
 const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
+const QString SHOW_RULER_KEY        = "ShowRuler";
+const QString SHOW_THUMBNAIL_KEY    = "ShowThumbnail";
 
-const QString X_LINE_COLOR  = "CrosshairXLineColor";
-const QString Y_LINE_COLOR  = "CrosshairYLineColor";
-const QString Z_LINE_COLOR  = "CrosshairZLineColor";
-const QString SETTINGS_FILE = "Extra/DefaultView.ini";
+const QString DefaultView::FIT_TO_SLICES_KEY = "FitToSlices";
 
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
-: m_model(context.model())
-, m_viewState(context.viewState())
-, m_channelSources(m_model,  ItemAdapter::Type::CHANNEL, context.representationInvalidator())
+: m_model              (context.model())
+, m_viewState          (context.viewState())
+, m_channelSources     (m_model, ItemAdapter::Type::CHANNEL,      context.representationInvalidator())
 , m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, context.representationInvalidator())
-, m_viewXY{new View2D(context.viewState(), Plane::XY)}
-, m_viewYZ{new View2D(context.viewState(), Plane::YZ)}
-, m_viewXZ{new View2D(context.viewState(), Plane::XZ)}
+, m_viewXY             {new View2D(context.viewState(), Plane::XY)}
+, m_viewYZ             {new View2D(context.viewState(), Plane::YZ)}
+, m_viewXZ             {new View2D(context.viewState(), Plane::XZ)}
 {
-
   setObjectName("viewXY");
   setLayout(new QVBoxLayout());
   layout()->addWidget(m_viewXY);
@@ -131,8 +133,6 @@ void DefaultView::addRepresentation(const Representation& representation)
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
-  //menu->addMenu(new CamerasMenu(m_viewManager, this));
-
   auto renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(m_panelYZ->toggleViewAction());
   renderMenu->addAction(m_panelXZ->toggleViewAction());
@@ -142,32 +142,36 @@ void DefaultView::createViewMenu(QMenu* menu)
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
-  bool sr = settings.value("ShowRuler",     true).toBool();
-  bool st = settings.value("ShowThumbnail", true).toBool();
+  auto sr = settings.value(SHOW_RULER_KEY,     true).toBool();
+  auto st = settings.value(SHOW_THUMBNAIL_KEY, true).toBool();
+  auto fs = settings.value(FIT_TO_SLICES_KEY,  true).toBool();
 
   settings.endGroup();
 
-  m_showRuler = new QAction(tr("Show Scale Bar"),menu);
-  m_showRuler->setCheckable(true);
-  m_showRuler->setChecked(sr);
-  menu->addAction(m_showRuler);
-  connect(m_showRuler, SIGNAL(toggled(bool)),
+  auto showRuler = new QAction(tr("Show Scale Bar"),menu);
+  showRuler->setCheckable(true);
+  showRuler->setChecked(sr);
+  menu->addAction(showRuler);
+  connect(showRuler, SIGNAL(toggled(bool)),
           this, SLOT(setRulerVisibility(bool)));
 
-  m_showThumbnail = new QAction(tr("Show Thumbnail"),menu);
-  m_showThumbnail->setCheckable(true);
-  m_showThumbnail->setChecked(st);
-  menu->addAction(m_showThumbnail);
-  connect(m_showThumbnail, SIGNAL(toggled(bool)),
+  auto thumbnail = new QAction(tr("Show Thumbnail"),menu);
+  thumbnail->setCheckable(true);
+  thumbnail->setChecked(st);
+  menu->addAction(thumbnail);
+  connect(thumbnail, SIGNAL(toggled(bool)),
           this, SLOT(showThumbnail(bool)));
 
-  // TODO 2015-04-20 Recuperar fit to slices
-//   menu->addAction(fitToSlices);
-//   connect(fitToSlices, SIGNAL(toggled(bool)),
-//           this, SLOT(setFitToSlices(bool)));
+  auto fitToSlices = new QAction(tr("Fit To Slices"), menu);
+  fitToSlices->setCheckable(true);
+  fitToSlices->setChecked(fs);
+  menu->addAction(fitToSlices);
+  connect(fitToSlices, SIGNAL(toggled(bool)),
+          this,        SLOT(setFitToSlices(bool)));
 
   setRulerVisibility(sr);
   showThumbnail(st);
+  setFitToSlices(fs);
 }
 
 //-----------------------------------------------------------------------------
@@ -189,18 +193,11 @@ Dialog3D* DefaultView::dialog3D()
 }
 
 //-----------------------------------------------------------------------------
-SettingsPanelSPtr DefaultView::settingsPanel()
-{
-  //return std::make_shared<DefaultViewSettingsPanel>(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu);
-  return SettingsPanelSPtr();
-}
-
-//-----------------------------------------------------------------------------
 void DefaultView::setRulerVisibility(bool visible)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  settings.setValue("ShowRuler", visible);
+  settings.setValue(SHOW_RULER_KEY, visible);
   settings.endGroup();
 
   m_viewXY->setScaleVisibility(visible);
@@ -213,7 +210,7 @@ void DefaultView::showThumbnail(bool visible)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  settings.setValue("ShowThumbnail", visible);
+  settings.setValue(SHOW_THUMBNAIL_KEY, visible);
   settings.endGroup();
   m_viewXY->setThumbnailVisibility(visible);
   m_viewYZ->setThumbnailVisibility(visible);
@@ -221,9 +218,39 @@ void DefaultView::showThumbnail(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::setFitToSlices(bool value)
+void DefaultView::setFitToSlices(bool enabled)
 {
-  m_viewState.setFitToSlices(value);
+  if(enabled != m_viewState.fitToSlices())
+  {
+    auto resolution = NmVector3{1,1,1};
+
+    if(enabled)
+    {
+      auto channels = m_model->channels();
+      resolution = channels.first()->output()->spacing();
+
+      for(auto channel: channels)
+      {
+        for(auto i: {0,1,2})
+        {
+          auto channelResolution = channel->output()->spacing();
+          resolution[i] = std::min(resolution[i], channelResolution[i]);
+        }
+      }
+    }
+
+    m_viewState.setFitToSlices(enabled);
+    m_viewState.coordinateSystem()->setResolution(resolution);
+
+    auto channelList = toRawList<ViewItemAdapter>(m_model->channels());
+    auto segmentationList = toRawList<ViewItemAdapter>(m_model->segmentations());
+    m_viewState.representationInvalidator().invalidateRepresentations(channelList + segmentationList);
+
+    ESPINA_SETTINGS(settings);
+    settings.beginGroup(DEFAULT_VIEW_SETTINGS);
+    settings.setValue(FIT_TO_SLICES_KEY, enabled);
+    settings.endGroup();
+  }
 }
 
 //-----------------------------------------------------------------------------

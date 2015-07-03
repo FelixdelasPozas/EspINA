@@ -20,47 +20,66 @@
 
 // ESPINA
 #include "SeedGrowSegmentationSettings.h"
+#include <Support/Settings/EspinaSettings.h>
 
 using namespace ESPINA;
 
-const unsigned int DEFAULT_ROI_SIZE      = 500;
-const unsigned int DEFAULT_CLOSING_VALUE = 0;
-const unsigned int DEFAULT_BEST_PIXEL    = 0;
-const bool         DEFAULT_APPLY_ROI     = true;
+const QString SeedGrowSegmentationSettings::SGS_GROUP = "SeedGrowSegmentationSettings";
+
+const QString ROI_X_SIZE_KEY   = "ROI X size";
+const QString ROI_Y_SIZE_KEY   = "ROI Y size";
+const QString ROI_Z_SIZE_KEY   = "ROI Z size";
+const QString APPLY_CLOSE      = "Apply Close";
+const QString CLOSE_RADIUS     = "Close Radius";
+const QString BEST_PIXEL_VALUE = "Best Pixel Value";
+const QString APPLY_ROI        = "Apply ROI";
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
 {
-  m_xSize            = DEFAULT_ROI_SIZE;
-  m_ySize            = DEFAULT_ROI_SIZE;
-  m_zSize            = DEFAULT_ROI_SIZE;
-  m_closing          = DEFAULT_CLOSING_VALUE;
-  m_bestValue        = DEFAULT_BEST_PIXEL;
-  m_applyCategoryROI = DEFAULT_APPLY_ROI;
+  ESPINA_SETTINGS(settings);
+
+  settings.beginGroup(SGS_GROUP);
+  m_xSize            = settings.value(ROI_X_SIZE_KEY, 500).toInt();
+  m_ySize            = settings.value(ROI_Y_SIZE_KEY, 500).toInt();
+  m_zSize            = settings.value(ROI_Z_SIZE_KEY, 500).toInt();
+  m_applyClose       = settings.value(APPLY_CLOSE, false).toBool();
+  m_radius           = settings.value(CLOSE_RADIUS, 0).toInt();
+  m_bestValue        = settings.value(BEST_PIXEL_VALUE, 0).toInt();
+  m_applyCategoryROI = settings.value(APPLY_ROI, true).toBool();
+  settings.endGroup();
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setXSize(int value)
 {
   m_xSize = value;
+
+  set<int>(ROI_X_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setYSize(int value)
 {
   m_ySize = value;
+
+  set<int>(ROI_Y_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setZSize(int value)
 {
   m_zSize = value;
+
+  set<int>(ROI_Z_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setApplyCategoryROI(bool value)
 {
   m_applyCategoryROI = value;
+
+  set<bool>(APPLY_ROI, value);
 
   emit applyCategoryROIChanged(value);
 }
@@ -70,11 +89,23 @@ void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 {
   m_bestValue = value;
 
+  set<int>(BEST_PIXEL_VALUE, value);
+
   emit bestValueChanged(value);
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationSettings::setClosing(int value)
+void SeedGrowSegmentationSettings::setCloseRadius(int value)
 {
-  m_closing = value;
+  m_radius = value;
+
+  set<int>(CLOSE_RADIUS, value);
+}
+
+//------------------------------------------------------------------------
+void SeedGrowSegmentationSettings::setApplyClose(bool enable)
+{
+  m_applyClose = enable;
+
+  set<bool>(APPLY_CLOSE, enable);
 }
