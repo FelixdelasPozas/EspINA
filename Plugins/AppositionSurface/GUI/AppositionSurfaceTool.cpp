@@ -93,7 +93,7 @@ void AppositionSurfaceTool::selectionChanged()
 //-----------------------------------------------------------------------------
 void AppositionSurfaceTool::createSAS()
 {
-  auto model         = context().model();
+  auto model         = getModel();
   auto segmentations = getSelectedSegmentations();
 
   SegmentationAdapterList validSegmentations;
@@ -129,10 +129,12 @@ void AppositionSurfaceTool::createSAS()
       InputSList inputs;
       inputs << seg->asInput();
 
-      auto filter = context().factory()->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+      auto filter = getFactory()->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
       AppositionSurfacePlugin::Data data(filter, model->smartPointer(seg));
       m_plugin->m_executingTasks.insert(filter.get(), data);
+
+      showTaskProgress(filter);
 
       connect(filter.get(), SIGNAL(finished()),
               m_plugin,     SLOT(finishedTask()));

@@ -151,6 +151,7 @@ set (GUI_SOURCES
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/DefaultIcons.cpp
+  Utils/Format.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp
   EventHandlers/Brush.cpp

@@ -69,7 +69,7 @@ namespace ESPINA
   protected:
     virtual void paintEvent(QPaintEvent* event);
 
-    virtual InformationSelector::GroupedInfo availableInformation();
+    virtual GUI::InformationSelector::GroupedInfo availableInformation();
 
     bool exportToCSV(const QString &filename);
 
@@ -97,13 +97,13 @@ namespace ESPINA
 
     QStringList lastInformationOrder();
 
-    InformationSelector::GroupedInfo lastDisplayedInformation();
+    GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
 
-    virtual void setInformation(InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
+    virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
 
-    QStringList information(InformationSelector::GroupedInfo extensionInformation);
+    QStringList information(GUI::InformationSelector::GroupedInfo extensionInformation);
 
-    QStringList updateInformationOrder(InformationSelector::GroupedInfo extensionInformation);
+    QStringList updateInformationOrder(GUI::InformationSelector::GroupedInfo extensionInformation);
 
   protected:
     QString           m_category;

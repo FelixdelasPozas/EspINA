@@ -104,18 +104,6 @@
        inkscape:persp3d-origin="188.14303 : 248.03225 : 1"
        id="perspective10" />
     <linearGradient
-       id="linearGradient3256"
-       inkscape:collect="always">
-      <stop
-         id="stop3258"
-         offset="0"
-         style="stop-color:#000000;stop-opacity:1;" />
-      <stop
-         id="stop3260"
-         offset="1"
-         style="stop-color:#000000;stop-opacity:0;" />
-    </linearGradient>
-    <linearGradient
        id="linearGradient3264">
       <stop
          id="stop3266"
@@ -145,17 +133,6 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 24 : 1"
        sodipodi:type="inkscape:persp3d" />
-    <radialGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3256"
-       id="radialGradient3385"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1,0,0,0.315315,0,26.81305)"
-       cx="25.455845"
-       cy="39.161163"
-       fx="25.455845"
-       fy="39.161163"
-       r="19.622213" />
     <inkscape:perspective
        id="perspective2478"
        inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
@@ -1306,17 +1283,6 @@
        inkscape:vp_z="48 : 24 : 1"
        inkscape:persp3d-origin="24 : 16 : 1"
        id="perspective22-9" />
-    <radialGradient
-       r="19.622213"
-       fy="39.161163"
-       fx="25.455845"
-       cy="39.161163"
-       cx="25.455845"
-       gradientTransform="matrix(0.9325851,0,0,0.32313538,0.65868406,24.748502)"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient3385-0"
-       xlink:href="#linearGradient3256"
-       inkscape:collect="always" />
     <inkscape:perspective
        sodipodi:type="inkscape:persp3d"
        inkscape:vp_x="0 : 526.18109 : 1"
@@ -1596,7 +1562,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="8.361195"
-     inkscape:cx="1.2342132"
+     inkscape:cx="-18.978209"
      inkscape:cy="3.6548126"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
@@ -1624,13 +1590,6 @@
      inkscape:label="icono"
      style="display:inline">
     <ellipse
-       id="path3374-0"
-       style="display:inline;overflow:visible;visibility:visible;opacity:0.40909089;fill:url(#radialGradient3385-0);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.01758969;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none"
-       cx="24.398426"
-       cy="37.40287"
-       rx="18.299383"
-       ry="6.3406377" />
-    <ellipse
        ry="5.0079083"
        rx="4.6072755"
        cy="25.096712"
@@ -1640,8 +1599,8 @@
     <ellipse
        ry="5.3699307"
        rx="4.9403362"
-       cy="21.329191"
-       cx="24.296789"
+       cy="22.883993"
+       cx="27.047592"
        id="path18280-0-4"
        style="display:inline;opacity:1;fill:#782121;fill-opacity:1;stroke:#ff0000;stroke-width:0.6038931;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <ellipse
@@ -1668,8 +1627,8 @@
     <ellipse
        ry="4.6905322"
        rx="4.3152895"
-       cy="26.321442"
-       cx="39.233009"
+       cy="34.693451"
+       cx="39.950611"
        id="path18280-0-3"
        style="display:inline;opacity:1;fill:#a0892c;fill-opacity:1;stroke:#ff0000;stroke-width:0.52748907;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <g
@@ -1677,21 +1636,11 @@
        id="layer1-0"
        style="display:inline"
        transform="translate(0.53508186,-4.242186)" />
-    <path
-       sodipodi:type="arc"
-       style="opacity:0.40909088999999998;fill:url(#radialGradient3385);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.01758971;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
-       id="path3374"
-       sodipodi:cx="25.455845"
-       sodipodi:cy="39.161163"
-       sodipodi:rx="19.622213"
-       sodipodi:ry="6.1871843"
-       d="M 45.078058,39.161163 A 19.622213,6.1871843 0 1 1 5.8336315,39.161163 A 19.622213,6.1871843 0 1 1 45.078058,39.161163 z"
-       transform="matrix(0.9325851,0,0,1.0248018,0.1236022,1.5126258)" />
     <ellipse
        ry="5.4831638"
        rx="5.0445108"
-       cy="36.252769"
-       cx="20.871117"
+       cy="39.242771"
+       cx="19.196714"
        id="path18280-0-5"
        style="display:inline;opacity:1;fill:#4b4bff;fill-opacity:1;stroke:#ff0000;stroke-width:0.6166271;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>

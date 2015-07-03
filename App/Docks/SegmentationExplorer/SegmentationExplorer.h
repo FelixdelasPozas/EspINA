@@ -120,8 +120,6 @@ namespace ESPINA
   private:
     QModelIndexList selectedIndexes() const;
 
-    QString createTagLink(const QString &tag) const;
-
     void updateTags(const QModelIndexList &selectedIndexes);
 
   protected:

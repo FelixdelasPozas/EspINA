@@ -17,39 +17,22 @@
  *
  */
 
-#ifndef ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
-#define ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#ifndef ESPINA_GUI_UTILS_FORMAT_H
+#define ESPINA_GUI_UTILS_FORMAT_H
 
-#include <Support/Widgets/ColorEngineSwitch.h>
+#include <QString>
 
-#include <GUI/Types.h>
+namespace ESPINA {
+  namespace GUI {
+    namespace Utils {
+      namespace Format
+      {
+        QString createLink(const QString &label);
 
-namespace ESPINA
-{
-  class PropertyColorEngineSwitch
-  : public Support::Widgets::ColorEngineSwitch
-  {
-    Q_OBJECT
-
-  public:
-    explicit PropertyColorEngineSwitch(Support::Context& context);
-
-  private:
-    void createPropertySelector();
-
-    void createColorRange();
-
-    GUI::ColorEngines::PropertyColorEngine *valueColorEngine() const;
-
-  private slots:
-    void changeProperty();
-
-  private:
-    QString m_extensionType;
-    QString m_informationTag;
-
-    QLabel *m_property;
-  };
+        QString createLink(const QString &label, const QString &reference);
+      };
+    }
+  }
 }
 
-#endif // ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#endif // ESPINA_GUI_UTILS_FORMAT_H

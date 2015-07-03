@@ -21,6 +21,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
 PropertyColorEngine::PropertyColorEngine(Support::Context &context)
@@ -31,14 +32,14 @@ PropertyColorEngine::PropertyColorEngine(Support::Context &context)
 , m_minColor(Qt::blue)
 , m_maxColor(Qt::red)
 , m_extensionType("MorphologicalInformation")
-, m_property("Size")
+, m_measure("Size")
 {
 }
 
 //-----------------------------------------------------------------------------
-void PropertyColorEngine::setProperty(const QString &property, double min, double max)
+void PropertyColorEngine::setMeasure(const QString &measure, double min, double max)
 {
-  m_property = property;
+  m_measure  = measure;
   m_minValue = min;
   m_maxValue = max;
 }
@@ -50,7 +51,7 @@ QColor PropertyColorEngine::color(SegmentationAdapterPtr segmentation)
 
   QColor color(Qt::gray);
 
-  auto info = segmentation->information(m_property);
+  auto info = segmentation->information(m_measure);
 
   if (info.isValid() && info.canConvert<double>())
   {
@@ -89,6 +90,7 @@ double PropertyColorEngine::adjustRange(double value) const
   return qMax(m_minValue, qMin(value, m_maxValue));
 }
 
+//-----------------------------------------------------------------------------
 double PropertyColorEngine::interpolateFactor(double value) const
 {
   return (value - m_minValue) / (m_maxValue - m_minValue);

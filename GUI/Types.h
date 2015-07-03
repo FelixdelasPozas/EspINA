@@ -7,6 +7,11 @@ namespace ESPINA
 {
   namespace GUI
   {
+    namespace ColorEngines
+    {
+      class PropertyColorEngine;
+    }
+
     namespace Widgets
     {
       class ProgressAction;

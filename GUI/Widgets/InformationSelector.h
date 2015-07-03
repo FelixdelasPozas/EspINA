@@ -34,55 +34,59 @@
 class QTreeWidgetItem;
 namespace ESPINA
 {
-  class EspinaFactory;
-
-  class EspinaGUI_EXPORT InformationSelector
-  : public QDialog
+  namespace GUI
   {
-    Q_OBJECT
+    class EspinaGUI_EXPORT InformationSelector
+    : public QDialog
+    {
+      Q_OBJECT
 
-    class GUI;
+    public:
+      using GroupedInfo = QMap<QString, QStringList>;
 
-  public:
-    using GroupedInfo = QMap<QString, QStringList>;
+    public:
+      /** \brief InformationSelector class constructor.
+       * \param[in] availableGroups map of available title-tags groups.
+       * \param[in] selection map of checked title-tags groups.
+       * \param[in] parent raw pointer of the QWidget parent of this one.
+       */
+      explicit InformationSelector(const GroupedInfo &availableGroups,
+                                   GroupedInfo       &selection,
+                                   const QString     &title,
+                                   QWidget           *parent = nullptr,
+                                   Qt::WindowFlags    flags = 0);
 
-  public:
-    /** \brief InformationSelector class constructor.
-     * \param[in] availableGroups, map of available title-tags groups.
-     * \param[in] selection, map of checked title-tags groups.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
-     */
-    explicit InformationSelector(const GroupedInfo &availableGroups,
-                                 GroupedInfo       &selection,
-                                 QWidget         *parent = nullptr,
-                                 Qt::WindowFlags  flags = 0);
+      /** \brief InformationSelector class virtual destructor.
+       *
+       */
+      virtual ~InformationSelector();
 
-    /** \brief InformationSelector class virtual destructor.
-     *
-     */
-    virtual ~InformationSelector();
+    protected slots:
+      void accept();
 
-  protected slots:
-    /** \brief Overrides QDialog::accept().
-     *
-     */
-    void accept();
+      /** \brief Updates the state of the tree widget.
+       * \param[in] item tree item.
+       * \param[in] column column of the item.
+       * \param[in] updateParent true to update the parent state, false otherwise.
+       *
+       */
+      void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
-    /** \brief Updates the state of the tree widget.
-     * \param[in] item, tree item.
-     * \param[in] column, column of the item.
-     * \param[in] updateParent, true to update the parent state, false otherwise.
-     *
-     */
-    void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
+    private:
+      class UI;
 
-  private:
-    GUI *m_gui;
+    private:
+      UI *m_gui;
 
-    ModelFactorySPtr m_factory;
+      ModelFactorySPtr m_factory;
 
-    GroupedInfo &m_selection;
-  };
+      GroupedInfo &m_selection;
+    };
+
+    InformationSelector::GroupedInfo availableInformation(ModelFactorySPtr factory);
+
+    InformationSelector::GroupedInfo availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory);
+  }
 }
 
 #endif // ESPINA_INFORMATION_SELECTOR_H

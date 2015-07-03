@@ -33,6 +33,7 @@
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <Core/Utils/ListUtils.hxx>
 
 #include <QStandardItemModel>
 #include <QMessageBox>
@@ -40,6 +41,7 @@
 #include <qvarlengtharray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
@@ -191,7 +193,7 @@ void TabularReport::Entry::changeDisplayedInformation()
 
   auto selection = lastDisplayedInformation();
 
-  InformationSelector tagSelector(available, selection, this);
+  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), this);
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
@@ -335,32 +337,10 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 //------------------------------------------------------------------------
 InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
-  InformationSelector::GroupedInfo info;
+  auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
+  auto info          = GUI::availableInformation(segmentations, m_factory);
 
   info[SEGMENTATION_GROUP] << tr("Category");
-
-  for (auto type : m_factory->availableSegmentationExtensions())
-  {
-    auto extension = m_factory->createSegmentationExtension(type);
-    info[type] << extension->availableInformations();
-  }
-
-  for (auto item : m_proxy->displayedItems())
-  {
-    Q_ASSERT(isSegmentation(item));
-
-    auto segmentation = segmentationPtr(item);
-
-    for (auto extension : segmentation->extensions())
-    {
-      info[extension->type()] << extension->availableInformations();
-    }
-  }
-
-  for (auto tag : info.keys())
-  {
-    info[tag].removeDuplicates();
-  }
 
   return info;
 }

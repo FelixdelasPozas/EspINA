@@ -45,6 +45,7 @@
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include "ToolGroups/Visualize/ColorEngines/PropertyColorEngineSwitch.h"
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
@@ -974,8 +975,10 @@ void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
   //parentMenu->addMenu(m_colorEngineMenu);
 
   createColorEngine(std::make_shared<NumberColorEngine>(), "number");
-  createColorEngine(std::make_shared<CategoryColorEngine>(), "category");
-  createColorEngine(std::make_shared<PropertyColorEngine>(m_context), "property");
+  auto categoryColorEngine = std::make_shared<CategoryColorEngine>();
+  categoryColorEngine->setActive(true);
+  createColorEngine(categoryColorEngine, "category");
+  registerColorEngine(std::make_shared<PropertyColorEngineSwitch>(m_context));
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
 

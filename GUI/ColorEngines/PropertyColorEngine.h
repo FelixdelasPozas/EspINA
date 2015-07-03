@@ -27,39 +27,45 @@ namespace ESPINA
 {
   namespace GUI
   {
-    class PropertyColorEngine
-    : public ColorEngine
-    , private Support::WithContext
+    namespace ColorEngines
     {
-    public:
-      explicit PropertyColorEngine(Support::Context &context);
+      class PropertyColorEngine
+      : public ColorEngine
+      , private Support::WithContext
+      {
+      public:
+        explicit PropertyColorEngine(Support::Context &context);
 
-      void setProperty(const SegmentationExtension::InfoTag &property, double min, double max);
+        void setMeasure(const SegmentationExtension::InfoTag &measure, double min, double max);
 
-      virtual QColor color(SegmentationAdapterPtr segmentation);
+        QString measure() const
+        { return m_measure; }
 
-      virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
+        virtual QColor color(SegmentationAdapterPtr segmentation);
 
-      virtual Composition supportedComposition() const
-      { return ColorEngine::Color; }
+        virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
 
-    private:
-      double adjustRange(double value) const;
+        virtual Composition supportedComposition() const
+        { return ColorEngine::Color; }
 
-      double interpolateFactor(double value) const;
+      private:
+        double adjustRange(double value) const;
 
-    private:
-      double m_minValue;
-      double m_maxValue;
+        double interpolateFactor(double value) const;
 
-      QColor m_minColor;
-      QColor m_maxColor;
+      private:
+        double m_minValue;
+        double m_maxValue;
 
-      QString m_extensionType;
-      SegmentationExtension::InfoTag m_property;
+        QColor m_minColor;
+        QColor m_maxColor;
 
-      QMap<QColor, LUTSPtr> m_luts;
-    };
+        QString m_extensionType;
+        SegmentationExtension::InfoTag m_measure;
+
+        QMap<QColor, LUTSPtr> m_luts;
+      };
+    }
   }
 }
 

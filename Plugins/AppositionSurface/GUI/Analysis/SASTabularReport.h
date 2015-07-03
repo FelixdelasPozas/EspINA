@@ -78,9 +78,9 @@ namespace ESPINA
       : TabularReport::Entry{category, model, factory}
       {};
 
-      InformationSelector::GroupedInfo availableInformation();
+      GUI::InformationSelector::GroupedInfo availableInformation();
 
-      void setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
+      void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
 
     private slots:
       void extractInformation();

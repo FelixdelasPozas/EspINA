@@ -19,4 +19,78 @@
 
 #include "PropertyColorEngineSwitch.h"
 
+#include <GUI/ColorEngines/PropertyColorEngine.h>
+#include <GUI/Widgets/HueSelector.h>
+#include <GUI/Widgets/InformationSelector.h>
+#include <GUI/Utils/Format.h>
+#include <QComboBox>
+#include <QLabel>
+
 using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::ColorEngines;
+using namespace ESPINA::GUI::Utils::Format;
+using namespace ESPINA::Support;
+
+//-----------------------------------------------------------------------------
+PropertyColorEngineSwitch::PropertyColorEngineSwitch(Context& context)
+: ColorEngineSwitch(std::make_shared<PropertyColorEngine>(context), ":espina/color_engine_switch_property.svg", context)
+{
+  createPropertySelector();
+
+  createColorRange();
+}
+
+//-----------------------------------------------------------------------------
+void PropertyColorEngineSwitch::createPropertySelector()
+{
+  auto label = new QLabel(tr("Color by:"));
+  m_property = new QLabel(createLink(valueColorEngine()->measure()));
+
+  m_property->setOpenExternalLinks(false);
+
+  connect(m_property, SIGNAL(linkActivated(QString)),
+          this,       SLOT(changeProperty()));
+
+  addSettingsWidget(label);
+  addSettingsWidget(m_property);
+}
+
+//-----------------------------------------------------------------------------
+void PropertyColorEngineSwitch::createColorRange()
+{
+  auto hueSelector = new HueSelector();
+
+  hueSelector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
+  hueSelector->setFixedHeight(20);
+  hueSelector->setHueValue(0);
+
+  addSettingsWidget(hueSelector);
+}
+
+//-----------------------------------------------------------------------------
+PropertyColorEngine* PropertyColorEngineSwitch::valueColorEngine() const
+{
+  return dynamic_cast<PropertyColorEngine *>(colorEngine().get());
+}
+
+//-----------------------------------------------------------------------------
+void PropertyColorEngineSwitch::changeProperty()
+{
+  auto available = availableInformation(getFactory());
+
+  auto selection = InformationSelector::GroupedInfo();
+
+  InformationSelector propertySelector(available, selection, tr("Select property to color by"));
+
+  if (propertySelector.exec() == QDialog::Accepted)
+  {
+    m_extensionType  = selection.keys().first();
+    m_informationTag = selection[m_extensionType].first();
+
+    valueColorEngine()->setMeasure(m_informationTag, 0, 10000);
+
+    m_property->setText(createLink(m_informationTag));
+  }
+}
+

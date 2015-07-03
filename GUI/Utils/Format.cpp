@@ -17,39 +17,18 @@
  *
  */
 
-#ifndef ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
-#define ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#include "Format.h"
 
-#include <Support/Widgets/ColorEngineSwitch.h>
+using namespace ESPINA::GUI::Utils;
 
-#include <GUI/Types.h>
-
-namespace ESPINA
+//------------------------------------------------------------------------
+QString Format::createLink(const QString& label)
 {
-  class PropertyColorEngineSwitch
-  : public Support::Widgets::ColorEngineSwitch
-  {
-    Q_OBJECT
-
-  public:
-    explicit PropertyColorEngineSwitch(Support::Context& context);
-
-  private:
-    void createPropertySelector();
-
-    void createColorRange();
-
-    GUI::ColorEngines::PropertyColorEngine *valueColorEngine() const;
-
-  private slots:
-    void changeProperty();
-
-  private:
-    QString m_extensionType;
-    QString m_informationTag;
-
-    QLabel *m_property;
-  };
+  return createLink(label, label);
 }
 
-#endif // ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+//------------------------------------------------------------------------
+QString Format::createLink(const QString& label, const QString& reference)
+{
+  return QString("<a href=\"%1\">%2</a> ").arg(reference).arg(label);
+}
