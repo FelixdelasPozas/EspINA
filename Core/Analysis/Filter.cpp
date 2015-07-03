@@ -316,14 +316,12 @@ unsigned int Filter::numberOfOutputs() const
 
 //----------------------------------------------------------------------------
 bool Filter::validOutput(Output::Id id) const
-throw (Undefined_Output_Exception)
 {
   return existOutput(id) && m_outputs[id]->isValid();
 }
 
 //----------------------------------------------------------------------------
 OutputSPtr Filter::output(Output::Id id) const
-throw (Undefined_Output_Exception)
 {
   if (!existOutput(id)) throw Undefined_Output_Exception();
 

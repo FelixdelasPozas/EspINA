@@ -60,7 +60,9 @@ bool Data::fetchData()
 {
   QMutexLocker lock(&m_mutex);
 
-  m_needFetch = false;
+  auto dataFetched = fetchDataImplementation(m_storage, m_path, m_id, m_fetchBounds);
 
-  return fetchDataImplementation(m_storage, m_path, m_id, m_fetchBounds);
+  m_needFetch = !dataFetched;
+
+  return dataFetched;
 }

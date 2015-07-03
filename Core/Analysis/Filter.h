@@ -49,6 +49,7 @@ namespace ESPINA
 
     struct Invalid_Number_Of_Inputs_Exception{};
     struct Invalid_Input_Data_Exception{};
+    struct Invalid_Output_Data_Exception{};
     struct Undefined_Output_Exception{};
 
   private:
@@ -137,7 +138,7 @@ namespace ESPINA
      * \param[in] id Output::Id object.
      *
      */
-    bool validOutput(Output::Id id) const throw(Undefined_Output_Exception);
+    bool validOutput(Output::Id id) const;
 
     /** \brief Return filter's output with the given id.
      * \param[in] id Output::Id object.
@@ -145,7 +146,7 @@ namespace ESPINA
      *   If there is no output with given oId, nullptr will be returned
      *
      */
-    OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
+    OutputSPtr output(Output::Id id) const;
 
     /** \brief Creates the outputs of the filter using the stored information.
      *
