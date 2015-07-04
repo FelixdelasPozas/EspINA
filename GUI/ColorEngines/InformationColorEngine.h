@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_GUI_PROPERTYCOLORENGINE_H
-#define ESPINA_GUI_PROPERTYCOLORENGINE_H
+#ifndef ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
+#define ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
 
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <Support/Context.h>
@@ -29,19 +29,19 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
-      class PropertyColorEngine
+      class InformationColorEngine
       : public ColorEngine
       , private Support::WithContext
       {
       public:
-        explicit PropertyColorEngine(Support::Context &context);
+        explicit InformationColorEngine(Support::Context &context);
 
-        virtual ~PropertyColorEngine();
+        virtual ~InformationColorEngine();
 
-        void setMeasure(const SegmentationExtension::InfoTag &measure, double min, double max);
+        void setInformation(const SegmentationExtension::InfoTag &measure, double min, double max);
 
-        QString measure() const
-        { return m_measure; }
+        QString information() const
+        { return m_information; }
 
         virtual QColor color(SegmentationAdapterPtr segmentation);
 
@@ -54,8 +54,9 @@ namespace ESPINA
         { return m_colorRange; }
 
       private:
+        // TODO: create a class to group these values
         QString m_extensionType;
-        SegmentationExtension::InfoTag m_measure;
+        SegmentationExtension::InfoTag m_information;
 
         Utils::RangeHSV      *m_colorRange;
         QMap<QColor, LUTSPtr> m_luts;
@@ -64,4 +65,4 @@ namespace ESPINA
   }
 }
 
-#endif // ESPINA_GUI_PROPERTYCOLORENGINE_H
+#endif // ESPINA_GUI_INFORMATION_COLOR_ENGINE_H

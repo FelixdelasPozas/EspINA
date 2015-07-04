@@ -100,7 +100,7 @@ SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::T
 //------------------------------------------------------------------------
 bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
 {
-  return m_extensions.keys().contains(type);
+  return m_extensions.contains(type);
 }
 
 //------------------------------------------------------------------------

@@ -338,11 +338,11 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
   auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
-  auto info          = GUI::availableInformation(segmentations, m_factory);
+  auto availableInfo = GUI::availableInformation(segmentations, m_factory);
 
-  info[SEGMENTATION_GROUP] << tr("Category");
+  availableInfo[SEGMENTATION_GROUP] << tr("Category");
 
-  return info;
+  return availableInfo;
 }
 
 //------------------------------------------------------------------------

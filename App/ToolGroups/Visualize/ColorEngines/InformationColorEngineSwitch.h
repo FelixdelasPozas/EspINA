@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
-#define ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#ifndef ESPINA_INFORMATION_COLOR_ENGINE_SWITCH_H
+#define ESPINA_INFORMATION_COLOR_ENGINE_SWITCH_H
 
 #include <Support/Widgets/ColorEngineSwitch.h>
 
@@ -26,20 +26,22 @@
 
 namespace ESPINA
 {
-  class PropertyColorEngineSwitch
+  class InformationColorEngineSwitch
   : public Support::Widgets::ColorEngineSwitch
   {
     Q_OBJECT
 
   public:
-    explicit PropertyColorEngineSwitch(Support::Context& context);
+    explicit InformationColorEngineSwitch(Support::Context& context);
 
   private:
     void createPropertySelector();
 
     void createColorRange();
 
-    GUI::ColorEngines::PropertyColorEngine *valueColorEngine() const;
+    GUI::ColorEngines::InformationColorEngine *informationColorEngine() const;
+
+    void updateSettings();
 
   private slots:
     void changeProperty();
@@ -52,4 +54,4 @@ namespace ESPINA
   };
 }
 
-#endif // ESPINA_PROPERTY_COLOR_ENGINE_SWITCH_H
+#endif // ESPINA_INFORMATION_COLOR_ENGINE_SWITCH_H

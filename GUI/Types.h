@@ -9,11 +9,12 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
-      class PropertyColorEngine;
+      class InformationColorEngine;
     }
 
     namespace Widgets
     {
+      class ColorBar;
       class ProgressAction;
       class PixelValueSelector;
       class CategorySelector;

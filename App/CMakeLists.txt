@@ -62,7 +62,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/ToolGroup.h
-  ToolGroups/Visualize/ColorEngines/PropertyColorEngineSwitch.h
+  ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   Tools/Measure/MeasureTool.h
@@ -164,7 +164,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/ToolGroup.cpp
-  ToolGroups/Visualize/ColorEngines/PropertyColorEngineSwitch.cpp
+  ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp

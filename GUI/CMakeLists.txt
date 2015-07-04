@@ -29,6 +29,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
+  Utils/ColorRange.h
   Utils/Timer.h
   View/EventHandler.h
   EventHandlers/PointTracker.h
@@ -64,6 +65,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/ColorBar.h
   Widgets/DrawingWidget.h
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
@@ -99,7 +101,7 @@ set (GUI_SOURCES
   ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
-  ColorEngines/PropertyColorEngine.cpp
+  ColorEngines/InformationColorEngine.cpp
   ColorEngines/SelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp

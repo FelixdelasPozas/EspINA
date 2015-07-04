@@ -37,7 +37,7 @@ namespace ESPINA
       class EspinaGUI_EXPORT ColorBar
       : public QWidget
       {
-
+        Q_OBJECT
       public:
         /** \brief ColorBar class constructor.
          * \param[in] parent widget
@@ -52,6 +52,9 @@ namespace ESPINA
 
       protected:
         void paintEvent(QPaintEvent *event) override;
+
+      private slots:
+        void updateTooltip();
 
       private:
         Utils::ColorRange *m_colorRange;

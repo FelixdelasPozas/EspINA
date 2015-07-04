@@ -36,6 +36,13 @@ ColorBar::ColorBar(ColorRange *range, QWidget *parent)
 : QWidget(parent)
 , m_colorRange(range)
 {
+  connect(m_colorRange, SIGNAL(valueRangeChanged()),
+          this,         SLOT(updateTooltip()));
+
+  connect(m_colorRange, SIGNAL(colorRangeChanged()),
+          this,         SLOT(repaint()));
+
+  updateTooltip();
 }
 
 //------------------------------------------------------------------------
@@ -43,7 +50,6 @@ ColorBar::~ColorBar()
 {
 }
 
-#include <QDebug>
 //------------------------------------------------------------------------
 void ColorBar::paintEvent(QPaintEvent *event)
 {
@@ -75,4 +81,12 @@ void ColorBar::paintEvent(QPaintEvent *event)
   p.setBrush(QBrush(Qt::black));
   p.drawRect(rect);
   p.drawPixmap(BORDER_WITH, BORDER_WITH, m_colorMap);
+}
+
+//------------------------------------------------------------------------
+void ColorBar::updateTooltip()
+{
+  auto toolTip = QString("(%1, %2)").arg(m_colorRange->minimumValue())
+                                    .arg(m_colorRange->maximumValue());
+  setToolTip(toolTip);
 }

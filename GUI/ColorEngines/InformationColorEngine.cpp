@@ -17,7 +17,7 @@
  *
  */
 
-#include "PropertyColorEngine.h"
+#include "InformationColorEngine.h"
 #include <GUI/Utils/ColorRange.h>
 
 using namespace ESPINA;
@@ -26,7 +26,7 @@ using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
-PropertyColorEngine::PropertyColorEngine(Support::Context &context)
+InformationColorEngine::InformationColorEngine(Support::Context &context)
 : ColorEngine("PropertyColorEngine", tr("Property"))
 , WithContext(context)
 , m_extensionType("MorphologicalInformation")
@@ -36,15 +36,16 @@ PropertyColorEngine::PropertyColorEngine(Support::Context &context)
 }
 
 //-----------------------------------------------------------------------------
-PropertyColorEngine::~PropertyColorEngine()
+InformationColorEngine::~InformationColorEngine()
 {
   delete m_colorRange;
 }
 
 //-----------------------------------------------------------------------------
-void PropertyColorEngine::setMeasure(const QString &measure, double min, double max)
+void InformationColorEngine::setInformation(const QString &information, double min, double max)
 {
-  m_measure  = measure;
+  m_measure = information;
+
   m_colorRange->setMinimumValue(min);
   m_colorRange->setMaximumValue(max);
 
@@ -52,7 +53,7 @@ void PropertyColorEngine::setMeasure(const QString &measure, double min, double 
 }
 
 //-----------------------------------------------------------------------------
-QColor PropertyColorEngine::color(SegmentationAdapterPtr segmentation)
+QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
 {
   Q_ASSERT(segmentation);
 
@@ -69,7 +70,7 @@ QColor PropertyColorEngine::color(SegmentationAdapterPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr PropertyColorEngine::lut(SegmentationAdapterPtr segmentation)
+LUTSPtr InformationColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
   auto  segColor = color(segmentation);
   auto  segLUT   = LUTSPtr::New();

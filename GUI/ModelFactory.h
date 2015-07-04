@@ -226,6 +226,41 @@ namespace ESPINA
       }
     }
   }
+
+  template<typename Extendible>
+  SegmentationExtensionSPtr retrieveOrCreateExtension(Extendible segmentation, const QString &type, ModelFactorySPtr factory)
+  {
+    SegmentationExtensionSPtr extension;
+
+    if (segmentation->hasExtension(type))
+    {
+      extension = segmentation->extension(type);
+    }
+    else
+    {
+      if (factory->availableSegmentationExtensions().contains(type))
+      {
+        extension = factory->createSegmentationExtension(type);
+
+        if(extension->validCategory(segmentation->category()->classificationName()))
+        {
+          segmentation->addExtension(extension);
+        }
+        else
+        {
+          qWarning() << segmentation->data().toString() << "doesn't support"<< type << "extensions";
+          extension.reset();
+        }
+      }
+      else
+      {
+        qWarning() << type << " extension is not available";
+      }
+    }
+
+    return extension;
+  }
+
 }// namespace ESPINA
 
 #endif // ESPINA_CORE_FACTORY_H

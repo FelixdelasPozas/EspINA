@@ -27,7 +27,9 @@ namespace ESPINA {
     namespace Utils {
 
       class ColorRange
+      : public QObject
       {
+        Q_OBJECT
       public:
         explicit ColorRange(const double min, const double max);
 
@@ -52,6 +54,10 @@ namespace ESPINA {
         void setMaximumColor(const QColor &color);
 
         QColor maximumColor() const;
+
+      signals:
+        void valueRangeChanged();
+        void colorRangeChanged();
 
       private:
         virtual QColor computeColor(const double  value,

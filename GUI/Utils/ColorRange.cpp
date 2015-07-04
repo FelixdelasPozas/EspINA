@@ -46,6 +46,8 @@ QColor ColorRange::color(const double value, const double min, const double max)
 void ColorRange::setMinimumValue(const double value)
 {
   m_minValue = value;
+
+  emit valueRangeChanged();
 }
 
 //------------------------------------------------------------------------
@@ -58,6 +60,8 @@ double ColorRange::minimumValue() const
 void ColorRange::setMaximumValue(const double value)
 {
   m_maxValue = value;
+
+  emit valueRangeChanged();
 }
 
 //------------------------------------------------------------------------
@@ -70,6 +74,8 @@ double ColorRange::maximumValue() const
 void ColorRange::setMinimumColor(const QColor& color)
 {
   m_minColor = color;
+
+  emit colorRangeChanged();
 }
 
 //------------------------------------------------------------------------
@@ -82,6 +88,8 @@ QColor ColorRange::minimumColor() const
 void ColorRange::setMaximumColor(const QColor& color)
 {
   m_maxColor = color;
+
+  emit colorRangeChanged();
 }
 
 //------------------------------------------------------------------------
