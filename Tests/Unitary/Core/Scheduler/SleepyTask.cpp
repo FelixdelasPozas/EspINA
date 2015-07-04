@@ -46,7 +46,7 @@ void SleepyTask::run()
 
     Result = i;
 
-    emit progress(i*10);
+    reportProgress(i*10);
   }
   std::cout << description().toStdString() << " ended" << std::endl;
 }

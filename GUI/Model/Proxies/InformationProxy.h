@@ -115,7 +115,7 @@ namespace ESPINA
           }
 
           m_progress = (100.0*i)/m_tags.size();
-          emit progress(m_progress);
+          reportProgress(m_progress);
         }
       }
 

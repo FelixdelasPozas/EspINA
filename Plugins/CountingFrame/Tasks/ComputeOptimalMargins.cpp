@@ -80,7 +80,7 @@ namespace ESPINA
       }
       taskProgress += inc;
 
-      emit progress((int)taskProgress);
+      reportProgress((int)taskProgress);
     }
   }
 }

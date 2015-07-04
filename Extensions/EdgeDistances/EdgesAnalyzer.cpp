@@ -55,17 +55,17 @@ void EdgesAnalyzer::run()
   m_useDistanceToBounds = 0;
 
   analyzeEdge(volume, leftSliceBounds(volume));
-  emit progress(25);
+  reportProgress(25);
   analyzeEdge(volume, rightSliceBounds(volume));
-  emit progress(50);
+  reportProgress(50);
   analyzeEdge(volume, topSliceBounds(volume));
-  emit progress(75);
+  reportProgress(75);
   analyzeEdge(volume, bottomSliceBounds(volume));
-  emit progress(99);
+  reportProgress(99);
 
   if (!isAborted())
   {
-    emit progress(100);
+    reportProgress(100);
 
     const int NUM_EDGES = 4;
     m_extension->m_useDistanceToBounds = m_useDistanceToBounds == NUM_EDGES;

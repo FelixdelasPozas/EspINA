@@ -72,6 +72,6 @@ void ApplyCountingFrame::run()
 
     taskProgress += inc;
 
-    emit progress(taskProgress);
+    reportProgress(taskProgress);
   }
 }

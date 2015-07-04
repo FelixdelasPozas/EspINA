@@ -350,9 +350,9 @@ QStringList TabularReport::Entry::lastInformationOrder()
 {
   QStringList informationTags, availableInformationTags;
 
-  QString entriesFile = TabularReport::extraPath(m_category + ".xml");
-
+  auto entriesFile = TabularReport::extraPath(m_category + ".xml");
   auto groupedInfo = availableInformation();
+
   for (auto group : groupedInfo.keys())
   {
     availableInformationTags << groupedInfo[group];

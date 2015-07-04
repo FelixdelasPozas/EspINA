@@ -63,7 +63,7 @@ void DilateFilter::execute()
   auto inputVolume = readLockVolume(input->output());
   if (!inputVolume->isValid()) throw Invalid_Input_Data_Exception();
 
-  emit progress(0);
+  reportProgress(0);
   if (!canExecute()) return;
 
   //   qDebug() << "Compute Image Dilate";
@@ -85,7 +85,7 @@ void DilateFilter::execute()
   padFilter->Update();
   ITKProgressReporter<PadFilterType> padReporter(this, padFilter, 0, 25);
 
-  emit progress(25);
+  reportProgress(25);
   if (!canExecute()) return;
 
   StructuringElementType ball;
@@ -103,7 +103,7 @@ void DilateFilter::execute()
 
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
 
   if (!canExecute()) return;
 

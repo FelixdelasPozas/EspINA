@@ -120,7 +120,7 @@ void AppositionSurfaceFilter::execute(Output::Id oId)
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::execute()
 {
-  emit progress(0);
+  reportProgress(0);
   if (!canExecute()) return;
 
   m_input = readLockVolume(m_inputs[0]->output())->itkImage();
@@ -137,7 +137,7 @@ void AppositionSurfaceFilter::execute()
 
   itkVolumeType::Pointer padImage = padder->GetOutput();
 
-  emit progress(20);
+  reportProgress(20);
 
   if (!canExecute()) return;
 
@@ -183,7 +183,7 @@ void AppositionSurfaceFilter::execute()
   double *normal = planeSource->GetNormal();
   vtkMath::Normalize(normal);
 
-  emit progress(40);
+  reportProgress(40);
   if (!canExecute()) return;
 
   vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
@@ -219,7 +219,7 @@ void AppositionSurfaceFilter::execute()
   gradientFilter->SetUseImageSpacingOn();
   gradientFilter->Update();
 
-  emit progress(60);
+  reportProgress(60);
   if (!canExecute()) return;
 
   vtkSmartPointer<vtkImageData> gradientVectorGrid = vtkSmartPointer<vtkImageData>::New();
@@ -271,7 +271,7 @@ void AppositionSurfaceFilter::execute()
   }
   pointsList.clear();
 
-  emit progress(80);
+  reportProgress(80);
   if (!canExecute()) return;
 
   PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
@@ -323,7 +323,7 @@ void AppositionSurfaceFilter::execute()
   m_outputs[0]->setData(volume);
   m_outputs[0]->setSpacing(outpuSpacing);
 
-  emit progress(100);
+  reportProgress(100);
 }
 
 //----------------------------------------------------------------------------

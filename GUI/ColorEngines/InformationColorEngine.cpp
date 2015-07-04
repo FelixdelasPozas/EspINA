@@ -30,7 +30,7 @@ InformationColorEngine::InformationColorEngine(Support::Context &context)
 : ColorEngine("PropertyColorEngine", tr("Property"))
 , WithContext(context)
 , m_extensionType("MorphologicalInformation")
-, m_measure("Size")
+, m_information("Size")
 , m_colorRange(new RangeHSV(0, 10000))
 {
 }
@@ -44,7 +44,7 @@ InformationColorEngine::~InformationColorEngine()
 //-----------------------------------------------------------------------------
 void InformationColorEngine::setInformation(const QString &information, double min, double max)
 {
-  m_measure = information;
+  m_information = information;
 
   m_colorRange->setMinimumValue(min);
   m_colorRange->setMaximumValue(max);
@@ -59,7 +59,7 @@ QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
 
   QColor color(Qt::gray);
 
-  auto info = segmentation->information(m_measure);
+  auto info = segmentation->information(m_information);
 
   if (info.isValid() && info.canConvert<double>())
   {

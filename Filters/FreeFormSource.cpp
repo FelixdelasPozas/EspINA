@@ -83,13 +83,13 @@ void FreeFormSource::execute(Output::Id id)
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
   if (m_mask == nullptr)    throw Invalid_Input_Data_Exception();
 
-  emit progress(50);
+  reportProgress(50);
   if (!canExecute()) return;
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
   volume->draw(m_mask);
 
-  emit progress(75);
+  reportProgress(75);
   if (!canExecute()) return;
 
   auto spacing = m_mask->spacing();
@@ -102,7 +102,7 @@ void FreeFormSource::execute(Output::Id id)
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 
-  emit progress(100);
+  reportProgress(100);
 }
 
 //----------------------------------------------------------------------------

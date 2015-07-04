@@ -88,10 +88,10 @@ private:
         }
       }
 
-      emit progress(i++/total*100);
+      reportProgress(i++/total*100);
     }
 
-    m_colorEngine->setMeasure(m_info, min, max);
+    m_colorEngine->setInformation(m_info, min, max);
   }
 
 private:
@@ -105,7 +105,7 @@ private:
 //-----------------------------------------------------------------------------
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
 : ColorEngineSwitch(std::make_shared<InformationColorEngine>(context), ":espina/color_engine_switch_property.svg", context)
-, m_informationTag(informationColorEngine()->measure())
+, m_informationTag(informationColorEngine()->information())
 {
   createPropertySelector();
 
