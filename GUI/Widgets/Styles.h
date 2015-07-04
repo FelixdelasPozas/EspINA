@@ -50,6 +50,11 @@ namespace ESPINA
 
          constexpr int iconSize()
          { return 0.74*buttonSize(); }
+
+         constexpr int MediumBarWidth()
+         { return 80; }
+
+         void setBarStyle(QWidget *bar);
       };
     }
   }

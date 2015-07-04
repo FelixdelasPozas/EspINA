@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_SUPPORT_TYPES_H
-#define ESPINA_SUPPORT_TYPES_H
+#ifndef ESPINA_SUPPORT_TYPES_H_
+#define ESPINA_SUPPORT_TYPES_H_
 
 #include <memory>
 #include <QList>
@@ -28,6 +28,31 @@ namespace ESPINA
   class RepresentationFactory;
   using RepresentationFactorySPtr  = std::shared_ptr<RepresentationFactory>;
   using RepresentationFactorySList = QList<RepresentationFactorySPtr>;
+  
+  namespace Support
+  {
+    class Context;
+
+    namespace Settings
+    {
+      class SettingsPanel;
+
+      using SettingsPanelPtr   = SettingsPanel *;
+      using SettingsPanelList  = QList<SettingsPanelPtr>;
+      using SettingsPanelSPtr  = std::shared_ptr<SettingsPanel>;
+      using SettingsPanelSList = QList<SettingsPanelSPtr>;
+    }
+    namespace Widgets
+    {
+      class ColorEngineSwitch;
+      using ColorEngineSwitchSPtr = std::shared_ptr<ColorEngineSwitch>;
+
+
+      class ProgressTool;
+      using ToolSPtr  = std::shared_ptr<ProgressTool>;
+      using ToolSList = QList<ToolSPtr>;
+    }
+  }
 }
 
-#endif // ESPINA_SUPPORT_TYPES_H
+#endif //ESPINA_SUPPORT_TYPES_H_

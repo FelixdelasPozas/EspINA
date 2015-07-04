@@ -79,3 +79,12 @@ QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip,
 
   return button;
 }
+
+//-----------------------------------------------------------------------------
+void Styles::setBarStyle(QWidget* bar)
+{
+  bar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  bar->setFixedHeight(20);
+  bar->setMinimumWidth(MediumBarWidth());
+  bar->setMaximumWidth(MediumBarWidth());
+}
