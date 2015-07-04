@@ -5,8 +5,10 @@
 #include "Extensions/CountingFrameFactories.h"
 #include "Representations/RepresentationFactory.h"
 #include <Support/Widgets/PanelSwitch.h>
+#include <Support/Widgets/ColorEngineSwitch.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::CF;
 
@@ -15,7 +17,7 @@ CountingFramePlugin::CountingFramePlugin()
 : m_undoStack  {nullptr}
 , m_dockWidget {nullptr}
 , m_context    {nullptr}
-, m_colorEngine{NamedColorEngine()}
+, m_colorEngine{std::make_shared<CountingFrameColorEngine>()}
 {
 }
 
@@ -32,7 +34,6 @@ void CountingFramePlugin::init(Support::Context &context)
   m_scheduler   = context.scheduler();
   m_undoStack   = context.undoStack();
 
-  m_colorEngine = NamedColorEngine(tr("Counting Frame"), std::make_shared<CountingFrameColorEngine>());
   m_representationFactory = std::make_shared<RepresentationFactory>(m_manager);
 
   m_dockWidget = new Panel(&m_manager, context);
@@ -62,11 +63,11 @@ SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFact
 }
 
 //------------------------------------------------------------------------
-NamedColorEngineSList CountingFramePlugin::colorEngines() const
+ColorEngineSwitchSList CountingFramePlugin::colorEngines() const
 {
-  NamedColorEngineSList engines;
+  ColorEngineSwitchSList engines;
 
-  engines << m_colorEngine;
+  engines << std::make_shared<ColorEngineSwitch>(m_colorEngine, ":cf-switch2D.svg", *m_context);
 
   return engines;
 }
@@ -82,13 +83,7 @@ RepresentationFactorySList CountingFramePlugin::representationFactories() const
 }
 
 //------------------------------------------------------------------------
-FilterFactorySList CountingFramePlugin::filterFactories() const
-{
-  return FilterFactorySList();
-}
-
-//------------------------------------------------------------------------
-QList<CategorizedTool> CountingFramePlugin::tools() const
+QList<CategorizedTool > CountingFramePlugin::tools() const
 {
   QList<CategorizedTool> tools;
 
@@ -98,24 +93,6 @@ QList<CategorizedTool> CountingFramePlugin::tools() const
   tools << CategorizedTool(ToolCategory::ANALYZE, tool);
 
   return tools;
-}
-
-//------------------------------------------------------------------------
-SettingsPanelSList CountingFramePlugin::settingsPanels() const
-{
-  return SettingsPanelSList();
-}
-
-//------------------------------------------------------------------------
-QList<MenuEntry> CountingFramePlugin::menuEntries() const
-{
-  return QList<MenuEntry>();
-}
-
-//------------------------------------------------------------------------
-AnalysisReaderSList CountingFramePlugin::analysisReaders() const
-{
-  return AnalysisReaderSList();
 }
 
 //------------------------------------------------------------------------

@@ -22,6 +22,7 @@
 #include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Widgets/ColorBar.h>
 #include <GUI/Widgets/InformationSelector.h>
+#include <GUI/Widgets/Styles.h>
 #include <GUI/Utils/Format.h>
 #include <GUI/Utils/ColorRange.h>
 #include <Core/Utils/ListUtils.hxx>
@@ -104,7 +105,7 @@ private:
 
 //-----------------------------------------------------------------------------
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
-: ColorEngineSwitch(std::make_shared<InformationColorEngine>(context), ":espina/color_engine_switch_property.svg", context)
+: ColorEngineSwitch(std::make_shared<InformationColorEngine>(), ":espina/color_engine_switch_property.svg", context)
 , m_informationTag(informationColorEngine()->information())
 {
   createPropertySelector();
@@ -135,10 +136,7 @@ void InformationColorEngineSwitch::createColorRange()
 {
   auto colorBar = new ColorBar(informationColorEngine()->colorRange());
 
-  colorBar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-  colorBar->setFixedHeight(20);
-  colorBar->setMinimumWidth(80);
-  colorBar->setMaximumWidth(80);
+  Styles::setBarStyle(colorBar);
 
   addSettingsWidget(colorBar);
 }

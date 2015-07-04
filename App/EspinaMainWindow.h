@@ -227,7 +227,7 @@ namespace ESPINA
   private:
     void initColorEngines(QMenu *parentMenu);
 
-    void createColorEngine(ColorEngineSPtr engine, const QString& icon);
+    void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
 
     void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
@@ -292,7 +292,7 @@ namespace ESPINA
      * \param[in] entry pair of (QStringList, Action *) object to add.
      *
      */
-    void createDynamicMenu(MenuEntry entry);
+    void createDynamicMenu(Support::MenuEntry entry);
 
     /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
      *
@@ -365,7 +365,7 @@ namespace ESPINA
 
     const QList<ToolGroupPtr> toolGroups() const;
 
-    ToolSList availableTools() const;
+    Support::Widgets::ToolSList availableTools() const;
 
   private:
     // ESPINA
@@ -410,7 +410,7 @@ namespace ESPINA
     QAction         *m_redoAction;
 
     ExtensionFactorySList m_extensionFactories;
-    SettingsPanelSList    m_availableSettingsPanels;
+    Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;

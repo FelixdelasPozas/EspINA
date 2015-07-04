@@ -18,6 +18,7 @@
  */
 
 #include "InformationColorEngine.h"
+
 #include <GUI/Utils/ColorRange.h>
 
 using namespace ESPINA;
@@ -26,9 +27,8 @@ using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
-InformationColorEngine::InformationColorEngine(Support::Context &context)
+InformationColorEngine::InformationColorEngine()
 : ColorEngine("PropertyColorEngine", tr("Property"))
-, WithContext(context)
 , m_extensionType("MorphologicalInformation")
 , m_information("Size")
 , m_colorRange(new RangeHSV(0, 10000))

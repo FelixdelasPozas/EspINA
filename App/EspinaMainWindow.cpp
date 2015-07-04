@@ -79,7 +79,9 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
@@ -131,7 +133,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
   factory->registerExtensionFactory(defaultExtensions);
 
-  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_context);
+  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_context);
 #if USE_METADONA
   m_availableSettingsPanels << std::make_shared<MetaDataSettingsPanel>();
@@ -211,8 +213,8 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for (auto colorEngine : validPlugin->colorEngines())
       {
-        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
-        //registerColorEngine(colorEngine.first,  colorEngine.second);
+        qDebug() << plugin << "- Color Engine " << colorEngine->colorEngine()->tooltip() << " ...... OK";
+        registerColorEngine(colorEngine);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())

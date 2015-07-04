@@ -100,36 +100,6 @@ AnalysisReaderSList SegmhaImporterPlugin::analysisReaders() const
 }
 
 //------------------------------------------------------------------------
-NamedColorEngineSList SegmhaImporterPlugin::colorEngines() const
-{
-  return NamedColorEngineSList();
-}
-
-//------------------------------------------------------------------------
-RepresentationFactorySList SegmhaImporterPlugin::representationFactories() const
-{
-  return RepresentationFactorySList();
-}
-
-//------------------------------------------------------------------------
-QList<CategorizedTool> SegmhaImporterPlugin::tools() const
-{
-  return QList<CategorizedTool>();
-}
-
-//------------------------------------------------------------------------
-ChannelExtensionFactorySList SegmhaImporterPlugin::channelExtensionFactories() const
-{
-  return ChannelExtensionFactorySList();
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionFactorySList SegmhaImporterPlugin::segmentationExtensionFactories() const
-{
-  return SegmentationExtensionFactorySList();
-}
-
-//------------------------------------------------------------------------
 FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 {
   FilterFactorySList factories;
@@ -137,18 +107,6 @@ FilterFactorySList SegmhaImporterPlugin::filterFactories() const
   factories << std::make_shared<SegmhaFilterFactory>();
 
   return factories;
-}
-
-//------------------------------------------------------------------------
-SettingsPanelSList SegmhaImporterPlugin::settingsPanels() const
-{
-  return SettingsPanelSList();
-}
-
-//------------------------------------------------------------------------
-QList<MenuEntry> SegmhaImporterPlugin::menuEntries() const
-{
-  return QList<MenuEntry>();
 }
 
 Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, ESPINA::SegmhaImporterPlugin)

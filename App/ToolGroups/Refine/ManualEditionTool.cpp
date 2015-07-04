@@ -41,6 +41,7 @@
 using ESPINA::Filter;
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
@@ -48,7 +49,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}
-, m_drawingWidget(context)
+, m_drawingWidget(context.viewState(), context.model())
 , m_referenceItem{nullptr}
 , m_validStroke  {true}
 {

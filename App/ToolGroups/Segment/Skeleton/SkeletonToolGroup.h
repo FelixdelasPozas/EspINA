@@ -57,7 +57,7 @@ namespace ESPINA
       virtual bool enabled() const
       { return m_enabled; }
 
-      virtual ToolSList tools();
+      virtual Support::Widgets::ToolSList tools();
 
     private:
       SkeletonToolSPtr m_tool;

@@ -36,7 +36,7 @@ const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
 : QDialog  {nullptr, Qt::WindowStaysOnTopHint}
-, m_context(context)
+, WithContext(context)
 , m_view3D {context.viewState(), false}
 {
   setupUi(this);
@@ -121,7 +121,7 @@ void Dialog3D::saveGeometryState()
 //------------------------------------------------------------------------
 std::shared_ptr<ProgressTool> Dialog3D::tool()
 {
-  auto tool = std::make_shared<Dialog3DTool>(m_context, this);
+  auto tool = std::make_shared<Dialog3DTool>(context(), this);
 
   tool->setCheckable(true);
   tool->setChecked(this->isVisible());

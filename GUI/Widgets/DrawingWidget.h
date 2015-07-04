@@ -24,7 +24,6 @@
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Types.h>
-#include <Support/Context.h>
 
 #include <QAction>
 #include <QMap>
@@ -50,7 +49,7 @@ namespace ESPINA
         Q_OBJECT
 
       public:
-        explicit DrawingWidget(Support::Context &context, QWidget *parent = 0);
+        explicit DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model, QWidget *parent = 0);
 
         virtual ~DrawingWidget();
 
@@ -223,7 +222,7 @@ namespace ESPINA
         bool displayContourControls() const;
 
       private:
-        Support::Context &m_context;
+        View::ViewState &m_viewState;
 
         BrushPainterSPtr   m_circularPainter;
         BrushPainterSPtr   m_sphericalPainter;

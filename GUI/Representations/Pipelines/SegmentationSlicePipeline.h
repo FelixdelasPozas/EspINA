@@ -22,6 +22,7 @@
 
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
 namespace ESPINA
@@ -30,7 +31,7 @@ namespace ESPINA
   : public RepresentationPipeline
   {
   public:
-    explicit SegmentationSlicePipeline(const Plane plane, ColorEngineSPtr colorEngine);
+    explicit SegmentationSlicePipeline(const Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
     virtual RepresentationState representationState(const ViewItemAdapter     *item,
                                                     const RepresentationState &settings) override;
@@ -44,9 +45,9 @@ namespace ESPINA
 
   private:
     Plane m_plane;
-    ColorEngineSPtr m_colorEngine;
+    GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
 
-    static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+    static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 }
 

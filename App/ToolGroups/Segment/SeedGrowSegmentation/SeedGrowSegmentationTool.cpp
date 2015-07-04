@@ -47,6 +47,7 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
@@ -104,7 +105,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
-, m_useBestPixel    {new QCheckBox(tr("Use Best Pixel Selector"))}
+, m_useBestPixel    {Styles::createToolButton(":espina/bestPixelSelector.svg", tr("Apply on best pixel"))}
 , m_colorLabel      {new QLabel(tr("Pixel Color:"))}
 , m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}
@@ -234,15 +235,16 @@ void SeedGrowSegmentationTool::initBestPixelWidgets()
 {
   auto enabled = (m_bestPixelSelector.get() == activeSelector().get());
 
+  m_useBestPixel->setCheckable(true);
   m_useBestPixel->setChecked(enabled);
 
-  connect(m_useBestPixel, SIGNAL(stateChanged(int)),
-          this,           SLOT(onSelectorChanged(int)));
+  connect(m_useBestPixel, SIGNAL(toggled(bool)),
+          this,           SLOT(useBestPixelSelector(bool)));
 
   m_colorLabel->setVisible(enabled);
-  m_colorSelector->setFixedHeight(20);
-  m_colorSelector->setFixedWidth(150);
+
   m_colorSelector->setVisible(enabled);
+  Styles::setBarStyle(m_colorSelector);
 
   connect(m_colorSelector, SIGNAL(newValue(int)),
           this,            SLOT(onNewPixelValue(int)));
@@ -510,14 +512,12 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onSelectorChanged(int state)
+void SeedGrowSegmentationTool::useBestPixelSelector(bool value)
 {
-  auto enabled = (state == Qt::Checked);
+  m_colorLabel->setVisible(false);
+  m_colorSelector->setVisible(value);
 
-  m_colorLabel->setVisible(enabled);
-  m_colorSelector->setVisible(enabled);
-
-  if(enabled)
+  if(value)
   {
     setEventHandler(m_bestPixelSelector);
   }

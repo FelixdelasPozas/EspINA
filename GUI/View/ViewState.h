@@ -181,8 +181,6 @@ namespace ESPINA
         EventHandlerSPtr m_eventHandler;
       };
 
-      using ViewStateSPtr = std::shared_ptr<ViewState>;
-
       void updateSceneState(ViewState & state, ViewItemAdapterSList viewItems);
     }
   }

@@ -22,48 +22,56 @@
 #define ESPINA_MULTI_COLOR_ENGINE_H
 
 // ESPINA
+
 #include "ColorEngine.h"
+#include <GUI/Types.h>
 
 // Qt
 #include <QList>
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT MultiColorEngine
-  : public ColorEngine
+  namespace GUI
   {
-    Q_OBJECT
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT MultiColorEngine
+      : public ColorEngine
+      {
+        Q_OBJECT
 
-  public:
-    explicit MultiColorEngine();
-   
-    virtual QColor color(SegmentationAdapterPtr seg);
+      public:
+        explicit MultiColorEngine();
 
-    virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+        virtual QColor color(SegmentationAdapterPtr seg);
 
-    virtual ColorEngine::Composition supportedComposition() const;
+        virtual LUTSPtr lut(SegmentationAdapterPtr seg);
 
-    /** \brief Adds a color engine.
-     * \param[in] engine to be added
-     *
-     */
-    virtual void add(ColorEngineSPtr engine);
+        virtual ColorEngine::Composition supportedComposition() const;
 
-    /** \brief Removes a color engine.
-     * \param[in] engine to be removed
-     *
-     */
-    virtual void remove(ColorEngineSPtr engine);
+        /** \brief Adds a color engine.
+         * \param[in] engine to be added
+         *
+         */
+        virtual void add(ColorEngineSPtr engine);
 
-  private slots:
-     void onColorEngineActivated(bool active);
+        /** \brief Removes a color engine.
+         * \param[in] engine to be removed
+         *
+         */
+        virtual void remove(ColorEngineSPtr engine);
 
-  private:
-    QList<ColorEngine *>   m_activeEngines;
-    QList<ColorEngineSPtr> m_availableEngines;
-  };
+      private slots:
+        void onColorEngineActivated(bool active);
 
-  using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
+      private:
+        QList<ColorEngine *>   m_activeEngines;
+        QList<ColorEngineSPtr> m_availableEngines;
+      };
+
+      using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
+    }
+  }
 }// namespace ESPINA
 
 #endif // ESPINA_MULTI_COLOR_ENGINE_H

@@ -20,8 +20,8 @@
 #ifndef ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
 #define ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
 
+#include <GUI/Types.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <Support/Context.h>
 
 namespace ESPINA
 {
@@ -31,10 +31,9 @@ namespace ESPINA
     {
       class InformationColorEngine
       : public ColorEngine
-      , private Support::WithContext
       {
       public:
-        explicit InformationColorEngine(Support::Context &context);
+        explicit InformationColorEngine();
 
         virtual ~InformationColorEngine();
 

@@ -51,6 +51,8 @@ const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::Support;
+using namespace ESPINA::Support::Settings;
 
 //-----------------------------------------------------------------------------
 FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
@@ -105,7 +107,7 @@ AppositionSurfacePlugin::~AppositionSurfacePlugin()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurfacePlugin::init(Support::Context &context)
+void AppositionSurfacePlugin::init(Context &context)
 {
   if (m_context)
   {
@@ -118,12 +120,6 @@ void AppositionSurfacePlugin::init(Support::Context &context)
   // for automatic computation of SAS
   connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this,                     SLOT(segmentationsAdded(ViewItemAdapterSList)));
-}
-
-//-----------------------------------------------------------------------------
-ChannelExtensionFactorySList AppositionSurfacePlugin::channelExtensionFactories() const
-{
-  return ChannelExtensionFactorySList();
 }
 
 //-----------------------------------------------------------------------------
@@ -144,18 +140,6 @@ FilterFactorySList AppositionSurfacePlugin::filterFactories() const
   factories << m_filterFactory;
 
   return factories;
-}
-
-//-----------------------------------------------------------------------------
-NamedColorEngineSList AppositionSurfacePlugin::colorEngines() const
-{
-  return NamedColorEngineSList();
-}
-
-//-----------------------------------------------------------------------------
-RepresentationFactorySList AppositionSurfacePlugin::representationFactories() const
-{
-  return RepresentationFactorySList();
 }
 
 //-----------------------------------------------------------------------------
@@ -188,12 +172,6 @@ QList<MenuEntry> AppositionSurfacePlugin::menuEntries() const
   entries << m_menuEntry;
 
   return entries;
-}
-
-//-----------------------------------------------------------------------------
-AnalysisReaderSList AppositionSurfacePlugin::analysisReaders() const
-{
-  return AnalysisReaderSList();
 }
 
 //-----------------------------------------------------------------------------

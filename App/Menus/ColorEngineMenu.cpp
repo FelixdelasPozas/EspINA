@@ -25,6 +25,7 @@
 #include <QSettings>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 const QString COLOR_ENGINE("ColorEngine");
 

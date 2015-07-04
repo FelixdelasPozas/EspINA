@@ -22,8 +22,6 @@
 
 #include <Support/Widgets/ColorEngineSwitch.h>
 
-#include <GUI/Types.h>
-
 namespace ESPINA
 {
   class InformationColorEngineSwitch

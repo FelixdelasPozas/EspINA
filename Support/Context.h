@@ -18,7 +18,7 @@
 #ifndef ESPINA_SUPPORT_CONTEXT_H
 #define ESPINA_SUPPORT_CONTEXT_H
 
-#include <Support/SupportTypes.h>
+#include <Support/Types.h>
 
 #include "Support/ROIAccumulator.h"
 #include <GUI/View/ViewState.h>
@@ -49,7 +49,7 @@ class DockWidget;
       ModelAdapterSPtr           model() const;
       ROIAccumulatorSPtr         roiProvider();
       GUI::View::ViewState      &viewState();
-      MultiColorEngineSPtr       colorEngine() const;
+      GUI::ColorEngines::MultiColorEngineSPtr colorEngine() const;
       QUndoStack *               undoStack();
       RepresentationFactorySList &availableRepresentations();
       ModelFactorySPtr           factory() const;
@@ -72,7 +72,7 @@ class DockWidget;
       QUndoStack           m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr     m_factory;
-      MultiColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;
 
       QMainWindow *m_mainWindow;
     };

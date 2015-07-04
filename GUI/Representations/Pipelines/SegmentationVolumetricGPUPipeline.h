@@ -22,7 +22,7 @@
 #define ESPINA_SEGMENTATION_VOLUMETRIC_GPU_PIPELINE_H_
 
 // ESPINA
-#include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Types.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
@@ -36,7 +36,7 @@ namespace ESPINA
        * \param[in] colorEngine segmentation color engine smart pointer.
        *
        */
-      explicit SegmentationVolumetricGPUPipeline(ColorEngineSPtr colorEngine);
+      explicit SegmentationVolumetricGPUPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
       /** \brief SegmentationVolumetricGPUPipeline class virtual destructor.
        *
@@ -53,9 +53,9 @@ namespace ESPINA
       virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
     private:
-      ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
 
-      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

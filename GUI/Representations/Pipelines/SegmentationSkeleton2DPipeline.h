@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
-#include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
@@ -38,7 +38,7 @@ namespace ESPINA
        * \param[in] colorEngine color engine smart pointer.
        *
        */
-      explicit SegmentationSkeleton2DPipeline(Plane plane, ColorEngineSPtr colorEngine);
+      explicit SegmentationSkeleton2DPipeline(Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
       /** \brief SegmentationSkeleton2DPipeline class virtual destructor.
        *
@@ -56,9 +56,9 @@ namespace ESPINA
 
     private:
       Plane           m_plane;
-      ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
 
-      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

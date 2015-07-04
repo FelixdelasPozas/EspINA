@@ -35,7 +35,7 @@ namespace ESPINA
   {
 
     class CountingFramePlugin_EXPORT CountingFrameColorEngine
-    : public ColorEngine
+    : public GUI::ColorEngines::ColorEngine
     {
 
     public:

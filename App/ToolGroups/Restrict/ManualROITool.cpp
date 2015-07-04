@@ -35,7 +35,7 @@ ManualROITool::ManualROITool(Support::Context  &context,
 : ProgressTool("ManualROI", ":espina/roi_manual.svg", tr("Manual ROI"), context)
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
-, m_drawingWidget{context}
+, m_drawingWidget{context.viewState(), context.model()}
 {
   setCheckable(true);
   setExclusive(true);

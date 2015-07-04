@@ -196,9 +196,6 @@ namespace ESPINA
     }
   }
 
-  using ToolSPtr  = std::shared_ptr<Support::Widgets::ProgressTool>;
-  using ToolSList = QList<ToolSPtr>;
-
 
 } // namespace ESPINA
 

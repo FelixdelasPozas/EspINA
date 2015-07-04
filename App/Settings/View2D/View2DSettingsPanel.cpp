@@ -22,6 +22,7 @@
 #include "View2DSettingsPanel.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
 View2DSettingsPanel::View2DSettingsPanel(View2D *view)

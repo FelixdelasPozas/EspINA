@@ -117,7 +117,7 @@ namespace ESPINA
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
-    ColorEngineSPtr   m_colorEngine;
+    GUI::ColorEngines::ColorEngineSPtr   m_colorEngine;
     FilterFactorySPtr m_filterFactory;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;

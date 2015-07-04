@@ -37,8 +37,9 @@ namespace ESPINA
   class ROISettings;
 
   class ROISettingsPanel
-  : public SettingsPanel
+  : public Support::Settings::SettingsPanel
   , public Ui::OrthogonalROISettings
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -70,7 +71,7 @@ namespace ESPINA
 
     virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone() override;
+    virtual Support::Settings::SettingsPanelPtr clone() override;
 
   private:
     /** \brief Returns true if any of the values of ROI have changed.
@@ -90,7 +91,6 @@ namespace ESPINA
     void updateCategoryROI(const QModelIndex &index);
 
   private:
-    Support::Context &m_context;
     ROISettings*            m_settings;
     CategoryAdapterSPtr     m_activeCategory;
   };

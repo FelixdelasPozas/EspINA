@@ -20,6 +20,7 @@
 #include "ColorEngineSwitch.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 

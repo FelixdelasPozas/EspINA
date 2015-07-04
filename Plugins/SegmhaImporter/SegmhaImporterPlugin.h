@@ -32,10 +32,10 @@
 namespace ESPINA
 {
   class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
-  : public Plugin
+  : public Support::Plugin
   {
     Q_OBJECT
-    Q_INTERFACES(ESPINA::Plugin)
+    Q_INTERFACES(ESPINA::Support::Plugin)
 
     class SegmhaFilterFactory
     : public FilterFactory
@@ -55,23 +55,9 @@ namespace ESPINA
 
     virtual void init(Support::Context &context);
 
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
-
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
-
     virtual FilterFactorySList filterFactories() const;
 
     virtual AnalysisReaderSList analysisReaders() const;
-
-    virtual NamedColorEngineSList colorEngines() const;
-
-    virtual RepresentationFactorySList representationFactories() const;
-
-    virtual QList<CategorizedTool> tools() const;
-
-    virtual SettingsPanelSList settingsPanels() const;
-
-    virtual QList<MenuEntry> menuEntries() const;
   };
 } // namespace ESPINA
 

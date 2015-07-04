@@ -20,6 +20,7 @@
 #ifndef ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
 #define ESPINA_SUPPORT_WIDGETS_COLORENGINESWITCH_H
 
+#include <GUI/Types.h>
 #include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA
@@ -32,17 +33,15 @@ namespace ESPINA
       : public ProgressTool
       {
       public:
-        explicit ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context);
+        explicit ColorEngineSwitch(GUI::ColorEngines::ColorEngineSPtr engine, const QString &icon, Context &context);
 
-        explicit ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, Context &context);
+        explicit ColorEngineSwitch(GUI::ColorEngines::ColorEngineSPtr engine, const QIcon &icon, Context &context);
 
-        ColorEngineSPtr colorEngine() const;
+        GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
 
       private:
-        ColorEngineSPtr m_engine;
+        GUI::ColorEngines::ColorEngineSPtr m_engine;
       };
-
-      using ColorEngineSwitchSPtr = std::shared_ptr<ColorEngineSwitch>;
     }
   }
 }

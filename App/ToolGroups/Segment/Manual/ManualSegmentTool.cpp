@@ -46,6 +46,7 @@ const Filter::Type SOURCE_FILTER    = "FreeFormSource";
 const Filter::Type SOURCE_FILTER_V4 = "::FreeFormSource";
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
 
 const QString MODE = "Stroke mode";
@@ -87,7 +88,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}
 , m_filterFactory{new ManualFilterFactory()}
-, m_drawingWidget(context)
+, m_drawingWidget(context.viewState(), context.model())
 , m_mode         {Mode::SINGLE_STROKE}
 , m_createSegmentation{true}
 , m_referenceItem{nullptr}

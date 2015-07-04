@@ -22,9 +22,10 @@
 // ESPINA
 #include <GUI/ColorEngines/SelectionHighlighter.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 
-ESPINA::ColorEngine::LUTMap SelectionHighlighter::m_LUT;
+ColorEngine::LUTMap SelectionHighlighter::m_LUT;
 
 //-----------------------------------------------------------------------------
 ESPINA::LUTSPtr SelectionHighlighter::lut(const QColor& original, bool highlight)

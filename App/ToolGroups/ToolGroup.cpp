@@ -22,6 +22,7 @@
 #include "ToolGroup.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
 
 //-----------------------------------------------------------------------------
 ToolGroup::ToolGroup(const QString &icon, const QString  &text, QObject *parent)

@@ -47,7 +47,6 @@ namespace ESPINA
       class ColorEngineSwitch;
       using ColorEngineSwitchSPtr = std::shared_ptr<ColorEngineSwitch>;
 
-
       class ProgressTool;
       using ToolSPtr  = std::shared_ptr<ProgressTool>;
       using ToolSList = QList<ToolSPtr>;

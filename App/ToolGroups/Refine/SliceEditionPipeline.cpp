@@ -23,6 +23,7 @@
 #include "Support/Representations/RepresentationUtils.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::RepresentationUtils;
 
 //------------------------------------------------------------------------

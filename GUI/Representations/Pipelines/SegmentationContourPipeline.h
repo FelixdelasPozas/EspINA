@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
-#include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
@@ -45,7 +45,7 @@ namespace ESPINA
        * \param[in] colorEngine color engine smart pointer.
        *
        */
-      explicit SegmentationContourPipeline(Plane plane, ColorEngineSPtr colorEngine);
+      explicit SegmentationContourPipeline(Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
       /** \brief SegmentationContourPipeline class virtual destructor.
        *
@@ -90,7 +90,7 @@ namespace ESPINA
       Width toWidth(int value) const;
 
     private:
-      ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
       Plane           m_plane;
 
       static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;

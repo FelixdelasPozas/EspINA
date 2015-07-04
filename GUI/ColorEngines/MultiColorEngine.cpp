@@ -22,6 +22,7 @@
 #include "MultiColorEngine.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
 MultiColorEngine::MultiColorEngine()
