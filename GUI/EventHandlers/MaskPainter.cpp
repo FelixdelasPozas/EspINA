@@ -19,6 +19,7 @@
 
 // ESPINA
 #include "MaskPainter.h"
+#include <GUI/View/View2D.h>
 
 // Qt
 #include <QKeyEvent>
@@ -37,24 +38,29 @@ MaskPainter::MaskPainter(PointTrackerSPtr handler)
 //------------------------------------------------------------------------
 bool MaskPainter::filterEvent(QEvent *e, RenderView *view)
 {
-  QKeyEvent   *ke = nullptr;
-
-  switch(e->type())
+  if (isView2D(view))
   {
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-      ke = static_cast<QKeyEvent *>(e);
-      if ((ke->key() == Qt::Key_Shift) && !m_tracker->isTracking() && m_canErase)
-      {
-        updateDrawingMode();
-        return true;
-      }
-      break;
-    default:
-      break;
+    QKeyEvent   *ke = nullptr;
+
+    switch(e->type())
+    {
+      case QEvent::KeyPress:
+      case QEvent::KeyRelease:
+        ke = static_cast<QKeyEvent *>(e);
+        if ((ke->key() == Qt::Key_Shift) && !m_tracker->isTracking() && m_canErase)
+        {
+          updateDrawingMode();
+          return true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    return m_tracker->filterEvent(e, view);
   }
 
-  return m_tracker->filterEvent(e, view);
+  return false;
 }
 
 //------------------------------------------------------------------------
