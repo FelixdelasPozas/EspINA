@@ -28,25 +28,12 @@
 using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
-QColor IntensitySelectionHighlighter::color(const QColor& original,
-                                             bool highlight)
+QColor IntensitySelectionHighlighter::color(const QColor& color, bool highlight)
 {
-  auto suggestedColor = original;
-
-  if (highlight)
-  {
-    double rgb[3]{original.redF(), original.greenF(), original.blueF()};
-    double hsv[3];
-    vtkMath::RGBToHSV(rgb, hsv);
-    hsv[2] = 1.0;
-    vtkMath::HSVToRGB(hsv, rgb);
-    
-    suggestedColor.setRedF(rgb[0]);
-    suggestedColor.setGreenF(rgb[1]);
-    suggestedColor.setBlueF(rgb[2]);
-  }
-
-  return suggestedColor;
+  return QColor::fromHsvF(color.hsvHueF(),
+                          color.hsvSaturationF(),
+                          highlight?1.0:qMin(color.valueF(), 0.8),
+                          color.alphaF());
 }
 
 //-----------------------------------------------------------------------------

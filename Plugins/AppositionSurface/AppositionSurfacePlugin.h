@@ -54,8 +54,6 @@ namespace ESPINA
 
     virtual void init(Support::Context &context);
 
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
-
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
     virtual QList<Support::CategorizedTool> tools() const;
