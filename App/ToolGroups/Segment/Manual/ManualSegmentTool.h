@@ -114,6 +114,8 @@ namespace ESPINA
 
     void startNextSegmentation();
 
+    void onEventHandlerActivated(bool inUse);
+
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
@@ -127,6 +129,8 @@ namespace ESPINA
     Mode               m_mode;
     bool               m_createSegmentation;
     ViewItemAdapterPtr m_referenceItem;
+
+    MaskPainterSPtr m_currentPainter;
 
     bool                      m_validStroke;
     SliceEditionPipelineSPtr  m_temporalPipeline;

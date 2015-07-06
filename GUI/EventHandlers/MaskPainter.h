@@ -34,7 +34,7 @@ namespace ESPINA
   public:
 
   public:
-    virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+    virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
 
     /** \brief Enables/Disables the ability to erase of the painter.
      * \param[in] value true to enable erasing and false otherwise.

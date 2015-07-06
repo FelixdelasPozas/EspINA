@@ -45,12 +45,13 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
 : ProgressTool("ManualEditionTool", ":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
-, m_model        {context.model()}
-, m_factory      {context.factory()}
-, m_colorEngine  {context.colorEngine()}
-, m_drawingWidget(context)
-, m_referenceItem{nullptr}
-, m_validStroke  {true}
+, m_model         {context.model()}
+, m_factory       {context.factory()}
+, m_colorEngine   {context.colorEngine()}
+, m_drawingWidget (context)
+, m_referenceItem {nullptr}
+, m_currentHandler{nullptr}
+, m_validStroke   {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
@@ -73,9 +74,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 
-  onSelectionChanged();
-
-  setEventHandler(m_drawingWidget.painter());
+  onPainterChanged(m_drawingWidget.painter());
 }
 
 //------------------------------------------------------------------------
@@ -92,6 +91,8 @@ void ManualEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void ManualEditionTool::onSelectionChanged()
 {
+  if(!isChecked()) return;
+
   auto segmentations = getSelectedSegmentations();
 
   bool validSelection = true;
@@ -242,7 +243,30 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
+  if(m_currentHandler)
+  {
+    disconnect(m_currentHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+               this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+
+  m_currentHandler = painter;
+
   setEventHandler(painter);
+
+  if(m_currentHandler)
+  {
+    connect(m_currentHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onEventHandlerActivated(bool inUse)
+{
+  if(inUse)
+  {
+    onSelectionChanged();
+  }
 }
 
 //------------------------------------------------------------------------

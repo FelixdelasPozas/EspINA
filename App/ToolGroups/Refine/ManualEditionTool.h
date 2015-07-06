@@ -83,6 +83,11 @@ namespace ESPINA
 
     void onPainterChanged(MaskPainterSPtr painter);
 
+    /** \brief Updates the signal connection and manages selected item.
+     *
+     */
+    void onEventHandlerActivated(bool inUse);
+
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
@@ -94,6 +99,7 @@ namespace ESPINA
     mutable DrawingTool        m_drawingWidget;
     mutable ViewItemAdapterPtr m_referenceItem;
 
+    MaskPainterSPtr m_currentHandler;
     bool                      m_validStroke;
     SliceEditionPipelineSPtr  m_temporalPipeline;
   };

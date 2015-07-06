@@ -177,11 +177,6 @@ namespace ESPINA
          */
         void setEraserMode(bool value);
 
-        /** \brief Modifies the GUI when the drawing mode changes.
-         * \param[in] value true if drawing.
-         */
-        void drawingModeChanged(bool value);
-
         /** \brief Updates the tool when the category selector changes.
          * \param[in] unused unused value.
          */

@@ -40,7 +40,7 @@ bool MaskPainter::filterEvent(QEvent *e, RenderView *view)
 {
   if (isView2D(view))
   {
-    QKeyEvent   *ke = nullptr;
+    QKeyEvent *ke = nullptr;
 
     switch(e->type())
     {
@@ -76,6 +76,11 @@ void MaskPainter::setMaskProperties(const NmVector3 &spacing, const NmVector3 &o
 void MaskPainter::setCanErase(bool value)
 {
   m_canErase = value;
+
+  if(!m_canErase && m_mode == DrawingMode::ERASING)
+  {
+    setDrawingMode(DrawingMode::PAINTING);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -83,7 +88,7 @@ void MaskPainter::setDrawingMode(const DrawingMode mode)
 {
   m_mode = mode;
 
-  updateCursor(m_mode);
+  updateDrawingMode();
 }
 
 //------------------------------------------------------------------------
@@ -113,13 +118,13 @@ bool MaskPainter::ShiftKeyIsDown() const
 //------------------------------------------------------------------------
 DrawingMode MaskPainter::currentMode() const
 {
-  DrawingMode mode = m_mode;
+  auto  mode = m_mode;
 
   if (ShiftKeyIsDown())
   {
     auto isPainting = (m_mode == DrawingMode::PAINTING);
 
-    mode = isPainting?DrawingMode::ERASING:DrawingMode::PAINTING;
+    mode = isPainting ? DrawingMode::ERASING : DrawingMode::PAINTING;
   }
 
   return mode;
