@@ -30,10 +30,12 @@ class CODEModification
 : public QUndoCommand
 {
 public:
-  CODEModification(MorphologicalEditionFilterSPtr filter,
+  CODEModification(SegmentationAdapterPtr         segmentation,
+                   MorphologicalEditionFilterSPtr filter,
                    int radius,
                    QUndoCommand *parent = NULL)
   : QUndoCommand(parent)
+  , m_segmentation(segmentation)
   , m_filter(filter)
   , m_radius(radius)
   {
@@ -45,10 +47,10 @@ public:
   {
     auto output = m_filter->output(0);
 
-    auto volume = readLockVolume(output);
 
     if (!m_oldVolume && (output->isEdited() /*|| volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE*/))
     {
+      auto volume = readLockVolume(output);
       m_oldBounds     = volume->bounds();
       m_oldVolume     = volume->itkImage();
       m_editedRegions = volume->editedRegions();
@@ -75,6 +77,7 @@ public:
 //     }
 //
 //     output->clearEditedRegions();
+    m_segmentation->invalidateRepresentations();
   }
 
   //----------------------------------------------------------------------------
@@ -82,11 +85,11 @@ public:
   {
     m_filter->setRadius(m_oldRadius);
 
-    auto output = m_filter->output(0);
-    auto volume = writeLockVolume(output);
-
     if (m_oldVolume.IsNotNull())
     {
+      auto output = m_filter->output(0);
+      auto volume = writeLockVolume(output);
+
       volume->resize(m_oldBounds);
       volume->draw(m_oldVolume);
       volume->setEditedRegions(m_editedRegions);
@@ -95,6 +98,7 @@ public:
     {
       update();
     }
+    invalidateRepresentations();
   }
 
 private:
@@ -105,7 +109,13 @@ private:
     QApplication::restoreOverrideCursor();
   }
 
+  void invalidateRepresentations()
+  {
+    m_segmentation->invalidateRepresentations();
+  }
+
 private:
+  SegmentationAdapterPtr         m_segmentation;
   MorphologicalEditionFilterSPtr m_filter;
 
   int m_radius, m_oldRadius;
@@ -134,7 +144,10 @@ CODERefineWidget::CODERefineWidget(const QString                 &title,
   connect(m_gui->radius, SIGNAL(valueChanged(int)),
           this,          SLOT(onRadiusChanged(int)));
   connect(m_gui->apply,  SIGNAL(clicked(bool)),
-          this,          SLOT(modifyFilter()));
+          this,          SLOT(refineFilter()));
+
+  connect(m_segmentation->output().get(), SIGNAL(modified()),
+          this,                           SLOT(onFilterModified()));
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +164,13 @@ void CODERefineWidget::onRadiusChanged(int value)
 }
 
 //----------------------------------------------------------------------------
-void CODERefineWidget::modifyFilter()
+void CODERefineWidget::onFilterModified()
+{
+  m_gui->radius->setValue(m_filter->radius());
+}
+
+//----------------------------------------------------------------------------
+void CODERefineWidget::refineFilter()
 {
   auto output = m_filter->output(0);
 
@@ -170,11 +189,9 @@ void CODERefineWidget::modifyFilter()
 
   undoStack->beginMacro(tr("Modify %1 radius").arg(m_title));
   {
-    undoStack->push(new CODEModification(m_filter, m_gui->radius->value()));
+    undoStack->push(new CODEModification(m_segmentation, m_filter, m_gui->radius->value()));
   }
   undoStack->endMacro();
-
-  m_segmentation->invalidateRepresentations();
 }
 
 //----------------------------------------------------------------------------

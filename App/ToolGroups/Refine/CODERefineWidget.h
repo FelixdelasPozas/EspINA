@@ -57,7 +57,8 @@ namespace ESPINA
 
   private slots:
     void onRadiusChanged(int value);
-    void modifyFilter();
+    void onFilterModified();
+    void refineFilter();
 
   private:
     Ui::CODERefineWidget *m_gui;
