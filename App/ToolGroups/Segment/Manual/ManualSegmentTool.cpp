@@ -364,7 +364,7 @@ void ManualSegmentTool::onPainterChanged(MaskPainterSPtr painter)
   if(m_currentPainter)
   {
     disconnect(m_currentPainter.get(), SIGNAL(eventHandlerInUse(bool)),
-               this,                   SLOT(onEventHandlerActivatedgi(bool)));
+               this,                   SLOT(onEventHandlerActivated(bool)));
   }
 
   m_currentPainter = painter;

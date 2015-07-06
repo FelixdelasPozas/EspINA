@@ -275,6 +275,7 @@ void View3D::setupUI()
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
+  m_renderer->GetActiveCamera(); // creates default camera.
 
   auto interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactorstyle->AutoAdjustCameraClippingRangeOn();
