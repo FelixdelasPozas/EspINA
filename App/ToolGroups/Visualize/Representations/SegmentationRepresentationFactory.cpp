@@ -20,6 +20,7 @@
 // ESPINA
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
@@ -152,7 +153,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   contourManager->setIcon(QIcon(":espina/contour.png"));
   contourManager->setDescription(QObject::tr("Segmentation Contour Representation"));
 
-  auto contourSwitch = std::make_shared<BasicRepresentationSwitch>("ContourSwitch", contourManager, ViewType::VIEW_2D, timer, context);
+  auto contourSwitch = std::make_shared<SegmentationContourSwitch>(contourManager, contourSettings, ViewType::VIEW_2D, timer, context);
   groupSwitch(contourSwitch);
 
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
