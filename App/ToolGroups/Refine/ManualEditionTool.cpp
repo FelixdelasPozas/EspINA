@@ -51,6 +51,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_colorEngine  {context.colorEngine()}
 , m_drawingWidget(context.viewState(), context.model())
 , m_referenceItem{nullptr}
+, m_currentHandler{nullptr}
 , m_validStroke  {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
@@ -74,9 +75,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 
-  onSelectionChanged();
-
-  setEventHandler(m_drawingWidget.painter());
+  onPainterChanged(m_drawingWidget.painter());
 }
 
 //------------------------------------------------------------------------
@@ -93,6 +92,8 @@ void ManualEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void ManualEditionTool::onSelectionChanged()
 {
+  if(!isChecked()) return;
+
   auto segmentations = getSelectedSegmentations();
 
   bool validSelection = true;
@@ -243,7 +244,30 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 {
+  if(m_currentHandler)
+  {
+    disconnect(m_currentHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+               this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+
+  m_currentHandler = painter;
+
   setEventHandler(painter);
+
+  if(m_currentHandler)
+  {
+    connect(m_currentHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onEventHandlerActivated(bool inUse)
+{
+  if(inUse)
+  {
+    onSelectionChanged();
+  }
 }
 
 //------------------------------------------------------------------------

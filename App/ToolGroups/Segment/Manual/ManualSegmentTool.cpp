@@ -123,7 +123,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
   connect(&m_drawingWidget, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,             SLOT(onCategoryChange(CategoryAdapterSPtr)));
 
-  setEventHandler(m_drawingWidget.painter());
+  onPainterChanged(m_drawingWidget.painter());
 }
 
 //------------------------------------------------------------------------
@@ -362,7 +362,30 @@ void ManualSegmentTool::onCategoryChange(CategoryAdapterSPtr category)
 //------------------------------------------------------------------------
 void ManualSegmentTool::onPainterChanged(MaskPainterSPtr painter)
 {
+  if(m_currentPainter)
+  {
+    disconnect(m_currentPainter.get(), SIGNAL(eventHandlerInUse(bool)),
+               this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+
+  m_currentPainter = painter;
+
   setEventHandler(painter);
+
+  if(m_currentPainter)
+  {
+    connect(m_currentPainter.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,                   SLOT(onEventHandlerActivated(bool)));
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::onEventHandlerActivated(bool inUse)
+{
+  if(inUse)
+  {
+    onSelectionChanged();
+  }
 }
 
 //------------------------------------------------------------------------

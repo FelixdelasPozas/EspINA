@@ -153,6 +153,8 @@ void ZoomWidget2D::onLeftMouseRelease(QPoint point, RenderView *view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
     m_view->renderWindow()->GetInteractor()->LeftButtonReleaseEvent();
+
+    view->refresh();
   }
 }
 

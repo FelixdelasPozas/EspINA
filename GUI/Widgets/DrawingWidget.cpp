@@ -277,7 +277,6 @@ void DrawingWidget::initPainters()
                                            tr("Modify segmentation drawing 3D spheres"),
                                            m_sphericalPainter);
 
-
   m_contourPainter       = std::make_shared<ContourPainter>();
   m_contourWidgetfactory = std::make_shared<TemporalPrototypes>(std::make_shared<ContourWidget2D>(m_contourPainter), TemporalRepresentation3DSPtr());
 
@@ -503,6 +502,8 @@ void DrawingWidget::changeOpacity(int value)
 //------------------------------------------------------------------------
 void DrawingWidget::setCanErase(bool value)
 {
+  m_eraserWidget->setEnabled(value);
+
   for (auto painter : m_painters)
   {
     painter->setCanErase(value);
@@ -519,64 +520,12 @@ void DrawingWidget::setEraserMode(bool value)
 {
   if (m_currentPainter)
   {
-    m_currentPainter->setDrawingMode(value?DrawingMode::ERASING:DrawingMode::PAINTING);
+    m_currentPainter->setDrawingMode(value ? DrawingMode::ERASING : DrawingMode::PAINTING);
   }
-
-  drawingModeChanged(!value);
 
   m_eraserWidget->blockSignals(true);
   m_eraserWidget->setChecked(value);
   m_eraserWidget->blockSignals(false);
-}
-
-
-//------------------------------------------------------------------------
-void DrawingWidget::drawingModeChanged(bool isDrawing)
-{
-//   QAction *actualAction = m_painterSelector->getCurrentAction();
-//   QIcon icon;
-//
-//   if (m_circularPainterAction == actualAction)
-//   {
-//     if (isDrawing)
-//     {
-//       icon = QIcon(":/espina/pencil2D.png");
-//     }
-//     else
-//     {
-//       icon = QIcon(":/espina/eraser2D.png");
-//     }
-//   }
-//   else
-//   {
-//     if (m_sphericalPainterAction == actualAction)
-//     {
-//       if (isDrawing)
-//       {
-//         icon = QIcon(":/espina/pencil3D.png");
-//       }
-//       else
-//       {
-//         icon = QIcon(":/espina/eraser3D.png");
-//       }
-//     }
-//     else
-//     {
-//       if(m_contourPainterAction == actualAction)
-//       {
-//         if(isDrawing)
-//         {
-//           icon = QIcon(":/espina/lasso.png");
-//         }
-//         else
-//         {
-//           icon = QIcon(":/espina/lassoErase.png");
-//         }
-//       }
-//     }
-//   }
-//
-//   m_painterSelector->setIcon(icon);
 }
 
 //-----------------------------------------------------------------------------
@@ -596,11 +545,14 @@ void DrawingWidget::onCategoryChange(CategoryAdapterSPtr category)
 //-----------------------------------------------------------------------------
 void DrawingWidget::onDrawingModeChange(DrawingMode mode)
 {
-  auto value = DrawingMode::PAINTING == mode;
+  if(sender() != m_currentPainter.get()) return;
 
-  drawingModeChanged(value);
+  auto actualButtonMode = m_eraserWidget->isChecked() ? DrawingMode::ERASING : DrawingMode::PAINTING;
 
-  m_eraserWidget->blockSignals(true);
-  m_eraserWidget->setChecked(!value);
-  m_eraserWidget->blockSignals(false);
+  if(actualButtonMode != mode)
+  {
+    m_eraserWidget->blockSignals(true);
+    m_eraserWidget->setChecked(!m_eraserWidget->isChecked());
+    m_eraserWidget->blockSignals(false);
+  }
 }

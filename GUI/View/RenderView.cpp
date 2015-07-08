@@ -462,10 +462,8 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
 
       manager->hide(t);
 
-      removeRepresentationManager(manager);
-
-      //NOTE: managers should be removed after processing render request of t
-      //      so they can hide its representations
+      //NOTE: managers should be removed from m_temporalManagers after processing render
+      //      request of t so they can hide its representations
     }
     else
     {
@@ -654,7 +652,8 @@ void RenderView::deleteInactiveWidgetManagers()
     if (!m_temporalManagers[factory]->isActive())
     {
       auto manager = m_temporalManagers[factory];
-      m_managers.removeAll(manager);
+
+      removeRepresentationManager(manager);
 
       m_temporalManagers.remove(factory);
     }
