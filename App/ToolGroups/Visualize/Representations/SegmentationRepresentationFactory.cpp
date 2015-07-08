@@ -19,6 +19,7 @@
 
 // ESPINA
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
@@ -103,7 +104,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
     sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
 
-    auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>("SegmentationSliceSwitch", sliceManager, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch     = std::make_shared<SegmentationSliceSwitch>("SegmentationSliceSwitch", sliceManager, sliceSettings, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
     sliceSwitch->setShortcut(Qt::Key_Space);
     groupSwitch(sliceSwitch);
@@ -119,7 +120,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     slice3DManager->setIcon(QIcon(":espina/segmentations_slice3D_switch.svg"));
     slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
 
-    auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>("SegmentationSlice3DSwitch", slice3DManager, ViewType::VIEW_3D, timer, context);
+    auto slice3DSwitch   = std::make_shared<SegmentationSliceSwitch>("SegmentationSlice3DSwitch", slice3DManager, sliceSettings, ViewType::VIEW_3D, timer, context);
     groupSwitch(slice3DSwitch);
 
     representation.Managers << slice3DManager;
