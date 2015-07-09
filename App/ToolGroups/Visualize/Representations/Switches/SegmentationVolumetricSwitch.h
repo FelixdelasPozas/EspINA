@@ -69,7 +69,7 @@ namespace ESPINA
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
 
     private slots:
-      /** \brief Propagates changes in the pattern widget to the settings and the representations.
+      /** \brief Propagates changes in the gpu widget to the settings and the representations.
        * \param[in] check sender button check status.
        *
        */

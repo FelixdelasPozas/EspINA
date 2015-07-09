@@ -22,6 +22,7 @@
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
 #include <ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h>
+#include <ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
@@ -37,6 +38,7 @@
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Representations/Settings/SegmentationMeshPoolSettings.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -249,7 +251,8 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto meshesSettings = std::make_shared<PoolSettings>();
+  auto meshesSettings = std::make_shared<SegmentationMeshPoolSettings>();
+
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineMesh);
   auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
@@ -264,21 +267,18 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   meshManager->setIcon(QIcon(":espina/mesh.png"));
   meshManager->setDescription(QObject::tr("Mesh Representation"));
 
-  auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>("MeshSwitch", meshManager, ViewType::VIEW_3D, timer, context);
-  groupSwitch(meshSwitch);
-
   poolSmoothedMesh->setSettings(meshesSettings);
 
   smoothedMeshManager->setName(QObject::tr("Smoothed Mesh Representation"));
   smoothedMeshManager->setIcon(QIcon(":espina/smoothedmesh.png"));
   smoothedMeshManager->setDescription(QObject::tr("Smoothed Mesh Representation"));
 
-  auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>("SmoothedMeshSwitch", smoothedMeshManager, ViewType::VIEW_3D, timer, context);
-  groupSwitch(smoothedMeshSwitch);
+  auto meshSwitch     = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, ViewType::VIEW_3D, timer, context);
+  groupSwitch(meshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;
-  representation.Switches << meshSwitch << smoothedMeshSwitch;
+  representation.Switches << meshSwitch;
 }
 
 //----------------------------------------------------------------------------
