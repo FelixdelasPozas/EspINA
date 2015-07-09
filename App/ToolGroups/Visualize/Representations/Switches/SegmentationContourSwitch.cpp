@@ -108,7 +108,9 @@ void SegmentationContourSwitch::onSettingsModified()
   m_width->setCurrentIndex(SegmentationContourPipeline::widthValue(m_settings->width()));
   m_pattern->setCurrentIndex(SegmentationContourPipeline::patternValue(m_settings->pattern()));
 
-  updateRepresentations();
+  auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
+
+  invalidateRepresentations(items);
 }
 
 //----------------------------------------------------------------------------
@@ -150,12 +152,4 @@ void SegmentationContourSwitch::initWidgets()
           this,    SLOT(onPatternChanged()));
 
   addSettingsWidget(m_pattern);
-}
-
-//----------------------------------------------------------------------------
-void SegmentationContourSwitch::updateRepresentations() const
-{
-  auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
-
-  getViewState().representationInvalidator().invalidateRepresentations(items);
 }

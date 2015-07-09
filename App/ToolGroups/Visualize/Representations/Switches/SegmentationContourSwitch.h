@@ -90,16 +90,10 @@ namespace ESPINA
        */
       void initWidgets();
 
-      /** \brief Updates all segmentation representations.
-       *
-       */
-      void updateRepresentations() const;
-
       std::shared_ptr<SegmentationContourPoolSettings> m_settings;
       GUI::Widgets::NumericalInput                    *m_opacityWidget;
       QComboBox                                       *m_width;
       QComboBox                                       *m_pattern;
-
   };
 
 } // namespace ESPINA

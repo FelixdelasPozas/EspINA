@@ -59,7 +59,7 @@ void SegmentationSliceSwitch::onOpacityChanged()
 
   auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
 
-  getViewState().representationInvalidator().invalidateRepresentations(items);
+  invalidateRepresentations(items);
 }
 
 //----------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
+#include <ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
@@ -212,6 +213,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   auto &timer      = context.timer();
 
   auto volumetricSettings   = std::make_shared<PoolSettings>();
+
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(scheduler, pipelineVolumeCPU);
   auto volumetricCPUManager = std::make_shared<PassiveActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
@@ -228,19 +230,16 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
 
   poolVolumetricGPU->setSettings(volumetricSettings);
 
-  auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>("VolumetricCPUSwitch", volumetricCPUManager, ViewType::VIEW_3D, timer, context);
-  groupSwitch(volumetricCPUSwitch);
-
   volumetricGPUManager->setName(QObject::tr("Volumetric GPU Representation"));
   volumetricGPUManager->setIcon(QIcon(":espina/voxelGPU.png"));
   volumetricGPUManager->setDescription(QObject::tr("Segmentation Volumetric Representation By GPU"));
 
-  auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>("VolumetricGPUSwitch", volumetricGPUManager, ViewType::VIEW_3D, timer, context);
-  groupSwitch(volumetricGPUSwitch);
+  auto volumetricSwitch = std::make_shared<SegmentationVolumetricSwitch>(volumetricCPUManager, volumetricGPUManager, ViewType::VIEW_3D, timer, context);
+  groupSwitch(volumetricSwitch);
 
   representation.Pools    << poolVolumetricCPU << poolVolumetricGPU;
   representation.Managers << volumetricCPUManager << volumetricGPUManager;
-  representation.Switches << volumetricCPUSwitch << volumetricGPUSwitch;
+  representation.Switches << volumetricSwitch;
 }
 
 //----------------------------------------------------------------------------
