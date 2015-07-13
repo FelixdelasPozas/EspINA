@@ -26,6 +26,7 @@
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Representations/Settings/SegmentationMeshPoolSettings.h>
 
 // VTK
 #include <vtkActor.h>
@@ -74,12 +75,14 @@ namespace ESPINA
 
     if(isVisible(state) && hasMeshData(segmentation->output()))
     {
+      auto smoothValue = state.getValue<int>(SegmentationMeshPoolSettings::SMOOTH_KEY);
+
       auto data = readLockMesh(segmentation->output());
 
       auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
       decimate->ReleaseDataFlagOn();
       decimate->SetGlobalWarningDisplay(false);
-      decimate->SetTargetReduction(0.95);
+      decimate->SetTargetReduction(smoothValue/100.0);
       decimate->PreserveTopologyOn();
       decimate->SplittingOff();
       decimate->SetInputData(data->mesh());

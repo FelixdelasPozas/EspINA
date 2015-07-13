@@ -61,6 +61,30 @@ namespace ESPINA
 
       virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
+      /** \brief Helper method to get an integer value of the width enum.
+       * \param[in] width width enum value.
+       *
+       */
+      static int widthValue(Width width);
+
+      /** \brief Helper method to get an integer value of the pattern enum.
+       * \param[in] pattern pattern enum value.
+       *
+       */
+      static int patternValue(Pattern pattern);
+
+      /** \brief Helper method to get a pattern enum value from an integer.
+       * \param[in] value integer number.
+       *
+       */
+      static Pattern toPattern(int value);
+
+      /** \brief Helper method to get a width enum value from an integer.
+       * \param[in] value integer number.
+       *
+       */
+      static Width toWidth(int value);
+
     private:
       /** \brief Helper method get the width value from the settings.
        * \param[in] state RepresentationState object.
@@ -83,11 +107,6 @@ namespace ESPINA
        *
        */
       int hexPatternValue(Pattern value) const;
-
-      int widthValue(Width width) const;
-      int patternValue(Pattern pattern) const;
-      Pattern toPattern(int value) const;
-      Width toWidth(int value) const;
 
     private:
       GUI::ColorEngines::ColorEngineSPtr m_colorEngine;

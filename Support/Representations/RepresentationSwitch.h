@@ -41,6 +41,14 @@ namespace ESPINA
 
     virtual void hideRepresentations(TimeStamp t) = 0;
 
+    /** \brief Invalidates the representations of the given items.
+     * \param[in] items list of ViewItemAdapter.
+     *
+     * TODO: invalidate the representations only of the manager(s) of the switch.
+     *
+     */
+    void invalidateRepresentations(ViewItemAdapterList items);
+
   protected:
     explicit RepresentationSwitch(const QString &id, const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
 

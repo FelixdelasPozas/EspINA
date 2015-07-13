@@ -50,3 +50,12 @@ void RepresentationSwitch::switchRepresentations(bool show)
     hideRepresentations(t);
   }
 }
+
+//-----------------------------------------------------------------------------
+void RepresentationSwitch::invalidateRepresentations(ViewItemAdapterList items)
+{
+  if(!items.isEmpty())
+  {
+    getViewState().representationInvalidator().invalidateRepresentations(items);
+  }
+}

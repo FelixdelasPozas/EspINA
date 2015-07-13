@@ -137,7 +137,7 @@ namespace ESPINA
           textureIcon->SetScalarTypeToUnsignedChar();
           textureIcon->SetExtent(0, 31, 0, 31, 0, 0);
           textureIcon->SetNumberOfScalarComponents(4);
-          generateTexture(textureIcon.Get(), representationPattern(state));
+          generateTexture(textureIcon.Get(), pattern);
 
           auto texture = vtkSmartPointer<vtkTexture>::New();
           texture->SetInputData(textureIcon->GetOutput());
@@ -244,25 +244,25 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::widthValue(Width width) const
+  int SegmentationContourPipeline::widthValue(Width width)
   {
     return static_cast<int>(width);
   }
   
   //----------------------------------------------------------------------------
-  int SegmentationContourPipeline::patternValue(Pattern pattern) const
+  int SegmentationContourPipeline::patternValue(Pattern pattern)
   {
     return static_cast<int>(pattern);
   }
   
   //----------------------------------------------------------------------------
-  SegmentationContourPipeline::Pattern SegmentationContourPipeline::toPattern(int value) const
+  SegmentationContourPipeline::Pattern SegmentationContourPipeline::toPattern(int value)
   {
     return static_cast<SegmentationContourPipeline::Pattern>(value);
   }
   
   //----------------------------------------------------------------------------
-  SegmentationContourPipeline::Width SegmentationContourPipeline::toWidth(int value) const
+  SegmentationContourPipeline::Width SegmentationContourPipeline::toWidth(int value)
   {
     return static_cast<SegmentationContourPipeline::Width>(value);
   }

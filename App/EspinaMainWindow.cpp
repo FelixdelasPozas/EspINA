@@ -765,7 +765,21 @@ void EspinaMainWindow::saveAnalysisAs()
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveSessionAnalysis()
 {
-  saveAnalysis(m_sessionFile.absoluteFilePath());
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_busy = true;
+
+  saveToolsSettings();
+
+  IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
+
+  QApplication::restoreOverrideCursor();
+  updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
+  m_busy = false;
+
+  m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
+  m_recentDocuments2.updateDocumentList();
+
+  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------
