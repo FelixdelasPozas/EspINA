@@ -91,8 +91,6 @@ void ManualEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void ManualEditionTool::onSelectionChanged()
 {
-  if(!isChecked()) return;
-
   auto segmentations = getSelectedSegmentations();
 
   bool validSelection = true;

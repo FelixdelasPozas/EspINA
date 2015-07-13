@@ -52,22 +52,25 @@ SegmentationSliceSwitch::~SegmentationSliceSwitch()
 //----------------------------------------------------------------------------
 void SegmentationSliceSwitch::onOpacityChanged()
 {
-  if(m_opacityWidget->value() == m_settings->opacity() * 100) return;
-  auto value = m_opacityWidget->value();
+  if(m_opacityWidget->value() != m_settings->opacity() * 100)
+  {
+    auto opacity = m_opacityWidget->value() / 100.0;
 
-  m_settings->setOpacity(static_cast<double>(m_opacityWidget->value()/100.0));
+    m_settings->setOpacity(opacity);
 
-  auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
+    auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
 
-  invalidateRepresentations(items);
+    invalidateRepresentations(items);
+  }
 }
 
 //----------------------------------------------------------------------------
 void SegmentationSliceSwitch::onSettingsModified()
 {
-  if(m_opacityWidget->value() == m_settings->opacity() * 100) return;
-
-  m_opacityWidget->setValue(m_settings->opacity()*100);
+  if(m_opacityWidget->value() != m_settings->opacity() * 100)
+  {
+    m_opacityWidget->setValue(m_settings->opacity()*100);
+  }
 }
 
 //----------------------------------------------------------------------------
