@@ -19,19 +19,28 @@
 
 #include "TaskGroupProgress.h"
 
+#include <QDebug>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::MultiTasking;
 
 //----------------------------------------------------------------------------
 void TaskGroupProgress::showTaskProgress(TaskSPtr task)
 {
-  m_tasks << task;
+  if (!m_tasks.contains(task))
+  {
+    m_tasks << task;
 
-  connect(task.get(), SIGNAL(progress(int)),
-          this,       SLOT(updateProgress()));
+    connect(task.get(), SIGNAL(progress(int)),
+            this,       SLOT(updateProgress()));
 
-  connect(task.get(), SIGNAL(finished()),
-          this,       SLOT(onTaskFinished()));
+    connect(task.get(), SIGNAL(finished()),
+            this,       SLOT(onTaskFinished()));
+  }
+  else
+  {
+    qDebug() << "Already containing task";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -57,6 +66,7 @@ void TaskGroupProgress::onTaskFinished()
 {
   auto finishedTask = static_cast<TaskPtr>(sender());
 
+  qDebug() << "Task finished";
   int i      = 0;
   bool found = false;
 

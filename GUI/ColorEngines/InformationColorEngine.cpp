@@ -59,11 +59,14 @@ QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
 
   QColor color(Qt::gray);
 
-  auto info = segmentation->information(m_information);
-
-  if (info.isValid() && info.canConvert<double>())
+  if (segmentation->isInformationReady(m_information))
   {
-    color = m_colorRange->color(info.toDouble());
+    auto info = segmentation->information(m_information);
+
+    if (info.isValid() && info.canConvert<double>())
+    {
+      color = m_colorRange->color(info.toDouble());
+    }
   }
 
   return color;

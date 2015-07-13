@@ -68,6 +68,8 @@ private:
     double total = m_segmentations.size();
     for(auto segmentation : m_segmentations)
     {
+      if (!canExecute()) return;
+
       auto extension = retrieveOrCreateExtension(segmentation, m_type, m_factory);
 
       if (extension)
@@ -106,6 +108,7 @@ private:
 //-----------------------------------------------------------------------------
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
 : ColorEngineSwitch(std::make_shared<InformationColorEngine>(), ":espina/color_engine_switch_property.svg", context)
+, m_extensionType("MorphologicalInformation")
 , m_informationTag(informationColorEngine()->information())
 {
   createPropertySelector();
@@ -113,6 +116,12 @@ InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
   createColorRange();
 
   updateSettings();
+
+  connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+          this,             SLOT(updateRange()));
+
+  connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+          this,             SLOT(updateRange()));
 }
 
 //-----------------------------------------------------------------------------
@@ -167,17 +176,29 @@ void InformationColorEngineSwitch::changeProperty()
     m_extensionType  = selection.keys().first();
     m_informationTag = selection[m_extensionType].first();
 
-    auto segmentations = toRawList<SegmentationAdapter>(getModel()->segmentations());
-    auto task = std::make_shared<UpdateColorEngineTask>(m_extensionType,
-                                                        m_informationTag,
-                                                        informationColorEngine(),
-                                                        segmentations,
-                                                        getFactory(),
-                                                        getScheduler());
-    showTaskProgress(task);
-
-    Task::submit(task);
+    updateRange();
 
     updateSettings();
   }
+}
+
+//-----------------------------------------------------------------------------
+void InformationColorEngineSwitch::updateRange()
+{
+  if (m_task && m_task->isRunning())
+  {
+    m_task->abort();
+  }
+
+  auto segmentations = toRawList<SegmentationAdapter>(getModel()->segmentations());
+
+  m_task = std::make_shared<UpdateColorEngineTask>(m_extensionType,
+                                                   m_informationTag,
+                                                   informationColorEngine(),
+                                                   segmentations,
+                                                   getFactory(),
+                                                   getScheduler());
+  showTaskProgress(m_task);
+
+  Task::submit(m_task);
 }

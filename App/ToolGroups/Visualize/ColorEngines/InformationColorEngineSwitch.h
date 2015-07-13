@@ -44,9 +44,13 @@ namespace ESPINA
   private slots:
     void changeProperty();
 
+    void updateRange();
+
   private:
     QString m_extensionType;
     QString m_informationTag;
+
+    TaskSPtr m_task;
 
     QLabel *m_property;
   };
