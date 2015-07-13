@@ -49,7 +49,6 @@ NumericalInput::NumericalInput(QWidget *parent)
   connect(m_slider, SIGNAL(valueChanged(int)),
           this,     SLOT(setValue(int)));
 
-
   auto layout = new QHBoxLayout();
 
   layout->addWidget(m_label);
@@ -66,9 +65,14 @@ NumericalInput::~NumericalInput()
 }
 
 //------------------------------------------------------------------------
+void NumericalInput::setSliderTracking(bool enabled)
+{
+  m_slider->setTracking(enabled);
+}
+
+//------------------------------------------------------------------------
 void NumericalInput::setValue(int value)
 {
-  //m_slider ->setValue(value);
   m_spinBox->setValue(value);
 
   emit valueChanged(value);

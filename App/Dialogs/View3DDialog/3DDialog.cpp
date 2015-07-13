@@ -178,7 +178,7 @@ void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 
   for(auto tool: m_dialog->m_switches)
   {
-    if(tool->id().isEmpty()) continue;
+    if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
 
     settings->beginGroup(tool->id());
     tool->restoreSettings(settings);
@@ -198,7 +198,7 @@ void Dialog3DTool::saveSettings(std::shared_ptr<QSettings> settings)
 
   for(auto tool: m_dialog->m_switches)
   {
-    if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
+    if(tool->id().isEmpty()) continue;
 
     settings->beginGroup(tool->id());
     tool->saveSettings(settings);

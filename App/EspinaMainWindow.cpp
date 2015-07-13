@@ -772,6 +772,8 @@ void EspinaMainWindow::saveSessionAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
+  saveToolsSettings();
+
   IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
 
   QApplication::restoreOverrideCursor();

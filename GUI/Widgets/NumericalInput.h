@@ -80,6 +80,13 @@ namespace ESPINA
 
         void setSpinBoxVisibility(bool value);
 
+        /** \brief Enables/disables slider tracking (emit valueChanged(int) when the slider changes
+         *  position or only when slider is released).
+         *  \param[in] enabled true to enable and false otherwise.
+         *
+         */
+        void setSliderTracking(bool enabled);
+
       public slots:
         /** \brief change slider value
          * \param[in] value to be set

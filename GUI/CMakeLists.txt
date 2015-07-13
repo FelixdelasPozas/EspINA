@@ -132,6 +132,7 @@ set (GUI_SOURCES
   Representations/Settings/PipelineStateUtils.cpp
   Representations/Settings/SegmentationSlicePoolSettings.cpp
   Representations/Settings/SegmentationContourPoolSettings.cpp
+  Representations/Settings/SegmentationMeshPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Pools/BasicRepresentationPool.cpp
   Representations/Managers/CrosshairManager.cpp 

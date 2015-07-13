@@ -37,7 +37,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void SegmentationContourPoolSettings::setWidth(SegmentationContourPipeline::Width value)
   {
-    set<int>(SegmentationContourPipeline::WIDTH, static_cast<int>(value));
+    set<int>(SegmentationContourPipeline::WIDTH, SegmentationContourPipeline::widthValue(value));
   }
 
   //----------------------------------------------------------------------------
@@ -45,13 +45,13 @@ namespace ESPINA
   {
     auto value = get<int>(SegmentationContourPipeline::WIDTH);
 
-    return static_cast<SegmentationContourPipeline::Width>(value);
+    return SegmentationContourPipeline::toWidth(value);
   }
 
   //----------------------------------------------------------------------------
   void SegmentationContourPoolSettings::setPattern(SegmentationContourPipeline::Pattern value)
   {
-    set<int>(SegmentationContourPipeline::PATTERN, static_cast<int>(value));
+    set<int>(SegmentationContourPipeline::PATTERN, SegmentationContourPipeline::patternValue(value));
   }
 
   //----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ namespace ESPINA
   {
     auto value = get<int>(SegmentationContourPipeline::PATTERN);
 
-    return static_cast<SegmentationContourPipeline::Pattern>(value);
+    return SegmentationContourPipeline::toPattern(value);
   }
 
   //----------------------------------------------------------------------------

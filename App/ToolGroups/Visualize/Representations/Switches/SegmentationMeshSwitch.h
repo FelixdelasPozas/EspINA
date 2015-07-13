@@ -1,0 +1,101 @@
+/*
+
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+ ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ */
+
+#ifndef APP_TOOLGROUPS_VISUALIZE_REPRESENTATIONS_SWITCHES_SEGMENTATIONMESHSWITCH_H_
+#define APP_TOOLGROUPS_VISUALIZE_REPRESENTATIONS_SWITCHES_SEGMENTATIONMESHSWITCH_H_
+
+// ESPINA
+#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Utils/Timer.h>
+#include <GUI/View/ViewTypeFlags.h>
+#include <GUI/Widgets/NumericalInput.h>
+#include <Support/Context.h>
+#include <Support/Representations/RepresentationSwitch.h>
+
+namespace ESPINA
+{
+  class SegmentationMeshPoolSettings;
+  
+  class SegmentationMeshSwitch
+  : public RepresentationSwitch
+  {
+      Q_OBJECT
+    public:
+      /** \brief SegmentationMeshSwitch class constructor.
+       * \param[in] meshManager manager of mesh representations.
+       * \param[in] smoothedMeshManager manager of smoothed mesh representations.
+       * \param[in] settings representation settings.
+       * \param[in] supportedViews flags of the supported views of the manager.
+       * \param[in] timer view states' timer.
+       * \param[in] context session context.
+       *
+       */
+      explicit SegmentationMeshSwitch(GUI::Representations::RepresentationManagerSPtr  meshManager,
+                                      GUI::Representations::RepresentationManagerSPtr  smoothedMeshManager,
+                                      std::shared_ptr<SegmentationMeshPoolSettings>    settings,
+                                      ViewTypeFlags                                    supportedViews,
+                                      Timer                                           &timer,
+                                      Support::Context                                &context);
+
+      /** \brief SegmentationMeshSwitch class virtual destructor.
+       *
+       */
+      virtual ~SegmentationMeshSwitch();
+
+      virtual ViewTypeFlags supportedViews();
+
+      virtual void showRepresentations(TimeStamp t) override;
+
+      virtual void hideRepresentations(TimeStamp t) override;
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+
+    private slots:
+      /** \brief Propagates changes in the smooth widget to the settings and the representations.
+       *
+       */
+      void onSmoothChanged();
+
+    private:
+      /** \brief Initializes the settings widgets of the switch.
+       *
+       */
+      void initWidgets();
+
+      /** \brief Updates the active manager.
+       *
+       */
+      void switchManagers();
+
+    private:
+      GUI::Representations::RepresentationManagerSPtr m_meshManager;
+      GUI::Representations::RepresentationManagerSPtr m_smoothedMeshManager;
+      std::shared_ptr<SegmentationMeshPoolSettings>   m_settings;
+      ViewTypeFlags                                   m_flags;
+      GUI::Widgets::NumericalInput                   *m_smooth;
+      bool                                            m_smoothEnabled;
+  };
+
+} // namespace ESPINA
+
+#endif // APP_TOOLGROUPS_VISUALIZE_REPRESENTATIONS_SWITCHES_SEGMENTATIONMESHSWITCH_H_
