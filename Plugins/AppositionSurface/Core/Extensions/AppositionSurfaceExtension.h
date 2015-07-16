@@ -70,7 +70,7 @@ namespace ESPINA
       virtual TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InfoTagList availableInformations() const;
+      virtual KeyList availableInformation() const;
 
       virtual bool validCategory(const QString &classificationName) const;
 
@@ -81,7 +81,7 @@ namespace ESPINA
       { m_originSegmentation = segmentation; }
 
     protected:
-      virtual QVariant cacheFail(const InfoTag &tag) const;
+      virtual QVariant cacheFail(const Key &tag) const;
 
       virtual void onExtendedItemSet(Segmentation* item);
 

@@ -20,12 +20,15 @@
 
 // plugin
 #include "AppositionSurfacePlugin.h"
+
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Extensions/ExtensionFactory.h>
+#include <Extensions/ExtensionUtils.h>
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
-#include <Core/Extensions/ExtensionFactory.h>
 
 // ESPINA
 #include <Extensions/Morphological/MorphologicalInformation.h>
@@ -238,13 +241,11 @@ void AppositionSurfacePlugin::createSASAnalysis()
      else
      {
        Q_ASSERT(sasItems.size() == 1);
-       auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
-       if (!sas->hasExtension(AppositionSurfaceExtension::TYPE))
-       {
-         auto extension = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-         std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(model->smartPointer(segmentation));
-         sas->addExtension(extension);
-       }
+       auto sas        = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
+       auto extensions = sas->extensions();
+       auto extension  = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+       std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(model->smartPointer(segmentation));
+       extensions->add(extension);
      }
   }
 
@@ -371,9 +372,11 @@ void AppositionSurfacePlugin::finishedTask()
     segmentation->setCategory(category);
     segmentation->setData(SASTAG_PREPEND + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
 
-    auto extension = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-    std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_finishedTasks[filter].segmentation);
-    segmentation->addExtension(extension);
+    auto extensions   = segmentation->extensions();
+    auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+    auto sasExtension =  std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
+    
+    sasExtension->setOriginSegmentation(m_finishedTasks[filter].segmentation);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());

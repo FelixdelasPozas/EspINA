@@ -45,7 +45,7 @@ namespace ESPINA
   public:
     static const Type    TYPE;
 
-    static InfoTag cfTag(CountingFrame *cf);
+    static Key cfTag(CountingFrame *cf);
 
   public:
     explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
@@ -67,9 +67,9 @@ namespace ESPINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
-//     virtual QVariant information(const InfoTag& tag) const;
+//     virtual QVariant information(const Key& tag) const;
 
     virtual QString toolTipText() const;
 

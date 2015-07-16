@@ -322,9 +322,11 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
     if (isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
-      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      auto extensions   = segmentation->extensions();
+
+      if (extensions->hasExtension(SegmentationTags::TYPE))
       {
-        auto extension = retrieveExtension<SegmentationTags>(segmentation);
+        auto extension = retrieveExtension<SegmentationTags>(extensions);
         tagSet.unite(extension->tags().toSet());
       }
     }

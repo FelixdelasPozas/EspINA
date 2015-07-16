@@ -43,7 +43,7 @@ namespace ESPINA
   : public SegmentationExtension
   {
   public:
-    static const InfoTag TAGS;
+    static const Key TAGS;
     static const Type    TYPE;
 
     /** \brief returns the list of available tags.
@@ -81,7 +81,7 @@ namespace ESPINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
     virtual QString toolTipText() const override;
 

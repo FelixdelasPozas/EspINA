@@ -35,30 +35,30 @@ using namespace ESPINA;
 const SegmentationExtension::Type EspinaExtensions_EXPORT MorphologicalInformation::TYPE = "MorphologicalInformation";
 
 // NOTE: Should it be public?
-const SegmentationExtension::InfoTag MORPHOLOGICAL_SIZE  = "Size";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_PS    = "Physical Size";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cx    = "Centroid X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cy    = "Centroid Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cz    = "Centroid Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Rx    = "Region X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Ry    = "Region Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Rz    = "Region Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMx  = "Binary Principal Moments X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMy  = "Binary Principal Moments Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMz  = "Binary Principal Moments Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA00 = "Binary Principal Axes (0 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA01 = "Binary Principal Axes (0 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA02 = "Binary Principal Axes (0 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA10 = "Binary Principal Axes (1 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA11 = "Binary Principal Axes (1 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA12 = "Binary Principal Axes (1 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA20 = "Binary Principal Axes (2 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA21 = "Binary Principal Axes (2 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA22 = "Binary Principal Axes (2 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_FD    = "Feret Diameter";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDx  = "Equivalent Ellipsoid Diameter X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Diameter Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
+const SegmentationExtension::Key MORPHOLOGICAL_SIZE  = "Size";
+const SegmentationExtension::Key MORPHOLOGICAL_PS    = "Physical Size";
+const SegmentationExtension::Key MORPHOLOGICAL_Cx    = "Centroid X";
+const SegmentationExtension::Key MORPHOLOGICAL_Cy    = "Centroid Y";
+const SegmentationExtension::Key MORPHOLOGICAL_Cz    = "Centroid Z";
+const SegmentationExtension::Key MORPHOLOGICAL_Rx    = "Region X";
+const SegmentationExtension::Key MORPHOLOGICAL_Ry    = "Region Y";
+const SegmentationExtension::Key MORPHOLOGICAL_Rz    = "Region Z";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMx  = "Binary Principal Moments X";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMy  = "Binary Principal Moments Y";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMz  = "Binary Principal Moments Z";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA00 = "Binary Principal Axes (0 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA01 = "Binary Principal Axes (0 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA02 = "Binary Principal Axes (0 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA10 = "Binary Principal Axes (1 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA11 = "Binary Principal Axes (1 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA12 = "Binary Principal Axes (1 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA20 = "Binary Principal Axes (2 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA21 = "Binary Principal Axes (2 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA22 = "Binary Principal Axes (2 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_FD    = "Feret Diameter";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDx  = "Equivalent Ellipsoid Diameter X";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Diameter Y";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
 
 //TODO: Review values to be used from new ITK version
 //------------------------------------------------------------------------
@@ -109,9 +109,9 @@ Snapshot MorphologicalInformation::snapshot() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList MorphologicalInformation::availableInformations() const
+SegmentationExtension::KeyList MorphologicalInformation::availableInformation() const
 {
-  InfoTagList tags;
+  KeyList tags;
 
   tags << MORPHOLOGICAL_SIZE;
   tags << MORPHOLOGICAL_PS;
@@ -146,7 +146,7 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
   {
     updateInformation();
 
-    if (availableInformations().contains(tag))
+    if (availableInformation().contains(tag))
     {
       info = information(tag);
     }

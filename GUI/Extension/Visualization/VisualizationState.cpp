@@ -41,15 +41,15 @@ VisualizationState::~VisualizationState()
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList VisualizationState::availableInformations() const
+SegmentationExtension::KeyList VisualizationState::availableInformation() const
 {
-  InfoTagList tags;
+  KeyList tags;
 
   return tags;
 }
 
 //------------------------------------------------------------------------
-QVariant VisualizationState::information(const InfoTag &tag) const
+QVariant VisualizationState::information(const Key &tag) const
 {
   qWarning() << TYPE << " Extension:"  << tag << " is not provided";
   return QVariant();

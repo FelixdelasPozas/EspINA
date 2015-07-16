@@ -18,6 +18,7 @@
 */
 #include "SegmentationInformation.h"
 
+#include <Core/Analysis/Segmentation.h>
 #include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
 #include <Support/Utils/TagUtils.h>
@@ -154,7 +155,7 @@ void SegmentationInformation::onNotesModified()
     }
     else
     {
-      auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation);
+      auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation->extensions());
       extension->setNotes(note);
     }
   }
@@ -260,9 +261,11 @@ void SegmentationInformation::removeRefineWidget()
 //----------------------------------------------------------------------------
 void SegmentationInformation::showTags()
 {
-  if (m_segmentation->hasExtension(SegmentationTags::TYPE))
+  auto extensions = m_segmentation->extensions();
+
+  if (extensions->hasExtension(SegmentationTags::TYPE))
   {
-    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
+    auto extension = retrieveExtension<SegmentationTags>(extensions);
 
     m_gui->tags->setText(extension->tags().join(", "));
   }
@@ -277,9 +280,11 @@ void SegmentationInformation::clearTags()
 //----------------------------------------------------------------------------
 void SegmentationInformation::showNotes()
 {
-  if (m_segmentation->hasExtension(SegmentationNotes::TYPE))
+  auto extensions = m_segmentation->extensions();
+
+  if (extensions->hasExtension(SegmentationNotes::TYPE))
   {
-    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
+    auto extension = retrieveExtension<SegmentationNotes>(extensions);
 
     m_gui->notes->setText(extension->notes());
   }

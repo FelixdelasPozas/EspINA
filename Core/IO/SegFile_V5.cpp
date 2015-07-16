@@ -422,7 +422,9 @@ void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
     extension = std::make_shared<ReadOnlyChannelExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
-  channel->addExtension(extension);
+  auto extensions = channel->extensions();
+
+  extensions->add(extension);
 }
 
 //-----------------------------------------------------------------------------
@@ -490,6 +492,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
                                                      const SegmentationExtension::InfoCache &cache,
                                                      const State &state)
 {
+  // TODO: Use utils function
   SegmentationExtensionSPtr extension;
   try
   {
@@ -502,7 +505,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
     extension = std::make_shared<ReadOnlySegmentationExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
-  segmentation->addExtension(extension);
+  segmentation->extensions()->add(extension);
 }
 
 //-----------------------------------------------------------------------------

@@ -39,12 +39,12 @@ namespace ESPINA
   public:
     static const Type TYPE;
 
-    static const InfoTag LEFT_DISTANCE;
-    static const InfoTag TOP_DISTANCE;
-    static const InfoTag FRONT_DISTANCE;
-    static const InfoTag RIGHT_DISTANCE;
-    static const InfoTag BOTTOM_DISTANCE;
-    static const InfoTag BACK_DISTANCE;
+    static const Key LEFT_DISTANCE;
+    static const Key TOP_DISTANCE;
+    static const Key FRONT_DISTANCE;
+    static const Key RIGHT_DISTANCE;
+    static const Key BOTTOM_DISTANCE;
+    static const Key BACK_DISTANCE;
 
     /** \brief EdgeDistance class constructor.
      *
@@ -85,10 +85,10 @@ namespace ESPINA
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
+    /** \brief Implements Extension::availableInformation().
      *
      */
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
     /** \brief Implements SegmentationExtension::validCategory().
      *

@@ -195,7 +195,10 @@ endif (UNIX)
 
 if (BUILD_UNIT_TESTS)
 
-  add_subdirectory(Unitary)
-  add_subdirectory(Integration)
+  add_subdirectory(Core)
+  add_subdirectory(Filters)
+  add_subdirectory(GUI)
+  add_subdirectory(Pipeline)
+  add_subdirectory(IO)
 
 endif(BUILD_UNIT_TESTS)

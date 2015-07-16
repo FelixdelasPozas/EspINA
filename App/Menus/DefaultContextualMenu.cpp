@@ -76,9 +76,10 @@ void DefaultContextualMenu::addNote()
   {
     QString previousNotes;
 
-    if (segmentation->hasExtension(SegmentationNotes::TYPE))
+    auto extensions = segmentation->readOnlyExtensions();
+    if (extensions->hasExtension(SegmentationNotes::TYPE))
     {
-      previousNotes = segmentation->information(SegmentationNotes::NOTES).toString();
+      previousNotes = extensions->get<SegmentationNotes>()->notes();
     }
 
     NoteEditor editor(segmentation->data().toString(), previousNotes);

@@ -45,10 +45,10 @@
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
-const SegmentationExtension::InfoTag EDGE_TAG = "Touch Edge";
+const SegmentationExtension::Key EDGE_TAG = "Touch Edge";
 
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
-//const SegmentationExtension::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
+//const SegmentationExtension::Key StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
 
@@ -56,7 +56,7 @@ const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTag StereologicalInclusion::cfTag(CountingFrame *cf)
+SegmentationExtension::Key StereologicalInclusion::cfTag(CountingFrame *cf)
 {
   return tr("Inc. %1 CF").arg(cf->id());
 }
@@ -102,9 +102,9 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations() const
+SegmentationExtension::KeyList StereologicalInclusion::availableInformation() const
 {
-  InfoTagList tags;
+  KeyList tags;
 
   tags << EDGE_TAG;
   for (auto cf : m_exclusionCFs.keys())
@@ -380,10 +380,8 @@ bool StereologicalInclusion::isOnEdge() const
     }
     else if (channels.size() == 1)
     {
-      auto channel   = channels.first();
-      auto extension = channel->extension(ChannelEdges::TYPE);
-
-      auto edgesExtension = std::dynamic_pointer_cast<ChannelEdges>(extension);
+      auto channel        = channels.first();
+      auto edgesExtension = retrieveExtension<ChannelEdges>(channel->readOnlyExtensions());
 
       Nm distances[6];
       if (edgesExtension->useDistanceToBounds())
@@ -464,9 +462,11 @@ void StereologicalInclusion::checkSampleCountingFrames()
 
       for(auto channel : QueryContents::channels(sample))
       {
-        if (channel->hasExtension(CountingFrameExtension::TYPE))
+        auto extensions = channel->readOnlyExtensions();
+
+        if (extensions->hasExtension(CountingFrameExtension::TYPE))
         {
-          auto extension = retrieveExtension<CountingFrameExtension>(channel);
+          auto extension = extensions->get<CountingFrameExtension>();
 
           for (auto cf : extension->countingFrames())
           {

@@ -67,39 +67,21 @@ namespace ESPINA
      */
     virtual ~ChannelEdges();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Extension::snapshot().
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const
-    { return InfoTagList(); }
+    virtual KeyList availableInformation() const
+    { return KeyList(); }
 
     /** \brief Sets the "use distance to bounds" flag.
      * \param[in] value, true to use the distance to bounds, false otherwise.
@@ -162,14 +144,8 @@ namespace ESPINA
     int threshold() const;
 
   protected:
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Channel* item);
 
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
     virtual QVariant cacheFail(const QString& tag) const
     { return QVariant(); }
 
@@ -200,9 +176,9 @@ namespace ESPINA
     void loadFacesCache();
 
   private slots:
-  	/** \brief Perform operations after finishing the edges computation.
-  	 *
-  	 */
+    /** \brief Perform operations after finishing the edges computation.
+     *
+     */
     void onChannelAnalyzed();
 
   private:
@@ -240,12 +216,12 @@ namespace ESPINA
    * Returns nullptr if the extension it's not a ChannelEdges extension.
    *
    */
-  ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
+//   ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
 
   /** \brief Returns a smart pointer of the channel's ChannelEdges extension.
    *
    */
-  ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
+//   ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
 
 }// namespace ESPINA
 

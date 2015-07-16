@@ -32,6 +32,8 @@ namespace ESPINA
   public:
     explicit InformationColorEngineSwitch(Support::Context& context);
 
+    using InformationKey = SegmentationExtension::InformationKey;
+
   private:
     void createPropertySelector();
 
@@ -47,8 +49,7 @@ namespace ESPINA
     void updateRange();
 
   private:
-    QString m_extensionType;
-    QString m_informationTag;
+    InformationKey m_key;
 
     TaskSPtr m_task;
 

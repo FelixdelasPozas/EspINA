@@ -61,18 +61,18 @@ using namespace ESPINA;
 
 const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurfaceExtensionInformation";
 
-const SegmentationExtension::InfoTag AREA                   = "Area";
-const SegmentationExtension::InfoTag PERIMETER              = "Perimeter";
-const SegmentationExtension::InfoTag TORTUOSITY             = "Area Ratio";
-const SegmentationExtension::InfoTag SYNAPSE                = "Synapse";
-const SegmentationExtension::InfoTag MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
-const SegmentationExtension::InfoTag STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
-const SegmentationExtension::InfoTag MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
-const SegmentationExtension::InfoTag STD_DEV_MEAN_CURVATURE = "Std Deviation Mean Curvature";
-const SegmentationExtension::InfoTag MEAN_MIN_CURVATURE     = "Mean Min Curvature";
-const SegmentationExtension::InfoTag STD_DEV_MIN_CURVATURE  = "Std Deviation Min Curvature";
-const SegmentationExtension::InfoTag MEAN_MAX_CURVATURE     = "Mean Max Curvature";
-const SegmentationExtension::InfoTag STD_DEV_MAX_CURVATURE  = "Std Deviation Max Curvature";
+const SegmentationExtension::Key AREA                   = "Area";
+const SegmentationExtension::Key PERIMETER              = "Perimeter";
+const SegmentationExtension::Key TORTUOSITY             = "Area Ratio";
+const SegmentationExtension::Key SYNAPSE                = "Synapse";
+const SegmentationExtension::Key MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
+const SegmentationExtension::Key STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
+const SegmentationExtension::Key MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
+const SegmentationExtension::Key STD_DEV_MEAN_CURVATURE = "Std Deviation Mean Curvature";
+const SegmentationExtension::Key MEAN_MIN_CURVATURE     = "Mean Min Curvature";
+const SegmentationExtension::Key STD_DEV_MIN_CURVATURE  = "Std Deviation Min Curvature";
+const SegmentationExtension::Key MEAN_MAX_CURVATURE     = "Mean Max Curvature";
+const SegmentationExtension::Key STD_DEV_MAX_CURVATURE  = "Std Deviation Max Curvature";
 
 const double UNDEFINED = -1.;
 
@@ -84,9 +84,9 @@ AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtensi
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList AppositionSurfaceExtension::availableInformations() const
+SegmentationExtension::KeyList AppositionSurfaceExtension::availableInformation() const
 {
-  SegmentationExtension::InfoTagList tags;
+  SegmentationExtension::KeyList tags;
 
   tags << AREA
        << PERIMETER
@@ -104,9 +104,9 @@ SegmentationExtension::InfoTagList AppositionSurfaceExtension::availableInformat
   return tags;
 }
 
-QVariant AppositionSurfaceExtension::cacheFail(const SegmentationExtension::InfoTag &tag) const
+QVariant AppositionSurfaceExtension::cacheFail(const SegmentationExtension::Key &tag) const
 {
-  if(availableInformations().contains(tag))
+  if(availableInformation().contains(tag))
   {
     computeInformation();
     return information(tag);

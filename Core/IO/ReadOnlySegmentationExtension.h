@@ -69,7 +69,7 @@ namespace ESPINA {
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual InfoTagList availableInformations() const
+    virtual KeyList availableInformation() const
     { return readyInformation(); }
 
     virtual bool validCategory(const QString& classificationName) const
@@ -78,7 +78,7 @@ namespace ESPINA {
   protected:
     virtual void onExtendedItemSet(Segmentation* item);
 
-    virtual QVariant cacheFail(const InfoTag &tag) const
+    virtual QVariant cacheFail(const Key &tag) const
     { return QVariant(); }
 
   private:

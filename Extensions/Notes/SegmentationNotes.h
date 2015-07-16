@@ -40,12 +40,12 @@ namespace ESPINA
   : public SegmentationExtension
   {
   public:
-    static const InfoTag NOTES;
-    static const Type    TYPE;
+    static const Key  NOTES;
+    static const Type TYPE;
 
   public:
     /** \brief SegmentationNotes class constructor.
-     * \param[in] infoCache, cache object.
+     * \param[in] infoCache cache object.
      *
      */
     explicit SegmentationNotes(const InfoCache& infoCache = InfoCache());
@@ -70,10 +70,10 @@ namespace ESPINA
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual bool validCategory(const QString& classificationName) const
+    virtual bool validCategory(const QString& classification) const
     { return true; }
 
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
     virtual QString toolTipText() const override;
 
@@ -89,16 +89,10 @@ namespace ESPINA
     { return cachedInfo(NOTES).toString(); }
 
   protected:
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Segmentation* item)
     {}
 
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const QString& key) const;
   };
 } // namespace ESPINA
 

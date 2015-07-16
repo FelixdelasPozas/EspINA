@@ -37,10 +37,10 @@ namespace ESPINA
 
         virtual ~InformationColorEngine();
 
-        void setInformation(const SegmentationExtension::InfoTag &measure, double min, double max);
+        void setInformation(const SegmentationExtension::InformationKey &key, double min, double max);
 
-        QString information() const
-        { return m_information; }
+        SegmentationExtension::InformationKey information() const
+        { return m_key; }
 
         virtual QColor color(SegmentationAdapterPtr segmentation);
 
@@ -53,9 +53,7 @@ namespace ESPINA
         { return m_colorRange; }
 
       private:
-        // TODO: create a class to group these values
-        QString m_extensionType;
-        SegmentationExtension::InfoTag m_information;
+        SegmentationExtension::InformationKey m_key;
 
         Utils::RangeHSV      *m_colorRange;
         QMap<QColor, LUTSPtr> m_luts;

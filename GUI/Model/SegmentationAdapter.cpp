@@ -71,39 +71,21 @@ unsigned int SegmentationAdapter::number() const
 }
 
 //------------------------------------------------------------------------
-bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
-{
-  return m_segmentation->hasExtension(type);
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const
-{
-  return m_segmentation->extension(type);
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSList SegmentationAdapter::extensions() const
-{
-  return m_segmentation->extensions();
-}
-
-//------------------------------------------------------------------------
 Bounds SegmentationAdapter::bounds() const
 {
   return m_segmentation->bounds();
 }
 
 //------------------------------------------------------------------------
-void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
+SegmentationAdapter::ReadLockExtensions SegmentationAdapter::readOnlyExtensions() const
 {
-  m_segmentation->addExtension(extension);
+  return m_segmentation->readOnlyExtensions();
 }
 
 //------------------------------------------------------------------------
-void SegmentationAdapter::deleteExtension(SegmentationExtensionSPtr extension)
+SegmentationAdapter::WriteLockExtensions SegmentationAdapter::extensions()
 {
-  m_segmentation->deleteExtension(extension);
+  return m_segmentation->extensions();
 }
 
 //------------------------------------------------------------------------
@@ -136,8 +118,9 @@ QVariant SegmentationAdapter::data(int role) const
       QPixmap segIcon(WIDTH, 16);
       segIcon.fill(m_category->color());
 
-      if ( hasExtension(SegmentationNotes::TYPE)
-        && !information(SegmentationNotes::NOTES).toString().isEmpty())
+      SegmentationExtension::InformationKey key(SegmentationNotes::TYPE, SegmentationNotes::NOTES);
+
+      if (!information(key).toString().isEmpty())
       {
         QPixmap noteIcon(":/espina/note.png");
         noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -192,21 +175,18 @@ QVariant SegmentationAdapter::data(int role) const
         addBreakLine = true;
       }
 
-      for(auto extension : m_segmentation->extensions())
-      {
-//         if (extension->isEnabled())
+//       for(auto extension : m_segmentation->extensions())
+//       {
+//         QString extToolTip = extension->toolTipText();
+//         if (!extToolTip.isEmpty())
 //         {
-        QString extToolTip = extension->toolTipText();
-        if (!extToolTip.isEmpty())
-        {
-          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
-
-          tooltip = tooltip.append(extToolTip);
-
-          addBreakLine = true;
-//           }
-        }
-      }
+//           if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+//
+//           tooltip = tooltip.append(extToolTip);
+//
+//           addBreakLine = true;
+//         }
+//       }
       return tooltip;
     }
     case Qt::CheckStateRole:
@@ -221,21 +201,21 @@ QVariant SegmentationAdapter::data(int role) const
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& tag) const
+QVariant SegmentationAdapter::information(const SegmentationExtension::InformationKey &key) const
 {
-  return m_segmentation->information(tag);
+  return m_segmentation->information(key);
 }
 
 //------------------------------------------------------------------------
-bool SegmentationAdapter::isInformationReady(const SegmentationExtension::InfoTag& tag) const
+bool SegmentationAdapter::isReady(const SegmentationExtension::InformationKey &key) const
 {
-  return m_segmentation->isInformationReady(tag);
+  return m_segmentation->readOnlyExtensions()->isReady(key);
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
+Extension< Segmentation >::InformationKeyList SegmentationAdapter::availableInformation() const
 {
-  return m_segmentation->informationTags();
+  return m_segmentation->readOnlyExtensions()->availableInformation();
 }
 
 //------------------------------------------------------------------------

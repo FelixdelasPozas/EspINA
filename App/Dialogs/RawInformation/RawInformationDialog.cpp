@@ -49,7 +49,7 @@ RawInformationDialog::RawInformationDialog(Support::Context &context)
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 
-  QDialogButtonBox *acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);

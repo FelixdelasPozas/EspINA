@@ -27,6 +27,9 @@
 
 // ESPINA
 #include "ChangeSegmentationNotes.h"
+
+#include "Core/Analysis/Segmentation.h"
+#include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
@@ -59,27 +62,30 @@ void ChangeSegmentationNotes::swapNotes()
 {
   QString currentNote;
 
-  if (m_segmentation->hasExtension(SegmentationNotes::TYPE))
+  auto extensions = m_segmentation->extensions();
+
+  if (extensions->hasExtension(SegmentationNotes::TYPE))
   {
-    currentNote = m_segmentation->information(SegmentationNotes::NOTES).toString();
+    SegmentationExtension::InformationKey key(SegmentationNotes::TYPE, SegmentationNotes::NOTES);
+
+    currentNote = extensions->information(key).toString();
   }
 
   if (currentNote.isEmpty() && !m_formerNote.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation);
+    auto extension = retrieveOrCreateExtension<SegmentationNotes>(extensions);
     extension->setNotes(m_formerNote);
     m_formerNote = "";
   }
   else if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
   {
-    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
+    auto extension = retrieveExtension<SegmentationNotes>(extensions);
     extension->setNotes(m_formerNote);
     m_formerNote = currentNote;
   }
   if (!currentNote.isEmpty() && m_formerNote.isEmpty())
   {
-    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
-    m_segmentation->deleteExtension(extension);
+    extensions->remove(SegmentationNotes::TYPE);
     m_formerNote = currentNote;
   }
   m_segmentation->notifyModification();

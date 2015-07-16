@@ -19,6 +19,7 @@
 
 #include "TagUtils.h"
 
+#include <Extensions/ExtensionUtils.h>
 #include <GUI/Widgets/TagSelector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Undo/ChangeSegmentationTags.h>
@@ -54,10 +55,10 @@ void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoSta
 
     for(auto segmentation: segmentations)
     {
-      if(segmentation->hasExtension(SegmentationTags::TYPE))
+      auto extensions = segmentation->extensions();
+      if(extensions->hasExtension(SegmentationTags::TYPE))
       {
-        auto tags = segmentation->extension(SegmentationTags::TYPE)->information(SegmentationTags::TAGS).toString().split(";");
-        for(auto tag: tags)
+        for(auto tag: extensions->get<SegmentationTags>()->tags())
         {
           tagOcurrence[tag] += 1;
         }
@@ -99,10 +100,14 @@ void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoSta
       {
         QStringList currentTags, previousTags;
 
-        if (segmentation->hasExtension(SegmentationTags::TYPE))
         {
-          currentTags  = segmentation->information(SegmentationTags::TAGS).toString().split(";");
-          previousTags = currentTags;
+          auto extensions = segmentation->readOnlyExtensions();
+
+          if (extensions->hasExtension(SegmentationTags::TYPE))
+          {
+            currentTags  = extensions->get<SegmentationTags>()->tags();
+            previousTags = currentTags;
+          }
         }
 
         for (int i = 0; i < tags.rowCount(); ++i)

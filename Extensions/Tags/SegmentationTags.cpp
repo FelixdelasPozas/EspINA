@@ -34,7 +34,7 @@
 using namespace ESPINA;
 
 const QString                        SegmentationTags::TYPE = "SegmentationTags";
-const SegmentationExtension::InfoTag SegmentationTags::TAGS = "Tags";
+const SegmentationExtension::Key SegmentationTags::TAGS = "Tags";
 
 QMap<QString, unsigned int> SegmentationTags::s_availableTags;
 QReadWriteLock              SegmentationTags::s_mutex;
@@ -68,9 +68,9 @@ void SegmentationTags::onExtendedItemSet(Segmentation* item)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationTags::availableInformations() const
+SegmentationExtension::KeyList SegmentationTags::availableInformation() const
 {
-  InfoTagList tags;
+  KeyList tags;
 
   tags << TAGS;
 

@@ -202,10 +202,12 @@ namespace ESPINA
 
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
 
-  template<typename Extendible>
-  void addSegmentationExtension(Extendible segmentation, const QString &type, ModelFactorySPtr factory)
+  template<typename Extensible>
+  void addSegmentationExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
   {
-    if (!segmentation->hasExtension(type))
+    auto extensions = segmentation->extensions();
+
+    if (!extensions->hasExtension(type))
     {
       if (factory->availableSegmentationExtensions().contains(type))
       {
@@ -213,7 +215,7 @@ namespace ESPINA
 
         if(extension->validCategory(segmentation->category()->classificationName()))
         {
-          segmentation->addExtension(extension);
+          extensions->add(extension);
         }
         else
         {
@@ -227,38 +229,12 @@ namespace ESPINA
     }
   }
 
-  template<typename Extendible>
-  SegmentationExtensionSPtr retrieveOrCreateExtension(Extendible segmentation, const QString &type, ModelFactorySPtr factory)
+  template<typename Extensible>
+  SegmentationExtensionSPtr retrieveOrCreateExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
   {
-    SegmentationExtensionSPtr extension;
+    addSegmentationExtension(segmentation, type, factory);
 
-    if (segmentation->hasExtension(type))
-    {
-      extension = segmentation->extension(type);
-    }
-    else
-    {
-      if (factory->availableSegmentationExtensions().contains(type))
-      {
-        extension = factory->createSegmentationExtension(type);
-
-        if(extension->validCategory(segmentation->category()->classificationName()))
-        {
-          segmentation->addExtension(extension);
-        }
-        else
-        {
-          qWarning() << segmentation->data().toString() << "doesn't support"<< type << "extensions";
-          extension.reset();
-        }
-      }
-      else
-      {
-        qWarning() << type << " extension is not available";
-      }
-    }
-
-    return extension;
+    return segmentation->readOnlyExtensions()[type];
   }
 
 }// namespace ESPINA

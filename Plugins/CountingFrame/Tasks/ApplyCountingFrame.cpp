@@ -66,7 +66,7 @@ void ApplyCountingFrame::run()
   {
     if (!canExecute()) break;
 
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
     extension->addCountingFrame(m_countingFrame);
     extension->evaluateCountingFrame(m_countingFrame);
 

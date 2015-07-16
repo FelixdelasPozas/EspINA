@@ -163,13 +163,6 @@ QString ChannelAdapter::metadata() const
   return m_channel->metadata();
 }
 
-
-//------------------------------------------------------------------------
-void ChannelAdapter::addExtension(ChannelExtensionSPtr extension)
-{
-  m_channel->addExtension(extension);
-}
-
 //------------------------------------------------------------------------
 Bounds ChannelAdapter::bounds() const
 {
@@ -177,21 +170,15 @@ Bounds ChannelAdapter::bounds() const
 }
 
 //------------------------------------------------------------------------
-void ChannelAdapter::deleteExtension(ChannelExtensionSPtr extension)
+ChannelAdapter::ReadLockExtensions ChannelAdapter::readOnlyExtensions() const
 {
-  m_channel->deleteExtension(extension);
+  return m_channel->readOnlyExtensions();
 }
 
 //------------------------------------------------------------------------
-bool ChannelAdapter::hasExtension(const ChannelExtension::Type& type) const
+ChannelAdapter::WriteLockExtensions ChannelAdapter::extensions()
 {
-  return m_channel->hasExtension(type);
-}
-
-//------------------------------------------------------------------------
-ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& type)
-{
-  return m_channel->extension(type);
+  return m_channel->extensions();
 }
 
 //------------------------------------------------------------------------

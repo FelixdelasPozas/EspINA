@@ -68,7 +68,7 @@ namespace ESPINA
     virtual bool invalidateOnChange() const
     { return true; }
 
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
     virtual bool validCategory(const QString& classificationName) const
     { return true;}

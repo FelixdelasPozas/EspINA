@@ -63,8 +63,8 @@ namespace ESPINA
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual InfoTagList availableInformations() const
-    { return InfoTagList(); }
+    virtual KeyList availableInformation() const
+    { return KeyList(); }
 
     virtual bool isCacheFile(const QString &file) const
     { return FILE == file; }

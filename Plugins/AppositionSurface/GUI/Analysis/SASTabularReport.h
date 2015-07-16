@@ -48,7 +48,7 @@ namespace ESPINA
                        QWidget                *parent = nullptr,
                        Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
       : TabularReport(context, parent, flags)
-      , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
+      , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation()}
       {
         setModel(context.model());
       };
@@ -62,7 +62,7 @@ namespace ESPINA
       static QString extraPath(const QString &file = QString())
       { return "Extra/SASInformation/" + file; }
 
-      SegmentationExtension::InfoTagList m_sasTags;
+      SegmentationExtension::KeyList m_sasTags;
     };
 
   class SASTabularReport::Entry
@@ -80,7 +80,7 @@ namespace ESPINA
 
       GUI::InformationSelector::GroupedInfo availableInformation();
 
-      void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
+      void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder);
 
     private slots:
       void extractInformation();

@@ -128,10 +128,10 @@ namespace ESPINA
         continue;
 
       auto extension = m_factory->createSegmentationExtension(type);
-      info[type] << extension->availableInformations();
+      info[type] << extension->availableInformation();
     }
 
-    for(auto tag: m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations())
+    for(auto tag: m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation())
         info[QString(AppositionSurfaceExtension::TYPE).prepend(SASTAG_PREPEND)] << QString(tag).prepend(SASTAG_PREPEND);
 
     // in case we have extensions not registered in the factory add them too. Will be read-only extensions.
@@ -142,7 +142,7 @@ namespace ESPINA
       auto segmentation = segmentationPtr(item);
 
       for (auto extension : segmentation->extensions())
-        info[extension->type()] << extension->availableInformations();
+        info[extension->type()] << extension->availableInformation();
     }
 
     for (auto tag : info.keys())
@@ -183,7 +183,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
+  void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder)
   {
     for(auto extensionType : extensionInformations.keys())
     {
@@ -192,28 +192,22 @@ namespace ESPINA
 
       for (auto segmentation : m_model->segmentations())
       {
-        if (!segmentation->hasExtension(extensionType))
-        {
-          if (m_factory->availableSegmentationExtensions().contains(extensionType))
-          {
-            auto extension = m_factory->createSegmentationExtension(extensionType);
-            if(extension->validCategory(segmentation->category()->classificationName()))
-              segmentation->addExtension(extension);
-          }
-          else if (extensionType != SEGMENTATION_GROUP)
-          {
-            qWarning() << extensionType << " is not available";
-          }
-        }
+        addSegmentationExtension(segmentation, extensionType, m_factory);
       }
     }
 
-    QStringList tags;
-    tags << tr("Name") << informationOrder;
-    m_proxy->setInformationTags(tags);
+    SegmentationExtension::InformationKeyList keys;
+    keys << InformationProxy::NameKey() << informationOrder;
+    m_proxy->setInformationTags(keys);
 
-    auto header = new QStandardItemModel(1, tags.size(), this);
-    header->setHorizontalHeaderLabels(tags);
+    QStringList headerLabels;
+    for (auto key : keys)
+    {
+      headerLabels << key.value();
+    }
+
+    auto header = new QStandardItemModel(1, keys.size(), this);
+    header->setHorizontalHeaderLabels(headerLabels);
     tableView->horizontalHeader()->setModel(header);
   }
 

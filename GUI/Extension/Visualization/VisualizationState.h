@@ -68,15 +68,15 @@ namespace ESPINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
+    /** \brief Implements Extension::availableInformation().
      *
      */
-    virtual InfoTagList availableInformations() const;
+    virtual KeyList availableInformation() const;
 
     /** \brief Shadows Extension::information(tag).
      *
      */
-    virtual QVariant information(const InfoTag &tag) const;
+    virtual QVariant information(const Key &tag) const;
 
     /** \brief Sets the state of a representation.
      * \param[in] representation, representation name.

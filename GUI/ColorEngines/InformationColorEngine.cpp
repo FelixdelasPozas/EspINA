@@ -29,8 +29,7 @@ using namespace ESPINA::GUI::ColorEngines;
 //-----------------------------------------------------------------------------
 InformationColorEngine::InformationColorEngine()
 : ColorEngine("PropertyColorEngine", tr("Property"))
-, m_extensionType("MorphologicalInformation")
-, m_information("Size")
+, m_key("MorphologicalInformation", "Size")
 , m_colorRange(new RangeHSV(0, 10000))
 {
 }
@@ -42,9 +41,9 @@ InformationColorEngine::~InformationColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-void InformationColorEngine::setInformation(const QString &information, double min, double max)
+void InformationColorEngine::setInformation(const SegmentationExtension::InformationKey &key, double min, double max)
 {
-  m_information = information;
+  m_key = key;
 
   m_colorRange->setMinimumValue(min);
   m_colorRange->setMaximumValue(max);
@@ -59,9 +58,11 @@ QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
 
   QColor color(Qt::gray);
 
-  if (segmentation->isInformationReady(m_information))
+  auto extensions = segmentation->readOnlyExtensions();
+
+  if (extensions->isReady(m_key))
   {
-    auto info = segmentation->information(m_information);
+    auto info = extensions->information(m_key);
 
     if (info.isValid() && info.canConvert<double>())
     {

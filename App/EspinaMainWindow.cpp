@@ -20,6 +20,7 @@
 #include "EspinaMainWindow.h"
 
 // ESPINA
+#include <Core/Analysis/Channel.h>
 #include "Dialogs/About/AboutDialog.h"
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
@@ -514,10 +515,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     model->setAnalysis(mergedAnalysis, m_context.factory());
 
-    for (auto seg : model->segmentations())
-    {
-      addSegmentationExtension(seg, "MorphologicalInformation", m_context.factory());
-    }
     m_analysis = mergedAnalysis;
 
     updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
@@ -1487,9 +1484,11 @@ void EspinaMainWindow::analyzeChannelEdges()
 {
   for (auto channel : m_context.model()->channels())
   {
-    if (!channel->hasExtension(ChannelEdges::TYPE))
+    auto extensions = channel->extensions();
+
+    if (!extensions->hasExtension(ChannelEdges::TYPE))
     {
-      channel->addExtension(std::make_shared<ChannelEdges>(m_context.scheduler()));
+      extensions->add(std::make_shared<ChannelEdges>(m_context.scheduler()));
     }
   }
 }
@@ -1539,7 +1538,7 @@ void EspinaMainWindow::saveAnalysis(const QString &filename)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveToolsSettings()
 {
-  auto settings = m_analysis->storage()->sessionSettings();
+  auto settings   = m_analysis->storage()->sessionSettings();
   auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 
   for(auto tool: availableTools())

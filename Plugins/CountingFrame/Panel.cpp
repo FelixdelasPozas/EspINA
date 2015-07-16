@@ -495,9 +495,10 @@ void Panel::createCountingFrame()
     auto channel = cfSelector.channel();
     Q_ASSERT(channel);
 
-    if (!channel->hasExtension(CountingFrameExtension::TYPE))
+    auto extensions = channel->extensions();
+    if (!extensions->hasExtension(CountingFrameExtension::TYPE))
     {
-      channel->addExtension(m_manager->createExtension(m_context.scheduler()));
+      extensions->add(m_manager->createExtension(m_context.scheduler()));
     }
 
     auto spacing = channel->output()->spacing();
@@ -509,7 +510,7 @@ void Panel::createCountingFrame()
       inclusion[i] = exclusion[i] = spacing[i]/2;
     }
 
-    auto extension = retrieveExtension<CountingFrameExtension>(channel);
+    auto extension = retrieveExtension<CountingFrameExtension>(extensions);
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     extension->createCountingFrame(type, inclusion, exclusion, constraint);
@@ -685,12 +686,14 @@ void Panel::updateSegmentationExtensions()
 {
   for (auto seg: m_context.model()->segmentations())
   {
-    if(seg->hasExtension(StereologicalInclusion::TYPE))
+    auto extensions = seg->extensions();
+
+    if(extensions->hasExtension(StereologicalInclusion::TYPE))
     {
-      auto extension = retrieveExtension<StereologicalInclusion>(seg);
+      auto extension = retrieveExtension<StereologicalInclusion>(extensions);
       if(!extension->hasCountingFrames())
       {
-        seg->deleteExtension(extension);
+        extensions->remove(extension);
       }
     }
   }
@@ -786,7 +789,7 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
   QApplication::setOverrideCursor(Qt::WaitCursor);
   for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
   {
-    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
+    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation->extensions());
 
     Nm dist2Margin[6];
     extension->edgeDistance(dist2Margin);
@@ -946,16 +949,18 @@ void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 {
   for (auto segmentation : segmentations)
   {
-    auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    auto segmentationExtensions = segmentation->extensions();
+    auto sterologicalExtension  = retrieveOrCreateExtension<StereologicalInclusion>(segmentationExtensions);
 
     auto samples = QueryAdapter::samples(segmentation);
     Q_ASSERT(samples.size() == 1);
 
     for (auto channel : QueryAdapter::channels(samples[0]))
     {
-      if (channel->hasExtension(CountingFrameExtension::TYPE))
+      auto channelExtensions = channel->readOnlyExtensions();
+      if (channelExtensions->hasExtension(CountingFrameExtension::TYPE))
       {
-        auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
+        auto cfExtension = retrieveExtension<CountingFrameExtension>(channelExtensions);
 
         for (auto cf : cfExtension->countingFrames())
         {

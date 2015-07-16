@@ -481,7 +481,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 //------------------------------------------------------------------------
 void SegmentationInspector::initReport()
 {
-  SegmentationExtension::InfoTagList tags;
+  SegmentationExtension::KeyList tags;
   tags << tr("Name") << tr("Category");
 
   m_tabularReport.setModel(getModel());

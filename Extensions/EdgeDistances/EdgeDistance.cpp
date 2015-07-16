@@ -33,12 +33,12 @@ using namespace ESPINA;
 
 const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
 
-const SegmentationExtension::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
-const SegmentationExtension::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
-const SegmentationExtension::InfoTag EdgeDistance::FRONT_DISTANCE  = "Front Distance";
-const SegmentationExtension::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
-const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
-const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE   = "Back Distance";
+const SegmentationExtension::Key EdgeDistance::LEFT_DISTANCE   = "Left Distance";
+const SegmentationExtension::Key EdgeDistance::TOP_DISTANCE    = "Top Distance";
+const SegmentationExtension::Key EdgeDistance::FRONT_DISTANCE  = "Front Distance";
+const SegmentationExtension::Key EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
+const SegmentationExtension::Key EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
+const SegmentationExtension::Key EdgeDistance::BACK_DISTANCE   = "Back Distance";
 
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance(const SegmentationExtension::InfoCache& cache, const State& state)
@@ -68,9 +68,9 @@ Snapshot EdgeDistance::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtension::InfoTagList EdgeDistance::availableInformations() const
+SegmentationExtension::KeyList EdgeDistance::availableInformation() const
 {
-  InfoTagList tags;
+  KeyList tags;
 
   tags << LEFT_DISTANCE;
   tags << RIGHT_DISTANCE;
@@ -122,7 +122,7 @@ void EdgeDistance::updateDistances() const
       Nm distances[6];
       auto channel = channels.first();
 
-      ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+      auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel->extensions());
 
       if (edgesExtension->useDistanceToBounds())
       {

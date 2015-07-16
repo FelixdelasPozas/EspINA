@@ -43,15 +43,13 @@ class UpdateColorEngineTask
 : public Task
 {
 public:
-    explicit UpdateColorEngineTask(const QString    &type,
-                             const QString          &info,
-                             InformationColorEngine *colorEngine,
-                             SegmentationAdapterList segmentations,
-                             ModelFactorySPtr        factory,
-                             SchedulerSPtr           scheduler)
+    explicit UpdateColorEngineTask(const SegmentationExtension::InformationKey &key,
+                                   InformationColorEngine *colorEngine,
+                                   SegmentationAdapterList segmentations,
+                                   ModelFactorySPtr        factory,
+                                   SchedulerSPtr           scheduler)
     : Task(scheduler)
-    , m_type(type)
-    , m_info(info)
+    , m_key(key)
     , m_colorEngine(colorEngine)
     , m_segmentations(segmentations)
     , m_factory(factory)
@@ -70,11 +68,11 @@ private:
     {
       if (!canExecute()) return;
 
-      auto extension = retrieveOrCreateExtension(segmentation, m_type, m_factory);
+      auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
 
       if (extension)
       {
-        auto info = extension->information(m_info);
+        auto info = extension->information(m_key.value());
 
         if (info.isValid() && info.canConvert<double>())
         {
@@ -94,12 +92,11 @@ private:
       reportProgress(i++/total*100);
     }
 
-    m_colorEngine->setInformation(m_info, min, max);
+    m_colorEngine->setInformation(m_key, min, max);
   }
 
 private:
-  const QString &m_type;
-  const QString &m_info;
+  const SegmentationExtension::InformationKey &m_key;
   InformationColorEngine *m_colorEngine;
   SegmentationAdapterList m_segmentations;
   ModelFactorySPtr m_factory;
@@ -108,8 +105,7 @@ private:
 //-----------------------------------------------------------------------------
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
 : ColorEngineSwitch(std::make_shared<InformationColorEngine>(), ":espina/color_engine_switch_property.svg", context)
-, m_extensionType("MorphologicalInformation")
-, m_informationTag(informationColorEngine()->information())
+, m_key(informationColorEngine()->information())
 {
   createPropertySelector();
 
@@ -159,7 +155,7 @@ InformationColorEngine* InformationColorEngineSwitch::informationColorEngine() c
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::updateSettings()
 {
-  m_property->setText(createLink(m_informationTag));
+  m_property->setText(createLink(m_key.value()));
 }
 
 //-----------------------------------------------------------------------------
@@ -173,8 +169,10 @@ void InformationColorEngineSwitch::changeProperty()
 
   if (propertySelector.exec() == QDialog::Accepted)
   {
-    m_extensionType  = selection.keys().first();
-    m_informationTag = selection[m_extensionType].first();
+    auto extension  = selection.keys().first();
+    auto value      = selection[extension].first();
+
+    m_key = InformationKey(extension, value);
 
     updateRange();
 
@@ -192,8 +190,7 @@ void InformationColorEngineSwitch::updateRange()
 
   auto segmentations = toRawList<SegmentationAdapter>(getModel()->segmentations());
 
-  m_task = std::make_shared<UpdateColorEngineTask>(m_extensionType,
-                                                   m_informationTag,
+  m_task = std::make_shared<UpdateColorEngineTask>(m_key,
                                                    informationColorEngine(),
                                                    segmentations,
                                                    getFactory(),

@@ -79,7 +79,7 @@ TabularReport::TabularReport(Support::Context &context,
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {
-  QHBoxLayout *general = new QHBoxLayout();
+  auto general = new QHBoxLayout();
   general->setAlignment(Qt::AlignRight);
 
   m_exportButton = new QPushButton();
@@ -97,8 +97,9 @@ TabularReport::TabularReport(Support::Context &context,
 
   general->addWidget(m_exportButton);
 
-  QVBoxLayout *layout = new QVBoxLayout();
-  QPalette pal = this->palette();
+  auto layout = new QVBoxLayout();
+  auto pal    = this->palette();
+
   pal.setColor(QPalette::Base, pal.color(QPalette::Background));
   this->setPalette(pal);
 

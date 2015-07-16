@@ -27,20 +27,20 @@
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extension.h"
 
+#include "Extensible.hxx"
+
 namespace ESPINA
 {
-	/** \brief Model biological structures which have been extracted from one or
-	 * more channels.
-	 */
+  /** \brief Model biological structures which have been extracted from one or
+   * more channels.
+   */
   class EspinaCore_EXPORT Segmentation
   : public ViewItem
+  , public Core::Analysis::Extensible<SegmentationExtension, Segmentation>
   {
   public:
-    struct Existing_Extension{};
-
-  public:
     /** \brief Segmentation class constructor.
-     * \param[in] input, input object smart pointer.
+     * \param[in] input input object smart pointer.
      *
      */
     explicit Segmentation(InputSPtr input);
@@ -50,28 +50,16 @@ namespace ESPINA
      */
     virtual ~Segmentation();
 
-    /** \brief Implements Persisten::restoreState().
-     *
-     */
     virtual void restoreState(const State& state);
 
-    /** \brief Implements Persistent::state() const.
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Persistent::snapshot() const.
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Persisten::unload().
-     *
-     */
     virtual void unload();
 
     /** \brief Sets an alternate name for the segmentation.
-     * \param[in] alias, alternate name.
+     * \param[in] alias alternate name.
      *
      */
     void setAlias(const QString& alias)
@@ -84,7 +72,7 @@ namespace ESPINA
     { return m_alias; }
 
     /** \brief Sets the number of the segmentation.
-     * \param[in] number, numerical value.
+     * \param[in] number numerical value.
      *
      */
     void setNumber(unsigned int number)
@@ -97,7 +85,7 @@ namespace ESPINA
     { return m_number; }
 
     /** \brief Sets the category of the segmentation.
-     * \param[in] category, category object smart pointer.
+     * \param[in] category category object smart pointer.
      *
      */
     void setCategory(CategorySPtr category);
@@ -109,7 +97,7 @@ namespace ESPINA
     { return m_category; }
 
     /** \brief Adds the user to the list of users that have modified this segmentation.
-     * \param[in] user, user name.
+     * \param[in] user user name.
      *
      */
     void modifiedByUser(const QString& user)
@@ -120,64 +108,6 @@ namespace ESPINA
      */
     QStringList users() const
     { return m_users.toList(); }
-
-    /** \brief Adds a extension to this segmentation.
-     * \param[in] extension, segmentation extension object smart pointer.
-     *
-     * Extesion won't be available until requirements are satisfied
-     *
-     */
-    void addExtension(SegmentationExtensionSPtr extension)
-      throw(SegmentationExtension::Existing_Extension);
-
-    /** \brief Removes an extension from the list of extenions.
-     * \param[in] extension, segmentation extension object smart pointer.
-     *
-     */
-    void deleteExtension(SegmentationExtensionSPtr extension)
-      throw(SegmentationExtension::Extension_Not_Found);
-
-    /** \brief Check whether or not there is an extension with the given type.
-     * \param[in] type, segmentation extension type.
-     *
-     */
-    bool hasExtension(const SegmentationExtension::Type& type) const;
-
-    /** \brief Return the extension with the especified type.
-     * \param[in] type, segmentation extension type.
-     *
-     *  Important: It the segmentation doesn't contain any extension with
-     *  the requested name, but there exist an extension prototype registered
-     *  in the factory, a new instance will be created and attached to the
-     *  segmentation.
-     *  If there is no extension with the given name registered in the factory
-     *  a Undefined_Extension exception will be thrown
-     */
-    SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const
-      throw(SegmentationExtension::Extension_Not_Found);
-
-    /** \brief Returns a list of segmentation extension smart pointers.
-     *
-     */
-    SegmentationExtensionSList extensions() const
-    { return m_extensions.values(); }
-
-    /** \brief Returns the list of information tag this segmentation can provide.
-     *
-     */
-    virtual SegmentationExtension::InfoTagList informationTags() const;
-
-    /** \brief Returns the value of the specified information tag.
-     * \param[in] tag, information key.
-     *
-     */
-    virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
-
-    /** \brief Returns true if the information has been generated.
-     * \param[in] tag, information key.
-     *
-     */
-    bool isInformationReady(const SegmentationExtension::InfoTag &tag) const;
 
   private:
     /** \brief Returns the path to save/load extensions data files.
@@ -206,7 +136,6 @@ namespace ESPINA
     unsigned int              m_number;
     QSet<QString>             m_users;
     CategorySPtr              m_category;
-    SegmentationExtensionSMap m_extensions;
   };
 }
 #endif // ESPINA_SEGMENTATION_H
