@@ -178,7 +178,7 @@ namespace ESPINA
 
     storage->makePath(path);
 
-    QString mhd = QString("%1/%2").arg(path).arg(id);
+    QString mhd = path + id;
     QString raw = mhd;
     raw.replace(".mhd",".raw");
 
