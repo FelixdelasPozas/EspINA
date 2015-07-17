@@ -74,6 +74,7 @@ namespace ESPINA
         auto id = Segmentation->data(Qt::DisplayRole).toString();
         setDescription(tr("%1 information").arg(id));
         setHidden(true);
+        setPriority(Priority::LOW);
 
         m_keys.removeOne(NameKey());
         m_keys.removeOne(CategoryKey());

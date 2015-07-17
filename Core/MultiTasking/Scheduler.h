@@ -37,8 +37,32 @@
 
 namespace ESPINA {
 
+  struct ScheduledTask
+  {
+    static const unsigned MAX_CICLES = 10;
+
+    ScheduledTask(TaskSPtr task)
+    : Task(task)
+    , Cicles(MAX_CICLES)
+    {}
+
+    TaskSPtr Task;
+    unsigned Cicles;
+
+    bool consumeCicle()
+    {
+      return --Cicles > 0;
+    }
+
+    void restoreCicles()
+    { Cicles = MAX_CICLES; }
+
+    bool operator==(const ScheduledTask &rhs)
+    { return Task == rhs.Task; }
+  };
+
   class TaskQueue
-  : public QList<TaskSPtr>
+  : public QList<ScheduledTask>
   {
   public:
     void orderedInsert(TaskSPtr worker);
@@ -99,7 +123,12 @@ namespace ESPINA {
   private:
     void proccessTaskInsertion();
 
+    void reschedule();
+
     void proccessPriorityChanges();
+
+    void roundRobinShift();
+
 
     /** \brief Removes a task from the task list.
      * \param[in] task task smart pointer.
@@ -116,7 +145,6 @@ namespace ESPINA {
 
     void printState(TaskSPtr task) const;
 
-
   private:
     int m_period;
 
@@ -126,7 +154,7 @@ namespace ESPINA {
     QMutex                  m_priorityMutex;
     QMap<TaskPtr, Priority> m_priorityBuffer;
 
-    QMap<Priority, TaskQueue> m_runningTasks;
+    QMap<Priority, TaskQueue> m_scheduledTasks;
 
     Task::Id m_lastId;
 

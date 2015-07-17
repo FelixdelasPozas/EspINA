@@ -68,10 +68,10 @@ private:
     {
       if (!canExecute()) return;
 
-      auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
-
-      if (extension)
+      try
       {
+        auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
+
         auto info = extension->information(m_key.value());
 
         if (info.isValid() && info.canConvert<double>())
@@ -87,6 +87,10 @@ private:
             min = max = value;
           }
         }
+      }
+      catch(SegmentationExtension::Extension_Not_Found &e)
+      {
+        qWarning() << "Information not available";
       }
 
       reportProgress(i++/total*100);

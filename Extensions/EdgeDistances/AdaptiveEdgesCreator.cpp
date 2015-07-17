@@ -88,7 +88,7 @@ AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 void AdaptiveEdgesCreator::run()
 {
   using Itk2VtkFilter = itk::ImageToVTKImageFilter<itkVolumeType>;
-  //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
+  qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
 
   auto channel = m_extension->extendedItem();
   //qDebug() << "Channel Bounds" << channel->bounds().toString();
@@ -373,5 +373,5 @@ void AdaptiveEdgesCreator::run()
 
   m_extension->m_edgesResultMutex.unlock();
 
-  //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
+  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }
