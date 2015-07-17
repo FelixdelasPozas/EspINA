@@ -112,7 +112,7 @@ namespace ESPINA
     { return QString("%1_roi").arg(id); }
 
     QString temporalStorageBoundsId(const QString &path, const QString &id) const
-    { return QString("%1/%2.bin").arg(path).arg(temporalStorageId(id)); }
+    { return path + QString("%2.bin").arg(temporalStorageId(id)); }
 
   private:
     bool m_isOrthogonal;

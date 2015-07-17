@@ -196,6 +196,18 @@ namespace ESPINA
     QString multiBlockPath(const QString &id, int part) const
     { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
 
+    /** \brief Helper method to assist fetching data from disk.
+     *
+     */
+    QString oldSingleBlockPath(const QString &id) const
+    { return QString("%1_%2.mhd").arg(this->type()).arg(id); }
+
+    /** \brief Helper method to assist fetching data from disk.
+     *
+     */
+    QString oldMultiBlockPath(const QString &id, int part) const
+    { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
+
     virtual QList<Data::Type> updateDependencies() const override
     { return QList<Data::Type>(); }
 
@@ -686,7 +698,9 @@ namespace ESPINA
     if (!storage || path.isEmpty() || id.isEmpty()) return false;
 
     for (auto filename : {multiBlockPath    (id, i),
-                          singleBlockPath   (id)})
+                          singleBlockPath   (id),
+                          oldSingleBlockPath(id),
+                          oldMultiBlockPath (id, i)})
     {
       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
       if (blockFile.exists()) break;
@@ -722,7 +736,14 @@ namespace ESPINA
       }
 
       ++i;
-      blockFile = storage->absoluteFilePath(path + multiBlockPath(id, i));
+
+      for (auto filename : {multiBlockPath   (id, i),
+                            oldMultiBlockPath(id, i)})
+      {
+        blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
+        if (blockFile.exists()) break;
+      }
+
       dataFetched = true;
     }
 
@@ -781,7 +802,7 @@ namespace ESPINA
 
     for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
     {
-      QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
+      QFileInfo filename(storage->absoluteFilePath(path + editedRegionSnapshotId(id, regionId)));
 
       if (filename.exists())
       {

@@ -119,7 +119,18 @@ void VolumetricStreamReader::execute()
 
   VolumeReader::Pointer reader = VolumeReader::New();
   reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-  reader->Update();
+  try
+  {
+    reader->Update();
+  }
+  catch(...)
+  {
+    QString warning = (mhdFile.absoluteFilePath().endsWith("mhd", Qt::CaseInsensitive) ? " Check if raw file inside mhd file exists." : "");
+
+    qWarning() << "exception in itk file reader. File:" << mhdFile.absoluteFilePath() << warning;
+
+    throw File_Not_Found_Exception();
+  }
 
   auto volume = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
 
