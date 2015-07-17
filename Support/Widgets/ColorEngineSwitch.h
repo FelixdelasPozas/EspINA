@@ -37,6 +37,10 @@ namespace ESPINA
 
         explicit ColorEngineSwitch(GUI::ColorEngines::ColorEngineSPtr engine, const QIcon &icon, Context &context);
 
+        virtual void saveSettings(std::shared_ptr<QSettings> settings);
+
+        virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+
         GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
 
       private:

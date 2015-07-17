@@ -314,7 +314,7 @@ void Scheduler::reschedule()
 {
   proccessPriorityChanges();
 
-  roundRobinShift();
+  //roundRobinShift();
 }
 
 //-----------------------------------------------------------------------------

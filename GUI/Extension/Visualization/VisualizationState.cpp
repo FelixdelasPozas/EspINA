@@ -41,11 +41,9 @@ VisualizationState::~VisualizationState()
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::KeyList VisualizationState::availableInformation() const
+SegmentationExtension::InformationKeyList VisualizationState::availableInformation() const
 {
-  KeyList tags;
-
-  return tags;
+  return InformationKeyList();
 }
 
 //------------------------------------------------------------------------

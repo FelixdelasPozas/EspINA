@@ -50,7 +50,7 @@ int segmentation_add_extension(int argc, char** argv)
   expectedKeys << createKey(extension, "Tag1") << createKey(extension, "Tag2");
 
   error |= (extensions["DummySegmentationExtension"] != extension);
-  error |= (extensions->informationKeys() != expectedKeys);
+  error |= (extensions->availableInformation() != expectedKeys);
   error |= (extensions->information(createKey(extension, "Tag1")) != QVariant("prueba1"));
   error |= (extensions->information(createKey(extension, "Tag2")) != QVariant("prueba2"));
 

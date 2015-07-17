@@ -46,8 +46,8 @@ int channel_remove_extension(int argc, char** argv )
     explicit DummyExtension() 
     : ChannelExtension(InfoCache()), Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
-    virtual KeyList availableInformation() const { return KeyList(); }
-    virtual QVariant cacheFail(const QString& tag) const { return QVariant(); }
+    virtual InformationKeyList availableInformation() const { return InformationKeyList(); }
+    virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
     virtual TypeList dependencies() const {return TypeList(); }
     virtual void onExtendedItemSet(Channel* item) {}
     virtual bool invalidateOnChange() const {return false;}

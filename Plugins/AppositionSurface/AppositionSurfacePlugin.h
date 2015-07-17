@@ -64,6 +64,10 @@ namespace ESPINA
 
     virtual FilterFactorySList filterFactories() const;
 
+    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
+
+    static SegmentationAdapterPtr segmentationSAS(SegmentationAdapterPtr segmentation);
+
   public slots:
     void createSASAnalysis();
 
@@ -88,7 +92,6 @@ namespace ESPINA
       {};
     };
 
-    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
     Support::Context                *m_context;

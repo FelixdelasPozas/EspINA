@@ -56,14 +56,16 @@ class DummySegmentationExtension
     virtual TypeList dependencies() const{ return TypeList(); }
 
     virtual void onExtendedItemSet(Segmentation* item){}
-    virtual QVariant cacheFail(const QString& tag) const {return QVariant();}
+    virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
 
-    KeyList availableInformation() const
+    virtual InformationKeyList availableInformation() const
     {
-      KeyList list;
-      list << Key("Tag1") << Key("Tag2");
-      return list;
+      InformationKeyList keys;
+
+      keys << createKey("Tag1") << createKey("Tag2");
+
+      return keys;
     };
 
     virtual QString toolTipText() const

@@ -45,7 +45,7 @@ namespace ESPINA
   public:
     static const Type    TYPE;
 
-    static Key cfTag(CountingFrame *cf);
+    InformationKey cfKey(CountingFrame *cf) const;
 
   public:
     explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
@@ -67,7 +67,7 @@ namespace ESPINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual KeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const;
 
 //     virtual QVariant information(const Key& tag) const;
 
@@ -82,7 +82,7 @@ namespace ESPINA
     bool isOnEdge() const;
 
   protected:
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& tag) const;
 
     virtual void onExtendedItemSet(Segmentation *segmentation);
 

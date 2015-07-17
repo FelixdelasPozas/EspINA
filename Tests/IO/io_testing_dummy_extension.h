@@ -52,7 +52,7 @@ class DummySegmentationExtension
     virtual TypeList dependencies() const{ return TypeList(); }
 
     virtual void onExtendedItemSet(Segmentation* item) {}
-    virtual QVariant cacheFail(const QString& tag) const {return QVariant();}
+    virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
 
     KeyList availableInformation() const

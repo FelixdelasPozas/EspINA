@@ -50,7 +50,7 @@
 #include <QVariant>
 
 const QString SAS = QObject::tr("SAS");
-const QString SASTAG_PREPEND = QObject::tr("SAS ");
+const QString SAS_PREFIX = QObject::tr("SAS ");
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
@@ -234,7 +234,8 @@ void AppositionSurfacePlugin::createSASAnalysis()
        struct Data data(filter, model->smartPointer(segmentation));
        m_executingTasks.insert(filter.get(), data);
 
-       connect(filter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+       connect(filter.get(), SIGNAL(finished()),
+               this,         SLOT(finishedTask()));
 
        Task::submit(filter);
      }
@@ -332,7 +333,9 @@ void AppositionSurfacePlugin::finishedTask()
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
   if(!filter->isAborted())
+  {
     m_finishedTasks.insert(filter, m_executingTasks[filter]);
+  }
 
   m_executingTasks.remove(filter);
 
@@ -340,8 +343,7 @@ void AppositionSurfacePlugin::finishedTask()
     return;
 
   // maybe all tasks have been aborted.
-  if(m_finishedTasks.empty())
-    return;
+  if(m_finishedTasks.empty()) return;
 
   undoStack->beginMacro("Create Synaptic Apposition Surfaces");
 
@@ -370,13 +372,14 @@ void AppositionSurfacePlugin::finishedTask()
   {
     auto segmentation = factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
     segmentation->setCategory(category);
-    segmentation->setData(SASTAG_PREPEND + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
+    segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
 
     auto extensions   = segmentation->extensions();
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-    auto sasExtension =  std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
+    auto sasExtension = std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
     
     sasExtension->setOriginSegmentation(m_finishedTasks[filter].segmentation);
+    extensions->add(sasExtension);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());
@@ -448,6 +451,17 @@ bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item)
 
   return result;
 }
+
+//-----------------------------------------------------------------------------
+SegmentationAdapterPtr AppositionSurfacePlugin::segmentationSAS(SegmentationAdapterPtr segmentation)
+{
+  auto relatedItems = segmentation->model()->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
+
+  Q_ASSERT(relatedItems.size() == 1);
+
+  return segmentationPtr(relatedItems.first().get());
+}
+
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)
 

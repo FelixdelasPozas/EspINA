@@ -59,6 +59,8 @@ using namespace ESPINA;
 /// - Sinaptic Apposition Surface Tortuosity (aka Area Ratio)
 /// - Synapse from which the Sinaptic Apposition Surface was obtained
 
+const QString AppositionSurfaceExtension::SAS_PREFIX = QObject::tr("SAS ");
+
 const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurfaceExtensionInformation";
 
 const SegmentationExtension::Key AREA                   = "Area";
@@ -84,41 +86,62 @@ AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtensi
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::KeyList AppositionSurfaceExtension::availableInformation() const
+SegmentationExtension::InformationKeyList AppositionSurfaceExtension::availableInformation() const
 {
-  SegmentationExtension::KeyList tags;
+  InformationKeyList keys;
 
-  tags << AREA
-       << PERIMETER
-       << TORTUOSITY
-       << SYNAPSE
-       << MEAN_GAUSS_CURVATURE
-       << STD_DEV_GAUS_CURVATURE
-       << MEAN_MEAN_CURVATURE
-       << STD_DEV_MEAN_CURVATURE
-       << MEAN_MIN_CURVATURE
-       << STD_DEV_MIN_CURVATURE
-       << MEAN_MAX_CURVATURE
-       << STD_DEV_MAX_CURVATURE;
+  keys << createKey(AREA)
+       << createKey(PERIMETER)
+       << createKey(TORTUOSITY)
+       << createKey(SYNAPSE)
+       << createKey(MEAN_GAUSS_CURVATURE)
+       << createKey(STD_DEV_GAUS_CURVATURE)
+       << createKey(MEAN_MEAN_CURVATURE)
+       << createKey(STD_DEV_MEAN_CURVATURE)
+       << createKey(MEAN_MIN_CURVATURE)
+       << createKey(STD_DEV_MIN_CURVATURE)
+       << createKey(MEAN_MAX_CURVATURE)
+       << createKey(STD_DEV_MAX_CURVATURE);
 
-  return tags;
+  return keys;
 }
 
-QVariant AppositionSurfaceExtension::cacheFail(const SegmentationExtension::Key &tag) const
+QVariant AppositionSurfaceExtension::cacheFail(const InformationKey &key) const
 {
-  if(availableInformation().contains(tag))
+  QVariant result;
+
+  if(availableInformation().contains(key))
   {
     computeInformation();
-    return information(tag);
+
+    result = information(key);
   }
-  else
-    return QVariant();
+
+  return result;
 }
 
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::validCategory(const QString &classificationName) const
 {
   return classificationName.contains(tr("SAS"));
+}
+
+SegmentationExtension::Key AppositionSurfaceExtension::addSASPrefix(const Key& value)
+{
+  return SAS_PREFIX + value;
+}
+
+//------------------------------------------------------------------------
+SegmentationExtension::Key AppositionSurfaceExtension::removeSASPrefix(const Key& value)
+{
+  auto key = value;
+
+  if(key.startsWith(SAS_PREFIX))
+  {
+    key.remove(0,SAS_PREFIX.size());
+  }
+
+  return key;
 }
 
 //------------------------------------------------------------------------

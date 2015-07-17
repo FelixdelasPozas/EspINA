@@ -29,7 +29,7 @@
 #include "GUI/Model/ChannelAdapter.h"
 #include <GUI/ModelFactory.h>
 #include <Core/Analysis/Output.h>
-#include <Tests/Unitary/GUI/gui_testing_support.h>
+#include <Tests/GUI/gui_testing_support.h>
 
 using namespace std;
 using namespace ESPINA;

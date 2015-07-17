@@ -39,7 +39,7 @@ namespace ESPINA {
 
   struct ScheduledTask
   {
-    static const unsigned MAX_CICLES = 10;
+    static const unsigned MAX_CICLES = 100;
 
     ScheduledTask(TaskSPtr task)
     : Task(task)

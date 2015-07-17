@@ -81,7 +81,7 @@ namespace ESPINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual KeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const;
 
     virtual QString toolTipText() const override;
 
@@ -118,7 +118,7 @@ namespace ESPINA
   protected:
     virtual void onExtendedItemSet(Segmentation* item);
 
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& tag) const;
 
   private:
     /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).

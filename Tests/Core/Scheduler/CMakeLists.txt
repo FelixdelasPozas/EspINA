@@ -8,6 +8,7 @@ create_test_sourcelist(TEST_SOURCES Scheduler_Tests.cpp # this file is created b
   scheduler_waiting_tasks.cpp
   scheduler_change_task_priority.cpp
   scheduler_simple_task_restart.cpp
+  scheduler_round_robin.cpp
 )
 
 include_directories(
@@ -35,3 +36,4 @@ add_test("\"Scheduler: Pause Non Pauseable Task\"" Scheduler_Tests scheduler_pau
 add_test("\"Scheduler: Sleep Main Thread\""        Scheduler_Tests scheduler_sleep_main_thread)
 add_test("\"Scheduler: Waiting Tasks\""            Scheduler_Tests scheduler_waiting_tasks)
 add_test("\"Scheduler: Change Task Priority\""     Scheduler_Tests scheduler_change_task_priority)
+add_test("\"Scheduler: Round Robin\""              Scheduler_Tests scheduler_round_robin)

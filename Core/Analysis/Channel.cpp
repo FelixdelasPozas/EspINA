@@ -152,11 +152,11 @@ Snapshot Channel::snapshot() const
       stream.writeStartElement("Extension");
       stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
-      for(auto tag : extension->readyInformation())
+      for(auto key : extension->readyInformation())
       {
         stream.writeStartElement("Info");
-        stream.writeAttribute("Name", tag);
-        stream.writeCharacters(extension->information(tag).toString());
+        stream.writeAttribute("Name", key.value());
+        stream.writeCharacters(extension->information(key).toString());
         stream.writeEndElement();
       }
 

@@ -73,7 +73,7 @@ namespace ESPINA
     virtual bool validCategory(const QString& classification) const
     { return true; }
 
-    virtual KeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const;
 
     virtual QString toolTipText() const override;
 
@@ -86,13 +86,13 @@ namespace ESPINA
      *
      */
     QString notes() const
-    { return cachedInfo(NOTES).toString(); }
+    { return cachedInfo(createKey(NOTES)).toString(); }
 
   protected:
     virtual void onExtendedItemSet(Segmentation* item)
     {}
 
-    virtual QVariant cacheFail(const QString& key) const;
+    virtual QVariant cacheFail(const InformationKey& key) const;
   };
 } // namespace ESPINA
 

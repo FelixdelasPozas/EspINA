@@ -57,42 +57,21 @@ namespace ESPINA
      */
     virtual ~EdgeDistance();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** \brief Implements Extension::availableInformation().
-     *
-     */
-    virtual KeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const;
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
@@ -103,14 +82,8 @@ namespace ESPINA
     void edgeDistance(Nm distances[6]) const;
 
   protected:
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& key) const;
 
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Segmentation* segmentation);
 
   private:

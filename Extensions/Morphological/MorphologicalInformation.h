@@ -68,13 +68,13 @@ namespace ESPINA
     virtual bool invalidateOnChange() const
     { return true; }
 
-    virtual KeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const;
 
     virtual bool validCategory(const QString& classificationName) const
     { return true;}
 
   protected:
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& tag) const;
 
     virtual void onExtendedItemSet(Segmentation* item);
 

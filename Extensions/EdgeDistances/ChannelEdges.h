@@ -80,11 +80,11 @@ namespace ESPINA
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual KeyList availableInformation() const
-    { return KeyList(); }
+    virtual InformationKeyList availableInformation() const
+    { return InformationKeyList(); }
 
     /** \brief Sets the "use distance to bounds" flag.
-     * \param[in] value, true to use the distance to bounds, false otherwise.
+     * \param[in] value true to use the distance to bounds, false otherwise.
      *
      */
     void setUseDistanceToBounds(bool value);
@@ -107,8 +107,8 @@ namespace ESPINA
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
     /** \brief Returns the distances in Nm from the segmentations to the edges of the channel.
-     * \param[in] segmentation, segmentation raw pointer.
-     * \param[out] distances, distances in each direction.
+     * \param[in] segmentation to measure distances
+     * \param[out] distances in each direction.
      *
      */
     void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
@@ -146,7 +146,7 @@ namespace ESPINA
   protected:
     virtual void onExtendedItemSet(Channel* item);
 
-    virtual QVariant cacheFail(const QString& tag) const
+    virtual QVariant cacheFail(const InformationKey& tag) const
     { return QVariant(); }
 
   private:

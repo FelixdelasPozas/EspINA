@@ -92,10 +92,7 @@ namespace ESPINA
 
         for (auto extension : m_extensions.values())
         {
-          for (auto key : extension->availableInformation())
-          {
-            list << createKey(extension, key);
-          }
+          list << extension->availableInformation();
         }
 
         return list;
@@ -109,9 +106,9 @@ namespace ESPINA
         {
           auto extension = m_extensions[key.extension()];
 
-          if (extension->hasInformation(key.value()))
+          if (extension->hasInformation(key))
           {
-            return extension->information(key.value());
+            return extension->information(key);
           }
         }
 
@@ -124,9 +121,9 @@ namespace ESPINA
       {
         for(auto extension: m_extensions.values())
         {
-          if (extension->hasInformation(key.value()))
+          if (extension->hasInformation(key))
           {
-            return extension->isReady(key.value());
+            return extension->isReady(key);
           }
         }
 
@@ -150,9 +147,9 @@ namespace ESPINA
 
         QVariant information;
 
-        if (extension && extension->hasInformation(key.value()))
+        if (extension && extension->hasInformation(key))
         {
-          information = extension->information(key.value());
+          information = extension->information(key);
         }
 
         return information;

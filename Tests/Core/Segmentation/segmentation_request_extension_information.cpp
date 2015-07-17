@@ -41,8 +41,8 @@ int segmentation_request_extension_information(int argc, char** argv)
 
   extensions->add(extension);
 
-  error |= (extension->information("Tag1") != QVariant("prueba1"));
-  error |= (extension->information("Tag2") != QVariant("prueba2"));
+  error |= (extension->information(createKey(extension, "Tag1")) != QVariant("prueba1"));
+  error |= (extension->information(createKey(extension, "Tag2")) != QVariant("prueba2"));
 
   error |= (extensions->information(createKey(extension, "Tag1")) != QVariant("prueba1"));
   error |= (extensions->information(createKey(extension, "Tag2")) != QVariant("prueba2"));

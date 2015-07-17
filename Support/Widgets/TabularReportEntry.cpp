@@ -56,26 +56,25 @@ class InformationDelegate
     if (index.column() == 0)
     {
       int progress = index.data(Qt::UserRole).toInt();
+
       if (progress >= 0)
       {
         // Set up a QStyleOptionProgressBar to precisely mimic the
         // environment of a progress bar.
         QStyleOptionProgressBar progressBarOption;
-        progressBarOption.state = QStyle::State_Enabled;
-        progressBarOption.direction = QApplication::layoutDirection();
-        progressBarOption.rect = option.rect;
-        progressBarOption.fontMetrics = QApplication::fontMetrics();
-        progressBarOption.minimum = 0;
-        progressBarOption.maximum = 100;
+        progressBarOption.state         = QStyle::State_Enabled;
+        progressBarOption.direction     = QApplication::layoutDirection();
+        progressBarOption.rect          = option.rect;
+        progressBarOption.fontMetrics   = QApplication::fontMetrics();
+        progressBarOption.minimum       = 0;
+        progressBarOption.maximum       = 100;
         progressBarOption.textAlignment = Qt::AlignCenter;
-        progressBarOption.textVisible = true;
-
-        progressBarOption.progress = progress;
-        progressBarOption.text = QString("%1%").arg(progressBarOption.progress);
+        progressBarOption.textVisible   = true;
+        progressBarOption.progress      = progress;
+        progressBarOption.text          = QString("%1%").arg(progressBarOption.progress);
 
 //         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
 //                                                     .arg(progressBarOption.progress);
-
         // Draw the progress bar onto the view.
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
 

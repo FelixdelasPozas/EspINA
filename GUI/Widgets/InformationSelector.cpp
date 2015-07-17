@@ -162,7 +162,10 @@ InformationSelector::GroupedInfo GUI::availableInformation(ModelFactorySPtr fact
   for (auto type : factory->availableSegmentationExtensions())
   {
     auto extension = factory->createSegmentationExtension(type);
-    info[type] << extension->availableInformation();
+    for (auto key : extension->availableInformation())
+    {
+      info[type] << key.value();
+    }
   }
 
   return info;
@@ -189,7 +192,10 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
 
     if (validForSegmentations(extension.get(), segmentations))
     {
-      info[type] << extension->availableInformation();
+      for (auto key : extension->availableInformation())
+      {
+        info[type] << key.value();
+      }
     }
   }
 

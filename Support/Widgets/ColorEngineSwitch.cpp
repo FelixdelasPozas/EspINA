@@ -24,6 +24,8 @@ using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
+const QString PROGRESSTOOL_CHECKED_KEY = "Checked"; // TODO: @Felix move to ProgressTool
+
 
 //------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context)
@@ -44,6 +46,20 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 
   connect(this,         SIGNAL(toggled(bool)),
           engine.get(), SLOT(setActive(bool)));
+}
+
+//------------------------------------------------------------------------
+void ColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  auto checked= settings->value(PROGRESSTOOL_CHECKED_KEY, false).toBool();
+
+  setChecked(checked);
+}
+
+//------------------------------------------------------------------------
+void ColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
+{
+  settings->setValue(PROGRESSTOOL_CHECKED_KEY, isChecked());
 }
 
 //------------------------------------------------------------------------

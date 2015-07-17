@@ -92,7 +92,7 @@ namespace ESPINA
     using InformationKeyList = QList<InformationKey>;
     using InfoCache          = QMap<Key, QVariant>;
 
-    struct Existing_Extension{};
+    struct Invalid_Extension_Key{};
     struct Extension_Not_Found{};
 
     static QString ExtensionFilePath(T *item)
@@ -156,31 +156,44 @@ namespace ESPINA
     /** \brief Returns a list of keys this extension have information of.
      *
      */
-    virtual KeyList availableInformation() const = 0;
+    virtual InformationKeyList availableInformation() const = 0;
 
-    bool hasInformation(const Key &key) const
-    { return availableInformation().contains(key); }
+    bool hasInformation(const InformationKey &key) const
+    {
+      return key.extension() == type() && availableInformation().contains(key);
+    }
 
     /** \brief Returns the list of keys whose information is ready
      *
      */
-    KeyList readyInformation() const
+    InformationKeyList readyInformation() const
     {
       QReadLocker locker(&m_lock);
 
-      return m_infoCache.keys();
+      InformationKeyList keys;
+
+      for (auto key : m_infoCache.keys())
+      {
+        keys << createKey(key);
+      }
+
+      return keys;
     }
 
-    bool isReady(const Key &key) const
-    { return readyInformation().contains(key); }
+    bool isReady(const InformationKey &key) const
+    {
+      if (key.extension() != type()) throw Invalid_Extension_Key();
+
+      return readyInformation().contains(key);
+    }
 
     /** \brief Returns the value of the information key provided.
      * \param[in] key informaton key
      *
      */
-    QVariant information(const Key &key) const
+    QVariant information(const InformationKey &key) const
     {
-      Q_ASSERT(hasInformation(key));
+      if (!hasInformation(key)) throw Invalid_Extension_Key();
 
       QVariant info = cachedInfo(key);
 
@@ -234,17 +247,17 @@ namespace ESPINA
      * \param[in] key information key.
      *
      */
-    virtual QVariant cacheFail(const Key &key) const = 0;
+    virtual QVariant cacheFail(const InformationKey &key) const = 0;
 
     /** \brief Returns the information from the cache.
      * \param[in] key information key.
      *
      */
-    QVariant cachedInfo(const Key &key) const
+    QVariant cachedInfo(const InformationKey &key) const
     {
       QReadLocker locker(&m_lock);
 
-      return m_infoCache.value(key, QVariant());
+      return m_infoCache.value(key.value(), QVariant());
     }
 
     /** \brief Updates the cache of the key with a value.
@@ -259,7 +272,6 @@ namespace ESPINA
       m_infoCache[key] = value;
     }
 
-  protected:
     /** \brief Invalidates the cache values.
      *
      */
@@ -269,6 +281,9 @@ namespace ESPINA
 
       m_infoCache.clear();
     }
+
+    InformationKey createKey(const Key &value) const
+    { return InformationKey(type(), value); }
 
   protected:
     T *m_extendedItem;

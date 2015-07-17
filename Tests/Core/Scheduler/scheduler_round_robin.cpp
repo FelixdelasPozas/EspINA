@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,49 +23,59 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
-#include "GUI/Model/ChannelAdapter.h"
-#include <GUI/ModelFactory.h>
-#include <Core/Analysis/Output.h>
-#include <Tests/GUI/gui_testing_support.h>
+#include <Scheduler.h>
 
-using namespace std;
+#include "SleepyTask.h"
+
+#include <iostream>
+#include <memory>
+#include <unistd.h>
+
+#include <QThreadPool>
+#include <QCoreApplication>
+ 
 using namespace ESPINA;
-using namespace ESPINA::Testing;
+using namespace std;
 
-bool TestSaturation(ChannelAdapterSPtr channel, double saturation) {
-  bool error = false;
-
-  channel->setSaturation(saturation);
-  if (channel->saturation() != saturation) {
-    cerr << "Unexepected saturation value:" << saturation << endl;
-    error = true;
-  }
-
-  return error;
-}
-
-int channel_adapter_set_saturation(int argc, char** argv )
+int scheduler_round_robin( int argc, char** argv )
 {
-  bool error = false;
+  int error = false;
 
-  SchedulerSPtr sch{new Scheduler(1e6)};
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactory factory(coreFactory);
+  int period = 2000;
+  int shortSleepTime = period;
+  int longSleepTime  = 10*period;
 
-  auto filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
-  auto channel = factory.createChannel(filter, 0);
+  auto scheduler = make_shared<Scheduler>(period);
 
-  if (channel->saturation() != 0) {
-    cerr << "Unexepected initial saturation value" << endl;
-    error = true;
+  int maxTasks = 2*scheduler->maxRunningTasks();
+
+  std::vector<shared_ptr<SleepyTask>> tasks;
+
+  for (int i = 0; i < maxTasks; ++i)
+  {
+    tasks.push_back(make_shared<SleepyTask>(longSleepTime, scheduler));
+    tasks.at(i)->setDescription(QString("Long Task %1").arg(i));
+    Task::submit(tasks.at(i));
   }
 
-  error |= TestSaturation(channel,  0.0);
-  error |= TestSaturation(channel,  0.5);
-  error |= TestSaturation(channel,  1.0);
+  auto shortTask = make_shared<SleepyTask>(shortSleepTime, scheduler);
+  shortTask->setDescription("Short Task");
+  Task::submit(shortTask);
+
+  usleep(2*period); // Guarantee task is started
+
+  while (!shortTask->hasFinished())
+  {
+    usleep(period);
+  }
+
+  for (auto task : tasks)
+  {
+    error |= task->hasFinished();
+  }
 
   return error;
 }

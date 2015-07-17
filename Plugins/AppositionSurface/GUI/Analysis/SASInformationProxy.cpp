@@ -22,6 +22,7 @@
 #include "SASInformationProxy.h"
 
 #include "Core/Extensions/AppositionSurfaceExtension.h"
+#include <AppositionSurfacePlugin.h>
 
 // ESPINA
 #include <Core/Analysis/Extension.h>
@@ -33,9 +34,6 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
-
-const QString SAS = QObject::tr("SAS");
-const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
@@ -58,7 +56,7 @@ public:
     bool ready = true;
     for (auto key : m_keys)
     {
-      ready &= m_sas->isReady(sasKey(key.value()));
+      ready &= m_sas->isReady(key);
 
       if (!ready) break;
     }
@@ -67,19 +65,6 @@ public:
   }
 
   SegmentationAdapterPtr m_sas;
-
-  static SegmentationExtension::InformationKey sasKey(const QString &value)
-  {
-    auto key = value;
-
-    if(key.startsWith(SASTAG_PREPEND))
-    {
-      key.remove(0,SASTAG_PREPEND.size());
-    }
-
-    return SegmentationExtension::InformationKey(AppositionSurfaceExtension::TYPE, key);
-  }
-
 
 protected:
   virtual void run()
@@ -91,10 +76,9 @@ protected:
       auto key = m_keys[i];
       if (key != NameKey() && key != CategoryKey())
       {
-        auto sasKey = SASInformationFetcher::sasKey(key.value());
-        if(!m_sas->isReady(sasKey))
+        if(!m_sas->isReady(key))
         {
-          m_sas->information(sasKey);
+          m_sas->information(key);
           if (!canExecute()) break;
         }
       }
@@ -138,13 +122,9 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   if (role == Qt::BackgroundRole)
   {
-    if (!m_pendingInformation.contains(segmentation) ||!m_pendingInformation[segmentation]->hasFinished())
-    {
-      return Qt::lightGray;
-    } else
-    {
-      return QAbstractProxyModel::data(proxyIndex, role);
-    }
+    auto disabled = !m_pendingInformation.contains(segmentation) ||!m_pendingInformation[segmentation]->hasFinished();
+
+    return disabled?Qt::lightGray:QAbstractProxyModel::data(proxyIndex, role);
   }
 
   if (role == Qt::DisplayRole && !m_keys.isEmpty())
@@ -161,14 +141,11 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
       return segmentation->category()->data(role);
     }
 
-    //FIXME
-    auto sasKey = SASInformationFetcher::sasKey(key.value());
     if (segmentation->hasInformation(key))
     {
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {
-        auto sasItem = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).first().get();
-        auto sas     = segmentationPtr(sasItem);
+        auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
 
         auto task = std::make_shared<SASInformationFetcher>(segmentation, sas, m_keys, m_scheduler);
         m_pendingInformation[segmentation] = task;
@@ -192,10 +169,9 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
       return "";
     }
-    else if(key.value().startsWith(SASTAG_PREPEND))
+    else if(key.extension() == AppositionSurfaceExtension::TYPE)
     {
-      auto sasItem = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).first().get();
-      auto sas     = segmentationPtr(sasItem);
+      auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
 
       if(sas->hasInformation(key))
       {
@@ -207,9 +183,9 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
           if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
           {
             connect(task.get(), SIGNAL(progress(int)),
-                    this, SLOT(onProgessReported(int)));
+                    this,       SLOT(onProgessReported(int)));
             connect(task.get(), SIGNAL(finished()),
-                    this, SLOT(onTaskFininished()));
+                    this,       SLOT(onTaskFininished()));
             //qDebug() << "Launching Task";
             Task::submit(task);
           }
@@ -232,9 +208,10 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
       return tr("Unavailable");
     }
   }
-  else
-    if (proxyIndex.column() > 0)
+  else if (proxyIndex.column() > 0)
+  {
       return QVariant();//To avoid checkrole or other roles
+  }
 
   return QAbstractProxyModel::data(proxyIndex, role);
 }

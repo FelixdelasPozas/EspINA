@@ -68,18 +68,18 @@ Snapshot EdgeDistance::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtension::KeyList EdgeDistance::availableInformation() const
+SegmentationExtension::InformationKeyList EdgeDistance::availableInformation() const
 {
-  KeyList tags;
+  InformationKeyList keys;
 
-  tags << LEFT_DISTANCE;
-  tags << RIGHT_DISTANCE;
-  tags << TOP_DISTANCE;
-  tags << BOTTOM_DISTANCE;
-  tags << FRONT_DISTANCE;
-  tags << BACK_DISTANCE;
+  keys << createKey(LEFT_DISTANCE);
+  keys << createKey(RIGHT_DISTANCE);
+  keys << createKey(TOP_DISTANCE);
+  keys << createKey(BOTTOM_DISTANCE);
+  keys << createKey(FRONT_DISTANCE);
+  keys << createKey(BACK_DISTANCE);
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
@@ -88,22 +88,22 @@ void EdgeDistance::onExtendedItemSet(Segmentation* segmentation)
 }
 
 //------------------------------------------------------------------------
-QVariant EdgeDistance::cacheFail(const QString& tag) const
+QVariant EdgeDistance::cacheFail(const InformationKey& key) const
 {
   updateDistances();
 
-  return cachedInfo(tag);
+  return cachedInfo(key);
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
-  distances[0] = information(LEFT_DISTANCE).toDouble();
-  distances[1] = information(RIGHT_DISTANCE).toDouble();
-  distances[2] = information(TOP_DISTANCE).toDouble();
-  distances[3] = information(BOTTOM_DISTANCE).toDouble();
-  distances[4] = information(FRONT_DISTANCE).toDouble();
-  distances[5] = information(BACK_DISTANCE).toDouble();
+  distances[0] = information(createKey(LEFT_DISTANCE)).toDouble();
+  distances[1] = information(createKey(RIGHT_DISTANCE)).toDouble();
+  distances[2] = information(createKey(TOP_DISTANCE)).toDouble();
+  distances[3] = information(createKey(BOTTOM_DISTANCE)).toDouble();
+  distances[4] = information(createKey(FRONT_DISTANCE)).toDouble();
+  distances[5] = information(createKey(BACK_DISTANCE)).toDouble();
 }
 
 //-----------------------------------------------------------------------------

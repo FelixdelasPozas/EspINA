@@ -72,7 +72,7 @@ private:
       {
         auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
 
-        auto info = extension->information(m_key.value());
+        auto info = extension->information(m_key);
 
         if (info.isValid() && info.canConvert<double>())
         {

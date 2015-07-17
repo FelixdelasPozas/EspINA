@@ -109,21 +109,24 @@ Snapshot MorphologicalInformation::snapshot() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::KeyList MorphologicalInformation::availableInformation() const
+SegmentationExtension::InformationKeyList MorphologicalInformation::availableInformation() const
 {
-  KeyList tags;
+  InformationKeyList keys;
 
-  tags << MORPHOLOGICAL_SIZE;
-  tags << MORPHOLOGICAL_PS;
-  tags << MORPHOLOGICAL_Cx << MORPHOLOGICAL_Cy << MORPHOLOGICAL_Cz;
-  tags << MORPHOLOGICAL_BPMx << MORPHOLOGICAL_BPMy << MORPHOLOGICAL_BPMz;
-  tags << MORPHOLOGICAL_BPA00 << MORPHOLOGICAL_BPA01 << MORPHOLOGICAL_BPA02;
-  tags << MORPHOLOGICAL_BPA10 << MORPHOLOGICAL_BPA11 << MORPHOLOGICAL_BPA12;
-  tags << MORPHOLOGICAL_BPA20 << MORPHOLOGICAL_BPA21 << MORPHOLOGICAL_BPA22;
-  tags << MORPHOLOGICAL_FD;
-  tags << MORPHOLOGICAL_EEDx << MORPHOLOGICAL_EEDy << MORPHOLOGICAL_EEDz;
+  for (auto value : {MORPHOLOGICAL_SIZE,
+                     MORPHOLOGICAL_PS,
+                     MORPHOLOGICAL_Cx, MORPHOLOGICAL_Cy, MORPHOLOGICAL_Cz,
+                     MORPHOLOGICAL_BPMx, MORPHOLOGICAL_BPMy, MORPHOLOGICAL_BPMz,
+                     MORPHOLOGICAL_BPA00, MORPHOLOGICAL_BPA01, MORPHOLOGICAL_BPA02,
+                     MORPHOLOGICAL_BPA10, MORPHOLOGICAL_BPA11, MORPHOLOGICAL_BPA12,
+                     MORPHOLOGICAL_BPA20, MORPHOLOGICAL_BPA21, MORPHOLOGICAL_BPA22,
+                     MORPHOLOGICAL_FD,
+                     MORPHOLOGICAL_EEDx, MORPHOLOGICAL_EEDy, MORPHOLOGICAL_EEDz})
+  {
+    keys << createKey(value);
+  }
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
@@ -132,9 +135,9 @@ void MorphologicalInformation::onExtendedItemSet(Segmentation* item)
 }
 
 //------------------------------------------------------------------------
-QVariant MorphologicalInformation::cacheFail(const QString& tag) const
+QVariant MorphologicalInformation::cacheFail(const InformationKey& key) const
 {
-  if (tag == MORPHOLOGICAL_FD)
+  if (key.value() == MORPHOLOGICAL_FD)
   {
     QWriteLocker lock(&m_mutex);
     m_labelMap->SetComputeFeretDiameter(true);
@@ -146,9 +149,9 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
   {
     updateInformation();
 
-    if (availableInformation().contains(tag))
+    if (availableInformation().contains(key))
     {
-      info = information(tag);
+      info = information(key);
     }
   }
 
