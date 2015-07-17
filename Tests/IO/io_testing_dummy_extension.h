@@ -55,10 +55,10 @@ class DummySegmentationExtension
     virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
 
-    KeyList availableInformation() const
+    InformationKeyList availableInformation() const
     {
-      KeyList list;
-      list << Key("Tag1") << Key("Tag2");
+      InformationKeyList list;
+      list << createKey("Tag1") << createKey("Tag2");
       return list;
     };
 

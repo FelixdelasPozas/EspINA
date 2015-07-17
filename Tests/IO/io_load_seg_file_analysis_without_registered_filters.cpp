@@ -46,30 +46,32 @@ int io_load_seg_file_analysis_without_registered_filters( int argc, char** argv 
 {
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
+  auto factory = make_shared<CoreFactory>();
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = make_shared<Classification>("Test");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  FilterSPtr filter{new DummyFilter()};
-  ChannelSPtr channel(new Channel(getInput(filter, 0)));
-  channel->setName("channel");
+  QString channelName     = "channel";
+
+  auto filter  = make_shared<DummyFilter>();
+  auto channel = make_shared<Channel>(getInput(filter, 0));
+  channel->setName(channelName);
 
   analysis.add(channel);
 
   analysis.addRelation(sample, channel, "Stain");
 
-  FilterSPtr segFilter{new DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segFilter    = std::make_shared<DummyFilter>();
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
-  SegmentationExtensionSPtr extension{new DummySegmentationExtension()};
-  segmentation->addExtension(extension);
+  auto extension = std::make_shared<DummySegmentationExtension>();
+  segmentation->extensions()->add(extension);
 
   analysis.add(segmentation);
 

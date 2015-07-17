@@ -79,12 +79,12 @@ int io_analysis_seg_file_io( int argc, char** argv )
 
   analysis.addRelation(sample, channel, "Stain");
 
-  FilterSPtr segFilter{new DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segFilter    = std::make_shared<DummyFilter>();
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
-  SegmentationExtensionSPtr extension{new DummySegmentationExtension()};
-  segmentation->addExtension(extension);
+  auto extension = std::make_shared<DummySegmentationExtension>();
+  segmentation->extensions()->add(extension);
 
   analysis.add(segmentation);
 

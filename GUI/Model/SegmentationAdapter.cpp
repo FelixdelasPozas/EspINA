@@ -175,18 +175,19 @@ QVariant SegmentationAdapter::data(int role) const
         addBreakLine = true;
       }
 
-//       for(auto extension : m_segmentation->extensions())
-//       {
-//         QString extToolTip = extension->toolTipText();
-//         if (!extToolTip.isEmpty())
-//         {
-//           if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
-//
-//           tooltip = tooltip.append(extToolTip);
-//
-//           addBreakLine = true;
-//         }
-//       }
+      for(auto extension : m_segmentation->readOnlyExtensions())
+      {
+        QString extToolTip = extension->toolTipText();
+        if (!extToolTip.isEmpty())
+        {
+          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+
+          tooltip = tooltip.append(extToolTip);
+
+          addBreakLine = true;
+        }
+      }
+
       return tooltip;
     }
     case Qt::CheckStateRole:

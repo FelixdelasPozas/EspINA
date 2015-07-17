@@ -47,26 +47,28 @@ AnalysisSPtr createSimplePipeline(unsigned int segId)
 {
   auto analysis = make_shared<Analysis>();
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = make_shared<Classification>("Test");
   analysis->setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = make_shared<Sample>("C3P0");
   analysis->add(sample);
 
-  FilterSPtr filter{new DummyFilter()};
-  ChannelSPtr channel(new Channel(getInput(filter, 0)));
-  channel->setName("channel");
+  QString channelName     = "channel";
+
+  auto filter  = make_shared<DummyFilter>();
+  auto channel = make_shared<Channel>(getInput(filter, 0));
+  channel->setName(channelName);
 
   analysis->add(channel);
 
   analysis->addRelation(sample, channel, "Stain");
 
-  FilterSPtr segFilter{new DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segFilter    = std::make_shared<DummyFilter>();
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(segId);
 
-  SegmentationExtensionSPtr extension{new DummySegmentationExtension()};
-  segmentation->addExtension(extension);
+  auto extension = std::make_shared<DummySegmentationExtension>();
+  segmentation->extensions()->add(extension);
 
   analysis->add(segmentation);
 

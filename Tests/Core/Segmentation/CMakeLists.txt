@@ -2,7 +2,7 @@
 create_test_sourcelist(TEST_SOURCES Segmentation_Tests.cpp # this file is created by this command
   segmentation_default_constructor.cpp
   segmentation_save_state.cpp
-#   segmentation_save_snapshot.cpp
+  segmentation_save_snapshot.cpp
   segmentation_restore_state.cpp
   segmentation_change_number.cpp
   segmentation_change_category.cpp

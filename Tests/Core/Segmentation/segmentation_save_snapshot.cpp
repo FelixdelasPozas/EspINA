@@ -41,7 +41,7 @@ int segmentation_save_snapshot(int argc, char** argv)
   FilterSPtr filter{new Testing::DummyFilter()};
   SegmentationSPtr segmentation(new Segmentation(getInput(filter, 0)));
 
-  segmentation->addExtension(extension);
+  segmentation->extensions()->add(extension);
 
   Snapshot snapshot = segmentation->snapshot();
 
