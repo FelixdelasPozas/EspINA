@@ -39,6 +39,10 @@ using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::Support;
 
+
+const QString EXTENSION_KEY   = "Extension";
+const QString INFORMATION_KEY = "Key";
+
 class UpdateColorEngineTask
 : public Task
 {
@@ -110,19 +114,34 @@ private:
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
 : ColorEngineSwitch(std::make_shared<InformationColorEngine>(), ":espina/color_engine_switch_property.svg", context)
 , m_key(informationColorEngine()->information())
+, m_needUpdate(true)
 {
   createPropertySelector();
 
   createColorRange();
 
-  updateSettings();
-
-  connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-          this,             SLOT(updateRange()));
-
-  connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
-          this,             SLOT(updateRange()));
+  connect(this, SIGNAL(toggled(bool)),
+          this, SLOT(onToolToggled(bool)));
 }
+
+void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > settings)
+{
+  ColorEngineSwitch::restoreSettings(settings);
+
+  auto extension = settings->value(EXTENSION_KEY,   "MorphologicalInformation").toString();
+  auto key       = settings->value(INFORMATION_KEY, "Size").toString();
+
+  m_key = InformationKey(extension, key);
+}
+
+void InformationColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
+{
+  ColorEngineSwitch::saveSettings(settings);
+
+  settings->setValue(EXTENSION_KEY,   m_key.extension());
+  settings->setValue(INFORMATION_KEY, m_key.value());
+}
+
 
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::createPropertySelector()
@@ -157,7 +176,17 @@ InformationColorEngine* InformationColorEngineSwitch::informationColorEngine() c
 }
 
 //-----------------------------------------------------------------------------
-void InformationColorEngineSwitch::updateSettings()
+void InformationColorEngineSwitch::update()
+{
+  updateRange();
+
+  updateLink();
+
+  m_needUpdate = false;
+}
+
+//-----------------------------------------------------------------------------
+void InformationColorEngineSwitch::updateLink()
 {
   m_property->setText(createLink(m_key.value()));
 }
@@ -178,9 +207,9 @@ void InformationColorEngineSwitch::changeProperty()
 
     m_key = InformationKey(extension, value);
 
-    updateRange();
+    m_needUpdate = true;
 
-    updateSettings();
+    update();
   }
 }
 
@@ -202,4 +231,26 @@ void InformationColorEngineSwitch::updateRange()
   showTaskProgress(m_task);
 
   Task::submit(m_task);
+}
+
+void InformationColorEngineSwitch::onToolToggled(bool checked)
+{
+  if (checked && m_needUpdate)
+  {
+    update();
+
+    connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+            this,             SLOT(updateRange()));
+
+    connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+            this,             SLOT(updateRange()));
+  }
+  else
+  {
+    disconnect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+               this,             SLOT(updateRange()));
+
+    disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+               this,             SLOT(updateRange()));
+  }
 }

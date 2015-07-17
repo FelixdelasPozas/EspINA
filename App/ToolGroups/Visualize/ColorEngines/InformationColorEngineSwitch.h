@@ -34,6 +34,10 @@ namespace ESPINA
 
     using InformationKey = SegmentationExtension::InformationKey;
 
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+
+    virtual void saveSettings(std::shared_ptr<QSettings> settings);
+
   private:
     void createPropertySelector();
 
@@ -41,15 +45,21 @@ namespace ESPINA
 
     GUI::ColorEngines::InformationColorEngine *informationColorEngine() const;
 
-    void updateSettings();
+    void update();
+
+    void updateLink();
 
   private slots:
     void changeProperty();
 
     void updateRange();
 
+    void onToolToggled(bool checked);
+
   private:
     InformationKey m_key;
+
+    bool m_needUpdate;
 
     TaskSPtr m_task;
 

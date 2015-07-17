@@ -26,7 +26,6 @@ using namespace ESPINA::Support::Widgets;
 
 const QString PROGRESSTOOL_CHECKED_KEY = "Checked"; // TODO: @Felix move to ProgressTool
 
-
 //------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context)
 : ColorEngineSwitch(engine, QIcon(icon), context)

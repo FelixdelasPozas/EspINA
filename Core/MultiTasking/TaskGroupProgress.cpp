@@ -66,7 +66,6 @@ void TaskGroupProgress::onTaskFinished()
 {
   auto finishedTask = static_cast<TaskPtr>(sender());
 
-  qDebug() << "Task finished";
   int i      = 0;
   bool found = false;
 
