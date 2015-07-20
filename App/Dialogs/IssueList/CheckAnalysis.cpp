@@ -35,7 +35,6 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 : Task           {scheduler}
-, m_issuesNum    {0}
 , m_finishedTasks{0}
 {
   setDescription(tr("Issues checker"));
@@ -85,10 +84,12 @@ void CheckAnalysis::finishedTask()
   QMutexLocker lock(&m_progressMutex);
 
   ++m_finishedTasks;
-  auto progressValue = m_finishedTasks * 100 / m_taskList.size();
+
+  auto tasksNum = m_taskList.size();
+  auto progressValue = m_finishedTasks * 100 / tasksNum;
   reportProgress(progressValue);
 
-  if(m_taskList.size() - m_finishedTasks == 0)
+  if(tasksNum - m_finishedTasks == 0)
   {
     if(!m_issues.empty())
     {
@@ -102,6 +103,8 @@ void CheckAnalysis::finishedTask()
 //------------------------------------------------------------------------
 void CheckAnalysis::addIssue(Issue issue)
 {
+  QMutexLocker lock(&m_progressMutex);
+
   m_issues << issue;
 }
 

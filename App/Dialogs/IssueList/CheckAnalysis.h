@@ -70,7 +70,6 @@ namespace ESPINA
       QMutex          m_progressMutex;
       IssueList       m_issues;
       QList<TaskSPtr> m_taskList;
-      int             m_issuesNum;
       int             m_finishedTasks;
   };
 
