@@ -38,17 +38,17 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterPtr BufferedRepresentationPool::pick(const NmVector3 &point,
+ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
                                                     vtkProp *actor) const
 {
-  ViewItemAdapterPtr pickedItem = nullptr;
+  ViewItemAdapterList pickedItems;
 
   if (m_updateWindow.current()->hasFinished())
   {
-    pickedItem = m_updateWindow.current()->pick(point, actor);
+    pickedItems = m_updateWindow.current()->pick(point, actor);
   }
 
-  return pickedItem;
+  return pickedItems;
 }
 
 //-----------------------------------------------------------------------------

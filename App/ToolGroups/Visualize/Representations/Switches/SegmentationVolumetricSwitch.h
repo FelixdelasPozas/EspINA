@@ -81,6 +81,8 @@ namespace ESPINA
        */
       void initWidgets();
 
+      virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) override;
+
     private:
       GUI::Representations::RepresentationManagerSPtr m_cpuManager;
       GUI::Representations::RepresentationManagerSPtr m_gpuManager;

@@ -62,14 +62,15 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
   Representation representation;
 
   representation.Group = SEGMENTATIONS_GROUP;
+  representation.Description = "Show Segmentations";
 
   createSliceRepresentation(representation, context, supportedViews);
+  //createSkeletonRepresentation(representation, context, supportedViews);
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
     createContourRepresentation   (representation, context);
   }
-  //createSkeletonRepresentation  (representation, context);
   if (supportedViews.testFlag(ESPINA::VIEW_3D))
   {
     createVolumetricRepresentation(representation, context);

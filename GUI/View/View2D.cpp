@@ -1126,6 +1126,8 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   Selector::Selection finalSelection;
 
   auto picker      = vtkSmartPointer<vtkPropPicker>::New();
+  picker->PickFromListOn();
+
   auto sceneActors = rendererUnderCursor()->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
@@ -1143,33 +1145,35 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
     if(pickedProp)
     {
-      sceneActors->RemoveItem(pickedProp);
       pickedProps->AddItem(pickedProp);
+      sceneActors->RemoveItem(pickedProp);
     }
 
     auto worldPoint = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
     for(auto manager: m_managers)
     {
-      auto pickedItem = manager->pick(worldPoint, pickedProp);
+      auto items = manager->pick(worldPoint, pickedProp);
 
-      NeuroItemAdapterPtr neuroItem = pickedItem;
-      if(pickedItem && !pickedItems.contains(pickedItem))
+      for(auto item: items)
       {
-        if (Selector::IsValid(pickedItem, flags))
+        if(!pickedItems.contains(item))
         {
-          if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
+          if (Selector::IsValid(item, flags))
           {
-            neuroItem = QueryAdapter::sample(channelPtr(pickedItem)).get();
+            NeuroItemAdapterPtr neuroItem = item;
+            if(flags.testFlag(Selector::SAMPLE) && isChannel(item))
+            {
+              neuroItem = QueryAdapter::sample(channelPtr(item)).get();
+            }
+            finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, item->output()->spacing()), neuroItem);
+            finished = !multiselection;
           }
-          finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
-          finished = !multiselection;
+
+          pickedItems << item;
+          picked |= true;
         }
-
-        pickedItems << pickedItem;
-        picked |= pickedItem != nullptr;
       }
-
     }
   }
   while(picked && !finished);

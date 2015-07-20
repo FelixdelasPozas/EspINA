@@ -45,6 +45,7 @@ namespace ESPINA {
         void onTaskFinished();
 
       private:
+        QMutex m_mutex;
         QList<TaskSPtr> m_tasks;
       };
     }

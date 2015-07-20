@@ -91,6 +91,12 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 }
 
 //-----------------------------------------------------------------------------
+ViewItemAdapterList RepresentationPool::sources() const
+{
+  return m_sources->sources();
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::setSettings(PoolSettingsSPtr settings)
 {
   if(m_settings)
@@ -204,9 +210,9 @@ void RepresentationPool::decrementObservers()
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList RepresentationPool::sources() const
+void RepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
 {
-  return m_sources->sources();
+  onRepresentationModified(items, t);
 }
 
 //-----------------------------------------------------------------------------

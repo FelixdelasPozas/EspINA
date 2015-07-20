@@ -53,7 +53,7 @@ namespace ESPINA
 
           virtual TimeRange readyRangeImplementation() const;
 
-          virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
 
         private:
           virtual bool hasRepresentations() const;

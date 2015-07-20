@@ -44,6 +44,18 @@ SegmentationMeshSwitch::SegmentationMeshSwitch(GUI::Representations::Representat
 , m_smoothEnabled      {false}
 {
   initWidgets();
+
+  for(auto pool: meshManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
+
+  for(auto pool: smoothedMeshManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -109,21 +121,27 @@ void SegmentationMeshSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 }
 
 //----------------------------------------------------------------------------
-void SegmentationMeshSwitch::onSmoothChanged()
+void SegmentationMeshSwitch::onSmoothChanged(int value)
 {
-  auto smoothValue = m_smooth->value();
-  auto smoothEnabled = (smoothValue != 0);
-  m_settings->setSmoothValue(smoothValue);
-
-  if(smoothEnabled != m_smoothEnabled)
+  if(m_settings->smoothValue() != value)
   {
-    m_smoothEnabled = smoothEnabled;
-    switchManagers();
+    auto smoothEnabled = (value != 0);
+
+    m_settings->setSmoothValue(value);
+
+    if (smoothEnabled != m_smoothEnabled)
+    {
+      m_smoothEnabled = smoothEnabled;
+      switchManagers();
+    }
+
+    if(m_smoothEnabled)
+    {
+      ViewItemAdapterList items = m_smoothedMeshManager->pools().first()->sources();
+
+      invalidateRepresentations(items);
+    }
   }
-
-  auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
-
-  invalidateRepresentations(items);
 }
 
 //----------------------------------------------------------------------------
@@ -136,7 +154,7 @@ void SegmentationMeshSwitch::initWidgets()
   m_smooth->setValue(m_settings->smoothValue());
 
   connect(m_smooth, SIGNAL(valueChanged(int)),
-          this,     SLOT(onSmoothChanged()));
+          this,     SLOT(onSmoothChanged(int)));
 
   addSettingsWidget(m_smooth);
 }
@@ -157,5 +175,16 @@ void SegmentationMeshSwitch::switchManagers()
   {
     m_smoothedMeshManager->hide(t);
     m_meshManager->show(t);
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t)
+{
+  auto manager = (m_smoothEnabled ? m_smoothedMeshManager : m_meshManager);
+
+  for(auto pool: manager->pools())
+  {
+    pool->invalidateRepresentations(items, t);
   }
 }

@@ -70,12 +70,16 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 //----------------------------------------------------------------------------
 bool RepresentationUpdater::isEmpty() const
 {
+  QMutexLocker lock(&m_mutex);
+
   return m_sources.isEmpty();
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
+  QMutexLocker lock(&m_mutex);
+
   setCrosshairPoint(point, m_settings);
 }
 
@@ -88,6 +92,8 @@ void RepresentationUpdater::setResolution(const NmVector3 &resolution)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setSettings(const RepresentationState &settings)
 {
+  QMutexLocker lock(&m_mutex);
+
   if (hasCrosshairPoint(m_settings))
   {
     auto point = crosshairPoint(m_settings);
@@ -123,6 +129,8 @@ void RepresentationUpdater::setUpdateList(ViewItemAdapterList sources)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setTimeStamp(TimeStamp time)
 {
+  QMutexLocker lock(&m_mutex);
+
   m_timeStamp      = time;
   m_timeStampValid = true;
 }
@@ -146,9 +154,11 @@ bool RepresentationUpdater::hasValidTimeStamp() const
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterPtr RepresentationUpdater::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList RepresentationUpdater::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  ViewItemAdapterPtr pickedItem = nullptr;
+  QMutexLocker lock(&m_mutex);
+
+  ViewItemAdapterList pickedItems;
 
   if (actor)
   {
@@ -156,7 +166,7 @@ ViewItemAdapterPtr RepresentationUpdater::pick(const NmVector3 &point, vtkProp *
 
     if (foundItem && m_pipeline->pick(foundItem, point))
     {
-      pickedItem = foundItem;
+      pickedItems << foundItem;
     }
   }
   else
@@ -165,18 +175,19 @@ ViewItemAdapterPtr RepresentationUpdater::pick(const NmVector3 &point, vtkProp *
     {
       if (m_pipeline->pick(item, point))
       {
-        pickedItem = item;
-        break;
+        pickedItems << item;
       }
     }
   }
 
-  return pickedItem;
+  return pickedItems;
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
+  QMutexLocker lock(&m_mutex);
+
   return m_actors;
 }
 
@@ -184,6 +195,7 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 void RepresentationUpdater::run()
 {
   QMutexLocker lock(&m_mutex);
+
   //qDebug() << "Task" << description() << "running" << " - " << this;
 
   // Local copy needed to prevent condition race on same TimeStamp
@@ -191,6 +203,9 @@ void RepresentationUpdater::run()
 
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
+  auto size = updateList.size();
+
+  int i = 0;
 
   auto it = updateList.begin();
   while (canExecute() && it != updateList.end())
@@ -204,6 +219,9 @@ void RepresentationUpdater::run()
     m_actors[item]  = actors;
 
     ++it;
+    ++i;
+
+    reportProgress((i/static_cast<double>(size))*100);
   }
 
   if (hasValidTimeStamp() && canExecute())

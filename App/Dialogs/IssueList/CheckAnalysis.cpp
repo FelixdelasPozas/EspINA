@@ -27,9 +27,6 @@
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
 
 //------------------------------------------------------------------------

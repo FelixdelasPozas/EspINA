@@ -41,6 +41,8 @@ namespace ESPINA {
 
     virtual void hideRepresentations(TimeStamp t) override;
 
+    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) override;
+
   protected:
     GUI::Representations::RepresentationManagerSPtr m_manager;
 

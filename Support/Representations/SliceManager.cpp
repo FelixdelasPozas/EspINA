@@ -52,16 +52,16 @@ TimeRange SliceManager::readyRangeImplementation() const
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList SliceManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  ViewItemAdapterPtr pickedItem = nullptr;
+  ViewItemAdapterList pickedItems;
 
   if (validPlane())
   {
-    pickedItem = planePool()->pick(point, actor);
+    pickedItems = planePool()->pick(point, actor);
   }
 
-  return pickedItem;
+  return pickedItems;
 }
 
 //----------------------------------------------------------------------------
@@ -231,6 +231,15 @@ RepresentationPoolSPtr SliceManager::planePool() const
 bool SliceManager::validPlane() const
 {
   return Plane::UNDEFINED != m_plane;
+}
+
+//----------------------------------------------------------------------------
+RepresentationPoolSList SliceManager::pools() const
+{
+  RepresentationPoolSList result;
+  result << m_XY << m_XZ << m_YZ;
+
+  return result;
 }
 
 //----------------------------------------------------------------------------

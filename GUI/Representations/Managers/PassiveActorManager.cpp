@@ -19,7 +19,9 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
+#include <GUI/Representations/RepresentationPool.h>
 #include <GUI/View/RenderView.h>
 
 // VTK
@@ -43,7 +45,7 @@ TimeRange PassiveActorManager::readyRangeImplementation() const
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterPtr PassiveActorManager::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList PassiveActorManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return m_pool->pick(point, actor);
 }
@@ -211,6 +213,15 @@ void PassiveActorManager::displayRepresentations(const TimeStamp t)
 RepresentationManagerSPtr PassiveActorManager::cloneImplementation()
 {
   return std::make_shared<PassiveActorManager>(m_pool, supportedViews(), flags());
+}
+
+//----------------------------------------------------------------------------
+RepresentationPoolSList PassiveActorManager::pools() const
+{
+  RepresentationPoolSList result;
+  result << m_pool;
+
+  return result;
 }
 
 //----------------------------------------------------------------------------

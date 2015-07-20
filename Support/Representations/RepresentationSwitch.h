@@ -33,27 +33,60 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    virtual ~RepresentationSwitch() {}
+    /** \brief RepresentationSwitch class virtual destructor.
+     *
+     */
+    virtual ~RepresentationSwitch()
+    {}
 
+    /** \brief Returns the flags of the supported views of the managers.
+     *
+     */
     virtual ViewTypeFlags supportedViews() = 0;
 
+    /** \brief Shows the managed representations on the view.
+     *
+     */
     virtual void showRepresentations(TimeStamp t) = 0;
 
+    /** \brief Hides the managed representations from the view.
+     *
+     */
     virtual void hideRepresentations(TimeStamp t) = 0;
 
     /** \brief Invalidates the representations of the given items.
      * \param[in] items list of ViewItemAdapter.
      *
-     * TODO: invalidate the representations only of the manager(s) of the switch.
-     *
      */
     void invalidateRepresentations(ViewItemAdapterList items);
 
   protected:
-    explicit RepresentationSwitch(const QString &id, const QIcon &icon, const QString &description, Timer &timer, Support::Context &context);
+    /** \brief RepresentationSwitch class constructor.
+     * \param[in] id id of the switch.
+     * \param[in] icon icon to show.
+     * \param[in] description switch description.
+     * \param[in] timer timer to use for operations.
+     * \param[in] context session context.
+     *
+     */
+    explicit RepresentationSwitch(const QString    &id,
+                                  const QIcon      &icon,
+                                  const QString    &description,
+                                  Timer            &timer,
+                                  Support::Context &context);
 
   private slots:
+    /** \brief Switches representation visibility.
+     *
+     */
     void switchRepresentations(bool show);
+
+  private:
+    /** \brief Invalidates the representations of the given items.
+     * \param[in] items list of ViewItemAdapter.
+     *
+     */
+    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) = 0;
 
   protected:
     Timer &m_timer;

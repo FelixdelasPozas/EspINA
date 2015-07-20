@@ -25,7 +25,13 @@ using namespace ESPINA::Core::MultiTasking;
 //----------------------------------------------------------------------------
 void TaskGroupProgress::showTaskProgress(TaskSPtr task)
 {
-  m_tasks << task;
+  {
+    QMutexLocker lock(&m_mutex);
+
+    if(m_tasks.contains(task)) return;
+
+    m_tasks << task;
+  }
 
   connect(task.get(), SIGNAL(progress(int)),
           this,       SLOT(updateProgress()));
@@ -39,14 +45,18 @@ void TaskGroupProgress::updateProgress()
 {
   int total = 0;
 
-  if (!m_tasks.isEmpty())
   {
-    for(auto task : m_tasks)
-    {
-      total += task->progress();
-    }
+    QMutexLocker lock(&m_mutex);
 
-    total = total / m_tasks.size();
+    if (!m_tasks.isEmpty())
+    {
+      for(auto task : m_tasks)
+      {
+        total += task->progress();
+      }
+
+      total = total / m_tasks.size();
+    }
   }
 
   emit progress(total);
@@ -60,19 +70,23 @@ void TaskGroupProgress::onTaskFinished()
   int i      = 0;
   bool found = false;
 
-  while (i < m_tasks.size() && !found)
   {
-    found = m_tasks[i].get() == finishedTask;
+    QMutexLocker lock(&m_mutex);
 
-    if (!found)
+    while (i < m_tasks.size() && !found)
     {
-      ++i;
+      found = m_tasks[i].get() == finishedTask;
+
+      if (!found)
+      {
+        ++i;
+      }
     }
+
+    if(!found) return;
+
+    m_tasks.removeAt(i);
   }
-
-  Q_ASSERT(found);
-
-  m_tasks.removeAt(i);
 
   updateProgress();
 }

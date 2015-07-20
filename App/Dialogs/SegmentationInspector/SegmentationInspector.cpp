@@ -116,7 +116,7 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 
     if(channels.isEmpty())
     {
-      qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
+      qWarning() << "FIXME: Channels shouldn't be empty for segmentation" << segmentation->data().toString() << __FILE__ << __LINE__;
     }
     else
     {
@@ -462,17 +462,20 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
     for (auto manager : representation.Managers)
     {
       m_view.addRepresentationManager(manager);
-    }
 
-    for (auto pool : representation.Pools)
-    {
-      if (isChannelRepresentation(representation))
+      for(auto pool: manager->pools())
       {
-        pool->setPipelineSources(&m_channelSources);
-      }
-      else if (isSegmentationRepresentation(representation))
-      {
-        pool->setPipelineSources(&m_segmentationSources);
+        if (isChannelRepresentation(representation))
+        {
+          pool->setPipelineSources(&m_channelSources);
+        }
+        else
+        {
+          if (isSegmentationRepresentation(representation))
+          {
+            pool->setPipelineSources(&m_segmentationSources);
+          }
+        }
       }
     }
   }

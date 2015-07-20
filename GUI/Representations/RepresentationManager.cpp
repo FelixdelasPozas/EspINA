@@ -349,7 +349,6 @@ void RepresentationManager::waitForDisplay()
 //-----------------------------------------------------------------------------
 void RepresentationManager::idle()
 {
-  //qDebug() << debugName() << "Is idle";
   m_status = Status::IDLE;
 }
 
@@ -388,4 +387,11 @@ void RepresentationManager::updateRepresentations(TimeStamp t)
   }
 
   updateRepresentations(m_crosshair, m_resolution, m_bounds, t);
+}
+
+//-----------------------------------------------------------------------------
+RepresentationPoolSList RepresentationManager::pools() const
+{
+  // NOTE: default value returned, implement if needed in the subclass.
+  return RepresentationPoolSList();
 }

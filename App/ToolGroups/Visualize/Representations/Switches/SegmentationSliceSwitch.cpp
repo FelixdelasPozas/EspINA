@@ -58,7 +58,7 @@ void SegmentationSliceSwitch::onOpacityChanged()
 
     m_settings->setOpacity(opacity);
 
-    auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
+    auto items = m_manager->pools().first()->sources();
 
     invalidateRepresentations(items);
   }

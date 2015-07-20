@@ -43,6 +43,18 @@ SegmentationVolumetricSwitch::SegmentationVolumetricSwitch(GUI::Representations:
 , m_flags             {supportedViews}
 {
   initWidgets();
+
+  for(auto pool: cpuManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
+
+  for(auto pool: gpuManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -104,7 +116,7 @@ void SegmentationVolumetricSwitch::onModeChanged(bool check)
 {
   if(!isChecked()) return;
 
-  auto t = getViewState().timer().increment();
+  auto t = m_timer.increment();
 
   if(check)
   {
@@ -128,4 +140,16 @@ void SegmentationVolumetricSwitch::initWidgets()
           this,        SLOT(onModeChanged(bool)));
 
   addSettingsWidget(m_gpuEnable);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationVolumetricSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t)
+{
+  // not used actually.
+  auto manager = (m_gpuEnable->isChecked() ? m_gpuManager : m_cpuManager);
+
+  for(auto pool: manager->pools())
+  {
+    pool->invalidateRepresentations(items, t);
+  }
 }

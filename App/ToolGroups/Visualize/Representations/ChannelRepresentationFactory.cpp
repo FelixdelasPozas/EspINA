@@ -60,8 +60,9 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
 
-  representation.Group     = CHANNELS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Group       = CHANNELS_GROUP;
+  representation.Description = "Shows channels";
+  representation.Pools       << poolXY << poolXZ << poolYZ;
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {

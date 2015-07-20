@@ -20,6 +20,7 @@
 #ifndef ESPINA_REPRESENTATION_POOL_H
 #define ESPINA_REPRESENTATION_POOL_H
 
+#include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Representations/RangedValue.hxx>
 #include "RepresentationState.h"
@@ -42,11 +43,14 @@ namespace ESPINA
     template<typename T>
     void set(const QString &tag, const T value)
     {
-      m_state.setValue<T>(tag, value);
-
-      if(m_state.hasPendingChanges())
+      if(m_state.getValue<T>(tag) != value)
       {
-        emit modified();
+        m_state.setValue<T>(tag, value);
+
+        if(m_state.hasPendingChanges())
+        {
+          emit modified();
+        }
       }
     }
 
@@ -74,6 +78,8 @@ namespace ESPINA
 
     void setPipelineSources(PipelineSources *sources);
 
+    ViewItemAdapterList sources() const;
+
     void setSettings(PoolSettingsSPtr settings);
 
     RepresentationState settings() const;
@@ -97,7 +103,7 @@ namespace ESPINA
      */
     void setSceneResolution(const NmVector3 &resolution, TimeStamp t);
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
+    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
     /** \brief Returns whether all pipeline representations are set to the
      *         current position or not
@@ -131,6 +137,13 @@ namespace ESPINA
      */
     void decrementObservers();
 
+    /** \brief Invalidates the specified representations.
+     * \param[in] items representations to invalidate.
+     * \param[in] t timestamp of the new actors after invalidation.
+     *
+     */
+    void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t);
+
   signals:
     /** \brief Some managers may be interested in changes in the actors of the pool
      *
@@ -141,10 +154,10 @@ namespace ESPINA
 
     void actorsInvalidated();
 
+    void taskStarted(TaskSPtr task);
+
   protected:
     explicit RepresentationPool();
-
-    ViewItemAdapterList sources() const;
 
     bool notHasBeenProcessed(const TimeStamp t) const;
 

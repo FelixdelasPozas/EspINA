@@ -38,11 +38,13 @@ namespace ESPINA
 
     virtual TimeRange readyRangeImplementation() const override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
+    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
     virtual void setPlane(Plane plane) override;
 
     virtual void setRepresentationDepth(Nm depth) override;
+
+    virtual RepresentationPoolSList pools() const;
 
   protected:
     virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
