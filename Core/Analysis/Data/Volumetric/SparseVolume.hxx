@@ -635,6 +635,7 @@ namespace ESPINA
   void SparseVolume<T>::resize(const Bounds &bounds)
   {
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
+
     auto affectedIndexes = toBlockIndexes(bounds);
 
     for(auto index: m_blocks.keys())
@@ -686,14 +687,16 @@ namespace ESPINA
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
     bool dataFetched = false;
-    bool error       = false;
 
     int i = 0;
     QFileInfo blockFile;
 
     // Bounds need to be updated before any possible drawing with invalid bounds
-    m_bounds  = bounds;//volumeBounds<T>(m_origin, m_spacing, bounds);
-    m_spacing = bounds.spacing();
+    if(bounds.areValid())
+    {
+      m_bounds  = bounds;
+      m_spacing = bounds.spacing();
+    }
 
     if (!storage || path.isEmpty() || id.isEmpty()) return false;
 
@@ -704,14 +707,23 @@ namespace ESPINA
     {
       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
       if (blockFile.exists()) break;
-      //qDebug() << blockFile.absoluteFilePath() << "not found";
     }
 
     while (blockFile.exists())
     {
       VolumeReader::Pointer reader = VolumeReader::New();
       reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
-      reader->Update();
+
+      try
+      {
+        reader->Update();
+      }
+      catch(...)
+      {
+        // NOTE: return 'dataFetched = false' for now when a file/part is bad to force a filter rerun
+        // instead of crashing.
+        break;
+      }
 
       auto image = reader->GetOutput();
       image->SetSpacing(ItkSpacing<T>(m_spacing));
@@ -747,7 +759,7 @@ namespace ESPINA
       dataFetched = true;
     }
 
-    return dataFetched && !error;
+    return dataFetched;
   }
 
   //-----------------------------------------------------------------------------

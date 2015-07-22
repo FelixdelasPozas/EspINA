@@ -70,7 +70,7 @@ namespace ESPINA
 
     virtual size_t memoryUsage() const;
 
-    virtual const typename T::Pointer itkImage() const;
+    virtual const typename T::Pointer itkImage() const override;
 
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
@@ -93,10 +93,17 @@ namespace ESPINA
 
     virtual bool isEmpty() const override;
 
+    virtual bool isValid() const override;
+
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
     /** \brief Private method to rasterize a mesh to create an T volume.
      *
      */
     void rasterize() const;
+
+  protected:
+    bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
     virtual QList<Data::Type> updateDependencies() const override;
@@ -247,6 +254,13 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
+  bool RasterizedVolume<T>::isValid() const
+  {
+    return (this->m_bounds.areValid() && (!this->m_blocks.isEmpty() || this->m_output->hasData(MeshData::TYPE)));
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
   QList<Data::Type> RasterizedVolume<T>::updateDependencies() const
   {
     QList<Data::Type> types;
@@ -312,6 +326,25 @@ namespace ESPINA
     SparseVolume<T>::draw(image);
 
     this->m_mutex.unlock();
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  bool RasterizedVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+  {
+    return SparseVolume<T>::fetchDataImplementation(storage, path, id, bounds) || this->m_output->hasData(MeshData::TYPE);
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot RasterizedVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+  {
+    if(this->m_blocks.empty())
+    {
+      rasterize();
+    }
+
+    return SparseVolume<T>::snapshot(storage, path, id);
   }
 
 } // namespace ESPINA
