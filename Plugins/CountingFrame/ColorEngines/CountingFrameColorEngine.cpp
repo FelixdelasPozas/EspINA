@@ -30,6 +30,7 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()
+: ColorEngine("CountingFrameColorEngine", tr("Counting Frame"))
 {
   m_excludedLUT = LUTSPtr::New();
   m_excludedLUT->Allocate();
@@ -56,9 +57,11 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
   int b = 0;
   int a = 255;
 
-  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
+  auto extensions = segmentation->readOnlyExtensions();
+
+  if (extensions->hasExtension(StereologicalInclusion::TYPE))
   {
-    auto extension = retrieveExtension<StereologicalInclusion>(segmentation);
+    auto extension = extensions->get<StereologicalInclusion>();
 
     if (extension->isExcluded())
     {
@@ -79,9 +82,11 @@ LUTSPtr CountingFrameColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
   auto res = m_includedLUT;
 
-  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
+  auto extensions = segmentation->readOnlyExtensions();
+
+  if (extensions->hasExtension(StereologicalInclusion::TYPE))
   {
-    auto extension = retrieveExtension<StereologicalInclusion>(segmentation);
+    auto extension = extensions->get<StereologicalInclusion>();
 
     if (extension->isExcluded())
     {

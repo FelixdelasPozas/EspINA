@@ -42,6 +42,7 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Widgets/ColorEngineSwitch.h>
 #include <Support/Context.h>
 
 // Qt
@@ -63,7 +64,7 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
   class ROISettings;
-  class ColorEngineMenu;
+  //class ColorEngineMenu;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -119,7 +120,7 @@ namespace ESPINA
     /** \brief Save current analysis.
      *
      */
-    void saveAnalysis();
+    void saveAnalysisAs();
 
     /** \brief Saves the current analysis (auto-save).
      *
@@ -226,8 +227,9 @@ namespace ESPINA
   private:
     void initColorEngines(QMenu *parentMenu);
 
-    void registerColorEngine(const QString   &title,
-                             ColorEngineSPtr  colorEngine);
+    void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
+
+    void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
     void initRepresentations();
 
@@ -290,7 +292,7 @@ namespace ESPINA
      * \param[in] entry pair of (QStringList, Action *) object to add.
      *
      */
-    void createDynamicMenu(MenuEntry entry);
+    void createDynamicMenu(Support::MenuEntry entry);
 
     /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
      *
@@ -354,6 +356,8 @@ namespace ESPINA
      */
     void updateToolsSettings();
 
+    void saveAnalysis(const QString &filename);
+
     /** \brief Saves the current tool settings to the session settings in the analysis.
      *
      */
@@ -361,7 +365,7 @@ namespace ESPINA
 
     const QList<ToolGroupPtr> toolGroups() const;
 
-    ToolSList availableTools() const;
+    Support::Widgets::ToolSList availableTools() const;
 
   private:
     // ESPINA
@@ -382,12 +386,12 @@ namespace ESPINA
 
     // Menus
     QMenu           *m_addMenu;
-    QAction         *m_saveAnalysis;
+    QAction         *m_saveAnalysisAs;
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
-    ColorEngineMenu *m_colorEngineMenu;
+    //ColorEngineMenu *m_colorEngineMenu;
 
     // ToolBars
     QToolBar           *m_mainBar;
@@ -406,7 +410,7 @@ namespace ESPINA
     QAction         *m_redoAction;
 
     ExtensionFactorySList m_extensionFactories;
-    SettingsPanelSList    m_availableSettingsPanels;
+    Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;

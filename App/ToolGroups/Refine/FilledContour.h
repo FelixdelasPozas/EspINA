@@ -24,7 +24,7 @@
 // ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/vtkVoxelContour2D.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/BrushSelector.h>
 

@@ -24,135 +24,136 @@
 #include "Support/EspinaSupport_Export.h"
 
 // ESPINA
-#include <GUI/ColorEngines/ColorEngine.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <Support/Settings/SettingsPanel.h>
-#include <Support/Representations/RepresentationFactory.h>
-#include <Support/Widgets/DockWidget.h>
-#include "Widgets/Tool.h"
-#include "Context.h"
+#include <GUI/Types.h>
+#include <Support/Types.h>
+#include <Core/Factory/SegmentationExtensionFactory.h>
+#include <Core/Factory/ChannelExtensionFactory.h>
+#include <Core/Factory/AnalysisReader.h>
+#include <Core/Factory/FilterFactory.h>
 
 // Qt
 #include <QtPlugin>
+#include <QStringList>
 
 class QUndoStack;
 
 namespace ESPINA
 {
-  using NamedColorEngine      = QPair<QString, ColorEngineSPtr>;
-  using NamedColorEngineSList = QList<NamedColorEngine>;
-  using MenuEntry             = QPair<QStringList, QAction *>;
-
-  enum class ToolCategory
+  namespace Support
   {
-    EXPLORE,
-    RESTRICT,
-    SEGMENT,
-    REFINE,
-    VISUALIZE,
-    ANALYZE
-  };
+    using ColorEngineSwitchSList = QList<Widgets::ColorEngineSwitchSPtr>;
+    using MenuEntry              = QPair<QStringList, QAction *>;
 
-  using CategorizedTool = QPair<ToolCategory, ToolSPtr>;
+    enum class ToolCategory
+    {
+      EXPLORE,
+      RESTRICT,
+      SEGMENT,
+      REFINE,
+      VISUALIZE,
+      ANALYZE
+    };
 
-  class EspinaSupport_EXPORT Plugin
-  : public QObject
-  {
-    Q_OBJECT
-  public:
-    /** \brief Plugin class virtual destructor.
-     *
-     */
-    virtual ~Plugin()
-    {}
+    using CategorizedTool = QPair<ToolCategory, Widgets::ToolSPtr>;
 
-    /** \brief Gives the plugin the neccesary objects to initilize itself.
-     *        Must be called before any other plugin method.
-     *
-     */
-    virtual void init(Support::Context &context) = 0;
+    class EspinaSupport_EXPORT Plugin
+    : public QObject
+    {
+      Q_OBJECT
+    public:
+      /** \brief Plugin class virtual destructor.
+       *
+       */
+      virtual ~Plugin()
+      {}
 
-    /** \brief Returns a list of channel extension factories.
-     *
-     *  Whenever this plugin provides a channel extension, it should provide
-     *  a factory to obtain such extensions, otherwise read only information will
-     *  be available after loading them.
-     */
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const
-    { return ChannelExtensionFactorySList(); }
+      /** \brief Gives the plugin the neccesary objects to initilize itself.
+       *        Must be called before any other plugin method.
+       *
+       */
+      virtual void init(Context &context) = 0;
 
-    /** \brief Returns a list of segmentation extension factories.
-     *
-     *  Whenever this plugin provides a segmentation extension, it should provide
-     *  a factory to obtain such extensions, otherwise read only information will
-     *  be available after loading them.
-     */
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const
-    { return SegmentationExtensionFactorySList(); }
+      /** \brief Returns a list of channel extension factories.
+       *
+       *  Whenever this plugin provides a channel extension, it should provide
+       *  a factory to obtain such extensions, otherwise read only information will
+       *  be available after loading them.
+       */
+      virtual ChannelExtensionFactorySList channelExtensionFactories() const
+      { return ChannelExtensionFactorySList(); }
 
-    /** \brief Returns a list of filter factories provided by the plugin.
-     *
-     */
-    virtual FilterFactorySList filterFactories() const
-    { return FilterFactorySList(); }
+      /** \brief Returns a list of segmentation extension factories.
+       *
+       *  Whenever this plugin provides a segmentation extension, it should provide
+       *  a factory to obtain such extensions, otherwise read only information will
+       *  be available after loading them.
+       */
+      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const
+      { return SegmentationExtensionFactorySList(); }
 
-    /** \brief Returns a list of analysis readers provided by the plugin.
-     *
-     */
-    virtual AnalysisReaderSList analysisReaders() const
-    { return AnalysisReaderSList(); }
+      /** \brief Returns a list of filter factories provided by the plugin.
+       *
+       */
+      virtual FilterFactorySList filterFactories() const
+      { return FilterFactorySList(); }
 
-    /** \brief Returns a list of color engines provided by the plugin.
-     *
-     */
-    virtual NamedColorEngineSList colorEngines() const
-    { return NamedColorEngineSList(); }
+      /** \brief Returns a list of analysis readers provided by the plugin.
+       *
+       */
+      virtual AnalysisReaderSList analysisReaders() const
+      { return AnalysisReaderSList(); }
 
-    /** \brief Returns a list of ToolGroups provided by the plugin.
-     *
-     */
-    virtual RepresentationFactorySList representationFactories() const
-    { return RepresentationFactorySList(); }
+      /** \brief Returns a list of color engines provided by the plugin.
+       *
+       */
+      virtual ColorEngineSwitchSList colorEngines() const
+      { return ColorEngineSwitchSList(); }
 
-    /** \brief Returns a list of tools provided by the plugin.
-     *
-     *  Each tool is asigned to one of the available categories
-     */
-    virtual QList<CategorizedTool> tools() const
-    { return QList<CategorizedTool>(); }
+      /** \brief Returns a list of ToolGroups provided by the plugin.
+       *
+       */
+      virtual RepresentationFactorySList representationFactories() const
+      { return RepresentationFactorySList(); }
 
-    /** \brief Returns a list of settings panels provided by the plugin.
-     *
-     */
-    virtual SettingsPanelSList settingsPanels() const
-    { return SettingsPanelSList(); }
+      /** \brief Returns a list of tools provided by the plugin.
+       *
+       *  Each tool is asigned to one of the available categories
+       */
+      virtual QList<CategorizedTool> tools() const
+      { return QList<CategorizedTool>(); }
 
-    /** \brief Returns a list of menu entries to add to the main application.
-     *
-     */
-    virtual QList<MenuEntry> menuEntries() const
-    { return QList<MenuEntry>(); }
+      /** \brief Returns a list of settings panels provided by the plugin.
+       *
+       */
+      virtual Settings::SettingsPanelSList settingsPanels() const
+      { return Settings::SettingsPanelSList(); }
 
-  public slots:
-    /** \brief Perform operations when an analysis is closed.
-     *
-     * Use to free resources.
-     *
-     */
-    virtual void onAnalysisClosed()
-    {}
+      /** \brief Returns a list of menu entries to add to the main application.
+       *
+       */
+      virtual QList<MenuEntry> menuEntries() const
+      { return QList<MenuEntry>(); }
 
-    /** \brief Perform operations when an analysis changes.
-     *
-     * Use to free resources or reevaluate values.
-     *
-     */
-    virtual void onAnalysisChanged()
-    {}
-  };
+    public slots:
+      /** \brief Perform operations when an analysis is closed.
+       *
+       * Use to free resources.
+       *
+       */
+      virtual void onAnalysisClosed()
+      {}
 
+      /** \brief Perform operations when an analysis changes.
+       *
+       * Use to free resources or reevaluate values.
+       *
+       */
+      virtual void onAnalysisChanged()
+      {}
+    };
+  }
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.2")
+Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.4")
 
 #endif // ESPINA_PLUGIN_H

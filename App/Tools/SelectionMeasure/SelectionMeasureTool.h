@@ -22,7 +22,7 @@
 #define ESPINA_SELECTION_MEASURE_TOOL_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>

@@ -25,6 +25,7 @@
 // ESPINA
 #include "GUI/Model/ViewItemAdapter.h"
 #include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensible.hxx>
 
 namespace ESPINA
 {
@@ -47,6 +48,10 @@ namespace ESPINA
   class EspinaGUI_EXPORT SegmentationAdapter
   : public ViewItemAdapter
   {
+  public:
+    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<SegmentationExtension, Segmentation>;
+    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<SegmentationExtension, Segmentation>;
+
   public:
     /** \brief SegmentationAdapter class virtual destructor.
      *
@@ -95,58 +100,28 @@ namespace ESPINA
      */
     QStringList users() const;
 
-    /** \brief Adds a extension to the segmentation.
-     * \param[in] extension smart pointer of the segmentation extension to add.
-     *
-     * Extesion won't be available until requirements are satisfied
-     *
-     */
-    void addExtension(SegmentationExtensionSPtr extension);
+    ReadLockExtensions readOnlyExtensions() const;
 
-    /** \brief Removes an extension from the segmentation.
-     * \param[in] extension smart pointer of the segmentation extension to remove.
-     *
-     */
-    void deleteExtension(SegmentationExtensionSPtr extension);
-
-    /** \brief Check whether or not there is an extension with the given name.
-     * \param[in] type segmentation extension type.
-     *
-     */
-    bool hasExtension(const SegmentationExtension::Type& type) const;
-
-    /** \brief Return the extension with the especified name.
-     * \param[in] type segmentation extension type.
-     *
-     *  Important: It the segmentation doesn't contain any extension with
-     *  the requested name, but there exist an extension prototype registered
-     *  in the factory, a new instance will be created and attached to the
-     *  segmentation.
-     *  If there is no extension with the given name registered in the factory
-     *  a Undefined_Extension exception will be thrown
-     */
-     SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const;
-
-     /** \brief Returns the list of extensions that the segmentation has.
-      *
-      */
-     SegmentationExtensionSList extensions() const;
+    WriteLockExtensions extensions();
 
      /** \brief Returns the list of tags provided by the segmnetation extensions of the segmentation.
       *
       */
-    virtual SegmentationExtension::InfoTagList informationTags() const;
+    virtual SegmentationExtension::InformationKeyList availableInformation() const;
+
+    bool hasInformation(const SegmentationExtension::InformationKey &key) const
+    { return availableInformation().contains(key); }
 
     /** \brief Returns the information specified by the tag.
-     * \param[in] tag segmentation extension information tag.
+     * \param[in] key segmentation extension information tag.
      *
      */
-    virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
+    virtual QVariant information(const SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns true if the information is available.
      *
      */
-    bool isInformationReady(const SegmentationExtension::InfoTag& tag) const;
+    bool isReady(const SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns a bounds that contain the segmentation.
      *

@@ -34,10 +34,10 @@ namespace ESPINA
   : public Task
   {
   public:
-  	/** \brief AdaptiveEdgesCreator class constructor.
-  	 * \param[in] extension, ChannelEdges raw pointer.
-  	 * \param[in] scheduler, scheduler smart pointer.
-  	 */
+    /** \brief AdaptiveEdgesCreator class constructor.
+     * \param[in] extension ChannelEdges raw pointer.
+     * \param[in] scheduler scheduler smart pointer.
+     */
     explicit AdaptiveEdgesCreator(ChannelEdges *extension,
                                   SchedulerSPtr scheduler = SchedulerSPtr());
 
@@ -47,9 +47,6 @@ namespace ESPINA
     virtual ~AdaptiveEdgesCreator();
 
   protected:
-    /** \brief Implements Task::run().
-     *
-     */
     virtual void run();
 
   private:

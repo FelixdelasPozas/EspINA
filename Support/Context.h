@@ -18,13 +18,13 @@
 #ifndef ESPINA_SUPPORT_CONTEXT_H
 #define ESPINA_SUPPORT_CONTEXT_H
 
-#include <Support/SupportTypes.h>
+#include <Support/Types.h>
 
 #include "Support/ROIAccumulator.h"
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/ColorEngines/MultiColorEngine.h>
 #include <QUndoStack>
 
 class QMainWindow;
@@ -49,7 +49,7 @@ class DockWidget;
       ModelAdapterSPtr           model() const;
       ROIAccumulatorSPtr         roiProvider();
       GUI::View::ViewState      &viewState();
-      ColorEngineSPtr            colorEngine() const;
+      GUI::ColorEngines::MultiColorEngineSPtr colorEngine() const;
       QUndoStack *               undoStack();
       RepresentationFactorySList &availableRepresentations();
       ModelFactorySPtr           factory() const;
@@ -71,8 +71,8 @@ class DockWidget;
       SchedulerSPtr        m_scheduler;
       QUndoStack           m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
-      ModelFactorySPtr   m_factory;
-      ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
+      ModelFactorySPtr     m_factory;
+      GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;
 
       QMainWindow *m_mainWindow;
     };

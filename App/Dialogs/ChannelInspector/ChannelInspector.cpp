@@ -20,6 +20,8 @@
 
 // ESPINA
 #include <EspinaConfig.h>
+
+#include <Core/Analysis/Channel.h>
 #include "ChannelInspector.h"
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/View/View2D.h>
@@ -99,7 +101,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   initPropertiesTab();
 
   /// EDGES TAB
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel->extensions());
 
   initPixelValueSelector();
 
@@ -458,13 +460,15 @@ void ChannelInspector::changeEdgeDetectorThreshold(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyEdgesChanges()
 {
-  ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
 
   for (auto segmentation: m_model->segmentations())
   {
-    if (segmentation->hasExtension(EdgeDistance::TYPE))
+    auto extensions = segmentation->readOnlyExtensions();
+
+    if (extensions->hasExtension(EdgeDistance::TYPE))
     {
-      auto distanceExtension = retrieveExtension<EdgeDistance>(segmentation);
+      auto distanceExtension = retrieveExtension<EdgeDistance>(extensions);
       Q_ASSERT(distanceExtension);
       distanceExtension->invalidate();
     }
@@ -503,8 +507,9 @@ void ChannelInspector::initSliceView()
 {
   m_sources.addSource(toViewItemList(m_channel.get()), m_view->timeStamp());
 
-  auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
-  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, 10);
+  auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
+  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, 10);
+
   poolXY->setPipelineSources(&m_sources);
 
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());

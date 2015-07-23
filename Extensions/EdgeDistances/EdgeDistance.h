@@ -39,12 +39,12 @@ namespace ESPINA
   public:
     static const Type TYPE;
 
-    static const InfoTag LEFT_DISTANCE;
-    static const InfoTag TOP_DISTANCE;
-    static const InfoTag FRONT_DISTANCE;
-    static const InfoTag RIGHT_DISTANCE;
-    static const InfoTag BOTTOM_DISTANCE;
-    static const InfoTag BACK_DISTANCE;
+    static const Key LEFT_DISTANCE;
+    static const Key TOP_DISTANCE;
+    static const Key FRONT_DISTANCE;
+    static const Key RIGHT_DISTANCE;
+    static const Key BOTTOM_DISTANCE;
+    static const Key BACK_DISTANCE;
 
     /** \brief EdgeDistance class constructor.
      *
@@ -57,42 +57,21 @@ namespace ESPINA
      */
     virtual ~EdgeDistance();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const;
+    virtual InformationKeyList availableInformation() const;
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
@@ -103,14 +82,8 @@ namespace ESPINA
     void edgeDistance(Nm distances[6]) const;
 
   protected:
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& key) const;
 
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Segmentation* segmentation);
 
   private:

@@ -38,16 +38,17 @@ const QString CONTOUR_DISTANCE = "Contour distance";
 const QString MODE             = "Drawing mode";
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Contour;
 using namespace ESPINA::GUI::Widgets;
 
 //------------------------------------------------------------------------
-DrawingWidget::DrawingWidget(Support::Context &context, QWidget *parent)
+DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model, QWidget *parent)
 : QWidget(parent)
-, m_context             (context)
-, m_categorySelector    {new CategorySelector(context.model())}
+, m_viewState           (viewState)
+, m_categorySelector    {new CategorySelector(model)}
 , m_radiusWidget        {new NumericalInput()}
 , m_opacityWidget       {new NumericalInput()}
 , m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"))}
@@ -246,14 +247,14 @@ void DrawingWidget::changePainter(bool  checked)
 
   if (displayContourControls())
   {
-    m_context.viewState().removeTemporalRepresentations(m_contourWidgetfactory);
+    m_viewState.removeTemporalRepresentations(m_contourWidgetfactory);
   }
 
   m_currentPainter = checked?m_painters[eventButton]:nullptr;
 
   if (displayContourControls() && checked)
   {
-    m_context.viewState().addTemporalRepresentations(m_contourWidgetfactory);
+    m_viewState.addTemporalRepresentations(m_contourWidgetfactory);
   }
 
   updateVisibleControls();

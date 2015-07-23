@@ -31,7 +31,7 @@ class RenderView;
   : public RepresentationPipeline
   {
   public:
-    explicit SliceEditionPipeline(ColorEngineSPtr colorEngine);
+    explicit SliceEditionPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
     virtual RepresentationState representationState(const ViewItemAdapter *item, const RepresentationState &settings);
 

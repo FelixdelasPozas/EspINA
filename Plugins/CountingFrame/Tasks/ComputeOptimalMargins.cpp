@@ -60,7 +60,7 @@ namespace ESPINA
     {
       if (!canExecute()) break;
 
-      auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
+      auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation->extensions());
 
       Nm dist2Margin[6];
       extension->edgeDistance(dist2Margin);
@@ -80,7 +80,7 @@ namespace ESPINA
       }
       taskProgress += inc;
 
-      emit progress((int)taskProgress);
+      reportProgress((int)taskProgress);
     }
   }
 }

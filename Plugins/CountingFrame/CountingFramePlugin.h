@@ -26,16 +26,19 @@
 #include <Support/Plugin.h>
 
 #include "CountingFrameManager.h"
+#include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
 {
+
+class DockWidget;
   namespace CF
   {
     class CountingFramePlugin_EXPORT CountingFramePlugin
-    : public Plugin
+    : public Support::Plugin
     {
       Q_OBJECT
-      Q_INTERFACES(ESPINA::Plugin)
+      Q_INTERFACES(ESPINA::Support::Plugin)
 
     public:
       explicit CountingFramePlugin();
@@ -47,32 +50,24 @@ namespace ESPINA
 
       virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-      virtual NamedColorEngineSList colorEngines() const;
+      virtual Support::ColorEngineSwitchSList colorEngines() const;
 
       virtual RepresentationFactorySList representationFactories() const;
 
-      virtual QList<CategorizedTool> tools() const;
-
-      virtual FilterFactorySList filterFactories() const;
-
-      virtual SettingsPanelSList settingsPanels() const;
-
-      virtual QList<MenuEntry> menuEntries() const;
-
-      virtual AnalysisReaderSList analysisReaders() const;
+      virtual QList<Support::CategorizedTool> tools() const;
 
     public slots:
       virtual void onAnalysisClosed();
 
     private:
-      CountingFrameManager m_manager;
-      ModelAdapterSPtr     m_model;
-      SchedulerSPtr        m_scheduler;
-      QUndoStack          *m_undoStack;
-      DockWidget          *m_dockWidget;
-      Support::Context    *m_context;
+      CountingFrameManager         m_manager;
+      ModelAdapterSPtr             m_model;
+      SchedulerSPtr                m_scheduler;
+      QUndoStack                  *m_undoStack;
+      DockWidget                  *m_dockWidget;
+      Support::Context            *m_context;
 
-      NamedColorEngine     m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr  m_colorEngine;
 
       RepresentationFactorySPtr        m_representationFactory;
       ChannelExtensionFactorySPtr      m_channelExtensionFactory;

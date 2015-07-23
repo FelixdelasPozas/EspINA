@@ -23,10 +23,8 @@
 
 // ESPINA
 #include <GUI/View/View3D.h>
-#include <Support/Context.h>
 #include <Support/Representations/RepresentationFactory.h>
-#include <Support/SupportTypes.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Types.h>
 #include "ui_3DDialog.h"
 
 // Qt
@@ -35,14 +33,6 @@
 
 namespace ESPINA
 {
-  namespace Support
-  {
-    namespace Widgets
-    {
-      class ProgressTool;
-    }
-  }
-
   class Dialog3D;
 
   class Dialog3DTool
@@ -62,6 +52,7 @@ namespace ESPINA
   class Dialog3D
   : public QDialog
   , public Ui::View3DDialog
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -123,7 +114,6 @@ namespace ESPINA
   private:
     friend class Dialog3DTool;
 
-    Support::Context         &m_context;
     View3D                    m_view3D;
     QToolBar                  m_toolbar;
     RepresentationSwitchSList m_switches;

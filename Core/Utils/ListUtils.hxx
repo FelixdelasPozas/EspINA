@@ -96,7 +96,7 @@ namespace ESPINA
 
         for (auto item : list)
         {
-          result << item;
+          result << dynamic_cast<T *>(item);
         }
 
         return result;

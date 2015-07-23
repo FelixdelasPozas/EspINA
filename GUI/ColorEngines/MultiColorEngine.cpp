@@ -22,68 +22,93 @@
 #include "MultiColorEngine.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
+
+//-----------------------------------------------------------------------------
+MultiColorEngine::MultiColorEngine()
+: ColorEngine("MultiColorEngine", tr("Combine multiple color engines"))
+{
+}
 
 //-----------------------------------------------------------------------------
 QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
 {
-  if (m_engines.isEmpty())
-    return QColor(Qt::red);
+  QColor color(Qt::red);
 
-  if (m_engines.size() == 1)
-    return m_engines[0]->color(seg);
-
-  int r=0, g=0, b=0, a=0;
-  int rgbComponents=0, alphaComponents=0;
-
-  for(auto engine: m_engines)
+  if (m_activeEngines.size() == 1)
   {
-    auto c = engine->color(seg);
-    if (engine->supportedComposition().testFlag(Color))
+    color = m_activeEngines.first()->color(seg);
+  }
+  else if (m_activeEngines.size() > 1)
+  {
+    int r=0, g=0, b=0, a=0;
+    int rgbComponents=0, alphaComponents=0;
+
+    for(auto engine: m_activeEngines)
     {
-      r += c.red();
-      g += c.green();
-      b += c.blue();
-      rgbComponents++;
+      auto c = engine->color(seg);
+      if (engine->supportedComposition().testFlag(Color))
+      {
+        r += c.red();
+        g += c.green();
+        b += c.blue();
+        rgbComponents++;
+      }
+
+      if (engine->supportedComposition().testFlag(Transparency))
+      {
+        a += c.alpha();
+        alphaComponents++;
+      }
     }
-    if (engine->supportedComposition().testFlag(Transparency))
+
+    if (rgbComponents > 0)
     {
-      a += c.alpha();
-      alphaComponents++;
+      r /= rgbComponents;
+      g /= rgbComponents;
+      b /= rgbComponents;
     }
+
+    if (alphaComponents > 0)
+    {
+      a /= alphaComponents;
+    }
+    else
+    {
+      // Prevent transparent color if no engine supports deals transparency
+      a = 255;
+    }
+
+    color = QColor(r,g,b,a);
   }
 
-  if (rgbComponents > 0)
-  {
-    r /= rgbComponents;
-    g /= rgbComponents;
-    b /= rgbComponents;
-  }
-
-  if (alphaComponents > 0)
-    a /= alphaComponents;
-  else // Prevent transparent color if no engine supports deals transparency
-    a = 255;
-
-  return QColor(r,g,b,a);
+  return color;
 }
 
 //-----------------------------------------------------------------------------
 LUTSPtr MultiColorEngine::lut(SegmentationAdapterPtr seg)
 {
-  if (m_engines.size() == 1)
-    return m_engines.first()->lut(seg);
+  LUTSPtr lut;
 
-  auto alpha = 0.8;
-  auto c = color(seg);
-  auto seg_lut = LUTSPtr::New();
-  seg_lut->Allocate();
-  seg_lut->SetNumberOfTableValues(2);
-  seg_lut->Build();
-  seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
-  seg_lut->Modified();
+  if (m_activeEngines.size() == 1)
+  {
+    lut = m_activeEngines.first()->lut(seg);
+  }
+  else
+  {
+    auto alpha = 0.8;
+    auto c     = color(seg);
 
-  return seg_lut;
+    lut = LUTSPtr::New();
+    lut->Allocate();
+    lut->SetNumberOfTableValues(2);
+    lut->Build();
+    lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+    lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
+    lut->Modified();
+  }
+
+  return lut;
 }
 
 //-----------------------------------------------------------------------------
@@ -91,8 +116,10 @@ ColorEngine::Composition MultiColorEngine::supportedComposition() const
 {
   ColorEngine::Composition composition = None;
 
-  for(auto engine: m_engines)
+  for(auto engine: m_activeEngines)
+  {
     composition |= engine->supportedComposition();
+  }
 
   return composition;
 }
@@ -100,15 +127,56 @@ ColorEngine::Composition MultiColorEngine::supportedComposition() const
 //-----------------------------------------------------------------------------
 void MultiColorEngine::add(ColorEngineSPtr engine)
 {
-  m_engines << engine;
+  if (!m_availableEngines.contains(engine))
+  {
+    m_availableEngines << engine;
 
-  emit modified();
+    connect(engine.get(), SIGNAL(activated(bool)),
+            this,         SLOT(onColorEngineActivated(bool)));
+
+    connect(engine.get(), SIGNAL(modified()),
+            this,         SIGNAL(modified()));
+
+    if (engine->isActive() && !m_activeEngines.contains(engine.get()))
+    {
+      m_activeEngines << engine.get();
+
+      emit modified();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 void MultiColorEngine::remove(ColorEngineSPtr engine)
 {
-  m_engines.removeAll(engine);
+  m_availableEngines.removeOne(engine);
+  m_activeEngines   .removeOne(engine.get());
+
+  disconnect(engine.get(), SIGNAL(activated(bool)),
+             this,         SLOT(onColorEngineActivated(bool)));
+
+  disconnect(engine.get(), SIGNAL(modified()),
+             this,         SIGNAL(modified()));
+
+  if (engine->isActive())
+  {
+    emit modified();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void MultiColorEngine::onColorEngineActivated(bool active)
+{
+  auto engine = dynamic_cast<ColorEngine*>(sender());
+
+  if (active)
+  {
+    m_activeEngines << engine;
+  }
+  else
+  {
+    m_activeEngines.removeOne(engine);
+  }
 
   emit modified();
 }

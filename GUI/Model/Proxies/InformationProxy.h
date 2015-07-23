@@ -39,49 +39,51 @@ namespace ESPINA
   {
     Q_OBJECT
 
-  protected:
+  public:
     /** \brief Helper method to return the name tag.
      *
      */
-    static SegmentationExtension::InfoTag NameTag()
-    { return QObject::tr("Name"); }
+    static SegmentationExtension::InformationKey NameKey()
+    { return SegmentationExtension::InformationKey("Segmentation", "Name"); }
 
     /** \brief Helper method to return the category tag.
      *
      */
-    static SegmentationExtension::InfoTag CategoryTag()
-    { return QObject::tr("Category"); }
+    static SegmentationExtension::InformationKey CategoryKey()
+    { return SegmentationExtension::InformationKey("Segmentation", "Category"); }
 
+  protected:
     class InformationFetcher
     : public Task
     {
     public:
       /** \brief InformationFetcher class constructor.
-       * \param[in] segmentation, adapter smart pointer of the segmentation to get information from.
-       * \param[in] tags, information tags to fetch.
-       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] segmentation adapter smart pointer of the segmentation to get information from.
+       * \param[in] keys information keys to fetch.
+       * \param[in] scheduler scheduler smart pointer.
        *
        */
       InformationFetcher(SegmentationAdapterPtr segmentation,
-                         const SegmentationExtension::InfoTagList &tags,
+                         const SegmentationExtension::InformationKeyList &keys,
                          SchedulerSPtr scheduler)
       : Task        {scheduler}
       , Segmentation{segmentation}
-      , m_tags      {tags}
+      , m_keys      {keys}
       , m_progress  {0}
       {
         auto id = Segmentation->data(Qt::DisplayRole).toString();
         setDescription(tr("%1 information").arg(id));
         setHidden(true);
+        setPriority(Priority::LOW);
 
-        m_tags.removeOne(NameTag());
-        m_tags.removeOne(CategoryTag());
+        m_keys.removeOne(NameKey());
+        m_keys.removeOne(CategoryKey());
 
         bool ready = true;
 
-        for (auto tag : m_tags)
+        for (auto key : m_keys)
         {
-          ready &= Segmentation->isInformationReady(tag);
+          ready &= Segmentation->isReady(key);
 
           if (!ready) break;
         }
@@ -97,34 +99,33 @@ namespace ESPINA
       { return m_progress; }
 
     protected:
-      /** \brief Implements Task::run().
-       *
-       */
       virtual void run()
       {
-        for (int i = 0; i < m_tags.size(); ++i)
+        for (int i = 0; i < m_keys.size(); ++i)
         {
           if (!canExecute()) break;
 
-          auto tag = m_tags[i];
-          if (tag != NameTag() && tag != CategoryTag())
+          auto key = m_keys[i];
+
+          if (key != NameKey() && key != CategoryKey())
           {
-            if (!Segmentation->isInformationReady(tag))
+            if (!Segmentation->isReady(key))
             {
-              Segmentation->information(tag);
+              Segmentation->information(key);
 
               if (!canExecute()) break;
             }
           }
 
-          m_progress = (100.0*i)/m_tags.size();
-          emit progress(m_progress);
+          m_progress = (100.0*i)/m_keys.size();
+          reportProgress(m_progress);
         }
       }
 
     protected:
       SegmentationAdapterPtr Segmentation;
-      SegmentationExtension::InfoTagList m_tags;
+      SegmentationExtension::InformationKeyList m_keys;
+
       int   m_progress;
     };
 
@@ -132,7 +133,7 @@ namespace ESPINA
 
   public:
     /** \brief InformationProxy class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
      *
      */
     explicit InformationProxy(SchedulerSPtr scheduler);
@@ -143,37 +144,37 @@ namespace ESPINA
     virtual ~InformationProxy();
 
     /** \brief Sets the model of the proxy.
-     * \param[in] sourceModel, model adapter smart pointer.
+     * \param[in] sourceModel model adapter smart pointer.
      *
      */
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
     /** \brief Returns the item index of the proxy from the item index of the source.
-     * \param[in] sourceIndeox, QModelIndex object.
+     * \param[in] sourceIndex QModelIndex object.
      *
      */
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
 
     /** \brief Returns the item index of the model from the item index of the proxy.
-     * \param[in] proxyIndex, QModelIndex object.
+     * \param[in] proxyIndex QModelIndex object.
      *
      */
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
     /** \brief Returns the number of columns.
-     * \param[in] parent, QModelIndex object.
+     * \param[in] parent QModelIndex object.
      *
      */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
     /** \brief Returns the number of rows.
-     * \param[in] parent, QModelIndex object.
+     * \param[in] parent QModelIndex object.
      *
      */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
     /** \brief Returns the item index of the parent of the given index.
-     * \param[in] chind, QModelIndex object.
+     * \param[in] child QModelIndex object.
      *
      */
     virtual QModelIndex parent(const QModelIndex& child) const;
@@ -181,23 +182,17 @@ namespace ESPINA
     /** \brief Returns the index of an element given the row, column and parent.
      * \param[in] row
      * \param[in] column
-     * \param[in] parent, QModelIndex object.
+     * \param[in] parent QModelIndex object.
      *
      */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Overrides QAbstractProxyModel::headerData().
-     *
-     */
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    /** \brief Overrides QAbstractProxyModel::data()
-     *
-     */
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;
 
     /** \brief Sets the category.
-     * \param[in] classificationName, name of the category.
+     * \param[in] classificationName name of the category.
      *
      */
     void setCategory(const QString &classificationName);
@@ -215,16 +210,16 @@ namespace ESPINA
     void setFilter(const SegmentationAdapterList *filter);
 
     /** \brief Sets the information tags for the columns.
-     * \param[in] tags, segmentation extension information tags.
+     * \param[in] keys segmentation extension information keys.
      *
      */
-    virtual void setInformationTags(const SegmentationExtension::InfoTagList tags);
+    virtual void setInformationTags(const SegmentationExtension::InformationKeyList &keys);
 
     /** \brief Returns the information tags.
      *
      */
-    const QStringList informationTags() const
-    { return m_tags; }
+    const SegmentationExtension::InformationKeyList availableInformation() const
+    { return m_keys; }
 
     /** \brief Returns the list of item adapters currently displayed.
      *
@@ -293,7 +288,7 @@ namespace ESPINA
     QModelIndex index(const ItemAdapterPtr segmentation, int col = 0);
 
   protected:
-    SegmentationExtension::InfoTagList m_tags;
+    SegmentationExtension::InformationKeyList m_keys;
     mutable QMap<SegmentationAdapterPtr, InformationFetcherSPtr> m_pendingInformation;
     SchedulerSPtr m_scheduler;
 

@@ -117,15 +117,15 @@ void ChannelEdges::initializeEdges()
   if (!m_edges.GetPointer())
   {
     computeAdaptiveEdges();
-  }
 
-  QReadLocker edgesLock(&m_edgesResultMutex);
+    QReadLocker edgesLock(&m_edgesResultMutex);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::analyzeChannel()
 {
-  //qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
+  qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
   QWriteLocker lock(&m_edgesResultMutex);
   m_analysisResultMutex.lockForWrite();
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
@@ -519,16 +519,17 @@ void ChannelEdges::computeSurfaces()
  }
 }
 
-//-----------------------------------------------------------------------------
-ChannelEdgesPtr ESPINA::channelEdgesExtension(ChannelExtensionPtr extension)
-{
-  return dynamic_cast<ChannelEdgesPtr>(extension);
-}
-
-//-----------------------------------------------------------------------------
-ChannelEdgesSPtr ESPINA::channelEdgesExtension(ChannelPtr channel)
-{
-  auto extension = channel->extension(ChannelEdges::TYPE);
-
-  return std::dynamic_pointer_cast<ChannelEdges>(extension);
-}
+// //-----------------------------------------------------------------------------
+// ChannelEdgesPtr ESPINA::channelEdgesExtension(ChannelExtensionPtr extension)
+// {
+//   return dynamic_cast<ChannelEdgesPtr>(extension);
+// }
+//
+// //-----------------------------------------------------------------------------
+// ChannelEdgesSPtr ESPINA::channelEdgesExtension(ChannelPtr channel)
+// {
+//   auto extension = channel->extension(ChannelEdges::TYPE);
+//
+//   return std::dynamic_pointer_cast<ChannelEdges>(extension);
+// }
+// 

@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <GUI/View/ViewState.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 
 class QAction;

@@ -40,8 +40,8 @@ namespace ESPINA
      * \param[in] parent QObject.
      *
      */
-    explicit ColorEngineMenu(const QString       &title,
-                             MultiColorEngineSPtr colorEngine);
+    explicit ColorEngineMenu(const QString  &title,
+                             GUI::ColorEngines::MultiColorEngineSPtr colorEngine);
 
     /** \brief ColorEngineMenu class virtual destructor.
      *
@@ -53,7 +53,7 @@ namespace ESPINA
      * \param[in] engine color engine
      *
      */
-    void addColorEngine(const QString &title, ColorEngineSPtr engine);
+    void addColorEngine(const QString &title, GUI::ColorEngines::ColorEngineSPtr engine);
 
     /** \brief Restores user settings for the menu.
      *
@@ -68,12 +68,12 @@ namespace ESPINA
     void toggleColorEngine(QAction *action);
 
   signals:
-    void colorEngineChanged(ColorEngineSPtr);
+    void colorEngineChanged(GUI::ColorEngines::ColorEngineSPtr);
 
   private:
-    MultiColorEngineSPtr m_engine;
+    GUI::ColorEngines::MultiColorEngineSPtr m_engine;
 
-    QMap<QAction *, ColorEngineSPtr>  m_availableEngines;
+    QMap<QAction *, GUI::ColorEngines::ColorEngineSPtr>  m_availableEngines;
   };
 
 } // namespace ESPINA

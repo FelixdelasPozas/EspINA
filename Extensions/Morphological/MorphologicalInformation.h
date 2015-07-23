@@ -55,54 +55,27 @@ namespace ESPINA
      */
     virtual ~MorphologicalInformation();
 
-    /** \brief Implements Extesion::type().
-     *
-     */
     virtual QString type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Extension::snapshot().
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const;
+    virtual InformationKeyList availableInformation() const;
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
     virtual bool validCategory(const QString& classificationName) const
     { return true;}
 
   protected:
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+    virtual QVariant cacheFail(const InformationKey& tag) const;
 
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
     virtual void onExtendedItemSet(Segmentation* item);
 
   private:
@@ -112,6 +85,8 @@ namespace ESPINA
     void updateInformation() const;
 
   private:
+    mutable QReadWriteLock m_mutex;
+
     Image2LabelFilterType::Pointer m_labelMap;
     mutable LabelObjectType       *m_statistic;
 

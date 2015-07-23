@@ -23,6 +23,7 @@
 #include "GeneralSettingsPanel.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
 GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettingsSPtr settings)

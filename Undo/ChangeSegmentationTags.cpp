@@ -27,6 +27,8 @@
 
 // ESPINA
 #include "ChangeSegmentationTags.h"
+
+#include <Core/Analysis/Segmentation.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Tags/SegmentationTags.h>
 
@@ -59,22 +61,23 @@ void ChangeSegmentationTags::swapTags()
 {
   QStringList currentTags;
 
-  if (m_segmentation->hasExtension(SegmentationTags::TYPE))
+  auto extensions = m_segmentation->extensions();
+
+  if (extensions->hasExtension(SegmentationTags::TYPE))
   {
-    currentTags = m_segmentation->information(SegmentationTags::TAGS).toString().split(";");
+    currentTags = extensions->get<SegmentationTags>()->tags();
   }
 
   if(!m_tags.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationTags>(m_segmentation);
+    auto extension = retrieveOrCreateExtension<SegmentationTags>(extensions);
     extension->setTags(m_tags);
   }
   else
   {
     if(!currentTags.isEmpty())
     {
-      auto extension = m_segmentation->extension(SegmentationTags::TYPE);
-      m_segmentation->deleteExtension(extension);
+      extensions->remove(SegmentationTags::TYPE);
     }
   }
 

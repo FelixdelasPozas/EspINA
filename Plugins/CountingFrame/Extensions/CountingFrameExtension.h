@@ -63,8 +63,8 @@ namespace ESPINA
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual InfoTagList availableInformations() const
-    { return InfoTagList(); }
+    virtual InformationKeyList availableInformation() const
+    { return InformationKeyList(); }
 
     virtual bool isCacheFile(const QString &file) const
     { return FILE == file; }
@@ -80,7 +80,7 @@ namespace ESPINA
     { return m_countingFrames; }
 
   protected:
-    virtual QVariant cacheFail(const QString& tag) const
+    virtual QVariant cacheFail(const InformationKey& tag) const
     { return QVariant(); }
 
     virtual void onExtendedItemSet(Channel *channel);

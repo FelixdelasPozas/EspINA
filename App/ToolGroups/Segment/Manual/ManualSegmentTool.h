@@ -22,7 +22,7 @@
 #define ESPINA_MANUAL_SEGMENT_TOOL_H_
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -119,7 +119,7 @@ namespace ESPINA
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
-    ColorEngineSPtr   m_colorEngine;
+    GUI::ColorEngines::ColorEngineSPtr   m_colorEngine;
     FilterFactorySPtr m_filterFactory;
 
     using DrawingTool = GUI::Widgets::DrawingWidget;

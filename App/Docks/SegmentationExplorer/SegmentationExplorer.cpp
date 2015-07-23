@@ -26,6 +26,7 @@
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Utils/Format.h>
 
 // Qt
 #include <QContextMenuEvent>
@@ -37,6 +38,7 @@
 #include <QWidgetAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
@@ -45,7 +47,7 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-  /** \brief GUI class constructor.
+  /** \brief UI class constructor.
    *
    */
   GUI()
@@ -311,12 +313,6 @@ QModelIndexList SegmentationExplorer::selectedIndexes() const
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::createTagLink(const QString& tag) const
-{
-  return QString("<a href=\"%1\">%1</a> ").arg(tag);
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
 {
   QSet<QString> tagSet;
@@ -326,9 +322,11 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
     if (isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
-      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      auto extensions   = segmentation->extensions();
+
+      if (extensions->hasExtension(SegmentationTags::TYPE))
       {
-        auto extension = retrieveExtension<SegmentationTags>(segmentation);
+        auto extension = retrieveExtension<SegmentationTags>(extensions);
         tagSet.unite(extension->tags().toSet());
       }
     }
@@ -343,7 +341,7 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
 
     for (auto tag : tags)
     {
-      tagLinks += createTagLink(tag);
+      tagLinks += createLink(tag);
     }
   }
 

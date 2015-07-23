@@ -25,6 +25,7 @@
 // ESPINA
 #include "GUI/Model/ViewItemAdapter.h"
 #include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensible.hxx>
 
 namespace ESPINA
 {
@@ -37,6 +38,10 @@ namespace ESPINA
   class EspinaGUI_EXPORT ChannelAdapter
   : public ViewItemAdapter
   {
+  public:
+    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<ChannelExtension, Channel>;
+    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<ChannelExtension, Channel>;
+
   public:
     /** \brief ChannelAdapter class destructor.
      *
@@ -148,42 +153,11 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
-    /** \brief Adds an extension to the channel.
-     * \param[in] extension smart pointer of the channel extension to add.
-     *
-     * Extension won't be available until requirements are satisfied.
-     *
-     */
-    void addExtension(ChannelExtensionSPtr extension);
+    ReadLockExtensions readOnlyExtensions() const;
 
-    /** \brief Removes an extension from the channel.
-     * \param[in] extension smart pointer of the channel extension to remove.
-     *
-     */
-    void deleteExtension(ChannelExtensionSPtr extension);
-
-    /** \brief Returns true if the channel has an extension of the specified type.
-     * \param[in] type channel extension type.
-     *
-     */
-    bool hasExtension(const ChannelExtension::Type& type) const;
-
-    /** \brief Return the extension with the especified type.
-     * \param[in] type channel extension type.
-     *
-     *  Important: It the channel doesn't contain any extension with
-     *  the requested name, but there exist an extension prototype registered
-     *  in the factory, a new instance will be created and attached to the
-     *  channel.
-     *  If there is no extension with the given name registered in the factory
-     *  a Undefined_Extension exception will be thrown
-     */
-    ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
+    WriteLockExtensions extensions();
 
   protected:
-    /** \brief Implements ViewItemAdapter::changeOutputImplementation().
-     *
-     */
     virtual void changeOutputImplementation(InputSPtr input);
 
   private:

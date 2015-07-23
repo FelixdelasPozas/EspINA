@@ -35,8 +35,6 @@
 
 namespace ESPINA
 {
-  const QString SAS = QObject::tr("SAS");
-
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceExtension
   : public SegmentationExtension
   {
@@ -70,7 +68,7 @@ namespace ESPINA
       virtual TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InfoTagList availableInformations() const;
+      virtual InformationKeyList availableInformation() const;
 
       virtual bool validCategory(const QString &classificationName) const;
 
@@ -80,8 +78,12 @@ namespace ESPINA
       void setOriginSegmentation(SegmentationAdapterSPtr segmentation)
       { m_originSegmentation = segmentation; }
 
+      static SegmentationExtension::Key addSASPrefix(const Key& value);
+
+      static SegmentationExtension::Key removeSASPrefix(const Key &value);
+
     protected:
-      virtual QVariant cacheFail(const InfoTag &tag) const;
+      virtual QVariant cacheFail(const InformationKey &tag) const;
 
       virtual void onExtendedItemSet(Segmentation* item);
 
@@ -134,6 +136,8 @@ namespace ESPINA
        *
        */
       bool computeInformation() const;
+
+      static const QString SAS_PREFIX;
 
   private:
       SegmentationAdapterSPtr m_originSegmentation;

@@ -45,10 +45,10 @@
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
-const SegmentationExtension::InfoTag EDGE_TAG = "Touch Edge";
+const SegmentationExtension::Key EDGE_TAG = "Touch Edge";
 
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
-//const SegmentationExtension::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
+//const SegmentationExtension::Key StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
 
@@ -56,9 +56,9 @@ const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTag StereologicalInclusion::cfTag(CountingFrame *cf)
+SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFrame *cf) const
 {
-  return tr("Inc. %1 CF").arg(cf->id());
+  return createKey(tr("Inc. %1 CF").arg(cf->id()));
 }
 
 //------------------------------------------------------------------------
@@ -102,23 +102,24 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations() const
+SegmentationExtension::InformationKeyList StereologicalInclusion::availableInformation() const
 {
-  InfoTagList tags;
+  InformationKeyList keys;
 
-  tags << EDGE_TAG;
+  keys << createKey(EDGE_TAG);
+
   for (auto cf : m_exclusionCFs.keys())
   {
-    tags << cfTag(cf);
+    keys << cfKey(cf);
   }
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
-QVariant StereologicalInclusion::cacheFail(const QString& tag) const
+QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 {
-  if (EDGE_TAG == tag)
+  if (EDGE_TAG == key.value())
   {
     isOnEdge();
   }
@@ -127,7 +128,7 @@ QVariant StereologicalInclusion::cacheFail(const QString& tag) const
     //evaluateCountingFrames();
   }
 
-  return cachedInfo(tag);
+  return cachedInfo(key);
 }
 
 //------------------------------------------------------------------------
@@ -149,7 +150,7 @@ QString StereologicalInclusion::toolTipText() const
 
   for(auto cf : m_exclusionCFs.keys())
   {
-    QString description = information(cfTag(cf)).toBool()?
+    QString description = information(cfKey(cf)).toBool()?
     "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(cf->id()) + "</font>":
     "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(cf->id()) + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
@@ -216,9 +217,9 @@ void StereologicalInclusion::evaluateCountingFrames()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
-  auto tag = cfTag(cf);
+  auto key = cfKey(cf);
 
-  updateInfoCache(tag, QVariant());
+  updateInfoCache(key.value(), QVariant());
 
   // Compute CF's exclusion value
   bool excluded = isExcludedByCountingFrame(cf);
@@ -230,7 +231,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
   {
     QMutexLocker lock(&m_mutex);
 
-    updateInfoCache(tag, info);
+    updateInfoCache(key.value(), info);
 
     m_exclusionCFs[cf] = excluded;
 
@@ -359,9 +360,11 @@ bool StereologicalInclusion::isOnEdge() const
 {
   bool isOnEdge  = false;
 
-  if (cachedInfo(EDGE_TAG).isValid())
+  auto key = createKey(EDGE_TAG);
+
+  if (cachedInfo(key).isValid())
   {
-    isOnEdge = cachedInfo(EDGE_TAG).toBool();
+    isOnEdge = cachedInfo(key).toBool();
   }
   else
   {
@@ -380,10 +383,8 @@ bool StereologicalInclusion::isOnEdge() const
     }
     else if (channels.size() == 1)
     {
-      auto channel   = channels.first();
-      auto extension = channel->extension(ChannelEdges::TYPE);
-
-      auto edgesExtension = std::dynamic_pointer_cast<ChannelEdges>(extension);
+      auto channel        = channels.first();
+      auto edgesExtension = retrieveExtension<ChannelEdges>(channel->readOnlyExtensions());
 
       Nm distances[6];
       if (edgesExtension->useDistanceToBounds())
@@ -401,7 +402,7 @@ bool StereologicalInclusion::isOnEdge() const
       }
     }
 
-    updateInfoCache(EDGE_TAG, isOnEdge?1:0);
+    updateInfoCache(key.value(), isOnEdge?1:0);
   }
 
   return isOnEdge;
@@ -464,9 +465,11 @@ void StereologicalInclusion::checkSampleCountingFrames()
 
       for(auto channel : QueryContents::channels(sample))
       {
-        if (channel->hasExtension(CountingFrameExtension::TYPE))
+        auto extensions = channel->readOnlyExtensions();
+
+        if (extensions->hasExtension(CountingFrameExtension::TYPE))
         {
-          auto extension = retrieveExtension<CountingFrameExtension>(channel);
+          auto extension = extensions->get<CountingFrameExtension>();
 
           for (auto cf : extension->countingFrames())
           {

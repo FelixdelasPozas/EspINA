@@ -60,7 +60,7 @@ SplitFilter::~SplitFilter()
 //-----------------------------------------------------------------------------
 void SplitFilter::execute()
 {
-  emit progress(0);
+  reportProgress(0);
   if (!canExecute()) return;
 
   Q_ASSERT(m_inputs.size() == 1);
@@ -92,7 +92,7 @@ void SplitFilter::execute()
   split2->Allocate();
   split2->Update();
 
-  emit progress(25);
+  reportProgress(25);
   if (!canExecute()) return;
 
   itk::ImageRegionConstIterator<itkVolumeType> it(itkVolume, itkVolume->GetLargestPossibleRegion());
@@ -132,7 +132,7 @@ void SplitFilter::execute()
     }
   }
 
-  emit progress(50);
+  reportProgress(50);
   if (!canExecute()) return;
 
   itkVolumeType::Pointer volumes[2]{split1, split2};
@@ -155,7 +155,7 @@ void SplitFilter::execute()
       m_outputs[i]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[i].get()));
       m_outputs[i]->setSpacing(spacing);
 
-      emit progress(75 + 25*i);
+      reportProgress(75 + 25*i);
       if (!canExecute()) return;
     }
 

@@ -21,7 +21,7 @@
 #define ESPINA_MANUAL_ROI_TOOL_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 #include <GUI/Widgets/DrawingWidget.h>
 

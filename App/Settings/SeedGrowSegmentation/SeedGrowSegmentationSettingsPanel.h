@@ -24,7 +24,6 @@
 
 // ESPINA
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/Context.h>
 #include <GUI/Types.h>
 
 // Qt
@@ -35,7 +34,7 @@ namespace ESPINA
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationsSettingsPanel
-  : public SettingsPanel
+  : public Support::Settings::SettingsPanel
   , public Ui::SeedGrowSegmentationSettingsPanel
   {
     Q_OBJECT
@@ -45,8 +44,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
-                                                Support::Context             &context);
+    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings);
 
     /** \brief SeedGrowSegmentationSettingsPanel class virtual destructor.
      *
@@ -69,7 +67,7 @@ namespace ESPINA
 
     virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone() override;
+    virtual Support::Settings::SettingsPanelPtr clone() override;
 
   private slots:
     /** \brief Manages the change of state of the taxonomical checkbox.
@@ -79,7 +77,6 @@ namespace ESPINA
     void changeTaxonomicalCheck(int state);
 
   private:
-    Support::Context             &m_context;
     SeedGrowSegmentationSettings *m_settings;
 
     GUI::Widgets::PixelValueSelector *m_pixelSelector;

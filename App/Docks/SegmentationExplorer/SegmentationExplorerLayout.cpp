@@ -59,16 +59,18 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
   if (!acceptRows)
   {
-    ItemAdapterPtr item = itemAdapter(rowIndex);
+    auto item = itemAdapter(rowIndex);
     if (isSegmentation(item))
     {
-      SegmentationAdapterPtr segmentation = segmentationPtr(item);
+      auto segmentation = segmentationPtr(item);
+      auto extensions   = segmentation->readOnlyExtensions();
 
-      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      if (extensions->hasExtension(SegmentationTags::TYPE))
       {
-        auto tagExtension = retrieveExtension<SegmentationTags>(segmentation);
+        auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
 
         QStringList tags = tagExtension->tags();
+
         int i = 0;
         while (!acceptRows && i < tags.size())
         {

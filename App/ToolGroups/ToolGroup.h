@@ -22,7 +22,7 @@
 #define ESPINA_TOOL_GROUP_H
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 // C++
 #include <memory>
@@ -40,7 +40,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    using GroupedTools = QList<ToolSList>;
+    using GroupedTools = QList<Support::Widgets::ToolSList>;
 
   public:
     /** \brief ToolGroup class constructor.
@@ -62,7 +62,7 @@ namespace ESPINA
      *
      *  \param[in] tool to be added
      */
-    void addTool(ToolSPtr tool);
+    void addTool(Support::Widgets::ToolSPtr tool);
 
   public slots:
     void abortOperations();
@@ -78,10 +78,10 @@ namespace ESPINA
     void activate(bool value);
 
   private:
-    virtual void onToolAdded(ToolSPtr tool) {}
+    virtual void onToolAdded(Support::Widgets::ToolSPtr tool) {}
 
   private:
-    QMap<QString, ToolSList> m_tools;
+    QMap<QString, Support::Widgets::ToolSList> m_tools;
   };
 
   using ToolGroupPtr = ToolGroup *;

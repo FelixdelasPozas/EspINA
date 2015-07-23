@@ -29,46 +29,41 @@
 
 namespace ESPINA
 {
-	class EspinaGUI_EXPORT CategoryColorEngine
-	: public ColorEngine
-	{
-		Q_OBJECT
-		public:
-			/** \brief CategoryColorEngine class constructor.
-			 *
-			 */
-			explicit CategoryColorEngine()
-			{}
+  namespace GUI
+  {
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT CategoryColorEngine
+      : public ColorEngine
+      {
+        Q_OBJECT
+      public:
+        /** \brief CategoryColorEngine class constructor.
+         *
+         */
+        explicit CategoryColorEngine()
+        : ColorEngine("CategoryColorEngine", tr("Category"))
+        {}
 
-			/** \brief Implements ColorEngine::color().
-			 *
-			 */
-			virtual QColor color(SegmentationAdapterPtr seg);
+        virtual QColor color(SegmentationAdapterPtr seg);
 
-			/** \brief Implements ColorEngine::lut().
-			 *
-			 */
-			virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+        virtual LUTSPtr lut(SegmentationAdapterPtr seg);
 
-			/** \brief Implements ColorEngine::supportedComposition().
-			 *
-			 */
-			virtual ColorEngine::Composition supportedComposition() const
-			{	return ColorEngine::Color; }
+        virtual ColorEngine::Composition supportedComposition() const
+        { return ColorEngine::Color; }
 
-		protected slots:
-			/** \brief Updates the internal color tables when a category color changes.
-			 * \param[in] category, catgegory adapter smart pointer.
-			 *
-			 */
-			void updateCategoryColor(CategoryAdapterSPtr category);
+      protected slots:
+        /** \brief Updates the internal color tables when a category color changes.
+         * \param[in] category adapter
+         *
+         */
+        void updateCategoryColor(CategoryAdapterSPtr category);
 
-		private:
-			LUTMap m_LUT;
-	};
-
-	using CategoryColorEngineSPtr = std::shared_ptr<CategoryColorEngine>;
-
+      private:
+        LUTMap m_LUT;
+      };
+    }
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_CATEGORY_COLOR_ENGINE_H

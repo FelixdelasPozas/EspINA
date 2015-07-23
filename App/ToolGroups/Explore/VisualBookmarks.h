@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <GUI/View/RenderView.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 using namespace ESPINA::Support::Widgets;
 

@@ -30,12 +30,12 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Factory/FilterRefinerRegister.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
 
 class QCheckBox;
-
 class QUndoStack;
+
 namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
@@ -125,11 +125,7 @@ namespace ESPINA
      */
     void updateCurrentCategoryROIValues(bool update);
 
-    /** \brief Updates the GUI when the selector changes.
-     * \param[in] state checkbox state.
-     *
-     */
-    void onSelectorChanged(int state);
+    void useBestPixelSelector(bool value);
 
     /** \brief Updated the best pixel value.
      * \param[in] value integer value in range [0-254]
@@ -152,7 +148,7 @@ namespace ESPINA
 
     CategorySelector   *m_categorySelector;
     SeedThreshold      *m_seedThreshold;
-    QCheckBox          *m_useBestPixel;
+    QPushButton        *m_useBestPixel;
     QLabel             *m_colorLabel;
     PixelValueSelector *m_colorSelector;
     CustomROIWidget    *m_roi;

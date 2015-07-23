@@ -20,29 +20,32 @@
 
 // ESPINA
 #include "InformationSelector.h"
+#include <GUI/Model/CategoryAdapter.h>
 
 // Qt
 #include <ui_InformationSelector.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
-class InformationSelector::GUI
-: public  Ui::InformationSelector
+class InformationSelector::UI
+: public Ui::InformationSelector
 {
 };
 
 //----------------------------------------------------------------------------
 InformationSelector::InformationSelector(const InformationSelector::GroupedInfo &available,
                                          InformationSelector::GroupedInfo       &selection,
+                                         const QString                          &title,
                                          QWidget                                *parent,
                                          Qt::WindowFlags                         flags)
 : QDialog    {parent, flags}
-, m_gui      {new GUI()}
+, m_gui      {new UI()}
 , m_selection(selection)
 {
   m_gui->setupUi(this);
 
-  setWindowTitle(tr("Select Analysis' Information"));
+  setWindowTitle(title);
 
   for(auto group : available.keys())
   {
@@ -68,23 +71,30 @@ InformationSelector::InformationSelector(const InformationSelector::GroupedInfo 
 
     Qt::CheckState state;
     if (hasCheckedChildren && hasUnCheckedChildren)
+    {
       state = Qt::PartiallyChecked;
+    }
     else if (hasCheckedChildren)
+    {
       state = Qt::Checked;
+    }
     else
+    {
       state = Qt::Unchecked;
+    }
 
     groupNode->setData(0, Qt::UserRole,       state);
     groupNode->setData(0, Qt::CheckStateRole, state);
   }
 
   connect(m_gui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-          this, SLOT(updateCheckState(QTreeWidgetItem*,int)));
+          this,              SLOT(updateCheckState(QTreeWidgetItem*,int)));
 
   connect(m_gui->acceptChanges, SIGNAL(clicked(bool)),
-          this, SLOT(accept()));
+          this,                 SLOT(accept()));
+
   connect(m_gui->rejectChanges, SIGNAL(clicked(bool)),
-          this, SLOT(reject()));
+          this,                 SLOT(reject()));
 }
 
 //----------------------------------------------------------------------------
@@ -101,10 +111,14 @@ void InformationSelector::accept()
   QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
   while (*it)
   {
-    QTreeWidgetItem *node       = (*it);
-    QTreeWidgetItem *parentNode = node->parent();
+    auto node       = (*it);
+    auto parentNode = node->parent();
+
     if (parentNode)
+    {
       m_selection[parentNode->text(0)] << node->data(0,Qt::DisplayRole).toString();
+    }
+
     ++it;
   }
 
@@ -138,4 +152,54 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
       parentNode->setData(column, Qt::UserRole, state);
     }
   }
+}
+
+//----------------------------------------------------------------------------
+InformationSelector::GroupedInfo GUI::availableInformation(ModelFactorySPtr factory)
+{
+  InformationSelector::GroupedInfo info;
+
+  for (auto type : factory->availableSegmentationExtensions())
+  {
+    auto extension = factory->createSegmentationExtension(type);
+    for (auto key : extension->availableInformation())
+    {
+      info[type] << key.value();
+    }
+  }
+
+  return info;
+}
+
+bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
+{
+  for (auto segmentation : segmentations)
+  {
+    if (extension->validCategory(segmentation->category()->classificationName())) return true;
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory)
+{
+  InformationSelector::GroupedInfo info;
+
+  for (auto type : factory->availableSegmentationExtensions())
+  {
+    auto extension = factory->createSegmentationExtension(type);
+
+    if (validForSegmentations(extension.get(), segmentations))
+    {
+      for (auto key : extension->availableInformation())
+      {
+        info[type] << key.value();
+      }
+    }
+  }
+
+  //qsort(info[tag]);
+
+  return info;
 }

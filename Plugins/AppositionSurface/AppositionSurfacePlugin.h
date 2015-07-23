@@ -36,10 +36,10 @@
 namespace ESPINA
 {
   class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
-  : public Plugin
+  : public Support::Plugin
   {
     Q_OBJECT
-    Q_INTERFACES(ESPINA::Plugin)
+    Q_INTERFACES(ESPINA::Support::Plugin)
 
     class ASFilterFactory
     : public FilterFactory
@@ -54,23 +54,19 @@ namespace ESPINA
 
     virtual void init(Support::Context &context);
 
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
-
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    virtual NamedColorEngineSList colorEngines() const;
+    virtual QList<Support::CategorizedTool> tools() const;
 
-    virtual RepresentationFactorySList representationFactories() const;
+    virtual Support::Settings::SettingsPanelSList settingsPanels() const;
 
-    virtual QList<CategorizedTool> tools() const;
-
-    virtual SettingsPanelSList settingsPanels() const;
-
-    virtual QList<MenuEntry> menuEntries() const;
-
-    virtual AnalysisReaderSList analysisReaders() const;
+    virtual QList< Support::MenuEntry> menuEntries() const;
 
     virtual FilterFactorySList filterFactories() const;
+
+    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
+
+    static SegmentationAdapterPtr segmentationSAS(SegmentationAdapterPtr segmentation);
 
   public slots:
     void createSASAnalysis();
@@ -96,13 +92,12 @@ namespace ESPINA
       {};
     };
 
-    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
     Support::Context                *m_context;
-    SettingsPanelSPtr                m_settings;
+    Support::Settings::SettingsPanelSPtr m_settings;
     SegmentationExtensionFactorySPtr m_extensionFactory;
-    MenuEntry                        m_menuEntry;
+    Support::MenuEntry               m_menuEntry;
     FilterFactorySPtr                m_filterFactory;
     bool                             m_delayedAnalysis;
     SegmentationAdapterList          m_analysisSynapses;

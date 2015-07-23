@@ -19,6 +19,8 @@
 
 #include "TaskGroupProgress.h"
 
+#include <QDebug>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::MultiTasking;
 

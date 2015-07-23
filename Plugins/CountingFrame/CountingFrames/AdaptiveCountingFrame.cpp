@@ -68,7 +68,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_inclusionVolume = 0;
 
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
   auto channelEdges = edgesExtension->channelEdges();
 
   m_totalVolume = 0;

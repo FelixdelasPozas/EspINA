@@ -57,7 +57,8 @@ const QString Channel::STAIN_LINK  = "Stain";
 
 //------------------------------------------------------------------------
 Channel::Channel(InputSPtr input)
-: ViewItem    {input}
+: ViewItem  (input)
+, Extensible(this)
 , m_brightness{0.0}
 , m_contrast  {1.0}
 , m_hue       {NO_HUE}
@@ -130,62 +131,13 @@ State Channel::state() const
 }
 
 //------------------------------------------------------------------------
-void Channel::addExtension(ChannelExtensionSPtr extension)
-{
-  if (m_extensions.contains(extension->type()))
-    throw (ChannelExtension::Existing_Extension());
-
-  extension->setExtendedItem(this);
-
-  m_extensions.insert(extension->type(), extension);
-}
-
-//------------------------------------------------------------------------
-void Channel::deleteExtension(ChannelExtensionSPtr extension)
-{
-  deleteExtension(extension->type());
-}
-
-//------------------------------------------------------------------------
-void Channel::deleteExtension(const QString& type)
-{
-  if (!m_extensions.contains(type))
-    throw (ChannelExtension::Extension_Not_Found());
-
-  m_extensions.remove(type);
-
-  Q_ASSERT(!m_extensions.contains(type));
-}
-
-
-//------------------------------------------------------------------------
-ChannelExtensionSPtr Channel::extension(const ChannelExtension::Type& type)
-{
-  if (!m_extensions.contains(type))
-  {
-    throw ChannelExtension::Extension_Not_Found();
-  }
-
-  return m_extensions.value(type, ChannelExtensionSPtr());
-}
-
-//------------------------------------------------------------------------
-bool Channel::hasExtension(const ChannelExtension::Type& type) const
-{
-  for(auto extension: m_extensions)
-  {
-    if (extension->type() == type) return true;
-  }
-
-  return false;
-}
-
-//------------------------------------------------------------------------
 Snapshot Channel::snapshot() const
 {
   Snapshot snapshot;
 
-  if (!m_extensions.isEmpty())
+  auto extensions = readOnlyExtensions();
+
+  if (!extensions->isEmpty())
   {
     QByteArray xml;
 
@@ -195,16 +147,16 @@ Snapshot Channel::snapshot() const
     stream.writeStartDocument();
     stream.writeStartElement("Channel");
     stream.writeAttribute("Name", name());
-    for(auto extension : m_extensions)
+    for(auto extension : extensions)
     {
       stream.writeStartElement("Extension");
       stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
-      for(auto tag : extension->readyInformation())
+      for(auto key : extension->readyInformation())
       {
         stream.writeStartElement("Info");
-        stream.writeAttribute("Name", tag);
-        stream.writeCharacters(extension->information(tag).toString());
+        stream.writeAttribute("Name", key.value());
+        stream.writeCharacters(extension->information(key).toString());
         stream.writeEndElement();
       }
 

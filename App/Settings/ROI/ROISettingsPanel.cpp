@@ -34,11 +34,12 @@
 #include <QSettings>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
 ROISettingsPanel::ROISettingsPanel(ROISettings      *settings,
                                    Support::Context &context)
-: m_context       (context)
+: WithContext     (context)
 , m_settings      {settings}
 , m_activeCategory{nullptr}
 {
@@ -51,7 +52,7 @@ ROISettingsPanel::ROISettingsPanel(ROISettings      *settings,
   m_zSize->setSuffix(" nm");
   m_zCategorySize->setSuffix(" nm");
 
-  auto model = context.model().get();
+  auto model = getModel().get();
 
   m_categorySelector->setModel(model);
 
@@ -102,7 +103,7 @@ bool ROISettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr ROISettingsPanel::clone()
 {
-  return new ROISettingsPanel(m_settings, m_context);
+  return new ROISettingsPanel(m_settings, context());
 }
 
 //------------------------------------------------------------------------
@@ -156,7 +157,7 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
     }
   }
 
-  m_activeCategory = m_context.model()->smartPointer(category);
+  m_activeCategory = getModel()->smartPointer(category);
 
   // Fix missing category properties in some cases. By default revert to "default ROI" values.
   if (!m_activeCategory->properties().contains(Category::DIM_X()) ||

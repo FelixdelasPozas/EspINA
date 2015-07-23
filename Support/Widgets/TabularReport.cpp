@@ -79,7 +79,7 @@ TabularReport::TabularReport(Support::Context &context,
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {
-  QHBoxLayout *general = new QHBoxLayout();
+  auto general = new QHBoxLayout();
   general->setAlignment(Qt::AlignRight);
 
   m_exportButton = new QPushButton();
@@ -97,8 +97,9 @@ TabularReport::TabularReport(Support::Context &context,
 
   general->addWidget(m_exportButton);
 
-  QVBoxLayout *layout = new QVBoxLayout();
-  QPalette pal = this->palette();
+  auto layout = new QVBoxLayout();
+  auto pal    = this->palette();
+
   pal.setColor(QPalette::Base, pal.color(QPalette::Background));
   this->setPalette(pal);
 
@@ -117,7 +118,9 @@ TabularReport::~TabularReport()
   QStringList currentEntries;
 
   for (int i = 0; i < m_tabs->count(); ++i)
+  {
     currentEntries << m_tabs->tabText(i).replace("/",">");
+  }
 
   // Remove old extras
   if (m_model)
@@ -236,12 +239,11 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
 {
   QModelIndex sourceIndex = mapToSource(index);
 
-  auto sItem = itemAdapter(sourceIndex);
+  auto sItem        = itemAdapter(sourceIndex);
   auto segmentation = segmentationPtr(sItem);
-  auto bounds = segmentation->output()->bounds();
+  auto bounds       = segmentation->output()->bounds();
 
-  NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
-  m_context.viewState().focusViewOn(center);
+  m_context.viewState().focusViewOn(centroid(bounds));
 
   emit doubleClicked(sourceIndex);
 }
@@ -265,8 +267,8 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
   blockSignals(true);
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-    QTableView *tableView = entry->tableView;
+    auto entry     = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto tableView = entry->tableView;
 
     tableView->selectionModel()->clear();
   }
@@ -310,8 +312,8 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
 
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-    QTableView *tableView = entry->tableView;
+    auto entry     = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto tableView = entry->tableView;
 
     // Update all visible items
     tableView->viewport()->update();

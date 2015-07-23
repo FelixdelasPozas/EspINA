@@ -33,6 +33,7 @@
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <Core/Utils/ListUtils.hxx>
 
 #include <QStandardItemModel>
 #include <QMessageBox>
@@ -40,6 +41,7 @@
 #include <qvarlengtharray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
@@ -54,26 +56,25 @@ class InformationDelegate
     if (index.column() == 0)
     {
       int progress = index.data(Qt::UserRole).toInt();
+
       if (progress >= 0)
       {
         // Set up a QStyleOptionProgressBar to precisely mimic the
         // environment of a progress bar.
         QStyleOptionProgressBar progressBarOption;
-        progressBarOption.state = QStyle::State_Enabled;
-        progressBarOption.direction = QApplication::layoutDirection();
-        progressBarOption.rect = option.rect;
-        progressBarOption.fontMetrics = QApplication::fontMetrics();
-        progressBarOption.minimum = 0;
-        progressBarOption.maximum = 100;
+        progressBarOption.state         = QStyle::State_Enabled;
+        progressBarOption.direction     = QApplication::layoutDirection();
+        progressBarOption.rect          = option.rect;
+        progressBarOption.fontMetrics   = QApplication::fontMetrics();
+        progressBarOption.minimum       = 0;
+        progressBarOption.maximum       = 100;
         progressBarOption.textAlignment = Qt::AlignCenter;
-        progressBarOption.textVisible = true;
-
-        progressBarOption.progress = progress;
-        progressBarOption.text = QString("%1%").arg(progressBarOption.progress);
+        progressBarOption.textVisible   = true;
+        progressBarOption.progress      = progress;
+        progressBarOption.text          = QString("%1%").arg(progressBarOption.progress);
 
 //         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
 //                                                     .arg(progressBarOption.progress);
-
         // Draw the progress bar onto the view.
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
 
@@ -97,6 +98,7 @@ TabularReport::Entry::Entry(const QString   &category,
 {
   setupUi(this);
 
+  tableView->sortByColumn(0, Qt::AscendingOrder);
   tableView->horizontalHeader()->setMovable(true);
   tableView->setItemDelegate(new InformationDelegate());
 
@@ -157,7 +159,7 @@ int TabularReport::Entry::rowCount() const
 //------------------------------------------------------------------------
 int TabularReport::Entry::columnCount() const
 {
-  return m_proxy->informationTags().size();
+  return m_proxy->availableInformation().size();
 }
 
 //------------------------------------------------------------------------
@@ -168,9 +170,13 @@ QVariant TabularReport::Entry::value(int row, int column) const
   if (row < rowCount() && column < columnCount())
   {
     if (row == 0)
-      result = m_proxy->informationTags()[column];
+    {
+      result = m_proxy->availableInformation()[column].value();
+    }
     else
+    {
       result = tableView->model()->index(row - 1, column, tableView->rootIndex()).data();
+    }
   }
 
   return result;
@@ -191,7 +197,7 @@ void TabularReport::Entry::changeDisplayedInformation()
 
   auto selection = lastDisplayedInformation();
 
-  InformationSelector tagSelector(available, selection, this);
+  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), this);
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
@@ -254,7 +260,7 @@ void TabularReport::Entry::refreshAllInformation()
 {
   int c = m_proxy->columnCount() - 1;
 
-  if (m_proxy->informationTags()[c] == tr("Category"))
+  if (m_proxy->availableInformation()[c].value() == tr("Category"))
   {
     --c; // Category tag doesn't span task
   }
@@ -270,7 +276,8 @@ void TabularReport::Entry::refreshGUI()
   int  progress   = m_proxy->progress();
   bool inProgress = (progress < 100);
 
-  if (m_proxy->informationTags().size() == 1 || (m_proxy->informationTags().size() == 2 && m_proxy->informationTags()[1] == tr("Category")))
+  int informationSize = m_proxy->availableInformation().size();
+  if (informationSize == 1 || (informationSize == 2 && m_proxy->availableInformation()[1].value() == tr("Category")))
   {
     inProgress = false;
   }
@@ -279,7 +286,8 @@ void TabularReport::Entry::refreshGUI()
   progressBar->setVisible(inProgress);
   progressBar->setValue(progress);
 
-  if (exportInformation->isEnabled() == inProgress) {
+  if (exportInformation->isEnabled() == inProgress)
+  {
     exportInformation->setEnabled(!inProgress);
 
     emit informationReadyChanged();
@@ -335,58 +343,39 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 //------------------------------------------------------------------------
 InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
-  InformationSelector::GroupedInfo info;
+  auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
+  auto availableInfo = GUI::availableInformation(segmentations, m_factory);
 
-  info[SEGMENTATION_GROUP] << tr("Category");
+  availableInfo[SEGMENTATION_GROUP] << tr("Category");
 
-  for (auto type : m_factory->availableSegmentationExtensions())
-  {
-    auto extension = m_factory->createSegmentationExtension(type);
-    info[type] << extension->availableInformations();
-  }
-
-  for (auto item : m_proxy->displayedItems())
-  {
-    Q_ASSERT(isSegmentation(item));
-
-    auto segmentation = segmentationPtr(item);
-
-    for (auto extension : segmentation->extensions())
-    {
-      info[extension->type()] << extension->availableInformations();
-    }
-  }
-
-  for (auto tag : info.keys())
-  {
-    info[tag].removeDuplicates();
-  }
-
-  return info;
+  return availableInfo;
 }
 
 //------------------------------------------------------------------------
-QStringList TabularReport::Entry::lastInformationOrder()
+SegmentationExtension::InformationKeyList TabularReport::Entry::lastInformationOrder()
 {
-  QStringList informationTags, availableInformationTags;
+  SegmentationExtension::InformationKeyList informationTags, availableInformationTags;
 
-  QString entriesFile = TabularReport::extraPath(m_category + ".xml");
-
+  //auto entriesFile = TabularReport::extraPath(m_category + ".xml");
   auto groupedInfo = availableInformation();
-  for (auto group : groupedInfo.keys())
+
+  for (auto extension : groupedInfo.keys())
   {
-    availableInformationTags << groupedInfo[group];
+    for (auto value : groupedInfo[extension])
+    {
+      availableInformationTags <<  SegmentationExtension::InformationKey(extension, value);
+    }
   }
 
   QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
 
-  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
-  {
-    if (availableInformationTags.contains(tag))
-    {
-      informationTags << tag;
-    }
-  }
+//   for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+//   {
+//     if (availableInformationTags.contains(tag))
+//     {
+//       informationTags << tag;
+//     }
+//   }
 
   return informationTags;
 }
@@ -419,77 +408,74 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 }
 
 //------------------------------------------------------------------------
-void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
+void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder)
 {
   for(auto extensionType : extensionInformations.keys())
   {
-    for (auto segmentation : m_model->segmentations())
+    if (extensionType != SEGMENTATION_GROUP)
     {
-      if (!segmentation->hasExtension(extensionType))
+      for (auto segmentation : m_model->segmentations())
       {
-        if (m_factory->availableSegmentationExtensions().contains(extensionType))
-        {
-          auto extension = m_factory->createSegmentationExtension(extensionType);
-          if(extension->validCategory(segmentation->category()->classificationName()))
-            segmentation->addExtension(extension);
-        }
-        else if (extensionType != SEGMENTATION_GROUP)
-        {
-          qWarning() << extensionType << " is not available";
-        }
+        addSegmentationExtension(segmentation, extensionType, m_factory);
       }
     }
   }
 
-  QStringList tags;
-  tags << tr("Name") << informationOrder;
-  m_proxy->setInformationTags(tags);
+  SegmentationExtension::InformationKeyList keys;
+  keys << InformationProxy::NameKey() << informationOrder;
+  m_proxy->setInformationTags(keys);
 
-  auto header = new QStandardItemModel(1, tags.size(), this);
-  header->setHorizontalHeaderLabels(tags);
+  QStringList headerLabels;
+  for (auto key : keys)
+  {
+    headerLabels << key.value();
+  }
+
+  auto header = new QStandardItemModel(1, keys.size(), this);
+  header->setHorizontalHeaderLabels(headerLabels);
   tableView->horizontalHeader()->setModel(header);
 }
 
 
 //------------------------------------------------------------------------
-QStringList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
+SegmentationExtension::InformationKeyList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
 {
-  QStringList oldInformationList     = lastInformationOrder();
-  QStringList orderedInformationList = oldInformationList;
-
-  QStringList newInformationList = information(extensionInformation);
-
-  for (auto oldInformation : oldInformationList)
-  {
-    if (!newInformationList.contains(oldInformation))
-    {
-      orderedInformationList.removeAll(oldInformation);
-    }
-  }
-
-  for (auto newInformation : newInformationList)
-  {
-    if (!orderedInformationList.contains(newInformation))
-    {
-      orderedInformationList << newInformation;
-    }
-  }
-
-  return orderedInformationList;
+  auto oldInformationList     = lastInformationOrder();
+  auto orderedInformationList = oldInformationList;
+  auto newInformationList     = information(extensionInformation);
+//
+//   for (auto oldInformation : oldInformationList)
+//   {
+//     if (!newInformationList.contains(oldInformation))
+//     {
+//       orderedInformationList.removeAll(oldInformation);
+//     }
+//   }
+//
+//   for (auto newInformation : newInformationList)
+//   {
+//     if (!orderedInformationList.contains(newInformation))
+//     {
+//       orderedInformationList << newInformation;
+//     }
+//   }
+//
+  return newInformationList;
 }
 
 //------------------------------------------------------------------------
-QStringList TabularReport::Entry::information(InformationSelector::GroupedInfo extensionInformations)
+SegmentationExtension::InformationKeyList TabularReport::Entry::information(InformationSelector::GroupedInfo extensionInformations)
 {
-  QStringList informations;
+  SegmentationExtension::InformationKeyList informations;
 
-  for (auto extension : extensionInformations)
+  for (auto extension : extensionInformations.keys())
   {
-    for (auto information : extension)
+    for (auto value : extensionInformations[extension])
     {
-      if (!informations.contains(information))
+      SegmentationExtension::InformationKey key(extension, value);
+      if (!informations.contains(key))
       {
-        informations << information;
+        informations << key;
       }
     }
   }

@@ -37,55 +37,60 @@ namespace ESPINA
   class SASTabularReport
   : public TabularReport
   {
-    protected:
-      class Entry;
+  protected:
+    class Entry;
 
-    public:
-      /** \brief SASTabularReport class constructor.
-       *
-       */
-      SASTabularReport(Support::Context &context,
-                       QWidget                *parent = nullptr,
-                       Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
-      : TabularReport(context, parent, flags)
-      , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
-      {
-        setModel(context.model());
-      };
-
-    protected slots:
-      void exportInformation();
-
-    private:
-      void createCategoryEntry(const QString &category);
-
-      static QString extraPath(const QString &file = QString())
-      { return "Extra/SASInformation/" + file; }
-
-      SegmentationExtension::InfoTagList m_sasTags;
+  public:
+    /** \brief SASTabularReport class constructor.
+     *
+     */
+    SASTabularReport(Support::Context &context,
+                     QWidget                *parent = nullptr,
+                     Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
+    : TabularReport(context, parent, flags)
+    , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation()}
+    {
+      setModel(context.model());
     };
+
+  protected slots:
+    void exportInformation();
+
+  private:
+    void createCategoryEntry(const QString &category);
+
+    static QString extraPath(const QString &file = QString())
+    { return "Extra/SASInformation/" + file; }
+
+  private:
+    SegmentationExtension::InformationKeyList m_sasTags;
+  };
 
   class SASTabularReport::Entry
   : public TabularReport::Entry
   {
-    public:
-      /** \brief Entry class constructor.
-       *
-       */
-      explicit Entry(const QString   &category,
-                     ModelAdapterSPtr model,
-                     ModelFactorySPtr factory)
-      : TabularReport::Entry{category, model, factory}
-      {};
+  public:
+    /** \brief Entry class constructor.
+     *
+     */
+    explicit Entry(const QString   &category,
+                   ModelAdapterSPtr model,
+                   ModelFactorySPtr factory)
+    : TabularReport::Entry{category, model, factory}
+    {};
 
-      InformationSelector::GroupedInfo availableInformation();
+    GUI::InformationSelector::GroupedInfo availableInformation();
 
-      void setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
+    void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder);
 
-    private slots:
-      void extractInformation();
+  private:
+    SegmentationExtension::KeyList keyValues(const SegmentationExtension::InformationKeyList &keys) const;
+
+    bool isSASExtensions(const SegmentationExtension::Type &type) const;
+
+  private slots:
+    void extractInformation();
   };
-
 } // namespace ESPINA
 
 #endif // SAS_TABULAR_REPORT_H_

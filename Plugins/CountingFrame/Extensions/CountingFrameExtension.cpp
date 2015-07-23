@@ -117,7 +117,7 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
   Q_ASSERT(m_countingFrames.contains(countingFrame));
   for (auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
     extension->removeCountingFrame(countingFrame);
   }
 
@@ -127,7 +127,7 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 
   if (m_countingFrames.isEmpty())
   {
-    m_extendedItem->deleteExtension(TYPE);
+    safeDeleteExtension<StereologicalInclusion>(m_extendedItem);
   }
 
   delete countingFrame;
@@ -177,7 +177,7 @@ void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame
 {
   for(auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
     extension->evaluateCountingFrame(countingFrame);
   }
 }
@@ -194,10 +194,12 @@ void CountingFrameExtension::createCountingFrame(CFType type,
   if (CFType::ORTOGONAL == type)
   {
     cf = OrthogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
-  } else if (CFType::ADAPTIVE == type)
+  }
+  else if (CFType::ADAPTIVE == type)
   {
     cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
-  } else
+  }
+  else
   {
     Q_ASSERT(false);
   }

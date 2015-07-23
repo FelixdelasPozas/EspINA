@@ -82,8 +82,7 @@ void InformationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 //------------------------------------------------------------------------
 QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
-  if (!sourceIndex.isValid())
-    return QModelIndex();
+  if (!sourceIndex.isValid()) return QModelIndex();
 
   if ( sourceIndex == m_model->classificationRoot()
     || sourceIndex == m_model->sampleRoot()
@@ -106,8 +105,7 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
 //------------------------------------------------------------------------
 QModelIndex InformationProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
-  if (!proxyIndex.isValid())
-    return QModelIndex();
+  if (!proxyIndex.isValid()) return QModelIndex();
 
   auto proxyItem = itemAdapter(proxyIndex);
 
@@ -126,7 +124,7 @@ int InformationProxy::columnCount(const QModelIndex& parent) const
 {
   if (!parent.isValid())
   {
-    return m_tags.size();
+    return m_keys.size();
   }
 
   return 0;
@@ -135,20 +133,15 @@ int InformationProxy::columnCount(const QModelIndex& parent) const
 //------------------------------------------------------------------------
 int InformationProxy::rowCount(const QModelIndex& parent) const
 {
-  if (m_tags.isEmpty())
-    return 0;
+  if (m_keys.isEmpty()) return 0;
 
-  if (!parent.isValid())
-    return m_elements.size();
-  else
-    return 0;// There are no sub-segmentations
+  return !parent.isValid()?m_elements.size():0; //There are no sub-segmentations
 }
 
 //------------------------------------------------------------------------
 QModelIndex InformationProxy::parent(const QModelIndex& child) const
 {
-  if (!child.isValid())
-    return QModelIndex();
+  if (!child.isValid()) return QModelIndex();
 
   auto childItem = itemAdapter(child);
   Q_ASSERT(isSegmentation(childItem));
@@ -175,12 +168,12 @@ QModelIndex InformationProxy::index(int row, int column, const QModelIndex& pare
 //------------------------------------------------------------------------
 QVariant InformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (m_tags.isEmpty())
+  if (m_keys.isEmpty())
     return QAbstractProxyModel::headerData(section, orientation, role);
 
-  if (Qt::DisplayRole == role && section < m_tags.size())
+  if (Qt::DisplayRole == role && section < m_keys.size())
   {
-    return m_tags[section];
+    return m_keys[section].value();
   }
 
   return QAbstractProxyModel::headerData(section, orientation, role);
@@ -211,7 +204,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     if (m_pendingInformation.contains(segmentation))
     {
 
-      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+      auto task = m_pendingInformation[segmentation];
 
       progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
     }
@@ -231,43 +224,46 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     }
   }
 
-  if (role == Qt::DisplayRole && !m_tags.isEmpty())
+  if (role == Qt::DisplayRole && !m_keys.isEmpty())
   {
-    auto tag = m_tags[proxyIndex.column()];
+    auto key = m_keys[proxyIndex.column()];
 
-    if (NameTag() == tag)
+    if (NameKey() == key)
     {
       return segmentation->data(role);
     }
 
-    if (CategoryTag() == tag)
+    if (CategoryKey() == key)
     {
       return segmentation->category()->data(role);
     }
 
-    if (segmentation->informationTags().contains(tag))
+    auto extensions = segmentation->readOnlyExtensions();
+
+    if (extensions->hasInformation(key))
     {
       if (!m_pendingInformation.contains(segmentation)
        || m_pendingInformation[segmentation]->isAborted())
       {
-        InformationFetcherSPtr task{new InformationFetcher(segmentation, m_tags, m_scheduler)};
+        auto task = std::make_shared<InformationFetcher>(segmentation, m_keys, m_scheduler);
         m_pendingInformation[segmentation] = task;
 
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
         {
           connect(task.get(), SIGNAL(progress(int)),
-                  this, SLOT(onProgessReported(int)));
+                  this,       SLOT(onProgessReported(int)));
           connect(task.get(), SIGNAL(finished()),
-                  this, SLOT(onTaskFininished()));
+                  this,       SLOT(onTaskFininished()));
           //qDebug() << "Launching Task";
           Task::submit(task);
         } else // we avoid overloading the scheduler
         {
-          return segmentation->information(tag);
+          return extensions->information(key);
         }
-      } else if (m_pendingInformation[segmentation]->hasFinished())
+      }
+      else if (m_pendingInformation[segmentation]->hasFinished())
       {
-        auto info = segmentation->information(tag);
+        auto info = segmentation->information(key);
         if (!info.isValid())
         {
           info = tr("Unavailable");
@@ -281,7 +277,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     {
       return tr("Unavailable");
     }
-  } else if (proxyIndex.column() > 0)
+  }
+  else if (proxyIndex.column() > 0)
   {
     return QVariant();//To avoid checkrole or other roles
   }
@@ -306,9 +303,10 @@ void InformationProxy::setFilter(const SegmentationAdapterList *filter)
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagList tags)
+void InformationProxy::setInformationTags(const SegmentationExtension::InformationKeyList &keys)
 {
   beginResetModel();
+
   for (auto task : m_pendingInformation)
   {
     task->abort();
@@ -316,7 +314,7 @@ void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagLi
 
   m_pendingInformation.clear();
 
-  m_tags = tags;
+  m_keys = keys;
 
   endResetModel();
 }
@@ -325,6 +323,7 @@ void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagLi
 int InformationProxy::progress() const
 {
   double finishedTasks = 0;
+
   for (auto task : m_pendingInformation)
   {
     if (task->hasFinished()) ++finishedTasks;
@@ -356,16 +355,20 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
     int startRow = m_elements.size();
     int endRow   = startRow + acceptedItems.size() - 1;
     // Avoid populating the view if no query is selected
-    if (!m_tags.isEmpty())
+    if (!m_keys.isEmpty())
+    {
       beginInsertRows(QModelIndex(), startRow, endRow);
+    }
 
     for(auto acceptedItem : acceptedItems)
     {
       m_elements << acceptedItem;
     }
 
-    if (!m_tags.isEmpty())
+    if (!m_keys.isEmpty())
+    {
       endInsertRows();
+    }
   }
 }
 
@@ -385,7 +388,7 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
     if (!removedIndexes.isEmpty())
     {
       // Avoid population the view if no query is selected
-      if (!m_tags.isEmpty())
+      if (!m_keys.isEmpty())
         beginRemoveRows(QModelIndex(), removedIndexes.first().row(), removedIndexes.last().row());
       for(auto index : removedIndexes)
       {
@@ -393,7 +396,7 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
         auto removedItem = itemAdapter(index);
         m_elements.removeOne(removedItem);
       }
-      if (!m_tags.isEmpty())
+      if (!m_keys.isEmpty())
         endRemoveRows();
     }
   }

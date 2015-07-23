@@ -22,6 +22,7 @@
 #define ESPINA_SEGMENTATION_SMOOTHED_MESH_PIPELINE_H_
 
 // ESPINA
+#include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
@@ -35,7 +36,7 @@ namespace ESPINA
        * \param[in] colorEngine color engine smart pointer.
        *
        */
-      explicit SegmentationSmoothedMeshPipeline(ColorEngineSPtr colorEngine);
+      explicit SegmentationSmoothedMeshPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
       /** \brief SegmentationSmoothedMesh class virtual destructor.
        *
@@ -52,7 +53,7 @@ namespace ESPINA
       virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
     private:
-      ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
 
       static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };

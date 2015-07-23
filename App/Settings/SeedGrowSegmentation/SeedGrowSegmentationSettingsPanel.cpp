@@ -35,12 +35,11 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings,
-                                                                       Support::Context &context)
-: m_context      (context)
-, m_settings     {settings}
+SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings)
+: m_settings     {settings}
 , m_pixelSelector{new PixelValueSelector(this)}
 {
   setupUi(this);
@@ -109,8 +108,8 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
   returnValue |= (m_ySize->value() != m_settings->ySize());
   returnValue |= (m_zSize->value() != m_settings->zSize());
   returnValue |= (m_applyCategoryROI->isChecked() != m_settings->applyCategoryROI());
-  returnValue |= (m_pixelSelector->value() != m_settings->bestPixelValue());
-  returnValue |= (m_applyClosing->isChecked() != m_settings->applyClose());
+  returnValue |= (m_pixelSelector->value()        != m_settings->bestPixelValue());
+  returnValue |= (m_applyClosing->isChecked()     != m_settings->applyClose());
   returnValue |= (m_applyClosing->isChecked() ? returnValue : (m_closing->value() != m_settings->closeRadius()));
 
   return returnValue;
@@ -119,7 +118,7 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
 {
-  return new SeedGrowSegmentationsSettingsPanel(m_settings, m_context);
+  return new SeedGrowSegmentationsSettingsPanel(m_settings);
 }
 
 //------------------------------------------------------------------------

@@ -29,32 +29,29 @@
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT NumberColorEngine
-  : public ColorEngine
+  namespace GUI
   {
-  public:
-  	/** \brief Implements ColorEngine::color().
-  	 *
-  	 */
-    virtual QColor color(SegmentationAdapterPtr segmentation);
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT NumberColorEngine
+      : public ColorEngine
+      {
+      public:
+        explicit NumberColorEngine();
 
-    /** \brief Implments ColorEngine::lut().
-     *
-     */
-    virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
+        virtual QColor color(SegmentationAdapterPtr segmentation);
 
-    /** \brief Implements ColorEngine::supportedComposition().
-     *
-     */
-    virtual ColorEngine::Composition supportedComposition() const
-    { return ColorEngine::Color; }
+        virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
 
-  private:
-    LUTMap m_LUT;
-  };
+        virtual ColorEngine::Composition supportedComposition() const
+        { return ColorEngine::Color; }
 
-  using NumberColorEngineSPtr = std::shared_ptr<NumberColorEngine>;
+      private:
+        LUTMap m_LUT;
+      };
 
+    }
+  }
 }// namespace ESPINA
 
 #endif // ESPINA_NUMBER_COLOR_ENGINE_H

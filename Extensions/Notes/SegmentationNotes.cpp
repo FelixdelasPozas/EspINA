@@ -31,8 +31,8 @@
 
 using namespace ESPINA;
 
-const QString                        SegmentationNotes::TYPE = "SegmentationNotes";
-const SegmentationExtension::InfoTag SegmentationNotes::NOTES = "Notes";
+const QString                    SegmentationNotes::TYPE  = "SegmentationNotes";
+const SegmentationExtension::Key SegmentationNotes::NOTES = "Notes";
 
 //------------------------------------------------------------------------
 SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
@@ -47,13 +47,13 @@ SegmentationNotes::~SegmentationNotes()
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationNotes::availableInformations() const
+SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
 {
-  InfoTagList tags;
+  InformationKeyList keys;
 
-  tags << NOTES;
+  keys << createKey(NOTES);
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void SegmentationNotes::setNotes(const QString &note)
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationNotes::cacheFail(const QString& tag) const
+QVariant SegmentationNotes::cacheFail(const InformationKey& key) const
 {
   return QVariant();
 }

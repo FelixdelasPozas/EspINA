@@ -33,7 +33,8 @@ void Styles::setNestedStyle(QWidget *widget)
     "#NestedWidget {"
     "  margin-top: 4px;"
     "  margin-bottom: 4px;"
-    "  padding-right: 30px;"
+    "  padding-left: 4px;"
+    "  padding-right: 4px;"
     "  border-radius: 5px;"
     "  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, "
                          "stop:   0 rgba(0,0,0,20),"
@@ -77,4 +78,13 @@ QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip,
   button->setToolTip(tooltip);
 
   return button;
+}
+
+//-----------------------------------------------------------------------------
+void Styles::setBarStyle(QWidget* bar)
+{
+  bar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+  bar->setFixedHeight(20);
+  bar->setMinimumWidth(MediumBarWidth());
+  bar->setMaximumWidth(MediumBarWidth());
 }

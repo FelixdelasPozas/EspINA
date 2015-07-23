@@ -68,13 +68,13 @@ namespace ESPINA {
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual InfoTagList availableInformations() const
-    { return InfoTagList(); }
+    virtual InformationKeyList availableInformation() const
+    { return InformationKeyList(); }
 
   protected:
     virtual void onExtendedItemSet(Channel* item);
 
-    virtual QVariant cacheFail(const InfoTag &tag) const
+    virtual QVariant cacheFail(const InformationKey &tag) const
     { return QVariant(); }
 
   private:

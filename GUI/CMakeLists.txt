@@ -11,6 +11,7 @@ include_directories(
 qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
+  ColorEngines/MultiColorEngine.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
@@ -28,6 +29,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
+  Utils/ColorRange.h
   Utils/Timer.h
   View/EventHandler.h
   EventHandlers/PointTracker.h
@@ -63,6 +65,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/ColorBar.h
   Widgets/DrawingWidget.h
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
@@ -95,10 +98,11 @@ set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
+  ColorEngines/InformationColorEngine.cpp
   ColorEngines/SelectionHighlighter.cpp
-  ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
   Dialogs/CategorySelectorDialog.cpp
@@ -150,7 +154,9 @@ set (GUI_SOURCES
   Representations/RepresentationWindow.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
+  Utils/ColorRange.cpp
   Utils/DefaultIcons.cpp
+  Utils/Format.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp
   EventHandlers/Brush.cpp
@@ -208,6 +214,7 @@ set (GUI_SOURCES
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/ColorBar.cpp
   Widgets/DrawingWidget.cpp
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp

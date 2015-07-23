@@ -26,7 +26,7 @@
 
 // ESPINA
 #include "Core/EspinaTypes.h"
-#include <Core/Analysis/Persistent.h>
+#include <Core/Analysis/ViewItem.h>
 
 // Qt
 #include <QVariant>
@@ -40,13 +40,59 @@ namespace ESPINA
   : public QObject
   {
   public:
-    using Type        = QString;
-    using TypeList    = QList<Type>;
-    using InfoTag     = QString;
-    using InfoTagList = QList<InfoTag>;
-    using InfoCache   = QMap<InfoTag, QVariant>;
+    using Type     = QString;
+    using TypeList = QList<Type>;
+    using Key      = QString;
+    using KeyList  = QList<Key>;
 
-    struct Existing_Extension{};
+    class InformationKey
+    {
+    public:
+      InformationKey(const Type &extension, const QString &property)
+      : m_extension(extension)
+      , m_key(property)
+      {}
+
+      InformationKey(const InformationKey &key)
+      : m_extension(key.extension())
+      , m_key(key.value())
+      {}
+
+      void operator=(const InformationKey &rhs)
+      {
+        m_extension = rhs.extension();
+        m_key       = rhs.value();
+      }
+
+      bool operator==(const InformationKey &rhs) const
+      {
+        return extension() == rhs.extension() && value() == rhs.value();
+      }
+
+      bool operator!=(const InformationKey &rhs) const
+      { return !operator==(rhs); }
+
+      bool operator<(const InformationKey &rhs) const
+      {
+        return extension() <  rhs.extension()
+            ||(extension() == rhs.extension() && value() < rhs.value());
+      }
+
+      const Type extension() const
+      { return m_extension; }
+
+      const Key value() const
+      { return m_key; }
+
+    private:
+      Type m_extension;
+      Key  m_key;
+    };
+
+    using InformationKeyList = QList<InformationKey>;
+    using InfoCache          = QMap<Key, QVariant>;
+
+    struct Invalid_Extension_Key{};
     struct Extension_Not_Found{};
 
     static QString ExtensionFilePath(T *item)
@@ -96,7 +142,7 @@ namespace ESPINA
       if (invalidateOnChange())
       {
         connect(m_extendedItem, SIGNAL(outputModified()),
-                this, SLOT(invalidate()));
+                this,           SLOT(invalidate()));
       }
 
       onExtendedItemSet(item);
@@ -107,34 +153,53 @@ namespace ESPINA
      */
     T *extendedItem() {return m_extendedItem;}
 
-    /** \brief Returns a list of tags this extension have information of.
+    /** \brief Returns a list of keys this extension have information of.
      *
      */
-    virtual InfoTagList availableInformations() const = 0;
+    virtual InformationKeyList availableInformation() const = 0;
 
-    /** \brief Returns true if the information has been computed or loaded.
+    bool hasInformation(const InformationKey &key) const
+    {
+      return key.extension() == type() && availableInformation().contains(key);
+    }
+
+    /** \brief Returns the list of keys whose information is ready
      *
      */
-    InfoTagList readyInformation() const
+    InformationKeyList readyInformation() const
     {
       QReadLocker locker(&m_lock);
 
-      return m_infoCache.keys();
+      InformationKeyList keys;
+
+      for (auto key : m_infoCache.keys())
+      {
+        keys << createKey(key);
+      }
+
+      return keys;
     }
 
-    /** \brief Returns the value of the information tag provided.
-     * \param[in] tag, requested information tag.
+    bool isReady(const InformationKey &key) const
+    {
+      if (key.extension() != type()) throw Invalid_Extension_Key();
+
+      return readyInformation().contains(key);
+    }
+
+    /** \brief Returns the value of the information key provided.
+     * \param[in] key informaton key
      *
      */
-    QVariant information(const InfoTag &tag) const
+    QVariant information(const InformationKey &key) const
     {
-      Q_ASSERT(availableInformations().contains(tag));
+      if (!hasInformation(key)) throw Invalid_Extension_Key();
 
-      QVariant info = cachedInfo(tag);
+      QVariant info = cachedInfo(key);
 
       if (!info.isValid())
       {
-        info = cacheFail(tag);
+        info = cacheFail(key);
       }
 
       return info;
@@ -148,7 +213,7 @@ namespace ESPINA
 
   protected:
     /** \brief Extension class constructor.
-     * \param[in] infoCache, extension cache object.
+     * \param[in] infoCache extension cache object.
      *
      */
     Extension(const InfoCache &infoCache)
@@ -179,35 +244,34 @@ namespace ESPINA
     virtual void onExtendedItemSet(T *item) = 0;
 
     /** \brief Recomputes or reloads the information when the cache fails.
-     * \param[in] tag, information key.
+     * \param[in] key information key.
      *
      */
-    virtual QVariant cacheFail(const InfoTag &tag) const = 0;
+    virtual QVariant cacheFail(const InformationKey &key) const = 0;
 
     /** \brief Returns the information from the cache.
-     * \param[in] tag, information key.
+     * \param[in] key information key.
      *
      */
-    QVariant cachedInfo(const InfoTag &tag) const
+    QVariant cachedInfo(const InformationKey &key) const
     {
       QReadLocker locker(&m_lock);
 
-      return m_infoCache.value(tag, QVariant());
+      return m_infoCache.value(key.value(), QVariant());
     }
 
     /** \brief Updates the cache of the key with a value.
-     * \param[in] tag, information key.
-     * \param[value] value, information value.
+     * \param[in] key   information key.
+     * \param[in] value information value.
      *
      */
-    void updateInfoCache(const InfoTag &tag, const QVariant &value) const
+    void updateInfoCache(const Key &key, const QVariant &value) const
     {
       QWriteLocker locker(&m_lock);
 
-      m_infoCache[tag] = value;
+      m_infoCache[key] = value;
     }
 
-  protected:
     /** \brief Invalidates the cache values.
      *
      */
@@ -217,6 +281,9 @@ namespace ESPINA
 
       m_infoCache.clear();
     }
+
+    InformationKey createKey(const Key &value) const
+    { return InformationKey(type(), value); }
 
   protected:
     T *m_extendedItem;
@@ -239,7 +306,7 @@ namespace ESPINA
 
   protected:
     /** \brief ChannelExtension class constructor.
-     * \param[in] infoCache, cache object.
+     * \param[in] infoCache cache object.
      *
      */
     ChannelExtension(const InfoCache &infoCache)
@@ -260,10 +327,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief Returns true if the extension is applicable to given category.
-     * \param[in] classificationName, classification name.
+     * \param[in] classification name.
      *
      */
-    virtual bool validCategory(const QString &classificationName) const = 0;
+    virtual bool validCategory(const QString &classification) const = 0;
 
   public slots:
     virtual void invalidate()
@@ -273,7 +340,7 @@ namespace ESPINA
 
   protected:
   /** \brief SegmentationExtension class constructor.
-   * \param[in] infoCache, cache object.
+   * \param[in] infoCache cache object.
    *
    */
     SegmentationExtension(const InfoCache &infoCache)
@@ -287,6 +354,11 @@ namespace ESPINA
   using SegmentationExtensionSList    = QList<SegmentationExtensionSPtr>;
   using SegmentationExtensionSMap     = QMap<QString,SegmentationExtensionSPtr>;
   using SegmentationExtensionTypeList = QList<SegmentationExtension::Type>;
+
+  template<typename E> typename E::InformationKey createKey(const std::shared_ptr<E> &extension, const typename E::Key &key)
+  {
+    return typename E::InformationKey(extension->type(), key);
+  }
 
 } // namespace ESPINA
 

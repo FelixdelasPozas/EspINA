@@ -21,29 +21,28 @@
 // ESPINA
 #include "SkeletonToolGroup.h"
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
+
+//-----------------------------------------------------------------------------
+SkeletonToolGroup::SkeletonToolGroup(Support::Context &context)
+: ToolGroup  {":/espina/tubular.svg", tr("Skeleton tools.")}
+, m_tool     {new SkeletonTool{context}}
+, m_enabled  {false}
 {
-  //-----------------------------------------------------------------------------
-  SkeletonToolGroup::SkeletonToolGroup(Support::Context &context)
-  : ToolGroup  {":/espina/tubular.svg", tr("Skeleton tools.")}
-  , m_tool     {new SkeletonTool{context}}
-  , m_enabled  {false}
-  {
-  }
-  
-  //-----------------------------------------------------------------------------
-  void SkeletonToolGroup::setEnabled(bool value)
-  {
-    m_enabled = value;
-    m_tool->setEnabled(value);
-  }
+}
 
-  //-----------------------------------------------------------------------------
-  ToolSList SkeletonToolGroup::tools()
-  {
-    ToolSList list;
-    list << m_tool;
-    return list;
-  }
+//-----------------------------------------------------------------------------
+void SkeletonToolGroup::setEnabled(bool value)
+{
+  m_enabled = value;
+  m_tool->setEnabled(value);
+}
 
-} // namespace EspINA
+//-----------------------------------------------------------------------------
+ToolSList SkeletonToolGroup::tools()
+{
+  ToolSList list;
+  list << m_tool;
+  return list;
+}

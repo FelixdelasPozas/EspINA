@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "GeneralSettingsDialog.h"
+#include <Support/Settings/SettingsPanel.h>
 
 // Qt
 #include <QDir>
@@ -29,6 +30,7 @@
 #include <QTime>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
 GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -60,7 +62,7 @@ void GeneralSettingsDialog::reject()
 //------------------------------------------------------------------------
 void GeneralSettingsDialog::registerPanel(SettingsPanelSPtr panel)
 {
-  QListWidgetItem *item = new QListWidgetItem();
+  auto item = new QListWidgetItem();
 
   item->setData(Qt::DisplayRole,   panel->shortDescription());
   item->setData(Qt::DecorationRole,panel->icon());
@@ -76,7 +78,9 @@ SettingsPanelSPtr GeneralSettingsDialog::panel(const QString& shortDesc)
   for(auto panel : m_panels)
   {
     if (panel->shortDescription() == shortDesc)
+    {
       return panel;
+    }
   }
 
   Q_ASSERT(false);

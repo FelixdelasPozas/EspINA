@@ -20,7 +20,7 @@
 #ifndef ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
 #define ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
 
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA
 {

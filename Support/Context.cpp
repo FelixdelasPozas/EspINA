@@ -27,6 +27,7 @@
 const int PERIOD_uSEC = 16000; // 16ms
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::Support;
 
@@ -93,7 +94,7 @@ GUI::View::ViewState &Context::viewState()
 }
 
 //------------------------------------------------------------------------
-ColorEngineSPtr Context::colorEngine() const
+MultiColorEngineSPtr Context::colorEngine() const
 {
   return m_colorEngine;
 }

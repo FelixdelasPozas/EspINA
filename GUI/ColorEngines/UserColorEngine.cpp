@@ -27,13 +27,15 @@
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-UserColorEngine::UserColorEngine() :
-m_lastColor(0)
+UserColorEngine::UserColorEngine()
+: ColorEngine("UserColorEngine", tr("User"))
+, m_lastColor(0)
 {
   m_colors << QColor( 31, 120, 180)
            << QColor( 51, 160,  44)

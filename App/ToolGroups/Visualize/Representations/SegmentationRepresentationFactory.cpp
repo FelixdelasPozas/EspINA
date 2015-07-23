@@ -45,7 +45,9 @@
 #include <Support/Representations/RepresentationUtils.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::Support::Representations::Utils;
+
 using ESPINA::GUI::Representations::Managers::PassiveActorManager;
 using ESPINA::GUI::Representations::RepresentationManager;
 

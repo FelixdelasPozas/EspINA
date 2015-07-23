@@ -85,7 +85,7 @@ void ImageLogicFilter::execute(Output::Id oId)
       break;
   };
 
-  emit progress(100);
+  reportProgress(100);
   if (!canExecute()) return;
 }
 
@@ -96,7 +96,7 @@ void ImageLogicFilter::addition()
   auto boundingBounds = firstVolume->bounds();
   auto spacing        = firstVolume->spacing();
 
-  emit progress(0);
+  reportProgress(0);
   if (!canExecute()) return;
 
   for(auto input: m_inputs)
@@ -105,7 +105,7 @@ void ImageLogicFilter::addition()
     boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, spacing);
   }
 
-  emit progress(50);
+  reportProgress(50);
   if (!canExecute()) return;
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(boundingBounds, spacing);
@@ -185,7 +185,7 @@ void ImageLogicFilter::subtraction()
       outputVolume->draw(mask, mask->foregroundValue());
     }
 
-    emit progress((100/m_inputs.size())*i);
+    reportProgress((100/m_inputs.size())*i);
     if (!canExecute()) return;
   }
 

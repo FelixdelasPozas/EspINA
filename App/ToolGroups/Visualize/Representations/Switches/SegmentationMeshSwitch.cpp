@@ -26,7 +26,6 @@
 
 using namespace ESPINA;
 
-const QString SEGMENTATION_MESH_ENABLED_KEY      = "Enabled";
 const QString SEGMENTATION_MESH_SMOOTH_VALUE_KEY = "Smooth Value";
 
 //----------------------------------------------------------------------------
@@ -98,7 +97,7 @@ void SegmentationMeshSwitch::hideRepresentations(TimeStamp t)
 //----------------------------------------------------------------------------
 void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = settings->value(SEGMENTATION_MESH_ENABLED_KEY, false).toBool();
+  auto enabled = checkSetting(settings);
   auto smoothValue = settings->value(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, 0).toInt();
 
   m_settings->setSmoothValue(smoothValue);
@@ -116,7 +115,7 @@ void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings
 //----------------------------------------------------------------------------
 void SegmentationMeshSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(SEGMENTATION_MESH_ENABLED_KEY, isChecked());
+  saveCheckSetting(settings);
   settings->setValue(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, m_smooth->value());
 }
 

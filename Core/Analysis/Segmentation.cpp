@@ -48,7 +48,8 @@ const QString STATE_CATEGORY = "Category";
 
 //------------------------------------------------------------------------
 Segmentation::Segmentation(InputSPtr input)
-: ViewItem  {input}
+: ViewItem  (input)
+, Extensible(this)
 , m_number  {0}
 , m_users   {QSet<QString>()}
 , m_category{nullptr}
@@ -59,87 +60,6 @@ Segmentation::Segmentation(InputSPtr input)
 Segmentation::~Segmentation()
 {
   m_category = nullptr;
-
-  for (auto extension: m_extensions)
-    extension = nullptr;
-
-  m_extensions.clear();
-}
-
-//------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Existing_Extension)
-{
-  if (m_extensions.contains(extension->type()))
-    throw SegmentationExtension::Existing_Extension();
-
-  extension->setExtendedItem(this);
-
-  m_extensions.insert(extension->type(), extension);
-}
-
-//------------------------------------------------------------------------
-void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Extension_Not_Found)
-{
-  if (!m_extensions.contains(extension->type()))
-    throw SegmentationExtension::Extension_Not_Found();
-
-  m_extensions.remove(extension->type());
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found)
-{
-  if (!m_extensions.contains(type))
-  {
-    throw SegmentationExtension::Extension_Not_Found();
-  }
-
-  return m_extensions.value(type, SegmentationExtensionSPtr());
-}
-
-//------------------------------------------------------------------------
-bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
-{
-  return m_extensions.keys().contains(type);
-}
-
-//------------------------------------------------------------------------
-QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) const
-{
-  for(auto extension: m_extensions.values())
-  {
-    if (extension->availableInformations().contains(tag))
-    {
-      return extension->information(tag);
-    }
-  }
-
-  return QVariant();
-}
-
-//------------------------------------------------------------------------
-bool Segmentation::isInformationReady(const QString& tag) const
-{
-  for(auto extension: m_extensions.values())
-  {
-    if (extension->availableInformations().contains(tag))
-    {
-      return extension->readyInformation().contains(tag);
-    }
-  }
-
-  return false;
-}
-
-//------------------------------------------------------------------------
-SegmentationExtension::InfoTagList Segmentation::informationTags() const
-{
-  SegmentationExtension::InfoTagList list;
-
-  for (auto extension: m_extensions.values())
-    list << extension->availableInformations();
-
-  return list;
 }
 
 //------------------------------------------------------------------------
@@ -147,7 +67,9 @@ Snapshot Segmentation::snapshot() const
 {
   Snapshot snapshot;
 
-  if (!m_extensions.isEmpty())
+  auto extensions = readOnlyExtensions();
+
+  if (!extensions->isEmpty())
   {
     QByteArray xml;
 
@@ -157,19 +79,20 @@ Snapshot Segmentation::snapshot() const
     stream.writeStartDocument();
     stream.writeStartElement("Segmentation");
     stream.writeAttribute("Name", name());
-    for(auto extension : m_extensions)
+
+    for(auto extension : extensions)
     {
       stream.writeStartElement("Extension");
       stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
-      for(auto tag : extension->readyInformation())
+      for(auto key : extension->readyInformation())
       {
         QByteArray data;
         QDataStream out(&data, QIODevice::WriteOnly);
-        out << extension->information(tag);
+        out << extension->information(key);
 
         stream.writeStartElement("Info");
-        stream.writeAttribute("Name", tag);
+        stream.writeAttribute("Name", key.value());
         stream.writeCharacters(data.toBase64());
         stream.writeEndElement();
       }

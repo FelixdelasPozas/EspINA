@@ -20,6 +20,7 @@
 #include "EspinaMainWindow.h"
 
 // ESPINA
+#include <Core/Analysis/Channel.h>
 #include "Dialogs/About/AboutDialog.h"
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
@@ -45,6 +46,7 @@
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include "ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h"
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
@@ -55,6 +57,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
+#include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -77,7 +80,9 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
@@ -129,7 +134,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
   factory->registerExtensionFactory(defaultExtensions);
 
-  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_context);
+  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_context);
 #if USE_METADONA
   m_availableSettingsPanels << std::make_shared<MetaDataSettingsPanel>();
@@ -147,9 +152,11 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   initRepresentations();
 
+  initColorEngines(m_viewMenu);
+
   loadPlugins(plugins);
 
-  m_colorEngineMenu->restoreUserSettings();
+  //m_colorEngineMenu->restoreUserSettings();
 
   createToolShortcuts();
 
@@ -184,7 +191,7 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_visualizeToolGroup;
   delete m_analyzeToolGroup;
   delete m_roiSettings;
-  delete m_colorEngineMenu;
+  //delete m_colorEngineMenu;
   delete m_dynamicMenuRoot;
 }
 
@@ -207,8 +214,8 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for (auto colorEngine : validPlugin->colorEngines())
       {
-        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
-        registerColorEngine(colorEngine.first,  colorEngine.second);
+        qDebug() << plugin << "- Color Engine " << colorEngine->colorEngine()->tooltip() << " ...... OK";
+        registerColorEngine(colorEngine);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())
@@ -292,7 +299,7 @@ bool EspinaMainWindow::isModelModified()
 void EspinaMainWindow::enableWidgets(bool value)
 {
   m_addMenu            ->setEnabled(value);
-  m_saveAnalysis       ->setEnabled(value);
+  m_saveAnalysisAs       ->setEnabled(value);
   m_saveSessionAnalysis->setEnabled(value);
   m_closeAnalysis      ->setEnabled(value);
   m_dynamicMenuRoot
@@ -433,7 +440,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     switch(res)
     {
       case QMessageBox::Yes:
-        saveAnalysis();
+        saveAnalysisAs();
         break;
       case QMessageBox::Cancel:
         return false;
@@ -721,7 +728,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysis()
+void EspinaMainWindow::saveAnalysisAs()
 {
   QString suggestedFileName;
   if (m_sessionFile.suffix().toLower() == "seg")
@@ -743,21 +750,7 @@ void EspinaMainWindow::saveAnalysis()
 
   Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_busy = true;
-
-  saveToolsSettings();
-
-  IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
-
-  QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));
-  m_busy = false;
-
-  m_recentDocuments1.addDocument(analysisFile);
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
+  saveAnalysis(analysisFile);
 
   QStringList fileParts = analysisFile.split(QDir::separator());
   setWindowTitle(fileParts[fileParts.size()-1]);
@@ -975,28 +968,40 @@ void EspinaMainWindow::onExclusiveToolInUse(ProgressTool* tool)
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine, const QString &icon)
+{
+  registerColorEngine(std::make_shared<ColorEngineSwitch>(engine, ":espina/color_engine_switch_" + icon + ".svg", m_context));
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 {
+
+  //m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
+
   auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
-
-  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
-
   connect(colorEngine.get(), SIGNAL(modified()),
           this,              SLOT(onColorEngineModified()));
 
-  parentMenu->addMenu(m_colorEngineMenu);
+  //parentMenu->addMenu(m_colorEngineMenu);
 
-  registerColorEngine(tr("Number"), std::make_shared<NumberColorEngine>());
-  registerColorEngine(tr("Category"), std::make_shared<CategoryColorEngine>());
+  createColorEngine(std::make_shared<NumberColorEngine>(), "number");
+  auto categoryColorEngine = std::make_shared<CategoryColorEngine>();
+  categoryColorEngine->setActive(true);
+  createColorEngine(categoryColorEngine, "category");
+  registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
 
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerColorEngine(const QString   &title,
-                                           ColorEngineSPtr colorEngine)
+void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwitch)
 {
-  m_colorEngineMenu->addColorEngine(title, colorEngine);
+  auto colorEngine = colorEngineSwitch->colorEngine();
+  //m_colorEngineMenu->addColorEngine(colorEngine->tooltip(), colorEngine);
+  m_context.colorEngine()->add(colorEngine);
+
+  m_visualizeToolGroup->addTool(colorEngineSwitch);
 }
 
 //------------------------------------------------------------------------
@@ -1078,11 +1083,11 @@ void EspinaMainWindow::createFileMenu()
   connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
           this,                  SLOT(saveSessionAnalysis()));
 
-  m_saveAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
-  m_saveAnalysis->setEnabled(false);
+  m_saveAnalysisAs = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
+  m_saveAnalysisAs->setEnabled(false);
 
-  connect(m_saveAnalysis, SIGNAL(triggered(bool)),
-          this,           SLOT(saveAnalysis()));
+  connect(m_saveAnalysisAs, SIGNAL(triggered(bool)),
+          this,             SLOT(saveAnalysisAs()));
 
 
   m_closeAnalysis = fileMenu->addAction(tr("&Close"));
@@ -1157,8 +1162,6 @@ void EspinaMainWindow::createViewMenu()
   m_view->createViewMenu(m_viewMenu);
 
   menuBar()->addMenu(m_viewMenu);
-
-  initColorEngines(m_viewMenu);
 
   m_viewMenu->addSeparator();
 }
@@ -1481,9 +1484,11 @@ void EspinaMainWindow::analyzeChannelEdges()
 {
   for (auto channel : m_context.model()->channels())
   {
-    if (!channel->hasExtension(ChannelEdges::TYPE))
+    auto extensions = channel->extensions();
+
+    if (!extensions->hasExtension(ChannelEdges::TYPE))
     {
-      channel->addExtension(std::make_shared<ChannelEdges>(m_context.scheduler()));
+      extensions->add(std::make_shared<ChannelEdges>(m_context.scheduler()));
     }
   }
 }
@@ -1511,9 +1516,29 @@ void EspinaMainWindow::updateToolsSettings()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::saveAnalysis(const QString &filename)
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_busy = true;
+
+  saveToolsSettings();
+
+  IO::SegFile::save(m_analysis.get(), filename, m_errorHandler);
+
+  QApplication::restoreOverrideCursor();
+  updateStatus(tr("File Saved Successfully in %1").arg(filename));
+  m_busy = false;
+
+  m_recentDocuments1.addDocument(filename);
+  m_recentDocuments2.updateDocumentList();
+
+  updateUndoStackIndex();
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::saveToolsSettings()
 {
-  auto settings = m_analysis->storage()->sessionSettings();
+  auto settings   = m_analysis->storage()->sessionSettings();
   auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 
   for(auto tool: availableTools())

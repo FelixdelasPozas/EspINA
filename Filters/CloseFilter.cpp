@@ -63,7 +63,7 @@ void CloseFilter::execute(Output::Id id)
   auto inputVolume = readLockVolume(input->output());
   if (!inputVolume->isValid()) throw Invalid_Input_Data_Exception();
 
-  emit progress(0);
+  reportProgress(0);
   if (!canExecute()) return;
 
   StructuringElementType ball;
@@ -79,7 +79,7 @@ void CloseFilter::execute(Output::Id id)
 
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
   if (!canExecute()) return;
 
   finishExecution(filter->GetOutput());

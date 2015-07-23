@@ -88,7 +88,7 @@ AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 void AdaptiveEdgesCreator::run()
 {
   using Itk2VtkFilter = itk::ImageToVTKImageFilter<itkVolumeType>;
-  //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
+  qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
 
   auto channel = m_extension->extendedItem();
   //qDebug() << "Channel Bounds" << channel->bounds().toString();
@@ -141,7 +141,7 @@ void AdaptiveEdgesCreator::run()
   unsigned long z = zMin;
   while (canExecute() && z <= zMax)
   {
-    emit progress(double(z - zMin) / double(zMax - zMin)*100.0);
+    reportProgress(double(z - zMin) / double(zMax - zMin)*100.0);
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented
     // bounding box.
@@ -368,10 +368,10 @@ void AdaptiveEdgesCreator::run()
     m_extension->m_edges->SetPoints(borderVertices);
     m_extension->m_edges->SetPolys(faces);
 
-    emit progress(100);
+    reportProgress(100);
   }
 
   m_extension->m_edgesResultMutex.unlock();
 
-  //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
+  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

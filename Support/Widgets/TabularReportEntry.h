@@ -69,7 +69,7 @@ namespace ESPINA
   protected:
     virtual void paintEvent(QPaintEvent* event);
 
-    virtual InformationSelector::GroupedInfo availableInformation();
+    virtual GUI::InformationSelector::GroupedInfo availableInformation();
 
     bool exportToCSV(const QString &filename);
 
@@ -87,7 +87,6 @@ namespace ESPINA
     void refreshGUI();
 
   private:
-
     QString selectedInformationFile() const
     {
       QString path = m_category;
@@ -95,15 +94,15 @@ namespace ESPINA
       return TabularReport::extraPath(path.replace("/",">") + ".txt");
     }
 
-    QStringList lastInformationOrder();
+    SegmentationExtension::InformationKeyList lastInformationOrder();
 
-    InformationSelector::GroupedInfo lastDisplayedInformation();
+    GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
 
-    virtual void setInformation(InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
+    virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformation, SegmentationExtension::InformationKeyList informationOrder);
 
-    QStringList information(InformationSelector::GroupedInfo extensionInformation);
+    SegmentationExtension::InformationKeyList information(GUI::InformationSelector::GroupedInfo extensionInformation);
 
-    QStringList updateInformationOrder(InformationSelector::GroupedInfo extensionInformation);
+    SegmentationExtension::InformationKeyList updateInformationOrder(GUI::InformationSelector::GroupedInfo extensionInformation);
 
   protected:
     QString           m_category;

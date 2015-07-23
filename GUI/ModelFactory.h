@@ -201,6 +201,42 @@ namespace ESPINA
   };
 
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
+
+  template<typename Extensible>
+  void addSegmentationExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
+  {
+    auto extensions = segmentation->extensions();
+
+    if (!extensions->hasExtension(type))
+    {
+      if (factory->availableSegmentationExtensions().contains(type))
+      {
+        auto extension = factory->createSegmentationExtension(type);
+
+        if(extension->validCategory(segmentation->category()->classificationName()))
+        {
+          extensions->add(extension);
+        }
+        else
+        {
+          qWarning() << segmentation->data().toString() << "doesn't support"<< type << "extensions";
+        }
+      }
+      else
+      {
+        qWarning() << type << " extension is not available";
+      }
+    }
+  }
+
+  template<typename Extensible>
+  SegmentationExtensionSPtr retrieveOrCreateExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
+  {
+    addSegmentationExtension(segmentation, type, factory);
+
+    return segmentation->readOnlyExtensions()[type];
+  }
+
 }// namespace ESPINA
 
 #endif // ESPINA_CORE_FACTORY_H

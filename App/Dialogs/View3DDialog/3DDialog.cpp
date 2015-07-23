@@ -30,13 +30,12 @@ using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString ENABLED               = "Tool enabled";
 const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
 : QDialog  {nullptr, Qt::WindowStaysOnTopHint}
-, m_context(context)
+, WithContext(context)
 , m_view3D {context.viewState(), false}
 {
   setupUi(this);
@@ -121,7 +120,7 @@ void Dialog3D::saveGeometryState()
 //------------------------------------------------------------------------
 std::shared_ptr<ProgressTool> Dialog3D::tool()
 {
-  auto tool = std::make_shared<Dialog3DTool>(m_context, this);
+  auto tool = std::make_shared<Dialog3DTool>(context(), this);
 
   tool->setCheckable(true);
   tool->setChecked(this->isVisible());
@@ -174,7 +173,7 @@ Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
 //------------------------------------------------------------------------
 void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = settings->value(ENABLED, false).toBool();
+  auto enabled = checkSetting(settings);
 
   for(auto tool: m_dialog->m_switches)
   {
@@ -194,7 +193,7 @@ void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 //------------------------------------------------------------------------
 void Dialog3DTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(ENABLED, isChecked());
+  saveCheckSetting(settings);
 
   for(auto tool: m_dialog->m_switches)
   {

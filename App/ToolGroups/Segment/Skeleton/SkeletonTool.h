@@ -27,7 +27,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 
 // VTK

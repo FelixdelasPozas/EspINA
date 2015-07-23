@@ -29,11 +29,13 @@
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extension.h"
 #include "Core/Analysis/Output.h"
+#include "Extensible.hxx"
 
 namespace ESPINA
 {
   class EspinaCore_EXPORT Channel
   : public ViewItem
+  , public Core::Analysis::Extensible<ChannelExtension, Channel>
   {
   public:
     static const RelationName LINK;
@@ -56,24 +58,12 @@ namespace ESPINA
      */
     virtual ~Channel();
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
     virtual void restoreState(const State& state);
 
-    /** \brief Implements Persistent::state() const.
-     *
-     */
     virtual State state() const;
 
-    /** \brief Implements Persistent::snapshot() const.
-     *
-     */
     virtual Snapshot snapshot() const;
 
-    /** \brief Implements Persistent::unload().
-     *
-     */
     virtual void unload();
 
     /** \brief Sets the position of the channel.
@@ -166,49 +156,6 @@ namespace ESPINA
      */
     QString metadata() const;
 
-    /** \brief Add the extension to the channel.
-     * \param[in] extension, channel extension smart pointer.
-     *
-     * Extesion won't be available until requirements are satisfied.
-     */
-    void addExtension(ChannelExtensionSPtr extension);
-
-    /** \brief Removes a extension from the channel.
-     * \param[in] extension, channel extension smart pointer.
-     *
-     */
-    void deleteExtension(ChannelExtensionSPtr extension);
-
-    /** \brief Removes a extension from the channel.
-     * \param[in] type, type of the extension to remove.
-     *
-     */
-    void deleteExtension(const ChannelExtension::Type &type);
-
-    /** \brief Check whether or not there is an extension with the given type.
-     * \param[in] type, extension type to check.
-     *
-     */
-    bool hasExtension(const ChannelExtension::Type& type) const;
-
-    /** \brief Return the extension with the especified type.
-     * \param[in] type, extension type to check.
-     *
-     *  Important: It the channel doesn't contain any extension with
-     *  the requested name, but there exist an extension prototype registered
-     *  in the factory, a new instance will be created and attached to the
-     *  channel.
-     *  If there is no extension with the given name registered in the factory
-     *  a Undefined_Extension exception will be thrown.
-     */
-    ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
-
-    /** \brief Return the list of extension types registered in the channel.
-     *
-     */
-    ChannelExtensionSList extensions() const
-    { return m_extensions.values(); }
-
     static const int AUTOMATIC_OPACITY = -1;
 
   private:
@@ -245,8 +192,6 @@ namespace ESPINA
     double  m_saturation;
     mutable
     QString m_metadata;
-
-    ChannelExtensionSMap m_extensions;
   };
 
 }// namespace ESPINA

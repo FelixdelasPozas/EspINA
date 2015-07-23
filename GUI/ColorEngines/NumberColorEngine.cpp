@@ -22,9 +22,17 @@
 #include "NumberColorEngine.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 const double SELECTED_ALPHA   = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
+
+//-----------------------------------------------------------------------------
+NumberColorEngine::NumberColorEngine()
+: ColorEngine("NumberColorEngine", tr("Number"))
+{
+
+}
 
 //-----------------------------------------------------------------------------
 QColor NumberColorEngine::color(SegmentationAdapterPtr segmentation)

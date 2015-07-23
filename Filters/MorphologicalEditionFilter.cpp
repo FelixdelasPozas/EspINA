@@ -125,7 +125,7 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 
     if (!m_outputs.contains(0))
     {
-      m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+      m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
     }
 
     auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);

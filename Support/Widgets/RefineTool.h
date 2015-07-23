@@ -22,7 +22,7 @@
 #define ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_
 
 // ESPINA
-#include <Support/Widgets/Tool.h>
+#include <Support/Widgets/ProgressTool.h>
 
 class QAction;
 class QUndoStack;

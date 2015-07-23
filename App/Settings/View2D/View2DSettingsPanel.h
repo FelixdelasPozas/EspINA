@@ -31,52 +31,31 @@
 namespace ESPINA
 {
   class View2DSettingsPanel
-  : public SettingsPanel
+  : public Support::Settings::SettingsPanel
   , Ui::View2DSettingsPanel
   {
     Q_OBJECT
   public:
     /** \brief View2DSettingsPanel class constructor.
-     * \param[in] view, raw pointer to View2D object.
+     * \param[in] view 2D render view
      */
     explicit View2DSettingsPanel(View2D *view);
 
-    /** \brief Overrides SettingsPanel::shortDescription().
-     *
-     */
     virtual const QString shortDescription() override;
 
-    /** \brief Overrides SettingsPanel::longDescription().
-     *
-     */
     virtual const QString longDescription() override
     {return tr("%1").arg(shortDescription());}
 
-    /** \brief Overrides SettingsPanel::icon().
-     *
-     */
     virtual const QIcon icon() override
     {return QIcon();}
 
-    /** \brief Overrides SettingsPanel::acceptChanges().
-     *
-     */
     virtual void acceptChanges() override;
 
-    /** \brief Overrides SettingsPanel::rejectChanges().
-     *
-     */
     virtual void rejectChanges() override;
 
-    /** \brief Overrides SettingsPanel::modified().
-     *
-     */
     virtual bool modified() const override;
 
-    /** \brief Overrides SettingsPanel::clone().
-     *
-     */
-    virtual SettingsPanelPtr clone() override;
+    virtual Support::Settings::SettingsPanelPtr clone() override;
 
   private:
     View2D *m_view;

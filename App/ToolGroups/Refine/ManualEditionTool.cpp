@@ -41,17 +41,18 @@
 using ESPINA::Filter;
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
 : ProgressTool("ManualEditionTool", ":espina/manual_edition.svg", tr("Modify segmentations manually"), context)
-, m_model         {context.model()}
-, m_factory       {context.factory()}
-, m_colorEngine   {context.colorEngine()}
-, m_drawingWidget (context)
-, m_referenceItem {nullptr}
+, m_model        {context.model()}
+, m_factory      {context.factory()}
+, m_colorEngine  {context.colorEngine()}
+, m_drawingWidget(context.viewState(), context.model())
+, m_referenceItem{nullptr}
 , m_currentHandler{nullptr}
-, m_validStroke   {true}
+, m_validStroke  {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 

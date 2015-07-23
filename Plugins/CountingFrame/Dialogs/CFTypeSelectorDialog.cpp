@@ -20,6 +20,8 @@
 
 // ESPINA
 #include "Dialogs/CFTypeSelectorDialog.h"
+
+#include <Core/Analysis/Channel.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
@@ -140,7 +142,7 @@ void CFTypeSelectorDialog::channelSelected()
 
     m_channel = channelPtr(item);
 
-    auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
+    auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
 
     if (edgesExtension->useDistanceToBounds())
     {
