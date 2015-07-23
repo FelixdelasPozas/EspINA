@@ -506,11 +506,8 @@ void RenderView::onRenderRequest()
 
   if(m_requiresFocusChange)
   {
-    if(!isCrosshairPointVisible())
-    {
-      moveCamera(crosshair());
-      m_requiresRender = true;
-    }
+    moveCamera(crosshair());
+    m_requiresRender = true;
     m_requiresFocusChange = false;
   }
 
