@@ -29,6 +29,8 @@ using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
+const QString TOOL_ENABLED_KEY = "Checked";
+
 //----------------------------------------------------------------------------
 ProgressTool::NestedWidgets::NestedWidgets(QObject *parent)
 : QWidgetAction(parent)
@@ -307,3 +309,16 @@ QKeySequence ProgressTool::shortcut() const
 {
   return m_shortcutSequence;
 }
+
+//----------------------------------------------------------------------------
+void ProgressTool::saveCheckSetting(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(TOOL_ENABLED_KEY, isChecked());
+}
+
+//----------------------------------------------------------------------------
+bool ProgressTool::checkSetting(std::shared_ptr<QSettings> settings)
+{
+  return settings->value(TOOL_ENABLED_KEY, false).toBool();
+}
+

@@ -25,7 +25,6 @@
 
 using namespace ESPINA;
 
-const QString SEGMENTATION_SLICE_ENABLED_KEY = "Enabled";
 const QString SEGMENTATION_SLICE_OPACITY_KEY = "Opacity";
 
 //----------------------------------------------------------------------------
@@ -76,17 +75,17 @@ void SegmentationSliceSwitch::onSettingsModified()
 //----------------------------------------------------------------------------
 void SegmentationSliceSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto checked = settings->value(SEGMENTATION_SLICE_ENABLED_KEY, true).toBool();
+  auto enabled = checkSetting(settings);
   auto opacity = settings->value(SEGMENTATION_SLICE_OPACITY_KEY, 0.6).toDouble();
 
   m_settings->setOpacity(opacity);
-  setChecked(checked);
+  setChecked(enabled);
 }
 
 //----------------------------------------------------------------------------
 void SegmentationSliceSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(SEGMENTATION_SLICE_ENABLED_KEY, isChecked());
+  saveCheckSetting(settings);
   settings->setValue(SEGMENTATION_SLICE_OPACITY_KEY, m_settings->opacity());
 }
 

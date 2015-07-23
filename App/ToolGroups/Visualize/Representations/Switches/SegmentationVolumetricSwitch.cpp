@@ -28,7 +28,6 @@
 
 using namespace ESPINA;
 
-const QString SEGMENTATION_VOLUMETRIC_ENABLED_KEY    = "Enabled";
 const QString SEGMENTATION_VOLUMETRIC_SWITCH_USE_GPU = "Use GPU";
 
 //----------------------------------------------------------------------------
@@ -85,7 +84,7 @@ void SegmentationVolumetricSwitch::hideRepresentations(TimeStamp t)
 //----------------------------------------------------------------------------
 void SegmentationVolumetricSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = settings->value(SEGMENTATION_VOLUMETRIC_ENABLED_KEY, false).toBool();
+  auto enabled = checkSetting(settings);
   auto gpuEnabled = settings->value(SEGMENTATION_VOLUMETRIC_SWITCH_USE_GPU, true).toBool();
 
   setChecked(enabled);
@@ -95,7 +94,7 @@ void SegmentationVolumetricSwitch::restoreSettings(std::shared_ptr<QSettings> se
 //----------------------------------------------------------------------------
 void SegmentationVolumetricSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(SEGMENTATION_VOLUMETRIC_ENABLED_KEY, isChecked());
+  saveCheckSetting(settings);
   settings->setValue(SEGMENTATION_VOLUMETRIC_SWITCH_USE_GPU, m_gpuEnable->isChecked());
 }
 

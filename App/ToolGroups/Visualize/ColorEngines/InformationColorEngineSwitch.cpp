@@ -124,6 +124,7 @@ InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
           this, SLOT(onToolToggled(bool)));
 }
 
+//-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > settings)
 {
   ColorEngineSwitch::restoreSettings(settings);
@@ -134,6 +135,7 @@ void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > 
   m_key = InformationKey(extension, key);
 }
 
+//-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
 {
   ColorEngineSwitch::saveSettings(settings);
@@ -233,6 +235,7 @@ void InformationColorEngineSwitch::updateRange()
   Task::submit(m_task);
 }
 
+//-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::onToolToggled(bool checked)
 {
   if (checked && m_needUpdate)

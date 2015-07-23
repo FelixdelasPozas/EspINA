@@ -29,7 +29,6 @@
 
 using namespace ESPINA;
 
-const QString SEGMENTATION_CONTOUR_ENABLED_KEY = "Enabled";
 const QString SEGMENTATION_CONTOUR_OPACITY_KEY = "Opacity";
 const QString SEGMENTATION_CONTOUR_WIDTH_KEY   = "Width";
 const QString SEGMENTATION_CONTOUR_PATTERN_KEY = "Pattern";
@@ -57,7 +56,7 @@ ESPINA::SegmentationContourSwitch::~SegmentationContourSwitch()
 //----------------------------------------------------------------------------
 void ESPINA::SegmentationContourSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = settings->value(SEGMENTATION_CONTOUR_ENABLED_KEY, false).toBool();
+  auto enabled = checkSetting(settings);
   auto opacity = settings->value(SEGMENTATION_CONTOUR_OPACITY_KEY, 0.6).toDouble();
   auto width   = settings->value(SEGMENTATION_CONTOUR_WIDTH_KEY, 0).toInt();
   auto pattern = settings->value(SEGMENTATION_CONTOUR_PATTERN_KEY, 0).toInt();
@@ -71,7 +70,7 @@ void ESPINA::SegmentationContourSwitch::restoreSettings(std::shared_ptr<QSetting
 //----------------------------------------------------------------------------
 void ESPINA::SegmentationContourSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  settings->setValue(SEGMENTATION_CONTOUR_ENABLED_KEY, isChecked());
+  saveCheckSetting(settings);
   settings->setValue(SEGMENTATION_CONTOUR_OPACITY_KEY, m_settings->opacity());
   settings->setValue(SEGMENTATION_CONTOUR_WIDTH_KEY, SegmentationContourPipeline::widthValue(m_settings->width()));
   settings->setValue(SEGMENTATION_CONTOUR_PATTERN_KEY, SegmentationContourPipeline::patternValue(m_settings->pattern()));
