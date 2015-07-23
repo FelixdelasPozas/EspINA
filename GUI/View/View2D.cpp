@@ -544,7 +544,7 @@ bool View2D::isCrosshairPointVisible() const
 
   auto current = crosshair();
 
-  return  !(isOutsideLimits(current[H], ll[H], ur[H]) || isOutsideLimits(current[V], ll[V], ur[V]));
+  return !(isOutsideLimits(current[H], ll[H], ur[H]) || isOutsideLimits(current[V], ll[V], ur[V]));
 }
 
 //-----------------------------------------------------------------------------
@@ -981,9 +981,16 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
 //-----------------------------------------------------------------------------
 void View2D::moveCamera(const NmVector3 &point)
 {
-  m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
+  double fp[3];
+  m_renderer->GetActiveCamera()->GetFocalPoint(fp);
+  NmVector3 focalPoint{fp};
 
-  refresh();
+  if(point != focalPoint)
+  {
+    m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
+
+    refresh();
+  }
 }
 
 //-----------------------------------------------------------------------------

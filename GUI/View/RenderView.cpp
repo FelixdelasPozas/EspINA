@@ -506,9 +506,9 @@ void RenderView::onRenderRequest()
 
   if(m_requiresFocusChange)
   {
+    m_requiresFocusChange = false;
     moveCamera(crosshair());
     m_requiresRender = true;
-    m_requiresFocusChange = false;
   }
 
   updateViewActions(managerFlags());
