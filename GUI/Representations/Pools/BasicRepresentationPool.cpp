@@ -31,7 +31,7 @@ BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, Repres
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterPtr BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return m_updater->pick(point, actor);
 }
@@ -46,6 +46,7 @@ void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &cro
 
   if(hasSources())
   {
+    emit taskStarted(m_updater);
     Task::submit(m_updater);
   }
 }
@@ -59,6 +60,7 @@ void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crossh
 
   if(hasSources())
   {
+    emit taskStarted(m_updater);
     Task::submit(m_updater);
   }
 }
@@ -72,6 +74,7 @@ void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &
 
   if(hasSources())
   {
+    emit taskStarted(m_updater);
     Task::submit(m_updater);
   }
 }
@@ -84,6 +87,7 @@ void BasicRepresentationPool::updateRepresentationsImlementationAt(TimeStamp t, 
 
   if(hasSources())
   {
+    emit taskStarted(m_updater);
     Task::submit(m_updater);
   }
 }
@@ -107,6 +111,7 @@ void BasicRepresentationPool::applySettings(const RepresentationState &settings)
 
   if(hasSources())
   {
+    emit taskStarted(m_updater);
     Task::submit(m_updater);
   }
 }

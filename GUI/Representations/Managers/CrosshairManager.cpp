@@ -82,9 +82,9 @@ TimeRange CrosshairManager::readyRangeImplementation() const
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterPtr CrosshairManager::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList CrosshairManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  return nullptr;
+  return ViewItemAdapterList();
 }
 
 //-----------------------------------------------------------------------------

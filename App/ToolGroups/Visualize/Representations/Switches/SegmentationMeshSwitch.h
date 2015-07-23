@@ -72,9 +72,10 @@ namespace ESPINA
 
     private slots:
       /** \brief Propagates changes in the smooth widget to the settings and the representations.
+       * \param[in] value integer value [0-100) indicating smoothness factor.
        *
        */
-      void onSmoothChanged();
+      void onSmoothChanged(int value);
 
     private:
       /** \brief Initializes the settings widgets of the switch.
@@ -86,6 +87,8 @@ namespace ESPINA
        *
        */
       void switchManagers();
+
+      virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) override;
 
     private:
       GUI::Representations::RepresentationManagerSPtr m_meshManager;

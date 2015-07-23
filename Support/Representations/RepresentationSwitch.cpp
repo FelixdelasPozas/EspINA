@@ -56,6 +56,7 @@ void RepresentationSwitch::invalidateRepresentations(ViewItemAdapterList items)
 {
   if(!items.isEmpty())
   {
-    getViewState().representationInvalidator().invalidateRepresentations(items);
+    auto t = m_timer.increment();
+    invalidateRepresentationsImplementation(items, t);
   }
 }

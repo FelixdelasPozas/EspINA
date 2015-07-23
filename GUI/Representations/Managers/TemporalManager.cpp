@@ -75,9 +75,9 @@ TimeRange TemporalManager::readyRangeImplementation() const
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterPtr TemporalManager::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList TemporalManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  return nullptr;
+  return ViewItemAdapterList();
 }
 
 //------------------------------------------------------------------------

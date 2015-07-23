@@ -40,7 +40,7 @@ namespace ESPINA
 
       virtual TimeRange readyRangeImplementation() const override;
 
-      virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
+      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
       virtual void setPlane(Plane plane) override;
 

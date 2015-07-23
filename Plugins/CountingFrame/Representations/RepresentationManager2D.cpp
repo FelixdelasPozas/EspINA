@@ -52,9 +52,9 @@ TimeRange RepresentationManager2D::readyRangeImplementation() const
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterPtr RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  return nullptr;
+  return ViewItemAdapterList();
 }
 
 //-----------------------------------------------------------------------------

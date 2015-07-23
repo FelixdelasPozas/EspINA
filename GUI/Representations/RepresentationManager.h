@@ -150,14 +150,22 @@ namespace ESPINA
         /** \brief Returns the item picked
          *
          */
-        virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
+        virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
         /** \brief Returns a new instance of the class.
          *
          */
         RepresentationManagerSPtr clone();
 
+        /** \brief Returns the debug identification.
+         *
+         */
         QString debugName() const;
+
+        /** \brief Returns the list of pools of the manager.
+         *
+         */
+        virtual RepresentationPoolSList pools() const;
 
       public slots:
         void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);

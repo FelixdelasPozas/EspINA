@@ -57,3 +57,12 @@ void BasicRepresentationSwitch::hideRepresentations(TimeStamp t)
 {
   m_manager->hide(t);
 }
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t)
+{
+  for(auto pool: m_manager->pools())
+  {
+    pool->invalidateRepresentations(items, t);
+  }
+}

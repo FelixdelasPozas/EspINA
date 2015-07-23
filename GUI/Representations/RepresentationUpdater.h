@@ -93,7 +93,7 @@ namespace ESPINA
      */
     bool hasValidTimeStamp() const;
 
-    ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+    ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
 
     /** \brief Returns the latest actors computed by the task
      *
@@ -117,7 +117,7 @@ namespace ESPINA
 
     RepresentationPipelineSPtr m_pipeline;
 
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
     ViewItemAdapterList m_requestedSources;
     ViewItemAdapterList m_sources;
     ViewItemAdapterList *m_updateList;

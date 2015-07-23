@@ -32,7 +32,7 @@ namespace ESPINA
   public:
     explicit BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
+    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
   private:
     virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) override;

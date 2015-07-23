@@ -56,9 +56,9 @@ TimeRange RepresentationManager3D::readyRangeImplementation() const
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterPtr RepresentationManager3D::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList RepresentationManager3D::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  return nullptr;
+  return ViewItemAdapterList();
 }
 
 //-----------------------------------------------------------------------------

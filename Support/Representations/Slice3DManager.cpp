@@ -64,19 +64,18 @@ TimeRange Slice3DManager::readyRangeImplementation() const
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) const
+ViewItemAdapterList Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  ViewItemAdapterPtr pickedItem = nullptr;
+  ViewItemAdapterList pickedItems;
 
   for (auto pool : m_pools)
   {
-    auto pickedItem = pool->pick(point, actor);
+    auto items = pool->pick(point, actor);
 
-    if (pickedItem) break;
+    pickedItems << items;
   }
 
-  return pickedItem;
-
+  return pickedItems;
 }
 
 //----------------------------------------------------------------------------
@@ -218,6 +217,12 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
   auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
 
   return clone;
+}
+
+//----------------------------------------------------------------------------
+RepresentationPoolSList Slice3DManager::pools() const
+{
+  return m_pools;
 }
 
 //----------------------------------------------------------------------------

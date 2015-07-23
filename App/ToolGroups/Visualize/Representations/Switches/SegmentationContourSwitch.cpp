@@ -81,7 +81,7 @@ void SegmentationContourSwitch::onOpacityChanged()
 {
   if (m_settings->opacity() == m_opacityWidget->value()/100.0) return;
 
-  m_settings->setOpacity(m_opacityWidget->value());
+  m_settings->setOpacity(m_opacityWidget->value()/100.0);
 }
 
 //----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ void SegmentationContourSwitch::onSettingsModified()
   m_width->setCurrentIndex(SegmentationContourPipeline::widthValue(m_settings->width()));
   m_pattern->setCurrentIndex(SegmentationContourPipeline::patternValue(m_settings->pattern()));
 
-  auto items = Core::Utils::toRawList<ViewItemAdapter>(getModel()->segmentations());
+  auto items = m_manager->pools().first()->sources();
 
   invalidateRepresentations(items);
 }

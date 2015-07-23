@@ -185,23 +185,26 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
 
       for(auto manager: m_managers)
       {
-        auto pickedItem = manager->pick(worldPoint, pickedProp);
+        auto items = manager->pick(worldPoint, pickedProp);
 
-        NeuroItemAdapterPtr neuroItem = pickedItem;
-        if(pickedItem && !pickedItems.contains(pickedItem))
+        for(auto item: items)
         {
-          if (Selector::IsValid(pickedItem, flags))
+          NeuroItemAdapterPtr neuroItem = item;
+          if(!pickedItems.contains(item))
           {
-            if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
+            if (Selector::IsValid(item, flags))
             {
-              neuroItem = QueryAdapter::sample(channelPtr(pickedItem)).get();
+              if(flags.testFlag(Selector::SAMPLE) && isChannel(item))
+              {
+                neuroItem = QueryAdapter::sample(channelPtr(item)).get();
+              }
+              finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, item->output()->spacing()), neuroItem);
+              finished = !multiselection;
             }
-            finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
-            finished = !multiselection;
-          }
 
-          pickedItems << pickedItem;
-          picked |= pickedItem != nullptr;
+            pickedItems << item;
+            picked |= true;
+          }
         }
       }
     }

@@ -284,31 +284,39 @@ void Output::update(const Data::Type &type)
 
   if (!requestedData->isValid())
   {
-    QMutexLocker lock(&m_mutex);
-
-    BoundsList editedRegions = requestedData->editedRegions();
+    m_mutex.lock();
 
     if (requestedData->fetchData())
     {
+      BoundsList editedRegions = requestedData->editedRegions();
       requestedData->setEditedRegions(editedRegions);
     }
     else
     {
       auto dependencies = requestedData->dependencies();
 
-      for (auto dependencyType : dependencies)
+      if(!dependencies.empty())
       {
-        update(dependencyType);
-      }
+        m_mutex.unlock();
 
-      auto currentData = data<Data>(type);
-      if (dependencies.isEmpty() || requestedData == currentData)
+        for (auto dependencyType : dependencies)
+        {
+          update(dependencyType);
+        }
+
+        update(type);
+
+        m_mutex.lock();
+      }
+      else
       {
         m_filter->update();
       }
     }
 
     Q_ASSERT(requestedData->isValid());
+
+    m_mutex.unlock();
   }
 }
 

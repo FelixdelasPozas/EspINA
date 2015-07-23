@@ -38,7 +38,9 @@ namespace ESPINA {
 
     virtual TimeRange readyRangeImplementation() const override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
+    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+
+    virtual RepresentationPoolSList pools() const;
 
   protected:
     virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;

@@ -164,10 +164,11 @@ namespace ESPINA
 
         void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
 
+      protected slots:
+        void showTaskProgress(TaskSPtr task);
+
       protected:
         void addSettingsWidget(QWidget *widget);
-
-        void showTaskProgress(TaskSPtr task);
 
         void setEventHandler(EventHandlerSPtr handler);
 
