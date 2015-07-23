@@ -28,11 +28,39 @@
 
 // Qt
 #include <QSortFilterProxyModel>
+#include <QItemDelegate>
 
-class CategoryItemDelegate;
+class QUndoStack;
 
 namespace ESPINA
 {
+  class CategoryItemDelegate
+  : public QItemDelegate
+  {
+    public:
+      /** \brief Class CategoryItemDelegate class constructor.
+       * \param[in] model model adapter smart pointer.
+       * \param[in] undoStack QUndoStack object raw pointer.
+       * \param[in] parent parent object raw pointer.
+       *
+       */
+      explicit CategoryItemDelegate(ModelAdapterSPtr model,
+                                    QUndoStack      *undoStack,
+                                    QObject         *parent = nullptr)
+      : QItemDelegate{parent}
+      , m_model      {model}
+      , m_undoStack  {undoStack}
+      {}
+
+      virtual void setModelData(QWidget            *editor,
+                                QAbstractItemModel *model,
+                                const QModelIndex  &index) const override;
+
+    private:
+      ModelAdapterSPtr m_model;
+      QUndoStack      *m_undoStack;
+  };
+
   class ClassificationLayout
   : public SegmentationExplorer::Layout
   {

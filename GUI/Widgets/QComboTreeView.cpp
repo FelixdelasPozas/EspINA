@@ -107,6 +107,7 @@ void QComboTreeView::indexActivated()
   QModelIndex index;
   if (count())
   {
+    // 2015-07-23 - TODO: findChildIndex doesn't return the correct index if there are several items with the same name.
     index = QtModelUtils::findChildIndex(rootModelIndex(), currentText());
     m_currentModelIndex = index;
   }

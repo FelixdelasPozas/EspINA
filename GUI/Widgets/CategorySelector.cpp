@@ -49,8 +49,7 @@ CategorySelector::CategorySelector(ModelAdapterSPtr model, QWidget* parent)
 //------------------------------------------------------------------------
 void CategorySelector::categorySelected(const QModelIndex& index)
 {
-  if (!index.isValid())
-    return;
+  if (!index.isValid()) return;
 
   auto item = itemAdapter(index);
   Q_ASSERT(isCategory(item));

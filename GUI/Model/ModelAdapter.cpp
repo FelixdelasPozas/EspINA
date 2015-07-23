@@ -144,7 +144,6 @@ TemporalStorageSPtr ModelAdapter::storage() const
   return m_analysis->storage();
 }
 
-
 //------------------------------------------------------------------------
 void ModelAdapter::add(SampleAdapterSPtr sample)
 {
@@ -166,14 +165,12 @@ void ModelAdapter::add(SampleAdapterSList samples)
 //------------------------------------------------------------------------
 ModelAdapter::BatchCommandSPtr ModelAdapter::addChannelCommand(ChannelAdapterSPtr channel) throw(Existing_Item_Exception)
 {
-  auto command = [this, channel]() {
-    if (m_channels.contains(channel)) throw Existing_Item_Exception();
+  auto command = [this, channel]() { if (m_channels.contains(channel)) throw Existing_Item_Exception();
+                                     m_analysis->add(channel->m_channel);
+                                     m_channels << channel;
 
-    m_analysis->add(channel->m_channel);
-    m_channels << channel;
-
-    channel->setModel(this);
-  };
+                                     channel->setModel(this);
+                                   };
 
   return std::make_shared<Command<decltype(command)>>(command);
 }
@@ -302,8 +299,7 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
 {
   // We avoid setting the classification root as the parent of an index
-  if ( !m_classification || m_classification->root().get() == category)
-    return classificationRoot();
+  if ( !m_classification || m_classification->root().get() == category) return classificationRoot();
 
   CategoryAdapterPtr parentCategory = category->parent();
   Q_ASSERT(parentCategory);
@@ -424,29 +420,29 @@ QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 
   if (index == classificationRoot())
   {
-    if (role == Qt::DisplayRole)
-      return tr("Classification");
+    if (role == Qt::DisplayRole) return tr("Classification");
+
     return QVariant();
   }
 
   if (index == sampleRoot())
   {
-    if (role == Qt::DisplayRole)
-      return tr("Samples");
+    if (role == Qt::DisplayRole) return tr("Samples");
+
     return QVariant();
   }
 
   if (index == channelRoot())
   {
-    if (role == Qt::DisplayRole)
-      return tr("Channels");
+    if (role == Qt::DisplayRole) return tr("Channels");
+
     return QVariant();
   }
 
   if (index == segmentationRoot())
   {
-    if (role == Qt::DisplayRole)
-      return "Segmentations";
+    if (role == Qt::DisplayRole) return "Segmentations";
+
     return QVariant();
   }
 
@@ -459,7 +455,8 @@ void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succ
   try
   {
     m_analysis->deleteRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
-  } catch (const Analysis::Relation_Not_Found_Exception &e)
+  }
+  catch (const Analysis::Relation_Not_Found_Exception &e)
   {
     throw Relation_Not_Found_Exception();
   }
@@ -479,7 +476,8 @@ void ModelAdapter::deleteRelations(const RelationList& relations)
     try
     {
       m_analysis->deleteRelation(relation.ancestor->m_analysisItem, relation.successor->m_analysisItem, relation.relation);
-    } catch (const Analysis::Relation_Not_Found_Exception &e)
+    }
+    catch (const Analysis::Relation_Not_Found_Exception &e)
     {
       throw Relation_Not_Found_Exception();
     }
@@ -493,7 +491,7 @@ Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 
   if (index.isValid())
   {
-    QModelIndex parent = index.parent();
+    auto parent = index.parent();
     if (parent != channelRoot() || parent != segmentationRoot())
     {
       flags = flags | Qt::ItemIsUserCheckable;
@@ -506,8 +504,7 @@ Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 //------------------------------------------------------------------------
 QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) const
 {
-  if (!hasIndex(row, column, parent))
-    return QModelIndex();
+  if (!hasIndex(row, column, parent)) return QModelIndex();
 
   if (!parent.isValid())
   {
@@ -529,35 +526,40 @@ QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) 
     Q_ASSERT(row < m_samples.size());
     internalPtr = m_samples[row].get();
   }
-  else if (parent == channelRoot())
-  {
-    Q_ASSERT(row < m_channels.size());
-    internalPtr = m_channels[row].get();
-  }
-  else if (parent == segmentationRoot())
-  {
-    Q_ASSERT(row < m_segmentations.size());
-    internalPtr = m_segmentations[row].get();
-  }
   else
   {
-    CategoryAdapterPtr parentCategory;
-    if (parent == classificationRoot())
+    if (parent == channelRoot())
     {
-      parentCategory = m_classification->root().get();
+      Q_ASSERT(row < m_channels.size());
+      internalPtr = m_channels[row].get();
     }
     else
     {
-      // Neither Samples nor Segmentations have children
-      parentCategory = toCategoryAdapterPtr(parent);
+      if (parent == segmentationRoot())
+      {
+        Q_ASSERT(row < m_segmentations.size());
+        internalPtr = m_segmentations[row].get();
+      }
+      else
+      {
+        CategoryAdapterPtr parentCategory;
+        if (parent == classificationRoot())
+        {
+          parentCategory = m_classification->root().get();
+        }
+        else
+        {
+          // Neither Samples nor Segmentations have children
+          parentCategory = toCategoryAdapterPtr(parent);
+        }
+        //WARNING: Now m_classification can be NULL, but even in that situation,
+        //         it shouldn't report any children
+        Q_ASSERT(parentCategory);
+        Q_ASSERT(row < parentCategory->subCategories().size());
+        internalPtr = parentCategory->subCategories()[row].get();
+      }
     }
-    //WARNING: Now m_classification can be NULL, but even in that situation,
-    //         it shouldn't report any children
-    Q_ASSERT(parentCategory);
-    Q_ASSERT(row < parentCategory->subCategories().size());
-    internalPtr = parentCategory->subCategories()[row].get();
   }
-
   return createIndex(row, column, internalPtr);
 }
 
@@ -594,7 +596,7 @@ QModelIndex ModelAdapter::index(ItemAdapterSPtr item) const
 //------------------------------------------------------------------------
 QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
 {
-  QMap<int, QVariant> data = QAbstractItemModel::itemData(index);
+  auto data = QAbstractItemModel::itemData(index);
 
   if (index.isValid() && index.parent().isValid())
   {
@@ -609,16 +611,17 @@ QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
 //------------------------------------------------------------------------
 QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 {
-  if (!child.isValid())
-    return QModelIndex();
+  if (!child.isValid()) return QModelIndex();
 
   if ( child == classificationRoot()
     || child == sampleRoot()
     || child == channelRoot()
     || child == segmentationRoot())
+  {
     return QModelIndex();
+  }
 
-  ItemAdapterPtr childItem = itemAdapter(child);
+  auto childItem = itemAdapter(child);
 
   switch (childItem->type())
   {
@@ -645,13 +648,15 @@ ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType ty
 {
   ItemAdapterSList items;
   if (type == RELATION_IN || type == RELATION_INOUT) {
-    for(auto ancestor : m_analysis->relationships()->ancestors(item->m_analysisItem, filter)) {
+    for(auto ancestor : m_analysis->relationships()->ancestors(item->m_analysisItem, filter))
+    {
       items << find(ancestor);
     }
   }
 
   if (type == RELATION_OUT || type == RELATION_INOUT) {
-    for(auto successor : m_analysis->relationships()->successors(item->m_analysisItem, filter)) {
+    for(auto successor : m_analysis->relationships()->successors(item->m_analysisItem, filter))
+    {
       items << find(successor);
     }
   }
@@ -695,7 +700,7 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
 //------------------------------------------------------------------------
 void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
-  QModelIndex index = categoryIndex(parent);
+  auto index = categoryIndex(parent);
   auto row = rowCount(index);
 
   beginInsertRows(index, row, row);
@@ -708,7 +713,7 @@ void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr
 //------------------------------------------------------------------------
 void ModelAdapter::removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
-  QModelIndex index = categoryIndex(category);
+  auto index = categoryIndex(category);
 
   beginRemoveRows(index.parent(), index.row(), index.row());
   {
@@ -728,14 +733,12 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
 {
   auto previousParent = category->parent();
 
-  if (previousParent == parent.get())
-    return;
+  if (previousParent == parent.get()) return;
 
-  QModelIndex oldIndex = index(previousParent);
-  QModelIndex newIndex = index(parent);
-
-  int oldRow = previousParent->subCategories().indexOf(category);
-  int newRow = parent->subCategories().size();
+  auto oldIndex = index(previousParent);
+  auto newIndex = index(parent);
+  auto oldRow = previousParent->subCategories().indexOf(category);
+  auto newRow = parent->subCategories().size();
 
   beginMoveRows(oldIndex, oldRow, oldRow, newIndex, newRow);
   {
@@ -748,7 +751,7 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
   {
     if (segmentation->category() == category)
     {
-      QModelIndex segIndex = segmentationIndex(segmentation);
+      auto segIndex = segmentationIndex(segmentation);
       emit dataChanged(segIndex, segIndex);
     }
   }
@@ -784,37 +787,48 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
   int count = 0;
 
   // There are 4 root indexes
-  if ( !parent.isValid() )
+  if (!parent.isValid())
   {
     count = 4;
   }
-  else if ( parent == classificationRoot() )
-  {
-    count = m_classification?m_classification->categories().size():0;
-  }
-  else if ( parent == sampleRoot() )
-  {
-    count = m_samples.size();
-  }
-  else if ( parent == channelRoot() )
-  {
-    count = m_channels.size();
-  }
-  else if ( parent == segmentationRoot() )
-  {
-    count = m_segmentations.size();
-  }
   else
   {
-    // Cast to base type
-    auto parentItem = itemAdapter(parent);
-    if (isCategory(parentItem))
+    if (parent == classificationRoot())
     {
-      auto parentCategory = toCategoryAdapterPtr(parentItem);
-      count = parentCategory->subCategories().size();
+      count = m_classification ? m_classification->categories().size() : 0;
+    }
+    else
+    {
+      if (parent == sampleRoot())
+      {
+        count = m_samples.size();
+      }
+      else
+      {
+        if (parent == channelRoot())
+        {
+          count = m_channels.size();
+        }
+        else
+        {
+          if (parent == segmentationRoot())
+          {
+            count = m_segmentations.size();
+          }
+          else
+          {
+            // Cast to base type
+            auto parentItem = itemAdapter(parent);
+            if (isCategory(parentItem))
+            {
+              auto parentCategory = toCategoryAdapterPtr(parentItem);
+              count = parentCategory->subCategories().size();
+            }
+          }
+        }
+      }
     }
   }
-
   // Otherwise Samples and Segmentations have no children
   return count;
 }
@@ -829,7 +843,7 @@ QModelIndex ModelAdapter::sampleIndex(SampleAdapterPtr sample) const
   {
     if (ptr.get() == sample)
     {
-      ItemAdapterPtr internalPtr = sample;
+      auto internalPtr = sample;
       index = createIndex(row, 0, internalPtr);
     }
     row++;
@@ -844,6 +858,7 @@ QModelIndex ModelAdapter::sampleIndex(SampleAdapterSPtr sample) const
   return sampleIndex(sample.get());
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::sampleRoot() const
 {
   return createIndex(1, 0, 1);
@@ -859,7 +874,7 @@ QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterPtr segmentation)
   {
     if (ptr.get() == segmentation)
     {
-      ItemAdapterPtr internalPtr = segmentation;
+      auto internalPtr = segmentation;
       index = createIndex(row, 0, internalPtr);
     }
     ++row;
@@ -905,7 +920,7 @@ void ModelAdapter::setClassification(ClassificationAdapterSPtr classification)
 {
   if (m_classification)
   {
-    ClassificationAdapterSPtr oldClassification = classification;
+    auto oldClassification = classification;
     beginRemoveRows(classificationRoot(), 0, rowCount(classificationRoot()) - 1);
     m_classification.reset();
     endRemoveRows();
@@ -931,19 +946,19 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
   if (index.isValid() && index.parent().isValid())// Root indexes cannot be modified
   {
     // Other elements can set their own data
-    ItemAdapterPtr indexItem = itemAdapter(index);
+    auto indexItem = itemAdapter(index);
     result = indexItem->setData(value, role);
     if (result)
     {
       emit dataChanged(index,index);
       if (isCategory(indexItem))
       {
-        CategoryAdapterPtr category = toCategoryAdapterPtr(indexItem);
+        auto category = toCategoryAdapterPtr(indexItem);
         for(auto segmentation: m_segmentations)
         {
           if (segmentation->category().get() == category)
           {
-            QModelIndex index = segmentationIndex(segmentation);
+            auto index = segmentationIndex(segmentation);
             emit dataChanged(index, index);
           }
         }
@@ -994,7 +1009,9 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
 CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
 {
   if (category == m_classification->root().get())
+  {
     return m_classification->root();
+  }
 
   auto parent = category->parent();
 
@@ -1010,7 +1027,10 @@ SampleAdapterSPtr ModelAdapter::smartPointer(SampleAdapterPtr sample)
   while (!pointer && i < m_samples.size())
   {
     if (m_samples[i].get() == sample)
+    {
       pointer = m_samples[i];
+    }
+
     i++;
   }
 
@@ -1026,7 +1046,10 @@ ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
   while (!pointer && i < m_channels.size())
   {
     if (m_channels[i].get() == channel)
+    {
       pointer = m_channels[i];
+    }
+
     i++;
   }
 
@@ -1042,7 +1065,10 @@ SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmen
   while (!pointer && i < m_segmentations.size())
   {
     if (m_segmentations[i].get() == segmentation)
+    {
       pointer = m_segmentations[i];
+    }
+
     i++;
   }
 
@@ -1061,7 +1087,8 @@ void ModelAdapter::resetInternalData()
 //------------------------------------------------------------------------
 bool ModelAdapter::contains(ItemAdapterSPtr &item, const ItemCommandsList &list) const
 {
-  for (auto itemCommands : list) {
+  for (auto itemCommands : list)
+  {
     if (itemCommands.Item == item) return true;
   }
 
@@ -1154,8 +1181,8 @@ void ModelAdapter::queueAddRelationCommand(ItemAdapterSPtr ancestor,
                                            const QString  &relation)
 {
   // In case no item needs to be added, it doesn't matter which is used to keep the refernce
-  ItemAdapterSPtr commandQueueItem = ancestor;
-  ItemAdapterSPtr emptyQueueItem   = successor;
+  auto commandQueueItem = ancestor;
+  auto emptyQueueItem   = successor;
 
   // Both reference items must be added in order to add relations
   // As additions are queued the last one of them which is found
@@ -1167,10 +1194,13 @@ void ModelAdapter::queueAddRelationCommand(ItemAdapterSPtr ancestor,
       commandQueueItem = ancestor;
       emptyQueueItem   = successor;
     }
-    else if (itemCommand.Item == successor)
+    else
     {
-      commandQueueItem = successor;
-      emptyQueueItem   = ancestor;
+      if (itemCommand.Item == successor)
+      {
+        commandQueueItem = successor;
+        emptyQueueItem   = ancestor;
+      }
     }
   }
 
@@ -1190,18 +1220,21 @@ void ModelAdapter::queueAddCommand(ItemAdapterSPtr item,
   {
     m_removeCommands.at(i);
   }
-  else if (contains(item, m_addCommands) || contains(item, m_updateCommands))
-  {
-    throw Existing_Item_Exception();
-  }
   else
   {
-    ItemCommands itemCommands;
+    if (contains(item, m_addCommands) || contains(item, m_updateCommands))
+    {
+      throw Existing_Item_Exception();
+    }
+    else
+    {
+      ItemCommands itemCommands;
 
-    itemCommands.Item = item;
-    itemCommands.Commands.push_back(command);
+      itemCommands.Item = item;
+      itemCommands.Commands.push_back(command);
 
-    m_addCommands.push_back(itemCommands);
+      m_addCommands.push_back(itemCommands);
+    }
   }
 }
 
@@ -1439,8 +1472,7 @@ void ModelAdapter::executeRemoveQueues(QModelIndex parent, ItemCommandsList &que
 
   for (auto commandQueues : groupConsecutiveQueues(queueList))
   {
-    if (!commandQueues.StartIndex.isValid()
-      ||!commandQueues.EndIndex  .isValid())
+    if (!commandQueues.StartIndex.isValid() || !commandQueues.EndIndex.isValid())
     {
       throw Item_Not_Found_Exception();
     }

@@ -35,23 +35,17 @@ class EspinaGUI_EXPORT QComboTreeView
   Q_OBJECT
 public:
   /** \brief QComboTreeView class constructor.
-   * \param[in] parent, raw pointer of the QWidget parent of this one.
+   * \param[in] parent raw pointer of the QWidget parent of this one.
    *
    */
   explicit QComboTreeView(QWidget* parent = nullptr);
 
-  /** \brief Shadows QComboBox::setModel().
-   *
-   */
   void setModel(QAbstractItemModel *model);
 
-  /** \brief Shadows QComboBox::setModelIndex().
-   *
-   */
   void setRootModelIndex( const QModelIndex &index);
 
   /** \brief Sets the current model index as the given one.
-   * \param[in] index, model index.
+   * \param[in] index model index.
    *
    */
   void setCurrentModelIndex(const QModelIndex &index);
@@ -62,20 +56,14 @@ public:
   QModelIndex currentModelIndex() const
   {return m_currentModelIndex;}
 
-  /** \brief Overrides QComboxBox::mousePressEvent().
-   *
-   */
   virtual void mousePressEvent(QMouseEvent* e) override;
 
 protected:
-  /** \brief Overrides QComboBox::showPopup().
-   *
-   */
   virtual void showPopup() override;
 
 private slots:
 	/** \brief Sets the current model index to the given one.
-	 * \param[in] index, model index.
+	 * \param[in] index model index.
 	 *
 	 */
   void indexEntered(const QModelIndex &index);

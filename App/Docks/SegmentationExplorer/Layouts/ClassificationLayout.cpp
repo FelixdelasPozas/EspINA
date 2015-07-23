@@ -88,50 +88,27 @@ private:
 
 
 //------------------------------------------------------------------------
-class CategoryItemDelegate
-: public QItemDelegate
+void CategoryItemDelegate::setModelData(QWidget            *editor,
+                                        QAbstractItemModel *model,
+                                        const QModelIndex  &index) const
 {
-public:
-  /** \brief Class CategoryItemDelegate class constructor.
-   * \param[in] model model adapter smart pointer.
-   * \param[in] undoStack QUndoStack object raw pointer.
-   * \param[in] parent parent object raw pointer.
-   *
-   */
-  explicit CategoryItemDelegate(ModelAdapterSPtr model,
-                                QUndoStack      *undoStack,
-                                QObject         *parent = nullptr)
-  : QItemDelegate{parent}
-  , m_model      {model}
-  , m_undoStack  {undoStack}
-  {}
+  auto proxy = static_cast<QSortFilterProxyModel *>(model);
+  auto item = itemAdapter(proxy->mapToSource(index));
 
-  virtual void setModelData(QWidget            *editor,
-                            QAbstractItemModel *model,
-                            const QModelIndex  &index) const override
+  if (isCategory(item))
   {
-    auto proxy = static_cast<QSortFilterProxyModel *>(model);
-    auto item  = itemAdapter(proxy->mapToSource(index));
+    auto textEditor = static_cast<QLineEdit *>(editor);
+    auto name = textEditor->text();
+    auto category = toCategoryAdapterPtr(item);
 
-    if (isCategory(item))
+    if (!category->parent()->subCategory(name))
     {
-      auto textEditor = static_cast<QLineEdit *>(editor);
-      auto name       = textEditor->text();
-      auto category   = toCategoryAdapterPtr(item);
-
-      if (!category->parent()->subCategory(name))
-      {
-        m_undoStack->beginMacro(tr("Rename Category"));
-        m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
-        m_undoStack->endMacro();
-      }
+      m_undoStack->beginMacro(tr("Rename Category"));
+      m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
+      m_undoStack->endMacro();
     }
   }
-
-private:
-  ModelAdapterSPtr m_model;
-  QUndoStack      *m_undoStack;
-};
+}
 
 //------------------------------------------------------------------------
 bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
@@ -315,17 +292,22 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
   if (categoriesSelected)
   {
-    auto category = m_selectedCategories.first();
+    auto category         = m_selectedCategories.first();
+    auto categoryIndex    = index(category);
+    auto rows             = categoryIndex.model()->rowCount(categoryIndex);
+    auto numSubCategories = category->subCategories().size();
 
     auto selectFromCategory = createCategoryAction(contextMenu, tr("Select %1 segmentations").arg(category->name()));
     connect(selectFromCategory, SIGNAL(triggered(bool)),
             this,               SLOT(selectCategorySegmentations()));
 
+    selectFromCategory->setEnabled(selectFromCategory->isEnabled() && (rows > 0) && (numSubCategories < rows));
+
     auto selectFromSubCategories = createCategoryAction(contextMenu, tr("Select %1 and sub-categories segmentations").arg(category->name()));
     connect(selectFromSubCategories, SIGNAL(triggered(bool)),
             this,                    SLOT(selectCategoryAndSubcategoriesSegmentations()));
 
-    selectFromSubCategories->setEnabled(selectFromSubCategories->isEnabled() && !category->subCategories().isEmpty());
+    selectFromSubCategories->setEnabled(selectFromSubCategories->isEnabled() && (numSubCategories > 0) && hasInformationToShow());
   }
 
   contextMenu->exec(pos);
@@ -484,44 +466,50 @@ void ClassificationLayout::createCategory()
 
   if (isCategory(categoryItem))
   {
-    QString name = tr("New Category");
-
     auto selectedCategory = toCategoryAdapterPtr(categoryItem);
     auto parentCategory   = selectedCategory->parent();
 
-    if (!parentCategory->subCategory(name))
+    QString name = tr("New Category");
+    int i = 1;
+
+    while(parentCategory->subCategory(name) != nullptr)
     {
-      auto undoStack = getUndoStack();
-      undoStack->beginMacro("Create Category");
-      undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
-      undoStack->endMacro();
+      name = tr("New Category-%1").arg(++i);
     }
+
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro("Create Category");
+    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
+    undoStack->endMacro();
   }
 }
 
 //------------------------------------------------------------------------
 void ClassificationLayout::createSubCategory()
 {
-  QModelIndex currentIndex = m_view->currentIndex();
+  auto currentIndex = m_view->currentIndex();
 
-  if (!currentIndex.isValid())
-    return;
+  if (!currentIndex.isValid()) return;
 
   auto categorytItem = item(currentIndex);
 
   if (isCategory(categorytItem))
   {
     QString name = tr("New Category");
+    int i = 1;
 
     auto category = toCategoryAdapterPtr(categorytItem);
-    if (!category->subCategory(name))
-    {
-      auto undoStack = getUndoStack();
 
-      undoStack->beginMacro(tr("Create Category"));
-      undoStack->push(new AddCategoryCommand(getModel()->smartPointer(category), name, getModel(), category->color()));
-      undoStack->endMacro();
+    while(category->subCategory(name) != nullptr)
+    {
+      name = tr("New Category-%1").arg(++i);
     }
+
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(tr("Create Category"));
+    undoStack->push(new AddCategoryCommand(getModel()->smartPointer(category), name, getModel(), category->color()));
+    undoStack->endMacro();
   }
 }
 
@@ -649,11 +637,14 @@ void ClassificationLayout::selectCategorySegmentations()
   auto category  = m_selectedCategories.first();
   auto selection = selectCategorySegmentations(category);
 
-  m_view->selectionModel()->clearSelection();
-  m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
-  m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
+  if(!selection.isEmpty())
+  {
+    m_view->selectionModel()->clearSelection();
+    m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+    m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
 
-  displayCurrentIndex();
+    displayCurrentIndex();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -679,8 +670,11 @@ void ClassificationLayout::selectCategoryAndSubcategoriesSegmentations()
     }
   }
 
-  m_view->selectionModel()->clearSelection();
-  m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+  if(!selection.isEmpty())
+  {
+    m_view->selectionModel()->clearSelection();
+    m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+  }
 }
 
 //------------------------------------------------------------------------

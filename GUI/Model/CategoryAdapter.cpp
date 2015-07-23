@@ -210,8 +210,11 @@ CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
   while (!res && i < m_subCategories.size())
   {
     if (m_subCategories[i]->name() == name)
+    {
       res = m_subCategories[i];
-    i++;
+    }
+
+    ++i;
   }
 
   return res;
