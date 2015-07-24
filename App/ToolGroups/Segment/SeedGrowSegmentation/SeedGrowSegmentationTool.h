@@ -134,10 +134,10 @@ namespace ESPINA
     void onNewPixelValue(int value);
 
     /** \brief Updates the UI when the close check changes value.
-     * \param[in] state checkbox state.
+     * \param[in] value boolean value.
      *
      */
-    void onCloseStateChanged(int state);
+    void onCloseStateChanged(bool value);
 
   private:
     using CategorySelector   = GUI::Widgets::CategorySelector;
@@ -152,7 +152,7 @@ namespace ESPINA
     QLabel             *m_colorLabel;
     PixelValueSelector *m_colorSelector;
     CustomROIWidget    *m_roi;
-    QCheckBox          *m_applyClose;
+    QPushButton        *m_applyClose;
     NumericalInput     *m_close;
 
     SeedGrowSegmentationSettings* m_settings;

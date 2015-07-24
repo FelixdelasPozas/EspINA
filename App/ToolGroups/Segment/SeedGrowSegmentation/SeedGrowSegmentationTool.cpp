@@ -109,7 +109,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_colorLabel      {new QLabel(tr("Pixel Color:"))}
 , m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}
-, m_applyClose      {new QCheckBox(tr("Apply Close"))}
+, m_applyClose      {Styles::createToolButton(":espina/close.png", tr("Apply close"))}
 , m_close           {new NumericalInput()}
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}
@@ -261,10 +261,11 @@ void SeedGrowSegmentationTool::initCloseWidgets()
 {
   auto enabled = (m_settings->applyClose());
 
+  m_applyClose->setCheckable(true);
   m_applyClose->setChecked(enabled);
 
-  connect(m_applyClose, SIGNAL(stateChanged(int)),
-          this,         SLOT(onCloseStateChanged(int)));
+  connect(m_applyClose, SIGNAL(toggled(bool)),
+          this,         SLOT(onCloseStateChanged(bool)));
 
   m_close->setVisible(enabled);
   m_close->setLabelText(tr("Radius"));
@@ -546,11 +547,8 @@ void SeedGrowSegmentationTool::onNewPixelValue(int value)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onCloseStateChanged(int state)
+void SeedGrowSegmentationTool::onCloseStateChanged(bool value)
 {
-  auto checked = (state == Qt::Checked);
-
-  m_settings->setApplyClose(checked);
-
-  m_close->setVisible(checked);
+  m_settings->setApplyClose(value);
+  m_close->setVisible(value);
 }
