@@ -69,11 +69,11 @@ void TaskGroupProgress::onTaskFinished()
 {
   auto finishedTask = static_cast<TaskPtr>(sender());
 
-  int i      = 0;
-  bool found = false;
-
   {
     QMutexLocker lock(&m_mutex);
+
+    int i      = 0;
+    bool found = false;
 
     while (i < m_tasks.size() && !found)
     {

@@ -58,10 +58,12 @@ namespace ESPINA
       , m_key(key.value())
       {}
 
-      void operator=(const InformationKey &rhs)
+      InformationKey &operator=(const InformationKey &rhs)
       {
         m_extension = rhs.extension();
         m_key       = rhs.value();
+
+        return *this;
       }
 
       bool operator==(const InformationKey &rhs) const
