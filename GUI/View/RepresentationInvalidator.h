@@ -31,19 +31,32 @@ namespace ESPINA
       : public QObject
       {
         Q_OBJECT
+
+      public:
+        enum class Scope
+        {
+          SELECTED_ITEMS,
+          DEPENDENT_ITEMS
+        };
+
       public:
         explicit RepresentationInvalidator(Timer &timer);
 
         /** \brief Invalidates item representations
+         * \param[in] items to invalide their representations
+         * \param[in] scope of the invalidation.
          *
          */
-        void invalidateRepresentations(ViewItemAdapterList items);
+        void invalidateRepresentations(const ViewItemAdapterList &items,
+                                       const Scope scope = Scope::SELECTED_ITEMS);
 
-        /** \brief Invalidates item representations and those which
-         *         depend on them
+        /** \brief Update item representation colors
+         * \param[in] items to invalide their representation colors
+         * \param[in] scope of the invalidation.
          *
          */
-        void invalidateDependentRepresentations(ViewItemAdapterList items);
+        void invalidateRepresentationColors(const ViewItemAdapterList &items,
+                                            const Scope scope = Scope::SELECTED_ITEMS);
 
         Timer &timer() const;
 
@@ -55,6 +68,11 @@ namespace ESPINA
 
       signals:
         void representationsInvalidated(ViewItemAdapterList items, TimeStamp t);
+        void representationColorsInvalidated(ViewItemAdapterList items, TimeStamp t);
+
+      private:
+        ViewItemAdapterList scopedItems(const ViewItemAdapterList &items,
+                                        const Scope scope = Scope::SELECTED_ITEMS);
 
       private:
         Timer &m_timer;

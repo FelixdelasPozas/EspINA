@@ -73,17 +73,15 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
-: m_spacingModified   {false}
+: WithContext(context)
+, m_spacingModified   {false}
 , m_edgesModified     {false}
 , m_pixelSelector     {new PixelValueSelector(this)}
 , m_channel           {channel}
-, m_model             {context.model()}
-, m_scheduler         {context.scheduler()}
 , m_invalidator       {m_timer}
 , m_sources           {m_invalidator}
 , m_viewState         {m_timer, m_invalidator}
 , m_view              {new View2D(m_viewState, Plane::XY)}
-, m_contextViewState  (context.viewState())
 {
   setupUi(this);
 
@@ -133,7 +131,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   tabWidget->setCurrentIndex(0);
 
 #if USE_METADONA
-  tabWidget->addTab(new MetadataViewer(channel, m_scheduler, this), tr("Metadata"));
+  tabWidget->addTab(new MetadataViewer(channel, getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
 }
 
@@ -170,7 +168,7 @@ void ChannelInspector::onOpacityCheckChanged(int value)
 
   if (value)
   {
-    auto opacity = 1.0/m_model->channels().size();
+    auto opacity = 1.0/getModel()->channels().size();
     m_channel->setOpacity(opacity);
   }
   else
@@ -326,8 +324,8 @@ void ChannelInspector::onChangesAccepted()
     applyEdgesChanges();
   }
 
-  updateSceneState(m_contextViewState, toViewItemSList(m_channel));
-  m_contextViewState.representationInvalidator().invalidateRepresentations(m_channel.get());
+  updateSceneState(getViewState(), toViewItemSList(m_channel));
+  getViewState().representationInvalidator().invalidateRepresentations(m_channel.get());
 }
 
 //------------------------------------------------------------------------
@@ -462,7 +460,7 @@ void ChannelInspector::applyEdgesChanges()
 {
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
 
-  for (auto segmentation: m_model->segmentations())
+  for (auto segmentation: getModel()->segmentations())
   {
     auto extensions = segmentation->readOnlyExtensions();
 
@@ -508,7 +506,7 @@ void ChannelInspector::initSliceView()
   m_sources.addSource(toViewItemList(m_channel.get()), m_view->timeStamp());
 
   auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
-  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, 10);
+  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, getScheduler(), 10);
 
   poolXY->setPipelineSources(&m_sources);
 

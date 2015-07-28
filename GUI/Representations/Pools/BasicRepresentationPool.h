@@ -41,13 +41,18 @@ namespace ESPINA
 
     virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems) override;
+    virtual void updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) override;
+
+    virtual void updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) override;
 
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
     virtual void applySettings(const RepresentationState &settings) override;
+
+  private:
+    void updateRepresentations();
 
   private:
     RepresentationUpdaterSPtr m_updater;

@@ -75,10 +75,18 @@ class ViewItemAdapter;
 
     /** \brief Create the actors for the view item with the given state
      *
-     *  NOTE: Must be reentrant
+     *  NOTE: This function must be reentrant
      */
     virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) = 0;
+
+    /** \brief Update the color of the representationa actors
+     *
+     *  NOTE: This function must be reentrant
+     */
+    virtual void updateColors(RepresentationPipeline::ActorList &actors,
+                              const ViewItemAdapter             *item,
+                              const RepresentationState         &state) = 0;
 
     virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const = 0;
 

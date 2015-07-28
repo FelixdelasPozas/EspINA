@@ -161,6 +161,11 @@ namespace ESPINA
 
     bool notHasBeenProcessed(const TimeStamp t) const;
 
+    /** \brief Returns true if the pool is being managed and has sources
+     *
+     */
+    bool isEnabled() const;
+
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
@@ -169,7 +174,9 @@ namespace ESPINA
 
     void onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
 
-    void onRepresentationModified(ViewItemAdapterList sources, TimeStamp t);
+    void onRepresentationsInvalidated(ViewItemAdapterList sources, TimeStamp t);
+
+    void onRepresentationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t);
 
     void onTimeStampUpdated(TimeStamp t);
 
@@ -190,7 +197,11 @@ namespace ESPINA
 
     void updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
 
-    virtual void updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
+    void updateRepresentationColorsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
+
+    virtual void updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
+
+    virtual void updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
 
     bool actorsChanged(const RepresentationPipeline::Actors &actors) const;
 
@@ -201,11 +212,6 @@ namespace ESPINA
     bool removeSources(ViewItemAdapterList sources);
 
     void processPendingSources();
-
-    /** \brief Returns true if the pool is being managed and has sources
-     *
-     */
-    bool isEnabled() const;
 
   private:
     PipelineSources    *m_sources;

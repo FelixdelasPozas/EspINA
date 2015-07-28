@@ -44,11 +44,7 @@ void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &cro
   m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
-  if(hasSources())
-  {
-    emit taskStarted(m_updater);
-    Task::submit(m_updater);
-  }
+  updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -58,11 +54,7 @@ void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crossh
   m_updater->setCrosshair(crosshair);
   m_updater->setTimeStamp(t);
 
-  if(hasSources())
-  {
-    emit taskStarted(m_updater);
-    Task::submit(m_updater);
-  }
+  updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -72,24 +64,25 @@ void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &
   m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
-  if(hasSources())
-  {
-    emit taskStarted(m_updater);
-    Task::submit(m_updater);
-  }
+  updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+void BasicRepresentationPool::updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
 {
   m_updater->setTimeStamp(t);
-  m_updater->setUpdateList(modifiedItems);
+  m_updater->updateRepresentations(modifiedItems);
 
-  if(hasSources())
-  {
-    emit taskStarted(m_updater);
-    Task::submit(m_updater);
-  }
+  updateRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
+{
+  m_updater->setTimeStamp(t);
+  m_updater->updateRepresentationColors(modifiedItems);
+
+  updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -109,7 +102,13 @@ void BasicRepresentationPool::applySettings(const RepresentationState &settings)
 {
   m_updater->setSettings(settings);
 
-  if(hasSources())
+  updateRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::updateRepresentations()
+{
+  if(isEnabled())
   {
     emit taskStarted(m_updater);
     Task::submit(m_updater);

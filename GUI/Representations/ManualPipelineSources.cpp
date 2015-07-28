@@ -45,5 +45,5 @@ void ManualPipelineSources::removeSource(ViewItemAdapterList sources, TimeStamp 
 //-----------------------------------------------------------------------------
 void ManualPipelineSources::updateRepresentation(ViewItemAdapterList sources, TimeStamp t)
 {
-  emit representationsModified(sources, t);
+  emit representationsInvalidated(sources, t);
 }

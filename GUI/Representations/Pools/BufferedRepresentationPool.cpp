@@ -92,7 +92,7 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &cro
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+void BufferedRepresentationPool::updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
 {
   m_updateWindow.current()->setTimeStamp(t);
 
@@ -100,11 +100,27 @@ void BufferedRepresentationPool::updateRepresentationsImlementationAt(TimeStamp 
 
   for(auto updater: updaters)
   {
-    updater->setUpdateList(modifiedItems);
+    updater->updateRepresentations(modifiedItems);
   }
 
   updatePipelines(updaters);
 }
+
+//-----------------------------------------------------------------------------
+void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
+{
+  m_updateWindow.current()->setTimeStamp(t);
+
+  auto updaters = m_updateWindow.all();
+
+  for(auto updater: updaters)
+  {
+    updater->updateRepresentationColors(modifiedItems);
+  }
+
+  updatePipelines(updaters);
+}
+
 
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)

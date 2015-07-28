@@ -47,6 +47,7 @@ namespace ESPINA
   class ChannelInspector
   : public QDialog
   , private Ui::ChannelInspector
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -192,16 +193,12 @@ namespace ESPINA
     GUI::Widgets::PixelValueSelector *m_pixelSelector;
 
     ChannelAdapterSPtr m_channel;
-    ModelAdapterSPtr   m_model;
-    SchedulerSPtr      m_scheduler;
 
     Timer                     m_timer;
     RepresentationInvalidator m_invalidator;
     ManualPipelineSources     m_sources;
     GUI::View::ViewState      m_viewState;
     std::shared_ptr<View2D>   m_view;
-
-    GUI::View::ViewState      &m_contextViewState;
 
     HueSelector      *m_hueSelector;
 

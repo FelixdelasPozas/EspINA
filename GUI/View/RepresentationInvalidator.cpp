@@ -27,20 +27,21 @@ RepresentationInvalidator::RepresentationInvalidator(Timer &timer)
 }
 
 //------------------------------------------------------------------------
-void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterList items)
+void RepresentationInvalidator::invalidateRepresentations(const ViewItemAdapterList &items,
+                                                          const Scope scope)
 {
   auto t = m_timer.increment();
 
-  emit representationsInvalidated(items, t);
+  emit representationsInvalidated(scopedItems(items), t);
 }
 
 //------------------------------------------------------------------------
-void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapterList items)
+void RepresentationInvalidator::invalidateRepresentationColors(const ViewItemAdapterList &items,
+                                                               const RepresentationInvalidator::Scope scope)
 {
-  auto invalidatedItems = items;
-  // TODO 2015-04-20: search dependent items on relationship graph
+  auto t = m_timer.increment();
 
-  invalidateRepresentations(invalidatedItems);
+  emit representationColorsInvalidated(scopedItems(items), t);
 }
 
 //------------------------------------------------------------------------
@@ -53,4 +54,18 @@ Timer &RepresentationInvalidator::timer() const
 void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterPtr item)
 {
   invalidateRepresentations(toViewItemList(item));
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterList RepresentationInvalidator::scopedItems(const ViewItemAdapterList& items,
+                                                           const RepresentationInvalidator::Scope scope)
+{
+  auto scopedItems = items;
+
+  if (Scope::DEPENDENT_ITEMS == scope)
+  {
+    // TODO 2015-04-20: search dependent items on relationship graph
+  }
+
+  return scopedItems;
 }

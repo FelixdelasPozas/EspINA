@@ -918,7 +918,7 @@ void EspinaMainWindow::onColorEngineModified()
   auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);
   auto &invalidator     = m_context.representationInvalidator();
 
-  invalidator.invalidateRepresentations(invalidateItems);
+  invalidator.invalidateRepresentationColors(invalidateItems);
 }
 
 //------------------------------------------------------------------------

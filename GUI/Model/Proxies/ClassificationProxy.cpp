@@ -1334,5 +1334,5 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
     Q_ASSERT(false);
   }
 
-  m_representationInvalidator.invalidateRepresentations(modifiedItems);
+  m_representationInvalidator.invalidateRepresentationColors(modifiedItems);
 }

@@ -63,8 +63,10 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
                this,      SLOT(onSourcesAdded(ViewItemAdapterList,TimeStamp)));
     disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
                this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
-    disconnect(m_sources, SIGNAL(representationsModified(ViewItemAdapterList,TimeStamp)),
-               this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
+    disconnect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
+               this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
+    disconnect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
+               this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
     disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
                this,      SLOT(onTimeStampUpdated(TimeStamp)));
 
@@ -79,8 +81,10 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
             this,      SLOT(onSourcesAdded(ViewItemAdapterList, TimeStamp)));
     connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList, TimeStamp)),
             this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
-    connect(m_sources, SIGNAL(representationsModified(ViewItemAdapterList,TimeStamp)),
-            this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
+    connect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
+            this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
+    connect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
+            this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
     connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
             this,      SLOT(onTimeStampUpdated(TimeStamp)));
 
@@ -212,7 +216,7 @@ void RepresentationPool::decrementObservers()
 //-----------------------------------------------------------------------------
 void RepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
 {
-  onRepresentationModified(items, t);
+  onRepresentationsInvalidated(items, t);
 }
 
 //-----------------------------------------------------------------------------
@@ -270,9 +274,15 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, TimeStamp t)
+void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterList sources, TimeStamp t)
 {
   updateRepresentationsAt(t, sources);
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onRepresentationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t)
+{
+  updateRepresentationColorsAt(t, sources);
 }
 
 //-----------------------------------------------------------------------------
@@ -315,7 +325,20 @@ void RepresentationPool::updateRepresentationsAt(TimeStamp t, ViewItemAdapterLis
   {
     emit actorsInvalidated();
 
-    updateRepresentationsImlementationAt(t, modifiedItems);
+    updateRepresentationsAtImlementation(t, modifiedItems);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::updateRepresentationColorsAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+{
+  m_validActors.invalidate();
+
+  if (isEnabled())
+  {
+    emit actorsInvalidated();
+
+    updateRepresentationColorsAtImlementation(t, modifiedItems);
   }
 }
 
