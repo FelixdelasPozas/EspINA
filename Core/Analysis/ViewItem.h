@@ -113,6 +113,7 @@ namespace ESPINA {
     void onOutputModified()
     {
       m_isOutputModified = true;
+
       emit outputModified();
     }
 

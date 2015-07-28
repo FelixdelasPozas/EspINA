@@ -238,9 +238,12 @@ void InformationColorEngineSwitch::updateRange()
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::onToolToggled(bool checked)
 {
-  if (checked && m_needUpdate)
+  if (checked)
   {
-    update();
+    if (m_needUpdate)
+    {
+      update();
+    }
 
     connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
             this,             SLOT(updateRange()));
