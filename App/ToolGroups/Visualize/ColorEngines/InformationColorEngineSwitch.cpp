@@ -31,6 +31,7 @@
 #include <QLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Analysis;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
@@ -92,7 +93,7 @@ private:
           }
         }
       }
-      catch(SegmentationExtension::Extension_Not_Found &e)
+      catch(Extension_Not_Found &e)
       {
         qWarning() << "Information not available";
       }

@@ -21,12 +21,14 @@
 // ESPINA
 #include <Dialogs/View3DDialog/3DDialog.h>
 #include <GUI/View/ViewState.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/EspinaSettings.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
@@ -44,6 +46,8 @@ Dialog3D::Dialog3D(Support::Context   &context)
   setWindowModality(Qt::WindowModality::NonModal);
   setWindowTitle("View 3D");
 
+  m_toolbar.setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_toolbar.setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   layout()->setMenuBar(&m_toolbar);
 
   initView3D();

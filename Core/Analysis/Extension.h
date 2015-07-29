@@ -95,7 +95,6 @@ namespace ESPINA
     using InfoCache          = QMap<Key, QVariant>;
 
     struct Invalid_Extension_Key{};
-    struct Extension_Not_Found{};
 
     static QString ExtensionFilePath(T *item)
     {
