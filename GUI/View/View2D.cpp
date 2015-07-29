@@ -939,18 +939,20 @@ void View2D::updateScaleValue()
   double *world,   worldWidth;
   int    *display, displayWidth;
 
+  auto xCoord = (m_normalCoord == 0) ? 2 : 0;
+
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
 
   coords->SetValue(0, 0); //Viewport Lower Left Corner
   world = coords->GetComputedWorldValue(m_renderer);
-  worldWidth = world[0];
+  worldWidth = world[xCoord];
   display = coords->GetComputedDisplayValue(m_renderer);
   displayWidth = display[0];
 
   coords->SetValue(1, 0); // Viewport Lower Right Corner
   world = coords->GetComputedWorldValue(m_renderer);
-  worldWidth = fabs(worldWidth - world[0]);
+  worldWidth = fabs(worldWidth - world[xCoord]);
   display = coords->GetComputedDisplayValue(m_renderer);
   displayWidth = fabs(displayWidth - display[0]);
 
