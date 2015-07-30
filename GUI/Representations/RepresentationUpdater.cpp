@@ -40,10 +40,7 @@ void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
   QMutexLocker lock(&m_mutex);
 
-  if(!m_sources.contains(item))
-  {
-    m_sources << item;
-  }
+  addUpdateRequest(m_sources, item, true);
 }
 
 //----------------------------------------------------------------------------
@@ -56,15 +53,9 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
     m_actors.remove(item);
   }
 
-  if(m_sources.contains(item))
-  {
-    m_sources.removeOne(item);
-  }
+  removeUpdateRequest(m_sources, item);
 
-  if(m_requestedSources.contains(item))
-  {
-    m_requestedSources.removeOne(item);
-  }
+  removeUpdateRequest(m_requestedSources, item);
 }
 
 //----------------------------------------------------------------------------
@@ -111,19 +102,15 @@ void RepresentationUpdater::setSettings(const RepresentationState &settings)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::setUpdateList(ViewItemAdapterList sources)
+void RepresentationUpdater::updateRepresentations(ViewItemAdapterList sources)
 {
-  QMutexLocker lock(&m_mutex);
+  updateRepresentations(sources, true);
+}
 
-  for(auto item: sources)
-  {
-    if(!m_requestedSources.contains(item))
-    {
-      m_requestedSources << item;
-    }
-  }
-
-  m_updateList = &m_requestedSources;
+//----------------------------------------------------------------------------
+void RepresentationUpdater::updateRepresentationColors(const ViewItemAdapterList& sources)
+{
+  updateRepresentations(sources, false);
 }
 
 //----------------------------------------------------------------------------
@@ -203,20 +190,27 @@ void RepresentationUpdater::run()
 
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
+
+  auto it   = updateList.begin();
   auto size = updateList.size();
 
-  int i = 0;
+  int i  = 0;
 
-  auto it = updateList.begin();
   while (canExecute() && it != updateList.end())
   {
-    auto  item     = *it;
+    auto  item     = it->first;
     auto  pipeline = sourcePipeline(item);
 
     auto state  = pipeline->representationState(item, m_settings);
-    auto actors = pipeline->createActors(item, state);
 
-    m_actors[item]  = actors;
+    if (it->second)
+    {
+      auto actors = pipeline->createActors(item, state);
+
+      m_actors[item]  = actors;
+    }
+
+    pipeline->updateColors(m_actors[item], item, state);
 
     ++it;
     ++i;
@@ -227,6 +221,7 @@ void RepresentationUpdater::run()
   if (hasValidTimeStamp() && canExecute())
   {
     m_requestedSources.clear();
+
     emit actorsReady(timeStamp(), m_actors);
   }
 }
@@ -265,4 +260,60 @@ ViewItemAdapterPtr RepresentationUpdater::findActorItem(vtkProp *actor) const
   }
 
   return item;
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::updateRepresentations(ViewItemAdapterList sources, const bool createActors)
+{
+  QMutexLocker lock(&m_mutex);
+
+  for(auto item: sources)
+  {
+    addUpdateRequest(m_requestedSources, item, createActors);
+  }
+
+  m_updateList = &m_requestedSources;
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::addUpdateRequest(UpdateRequestList& list,
+                                             ViewItemAdapterPtr item,
+                                             const bool createActors)
+{
+  for (auto it = list.begin(); it != list.end(); ++it)
+  {
+    if (it->first == item)
+    {
+      it->second |= createActors;
+
+      return;
+    }
+  }
+
+  list << UpdateRequest(item, createActors);
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::removeUpdateRequest(UpdateRequestList& list,
+                                                ViewItemAdapterPtr item)
+{
+  int  i     = 0;
+  bool found = false;
+
+  while (!found && i < list.size())
+  {
+    if (list[i].first == item)
+    {
+      found = true;
+    }
+    else
+    {
+      ++i;
+    }
+  }
+
+  if (found)
+  {
+    list.removeAt(i);
+  }
 }

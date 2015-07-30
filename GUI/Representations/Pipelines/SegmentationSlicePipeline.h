@@ -39,6 +39,10 @@ namespace ESPINA
     virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) override;
 
+    virtual void updateColors(ActorList                 &actors,
+                              const ViewItemAdapter     *item,
+                              const RepresentationState &state);
+
     virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
     void setPlane(const Plane plane);

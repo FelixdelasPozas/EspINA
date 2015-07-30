@@ -46,7 +46,8 @@ namespace ESPINA
   signals:
     void sourcesAdded  (ViewItemAdapterList sources, TimeStamp t);
     void sourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
-    void representationsModified(ViewItemAdapterList sources, TimeStamp t);
+    void representationsInvalidated(ViewItemAdapterList sources, TimeStamp t);
+    void representationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t);
     void updateTimeStamp(TimeStamp t);
 
   protected:
@@ -59,7 +60,12 @@ namespace ESPINA
     TimeStamp timeStamp() const;
 
   private slots:
-    void onRepresentationInvalidated(ViewItemAdapterList items, TimeStamp t);
+    void onRepresentationsInvalidated(ViewItemAdapterList items, TimeStamp t);
+
+    void onRepresentationColorsInvalidated(ViewItemAdapterList items, TimeStamp t);
+
+  private:
+    ViewItemAdapterList acceptedItems(const ViewItemAdapterList &items);
 
   protected:
     ViewItemAdapterList m_sources;

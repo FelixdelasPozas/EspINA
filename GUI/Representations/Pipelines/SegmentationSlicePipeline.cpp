@@ -31,6 +31,7 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
+#include <vtkAlgorithmOutput.h>
 
 // Qt
 
@@ -125,6 +126,25 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
   }
 
   return actors;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationSlicePipeline::updateColors(ActorList                &actors,
+                                             const ViewItemAdapter    *item,
+                                             const RepresentationState &state)
+{
+  if (actors.size() == 1)
+  {
+    auto segmentation = segmentationPtr(item);
+
+    auto actor = dynamic_cast<vtkImageActor *>(actors.first().Get());
+    auto color = m_colorEngine->color(segmentation);
+
+    actor->SetOpacity(opacity(state) * color.alphaF());
+
+    auto mapToColors = dynamic_cast<vtkImageMapToColors *>(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
+    mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -68,10 +68,12 @@ namespace ESPINA
      */
     void setSettings(const RepresentationState &settings);
 
-    /** \brief Limits the number of sources to create actors on an execution
+    /** \brief Add sources representations to be update
      *
      */
-    void setUpdateList(ViewItemAdapterList sources);
+    void updateRepresentations(ViewItemAdapterList sources);
+
+    void updateRepresentationColors(const ViewItemAdapterList &sources);
 
     /** \brief Sets the execution TimeStamp of the task
      *
@@ -107,9 +109,18 @@ namespace ESPINA
     virtual void run();
 
   private:
+    using UpdateRequest     = QPair<ViewItemAdapterPtr, bool>;
+    using UpdateRequestList = QList<UpdateRequest>;
+
     RepresentationPipelineSPtr sourcePipeline(ViewItemAdapterPtr item) const;
 
     ViewItemAdapterPtr findActorItem(vtkProp *actor) const;
+
+    void updateRepresentations(ViewItemAdapterList sources, const bool createActors);
+
+    static void addUpdateRequest(UpdateRequestList &list, ViewItemAdapterPtr item, const bool createActors);
+
+    static void removeUpdateRequest(UpdateRequestList &list, ViewItemAdapterPtr item);
 
   private:
     TimeStamp m_timeStamp;
@@ -118,9 +129,10 @@ namespace ESPINA
     RepresentationPipelineSPtr m_pipeline;
 
     mutable QMutex m_mutex;
-    ViewItemAdapterList m_requestedSources;
-    ViewItemAdapterList m_sources;
-    ViewItemAdapterList *m_updateList;
+
+    UpdateRequestList  m_requestedSources;
+    UpdateRequestList  m_sources;
+    UpdateRequestList *m_updateList;
 
     RepresentationState            m_settings;
     RepresentationPipeline::Actors m_actors;

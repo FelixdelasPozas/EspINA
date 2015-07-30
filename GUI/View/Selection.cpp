@@ -133,7 +133,7 @@ void Selection::onSegmentationsModified(SegmentationAdapterList segmentations)
     emit selectionStateChanged(segmentations);
 
     auto invalidItems = toList<ViewItemAdapter>(segmentations);
-    m_invalidator.invalidateRepresentations(invalidItems);
+    m_invalidator.invalidateRepresentationColors(invalidItems);
   }
 }
 

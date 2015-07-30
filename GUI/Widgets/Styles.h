@@ -35,26 +35,28 @@ namespace ESPINA
     {
       namespace Styles
       {
-         void setNestedStyle(QWidget *widget);
+        const int CONTEXTUAL_BAR_HEIGHT = 44;
 
-         QAction *createToolAction( const QString &icon, const QString &tooltip, QObject *parent );
+        void setNestedStyle(QWidget *widget);
 
-         QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
+        QAction *createToolAction( const QString &icon, const QString &tooltip, QObject *parent );
 
-         QPushButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
+        QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
 
-         QPushButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
+        QPushButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
 
-         constexpr int buttonSize()
-         { return 30; }
+        QPushButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
 
-         constexpr int iconSize()
-         { return 0.74*buttonSize(); }
+        constexpr int buttonSize()
+        { return 30; }
 
-         constexpr int MediumBarWidth()
-         { return 80; }
+        constexpr int iconSize()
+        { return 0.74*buttonSize(); }
 
-         void setBarStyle(QWidget *bar);
+        constexpr int MediumBarWidth()
+        { return 80; }
+
+        void setBarStyle(QWidget *bar);
       };
     }
   }

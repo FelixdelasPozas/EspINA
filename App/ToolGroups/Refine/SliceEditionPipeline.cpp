@@ -59,6 +59,15 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(const ViewI
 }
 
 //------------------------------------------------------------------------
+void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, const ViewItemAdapter* item, const RepresentationState& state)
+{
+  if (!(crosshairPoint(state) == m_crosshair) || !(plane(state) == m_plane))
+  {
+    m_slicePipeline.updateColors(actors, item, state);
+  }
+}
+
+//------------------------------------------------------------------------
 bool SliceEditionPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
 {
   return m_slicePipeline.pick(item, point);

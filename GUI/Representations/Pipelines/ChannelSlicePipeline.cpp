@@ -32,6 +32,7 @@
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
+#include <vtkAlgorithmOutput.h>
 
 // C++
 #include <chrono>
@@ -139,6 +140,25 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
 
   return actors;
  }
+
+//----------------------------------------------------------------------------
+void ChannelSlicePipeline::updateColors(ActorList& actors,
+                                        const ViewItemAdapter* item,
+                                        const RepresentationState& state)
+{
+
+  if (actors.size() == 1)
+  {
+    auto actor       = dynamic_cast<vtkImageActor *>(actors.first().Get());
+    auto mapToColors = dynamic_cast<vtkImageMapToColors *>(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
+
+    auto color = stain(state);
+    auto lut   = dynamic_cast<vtkLookupTable *>(mapToColors->GetLookupTable());
+
+    lut->SetHueRange(color.hueF(), color.hueF());
+    lut->SetSaturationRange(0.0, color.saturationF());
+  }
+}
 
 //----------------------------------------------------------------------------
 bool ChannelSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const

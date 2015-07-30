@@ -34,100 +34,114 @@
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-namespace ESPINA
-{
-  IntensitySelectionHighlighter SegmentationVolumetricGPUPipeline::s_highlighter;
+IntensitySelectionHighlighter SegmentationVolumetricGPUPipeline::s_highlighter;
 
-  //----------------------------------------------------------------------------
-  SegmentationVolumetricGPUPipeline::SegmentationVolumetricGPUPipeline(ColorEngineSPtr colorEngine)
-  : RepresentationPipeline("SegmentationVolumetricGPU")
-  , m_colorEngine{colorEngine}
+//----------------------------------------------------------------------------
+SegmentationVolumetricGPUPipeline::SegmentationVolumetricGPUPipeline(ColorEngineSPtr colorEngine)
+: RepresentationPipeline("SegmentationVolumetricGPU")
+, m_colorEngine{colorEngine}
+{
+}
+
+//----------------------------------------------------------------------------
+RepresentationState SegmentationVolumetricGPUPipeline::representationState(const ViewItemAdapter     *item,
+                                                                           const RepresentationState &settings)
+{
+  auto segmentation = segmentationPtr(item);
+
+  RepresentationState state;
+
+  state.apply(segmentationPipelineSettings(segmentation));
+  state.apply(settings);
+
+  return state;
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActors(const ViewItemAdapter     *item,
+                                                                                  const RepresentationState &state)
+{
+  auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
+
+  ActorList actors;
+
+  if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
+    auto data   = readLockVolume(segmentation->output());
+    auto volume = vtkImage(data, data->bounds());
+
+    auto mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    mapper->ReleaseDataFlagOn();
+    mapper->GlobalWarningDisplayOff();
+    mapper->AutoAdjustSampleDistancesOn();
+    mapper->SetScalarModeToUsePointData();
+    mapper->SetBlendModeToComposite();
+    mapper->SetMaxMemoryFraction(1);
+    mapper->SetInputData(volume);
+    mapper->Update();
+
+    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+
+    auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+    colorFunction->AllowDuplicateScalarsOff();
+    colorFunction->AddHSVPoint(SEG_VOXEL_VALUE, color.hsvHueF(), color.hsvSaturationF(), color.valueF());
+    colorFunction->Modified();
+
+    auto piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
+    piecewise->AddPoint(0, 0.0);
+    piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
+    piecewise->Modified();
+
+    auto property = vtkSmartPointer<vtkVolumeProperty>::New();
+    property->SetColor(colorFunction);
+    property->SetScalarOpacity(piecewise);
+    property->DisableGradientOpacityOff();
+    property->SetSpecular(0.5);
+    property->ShadeOn();
+    property->SetInterpolationTypeToLinear();
+    property->Modified();
+
+    auto actor = vtkSmartPointer<vtkVolume>::New();
+    actor->UseBoundsOn();
+    actor->PickableOn();
+    actor->SetMapper(mapper);
+    actor->SetProperty(property);
+    actor->Update();
+
+    actors << actor;
   }
-  
-  //----------------------------------------------------------------------------
-  RepresentationState SegmentationVolumetricGPUPipeline::representationState(const ViewItemAdapter     *item,
-                                                                             const RepresentationState &settings)
+
+  return actors;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationVolumetricGPUPipeline::updateColors(ActorList                 &actors,
+                                                     const ViewItemAdapter     *item,
+                                                     const RepresentationState &state)
+{
+  if (actors.size() == 1)
   {
     auto segmentation = segmentationPtr(item);
 
-    RepresentationState state;
+    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
 
-    state.apply(segmentationPipelineSettings(segmentation));
-    state.apply(settings);
+    auto actor = dynamic_cast<vtkVolume *>(actors.first().Get());
 
-    return state;
+    auto property = dynamic_cast<vtkVolumeProperty *>(actor->GetProperty());
+
+    auto transferFunction = property->GetRGBTransferFunction();
+
+    transferFunction->AddHSVPoint(SEG_VOXEL_VALUE, color.hsvHueF(), color.hsvSaturationF(), color.valueF());
   }
+}
 
-  //----------------------------------------------------------------------------
-  RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActors(const ViewItemAdapter     *item,
-                                                                                    const RepresentationState &state)
-  {
-    auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
-
-    ActorList actors;
-
-    if (isVisible(state) && hasVolumetricData(segmentation->output()))
-    {
-      auto data   = readLockVolume(segmentation->output());
-      auto volume = vtkImage(data, data->bounds());
-
-      auto mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-      mapper->ReleaseDataFlagOn();
-      mapper->GlobalWarningDisplayOff();
-      mapper->AutoAdjustSampleDistancesOn();
-      mapper->SetScalarModeToUsePointData();
-      mapper->SetBlendModeToComposite();
-      mapper->SetMaxMemoryFraction(1);
-      mapper->SetInputData(volume);
-      mapper->Update();
-
-      auto color = m_colorEngine->color(segmentation);
-      double rgba[4], rgb[3], hsv[3];
-      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-      memcpy(rgb, rgba, 3 * sizeof(double));
-      vtkMath::RGBToHSV(rgb, hsv);
-
-      auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-      colorFunction->AllowDuplicateScalarsOff();
-      colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
-      colorFunction->Modified();
-
-      auto piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
-      piecewise->AddPoint(0, 0.0);
-      piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
-      piecewise->Modified();
-
-      auto property = vtkSmartPointer<vtkVolumeProperty>::New();
-      property->SetColor(colorFunction);
-      property->SetScalarOpacity(piecewise);
-      property->DisableGradientOpacityOff();
-      property->SetSpecular(0.5);
-      property->ShadeOn();
-      property->SetInterpolationTypeToLinear();
-      property->Modified();
-
-      auto actor = vtkSmartPointer<vtkVolume>::New();
-      actor->UseBoundsOn();
-      actor->PickableOn();
-      actor->SetMapper(mapper);
-      actor->SetProperty(property);
-      actor->Update();
-
-      actors << actor;
-    }
-
-    return actors;
-  }
-
-  //----------------------------------------------------------------------------
-  bool SegmentationVolumetricGPUPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
-  {
-    // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
-    return true;
-  }
-
-} // namespace ESPINA
+//----------------------------------------------------------------------------
+bool SegmentationVolumetricGPUPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+{
+  // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
+  return true;
+}

@@ -62,6 +62,7 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -80,13 +81,13 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -918,7 +919,7 @@ void EspinaMainWindow::onColorEngineModified()
   auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);
   auto &invalidator     = m_context.representationInvalidator();
 
-  invalidator.invalidateRepresentations(invalidateItems);
+  invalidator.invalidateRepresentationColors(invalidateItems);
 }
 
 //------------------------------------------------------------------------
@@ -1199,8 +1200,8 @@ void EspinaMainWindow::createToolbars()
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
   m_contextualBar->setObjectName("Contextual ToolBar");
-  m_contextualBar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
-  m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_contextualBar->setMinimumHeight(Styles::CONTEXTUAL_BAR_HEIGHT);
+  m_contextualBar->setMaximumHeight(Styles::CONTEXTUAL_BAR_HEIGHT);
 }
 
 //------------------------------------------------------------------------

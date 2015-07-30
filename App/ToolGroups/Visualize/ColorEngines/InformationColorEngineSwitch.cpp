@@ -31,6 +31,7 @@
 #include <QLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Analysis;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
@@ -92,7 +93,7 @@ private:
           }
         }
       }
-      catch(SegmentationExtension::Extension_Not_Found &e)
+      catch(Extension_Not_Found &e)
       {
         qWarning() << "Information not available";
       }
@@ -238,9 +239,12 @@ void InformationColorEngineSwitch::updateRange()
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::onToolToggled(bool checked)
 {
-  if (checked && m_needUpdate)
+  if (checked)
   {
-    update();
+    if (m_needUpdate)
+    {
+      update();
+    }
 
     connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
             this,             SLOT(updateRange()));

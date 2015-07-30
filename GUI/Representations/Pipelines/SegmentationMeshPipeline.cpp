@@ -32,75 +32,84 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-namespace ESPINA
+IntensitySelectionHighlighter SegmentationMeshPipeline::s_highlighter;
+
+//----------------------------------------------------------------------------
+SegmentationMeshPipeline::SegmentationMeshPipeline(ColorEngineSPtr colorEngine)
+: RepresentationPipeline{"SegmentationMesh"}
+, m_colorEngine         {colorEngine}
 {
-  IntensitySelectionHighlighter SegmentationMeshPipeline::s_highlighter;
+}
 
-  //----------------------------------------------------------------------------
-  SegmentationMeshPipeline::SegmentationMeshPipeline(ColorEngineSPtr colorEngine)
-  : RepresentationPipeline{"SegmentationMesh"}
-  , m_colorEngine         {colorEngine}
+//----------------------------------------------------------------------------
+RepresentationState SegmentationMeshPipeline::representationState(const ViewItemAdapter     *item,
+                                                                  const RepresentationState &settings)
+{
+  auto segmentation = segmentationPtr(item);
+
+  RepresentationState state;
+
+  state.apply(segmentationPipelineSettings(segmentation));
+  state.apply(settings);
+
+  return state;
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(const ViewItemAdapter     *item,
+                                                                         const RepresentationState &state)
+{
+  ActorList actors;
+
+  auto segmentation = segmentationPtr(item);
+
+  if(isVisible(state) && hasMeshData(segmentation->output()))
   {
+    auto data = readLockMesh(segmentation->output());
+
+    auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->ReleaseDataFlagOn();
+    mapper->ImmediateModeRenderingOn();
+    mapper->ScalarVisibilityOff();
+    mapper->SetInputData(data->mesh());
+    mapper->Update();
+
+    auto actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetSpecular(0.2);
+    actor->GetProperty()->SetOpacity(1);
+    actor->Modified();
+
+    actors << actor;
   }
-  
-  //----------------------------------------------------------------------------
-  RepresentationState SegmentationMeshPipeline::representationState(const ViewItemAdapter     *item,
-                                                                    const RepresentationState &settings)
+
+  return actors;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshPipeline::updateColors(ActorList& actors,
+                                            const ViewItemAdapter* item,
+                                            const RepresentationState& state)
+{
+  if (actors.size() == 1)
   {
     auto segmentation = segmentationPtr(item);
 
-    RepresentationState state;
+    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
 
-    state.apply(segmentationPipelineSettings(segmentation));
-    state.apply(settings);
+    auto actor = dynamic_cast<vtkActor *>(actors.first().Get());
 
-    return state;
+    actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
   }
+}
 
-  //----------------------------------------------------------------------------
-  RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(const ViewItemAdapter     *item,
-                                                                           const RepresentationState &state)
-  {
-    ActorList actors;
-
-    auto segmentation = segmentationPtr(item);
-
-    if(isVisible(state) && hasMeshData(segmentation->output()))
-    {
-      auto data = readLockMesh(segmentation->output());
-
-      auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->ReleaseDataFlagOn();
-      mapper->ImmediateModeRenderingOn();
-      mapper->ScalarVisibilityOff();
-      mapper->SetInputData(data->mesh());
-      mapper->Update();
-
-      auto color = m_colorEngine->color(segmentation);
-      double rgba[4];
-      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-
-      auto actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(mapper);
-      actor->GetProperty()->SetSpecular(0.2);
-      actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(1);
-      actor->Modified();
-
-      actors << actor;
-    }
-
-    return actors;
-  }
-
-  //----------------------------------------------------------------------------
-  bool SegmentationMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
-  {
-    // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
-    return true;
-  }
-
-} // namespace ESPINA
+//----------------------------------------------------------------------------
+bool SegmentationMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+{
+  // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
+  return true;
+}

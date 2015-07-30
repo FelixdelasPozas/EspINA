@@ -25,7 +25,10 @@ PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidat
 : m_representationInvalidator(invalidator)
 {
   connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
-          this,                         SLOT(onRepresentationInvalidated(ViewItemAdapterList, TimeStamp)));
+          this,                         SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
+
+  connect(&m_representationInvalidator, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
+          this,                         SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
 }
 
 //-----------------------------------------------------------------------------
@@ -78,20 +81,39 @@ TimeStamp PipelineSources::timeStamp() const
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onRepresentationInvalidated(ViewItemAdapterList items, TimeStamp t)
+void PipelineSources::onRepresentationsInvalidated(ViewItemAdapterList items, TimeStamp t)
 {
-  ViewItemAdapterList updatedItems;
+  auto invalidatedItems = acceptedItems(items);
+
+  if (!invalidatedItems.isEmpty())
+  {
+    emit representationsInvalidated(invalidatedItems, t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onRepresentationColorsInvalidated(ViewItemAdapterList items, TimeStamp t)
+{
+  auto invalidatedItems = acceptedItems(items);
+
+  if (!invalidatedItems.isEmpty())
+  {
+    emit representationColorsInvalidated(invalidatedItems, t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+ViewItemAdapterList PipelineSources::acceptedItems(const ViewItemAdapterList& items)
+{
+  ViewItemAdapterList acceptedItems;
 
   for (auto item : items)
   {
     if (contains(item))
     {
-      updatedItems << item;
+      acceptedItems << item;
     }
   }
 
-  if (!updatedItems.isEmpty())
-  {
-    emit representationsModified(updatedItems, t);
-  }
+  return acceptedItems;
 }

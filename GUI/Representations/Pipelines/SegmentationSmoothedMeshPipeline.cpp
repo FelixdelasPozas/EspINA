@@ -37,100 +37,109 @@
 #include <vtkProperty.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-namespace ESPINA
+IntensitySelectionHighlighter SegmentationSmoothedMeshPipeline::s_highlighter;
+
+//----------------------------------------------------------------------------
+SegmentationSmoothedMeshPipeline::SegmentationSmoothedMeshPipeline(ColorEngineSPtr colorEngine)
+: RepresentationPipeline{"SegmentationSmoothedMesh"}
+, m_colorEngine         {colorEngine}
 {
-  IntensitySelectionHighlighter SegmentationSmoothedMeshPipeline::s_highlighter;
+}
 
-  //----------------------------------------------------------------------------
-  SegmentationSmoothedMeshPipeline::SegmentationSmoothedMeshPipeline(ColorEngineSPtr colorEngine)
-  : RepresentationPipeline{"SegmentationSmoothedMesh"}
-  , m_colorEngine         {colorEngine}
+//----------------------------------------------------------------------------
+RepresentationState SegmentationSmoothedMeshPipeline::representationState(const ViewItemAdapter     *item,
+                                                                          const RepresentationState &settings)
+{
+  auto segmentation = segmentationPtr(item);
+
+  RepresentationState state;
+
+  state.apply(segmentationPipelineSettings(segmentation));
+  state.apply(settings);
+
+  return state;
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors(const ViewItemAdapter     *item,
+                                                                                 const RepresentationState &state)
+{
+  ActorList actors;
+
+  auto segmentation = segmentationPtr(item);
+
+  if(isVisible(state) && hasMeshData(segmentation->output()))
   {
+    auto smoothValue = state.getValue<int>(SegmentationMeshPoolSettings::SMOOTH_KEY);
+
+    auto data = readLockMesh(segmentation->output());
+
+    auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
+    decimate->ReleaseDataFlagOn();
+    decimate->SetGlobalWarningDisplay(false);
+    decimate->SetTargetReduction(smoothValue/100.0);
+    decimate->PreserveTopologyOn();
+    decimate->SplittingOff();
+    decimate->SetInputData(data->mesh());
+
+    auto smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+    smoother->ReleaseDataFlagOn();
+    smoother->SetGlobalWarningDisplay(false);
+    smoother->BoundarySmoothingOn();
+    smoother->FeatureEdgeSmoothingOn();
+    smoother->SetNumberOfIterations(15);
+    smoother->SetFeatureAngle(120);
+    smoother->SetEdgeAngle(90);
+    smoother->SetInputConnection(decimate->GetOutputPort());
+
+    auto normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normals->ReleaseDataFlagOn();
+    normals->SetFeatureAngle(120);
+    normals->SetInputConnection(smoother->GetOutputPort());
+
+    auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->ReleaseDataFlagOn();
+    mapper->ImmediateModeRenderingOn();
+    mapper->ScalarVisibilityOff();
+    mapper->SetInputConnection(normals->GetOutputPort());
+    mapper->Update();
+
+    auto actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetSpecular(0.2);
+    actor->GetProperty()->SetOpacity(1);
+    actor->Modified();
+
+    actors << actor;
   }
 
-  //----------------------------------------------------------------------------
-  RepresentationState SegmentationSmoothedMeshPipeline::representationState(const ViewItemAdapter     *item,
-                                                                            const RepresentationState &settings)
+  return actors;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationSmoothedMeshPipeline::updateColors(RepresentationPipeline::ActorList &actors,
+                                                    const ViewItemAdapter             *item,
+                                                    const RepresentationState         &state)
+{
+  if (actors.size() == 1)
   {
     auto segmentation = segmentationPtr(item);
 
-    RepresentationState state;
+    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
 
-    state.apply(segmentationPipelineSettings(segmentation));
-    state.apply(settings);
+    auto actor = dynamic_cast<vtkActor *>(actors.first().Get());
 
-    return state;
+    actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
   }
+}
 
-  //----------------------------------------------------------------------------
-  RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors(const ViewItemAdapter     *item,
-                                                                                   const RepresentationState &state)
-  {
-    ActorList actors;
-    
-    auto segmentation = segmentationPtr(item);
-
-    if(isVisible(state) && hasMeshData(segmentation->output()))
-    {
-      auto smoothValue = state.getValue<int>(SegmentationMeshPoolSettings::SMOOTH_KEY);
-
-      auto data = readLockMesh(segmentation->output());
-
-      auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
-      decimate->ReleaseDataFlagOn();
-      decimate->SetGlobalWarningDisplay(false);
-      decimate->SetTargetReduction(smoothValue/100.0);
-      decimate->PreserveTopologyOn();
-      decimate->SplittingOff();
-      decimate->SetInputData(data->mesh());
-
-      auto smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-      smoother->ReleaseDataFlagOn();
-      smoother->SetGlobalWarningDisplay(false);
-      smoother->BoundarySmoothingOn();
-      smoother->FeatureEdgeSmoothingOn();
-      smoother->SetNumberOfIterations(15);
-      smoother->SetFeatureAngle(120);
-      smoother->SetEdgeAngle(90);
-      smoother->SetInputConnection(decimate->GetOutputPort());
-
-      auto normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-      normals->ReleaseDataFlagOn();
-      normals->SetFeatureAngle(120);
-      normals->SetInputConnection(smoother->GetOutputPort());
-
-      auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->ReleaseDataFlagOn();
-      mapper->ImmediateModeRenderingOn();
-      mapper->ScalarVisibilityOff();
-      mapper->SetInputConnection(normals->GetOutputPort());
-      mapper->Update();
-
-      auto color = m_colorEngine->color(segmentation);
-      double rgba[4];
-      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-
-      auto actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(mapper);
-      actor->GetProperty()->SetSpecular(0.2);
-      actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(1);
-      actor->Modified();
-
-      actors << actor;
-    }
-
-    return actors;
-  }
-  
-  //----------------------------------------------------------------------------
-  bool SegmentationSmoothedMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
-  {
-    // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
-    return true;
-  }
-
-} // namespace ESPINA
+//----------------------------------------------------------------------------
+bool SegmentationSmoothedMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+{
+  // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
+  return true;
+}
