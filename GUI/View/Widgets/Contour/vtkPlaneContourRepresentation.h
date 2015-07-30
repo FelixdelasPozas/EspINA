@@ -368,7 +368,7 @@ namespace ESPINA
              *
              */
             void setShift(Nm value)
-            { this->PlaneShift = value; }
+            { this->PlaneShift = 10 * value; }
 
             void setSlice(Nm value)
             { this->Slice = value; }

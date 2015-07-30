@@ -108,7 +108,16 @@ void ContourWidget2D::initialize()
 //----------------------------------------------------------------------------
 void ContourWidget2D::configure(Nm distance, QColor color, NmVector3 spacing)
 {
-  m_widget->SetContinuousDrawTolerance(distance);
+  double max = 0;
+  for(auto i: {0,1,2})
+  {
+    if(i == m_index) continue;
+
+    max = std::max(max, spacing[i]);
+  }
+
+  auto realDistance = distance * max;
+  m_widget->SetContinuousDrawTolerance(realDistance);
   m_widget->setPolygonColor(color);
   m_spacing = spacing;
 }

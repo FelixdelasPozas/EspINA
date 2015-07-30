@@ -86,7 +86,7 @@ ManualEditionTool::~ManualEditionTool()
 //------------------------------------------------------------------------
 void ManualEditionTool::abortOperation()
 {
-  this->m_drawingWidget.abortOperation();
+  m_drawingWidget.abortOperation();
 }
 
 //------------------------------------------------------------------------

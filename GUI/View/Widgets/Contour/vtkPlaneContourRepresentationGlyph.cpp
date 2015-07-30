@@ -431,7 +431,7 @@ void vtkPlaneContourRepresentationGlyph::Scale(double eventPos[2])
   // Compute the scale factor
   int *size = this->Renderer->GetSize();
   double dPos = static_cast<double>(eventPos[1] - this->LastEventPosition[1]);
-  sf *= (1.0 + 2.0 * (dPos / size[1])); //scale factor of 2.0 is arbitrary
+  sf *= (1.0 + 1.5 * (dPos / size[1])); //scale factor of 1.5 is arbitrary
 
   // Scale the handle
   this->Glypher->SetScaleFactor(sf);
@@ -458,7 +458,7 @@ void vtkPlaneContourRepresentationGlyph::CreateDefaultProperties()
   this->LinesProperty->SetDiffuse(0.0);
   this->LinesProperty->SetSpecular(0.0);
   this->LinesProperty->SetColor(1, 1, 1);
-  this->LinesProperty->SetLineWidth(1);
+  this->LinesProperty->SetLineWidth(2);
 }
 
 //----------------------------------------------------------------------------

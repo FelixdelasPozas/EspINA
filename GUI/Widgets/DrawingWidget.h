@@ -153,8 +153,6 @@ namespace ESPINA
         void painterChanged(MaskPainterSPtr painter);
 
       private slots:
-        void changePainter(bool checked);
-
         /** \brief Changes the radius for the operation.
          * \param[in] value radius value.
          *
@@ -186,10 +184,16 @@ namespace ESPINA
          */
         void onDrawingModeChange(DrawingMode mode);
 
+        /** \brief Helper method to update UI.
+         *
+         */
         void updateVisibleControls();
 
-      private:
+        void onButtonClicked(bool value);
 
+        void onEventHandlerInUse(bool value);
+
+      private:
         void initPainters();
 
         void initCategoryWidget();
@@ -215,6 +219,8 @@ namespace ESPINA
         bool displayBrushControls() const;
 
         bool displayContourControls() const;
+
+        void changePainter(MaskPainterSPtr painter);
 
       private:
         View::ViewState &m_viewState;

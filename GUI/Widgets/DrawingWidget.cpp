@@ -73,7 +73,7 @@ DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model,
   initOpacityWidget();
   initRasterizeWidget();
 
-  m_painters.key(m_currentPainter)->setChecked(true);
+  m_painters.key(m_currentPainter)->click();
 
   updateVisibleControls();
 }
@@ -200,7 +200,6 @@ void DrawingWidget::setCategory(CategoryAdapterSPtr category)
 void DrawingWidget::abortOperation()
 {
   stopDrawing();
-  //unsetPainter();
 }
 
 //------------------------------------------------------------------------
@@ -210,7 +209,7 @@ void DrawingWidget::stopDrawing()
   {
     if(m_currentPainter.get() == m_contourPainter.get())
     {
-      m_contourPainter->clearContours();
+      m_rasterizeWidget->click();
     }
   }
 }
@@ -229,33 +228,44 @@ void DrawingWidget::setEnabled(bool value)
 }
 
 //------------------------------------------------------------------------
-void DrawingWidget::changePainter(bool  checked)
+void DrawingWidget::onEventHandlerInUse(bool value)
 {
-  auto eventButton = static_cast<QPushButton *>(sender());
+  auto handler = qobject_cast<MaskPainter *>(sender());
+  MaskPainterSPtr painter = nullptr;
 
-  Q_ASSERT(m_painters.keys().contains(eventButton));
-
-  for (auto button : m_painters.keys())
+  for (auto key : m_painters.keys())
   {
-    if (button != eventButton)
+    if (m_painters[key].get() == handler)
     {
+      auto button = key;
+
       button->blockSignals(true);
-      button->setChecked(false);
+      button->setChecked(value);
       button->blockSignals(false);
+
+      painter = m_painters[button];
     }
   }
 
-  if (displayContourControls())
+  if (displayContourControls() && handler == m_contourPainter.get())
   {
-    m_viewState.removeTemporalRepresentations(m_contourWidgetfactory);
+    if(value)
+    {
+      m_viewState.addTemporalRepresentations(m_contourWidgetfactory);
+      m_contourPainter->updateWidgetsValues();
+    }
+    else
+    {
+      stopDrawing();
+      m_viewState.removeTemporalRepresentations(m_contourWidgetfactory);
+    }
   }
+}
 
-  m_currentPainter = checked?m_painters[eventButton]:nullptr;
-
-  if (displayContourControls() && checked)
-  {
-    m_viewState.addTemporalRepresentations(m_contourWidgetfactory);
-  }
+//------------------------------------------------------------------------
+void DrawingWidget::changePainter(MaskPainterSPtr painter)
+{
+  m_currentPainter = painter;
 
   updateVisibleControls();
 
@@ -362,16 +372,19 @@ QPushButton *DrawingWidget::registerPainter(const QString  &icon,
   auto button = Styles::createToolButton(icon, description);
 
   button->setCheckable(true);
+  button->setAutoExclusive(true);
 
   connect(button, SIGNAL(clicked(bool)),
-          this,   SLOT(changePainter(bool)));
+          this,   SLOT(onButtonClicked(bool)));
 
-  connect(painter.get(),     SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)),
-          this,              SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)));
+  connect(painter.get(), SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)),
+          this,          SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)));
 
-  connect(painter.get(),     SIGNAL(drawingModeChanged(DrawingMode)),
-          this,              SLOT(onDrawingModeChange(DrawingMode)));
+  connect(painter.get(), SIGNAL(drawingModeChanged(DrawingMode)),
+          this,          SLOT(onDrawingModeChange(DrawingMode)));
 
+  connect(painter.get(), SIGNAL(eventHandlerInUse(bool)),
+          this,          SLOT(onEventHandlerInUse(bool)));
 
   m_painters[button] = painter;
 
@@ -409,7 +422,7 @@ void DrawingWidget::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   m_opacity         = settings->value(BRUSH_OPACITY,    50).toInt();
   m_brushRadius     = settings->value(BRUSH_RADIUS,     20).toInt();
-  m_contourDistance = settings->value(CONTOUR_DISTANCE, 20).toInt();
+  m_contourDistance = settings->value(CONTOUR_DISTANCE, 40).toInt();
 
   auto eraserEnabled = settings->value(MODE, false).toBool();
   m_eraserWidget->setChecked(eraserEnabled);
@@ -425,17 +438,27 @@ void DrawingWidget::saveSettings(std::shared_ptr<QSettings> settings)
 }
 
 //------------------------------------------------------------------------
+void DrawingWidget::onButtonClicked(bool value)
+{
+  auto button = qobject_cast<QPushButton *>(sender());
+
+  Q_ASSERT(m_painters.keys().contains(button));
+
+  changePainter(m_painters[button]);
+}
+
+//------------------------------------------------------------------------
 bool DrawingWidget::displayContourControls() const
 {
-  return m_currentPainter == m_contourPainter;
+  return m_currentPainter.get() == m_contourPainter.get();
 }
 
 //-----------------------------------------------------------------------------
 void DrawingWidget::updateVisibleControls()
 {
   m_categorySelector->setVisible(m_showCategoryControls);
-  m_radiusWidget    ->setVisible(m_showRadiusControls  && displayBrushControls());
-  m_opacityWidget   ->setVisible(m_showOpacityControls && displayBrushControls());
+  m_radiusWidget    ->setVisible(m_showRadiusControls);
+  m_opacityWidget   ->setVisible(m_showOpacityControls);
   m_eraserWidget    ->setVisible(m_showEraserControls);
   m_rasterizeWidget ->setVisible(displayContourControls());
 
