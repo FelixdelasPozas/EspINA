@@ -53,20 +53,33 @@ public:
 protected:
   virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
   {
-    bool ok1, ok2;
+    int role = Qt::DisplayRole;
+    auto ldata = left.data(role);
+    auto rdata = right.data(role);
 
-    int role  = left.column()>0?Qt::DisplayRole:TypeRole+1;
-    double lv = left.data(role).toDouble(&ok1);
-    double rv = right.data(role).toDouble(&ok2);
+    if(left.column() != 0)
+    {
+      bool ok1, ok2;
 
-    if (ok1 && ok2)
-    {
-      return lv < rv;
+      double lv = ldata.toDouble(&ok1);
+      double rv = rdata.toDouble(&ok2);
+
+      if (ok1 && ok2)
+      {
+        return lv < rv;
+      }
     }
-    else
+
+    // default for strings and data non convertible to numerical values.
+    auto lstring = ldata.toString();
+    auto rstring = rdata.toString();
+
+    if(lstring.length() != rstring.length())
     {
-      return left.data(role).toString() < right.data(role).toString();
+      return lstring.length() < rstring.length();
     }
+
+    return lstring < rstring;
   }
 };
 
