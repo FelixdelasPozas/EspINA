@@ -478,6 +478,8 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
+  //if (!isVisible()) return;
+
   auto readyManagers = pendingManagers();
   auto renderTime    = latestReadyTimeStamp(readyManagers);
 
@@ -588,30 +590,50 @@ RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSLis
 //-----------------------------------------------------------------------------
 TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) const
 {
-  QMap<TimeStamp, int> count;
+  QMap<TimeStamp, unsigned> count;
+
+  unsigned activeManagers = 0;
 
   for (auto manager : managers)
   {
     Q_ASSERT(!manager->isIdle());
 
-    for(auto timeStamp: manager->readyRange())
+    if (manager->isActive())
     {
-      count[timeStamp] = count.value(timeStamp, 0) + 1;
-    }
-  }
+      activeManagers++;
 
-  TimeStamp latest = Timer::INVALID_TIME_STAMP;
-
-  for(auto time: count.keys())
-  {
-    if(count[time] == managers.size())
-    {
-      if(time > latest)
+      for(auto timeStamp: manager->readyRange())
       {
-        latest = time;
+        count[timeStamp] = count.value(timeStamp, 0) + 1;
       }
     }
   }
+
+  qDebug() << viewName() << "Frames Availabe: " << count;
+
+  TimeStamp latest = Timer::INVALID_TIME_STAMP;
+
+  if (activeManagers > 0)
+  {
+    for(auto time: count.keys())
+    {
+      // We allow display of managers which are pending a hide request
+      // even it is not synched with the current frame
+      if(count[time] == activeManagers)
+      {
+        if(time > latest)
+        {
+          latest = time;
+        }
+      }
+    }
+  }
+  else if (!managers.isEmpty())
+  {
+    latest = m_lastRender + 1;
+  }
+
+  qDebug() << viewName() << "Latest common frame "<< latest;
 
   return latest;
 }
