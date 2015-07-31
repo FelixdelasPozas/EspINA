@@ -27,11 +27,11 @@
 
 namespace ESPINA
 {
-	/** \brief Returns the tooltip text for the given icon and description.
-	 * \param[in] icon, QIcon object.
-	 * \param[in] description, text decription.
-	 *
-	 */
+  /** \brief Returns the tooltip text for the given icon and description.
+   * \param[in] icon of the condition
+   * \param[in] description of the condition
+   *
+   */
   inline QString condition(const QString &icon, const QString &description)
   {
     return QString("<table style=\"margin: 0px\">"

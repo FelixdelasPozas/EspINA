@@ -86,7 +86,7 @@ namespace ESPINA
     virtual QString toolTipText() const override;
 
     /** \brief Adds a tag.
-     * \param[in] tag, text string.
+     * \param[in] tag text string.
      *
      */
     void addTag(const QString &tag);

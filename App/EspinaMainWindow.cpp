@@ -80,6 +80,7 @@
 #include <QtGui>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
@@ -1455,8 +1456,8 @@ void EspinaMainWindow::checkAnalysisConsistency()
 {
   auto checkerTask = std::make_shared<CheckAnalysis>(m_context.scheduler(), m_context.model());
 
-  connect(checkerTask.get(), SIGNAL(issuesFound(IssueList)),
-          this,              SLOT(showIssuesDialog(IssueList)));
+  connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
+          this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
   checkerTask->submit(checkerTask);
 }
