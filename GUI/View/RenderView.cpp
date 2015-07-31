@@ -448,8 +448,7 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
     }
     else
     {
-      qWarning() << "tried to add already present prototypes.";
-      return;
+      qWarning() << "Tried to add already present prototypes.";
     }
   }
 }

@@ -116,6 +116,13 @@ namespace ESPINA
     void updateRegionRepresentation();
 
   private:
+    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
+    using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
+    using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
+    using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
+
+  private:
     virtual void onToolGroupActivated();
 
     void initControls();
@@ -142,13 +149,9 @@ namespace ESPINA
 
     void hideSliceSelectors();
 
-  private:
-    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
-    using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
-    using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
-    using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
-    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    TemporalPrototypesSPtr createTemporalRepresentationPrototype() const;
 
+  private:
     QPushButton *m_resizeROI;
     QPushButton *m_applyROI;
 
@@ -156,7 +159,7 @@ namespace ESPINA
 
     ROISPtr                m_roi;
     RepresentationSPtr     m_roiRepresentation;
-    TemporalPrototypesSPtr m_prototypes;
+    TemporalPrototypesSPtr m_prototype;
 
     EventHandlerSPtr   m_resizeHandler;
     PixelSelectorSPtr  m_defineHandler;
