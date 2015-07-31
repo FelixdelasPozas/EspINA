@@ -39,7 +39,7 @@ void PoolManager::displayRepresentations(TimeStamp t)
 
   auto currentActors = actors(t);
 
-  qDebug() << "Displaying" << currentActors.size() << "actors";
+  //qDebug() << "Displaying" << currentActors.size() << "actors";
 
   for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
   {

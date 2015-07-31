@@ -191,12 +191,12 @@ void RepresentationManager::display(TimeStamp t)
 
   if (isActive())
   {
-    qDebug() << debugName() << "Display actors at" << t;
+    //qDebug() << debugName() << "Display actors at" << t;
     displayRepresentations(t);
   }
   else
   {
-    qDebug() << debugName() << "Hide frame" << m_lastRenderRequestTime << "at" << t;
+    //qDebug() << debugName() << "Hide frame" << m_lastRenderRequestTime << "at" << t;
     hideRepresentations(m_lastRenderRequestTime);
   }
 

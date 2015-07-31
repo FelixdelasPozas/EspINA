@@ -22,12 +22,19 @@
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QToolBar>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
+
+// BEGIN DEBUG Only
+bool SeedGrowSegmentationRefineWidget::s_exists = false;
+QMutex SeedGrowSegmentationRefineWidget::s_mutex;
+// END DEBUG Only
 
 class DiscardROIModificationsCommand
 : public QUndoCommand
@@ -186,9 +193,16 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 , m_filter(filter)
 , m_roiTools(roiTools)
 {
+  s_mutex.lock();
+  Q_ASSERT(!s_exists);
+  s_exists = true;
+  s_mutex.unlock();
+
   m_gui->setupUi(this);
 
   auto toolbar = new QToolBar();
+
+  toolbar->setMinimumHeight(Styles::CONTEXTUAL_BAR_HEIGHT);
 
   // TODO: create aux function to populate toolbar with tool group actions
   for (auto tools : m_roiTools->groupedTools())
@@ -227,6 +241,11 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 {
+  s_mutex.lock();
+  Q_ASSERT(s_exists);
+  s_exists = false;
+  s_mutex.unlock();
+
   m_roiTools->setCurrentROI(nullptr);
 }
 
