@@ -193,6 +193,12 @@ void CheckAnalysis::addIssue(IssueSPtr issue)
 }
 
 //------------------------------------------------------------------------
+QString deleteHint(NeuroItemAdapterSPtr item)
+{
+  return QObject::tr("Delete %1.").arg(isSegmentation(item.get())?"segmentation":"channel");
+}
+
+//------------------------------------------------------------------------
 void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 {
   auto output = viewItem->output();
@@ -200,7 +206,9 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (output == nullptr)
   {
-    reportIssue(viewItem, Issue::Severity::CRITICAL, tr("Item does not have an output."), tr("Delete item."));
+    auto description = tr("Item does not have an output.");
+
+    reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
   else
   {
@@ -225,19 +233,24 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
+      auto description = tr("Item does not have any data at all.");
 
-      reportIssue(viewItem, Issue::Severity::CRITICAL, tr("Item does not have any data at all."), tr("Delete item."));
+      reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
   }
 
   if (filter == nullptr)
   {
-    reportIssue(viewItem, Issue::Severity::CRITICAL, tr("Can't find the origin of the item."), tr("Delete item."));
+    auto description = tr("Can't find the origin of the item.");
+
+    reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
 }
 
 //------------------------------------------------------------------------
-CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler,
+                                             NeuroItemAdapterSPtr item,
+                                             ModelAdapterSPtr model)
 : CheckDataTask{scheduler, item, model}
 , m_segmentation   {std::dynamic_pointer_cast<SegmentationAdapter>(item)}
 {
@@ -257,12 +270,9 @@ void CheckSegmentationTask::checkVolumeIsEmpty() const
   auto volume = readLockVolume(m_segmentation->output());
   if (volume.isNull() || volume->isEmpty())
   {
-    if (volume.isNull())
-    {
-      qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a volume associated but is empty.");
 
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Segmentation has a volume associated but is empty."), tr("Delete segmentation."));
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -273,12 +283,9 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 
   if (mesh.isNull() || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
   {
-    if (mesh.isNull() || mesh->mesh() == nullptr)
-    {
-      qWarning() << tr("ViewItem %1 problem. Mesh is null or redirects to null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a mesh associated but is empty.");
 
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Segmentation has a mesh associated but is empty."), tr("Delete segmentation"));
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -289,12 +296,9 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 
   if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
   {
-    if (skeleton.isNull() || skeleton->skeleton() == nullptr)
-    {
-      qWarning() << tr("ViewItem %1 problem. Skeleton is null or redirects to null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a skeleton associated but is empty.");
 
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Segmentation has a skeleton associated but is empty."), tr("Delete segmentation"));
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -305,7 +309,9 @@ void CheckSegmentationTask::checkHasChannel() const
 
   if(channels.empty())
   {
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Segmentation is not related to any channel."), tr("Delete segmentation."));
+    auto description = tr("Segmentation is not related to any channel.");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -316,7 +322,9 @@ void CheckSegmentationTask::checkRelations() const
 
   if(relations.empty())
   {
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Segmentation is not related to any sample."), tr("Delete segmentation."));
+    auto description = tr("Segmentation is not related to any sample.");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -335,9 +343,9 @@ void CheckChannelTask::checkVolumeIsEmpty() const
     auto volume = readLockVolume(m_channel->output());
     if(volume.isNull())
     {
-      qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_channel->data().toString());
+      auto description = tr("Channel has a volume associated but can't find it.");
 
-      reportIssue(m_channel, Issue::Severity::CRITICAL, tr("Channel has a volume associated but can't find it."), tr("Delete channel."));
+      reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
   }
 }
@@ -349,7 +357,10 @@ void CheckChannelTask::checkRelations() const
 
   if(relations.empty())
   {
-    reportIssue(m_channel, Issue::Severity::CRITICAL, tr("Channel is not related to any sample."), tr("Change relations in the \"Channel Explorer\" dialog."));
+    auto description = tr("Channel is not related to any sample.");
+    auto hint        = tr("Change relations in the \"Channel Explorer\" dialog.");
+
+    reportIssue(m_channel, Issue::Severity::CRITICAL, description, hint);
   }
 }
 
@@ -424,7 +435,7 @@ private:
   { return QObject::tr("Possible duplicated segmentation of %1").arg(original->data(Qt::DisplayRole).toString()); }
 
   static QString suggestion()
-  { return QObject::tr("Remove unnecesary segmentation"); }
+  { return QObject::tr("Delete unnecesary segmentation"); }
 
 };
 

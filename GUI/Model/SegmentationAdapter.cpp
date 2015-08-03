@@ -124,6 +124,7 @@ QVariant SegmentationAdapter::data(int role) const
       // Category icon
       icon.fill(m_category->color());
 
+      // We should let the extensions decorate
       if (hasInformation(SegmentationIssues::ISSUES))
       {
         if (information(SegmentationIssues::CRITICAL).toInt() > 0)
@@ -138,7 +139,7 @@ QVariant SegmentationAdapter::data(int role) const
 
       if (!information(SegmentationNotes::NOTES).toString().isEmpty())
       {
-        icon = appendImage(icon, ":/espina/note.png");
+        icon = appendImage(icon, ":/espina/note.svg");
       }
 
       return icon;

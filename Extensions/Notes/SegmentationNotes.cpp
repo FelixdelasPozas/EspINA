@@ -70,7 +70,7 @@ QString SegmentationNotes::toolTipText() const
     QString firstLine = notes().left(20);
     if (firstLine.length() == 20)
       firstLine = firstLine.replace(17, 3, "...");
-    toolTip = condition(":/espina/note.png", firstLine);
+    toolTip = condition(":/espina/note.svg", firstLine);
   }
 
   return toolTip;

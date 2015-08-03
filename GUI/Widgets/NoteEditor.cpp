@@ -53,7 +53,7 @@ NoteEditor::NoteEditor(const QString &title,
   m_gui->setupUi(this);
 
   setWindowTitle(tr("%1 Notes").arg(title));
-  setWindowIcon(QIcon(":/espina/note.png"));
+  setWindowIcon(QIcon(":/espina/note.svg"));
 
   m_gui->textEdit->setText(text);
 

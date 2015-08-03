@@ -69,6 +69,8 @@ IssueListDialog::IssueListDialog(IssueList issuesList)
       default:
         break;
     }
+    severityWidget->setFlags(severityWidget->flags() ^ Qt::ItemIsEditable);
+
 
     auto descriptionWidget = new QTableWidgetItem(issue->description());
     descriptionWidget->setFlags(descriptionWidget->flags() ^ Qt::ItemIsEditable);
