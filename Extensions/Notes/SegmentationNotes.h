@@ -40,8 +40,10 @@ namespace ESPINA
   : public SegmentationExtension
   {
   public:
-    static const Key  NOTES;
     static const Type TYPE;
+
+    // Stores the notes of a segmentation
+    static const InformationKey NOTES;
 
   public:
     /** \brief SegmentationNotes class constructor.

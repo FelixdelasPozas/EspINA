@@ -132,6 +132,10 @@
     <file>visualBookmarks_add.svg</file>
     <file>visualBookmarks_remove.svg</file>
     <file>visualBookmarks_apply.svg</file>
+    <file>warning.svg</file>
+    <file>warning_slim.svg</file>
+    <file>warning_critical.svg</file>
+    <file>warning_critical_slim.svg</file>
     <file>gpuchip.png</file>
   </qresource>
 </RCC>

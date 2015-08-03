@@ -66,9 +66,7 @@ void ChangeSegmentationNotes::swapNotes()
 
   if (extensions->hasExtension(SegmentationNotes::TYPE))
   {
-    SegmentationExtension::InformationKey key(SegmentationNotes::TYPE, SegmentationNotes::NOTES);
-
-    currentNote = extensions->information(key).toString();
+    currentNote = extensions->information(SegmentationNotes::NOTES).toString();
   }
 
   if (currentNote.isEmpty() && !m_formerNote.isEmpty())

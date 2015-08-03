@@ -27,6 +27,8 @@
 #include <Core/Analysis/Extension.h>
 #include <Core/Analysis/Extensible.hxx>
 
+class QPixmap;
+class QIcon;
 namespace ESPINA
 {
   class CategoryAdapter;
@@ -141,6 +143,8 @@ namespace ESPINA
      */
     explicit SegmentationAdapter(SegmentationSPtr segmentation);
 
+    QPixmap appendImage(const QPixmap& original, const QString& image, bool slim = false) const;
+
   private:
     SegmentationSPtr    m_segmentation;
     CategoryAdapterSPtr m_category;
@@ -151,7 +155,6 @@ namespace ESPINA
 
     friend bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs);
     friend bool operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs);
-
   };
 
   /** \brief Equality operation between a segmentation adapter smart pointer and a segmentation smart pointer.

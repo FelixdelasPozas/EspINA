@@ -25,8 +25,11 @@
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/Issues/Issues.h>
+#include <Extensions/Issues/SegmentationIssues.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //-----------------------------------------------------------------------------
 SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
@@ -51,6 +54,10 @@ SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentatio
   {
     extension = std::make_shared<SegmentationNotes>(cache);
   }
+  else if (SegmentationIssues::TYPE == type)
+  {
+    extension = std::make_shared<SegmentationIssues>(cache);
+  }
 
   return extension;
 }
@@ -64,6 +71,7 @@ SegmentationExtensionTypeList DefaultSegmentationExtensionFactory::providedExten
   extensionTypes << MorphologicalInformation::TYPE;
   extensionTypes << SegmentationTags::TYPE;
   extensionTypes << SegmentationNotes::TYPE;
+  extensionTypes << SegmentationIssues::TYPE;
 
   return extensionTypes;
 }

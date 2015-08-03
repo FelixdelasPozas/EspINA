@@ -40,10 +40,10 @@ namespace ESPINA {
        */
       enum class Severity : std::int8_t
       {
-        CRITICAL    = 0,
-        WARNING     = 1,
-        INFORMATION = 2,
-        NONE        = 3
+        NONE        = 0,
+        INFORMATION = 1,
+        WARNING     = 2,
+        CRITICAL    = 3
       };
 
       // required by qRegisterMetaType

@@ -64,17 +64,7 @@ namespace ESPINA
                      const QString &description,
                      const QString &suggestion) const;
 
-    void reportIssue(Extensions::IssueSPtr issue) const;
-
-    void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
-    {
-      auto tagExtensions = retrieveOrCreateExtension<SegmentationTags>(segmentation->extensions());
-
-      for (auto tag : tags)
-      {
-        tagExtensions->addTag(tag);
-      }
-    }
+    void reportIssue(NeuroItemAdapterPtr item, Extensions::IssueSPtr issue) const;
 
   signals:
     /** \brief Signal emitted when a issue has been found with the item being checked.
@@ -284,7 +274,8 @@ namespace ESPINA
   private:
     virtual void run() override final;
 
-    Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr seg1, SegmentationAdapterPtr seg2) const;
+    Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original,
+                                              SegmentationAdapterPtr duplicated) const;
   };
 
 } // namespace ESPINA
