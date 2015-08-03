@@ -28,12 +28,12 @@
 
 namespace QtModelUtils
 {
-	/** \brief Find the QModelIndex children of @parent whose @role is equal to @value.
-	 * \param[in] parent, model index parent of the one searching for.
-	 * \param[in] value.
-	 * \param[in] role.
-	 *
-	 */
+  /** \brief Find the QModelIndex children of @parent whose @role is equal to @value.
+   * \param[in] parent model index parent of the one searching for.
+   * \param[in] value.
+   * \param[in] role.
+   *
+   */
   QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
   /** \brief Return a list of all QModelIndex between @topLeft index and @bottomRight index.

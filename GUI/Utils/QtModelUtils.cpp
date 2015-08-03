@@ -24,21 +24,19 @@
 //------------------------------------------------------------------------
 QModelIndex QtModelUtils::findChildIndex(QModelIndex parent, QVariant value, int role)
 {
-  QModelIndex index;
-  const QAbstractItemModel *model = parent.model();
+  auto model = parent.model();
 
-  int r = 0;
-  while (!index.isValid() && model && r < model->rowCount(parent))
+  for (int r = 0; model && r < model->rowCount(parent); ++r)
   {
-    QModelIndex child = parent.child(r, 0);
+    auto child = parent.child(r, 0);
+
     if (child.data(role) == value)
-      index = child;
-    else
-      index = findChildIndex(child, value, role);
-    ++r;
+    {
+      return child;
+    }
   }
 
-  return index;
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------

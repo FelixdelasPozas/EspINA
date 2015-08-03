@@ -286,8 +286,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   Q_ASSERT(element.first->numberOfVoxels() == 1); // with one pixel
 
-  auto pointBounds = element.first->bounds();
-  NmVector3 seedPoint{(pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
+  auto seedPoint = centroid(element.first->bounds());
 
   Q_ASSERT(isChannel(element.second));
   auto channel = inputChannel();

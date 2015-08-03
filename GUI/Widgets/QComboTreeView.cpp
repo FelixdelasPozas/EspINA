@@ -28,6 +28,7 @@
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
 : QComboBox(parent)
+, m_usePressedIndex(false)
 {
   setMinimumWidth(160);
   setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -55,12 +56,7 @@ void QComboTreeView::setModel(QAbstractItemModel* model)
 {
   QComboBox::setModel(model);
 
-  if (count() > 0)
-  {
-    setCurrentIndex(0);
-    m_currentModelIndex = rootModelIndex().child(0,0);
-    indexActivated();
-  }
+  setRootModelIndex(rootModelIndex());
 }
 
 //----------------------------------------------------------------------------
@@ -83,7 +79,9 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 {
   QComboBox::setRootModelIndex(index.parent());
+
   setCurrentIndex(index.row());
+
   m_currentModelIndex = index;
 }
 
@@ -99,21 +97,22 @@ void QComboTreeView::showPopup()
 void QComboTreeView::indexEntered(const QModelIndex& index)
 {
   m_currentModelIndex = index;
+  m_usePressedIndex   = true;
 }
 
 //----------------------------------------------------------------------------
 void QComboTreeView::indexActivated()
 {
-  QModelIndex index;
-  if (count())
+  if (!m_usePressedIndex)
   {
-    // 2015-07-23 - TODO: findChildIndex doesn't return the correct index if there are several items with the same name.
-    index = QtModelUtils::findChildIndex(rootModelIndex(), currentText());
-    m_currentModelIndex = index;
+    m_currentModelIndex = QtModelUtils::findChildIndex(rootModelIndex(), currentText(), false);
   }
 
-  if (index.isValid())
+  m_usePressedIndex = false;
+
+  if (m_currentModelIndex.isValid() && m_currentModelIndex != m_rootModelIndex)
   {
-    emit activated(index);
+    emit activated(m_currentModelIndex);
   }
+
 }

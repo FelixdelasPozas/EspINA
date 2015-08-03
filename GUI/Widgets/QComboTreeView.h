@@ -80,6 +80,8 @@ private:
   QModelIndex m_rootModelIndex;
   QModelIndex m_currentModelIndex;
   QTreeView   m_treeView;
+
+  bool m_usePressedIndex;
 };
 
 
