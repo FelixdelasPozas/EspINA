@@ -105,6 +105,8 @@ target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Extensions
 set (EXTENSIONS_SOURCES
+  ${EXTENSIONS_DIR}/Issues/Issues.cpp
+  ${EXTENSIONS_DIR}/Issues/SegmentationIssues.cpp
   ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
 )
 add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
