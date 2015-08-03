@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (c) 2015, Jorge Peña Pastor <jpena@cesvima.upm.es>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -26,51 +26,54 @@
 */
 
 // ESPINA
-#include "SegmentationNotes.h"
+#include "SegmentationIssues.h"
 #include <GUI/Utils/Conditions.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
-const QString SegmentationNotes::TYPE  = "SegmentationNotes";
+const QString SegmentationIssues::TYPE   = "SegmentationIssues";
 
-const SegmentationExtension::InformationKey  SegmentationNotes::NOTES(SegmentationNotes::TYPE, "Notes");
+const SegmentationExtension::InformationKey  SegmentationIssues::ISSUES(SegmentationIssues::TYPE, "Issues");
+const SegmentationExtension::InformationKey  SegmentationIssues::WARNING(SegmentationIssues::TYPE, "Warning");
+const SegmentationExtension::InformationKey  SegmentationIssues::CRITICAL(SegmentationIssues::TYPE, "Critical");
 
 //------------------------------------------------------------------------
-SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
+SegmentationIssues::SegmentationIssues(const InfoCache& infoCache)
 : SegmentationExtension(infoCache)
 {
 }
 
 
 //------------------------------------------------------------------------
-SegmentationNotes::~SegmentationNotes()
+SegmentationIssues::~SegmentationIssues()
 {
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
+SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
 {
   InformationKeyList keys;
 
-  keys << NOTES;
+  keys << WARNING << CRITICAL << ISSUES;
 
   return keys;
 }
 
 //------------------------------------------------------------------------
-QString SegmentationNotes::toolTipText() const
+QString SegmentationIssues::toolTipText() const
 {
   const QString WS  = "&nbsp;"; // White space
   const QString TAB = WS+WS+WS;
 
   QString toolTip;
 
-  if (!notes().isEmpty())
+  for (auto issue : m_issues)
   {
-    QString firstLine = notes().left(20);
-    if (firstLine.length() == 20)
-      firstLine = firstLine.replace(17, 3, "...");
-    toolTip = condition(":/espina/note.svg", firstLine);
+    auto report = QString("<b>%1:</b><br>%2").arg(issue->description())
+                                             .arg(issue->suggestion());
+
+    toolTip += condition(severityIcon(issue->severity()), report);
   }
 
   return toolTip;
@@ -78,13 +81,53 @@ QString SegmentationNotes::toolTipText() const
 
 
 //------------------------------------------------------------------------
-void SegmentationNotes::setNotes(const QString &note)
+void SegmentationIssues::addIssue(IssueSPtr issue)
 {
-  updateInfoCache(NOTES, note);
+  m_issues << issue;
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationNotes::cacheFail(const InformationKey& key) const
+Issue::Severity SegmentationIssues::highestSeverity() const
 {
+  Issue::Severity highest = Issue::Severity::NONE;
+
+  for (auto issue : m_issues)
+  {
+    if (issue->severity() > highest)
+    {
+      highest = issue->severity();
+    }
+  }
+
+  return highest;
+}
+
+//------------------------------------------------------------------------
+QString SegmentationIssues::severityIcon(const Issue::Severity severity, bool slim)
+{
+  QString icon(":/espina/warning%1%2.svg");
+
+  auto critical = severity == Issue::Severity::CRITICAL?"_critical":"";
+  auto size     = slim? "_slim":"";
+
+  return icon.arg(critical, size);
+}
+
+//------------------------------------------------------------------------
+QVariant SegmentationIssues::cacheFail(const InformationKey& key) const
+{
+  if (key == ISSUES)
+  {
+    return m_issues.size();
+  }
+  else if (key == WARNING)
+  {
+    return std::count_if(m_issues.begin(), m_issues.end(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::WARNING;});
+  }
+  else if (key == CRITICAL)
+  {
+    return std::count_if(m_issues.begin(), m_issues.end(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::CRITICAL;});
+  }
+
   return QVariant();
 }

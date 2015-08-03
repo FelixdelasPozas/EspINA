@@ -13,6 +13,8 @@ qt4_wrap_cpp(EXTENSIONS_MOC
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
+  Issues/Issues.cpp
+  Issues/SegmentationIssues.cpp
   EdgeDistances/ChannelEdges.cpp
   EdgeDistances/AdaptiveEdgesCreator.cpp
   EdgeDistances/EdgesAnalyzer.cpp

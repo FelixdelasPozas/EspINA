@@ -222,7 +222,7 @@ namespace ESPINA
     /** \brief Shows the issues dialog with the given issues.
      *
      */
-    void showIssuesDialog(IssueList problems) const;
+    void showIssuesDialog(Extensions::IssueList problems) const;
 
   private:
     void initColorEngines(QMenu *parentMenu);

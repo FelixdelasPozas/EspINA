@@ -26,47 +26,134 @@
 #include <Core/Analysis/Channel.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <Extensions/Issues/SegmentationIssues.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Model::Utils;
+
+class NeuroItemIssue
+: public Issue
+{
+public:
+  explicit NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString())
+  : Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
+  {}
+};
+
+class SegmentationIssue
+: public NeuroItemIssue
+{
+public:
+  explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString())
+  : NeuroItemIssue(segmentation, severity, description, suggestion)
+  {
+    addSeverityTag(segmentation, severity);
+  }
+
+protected:
+  void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
+  {
+    auto tagExtensions = retrieveOrCreateExtension<SegmentationTags>(segmentation->extensions());
+
+    for (auto tag : tags)
+    {
+      tagExtensions->addTag(tag);
+    }
+  }
+
+private:
+  void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
+  {
+    if (Severity::CRITICAL == severity)
+    {
+      addIssueTag(segmentation, {"critical"});
+    }
+    else if (Severity::WARNING == severity)
+    {
+      addIssueTag(segmentation, {"warning"});
+    }
+  }
+};
+
+
+
+//------------------------------------------------------------------------
+void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
+                            const Issue::Severity& severity,
+                            const QString& description,
+                            const QString& suggestion) const
+{
+  IssueSPtr issue;
+
+  if (isSegmentation(item.get()))
+  {
+    auto segmentation = segmentationPtr(item.get());
+
+    issue = std::make_shared<SegmentationIssue>(segmentation, severity, description, suggestion);
+  }
+  else
+  {
+   issue = std::make_shared<NeuroItemIssue>(item.get(), severity, description, suggestion);
+  }
+
+  reportIssue(item.get(), issue);
+}
+
+//------------------------------------------------------------------------
+void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
+{
+  if (isSegmentation(item))
+  {
+    auto segmentation   = segmentationPtr(item);
+    auto issueExtension = retrieveOrCreateExtension<SegmentationIssues>(segmentation->extensions());
+
+    issueExtension->addIssue(issue);
+  }
+  qWarning() << "ViewItem" << issue->displayName() << issue->description() << ">>" << issue->suggestion();
+
+  emit issueFound(issue);
+}
 
 //------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-: Task           {scheduler}
+: Task{scheduler}
 , m_finishedTasks{0}
 {
   setDescription(tr("Issues checker"));
   setPriority(Priority::LOW);
 
-  qRegisterMetaType<Issue>("Issue");
-  qRegisterMetaType<IssueList>("IssueList");
+  qRegisterMetaType<Extensions::IssueList>("Extensions::IssueList");
 
   for(auto seg: model->segmentations())
   {
-    m_taskList << std::make_shared<CheckSegmentationTask>(scheduler, seg, model);
+    m_checkList << std::make_shared<CheckSegmentationTask>(scheduler, seg, model);
   }
 
   for(auto channel: model->channels())
   {
-    m_taskList << std::make_shared<CheckChannelTask>(scheduler, channel, model);
+    m_checkList << std::make_shared<CheckChannelTask>(scheduler, channel, model);
   }
 
   for(auto sample: model->samples())
   {
-    m_taskList << std::make_shared<CheckSampleTask>(scheduler, sample, model);
+    m_checkList << std::make_shared<CheckSampleTask>(scheduler, sample, model);
   }
 
-  m_taskList << std::make_shared<CheckDuplicatedSegmentationsTask>(scheduler, model);
+  m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(scheduler, model);
 }
 
 //------------------------------------------------------------------------
 void CheckAnalysis::run()
 {
-  for(auto task: m_taskList)
+  for(auto task: m_checkList)
   {
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(finishedTask()), Qt::DirectConnection);
-    connect(task.get(), SIGNAL(issue(Issue)),
-            this,       SLOT(addIssue(Issue)), Qt::DirectConnection);
+
+    connect(task.get(), SIGNAL(issueFound(Extensions::IssueSPtr)),
+            this,       SLOT(addIssue(Extensions::IssueSPtr)), Qt::DirectConnection);
 
     task->submit(task);
   }
@@ -82,7 +169,7 @@ void CheckAnalysis::finishedTask()
 
   ++m_finishedTasks;
 
-  auto tasksNum = m_taskList.size();
+  auto tasksNum = m_checkList.size();
   auto progressValue = m_finishedTasks * 100 / tasksNum;
   reportProgress(progressValue);
 
@@ -98,11 +185,17 @@ void CheckAnalysis::finishedTask()
 }
 
 //------------------------------------------------------------------------
-void CheckAnalysis::addIssue(Issue issue)
+void CheckAnalysis::addIssue(IssueSPtr issue)
 {
   QMutexLocker lock(&m_progressMutex);
 
   m_issues << issue;
+}
+
+//------------------------------------------------------------------------
+QString deleteHint(NeuroItemAdapterSPtr item)
+{
+  return QObject::tr("Delete %1.").arg(isSegmentation(item.get())?"segmentation":"channel");
 }
 
 //------------------------------------------------------------------------
@@ -113,10 +206,9 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (output == nullptr)
   {
-    qWarning() << "ViewItem" << viewItem->data().toString() << "doesn't have output.";
+    auto description = tr("Item does not have an output.");
 
-    Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have an output."), tr("Delete item.") };
-    emit issue(segIssue);
+    reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
   else
   {
@@ -141,24 +233,24 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
-      qWarning() << "ViewItem" << viewItem->data().toString() << "doesn't have data.";
+      auto description = tr("Item does not have any data at all.");
 
-      Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have any data at all."), tr("Delete item.") };
-      emit issue(segIssue);
+      reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
   }
 
   if (filter == nullptr)
   {
-    qWarning() << "ViewItem" << viewItem->data().toString() << "doesn't have filter.";
+    auto description = tr("Can't find the origin of the item.");
 
-    Issue segIssue { viewItem->data().toString(), Severity::CRITICAL, tr("Can't find the origin of the item."), tr("Delete item.")};
-    emit issue(segIssue);
+    reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
 }
 
 //------------------------------------------------------------------------
-CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler,
+                                             NeuroItemAdapterSPtr item,
+                                             ModelAdapterSPtr model)
 : CheckDataTask{scheduler, item, model}
 , m_segmentation   {std::dynamic_pointer_cast<SegmentationAdapter>(item)}
 {
@@ -178,13 +270,9 @@ void CheckSegmentationTask::checkVolumeIsEmpty() const
   auto volume = readLockVolume(m_segmentation->output());
   if (volume.isNull() || volume->isEmpty())
   {
-    if (volume.isNull())
-    {
-      qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a volume associated but is empty.");
 
-    Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume associated but is empty."), tr("Delete segmentation.") };
-    emit issue(segIssue);
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -195,14 +283,9 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 
   if (mesh.isNull() || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
   {
-    if (mesh.isNull() || mesh->mesh() == nullptr)
-    {
-      qWarning() << tr("ViewItem %1 problem. Mesh is null or redirects to null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a mesh associated but is empty.");
 
-    Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a mesh associated but is empty."), tr("Delete segmentation") };
-
-    emit issue(segIssue);
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -213,13 +296,9 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 
   if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
   {
-    if (skeleton.isNull() || skeleton->skeleton() == nullptr)
-    {
-      qWarning() << tr("ViewItem %1 problem. Skeleton is null or redirects to null.").arg(m_segmentation->data().toString());
-    }
+    auto description = tr("Segmentation has a skeleton associated but is empty.");
 
-    Issue segIssue{ m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation has a skeleton associated but is empty."), tr("Delete segmentation") };
-    emit issue(segIssue);
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -230,8 +309,9 @@ void CheckSegmentationTask::checkHasChannel() const
 
   if(channels.empty())
   {
-    Issue segIssue{m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any channel."), tr("Delete segmentation.")};
-    emit issue(segIssue);
+    auto description = tr("Segmentation is not related to any channel.");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -242,8 +322,9 @@ void CheckSegmentationTask::checkRelations() const
 
   if(relations.empty())
   {
-    Issue segIssue{m_segmentation->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any sample."), tr("Delete segmentation.")};
-    emit issue(segIssue);
+    auto description = tr("Segmentation is not related to any sample.");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
 }
 
@@ -262,10 +343,9 @@ void CheckChannelTask::checkVolumeIsEmpty() const
     auto volume = readLockVolume(m_channel->output());
     if(volume.isNull())
     {
-      qWarning() << tr("ViewItem %1 problem. Volume is null.").arg(m_channel->data().toString());
+      auto description = tr("Channel has a volume associated but can't find it.");
 
-      Issue channelIssue{m_channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume associated but can't find it."), tr("Delete channel.")};
-      emit issue(channelIssue);
+      reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
   }
 }
@@ -277,8 +357,10 @@ void CheckChannelTask::checkRelations() const
 
   if(relations.empty())
   {
-    Issue segIssue{m_channel->data().toString(), Severity::CRITICAL, tr("Channel is not related to any sample."), tr("Change relations in the \"Channel Explorer\" dialog.")};
-    emit issue(segIssue);
+    auto description = tr("Channel is not related to any sample.");
+    auto hint        = tr("Change relations in the \"Channel Explorer\" dialog.");
+
+    reportIssue(m_channel, Issue::Severity::CRITICAL, description, hint);
   }
 }
 
@@ -327,23 +409,40 @@ void CheckDuplicatedSegmentationsTask::run()
       {
         if (contains(bounds_i, bounds_j))
         {
-          emit issue(possibleDuplication(seg_i, seg_j));
+          reportIssue(seg_j, possibleDuplication(seg_i, seg_j));
         }
         else if (contains(bounds_j, bounds_i))
         {
-          emit issue(possibleDuplication(seg_j, seg_i));
+          reportIssue(seg_i, possibleDuplication(seg_j, seg_i));
         }
       }
     }
   }
 }
 
-//------------------------------------------------------------------------
-Issue CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdapterPtr seg1, SegmentationAdapterPtr seg2) const
+class DuplicatedIssue
+: public SegmentationIssue
 {
-  auto title   = seg2->data().toString();
-  auto message = tr("Possible duplicated segmentation of %1").arg(seg1->data().toString());
-  auto hint    = tr("Remove unnecesary segmentation");
-  return Issue{title, Severity::WARNING, message, hint};
+public:
+  explicit DuplicatedIssue(SegmentationAdapterPtr segmentation, SegmentationAdapterPtr duplicated)
+  : SegmentationIssue(duplicated, Severity::WARNING, description(segmentation), suggestion())
+  {
+    addIssueTag(duplicated, {"duplicated"});
+  }
+
+private:
+  static QString description(const SegmentationAdapterPtr original)
+  { return QObject::tr("Possible duplicated segmentation of %1").arg(original->data(Qt::DisplayRole).toString()); }
+
+  static QString suggestion()
+  { return QObject::tr("Delete unnecesary segmentation"); }
+
+};
+
+//------------------------------------------------------------------------
+IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdapterPtr original,
+                                                                SegmentationAdapterPtr duplicated) const
+{
+  return std::make_shared<DuplicatedIssue>(original, duplicated);
 }
 

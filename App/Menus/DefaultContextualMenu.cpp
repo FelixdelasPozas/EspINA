@@ -192,7 +192,7 @@ void DefaultContextualMenu::setSelection(SelectionSPtr selection)
 void DefaultContextualMenu::createNoteEntry()
 {
   QAction *noteAction = addAction(tr("Notes"));
-  noteAction->setIcon(QIcon(":/espina/note.png"));
+  noteAction->setIcon(QIcon(":/espina/note.svg"));
   connect(noteAction, SIGNAL(triggered(bool)),
           this, SLOT(addNote()));
 }

@@ -24,36 +24,13 @@
 // Qt
 #include <QDialog>
 #include "ui_IssueListDialog.h"
+#include <Extensions/Issues/Issues.h>
 
 // C++
 #include <cstdint>
 
 namespace ESPINA
 {
-  /** \brief Enumeration of issue severity.
-   *
-   */
-  enum class Severity : std::int8_t { CRITICAL = 0, WARNING = 1, INFORMATION = 2 };
-
-  /** \brief Struct that contains issue description
-   *
-   */
-  struct Issue
-  {
-      QString element;     // Element that has the issue.
-      Severity severity;   // Severity of the issue.
-      QString message;     // Description of the issue.
-      QString suggestion;  // Suggestion of a solution to the issue.
-
-      Issue(QString inputElement, Severity inputSeverity, QString inputMessage, QString inputSuggestion)
-      : element(inputElement), severity(inputSeverity), message(inputMessage), suggestion(inputSuggestion) {};
-
-      // required by qRegisterMetaType
-      Issue(): element(QString()), severity(Severity::CRITICAL), message(QString()), suggestion(QString()) {};
-  };
-
-  using IssueList = QList<Issue>;
-
   class IssueListDialog
   : public QDialog
   , public Ui::IssueListDialog
@@ -63,7 +40,7 @@ namespace ESPINA
        * \param[in] issuesList, list of problem descriptions as Issue structs.
        *
        */
-      explicit IssueListDialog(IssueList issuesList);
+      explicit IssueListDialog(Extensions::IssueList issuesList);
 
       /** \brief IssueListDialog class virtual destructor.
        *

@@ -24,12 +24,58 @@
 // ESPINA
 #include <Dialogs/IssueList/IssueListDialog.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Extensions/Issues/Issues.h>
+#include <Extensions/ExtensionUtils.h>
+#include <Extensions/Tags/SegmentationTags.h>
+#include <Core/Analysis/Segmentation.h>
 
 // Qt
 #include <QDialog>
 
 namespace ESPINA
 {
+  //------------------------------------------------------------------------
+  class CheckTask
+  : public Task
+  {
+    Q_OBJECT
+  public:
+    /** \brief CheckTask class constructor.
+     * \param[in] scheduler smart pointer.
+     * \param[in] model adapter smart pointer containing the item.
+     *
+     */
+    explicit CheckTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
+    : Task   {scheduler}
+    , m_model{model}
+    {
+      setHidden(true);
+    }
+
+    /** \brief CheckTask class virtual destructor.
+     *
+     */
+    virtual ~CheckTask()
+    {}
+
+  protected:
+    void reportIssue(NeuroItemAdapterSPtr item,
+                     const Extensions::Issue::Severity &severity,
+                     const QString &description,
+                     const QString &suggestion) const;
+
+    void reportIssue(NeuroItemAdapterPtr item, Extensions::IssueSPtr issue) const;
+
+  signals:
+    /** \brief Signal emitted when a issue has been found with the item being checked.
+     * \param[out] issue found
+     */
+    void issueFound(Extensions::IssueSPtr issue) const;
+
+  protected:
+    ModelAdapterSPtr m_model;
+  };
+
   //------------------------------------------------------------------------
   class CheckAnalysis
   : public Task
@@ -50,7 +96,7 @@ namespace ESPINA
       {};
 
     signals:
-      void issuesFound(IssueList issues);
+      void issuesFound(Extensions::IssueList issues);
 
     protected:
       virtual void run() override final;
@@ -64,94 +110,63 @@ namespace ESPINA
       /** \brief Adds a issue to the issue list.
        *
        */
-      void addIssue(Issue issue);
+      void addIssue(Extensions::IssueSPtr issue);
 
     private:
-      QMutex          m_progressMutex;
-      IssueList       m_issues;
-      QList<TaskSPtr> m_taskList;
-      int             m_finishedTasks;
-  };
+      using CheckList = QList<std::shared_ptr<CheckTask>>;
+      QMutex    m_progressMutex;
+      CheckList m_checkList;
+      int       m_finishedTasks;
 
-  //------------------------------------------------------------------------
-  class CheckTask
-  : public Task
-  {
-    Q_OBJECT
-    public:
-      /** \brief CheckTask class constructor.
-       * \param[in] scheduler smart pointer.
-       * \param[in] model adapter smart pointer containing the item.
-       *
-       */
-      explicit CheckTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-      : Task   {scheduler}
-      , m_model{model}
-      {
-        setHidden(true);
-      }
-
-      /** \brief CheckTask class virtual destructor.
-       *
-       */
-      virtual ~CheckTask()
-      {}
-
-    signals:
-      /** \brief Signal emitted when a issue has been found with the item being checked.
-       * \param[out] issue issue struct.
-       */
-      void issue(Issue issue) const;
-
-  protected:
-      ModelAdapterSPtr m_model;
+      Extensions::IssueList m_issues;
   };
 
   class CheckDataTask
   : public CheckTask
   {
   public:
-      explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-      : CheckTask{scheduler, model}
-      {
-        setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
-      }
+    explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+    : CheckTask{scheduler, model}
+    {
+      setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
+    }
 
-    protected:
-      /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
-       *
-       */
-      virtual void checkVolumeIsEmpty() const = 0;
+  protected:
+    /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
+     *
+     */
+    virtual void checkVolumeIsEmpty() const = 0;
 
-      /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
-       *
-       */
-      virtual void checkMeshIsEmpty() const = 0;
+    /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
+     *
+     */
+    virtual void checkMeshIsEmpty() const = 0;
 
-      /** \brief Checks if a segmentation skeleton is empty, emits issue(Issue) if it is.
-       *
-       */
-      virtual void checkSkeletonIsEmpty() const = 0;
+    /** \brief Checks if a segmentation skeleton is empty, emits issue(Issue) if it is.
+     *
+     */
+    virtual void checkSkeletonIsEmpty() const = 0;
 
-      /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
-       * Returns true if no problem are found, and false otherwise.
-       *
-       */
-      void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
+    /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
+     * Returns true if no problem are found, and false otherwise.
+     *
+     */
+    void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
 
-      NeuroItemAdapterSPtr m_item;
+    NeuroItemAdapterSPtr m_item;
   };
 
   //------------------------------------------------------------------------
   class CheckSegmentationTask
   : public CheckDataTask
   {
-      Q_OBJECT
+    Q_OBJECT
+
     public:
       /** \brief CheckSegmentationTask class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] item, neuro item adapter smart pointer that will be tested.
-       * \param[in] model, model adapter smart pointer containing the item.
+       * \param[in] scheduler to launch the task
+       * \param[in] item that will be tested.
+       * \param[in] model containing the item.
        */
       explicit CheckSegmentationTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
@@ -185,9 +200,9 @@ namespace ESPINA
       Q_OBJECT
     public:
       /** \brief CheckChannelTask class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] item, neuro item adapter smart pointer that will be tested.
-       * \param[in] model, model adapter smart pointer containing the item.
+       * \param[in] scheduler scheduler smart pointer.
+       * \param[in] item neuro item adapter smart pointer that will be tested.
+       * \param[in] model model adapter smart pointer containing the item.
        */
       explicit CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
@@ -221,9 +236,9 @@ namespace ESPINA
       Q_OBJECT
     public:
       /** \brief CheckSampleTask class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] item, neuro item adapter smart pointer that will be tested.
-       * \param[in] model, model adapter smart pointer containing the item.
+       * \param[in] scheduler to launch the task
+       * \param[in] item that will be tested.
+       * \param[in] model containing the item.
        */
       explicit CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
@@ -259,7 +274,8 @@ namespace ESPINA
   private:
     virtual void run() override final;
 
-    Issue possibleDuplication(SegmentationAdapterPtr seg1, SegmentationAdapterPtr seg2) const;
+    Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original,
+                                              SegmentationAdapterPtr duplicated) const;
   };
 
 } // namespace ESPINA

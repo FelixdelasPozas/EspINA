@@ -86,6 +86,9 @@ namespace ESPINA
       const Key value() const
       { return m_key; }
 
+      operator Key() const
+      { return m_key; }
+
     private:
       Type m_extension;
       Key  m_key;
@@ -258,7 +261,7 @@ namespace ESPINA
     {
       QReadLocker locker(&m_lock);
 
-      return m_infoCache.value(key.value(), QVariant());
+      return m_infoCache.value(key, QVariant());
     }
 
     /** \brief Updates the cache of the key with a value.

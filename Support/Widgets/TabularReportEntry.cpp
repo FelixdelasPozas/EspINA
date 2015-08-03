@@ -98,9 +98,13 @@ TabularReport::Entry::Entry(const QString   &category,
 {
   setupUi(this);
 
-  tableView->sortByColumn(0, Qt::AscendingOrder);
-  tableView->horizontalHeader()->setMovable(true);
   tableView->setItemDelegate(new InformationDelegate());
+  tableView->horizontalHeader()->setMovable(true);
+  tableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  //tableView->horizontalHeader()->setStretchLastSection(true);
+  tableView->adjustSize();
+  tableView->sortByColumn(0, Qt::AscendingOrder);
+  tableView->horizontalHeader()->setSortIndicatorShown(true);
 
   connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
           this, SLOT(saveSelectedInformation()));
@@ -434,6 +438,7 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
   auto header = new QStandardItemModel(1, keys.size(), this);
   header->setHorizontalHeaderLabels(headerLabels);
   tableView->horizontalHeader()->setModel(header);
+  tableView->adjustSize();
 }
 
 

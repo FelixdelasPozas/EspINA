@@ -147,12 +147,15 @@ QVariant SegmentationTags::cacheFail(const InformationKey& key) const
 //------------------------------------------------------------------------
 void SegmentationTags::addTagImplementation(const QString &tag)
 {
-  if (!m_tags.contains(tag))
+  if (!tag.isEmpty())
   {
-    m_tags << tag.trimmed();
-  }
+    if (!m_tags.contains(tag))
+    {
+      m_tags << tag.trimmed();
+    }
 
-  addToAvailableTags(tag.trimmed());
+    addToAvailableTags(tag.trimmed());
+  }
 }
 
 //------------------------------------------------------------------------
