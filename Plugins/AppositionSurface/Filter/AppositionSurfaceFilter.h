@@ -180,8 +180,6 @@ namespace ESPINA
     bool m_converge;
     mutable PolyData m_ap;
 
-    itkVolumeType::Pointer m_input;
-
     bool m_alreadyFetchedData;
     TimeStamp m_lastModifiedMesh;
 

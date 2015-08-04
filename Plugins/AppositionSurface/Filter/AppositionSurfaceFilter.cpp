@@ -121,32 +121,33 @@ void AppositionSurfaceFilter::execute(Output::Id oId)
 void AppositionSurfaceFilter::execute()
 {
   reportProgress(0);
+
   if (!canExecute()) return;
 
-  m_input = readLockVolume(m_inputs[0]->output())->itkImage();
-  m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
+  auto input = readLockVolume(m_inputs[0]->output())->itkImage();
+  input->SetBufferedRegion(input->GetLargestPossibleRegion());
 
-  itkVolumeType::SizeType bounds;
-  bounds[0] = bounds[1] = bounds[2] = 1;
+  itkVolumeType::SizeType padding;
+  padding.Fill(1);
   PadFilterType::Pointer padder = PadFilterType::New();
-  padder->SetInput(m_input);
-  padder->SetPadLowerBound(bounds);
-  padder->SetPadUpperBound(bounds);
+  padder->SetInput(input);
+  padder->SetPadLowerBound(padding);
+  padder->SetPadUpperBound(padding);
   padder->SetConstant(0); // extend with black pixels
   padder->Update();
 
-  itkVolumeType::Pointer padImage = padder->GetOutput();
+  auto paddedImage = padder->GetOutput();
 
   reportProgress(20);
 
   if (!canExecute()) return;
 
-  itkVolumeType::RegionType region = padImage->GetLargestPossibleRegion();
-  region.SetIndex(region.GetIndex() + bounds);
-  padImage->SetRegions(region);
+  auto region = paddedImage->GetLargestPossibleRegion();
+  region.SetIndex(region.GetIndex() + padding);
+  paddedImage->SetRegions(region);
 
   ItkToVtkFilterType::Pointer itk2vtk_filter = ItkToVtkFilterType::New();
-  itk2vtk_filter->SetInput(padImage);
+  itk2vtk_filter->SetInput(paddedImage);
   itk2vtk_filter->Update();
   vtkSmartPointer<vtkImageData> vtk_padImage = itk2vtk_filter->GetOutput();
 
@@ -154,14 +155,14 @@ void AppositionSurfaceFilter::execute()
   vtk_padImage->GetSpacing(spacing);
 
   //qDebug() << "Computing Distance Map";
-  Points points = segmentationPoints(padImage);
+  Points points = segmentationPoints(paddedImage);
   //qDebug() << points->GetNumberOfPoints() << " segmentation points");
 
   double corner[3], max[3], mid[3], min[3], size[3];
   OBBTreeType obbTree = OBBTreeType::New();
   obbTree->ComputeOBB(points, corner, max, mid, min, size);
   Points obbCorners = corners(corner, max, mid, min);
-  DistanceMapType::Pointer distanceMap = computeDistanceMap(padImage, DISTANCESMOOTHSIGMAFACTOR);
+  DistanceMapType::Pointer distanceMap = computeDistanceMap(paddedImage, DISTANCESMOOTHSIGMAFACTOR);
 
   //   qDebug() << "Build and move the plane to Avg Max Distance";
   double avgMaxDistPoint[3];
@@ -282,7 +283,7 @@ void AppositionSurfaceFilter::execute()
    */
   vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Translate (-spacing[0]*bounds[0], -spacing[1]*bounds[0], -spacing[2]*bounds[0]);
+  transform->Translate (-spacing[0]*padding[0], -spacing[1]*padding[0], -spacing[2]*padding[0]);
   transformFilter->SetTransform(transform);
   transformFilter->SetInputData(clippedPlane);
   transformFilter->Update();
@@ -302,7 +303,7 @@ void AppositionSurfaceFilter::execute()
   m_ap->GetPointData()->AddArray(normalArray);
   m_ap->Modified();
 
-  auto outpuSpacing = ToNmVector3<itkVolumeType>(m_input->GetSpacing());
+  auto outpuSpacing = ToNmVector3<itkVolumeType>(input->GetSpacing());
   auto meshOutput   = std::make_shared<RawMesh>(m_ap, outpuSpacing);
 
   m_lastModifiedMesh = meshOutput->lastModified();
@@ -424,11 +425,11 @@ AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::compu
   double max_distance;
   maxDistancePoint(smdm_filter->GetOutput(), avgMaxDistPoint, max_distance);
 
-  SmoothingFilterType::Pointer smoothingRecursiveGaussianImageFilter = SmoothingFilterType::New();
+  auto smoothingRecursiveGaussianImageFilter = SmoothingFilterType::New();
   smoothingRecursiveGaussianImageFilter->SetSigma(sigma * max_distance);
   smoothingRecursiveGaussianImageFilter->SetInput(smdm_filter->GetOutput());
 
-  SmoothingFilterType::OutputImageRegionType::SizeType regionSize = smdm_filter->GetOutput()->GetLargestPossibleRegion().GetSize();
+  auto regionSize = smdm_filter->GetOutput()->GetLargestPossibleRegion().GetSize();
   if (((sigma * max_distance) > 0) && (regionSize[0] >= 4) && (regionSize[1] >= 4) && (regionSize[2] >= 4))
   {
     smoothingRecursiveGaussianImageFilter->Update();

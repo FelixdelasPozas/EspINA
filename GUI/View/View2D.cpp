@@ -1149,10 +1149,10 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
   do
   {
-    picked = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
+    picked     = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
     pickedProp = picker->GetViewProp();
 
-    if(pickedProp)
+    if (pickedProp && pickedProp->GetVisibility())
     {
       pickedProps->AddItem(pickedProp);
       sceneActors->RemoveItem(pickedProp);

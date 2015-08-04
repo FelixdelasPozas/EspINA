@@ -168,6 +168,7 @@ void Selection::set(ViewItemAdapterList selection)
   if(selection != items())
   {
     for(auto item: selection)
+    {
       switch(item->type())
       {
         case ItemAdapter::Type::CHANNEL:
@@ -180,6 +181,7 @@ void Selection::set(ViewItemAdapterList selection)
           Q_ASSERT(false); // NOTE: SAMPLES?
           break;
       }
+    }
 
     auto modifiedChannels      = setChannels(channels);
     auto modifiedSegmentations = setSegmentations(segmentations);

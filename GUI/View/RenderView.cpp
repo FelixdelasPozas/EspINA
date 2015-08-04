@@ -163,15 +163,18 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 
   for (auto selectionItem : pickedItems)
   {
-    auto pickedItem = selectionItem.second;
+    auto pickedItem = dynamic_cast<ViewItemAdapterPtr>(selectionItem.second);
 
-    if (isSegmentation(pickedItem))
+    if (pickedItem->isVisible())
     {
-      segmentations << dynamic_cast<ViewItemAdapterPtr>(pickedItem);
-    }
-    else if (isChannel(pickedItem))
-    {
-      channels << dynamic_cast<ViewItemAdapterPtr>(pickedItem);
+      if (isSegmentation(pickedItem))
+      {
+        segmentations << pickedItem;
+      }
+      else if (isChannel(pickedItem))
+      {
+        channels << pickedItem;
+      }
     }
   }
 

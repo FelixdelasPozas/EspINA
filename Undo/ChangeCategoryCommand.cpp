@@ -29,9 +29,9 @@ ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentatio
                                              CategoryAdapterPtr      category,
                                              Support::Context       &context,
                                              QUndoCommand*           parent)
-: QUndoCommand {parent}
-, m_context    (context)
-, m_category   {context.model()->smartPointer(category)}
+: QUndoCommand(parent)
+, WithContext (context)
+, m_category  {context.model()->smartPointer(category)}
 {
   for(auto segmentation: segmentations)
   {
@@ -51,11 +51,11 @@ void ChangeCategoryCommand::redo()
 
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_context.model()->setSegmentationCategory(segmentation, m_category);
+    getModel()->setSegmentationCategory(segmentation, m_category);
     segmentations << segmentation.get();
   }
 
-  m_context.viewState().representationInvalidator().invalidateRepresentations(segmentations);
+  updateSelection(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -65,9 +65,17 @@ void ChangeCategoryCommand::undo()
 
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_context.model()->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
+    getModel()->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
     segmentations << segmentation.get();
   }
 
-  m_context.viewState().representationInvalidator().invalidateRepresentations(segmentations);
+  updateSelection(segmentations);
+}
+
+//------------------------------------------------------------------------
+void ChangeCategoryCommand::updateSelection(ViewItemAdapterList segmentations)
+{
+  getViewState().selection()->clear();
+  getViewState().selection()->set(segmentations);
+  getViewState().representationInvalidator().invalidateRepresentationColors(segmentations);
 }

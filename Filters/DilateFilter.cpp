@@ -57,7 +57,7 @@ void DilateFilter::execute()
 
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
-  auto input       = m_inputs[0];
+  auto input = m_inputs[0];
 
 
   auto inputVolume = readLockVolume(input->output());

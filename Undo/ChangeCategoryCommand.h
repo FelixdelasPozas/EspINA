@@ -39,6 +39,7 @@ namespace ESPINA
 
   class EspinaUndo_EXPORT ChangeCategoryCommand
   : public QUndoCommand
+  , Support::WithContext
   {
   public:
     /** \brief ChangeCategoryCommand class constructor.
@@ -63,7 +64,9 @@ namespace ESPINA
     virtual void undo() override;
 
   private:
-    Support::Context &m_context;
+    void updateSelection(ViewItemAdapterList segmentations);
+
+  private:
     CategoryAdapterSPtr     m_category;
     QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories;
   };
