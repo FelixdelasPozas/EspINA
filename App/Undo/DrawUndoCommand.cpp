@@ -28,12 +28,43 @@
 
 using namespace ESPINA;
 
+class UpdateMeshTask
+: public Task
+{
+public:
+  explicit UpdateMeshTask(SegmentationAdapterSPtr segmentation,
+                          SchedulerSPtr           scheduler)
+  : Task(scheduler)
+  , m_segmentation(segmentation)
+  {
+    setDescription(tr("Updating '%1' mesh").arg(segmentation->data(Qt::DisplayRole).toString()));
+  }
+
+
+private:
+  virtual void run()
+  {
+    auto output = m_segmentation->output();
+
+    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
+    output->setData(mesh);
+
+    m_segmentation->invalidateRepresentations();
+  }
+
+  SegmentationAdapterSPtr m_segmentation;
+};
+
 //-----------------------------------------------------------------------------
-DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<unsigned char> mask)
-: m_segmentation(seg)
+DrawUndoCommand::DrawUndoCommand(Support::Context &context,
+                                 SegmentationAdapterSPtr seg,
+                                 BinaryMaskSPtr<unsigned char> mask)
+: WithContext(context)
+, m_segmentation(seg)
 , m_mask(mask)
 , m_image{nullptr}
 , m_hasVolume(hasVolumetricData(seg->output()))
+, m_updateMesh(std::make_shared<UpdateMeshTask>(seg, context.scheduler()))
 {
   if(m_hasVolume)
   {
@@ -74,7 +105,7 @@ void DrawUndoCommand::redo()
     output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
   }
 
-  m_segmentation->invalidateRepresentations();
+  Task::submit(m_updateMesh);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,5 +126,5 @@ void DrawUndoCommand::undo()
     m_segmentation->output()->removeData(VolumetricData<itkVolumeType>::TYPE);
   }
 
-  m_segmentation->invalidateRepresentations();
+  Task::submit(m_updateMesh);
 }
