@@ -127,6 +127,7 @@ namespace ESPINA
   public:
     explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
     : CheckTask{scheduler, model}
+    , m_item(item)
     {
       setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
     }

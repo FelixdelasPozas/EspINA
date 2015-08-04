@@ -252,7 +252,7 @@ CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler,
                                              NeuroItemAdapterSPtr item,
                                              ModelAdapterSPtr model)
 : CheckDataTask{scheduler, item, model}
-, m_segmentation   {std::dynamic_pointer_cast<SegmentationAdapter>(item)}
+, m_segmentation{std::dynamic_pointer_cast<SegmentationAdapter>(item)}
 {
 }
 
