@@ -23,19 +23,20 @@
 
 // ESPINA
 #include <ToolGroups/ToolGroup.h>
+
 #include <Support/Context.h>
+#include <Support/Report.h>
 
 namespace ESPINA
 {
 
+class ReportsTool;
   class AnalyzeToolGroup
   : public ToolGroup
   {
     Q_OBJECT
     public:
-      /** \brief MeasuresTools class constructor.
-       * \param[in] viewManager, view manager smart pointer.
-       * \param[in] parent, QWidget raw pointer of the parent of this object.
+      /** \brief AnalyzeToolGroup class constructor.
        *
        */
       explicit AnalyzeToolGroup(Support::Context &context);
@@ -44,6 +45,11 @@ namespace ESPINA
        *
        */
       virtual ~AnalyzeToolGroup();
+
+      void registerReport(Support::ReportSPtr report);
+
+  private:
+    std::shared_ptr<ReportsTool> m_reports;
   };
 
 } /* namespace ESPINA */

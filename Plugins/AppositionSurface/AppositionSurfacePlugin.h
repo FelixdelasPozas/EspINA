@@ -58,9 +58,9 @@ namespace ESPINA
 
     virtual QList<Support::CategorizedTool> tools() const;
 
-    virtual Support::Settings::SettingsPanelSList settingsPanels() const;
+    virtual Support::ReportSList reports() const;
 
-    virtual QList< Support::MenuEntry> menuEntries() const;
+    virtual Support::Settings::SettingsPanelSList settingsPanels() const;
 
     virtual FilterFactorySList filterFactories() const;
 
@@ -69,8 +69,6 @@ namespace ESPINA
     static SegmentationAdapterPtr segmentationSAS(SegmentationAdapterPtr segmentation);
 
   public slots:
-    void createSASAnalysis();
-
     void segmentationsAdded(ViewItemAdapterSList segmentations);
 
     void finishedTask();
@@ -97,9 +95,8 @@ namespace ESPINA
     Support::Context                *m_context;
     Support::Settings::SettingsPanelSPtr m_settings;
     SegmentationExtensionFactorySPtr m_extensionFactory;
-    Support::MenuEntry               m_menuEntry;
     FilterFactorySPtr                m_filterFactory;
-    bool                             m_delayedAnalysis;
+    //bool                             m_delayedAnalysis;
     SegmentationAdapterList          m_analysisSynapses;
 
     QMap<FilterPtr, struct Data> m_executingTasks;

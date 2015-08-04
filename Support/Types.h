@@ -32,6 +32,10 @@ namespace ESPINA
   namespace Support
   {
     class Context;
+    class Report;
+
+    using ReportSPtr  = std::shared_ptr<Report>;
+    using ReportSList = QList<ReportSPtr>;
 
     namespace Settings
     {

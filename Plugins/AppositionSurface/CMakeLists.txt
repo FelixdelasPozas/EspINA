@@ -60,6 +60,7 @@ set (PLUGIN_SOURCES
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
+  SASReport.cpp
   AppositionSurfacePlugin.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
   Core/Extensions/ExtensionFactory.cpp

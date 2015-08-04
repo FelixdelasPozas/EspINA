@@ -180,11 +180,6 @@ namespace ESPINA
      */
     void showAboutDialog();
 
-    /** \brief Shows the raw information dialog.
-     *
-     */
-    void showRawInformation();
-
     /** \brief Updates the undo action text in the menu.
      * \param[in] text text of the operation to update.
      *

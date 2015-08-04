@@ -162,14 +162,4 @@ void ManualROITool::configureDrawingTools()
 {
   m_drawingWidget.setDrawingColor(Qt::yellow);
   m_drawingWidget.showCategoryControls(false);
-
-//   m_drawingWidget.setPencil2DIcon(QIcon(":/espina/roi_brush2D.svg"));
-//   m_drawingWidget.setPencil2DText(tr("Modify ROI drawing 2D discs"));
-//
-//   m_drawingWidget.setPencil3DIcon(QIcon(":/espina/roi_brush3D.svg"));
-//   m_drawingWidget.setPencil3DText(tr("Modify ROI drawing 3D spheres"));
-
-  //    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-  //                                       tr("Modify segmentation drawing contour"),
-  //                                       m_drawToolSelector);
 }

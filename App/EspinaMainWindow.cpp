@@ -202,9 +202,9 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
   auto factory = m_context.factory();
 
-  for(QObject *plugin : plugins)
+  for(auto plugin : plugins)
   {
-    Plugin *validPlugin = qobject_cast<Plugin*>(plugin);
+    auto validPlugin = qobject_cast<Plugin*>(plugin);
     if (validPlugin)
     {
       validPlugin->init(m_context);
@@ -268,6 +268,12 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       {
 //        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
         factory->registerExtensionFactory(extensionFactory);
+      }
+
+      for (auto report : validPlugin->reports())
+      {
+//        qDebug() << plugin << "- Register Reprot" << report->name() << " ...... OK";
+        m_analyzeToolGroup->registerReport(report);
       }
 
       for (auto settings : validPlugin->settingsPanels())
@@ -846,27 +852,6 @@ void EspinaMainWindow::autosave()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::showRawInformation()
-{
-  if (m_context.model()->segmentations().isEmpty())
-  {
-    auto title   = tr("Raw Information");
-    auto message = tr("Current analysis does not contain any segmentations");
-
-    DefaultDialogs::InformationMessage(title, message);
-  }
-  else
-  {
-    auto dialog = new RawInformationDialog(m_context);
-
-    connect(dialog, SIGNAL(finished(int)),
-            dialog, SLOT(deleteLater()));
-
-    dialog->show();
-  }
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::cancelOperation()
 {
   m_context.viewState().setEventHandler(nullptr);
@@ -1019,8 +1004,6 @@ void EspinaMainWindow::createMenus()
 {
   createFileMenu();
 
-  createReportsMenu();
-
   createEditMenu();
 
   createViewMenu();
@@ -1114,11 +1097,6 @@ void EspinaMainWindow::createReportsMenu()
   subnode->menu = menuBar()->addMenu(tr("Reports"));
   subnode->menu->setEnabled(false);
   m_dynamicMenuRoot->submenus << subnode;
-
-  auto rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
-  connect(rawInformationAction, SIGNAL(triggered(bool)),
-          this,                 SLOT(showRawInformation()));
-
 }
 
 //------------------------------------------------------------------------
@@ -1330,6 +1308,8 @@ void EspinaMainWindow::createAnalyzeToolGroup()
   m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
 
   registerToolGroup(m_analyzeToolGroup);
+
+  createReportsMenu();
 }
 
 //------------------------------------------------------------------------

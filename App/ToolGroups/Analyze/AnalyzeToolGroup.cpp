@@ -19,20 +19,29 @@
  */
 #include <ToolGroups/Analyze/AnalyzeToolGroup.h>
 
-#include <Tools/Measure/MeasureTool.h>
-#include <Tools/SelectionMeasure/SelectionMeasureTool.h>
+#include "Measure/MeasureTool.h"
+#include "SelectionMeasure/SelectionMeasureTool.h"
+#include "Reports/ReportsTool.h"
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
+, m_reports(new ReportsTool(context))
 {
   addTool(std::make_shared<MeasureTool>(context));
   addTool(std::make_shared<SelectionMeasureTool>(context));
+  addTool(m_reports);
 }
 
 //----------------------------------------------------------------------------
 AnalyzeToolGroup::~AnalyzeToolGroup()
 {
+}
+
+//----------------------------------------------------------------------------
+void AnalyzeToolGroup::registerReport(Support::ReportSPtr report)
+{
+  m_reports->registerReport(report);
 }
