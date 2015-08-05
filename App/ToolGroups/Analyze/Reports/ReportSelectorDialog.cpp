@@ -62,6 +62,8 @@ void ReportSelectorDialog::previewReport(int i)
 
     m_title->setText(report->name());
 
+    m_preview->setPixmap(report->preview());
+
     m_description->setText(report->description());
   }
 }

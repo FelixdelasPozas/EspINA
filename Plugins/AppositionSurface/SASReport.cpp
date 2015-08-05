@@ -47,11 +47,6 @@ QString SASReport::description() const
   return tr("Display the information of every synpasis and its synaptic apposition surface");
 }
 
-//----------------------------------------------------------------------------
-QPixmap SASReport::preview() const
-{
-
-}
 
 //----------------------------------------------------------------------------
 void SASReport::show() const

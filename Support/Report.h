@@ -23,11 +23,11 @@
 #include <QObject>
 
 #include <QList>
+#include <QPixmap>
 
 #include <memory>
 
 class QString;
-class QPixmap;
 
 namespace ESPINA
 {
@@ -54,7 +54,8 @@ namespace ESPINA
       /** \brief Return a preview of the report
        *
        */
-      virtual QPixmap preview() const = 0;
+      virtual QPixmap preview() const
+      { return QPixmap(":/espina/preview_not_available.png"); }
 
       /** \brief Show report dialog
        *

@@ -36,8 +36,6 @@ namespace ESPINA
 
     virtual QString description() const;
 
-    virtual QPixmap preview() const;
-
     virtual void show() const;
   };
 }

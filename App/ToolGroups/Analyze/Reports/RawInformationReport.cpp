@@ -46,7 +46,7 @@ QString RawInformationReport::description() const
 //----------------------------------------------------------------------------
 QPixmap RawInformationReport::preview() const
 {
-  return QPixmap();
+  return QPixmap(":/espina/preview_raw_information.png");
 }
 
 //----------------------------------------------------------------------------
