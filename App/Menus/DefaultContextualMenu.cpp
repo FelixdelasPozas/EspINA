@@ -41,6 +41,7 @@
 #include <QMessageBox>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
@@ -55,6 +56,7 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
   createNoteEntry();
   createTagsEntry();
   createRenameEntry();
+  createExportEntry();
   createDeleteEntry();
 }
 
@@ -137,12 +139,14 @@ void DefaultContextualMenu::resetRootItem()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
+  auto renameTitle = tr("Rename Segmentation");
+
   QMap<SegmentationAdapterPtr, QString> renames;
 
   for (auto segmentation : m_segmentations)
   {
     QString oldName = segmentation->data().toString();
-    QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
+    QString alias = QInputDialog::getText(this, oldName, renameTitle, QLineEdit::Normal, oldName);
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
@@ -152,8 +156,10 @@ void DefaultContextualMenu::renameSegmentation()
 
     if (exists)
     {
-      QMessageBox::warning(this, tr("Alias duplicated"),
-          tr("Segmentation alias is already used by another segmentation."));
+      auto title = tr("Alias duplicated");
+      auto msg   = tr("Segmentation alias is already used by another segmentation.");
+
+      DefaultDialogs::InformationMessage(title, msg);
     }
     else
     {
@@ -164,9 +170,32 @@ void DefaultContextualMenu::renameSegmentation()
   if (renames.size() != 0)
   {
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(QString("Rename segmentations"));
+    undoStack->beginMacro(renameTitle);
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::exportSelectedSegmentations()
+{
+  auto title     = tr("Export selected segmentations");
+  auto overwrite = tr("%1 already exists. Do you want to overwrite it?");
+
+  auto dir = DefaultDialogs::SaveDirectory(title);
+
+  for (auto segmentation : m_segmentations)
+  {
+    auto alias  = segmentation->data(Qt::DisplayRole);
+    auto file   = QString("%1.tif").arg(alias.toString());
+
+    if (!dir.exists(file) || DefaultDialogs::UserConfirmation(title, overwrite.arg(file)))
+    {
+      auto path   = dir.absoluteFilePath(file);
+      auto volume = readLockVolume(segmentation->output());
+
+      exportVolume<itkVolumeType>(volume->itkImage(), path);
+    }
   }
 }
 
@@ -176,7 +205,7 @@ void DefaultContextualMenu::deleteSelectedSementations()
   this->hide();
 
   auto undoStack = getUndoStack();
-  undoStack->beginMacro("Delete Segmentations");
+  undoStack->beginMacro(tr("Delete Segmentations"));
   undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
   undoStack->endMacro();
 
@@ -200,8 +229,8 @@ void DefaultContextualMenu::createNoteEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createChangeCategoryMenu()
 {
-   QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
-   QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
+   auto changeCategoryMenu = new QMenu(tr("Change Category"));
+   auto categoryListAction = new QWidgetAction(changeCategoryMenu);
 
    auto model = getModel();
 
@@ -210,8 +239,10 @@ void DefaultContextualMenu::createChangeCategoryMenu()
    m_classification->setModel(model.get());
    m_classification->setRootIndex(model->classificationRoot());
    m_classification->expandAll();
+
    connect(model.get(), SIGNAL(modelReset()),
-           this,          SLOT(resetRootItem()));
+           this,        SLOT(resetRootItem()));
+
    connect(m_classification, SIGNAL(clicked(QModelIndex)),
            this, SLOT(changeSegmentationsCategory(QModelIndex)));
 
@@ -223,10 +254,10 @@ void DefaultContextualMenu::createChangeCategoryMenu()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  auto tagsAction = addAction(tr("Tags"));
-  tagsAction->setIcon(QIcon(":/espina/tag.svg"));
+  auto action = addAction(tr("Tags"));
+  action->setIcon(QIcon(":/espina/tag.svg"));
 
-  connect(tagsAction, SIGNAL(triggered(bool)),
+  connect(action, SIGNAL(triggered(bool)),
           this,       SLOT(manageTags()));
 
 }
@@ -236,15 +267,24 @@ void DefaultContextualMenu::createRenameEntry()
 {
   auto action = addAction(tr("&Rename"));
   connect(action, SIGNAL(triggered(bool)),
-          this, SLOT(renameSegmentation()));
+          this,   SLOT(renameSegmentation()));
 }
 
 
 //------------------------------------------------------------------------
+void DefaultContextualMenu::createExportEntry()
+{
+  auto action = addAction(tr("Export"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(exportSelectedSegmentations()));
+}
+
+//------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  auto deleteAction = addAction(tr("Delete"));
+  auto action = addAction(tr("Delete"));
 
-  connect(deleteAction, SIGNAL(triggered(bool)),
-          this,         SLOT(deleteSelectedSementations()));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(deleteSelectedSementations()));
 }

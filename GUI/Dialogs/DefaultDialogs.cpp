@@ -72,6 +72,29 @@ QStringList DefaultDialogs::OpenFiles(const QString       &title,
 }
 
 //------------------------------------------------------------------------
+QDir DefaultDialogs::SaveDirectory(const QString& title, const QString& path)
+{
+  QDir dir;
+
+  QFileDialog fileDialog;
+  fileDialog.setWindowTitle(title);
+  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
+  fileDialog.setFileMode(QFileDialog::DirectoryOnly);
+  fileDialog.setDirectory(path);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.resize(800, 480);
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    dir = fileDialog.directory();
+  }
+
+  return dir;
+}
+
+
+//------------------------------------------------------------------------
 QString DefaultDialogs::SaveFile(const QString& title,
                                  const SupportedFormats& filters,
                                  const QString& path,

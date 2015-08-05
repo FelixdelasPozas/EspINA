@@ -54,9 +54,6 @@ namespace ESPINA
        */
       ~DefaultContextualMenu();
 
-      /** \brief Overrides ContextualMenu::setSelection().
-       *
-       */
       virtual void setSelection(SelectionSPtr selection) override;
 
     private slots:
@@ -69,6 +66,11 @@ namespace ESPINA
        * \param[in] index const QModelIndex referece of the item.
        */
       void changeSegmentationsCategory(const QModelIndex &index);
+
+      /** \brief Export selected segmentations to external format
+       *
+       */
+      void exportSelectedSegmentations();
 
       /** \brief Removes the selected segmentations.
        *
@@ -114,6 +116,11 @@ namespace ESPINA
        *
        */
       void createRenameEntry();
+
+      /** \brief Export segmentations to external format
+       *
+       */
+      void createExportEntry();
 
       /** \brief Creates a "delete" entry for the contextual menu.
        *
