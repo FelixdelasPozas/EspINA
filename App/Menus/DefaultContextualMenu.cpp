@@ -29,6 +29,12 @@
 #include <Undo/RemoveSegmentations.h>
 #include <Support/Utils/TagUtils.h>
 
+#include <itkLabelObject.h>
+#include <itkLabelMap.h>
+#include <itkBinaryImageToLabelMapFilter.h>
+#include <itkLabelMapToLabelImageFilter.h>
+#include <itkMergeLabelMapFilter.h>
+
 // Qt
 #include <QWidgetAction>
 #include <QTreeView>
@@ -179,24 +185,49 @@ void DefaultContextualMenu::renameSegmentation()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::exportSelectedSegmentations()
 {
-  auto title     = tr("Export selected segmentations");
-  auto overwrite = tr("%1 already exists. Do you want to overwrite it?");
+  auto title  = tr("Export selected segmentations");
+  auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
 
-  auto dir = DefaultDialogs::SaveDirectory(title);
+  auto file = DefaultDialogs::SaveFile(title, format);
 
+  using Label      = itk::LabelObject<unsigned short, 3>;
+  using LabelMap   = itk::LabelMap<Label>;
+  using LabelImage = itk::Image<unsigned short, 3>;
+
+  using MergFilter = itk::MergeLabelMapFilter<LabelMap>;
+
+
+  auto channel = getActiveChannel();
+  auto origin  = channel->position();
+  auto spacing = channel->output()->spacing();
+
+  auto labelMap = LabelMap::New();
+  labelMap->SetSpacing(ItkSpacing<LabelMap>(spacing));
+  labelMap->SetRegions(equivalentRegion<LabelMap>(origin, spacing, channel->bounds()));
+  labelMap->Allocate();
+
+  unsigned short i = 0;
   for (auto segmentation : m_segmentations)
   {
-    auto alias  = segmentation->data(Qt::DisplayRole);
-    auto file   = QString("%1.tif").arg(alias.toString());
+    auto volume = readLockVolume(segmentation->output())->itkImage();
 
-    if (!dir.exists(file) || DefaultDialogs::UserConfirmation(title, overwrite.arg(file)))
-    {
-      auto path   = dir.absoluteFilePath(file);
-      auto volume = readLockVolume(segmentation->output());
+    auto segLabelMap = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>::New();
+    segLabelMap->SetInput(volume);
+    segLabelMap->SetInputForegroundValue(SEG_VOXEL_VALUE);
+    segLabelMap->Update();
 
-      exportVolume<itkVolumeType>(volume->itkImage(), path);
-    }
+    auto label = segLabelMap->GetOutput()->GetLabelObject(1);
+    label->SetLabel(++i);
+
+    labelMap->AddLabelObject(label);
   }
+
+  auto image = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>::New();
+
+  image->SetInput(labelMap);
+  image->Update();
+
+  exportVolume<LabelImage>(image->GetOutput(), file);
 }
 
 //------------------------------------------------------------------------
@@ -220,10 +251,11 @@ void DefaultContextualMenu::setSelection(SelectionSPtr selection)
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createNoteEntry()
 {
-  QAction *noteAction = addAction(tr("Notes"));
-  noteAction->setIcon(QIcon(":/espina/note.svg"));
-  connect(noteAction, SIGNAL(triggered(bool)),
-          this, SLOT(addNote()));
+  auto action = addAction(tr("Notes"));
+
+  action->setIcon(QIcon(":/espina/note.svg"));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(addNote()));
 }
 
 //------------------------------------------------------------------------
