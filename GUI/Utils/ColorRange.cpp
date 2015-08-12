@@ -37,7 +37,7 @@ QColor ColorRange::color(const double value) const
 }
 
 //------------------------------------------------------------------------
-QColor ColorRange::color(const double value, const double min, const double max)
+QColor ColorRange::color(const double value, const double min, const double max) const
 {
   return computeColor(value, min, max, m_minColor, m_maxColor);
 }

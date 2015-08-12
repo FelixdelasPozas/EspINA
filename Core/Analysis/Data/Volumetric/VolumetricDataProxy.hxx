@@ -53,63 +53,63 @@ namespace ESPINA
     virtual ~VolumetricDataProxy()
     {}
 
-    virtual void set(DataSPtr data)
+    virtual void set(DataSPtr data) override
     {
       m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
     }
 
-    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
     { return m_data->setFetchContext(storage, path, id, bounds); }
 
-    virtual bool needFetch() const
+    virtual bool needFetch() const override
     { return m_data->needFetch(); }
 
-    virtual size_t memoryUsage() const
+    virtual size_t memoryUsage() const override
     {
       return m_data->memoryUsage();
     }
 
-    virtual Bounds bounds() const
+    virtual Bounds bounds() const override
     {
       return m_data->bounds();
     }
 
-    virtual void setOrigin(const NmVector3& origin)
+    virtual void setOrigin(const NmVector3& origin) override
     {
       m_data->setOrigin(origin);
     }
 
-    virtual NmVector3 origin() const
+    virtual NmVector3 origin() const override
     {
       return m_data->origin();
     }
 
-    virtual void setSpacing(const NmVector3& spacing)
+    virtual void setSpacing(const NmVector3& spacing) override
     {
       m_data->setSpacing(spacing);
     }
 
-    virtual NmVector3 spacing() const
+    virtual NmVector3 spacing() const override
     {
       return m_data->spacing();
     }
 
-    virtual const typename T::Pointer itkImage() const
+    virtual const typename T::Pointer itkImage() const override
     {
       return m_data->itkImage();
     }
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override
     {
       return m_data->itkImage(bounds);
     }
 
-    virtual void setBackgroundValue(const typename T::ValueType value)
+    virtual void setBackgroundValue(const typename T::ValueType value) override
     {
       m_data->setBackgroundValue(value);
     }
 
-    typename T::ValueType backgroundValue() const
+    typename T::ValueType backgroundValue() const override
     {
       return m_data->backgroundValue();
     }
@@ -151,12 +151,12 @@ namespace ESPINA
      m_data->draw(mask, value);
     }
 
-    virtual void resize(const Bounds &bounds)
+    virtual void resize(const Bounds &bounds) override
     {
       m_data->resize(bounds);
     }
 
-    virtual TimeStamp lastModified() const
+    virtual TimeStamp lastModified() const override
     {
       return m_data->lastModified();
     }
@@ -176,12 +176,12 @@ namespace ESPINA
       m_data->clearEditedRegions();
     }
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     {
       return m_data->isValid();
     }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     {
       return m_data->isEmpty();
     }

@@ -22,7 +22,7 @@
 #define ESPINA_DEFAULT_VIEW_H
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>

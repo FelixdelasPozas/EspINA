@@ -18,7 +18,7 @@
 #ifndef ESPINA_RANGED_VALUE_H
 #define ESPINA_RANGED_VALUE_H
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <QMap>
 #include <QDebug>
 

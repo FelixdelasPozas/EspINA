@@ -25,7 +25,7 @@
 #include <GUI/Representations/RepresentationManager.h>
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Representations/RepresentationPipeline.h>
@@ -71,8 +71,6 @@ namespace ESPINA
           virtual RepresentationPipeline::Actors actors(TimeStamp t) = 0;
 
           virtual void invalidatePreviousActors(TimeStamp t) = 0;
-
-          virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
         protected:
           RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view

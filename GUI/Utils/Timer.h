@@ -21,7 +21,7 @@
 #define ESPINA_TIMER_H_
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QObject>

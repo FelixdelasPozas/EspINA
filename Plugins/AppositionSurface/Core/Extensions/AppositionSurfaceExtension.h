@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/Analysis/Extension.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Model/SegmentationAdapter.h>
 

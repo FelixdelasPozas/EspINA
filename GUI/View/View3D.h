@@ -61,16 +61,16 @@ namespace ESPINA
      */
     virtual ~View3D();
 
-    virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
+    virtual Bounds previewBounds(bool cropToSceneBounds = true) const override;
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    virtual void setCameraState(CameraState state);
+    virtual void setCameraState(CameraState state) override;
 
-    virtual RenderView::CameraState cameraState();
+    virtual RenderView::CameraState cameraState() override;
 
   protected:
-    virtual void resetImplementation();
+    virtual void resetImplementation() override;
 
   protected slots:
     /** \brief Updates the view then a crosshair scroll bar changes value.
@@ -90,29 +90,29 @@ namespace ESPINA
     void onTakeSnapshot();
 
   private:
-    virtual void onCrosshairChanged(const NmVector3 &point);
+    virtual void onCrosshairChanged(const NmVector3 &point) override;
 
-    virtual void moveCamera(const NmVector3 &point);
+    virtual void moveCamera(const NmVector3 &point) override;
 
-    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) override;
 
-    virtual void onSceneBoundsChanged(const Bounds &bounds);
+    virtual void onSceneBoundsChanged(const Bounds &bounds) override;
 
-    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
-    virtual void addActor   (vtkProp *actor);
+    virtual void addActor   (vtkProp *actor) override;
 
-    virtual void removeActor(vtkProp *actor);
+    virtual void removeActor(vtkProp *actor) override;
 
-    virtual vtkRenderer *mainRenderer() const;
+    virtual vtkRenderer *mainRenderer() const override;
 
     virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 
-    virtual void resetCameraImplementation();
+    virtual void resetCameraImplementation() override;
 
     virtual bool isCrosshairPointVisible() const override;
 
-    virtual void refreshViewImplementation();
+    virtual void refreshViewImplementation() override;
 
     /** \brief Helper method to setup the UI.
      *
@@ -129,7 +129,7 @@ namespace ESPINA
      */
     void updateScrollBarsLimits();
 
-    virtual const QString viewName() const;
+    virtual const QString viewName() const override;
 
   private:
     // GUI

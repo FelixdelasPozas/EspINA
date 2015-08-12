@@ -48,7 +48,7 @@ SegmentationVolumetricCPUPipeline::SegmentationVolumetricCPUPipeline(ColorEngine
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationVolumetricCPUPipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState SegmentationVolumetricCPUPipeline::representationState(ConstViewItemAdapterPtr    item,
                                                                            const RepresentationState &settings)
 {
   auto segmentation = segmentationPtr(item);
@@ -62,7 +62,7 @@ RepresentationState SegmentationVolumetricCPUPipeline::representationState(const
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                   const RepresentationState &state)
 {
   auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -139,7 +139,7 @@ void SegmentationVolumetricCPUPipeline::updateColors(ActorList &actors,
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationVolumetricCPUPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationVolumetricCPUPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
   return true;

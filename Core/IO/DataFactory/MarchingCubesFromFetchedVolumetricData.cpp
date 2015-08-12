@@ -16,6 +16,7 @@
  */
 
 // ESPINA
+#include "Core/Analysis/Data.h"
 #include "MarchingCubesFromFetchedVolumetricData.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
@@ -47,7 +48,8 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
       output->setData(data);
     }
 
-    data = writeLockMesh(output, DataUpdatePolicy::Ignore);
+    MeshDataSPtr mesh = writeLockMesh(output, DataUpdatePolicy::Ignore);
+    data = mesh;
   }
 
   return data;

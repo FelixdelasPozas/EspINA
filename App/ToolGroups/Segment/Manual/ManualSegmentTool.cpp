@@ -65,7 +65,6 @@ FilterTypeList ManualSegmentTool::ManualFilterFactory::providedFilters() const
 FilterSPtr ManualSegmentTool::ManualFilterFactory::createFilter(InputSList          inputs,
                                                                 const Filter::Type& filter,
                                                                 SchedulerSPtr       scheduler) const
-throw(Unknown_Filter_Exception)
 {
   if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
 

@@ -20,7 +20,7 @@
 
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/Bounds.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 #include <itkImageRegionExclusionConstIteratorWithIndex.h>
 

@@ -20,6 +20,7 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 
@@ -50,7 +51,7 @@ ChannelSlicePipeline::ChannelSlicePipeline(const Plane plane)
 }
 
 //----------------------------------------------------------------------------
-RepresentationState ChannelSlicePipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState ChannelSlicePipeline::representationState(ConstViewItemAdapterPtr   item,
                                                               const RepresentationState &settings)
 {
   RepresentationState state;
@@ -64,7 +65,7 @@ RepresentationState ChannelSlicePipeline::representationState(const ViewItemAdap
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewItemAdapterPtr   item,
                                                                      const RepresentationState &state)
 {
   auto channel    = channelPtr(item);
@@ -143,8 +144,8 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
 
 //----------------------------------------------------------------------------
 void ChannelSlicePipeline::updateColors(ActorList& actors,
-                                        const ViewItemAdapter* item,
-                                        const RepresentationState& state)
+                                        ConstViewItemAdapterPtr   item,
+                                        const RepresentationState &state)
 {
 
   if (actors.size() == 1)
@@ -161,7 +162,7 @@ void ChannelSlicePipeline::updateColors(ActorList& actors,
 }
 
 //----------------------------------------------------------------------------
-bool ChannelSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool ChannelSlicePipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   return contains(item->output()->bounds(), point);
 }

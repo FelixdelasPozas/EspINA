@@ -32,7 +32,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/PixelValueSelector.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Utils/Vector3.hxx>
 #include <Extensions/EdgeDistances/ChannelEdges.h>

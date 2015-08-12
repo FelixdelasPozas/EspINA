@@ -26,7 +26,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include "Core/Analysis/Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;

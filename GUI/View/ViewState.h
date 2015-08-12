@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Core/Utils/Bounds.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Types.h>
 #include <GUI/View/RepresentationInvalidator.h>

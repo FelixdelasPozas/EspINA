@@ -35,13 +35,13 @@ SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
 }
 
 //------------------------------------------------------------------------
-RepresentationState SliceEditionPipeline::representationState(const ViewItemAdapter *item, const RepresentationState &settings)
+RepresentationState SliceEditionPipeline::representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings)
 {
   return m_slicePipeline.representationState(item, settings);
 }
 
 //------------------------------------------------------------------------
-RepresentationPipeline::ActorList SliceEditionPipeline::createActors(const ViewItemAdapter *item, const RepresentationState &state)
+RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewItemAdapterPtr item, const RepresentationState &state)
 {
   ActorList actors;
   //qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
@@ -59,7 +59,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(const ViewI
 }
 
 //------------------------------------------------------------------------
-void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, const ViewItemAdapter* item, const RepresentationState& state)
+void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
   if (!(crosshairPoint(state) == m_crosshair) || !(plane(state) == m_plane))
   {
@@ -68,7 +68,7 @@ void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actor
 }
 
 //------------------------------------------------------------------------
-bool SliceEditionPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SliceEditionPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   return m_slicePipeline.pick(item, point);
 }

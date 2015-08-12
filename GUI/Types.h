@@ -22,9 +22,38 @@
 #define ESPINA_GUI_TYPES_H_
 
 #include <memory>
+#include <QList>
 
 namespace ESPINA
 {
+  class ItemAdapter;
+  using ItemAdapterPtr      = ItemAdapter *;
+  using ConstItemAdapterPtr = const ItemAdapter *;
+
+  class CategoryAdapter;
+  using CategoryAdapterPtr   = CategoryAdapter *;
+  using CategoryAdapterSPtr  = std::shared_ptr<CategoryAdapter>;
+
+  class ViewItemAdapter;
+  using ViewItemAdapterPtr      = ViewItemAdapter *;
+  using ConstViewItemAdapterPtr = const ViewItemAdapter *;
+
+  class ChannelAdapter;
+  using ChannelAdapterPtr      = ChannelAdapter *;
+  using ConstChannelAdapterPtr = const ChannelAdapter *;
+  using ChannelAdapterList     = QList<ChannelAdapterPtr>;
+  using ChannelAdapterSPtr     = std::shared_ptr<ChannelAdapter>;
+  using ChannelAdapterSList    = QList<ChannelAdapterSPtr>;
+
+  class SegmentationAdapter;
+  using SegmentationAdapterPtr      = SegmentationAdapter *;
+  using ConstSegmentationAdapterPtr = const SegmentationAdapter *;
+  using SegmentationAdapterCPtr     = const SegmentationAdapter *;
+  using SegmentationAdapterSet      = QSet<SegmentationAdapterPtr>;
+  using SegmentationAdapterList     = QList<SegmentationAdapterPtr>;
+  using SegmentationAdapterSPtr     = std::shared_ptr<SegmentationAdapter>;
+  using SegmentationAdapterSList    = QList<SegmentationAdapterSPtr>;
+
   namespace GUI
   {
     namespace ColorEngines

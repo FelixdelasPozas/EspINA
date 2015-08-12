@@ -48,7 +48,7 @@ SegmentationVolumetricGPUPipeline::SegmentationVolumetricGPUPipeline(ColorEngine
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationVolumetricGPUPipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState SegmentationVolumetricGPUPipeline::representationState(ConstViewItemAdapterPtr    item,
                                                                            const RepresentationState &settings)
 {
   auto segmentation = segmentationPtr(item);
@@ -62,7 +62,7 @@ RepresentationState SegmentationVolumetricGPUPipeline::representationState(const
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                   const RepresentationState &state)
 {
   auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -120,7 +120,7 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
 
 //----------------------------------------------------------------------------
 void SegmentationVolumetricGPUPipeline::updateColors(ActorList                 &actors,
-                                                     const ViewItemAdapter     *item,
+                                                     ConstViewItemAdapterPtr    item,
                                                      const RepresentationState &state)
 {
   if (actors.size() == 1)
@@ -140,7 +140,7 @@ void SegmentationVolumetricGPUPipeline::updateColors(ActorList                 &
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationVolumetricGPUPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationVolumetricGPUPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
   return true;

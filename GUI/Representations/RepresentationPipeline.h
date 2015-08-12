@@ -20,8 +20,9 @@
 #ifndef ESPINA_REPRESENTATION_PIPELINE_H
 #define ESPINA_REPRESENTATION_PIPELINE_H
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
+#include <GUI/Types.h>
 #include "RepresentationState.h"
 
 #include <QString>
@@ -34,8 +35,6 @@
 class vtkProp;
 
 namespace ESPINA {
-
-class ViewItemAdapter;
 
   /** \class RepresentationPipeline
    *
@@ -70,14 +69,14 @@ class ViewItemAdapter;
      */
     virtual void restoreSettings(QString settings);
 
-    virtual RepresentationState representationState(const ViewItemAdapter     *item,
+    virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
                                                     const RepresentationState &settings) = 0;
 
     /** \brief Create the actors for the view item with the given state
      *
      *  NOTE: This function must be reentrant
      */
-    virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
+    virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr  item,
                                                            const RepresentationState &state) = 0;
 
     /** \brief Update the color of the representationa actors
@@ -85,10 +84,10 @@ class ViewItemAdapter;
      *  NOTE: This function must be reentrant
      */
     virtual void updateColors(RepresentationPipeline::ActorList &actors,
-                              const ViewItemAdapter             *item,
+                              ConstViewItemAdapterPtr           item,
                               const RepresentationState         &state) = 0;
 
-    virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const = 0;
+    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const = 0;
 
   protected:
     explicit RepresentationPipeline(Type type);

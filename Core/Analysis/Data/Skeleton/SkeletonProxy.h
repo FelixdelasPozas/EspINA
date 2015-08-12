@@ -54,24 +54,24 @@ namespace ESPINA
       virtual ~SkeletonProxy()
       {}
 
-      virtual void set(DataSPtr data)
+      virtual void set(DataSPtr data) override
       {
         m_data = std::dynamic_pointer_cast<SkeletonData>(data);
       }
 
-      virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+      virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
       { return m_data->setFetchContext(storage, path, id, bounds); }
 
-      virtual bool needFetch() const
+      virtual bool needFetch() const override
       { return m_data->needFetch(); }
 
       virtual Bounds bounds() const override
       { return m_data->bounds(); }
 
-      virtual void setSpacing(const NmVector3& spacing)
+      virtual void setSpacing(const NmVector3& spacing) override
       { m_data->setSpacing(spacing); }
 
-      virtual NmVector3 spacing() const
+      virtual NmVector3 spacing() const override
       { return m_data->spacing(); }
 
       virtual TimeStamp lastModified() const override
@@ -83,22 +83,22 @@ namespace ESPINA
       virtual void clearEditedRegions() override
       { m_data->clearEditedRegions(); }
 
-      virtual bool isValid() const
+      virtual bool isValid() const override
       { return m_data->isValid(); }
 
-      virtual bool isEmpty() const
+      virtual bool isEmpty() const override
       { return m_data->isEmpty(); }
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
       { return m_data->snapshot(storage, path, id); }
 
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
       { return m_data->editedRegionsSnapshot(storage, path, id); }
 
-      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id)
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { return m_data->restoreEditedRegions(storage, path, id); }
 
-      virtual size_t memoryUsage() const
+      virtual size_t memoryUsage() const override
       { return m_data->memoryUsage(); }
 
       virtual vtkSmartPointer<vtkPolyData> skeleton() const override

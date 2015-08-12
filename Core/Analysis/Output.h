@@ -32,7 +32,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include "Core/Analysis/Data.h"
 #include "DataProxy.h"
 #include <QMap>
@@ -143,10 +143,7 @@ namespace ESPINA
       {
       }
 
-      operator std::shared_ptr<T>()
-      { return this->m_dataProxy; }
-
-       operator DataSPtr()
+      operator std::shared_ptr<T>&()
       { return this->m_dataProxy; }
 
       T * operator ->()

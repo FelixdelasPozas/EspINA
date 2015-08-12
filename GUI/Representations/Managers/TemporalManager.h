@@ -125,20 +125,20 @@ namespace ESPINA
 
           virtual ~TemporalManager();
 
-          virtual TimeRange readyRangeImplementation() const;
+          virtual TimeRange readyRangeImplementation() const override;
 
-          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-          virtual void setPlane(Plane plane);
+          virtual void setPlane(Plane plane) override;
 
-          virtual void setRepresentationDepth(Nm depth);
+          virtual void setRepresentationDepth(Nm depth) override;
 
         protected:
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
         private:
           virtual bool hasRepresentations() const override;
@@ -153,11 +153,11 @@ namespace ESPINA
 
           virtual void onHide(TimeStamp t) override;
 
-          virtual void displayRepresentations(TimeStamp t);
+          virtual void displayRepresentations(TimeStamp t) override;
 
-          virtual void hideRepresentations(TimeStamp t);
+          virtual void hideRepresentations(TimeStamp t) override;
 
-          virtual RepresentationManagerSPtr cloneImplementation();
+          virtual RepresentationManagerSPtr cloneImplementation() override;
 
         private:
           TemporalPrototypesSPtr m_prototypes;

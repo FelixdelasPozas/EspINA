@@ -37,7 +37,7 @@ namespace ESPINA {
 
         QColor color(const double value) const;
 
-        QColor color(const double value, const double min, const double max);
+        QColor color(const double value, const double min, const double max) const;
 
         void setMinimumValue(const double value);
 

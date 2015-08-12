@@ -51,32 +51,32 @@ namespace ESPINA
            */
           explicit CrosshairManager(ViewTypeFlags supportedViews);
 
-          virtual TimeRange readyRangeImplementation() const;
+          virtual TimeRange readyRangeImplementation() const override;
 
-          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
         private:
-          virtual bool hasRepresentations() const;
+          virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
           virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-          virtual void displayRepresentations(TimeStamp t);
+          virtual void displayRepresentations(TimeStamp t) override;
 
-          virtual void hideRepresentations(TimeStamp t );
+          virtual void hideRepresentations(TimeStamp t ) override;
 
-          virtual void onHide(TimeStamp t);
+          virtual void onHide(TimeStamp t) override;
 
-          virtual void onShow(TimeStamp t);
+          virtual void onShow(TimeStamp t) override;
 
-          virtual RepresentationManagerSPtr cloneImplementation();
+          virtual RepresentationManagerSPtr cloneImplementation() override;
 
           /** \brief Configure the 2D actors for the given crosshair.
            * \param[in] crosshair crosshair point.

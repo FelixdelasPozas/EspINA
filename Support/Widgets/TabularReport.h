@@ -62,31 +62,31 @@ namespace ESPINA
      */
     virtual ~TabularReport();
 
-    virtual int horizontalOffset() const
+    virtual int horizontalOffset() const override
     { return 0;}
 
-    virtual QModelIndex indexAt(const QPoint &point) const
+    virtual QModelIndex indexAt(const QPoint &point) const override
     { return QModelIndex(); }
 
-    virtual bool isIndexHidden(const QModelIndex &index) const
+    virtual bool isIndexHidden(const QModelIndex &index) const override
     { return false; }
 
-    virtual QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+    virtual QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override
     { return QModelIndex(); }
 
-    virtual void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible)
+    virtual void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible) override
     {}
 
-    virtual void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
+    virtual void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command) override
     {}
 
-    virtual int verticalOffset() const
+    virtual int verticalOffset() const override
     { return 0; }
 
-    virtual QRect visualRect(const QModelIndex &index) const
+    virtual QRect visualRect(const QModelIndex &index) const override
     { return QRect(); }
 
-    virtual QRegion visualRegionForSelection(const QItemSelection &selection) const
+    virtual QRegion visualRegionForSelection(const QItemSelection &selection) const override
     {return QRegion();}
 
     /** \brief Sets the model to be used.

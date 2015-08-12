@@ -24,7 +24,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/Vector3.hxx>
 #include <vtkSmartPointer.h>

@@ -51,7 +51,7 @@ namespace ESPINA
      */
     virtual FilterSPtr createFilter(InputSList          inputs,
                                     const Filter::Type& filter,
-                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
+                                    SchedulerSPtr       scheduler) const = 0;
 
     /** \brief Returns a list types of filter this factory can create.
      *

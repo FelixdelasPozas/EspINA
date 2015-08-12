@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
+#include <GUI/Representations/RepresentationPipeline.h>
 
 namespace ESPINA
 {
@@ -33,17 +34,17 @@ namespace ESPINA
   public:
     explicit SegmentationSlicePipeline(const Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
-    virtual RepresentationState representationState(const ViewItemAdapter     *item,
+    virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
                                                     const RepresentationState &settings) override;
 
-    virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
+    virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr   item,
                                                            const RepresentationState &state) override;
 
     virtual void updateColors(ActorList                 &actors,
-                              const ViewItemAdapter     *item,
-                              const RepresentationState &state);
+                              ConstViewItemAdapterPtr   item,
+                              const RepresentationState &state) override;
 
-    virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     void setPlane(const Plane plane);
 

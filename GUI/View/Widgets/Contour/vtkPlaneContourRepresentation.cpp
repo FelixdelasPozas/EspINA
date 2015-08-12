@@ -1908,11 +1908,11 @@ double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
               + ((displayPos_i[0] * displayPos_j[1]) - (displayPos_j[0] * displayPos_i[1]));
 
     int tempD = sqrt(pow(displayPos_j[0] - displayPos_i[0], 2)
-                   + pow(displayPos_j[1] - displayPos_i[1], 2));
+                   + pow(displayPos_j[1] - displayPos_i[1], 2)); //REVIEW: Truncate value?
 
     if (tempD != 0.0)
     {
-      double distance = fabs(tempN) / tempD;
+      double distance = static_cast<double>(abs(tempN)) / tempD;
 
       // if the distance is to a point outside the segment i,i+1, then the real distance to the segment is
       // the distance to one of the nodes

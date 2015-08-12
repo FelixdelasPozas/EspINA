@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "ROI.h"
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 
 using namespace ESPINA;
 

@@ -25,6 +25,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include <Core/Types.h>
 #include <GUI/ColorEngines/SelectionHighlighter.h>
 
 namespace ESPINA

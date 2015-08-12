@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "SplitFilter.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/Analysis/Data/VolumetricData.hxx>

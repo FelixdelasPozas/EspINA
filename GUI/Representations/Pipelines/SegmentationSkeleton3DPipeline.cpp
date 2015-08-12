@@ -45,7 +45,7 @@ SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr c
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationSkeleton3DPipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState SegmentationSkeleton3DPipeline::representationState(ConstViewItemAdapterPtr    item,
                                                                         const RepresentationState &settings)
 {
   RepresentationState state;
@@ -59,7 +59,7 @@ RepresentationState SegmentationSkeleton3DPipeline::representationState(const Vi
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                const RepresentationState &state)
 {
   auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -94,7 +94,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(c
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationSkeleton3DPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationSkeleton3DPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // TODO
   return false;

@@ -31,7 +31,7 @@
 #include <Core/Analysis/Input.h>
 #include <Core/Analysis/DataFactory.h>
 #include <Core/Factory/FilterFactory.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 namespace ESPINA
 {

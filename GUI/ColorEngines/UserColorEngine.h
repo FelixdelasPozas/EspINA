@@ -42,19 +42,10 @@ namespace ESPINA
          */
         explicit UserColorEngine();
 
-        /** \brief Implements ColorEngine::color().
-         *
-         */
-        virtual QColor color(SegmentationAdapterPtr seg);
+        virtual QColor color(ConstSegmentationAdapterPtr seg);
 
-        /** \brief Implements ColorEngine::lut().
-         *
-         */
-        virtual LUTSPtr lut (SegmentationAdapterPtr seg);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr seg);
 
-        /** \brief Implements ColorEngine::supportedComposition().
-         *
-         */
         virtual ColorEngine::Composition supportedComposition() const
         { return ColorEngine::Color; }
 

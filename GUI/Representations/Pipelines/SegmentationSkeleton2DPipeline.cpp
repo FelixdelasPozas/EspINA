@@ -53,7 +53,7 @@ namespace ESPINA
   }
   
   //----------------------------------------------------------------------------
-  RepresentationState SegmentationSkeleton2DPipeline::representationState(const ViewItemAdapter     *item,
+  RepresentationState SegmentationSkeleton2DPipeline::representationState(ConstViewItemAdapterPtr    item,
                                                                           const RepresentationState &settings)
   {
     RepresentationState state;
@@ -67,7 +67,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(const ViewItemAdapter     *item,
+  RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                  const RepresentationState &state)
   {
     auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -165,7 +165,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  bool SegmentationSkeleton2DPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+  bool SegmentationSkeleton2DPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
   {
     // TODO
     return false;

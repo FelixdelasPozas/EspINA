@@ -58,7 +58,7 @@ namespace ESPINA
        */
       virtual ~SegmentationVolumetricSwitch();
 
-      virtual ViewTypeFlags supportedViews();
+      virtual ViewTypeFlags supportedViews() override;
 
       virtual void showRepresentations(TimeStamp t) override;
 

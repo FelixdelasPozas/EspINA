@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Extension.h>
 
 // ITK

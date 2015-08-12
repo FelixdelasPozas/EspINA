@@ -211,6 +211,12 @@ ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
   return static_cast<ChannelAdapterPtr>(item);
 }
 
+//------------------------------------------------------------------------
+ConstChannelAdapterPtr ESPINA::channelPtr(ConstItemAdapterPtr item)
+{
+  return static_cast<ConstChannelAdapterPtr>(item);
+}
+
 
 //------------------------------------------------------------------------
 bool ESPINA::isChannel(ItemAdapterPtr item)

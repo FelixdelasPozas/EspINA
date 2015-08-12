@@ -23,7 +23,7 @@
 #define APP_UNDO_CHANGECATEGORYCOLORCOMMAND_H_
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/RepresentationInvalidator.h>

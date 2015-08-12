@@ -50,7 +50,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
+QColor CountingFrameColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   int r = 0;
   int g = 0;
@@ -78,7 +78,7 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr CountingFrameColorEngine::lut(SegmentationAdapterPtr segmentation)
+LUTSPtr CountingFrameColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 {
   auto res = m_includedLUT;
 

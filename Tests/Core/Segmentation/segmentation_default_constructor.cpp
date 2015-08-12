@@ -19,7 +19,7 @@
 */
 
 #include <Core/MultiTasking/Scheduler.h>
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Output.h"

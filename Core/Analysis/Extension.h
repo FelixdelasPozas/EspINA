@@ -25,7 +25,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include <Core/Analysis/ViewItem.h>
 
 // Qt

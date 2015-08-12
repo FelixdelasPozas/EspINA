@@ -28,6 +28,12 @@ SegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ItemAdapterPtr
 }
 
 //------------------------------------------------------------------------
+ConstSegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ConstItemAdapterPtr item)
+{
+  return dynamic_cast<ConstSegmentationAdapterPtr>(item);
+}
+
+//------------------------------------------------------------------------
 bool ESPINA::GUI::Model::Utils::isSegmentation(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SEGMENTATION == item->type();

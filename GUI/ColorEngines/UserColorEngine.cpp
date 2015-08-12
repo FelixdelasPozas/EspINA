@@ -21,6 +21,7 @@
 // ESPINA
 #include "UserColorEngine.h"
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 // VTK
 #include <vtkColorTransferFunction.h>
@@ -50,7 +51,7 @@ UserColorEngine::UserColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-QColor UserColorEngine::color(SegmentationAdapterPtr seg)
+QColor UserColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
   auto user = seg->users().last();
 
@@ -63,7 +64,7 @@ QColor UserColorEngine::color(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr UserColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   auto lutName = seg->users().join("");

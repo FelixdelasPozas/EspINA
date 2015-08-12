@@ -20,6 +20,7 @@
 #include "InformationColorEngine.h"
 
 #include <GUI/Utils/ColorRange.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -52,7 +53,7 @@ void InformationColorEngine::setInformation(const SegmentationExtension::Informa
 }
 
 //-----------------------------------------------------------------------------
-QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
+QColor InformationColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   Q_ASSERT(segmentation);
 
@@ -74,7 +75,7 @@ QColor InformationColorEngine::color(SegmentationAdapterPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr InformationColorEngine::lut(SegmentationAdapterPtr segmentation)
+LUTSPtr InformationColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 {
   auto  segColor = color(segmentation);
   auto  segLUT   = LUTSPtr::New();

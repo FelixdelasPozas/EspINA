@@ -21,6 +21,7 @@
 // ESPINA
 #include "CategoryColorEngine.h"
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
@@ -29,7 +30,7 @@ const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor CategoryColorEngine::color(SegmentationAdapterPtr seg)
+QColor CategoryColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
   QColor color(Qt::red);
 
@@ -42,7 +43,7 @@ QColor CategoryColorEngine::color(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr CategoryColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;

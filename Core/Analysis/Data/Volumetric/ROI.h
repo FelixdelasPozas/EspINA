@@ -161,7 +161,7 @@ namespace ESPINA
     else
     {
       // mask interpolation needed, more costly
-      auto spacing = spacing();
+      auto spacing = this->spacing();
 
       while(!crit.isAtEnd())
       {

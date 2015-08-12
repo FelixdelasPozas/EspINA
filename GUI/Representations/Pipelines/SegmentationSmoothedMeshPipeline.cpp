@@ -51,7 +51,7 @@ SegmentationSmoothedMeshPipeline::SegmentationSmoothedMeshPipeline(ColorEngineSP
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationSmoothedMeshPipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState SegmentationSmoothedMeshPipeline::representationState(ConstViewItemAdapterPtr  item,
                                                                           const RepresentationState &settings)
 {
   auto segmentation = segmentationPtr(item);
@@ -65,7 +65,7 @@ RepresentationState SegmentationSmoothedMeshPipeline::representationState(const 
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors(ConstViewItemAdapterPtr     item,
                                                                                  const RepresentationState &state)
 {
   ActorList actors;
@@ -122,7 +122,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
 
 //----------------------------------------------------------------------------
 void SegmentationSmoothedMeshPipeline::updateColors(RepresentationPipeline::ActorList &actors,
-                                                    const ViewItemAdapter             *item,
+                                                    ConstViewItemAdapterPtr           item,
                                                     const RepresentationState         &state)
 {
   if (actors.size() == 1)
@@ -138,7 +138,7 @@ void SegmentationSmoothedMeshPipeline::updateColors(RepresentationPipeline::Acto
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationSmoothedMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationSmoothedMeshPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
   return true;

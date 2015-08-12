@@ -153,31 +153,31 @@ namespace ESPINA
      * \param[in] sourceIndex QModelIndex object.
      *
      */
-    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override;
 
     /** \brief Returns the item index of the model from the item index of the proxy.
      * \param[in] proxyIndex QModelIndex object.
      *
      */
-    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const override;
 
     /** \brief Returns the number of columns.
      * \param[in] parent QModelIndex object.
      *
      */
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 
     /** \brief Returns the number of rows.
      * \param[in] parent QModelIndex object.
      *
      */
-    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
     /** \brief Returns the item index of the parent of the given index.
      * \param[in] child QModelIndex object.
      *
      */
-    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex parent(const QModelIndex& child) const override;
 
     /** \brief Returns the index of an element given the row, column and parent.
      * \param[in] row
@@ -185,7 +185,7 @@ namespace ESPINA
      * \param[in] parent QModelIndex object.
      *
      */
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 

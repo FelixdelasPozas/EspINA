@@ -24,7 +24,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include "Core/Analysis/Input.h"
 #include "Core/Analysis/Persistent.h"
 #include "Core/Analysis/DataFactory.h"

@@ -49,7 +49,7 @@ class EspinaCore_EXPORT vtkVoxelContour2D
     // Get the output data object for a port on this algorithm.
     vtkPolyData *GetOutput();
     vtkPolyData *GetOutput(int);
-    virtual void SetOutput(vtkDataObject* d);
+    virtual void SetOutput(vtkDataObject* d) override;
 
     // this method is not recommended for use, but lots of old style filters use it
     vtkDataObject* GetInput();
@@ -59,9 +59,9 @@ class EspinaCore_EXPORT vtkVoxelContour2D
     // see vtkAlgorithm for details
     virtual int ProcessRequest(vtkInformation *request,
                                vtkInformationVector **inputVector,
-                               vtkInformationVector *outputVector);
+                               vtkInformationVector *outputVector) override;
 
-    int FillInputPortInformation(int vtkNotUsed(port), vtkInformation* info);
+    virtual int FillInputPortInformation(int vtkNotUsed(port), vtkInformation* info) override;
 
     void SetInput(vtkDataObject*);
     void SetInput(int, vtkDataObject*);
@@ -91,29 +91,20 @@ class EspinaCore_EXPORT vtkVoxelContour2D
                                   vtkInformationVector** inputVector,
                                   vtkInformationVector* outputVector);
 
-    /** \brief Overrides vtkPolyDataAlgorithm::RequestInformation().
-     *
-     */
     virtual int RequestInformation(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector) override;
 
-    /** \brief Overrides vtkPolyDataAlgorithm::RequestData().
-     *
-     */
     virtual int RequestData(vtkInformation* request,
                             vtkInformationVector** inputVector,
                             vtkInformationVector* outputVector) override;
 
-    /** \brief Overrides vtkPolyDataAlgorithm::RequestUpdateExtent().
-     *
-     */
     virtual int RequestUpdateExtent(vtkInformation*,
                                     vtkInformationVector**,
                                     vtkInformationVector*) override;
 
   private:
-    /** \brief Copy constructo not implemented.
+    /** \brief Copy constructor not implemented.
      *
      */
     vtkVoxelContour2D(const vtkVoxelContour2D&);

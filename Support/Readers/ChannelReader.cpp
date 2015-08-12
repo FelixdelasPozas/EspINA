@@ -57,7 +57,8 @@ public:
     {
       output->filter()->update();
 
-      data = writeLockVolume(output, DataUpdatePolicy::Ignore);
+      DefaultVolumetricDataSPtr volume = writeLockVolume(output, DataUpdatePolicy::Ignore);
+      data = volume;
     }
     else
     {
@@ -68,7 +69,7 @@ public:
   }
 
 private:
-RawDataFactory m_fetchData;
+  RawDataFactory m_fetchData;
 };
 
 //------------------------------------------------------------------------

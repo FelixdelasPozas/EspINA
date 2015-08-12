@@ -28,7 +28,7 @@
 
 // ESPINA
 #include "VolumeBounds.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
 // VTK

@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/NeuroItemAdapter.h>
 #include <GUI/View/EventHandler.h>

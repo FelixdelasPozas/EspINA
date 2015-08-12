@@ -21,7 +21,7 @@
 // ESPINA
 #include "MeasureWidget.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 

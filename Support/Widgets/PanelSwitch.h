@@ -44,7 +44,7 @@ namespace ESPINA
         void showPanel(bool visible);
 
       private:
-        virtual void abortOperation();
+        virtual void abortOperation() override;
 
       private:
         DockWidget *m_dock;

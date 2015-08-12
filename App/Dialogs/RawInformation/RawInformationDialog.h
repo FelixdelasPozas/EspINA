@@ -25,7 +25,7 @@
 #include <QDialog>
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Context.h>
 

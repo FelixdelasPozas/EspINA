@@ -24,7 +24,7 @@
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 namespace ESPINA
 {

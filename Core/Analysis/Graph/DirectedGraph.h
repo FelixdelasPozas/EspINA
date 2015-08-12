@@ -27,7 +27,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 // ESPINA
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include "Core/IO/GraphIO.h"
 
 // Qt

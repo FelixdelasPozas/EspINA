@@ -40,7 +40,7 @@ namespace ESPINA {
 
     virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual RepresentationPoolSList pools() const;
+    virtual RepresentationPoolSList pools() const override;
 
   protected:
     virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
@@ -58,9 +58,9 @@ namespace ESPINA {
 
     virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void onShow(TimeStamp t);
+    virtual void onShow(TimeStamp t) override;
 
-    virtual void onHide(TimeStamp t);
+    virtual void onHide(TimeStamp t) override;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 

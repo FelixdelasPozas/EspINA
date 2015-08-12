@@ -64,26 +64,26 @@ namespace ESPINA
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override {/*TODO*/}
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->isValid(); }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->isEmpty(); }
 
     virtual Bounds bounds() const override
     { return readLockVolume(m_output, DataUpdatePolicy::Ignore)->bounds(); }
 
-    virtual void setSpacing(const NmVector3& spacing);
+    virtual void setSpacing(const NmVector3& spacing) override;
 
-    virtual NmVector3 spacing() const;
+    virtual NmVector3 spacing() const override;
 
-    virtual size_t memoryUsage() const;
+    virtual size_t memoryUsage() const override;
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh);
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     virtual TimeStamp lastModified() const override;
 

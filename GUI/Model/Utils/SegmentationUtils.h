@@ -33,6 +33,11 @@ namespace ESPINA
          */
         SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ItemAdapterPtr item);
 
+        /** \brief Returns the segmentation adapter smart pointer from the item adapter raw pointer.
+         * \param[in] item item adapter raw pointer.
+         */
+        ConstSegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ConstItemAdapterPtr item);
+
         /** \brief Returns true if the given item is a segmentation item.
          * \param[in] item item adapter raw pointer.
          *
