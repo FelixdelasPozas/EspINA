@@ -46,16 +46,16 @@ namespace ESPINA
       {};
 
       virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
-                                                      const RepresentationState &settings);
+                                                      const RepresentationState &settings) override;
 
       virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
-                                                             const RepresentationState &state);
+                                                             const RepresentationState &state) override;
 
       virtual void updateColors(ActorList                 &actors,
                                 ConstViewItemAdapterPtr    item,
                                 const RepresentationState &state) override;
 
-      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     private:
       GUI::ColorEngines::ColorEngineSPtr m_colorEngine;

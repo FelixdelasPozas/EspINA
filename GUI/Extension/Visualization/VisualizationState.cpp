@@ -60,7 +60,7 @@ void VisualizationState::setState(const QString& representation, const QString& 
 }
 
 //------------------------------------------------------------------------
-QString VisualizationState::state(const QString& representation)
+QString VisualizationState::representationState(const QString& representation)
 {
   return m_state.value(representation, QString());
 }

@@ -68,7 +68,7 @@ namespace ESPINA
      */
     void addLayout(const QString &id, Layout *proxy);
 
-    virtual bool eventFilter(QObject *sender, QEvent* e);
+    virtual bool eventFilter(QObject *sender, QEvent* e) override;
 
     /** \brief Updates segmentation explorer gui depending on selected indexes.
      *

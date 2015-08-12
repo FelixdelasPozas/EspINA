@@ -29,9 +29,6 @@
 
 using namespace ESPINA;
 
-const unsigned int LABEL_VALUE = 255;
-
-
 //-----------------------------------------------------------------------------
 MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList          inputs,
                                                        const Filter::Type &type,

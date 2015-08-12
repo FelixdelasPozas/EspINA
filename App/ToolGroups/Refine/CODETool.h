@@ -52,7 +52,7 @@ namespace ESPINA {
     int radius() const
     { return m_radius->value(); }
 
-    virtual void abortOperation();
+    virtual void abortOperation() override;
 
     virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 

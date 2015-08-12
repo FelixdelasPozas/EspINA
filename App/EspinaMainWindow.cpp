@@ -359,15 +359,13 @@ void EspinaMainWindow::checkAutosave()
   QDir autosavePath = m_settings->autosavePath();
   if (autosavePath.exists(AUTOSAVE_FILE))
   {
-    QMessageBox info;
-    info.setWindowTitle(tr("ESPINA"));
-    info.setText(tr("ESPINA closed unexpectedly. "
-                    "Do you want to load autosave file?"));
-    info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-    if (QMessageBox::Yes == info.exec())
+    auto msg= tr("ESPINA closed unexpectedly. "
+                 "Do you want to load autosave file?");
+
+    if (DefaultDialogs::UserConfirmation(windowTitle(), msg))
     {
-      QStringList files;
-      files << autosavePath.absoluteFilePath(AUTOSAVE_FILE);
+      QStringList files(autosavePath.absoluteFilePath(AUTOSAVE_FILE));
+     
       openAnalysis(files);
     }
     else
@@ -389,7 +387,7 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
   connect(toolGroup, SIGNAL(exclusiveToolInUse(Support::Widgets::ProgressTool*)),
           this,      SLOT(onExclusiveToolInUse(Support::Widgets::ProgressTool*)));
 
-  connect(this,      SIGNAL(analysisAboutToBeClosed()),
+  connect(this,      SIGNAL(abortOperation()),
           toolGroup, SLOT(abortOperations()));
 }
 
@@ -434,7 +432,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   if (isModelModified())
   {
     QMessageBox warning;
-    warning.setWindowTitle(tr("ESPINA"));
+    warning.setWindowTitle(windowTitle());
     warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
     warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
     int res = warning.exec();
@@ -452,6 +450,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     }
   }
 
+  emit abortOperation();
   emit analysisAboutToBeClosed();
 
   getSelection(m_context)->clear();
@@ -497,10 +496,10 @@ void EspinaMainWindow::openAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis(const QStringList files)
 {
+  if (!closeCurrentAnalysis()) return;
+
   QElapsedTimer timer;
   timer.start();
-
-  closeCurrentAnalysis();
 
   auto mergedAnalysis = loadedAnalysis(files);
 
@@ -522,10 +521,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
     m_context.viewState().resetCamera();
 
-    auto bounds = m_context.viewState().coordinateSystem()->bounds();
-    auto resolution = m_context.viewState().coordinateSystem()->resolution();
-    NmVector3 initialCrosshair{bounds[0] + 0.5*resolution[0], bounds[2] + 0.5*resolution[1], bounds[4] + 0.5*resolution[2]};
-    m_context.viewState().setCrosshair(initialCrosshair);
+    initializeCrosshair();
 
     int secs = timer.elapsed()/1000.0;
     int mins = 0;
@@ -608,10 +604,9 @@ void EspinaMainWindow::addToAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addRecentToAnalysis()
 {
-  QAction *action = qobject_cast<QAction *>(sender());
+  auto action = qobject_cast<QAction *>(sender());
 
-  if (!action || action->data().isNull())
-    return;
+  if (!action || action->data().isNull()) return;
 
   QStringList files(action->data().toString());
 
@@ -626,10 +621,16 @@ void EspinaMainWindow::addToAnalysis(const QStringList files)
 
   auto model = m_context.model();
 
-  AnalysisSPtr newAnalyses    = loadedAnalysis(files);
-  AnalysisSPtr mergedAnalysis = merge(m_analysis, newAnalyses);
+  emit abortOperation();
+ 
+  auto newAnalyses    = loadedAnalysis(files);
+  auto mergedAnalysis = merge(m_analysis, newAnalyses);
+
   model->setAnalysis(mergedAnalysis, m_context.factory());
+
   m_analysis = mergedAnalysis;
+
+  assignActiveChannel();
 
   int secs = timer.elapsed()/1000.0;
   int mins = 0;
@@ -640,8 +641,6 @@ void EspinaMainWindow::addToAnalysis(const QStringList files)
   }
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-
-  assignActiveChannel();
 
   for(auto file : files)
   {
@@ -692,14 +691,13 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
     {
       QApplication::restoreOverrideCursor();
 
-      auto title   = tr("ESPINA");
       if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
       {
         auto message = tr("File \"%1\" could not be loaded.\n"
                           "Do you want to remove it from recent documents list?")
                           .arg(file);
 
-        if (DefaultDialogs::UserConfirmation(title, message))
+        if (DefaultDialogs::UserConfirmation(windowTitle(), message))
         {
           m_recentDocuments1.removeDocument(file);
           m_recentDocuments2.updateDocumentList();
@@ -708,7 +706,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
       else
       {
         auto message = tr("The autosave file could not be loaded.\n");
-        DefaultDialogs::InformationMessage(title, message);
+        DefaultDialogs::InformationMessage(windowTitle(), message);
       }
       QApplication::setOverrideCursor(Qt::WaitCursor);
     }
@@ -797,7 +795,7 @@ void EspinaMainWindow::updateStatus(QString msg)
 //------------------------------------------------------------------------
 void EspinaMainWindow::updateTooltip(QAction* action)
 {
-  QMenu *menu = dynamic_cast<QMenu *>(sender());
+  auto menu = dynamic_cast<QMenu *>(sender());
   menu->setToolTip(action->toolTip());
 }
 
@@ -1590,4 +1588,13 @@ ToolSList EspinaMainWindow::availableTools() const
   }
 
   return availableTools;
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::initializeCrosshair()
+{
+  auto coordinateSystem = m_context.viewState().coordinateSystem();
+  auto bounds           = coordinateSystem->bounds();
+
+  m_context.viewState().setCrosshair(lowerPoint(bounds));
 }

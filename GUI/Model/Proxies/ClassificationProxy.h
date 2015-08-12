@@ -319,6 +319,9 @@ namespace ESPINA
     void changeParentCheckStateRole(const QModelIndex &index, bool value);
 
     void notifyModifiedRepresentations(const QModelIndex &index);
+
+    bool hasValidIndexes() const;
+
   private:
     ModelAdapterSPtr                      m_model;
     GUI::View::RepresentationInvalidator &m_representationInvalidator;

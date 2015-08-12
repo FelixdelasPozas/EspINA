@@ -66,29 +66,9 @@ MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::
                                                    const State &state)
 : SegmentationExtension{cache}
 , m_statistic          {nullptr}
-, m_validFeret         {false}
-, Size                 {-1}
-, PhysicalSize         {-1}
-, FeretDiameter        {-1}
 {
   m_labelMap = Image2LabelFilterType::New();
   m_labelMap->SetComputeFeretDiameter(false);
-
-  for(int i=0; i<3; i++)
-  {
-    Centroid[i] = -1;
-    //Region[i]   = -1;
-    BinaryPrincipalMoments[i]  = -1;
-    EquivalentEllipsoidSize[i] = -1;
-  }
-
-  for(int i=0; i<3; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      BinaryPrincipalAxes[i][j] = -1;
-    }
-  }
 }
 
 //------------------------------------------------------------------------

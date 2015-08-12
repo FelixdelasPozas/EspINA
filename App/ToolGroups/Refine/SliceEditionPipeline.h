@@ -33,13 +33,13 @@ class RenderView;
   public:
     explicit SliceEditionPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
-    virtual RepresentationState representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings);
+    virtual RepresentationState representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings) override;
 
     virtual ActorList createActors(ConstViewItemAdapterPtr item, const RepresentationState &state) override;
 
     virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state) override;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
+    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     void setTemporalActor(VTKActor actor, RenderView *view);
 

@@ -42,13 +42,13 @@ namespace ESPINA
       virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
     protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override
       { return false; }
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
       { return false; }
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
       { return false; }
 
     private slots:

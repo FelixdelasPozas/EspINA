@@ -19,7 +19,7 @@
 */
 
 #ifndef ESPINA_SEGMENTATION_INSPECTOR_H
-#define EPSINA_SEGMENTATION_INSPECTOR_H
+#define ESPINA_SEGMENTATION_INSPECTOR_H
 
 // ESPINA
 #include "ui_SegmentationInspector.h"

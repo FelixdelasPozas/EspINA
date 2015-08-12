@@ -367,6 +367,11 @@ namespace ESPINA
 
     Support::Widgets::ToolSList availableTools() const;
 
+    QString windowTitle() const
+    { return tr("ESPINA"); }
+
+    void initializeCrosshair();
+
   private:
     // ESPINA
     Support::Context               m_context;

@@ -615,7 +615,7 @@ TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) 
 
     if (activeManagers > 0)
     {
-      qDebug() << viewName() << "Frames Availabe: " << count;
+      //qDebug() << viewName() << "Frames Availabe: " << count;
 
       for(auto time: count.keys())
       {

@@ -46,7 +46,7 @@ namespace ESPINA
                               ConstViewItemAdapterPtr   item,
                               const RepresentationState &state) override;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
+    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     void setPlane(const Plane plane);
 

@@ -50,8 +50,6 @@
 #include <vtkPlane.h>
 #include <vtkDoubleArray.h>
 
-const double UNDEFINED = -1.;
-
 using namespace ESPINA;
 
 const QString SAS = "SAS";

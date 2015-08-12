@@ -50,15 +50,9 @@ namespace ESPINA
      */
     virtual ~VisualizationState();
 
-    /** \brief Implements Extension::type().
-     *
-     */
     virtual Type type() const
     { return TYPE; }
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
@@ -79,7 +73,7 @@ namespace ESPINA
     /** \brief Returns the state of the representation as a string.
      *
      */
-    QString state(const QString& representation);
+    QString representationState(const QString& representation);
 
   private:
     QMap<QString, QString> m_state;

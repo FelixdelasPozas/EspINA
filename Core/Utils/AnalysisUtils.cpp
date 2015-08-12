@@ -38,8 +38,9 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
-  AnalysisSPtr mergedAnalysis{new Analysis()};
-  mergedAnalysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
+  auto mergedAnalysis = std::make_shared<Analysis>();
+
+  mergedAnalysis->setStorage(std::make_shared<TemporalStorage>());
 
   QMap<CategorySPtr, CategorySPtr> mergedCategory;
 
