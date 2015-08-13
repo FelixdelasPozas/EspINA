@@ -1,11 +1,11 @@
 #include "CountingFramePlugin.h"
 
 #include "Panel.h"
-#include "ColorEngines/CountingFrameColorEngine.h"
+#include "ColorEngines/ColorEngine.h"
+#include "ColorEngines/ColorEngineSwitch.h"
 #include "Extensions/CountingFrameFactories.h"
 #include "Representations/RepresentationFactory.h"
 #include <Support/Widgets/PanelSwitch.h>
-#include <Support/Widgets/ColorEngineSwitch.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Support;
@@ -17,7 +17,7 @@ CountingFramePlugin::CountingFramePlugin()
 : m_undoStack  {nullptr}
 , m_dockWidget {nullptr}
 , m_context    {nullptr}
-, m_colorEngine{std::make_shared<CountingFrameColorEngine>()}
+, m_colorEngine{std::make_shared<CF::ColorEngine>()}
 {
 }
 
@@ -67,7 +67,7 @@ ColorEngineSwitchSList CountingFramePlugin::colorEngines() const
 {
   ColorEngineSwitchSList engines;
 
-  engines << std::make_shared<ColorEngineSwitch>(m_colorEngine, ":cf-switch2D.svg", *m_context);
+  engines << std::make_shared<CF::ColorEngineSwitch>(m_colorEngine, *m_context);
 
   return engines;
 }

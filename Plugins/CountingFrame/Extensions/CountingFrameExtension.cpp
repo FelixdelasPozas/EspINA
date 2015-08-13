@@ -189,7 +189,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
                                                  Nm exclusion[3],
                                                  const QString& constraint)
 {
-  CountingFrame *cf;
+  CountingFrame *cf = nullptr;
 
   if (CFType::ORTOGONAL == type)
   {
@@ -220,135 +220,6 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 //   return deps;
 // }
 
-// //-----------------------------------------------------------------------------
-// void CountingFrameExtension::loadCache(QuaZipFile  &file,
-//                                        const QDir  &tmpDir,
-//                                        IEspinaModel *model)
-// {
-//   QString header(file.readLine());
-//   if (header.toStdString() == FILE_VERSION)
-//   {
-//     ChannelPtr extensionChannel = NULL;
-//     CountingFrameExtensionPtr cfExtension = NULL;
-//
-//     char buffer[1024];
-//     while (file.readLine(buffer, sizeof(buffer)) > 0)
-//     {
-//       QString line(buffer);
-//       QStringList fields = line.split(SEP);
-//
-//       if (fields.size() == 2)
-//       {
-//         int i = 0;
-//         while (!extensionChannel && i < model->channels().size())
-//         {
-//           ChannelSPtr channel = model->channels()[i];
-//           if ( channel->filter()->id()       == fields[0]
-//             && channel->outputId()           == fields[1].toInt()
-//             && channel->filter()->cacheDir() == tmpDir)
-//           {
-//             extensionChannel = channel.get();
-//           }
-//           i++;
-//         }
-//         if (extensionChannel)
-//         {
-//           cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
-//           extensionChannel->addExtension(cfExtension);
-//         } else
-//         {
-//           qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
-//         }
-//       }
-//       else if (fields.size() == 8)
-//       {
-//         CF cfInfo;
-//         CountingFrame::Id id = fields[0].toInt();
-//
-//         cfInfo.Type = static_cast<CFType>(fields[1].toInt());
-//         for(int i=0; i<3; i++)
-//           cfInfo.Inclusion[i] = fields[2+i].toDouble();
-//         for(int i=0; i<3; i++)
-//           cfInfo.Exclusion[i] = fields[5+i].toDouble();
-//
-//         ExtensionData &data = s_cache[extensionChannel].Data;
-//         data.insert(id, cfInfo);
-//
-//         CountingFrame *cf = NULL;
-//         switch(data[id].Type)
-//         {
-//           case ADAPTIVE:
-//             cf = AdaptiveCountingFrame::New(id, cfExtension, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
-//             break;
-//           case RECTANGULAR:
-//             double borders[6];
-//             extensionChannel->volume()->bounds(borders);
-//             cf = RectangularCountingFrame::New(id, cfExtension, borders, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
-//             break;
-//         };
-//         if (cf)
-//         {
-//           m_plugin->registerCF(cfExtension, cf);
-//         } else
-//         {
-//           qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
-//         }
-//       }
-//       else
-//         Q_ASSERT(false);
-//
-//     }
-//   }
-// }
-
-// File Output:
-// ID version
-// Channel Identifiers
-// List of counting frames definitions separated by endl
-// Channel Identifiers
-// List of counting frames definitions separated by endl
-// ...
-//-----------------------------------------------------------------------------
-// bool CountingFrameExtension::saveCache(Snapshot &cacheList)
-// {
-//   s_cache.purge();
-//
-//   if (s_cache.isEmpty())
-//     return false;
-//
-//   std::ostringstream cache;
-//   cache << FILE_VERSION;
-//
-//   ChannelPtr channel;
-//   foreach(channel, s_cache.keys())
-//   {
-//     cache << channel->filter()->id().toStdString();
-//     cache << SEP << channel->outputId();
-//     cache << std::endl;
-//
-//     ExtensionData &data = s_cache[channel].Data;
-//
-//     ExtensionData::iterator cf = data.begin();
-//     while(cf != data.end())
-//     {
-//       cache << cf.key();
-//       cache << SEP << cf->Type;
-//
-//       for(int i=0; i<3; i++)
-//         cache << SEP << cf->Inclusion[i];
-//
-//       for(int i=0; i<3; i++)
-//         cache << SEP << cf->Exclusion[i];
-//
-//       cache << std::endl;
-//       ++cf;
-//     }
-//   }
-//
-//   cacheList << SnapshotEntry(FILE, cache.str().c_str());
-//
-//   return true;
-// }
 //-----------------------------------------------------------------------------
 CountingFrameExtensionSPtr ESPINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
 {

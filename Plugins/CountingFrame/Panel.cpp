@@ -678,7 +678,7 @@ void Panel::updateSegmentationRepresentations()
   auto model         = m_context.model();
   auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
 
-  m_context.representationInvalidator().invalidateRepresentations(segmentations);
+  m_context.representationInvalidator().invalidateRepresentationColors(segmentations);
 }
 
 //------------------------------------------------------------------------

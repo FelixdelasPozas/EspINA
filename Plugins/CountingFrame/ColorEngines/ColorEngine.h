@@ -34,12 +34,12 @@ namespace ESPINA
   namespace CF
   {
 
-    class CountingFramePlugin_EXPORT CountingFrameColorEngine
+    class CountingFramePlugin_EXPORT ColorEngine
     : public GUI::ColorEngines::ColorEngine
     {
-
+      Q_OBJECT
     public:
-      explicit CountingFrameColorEngine();
+      explicit ColorEngine();
 
       virtual QColor color(ConstSegmentationAdapterPtr seg);
 
@@ -48,11 +48,26 @@ namespace ESPINA
       virtual ColorEngine::Composition supportedComposition() const
       { return ColorEngine::Transparency; }
 
+      /** \brief Returns the opacity for excluded segmentations
+       *
+       *  Opactity range is [0, 1]
+       */
+      double exlcusionOpacity() const;
+
+    public slots:
+      /** \brief Sets the opacity for excluded segmentations
+       *
+       *  \param value for the exclusion opacity in the range [0, 1]
+       */
+      void setExclusionOpacity(const double value);
+
     private:
+      double  m_exclusionOpacity;
       LUTSPtr m_excludedLUT;
       LUTSPtr m_includedLUT;
     };
 
+    using CountingFrameColorEngineSPtr = std::shared_ptr<ColorEngine>;
   } // namespace CF
 } // namespace ESPINA
 

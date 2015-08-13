@@ -19,7 +19,8 @@
 */
 
 // Plugin
-#include "CountingFrameColorEngine.h"
+#include "ColorEngine.h"
+
 #include "Extensions/StereologicalInclusion.h"
 
 // ESPINA
@@ -29,8 +30,9 @@ using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrameColorEngine::CountingFrameColorEngine()
-: ColorEngine("CountingFrameColorEngine", tr("Counting Frame"))
+ColorEngine::ColorEngine()
+: GUI::ColorEngines::ColorEngine("CountingFrameColorEngine", tr("Counting Frame"))
+, m_exclusionOpacity(0.5)
 {
   m_excludedLUT = LUTSPtr::New();
   m_excludedLUT->Allocate();
@@ -50,7 +52,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-QColor CountingFrameColorEngine::color(ConstSegmentationAdapterPtr segmentation)
+QColor ColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   int r = 0;
   int g = 0;
@@ -63,14 +65,14 @@ QColor CountingFrameColorEngine::color(ConstSegmentationAdapterPtr segmentation)
   {
     auto extension = extensions->get<StereologicalInclusion>();
 
+
     if (extension->isExcluded())
     {
-      r = 255;
-      a = 125;
+      r  = 255;
+      a *= m_exclusionOpacity;
     } else
     {
       g = 255;
-      a = 255;
     }
   }
 
@@ -78,7 +80,7 @@ QColor CountingFrameColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr CountingFrameColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
+LUTSPtr ColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 {
   auto res = m_includedLUT;
 
@@ -96,3 +98,15 @@ LUTSPtr CountingFrameColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
   return res;
 }
 
+
+//-----------------------------------------------------------------------------
+double ColorEngine::exlcusionOpacity() const
+{
+  return m_exclusionOpacity;
+}
+
+//-----------------------------------------------------------------------------
+void ColorEngine::setExclusionOpacity(const double value)
+{
+  m_exclusionOpacity = qMax(0.0, qMin(1.0, value));
+}
