@@ -323,9 +323,10 @@ namespace ESPINA
     }
     m_rasterizationTime = mesh->GetMTime();
 
-    const_cast<RasterizedVolume<T> *>(this)->draw(image);
+    const_cast<RasterizedVolume<T> *>(this)->SparseVolume<T>::draw(image);
 
     this->m_mutex.unlock();
+    //const_cast<RasterizedVolume<T> *>(this)->draw(image);
   }
 
   //----------------------------------------------------------------------------

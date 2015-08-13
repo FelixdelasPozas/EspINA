@@ -37,10 +37,9 @@ class InformationSelector::UI
 InformationSelector::InformationSelector(const InformationSelector::GroupedInfo &available,
                                          InformationSelector::GroupedInfo       &selection,
                                          const QString                          &title,
-                                         QWidget                                *parent,
-                                         Qt::WindowFlags                         flags)
-: QDialog    {parent, flags}
-, m_gui      {new UI()}
+                                         const bool                             exclusive)
+: m_gui      {new UI()}
+, m_exclusive{exclusive}
 , m_selection(selection)
 {
   m_gui->setupUi(this);
@@ -84,11 +83,14 @@ InformationSelector::InformationSelector(const InformationSelector::GroupedInfo 
     }
 
     groupNode->setData(0, Qt::UserRole,       state);
-    groupNode->setData(0, Qt::CheckStateRole, state);
+    if (!m_exclusive)
+    {
+      groupNode->setData(0, Qt::CheckStateRole, state);
+    }
   }
 
   connect(m_gui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-          this,              SLOT(updateCheckState(QTreeWidgetItem*,int)));
+          this,              SLOT(onItemClicked(QTreeWidgetItem*,int)));
 
   connect(m_gui->acceptChanges, SIGNAL(clicked(bool)),
           this,                 SLOT(accept()));
@@ -126,6 +128,35 @@ void InformationSelector::accept()
 }
 
 //----------------------------------------------------------------------------
+void InformationSelector::onItemClicked(QTreeWidgetItem* item, int column)
+{
+  if (m_exclusive)
+  {
+    if (item->parent())
+    {
+      unselectItems();
+      item->setCheckState(column, Qt::Checked);
+    }
+  }
+  else
+  {
+    updateCheckState(item, column, true);
+  }
+}
+
+//----------------------------------------------------------------------------
+void InformationSelector::unselectItems()
+{
+  QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
+  while (*it)
+  {
+    (*it)->setCheckState(0, Qt::Unchecked);
+
+    ++it;
+  }
+}
+
+//----------------------------------------------------------------------------
 void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bool updateParent)
 {
   if (item->data(column, Qt::UserRole).toInt() != item->checkState(column))
@@ -137,21 +168,34 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
     }
     item->setData(column, Qt::UserRole, item->checkState(column));
 
-    QTreeWidgetItem *parentNode = item->parent();
-    if (parentNode && updateParent && parentNode->parent())
+    auto parentNode = item->parent();
+    if (parentNode && updateParent)
     {
       Qt::CheckState state = item->checkState(column);
       int i = 0;
       while (state == item->checkState(column) && i < parentNode->childCount())
       {
         if (state != parentNode->child(i)->checkState(0))
+        {
           state = Qt::PartiallyChecked;
+        }
         ++i;
       }
       parentNode->setCheckState(column, state);
       parentNode->setData(column, Qt::UserRole, state);
     }
   }
+}
+
+//----------------------------------------------------------------------------
+bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
+{
+  for (auto segmentation : segmentations)
+  {
+    if (extension->validCategory(segmentation->category()->classificationName())) return true;
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -171,16 +215,6 @@ InformationSelector::GroupedInfo GUI::availableInformation(ModelFactorySPtr fact
   return info;
 }
 
-bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
-{
-  for (auto segmentation : segmentations)
-  {
-    if (extension->validCategory(segmentation->category()->classificationName())) return true;
-  }
-
-  return false;
-}
-
 //----------------------------------------------------------------------------
 InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory)
 {
@@ -198,6 +232,20 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
       }
     }
   }
+
+  for (auto segmentation : segmentations)
+  {
+    for (auto key : segmentation->readOnlyExtensions()->availableInformation())
+    {
+      info[key.extension()] << key;
+    }
+  }
+
+  for (auto tag : info.keys())
+  {
+    info[tag].removeDuplicates();
+  }
+
 
   //qsort(info[tag]);
 
