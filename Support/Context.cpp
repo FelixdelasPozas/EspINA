@@ -150,7 +150,7 @@ WithContext::WithContext(Context &context)
 }
 
 //------------------------------------------------------------------------
-Context &WithContext::context()
+Context &WithContext::getContext() const
 {
   return m_context;
 }

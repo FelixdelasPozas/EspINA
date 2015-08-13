@@ -160,8 +160,8 @@ void SASTabularReport::exportInformation()
 {
   auto title      = tr("Export SAS Data");
   auto suggestion = tr("Raw information with SAS data.xls");
-  auto formats    = SupportedFormats(tr("Excel Sheet"), "xls")
-                          .addFormat(tr("CSV Text File"), "csv");
+  auto formats    = SupportedFormats().addExcelFormat()
+                                      .addCSVFormat();
 
   auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 

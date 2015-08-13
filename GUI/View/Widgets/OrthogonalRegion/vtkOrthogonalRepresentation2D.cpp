@@ -39,8 +39,6 @@
 #include <vtkCellData.h>
 #include <vtkPoints.h>
 
-const double MIN_SLICE_SPACING = 2;
-
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;

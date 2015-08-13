@@ -233,7 +233,7 @@ void SegmentationInformation::addRefineWidget()
 
   try
   {
-    widget = m_register.createRefineWidget(m_segmentation, context());
+    widget = m_register.createRefineWidget(m_segmentation, getContext());
   }
   catch (...)
   {

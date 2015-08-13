@@ -19,7 +19,7 @@
 
 #include "SASReport.h"
 #include "AppositionSurfacePlugin.h"
-#include "GUI/Analysis/SASAnalysisDialog.h"
+#include "GUI/Analysis/SASReportDialog.h"
 
 #include <Core/Analysis/Segmentation.h>
 #include <Support/Utils/SelectionUtils.h>
@@ -38,7 +38,7 @@ SASReport::SASReport(Support::Context &context)
 //----------------------------------------------------------------------------
 QString SASReport::name() const
 {
-  return tr("Synaptic Apposition Surface Report");
+  return tr("Synaptic Apposition Surfaces");
 }
 
 //----------------------------------------------------------------------------
@@ -47,28 +47,31 @@ QString SASReport::description() const
   return tr("Display the information of every synpasis and its synaptic apposition surface");
 }
 
-
 //----------------------------------------------------------------------------
-void SASReport::show() const
+SegmentationAdapterList SASReport::acceptedInput(SegmentationAdapterList segmentations) const
 {
-  SegmentationAdapterList synapsis;
+  SegmentationAdapterList result;
 
-  for(auto segmentation : defaultReportInputSegmentations(getSelection(), getModel()))
+  for (auto segmentation : segmentations)
   {
     if (AppositionSurfacePlugin::isValidSynapse(segmentation))
     {
-      synapsis << segmentation;
+      result << segmentation;
     }
   }
 
-  if (synapsis.isEmpty())
-  {
-    auto msg = tr("Current analysis does not contain any synapses");
+  return result;
+}
 
-    DefaultDialogs::InformationMessage(name(), msg);
-  }
-  else
-  {
+//----------------------------------------------------------------------------
+QString SASReport::requiredInputDescription() const
+{
+  return tr("Current report input does not contain any synapses");
+}
+
+//----------------------------------------------------------------------------
+void SASReport::show(SegmentationAdapterList input) const
+{
     auto undoStack = getUndoStack();
     auto model     = getModel();
     auto factory   = getFactory();
@@ -123,10 +126,9 @@ void SASReport::show() const
 //     }
 //     if (!m_delayedAnalysis)
 //     {
-      SASAnalysisDialog dialog(synapsis, context());
+      SASReportDialog dialog(input, getContext());
       dialog.exec();
 //
 //       delete analysis;
 //     };
-  }
 }

@@ -23,13 +23,14 @@
 // Qt
 #include <QDialog>
 #include "ui_ReportSelectorDialog.h"
-#include <Support/Types.h>
+#include <Support/Context.h>
 
 namespace ESPINA
 {
   class ReportSelectorDialog
   : public QDialog
   , public Ui::ReportSelectorDialog
+  , private Support::WithContext
   {
     Q_OBJECT
 
@@ -37,12 +38,20 @@ namespace ESPINA
     /** \brief ReportSelectorDialog class constructor.
      *
      */
-    explicit ReportSelectorDialog(Support::ReportSList &reports);
+    explicit ReportSelectorDialog(Support::ReportSList &reports, Support::Context &contex);
 
   private slots:
     void showReport();
 
     void previewReport(int i);
+
+    void useSelectedSegmentationsAsReportInput(bool useSelection);
+
+    SegmentationAdapterList reportInput();
+
+    void setValidReport(int i, bool value);
+
+    bool isValidReport(int i) const;
 
   private:
     Support::ReportSList &m_reports;

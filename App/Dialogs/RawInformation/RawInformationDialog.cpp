@@ -32,7 +32,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(Support::Context &context)
+RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
 
 {
   setObjectName("Raw Information Analysis");
@@ -41,10 +41,7 @@ RawInformationDialog::RawInformationDialog(Support::Context &context)
 
   auto report = new TabularReport(context, this);
   report->setModel(context.model());
-
-  auto segmentations = defaultReportInputSegmentations(getSelection(context), context.model());
-
-  report->setFilter(segmentations);
+  report->setFilter(input);
 
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
@@ -57,7 +54,7 @@ RawInformationDialog::RawInformationDialog(Support::Context &context)
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Raw Information Analysis");
-  resize(settings.value("size", QSize (200, 200)).toSize());
+  resize(settings.value("size", QSize (400, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
 }

@@ -32,13 +32,17 @@ namespace ESPINA
   public:
     explicit RawInformationReport(Support::Context &context);
 
-    virtual QString name() const;
+    virtual QString name() const override;
 
-    virtual QString description() const;
+    virtual QString description() const override;
 
-    virtual QPixmap preview() const;
+    virtual QPixmap preview() const override;
 
-    virtual void show() const;
+    virtual SegmentationAdapterList acceptedInput(SegmentationAdapterList segmentations) const override;
+
+    virtual QString requiredInputDescription() const override;
+
+    virtual void show(SegmentationAdapterList input) const override;
   };
 }
 

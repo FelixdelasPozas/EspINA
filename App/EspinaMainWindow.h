@@ -236,8 +236,6 @@ namespace ESPINA
 
     void createFileMenu();
 
-    void createReportsMenu();
-
     void createEditMenu();
 
     void createViewMenu();

@@ -37,7 +37,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../rsc/espina.qrc">
+        <iconset resource="../../App/rsc/espina.qrc">
          <normaloff>:/espina/refresh.png</normaloff>:/espina/refresh.png</iconset>
        </property>
        <property name="iconSize">
@@ -127,7 +127,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../rsc/espina.qrc">
+        <iconset resource="../../App/rsc/espina.qrc">
          <normaloff>:/espina/settings.png</normaloff>:/espina/settings.png</iconset>
        </property>
        <property name="iconSize">
@@ -224,7 +224,7 @@ QTableView::indicator:unchecked {
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../rsc/espina.qrc"/>
+  <include location="../../App/rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

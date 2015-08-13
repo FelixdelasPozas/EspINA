@@ -423,17 +423,19 @@ void TabularReport::exportInformation()
     return;
 
   bool result = false;
-  if (fileName.endsWith(".csv"))
+  if (fileName.toLower().endsWith(".csv"))
   {
     result = exportToCSV(fileName);
   }
-  else if (fileName.endsWith(".xls"))
+  else if (fileName.toLower().endsWith(".xls"))
   {
     result = exportToXLS(fileName);
   }
 
   if (!result)
-    QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
+  {
+    DefaultDialogs::InformationMessage(title, tr("Unable to export %1").arg(fileName));
+  }
 }
 
 //------------------------------------------------------------------------

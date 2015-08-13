@@ -447,7 +447,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
   for (auto factory : representations)
   {
-    auto representation = factory->createRepresentation(context(), ViewType::VIEW_3D);
+    auto representation = factory->createRepresentation(getContext(), ViewType::VIEW_3D);
 
     m_representations << representation;
 

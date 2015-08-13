@@ -51,19 +51,10 @@ namespace ESPINA
 
       vtkTypeMacro(vtkSkeletonWidget,vtkAbstractWidget);
 
-      /** \brief Overrides vtkAbstractWidget::SetEnabled().
-       *
-       */
       virtual void SetEnabled(int) override;
 
-      /** \brief Implements vtkAbstractWidget::CreateDefaultRepresentation().
-       *
-       */
-      void CreateDefaultRepresentation();
+      void CreateDefaultRepresentation() override;
 
-      /** \brief Overrides vtkAbstractWidget::PrintSelf().
-       *
-       */
       virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
       /** \brief Convenient method to change what state the widget is in.

@@ -243,7 +243,7 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
   if (segmentationsSelected)
   {
-    contextMenu = new DefaultContextualMenu(m_selectedSegmentations, context());
+    contextMenu = new DefaultContextualMenu(m_selectedSegmentations, getContext());
 
     for (auto action : contextMenu->actions())
     {
@@ -520,7 +520,7 @@ void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmen
   auto undoStack = getUndoStack();
 
   undoStack->beginMacro(tr("Change Segmentation's Category"));
-  undoStack->push(new ChangeCategoryCommand(segmentations, category, context()));
+  undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
   undoStack->endMacro();
 }
 
@@ -598,7 +598,7 @@ void ClassificationLayout::changeCategoryColor()
       auto undoStack = getUndoStack();
       undoStack->beginMacro(tr("Change category color"));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
-                                                     context().representationInvalidator(),
+                                                     getContext().representationInvalidator(),
                                                      category,
                                                      hueSelector.hueValue()));
       undoStack->endMacro();

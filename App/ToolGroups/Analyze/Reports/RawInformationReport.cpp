@@ -50,22 +50,24 @@ QPixmap RawInformationReport::preview() const
 }
 
 //----------------------------------------------------------------------------
-void RawInformationReport::show() const
+SegmentationAdapterList RawInformationReport::acceptedInput(SegmentationAdapterList segmentations) const
 {
-  if (getModel()->segmentations().isEmpty())
-  {
-    auto title   = tr("Raw Information");
-    auto message = tr("Current analysis does not contain any segmentations");
+  return segmentations;
+}
 
-    DefaultDialogs::InformationMessage(title, message);
-  }
-  else
-  {
-    auto dialog = new RawInformationDialog(context());
+//----------------------------------------------------------------------------
+QString RawInformationReport::requiredInputDescription() const
+{
+  return QString();
+}
 
-    connect(dialog, SIGNAL(finished(int)),
-            dialog, SLOT(deleteLater()));
+//----------------------------------------------------------------------------
+void RawInformationReport::show(SegmentationAdapterList input) const
+{
+  auto dialog = new RawInformationDialog(input, getContext());
 
-    dialog->show();
-  }
+  connect(dialog, SIGNAL(finished(int)),
+          dialog, SLOT(deleteLater()));
+
+  dialog->show();
 }

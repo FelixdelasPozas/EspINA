@@ -33,13 +33,6 @@ namespace ESPINA
    *  \param[in] viewManager ViewManager where current selection is gotten from
    */
   SegmentationAdapterList EspinaSupport_EXPORT selectSegmentations(SelectionSPtr selection);
-
-  /** \brief Returns the list of current selected segmentations or all existing segmentations if
-   *         none are selected
-   *  \param[in] viewmanager viewmanager where current selection is gotten from
-   *  \param[in] model where segmentations are selected from in case no selection is available
-   */
-  SegmentationAdapterList EspinaSupport_EXPORT defaultReportInputSegmentations(SelectionSPtr selection, ModelAdapterSPtr model);
 }
 
 #endif // ESPINA_SELECTION_UTILS_H

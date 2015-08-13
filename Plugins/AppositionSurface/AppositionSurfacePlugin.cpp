@@ -26,7 +26,7 @@
 #include <Extensions/ExtensionUtils.h>
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Filter/SASDataFactory.h>
-#include <GUI/Analysis/SASAnalysisDialog.h>
+#include <GUI/Analysis/SASReportDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include "SASReport.h"
@@ -366,11 +366,17 @@ bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item)
 //-----------------------------------------------------------------------------
 SegmentationAdapterPtr AppositionSurfacePlugin::segmentationSAS(SegmentationAdapterPtr segmentation)
 {
+  SegmentationAdapterPtr sas = nullptr;
+
   auto relatedItems = segmentation->model()->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
 
-  Q_ASSERT(relatedItems.size() == 1);
+  if (!relatedItems.isEmpty())
+  {
+    Q_ASSERT(relatedItems.size() == 1);
+    sas = segmentationPtr(relatedItems.first().get());
+  }
 
-  return segmentationPtr(relatedItems.first().get());
+  return sas;
 }
 
 

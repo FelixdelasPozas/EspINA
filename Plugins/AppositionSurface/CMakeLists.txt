@@ -66,7 +66,7 @@ set (PLUGIN_SOURCES
   Core/Extensions/ExtensionFactory.cpp
   Filter/AppositionSurfaceFilter.cpp
   Filter/SASDataFactory.cpp
-  GUI/Analysis/SASAnalysisDialog.cpp
+  GUI/Analysis/SASReportDialog.cpp
   GUI/Analysis/SASTabularReport.cpp
   GUI/Analysis/SASInformationProxy.cpp
   GUI/AppositionSurfaceTool.cpp

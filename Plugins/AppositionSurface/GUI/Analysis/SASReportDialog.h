@@ -33,7 +33,7 @@
 
 namespace ESPINA
 {
-  class SASAnalysisDialog
+  class SASReportDialog
   : public QDialog
   {
   public:
@@ -42,7 +42,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    explicit SASAnalysisDialog(SegmentationAdapterList segmentations,
+    explicit SASReportDialog(SegmentationAdapterList segmentations,
                                Support::Context &context);
   protected:
     virtual void closeEvent(QCloseEvent* event);

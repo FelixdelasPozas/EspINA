@@ -199,7 +199,7 @@ void SplitTool::applyCurrentState()
   InputSList inputs;
   inputs << selectedSeg->asInput();
 
-  auto filter = context().factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+  auto filter = getFactory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
   showTaskProgress(filter);
 
@@ -223,7 +223,7 @@ void SplitTool::applyCurrentState()
   vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
   filter->setStencil(stencil);
 
-  Data data(filter, context().model()->smartPointer(selectedSeg));
+  Data data(filter, getModel()->smartPointer(selectedSeg));
   m_executingTasks.insert(filter.get(), data);
 
   connect(filter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
@@ -292,7 +292,7 @@ void SplitTool::createSegmentations()
 
       for(auto i: {0, 1})
       {
-        auto segmentation  = context().factory()->createSegmentation(m_executingTasks[filter].adapter, i);
+        auto segmentation  = getFactory()->createSegmentation(m_executingTasks[filter].adapter, i);
         segmentation->setCategory(category);
 
         segmentationsList << segmentation;
@@ -301,8 +301,8 @@ void SplitTool::createSegmentations()
 
       auto undoStack = getUndoStack();
       undoStack->beginMacro("Split Segmentation");
-      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), context().model()));
-      undoStack->push(new AddSegmentations(segmentationsList, sample, context().model()));
+      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), getModel()));
+      undoStack->push(new AddSegmentations(segmentationsList, sample, getModel()));
       undoStack->endMacro();
 
       deactivateEventHandler();

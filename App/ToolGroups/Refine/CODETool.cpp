@@ -158,7 +158,7 @@ void CODEToolBase::onTaskFinished()
       if (DefaultDialogs::UserConfirmation(title, message))
       {
         undoStack->beginMacro(taskContext.Operation);
-        undoStack->push(new RemoveSegmentations(taskContext.Segmentation, context().model()));
+        undoStack->push(new RemoveSegmentations(taskContext.Segmentation, getModel()));
         undoStack->endMacro();
       }
     }

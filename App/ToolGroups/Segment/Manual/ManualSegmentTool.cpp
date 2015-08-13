@@ -267,7 +267,7 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 
   auto undoStack = getUndoStack();
   undoStack->beginMacro(tr("Modify Segmentation"));
-  undoStack->push(new DrawUndoCommand(context(), referenceSegmentation(), mask));
+  undoStack->push(new DrawUndoCommand(getContext(), referenceSegmentation(), mask));
   undoStack->endMacro();
 
   if(mask->foregroundValue() == SEG_BG_VALUE)

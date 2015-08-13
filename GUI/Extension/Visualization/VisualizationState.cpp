@@ -27,8 +27,6 @@ const SegmentationExtension::Type VisualizationState::TYPE = "VisualizationState
 
 const std::string EXTENSION_VERSION = "1.0\n";
 
-const char SEP = ',';
-
 //------------------------------------------------------------------------
 VisualizationState::VisualizationState()
 : SegmentationExtension(InfoCache())

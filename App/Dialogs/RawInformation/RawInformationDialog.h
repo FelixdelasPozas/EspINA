@@ -39,7 +39,7 @@ namespace ESPINA
     /** \brief RawInformationDialog class constructor.
      * \param[in] parent parent widget.
      */
-    explicit RawInformationDialog(Support::Context &context);
+    explicit RawInformationDialog(SegmentationAdapterList input, Support::Context &context);
 
     /** \brief RawInformationDialog class destructor.
      *

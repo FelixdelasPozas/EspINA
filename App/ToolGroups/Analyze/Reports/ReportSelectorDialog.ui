@@ -126,6 +126,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QCheckBox" name="m_selectionReport">
+     <property name="text">
+      <string>Create report using selected segmentations</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="m_buttons">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

@@ -62,7 +62,6 @@ const QString ChannelEdges::EDGES_FILE = "ChannelEdges.vtp";
 const QString ChannelEdges::FACES_FILE = "ChannelFaces_%1.vtp";
 
 const std::string FILE_VERSION = ChannelEdges::TYPE.toStdString() + " 2.0\n";
-const char SEP = ',';
 
 //-----------------------------------------------------------------------------
 ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,

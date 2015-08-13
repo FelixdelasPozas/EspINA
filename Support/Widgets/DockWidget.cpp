@@ -67,7 +67,7 @@ void DockWidget::hideEvent(QHideEvent *event)
 {
   QWidget::hideEvent(event);
 
-  if (!context().isMinimized())
+  if (!getContext().isMinimized())
   {
     emit dockShown(false);
   }

@@ -37,7 +37,7 @@ ReportsTool::ReportsTool(Support::Context &context)
 //----------------------------------------------------------------------------
 void ReportsTool::onTriggered(bool value)
 {
-  ReportSelectorDialog dialog(m_reports);
+  ReportSelectorDialog dialog(m_reports, getContext());
 
   dialog.exec();
 }

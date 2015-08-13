@@ -64,7 +64,7 @@ void FillHolesTool::fillHoles()
 
     inputs << segmentation->asInput();
 
-    auto filter = context().factory()->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
+    auto filter = getFactory()->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
 
     filter->setDescription(tr("Fill %1 Holes").arg(segmentation->data(Qt::DisplayRole).toString()));
 

@@ -26,6 +26,7 @@
 #include <QPixmap>
 
 #include <memory>
+#include <GUI/Types.h>
 
 class QString;
 
@@ -57,10 +58,14 @@ namespace ESPINA
       virtual QPixmap preview() const
       { return QPixmap(":/espina/preview_not_available.png"); }
 
+      virtual SegmentationAdapterList acceptedInput(SegmentationAdapterList segmentations) const = 0;
+
+      virtual QString requiredInputDescription() const = 0;
+
       /** \brief Show report dialog
        *
        */
-      virtual void show() const = 0;
+      virtual void show(SegmentationAdapterList input) const = 0;
     };
   }
 }

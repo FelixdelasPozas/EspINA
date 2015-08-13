@@ -311,9 +311,6 @@ void EspinaMainWindow::enableWidgets(bool value)
   m_saveAnalysisAs       ->setEnabled(value);
   m_saveSessionAnalysis->setEnabled(value);
   m_closeAnalysis      ->setEnabled(value);
-  m_dynamicMenuRoot
-    ->submenus.first()
-    ->menu             ->setEnabled(value);
   m_editMenu           ->setEnabled(value);
   m_viewMenu           ->setEnabled(value);
 
@@ -498,7 +495,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_mainBar->setEnabled(false);
   m_contextualBar->setEnabled(false);
   m_mainBar->actions().first()->setChecked(true);
-  m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
 
   emit analysisClosed();
 
@@ -1107,15 +1103,6 @@ void EspinaMainWindow::createFileMenu()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createReportsMenu()
-{
-  auto subnode = new DynamicMenuNode();
-  subnode->menu = menuBar()->addMenu(tr("Reports"));
-  subnode->menu->setEnabled(false);
-  m_dynamicMenuRoot->submenus << subnode;
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::createEditMenu()
 {
   m_editMenu = new QMenu(tr("Edit"), this);
@@ -1324,8 +1311,6 @@ void EspinaMainWindow::createAnalyzeToolGroup()
   m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
 
   registerToolGroup(m_analyzeToolGroup);
-
-  createReportsMenu();
 }
 
 //------------------------------------------------------------------------

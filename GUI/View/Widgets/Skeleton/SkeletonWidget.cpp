@@ -47,10 +47,10 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   SkeletonWidget::~SkeletonWidget()
   {
-    for(auto view: m_widgets.keys())
-    {
+    //for(auto view: m_widgets.keys())
+    //{
       //unregisterView(view);
-    }
+    //}
 
     //setCursor(Qt::ArrowCursor);
     m_widgets.clear();
