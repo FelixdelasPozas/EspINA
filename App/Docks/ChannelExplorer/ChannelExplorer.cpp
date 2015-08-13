@@ -51,7 +51,7 @@ public:
 
 //------------------------------------------------------------------------
 ChannelExplorer::ChannelExplorer(Support::Context &context)
-: DockWidget(tr("ChannelExplorerDock"))
+: DockWidget(tr("ChannelExplorerDock"), context)
 , m_context     (context)
 , m_model       {context.model()}
 , m_scheduler   {context.scheduler()}
@@ -483,7 +483,7 @@ void ChannelExplorer::activateChannel()
     if (isChannel(currentItem))
     {
       auto currentChannel = channelPtr(currentItem);
-      getSelection(m_context)->setActiveChannel(currentChannel);
+      getSelection()->setActiveChannel(currentChannel);
     }
   }
 }
@@ -531,7 +531,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   auto setActive = contextMenu.addAction(tr("Set as the active channel"));
   setActive->setCheckable(true);
-  setActive->setChecked(channels.first() == getActiveChannel(m_context));
+  setActive->setChecked(channels.first() == getActiveChannel());
   connect(setActive, SIGNAL(triggered(bool)),
           this,      SLOT(activateChannel()));
 

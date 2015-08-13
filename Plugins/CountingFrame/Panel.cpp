@@ -269,7 +269,7 @@ const QString Panel::ID = "CountingFrameExtension";
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
              Support::Context &context)
-: DockWidget(tr("Counting Frame Dock"))
+: DockWidget(tr("Counting Frame Dock"), context)
 , m_manager  {manager}
 , m_context  (context)
 , m_gui      {new GUI()}
@@ -326,8 +326,8 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this,                    SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
-  connect(getSelection(context).get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this,                        SLOT(onChannelChanged(ChannelAdapterPtr)));
+  connect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,                 SLOT(onChannelChanged(ChannelAdapterPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -593,7 +593,7 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void Panel::showInfo(CountingFrame* activeCF)
 {
-  if (!activeCF || !getActiveChannel(m_context)) return;
+  if (!activeCF || !getActiveChannel()) return;
 
   m_activeCF = activeCF;
 

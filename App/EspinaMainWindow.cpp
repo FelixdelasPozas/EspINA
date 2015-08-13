@@ -108,7 +108,8 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
-, m_context(this)
+, m_minimizedStatus(false)
+, m_context(this, &m_minimizedStatus)
 , m_analysis(new Analysis())
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
@@ -389,6 +390,23 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
 
   connect(this,      SIGNAL(abortOperation()),
           toolGroup, SLOT(abortOperations()));
+}
+
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::showEvent(QShowEvent* event)
+{
+  QWidget::showEvent(event);
+
+  m_minimizedStatus = false;
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::hideEvent(QHideEvent *event)
+{
+  QWidget::hideEvent(event);
+
+  m_minimizedStatus = true;
 }
 
 //------------------------------------------------------------------------

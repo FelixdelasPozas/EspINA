@@ -24,6 +24,7 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QDockWidget>
@@ -35,6 +36,7 @@ namespace ESPINA
 {
   class EspinaSupport_EXPORT DockWidget
   : public QDockWidget
+  , protected Support::WithContext
   {
     Q_OBJECT
   public:
@@ -42,9 +44,9 @@ namespace ESPINA
      * \param[in] parent raw pointer of the parent widget of this one.
      *
      */
-    explicit DockWidget(QWidget *parent = nullptr);
+    explicit DockWidget(Support::Context &context, QWidget *parent = nullptr);
 
-    explicit DockWidget(const QString& title, QWidget* parent = 0, Qt::WindowFlags flags = 0);
+    explicit DockWidget(const QString& title, Support::Context &context, QWidget* parent = 0, Qt::WindowFlags flags = 0);
 
     /** \brief DockWidget class virtual destructor.
      *

@@ -39,7 +39,6 @@ namespace ESPINA
   class SegmentationExplorer
   : public DockWidget
   , public SelectableView
-  , private Support::WithContext
   {
     Q_OBJECT
     class GUI;

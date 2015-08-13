@@ -63,9 +63,8 @@ public:
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
                                            Support::Context &context)
-: DockWidget(tr("Segmentation Explorer"))
+: DockWidget(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())
-, WithContext(context)
 , m_gui   {new GUI()}
 , m_layout{nullptr}
 {

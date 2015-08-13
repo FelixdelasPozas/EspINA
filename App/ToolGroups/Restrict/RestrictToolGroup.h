@@ -27,7 +27,7 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/ROIProvider.h>
 #include <Support/Context.h>
-#include <ToolGroups/ToolGroup.h>
+#include <App/ToolGroups/ToolGroup.h>
 
 // Qt
 #include <QAction>

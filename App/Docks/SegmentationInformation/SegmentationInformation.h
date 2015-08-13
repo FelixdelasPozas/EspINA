@@ -30,7 +30,6 @@ namespace ESPINA
 {
   class SegmentationInformation
   : public DockWidget
-  , private Support::WithContext
   {
     Q_OBJECT
   public:
