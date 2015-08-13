@@ -24,8 +24,7 @@
 
 #include <CountingFrames/CountingFrame.h>
 #include "Extensions/CountingFrameExtension.h"
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Types.h>
 
 namespace ESPINA {
   namespace CF {

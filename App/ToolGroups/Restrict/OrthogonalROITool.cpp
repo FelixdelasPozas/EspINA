@@ -77,7 +77,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      RestrictToolGroup *toolGroup)
 : ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
 , m_roiRepresentation{new OrthogonalRepresentation()}
-, m_prototypes       {new TemporalPrototypes(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr())}
 , m_resizeHandler    {new EventHandler()}
 , m_defineHandler    {new PixelSelector()}
 , m_settings         {settings}
@@ -184,6 +183,8 @@ void OrthogonalROITool::initControls()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::createOrthogonalWidget()
 {
+  Q_ASSERT(!m_prototype);
+
   updateRegionRepresentation();
 
   connect(m_roiRepresentation.get(), SIGNAL(boundsChanged(Bounds)),
@@ -198,7 +199,9 @@ void OrthogonalROITool::createOrthogonalWidget()
 
   showSliceSelectors();
 
-  getViewState().addTemporalRepresentations(m_prototypes);
+  m_prototype = createTemporalRepresentationPrototype();
+
+  getViewState().addTemporalRepresentations(m_prototype);
 }
 
 //-----------------------------------------------------------------------------
@@ -206,7 +209,9 @@ void OrthogonalROITool::destroyOrthogonalWidget()
 {
   hideSliceSelectors();
 
-  getViewState().removeTemporalRepresentations(m_prototypes);
+  getViewState().removeTemporalRepresentations(m_prototype);
+
+  m_prototype.reset();
 
   m_sliceSelector = nullptr;
 
@@ -408,4 +413,10 @@ void OrthogonalROITool::hideSliceSelectors()
   {
     getViewState().removeSliceSelectors(m_sliceSelector);
   }
+}
+
+//-----------------------------------------------------------------------------
+OrthogonalROITool::TemporalPrototypesSPtr OrthogonalROITool::createTemporalRepresentationPrototype() const
+{
+  return std::make_shared<TemporalPrototypes>(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr());
 }

@@ -21,7 +21,7 @@
 #define ESPINA_PASSIVE_ACTOR_MANAGER_H_
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/Managers/PoolManager.h>
 
@@ -48,30 +48,30 @@ namespace ESPINA
            */
           PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews, ManagerFlags flags = ManagerFlags());
 
-          virtual TimeRange readyRangeImplementation() const;
+          virtual TimeRange readyRangeImplementation() const override;
 
-          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
           virtual RepresentationPoolSList pools() const override;
 
         private:
-          virtual bool hasRepresentations() const;
+          virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-          virtual void onShow(TimeStamp t);
+          virtual void onShow(TimeStamp t) override;
 
-          virtual void onHide(TimeStamp t);
+          virtual void onHide(TimeStamp t) override;
 
-          virtual RepresentationPipeline::Actors actors(TimeStamp t);
+          virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
-          virtual void invalidatePreviousActors(TimeStamp t);
+          virtual void invalidatePreviousActors(TimeStamp t) override;
 
           void connectPools();
 
@@ -79,7 +79,7 @@ namespace ESPINA
 
           virtual void displayRepresentations(TimeStamp t) override;
 
-          virtual RepresentationManagerSPtr cloneImplementation();
+          virtual RepresentationManagerSPtr cloneImplementation() override;
 
           QSet<vtkProp *> toSet(const RepresentationPipeline::ActorList &list) const;
 

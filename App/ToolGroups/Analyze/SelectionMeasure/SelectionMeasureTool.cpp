@@ -21,7 +21,7 @@
 // ESPINA
 #include "SelectionMeasureTool.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Bounds.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>

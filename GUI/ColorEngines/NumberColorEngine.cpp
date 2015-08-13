@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "NumberColorEngine.h"
+#include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
@@ -35,7 +36,7 @@ NumberColorEngine::NumberColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-QColor NumberColorEngine::color(SegmentationAdapterPtr segmentation)
+QColor NumberColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   int r = 255;
   int g = 0;
@@ -52,7 +53,7 @@ QColor NumberColorEngine::color(SegmentationAdapterPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr segmentation)
+LUTSPtr NumberColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   auto lutName = QString::number(segmentation->number());

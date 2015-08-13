@@ -20,13 +20,15 @@
 
 // ESPINA
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA::Representations;
 
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  RepresentationState channelPipelineSettings(ChannelAdapterPtr channel)
+  RepresentationState channelPipelineSettings(ConstChannelAdapterPtr channel)
   {
     RepresentationState settings;
 
@@ -43,7 +45,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  RepresentationState segmentationPipelineSettings(SegmentationAdapterPtr segmentation)
+  RepresentationState segmentationPipelineSettings(ConstSegmentationAdapterPtr segmentation)
   {
     RepresentationState settings;
 

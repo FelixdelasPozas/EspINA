@@ -20,7 +20,7 @@
 #ifndef ESPINA_CORE_ANALYSIS_EXTENSIBLE_H
 #define ESPINA_CORE_ANALYSIS_EXTENSIBLE_H
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <QReadWriteLock>
 #include <QMap>
 #include <QVariant>

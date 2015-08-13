@@ -56,9 +56,9 @@ namespace ESPINA
       void rasterize() const;
 
     private:
-      virtual void updateCursor(DrawingMode mode);
+      virtual void updateCursor(DrawingMode mode) override;
 
-      virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
+      virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3()) override;
 
     private:
       Nm             m_minDistance;

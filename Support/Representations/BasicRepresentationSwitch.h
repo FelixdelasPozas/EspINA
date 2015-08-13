@@ -35,7 +35,7 @@ namespace ESPINA {
                                        Timer &timer,
                                        Support::Context &context);
 
-    virtual ViewTypeFlags supportedViews();
+    virtual ViewTypeFlags supportedViews() override;
 
     virtual void showRepresentations(TimeStamp t) override;
 

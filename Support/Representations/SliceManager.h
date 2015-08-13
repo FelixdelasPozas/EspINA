@@ -44,7 +44,7 @@ namespace ESPINA
 
     virtual void setRepresentationDepth(Nm depth) override;
 
-    virtual RepresentationPoolSList pools() const;
+    virtual RepresentationPoolSList pools() const override;
 
   protected:
     virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
@@ -66,11 +66,11 @@ namespace ESPINA
 
     virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    void onShow(TimeStamp t);
+    void onShow(TimeStamp t) override;
 
-    void onHide(TimeStamp t);
+    void onHide(TimeStamp t) override;
 
-    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation();
+    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
     void connectPools();
 

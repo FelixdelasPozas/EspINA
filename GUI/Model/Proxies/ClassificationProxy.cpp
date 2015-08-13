@@ -176,7 +176,7 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
 //------------------------------------------------------------------------
 bool ClassificationProxy::hasChildren(const QModelIndex& parent) const
 {
-  return rowCount(parent) > 0 && columnCount(parent) > 0;
+  return hasValidIndexes() && rowCount(parent) > 0 && columnCount(parent) > 0;
 }
 
 
@@ -275,8 +275,7 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
 //------------------------------------------------------------------------
 QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
-  if (!sourceIndex.isValid())
-    return QModelIndex();
+  if (!sourceIndex.isValid() || !hasValidIndexes()) return QModelIndex();
 
   if (sourceIndex == m_model->classificationRoot()
    || sourceIndex == m_model->sampleRoot()
@@ -297,16 +296,19 @@ QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) c
     }
     case ItemAdapter::Type::SEGMENTATION:
     {
-      auto segmentation = segmentationPtr(sourceItem);
-      Q_ASSERT(segmentation);
-      auto proxyCategory = toProxyPtr(segmentation->category().get());
-      if (proxyCategory)
+      if (m_categorySegmentations.isEmpty())
       {
-        int row = m_categorySegmentations[proxyCategory].indexOf(segmentation);
-        if (row >= 0)
+        auto segmentation = segmentationPtr(sourceItem);
+        Q_ASSERT(segmentation);
+        auto proxyCategory = toProxyPtr(segmentation->category().get());
+        if (proxyCategory)
         {
-          row += numSubCategories(proxyCategory);
-          proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
+          int row = m_categorySegmentations[proxyCategory].indexOf(segmentation);
+          if (row >= 0)
+          {
+            row += numSubCategories(proxyCategory);
+            proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
+          }
         }
       }
       break;
@@ -882,6 +884,7 @@ void ClassificationProxy::sourceModelReset()
   beginResetModel();
   {
     m_classification = std::make_shared<ClassificationAdapter>();
+    m_sourceCategory.clear();
     m_rootCategories.clear();
     m_numCategories.clear();
     m_categorySegmentations.clear();
@@ -1335,4 +1338,10 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
   }
 
   m_representationInvalidator.invalidateRepresentations(modifiedItems);
+}
+
+//------------------------------------------------------------------------
+bool ClassificationProxy::hasValidIndexes() const
+{
+  return !m_rootCategories.isEmpty();
 }

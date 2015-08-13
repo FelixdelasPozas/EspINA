@@ -53,8 +53,7 @@ namespace ESPINA
       explicit InformationSelector(const GroupedInfo &availableGroups,
                                    GroupedInfo       &selection,
                                    const QString     &title,
-                                   QWidget           *parent = nullptr,
-                                   Qt::WindowFlags    flags = 0);
+                                   const bool         exclusive);
 
       /** \brief InformationSelector class virtual destructor.
        *
@@ -64,6 +63,15 @@ namespace ESPINA
     protected slots:
       void accept();
 
+    private slots:
+      /** \brief Updates the state of the tree widget.
+       * \param[in] item tree item.
+       * \param[in] column column of the item.
+       *
+       */
+      void onItemClicked(QTreeWidgetItem *item, int column);
+
+    private:
       /** \brief Updates the state of the tree widget.
        * \param[in] item tree item.
        * \param[in] column column of the item.
@@ -72,11 +80,15 @@ namespace ESPINA
        */
       void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
+      void unselectItems();
+
     private:
       class UI;
 
     private:
       UI *m_gui;
+
+      bool m_exclusive;
 
       ModelFactorySPtr m_factory;
 

@@ -29,12 +29,6 @@
 
 namespace ESPINA
 {
-  class ChannelAdapter;
-  using ChannelAdapterPtr   = ChannelAdapter *;
-  using ChannelAdapterList  = QList<ChannelAdapterPtr>;
-  using ChannelAdapterSPtr  = std::shared_ptr<ChannelAdapter>;
-  using ChannelAdapterSList = QList<ChannelAdapterSPtr>;
-
   class EspinaGUI_EXPORT ChannelAdapter
   : public ViewItemAdapter
   {
@@ -208,6 +202,8 @@ namespace ESPINA
   bool EspinaGUI_EXPORT operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
   ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ItemAdapterPtr item);
+
+  ConstChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ConstItemAdapterPtr item);
 
   /** \brief Returns true if the given item is a channel item.
    * \param[in] item item adapter raw pointer.

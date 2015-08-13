@@ -292,6 +292,18 @@ NmVector3 ESPINA::centroid(const Bounds &bounds)
 }
 
 //-----------------------------------------------------------------------------
+NmVector3 ESPINA::lowerPoint(const Bounds& bounds)
+{
+  return NmVector3{bounds[0], bounds[2], bounds[4]};
+}
+
+//-----------------------------------------------------------------------------
+NmVector3 ESPINA::upperrPoint(const Bounds& bounds)
+{
+  return NmVector3{bounds[1], bounds[3], bounds[5]};
+}
+
+//-----------------------------------------------------------------------------
 void ESPINA::updateBoundingBox(Bounds &boundingBox, const Bounds &bounds)
 {
   if (boundingBox.areValid())

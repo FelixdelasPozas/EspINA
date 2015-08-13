@@ -24,7 +24,7 @@
 // ESPINA
 #include "CountingFramePlugin_Export.h"
 #include "vtkWidgetRepresentation.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 // VTK
 #include <vtkSmartPointer.h>

@@ -70,7 +70,7 @@ RepresentationState SegmentationContourPipeline::representationState(const ViewI
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                             const RepresentationState &state)
 {
   auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -119,7 +119,7 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(cons
         tubes->SetGenerateTCoordsToUseLength();
         tubes->SetNumberOfSides(4);
         tubes->SetOffset(1.0);
-        tubes->SetOnRatio(1.5);
+        tubes->SetOnRatio(1.0); // Review: previous truncated value 1.5
         tubes->UpdateWholeExtent();
 
         mapper->SetInputData(tubes->GetOutput());
@@ -163,7 +163,7 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(cons
 }
 
 //----------------------------------------------------------------------------
-void SegmentationContourPipeline::updateColors(RepresentationPipeline::ActorList& actors, const ViewItemAdapter* item, const RepresentationState& state)
+void SegmentationContourPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr    item, const RepresentationState& state)
 {
   if (actors.size() == 1)
   {
@@ -180,7 +180,7 @@ void SegmentationContourPipeline::updateColors(RepresentationPipeline::ActorList
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationContourPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationContourPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // TODO 2015-04-20 implement pick
   return false;

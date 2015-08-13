@@ -27,7 +27,7 @@
 #include "ui_GeneralSettingsDialog.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Support/Types.h>
 
 namespace ESPINA

@@ -24,7 +24,7 @@
 
 #include "Support/EspinaSupport_Export.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 namespace ESPINA
 {

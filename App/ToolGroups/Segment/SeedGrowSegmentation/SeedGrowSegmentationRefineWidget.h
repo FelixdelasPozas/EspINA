@@ -81,6 +81,9 @@ namespace ESPINA {
     SeedGrowSegmentationFilterSPtr        m_filter;
 
     RestrictToolGroup *m_roiTools;
+
+    static QMutex s_mutex;
+    static bool s_exists;
   };
 
 } // namespace ESPINA

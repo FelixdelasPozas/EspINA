@@ -19,7 +19,7 @@
 
 #include "Utils.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 #include <vtkImageActor.h>
 #include <vtkImageData.h>

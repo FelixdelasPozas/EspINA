@@ -39,7 +39,6 @@ namespace ESPINA
   class SegmentationExplorer
   : public DockWidget
   , public SelectableView
-  , private Support::WithContext
   {
     Q_OBJECT
     class GUI;
@@ -68,7 +67,7 @@ namespace ESPINA
      */
     void addLayout(const QString &id, Layout *proxy);
 
-    virtual bool eventFilter(QObject *sender, QEvent* e);
+    virtual bool eventFilter(QObject *sender, QEvent* e) override;
 
     /** \brief Updates segmentation explorer gui depending on selected indexes.
      *

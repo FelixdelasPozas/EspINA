@@ -25,14 +25,12 @@
 #include <ui_ChannelInspector.h>
 
 // ESPINA
-#include <Core/EspinaTypes.h>
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/ModelAdapter.h>
+#include <Core/Types.h>
+#include <GUI/Types.h>
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <Support/Context.h>
-#include <GUI/Types.h>
 
 using ESPINA::GUI::View::RepresentationInvalidator;
 

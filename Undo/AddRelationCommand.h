@@ -24,7 +24,7 @@
 #include "Undo/EspinaUndo_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ItemAdapter.h>
 

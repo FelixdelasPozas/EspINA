@@ -67,7 +67,7 @@ public:
 
   virtual ActorList createActors(const ViewItemAdapter *item, const RepresentationState &state);
 
-  virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+  virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
 
   VTKActor createTemporalActor(ViewItemAdapter *referenceItem);
 
@@ -122,7 +122,7 @@ RepresentationPipeline::ActorList BrushSelector::BrushPipeline::createActors(con
 }
 
 //-----------------------------------------------------------------------------
-bool BrushSelector::BrushPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool BrushSelector::BrushPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   return m_slice.pick(item, point);
 }

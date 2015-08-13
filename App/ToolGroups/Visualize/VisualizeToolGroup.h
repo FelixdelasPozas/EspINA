@@ -23,7 +23,7 @@
 
 
 // ESPINA
-#include <ToolGroups/ToolGroup.h>
+#include <App/ToolGroups/ToolGroup.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 namespace ESPINA

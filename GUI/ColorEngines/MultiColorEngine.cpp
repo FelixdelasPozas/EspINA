@@ -31,7 +31,7 @@ MultiColorEngine::MultiColorEngine()
 }
 
 //-----------------------------------------------------------------------------
-QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
+QColor MultiColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
   QColor color(Qt::red);
 
@@ -86,7 +86,7 @@ QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr MultiColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr MultiColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   LUTSPtr lut;
 

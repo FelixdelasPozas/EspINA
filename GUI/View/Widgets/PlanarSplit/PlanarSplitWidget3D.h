@@ -62,20 +62,20 @@ namespace ESPINA
              */
             virtual ~PlanarSplitWidget3D();
 
-            virtual TemporalRepresentation3DSPtr clone();
+            virtual TemporalRepresentation3DSPtr clone() override;
 
             virtual void disableWidget() override;
 
           protected:
-            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-            virtual void initializeImplementation(RenderView *view);
+            virtual void initializeImplementation(RenderView *view) override;
 
-            virtual void uninitializeImplementation();
+            virtual void uninitializeImplementation() override;
 
-            virtual vtkAbstractWidget *vtkWidget();
+            virtual vtkAbstractWidget *vtkWidget() override;
 
             virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
 

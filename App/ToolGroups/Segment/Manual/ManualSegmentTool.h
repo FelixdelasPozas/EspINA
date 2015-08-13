@@ -52,9 +52,9 @@ namespace ESPINA
     class ManualFilterFactory
     : public FilterFactory
     {
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const override;
 
-      virtual FilterTypeList providedFilters() const;
+      virtual FilterTypeList providedFilters() const override;
 
     private:
       mutable DataFactorySPtr m_dataFactory;
@@ -72,7 +72,7 @@ namespace ESPINA
      */
     virtual ~ManualSegmentTool();
 
-    virtual void abortOperation();
+    virtual void abortOperation() override;
 
     virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 

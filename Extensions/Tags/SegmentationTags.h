@@ -63,25 +63,25 @@ namespace ESPINA
      */
     virtual ~SegmentationTags();
 
-    virtual Type type() const
+    virtual Type type() const override
     { return TYPE; }
 
-    virtual bool invalidateOnChange() const
+    virtual bool invalidateOnChange() const override
     { return false; }
 
-    virtual State state() const
+    virtual State state() const override
     { return m_tags.join(";"); }
 
-    virtual Snapshot snapshot() const
+    virtual Snapshot snapshot() const override
     { return Snapshot(); }
 
-    virtual TypeList dependencies() const
+    virtual TypeList dependencies() const override
     { return TypeList(); }
 
-    virtual bool validCategory(const QString& classificationName) const
+    virtual bool validCategory(const QString& classificationName) const override
     { return true; }
 
-    virtual InformationKeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const override;
 
     virtual QString toolTipText() const override;
 
@@ -116,9 +116,9 @@ namespace ESPINA
     { return m_tags; }
 
   protected:
-    virtual void onExtendedItemSet(Segmentation* item);
+    virtual void onExtendedItemSet(SegmentationPtr item) override;
 
-    virtual QVariant cacheFail(const InformationKey& tag) const;
+    virtual QVariant cacheFail(const InformationKey& tag) const override;
 
   private:
     /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).

@@ -80,25 +80,25 @@ namespace ESPINA {
     QFileInfo fileName() const
     { return m_fileName; }
 
-    virtual size_t memoryUsage() const
+    virtual size_t memoryUsage() const override
     { return 0; }
 
-    virtual Bounds bounds() const;
+    virtual Bounds bounds() const override;
 
-    virtual void setOrigin(const NmVector3& origin)
+    virtual void setOrigin(const NmVector3& origin) override
     { m_origin = origin; }
 
-    virtual NmVector3 origin() const
+    virtual NmVector3 origin() const override
     { return m_origin; }
 
-    virtual void setSpacing(const NmVector3& spacing)
+    virtual void setSpacing(const NmVector3& spacing) override
     { m_spacing = spacing; }
 
-    virtual NmVector3 spacing() const;
+    virtual NmVector3 spacing() const override;
 
-    virtual const typename T::Pointer itkImage() const;
+    virtual const typename T::Pointer itkImage() const override;
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
@@ -125,13 +125,13 @@ namespace ESPINA {
     {}
 
 
-    virtual void resize(const Bounds &bounds)
+    virtual void resize(const Bounds &bounds) override
     {}
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     { return QFileInfo(m_fileName).exists(); }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     { return !isValid(); }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override

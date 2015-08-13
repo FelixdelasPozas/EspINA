@@ -65,7 +65,6 @@ FilterTypeList ManualSegmentTool::ManualFilterFactory::providedFilters() const
 FilterSPtr ManualSegmentTool::ManualFilterFactory::createFilter(InputSList          inputs,
                                                                 const Filter::Type& filter,
                                                                 SchedulerSPtr       scheduler) const
-throw(Unknown_Filter_Exception)
 {
   if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
 
@@ -134,7 +133,7 @@ ManualSegmentTool::~ManualSegmentTool()
 //------------------------------------------------------------------------
 void ManualSegmentTool::abortOperation()
 {
-  this->m_drawingWidget.abortOperation();
+  setChecked(false);
 }
 
 //------------------------------------------------------------------------
@@ -195,10 +194,7 @@ void ManualSegmentTool::setInitialStroke()
     m_drawingWidget.stopDrawing();
   }
 
-  auto channels = getSelection()->channels();
-
-  m_referenceItem = channels.isEmpty()?getActiveChannel():channels.first();
-
+  m_referenceItem = getActiveChannel();
   auto brushColor = m_drawingWidget.selectedCategory()->color();
 
   m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
@@ -394,6 +390,10 @@ void ManualSegmentTool::onToolToggled(bool toggled)
   if (toggled)
   {
     setInitialStroke();
+  }
+  else
+  {
+    m_drawingWidget.abortOperation();
   }
 }
 

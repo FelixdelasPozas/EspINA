@@ -63,9 +63,8 @@ public:
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
                                            Support::Context &context)
-: DockWidget(tr("Segmentation Explorer"))
+: DockWidget(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())
-, WithContext(context)
 , m_gui   {new GUI()}
 , m_layout{nullptr}
 {
@@ -279,9 +278,12 @@ void SegmentationExplorer::onSelectionChanged()
   auto selection =  currentSelection()->items();
   for(auto item : selection)
   {
-    QModelIndex index = m_layout->index(item);
+    auto index = m_layout->index(item);
+
     if (index.isValid())
+    {
       m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+    }
   }
   m_gui->view->selectionModel()->blockSignals(false);
   m_gui->view->blockSignals(false);

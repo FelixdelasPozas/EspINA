@@ -4,7 +4,7 @@
 #include "Support/EspinaSupport_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Support/Types.h>
 
 // Qt

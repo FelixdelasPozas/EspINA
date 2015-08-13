@@ -89,16 +89,6 @@ namespace ESPINA
 
     Image2LabelFilterType::Pointer m_labelMap;
     mutable LabelObjectType       *m_statistic;
-
-    mutable bool m_validFeret;
-
-    double Size;
-    double PhysicalSize;
-    double Centroid[3];
-    double BinaryPrincipalMoments[3];
-    double BinaryPrincipalAxes[3][3];
-    double FeretDiameter;
-    double EquivalentEllipsoidSize[3];
   };
 
 }// namespace ESPINA

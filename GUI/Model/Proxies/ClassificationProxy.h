@@ -59,86 +59,86 @@ namespace ESPINA
 
     virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const override;
 
-    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const override {return 1;}
 
-    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex parent(const QModelIndex& child) const override;
 
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
 
-    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override;
 
-    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const override;
 
     virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
+    virtual Qt::DropActions supportedDropActions() const override {return Qt::MoveAction;}
 
-    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
 
     /** \brief Returns the list of indexes of the model for the segmentations contained in a category.
-     * \param[in] categoryIndex, model index of the category.
-     * \param[in] recursive, true to count also segmentations in sub-categories, false otherwise.
+     * \param[in] categoryIndex model index of the category.
+     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
      *
      */
     QModelIndexList segmentations(QModelIndex categoryIndex, bool recursive = false) const;
 
     /** \brief Returns the list of indexes of the model for the segmentations contained in a category.
-     * \param[in] category, categoryAdapter raw pointer.
-     * \param[in] recursive, true to count also segmentations in sub-categories, false otherwise.
-     *
+     * \param[in] category categoryAdapter raw pointer.
+     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
+
      */
     SegmentationAdapterList segmentations(CategoryAdapterPtr category, bool recursive = false) const;
 
   protected slots:
     /** \brief Inserts rows in the model given the parent in the source model and the interval.
-     * \param[in] sourceParent, model index of the parent item in the source model.
-     * \param[in] start, start value.
-     * \param[in] end, end value.
+     * \param[in] sourceParent model index of the parent item in the source model.
+     * \param[in] start start value.
+     * \param[in] end end value.
      *
      */
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
     /** \brief Removes rows in the model given the parent in the source model and the interval, before the rows being removed in the source model.
-     * \param[in] sourceParent, model index of the parent item in the source model.
-     * \param[in] start, start value.
-     * \param[in] end, end value.
+     * \param[in] sourceParent model index of the parent item in the source model.
+     * \param[in] start start value.
+     * \param[in] end end value.
      *
      */
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
 
     /** \brief Removes rows in the model given the parent in the source model and the interval.
-     * \param[in] sourceParent, model index of the parent item in the source model.
-     * \param[in] start, start value.
-     * \param[in] end, end value.
+     * \param[in] sourceParent model index of the parent item in the source model.
+     * \param[in] start start value.
+     * \param[in] end end value.
      *
      */
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
 
     /** \brief Moves rows in the model given the parent in the source model and the interval, before the rows being moved in the source model.
-     * \param[in] sourceParent, model index of the parent item in the source model.
-     * \param[in] sourceStart, start value.
-     * \param[in] sourceEnd, end value.
-     * \param[in] destinationParent, model index of the destination in the source model.
-     * \param[in] destinationRow, destination row.
+     * \param[in] sourceParent model index of the parent item in the source model.
+     * \param[in] sourceStart start value.
+     * \param[in] sourceEnd end value.
+     * \param[in] destinationParent model index of the destination in the source model.
+     * \param[in] destinationRow destination row.
      *
      */
     void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
 
     /** \brief Moves rows in the model given the parent in the source model and the interval.
-     * \param[in] sourceParent, model index of the parent item in the source model.
-     * \param[in] sourceStart, start value.
-     * \param[in] sourceEnd, end value.
-     * \param[in] destinationParent, model index of the destination in the source model.
-     * \param[in] destinationRow, destination row.
+     * \param[in] sourceParent model index of the parent item in the source model.
+     * \param[in] sourceStart start value.
+     * \param[in] sourceEnd end value.
+     * \param[in] destinationParent model index of the destination in the source model.
+     * \param[in] destinationRow destination row.
      *
      */
     void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
 
     /** \brief Updates the data in the model when it changes in the source model.
-     * \param[in] sourceTopLeft, source model index top left.
-     * \param[in] sourceBottomRight, source model index bottom right.
+     * \param[in] sourceTopLeft source model index top left.
+     * \param[in] sourceBottomRight source model index bottom right.
      */
     void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
 
@@ -319,6 +319,9 @@ namespace ESPINA
     void changeParentCheckStateRole(const QModelIndex &index, bool value);
 
     void notifyModifiedRepresentations(const QModelIndex &index);
+
+    bool hasValidIndexes() const;
+
   private:
     ModelAdapterSPtr                      m_model;
     GUI::View::RepresentationInvalidator &m_representationInvalidator;

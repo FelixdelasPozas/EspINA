@@ -97,7 +97,7 @@ namespace ESPINA
   private:
     virtual void updateCursor(DrawingMode mode) override;
 
-    virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin = NmVector3());
+    virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin = NmVector3()) override;
 
 
     BinaryMaskSPtr<unsigned char> strokeMask(const Brush::Stroke &stroke,

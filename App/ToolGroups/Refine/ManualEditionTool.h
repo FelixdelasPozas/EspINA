@@ -55,7 +55,7 @@ namespace ESPINA
      */
     virtual ~ManualEditionTool();
 
-    virtual void abortOperation();
+    virtual void abortOperation() override;
 
     virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 

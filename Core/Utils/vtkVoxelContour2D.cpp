@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/vtkVoxelContour2D.h>
 #include <Core/Utils/Vector3.hxx>
 #include <vtkObjectFactory.h> //for new() macro

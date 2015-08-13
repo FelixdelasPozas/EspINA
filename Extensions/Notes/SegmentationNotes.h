@@ -57,25 +57,25 @@ namespace ESPINA
      */
     virtual ~SegmentationNotes();
 
-    virtual Type type() const
+    virtual Type type() const override
     { return TYPE; }
 
-    virtual bool invalidateOnChange() const
+    virtual bool invalidateOnChange() const override
     { return false; }
 
-    virtual State state() const
+    virtual State state() const override
     { return State(); }
 
-    virtual Snapshot snapshot() const
+    virtual Snapshot snapshot() const override
     { return Snapshot(); }
 
-    virtual TypeList dependencies() const
+    virtual TypeList dependencies() const override
     { return TypeList(); }
 
-    virtual bool validCategory(const QString& classification) const
+    virtual bool validCategory(const QString& classification) const override
     { return true; }
 
-    virtual InformationKeyList availableInformation() const;
+    virtual InformationKeyList availableInformation() const override;
 
     virtual QString toolTipText() const override;
 
@@ -91,10 +91,10 @@ namespace ESPINA
     { return cachedInfo(createKey(NOTES)).toString(); }
 
   protected:
-    virtual void onExtendedItemSet(Segmentation* item)
+    virtual void onExtendedItemSet(SegmentationPtr item) override
     {}
 
-    virtual QVariant cacheFail(const InformationKey& key) const;
+    virtual QVariant cacheFail(const InformationKey& key) const override;
   };
 } // namespace ESPINA
 

@@ -39,9 +39,9 @@ namespace ESPINA
       public:
         explicit NumberColorEngine();
 
-        virtual QColor color(SegmentationAdapterPtr segmentation);
+        virtual QColor color(ConstSegmentationAdapterPtr segmentation);
 
-        virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr segmentation);
 
         virtual ColorEngine::Composition supportedComposition() const
         { return ColorEngine::Color; }

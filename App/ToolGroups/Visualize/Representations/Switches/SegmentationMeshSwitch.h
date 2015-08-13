@@ -60,7 +60,7 @@ namespace ESPINA
        */
       virtual ~SegmentationMeshSwitch();
 
-      virtual ViewTypeFlags supportedViews();
+      virtual ViewTypeFlags supportedViews() override;
 
       virtual void showRepresentations(TimeStamp t) override;
 

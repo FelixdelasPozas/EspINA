@@ -45,17 +45,17 @@ namespace ESPINA
       virtual ~SegmentationVolumetricCPUPipeline()
       {};
 
-      virtual RepresentationState representationState(const ViewItemAdapter     *item,
-                                                      const RepresentationState &settings);
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
+                                                      const RepresentationState &settings) override;
 
-      virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
-                                                             const RepresentationState &state);
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
+                                                             const RepresentationState &state) override;
 
       virtual void updateColors(ActorList                 &actors,
-                                const ViewItemAdapter     *item,
+                                ConstViewItemAdapterPtr    item,
                                 const RepresentationState &state) override;
 
-      virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     private:
       GUI::ColorEngines::ColorEngineSPtr m_colorEngine;

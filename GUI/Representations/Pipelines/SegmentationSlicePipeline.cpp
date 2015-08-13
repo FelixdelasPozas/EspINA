@@ -67,7 +67,7 @@ RepresentationState SegmentationSlicePipeline::representationState(const ViewIte
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                           const RepresentationState &state)
 {
   auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
@@ -148,7 +148,7 @@ void SegmentationSlicePipeline::updateColors(ActorList                &actors,
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationSlicePipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   Q_ASSERT(hasVolumetricData(item->output()));
   auto volume = readLockVolume(item->output());

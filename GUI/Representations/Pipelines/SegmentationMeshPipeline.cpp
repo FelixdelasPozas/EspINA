@@ -46,7 +46,7 @@ SegmentationMeshPipeline::SegmentationMeshPipeline(ColorEngineSPtr colorEngine)
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationMeshPipeline::representationState(const ViewItemAdapter     *item,
+RepresentationState SegmentationMeshPipeline::representationState(ConstViewItemAdapterPtr  item,
                                                                   const RepresentationState &settings)
 {
   auto segmentation = segmentationPtr(item);
@@ -60,7 +60,7 @@ RepresentationState SegmentationMeshPipeline::representationState(const ViewItem
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(const ViewItemAdapter     *item,
+RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(ConstViewItemAdapterPtr  item,
                                                                          const RepresentationState &state)
 {
   ActorList actors;
@@ -92,7 +92,7 @@ RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(const V
 
 //----------------------------------------------------------------------------
 void SegmentationMeshPipeline::updateColors(ActorList& actors,
-                                            const ViewItemAdapter* item,
+                                            ConstViewItemAdapterPtr    item,
                                             const RepresentationState& state)
 {
   if (actors.size() == 1)
@@ -108,7 +108,7 @@ void SegmentationMeshPipeline::updateColors(ActorList& actors,
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationMeshPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
   // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
   return true;

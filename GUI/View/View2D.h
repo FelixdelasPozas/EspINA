@@ -46,7 +46,6 @@ class QPushButton;
 
 namespace ESPINA
 {
-  class Representation;
   class EspinaWidget;
   class ViewRendererMenu;
 
@@ -129,13 +128,13 @@ namespace ESPINA
      */
     void setThumbnailVisibility(bool visible);
 
-    virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
+    virtual Bounds previewBounds(bool cropToSceneBounds = true) const override;
 
-    virtual void setCameraState(CameraState state);
+    virtual void setCameraState(CameraState state) override;
 
-    virtual CameraState cameraState();
+    virtual CameraState cameraState() override;
 
-    virtual vtkRenderer *mainRenderer() const;
+    virtual vtkRenderer *mainRenderer() const override;
 
   public slots:
     /** \brief Sets the scale visibility.
@@ -150,7 +149,7 @@ namespace ESPINA
     void segmentationSelected(SegmentationAdapterPtr, bool);
 
   protected:
-    virtual void resetImplementation();
+    virtual void resetImplementation() override;
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
@@ -166,17 +165,17 @@ namespace ESPINA
 
     virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 
-    virtual void resetCameraImplementation();
+    virtual void resetCameraImplementation() override;
 
     virtual bool isCrosshairPointVisible() const override;
 
-    virtual void refreshViewImplementation();
+    virtual void refreshViewImplementation() override;
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
-    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager);
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager) override;
 
-    virtual void normalizeWorldPosition(NmVector3 &point) const;
+    virtual void normalizeWorldPosition(NmVector3 &point) const override;
 
     NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
 
@@ -242,7 +241,7 @@ namespace ESPINA
     inline int voxelSlice(const Nm position, const Plane plane) const;
 
   private slots:
-    virtual void onCrosshairChanged(const NmVector3 &point);
+    virtual void onCrosshairChanged(const NmVector3 &point) override;
 
     /** \brief Centers view camera on the given point.
      * \param[in] center point to center camera on.
@@ -275,7 +274,7 @@ namespace ESPINA
      */
     void onTakeSnapshot();
 
-    virtual const QString viewName() const;
+    virtual const QString viewName() const override;
   private:
     // GUI
     QVBoxLayout    *m_mainLayout;

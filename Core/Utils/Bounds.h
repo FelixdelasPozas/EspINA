@@ -235,6 +235,20 @@ namespace ESPINA
    */
   NmVector3 centroid(const Bounds &bounds);
 
+  /** \brief Returns the start point of the lower voxel
+   * \param[in] bounds to compute its lower bound
+   *
+   *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
+   */
+  NmVector3 lowerPoint(const Bounds &bounds);
+
+  /** \brief Returns the end point of the upper voxel
+   * \param[in] bounds to compute its lower bound
+   *
+   *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
+   */
+  NmVector3 upperrPoint(const Bounds &bounds);
+
   /** \brief Add bounds to boundingBox
    * \param[in] boundingBox to be updated
    * \param[in] bounds to update boundingBox with

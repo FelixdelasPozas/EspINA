@@ -106,18 +106,18 @@ namespace ESPINA
 
     virtual Bounds bounds() const override;
 
-    virtual void setOrigin(const NmVector3& origin);
+    virtual void setOrigin(const NmVector3& origin) override;
 
-    virtual NmVector3 origin() const;
+    virtual NmVector3 origin() const override;
 
-    virtual void setSpacing(const NmVector3& spacing);
+    virtual void setSpacing(const NmVector3& spacing) override;
 
-    virtual NmVector3 spacing() const
+    virtual NmVector3 spacing() const override
     { return m_spacing; }
 
-    virtual const typename T::Pointer itkImage() const;
+    virtual const typename T::Pointer itkImage() const override;
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
@@ -138,11 +138,11 @@ namespace ESPINA
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
 
-    virtual void resize(const Bounds &bounds);
+    virtual void resize(const Bounds &bounds) override;
 
-    virtual bool isValid() const;
+    virtual bool isValid() const override;
 
-    virtual bool isEmpty() const;
+    virtual bool isEmpty() const override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 

@@ -68,7 +68,7 @@ namespace ESPINA
      */
     virtual ~RasterizedVolume() {};
 
-    virtual size_t memoryUsage() const;
+    virtual size_t memoryUsage() const override;
 
     virtual const typename T::Pointer itkImage() const override;
 
@@ -323,9 +323,10 @@ namespace ESPINA
     }
     m_rasterizationTime = mesh->GetMTime();
 
-    SparseVolume<T>::draw(image);
+    const_cast<RasterizedVolume<T> *>(this)->SparseVolume<T>::draw(image);
 
     this->m_mutex.unlock();
+    //const_cast<RasterizedVolume<T> *>(this)->draw(image);
   }
 
   //----------------------------------------------------------------------------

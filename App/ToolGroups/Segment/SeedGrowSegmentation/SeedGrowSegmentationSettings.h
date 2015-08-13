@@ -22,7 +22,7 @@
 #define ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_H
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Support/Settings/EspinaSettings.h>
 
 namespace ESPINA

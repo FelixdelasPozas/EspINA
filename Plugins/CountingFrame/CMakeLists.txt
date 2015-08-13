@@ -40,6 +40,8 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS
+  ColorEngines/ColorEngine.h
+  ColorEngines/ColorEngineSwitch.h
   CountingFrameManager.h
   CountingFramePlugin.h
   CountingFrames/CountingFrame.h
@@ -54,7 +56,8 @@ qt4_wrap_cpp(MOC_SRCS
   )
 
 set (LOCAL_SOURCES
-  ColorEngines/CountingFrameColorEngine.cpp
+  ColorEngines/ColorEngine.cpp
+  ColorEngines/ColorEngineSwitch.cpp
   CountingFrameManager.cpp
   CountingFramePlugin.cpp
   CountingFrames/AdaptiveCountingFrame.cpp

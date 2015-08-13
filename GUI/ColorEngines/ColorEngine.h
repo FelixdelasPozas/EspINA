@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Types.h>
 
 // Qt
 #include <QColor>
@@ -91,13 +91,13 @@ namespace ESPINA
          * \param[in] seg segmentation adapter raw pointer.
          *
          */
-        virtual QColor color(SegmentationAdapterPtr segmentation) = 0;
+        virtual QColor color(ConstSegmentationAdapterPtr segmentation) = 0;
 
         /** \brief Returns the lut associated with the given segmentation.
          * \param[in] seg segmentation adapter raw pointer.
          *
          */
-        virtual LUTSPtr lut (SegmentationAdapterPtr segmentation) = 0;
+        virtual LUTSPtr lut (ConstSegmentationAdapterPtr segmentation) = 0;
 
         /** \brief Returns the flags of the composition methods supported by the color engine.
          *

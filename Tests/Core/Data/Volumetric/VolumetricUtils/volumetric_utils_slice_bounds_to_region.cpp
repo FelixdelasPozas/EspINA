@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
 
@@ -40,7 +40,11 @@ bool Test_Create_Region_From_Slice_Bounds(Nm w, Nm h, Nm d, bool passIfEquivalen
     Nm dim[3] = {w, h, d};
 
     dim[i] = 1;
-    itkVolumeType::SizeType size{dim[0], dim[1], dim[2]};
+    itkVolumeType::SizeType size;
+    for (int j = 0; j < 3; ++j)
+    {
+      size.SetElement(j , dim[j]);
+    }
 
     itkVolumeType::RegionType expectedRegion;
     expectedRegion.SetSize(size);

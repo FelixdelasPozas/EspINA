@@ -44,15 +44,15 @@ namespace ESPINA
       virtual ~SegmentationSkeleton3DPipeline()
       {};
 
-      virtual RepresentationState representationState(const ViewItemAdapter     *item,
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
                                                       const RepresentationState &settings);
 
-      virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
                                                              const RepresentationState &state);
 
-    virtual void updateColors(ActorList& actors, const ViewItemAdapter* item, const RepresentationState& state) {}
+    virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr    item, const RepresentationState& state) {}
 
-      virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
 
     private:
       GUI::ColorEngines::ColorEngineSPtr m_colorEngine;

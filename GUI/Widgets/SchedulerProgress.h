@@ -26,7 +26,7 @@
 
 // ESPINA
 #include "GUI/Widgets/TaskProgress.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QScrollArea>

@@ -24,7 +24,7 @@
 // ESPINA
 #include "GUI/View/SelectableView.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Types.h>
 
 #include <GUI/Representations/RepresentationManager.h>

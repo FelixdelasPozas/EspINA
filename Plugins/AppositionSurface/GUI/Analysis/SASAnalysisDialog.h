@@ -23,7 +23,7 @@
 #define ESPINA_SAS_ANALYSIS_DIALOG_H
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Context.h>
 

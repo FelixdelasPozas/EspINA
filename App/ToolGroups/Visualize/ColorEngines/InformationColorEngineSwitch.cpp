@@ -197,11 +197,14 @@ void InformationColorEngineSwitch::updateLink()
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::changeProperty()
 {
-  auto available = availableInformation(getFactory());
+  auto segmentations = toRawList<SegmentationAdapter>(getModel()->segmentations());
+  auto available     = availableInformation(segmentations, getFactory());
 
   auto selection = InformationSelector::GroupedInfo();
 
-  InformationSelector propertySelector(available, selection, tr("Select property to color by"));
+  selection[m_key.extension()] << m_key;
+
+  InformationSelector propertySelector(available, selection, tr("Select property to color by"), true);
 
   if (propertySelector.exec() == QDialog::Accepted)
   {

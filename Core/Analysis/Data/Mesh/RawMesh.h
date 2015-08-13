@@ -61,10 +61,10 @@ namespace ESPINA
     virtual ~RawMesh()
     {};
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     { return (m_mesh.Get() != nullptr); }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     { return !isValid(); }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override
@@ -85,12 +85,12 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
-    void setSpacing(const NmVector3&);
+    void setSpacing(const NmVector3&) override;
 
-    NmVector3 spacing() const
+    NmVector3 spacing() const override
     { return m_spacing; }
 
-    size_t memoryUsage() const;
+    size_t memoryUsage() const override;
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override

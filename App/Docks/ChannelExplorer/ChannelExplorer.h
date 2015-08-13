@@ -22,7 +22,7 @@
 #define ESPINA_CHANNEL_EXPLORER_H
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Context.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>

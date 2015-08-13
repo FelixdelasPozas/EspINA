@@ -39,7 +39,7 @@ class DockWidget;
     class Context
     {
     public:
-      explicit Context(QMainWindow *mainWindow);
+      explicit Context(QMainWindow *mainWindow, bool *minimizedStatus);
 
       Context(Context &context) = delete;
 
@@ -59,6 +59,8 @@ class DockWidget;
 
       void addPanel(DockWidget *panel);
 
+      bool isMinimized() const;
+
     private:
       using Invalidator = GUI::View::RepresentationInvalidator;
       using ViewState   = GUI::View::ViewState;
@@ -74,6 +76,7 @@ class DockWidget;
       ModelFactorySPtr     m_factory;
       GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;
 
+      bool *m_minimizedStatus;
       QMainWindow *m_mainWindow;
     };
 

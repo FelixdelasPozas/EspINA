@@ -49,8 +49,7 @@ public:
 //----------------------------------------------------------------------------
 SegmentationInformation::SegmentationInformation(FilterRefinerRegister &filterRefiners,
                                                  Context               &context)
-: DockWidget(tr("Information"))
-, WithContext(context)
+: DockWidget(tr("Information"), context)
 , m_register(filterRefiners)
 , m_segmentation(nullptr)
 , m_gui(new UI())

@@ -201,7 +201,7 @@ void TabularReport::Entry::changeDisplayedInformation()
 
   auto selection = lastDisplayedInformation();
 
-  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), this);
+  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), false);
 
   if (tagSelector.exec() == QDialog::Accepted)
   {

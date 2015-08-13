@@ -53,17 +53,17 @@ namespace ESPINA
       virtual ~SegmentationContourPipeline()
       {};
 
-      virtual RepresentationState representationState(const ViewItemAdapter     *item,
-                                                      const RepresentationState &settings);
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
+                                                      const RepresentationState &settings) override;
 
-      virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
                                                              const RepresentationState &state) override;
 
       virtual void updateColors(ActorList                 &actors,
-                                const ViewItemAdapter     *item,
+                                ConstViewItemAdapterPtr    item,
                                 const RepresentationState &state) override;
 
-      virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
       /** \brief Helper method to get an integer value of the width enum.
        * \param[in] width width enum value.

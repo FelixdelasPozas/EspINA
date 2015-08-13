@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
 

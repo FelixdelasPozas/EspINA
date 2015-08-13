@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/View/CoordinateSystem.h>

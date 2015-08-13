@@ -64,24 +64,24 @@ namespace ESPINA
 
             virtual void disableWidget() override;
 
-            virtual void setPlane(Plane plane);
+            virtual void setPlane(Plane plane) override;
 
-            virtual void setRepresentationDepth(Nm depth);
+            virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual TemporalRepresentation2DSPtr clone();
+            virtual TemporalRepresentation2DSPtr clone() override;
 
           protected:
-            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-            virtual void setCrosshair(const NmVector3 &crosshair);
+            virtual void setCrosshair(const NmVector3 &crosshair) override;
 
-            virtual void initializeImplementation(RenderView *view);
+            virtual void initializeImplementation(RenderView *view) override;
 
-            virtual void uninitializeImplementation();
+            virtual void uninitializeImplementation() override;
 
-            virtual vtkAbstractWidget *vtkWidget();
+            virtual vtkAbstractWidget *vtkWidget() override;
 
             virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
 

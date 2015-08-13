@@ -20,18 +20,21 @@
 #include "DockWidget.h"
 
 #include <QPushButton>
+#include <QApplication>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-DockWidget::DockWidget(QWidget* parent)
+DockWidget::DockWidget(Support::Context &context, QWidget* parent)
 : QDockWidget(parent)
+, WithContext(context)
 {
 }
 
 //------------------------------------------------------------------------
-DockWidget::DockWidget(const QString& title, QWidget* parent, Qt::WindowFlags flags)
+DockWidget::DockWidget(const QString& title, Support::Context &context, QWidget* parent, Qt::WindowFlags flags)
 : QDockWidget(title, parent, flags)
+, WithContext(context)
 {
 }
 
@@ -64,5 +67,8 @@ void DockWidget::hideEvent(QHideEvent *event)
 {
   QWidget::hideEvent(event);
 
-  emit dockShown(false);
+  if (!context().isMinimized())
+  {
+    emit dockShown(false);
+  }
 }

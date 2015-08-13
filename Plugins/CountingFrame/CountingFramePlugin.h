@@ -26,6 +26,7 @@
 #include <Support/Plugin.h>
 
 #include "CountingFrameManager.h"
+#include "ColorEngines/ColorEngine.h"
 #include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
@@ -67,7 +68,7 @@ class DockWidget;
       DockWidget                  *m_dockWidget;
       Support::Context            *m_context;
 
-      GUI::ColorEngines::ColorEngineSPtr  m_colorEngine;
+      CountingFrameColorEngineSPtr  m_colorEngine;
 
       RepresentationFactorySPtr        m_representationFactory;
       ChannelExtensionFactorySPtr      m_channelExtensionFactory;

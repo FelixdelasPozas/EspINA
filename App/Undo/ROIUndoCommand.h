@@ -27,7 +27,7 @@
 // Qt
 #include <QUndoStack>
 
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 namespace ESPINA
 {
   class AddROIUndoCommand

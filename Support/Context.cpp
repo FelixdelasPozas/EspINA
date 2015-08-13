@@ -32,7 +32,7 @@ using namespace ESPINA::GUI::View;
 using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
-Context::Context(QMainWindow *mainWindow)
+Context::Context(QMainWindow *mainWindow, bool *minimizedStatus)
 : m_invalidator(m_timer)
 , m_viewState(m_timer, m_invalidator)
 , m_model(new ModelAdapter())
@@ -40,6 +40,7 @@ Context::Context(QMainWindow *mainWindow)
 , m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler, &m_invalidator))
 , m_colorEngine(std::make_shared<MultiColorEngine>())
+, m_minimizedStatus(minimizedStatus)
 , m_mainWindow(mainWindow)
 {
   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
@@ -115,6 +116,12 @@ RepresentationInvalidator &Context::representationInvalidator()
 void Context::addPanel(DockWidget *panel)
 {
   m_mainWindow->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, panel);
+}
+
+//------------------------------------------------------------------------
+bool Context::isMinimized() const
+{
+  return *m_minimizedStatus;
 }
 
 //------------------------------------------------------------------------

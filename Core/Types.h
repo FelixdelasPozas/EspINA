@@ -1,5 +1,5 @@
-#ifndef ESPINATYPES_H
-#define ESPINATYPES_H
+#ifndef Types_H
+#define Types_H
 
 #include "Core/EspinaCore_Export.h"
 
@@ -80,4 +80,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif// ESPINATYPES_H
+#endif// Types_H

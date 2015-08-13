@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/SkeletonData.h>
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Bounds.h>
 
 // VTK

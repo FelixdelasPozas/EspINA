@@ -99,6 +99,10 @@ namespace ESPINA
     void abortOperation();
 
   protected:
+    virtual void showEvent(QShowEvent *event) override;
+
+    virtual void hideEvent(QHideEvent *event) override;
+
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
@@ -362,11 +366,18 @@ namespace ESPINA
 
     Support::Widgets::ToolSList availableTools() const;
 
+    QString windowTitle() const
+    { return tr("ESPINA"); }
+
+    void initializeCrosshair();
+
   private:
     // ESPINA
+    bool m_minimizedStatus;
+
     Support::Context               m_context;
     Support::FilterRefinerRegister m_filterRefiners;
-    AnalysisSPtr              m_analysis;
+    AnalysisSPtr                   m_analysis;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;

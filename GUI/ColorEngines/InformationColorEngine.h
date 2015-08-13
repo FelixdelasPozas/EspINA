@@ -22,6 +22,7 @@
 
 #include <GUI/Types.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <Core/Analysis/Extension.h>
 
 namespace ESPINA
 {
@@ -42,9 +43,9 @@ namespace ESPINA
         SegmentationExtension::InformationKey information() const
         { return m_key; }
 
-        virtual QColor color(SegmentationAdapterPtr segmentation);
+        virtual QColor color(ConstSegmentationAdapterPtr segmentation);
 
-        virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr segmentation);
 
         virtual Composition supportedComposition() const
         { return ColorEngine::Color; }

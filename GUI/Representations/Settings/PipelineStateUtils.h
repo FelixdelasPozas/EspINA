@@ -22,8 +22,7 @@
 #define ESPINA_PIPELINE_STATE_UTILS_H_
 
 // ESPINA
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Types.h>
 #include <GUI/Representations/RepresentationState.h>
 
 // Qt
@@ -49,9 +48,9 @@ namespace ESPINA
     const QString TIME_STAMP   = "TimeStamp";
   }
 
-  RepresentationState channelPipelineSettings(ChannelAdapterPtr channel);
+  RepresentationState channelPipelineSettings(ConstChannelAdapterPtr channel);
 
-  RepresentationState segmentationPipelineSettings(SegmentationAdapterPtr segmentation);
+  RepresentationState segmentationPipelineSettings(ConstSegmentationAdapterPtr segmentation);
 
   double brightness(const RepresentationState &state);
 

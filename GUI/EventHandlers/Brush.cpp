@@ -219,7 +219,7 @@ Brush::Stroke Brush::createStroke(PointTracker::Track track)
 
   for(auto point: track)
   {
-    if (abs(last[0] - point[0]) > MIN_DELTA
+    if (abs(last[0] - point[0]) > MIN_DELTA //@felix: shouldn't we use fabs instead?
      || abs(last[1] - point[1]) > MIN_DELTA
      || abs(last[2] - point[2]) > MIN_DELTA)
     {

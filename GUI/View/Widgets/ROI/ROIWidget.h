@@ -55,13 +55,13 @@ namespace ESPINA
           public:
             explicit ROIWidget(ROISPtr roi);
 
-            virtual void initialize(RenderView *view);
+            virtual void initialize(RenderView *view) override;
 
-            virtual void uninitialize();
+            virtual void uninitialize() override;
 
-            virtual void show();
+            virtual void show() override;
 
-            virtual void hide();
+            virtual void hide() override;
 
             virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 

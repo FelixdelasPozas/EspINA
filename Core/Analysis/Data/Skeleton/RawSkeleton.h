@@ -61,10 +61,10 @@ namespace ESPINA
       virtual ~RawSkeleton()
       {};
 
-      virtual bool isValid() const
+      virtual bool isValid() const override
       { return (m_skeleton.Get() != nullptr); }
 
-      virtual bool isEmpty() const
+      virtual bool isEmpty() const override
       { return !isValid(); }
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
@@ -76,16 +76,16 @@ namespace ESPINA
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { fetchDataImplementation(storage, path, id, VolumeBounds(bounds(), m_spacing, m_origin)); }
 
-      virtual vtkSmartPointer<vtkPolyData> skeleton() const
+      virtual vtkSmartPointer<vtkPolyData> skeleton() const override
       { return m_skeleton; }
 
       virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override;
 
-      void setSpacing(const NmVector3 &spacing);
+      void setSpacing(const NmVector3 &spacing) override;
 
-      NmVector3 spacing() const;
+      NmVector3 spacing() const override;
 
-      size_t memoryUsage() const;
+      size_t memoryUsage() const override;
 
     protected:
       virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override

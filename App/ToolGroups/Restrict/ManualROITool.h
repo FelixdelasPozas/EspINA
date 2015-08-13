@@ -50,7 +50,7 @@ namespace ESPINA
      */
     virtual ~ManualROITool();
 
-    virtual void abortOperation();
+    virtual void abortOperation() override;
 
     void setColor(const QColor &color);
 
