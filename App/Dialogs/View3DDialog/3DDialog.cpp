@@ -124,7 +124,7 @@ void Dialog3D::saveGeometryState()
 //------------------------------------------------------------------------
 std::shared_ptr<ProgressTool> Dialog3D::tool()
 {
-  auto tool = std::make_shared<Dialog3DTool>(context(), this);
+  auto tool = std::make_shared<Dialog3DTool>(getContext(), this);
 
   tool->setCheckable(true);
   tool->setChecked(this->isVisible());

@@ -35,6 +35,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.h
+  ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/VisualBookmarks.h
@@ -69,8 +71,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
   ToolGroups/Visualize/VisualizeToolGroup.h
-  Tools/Measure/MeasureTool.h
-  Tools/SelectionMeasure/SelectionMeasureTool.h
+  ToolGroups/Analyze/Measure/MeasureTool.h
+  ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
   Views/DefaultView.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -94,6 +96,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.ui
   ToolGroups/Refine/CODERefineWidget.ui
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
   )
@@ -140,6 +143,11 @@ set (ESPINA_SOURCES
   Settings/Utils.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
+  ToolGroups/Analyze/Measure/MeasureTool.cpp
+  ToolGroups/Analyze/Reports/RawInformationReport.cpp
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
+  ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Explore/ResetZoom.cpp
   ToolGroups/Explore/VisualBookmarks.cpp
   ToolGroups/Explore/ZoomTool.cpp
@@ -176,8 +184,6 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
-  Tools/Measure/MeasureTool.cpp
-  Tools/SelectionMeasure/SelectionMeasureTool.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DrawUndoCommand.cpp
   Undo/ModifySkeletonCommand.cpp

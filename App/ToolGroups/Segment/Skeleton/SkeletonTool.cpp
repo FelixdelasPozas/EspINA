@@ -88,7 +88,7 @@ SkeletonTool::SkeletonTool(Support::Context &context)
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
 , m_toolStatus      {new SkeletonToolStatusAction(this)}
 {
-  this->context().factory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
+  this->getFactory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
 
   setCheckable(true);
 
@@ -254,7 +254,7 @@ void SkeletonTool::initTool(bool value)
     auto color     = m_categorySelector->selectedCategory()->color();
     if(selection.size() == 1)
     {
-      color = context().colorEngine()->color(selection.first());
+      color = getContext().colorEngine()->color(selection.first());
     }
 
     auto widget = new SkeletonWidget();
@@ -300,7 +300,7 @@ void SkeletonTool::initTool(bool value)
 
 //    m_widget->setEnabled(true);
 
-    connect(context().model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+    connect(getModel().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
             this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
   }
@@ -312,7 +312,7 @@ void SkeletonTool::initTool(bool value)
     m_action->setChecked(false);
     m_action->blockSignals(false);
 
-    disconnect(context().model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+    disconnect(getModel().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
                this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
     disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
@@ -450,7 +450,7 @@ void SkeletonTool::eventHandlerToogled(bool toggled)
 void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
 {
   auto undoStack = getUndoStack();
-  auto model       = context().model();
+  auto model       = getModel();
 
   if(m_item)
   {
@@ -504,13 +504,13 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     auto activeChannel = getActiveChannel();
 
     auto spacing  = activeChannel->output()->spacing();
-    auto filter   = context().factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+    auto filter   = getFactory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
     auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
     auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
     output->setData(skeleton);
 
     filter->addOutput(0, output);
-    auto segmentation = context().factory()->createSegmentation(filter, 0);
+    auto segmentation = getFactory()->createSegmentation(filter, 0);
     auto category = m_categorySelector->selectedCategory();
     Q_ASSERT(category);
 

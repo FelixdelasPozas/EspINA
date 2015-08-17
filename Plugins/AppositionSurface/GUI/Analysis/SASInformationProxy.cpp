@@ -35,6 +35,15 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 
+
+//----------------------------------------------------------------------------
+bool isSASInformation(SegmentationExtension::InformationKey& key)
+{
+  return key.extension() == AppositionSurfaceExtension::TYPE;
+}
+
+
+//----------------------------------------------------------------------------
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
 {
@@ -56,15 +65,14 @@ public:
     bool ready = true;
     for (auto key : m_keys)
     {
-      ready &= m_sas->isReady(key);
+      if (m_sas && isSASInformation(key))
+        ready &= m_sas->isReady(key);
 
       if (!ready) break;
     }
 
     setFinished(ready);
   }
-
-  SegmentationAdapterPtr m_sas;
 
 protected:
   virtual void run()
@@ -74,19 +82,39 @@ protected:
       if (!canExecute()) break;
 
       auto key = m_keys[i];
+
       if (key != NameKey() && key != CategoryKey())
       {
-        if(!m_sas->isReady(key))
+        if (isSASInformation(key))
         {
-          m_sas->information(key);
+          if (m_sas)
+          {
+            updateInformation(m_sas, key);
+            if (!canExecute()) break;
+          }
+        }
+        else
+        {
+          updateInformation(Segmentation, key);
           if (!canExecute()) break;
         }
       }
 
-      m_progress = (100.0*i)/m_keys.size();
-      reportProgress(m_progress);
+      reportProgress((100.0*i)/m_keys.size());
     }
   }
+
+  void updateInformation(SegmentationAdapterPtr segmentation, SegmentationExtension::InformationKey &key)
+  {
+    if(!segmentation->isReady(key))
+    {
+      segmentation->information(key);
+    }
+  }
+
+private:
+  SegmentationAdapterPtr m_sas;
+
 };
 
 //----------------------------------------------------------------------------
@@ -95,8 +123,8 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
   if (!proxyIndex.isValid()) return QVariant();
 
   auto proxyItem = itemAdapter(proxyIndex);
-  if (!isSegmentation(proxyItem))
-    return QVariant();
+
+  if (!isSegmentation(proxyItem)) return QVariant();
 
   auto segmentation = segmentationPtr(proxyItem);
 
@@ -122,7 +150,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   if (role == Qt::BackgroundRole)
   {
-    auto disabled = !m_pendingInformation.contains(segmentation) ||!m_pendingInformation[segmentation]->hasFinished();
+    auto disabled = m_pendingInformation.contains(segmentation) && !m_pendingInformation[segmentation]->hasFinished();
 
     return disabled?Qt::lightGray:QAbstractProxyModel::data(proxyIndex, role);
   }
@@ -141,65 +169,35 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
       return segmentation->category()->data(role);
     }
 
-    if (segmentation->hasInformation(key))
+    if (segmentation->hasInformation(key) || isSASInformation(key))
     {
+
+      auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
+
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {
-        auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
-
         auto task = std::make_shared<SASInformationFetcher>(segmentation, sas, m_keys, m_scheduler);
         m_pendingInformation[segmentation] = task;
 
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
         {
           connect(task.get(), SIGNAL(progress(int)),
-                  this, SLOT(onProgessReported(int)));
+                  this,       SLOT(onProgessReported(int)));
           connect(task.get(), SIGNAL(finished()),
-                  this, SLOT(onTaskFininished()));
+                  this,       SLOT(onTaskFininished()));
           //qDebug() << "Launching Task";
           Task::submit(task);
         } else // we avoid overloading the scheduler
         {
-          return segmentation->information(key);
+          return information(segmentation, sas, key);
         }
-      } else if (m_pendingInformation[segmentation]->hasFinished())
-      {
-        return segmentation->information(key);
       }
-
-      return "";
-    }
-    else if(key.extension() == AppositionSurfaceExtension::TYPE)
-    {
-      auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
-
-      if(sas->hasInformation(key))
+      else if (m_pendingInformation[segmentation]->hasFinished())
       {
-        if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
-        {
-          auto task = std::make_shared<SASInformationFetcher>(segmentation, sas, m_keys, m_scheduler);
-          m_pendingInformation[segmentation] = task;
-
-          if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
-          {
-            connect(task.get(), SIGNAL(progress(int)),
-                    this,       SLOT(onProgessReported(int)));
-            connect(task.get(), SIGNAL(finished()),
-                    this,       SLOT(onTaskFininished()));
-            //qDebug() << "Launching Task";
-            Task::submit(task);
-          }
-          else // we avoid overloading the scheduler
-          {
-            return sas->information(key);
-          }
-        }
-        else
-          if (m_pendingInformation[segmentation]->hasFinished())
-          {
-            return sas->information(key);
-          }
-
+        return information(segmentation, sas, key);
+      }
+      else
+      {
         return "";
       }
     }
@@ -210,8 +208,29 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
   }
   else if (proxyIndex.column() > 0)
   {
-      return QVariant();//To avoid checkrole or other roles
+    return QVariant();//To avoid checkrole or other roles
   }
 
   return QAbstractProxyModel::data(proxyIndex, role);
+}
+
+//----------------------------------------------------------------------------
+QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
+                                          SegmentationAdapterPtr sas,
+                                          SegmentationExtension::InformationKey& key) const
+{
+  if (isSASInformation(key))
+  {
+    if (sas)
+    {
+      return sas->information(key);
+    }
+    else
+    {
+      return tr("Unavailable SAS");
+    }
+  } else
+  {
+    return segmentation->information(key);
+  }
 }

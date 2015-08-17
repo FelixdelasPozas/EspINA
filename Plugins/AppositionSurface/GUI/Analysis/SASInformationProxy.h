@@ -29,29 +29,34 @@ namespace ESPINA
   class SASInformationProxy
   : public InformationProxy
   {
-      class SASInformationFetcher;
+    class SASInformationFetcher;
 
-    public:
-      /** \brief SASInformationProxy class constructor.
-       *
-       */
-      explicit SASInformationProxy(ModelAdapterSPtr model, SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
-      : InformationProxy{scheduler}
-      , m_model         {model}
-      , m_sasTags       {sasTags}
-      {};
+  public:
+    /** \brief SASInformationProxy class constructor.
+     *
+     */
+    explicit SASInformationProxy(ModelAdapterSPtr model, SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
+    : InformationProxy{scheduler}
+    , m_model         {model}
+    , m_sasTags       {sasTags}
+    {};
 
-      /** \brief SASInformationProxy class virtual destructor.
-       *
-       */
-      virtual ~SASInformationProxy()
-      {};
+    /** \brief SASInformationProxy class virtual destructor.
+     *
+     */
+    virtual ~SASInformationProxy()
+    {};
 
-      virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
-    protected:
-      ModelAdapterSPtr m_model;
-      SegmentationExtension::InformationKeyList m_sasTags;
+  private:
+    QVariant information(SegmentationAdapterPtr segmentation,
+                         SegmentationAdapterPtr sas,
+                         SegmentationExtension::InformationKey& key) const;
+
+  protected:
+    ModelAdapterSPtr m_model;
+    SegmentationExtension::InformationKeyList m_sasTags;
   };
 
 } // namespace ESPINA

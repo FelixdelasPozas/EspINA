@@ -96,7 +96,7 @@ namespace ESPINA {
   private:
     virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type &type) override
     {
-      return this->context().factory()->template createFilter<T>(inputs, type);
+      return this->getFactory()->template createFilter<T>(inputs, type);
     }
   };
 

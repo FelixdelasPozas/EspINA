@@ -20,7 +20,7 @@
  */
 
 // Plugin
-#include "SASAnalysisDialog.h"
+#include "SASReportDialog.h"
 #include "SASTabularReport.h"
 
 // ESPINA
@@ -42,8 +42,8 @@ using namespace ESPINA;
 using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
-SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
-                                     Support::Context &context)
+SASReportDialog::SASReportDialog(SegmentationAdapterList segmentations,
+                                 Support::Context &context)
 {
   setObjectName("Synaptic Apposition Surfaces Analysis");
   setWindowTitle(tr("Synaptic Apposition Surfaces Analysis"));
@@ -64,13 +64,13 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
-  resize(settings.value("size", QSize (200, 200)).toSize());
+  resize(settings.value("size", QSize (400, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
 }
 
 //----------------------------------------------------------------------------
-void SASAnalysisDialog::closeEvent(QCloseEvent *event)
+void SASReportDialog::closeEvent(QCloseEvent *event)
 {
   ESPINA_SETTINGS(settings);
 

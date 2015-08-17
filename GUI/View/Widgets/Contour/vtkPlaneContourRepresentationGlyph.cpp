@@ -829,16 +829,10 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 {
   if (this->useContourPolygon == value) return;
 
-  QColor color;
-
-  switch(value)
+  if (value)
   {
-    case true:
-      if (this->Lines->GetPoints()->GetNumberOfPoints() < 3)
-      {
-        return;
-      }
-
+    if (this->Lines->GetPoints()->GetNumberOfPoints() >= 3)
+    {
       this->m_polygonFilter = vtkSmartPointer<vtkContourToPolygonFilter>::New();
       this->m_polygonFilter->SetInputData(this->Lines);
       this->m_polygonFilter->SetReleaseDataFlag(true);
@@ -856,19 +850,18 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 
       this->Renderer->AddActor(this->m_polygon);
       this->useContourPolygon = true;
-      break;
-    case false:
-      if (this->m_polygon != nullptr)
-      {
-        this->Renderer->RemoveActor(this->m_polygon);
-        this->m_polygonFilter = nullptr;
-        this->m_polygonMapper = nullptr;
-        this->m_polygon = nullptr;
-        this->useContourPolygon = false;
-      }
-      break;
-    default:
-      break;
+    }
+  }
+  else
+  {
+    if (this->m_polygon != nullptr)
+    {
+      this->Renderer->RemoveActor(this->m_polygon);
+      this->m_polygonFilter = nullptr;
+      this->m_polygonMapper = nullptr;
+      this->m_polygon = nullptr;
+      this->useContourPolygon = false;
+    }
   }
 }
 

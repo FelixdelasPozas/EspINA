@@ -45,8 +45,8 @@ namespace ESPINA
      *
      */
     SASTabularReport(Support::Context &context,
-                     QWidget                *parent = nullptr,
-                     Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
+                     QWidget          *parent = nullptr,
+                     Qt::WindowFlags  flags  = Qt::WindowFlags{Qt::WindowNoState})
     : TabularReport(context, parent, flags)
     , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation()}
     {

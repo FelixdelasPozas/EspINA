@@ -207,19 +207,19 @@ void AdaptiveEdgesCreator::run()
     face->GetPoint(3, RB);
 
     // Correct rotation
-    double correctedLeft  = std::max(LB[0], LT[0]);
+    double correctedLeft  = std::min(LB[0], LT[0]);
     correctedLeft = int((correctedLeft - bounds[0]) / spacing[0]);
     correctedLeft = bounds[0] + (correctedLeft)*spacing[0];
 
-    double correctedRight = std::min(RB[0], RT[0]);
+    double correctedRight = std::max(RB[0], RT[0]);
     correctedRight = int((correctedRight - bounds[0]) / spacing[0]);
     correctedRight = bounds[0] + (correctedRight + 1)*spacing[0]; // the edge ends at the end of the voxel
 
-    double correctedTop  = std::max(LT[1], RT[1]);
+    double correctedTop  = std::min(LT[1], RT[1]);
     correctedTop = int((correctedTop - bounds[2]) / spacing[1]);
     correctedTop = bounds[2] + (correctedTop)*spacing[1];
 
-    double correctedBottom  = std::min(LB[1], RB[1]);
+    double correctedBottom  = std::max(LB[1], RB[1]);
     correctedBottom = int((correctedBottom - bounds[2]) / spacing[1]);
     correctedBottom = bounds[2] + (correctedBottom + 1)*spacing[1]; // the edge ends at the end of the voxel
 
@@ -373,5 +373,5 @@ void AdaptiveEdgesCreator::run()
 
   m_extension->m_edgesResultMutex.unlock();
 
-  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
+  //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

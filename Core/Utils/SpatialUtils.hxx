@@ -109,15 +109,6 @@ namespace ESPINA
   template<typename T>
   VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
-  /** \brief Return the minimum complete bounds for any image of given origin and spacing.
-   * \param[in] origin origin of the bounds.
-   * \param[in] spacing spacing of the region.
-   * \param[in] bounds bounds to translate.
-   *
-   */
-  template<typename T>
-  VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
-
   /** \brief Return the bounds of the left slice of given @volume.
    * \param[in] volume itk image reference.
    *

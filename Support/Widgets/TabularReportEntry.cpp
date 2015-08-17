@@ -266,7 +266,7 @@ void TabularReport::Entry::refreshAllInformation()
 
   if (m_proxy->availableInformation()[c].value() == tr("Category"))
   {
-    --c; // Category tag doesn't span task
+    --c; // Category tag doesn't spawn task
   }
 
   for (int r = 1; r <= m_proxy->rowCount(); ++r) {

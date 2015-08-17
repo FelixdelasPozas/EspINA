@@ -31,6 +31,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Category.h>
 
 // VTK
@@ -310,12 +311,12 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       facePoints->InsertNextPoint(point);
     }
 
-    Bounds faceBB = pointBounds(facePoints);
+    Bounds faceBB = VolumeBounds(pointBounds(facePoints), spacing);
 //     if (f == 0 || f == numOfCells -1)
 //     {
-//       qDebug() << "Face:"  << faceBB.toString();
+//       qDebug() << "Face:"  << faceBB;
 //       qDebug() << " - intersect:" << intersect(inputBB, faceBB, spacing);
-//       qDebug() << " - interscetion:" << intersection(inputBB, faceBB, spacing).toString();
+//       qDebug() << " - interscetion:" << intersection(inputBB, faceBB, spacing);
 //       qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
 //     }
 
@@ -422,14 +423,21 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 
     if (bounds.areValid())
     {
-      auto image  = volume->itkImage(bounds);
-
-      auto it = ImageIterator(image, image->GetLargestPossibleRegion());
-      it.GoToBegin();
-      while (!it.IsAtEnd())
+      try
       {
-        if (it.Get() != volume->backgroundValue()) return true;
-        ++it;
+        auto image  = volume->itkImage(bounds);
+
+        auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+        it.GoToBegin();
+        while (!it.IsAtEnd())
+        {
+          if (it.Get() != volume->backgroundValue()) return true;
+          ++it;
+        }
+      }
+      catch (Invalid_Image_Bounds_Exception &e)
+      {
+        return false;
       }
     }
   }

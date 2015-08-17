@@ -27,19 +27,3 @@ SegmentationAdapterList ESPINA::selectSegmentations(SelectionSPtr selection)
 {
   return selection->segmentations();
 }
-
-//----------------------------------------------------------------------------
-SegmentationAdapterList ESPINA::defaultReportInputSegmentations(SelectionSPtr selection, ModelAdapterSPtr model)
-{
-  auto segmentations = selectSegmentations(selection);
-
-  if(segmentations.isEmpty())
-  {
-    for(auto segmentation: model->segmentations())
-    {
-      segmentations << segmentation.get();
-    }
-  }
-
-  return segmentations;
-}

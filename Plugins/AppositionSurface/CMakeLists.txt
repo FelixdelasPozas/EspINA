@@ -60,12 +60,13 @@ set (PLUGIN_SOURCES
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
+  SASReport.cpp
   AppositionSurfacePlugin.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
   Core/Extensions/ExtensionFactory.cpp
   Filter/AppositionSurfaceFilter.cpp
   Filter/SASDataFactory.cpp
-  GUI/Analysis/SASAnalysisDialog.cpp
+  GUI/Analysis/SASReportDialog.cpp
   GUI/Analysis/SASTabularReport.cpp
   GUI/Analysis/SASInformationProxy.cpp
   GUI/AppositionSurfaceTool.cpp

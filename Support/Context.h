@@ -91,7 +91,7 @@ class DockWidget;
     public:
       explicit WithContext(Context &context);
 
-      Context &context();
+      Context &getContext() const;
 
       ChannelAdapterPtr getActiveChannel() const;
 

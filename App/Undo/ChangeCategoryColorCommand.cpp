@@ -67,6 +67,7 @@ namespace ESPINA
   void ChangeCategoryColorCommand::invalidateDependentSegmentations() const
   {
     SegmentationAdapterList segmentations;
+
     for(auto segmentation: m_model->segmentations())
     {
       if(segmentation->category().get() == m_category)

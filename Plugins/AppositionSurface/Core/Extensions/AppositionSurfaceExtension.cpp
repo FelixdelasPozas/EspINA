@@ -61,7 +61,7 @@ using namespace ESPINA;
 
 const QString AppositionSurfaceExtension::SAS_PREFIX = QObject::tr("SAS ");
 
-const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurfaceExtensionInformation";
+const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurface";
 
 const SegmentationExtension::Key AREA                   = "Area";
 const SegmentationExtension::Key PERIMETER              = "Perimeter";
@@ -106,6 +106,7 @@ SegmentationExtension::InformationKeyList AppositionSurfaceExtension::availableI
   return keys;
 }
 
+//------------------------------------------------------------------------
 QVariant AppositionSurfaceExtension::cacheFail(const InformationKey &key) const
 {
   QVariant result;

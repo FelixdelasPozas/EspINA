@@ -49,6 +49,12 @@ QIcon DefaultIcons::File()
 }
 
 //------------------------------------------------------------------------
+QIcon DefaultIcons::Information()
+{
+  return QIcon(":/espina/info.svg");
+}
+
+//------------------------------------------------------------------------
 QIcon DefaultIcons::Settings()
 {
   return QIcon(":/espina/settings.png");

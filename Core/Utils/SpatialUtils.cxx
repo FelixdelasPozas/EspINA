@@ -146,7 +146,7 @@ VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds)
   NmVector3 spacing;
   for (int i = 0; i < 3; ++i) spacing[i] = image->GetSpacing()[i];
 
-  return volumeBounds<T>(origin, spacing, bounds);
+  return VolumeBounds(bounds, spacing, origin);
 }
 
 //-----------------------------------------------------------------------------
@@ -155,14 +155,6 @@ VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::Reg
 {
   return volumeBounds<T>(image, equivalentBounds<T>(image, region));
 }
-
-//-----------------------------------------------------------------------------
-template<typename T>
-VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)
-{
-  return VolumeBounds(bounds, spacing, origin);
-}
-
 
 //-----------------------------------------------------------------------------
 template<typename T>

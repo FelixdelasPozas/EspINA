@@ -24,6 +24,7 @@
 // ESPINA
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QUndoCommand>
@@ -33,6 +34,7 @@ namespace ESPINA
   class DrawUndoCommand
   : public QObject
   , public QUndoCommand
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -40,7 +42,8 @@ namespace ESPINA
      * \param[in] seg segmentation adapter pointer of the segmentation going to be modified.
      * \param[in] mask Mask to modify segmentation with.
      */
-    explicit DrawUndoCommand(SegmentationAdapterSPtr seg,
+    explicit DrawUndoCommand(Support::Context &context,
+                             SegmentationAdapterSPtr seg,
                              BinaryMaskSPtr<unsigned char> mask);
 
     virtual void redo() override;
@@ -53,6 +56,8 @@ namespace ESPINA
     itkVolumeType::Pointer        m_image;
     Bounds                        m_bounds;
     bool                          m_hasVolume;
+
+    TaskSPtr m_updateMesh;
   };
 
 } // namespace ESPINA

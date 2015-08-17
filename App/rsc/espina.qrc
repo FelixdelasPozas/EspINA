@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>info.svg</file>
     <file>accept.png</file>
     <file>activeChannel.svg</file>
     <file>add.svg</file>
@@ -57,7 +58,6 @@
     <file>hide_3D.svg</file>
     <file>hide_all.svg</file>
     <file>hide_planes.svg</file>
-    <file>lassoErase.png</file>
     <file>leftIn.png</file>
     <file>leftOut.png</file>
     <file>manual_edition.svg</file>
@@ -71,13 +71,13 @@
     <file>newTag.svg</file>
     <file>non_traceable.png</file>
     <file>note.svg</file>
-    <file>open.png</file>    
+    <file>open.png</file>
     <file>pixelSelector.svg</file>
     <file>planar_split.svg</file>
     <file>rainbow.svg</file>
     <file>refresh.png</file>
     <file>remove.svg</file>
-    <file>removeSeg.svg</file>    
+    <file>removeSeg.svg</file>
     <file>representation_group_2D_separator.svg</file>
     <file>representation_group_3D_separator.svg</file>
     <file>reset_roi.svg</file>
@@ -120,6 +120,9 @@
     <file>trash-full.svg</file>
     <file>tubular.svg</file>
     <file>up.png</file>
+    <file>preview_raw_information.png</file>
+    <file>preview_not_available.png</file>
+    <file>reports.svg</file>
     <file>upm.gif</file>
     <file>view-refresh.svg</file>
     <file>voxel.png</file>

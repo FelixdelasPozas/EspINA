@@ -122,6 +122,9 @@ namespace ESPINA
       virtual QList<CategorizedTool> tools() const
       { return QList<CategorizedTool>(); }
 
+      virtual ReportSList reports() const
+      { return ReportSList(); }
+
       /** \brief Returns a list of settings panels provided by the plugin.
        *
        */
@@ -131,6 +134,7 @@ namespace ESPINA
       /** \brief Returns a list of menu entries to add to the main application.
        *
        */
+      //DEPRECATED
       virtual QList<MenuEntry> menuEntries() const
       { return QList<MenuEntry>(); }
 
@@ -154,6 +158,6 @@ namespace ESPINA
   }
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.4")
+Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.5")
 
 #endif // ESPINA_PLUGIN_H

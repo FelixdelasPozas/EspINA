@@ -103,7 +103,7 @@ bool ROISettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr ROISettingsPanel::clone()
 {
-  return new ROISettingsPanel(m_settings, context());
+  return new ROISettingsPanel(m_settings, getContext());
 }
 
 //------------------------------------------------------------------------

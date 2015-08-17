@@ -125,7 +125,7 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_delegateFactory, context());
+    inspector = new SegmentationInspector(segmentations, m_delegateFactory, getContext());
 
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
             this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);

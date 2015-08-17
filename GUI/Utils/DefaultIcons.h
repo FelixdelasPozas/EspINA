@@ -49,6 +49,11 @@ namespace ESPINA
        */
       static QIcon File();
 
+      /** \brief Returns the information icon
+       *
+       */
+      static QIcon Information();
+
       /** \brief Returns the settings icon
        *
        */

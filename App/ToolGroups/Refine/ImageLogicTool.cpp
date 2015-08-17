@@ -87,7 +87,7 @@ void ImageLogicTool::applyFilter()
     description = tr("Segmentation substraction");
   }
 
-  auto filter = context().factory()->createFilter<ImageLogicFilter>(inputs, type);
+  auto filter = getFactory()->createFilter<ImageLogicFilter>(inputs, type);
   filter->setOperation(m_operation);
   filter->setDescription(description);
 
@@ -122,16 +122,16 @@ void ImageLogicTool::onTaskFinished()
 
     undoStack->beginMacro(filter->description());
 
-    auto segmentation = context().factory()->createSegmentation(taskContext.Task, 0);
+    auto segmentation = getFactory()->createSegmentation(taskContext.Task, 0);
     segmentation->setCategory(taskContext.Segmentations.first()->category());
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
 
-    undoStack->push(new AddSegmentations(segmentation, samples, context().model()));
+    undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
 
     for(auto segmentation: taskContext.Segmentations)
     {
-      undoStack->push(new RemoveSegmentations(segmentation, context().model()));
+      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
       segmentation->setBeingModified(false);
     }
 

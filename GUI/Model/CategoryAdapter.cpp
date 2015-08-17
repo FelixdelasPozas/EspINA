@@ -103,7 +103,7 @@ QString CategoryAdapter::classificationName() const
 //------------------------------------------------------------------------
 QColor CategoryAdapter::color() const
 {
-  return defaultColor(m_category->color());
+  return selectedColor(m_category->color());
 }
 
 //------------------------------------------------------------------------
