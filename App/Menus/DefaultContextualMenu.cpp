@@ -182,22 +182,15 @@ void DefaultContextualMenu::renameSegmentation()
   }
 }
 
-//------------------------------------------------------------------------
-void DefaultContextualMenu::exportSelectedSegmentations()
+template<typename T>
+void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &segmentations, const QString &file)
 {
-  auto title  = tr("Export selected segmentations");
-  auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
-
-  auto file = DefaultDialogs::SaveFile(title, format);
-
-  using Label      = itk::LabelObject<unsigned short, 3>;
+  using Label      = itk::LabelObject<T, 3>;
   using LabelMap   = itk::LabelMap<Label>;
-  using LabelImage = itk::Image<unsigned short, 3>;
+  using LabelImage = itk::Image<T, 3>;
 
   using MergFilter = itk::MergeLabelMapFilter<LabelMap>;
 
-
-  auto channel = getActiveChannel();
   auto origin  = channel->position();
   auto spacing = channel->output()->spacing();
 
@@ -206,8 +199,8 @@ void DefaultContextualMenu::exportSelectedSegmentations()
   labelMap->SetRegions(equivalentRegion<LabelMap>(origin, spacing, channel->bounds()));
   labelMap->Allocate();
 
-  unsigned short i = 0;
-  for (auto segmentation : m_segmentations)
+  T i = 0;
+  for (auto segmentation : segmentations)
   {
     auto volume = readLockVolume(segmentation->output())->itkImage();
 
@@ -228,6 +221,24 @@ void DefaultContextualMenu::exportSelectedSegmentations()
   image->Update();
 
   exportVolume<LabelImage>(image->GetOutput(), file);
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::exportSelectedSegmentations()
+{
+  auto title  = tr("Export selected segmentations");
+  auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
+
+  auto file = DefaultDialogs::SaveFile(title, format);
+
+  if (m_segmentations.size() < 256)
+  {
+    exportSegmentations<unsigned char>(getActiveChannel(), m_segmentations, file);
+  }
+  else
+  {
+    exportSegmentations<unsigned short>(getActiveChannel(), m_segmentations, file);
+  }
 }
 
 //------------------------------------------------------------------------
