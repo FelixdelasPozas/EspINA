@@ -81,16 +81,6 @@ void Output::setSpacing(const NmVector3& spacing)
 NmVector3 Output::spacing() const
 {
   return m_spacing;
-//   NmVector3 result = m_spacing;
-//
-//   if (result == NmVector3{0,0,0})
-//   {
-//     if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
-//
-//     result = m_data[m_data.keys().first()]->spacing();
-//   }
-//
-//  return result;
 }
 
 //----------------------------------------------------------------------------

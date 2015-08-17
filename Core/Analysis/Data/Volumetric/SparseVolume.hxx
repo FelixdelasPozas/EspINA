@@ -287,17 +287,36 @@ namespace ESPINA
     if (m_spacing != spacing)
     {
       auto itkSpacing = ItkSpacing<T>(spacing);
+
+      NmVector3 spacingRatio;
+      for (int i = 0; i < 3; ++i)
+      {
+        spacingRatio[i] = spacing[i]/m_spacing[i];
+      }
+
       QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
       while(it.hasNext())
       {
         it.next();
-        it.value()->SetSpacing(itkSpacing);
-        it.value()->Update();
+        auto block  = it.value();
+        auto origin = block->GetOrigin();
+
+        for (int i = 0; i < 3; ++i)
+        {
+          origin[i] *= spacingRatio[i];
+        }
+
+        //auto preBlockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
+        block->SetOrigin(origin);
+        block->SetSpacing(itkSpacing);
+        block->Update();
+        //auto postBlockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
+        //qDebug() << "Update block bounds" << preBlockBounds << "to"<< postBlockBounds;
       }
 
-      m_spacing = spacing;
+      auto region = equivalentRegion<T>(m_origin, m_spacing, m_bounds);
 
-      auto region = equivalentRegion<T>(m_origin, spacing, m_bounds.bounds());
+      m_spacing = spacing;
 
       m_bounds = volumeBounds<T>(m_origin, spacing, region);
     }
@@ -373,7 +392,7 @@ namespace ESPINA
     }
 
     auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto affectedIndexes    = toBlockIndexes(intersectionBounds);
 
     for(auto index: affectedIndexes)
     {
@@ -865,6 +884,8 @@ namespace ESPINA
 
     auto index  = region.GetIndex();
     auto size   = region.GetSize();
+//     qDebug() << "Partitioning Region";
+//     region.Print(std::cout);
 
     for(int i = 0; i < 3; ++i)
     {
@@ -882,6 +903,7 @@ namespace ESPINA
         }
       }
     }
+    //qDebug() << result;
 
     return result;
   }

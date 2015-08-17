@@ -23,8 +23,8 @@
 template<typename T>
 typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 {
+  typename T::PointType   o = image->GetOrigin();
   typename T::SpacingType s = image->GetSpacing();
-  typename T::PointType o = image->GetOrigin();
 
   typename T::PointType p0, p1;
   for (int i = 0; i < 3; ++i)

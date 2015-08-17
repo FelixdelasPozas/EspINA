@@ -646,10 +646,16 @@ void ChannelInspector::changeSegmentationSpacing()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
+  ViewItemAdapterList segmentations;
+
   for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(m_channel))
   {
     segmentation->output()->setSpacing(spacing);
+
+    segmentations << segmentation.get();
   }
+
+  getContext().representationInvalidator().invalidateRepresentations(segmentations);
 
   QApplication::restoreOverrideCursor();
 }
