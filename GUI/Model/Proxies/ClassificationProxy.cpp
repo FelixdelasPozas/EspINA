@@ -296,7 +296,7 @@ QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) c
     }
     case ItemAdapter::Type::SEGMENTATION:
     {
-      if (m_categorySegmentations.isEmpty())
+      if (!m_categorySegmentations.isEmpty())
       {
         auto segmentation = segmentationPtr(sourceItem);
         Q_ASSERT(segmentation);
