@@ -457,28 +457,36 @@ void ClassificationLayout::createCategory()
   {
     categoryItem = item(currentIndex);
   }
-  else if (m_view->model()->rowCount() > 0)
+  else
   {
-    categoryItem = model->classification()->categories().first().get();
+    Q_ASSERT(model->classification());
+    Q_ASSERT(model->classification()->root());
+    categoryItem = model->classification()->root().get();
   }
 
-  if (!categoryItem) return;
+  Q_ASSERT(categoryItem);
 
   if (isCategory(categoryItem))
   {
     auto selectedCategory = toCategoryAdapterPtr(categoryItem);
     auto parentCategory   = selectedCategory->parent();
 
+    // Check if we are adding a first level category
+    if (!parentCategory)
+    {
+      parentCategory = selectedCategory;
+    }
+
     QString name = tr("New Category");
     int i = 1;
 
-    while(parentCategory->subCategory(name) != nullptr)
+    while(parentCategory->subCategory(name))
     {
       name = tr("New Category-%1").arg(++i);
     }
 
     auto undoStack = getUndoStack();
-    undoStack->beginMacro("Create Category");
+    undoStack->beginMacro(tr("Create Category"));
     undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
     undoStack->endMacro();
   }
