@@ -190,6 +190,8 @@ namespace ESPINA
 
       void checkHasChannel() const;
 
+      void checkIsInsideChannel(ChannelAdapterPtr channel) const;
+
     private:
       SegmentationAdapterSPtr m_segmentation;
   };
