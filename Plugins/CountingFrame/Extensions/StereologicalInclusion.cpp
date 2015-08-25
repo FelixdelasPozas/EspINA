@@ -46,9 +46,8 @@
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
-const SegmentationExtension::Key EDGE_TAG = "Touch Edge";
-
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
+const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
 //const SegmentationExtension::Key StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
@@ -107,7 +106,7 @@ SegmentationExtension::InformationKeyList StereologicalInclusion::availableInfor
 {
   InformationKeyList keys;
 
-  keys << createKey(EDGE_TAG);
+  keys << TOUCH_EDGES;
 
   for (auto cf : m_exclusionCFs.keys())
   {
@@ -120,7 +119,7 @@ SegmentationExtension::InformationKeyList StereologicalInclusion::availableInfor
 //------------------------------------------------------------------------
 QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 {
-  if (EDGE_TAG == key.value())
+  if (TOUCH_EDGES == key)
   {
     isOnEdge();
   }
@@ -143,7 +142,7 @@ QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
 
-  if (isOnEdge())
+  if (isReady(TOUCH_EDGES) && isOnEdge())
   {
     QString description = "<font color=\"red\">"   + tr("Touches Stack Edge") + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
@@ -361,11 +360,9 @@ bool StereologicalInclusion::isOnEdge() const
 {
   bool isOnEdge  = false;
 
-  auto key = createKey(EDGE_TAG);
-
-  if (cachedInfo(key).isValid())
+  if (cachedInfo(TOUCH_EDGES).isValid())
   {
-    isOnEdge = cachedInfo(key).toBool();
+    isOnEdge = cachedInfo(TOUCH_EDGES).toBool();
   }
   else
   {
@@ -403,7 +400,7 @@ bool StereologicalInclusion::isOnEdge() const
       }
     }
 
-    updateInfoCache(key.value(), isOnEdge?1:0);
+    updateInfoCache(TOUCH_EDGES.value(), isOnEdge?1:0);
   }
 
   return isOnEdge;
