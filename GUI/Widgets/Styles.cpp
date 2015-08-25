@@ -22,10 +22,34 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QAction>
+#include <QApplication>
 
 using namespace ESPINA::GUI::Widgets;
 
 //-----------------------------------------------------------------------------
+Styles::DefaultCursor::DefaultCursor()
+{
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+//-----------------------------------------------------------------------------
+Styles::DefaultCursor::~DefaultCursor()
+{
+  QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+Styles::WaitingCursor::WaitingCursor()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+//-----------------------------------------------------------------------------
+Styles::WaitingCursor::~WaitingCursor()
+{
+  QApplication::restoreOverrideCursor();
+}
+
 void Styles::setNestedStyle(QWidget *widget)
 {
   widget->setObjectName("NestedWidget");

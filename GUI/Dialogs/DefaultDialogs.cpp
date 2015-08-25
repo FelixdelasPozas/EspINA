@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "DefaultDialogs.h"
+#include <GUI/Widgets/Styles.h>
 
 // Qt
 #include <QMessageBox>
@@ -28,6 +29,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::OpenFile(const QString       &title,
@@ -63,6 +65,8 @@ QStringList DefaultDialogs::OpenFiles(const QString       &title,
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
+  DefaultCursor cursor;
+  
   if (fileDialog.exec() == QDialog::Accepted)
   {
     fileNames = fileDialog.selectedFiles();
@@ -84,6 +88,8 @@ QDir DefaultDialogs::SaveDirectory(const QString& title, const QString& path)
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+
+  DefaultCursor cursor;
 
   if (fileDialog.exec() == QDialog::Accepted)
   {
@@ -134,6 +140,8 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
   fileDialog.setConfirmOverwrite(true);
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 
+  DefaultCursor cursor;
+
   if (fileDialog.exec() == QDialog::Accepted)
   {
     fileNames = fileDialog.selectedFiles();
@@ -164,6 +172,8 @@ bool DefaultDialogs::UserConfirmation(const QString& title, const QString& messa
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
 
+  DefaultCursor cursor;
+
   return dialog.exec() == QMessageBox::Ok;
 }
 
@@ -176,6 +186,8 @@ void DefaultDialogs::InformationMessage(const QString& title, const QString& mes
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
   dialog.setModal(true);
+
+  DefaultCursor cursor;
 
   dialog.exec();
 }

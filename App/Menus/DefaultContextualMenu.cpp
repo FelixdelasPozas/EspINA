@@ -23,6 +23,7 @@
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/ChangeSegmentationNotes.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
@@ -45,9 +46,11 @@
 #include <QInputDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QApplication>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
@@ -199,28 +202,59 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
   labelMap->SetRegions(equivalentRegion<LabelMap>(origin, spacing, channel->bounds()));
   labelMap->Allocate();
 
-  T i = 0;
+  T i = 1;
   for (auto segmentation : segmentations)
   {
     auto volume = readLockVolume(segmentation->output())->itkImage();
 
-    auto segLabelMap = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>::New();
-    segLabelMap->SetInput(volume);
-    segLabelMap->SetInputForegroundValue(SEG_VOXEL_VALUE);
-    segLabelMap->Update();
+    auto segLabelMapFilter = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>::New();
+    segLabelMapFilter->SetInput(volume);
+    segLabelMapFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
+    segLabelMapFilter->FullyConnectedOff();
+    segLabelMapFilter->Update();
 
-    auto label = segLabelMap->GetOutput()->GetLabelObject(1);
-    label->SetLabel(++i);
+    auto segLabelMap = segLabelMapFilter->GetOutput();
 
+    auto label = segLabelMap->GetNthLabelObject(0);
+
+    // BinaryImageToLabelMapFilter create different labels for non connected components:
+    // Merge disconnected components into first label object
+    for (int n = 1; n <segLabelMap->GetNumberOfLabelObjects(); ++n)
+    {
+      auto part = segLabelMap->GetNthLabelObject(n);
+      for (int l = 0; l < part->GetNumberOfLines(); ++l)
+      {
+        label->AddLine(part->GetLine(l));
+      }
+    }
+    label->SetLabel(i++);
     labelMap->AddLabelObject(label);
   }
+  //qDebug() << "Total labels" << labelMap->GetNumberOfLabelObjects();
 
   auto image = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>::New();
 
   image->SetInput(labelMap);
-  image->Update();
+  image->SetNumberOfThreads(1);
 
-  exportVolume<LabelImage>(image->GetOutput(), file);
+  try
+  {
+    image->Update();
+
+    exportVolume<LabelImage>(image->GetOutput(), file);
+  }
+  catch(itk::MemoryAllocationError &e)
+  {
+    auto title = QObject::tr("Export Segmentation Binarization");
+    auto msg   = QObject::tr("Insufficient memory to export selected segmentations.");
+
+    if (segmentations.size() >= 256)
+    {
+      msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit labelmaps instead of 16 bit ones"));
+    }
+
+    DefaultDialogs::InformationMessage(title, msg);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -230,6 +264,10 @@ void DefaultContextualMenu::exportSelectedSegmentations()
   auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
 
   auto file = DefaultDialogs::SaveFile(title, format);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
 
   if (m_segmentations.size() < 256)
   {

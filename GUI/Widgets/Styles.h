@@ -35,6 +35,28 @@ namespace ESPINA
     {
       namespace Styles
       {
+        /** \brief Set the default cursor during the scope of its instances
+         *
+         */
+        class DefaultCursor
+        {
+        public:
+          DefaultCursor();
+
+          ~DefaultCursor();
+        };
+
+        /** \brief Set the waiting cursor during the scope of its instances
+         *
+         */
+        class WaitingCursor
+        {
+        public:
+          WaitingCursor();
+
+          ~WaitingCursor();
+        };
+
         const int CONTEXTUAL_BAR_HEIGHT = 44;
 
         void setNestedStyle(QWidget *widget);
