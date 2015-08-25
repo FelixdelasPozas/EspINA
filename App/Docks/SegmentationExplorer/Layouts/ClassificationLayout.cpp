@@ -310,9 +310,12 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
     selectFromSubCategories->setEnabled(selectFromSubCategories->isEnabled() && (numSubCategories > 0) && hasInformationToShow());
   }
 
-  contextMenu->exec(pos);
+  if (contextMenu)
+  {
+    contextMenu->exec(pos);
 
-  delete contextMenu;
+    delete contextMenu;
+  }
 }
 
 //------------------------------------------------------------------------

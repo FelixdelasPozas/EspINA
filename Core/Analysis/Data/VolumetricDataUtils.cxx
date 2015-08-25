@@ -169,6 +169,20 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
+  void exportVolume(typename T::Pointer volume, const QString &path)
+  {
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+
+    auto writer = itk::ImageFileWriter<T>::New();
+    writer->SetFileName(path.toUtf8().data());
+    writer->SetInput(volume);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
   Snapshot createSnapshot(typename T::Pointer   volume,
                           TemporalStorageSPtr   storage,
                           const QString        &path,
@@ -182,14 +196,7 @@ namespace ESPINA
     QString raw = mhd;
     raw.replace(".mhd",".raw");
 
-    bool releaseFlag = volume->GetReleaseDataFlag();
-    volume->ReleaseDataFlagOff();
-
-    auto writer = itk::ImageFileWriter<itkVolumeType>::New();
-    writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
-    writer->SetInput(volume);
-    writer->Write();
-    volume->SetReleaseDataFlag(releaseFlag);
+    exportVolume<T>(volume, storage->absoluteFilePath(mhd));
 
     snapshot << SnapshotData(mhd, storage->snapshot(mhd));
     snapshot << SnapshotData(raw, storage->snapshot(raw));

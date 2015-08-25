@@ -59,6 +59,15 @@ namespace ESPINA {
                                    const SupportedFormats &filters = SupportedFormats().addAllFormat(),
                                    const QString        &path    = QString());
 
+      /** \brief Dialog to select a directory to save files on
+       * \param[in] title of the dialog.
+       * \param[in] path file path.
+       *
+       * Returns the path to the directory used to save files on
+       *
+       */
+      static QDir SaveDirectory(const QString& title, const QString& path = QString());
+
       /** \brief Dialog for saving a file.
        * \param[in] title of the dialog.
        * \param[in] filters file selection filters.

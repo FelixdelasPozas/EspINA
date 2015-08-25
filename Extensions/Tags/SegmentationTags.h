@@ -44,7 +44,7 @@ namespace ESPINA
   {
   public:
     static const Key TAGS;
-    static const Type    TYPE;
+    static const Type TYPE;
 
     /** \brief returns the list of available tags.
      *
