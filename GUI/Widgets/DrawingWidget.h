@@ -200,8 +200,6 @@ namespace ESPINA
 
         void initEraseWidget();
 
-        void initRasterizeWidget();
-
         void initRadiusWidget();
 
         void initOpacityWidget();
@@ -234,7 +232,6 @@ namespace ESPINA
         NumericalInput   *m_radiusWidget;
         NumericalInput   *m_opacityWidget;
         QPushButton      *m_eraserWidget;
-        QPushButton      *m_rasterizeWidget;
 
         QPushButton *m_circularPainterAction;
         QPushButton *m_sphericalPainterAction;

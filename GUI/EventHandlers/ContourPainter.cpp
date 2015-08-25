@@ -114,4 +114,10 @@ namespace ESPINA
     updateWidgetsValues();
   }
 
+  //------------------------------------------------------------------------
+  void ContourPainter::rasterizeContours()
+  {
+    emit rasterize();
+  }
+
 } // namespace ESPINA

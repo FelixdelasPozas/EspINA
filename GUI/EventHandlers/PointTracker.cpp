@@ -20,6 +20,7 @@
 #include "PointTracker.h"
 
 #include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
 #include <QMouseEvent>
 #include <QApplication>
 
@@ -101,8 +102,15 @@ void PointTracker::startTrack(const QPoint &pos, RenderView *view)
 {
   if(!m_distanceHasBeenSet)
   {
+    // if not set, the default is minimum spacing
     auto res    = view->sceneResolution();
-    auto minRes = 4*std::min(res[0], std::min(res[1], res[2]));
+    auto view2d = view2D_cast(view);
+    auto planeIndex = normalCoordinateIndex(view2d->plane());
+    double minRes = VTK_DOUBLE_MAX;
+    for(int i: {0,1,2})
+    {
+      minRes = std::min(res[i], minRes);
+    }
     m_maxDistance2 = minRes*minRes;
   }
 

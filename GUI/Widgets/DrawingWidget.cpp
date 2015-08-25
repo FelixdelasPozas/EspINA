@@ -52,7 +52,6 @@ DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model,
 , m_radiusWidget        {new NumericalInput()}
 , m_opacityWidget       {new NumericalInput()}
 , m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"))}
-, m_rasterizeWidget     {Styles::createToolButton(":/espina/tick.png", tr("Rasterize the contour"))}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
 , m_showOpacityControls {true}
@@ -71,7 +70,6 @@ DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model,
   initEraseWidget();
   initRadiusWidget();
   initOpacityWidget();
-  initRasterizeWidget();
 
   m_painters.key(m_currentPainter)->click();
 
@@ -209,7 +207,7 @@ void DrawingWidget::stopDrawing()
   {
     if(m_currentPainter.get() == m_contourPainter.get())
     {
-      m_rasterizeWidget->click();
+      m_contourPainter->rasterizeContours();
     }
   }
 }
@@ -256,7 +254,7 @@ void DrawingWidget::onEventHandlerInUse(bool value)
     }
     else
     {
-      stopDrawing();
+      m_contourPainter->rasterizeContours();
       m_viewState.removeTemporalRepresentations(m_contourWidgetfactory);
     }
   }
@@ -316,15 +314,6 @@ void DrawingWidget::initEraseWidget()
 
   connect(m_eraserWidget, SIGNAL(toggled(bool)),
           this,           SLOT(setEraserMode(bool)));
-}
-
-//------------------------------------------------------------------------
-void DrawingWidget::initRasterizeWidget()
-{
-  addWidget(m_rasterizeWidget);
-
-  connect(m_rasterizeWidget,      SIGNAL(clicked(bool)),
-          m_contourPainter.get(), SIGNAL(rasterize()));
 }
 
 //------------------------------------------------------------------------
@@ -460,11 +449,12 @@ void DrawingWidget::updateVisibleControls()
   m_radiusWidget    ->setVisible(m_showRadiusControls);
   m_opacityWidget   ->setVisible(m_showOpacityControls);
   m_eraserWidget    ->setVisible(m_showEraserControls);
-  m_rasterizeWidget ->setVisible(displayContourControls());
 
   if (displayContourControls())
   {
     m_radiusWidget->setLabelText(tr("Minimum Point Distance"));
+    m_radiusWidget->setMinimum(1);
+    m_radiusWidget->setMaximum(100);
     m_radiusWidget->setValue(m_contourDistance);
 
     m_contourPainter->setMinimumPointDistance(m_contourDistance);
@@ -472,6 +462,8 @@ void DrawingWidget::updateVisibleControls()
   else
   {
     m_radiusWidget->setLabelText(tr("Radius Size"));
+    m_radiusWidget->setMinimum(5);
+    m_radiusWidget->setMaximum(40);
     m_radiusWidget->setValue(m_brushRadius);
   }
 }
