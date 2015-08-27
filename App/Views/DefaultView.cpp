@@ -67,11 +67,11 @@ DefaultView::DefaultView(Support::Context &context,
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 
-  m_panelYZ = new DockWidget(tr("ZY"), context, parent);
+  m_panelYZ = new Panel(tr("ZY"), context, parent);
   m_panelYZ->setObjectName("DockZY");
   m_panelYZ->setWidget(m_viewYZ);
 
-  m_panelXZ = new DockWidget(tr("XZ"), context, parent);
+  m_panelXZ = new Panel(tr("XZ"), context, parent);
   m_panelXZ->setObjectName("xzDock");
   m_panelXZ->setWidget(m_viewXZ);
 
@@ -175,13 +175,13 @@ void DefaultView::createViewMenu(QMenu* menu)
 }
 
 //-----------------------------------------------------------------------------
-DockWidget* DefaultView::panelXZ()
+Panel* DefaultView::panelXZ()
 {
   return m_panelXZ;
 }
 
 //-----------------------------------------------------------------------------
-DockWidget* DefaultView::panelYZ()
+Panel* DefaultView::panelYZ()
 {
   return m_panelYZ;
 }

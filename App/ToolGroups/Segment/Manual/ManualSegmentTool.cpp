@@ -82,7 +82,7 @@ FilterSPtr ManualSegmentTool::ManualFilterFactory::createFilter(InputSList      
 
 //------------------------------------------------------------------------
 ManualSegmentTool::ManualSegmentTool(Support::Context &context)
-: ProgressTool("ManualSegmentationTool", ":espina/manual_segmentation.svg", tr("Create segmentations manually"), context)
+: ProgressTool("0-FreehandSegmentationTool", ":espina/manual_segmentation.svg", tr("Freehand Segmentation"), context)
 , m_model        {context.model()}
 , m_factory      {context.factory()}
 , m_colorEngine  {context.colorEngine()}

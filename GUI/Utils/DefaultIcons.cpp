@@ -57,5 +57,5 @@ QIcon DefaultIcons::Information()
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Settings()
 {
-  return QIcon(":/espina/settings.png");
+  return QIcon(":/espina/settings.svg");
 }

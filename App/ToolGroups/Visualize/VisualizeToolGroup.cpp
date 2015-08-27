@@ -41,7 +41,7 @@ VisualizeToolGroup::~VisualizeToolGroup()
 
 //----------------------------------------------------------------------------
 void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
-                                               RepresentationSwitchSPtr   repSwitch)
+                                                 RepresentationSwitchSPtr repSwitch)
 {
   addTool(repSwitch);
 }

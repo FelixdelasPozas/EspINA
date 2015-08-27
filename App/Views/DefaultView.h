@@ -69,12 +69,12 @@ namespace ESPINA
     /** \brief Returns a reference to the XZ panel
      *
      */
-    DockWidget *panelXZ();
+    Panel *panelXZ();
 
     /** \brief Returns a reference to the YZ panel
      *
      */
-    DockWidget *panelYZ();
+    Panel *panelYZ();
 
     /** \brief Returns a reference to the 3D dialog.
      *
@@ -131,7 +131,7 @@ namespace ESPINA
 
     QList<RenderView *> m_views;
 
-    DockWidget  *m_panelYZ, *m_panelXZ;
+    Panel  *m_panelYZ, *m_panelXZ;
     Dialog3D    *m_dialog3D;
   };
 

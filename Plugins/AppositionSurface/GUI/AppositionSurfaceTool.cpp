@@ -46,11 +46,9 @@ using namespace ESPINA::GUI;
 //-----------------------------------------------------------------------------
 AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
                                              Support::Context        &context)
-: ProgressTool("AppositionSurfaceTool", ":/AppSurface.svg", tr("Apposition Surface Tools"), context)
+: ProgressTool("SynapticAppositionSurface", ":/AppSurface.svg", defaultTooltip(), context)
 , m_plugin (plugin)
 {
-  setToolTip(tr("Create a synaptic apposition surface from selected segmentations."));
-
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(createSAS()));
 
@@ -68,7 +66,7 @@ AppositionSurfaceTool::~AppositionSurfaceTool()
 //-----------------------------------------------------------------------------
 void AppositionSurfaceTool::selectionChanged()
 {
-  QString toolTip("Create a synaptic apposition surface from selected segmentations.");
+  auto toolTip = defaultTooltip();
 
   bool enabled = false;
 
@@ -83,7 +81,7 @@ void AppositionSurfaceTool::selectionChanged()
 
   if (!enabled)
   {
-    toolTip += QString("\n(Requires a selection of one or more segmentations from 'Synapse' taxonomy)");
+    toolTip += tr("\n(Requires at least one 'Synapse' selected)");
   }
 
   setToolTip(toolTip);
@@ -142,4 +140,10 @@ void AppositionSurfaceTool::createSAS()
       Task::submit(filter);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+QString AppositionSurfaceTool::defaultTooltip() const
+{
+  return tr("Synaptic Apposition Surface");
 }

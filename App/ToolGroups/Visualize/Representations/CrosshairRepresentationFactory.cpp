@@ -44,17 +44,14 @@ Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::C
     createCrosshair3D(representation, context);
   }
 
-  representation.Icon        = QIcon(":espina/crosshairs2D_switch.svg");
-  representation.Description = QObject::tr("Shows/Hides the crosshair");
-
   return representation;
 }
 
 //----------------------------------------------------------------------------
 void CrosshairRepresentationFactory::createCrosshair2D(Representation &representation, Support::Context &context) const
 {
-  createCrosshair(":espina/crosshairs2D_switch.svg",
-                  QObject::tr("Shows/Hides the crosshair in the 2D views."),
+  createCrosshair(":espina/display_crosshairs.svg",
+                  QObject::tr("Display Crosshairs"),
                   representation,
                   ViewType::VIEW_2D,
                   context);
@@ -63,8 +60,8 @@ void CrosshairRepresentationFactory::createCrosshair2D(Representation &represent
 //----------------------------------------------------------------------------
 void CrosshairRepresentationFactory::createCrosshair3D(Representation &representation, Support::Context &context) const
 {
-  createCrosshair(":espina/crosshairs3D_switch.svg",
-                  QObject::tr("Shows/Hides the crosshair in the 3D view."),
+  createCrosshair(":espina/display_crosshairs.svg",
+                  QObject::tr("Display Crosshairs"),
                   representation,
                   ViewType::VIEW_3D,
                   context);
@@ -79,12 +76,12 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
 {
   auto crossManager = std::make_shared<CrosshairManager>(flags);
 
-  crossManager->setName(QObject::tr("Crosshair"));
+  crossManager->setName(QObject::tr("DisplayCrosshair"));
   crossManager->setIcon(QIcon(icon));
   crossManager->setDescription(description);
 
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("CrosshairSwitch", crossManager, flags, context.timer(), context);
-  crossSwitch->setGroupWith("crosshair");
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayCrosshair", crossManager, flags, context.timer(), context);
+  crossSwitch->setOredering("0", "2-Display");
 
   if(flags.testFlag(ViewType::VIEW_2D))
   {

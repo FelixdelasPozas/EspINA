@@ -70,7 +70,7 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
 , m_action    {new ProgressAction(icon, tooltip, this)}
 , m_settings  {new ProgressTool::NestedWidgets(this)}
 , m_isExlusive{false}
-, m_groupName {"zzzzzzzz"}
+, m_groupName {""}
 , m_id        {id}
 {
   connect(m_action, SIGNAL(toggled(bool)),
@@ -133,15 +133,22 @@ void ProgressTool::setExclusive(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::setGroupWith(const QString& name)
+void ProgressTool::setOredering(const QString& name, const QString& group)
 {
-  m_groupName = name;
+  m_positionName = name;
+  m_groupName    = group;
 }
 
 //----------------------------------------------------------------------------
 QString ProgressTool::groupWith() const
 {
   return m_groupName;
+}
+
+//----------------------------------------------------------------------------
+QString ProgressTool::positionName() const
+{
+  return m_positionName + "-" + id();
 }
 
 //----------------------------------------------------------------------------

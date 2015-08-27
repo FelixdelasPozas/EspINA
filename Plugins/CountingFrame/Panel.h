@@ -23,7 +23,7 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Support/Widgets/DockWidget.h>
+#include <Support/Widgets/Panel.h>
 #include <Support/Context.h>
 
 #include "CountingFrames/CountingFrame.h"
@@ -42,7 +42,7 @@ namespace ESPINA
 
   /// Counting Frame Plugin
   class CountingFramePlugin_EXPORT Panel
-  : public DockWidget
+  : public ESPINA::Panel
   {
     Q_OBJECT
 

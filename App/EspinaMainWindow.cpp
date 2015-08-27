@@ -25,9 +25,9 @@
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
 #include <Dialogs/View3DDialog/3DDialog.h>
-#include "Docks/ChannelExplorer/ChannelExplorer.h"
-#include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Docks/SegmentationInformation/SegmentationInformation.h"
+#include "Panels/StackExplorer/StackExplorer.h"
+#include "Panels/SegmentationExplorer/SegmentationExplorer.h"
+#include "Panels/SegmentationProperties/SegmentationProperties.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
@@ -50,9 +50,9 @@
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
-#include <ToolGroups/Explore/ResetZoom.h>
-#include <ToolGroups/Explore/ZoomTool.h>
-#include <ToolGroups/Explore/VisualBookmarks.h>
+#include <ToolGroups/Explore/ResetViewTool.h>
+#include <ToolGroups/Explore/ZoomRegionTool.h>
+#include <ToolGroups/Explore/PositionMarksTool.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -172,7 +172,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
 
-  activateToolGroup(m_exploreToolGroup);
+  activateToolGroup(m_fileToolGroup);
 }
 
 //------------------------------------------------------------------------
@@ -946,10 +946,14 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
           }
         }
 
+        if (tools != toolGroup->groupedTools().last())
+        {
+
 //         auto separator = new QWidget();
 //         separator->setMinimumWidth(8);
 //         m_contextualBar->addWidget(separator);
         m_contextualBar->addSeparator();
+        }
       }
     }
 
@@ -1189,13 +1193,15 @@ void EspinaMainWindow::createToolbars()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolGroups()
 {
+  createFileToolGroup();
+
   createExploreToolGroup();
 
   createRestrictToolGroup();
 
   createSegmentToolGroup();
 
-  createRefineToolGroup();
+  createEditToolGroup();
 
   createVisualizeToolGroup();
 
@@ -1203,41 +1209,49 @@ void EspinaMainWindow::createToolGroups()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::createFileToolGroup()
+{
+  m_fileToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("File"));
+
+  registerToolGroup(m_fileToolGroup);
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::createExploreToolGroup()
 {
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
 
-  auto channelExplorerSwitch = std::make_shared<PanelSwitch>("ChannelExplorer",
-                                                             new ChannelExplorer(m_context),
-                                                             ":espina/channel_explorer_switch.svg",
-                                                             tr("Display Channel Explorer"),
-                                                             m_context);
+  auto stackExplorerSwitch = std::make_shared<PanelSwitch>("StackExplorer",
+                                                           new StackExplorer(m_context),
+                                                           ":espina/display_stack_explorer.svg",
+                                                           tr("Stack Explorer"),
+                                                           m_context);
+  stackExplorerSwitch->setOredering("0-0");
 
   auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
                                                                   new SegmentationExplorer(m_filterRefiners, m_context),
-                                                                  ":espina/segmentation_explorer_switch.svg",
-                                                                  tr("Display Segmentation Explorer"),
+                                                                  ":espina/display_segmentation_explorer.svg",
+                                                                  tr("Segmentation Explorer"),
                                                                   m_context);
+  segmentationExplorerSwitch->setOredering("0-1-SegmentationExplorer");
 
-  auto zoomTool      = std::make_shared<ZoomTool>(m_context);
-  auto resetZoom     = std::make_shared<ResetZoom>(m_context);
-  auto bookmarksTool = std::make_shared<VisualBookmarks>(m_context, m_view->renderviews());
+  auto zoomRegion = std::make_shared<ZoomRegionTool>(m_context);
+  auto resetView  = std::make_shared<ResetViewTool>(m_context);
+
+  zoomRegion->setOredering("1-0");
+  resetView->setOredering("1-1");
+
+  auto bookmarksTool = std::make_shared<PositionMarksTool>(m_context, m_view->renderviews());
+
+  bookmarksTool->setOredering("2");
 
   connect(this,                SIGNAL(analysisClosed()),
           bookmarksTool.get(), SLOT(clear()));
 
-  channelExplorerSwitch     ->setGroupWith("explorer");
-  segmentationExplorerSwitch->setGroupWith("explorer");
-
-  zoomTool ->setGroupWith("zoom");
-  resetZoom->setGroupWith("zoom");
-
-  bookmarksTool->setGroupWith("visual bookmarks");
-
-  m_exploreToolGroup->addTool(channelExplorerSwitch);
+  m_exploreToolGroup->addTool(stackExplorerSwitch);
   m_exploreToolGroup->addTool(segmentationExplorerSwitch);
-  m_exploreToolGroup->addTool(zoomTool);
-  m_exploreToolGroup->addTool(resetZoom);
+  m_exploreToolGroup->addTool(zoomRegion);
+  m_exploreToolGroup->addTool(resetView);
   m_exploreToolGroup->addTool(bookmarksTool);
 
   registerToolGroup(m_exploreToolGroup);
@@ -1256,11 +1270,10 @@ void EspinaMainWindow::createSegmentToolGroup()
 {
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
 
+  m_segmentToolGroup->setToolTip(tr("Create New Segmentations"));
+
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
-
-  manualSegment->setGroupWith("manual_segment");
-  sgsSegment   ->setGroupWith("sgs_segment");
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
@@ -1269,9 +1282,9 @@ void EspinaMainWindow::createSegmentToolGroup()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createRefineToolGroup()
+void EspinaMainWindow::createEditToolGroup()
 {
-  m_refineToolGroup = new RefineToolGroup(m_filterRefiners, m_context);
+  m_refineToolGroup = new EditToolGroup(m_filterRefiners, m_context);
 
   registerToolGroup(m_refineToolGroup);
 }
@@ -1286,7 +1299,7 @@ void EspinaMainWindow::createVisualizeToolGroup()
                                                      ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
-  panelSwitchXY->setGroupWith("view_panels");
+  panelSwitchXY->setOredering("0","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchXY);
 
   auto panelSwitchYZ = std::make_shared<PanelSwitch>("YZ",
@@ -1294,13 +1307,13 @@ void EspinaMainWindow::createVisualizeToolGroup()
                                                      ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
-  panelSwitchYZ->setGroupWith("view_panels");
+  panelSwitchYZ->setOredering("1","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
-  auto dialog3dTool = m_view->dialog3D()->tool();
-  dialog3dTool->setGroupWith("view_panels");
+  auto dialogSwith3D = m_view->dialog3D()->tool();
+  dialogSwith3D->setOredering("2","3-Views");
 
-  m_visualizeToolGroup->addTool(dialog3dTool);
+  m_visualizeToolGroup->addTool(dialogSwith3D);
 
   registerToolGroup(m_visualizeToolGroup);
 }
@@ -1323,13 +1336,15 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 void EspinaMainWindow::createDefaultPanels()
 {
 
-  auto segmentationInformation       = new SegmentationInformation(m_filterRefiners, m_context);
-  auto segmentationInformationSwitch = std::make_shared<PanelSwitch>("SegmentationInformation",
-                                                                     segmentationInformation,
-                                                                     ":espina/segmentation_information_switch.svg",
-                                                                     tr("Display Segmentation Information"),
-                                                                     m_context);
-  m_analyzeToolGroup->addTool(segmentationInformationSwitch);
+  auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
+  auto segmentationPropertiesSwitch = std::make_shared<PanelSwitch>("SegmentationProperties",
+                                                                    segmentationProperties,
+                                                                    ":espina/display_segmentation_properties.svg",
+                                                                    tr("Segmentation Properties"),
+                                                                    m_context);
+  segmentationPropertiesSwitch->setOredering("0");
+
+  m_refineToolGroup->addTool(segmentationPropertiesSwitch);
 }
 
 //------------------------------------------------------------------------

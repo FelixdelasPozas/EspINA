@@ -30,7 +30,7 @@
 #include <GUI/EventHandlers/StrokePainter.h>
 #include <GUI/View/Selection.h>
 #include <GUI/Widgets/DrawingWidget.h>
-#include <ToolGroups/Refine/SliceEditionPipeline.h>
+#include <ToolGroups/Edit/SliceEditionPipeline.h>
 
 class QUndoStack;
 

@@ -101,7 +101,7 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterRefinerRegister        &filterRefiners,
                                                    Support::Context             &context)
-: ProgressTool("SeedGrowSegmentation", ":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
+: ProgressTool("1-GreyLevelSegmentation", ":/espina/grey_level_segmentation.svg", tr("Grey Level Segmentation"), context)
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}

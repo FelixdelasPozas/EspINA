@@ -18,7 +18,7 @@
  */
 
 #include "PanelSwitch.h"
-#include "DockWidget.h"
+#include "Panel.h"
 
 
 using namespace ESPINA;
@@ -26,7 +26,7 @@ using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
-PanelSwitch::PanelSwitch(const QString &id, DockWidget *dock, const QString &icon, const QString &tooltip, Context &context)
+PanelSwitch::PanelSwitch(const QString &id, Panel *dock, const QString &icon, const QString &tooltip, Context &context)
 : ProgressTool(id, icon, tooltip, context)
 , m_dock(dock)
 {

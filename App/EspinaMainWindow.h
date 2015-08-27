@@ -32,7 +32,7 @@
 #include <Dialogs/IssueList/IssueListDialog.h>
 #include "ToolGroups/Visualize/VisualizeToolGroup.h"
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
-#include "ToolGroups/Refine/RefineToolGroup.h"
+#include "ToolGroups/Edit/EditToolGroup.h"
 #include "ToolGroups/Analyze/AnalyzeToolGroup.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -41,7 +41,7 @@
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/Widgets/DockWidget.h>
+#include <Support/Widgets/Panel.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
 #include <Support/Context.h>
 
@@ -248,13 +248,15 @@ namespace ESPINA
 
     void createToolShortcuts();
 
+    void createFileToolGroup();
+
     void createExploreToolGroup();
 
     void createRestrictToolGroup();
 
     void createSegmentToolGroup();
 
-    void createRefineToolGroup();
+    void createEditToolGroup();
 
     void createVisualizeToolGroup();
 
@@ -402,10 +404,12 @@ namespace ESPINA
     QActionGroup        m_mainBarGroup;
     QToolBar           *m_contextualBar;
     ToolGroupPtr        m_activeToolGroup;
+
+    ToolGroup          *m_fileToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
     ToolGroup          *m_segmentToolGroup;
-    RefineToolGroup    *m_refineToolGroup;
+    EditToolGroup    *m_refineToolGroup;
     VisualizeToolGroup *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;
 

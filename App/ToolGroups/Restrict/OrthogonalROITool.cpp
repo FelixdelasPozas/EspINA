@@ -75,7 +75,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
-: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
+: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal ROI"), context)
 , m_roiRepresentation{new OrthogonalRepresentation()}
 , m_resizeHandler    {new EventHandler()}
 , m_defineHandler    {new PixelSelector()}
@@ -158,8 +158,8 @@ void OrthogonalROITool::onToolGroupActivated()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::initControls()
 {
-  m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal Region of Interest"));
-  m_applyROI  = Styles::createToolButton(":/espina/roi_define.svg", tr("Define Orthogonal Region of Interest"));
+  m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal ROI"));
+  m_applyROI  = Styles::createToolButton(":/espina/roi_define.svg", tr("Define Orthogonal ROI"));
 
   m_resizeROI ->setCheckable(true);
   m_applyROI  ->setCheckable(true);
@@ -364,7 +364,7 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 
   auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Resize Region of Interest"));
+  undoStack->beginMacro(tr("Resize ROI"));
   undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
   undoStack->endMacro();
 }

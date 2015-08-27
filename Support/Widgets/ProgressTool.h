@@ -106,12 +106,14 @@ namespace ESPINA
          */
         void setExclusive(bool value);
 
-        /** \brief Sets the group name which tools are grouped with
+        /** \brief Sets the grouping criteria
          *
          */
-        void setGroupWith(const QString &name);
+        void setOredering(const QString &name, const QString &group = QString());
 
         QString groupWith() const;
+
+        QString positionName() const;
 
         void setToolTip(const QString &tooltip);
 
@@ -198,7 +200,10 @@ namespace ESPINA
         NestedWidgets                *m_settings;
 
         bool    m_isExlusive;
+
+        QString m_positionName;
         QString m_groupName;
+
         const QString m_id;
         QKeySequence m_shortcutSequence;
 
