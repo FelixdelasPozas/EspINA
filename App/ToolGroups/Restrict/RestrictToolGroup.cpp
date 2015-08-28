@@ -192,9 +192,9 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
 
   setToolTip(tr("Region of Interest"));
 
-  m_orthogonalROI->setOredering("0-0");
-  m_freehandROI->setOredering("0-1");
-  m_deleteROI->setOredering("1");
+  m_orthogonalROI->setOrder("0-0");
+  m_freehandROI->setOrder("0-1");
+  m_deleteROI->setOrder("1");
 
   addTool(m_orthogonalROI);
   addTool(m_freehandROI);

@@ -320,7 +320,7 @@ void EditToolGroup::initManualEditionTool()
 {
   auto manualEdition = std::make_shared<ManualEditionTool>(getContext());
 
-  manualEdition->setOredering("1");
+  manualEdition->setOrder("1");
 
   connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
           this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
@@ -332,7 +332,7 @@ void EditToolGroup::initManualEditionTool()
 void EditToolGroup::initSplitTool()
 {
   auto split = std::make_shared<SplitTool>(getContext());
-  split->setOredering("3-2");
+  split->setOrder("3-2");
   addTool(split);
 }
 
@@ -341,13 +341,13 @@ void EditToolGroup::initCODETools()
 {
   auto close  = std::make_shared<CODETool<CloseFilter>> (CLOSE_FILTER, "CloseTool",  tr("Close"), ":/espina/close.png",  tr("Close Segmentations") , getContext());
   auto open   = std::make_shared<CODETool<OpenFilter>>  (OPEN_FILTER,  "OpenTool",   tr("Open"),  ":/espina/open.png",   tr("Open Segmentations")  , getContext());
-  auto dilate = std::make_shared<CODETool<DilateFilter>>(DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/dilate.png", tr("Dilate Segmentations"), getContext());
-  auto erode  = std::make_shared<CODETool<ErodeFilter>> (ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/erode.png",  tr("Erode Segmentations") , getContext());
+  auto dilate = std::make_shared<CODETool<DilateFilter>>(DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/morphological_dilate.svg", tr("Dilate Segmentations"), getContext());
+  auto erode  = std::make_shared<CODETool<ErodeFilter>> (ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/morphological_erode.svg",  tr("Erode Segmentations") , getContext());
 
-  close->setOredering("2-0");
-  open->setOredering("2-1");
-  dilate->setOredering("2-2");
-  erode->setOredering("2-3");
+  close->setOrder("2-0");
+  open->setOrder("2-1");
+  dilate->setOrder("2-2");
+  erode->setOrder("2-3");
 
   addTool(close);
   addTool(open);
@@ -360,7 +360,7 @@ void EditToolGroup::initFillHolesTool()
 {
   auto fillHoles = std::make_shared<FillHolesTool>(getContext());
 
-  fillHoles->setOredering("2-4");
+  fillHoles->setOrder("2-4");
 
   addTool(fillHoles);
 }
@@ -374,8 +374,8 @@ void EditToolGroup::initImageLogicTools()
   auto substract = std::make_shared<ImageLogicTool>("Substract", ":/espina/remove.svg", tr("Substract Selected Segmentations"), getContext());
   substract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
 
-  addition->setOredering("3-0");
-  substract->setOredering("3-1");
+  addition->setOrder("3-0");
+  substract->setOrder("3-1");
 
   addTool(addition);
   addTool(substract);

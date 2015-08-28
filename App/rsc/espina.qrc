@@ -46,7 +46,9 @@
     <file>es_ES.qm</file>
     <file>espina.svg</file>
     <file>export_scene.svg</file>
-    <file>fillHoles.svg</file>
+    <file>file_open.svg</file>
+    <file>file_save.svg</file>
+    <file>fill_holes.svg</file>
     <file>from_slice.svg</file>
     <file>grey_level_segmentation.svg</file>
     <file>hide_3D.svg</file>
@@ -59,6 +61,8 @@
     <file>manual_segmentation.svg</file>
     <file>measure_length.svg</file>
     <file>measure_selection.svg</file>    
+    <file>morphological_dilate.svg</file>
+    <file>morphological_erode.svg</file>
     <file>multi_stroke.svg</file>
     <file>newTag.svg</file>
     <file>next_segmentation.svg</file>

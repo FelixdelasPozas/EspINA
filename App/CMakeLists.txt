@@ -49,6 +49,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/ManualEditionTool.h
   ToolGroups/Edit/EditToolGroup.h
   ToolGroups/Edit/SplitTool.h
+  ToolGroups/File/FileOpenTool.h
   ToolGroups/Restrict/DeleteROITool.h
   ToolGroups/Restrict/FreehandROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
@@ -160,6 +161,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/EditToolGroup.cpp
   ToolGroups/Edit/SliceEditionPipeline.cpp
   ToolGroups/Edit/SplitTool.cpp
+  ToolGroups/File/FileOpenTool.cpp
   ToolGroups/Restrict/DeleteROITool.cpp
   ToolGroups/Restrict/FreehandROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp

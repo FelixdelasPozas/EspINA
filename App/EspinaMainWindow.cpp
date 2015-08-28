@@ -53,6 +53,7 @@
 #include <ToolGroups/Explore/ResetViewTool.h>
 #include <ToolGroups/Explore/ZoomRegionTool.h>
 #include <ToolGroups/Explore/PositionMarksTool.h>
+#include "ToolGroups/File/FileOpenTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -155,7 +156,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   initRepresentations();
 
-  initColorEngines(m_viewMenu);
+  initColorEngines();
 
   loadPlugins(plugins);
 
@@ -307,12 +308,12 @@ bool EspinaMainWindow::isModelModified()
 //------------------------------------------------------------------------
 void EspinaMainWindow::enableWidgets(bool value)
 {
+  return;
   m_addMenu            ->setEnabled(value);
   m_saveAnalysisAs       ->setEnabled(value);
   m_saveSessionAnalysis->setEnabled(value);
   m_closeAnalysis      ->setEnabled(value);
   m_editMenu           ->setEnabled(value);
-  m_viewMenu           ->setEnabled(value);
 
   for (auto dock : findChildren<QDockWidget *>())
   {
@@ -490,27 +491,15 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   m_sessionFile = QFileInfo();
 
-  setWindowTitle(QString("ESPINA Interactive Neuron Analyzer"));
+  setWindowTitle("ESPINA Interactive Neuron Analyzer");
 
-  m_mainBar->setEnabled(false);
-  m_contextualBar->setEnabled(false);
+//   m_mainBar->setEnabled(false);
+//   m_contextualBar->setEnabled(false);
   m_mainBar->actions().first()->setChecked(true);
 
   emit analysisClosed();
 
   return true;
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::openAnalysis()
-{
-  auto title = tr("Start New Analysis From File");
-  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions());
-
-  if (!selectedFiles.isEmpty())
-  {
-    openAnalysis(selectedFiles);
-  }
 }
 
 //------------------------------------------------------------------------
@@ -588,6 +577,56 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
   IssueListDialog dialog(issues);
 
   dialog.exec();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::openAnalysis(AnalysisSPtr analysis)
+{
+  if (!closeCurrentAnalysis()) return;
+
+  Q_ASSERT(analysis);
+
+  if (!analysis->classification())
+  {
+    QFileInfo defaultClassification(":/espina/defaultClassification.xml");
+    auto classification = IO::ClassificationXML::load(defaultClassification);
+    analysis->setClassification(classification);
+  }
+
+  auto model = m_context.model();
+
+  model->setAnalysis(analysis, m_context.factory());
+
+  m_analysis = analysis;
+
+  updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
+  m_context.viewState().resetCamera();
+
+  initializeCrosshair();
+
+  updateToolsSettings();
+
+  enableWidgets(true);
+  enableToolShortcuts(true);
+
+  assignActiveChannel();
+
+  analyzeChannelEdges();
+
+  //setWindowTitle(files.first());
+
+  //m_sessionFile = files.first();
+
+  // We need to override the default state of the save session analysis entry
+  //bool enableSave = files.size() == 1 && m_sessionFile.suffix().toLower() == QString("seg");
+  //m_saveSessionAnalysis->setEnabled(enableSave);
+
+  if (!m_context.model()->isEmpty())
+  {
+    checkAnalysisConsistency();
+  }
+
+  emit analysisChanged();
 }
 
 //------------------------------------------------------------------------
@@ -977,21 +1016,18 @@ void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine, const QString &
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
+void EspinaMainWindow::initColorEngines()
 {
-
-  //m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
-
   auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
   connect(colorEngine.get(), SIGNAL(modified()),
           this,              SLOT(onColorEngineModified()));
 
-  //parentMenu->addMenu(m_colorEngineMenu);
-
   createColorEngine(std::make_shared<NumberColorEngine>(), "number");
+
   auto categoryColorEngine = std::make_shared<CategoryColorEngine>();
   categoryColorEngine->setActive(true);
   createColorEngine(categoryColorEngine, "category");
+
   registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
@@ -1022,8 +1058,6 @@ void EspinaMainWindow::createMenus()
 
   createEditMenu();
 
-  createViewMenu();
-
   createSettingsMenu();
 }
 
@@ -1052,8 +1086,8 @@ void EspinaMainWindow::createFileMenu()
           this,     SLOT(openState()));
   connect(openMenu, SIGNAL(hovered(QAction*)),
           this,     SLOT(updateTooltip(QAction*)));
-  connect(openAction, SIGNAL(triggered(bool)),
-          this,       SLOT(openAnalysis()));
+//   connect(openAction, SIGNAL(triggered(bool)),
+//           this,       SLOT(openAnalysis()));
 
   m_addMenu = fileMenu->addMenu(tr("&Add"));
   m_addMenu->setIcon(QIcon(":espina/add.svg"));
@@ -1079,10 +1113,10 @@ void EspinaMainWindow::createFileMenu()
 
   m_saveSessionAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("&Save"));
   m_saveSessionAnalysis->setEnabled(false);
-  m_saveSessionAnalysis->setShortcut(Qt::CTRL+Qt::Key_S);
+  //m_saveSessionAnalysis->setShortcut(Qt::CTRL+Qt::Key_S);
 
-  connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
-          this,                  SLOT(saveSessionAnalysis()));
+  //connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
+  //        this,                  SLOT(saveSessionAnalysis()));
 
   m_saveAnalysisAs = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
   m_saveAnalysisAs->setEnabled(false);
@@ -1143,17 +1177,6 @@ void EspinaMainWindow::createEditMenu()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createViewMenu()
-{
-  m_viewMenu = new QMenu(tr("View"));
-  m_view->createViewMenu(m_viewMenu);
-
-  menuBar()->addMenu(m_viewMenu);
-
-  m_viewMenu->addSeparator();
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::createSettingsMenu()
 {
   auto settingsMenu = new QMenu(tr("&Settings"));
@@ -1209,13 +1232,47 @@ void EspinaMainWindow::createToolGroups()
 }
 
 //------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0: Import
+//   0: Open
+//   1: Add
+// 1: Export
+//   0: Save
+//   1: Save As
+//------------------------------------------------------------------------
 void EspinaMainWindow::createFileToolGroup()
 {
   m_fileToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("File"));
 
+  auto open = std::make_shared<FileOpenTool>(m_context);
+  open->setOrder("0-0");
+  connect(open.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
+          this,       SLOT(openAnalysis(AnalysisSPtr)));
+
+  auto save = std::make_shared<ProgressTool>("FileSave",  ":/espina/file_save.svg", tr("Open As New Analysis"), m_context);
+  save->setOrder("1-0");
+  save->setShortcut(Qt::CTRL+Qt::Key_S);
+
+  connect(save.get(), SIGNAL(triggered(bool)),
+          this,       SLOT(saveSessionAnalysis()));
+
+  m_fileToolGroup->addTool(open);
+  m_fileToolGroup->addTool(save);
+
   registerToolGroup(m_fileToolGroup);
 }
 
+//------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0: Explorers
+//   0: Channels
+//   1: Segmentations
+// 1: Camera
+//   0: Zoom Region
+//   1: Reset View
+// 2: Positions
 //------------------------------------------------------------------------
 void EspinaMainWindow::createExploreToolGroup()
 {
@@ -1226,24 +1283,24 @@ void EspinaMainWindow::createExploreToolGroup()
                                                            ":espina/display_stack_explorer.svg",
                                                            tr("Stack Explorer"),
                                                            m_context);
-  stackExplorerSwitch->setOredering("0-0");
+  stackExplorerSwitch->setOrder("0-0"); // Explorers-Channels
 
   auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
                                                                   new SegmentationExplorer(m_filterRefiners, m_context),
                                                                   ":espina/display_segmentation_explorer.svg",
                                                                   tr("Segmentation Explorer"),
                                                                   m_context);
-  segmentationExplorerSwitch->setOredering("0-1-SegmentationExplorer");
+  segmentationExplorerSwitch->setOrder("0-1"); // Explorers-Segmetnations
 
   auto zoomRegion = std::make_shared<ZoomRegionTool>(m_context);
   auto resetView  = std::make_shared<ResetViewTool>(m_context);
 
-  zoomRegion->setOredering("1-0");
-  resetView->setOredering("1-1");
+  zoomRegion->setOrder("1-0");
+  resetView->setOrder("1-1");
 
   auto bookmarksTool = std::make_shared<PositionMarksTool>(m_context, m_view->renderviews());
 
-  bookmarksTool->setOredering("2");
+  bookmarksTool->setOrder("2");
 
   connect(this,                SIGNAL(analysisClosed()),
           bookmarksTool.get(), SLOT(clear()));
@@ -1299,7 +1356,7 @@ void EspinaMainWindow::createVisualizeToolGroup()
                                                      ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
-  panelSwitchXY->setOredering("0","3-Views");
+  panelSwitchXY->setOrder("0","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchXY);
 
   auto panelSwitchYZ = std::make_shared<PanelSwitch>("YZ",
@@ -1307,11 +1364,11 @@ void EspinaMainWindow::createVisualizeToolGroup()
                                                      ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
-  panelSwitchYZ->setOredering("1","3-Views");
+  panelSwitchYZ->setOrder("1","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
   auto dialogSwith3D = m_view->dialog3D()->tool();
-  dialogSwith3D->setOredering("2","3-Views");
+  dialogSwith3D->setOrder("2","3-Views");
 
   m_visualizeToolGroup->addTool(dialogSwith3D);
 
@@ -1342,7 +1399,7 @@ void EspinaMainWindow::createDefaultPanels()
                                                                     ":espina/display_segmentation_properties.svg",
                                                                     tr("Segmentation Properties"),
                                                                     m_context);
-  segmentationPropertiesSwitch->setOredering("0");
+  segmentationPropertiesSwitch->setOrder("0");
 
   m_refineToolGroup->addTool(segmentationPropertiesSwitch);
 }

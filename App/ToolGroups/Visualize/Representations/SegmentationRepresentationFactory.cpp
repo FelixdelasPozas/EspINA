@@ -247,5 +247,5 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 //----------------------------------------------------------------------------
 void SegmentationRepresentationFactory::groupSwitch(const QString &order, ToolSPtr tool) const
 {
-  tool->setOredering(order,"0-Representations");
+  tool->setOrder(order,"0-Representations");
 }

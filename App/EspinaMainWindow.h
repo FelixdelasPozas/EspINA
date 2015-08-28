@@ -86,6 +86,7 @@ namespace ESPINA
      */
     virtual ~EspinaMainWindow();
 
+  public slots:
     /** \brief Opens a list of analyses.
      * \param[in] files list of files to open.
      *
@@ -106,10 +107,7 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
-    /** \brief Close current analysis and load a new one.
-     *
-     */
-    void openAnalysis();
+    void openAnalysis(AnalysisSPtr analysis);
 
     /** \brief Opens an analysis from the recent list.
      *
@@ -224,7 +222,7 @@ namespace ESPINA
     void showIssuesDialog(Extensions::IssueList problems) const;
 
   private:
-    void initColorEngines(QMenu *parentMenu);
+    void initColorEngines();
 
     void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
 
@@ -396,7 +394,6 @@ namespace ESPINA
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
-    QMenu           *m_viewMenu;
     //ColorEngineMenu *m_colorEngineMenu;
 
     // ToolBars

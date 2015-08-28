@@ -133,7 +133,7 @@ void ProgressTool::setExclusive(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::setOredering(const QString& name, const QString& group)
+void ProgressTool::setOrder(const QString& name, const QString& group)
 {
   m_positionName = name;
   m_groupName    = group;

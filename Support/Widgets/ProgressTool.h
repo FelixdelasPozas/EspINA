@@ -109,7 +109,7 @@ namespace ESPINA
         /** \brief Sets the grouping criteria
          *
          */
-        void setOredering(const QString &name, const QString &group = QString());
+        void setOrder(const QString &name, const QString &group = QString());
 
         QString groupWith() const;
 

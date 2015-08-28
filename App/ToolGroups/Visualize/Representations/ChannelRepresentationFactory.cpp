@@ -69,7 +69,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
 
     auto sliceSwitch = std::make_shared<BasicRepresentationSwitch>("DisplayStacks", sliceManager, ViewType::VIEW_2D, timer, context);
     sliceSwitch->setChecked(true);
-    sliceSwitch->setOredering("0-0", "0-Representations");
+    sliceSwitch->setOrder("0-0", "0-Representations");
 
     representation.Managers << sliceManager;
     representation.Switches << sliceSwitch;
@@ -83,7 +83,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
     slice3DManager->setDescription(QObject::tr("Display Stacks"));
 
     auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayStackCrosshairs", slice3DManager, ViewType::VIEW_3D, timer, context);
-    slice3DSwitch->setOredering("0-0", "0-Representations");
+    slice3DSwitch->setOrder("0-0", "0-Representations");
 
     representation.Group    = CHANNELS_GROUP;
     representation.Pools    << poolXY << poolXZ << poolYZ;

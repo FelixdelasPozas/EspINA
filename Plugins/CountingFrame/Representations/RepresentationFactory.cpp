@@ -48,7 +48,7 @@ namespace ESPINA {
 
         auto switch2D  = std::make_shared<BasicRepresentationSwitch>("CF2DSwitch", manager2D, ViewType::VIEW_2D, timer, context);
         switch2D->setChecked(true);
-        switch2D->setOredering("1", "2-Display");
+        switch2D->setOrder("1", "2-Display");
 
         representation.Managers << manager2D;
         representation.Switches << switch2D;
@@ -63,7 +63,7 @@ namespace ESPINA {
         manager3D->setDescription(QObject::tr("Display Stereological Counting Frame"));
 
         auto switch3D  = std::make_shared<BasicRepresentationSwitch>("CD3DSwitch", manager3D, ViewType::VIEW_3D, timer, context);
-        switch3D->setOredering("1","2-Display");
+        switch3D->setOrder("1","2-Display");
 
         representation.Managers << manager3D;
         representation.Switches << switch3D;

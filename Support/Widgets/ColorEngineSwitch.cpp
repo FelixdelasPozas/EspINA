@@ -35,7 +35,7 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 : ProgressTool(engine->id(), icon, tr("Color by %1").arg(engine->tooltip()), context)
 , m_engine(engine)
 {
-  setOredering("0", "1-ColorBy");
+  setOrder("0", "1-ColorBy");
 
   setCheckable(true);
 
