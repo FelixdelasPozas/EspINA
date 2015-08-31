@@ -47,8 +47,7 @@ namespace ESPINA
     /** \brief Add render switch to group render group tool
      *
      */
-    void addRepresentationSwitch(RepresentationGroup      group,
-                                 RepresentationSwitchSPtr repSwitch);
+    void addRepresentationSwitch(RepresentationSwitchSPtr repSwitch);
 
   private:
     Support::Context &m_context;

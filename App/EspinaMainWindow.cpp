@@ -47,6 +47,7 @@
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include "ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h"
+#include "ToolGroups/Visualize/GenericTogglableTool.h"
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
@@ -173,7 +174,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
 
-  activateToolGroup(m_fileToolGroup);
+  m_sessionToolGroup->setChecked(true);
 }
 
 //------------------------------------------------------------------------
@@ -313,7 +314,7 @@ void EspinaMainWindow::enableWidgets(bool value)
     dock->setEnabled(value);
   }
 
-  auto sessionTools = m_fileToolGroup->groupedTools().first();
+  auto sessionTools = m_sessionToolGroup->groupedTools().first();
   for(auto tool: sessionTools)
   {
     if(tool == sessionTools.first()) continue;
@@ -1168,81 +1169,81 @@ void EspinaMainWindow::createToolGroups()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createSessionToolGroup()
 {
-  m_fileToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("File"));
+  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
 
   auto open = std::make_shared<FileOpenTool>(m_context, m_errorHandler);
   open->setShortcut(Qt::CTRL+Qt::Key_O);
-  open->setOrder("0-0", "1_FileGroup");
+  open->setOrder("0-0", "1-Session");
 
   connect(open.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
           this,       SLOT(onAnalysisLoaded(AnalysisSPtr)));
 
   auto add = std::make_shared<ProgressTool>("FileAdd", DefaultIcons::File(), tr("Add A Stack Or A Previous Session To The Current Session"), m_context);
   add->setShortcut(Qt::CTRL+Qt::Key_A);
-  add->setOrder("0-1", "1_FileGroup");
+  add->setOrder("0-1", "1-Session");
 
   connect(add.get(), SIGNAL(triggered(bool)),
           this,       SLOT(addToAnalysis()));
 
   m_saveTool = std::make_shared<FileSaveTool>(m_context);
-  m_saveTool->setOrder("1-0", "1_FileGroup");
+  m_saveTool->setOrder("1-0", "1-Session");
   m_saveTool->setShortcut(Qt::CTRL+Qt::Key_S);
 
   connect(m_saveTool.get(), SIGNAL(triggered(bool)),
           this,       SLOT(saveSessionAnalysis()));
 
   auto saveAs = std::make_shared<ProgressTool>("FileSaveAs", ":/espina/file_save_as.svg", tr("Save The Current Session As A New File"), m_context);
-  saveAs->setOrder("1-1", "1_FileGroup");
+  saveAs->setOrder("1-1", "1-Session");
 
   connect(saveAs.get(), SIGNAL(triggered(bool)),
           this,         SLOT(saveAnalysisAs()));
 
-  m_fileToolGroup->addTool(open);
-  m_fileToolGroup->addTool(add);
-  m_fileToolGroup->addTool(m_saveTool);
-  m_fileToolGroup->addTool(saveAs);
+  m_sessionToolGroup->addTool(open);
+  m_sessionToolGroup->addTool(add);
+  m_sessionToolGroup->addTool(m_saveTool);
+  m_sessionToolGroup->addTool(saveAs);
 
   auto undo = std::make_shared<UndoTool>(m_context);
-  undo->setOrder("2-0", "2_RedoUndoGroup");
+  undo->setOrder("2-0", "2-RedoUndo");
 
   connect(undo.get(), SIGNAL(executed()),
           this,       SIGNAL(abortOperation()));
 
   auto redo = std::make_shared<RedoTool>(m_context);
-  redo->setOrder("2-1", "2_RedoUndoGroup");
+  redo->setOrder("2-1", "2-RedoUndo");
 
   connect(redo.get(), SIGNAL(executed()),
           this,       SIGNAL(abortOperation()));
 
-  m_fileToolGroup->addTool(undo);
-  m_fileToolGroup->addTool(redo);
+  m_sessionToolGroup->addTool(undo);
+  m_sessionToolGroup->addTool(redo);
 
   auto settings = std::make_shared<ProgressTool>("FileSettings", ":/espina/settings.svg", tr("Settings"), m_context);
-  settings->setOrder("3-0", "3_Settings");
+  settings->setOrder("3-0", "3-Settings");
 
   connect(settings.get(), SIGNAL(triggered(bool)),
           this,           SLOT(showPreferencesDialog()));
 
-  m_fileToolGroup->addTool(settings);
+  m_sessionToolGroup->addTool(settings);
 
   auto about = std::make_shared<ProgressTool>("FileAbout", ":/espina/espina.svg", tr("About ESPINA"), m_context);
-  about->setOrder("4-0", "4_About");
+  about->setOrder("4-0", "3-Settings");
 
   connect(about.get(), SIGNAL(triggered(bool)),
           this,        SLOT(showAboutDialog()));
 
-  m_fileToolGroup->addTool(about);
+  m_sessionToolGroup->addTool(about);
 
   auto exit = std::make_shared<ProgressTool>("ExitApplication", ":/espina/exit-app.svg", tr("Exit ESPINA"), m_context);
-  exit->setOrder("5-0", "5_QuitGroup");
+  exit->setOrder("5-0", "3-Settings");
   exit->setShortcut(Qt::CTRL+Qt::Key_Q);
 
   connect(exit.get(), SIGNAL(triggered(bool)),
           this,       SLOT(close()));
 
-  m_fileToolGroup->addTool(exit);
+  //m_sessionToolGroup->addTool(exit);
 
-  registerToolGroup(m_fileToolGroup);
+  registerToolGroup(m_sessionToolGroup);
 }
 
 //------------------------------------------------------------------------
@@ -1329,9 +1330,51 @@ void EspinaMainWindow::createEditToolGroup()
 }
 
 //------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0-Display (Representations)
+// 0: Channels
+// 1: Segmentations
+// ##################
+// 1-Color by
+// ##################
+// 2-Display (widgets)
+// 0: View Settings
+//   0: Thumbnail
+//   1: Scalebar
+// 1: Widgets
+// ##################
+// 3-Views
+//------------------------------------------------------------------------
 void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
+
+  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
+                                                          ":/espina/display_view_thumbnail.svg",
+                                                          tr("Display Thumbnail"),
+                                                          m_context);
+  connect(thumbnail.get(), SIGNAL(toggled(bool)),
+          m_view.get(), SLOT(showThumbnail(bool)));
+
+  thumbnail->setOrder("0-0", "2-Display");
+  thumbnail->setChecked(true);
+
+  m_visualizeToolGroup->addTool(thumbnail);
+
+  auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
+                                                         ":/espina/display_view_scalebar.svg",
+                                                         tr("Display Scalebar"),
+                                                         m_context);
+
+  connect(scalebar.get(), SIGNAL(toggled(bool)),
+          m_view.get(),   SLOT(setRulerVisibility(bool)));
+
+  scalebar->setOrder("0-1", "2-Display");
+  scalebar->setChecked(true);
+
+  m_visualizeToolGroup->addTool(scalebar);
+
 
   auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",
                                                      m_view->panelXZ(),
@@ -1477,7 +1520,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
   {
     if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
     {
-      m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+      m_visualizeToolGroup->addRepresentationSwitch(repSwitch);
     }
   }
 
@@ -1603,7 +1646,7 @@ void EspinaMainWindow::saveToolsSettings()
 const QList<ToolGroupPtr> EspinaMainWindow::toolGroups() const
 {
   return QList<ToolGroupPtr>{
-    m_fileToolGroup,
+    m_sessionToolGroup,
     m_exploreToolGroup,
     m_restrictToolGroup,
     m_segmentToolGroup,

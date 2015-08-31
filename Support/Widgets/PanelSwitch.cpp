@@ -55,12 +55,7 @@ void PanelSwitch::showPanel(bool visible)
 //----------------------------------------------------------------------------
 void PanelSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = checkSetting(settings);
-
-  if(enabled != isChecked())
-  {
-    setChecked(enabled);
-  }
+  restoreCheckedState(settings);
 }
 
 //----------------------------------------------------------------------------

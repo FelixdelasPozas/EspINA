@@ -133,34 +133,14 @@ void DefaultView::addRepresentation(const Representation& representation)
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
-  auto renderMenu = new QMenu(tr("Views"), this);
-  renderMenu->addAction(m_panelYZ->toggleViewAction());
-  renderMenu->addAction(m_panelXZ->toggleViewAction());
-  renderMenu->addAction(m_dialog3D->toggleViewAction());
-  menu->addMenu(renderMenu);
-
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
-  auto sr = settings.value(SHOW_RULER_KEY,     true).toBool();
-  auto st = settings.value(SHOW_THUMBNAIL_KEY, true).toBool();
+//   auto sr = settings.value(SHOW_RULER_KEY,     true).toBool();
+//   auto st = settings.value(SHOW_THUMBNAIL_KEY, true).toBool();
   auto fs = settings.value(FIT_TO_SLICES_KEY,  true).toBool();
 
   settings.endGroup();
-
-  auto showRuler = new QAction(tr("Show Scale Bar"),menu);
-  showRuler->setCheckable(true);
-  showRuler->setChecked(sr);
-  menu->addAction(showRuler);
-  connect(showRuler, SIGNAL(toggled(bool)),
-          this, SLOT(setRulerVisibility(bool)));
-
-  auto thumbnail = new QAction(tr("Show Thumbnail"),menu);
-  thumbnail->setCheckable(true);
-  thumbnail->setChecked(st);
-  menu->addAction(thumbnail);
-  connect(thumbnail, SIGNAL(toggled(bool)),
-          this, SLOT(showThumbnail(bool)));
 
   auto fitToSlices = new QAction(tr("Fit To Slices"), menu);
   fitToSlices->setCheckable(true);
@@ -169,8 +149,8 @@ void DefaultView::createViewMenu(QMenu* menu)
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this,        SLOT(setFitToSlices(bool)));
 
-  setRulerVisibility(sr);
-  showThumbnail(st);
+//   setRulerVisibility(sr);
+//   showThumbnail(st);
   setFitToSlices(fs);
 }
 

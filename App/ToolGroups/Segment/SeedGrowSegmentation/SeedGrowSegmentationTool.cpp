@@ -105,7 +105,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
-, m_useBestPixel    {Styles::createToolButton(":espina/bestPixelSelector.svg", tr("Apply on best pixel"))}
+, m_useBestPixel    {Styles::createToolButton(":espina/best_pixel_selector.svg", tr("Apply on best pixel"))}
 , m_colorLabel      {new QLabel(tr("Pixel Color:"))}
 , m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}

@@ -72,7 +72,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
-  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
@@ -188,7 +187,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
-  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
+  ToolGroups/Visualize/GenericTogglableTool.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DrawUndoCommand.cpp

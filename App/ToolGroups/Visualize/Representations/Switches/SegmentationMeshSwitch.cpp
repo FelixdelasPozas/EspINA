@@ -97,7 +97,8 @@ void SegmentationMeshSwitch::hideRepresentations(TimeStamp t)
 //----------------------------------------------------------------------------
 void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = checkSetting(settings);
+  restoreCheckedState(settings);
+
   auto smoothValue = settings->value(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, 0).toInt();
 
   m_settings->setSmoothValue(smoothValue);
@@ -108,8 +109,6 @@ void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings
     m_smoothEnabled = smoothEnabled;
     switchManagers();
   }
-
-  setChecked(enabled);
 }
 
 //----------------------------------------------------------------------------

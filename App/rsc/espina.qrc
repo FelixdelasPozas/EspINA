@@ -4,8 +4,8 @@
     <file>active_stack.svg</file>
     <file>add.svg</file>
     <file>add_child.svg</file>
-    <file>appPlane.svg</file>
-    <file>bestPixelSelector.svg</file>
+    <file>apposition_surface.svg</file>
+    <file>best_pixel_selector.svg</file>
     <file>brush_2D.svg</file>
     <file>brush_3D.svg</file>
     <file>brush_new.svg</file>
@@ -34,6 +34,8 @@
     <file>display_segmentation_projections.svg</file>
     <file>display_stack_explorer.svg</file>
     <file>display_stacks.svg</file>
+    <file>display_view_thumbnail.svg</file>
+    <file>display_view_scalebar.svg</file>
     <file>down.png</file>
     <file>drawing_contour.svg</file>
     <file>edges-image.png</file>
@@ -66,7 +68,7 @@
     <file>morphological_dilate.svg</file>
     <file>morphological_erode.svg</file>
     <file>multi_stroke.svg</file>
-    <file>newTag.svg</file>
+    <file>new_tag.svg</file>
     <file>next_segmentation.svg</file>
     <file>note.svg</file>
     <file>open.png</file>
@@ -99,9 +101,7 @@
     <file>roi_out.svg</file>
     <file>settings.svg</file>
     <file>show_3D.svg</file>
-    <file>show_Mesh.svg</file>
     <file>show_all.svg</file>
-    <file>show_channels.png</file>
     <file>show_partially.svg</file>
     <file>show_planes.svg</file>
     <file>single_stroke.svg</file>

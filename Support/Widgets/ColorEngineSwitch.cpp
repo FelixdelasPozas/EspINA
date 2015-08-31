@@ -48,9 +48,7 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 //------------------------------------------------------------------------
 void ColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto checked = checkSetting(settings);
-
-  setChecked(checked);
+  restoreCheckedState(settings);
 }
 
 //------------------------------------------------------------------------

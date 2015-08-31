@@ -325,8 +325,13 @@ void ProgressTool::saveCheckSetting(std::shared_ptr<QSettings> settings)
 }
 
 //----------------------------------------------------------------------------
-bool ProgressTool::checkSetting(std::shared_ptr<QSettings> settings)
+void ProgressTool::restoreCheckedState(std::shared_ptr<QSettings> settings)
 {
-  return settings->value(TOOL_ENABLED_KEY, false).toBool();
+  auto checked = settings->value(TOOL_ENABLED_KEY, false).toBool();
+
+  if(checked != isChecked())
+  {
+    setChecked(checked);
+  }
 }
 

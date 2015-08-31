@@ -357,7 +357,7 @@ namespace ESPINA
     QToolBar           *m_contextualBar;
     ToolGroupPtr        m_activeToolGroup;
 
-    ToolGroup          *m_fileToolGroup;
+    ToolGroup          *m_sessionToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
     ToolGroup          *m_segmentToolGroup;

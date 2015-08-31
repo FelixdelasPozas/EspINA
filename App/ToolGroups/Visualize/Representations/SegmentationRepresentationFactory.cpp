@@ -21,7 +21,6 @@
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
-#include <ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h>
 #include <ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>

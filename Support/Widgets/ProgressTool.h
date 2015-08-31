@@ -178,17 +178,17 @@ namespace ESPINA
 
         void deactivateEventHandler();
 
-        /** \brief Helper method to save the state of the tool (checked/unchecked) to the settings object.
+        /** \brief Helper method to save tool's checked state
          * \param[inout] settings QSettings object.
          *
          */
         void saveCheckSetting(std::shared_ptr<QSettings> settings);
 
-        /** \brief Helper method to retrieve the value of the state of the tool from the settings object.
+        /** \brief Helper method to restore tool's checked state
          * \param[inout] settings QSettings object.
          *
          */
-        bool checkSetting(std::shared_ptr<QSettings> settings);
+        void restoreCheckedState(std::shared_ptr<QSettings> settings);
 
       private slots:
         void onActionToggled(bool value);
