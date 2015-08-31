@@ -37,6 +37,7 @@ namespace ESPINA
   class GeneralSettings
   {
   public:
+    static const QString AUTOSAVE_FILE;
     static const QString LOAD_SEG_SETTINGS_KEY;
 
     /** \brief GeneralSettings class constructor.

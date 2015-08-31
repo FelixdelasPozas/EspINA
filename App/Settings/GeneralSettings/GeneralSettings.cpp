@@ -30,6 +30,7 @@ using namespace ESPINA;
 
 const QString AUTOSAVE_PATH     = "Autosave::Path";
 const QString AUTOSAVE_INTERVAL = "Autosave::Interval";
+const QString GeneralSettings::AUTOSAVE_FILE         = "espina-autosave.seg";
 const QString GeneralSettings::LOAD_SEG_SETTINGS_KEY = "Load SEG settings";
 
 //-----------------------------------------------------------------------------

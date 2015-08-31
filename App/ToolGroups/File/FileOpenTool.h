@@ -20,7 +20,9 @@
 #ifndef ESPINA_FILE_OPEN_TOOL_H
 #define ESPINA_FILE_OPEN_TOOL_H
 
+// ESPINA
 #include <App/EspinaErrorHandler.h>
+#include <Settings/GeneralSettings/GeneralSettings.h>
 #include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA
@@ -38,9 +40,10 @@ namespace ESPINA
     /** \brief FileOpenTool class constructor.
      * \param[in] context application context.
      * \param[in] error handler application error.
+     * \param[in] settings application general settings.
      *
      */
-    explicit FileOpenTool(Support::Context& context, EspinaErrorHandlerSPtr errorHandler);
+    explicit FileOpenTool(Support::Context& context, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings);
 
     /** \brief Returns the list of files that has been loaded/try to load in the last attempt.
      *

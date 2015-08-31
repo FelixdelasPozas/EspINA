@@ -17,21 +17,41 @@
  *
  */
 
+// ESPINA
 #include "FileOpenTool.h"
-
 #include <EspinaErrorHandler.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <GUI/Widgets/Styles.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //----------------------------------------------------------------------------
-FileOpenTool::FileOpenTool(Support::Context &context, EspinaErrorHandlerSPtr errorHandler)
+FileOpenTool::FileOpenTool(Support::Context &context, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings)
 : ProgressTool  {"FileOpen",  ":/espina/file_open.svg", tr("Open As New Analysis"), context}
 , m_errorHandler{errorHandler}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered()));
+
+  // check auto save file from a previous session.
+  QDir autosavePath = settings->autosavePath();
+  if (autosavePath.exists(GeneralSettings::AUTOSAVE_FILE))
+  {
+    auto msg = tr("ESPINA closed unexpectedly. Do you want to load autosave file?");
+
+    if (DefaultDialogs::UserConfirmation(tr("ESPINA Interactive Neuron Analyzer"), msg))
+    {
+      QStringList files(autosavePath.absoluteFilePath(GeneralSettings::AUTOSAVE_FILE));
+
+      load(files);
+    }
+    else
+    {
+      autosavePath.remove(GeneralSettings::AUTOSAVE_FILE);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -55,22 +75,26 @@ void FileOpenTool::onTriggered()
 //----------------------------------------------------------------------------
 void FileOpenTool::load(const QStringList &files)
 {
+  WaitingCursor cursor;
+
   AnalysisSPtr analysis;
   QList<AnalysisSPtr> analyses;
   QStringList loadedFiles, failedFiles;
   auto factory = getContext().factory();
   int i = 0;
 
+  setProgress(0);
+
   for(auto file : files)
   {
-    setProgress(i);
-
     m_errorHandler->setDefaultDir(QFileInfo(file).dir());
 
     auto readers = getContext().factory()->readers(file);
 
     if (readers.isEmpty())
     {
+      DefaultCursor cursor;
+
       auto title = tr("File Extension is not supported");
       DefaultDialogs::InformationMessage(title, file);
       continue;
@@ -99,6 +123,8 @@ void FileOpenTool::load(const QStringList &files)
 
   if(!failedFiles.empty())
   {
+    DefaultCursor cursor;
+
     auto message = tr("The following files couldn't be loaded:\n");
 
     for(auto file: failedFiles)

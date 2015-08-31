@@ -20,69 +20,147 @@
  */
 
 // ESPINA
+#include <Core/IO/SegFile.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/SupportedFormats.h>
+#include <GUI/Widgets/Styles.h>
 #include <ToolGroups/File/FileSaveTool.h>
 
 using ESPINA::GUI::DefaultDialogs;
 using ESPINA::GUI::SupportedFormats;
+using ESPINA::IO::SegFile::save;
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //----------------------------------------------------------------------------
-FileSaveTool::FileSaveTool(Support::Context& context)
-: ProgressTool{"FileSave",  ":/espina/file_save.svg", tr("Save current session"), context}
+FileSaveTool::FileSaveTool(Support::Context& context, AnalysisSPtr analysis, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings)
+: ProgressTool  {"FileSave",  ":/espina/file_save.svg", tr("Save current session"), context}
+, m_analysis    {analysis}
+, m_errorHandler{errorHandler}
+, m_settings    {settings}
 {
+  setEnabled(false);
+  setCheckable(false);
+
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered()));
+
+  m_autosave.setInterval(settings->autosaveInterval()*60*1000);
+  m_autosave.start();
+  updateUndoStackIndex();
+
+  connect(&m_autosave, SIGNAL(timeout()),
+          this,        SLOT(autosave()));
+}
+
+//----------------------------------------------------------------------------
+FileSaveTool::~FileSaveTool()
+{
+  QDir autosavePath = m_settings->autosavePath();
+  autosavePath.remove(GeneralSettings::AUTOSAVE_FILE);
+}
+
+//----------------------------------------------------------------------------
+void FileSaveTool::updateUndoStackIndex()
+{
+  m_undoStackIndex = getContext().undoStack()->index();
 }
 
 //----------------------------------------------------------------------------
 void FileSaveTool::setSessionFile(const QString &filename)
 {
-  m_sessionFile = QFileInfo(filename);
+  if(filename.isEmpty())
+  {
+    m_sessionFile = QFileInfo();
+    setEnabled(false);
+  }
+  else
+  {
+    m_sessionFile = QFileInfo(filename);
 
-  auto enabled = m_sessionFile.suffix().toLower().compare(".seg");
-  setEnabled(enabled);
+    auto enabled = m_sessionFile.suffix().toLower().compare(".seg");
+    setEnabled(enabled);
+  }
+}
+
+//----------------------------------------------------------------------------
+const QString FileSaveTool::fileName() const
+{
+  return m_sessionFile.fileName();
 }
 
 //----------------------------------------------------------------------------
 void FileSaveTool::save(const QString &filename)
 {
-//  QString suggestedFileName;
-//  if (m_sessionFile.suffix().toLower() == "seg")
-//  {
-//    suggestedFileName = m_sessionFile.fileName();
-//  }
-//  else
-//  {
-//    suggestedFileName = m_sessionFile.baseName() + QString(".seg");
-//  }
-//
-//  auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-//                                               SupportedFormats().addSegFormat(),
-//                                               m_sessionFile.absolutePath(),
-//                                               "seg",
-//                                               suggestedFileName);
-//
-//  if (analysisFile.isEmpty()) return;
-//
-//  Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
-//
-//  saveAnalysis(analysisFile);
-//
-//  QStringList fileParts = analysisFile.split(QDir::separator());
-//  setWindowTitle(fileParts[fileParts.size()-1]);
-//
-//  m_saveSessionAnalysis->setEnabled(true);
-//  m_sessionFile = analysisFile;
+  WaitingCursor cursor;
+
+  emit aboutToSaveSession();
+
+  IO::SegFile::save(m_analysis.get(), filename, m_errorHandler);
+
+  emit sessionSaved(filename);
 }
 
 //----------------------------------------------------------------------------
 void FileSaveTool::onTriggered()
 {
-  if(m_sessionFile == QFileInfo()) return;
+  if ((m_sessionFile == QFileInfo()) || m_analysis == nullptr) return;
 
   save(m_sessionFile.fileName());
 }
 
+//----------------------------------------------------------------------------
+void FileSaveTool::autosave()
+{
+  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
+
+  if(getContext().undoStack()->index() == m_undoStackIndex) return;
+
+  QDir autosavePath = m_settings->autosavePath();
+  if (!autosavePath.exists())
+  {
+    autosavePath.mkpath(autosavePath.absolutePath());
+  }
+
+  auto autosaveFilename = autosavePath.absoluteFilePath(GeneralSettings::AUTOSAVE_FILE);
+
+  save(autosaveFilename);
+
+  updateUndoStackIndex();
+}
+
+//----------------------------------------------------------------------------
+FileSaveAsTool::FileSaveAsTool(Support::Context& context, AnalysisSPtr analysis, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings)
+: FileSaveTool{context, analysis, errorHandler, settings}
+{
+  this->setIcon(QIcon(":/espina/file_save_as.svg"));
+
+  m_autosave.stop();
+}
+
+//----------------------------------------------------------------------------
+void FileSaveAsTool::onTriggered()
+{
+  QString suggestedFileName;
+  if (m_sessionFile.suffix().toLower() == "seg")
+  {
+    suggestedFileName = m_sessionFile.fileName();
+  }
+  else
+  {
+    suggestedFileName = m_sessionFile.baseName() + QString(".seg");
+  }
+
+  auto fileName = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
+                                               SupportedFormats().addSegFormat(),
+                                               m_sessionFile.absolutePath(),
+                                               "seg",
+                                               suggestedFileName);
+
+  if (fileName.isEmpty()) return;
+
+  save(fileName);
+
+  m_sessionFile = QFileInfo(fileName);
+}

@@ -117,6 +117,8 @@ namespace ESPINA
 
         void setToolTip(const QString &tooltip);
 
+        void setIcon(const QIcon icon);
+
         QList<QAction *> actions() const;
 
         virtual void onToolGroupActivated() {}

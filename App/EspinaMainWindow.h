@@ -65,6 +65,7 @@ namespace ESPINA
   class SeedGrowSegmentationSettings;
   class ROISettings;
   class FileSaveTool;
+  class FileSaveAsTool;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -100,9 +101,24 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
+    /** \brief Updates the application when an analysis has been loaded.
+     *
+     */
     void onAnalysisLoaded(AnalysisSPtr analysis);
 
+    /** \brief Saves tools settings just before saving a session.
+     *
+     */
+    void onAboutToSaveSession();
+
+    /** \brief Updates the application after a session has been saved.
+     * \param[in] filename name of the saved session file.
+     *
+     */
+    void onSessionSaved(const QString &filename);
+
     /** \brief Opens an analysis from the recent list.
+     * TODO: to be moved to FileOpenTool.
      *
      */
     void openRecentAnalysis();
@@ -111,16 +127,6 @@ namespace ESPINA
      *
      */
     void addToAnalysis();
-
-    /** \brief Save current analysis.
-     *
-     */
-    void saveAnalysisAs();
-
-    /** \brief Saves the current analysis (auto-save).
-     *
-     */
-    void saveSessionAnalysis();
 
     /** \brief Close current analysis.
      *
@@ -148,11 +154,6 @@ namespace ESPINA
      */
     void addState()
     { m_menuState = MenuState::ADD_STATE; }
-
-    /** \brief Saves the current analysis to disk.
-     *
-     */
-    void autosave();
 
     /** \brief Cancels current operation.
      *
@@ -224,8 +225,6 @@ namespace ESPINA
 
     void restoreGeometry();
 
-    void configureAutoSave();
-
     /** \brief Enables/disables the tool shortcuts.
      *
      */
@@ -246,11 +245,6 @@ namespace ESPINA
      *
      */
     void createDynamicMenu(Support::MenuEntry entry);
-
-    /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
-     *
-     */
-    void checkAutosave();
 
     /** \brief Adds a tool group to the application.
      * \param[in] tools tool group raw pointer.
@@ -308,8 +302,6 @@ namespace ESPINA
      *
      */
     void updateToolsSettings();
-
-    void saveAnalysis(const QString &filename);
 
     /** \brief Saves the current tool settings to the session settings in the analysis.
      *
@@ -372,6 +364,7 @@ namespace ESPINA
     SchedulerProgressSPtr m_schedulerProgress;
 
     std::shared_ptr<FileSaveTool> m_saveTool;
+    std::shared_ptr<FileSaveAsTool> m_saveAsTool;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
@@ -393,8 +386,6 @@ namespace ESPINA
     DynamicMenuNode *m_dynamicMenuRoot;
 
     int       m_undoStackSavedIndex;
-    QTimer    m_autosave;
-    QFileInfo m_sessionFile;
 
     EspinaErrorHandlerSPtr m_errorHandler;
   };

@@ -92,8 +92,6 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
 : menu(nullptr)
@@ -168,8 +166,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   closeCurrentAnalysis();
 
   restoreGeometry();
-
-  configureAutoSave();
 
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
@@ -314,13 +310,9 @@ void EspinaMainWindow::enableWidgets(bool value)
     dock->setEnabled(value);
   }
 
-  auto sessionTools = m_sessionToolGroup->groupedTools().first();
-  for(auto tool: sessionTools)
-  {
-    if(tool == sessionTools.first()) continue;
-
-    tool->setEnabled(value);
-  }
+  auto sessionTools = m_sessionToolGroup->groupedTools();
+  sessionTools[0][1]->setEnabled(value);
+  sessionTools[1][1]->setEnabled(value);
 
   for(auto action: m_mainBar->actions())
   {
@@ -365,29 +357,6 @@ void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
   }
 
   node->menu->addAction(entry.second);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::checkAutosave()
-{
-  // TODO: autosave
-//  QDir autosavePath = m_settings->autosavePath();
-//  if (autosavePath.exists(AUTOSAVE_FILE))
-//  {
-//    auto msg= tr("ESPINA closed unexpectedly. "
-//                 "Do you want to load autosave file?");
-//
-//    if (DefaultDialogs::UserConfirmation(windowTitle(), msg))
-//    {
-//      QStringList files(autosavePath.absoluteFilePath(AUTOSAVE_FILE));
-//
-//      openAnalysis(files);
-//    }
-//    else
-//    {
-//      autosavePath.remove(AUTOSAVE_FILE);
-//    }
-//  }
 }
 
 //------------------------------------------------------------------------
@@ -443,9 +412,6 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     saveGeometry();
 
     event->accept();
-
-    QDir autosavePath = m_settings->autosavePath();
-    autosavePath.remove(AUTOSAVE_FILE);
   }
   else
   {
@@ -472,7 +438,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     switch(res)
     {
       case QMessageBox::Yes:
-        saveAnalysisAs();
+        m_saveAsTool->trigger();
         break;
       case QMessageBox::Cancel:
         return false;
@@ -489,6 +455,9 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
+  m_saveTool->updateUndoStackIndex();
+  m_saveTool->setSessionFile(QString());
+
   m_context.model()->clear();
   m_analysis.reset();
 
@@ -498,8 +467,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   updateSceneState(m_context.viewState(), ViewItemAdapterSList());
   m_context.viewState().resetCamera();
   m_context.viewState().refresh();
-
-  m_sessionFile = QFileInfo();
 
   setWindowTitle("ESPINA Interactive Neuron Analyzer");
 
@@ -550,6 +517,7 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   setWindowTitle(files.first());
 
   m_saveTool->setSessionFile(files.first());
+  m_saveAsTool->setSessionFile(files.first());
   auto saveEnabled = files.size() == 1 && files.first().endsWith(".seg", Qt::CaseInsensitive);
   m_saveTool->setEnabled(saveEnabled);
 
@@ -675,7 +643,7 @@ void EspinaMainWindow::openRecentAnalysis()
 void EspinaMainWindow::addToAnalysis()
 {
   auto title = tr("Add Data To Analysis");
-  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions(), m_sessionFile.absoluteDir().absolutePath());
+  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions(), QDir::currentPath());
 
   if (!selectedFiles.isEmpty())
   {
@@ -763,7 +731,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
     {
       analyses << factory->read(reader, file, m_errorHandler);
 
-      if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
+      if (file != m_settings->autosavePath().absoluteFilePath(GeneralSettings::AUTOSAVE_FILE))
       {
         m_recentDocuments1.addDocument(file);
         m_recentDocuments2.updateDocumentList();
@@ -773,7 +741,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
     {
       Styles::DefaultCursor cursor;
 
-      if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
+      if(file != m_settings->autosavePath().absoluteFilePath(GeneralSettings::AUTOSAVE_FILE))
       {
         auto message = tr("File \"%1\" could not be loaded.\n"
                           "Do you want to remove it from recent documents list?")
@@ -805,59 +773,6 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
   }
 
   return mergedAnalysis;
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysisAs()
-{
-  QString suggestedFileName;
-  if (m_sessionFile.suffix().toLower() == "seg")
-  {
-    suggestedFileName = m_sessionFile.fileName();
-  }
-  else
-  {
-    suggestedFileName = m_sessionFile.baseName() + QString(".seg");
-  }
-
-  auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-                                               SupportedFormats().addSegFormat(),
-                                               m_sessionFile.absolutePath(),
-                                               "seg",
-                                               suggestedFileName);
-
-  if (analysisFile.isEmpty()) return;
-
-  Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
-
-  saveAnalysis(analysisFile);
-
-  QStringList fileParts = analysisFile.split(QDir::separator());
-  setWindowTitle(fileParts[fileParts.size()-1]);
-
-  m_saveSessionAnalysis->setEnabled(true);
-  m_sessionFile = analysisFile;
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::saveSessionAnalysis()
-{
-  {
-    Styles::WaitingCursor cursor;
-
-    m_busy = true;
-
-    saveToolsSettings();
-
-    IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
-  }
-  updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
-  m_busy = false;
-
-  m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------
@@ -902,26 +817,6 @@ void EspinaMainWindow::showAboutDialog()
   AboutDialog dialog;
 
   dialog.exec();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::autosave()
-{
-  if (!isModelModified()) return;
-
-  m_busy = true;
-
-  QDir autosavePath = m_settings->autosavePath();
-  if (!autosavePath.exists())
-    autosavePath.mkpath(autosavePath.absolutePath());
-
-  const QFileInfo analysisFile = autosavePath.absoluteFilePath(AUTOSAVE_FILE);
-
-  IO::SegFile::save(m_analysis.get(), analysisFile, nullptr);
-
-  updateStatus(tr("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
-  m_busy = false;
-  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
 }
 
 //------------------------------------------------------------------------
@@ -1171,7 +1066,7 @@ void EspinaMainWindow::createSessionToolGroup()
 {
   m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
 
-  auto open = std::make_shared<FileOpenTool>(m_context, m_errorHandler);
+  auto open = std::make_shared<FileOpenTool>(m_context, m_errorHandler, m_settings);
   open->setShortcut(Qt::CTRL+Qt::Key_O);
   open->setOrder("0-0", "1-Session");
 
@@ -1185,23 +1080,29 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(add.get(), SIGNAL(triggered(bool)),
           this,       SLOT(addToAnalysis()));
 
-  m_saveTool = std::make_shared<FileSaveTool>(m_context);
-  m_saveTool->setOrder("1-0", "1-Session");
+  m_saveTool = std::make_shared<FileSaveTool>(m_context, m_analysis, m_errorHandler, m_settings);
+  m_saveTool->setOrder("1-0", "1_FileGroup");
   m_saveTool->setShortcut(Qt::CTRL+Qt::Key_S);
 
-  connect(m_saveTool.get(), SIGNAL(triggered(bool)),
-          this,       SLOT(saveSessionAnalysis()));
+  connect(m_saveTool.get(), SIGNAL(aboutToSaveSession()),
+          this,             SLOT(onAboutToSaveSession()));
 
-  auto saveAs = std::make_shared<ProgressTool>("FileSaveAs", ":/espina/file_save_as.svg", tr("Save The Current Session As A New File"), m_context);
-  saveAs->setOrder("1-1", "1-Session");
+  connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &)),
+          this,             SLOT(onSessionSaved(const QString &)));
 
-  connect(saveAs.get(), SIGNAL(triggered(bool)),
-          this,         SLOT(saveAnalysisAs()));
+  m_saveAsTool = std::make_shared<FileSaveAsTool>(m_context, m_analysis, m_errorHandler, m_settings);
+  m_saveAsTool->setOrder("1-1", "1_FileGroup");
+
+  connect(m_saveAsTool.get(), SIGNAL(aboutToSaveSession()),
+          this,               SLOT(onAboutToSaveSession()));
+
+  connect(m_saveAsTool.get(), SIGNAL(sessionSaved(const QString &)),
+          this,               SLOT(onSessionSaved(const QString &)));
 
   m_sessionToolGroup->addTool(open);
   m_sessionToolGroup->addTool(add);
   m_sessionToolGroup->addTool(m_saveTool);
-  m_sessionToolGroup->addTool(saveAs);
+  m_sessionToolGroup->addTool(m_saveAsTool);
 
   auto undo = std::make_shared<UndoTool>(m_context);
   undo->setOrder("2-0", "2-RedoUndo");
@@ -1500,18 +1401,6 @@ void EspinaMainWindow::restoreGeometry()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::configureAutoSave()
-{
-  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
-  m_autosave.start();
-
-  connect(&m_autosave, SIGNAL(timeout()),
-          this,        SLOT(autosave()));
-
-  checkAutosave();
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
   auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D|ViewType::VIEW_3D);
@@ -1530,6 +1419,12 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::updateUndoStackIndex()
+{
+  m_undoStackSavedIndex = m_context.undoStack()->index();
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::checkAnalysisConsistency()
 {
   auto checkerTask = std::make_shared<CheckAnalysis>(m_context.scheduler(), m_context.model());
@@ -1538,12 +1433,6 @@ void EspinaMainWindow::checkAnalysisConsistency()
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
   checkerTask->submit(checkerTask);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::updateUndoStackIndex()
-{
-  m_undoStackSavedIndex = m_context.undoStack()->index();
 }
 
 //------------------------------------------------------------------------
@@ -1596,24 +1485,29 @@ void EspinaMainWindow::updateToolsSettings()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysis(const QString &filename)
+void EspinaMainWindow::onAboutToSaveSession()
 {
+  saveToolsSettings();
+  m_busy = true;
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::onSessionSaved(const QString &fileName)
+{
+  if (fileName != m_settings->autosavePath().absoluteFilePath(GeneralSettings::AUTOSAVE_FILE))
   {
-    Styles::WaitingCursor cursor;
-    m_busy = true;
+    updateStatus(tr("File Saved Successfully in %1").arg(fileName));
 
-    saveToolsSettings();
+    m_recentDocuments1.addDocument(fileName);
+    m_recentDocuments2.updateDocumentList();
 
-    IO::SegFile::save(m_analysis.get(), filename, m_errorHandler);
+    QStringList fileParts = fileName.split(QDir::separator());
+    setWindowTitle(fileParts[fileParts.size()-1]);
+
+    m_saveTool->setSessionFile(fileName);
   }
 
-  updateStatus(tr("File Saved Successfully in %1").arg(filename));
   m_busy = false;
-
-  m_recentDocuments1.addDocument(filename);
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------

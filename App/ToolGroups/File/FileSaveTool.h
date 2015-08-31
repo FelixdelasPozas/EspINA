@@ -23,7 +23,13 @@
 #define APP_TOOLGROUPS_FILE_FILESAVETOOL_H_
 
 // ESPINA
+#include <Core/Analysis/Analysis.h>
+#include <Settings/GeneralSettings/GeneralSettings.h>
 #include <Support/Widgets/ProgressTool.h>
+#include "EspinaErrorHandler.h"
+
+// Qt
+#include <QTimer>
 
 namespace ESPINA
 {
@@ -35,14 +41,34 @@ namespace ESPINA
     public:
       /** \brief FileSaveTool class constructor.
        * \param[in] context application context.
+       * \param[in] analysis application analysis pointer.
+       * \param[in] errorHandler application error handler.
+       * \param[in] settings application general settings.
        *
        */
-      explicit FileSaveTool(Support::Context &context);
+      explicit FileSaveTool(Support::Context &context, AnalysisSPtr analysis, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings);
+
+      virtual ~FileSaveTool();
 
       /** \brief Sets the session filename.
        * \param[in] filename file to save the session.
        */
       void setSessionFile(const QString &filename);
+
+      /** \brief Returns the name of the session file.
+       *
+       */
+      const QString fileName() const;
+
+      /** \brief Stores the current undo stack index.
+       *
+       */
+      void updateUndoStackIndex();
+
+    signals:
+      void aboutToSaveSession();
+
+      void sessionSaved(const QString &filename);
 
     protected slots:
       /** \brief Saves the analysis to the given file.
@@ -50,13 +76,23 @@ namespace ESPINA
        */
       void save(const QString &fileName);
 
-      /** \brief Zhu Li! Do the thing!!(tm)
+      /** \brief Saves the session with the name of the session file.
        *
        */
-      void onTriggered();
+      virtual void onTriggered();
+
+    private slots:
+      void autosave();
+
+    protected:
+      QTimer                 m_autosave;       /** auto-save timer.                                      */
+      QFileInfo              m_sessionFile;    /** session file name.                                    */
 
     private:
-      QFileInfo m_sessionFile;
+      AnalysisSPtr           m_analysis;       /** application analysis pointer.                         */
+      EspinaErrorHandlerSPtr m_errorHandler;   /** application error handler                             */
+      GeneralSettingsSPtr    m_settings;       /** application general settings.                         */
+      int                    m_undoStackIndex; /** application undo stack index at the time of autosave. */
   };
 
   //----------------------------------------------------------------------------
@@ -69,7 +105,10 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      explicit FileSaveAsTool(Support::Context &context);
+      explicit FileSaveAsTool(Support::Context &context , AnalysisSPtr analysis, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings);
+
+    protected slots:
+      virtual void onTriggered() override;
   };
 
 } // namespace ESPINA
