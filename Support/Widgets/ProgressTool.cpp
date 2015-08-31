@@ -23,6 +23,7 @@
 #include <QPushButton>
 #include <QAction>
 #include <QHBoxLayout>
+#include <QGraphicsWidget>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;

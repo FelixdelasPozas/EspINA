@@ -64,7 +64,7 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
   class ROISettings;
-  //class ColorEngineMenu;
+  class FileSaveTool;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -86,13 +86,6 @@ namespace ESPINA
      */
     virtual ~EspinaMainWindow();
 
-  public slots:
-    /** \brief Opens a list of analyses.
-     * \param[in] files list of files to open.
-     *
-     */
-    void openAnalysis(const QStringList files);
-
   signals:
     void analysisChanged();
     void analysisAboutToBeClosed();
@@ -107,7 +100,7 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
-    void openAnalysis(AnalysisSPtr analysis);
+    void onAnalysisLoaded(AnalysisSPtr analysis);
 
     /** \brief Opens an analysis from the recent list.
      *
@@ -182,38 +175,9 @@ namespace ESPINA
      */
     void showAboutDialog();
 
-    /** \brief Updates the undo action text in the menu.
-     * \param[in] text text of the operation to update.
+    /** \brief Invalidates the colors of the representations when the color engine changes.
      *
      */
-    void undoTextChanged(QString text);
-
-    /** \brief Updates the redo action text in the menu.
-     * \param[in] text text of the operation to update.*
-     *
-     */
-    void redoTextChanged(QString text);
-
-    /** \brief Enables/Disables the redo action in the menu.
-     *
-     */
-    void canRedoChanged(bool);
-
-    /** \brief Enables/Disables the redo action in the menu.
-     *
-     */
-    void canUndoChanged(bool);
-
-    /** \brief Executes undo action.
-     *
-     */
-    void undoAction(bool);
-
-    /** \brief Executes redo action.
-     *
-     */
-    void redoAction(bool);
-
     void onColorEngineModified();
 
     /** \brief Shows the issues dialog with the given issues.
@@ -230,15 +194,7 @@ namespace ESPINA
 
     void initRepresentations();
 
-    void createMenus();
-
-    void createFileMenu();
-
-    void createEditMenu();
-
-    void createViewMenu();
-
-    void createSettingsMenu();
+    void createFileMenu(); // TODO: remove
 
     void createToolbars();
 
@@ -246,7 +202,7 @@ namespace ESPINA
 
     void createToolShortcuts();
 
-    void createFileToolGroup();
+    void createSessionToolGroup();
 
     void createExploreToolGroup();
 
@@ -394,7 +350,6 @@ namespace ESPINA
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
-    //ColorEngineMenu *m_colorEngineMenu;
 
     // ToolBars
     QToolBar           *m_mainBar;
@@ -406,19 +361,17 @@ namespace ESPINA
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
     ToolGroup          *m_segmentToolGroup;
-    EditToolGroup    *m_refineToolGroup;
+    EditToolGroup      *m_refineToolGroup;
     VisualizeToolGroup *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;
-
-    // UNDO
-    QAction         *m_undoAction;
-    QAction         *m_redoAction;
 
     ExtensionFactorySList m_extensionFactories;
     Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
+
+    std::shared_ptr<FileSaveTool> m_saveTool;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems

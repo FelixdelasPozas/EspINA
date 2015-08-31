@@ -20,30 +20,56 @@
 #ifndef ESPINA_FILE_OPEN_TOOL_H
 #define ESPINA_FILE_OPEN_TOOL_H
 
+#include <App/EspinaErrorHandler.h>
 #include <Support/Widgets/ProgressTool.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class FileOpenTool
+   * \brief Class to load session files in a background task.
+   *
+   */
   class FileOpenTool
   : public Support::Widgets::ProgressTool
   {
     Q_OBJECT
 
   public:
-    explicit FileOpenTool(Support::Context& context);
+    /** \brief FileOpenTool class constructor.
+     * \param[in] context application context.
+     * \param[in] error handler application error.
+     *
+     */
+    explicit FileOpenTool(Support::Context& context, EspinaErrorHandlerSPtr errorHandler);
+
+    /** \brief Returns the list of files that has been loaded/try to load in the last attempt.
+     *
+     */
+    QStringList files() const;
+
+    /** \brief Returns the analysis.
+     *
+     */
+    AnalysisSPtr analysis();
 
   signals:
     void analysisLoaded(AnalysisSPtr analysis);
 
   private slots:
+    /** \brief Loads an analysis.
+     * \param[in] files list of filenames to load.
+     *
+     */
+    void load(const QStringList &files);
+
+    /** \brief Launches the load task.
+     *
+     */
     void onTriggered();
 
-    void onTaskFinished();
-
   private:
-    class LoadTask;
-
-    std::shared_ptr<LoadTask> m_loadTask;
+    EspinaErrorHandlerSPtr    m_errorHandler;  /** application error handler */
+    QStringList               m_selectedFiles; /** list of file names to be loaded in the task. */
   };
 }
 

@@ -46,8 +46,10 @@
     <file>es_ES.qm</file>
     <file>espina.svg</file>
     <file>export_scene.svg</file>
+    <file>exit-app.svg</file>
     <file>file_open.svg</file>
     <file>file_save.svg</file>
+    <file>file_save_as.svg</file>
     <file>fill_holes.svg</file>
     <file>from_slice.svg</file>
     <file>grey_level_segmentation.svg</file>

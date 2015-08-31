@@ -25,52 +25,49 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 
-class FileOpenTool::LoadTask
-: public Task
-{
-public:
-  explicit LoadTask(const QStringList &files,
-                    ModelFactorySPtr factory,
-                    SchedulerSPtr scheduler);
-
-  AnalysisSPtr analysis() const
-  { return m_analysis; }
-
-private:
-  virtual void run();
-
-private:
-  QStringList      m_files;
-  ModelFactorySPtr m_factory;
-
-  AnalysisSPtr     m_analysis;
-};
-
 //----------------------------------------------------------------------------
-FileOpenTool::LoadTask::LoadTask(const QStringList &files,
-                           ModelFactorySPtr factory,
-                           SchedulerSPtr scheduler)
-: Task(scheduler)
-, m_files(files)
-, m_factory(factory)
+FileOpenTool::FileOpenTool(Support::Context &context, EspinaErrorHandlerSPtr errorHandler)
+: ProgressTool  {"FileOpen",  ":/espina/file_open.svg", tr("Open As New Analysis"), context}
+, m_errorHandler{errorHandler}
 {
-
+  connect(this, SIGNAL(triggered(bool)),
+          this, SLOT(onTriggered()));
 }
 
 //----------------------------------------------------------------------------
-void FileOpenTool::LoadTask::run()
+QStringList FileOpenTool::files() const
 {
-  QList<AnalysisSPtr> analyses;
+  return m_selectedFiles;
+}
 
-  reportProgress(0);
+//----------------------------------------------------------------------------
+void FileOpenTool::onTriggered()
+{
+  auto title = tr("Start New Analysis From File");
+  m_selectedFiles = DefaultDialogs::OpenFiles(title, getFactory()->supportedFileExtensions());
 
-  for(auto file : m_files)
+  if (!m_selectedFiles.isEmpty())
   {
-    auto errorHandler = std::make_shared<EspinaErrorHandler>();
+    load(m_selectedFiles);
+  }
+}
 
-    errorHandler->setDefaultDir(QFileInfo(file).dir());
+//----------------------------------------------------------------------------
+void FileOpenTool::load(const QStringList &files)
+{
+  AnalysisSPtr analysis;
+  QList<AnalysisSPtr> analyses;
+  QStringList loadedFiles, failedFiles;
+  auto factory = getContext().factory();
+  int i = 0;
 
-    auto readers = m_factory->readers(file);
+  for(auto file : files)
+  {
+    setProgress(i);
+
+    m_errorHandler->setDefaultDir(QFileInfo(file).dir());
+
+    auto readers = getContext().factory()->readers(file);
 
     if (readers.isEmpty())
     {
@@ -88,89 +85,43 @@ void FileOpenTool::LoadTask::run()
 
     try
     {
-      analyses << m_factory->read(reader, file, errorHandler);
+      analyses << factory->read(reader, file, m_errorHandler);
 
-//       if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
-//       {
-//         m_recentDocuments1.addDocument(file);
-//         m_recentDocuments2.updateDocumentList();
-//       }
+      loadedFiles << file;
+
+      setProgress((++i * 100)/files.size());
     }
     catch (...)
     {
-//       QApplication::restoreOverrideCursor();
-//
-//       if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
-//       {
-//         auto message = tr("File \"%1\" could not be loaded.\n"
-//                           "Do you want to remove it from recent documents list?")
-//                           .arg(file);
-//
-//         if (DefaultDialogs::UserConfirmation(windowTitle(), message))
-//         {
-//           m_recentDocuments1.removeDocument(file);
-//           m_recentDocuments2.updateDocumentList();
-//         }
-//       }
-//       else
-//       {
-        auto message = tr("The autosave file could not be loaded.\n");
-        DefaultDialogs::InformationMessage(tr("ESPINA"), message);
-//       }
-//       QApplication::setOverrideCursor(Qt::WaitCursor);
+      failedFiles << file;
     }
+  }
+
+  if(!failedFiles.empty())
+  {
+    auto message = tr("The following files couldn't be loaded:\n");
+
+    for(auto file: failedFiles)
+    {
+      message.append(QString("%1\n").arg(file));
+    }
+
+    DefaultDialogs::InformationMessage(tr("ESPINA"), message);
   }
 
   if (!analyses.isEmpty())
   {
-        m_analysis = analyses.first();
+    analysis = analyses.first();
 
     for(int i = 1; i < analyses.size(); ++i)
     {
-      m_analysis = merge(m_analysis, analyses[i]);
+      analysis = merge(analysis, analyses[i]);
     }
   }
 
-  reportProgress(100);
-}
+  setProgress(100);
 
-//----------------------------------------------------------------------------
-FileOpenTool::FileOpenTool(Support::Context &context)
-: ProgressTool("FileOpen",  ":/espina/file_open.svg", tr("Open As New Analysis"), context)
-{
-  connect(this, SIGNAL(triggered(bool)),
-          this, SLOT(onTriggered()));
-}
-
-//----------------------------------------------------------------------------
-void FileOpenTool::onTriggered()
-{
-  auto title = tr("Start New Analysis From File");
-  auto selectedFiles = DefaultDialogs::OpenFiles(title, getFactory()->supportedFileExtensions());
-
-  if (!selectedFiles.isEmpty())
-  {
-    m_loadTask = std::make_shared<LoadTask>(selectedFiles, getFactory(), getScheduler());
-
-    connect(m_loadTask.get(), SIGNAL(finished()),
-            this,             SLOT(onTaskFinished()));
-
-    showTaskProgress(m_loadTask);
-
-    setEnabled(false);
-
-    Task::submit(m_loadTask);
-  }
+  emit analysisLoaded(analysis);
 }
 
 
-//----------------------------------------------------------------------------
-void FileOpenTool::onTaskFinished()
-{
-  setEnabled(true);
-
-  if (m_loadTask->analysis())
-  {
-    emit analysisLoaded(m_loadTask->analysis());
-  }
-}
