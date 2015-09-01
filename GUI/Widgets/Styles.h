@@ -57,7 +57,7 @@ namespace ESPINA
           ~WaitingCursor();
         };
 
-        const int CONTEXTUAL_BAR_HEIGHT = 44;
+        const int CONTEXTUAL_BAR_HEIGHT = 50;
 
         void setNestedStyle(QWidget *widget);
 
@@ -70,7 +70,7 @@ namespace ESPINA
         QPushButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
 
         constexpr int buttonSize()
-        { return 30; }
+        { return 36; }
 
         constexpr int iconSize()
         { return 0.74*buttonSize(); }

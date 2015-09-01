@@ -16,7 +16,7 @@
    sodipodi:version="0.32"
    inkscape:version="0.91 r13725"
    version="1.0"
-   sodipodi:docname="segmentation_information_switch.svg"
+   sodipodi:docname="display_segmentation_properties.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
@@ -422,28 +422,6 @@
        y1="404.1579"
        x2="-246.24292"
        y2="404.1579" />
-    <radialGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3124"
-       id="radialGradient3120"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.53427363,-0.81841007,0.41685648,0.26480208,16.019797,-10.253832)"
-       cx="-44.397961"
-       cy="59.759338"
-       fx="-44.397964"
-       fy="59.759338"
-       r="19.700615" />
-    <radialGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3358"
-       id="radialGradient3122"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0660004,0.20698751,-0.06446348,0.50920982,-1.3265649,8.9586427)"
-       cx="20.790789"
-       cy="56.252308"
-       fx="20.790789"
-       fy="56.252308"
-       r="19.281645" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -453,16 +431,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="8"
-     inkscape:cx="27.174373"
+     inkscape:cx="5.049373"
      inkscape:cy="26.076203"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
-     inkscape:window-width="1276"
-     inkscape:window-height="969"
-     inkscape:window-x="271"
-     inkscape:window-y="119"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1920"
+     inkscape:window-height="1153"
+     inkscape:window-x="-2"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -491,15 +469,15 @@
        d="M 45.078058,39.161163 A 19.622213,6.1871843 0 1 1 5.8336315,39.161163 A 19.622213,6.1871843 0 1 1 45.078058,39.161163 z"
        transform="matrix(0.9325851,0,0,1.0248018,0.1236022,1.5126258)" />
     <path
-       style="fill:url(#radialGradient3120);fill-opacity:1;fill-rule:evenodd;stroke:url(#radialGradient3122);stroke-width:1.06045306;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 13.427996,4.4551877 c -4.20649,1.065254 -13.8345256,8.8054983 -5.380654,10.4611863 4.269491,0.419123 11.585866,1.444765 11.345027,7.03566 -1.768209,4.550599 -7.798234,7.642831 -7.681646,10.22844 -0.315342,3.756405 3.135358,4.245403 4.354026,10.508905 5.180779,4.029389 3.762077,-6.979429 7.97119,-10.255968 3.106273,-4.028496 8.750747,-3.545722 6.926095,-7.531888 -6.768849,-4.708315 6.87958,-2.864818 3.96551,-9.527137 C 33.73298,11.800284 27.952681,15.717353 24.563686,14.841624 19.860642,12.330947 20.711016,4.0051464 13.427996,4.4551877 Z"
+       style="display:inline;fill:#729fcf;fill-opacity:1;fill-rule:evenodd;stroke:#3465a4;stroke-width:0.97100002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 7.6263323,2.8673614 c -2.067697,2.985166 3.4608187,12.5318266 -5.164402,17.9428376 -4.557444,5.225554 5.446843,5.987393 5.477134,11.330538 -2.270852,4.313374 -1.418181,11.581321 5.0150417,10.294706 11.423045,-5.066022 12.076479,-7.897913 25.497279,-4.83428 5.787144,0.251399 6.14117,-6.977762 2.851549,-10.264501 C 36.551493,22.624247 39.044152,16.09398 41.788465,11.089805 45.051796,6.8708494 41.456765,0.4220104 36.538903,4.4641554 34.012939,7.6891214 30.243745,10.801706 24.882644,10.541042 19.761546,10.978147 13.203357,-1.0668126 7.6263323,2.8673614 Z"
        id="path3298"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccc" />
     <g
        id="g4322"
        style="fill:#4b4b4b"
-       transform="matrix(1.3329073,0,0,1.3329073,-105.96433,-100.80088)">
+       transform="matrix(1.5121753,0,0,1.5794658,-126.45866,-128.60999)">
       <g
          id="g4361"
          transform="translate(3.8890873,-0.35355339)">

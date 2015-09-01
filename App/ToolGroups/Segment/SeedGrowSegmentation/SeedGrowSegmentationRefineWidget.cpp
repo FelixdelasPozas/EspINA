@@ -309,7 +309,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       auto threshold = m_gui->threshold->value();
       auto radius    = m_gui->closingRadius->value();
 
-      undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
+      undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
       undoStack->push(new SGSFilterModification(m_segmentation, m_filter, roi, threshold, radius));
       undoStack->endMacro();
 
@@ -328,7 +328,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
     }
     else
     {
-      auto message = tr("Segmentation couldn't be modified. Seed is outside ROI");
+      auto message = tr("Segmentation couldn't be modified. Selected voxel is outside ROI");
 
       GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
     }
@@ -357,7 +357,7 @@ void SeedGrowSegmentationRefineWidget::setClosingRadius(int value)
 //----------------------------------------------------------------------------
 QString SeedGrowSegmentationRefineWidget::dialogTitle() const
 {
-  return tr("Seed Grow Segmentation");
+  return tr("Grey Level Segmentation");
 }
 
 //----------------------------------------------------------------------------

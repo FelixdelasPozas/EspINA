@@ -70,7 +70,7 @@ void ESPINA::SegmentationContourSwitch::restoreSettings(std::shared_ptr<QSetting
 //----------------------------------------------------------------------------
 void ESPINA::SegmentationContourSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 
   settings->setValue(SEGMENTATION_CONTOUR_OPACITY_KEY, m_settings->opacity());
   settings->setValue(SEGMENTATION_CONTOUR_WIDTH_KEY, SegmentationContourPipeline::widthValue(m_settings->width()));

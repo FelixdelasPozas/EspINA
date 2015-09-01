@@ -189,8 +189,6 @@ void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   restoreCheckedState(settings);
 
-  auto enabled = isChecked();
-
   for(auto tool: tools())
   {
     if (!tool->id().isEmpty()
@@ -206,7 +204,7 @@ void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 //------------------------------------------------------------------------
 void Dialog3DTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 
   for (auto tool : tools())
   {

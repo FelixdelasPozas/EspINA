@@ -68,7 +68,7 @@ void CODEToolBase::initOptionWidgets()
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
 
-  auto apply = Styles::createToolButton(":/espina/tick.png", tr("Apply"));
+  auto apply = Styles::createToolButton(":/espina/apply.svg", tr("Apply"));
 
   connect(apply, SIGNAL(clicked(bool)),
           this,  SLOT(onApplyClicked()));

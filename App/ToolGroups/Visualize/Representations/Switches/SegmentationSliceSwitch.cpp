@@ -85,7 +85,7 @@ void SegmentationSliceSwitch::restoreSettings(std::shared_ptr<QSettings> setting
 //----------------------------------------------------------------------------
 void SegmentationSliceSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
   settings->setValue(SEGMENTATION_SLICE_OPACITY_KEY, m_settings->opacity());
 }
 

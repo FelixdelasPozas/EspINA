@@ -54,7 +54,7 @@ void ColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 //------------------------------------------------------------------------
 void ColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 }
 
 //------------------------------------------------------------------------

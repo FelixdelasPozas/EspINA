@@ -39,7 +39,7 @@ GenericTogglableTool::GenericTogglableTool(const QString &id, const QIcon &icon,
 //-----------------------------------------------------------------------------
 void GenericTogglableTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 }
 
 //-----------------------------------------------------------------------------

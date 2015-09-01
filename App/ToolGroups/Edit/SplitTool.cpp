@@ -139,7 +139,7 @@ SplitTool::~SplitTool()
 //-----------------------------------------------------------------------------
 void SplitTool::initSplitWidgets()
 {
-  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/tick.png", tr("Apply current state"));
+  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
 
   connect(m_apply, SIGNAL(clicked(bool)),
           this,  SLOT(applyCurrentState()));

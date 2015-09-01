@@ -61,7 +61,7 @@ void PanelSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 //----------------------------------------------------------------------------
 void PanelSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 }
 
 //----------------------------------------------------------------------------

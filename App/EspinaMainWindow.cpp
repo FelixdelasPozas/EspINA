@@ -1073,7 +1073,7 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(open.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
           this,       SLOT(onAnalysisLoaded(AnalysisSPtr)));
 
-  auto add = std::make_shared<ProgressTool>("FileAdd", DefaultIcons::File(), tr("Add A Stack Or A Previous Session To The Current Session"), m_context);
+  auto add = std::make_shared<ProgressTool>("FileAdd", ":/espina/file_add.svg", tr("Add A Stack Or A Previous Session To The Current Session"), m_context);
   add->setShortcut(Qt::CTRL+Qt::Key_A);
   add->setOrder("0-1", "1-Session");
 
@@ -1119,7 +1119,7 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(undo);
   m_sessionToolGroup->addTool(redo);
 
-  auto settings = std::make_shared<ProgressTool>("FileSettings", ":/espina/settings.svg", tr("Settings"), m_context);
+  auto settings = std::make_shared<ProgressTool>("Settings", ":/espina/settings.svg", tr("Settings"), m_context);
   settings->setOrder("3-0", "3-Settings");
 
   connect(settings.get(), SIGNAL(triggered(bool)),
@@ -1127,7 +1127,7 @@ void EspinaMainWindow::createSessionToolGroup()
 
   m_sessionToolGroup->addTool(settings);
 
-  auto about = std::make_shared<ProgressTool>("FileAbout", ":/espina/espina.svg", tr("About ESPINA"), m_context);
+  auto about = std::make_shared<ProgressTool>("About", ":/espina/info.svg", tr("About ESPINA"), m_context);
   about->setOrder("4-0", "3-Settings");
 
   connect(about.get(), SIGNAL(triggered(bool)),
@@ -1135,14 +1135,14 @@ void EspinaMainWindow::createSessionToolGroup()
 
   m_sessionToolGroup->addTool(about);
 
-  auto exit = std::make_shared<ProgressTool>("ExitApplication", ":/espina/exit-app.svg", tr("Exit ESPINA"), m_context);
+  auto exit = std::make_shared<ProgressTool>("Exit", ":/espina/exit.svg", tr("Exit ESPINA"), m_context);
   exit->setOrder("5-0", "3-Settings");
   exit->setShortcut(Qt::CTRL+Qt::Key_Q);
 
   connect(exit.get(), SIGNAL(triggered(bool)),
           this,       SLOT(close()));
 
-  //m_sessionToolGroup->addTool(exit);
+  m_sessionToolGroup->addTool(exit);
 
   registerToolGroup(m_sessionToolGroup);
 }

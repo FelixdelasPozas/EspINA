@@ -114,7 +114,7 @@ void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings
 //----------------------------------------------------------------------------
 void SegmentationMeshSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
   settings->setValue(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, m_smooth->value());
 }
 

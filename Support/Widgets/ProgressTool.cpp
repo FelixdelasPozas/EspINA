@@ -319,7 +319,7 @@ QKeySequence ProgressTool::shortcut() const
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::saveCheckSetting(std::shared_ptr<QSettings> settings)
+void ProgressTool::saveCheckedState(std::shared_ptr<QSettings> settings)
 {
   settings->setValue(TOOL_ENABLED_KEY, isChecked());
 }

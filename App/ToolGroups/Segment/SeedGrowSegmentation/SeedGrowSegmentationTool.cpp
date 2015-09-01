@@ -345,7 +345,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
-    filter->setDescription(tr("Seed Grow Segmentation"));
+    filter->setDescription(tr("Grey Level Segmentation"));
 
     if(m_applyClose->isChecked())
     {
@@ -374,7 +374,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   else
   {
-    auto title = tr("Seed Grow Segmentation");
+    auto title = tr("Grey Level Segmentation");
     auto msg   = tr("The seed is not inside the channel or the region of interest.");
 
     GUI::DefaultDialogs::InformationMessage(title, msg);
@@ -412,7 +412,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     if(sgsFilter->isTouchingROI())
     {
       QMessageBox box;
-      box.setWindowTitle(tr("Seed Grow Segmentation"));
+      box.setWindowTitle(tr("Grey Level Segmentation"));
       box.setText(tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString()));
       box.setStandardButtons(QMessageBox::Ok);
       box.setIcon(QMessageBox::Information);

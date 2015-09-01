@@ -55,8 +55,6 @@ public:
     setupUi(this);
     view->setSortingEnabled(true);
     view->sortByColumn(0, Qt::AscendingOrder);
-
-    showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   }
 };
 

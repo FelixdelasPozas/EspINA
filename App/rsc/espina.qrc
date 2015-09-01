@@ -13,7 +13,7 @@
     <file>cancel.png</file>
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
-    <file>close.png</file>
+    <file>morphological_close.svg</file>
     <file>color_engine_switch_category.svg</file>
     <file>color_engine_switch_number.svg</file>
     <file>color_engine_switch_property.svg</file>
@@ -48,16 +48,15 @@
     <file>es_ES.qm</file>
     <file>espina.svg</file>
     <file>export_scene.svg</file>
-    <file>exit-app.svg</file>
+    <file>exit.svg</file>
+    <file>file_add.svg</file>
     <file>file_open.svg</file>
     <file>file_save.svg</file>
     <file>file_save_as.svg</file>
     <file>fill_holes.svg</file>
     <file>from_slice.svg</file>
     <file>grey_level_segmentation.svg</file>
-    <file>hide_3D.svg</file>
     <file>hide_all.svg</file>
-    <file>hide_planes.svg</file>
     <file>info.svg</file>
     <file>leftIn.png</file>
     <file>leftOut.png</file>
@@ -68,10 +67,10 @@
     <file>morphological_dilate.svg</file>
     <file>morphological_erode.svg</file>
     <file>multi_stroke.svg</file>
-    <file>new_tag.svg</file>
+    <file>tag_create.svg</file>
     <file>next_segmentation.svg</file>
     <file>note.svg</file>
-    <file>open.png</file>
+    <file>morphological_open.svg</file>
     <file>panel_3d.svg</file>
     <file>panel_xz.svg</file>
     <file>panel_yz.svg</file>
@@ -100,7 +99,6 @@
     <file>roi_orthogonal_roi.svg</file>
     <file>roi_out.svg</file>
     <file>settings.svg</file>
-    <file>show_3D.svg</file>
     <file>show_all.svg</file>
     <file>show_partially.svg</file>
     <file>show_planes.svg</file>
@@ -109,7 +107,7 @@
     <file>skelModify.png</file>
     <file>snapshot_scene.svg</file>
     <file>tag.svg</file>
-    <file>tick.png</file>
+    <file>apply.svg</file>
     <file>to_slice.svg</file>
     <file>toolgroup_analyze.svg</file>
     <file>toolgroup_explore.svg</file>
@@ -126,7 +124,6 @@
     <file>visualBookmarks_add.svg</file>
     <file>visualBookmarks_apply.svg</file>
     <file>visualBookmarks_remove.svg</file>
-    <file>voxel.png</file>    
     <file>warning.svg</file>
     <file>warning_critical.svg</file>
     <file>warning_critical_slim.svg</file>

@@ -396,7 +396,7 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_cameraReset = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
+  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(onCameraResetPressed()));
 

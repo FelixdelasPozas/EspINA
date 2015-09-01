@@ -184,7 +184,7 @@ namespace ESPINA
          * \param[inout] settings QSettings object.
          *
          */
-        void saveCheckSetting(std::shared_ptr<QSettings> settings);
+        void saveCheckedState(std::shared_ptr<QSettings> settings);
 
         /** \brief Helper method to restore tool's checked state
          * \param[inout] settings QSettings object.

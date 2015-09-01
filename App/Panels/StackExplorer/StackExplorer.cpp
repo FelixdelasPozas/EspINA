@@ -44,8 +44,6 @@ public:
   {
     setupUi(this);
     groupBox->setVisible(false);
-
-    showInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   }
 };
 
