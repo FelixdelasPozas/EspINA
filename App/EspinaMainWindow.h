@@ -24,7 +24,6 @@
 // ESPINA
 #include "EspinaConfig.h"
 #include "EspinaErrorHandler.h"
-#include "RecentDocuments.h"
 #include "Settings/GeneralSettings/GeneralSettings.h"
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
@@ -34,6 +33,7 @@
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
 #include "ToolGroups/Edit/EditToolGroup.h"
 #include "ToolGroups/Analyze/AnalyzeToolGroup.h"
+#include "AutoSave.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
@@ -47,7 +47,6 @@
 
 // Qt
 #include <QMainWindow>
-#include <QTimer>
 #include <QShortcut>
 
 // C++
@@ -62,10 +61,11 @@ class QShortcut;
 
 namespace ESPINA
 {
+
   class SeedGrowSegmentationSettings;
   class ROISettings;
   class FileSaveTool;
-  class FileSaveAsTool;
+  class FileOpenTool;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -101,10 +101,15 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
-    /** \brief Updates the application when an analysis has been loaded.
+    /** \brief Replace current session analysis with the loaded one
      *
      */
     void onAnalysisLoaded(AnalysisSPtr analysis);
+
+    /** \brief Merge loaded analysis to current session analysis
+     *
+     */
+    void onAnalysisImported(AnalysisSPtr analysis);
 
     /** \brief Saves tools settings just before saving a session.
      *
@@ -117,16 +122,6 @@ namespace ESPINA
      */
     void onSessionSaved(const QString &filename);
 
-    /** \brief Opens an analysis from the recent list.
-     * TODO: to be moved to FileOpenTool.
-     *
-     */
-    void openRecentAnalysis();
-
-    /** \brief Add new data from file to current analysis.
-     *
-     */
-    void addToAnalysis();
 
     /** \brief Close current analysis.
      *
@@ -195,8 +190,6 @@ namespace ESPINA
 
     void initRepresentations();
 
-    void createFileMenu(); // TODO: remove
-
     void createToolbars();
 
     void createToolGroups();
@@ -235,16 +228,12 @@ namespace ESPINA
      */
     void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
+    void checkAutoSavedAnalysis();
+
     /** \brief Runs a series of test on the analysis to check for issues.
      *
      */
     void checkAnalysisConsistency();
-
-    /** \brief Creates dynamic menu.
-     * \param[in] entry pair of (QStringList, Action *) object to add.
-     *
-     */
-    void createDynamicMenu(Support::MenuEntry entry);
 
     /** \brief Adds a tool group to the application.
      * \param[in] tools tool group raw pointer.
@@ -268,23 +257,6 @@ namespace ESPINA
      *
      */
     void enableWidgets(bool value);
-
-    /** \brief Adds data from a file from the recent list to current analysis.
-     *
-     */
-    void addRecentToAnalysis();
-
-    /** \brief Adds a list of analysis to the current analysis.
-     *      \param[in] files list of files to add.
-     *
-     */
-    void addToAnalysis(const QStringList files);
-
-    /** \brief Merges a list of analysis into a sigle analysis.
-     * \param[in] files list of files to merge.
-     *
-     */
-    AnalysisSPtr loadedAnalysis(const QStringList files);
 
     /** \brief Updates application status bar.
      * \param[in] msg message to show.
@@ -312,9 +284,6 @@ namespace ESPINA
 
     Support::Widgets::ToolSList availableTools() const;
 
-    QString windowTitle() const
-    { return tr("ESPINA"); }
-
     void initializeCrosshair();
 
   private:
@@ -324,6 +293,9 @@ namespace ESPINA
     Support::Context               m_context;
     Support::FilterRefinerRegister m_filterRefiners;
     AnalysisSPtr                   m_analysis;
+
+    AutoSave m_autoSave;
+    EspinaErrorHandlerSPtr m_errorHandler;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;
@@ -335,13 +307,6 @@ namespace ESPINA
 
     QShortcut          m_cancelShortcut;
     QList<QShortcut *> m_toolShortcuts;
-
-    // Menus
-    QMenu           *m_addMenu;
-    QAction         *m_saveAnalysisAs;
-    QAction         *m_saveSessionAnalysis;
-    QAction         *m_closeAnalysis;
-    QMenu           *m_editMenu;
 
     // ToolBars
     QToolBar           *m_mainBar;
@@ -357,37 +322,25 @@ namespace ESPINA
     VisualizeToolGroup *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;
 
+    std::shared_ptr<FileOpenTool> m_openFileTool;
+    std::shared_ptr<FileSaveTool> m_saveTool;
+    std::shared_ptr<FileSaveTool> m_saveAsTool;
+
     ExtensionFactorySList m_extensionFactories;
     Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
-    std::shared_ptr<FileSaveTool> m_saveTool;
-    std::shared_ptr<FileSaveAsTool> m_saveAsTool;
 
-    RecentDocuments m_recentDocuments1;
-    RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
-
-    QList<QPluginLoader *>    m_plugins;
+    QList<QPluginLoader *> m_plugins;
 
     MenuState m_menuState;
 
     bool m_busy;
 
-    struct DynamicMenuNode
-    {
-      explicit DynamicMenuNode();
-      ~DynamicMenuNode();
+    int m_savedUndoStackIndex;
 
-      QMenu *menu;
-      QList<DynamicMenuNode *> submenus;
-    };
-    DynamicMenuNode *m_dynamicMenuRoot;
-
-    int       m_undoStackSavedIndex;
-
-    EspinaErrorHandlerSPtr m_errorHandler;
   };
 
 } // namespace ESPINA

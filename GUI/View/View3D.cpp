@@ -500,7 +500,7 @@ void View3D::exportScene()
     else
     {
       auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
-      DefaultDialogs::InformationMessage(title, message);
+      DefaultDialogs::InformationMessage(message, title);
     }
   }
 }

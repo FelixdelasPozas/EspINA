@@ -54,6 +54,7 @@ namespace ESPINA {
            */
           Loader(QuaZip&          zip,
                  CoreFactorySPtr  factory = CoreFactorySPtr(),
+                 ProgressReporter *reporter = nullptr,
                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
           /** \brief Process the data and returns an analysis.
@@ -140,8 +141,12 @@ namespace ESPINA {
           void createFilterOutputsFile(FilterSPtr filter, int filterVertex);
 
         private:
+          void reportProgress(unsigned int progress) const;
+
+        private:
           QuaZip                 &m_zip;
           CoreFactorySPtr         m_factory;
+          IO::ProgressReporter   *m_reporter;
           ErrorHandlerSPtr        m_handler;
           DataFactorySPtr         m_dataFactory;
 
@@ -169,6 +174,7 @@ namespace ESPINA {
          */
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),
+                                  ProgressReporter *reporter = nullptr,
                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
         /** \brief Implements SegFileInterface::save().
@@ -176,6 +182,7 @@ namespace ESPINA {
          */
         virtual void save(AnalysisPtr      analysis,
                           QuaZip&          zip,
+                          ProgressReporter *reporter = nullptr,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       };

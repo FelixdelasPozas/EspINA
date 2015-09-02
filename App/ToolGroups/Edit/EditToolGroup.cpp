@@ -407,9 +407,11 @@ void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
   {
     getViewState().setEventHandler(EventHandlerSPtr());
 
-    auto name = segmentation->data(Qt::DisplayRole).toString();
-    DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
-                                       tr("%1 will be deleted because all its voxels were erased.").arg(name));
+    auto name  = segmentation->data(Qt::DisplayRole).toString();
+    auto title = tr("Deleting segmentation");
+    auto msg   = tr("%1 will be deleted because all its voxels were erased.").arg(name);
+
+    DefaultDialogs::InformationMessage(msg, title);
 
     auto undoStack = getUndoStack();
 

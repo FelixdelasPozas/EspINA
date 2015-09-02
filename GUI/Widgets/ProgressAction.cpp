@@ -36,7 +36,7 @@ ProgressAction::ProgressAction(const QString &icon, const QString &tooltip, QObj
 //------------------------------------------------------------------------
 ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent)
 : QWidgetAction(parent)
-, m_progress(0)
+, m_progress(100)
 {
   setIcon(icon);
   setToolTip(tooltip);
@@ -178,5 +178,5 @@ constexpr int ProgressAction::progressVerticalPosition()
 //------------------------------------------------------------------------
 bool ProgressAction::displayProgress(int progress)
 {
-  return 0 < progress && progress < 100;
+  return 0 <= progress && progress < 100;
 }

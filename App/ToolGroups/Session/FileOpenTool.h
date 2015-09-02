@@ -38,33 +38,42 @@ namespace ESPINA
 
   public:
     /** \brief FileOpenTool class constructor.
-     * \param[in] context application context.
-     * \param[in] error handler application error.
-     * \param[in] settings application general settings.
+     *
+     * \param[in] id of the tool
+     * \param[in] icon for the tool
+     * \param[in] tooltip to be display on mouse hover
+     * \param[in] context application context
+     * \param[in] handler error handler
      *
      */
-    explicit FileOpenTool(Support::Context& context, EspinaErrorHandlerSPtr errorHandler, GeneralSettingsSPtr settings);
+    explicit FileOpenTool(const QString& id,
+                          const QString& icon,
+                          const QString& tooltip,
+                          Support::Context& context,
+                          EspinaErrorHandlerSPtr handler);
 
     /** \brief Returns the list of files that has been loaded/try to load in the last attempt.
      *
      */
     QStringList files() const;
 
-    /** \brief Returns the analysis.
+  public slots:
+    /** \brief Load requested file
+     * \param[in] file to load.
      *
      */
-    AnalysisSPtr analysis();
+    void load(const QString &file);
+
+    /** \brief Load requested files
+     * \param[in] files to load.
+     *
+     */
+    void load(const QStringList &files);
 
   signals:
     void analysisLoaded(AnalysisSPtr analysis);
 
   private slots:
-    /** \brief Loads an analysis.
-     * \param[in] files list of filenames to load.
-     *
-     */
-    void load(const QStringList &files);
-
     /** \brief Launches the load task.
      *
      */

@@ -19,11 +19,11 @@
 */
 
 
-#ifndef GENERALSETTINGS_H
-#define GENERALSETTINGS_H
+#ifndef ESPINA_GENERAL_SETTINGS_H
+#define ESPINA_GENERAL_SETTINGS_H
+
 
 // Qt
-#include <QObject>
 #include <QString>
 #include <QDir>
 
@@ -37,7 +37,6 @@ namespace ESPINA
   class GeneralSettings
   {
   public:
-    static const QString AUTOSAVE_FILE;
     static const QString LOAD_SEG_SETTINGS_KEY;
 
     /** \brief GeneralSettings class constructor.
@@ -62,29 +61,6 @@ namespace ESPINA
      */
     void setUserName(const QString &name);
 
-    /** \brief Returns auto-save interval time in minutes.
-     *
-     */
-    int autosaveInterval() const
-    {return m_autosaveInterval;}
-
-    /** \brief Sets the auto-save interval.
-     * \param[in] min minutes value.
-     *
-     */
-    void setAutosaveInterval(int min);
-
-    /** \brief Returns the path of the auto-save file.
-     *
-     */
-    QDir autosavePath() const
-    {return m_autosavePath;}
-
-    /** \brief Sets the auto-save path.
-     *
-     */
-    void setAutosavePath(const QString &path);
-
     /** \brief Enables/disables the loading of any settings file included
      * in the SEG file.
      * \param[in] enable true to enable and false otherwise.
@@ -101,8 +77,6 @@ namespace ESPINA
 
   private:
     QString m_userName;
-    int     m_autosaveInterval;
-    QDir    m_autosavePath;
     bool    m_loadSEGSettings;
   };
 

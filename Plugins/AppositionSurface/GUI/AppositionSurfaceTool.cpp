@@ -118,7 +118,7 @@ void AppositionSurfaceTool::createSAS()
 
   if(validSegmentations.empty())
   {
-    DefaultDialogs::InformationMessage(tr("ESPINA"), tr("Selected Synapses already have an associated Apposition Surface."));
+    DefaultDialogs::InformationMessage(tr("Selected Synapses already have an associated Apposition Surface."));
   }
   else
   {

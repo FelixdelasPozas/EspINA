@@ -41,7 +41,10 @@ const QString SEG_FILE_VERSION = "5";
 using SegFileLoaderSPtr = std::shared_ptr<SegFileInterface>;
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile::load(const QFileInfo& file, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
+AnalysisSPtr SegFile::load(const QFileInfo  &file,
+                           CoreFactorySPtr   factory,
+                           ProgressReporter *reporter,
+                           ErrorHandlerSPtr  handler)
 {
   QuaZip zip(file.filePath());
   if (!zip.open(QuaZip::mdUnzip))
@@ -76,7 +79,7 @@ AnalysisSPtr SegFile::load(const QFileInfo& file, CoreFactorySPtr factory, Error
     coreFactory = std::make_shared<CoreFactory>();
   }
 
-  return loader->load(zip, coreFactory, handler);
+  return loader->load(zip, coreFactory, reporter, handler);
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +106,10 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-void SegFile::save(AnalysisPtr analysis, const QFileInfo& file, ErrorHandlerSPtr handler)
+void SegFile::save(AnalysisPtr analysis,
+                   const QFileInfo& file,
+                   ProgressReporter *reporter,
+                   ErrorHandlerSPtr handler)
 {
   if (file.baseName().isEmpty())
   {
@@ -128,7 +134,8 @@ void SegFile::save(AnalysisPtr analysis, const QFileInfo& file, ErrorHandlerSPtr
   }
 
   SegFile_V5 segFile;
-  segFile.save(analysis, zip, handler);
+ 
+  segFile.save(analysis, zip, reporter, handler);
 
   zip.close();
 

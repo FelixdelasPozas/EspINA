@@ -255,7 +255,7 @@ void TabularReport::Entry::extractInformation()
   if (!exported)
   {
     auto message = tr("Couldn't export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(title, message);
+    DefaultDialogs::InformationMessage(message, title);
   }
 }
 

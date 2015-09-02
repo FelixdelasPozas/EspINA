@@ -434,7 +434,7 @@ void TabularReport::exportInformation()
 
   if (!result)
   {
-    DefaultDialogs::InformationMessage(title, tr("Unable to export %1").arg(fileName));
+    DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title);
   }
 }
 

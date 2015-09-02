@@ -16,6 +16,7 @@ qt4_add_resources(ESPINA_RCC
 
 # Create header's MOC files
 qt4_wrap_cpp (ESPINA_MOC
+  AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/HueSelector/HueSelector.h
@@ -49,9 +50,9 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/ManualEditionTool.h
   ToolGroups/Edit/EditToolGroup.h
   ToolGroups/Edit/SplitTool.h
-  ToolGroups/File/FileOpenTool.h
-  ToolGroups/File/FileSaveTool.h
-  ToolGroups/File/UndoRedoTools.h
+  ToolGroups/Session/FileOpenTool.h
+  ToolGroups/Session/FileSaveTool.h
+  ToolGroups/Session/UndoRedoTools.h
   ToolGroups/Restrict/DeleteROITool.h
   ToolGroups/Restrict/FreehandROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
@@ -115,6 +116,7 @@ set (ESPINA_SOURCES
   ${ESPINA_UI}
   ${METADONA_SOURCES}
   main.cpp
+  AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
@@ -162,9 +164,9 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/EditToolGroup.cpp
   ToolGroups/Edit/SliceEditionPipeline.cpp
   ToolGroups/Edit/SplitTool.cpp
-  ToolGroups/File/FileOpenTool.cpp
-  ToolGroups/File/FileSaveTool.cpp
-  ToolGroups/File/UndoRedoTools.cpp
+  ToolGroups/Session/FileOpenTool.cpp
+  ToolGroups/Session/FileSaveTool.cpp
+  ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/Restrict/DeleteROITool.cpp
   ToolGroups/Restrict/FreehandROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp

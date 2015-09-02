@@ -74,8 +74,24 @@ namespace ESPINA
         };
 
       public:
+        /** \brief ProgressTool constructor
+         *
+         * \param[in] id of the tool
+         * \param[in] icon for the tool
+         * \param[in] tooltip to be display on mouse hover
+         * \param[in] context application context
+         *
+         */
         explicit ProgressTool(const QString &id, const QIcon &icon, const QString &tooltip, Context &context);
 
+        /** \brief ProgressTool constructor
+         *
+         * \param[in] id of the tool
+         * \param[in] icon for the tool
+         * \param[in] tooltip to be display on mouse hover
+         * \param[in] context application context
+         *
+         */
         explicit ProgressTool(const QString &id, const QString &icon, const QString &tooltip, Context &context);
 
         virtual ~ProgressTool();

@@ -113,6 +113,7 @@ AnalysisReader::ExtensionList ChannelReader::supportedFileExtensions() const
 //------------------------------------------------------------------------
 AnalysisSPtr ChannelReader::read(const QFileInfo& file,
                                  CoreFactorySPtr  factory,
+                                 ProgressReporter *reporter,
                                  ErrorHandlerSPtr handler)
 {
   AnalysisSPtr analysis{new Analysis()};

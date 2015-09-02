@@ -16,7 +16,7 @@
    sodipodi:version="0.32"
    inkscape:version="0.91 r13725"
    version="1.0"
-   sodipodi:docname="add_label.svg"
+   sodipodi:docname="tag_create.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
@@ -58,8 +58,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="-44.711909"
-     inkscape:cy="43.181519"
+     inkscape:cx="22.788091"
+     inkscape:cy="17.824376"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -92,13 +92,13 @@
     <g
        style="display:inline"
        id="g2852"
-       transform="matrix(0.95318436,0,0,0.95318436,3.7666689,17.550624)">
+       transform="matrix(0.86870706,0,0,0.86870706,5.1898097,17.764803)">
       <path
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccccccccccccc"
          id="path3884"
          d="m 17.846429,21.940679 8.99908,0 0,9.18842 9.53309,0 0,-9.18842 9.03033,0 0.03125,-9.21691 -9.03033,0 0,-9.1884201 -9.53309,0 0,9.1884201 -9.03033,0 0,9.21691 0,0 z"
-         style="fill:#73d216;fill-opacity:1;fill-rule:evenodd;stroke:#4e9a06;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+         style="fill:#73d216;fill-opacity:1;fill-rule:evenodd;stroke:#4e9a06;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <path
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccccccccccccc"

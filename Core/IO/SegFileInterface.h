@@ -35,6 +35,8 @@ namespace ESPINA
 {
   namespace IO
   {
+    class ProgressReporter;
+
     namespace SegFile
     {
       class EspinaCore_EXPORT SegFileInterface
@@ -52,9 +54,10 @@ namespace ESPINA
          * \param[in] handler error handler. smart pointer.
          *
          */
-        virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory,
-                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
+        virtual AnalysisSPtr load(QuaZip           &zip,
+                                  CoreFactorySPtr   factory,
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr()) = 0;
 
         /** \brief Saves an analysis to a QuaZip file.
          * \param[in] analysis analysis to save.
@@ -64,6 +67,7 @@ namespace ESPINA
          */
         virtual void save(AnalysisPtr     analysis,
                           QuaZip&         zip,
+                          ProgressReporter *reporter = nullptr,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
       protected:

@@ -334,7 +334,7 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
     auto msg   = tr("At least one of the sizes for the ROI is 0, please\n"
                     "modify the ROI size values to a valid quantity.");
 
-    DefaultDialogs::InformationMessage(title, msg);
+    DefaultDialogs::InformationMessage(msg, title);
   }
   else if(validSelection)
   {

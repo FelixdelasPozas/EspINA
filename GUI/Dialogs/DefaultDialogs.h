@@ -28,12 +28,17 @@
 // Qt
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QUrl>
 
+class QUrl;
 namespace ESPINA {
   namespace GUI {
 
     class EspinaGUI_EXPORT DefaultDialogs
     {
+    public:
+      static QString DefaultPath();
+
     public:
       /** \brief Dialog for asking the user for a unspecified file.
        * \param[in] title of the dialog.
@@ -43,9 +48,9 @@ namespace ESPINA {
        * Returns the file name specified by the user.
        *
        */
-      static QString OpenFile(const QString        &title,
+      static QString OpenFile(const QString          &title,
                               const SupportedFormats &filters = SupportedFormats().addAllFormat(),
-                              const QString        &path    = QString());
+                              const QString          &path    = QString());
 
       /** \brief Dialog for asking the user for a unspecified group of files.
        * \param[in] title of the dialog.
@@ -55,9 +60,10 @@ namespace ESPINA {
        * Returns the file names specified by the user.
        *
        */
-      static QStringList OpenFiles(const QString        &title,
+      static QStringList OpenFiles(const QString          &title,
                                    const SupportedFormats &filters = SupportedFormats().addAllFormat(),
-                                   const QString        &path    = QString());
+                                   const QString          &path    = QString(),
+                                   const QList<QUrl>      &recent  = QList<QUrl>());
 
       /** \brief Dialog to select a directory to save files on
        * \param[in] title of the dialog.
@@ -100,19 +106,21 @@ namespace ESPINA {
                                    const QString& suffix         = QString(),
                                    const QString& suggestion     = QString());
 
+      static QString DefaultTitle();
+
       /** \brief Dialog to ask for user ok/cancel confirmation.
        * \param[in] title title of the dialog.
        * \param[in] message message to ask for confirmation.
        *
        */
-      static bool UserConfirmation(const QString& title, const QString& message);
+      static bool UserConfirmation( const QString& message, const QString& title=DefaultDialogs::DefaultTitle());
 
       /** \brief Dialog to inform the user.
        * \param[in] title title of the dialog.
        * \param[in] message message to show.
        *
        */
-      static void InformationMessage(const QString& title, const QString& message);
+      static void InformationMessage(const QString& message, const QString& title=DefaultDialogs::DefaultTitle());
     };
   } // namespace GUI
 } // namespace ESPINA

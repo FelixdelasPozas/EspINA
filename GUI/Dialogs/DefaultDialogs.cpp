@@ -32,6 +32,12 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
+QString DefaultDialogs::DefaultPath()
+{
+  return QString();
+}
+
+//------------------------------------------------------------------------
 QString DefaultDialogs::OpenFile(const QString       &title,
                                  const SupportedFormats &filters,
                                  const QString       &path)
@@ -50,7 +56,8 @@ QString DefaultDialogs::OpenFile(const QString       &title,
 //------------------------------------------------------------------------
 QStringList DefaultDialogs::OpenFiles(const QString       &title,
                                       const SupportedFormats &filters,
-                                      const QString       &path)
+                                      const QString       &path,
+                                      const QList<QUrl>   &recent)
 {
   QStringList fileNames;
 
@@ -61,9 +68,15 @@ QStringList DefaultDialogs::OpenFiles(const QString       &title,
   fileDialog.setNameFilters(filters);
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+
+  QList<QUrl> urls;
+
+  urls << recent << fileDialog.sidebarUrls();
+
+  fileDialog.setSidebarUrls(urls);
 
   DefaultCursor cursor;
   
@@ -86,6 +99,7 @@ QDir DefaultDialogs::SaveDirectory(const QString& title, const QString& path)
   fileDialog.setFileMode(QFileDialog::DirectoryOnly);
   fileDialog.setDirectory(path);
   fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 
@@ -136,6 +150,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
   fileDialog.setFilter(filters);
   fileDialog.setDirectory(path);
   fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
   fileDialog.setConfirmOverwrite(true);
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -164,7 +179,13 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
 }
 
 //------------------------------------------------------------------------
-bool DefaultDialogs::UserConfirmation(const QString& title, const QString& message)
+QString DefaultDialogs::DefaultTitle()
+{
+  return QObject::tr("ESPINA");
+}
+
+//------------------------------------------------------------------------
+bool DefaultDialogs::UserConfirmation(const QString& message, const QString& title)
 {
   QMessageBox dialog;
 
@@ -178,7 +199,7 @@ bool DefaultDialogs::UserConfirmation(const QString& title, const QString& messa
 }
 
 //------------------------------------------------------------------------
-void DefaultDialogs::InformationMessage(const QString& title, const QString& message)
+void DefaultDialogs::InformationMessage(const QString& message, const QString& title)
 {
   QMessageBox dialog;
 

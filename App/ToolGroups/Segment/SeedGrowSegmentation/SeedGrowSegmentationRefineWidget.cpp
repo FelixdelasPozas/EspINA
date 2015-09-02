@@ -317,7 +317,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       {
         auto message = tr("New segmentation may be incomplete due to ROI restriction.");
 
-        GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+        GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
       }
 
       auto currentFilterROI = m_filter->roi();
@@ -330,7 +330,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
     {
       auto message = tr("Segmentation couldn't be modified. Selected voxel is outside ROI");
 
-      GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+      GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
     }
   }
 }
@@ -367,5 +367,5 @@ bool SeedGrowSegmentationRefineWidget::discardChangesConfirmed() const
                     "Updating this filter will result in losing user modifications."
                     "Do you want to proceed?");
 
-  return GUI::DefaultDialogs::UserConfirmation(dialogTitle() ,message);
+  return GUI::DefaultDialogs::UserConfirmation(message, dialogTitle());
 }

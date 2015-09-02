@@ -37,6 +37,7 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
+#include "ProgressReporter.h"
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -49,6 +50,16 @@ const QString CONTENT_FILE        = "content.dot";
 const QString RELATIONS_FILE      = "relations.dot";
 const QString CLASSIFICATION_FILE = "classification.xml";
 const QString SEG_FILE_VERSION    = "5";
+
+const unsigned CLASSIFICATION_PROGRESS =  5;
+const unsigned SNAPSHOT_PROGRESS       = 20;
+const unsigned CONTENT_PROGRESS        = 70;
+const unsigned RELATIONS_PROGRESS      = 99;
+
+const float SNAPSHOT_PROGRESS_CHUNK  = SNAPSHOT_PROGRESS  - CLASSIFICATION_PROGRESS;
+const float CONTENT_PROGRESS_CHUNK   = CONTENT_PROGRESS   - SNAPSHOT_PROGRESS;
+const float RELATIONS_PROGRESS_CHUNK = RELATIONS_PROGRESS - CONTENT_PROGRESS;
+
 
 struct Vertex_Not_Found_Exception{};
 
@@ -68,9 +79,13 @@ QByteArray formatInfo()
 }
 
 //-----------------------------------------------------------------------------
-SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
+SegFile_V5::Loader::Loader(QuaZip           &zip,
+                           CoreFactorySPtr  factory,
+                           ProgressReporter *reporter,
+                           ErrorHandlerSPtr  handler)
 : m_zip        (zip)
 , m_factory    {factory}
+, m_reporter   {reporter}
 , m_handler    {handler}
 , m_analysis   {new Analysis()}
 , m_dataFactory{new RawDataFactory()}
@@ -80,6 +95,8 @@ SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPt
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V5::Loader::load()
 {
+  reportProgress(0);
+
   m_storage = std::make_shared<TemporalStorage>();
 
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
@@ -107,6 +124,11 @@ AnalysisSPtr SegFile_V5::Loader::load()
     throw(Parse_Exception());
   }
 
+  reportProgress(CLASSIFICATION_PROGRESS);
+
+  unsigned i = 0;
+  unsigned total = m_zip.getFileNameList().size();
+
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
   {
@@ -122,6 +144,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
     }
 
     hasFile = m_zip.goToNextFile();
+
+    reportProgress(CLASSIFICATION_PROGRESS + SNAPSHOT_PROGRESS_CHUNK*(++i)/total);
   }
 
   loadContent();
@@ -129,6 +153,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
   loadRelations();
 
   m_analysis->setStorage(m_storage);
+
+  reportProgress(100);
 
   return m_analysis;
 }
@@ -379,9 +405,14 @@ void SegFile_V5::Loader::loadContent()
 
   DirectedGraph::Vertices loadedVertices;
 
+  int i     = 0;
+  int total = m_content->vertices().size();
+
   for (DirectedGraph::Vertex roVertex : m_content->vertices())
   {
     inflateVertex(roVertex);
+
+    reportProgress(SNAPSHOT_PROGRESS + CONTENT_PROGRESS_CHUNK*(++i)/total);
   }
 }
 //-----------------------------------------------------------------------------
@@ -396,12 +427,16 @@ void SegFile_V5::Loader::loadRelations()
 
   DirectedGraph::Vertices loadedVertices = m_analysis->content()->vertices();
 
+  int i     = 0;
+  int total = relations->edges().size();
   for (auto edge : relations->edges())
   {
     PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
     PersistentSPtr target = findVertex(loadedVertices, edge.target->uuid());
 
     m_analysis->addRelation(source, target, edge.relationship.c_str());
+
+    reportProgress(CONTENT_PROGRESS + RELATIONS_PROGRESS_CHUNK*(++i)/total);
   }
 }
 
@@ -574,6 +609,12 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
+void SegFile_V5::Loader::reportProgress(unsigned int progress)
+{
+  if (m_reporter) m_reporter->setProgress(progress);
+}
+
+//-----------------------------------------------------------------------------
 SegFile_V5::SegFile_V5()
 {
 }
@@ -581,15 +622,19 @@ SegFile_V5::SegFile_V5()
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V5::load(QuaZip&          zip,
                               CoreFactorySPtr  factory,
+                              ProgressReporter *reporter,
                               ErrorHandlerSPtr handler)
 {
-  Loader loader(zip, factory, handler);
+  Loader loader(zip, factory, reporter, handler);
 
   return loader.load();
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handler)
+void SegFile_V5::save(AnalysisPtr analysis,
+                      QuaZip& zip,
+                      ProgressReporter *reporter,
+                      ErrorHandlerSPtr handler)
 {
   try
   {

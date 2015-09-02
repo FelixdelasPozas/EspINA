@@ -35,6 +35,8 @@ namespace ESPINA {
 
   namespace IO {
 
+    class ProgressReporter;
+
     namespace SegFile {
 
       class EspinaCore_EXPORT SegFile_V5
@@ -54,12 +56,14 @@ namespace ESPINA {
            */
           Loader(QuaZip &zip,
                  CoreFactorySPtr factory = CoreFactorySPtr(),
+                 ProgressReporter *reporter = nullptr,
                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
           /** \brief Process the data and returns an analysis.
            *
            */
           AnalysisSPtr load();
+
         private:
           /** \brief Finds and returns the vertex that match the uuid.
            * \param[in] vertices, directed graph vertices group.
@@ -156,8 +160,11 @@ namespace ESPINA {
            */
           void loadExtensions(SegmentationSPtr segmentation);
 
+          void reportProgress(unsigned int progress);
+
           QuaZip                 &m_zip;
           CoreFactorySPtr         m_factory;
+          ProgressReporter       *m_reporter;
           ErrorHandlerSPtr        m_handler;
           AnalysisSPtr            m_analysis;
           TemporalStorageSPtr     m_storage;
@@ -175,18 +182,14 @@ namespace ESPINA {
          */
         SegFile_V5();
 
-        /** \brief Implements SegFileInterface::load().
-         *
-         */
         virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
-                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                                  CoreFactorySPtr  factory   = CoreFactorySPtr(),
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr handler   = ErrorHandlerSPtr());
 
-        /** \brief Implements SegFileInterface::save().
-         *
-         */
         virtual void save(AnalysisPtr      analysis,
                           QuaZip&          zip,
+                          ProgressReporter *reporter = nullptr,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       };
     }

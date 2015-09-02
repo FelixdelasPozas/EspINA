@@ -153,7 +153,7 @@ void CODEToolBase::onTaskFinished()
       auto message = tr("%1 segmentation will be deleted by %2 operation.\n"
                         "Do you want to continue with the operation?").arg(name).arg(taskContext.Operation);
 
-      if (DefaultDialogs::UserConfirmation(title, message))
+      if (DefaultDialogs::UserConfirmation(message, title))
       {
         undoStack->beginMacro(taskContext.Operation);
         undoStack->push(new RemoveSegmentations(taskContext.Segmentation, getModel()));

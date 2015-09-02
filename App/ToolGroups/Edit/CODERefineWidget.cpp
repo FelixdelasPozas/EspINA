@@ -180,7 +180,7 @@ void CODERefineWidget::refineFilter()
                   "Updating this filter will result in losing user modifications."
                   "Do you want to proceed?");
 
-    if (!GUI::DefaultDialogs::UserConfirmation(m_title, msg)) return;
+    if (!GUI::DefaultDialogs::UserConfirmation(msg, m_title)) return;
   }
 
   auto volume  = readLockVolume(output);

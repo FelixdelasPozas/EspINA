@@ -377,7 +377,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     auto title = tr("Grey Level Segmentation");
     auto msg   = tr("The seed is not inside the channel or the region of interest.");
 
-    GUI::DefaultDialogs::InformationMessage(title, msg);
+    GUI::DefaultDialogs::InformationMessage(msg, title);
   }
 }
 

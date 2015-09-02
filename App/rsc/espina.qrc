@@ -25,7 +25,6 @@
     <file>cross-plus.png</file>
     <file>crossRegion.svg</file>
     <file>database.png</file>
-    <file>dilate.png</file>
     <file>display_crosshairs.svg</file>
     <file>display_segmentation_contours.svg</file>
     <file>display_segmentation_explorer.svg</file>
@@ -44,7 +43,6 @@
     <file>edit-undo.svg</file>
     <file>editor.ico</file>
     <file>eraser.png</file>
-    <file>erode.png</file>
     <file>es_ES.qm</file>
     <file>espina.svg</file>
     <file>export_scene.svg</file>
