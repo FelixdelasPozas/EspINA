@@ -31,7 +31,6 @@ UndoRedoTool::UndoRedoTool(Support::Context &context, const QString id, const QI
 , m_tooltipPrefix{tooltip}
 {
   setEnabled(false);
-  setCheckable(false);
 
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(doAction()));
@@ -46,8 +45,6 @@ void UndoRedoTool::stateChanged(bool value)
 //----------------------------------------------------------------------------
 void UndoRedoTool::textChanged(const QString &text)
 {
-  // TODO: the tooltip of the action changes, but the QToolButton in the toolbar is not updated.
-  // Why: createToolButton methods associates action and button manually.
   setToolTip(m_tooltipPrefix + text);
 }
 

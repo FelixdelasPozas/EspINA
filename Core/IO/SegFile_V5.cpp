@@ -636,6 +636,11 @@ void SegFile_V5::save(AnalysisPtr analysis,
                       ProgressReporter *reporter,
                       ErrorHandlerSPtr handler)
 {
+  if (reporter)
+  {
+    reporter->setProgress(0);
+  }
+
   try
   {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
@@ -679,6 +684,11 @@ void SegFile_V5::save(AnalysisPtr analysis,
     throw(e);
   }
 
+  if (reporter)
+  {
+    reporter->setProgress(CLASSIFICATION_PROGRESS);
+  }
+
   std::ostringstream content;
   write(analysis->content(), content);
   try
@@ -693,6 +703,11 @@ void SegFile_V5::save(AnalysisPtr analysis,
     }
 
     throw (e);
+  }
+
+  if (reporter)
+  {
+    reporter->setProgress(40);
   }
 
   std::ostringstream relations;
@@ -710,6 +725,14 @@ void SegFile_V5::save(AnalysisPtr analysis,
 
     throw (e);
   }
+
+  if (reporter)
+  {
+    reporter->setProgress(60);
+  }
+
+  int i = 0;
+  int total = analysis->content()->vertices().size();
 
   for(auto v : analysis->content()->vertices())
   {
@@ -730,6 +753,11 @@ void SegFile_V5::save(AnalysisPtr analysis,
     {
       throw(e);
     }
+
+    if (reporter)
+    {
+      reporter->setProgress(60 + 20*(++i)/total);
+    }
   }
 
   if(analysis->storage() != nullptr)
@@ -737,6 +765,9 @@ void SegFile_V5::save(AnalysisPtr analysis,
     Snapshot files;
     files << analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::RECURSIVE);
     files << analysis->storage()->snapshots(QString("Settings"), TemporalStorage::Mode::RECURSIVE);
+
+    i = 0;
+    total = files.size();
 
     for (auto data : files)
     {
@@ -753,7 +784,17 @@ void SegFile_V5::save(AnalysisPtr analysis,
 
         throw (e);
       }
+
+      if (reporter)
+      {
+        reporter->setProgress(80 + 20*(++i)/total);
+      }
     }
+  }
+
+  if (reporter)
+  {
+    reporter->setProgress(100);
   }
 }
 

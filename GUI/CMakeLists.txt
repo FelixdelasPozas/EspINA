@@ -78,6 +78,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
   Widgets/NumericalInput.h
+  Widgets/ToolButton.h
   Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -227,6 +228,7 @@ set (GUI_SOURCES
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
   Widgets/Styles.cpp
+  Widgets/ToolButton.cpp
   Widgets/NumericalInput.cpp
   Widgets/TaskProgress.cpp
   View/CoordinateSystem.cpp

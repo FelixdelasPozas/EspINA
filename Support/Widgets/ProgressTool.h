@@ -135,6 +135,8 @@ namespace ESPINA
 
         void setIcon(const QIcon icon);
 
+        QIcon icon() const;
+
         QList<QAction *> actions() const;
 
         virtual void onToolGroupActivated() {}

@@ -78,7 +78,7 @@ namespace ESPINA
     /** \brief Saves the analysis to the given file.
      *
      */
-    void save(const QString &fileName);
+    void saveAnalysis(const QString &fileName);
 
   signals:
     void aboutToSaveSession();
@@ -93,7 +93,7 @@ namespace ESPINA
     EspinaErrorHandlerSPtr m_errorHandler;
 
 
-    int                    m_undoStackIndex; /** application undo stack index at the time of autosave. */
+    int m_undoStackIndex; /** application undo stack index at the time of autosave. */
   };
 } // namespace ESPINA
 

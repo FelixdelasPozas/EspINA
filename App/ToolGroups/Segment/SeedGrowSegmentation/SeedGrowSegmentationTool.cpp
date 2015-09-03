@@ -33,6 +33,7 @@
 #include <GUI/Widgets/PixelValueSelector.h>
 #include <GUI/Widgets/NumericalInput.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
@@ -47,7 +48,6 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
-#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;

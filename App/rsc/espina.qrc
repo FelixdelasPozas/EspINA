@@ -49,6 +49,7 @@
     <file>exit.svg</file>
     <file>file_add.svg</file>
     <file>file_open.svg</file>
+    <file>file_auto_save.svg</file>
     <file>file_save.svg</file>
     <file>file_save_as.svg</file>
     <file>fill_holes.svg</file>

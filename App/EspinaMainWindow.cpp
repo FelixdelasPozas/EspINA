@@ -738,7 +738,7 @@ void EspinaMainWindow::createSessionToolGroup()
           this,                 SLOT(onAnalysisLoaded(AnalysisSPtr)));
 
   connect(&m_autoSave,          SIGNAL(restoreFromFile(QString)),
-          m_openFileTool.get(), SLOT(load(QString)));
+          m_openFileTool.get(), SLOT(loadAnalysis(QString)));
 
   auto importTool = std::make_shared<FileOpenTool>("FileAdd", ":/espina/file_add.svg", tr("Import To Analysis"), m_context, m_errorHandler);
   importTool->setShortcut(Qt::CTRL+Qt::Key_I);
@@ -752,6 +752,9 @@ void EspinaMainWindow::createSessionToolGroup()
   m_saveTool->setShortcut(Qt::CTRL+Qt::Key_S);
   m_saveTool->setEnabled(false);
 
+  connect(&m_autoSave,      SIGNAL(saveToFile(QString)),
+          m_saveTool.get(), SLOT(saveAnalysis(QString)));
+
   connect(m_saveTool.get(), SIGNAL(aboutToSaveSession()),
           this,             SLOT(onAboutToSaveSession()));
 
@@ -760,9 +763,6 @@ void EspinaMainWindow::createSessionToolGroup()
 
   m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save Analysis As"), m_context, m_analysis, m_errorHandler);
   m_saveAsTool->setOrder("1-1", "1_FileGroup");
-
-  connect(&m_autoSave,        SIGNAL(saveToFile(QString)),
-          m_saveAsTool.get(), SLOT(save(QString)));
 
   connect(m_saveAsTool.get(), SIGNAL(aboutToSaveSession()),
           this,               SLOT(onAboutToSaveSession()));

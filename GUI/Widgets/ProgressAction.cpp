@@ -19,10 +19,10 @@
 
 #include "ProgressAction.h"
 #include "Styles.h"
+#include "ToolButton.h"
 
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QProgressBar>
 
 using namespace ESPINA::GUI::Widgets;
@@ -58,6 +58,22 @@ QWidget* ProgressAction::createWidget(QWidget* parent)
   createProgress(button);
 
   return widget;
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::setActionIcon(const QIcon& icon)
+{
+  setIcon(icon);
+
+  emit iconChanged(icon);
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::setActionToolTip(const QString& tooltip)
+{
+  setToolTip(tooltip);
+
+  emit toolChanged(tooltip);
 }
 
 //------------------------------------------------------------------------
@@ -117,6 +133,12 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
 
   connect(this,   SIGNAL(actionChecked(bool)),
           action, SLOT(setChecked(bool)));
+
+  connect(this,   SIGNAL(iconChanged(QIcon)),
+          action, SLOT(changeIcon(QIcon)));
+
+  connect(this,   SIGNAL(toolChanged(QString)),
+          action, SLOT(changeTooltip(QString)));
 
   return action;
 }

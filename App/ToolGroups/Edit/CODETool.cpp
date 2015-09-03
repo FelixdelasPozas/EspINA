@@ -25,9 +25,9 @@
 #include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
+#include <GUI/Widgets/ToolButton.h>
 
 #include <QHBoxLayout>
-#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;

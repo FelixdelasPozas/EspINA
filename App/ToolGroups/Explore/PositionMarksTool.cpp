@@ -21,10 +21,10 @@
 
 // ESPINA
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <ToolGroups/Explore/PositionMarksTool.h>
 
 // Qt
-#include <QPushButton>
 #include <QComboBox>
 #include <QDateTime>
 #include <QInputDialog>
@@ -229,7 +229,7 @@ void PositionMarksTool::clear()
 //-----------------------------------------------------------------------------
 void PositionMarksTool::initWidgets()
 {
-  m_add    = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_add.svg", tr("Add current visual state as a bookmark"));
+  m_add = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_add.svg", tr("Add current visual state as a bookmark"));
 
   m_remove = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_remove.svg", tr("Remove current bookmark"));
   m_remove->setEnabled(false);

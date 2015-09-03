@@ -155,7 +155,7 @@ QString ProgressTool::positionName() const
 //----------------------------------------------------------------------------
 void ProgressTool::setToolTip(const QString &tooltip)
 {
-  m_action->setToolTip(tooltip);
+  m_action->setActionToolTip(tooltip);
 }
 
 //----------------------------------------------------------------------------
@@ -338,7 +338,12 @@ void ProgressTool::restoreCheckedState(std::shared_ptr<QSettings> settings)
 //----------------------------------------------------------------------------
 void ProgressTool::setIcon(const QIcon icon)
 {
-  m_action->setIcon(icon);
+  m_action->setActionIcon(icon);
 }
 
+//----------------------------------------------------------------------------
+QIcon ProgressTool::icon() const
+{
+  return m_action->icon();
+}
 

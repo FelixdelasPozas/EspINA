@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "FileSaveTool.h"
+#include "ChunkReporter.h"
 
 #include <Core/IO/SegFile.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -94,7 +95,7 @@ const QString FileSaveTool::saveFilename() const
 }
 
 //----------------------------------------------------------------------------
-void FileSaveTool::save(const QString &filename)
+void FileSaveTool::saveAnalysis(const QString &filename)
 {
   if (!filename.isEmpty())
   {
@@ -102,11 +103,18 @@ void FileSaveTool::save(const QString &filename)
 
     emit aboutToSaveSession();
 
-    setProgress(0);
+    auto current = icon();
 
-    IO::SegFile::save(m_analysis.get(), filename, nullptr, m_errorHandler);
+    if (filename.endsWith("espina-autosave.seg"))
+    {
+      setIcon(QIcon(":/espina/file_auto_save.svg"));
+    }
 
-    setProgress(100);
+    ChunkReporter reporter(1, this);
+
+    IO::SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
+
+    setIcon(current);
 
     emit sessionSaved(filename);
   }
@@ -115,5 +123,5 @@ void FileSaveTool::save(const QString &filename)
 //----------------------------------------------------------------------------
 void FileSaveTool::saveAnalysis()
 {
-  save(saveFilename());
+  saveAnalysis(saveFilename());
 }

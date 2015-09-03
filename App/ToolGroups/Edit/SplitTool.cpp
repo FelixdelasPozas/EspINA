@@ -29,6 +29,7 @@
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget2D.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget3D.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/Widgets/Styles.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/ContextFactories.h>
@@ -48,7 +49,6 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <QVBoxLayout>
-#include <QPushButton>
 
 using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
 

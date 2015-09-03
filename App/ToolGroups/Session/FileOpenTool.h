@@ -62,7 +62,7 @@ namespace ESPINA
      * \param[in] file to load.
      *
      */
-    void load(const QString &file);
+    void loadAnalysis(const QString &file);
 
     /** \brief Load requested files
      * \param[in] files to load.

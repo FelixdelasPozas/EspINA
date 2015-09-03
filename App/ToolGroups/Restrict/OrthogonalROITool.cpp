@@ -27,13 +27,13 @@
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
 #include <QAction>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <QPushButton>
 
 using namespace ESPINA;
 

@@ -19,6 +19,7 @@
 
 // ESPINA
 #include "FileOpenTool.h"
+#include "ChunkReporter.h"
 
 #include "AutoSave.h"
 #include "RecentDocuments.h"
@@ -33,32 +34,6 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
-
-class MultipleReporter
-: public IO::ProgressReporter
-{
-public:
-  MultipleReporter(unsigned int chunks, ProgressTool *tool)
-  : m_completedChunks(0)
-  , m_tool(tool)
-  , m_chunkProgress(100.0/chunks)
-  {}
-
-  void nextChunk()
-  { ++m_completedChunks;
-    setProgress(0);
-  }
-
-  virtual void setProgress(unsigned int progress)
-  {
-    m_tool->setProgress((m_completedChunks + progress/100.0)*m_chunkProgress);
-  }
-
-private:
-  unsigned int  m_completedChunks;
-  float m_chunkProgress;
-  ProgressTool *m_tool;
-};
 
 //----------------------------------------------------------------------------
 FileOpenTool::FileOpenTool(const QString& id, const QString& icon, const QString& tooltip, Support::Context& context, EspinaErrorHandlerSPtr handler)
@@ -92,7 +67,7 @@ void FileOpenTool::onTriggered()
 }
 
 //----------------------------------------------------------------------------
-void FileOpenTool::load(const QString& file)
+void FileOpenTool::loadAnalysis(const QString& file)
 {
   load(QStringList(file));
 }
@@ -111,10 +86,8 @@ void FileOpenTool::load(const QStringList &files)
   QStringList loadedFiles, failedFiles;
 
   auto factory = getContext().factory();
-  int i = 0;
 
-
-  MultipleReporter reporter(files.size(), this);
+  ChunkReporter reporter(files.size(), this);
 
   reporter.setProgress(0);
 

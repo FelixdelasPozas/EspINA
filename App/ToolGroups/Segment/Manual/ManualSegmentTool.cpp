@@ -28,6 +28,7 @@
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
@@ -38,7 +39,6 @@
 // Qt
 #include <QAction>
 #include <QUndoStack>
-#include <QPushButton>
 
 using ESPINA::Filter;
 
