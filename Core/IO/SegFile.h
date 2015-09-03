@@ -33,6 +33,8 @@ namespace ESPINA
 {
   namespace IO
   {
+    class ProgressReporter;
+
     namespace SegFile
     {
       struct IO_Error_Exception{};
@@ -49,9 +51,10 @@ namespace ESPINA
        * \param[in] handler, error handler smart pointer.
        *
        */
-      AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo& file,
-                                          CoreFactorySPtr  factory = CoreFactorySPtr(),
-                                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+      AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo  &file,
+                                          CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                                          ProgressReporter *reporter = nullptr,
+                                          ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
       /** \brief Saves an analysis to a file in disk.
        * \param[in] analysis, analysis to save.
@@ -61,6 +64,7 @@ namespace ESPINA
        */
       void EspinaCore_EXPORT save(AnalysisPtr       analysis,
                                   const QFileInfo&  file,
+                                  ProgressReporter *reporter = nullptr,
                                   ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
     }
   }

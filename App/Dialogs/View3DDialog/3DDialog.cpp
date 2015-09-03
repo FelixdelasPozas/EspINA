@@ -39,6 +39,7 @@ Dialog3D::Dialog3D(Support::Context   &context)
 : QDialog  {nullptr, Qt::WindowStaysOnTopHint}
 , WithContext(context)
 , m_view3D {context.viewState(), false}
+, m_representations("", "")
 {
   setupUi(this);
 
@@ -83,13 +84,30 @@ QAction *Dialog3D::toggleViewAction()
 }
 
 //------------------------------------------------------------------------
-void Dialog3D::closeEvent(QCloseEvent *e)
+void Dialog3D::showEvent(QShowEvent* event)
+{
+  for(auto group : m_representations.groupedTools())
+  {
+    for (auto tool : group)
+    {
+      for (auto action : tool->actions())
+      {
+        m_toolbar.addAction(action);
+      }
+    }
+  }
+
+  QDialog::showEvent(event);
+}
+
+//------------------------------------------------------------------------
+void Dialog3D::closeEvent(QCloseEvent *event)
 {
   saveGeometryState();
 
   emit dialogVisible(false);
 
-  QDialog::closeEvent(e);
+  QDialog::closeEvent(event);
 }
 
 //------------------------------------------------------------------------
@@ -156,20 +174,12 @@ void Dialog3D::onToggled(bool checked)
 //------------------------------------------------------------------------
 void Dialog3D::addRepresentationSwitch(RepresentationSwitchSPtr repSwitch)
 {
-  if(!m_switches.contains(repSwitch))
-  {
-    m_switches << repSwitch;
-
-    for(auto action: repSwitch->actions())
-    {
-      m_toolbar.addAction(action);
-    }
-  }
+  m_representations.addTool(repSwitch);
 }
 
 //------------------------------------------------------------------------
 Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
-: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display YZ View"), context)
+: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display 3D View"), context)
 , m_dialog    {dialog}
 {
 }
@@ -177,34 +187,48 @@ Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
 //------------------------------------------------------------------------
 void Dialog3DTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto enabled = checkSetting(settings);
+  restoreCheckedState(settings);
 
-  for(auto tool: m_dialog->m_switches)
+  for(auto tool: tools())
   {
-    if(tool->id().isEmpty() || !settings->childGroups().contains(tool->id())) continue;
-
-    settings->beginGroup(tool->id());
-    tool->restoreSettings(settings);
-    settings->endGroup();
-  }
-
-  if(isChecked() != enabled)
-  {
-    setChecked(enabled);
+    if (!tool->id().isEmpty()
+      && settings->childGroups().contains(tool->id()))
+    {
+      settings->beginGroup(tool->id());
+      tool->restoreSettings(settings);
+      settings->endGroup();
+    }
   }
 }
 
 //------------------------------------------------------------------------
 void Dialog3DTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 
-  for(auto tool: m_dialog->m_switches)
+  for (auto tool : tools())
   {
-    if(tool->id().isEmpty()) continue;
-
-    settings->beginGroup(tool->id());
-    tool->saveSettings(settings);
-    settings->endGroup();
+    if(!tool->id().isEmpty())
+    {
+      settings->beginGroup(tool->id());
+      tool->saveSettings(settings);
+      settings->endGroup();
+    }
   }
+}
+
+//------------------------------------------------------------------------
+ToolSList Dialog3DTool::tools() const
+{
+  ToolSList tools;
+
+  for(auto group : m_dialog->m_representations.groupedTools())
+  {
+    for (auto tool : group)
+    {
+      tools << tool;
+    }
+  }
+
+  return tools;
 }

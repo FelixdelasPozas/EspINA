@@ -168,7 +168,7 @@ void DefaultContextualMenu::renameSegmentation()
       auto title = tr("Alias duplicated");
       auto msg   = tr("Segmentation alias is already used by another segmentation.");
 
-      DefaultDialogs::InformationMessage(title, msg);
+      DefaultDialogs::InformationMessage(msg, title);
     }
     else
     {
@@ -253,7 +253,7 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
       msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit labelmaps instead of 16 bit ones"));
     }
 
-    DefaultDialogs::InformationMessage(title, msg);
+    DefaultDialogs::InformationMessage(msg, title);
   }
 }
 

@@ -33,7 +33,7 @@ class QUndoStack;
 namespace ESPINA
 {
 
-class DockWidget;
+class Panel;
   namespace Support
   {
     class Context
@@ -57,7 +57,7 @@ class DockWidget;
       Timer &timer();
       GUI::View::RepresentationInvalidator &representationInvalidator();
 
-      void addPanel(DockWidget *panel);
+      void addPanel(Panel *panel);
 
       bool isMinimized() const;
 

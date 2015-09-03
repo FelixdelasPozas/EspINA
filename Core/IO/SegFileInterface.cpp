@@ -36,9 +36,9 @@ using namespace ESPINA::IO::SegFile;
 
 
 //-----------------------------------------------------------------------------
-void SegFileInterface::addFileToZip(const QString&    fileName,
-                                    const QByteArray& content,
-                                    QuaZip&           zip,
+void SegFileInterface::addFileToZip(const QString    &fileName,
+                                    const QByteArray &content,
+                                    QuaZip           &zip,
                                     ErrorHandlerSPtr  handler)
 {
   QuaZipFile zFile(&zip);
@@ -53,6 +53,7 @@ void SegFileInterface::addFileToZip(const QString&    fileName,
                  << "- Code error:" << zFile.getZipError();
     throw (SegFile::IO_Error_Exception());
   }
+
   zFile.write(content);
 
   if (zFile.getZipError() != UNZ_OK)

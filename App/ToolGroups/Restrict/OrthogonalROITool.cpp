@@ -27,13 +27,13 @@
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
 #include <QAction>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <QPushButton>
 
 using namespace ESPINA;
 
@@ -75,7 +75,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
-: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal.svg", tr("Orthogonal Region of Interest"), context)
+: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal ROI"), context)
 , m_roiRepresentation{new OrthogonalRepresentation()}
 , m_resizeHandler    {new EventHandler()}
 , m_defineHandler    {new PixelSelector()}
@@ -158,8 +158,8 @@ void OrthogonalROITool::onToolGroupActivated()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::initControls()
 {
-  m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal Region of Interest"));
-  m_applyROI  = Styles::createToolButton(":/espina/roi_define.svg", tr("Define Orthogonal Region of Interest"));
+  m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal ROI"));
+  m_applyROI  = Styles::createToolButton(":/espina/roi_define.svg", tr("Define Orthogonal ROI"));
 
   m_resizeROI ->setCheckable(true);
   m_applyROI  ->setCheckable(true);
@@ -334,7 +334,7 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
     auto msg   = tr("At least one of the sizes for the ROI is 0, please\n"
                     "modify the ROI size values to a valid quantity.");
 
-    DefaultDialogs::InformationMessage(title, msg);
+    DefaultDialogs::InformationMessage(msg, title);
   }
   else if(validSelection)
   {
@@ -364,7 +364,7 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 
   auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Resize Region of Interest"));
+  undoStack->beginMacro(tr("Resize ROI"));
   undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
   undoStack->endMacro();
 }

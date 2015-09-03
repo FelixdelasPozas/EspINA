@@ -19,7 +19,7 @@
  */
 #include <ToolGroups/Analyze/AnalyzeToolGroup.h>
 
-#include "Measure/MeasureTool.h"
+#include "MeasureLength/MeasureLengthTool.h"
 #include "SelectionMeasure/SelectionMeasureTool.h"
 #include "Reports/ReportsTool.h"
 
@@ -30,7 +30,7 @@ AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
 , m_reports(new ReportsTool(context))
 {
-  addTool(std::make_shared<MeasureTool>(context));
+  addTool(std::make_shared<MeasureLengthTool>(context));
   addTool(std::make_shared<SelectionMeasureTool>(context));
   addTool(m_reports);
 }

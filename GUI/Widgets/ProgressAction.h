@@ -39,6 +39,10 @@ namespace ESPINA {
 
         virtual QWidget* createWidget(QWidget* parent);
 
+        void setActionIcon(const QIcon &icon);
+
+        void setActionToolTip(const QString &tooltip);
+
       public slots:
         void setProgress(int progress);
 
@@ -54,6 +58,10 @@ namespace ESPINA {
         void actionEnabled(bool enabled);
 
         void actionChecked(bool checked);
+
+        void iconChanged(const QIcon &icon);
+
+        void toolChanged(const QString &tooltip);
 
       private:
         QPushButton *createActionButton(QWidget *parent);

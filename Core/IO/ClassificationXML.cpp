@@ -166,7 +166,6 @@ QByteArray ClassificationXML::dump(const ClassificationSPtr classification, Erro
   return serialization;
 }
 
-#include <QDebug>
 //-----------------------------------------------------------------------------
 ClassificationSPtr ClassificationXML::parse(const QByteArray& serialization,
                                             ErrorHandlerSPtr handler)

@@ -378,8 +378,8 @@ void CheckChannelTask::checkRelations() const
 
   if(relations.empty())
   {
-    auto description = tr("Channel is not related to any sample");
-    auto hint        = tr("Change relations in the \"Channel Explorer\" dialog");
+    auto description = tr("Stack is not related to any sample");
+    auto hint        = tr("Change relations in the \"Stack Explorer\" panel");
 
     reportIssue(m_channel, Issue::Severity::CRITICAL, description, hint);
   }

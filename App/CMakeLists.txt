@@ -16,6 +16,7 @@ qt4_add_resources(ESPINA_RCC
 
 # Create header's MOC files
 qt4_wrap_cpp (ESPINA_MOC
+  AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/HueSelector/HueSelector.h
@@ -23,12 +24,12 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
   Dialogs/View3DDialog/3DDialog.h
-  Docks/ChannelExplorer/ChannelExplorer.h
-  Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
-  Docks/SegmentationExplorer/SegmentationExplorer.h
-  Docks/SegmentationExplorer/SegmentationExplorerLayout.h
-  Docks/SegmentationInformation/NoFilterRefiner.h
-  Docks/SegmentationInformation/SegmentationInformation.h
+  Panels/StackExplorer/StackExplorer.h
+  Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
+  Panels/SegmentationExplorer/SegmentationExplorer.h
+  Panels/SegmentationExplorer/SegmentationExplorerLayout.h
+  Panels/SegmentationProperties/NoFilterRefiner.h
+  Panels/SegmentationProperties/SegmentationProperties.h
   EspinaMainWindow.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
@@ -38,19 +39,22 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Analyze/Reports/ReportSelectorDialog.h
   ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
-  ToolGroups/Explore/ResetZoom.h
-  ToolGroups/Explore/VisualBookmarks.h
-  ToolGroups/Explore/ZoomTool.h
-  ToolGroups/Refine/CODERefineWidget.h
-  ToolGroups/Refine/CODERefiner.h
-  ToolGroups/Refine/CODETool.h
-  ToolGroups/Refine/FillHolesTool.h
-  ToolGroups/Refine/ImageLogicTool.h
-  ToolGroups/Refine/ManualEditionTool.h
-  ToolGroups/Refine/RefineToolGroup.h
-  ToolGroups/Refine/SplitTool.h
-  ToolGroups/Restrict/CleanROITool.h
-  ToolGroups/Restrict/ManualROITool.h
+  ToolGroups/Explore/ResetViewTool.h
+  ToolGroups/Explore/PositionMarksTool.h
+  ToolGroups/Explore/ZoomRegionTool.h
+  ToolGroups/Edit/CODERefineWidget.h
+  ToolGroups/Edit/CODERefiner.h
+  ToolGroups/Edit/CODETool.h
+  ToolGroups/Edit/FillHolesTool.h
+  ToolGroups/Edit/ImageLogicTool.h
+  ToolGroups/Edit/ManualEditionTool.h
+  ToolGroups/Edit/EditToolGroup.h
+  ToolGroups/Edit/SplitTool.h
+  ToolGroups/Session/FileOpenTool.h
+  ToolGroups/Session/FileSaveTool.h
+  ToolGroups/Session/UndoRedoTools.h
+  ToolGroups/Restrict/DeleteROITool.h
+  ToolGroups/Restrict/FreehandROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
   ToolGroups/Restrict/RestrictToolGroup.h
   ToolGroups/Segment/Manual/ManualSegmentTool.h
@@ -69,9 +73,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
-  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
   ToolGroups/Visualize/VisualizeToolGroup.h
-  ToolGroups/Analyze/Measure/MeasureTool.h
+  ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
   Views/DefaultView.h
@@ -88,16 +91,16 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/View3DDialog/3DDialog.ui
-  Docks/ChannelExplorer/ChannelExplorer.ui
-  Docks/SegmentationExplorer/SegmentationExplorer.ui
-  Docks/SegmentationInformation/NoFilterRefiner.ui
-  Docks/SegmentationInformation/SegmentationInformation.ui
+  Panels/StackExplorer/StackExplorer.ui
+  Panels/SegmentationExplorer/SegmentationExplorer.ui
+  Panels/SegmentationProperties/NoFilterRefiner.ui
+  Panels/SegmentationProperties/SegmentationProperties.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   ToolGroups/Analyze/Reports/ReportSelectorDialog.ui
-  ToolGroups/Refine/CODERefineWidget.ui
+  ToolGroups/Edit/CODERefineWidget.ui
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
   )
 
@@ -112,7 +115,7 @@ set (ESPINA_SOURCES
   ${ESPINA_MOC}
   ${ESPINA_UI}
   ${METADONA_SOURCES}
-  main.cpp
+  AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
@@ -123,17 +126,17 @@ set (ESPINA_SOURCES
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
   Dialogs/View3DDialog/3DDialog.cpp
-  Docks/ChannelExplorer/ChannelExplorer.cpp
-  Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
-  Docks/SegmentationExplorer/SegmentationExplorer.cpp
-  Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
-  Docks/SegmentationInformation/NoFilterRefiner.cpp
-  Docks/SegmentationInformation/SegmentationInformation.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
+  Panels/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Panels/SegmentationExplorer/SegmentationExplorer.cpp
+  Panels/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  Panels/SegmentationProperties/NoFilterRefiner.cpp
+  Panels/SegmentationProperties/SegmentationProperties.cpp
+  Panels/StackExplorer/StackExplorer.cpp
   RecentDocuments.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
@@ -143,25 +146,25 @@ set (ESPINA_SOURCES
   Settings/Utils.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
-  ToolGroups/Analyze/Measure/MeasureTool.cpp
+  ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
-  ToolGroups/Explore/ResetZoom.cpp
-  ToolGroups/Explore/VisualBookmarks.cpp
-  ToolGroups/Explore/ZoomTool.cpp
-  ToolGroups/Refine/CODERefineWidget.cpp
-  ToolGroups/Refine/CODERefiner.cpp
-  ToolGroups/Refine/CODETool.cpp
-  ToolGroups/Refine/FillHolesTool.cpp
-  ToolGroups/Refine/ImageLogicTool.cpp
-  ToolGroups/Refine/ManualEditionTool.cpp
-  ToolGroups/Refine/RefineToolGroup.cpp
-  ToolGroups/Refine/SliceEditionPipeline.cpp
-  ToolGroups/Refine/SplitTool.cpp
-  ToolGroups/Restrict/CleanROITool.cpp
-  ToolGroups/Restrict/ManualROITool.cpp
+  ToolGroups/Edit/CODERefineWidget.cpp
+  ToolGroups/Edit/CODERefiner.cpp
+  ToolGroups/Edit/CODETool.cpp
+  ToolGroups/Edit/EditToolGroup.cpp
+  ToolGroups/Edit/FillHolesTool.cpp
+  ToolGroups/Edit/ImageLogicTool.cpp
+  ToolGroups/Edit/ManualEditionTool.cpp
+  ToolGroups/Edit/SliceEditionPipeline.cpp
+  ToolGroups/Edit/SplitTool.cpp
+  ToolGroups/Explore/PositionMarksTool.cpp
+  ToolGroups/Explore/ResetViewTool.cpp
+  ToolGroups/Explore/ZoomRegionTool.cpp
+  ToolGroups/Restrict/DeleteROITool.cpp
+  ToolGroups/Restrict/FreehandROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp
   ToolGroups/Restrict/RestrictToolGroup.cpp
   ToolGroups/Segment/Manual/ManualSegmentTool.cpp
@@ -174,15 +177,19 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
+  ToolGroups/Session/ChunkReporter.cpp
+  ToolGroups/Session/FileOpenTool.cpp
+  ToolGroups/Session/FileSaveTool.cpp
+  ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
+  ToolGroups/Visualize/GenericTogglableTool.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
-  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DrawUndoCommand.cpp
@@ -190,6 +197,7 @@ set (ESPINA_SOURCES
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
   Views/DefaultView.cpp
+  main.cpp
   )
 
 set (ESPINA_LIBRARIES

@@ -182,7 +182,7 @@ void SASTabularReport::exportInformation()
   if (!exported)
   {
     auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(title, message);
+    DefaultDialogs::InformationMessage(message, title);
   }
 }
 
@@ -270,6 +270,6 @@ void SASTabularReport::Entry::extractInformation()
   if (!exported)
   {
     auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(title, message);
+    DefaultDialogs::InformationMessage(message, title);
   }
 }

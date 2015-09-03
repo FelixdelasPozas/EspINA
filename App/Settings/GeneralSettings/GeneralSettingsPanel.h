@@ -31,6 +31,8 @@
 
 namespace ESPINA
 {
+  class AutoSave;
+
   class GeneralSettingsPanel
   : public Support::Settings::SettingsPanel
   , Ui::GeneralSettingsPanel
@@ -40,7 +42,7 @@ namespace ESPINA
      * \param[in] settings, GeneralSettings object smart pointer.
      *
      */
-    explicit GeneralSettingsPanel(GeneralSettingsSPtr settings);
+    explicit GeneralSettingsPanel(AutoSave &autoSave, GeneralSettingsSPtr settings);
 
     /** \brief GeneralSettingsPanel class virtual destructor.
      *
@@ -65,6 +67,7 @@ namespace ESPINA
     virtual Support::Settings::SettingsPanelPtr clone() override;
 
   private:
+    AutoSave &m_autoSave;
     GeneralSettingsSPtr m_settings;
   };
 

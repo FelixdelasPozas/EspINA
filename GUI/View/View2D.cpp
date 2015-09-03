@@ -97,11 +97,11 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
-, m_showThumbnail   {true}
+, m_showThumbnail   {false}
 , m_inThumbnail     {false}
 , m_inThumbnailClick{true}
 , m_scaleValue      {1.0}
-, m_scaleVisibility {true}
+, m_scaleVisibility {false}
 , m_scale           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_plane           {plane}
 , m_normalCoord     {normalCoordinateIndex(plane)}
@@ -396,7 +396,7 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_cameraReset = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
+  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(onCameraResetPressed()));
 

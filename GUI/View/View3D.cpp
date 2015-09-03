@@ -86,7 +86,7 @@ void View3D::buildViewActionsButtons()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_cameraReset = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
+  m_cameraReset = createButton(QString(":/espina/reset_view.svng"), tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(onCameraResetPressed()));
 
@@ -500,7 +500,7 @@ void View3D::exportScene()
     else
     {
       auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
-      DefaultDialogs::InformationMessage(title, message);
+      DefaultDialogs::InformationMessage(message, title);
     }
   }
 }

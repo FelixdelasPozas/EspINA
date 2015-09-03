@@ -23,13 +23,10 @@
 #include <Support/Settings/EspinaSettings.h>
 
 // Qt
-#include <QDir>
 #include <QSettings>
 
 using namespace ESPINA;
 
-const QString AUTOSAVE_PATH     = "Autosave::Path";
-const QString AUTOSAVE_INTERVAL = "Autosave::Interval";
 const QString GeneralSettings::LOAD_SEG_SETTINGS_KEY = "Load SEG settings";
 
 //-----------------------------------------------------------------------------
@@ -37,9 +34,8 @@ GeneralSettings::GeneralSettings()
 {
   ESPINA_SETTINGS(settings);
   m_userName         = settings.value(USER_NAME, "User").toString();
-  m_autosaveInterval = settings.value(AUTOSAVE_INTERVAL, 10).toInt();
-  m_autosavePath     = settings.value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
   m_loadSEGSettings  = settings.value(LOAD_SEG_SETTINGS_KEY, true).toBool();
+
 }
 
 //-----------------------------------------------------------------------------
@@ -54,24 +50,6 @@ void GeneralSettings::setUserName(const QString &name)
 
   ESPINA_SETTINGS(settings);
   settings.setValue(USER_NAME, m_userName);
-}
-
-//-----------------------------------------------------------------------------
-void GeneralSettings::setAutosaveInterval(int min)
-{
-  m_autosaveInterval = min;
-
-  ESPINA_SETTINGS(settings);
-  settings.setValue(AUTOSAVE_INTERVAL, min);
-}
-
-//-----------------------------------------------------------------------------
-void GeneralSettings::setAutosavePath(const QString &path)
-{
-  m_autosavePath = QDir(path);
-
-  ESPINA_SETTINGS(settings);
-  settings.setValue(AUTOSAVE_PATH, path);
 }
 
 //-----------------------------------------------------------------------------

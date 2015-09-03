@@ -48,7 +48,12 @@ void ToolGroup::addTool(ToolSPtr tool)
 
   onToolAdded(tool);
 
-  m_tools[tool->groupWith()] << tool;
+  auto group = tool->groupWith();
+
+  m_tools[group] << tool;
+
+  auto &tools = m_tools[group];
+  std::sort(tools.begin(), tools.end(), [](const ToolSPtr &lhs, const ToolSPtr &rhs){ return lhs->positionName() < rhs->positionName(); });
 }
 
 //-----------------------------------------------------------------------------

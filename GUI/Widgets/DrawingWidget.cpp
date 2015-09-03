@@ -23,6 +23,7 @@
 #include "CategorySelector.h"
 #include "NumericalInput.h"
 #include "Styles.h"
+#include "ToolButton.h"
 
 #include <GUI/EventHandlers/CircularBrush.h>
 #include <GUI/EventHandlers/SphericalBrush.h>
@@ -30,7 +31,6 @@
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <QHBoxLayout>
-#include <QPushButton>
 
 const QString BRUSH_RADIUS     = "Brush radius";
 const QString BRUSH_OPACITY    = "Brush opacity";

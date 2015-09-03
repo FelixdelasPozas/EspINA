@@ -27,88 +27,72 @@
 #include <QSettings>
 #include <QStringList>
 #include <QFileInfo>
+#include <QUrl>
 
 const int MAX_FILES = 10;
+const QString RECENT_DOCUMENTS = "RecentDocuments";
 
 //------------------------------------------------------------------------
 RecentDocuments::RecentDocuments()
 {
-  updateDocumentList();
+  loadRecentDocuments();
 }
 
 //------------------------------------------------------------------------
 RecentDocuments::~RecentDocuments()
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.setValue("recentFileList", m_recentDocuments);
-  settings.sync();
 }
 
 //------------------------------------------------------------------------
 void RecentDocuments::addDocument(QString path)
 {
-  if (m_recentDocuments.contains(path))
-    m_recentDocuments.removeAll(path);
+  m_recentDocuments.removeOne(path);
 
   if (m_recentDocuments.size() == MAX_FILES)
+  {
     m_recentDocuments.pop_back();
+  }
 
   m_recentDocuments.push_front(path);
 
-  updateActions();
-
-  ESPINA_SETTINGS(settings);
-  settings.setValue("recentFileList", m_recentDocuments);
-  settings.sync();
+  saveRecentDocuments();
 }
 
 //------------------------------------------------------------------------
 void RecentDocuments::removeDocument(QString path)
 {
-  if (m_recentDocuments.contains(path))
-    m_recentDocuments.removeAll(path);
+  m_recentDocuments.removeOne(path);
 
-  updateActions();
+  saveRecentDocuments();
+}
 
+#include <QDebug>
+//------------------------------------------------------------------------
+QList<QUrl> RecentDocuments::recentDocumentUrls() const
+{
+  QList<QUrl> urls;
+
+  for (QFileInfo document : m_recentDocuments)
+  {
+    urls << QUrl::fromLocalFile(document.absolutePath());
+  }
+
+  return urls;
+}
+
+//------------------------------------------------------------------------
+void RecentDocuments::loadRecentDocuments()
+{
   ESPINA_SETTINGS(settings);
-  settings.setValue("recentFileList", m_recentDocuments);
+
+  m_recentDocuments = settings.value(RECENT_DOCUMENTS, QStringList()).toStringList();
+}
+
+//------------------------------------------------------------------------
+void RecentDocuments::saveRecentDocuments()
+{
+  ESPINA_SETTINGS(settings);
+
+  settings.setValue(RECENT_DOCUMENTS, m_recentDocuments);
   settings.sync();
-}
-
-
-//------------------------------------------------------------------------
-void RecentDocuments::updateActions()
-{
-  int numberFiles = qMin(m_recentDocuments.size(), MAX_FILES);
-  for(int i = 0; i < numberFiles; i++)
-  {
-    m_actionList[i]->setText(QFileInfo(m_recentDocuments[i]).fileName());
-    m_actionList[i]->setToolTip(m_recentDocuments[i]);
-    m_actionList[i]->setData(m_recentDocuments[i]);
-    m_actionList[i]->setVisible(true);
-  }
-
-  for(int i = numberFiles; i < MAX_FILES; i++)
-    m_actionList[i]->setVisible(false);
-}
-
-//------------------------------------------------------------------------
-void RecentDocuments::updateDocumentList()
-{
-  ESPINA_SETTINGS(settings);
-
-  if (settings.contains("recentFileList"))
-    m_recentDocuments = settings.value("recentFileList").toStringList();
-  else
-    m_recentDocuments = QStringList();
-
-  for(int i = 0; i < MAX_FILES; i++)
-  {
-    QAction *action = new QAction(this);
-    action->setVisible(false);
-    m_actionList << action;
-  }
-
-  updateActions();
 }

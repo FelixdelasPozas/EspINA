@@ -38,7 +38,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../App/rsc/espina.qrc">
-         <normaloff>:/espina/refresh.png</normaloff>:/espina/refresh.png</iconset>
+         <normaloff>:/espina/refresh.svg</normaloff>:/espina/refresh.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -128,7 +128,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../App/rsc/espina.qrc">
-         <normaloff>:/espina/settings.png</normaloff>:/espina/settings.png</iconset>
+         <normaloff>:/espina/settings.svg</normaloff>:/espina/settings.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

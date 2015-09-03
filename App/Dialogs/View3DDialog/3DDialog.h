@@ -26,6 +26,7 @@
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Types.h>
 #include "ui_3DDialog.h"
+#include <ToolGroups/ToolGroup.h>
 
 // Qt
 #include <QDialog>
@@ -38,15 +39,18 @@ namespace ESPINA
   class Dialog3DTool
   : public Support::Widgets::ProgressTool
   {
-    public:
-      explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
+  public:
+    explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
 
-      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-    private:
-      Dialog3D *m_dialog;
+  private:
+    Support::Widgets::ToolSList tools() const;
+
+  private:
+    Dialog3D *m_dialog;
   };
 
   class Dialog3D
@@ -93,7 +97,8 @@ namespace ESPINA
     void onToggled(bool checked);
 
   protected:
-    virtual void closeEvent(QCloseEvent *e) override;
+    virtual void showEvent(QShowEvent *event) override;
+    virtual void closeEvent(QCloseEvent *event) override;
 
   private:
     /** \brief Helper method to initialize the view widget.
@@ -116,7 +121,7 @@ namespace ESPINA
 
     View3D                    m_view3D;
     QToolBar                  m_toolbar;
-    RepresentationSwitchSList m_switches;
+    ToolGroup                 m_representations;
   };
 
 } // namespace ESPINA

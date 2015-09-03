@@ -35,7 +35,7 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 : ProgressTool(engine->id(), icon, tr("Color by %1").arg(engine->tooltip()), context)
 , m_engine(engine)
 {
-  setGroupWith("colorEngine");
+  setOrder("0", "1-ColorBy");
 
   setCheckable(true);
 
@@ -48,15 +48,13 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, 
 //------------------------------------------------------------------------
 void ColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto checked = checkSetting(settings);
-
-  setChecked(checked);
+  restoreCheckedState(settings);
 }
 
 //------------------------------------------------------------------------
 void ColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
 {
-  saveCheckSetting(settings);
+  saveCheckedState(settings);
 }
 
 //------------------------------------------------------------------------
