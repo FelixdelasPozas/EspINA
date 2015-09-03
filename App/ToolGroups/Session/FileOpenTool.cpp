@@ -180,7 +180,12 @@ void FileOpenTool::load(const QStringList &files)
 
   qDebug() << QString("File Loaded in %1m%2s").arg(mins).arg(secs);
 
-  emit analysisLoaded(analysis);
+  reporter.setProgress(100);
+
+  if(analysis)
+  {
+    emit analysisLoaded(analysis);
+  }
 }
 
 

@@ -471,16 +471,15 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   setWindowTitle(referenceFile);
 
   m_saveTool->setSaveFilename(referenceFile);
-
- if (referenceFile.endsWith(".seg", Qt::CaseInsensitive))
- {
-   m_saveTool->setEnabled(files.size() == 1);
- }
- else
- {
-   m_saveTool->setEnabled(false);
-   m_saveAsTool->setSaveFilename(referenceFile);
- }
+  if(referenceFile.endsWith(".seg", Qt::CaseInsensitive))
+  {
+    m_saveTool->setEnabled(files.size() == 1);
+  }
+  else
+  {
+    m_saveTool->setEnabled(false);
+    m_saveAsTool->setSaveFilename(referenceFile);
+  }
 
   if(!m_context.model()->isEmpty())
   {
