@@ -368,10 +368,10 @@ void EditToolGroup::initFillHolesTool()
 //-----------------------------------------------------------------------------
 void EditToolGroup::initImageLogicTools()
 {
-  auto addition  = std::make_shared<ImageLogicTool>("Merge", ":/espina/add.svg",    tr("Merge Selected Segmentations"),     getContext());
+  auto addition  = std::make_shared<ImageLogicTool>("Merge", ":/espina/logical_union.svg",    tr("Merge Selected Segmentations"),     getContext());
   addition->setOperation(ImageLogicFilter::Operation::ADDITION);
 
-  auto substract = std::make_shared<ImageLogicTool>("Substract", ":/espina/remove.svg", tr("Substract Selected Segmentations"), getContext());
+  auto substract = std::make_shared<ImageLogicTool>("Substract", ":/espina/logical_difference.svg", tr("Substract Selected Segmentations"), getContext());
   substract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
 
   addition->setOrder("3-0");

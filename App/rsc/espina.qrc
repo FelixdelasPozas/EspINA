@@ -65,6 +65,8 @@
     <file>measure_selection.svg</file>    
     <file>morphological_dilate.svg</file>
     <file>morphological_erode.svg</file>
+    <file>logical_union.svg</file>
+    <file>logical_difference.svg</file>
     <file>multi_stroke.svg</file>
     <file>tag_create.svg</file>
     <file>next_segmentation.svg</file>
