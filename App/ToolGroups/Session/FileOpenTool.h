@@ -55,7 +55,7 @@ namespace ESPINA
     /** \brief Returns the list of files that has been loaded/try to load in the last attempt.
      *
      */
-    QStringList files() const;
+    QStringList loadedFiles() const;
 
   public slots:
     /** \brief Load requested file
@@ -81,7 +81,7 @@ namespace ESPINA
 
   private:
     EspinaErrorHandlerSPtr    m_errorHandler;  /** application error handler */
-    QStringList               m_selectedFiles; /** list of file names to be loaded in the task. */
+    QStringList               m_loadedFiles; /** list of file names to be loaded in the task. */
   };
 }
 

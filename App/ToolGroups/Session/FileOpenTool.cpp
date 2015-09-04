@@ -45,9 +45,9 @@ FileOpenTool::FileOpenTool(const QString& id, const QString& icon, const QString
 }
 
 //----------------------------------------------------------------------------
-QStringList FileOpenTool::files() const
+QStringList FileOpenTool::loadedFiles() const
 {
-  return m_selectedFiles;
+  return m_loadedFiles;
 }
 
 //----------------------------------------------------------------------------
@@ -58,11 +58,11 @@ void FileOpenTool::onTriggered()
 
   RecentDocuments recent;
 
-  m_selectedFiles = DefaultDialogs::OpenFiles(title, filter, DefaultDialogs::DefaultPath(), recent.recentDocumentUrls());
+  auto files = DefaultDialogs::OpenFiles(title, filter, DefaultDialogs::DefaultPath(), recent.recentDocumentUrls());
 
-  if (!m_selectedFiles.isEmpty())
+  if (!files.isEmpty())
   {
-    load(m_selectedFiles);
+    load(files);
   }
 }
 
@@ -83,7 +83,7 @@ void FileOpenTool::load(const QStringList &files)
   AnalysisSPtr analysis;
 
   QList<AnalysisSPtr> analyses;
-  QStringList loadedFiles, failedFiles;
+  QStringList failedFiles;
 
   auto factory = getContext().factory();
 
@@ -119,7 +119,7 @@ void FileOpenTool::load(const QStringList &files)
     {
       analyses << factory->read(reader, file, &reporter, m_errorHandler);
 
-      loadedFiles << file;
+      m_loadedFiles << file;
 
       if (!autoSave.isAutoSaveFile(file))
       {

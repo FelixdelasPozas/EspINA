@@ -462,7 +462,7 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   analyzeChannelEdges();
 
-  auto files = m_openFileTool->files();
+  auto files = m_openFileTool->loadedFiles();
 
   Q_ASSERT(!files.isEmpty());
   auto referenceFile = files.first();
@@ -726,7 +726,7 @@ void EspinaMainWindow::createSessionToolGroup()
 {
   m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
 
-  m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open Analysis"), m_context, m_errorHandler);
+  m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open File"), m_context, m_errorHandler);
   m_openFileTool->setShortcut(Qt::CTRL+Qt::Key_O);
   m_openFileTool->setOrder("0-0", "1-Session");
 
@@ -736,7 +736,7 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(&m_autoSave,          SIGNAL(restoreFromFile(QString)),
           m_openFileTool.get(), SLOT(loadAnalysis(QString)));
 
-  auto importTool = std::make_shared<FileOpenTool>("FileAdd", ":/espina/file_add.svg", tr("Import To Analysis"), m_context, m_errorHandler);
+  auto importTool = std::make_shared<FileOpenTool>("FileAdd", ":/espina/file_add.svg", tr("Import File"), m_context, m_errorHandler);
   importTool->setShortcut(Qt::CTRL+Qt::Key_I);
   importTool->setOrder("0-1", "1-Session");
 
