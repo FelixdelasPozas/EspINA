@@ -469,6 +469,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   setWindowTitle(referenceFile);
 
+  updateUndoStackIndex();
+
   m_saveTool->setSaveFilename(referenceFile);
   m_saveTool->setEnabled(files.size() == 1 && referenceFile.endsWith(".seg", Qt::CaseInsensitive));
 
