@@ -43,28 +43,20 @@ FileSaveTool::FileSaveTool(const QString &id,
                            Context       &context,
                            AnalysisSPtr  &analysis,
                            EspinaErrorHandlerSPtr handler)
-: ProgressTool(id, icon, tooltip, context)
-, m_analysis(analysis)
+: ProgressTool  (id, icon, tooltip, context)
+, m_analysis    (analysis)
 , m_errorHandler{handler}
+, m_askAlways   {false}
 {
   setEnabled(false);
 
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(saveAnalysis()));
-
-//   updateUndoStackIndex();
-
 }
 
 //----------------------------------------------------------------------------
 FileSaveTool::~FileSaveTool()
 {
-}
-
-//----------------------------------------------------------------------------
-void FileSaveTool::updateUndoStackIndex()
-{
-  m_undoStackIndex = getContext().undoStack()->index();
 }
 
 //----------------------------------------------------------------------------
@@ -78,11 +70,14 @@ const QString FileSaveTool::saveFilename() const
 {
   auto filename = m_filename;
 
-  if (!filename.endsWith(".seg"))
+  if (!filename.endsWith(".seg") || m_askAlways)
   {
     QFileInfo file = filename;
 
-    filename = file.baseName() + ".seg";
+    if(!filename.endsWith(".seg"))
+    {
+      filename = file.baseName() + ".seg";
+    }
 
     filename = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
                                         SupportedFormats().addSegFormat(),
@@ -92,6 +87,12 @@ const QString FileSaveTool::saveFilename() const
   }
 
   return filename;
+}
+
+//----------------------------------------------------------------------------
+void FileSaveTool::setAlwaysAskUser(bool value)
+{
+  m_askAlways = value;
 }
 
 //----------------------------------------------------------------------------

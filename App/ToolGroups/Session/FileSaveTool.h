@@ -71,6 +71,11 @@ namespace ESPINA
      */
     void updateUndoStackIndex();
 
+    /** \brief Sets the behaviour of the tool regarding asking the user.
+     * \param[in] value true to always ask for the file name, and false otherwise.
+     *
+     */
+    void setAlwaysAskUser(bool value);
 
   public slots:
     void saveAnalysis();
@@ -91,9 +96,7 @@ namespace ESPINA
   private:
     AnalysisSPtr          &m_analysis;
     EspinaErrorHandlerSPtr m_errorHandler;
-
-
-    int m_undoStackIndex; /** application undo stack index at the time of autosave. */
+    bool                   m_askAlways;
   };
 } // namespace ESPINA
 

@@ -404,7 +404,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
-  m_saveTool->updateUndoStackIndex();
   m_saveTool->setSaveFilename("");
 
   m_context.model()->clear();
@@ -471,15 +470,11 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   setWindowTitle(referenceFile);
 
   m_saveTool->setSaveFilename(referenceFile);
-  if(referenceFile.endsWith(".seg", Qt::CaseInsensitive))
-  {
-    m_saveTool->setEnabled(files.size() == 1);
-  }
-  else
-  {
-    m_saveTool->setEnabled(false);
-    m_saveAsTool->setSaveFilename(referenceFile);
-  }
+  m_saveTool->setEnabled(files.size() == 1 && referenceFile.endsWith(".seg", Qt::CaseInsensitive));
+
+  m_saveAsTool->setSaveFilename(referenceFile);
+
+  m_autoSave.resetCountDown();
 
   if(!m_context.model()->isEmpty())
   {
@@ -762,6 +757,7 @@ void EspinaMainWindow::createSessionToolGroup()
 
   m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save Analysis As"), m_context, m_analysis, m_errorHandler);
   m_saveAsTool->setOrder("1-1", "1_FileGroup");
+  m_saveAsTool->setAlwaysAskUser(true);
 
   connect(m_saveAsTool.get(), SIGNAL(aboutToSaveSession()),
           this,               SLOT(onAboutToSaveSession()));
@@ -1182,7 +1178,7 @@ void EspinaMainWindow::onAboutToSaveSession()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onSessionSaved(const QString &filename)
 {
-  if (m_autoSave.isAutoSaveFile(filename))
+  if (!m_autoSave.isAutoSaveFile(filename))
   {
     updateStatus(tr("File saved successfully as %1").arg(filename));
 
@@ -1190,6 +1186,11 @@ void EspinaMainWindow::onSessionSaved(const QString &filename)
     setWindowTitle(file.fileName());
 
     m_saveTool->setSaveFilename(filename);
+    m_saveAsTool->setSaveFilename(filename);
+
+    m_autoSave.resetCountDown();
+
+    updateUndoStackIndex();
 
     RecentDocuments recent;
     recent.addDocument(filename);
