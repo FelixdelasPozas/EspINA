@@ -27,7 +27,7 @@
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <Support/Widgets/RefineTool.h>
+#include <Support/Widgets/EditTool.h>
 #include <Support/Context.h>
 
 // Qt
@@ -45,7 +45,7 @@ using namespace ESPINA::GUI::View::Widgets;
 namespace ESPINA
 {
   class SplitTool
-  : public Support::Widgets::RefineTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
 

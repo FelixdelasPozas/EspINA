@@ -42,7 +42,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Support/Widgets/RefineTool.h>
+#include <Support/Widgets/EditTool.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 #include <Undo/ModifyDataCommand.h>
@@ -57,10 +57,10 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 
 
-const QString DILATE_RADIUS("RefineTools::DilateRadius");
-const QString ERODE_RADIUS ("RefineTools::ErodeRadius");
-const QString OPEN_RADIUS  ("RefineTools::OpenRadius");
-const QString CLOSE_RADIUS ("RefineTools::CloseRadius");
+const QString DILATE_RADIUS("EditTools::DilateRadius");
+const QString ERODE_RADIUS ("EditTools::ErodeRadius");
+const QString OPEN_RADIUS  ("EditTools::OpenRadius");
+const QString CLOSE_RADIUS ("EditTools::CloseRadius");
 
 //   ESPINA_SETTINGS(settings);
 //   m_erode .setRadius(settings.value(ERODE_RADIUS,  3).toInt());

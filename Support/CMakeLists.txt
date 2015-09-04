@@ -19,7 +19,7 @@ qt4_wrap_cpp(Support_MOC
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
   Widgets/ProgressTool.h
-  Widgets/RefineTool.h
+  Widgets/EditTool.h
   Widgets/PanelSwitch.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -82,7 +82,7 @@ set (Support_SOURCES
   Widgets/ProgressTool.cpp
   Widgets/PanelSwitch.cpp
   Widgets/ColorEngineSwitch.cpp
-  Widgets/RefineTool.cpp
+  Widgets/EditTool.cpp
   )
 
 set(Support_EXTERNAL_LIBS

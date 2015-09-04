@@ -20,12 +20,12 @@
 #ifndef ESPINA_FILL_HOLES_TOOL_H
 #define ESPINA_FILL_HOLES_TOOL_H
 
-#include <Support/Widgets/RefineTool.h>
+#include <Support/Widgets/EditTool.h>
 
 namespace ESPINA
 {
   class FillHolesTool
-  : public Support::Widgets::RefineTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
   public:

@@ -43,7 +43,7 @@ CODEToolBase::CODEToolBase(const Filter::Type type,
                            const QString     &icon,
                            const QString     &tooltip,
                            Support::Context  &context)
-: RefineTool(toolId, icon, tooltip, context)
+: EditTool(toolId, icon, tooltip, context)
 , m_type{type}
 , m_name{name}
 {

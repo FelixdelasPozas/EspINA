@@ -31,7 +31,7 @@ const Filter::Type SUBSTRACTION_FILTER = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 ImageLogicTool::ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context)
-: RefineTool(id, icon, tooltip, context)
+: EditTool(id, icon, tooltip, context)
 , m_operation(ImageLogicFilter::Operation::ADDITION)
 {
   connect(this, SIGNAL(triggered(bool)),
@@ -59,7 +59,7 @@ bool ImageLogicTool::acceptsNInputs(int n) const
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return RefineTool::acceptsVolumetricSegmenations(segmentations);
+  return EditTool::acceptsVolumetricSegmenations(segmentations);
 }
 
 //------------------------------------------------------------------------

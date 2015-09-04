@@ -45,10 +45,7 @@ using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(Support::Context &context)
-: ProgressTool("FreehandEdition", ":espina/manual_edition.svg", tr("Freehand Edition"), context)
-, m_model        {context.model()}
-, m_factory      {context.factory()}
-, m_colorEngine  {context.colorEngine()}
+: EditTool("FreehandEdition", ":espina/manual_edition.svg", tr("Freehand Edition"), context)
 , m_drawingWidget(context.viewState(), context.model())
 , m_referenceItem{nullptr}
 , m_currentHandler{nullptr}
@@ -62,9 +59,6 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
   m_drawingWidget.showCategoryControls(false);
 
   addSettingsWidget(&m_drawingWidget);
-
-  connect(getSelection().get(), SIGNAL(selectionChanged()),
-          this,                 SLOT(onSelectionChanged()));
 
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
@@ -90,37 +84,11 @@ void ManualEditionTool::abortOperation()
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::onSelectionChanged()
+void ManualEditionTool::updateReferenceItem(SegmentationAdapterPtr segmentation) const
 {
-  auto segmentations = getSelectedSegmentations();
-
-  bool validSelection = true;
-
-  if (segmentations.size() != 1)
-  {
-    validSelection = false;
-  }
-  else if (selectedSegmentation()->isBeingModified())
-  {
-    validSelection = false;
-  }
-
-  if (validSelection)
-  {
-    updateReferenceItem();
-  }
-
-  setEnabled(validSelection);
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::updateReferenceItem() const
-{
-  ViewItemAdapterPtr currentItem = m_referenceItem;
-
-  auto segmentation  = selectedSegmentation();
-  auto category      = segmentation->category();
-  auto brushColor    = m_colorEngine->color(segmentation);
+  auto currentItem = m_referenceItem;
+  auto category    = segmentation->category();
+  auto brushColor  = getContext().colorEngine()->color(segmentation);
 
   m_drawingWidget.setCategory(category);
   m_drawingWidget.clearBrushImage();
@@ -157,17 +125,17 @@ SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
   Q_ASSERT(m_referenceItem);
 
   auto segmentation = reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem);
-  return m_model->smartPointer(segmentation);
+  return getModel()->smartPointer(segmentation);
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterPtr ManualEditionTool::selectedSegmentation() const
+bool ManualEditionTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  auto selection = getSelectedSegmentations();
+  Q_ASSERT(segmentations.size() == 1);
 
-  Q_ASSERT(!selection.isEmpty());
+  updateReferenceItem(segmentations.first());
 
-  return selection.first();
+  return true;
 }
 
 //------------------------------------------------------------------------
@@ -225,7 +193,7 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
       ++it;
     }
 
-    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_colorEngine);
+    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(getContext().colorEngine());
 
     m_temporalPipeline->setTemporalActor(actor, view);
     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
@@ -262,10 +230,10 @@ void ManualEditionTool::onPainterChanged(MaskPainterSPtr painter)
 //------------------------------------------------------------------------
 void ManualEditionTool::onEventHandlerActivated(bool inUse)
 {
-  if(inUse)
-  {
-    onSelectionChanged();
-  }
+//   if(inUse)
+//   {
+//     onSelectionChanged();
+//   }
 }
 
 //------------------------------------------------------------------------

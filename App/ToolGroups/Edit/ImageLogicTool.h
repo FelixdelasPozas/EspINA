@@ -20,13 +20,13 @@
 #ifndef ESPINA_IMAGE_LOGIC_TOOL_H
 #define ESPINA_IMAGE_LOGIC_TOOL_H
 
-#include <Support/Widgets/RefineTool.h>
+#include <Support/Widgets/EditTool.h>
 #include <Filters/ImageLogicFilter.h>
 
 namespace ESPINA
 {
   class ImageLogicTool
-  : public Support::Widgets::RefineTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
   public:

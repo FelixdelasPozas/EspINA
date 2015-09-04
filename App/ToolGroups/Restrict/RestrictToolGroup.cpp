@@ -200,10 +200,12 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
   addTool(m_freehandROI);
   addTool(m_deleteROI);
 
-  connect(m_freehandROI.get(),    SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
-          this,                     SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
+  connect(m_freehandROI.get(), SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
+          this,                SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
   connect(m_orthogonalROI.get(), SIGNAL(roiDefined(ROISPtr)),
-          this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
+          this,                  SLOT(onOrthogonalROIDefined(ROISPtr)));
+
+  m_deleteROI->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------

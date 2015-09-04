@@ -109,7 +109,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_colorLabel      {new QLabel(tr("Pixel Color:"))}
 , m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}
-, m_applyClose      {Styles::createToolButton(":espina/close.png", tr("Apply close"))}
+, m_applyClose      {Styles::createToolButton(":espina/morphological_close.svg", tr("Apply close"))}
 , m_close           {new NumericalInput()}
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}

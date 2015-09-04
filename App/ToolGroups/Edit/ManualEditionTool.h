@@ -22,7 +22,7 @@
 #define ESPINA_MANUAL_EDITION_TOOL_H_
 
 // ESPINA
-#include <Support/Widgets/ProgressTool.h>
+#include <Support/Widgets/EditTool.h>
 #include <Support/Context.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -39,7 +39,7 @@ using namespace ESPINA::GUI::View;
 namespace ESPINA
 {
   class ManualEditionTool
-  : public Support::Widgets::ProgressTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
 
@@ -61,20 +61,20 @@ namespace ESPINA
 
     virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
+    void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
+
   signals:
     void voxelsDeleted(ViewItemAdapterPtr item);
-
-  public slots:
-    void onSelectionChanged();
-
-    void updateReferenceItem() const;
 
   private:
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
-    SegmentationAdapterPtr selectedSegmentation() const;
+    virtual bool acceptsNInputs(int n) const
+    { return n == 1; }
+
+    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
@@ -88,11 +88,7 @@ namespace ESPINA
      */
     void onEventHandlerActivated(bool inUse);
 
-  protected:
-    ModelAdapterSPtr  m_model;
-    ModelFactorySPtr  m_factory;
-    GUI::ColorEngines::ColorEngineSPtr   m_colorEngine;
-
+  private:
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     // mutable needed by updateReferenceItem() const

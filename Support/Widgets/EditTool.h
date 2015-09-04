@@ -33,17 +33,17 @@ namespace ESPINA
   {
     namespace Widgets
     {
-      class RefineTool
+      class EditTool
       : public ProgressTool
       {
         Q_OBJECT
       public:
-        explicit RefineTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context);
+        explicit EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context);
 
-        /** \brief RefineTools class destructor.
+        /** \brief EditTools class destructor.
          *
          */
-        virtual ~RefineTool();
+        virtual ~EditTool();
 
         virtual void onToolGroupActivated() override;
 

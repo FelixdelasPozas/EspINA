@@ -117,6 +117,12 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 }
 
 //------------------------------------------------------------------------
+QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
+{
+  return tr("Delete %1").arg(isSegmentation(item.get())?"segmentation":"channel");
+}
+
+//------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 : Task{scheduler}
 , m_finishedTasks{0}
@@ -190,12 +196,6 @@ void CheckAnalysis::addIssue(IssueSPtr issue)
   QMutexLocker lock(&m_progressMutex);
 
   m_issues << issue;
-}
-
-//------------------------------------------------------------------------
-QString deleteHint(NeuroItemAdapterSPtr item)
-{
-  return QObject::tr("Delete %1").arg(isSegmentation(item.get())?"segmentation":"channel");
 }
 
 //------------------------------------------------------------------------
@@ -274,6 +274,10 @@ void CheckSegmentationTask::checkVolumeIsEmpty() const
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
+  else
+  {
+    checkDataBounds(volume);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -286,6 +290,10 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
     auto description = tr("Segmentation has a mesh associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+  else
+  {
+    checkDataBounds(mesh);
   }
 }
 

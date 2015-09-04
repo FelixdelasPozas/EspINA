@@ -66,6 +66,8 @@ namespace ESPINA
 
     void reportIssue(NeuroItemAdapterPtr item, Extensions::IssueSPtr issue) const;
 
+    QString deleteHint(NeuroItemAdapterSPtr item) const;
+
   signals:
     /** \brief Signal emitted when a issue has been found with the item being checked.
      * \param[out] issue found
@@ -129,10 +131,21 @@ namespace ESPINA
     : CheckTask{scheduler, model}
     , m_item(item)
     {
-      setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
+      setDescription(tr("Checking %1").arg(item->data().toString())); // for debugging, the user will never see this
     }
 
   protected:
+    template<typename T>
+    void checkDataBounds(Output::ReadLockData<T> &data) const
+    {
+      if (!data->bounds().areValid())
+      {
+        auto description = tr("%1 has invalid bounds.").arg(data->type());
+
+        reportIssue(m_item, Extensions::Issue::Severity::CRITICAL, description, deleteHint(m_item));
+      }
+    }
+
     /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
      *
      */

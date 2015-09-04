@@ -93,7 +93,7 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
-: RefineTool("Split", ":/espina/planar_split.svg", tr("Split Segmentation"), context)
+: EditTool("Split", ":/espina/planar_split.svg", tr("Split Segmentation"), context)
 , m_handler{new PlanarSplitEventHandler()}
 {
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
@@ -337,5 +337,5 @@ bool SplitTool::acceptsNInputs(int n) const
 //------------------------------------------------------------------------
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return RefineTool::acceptsVolumetricSegmenations(segmentations);
+  return EditTool::acceptsVolumetricSegmenations(segmentations);
 }

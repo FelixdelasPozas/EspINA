@@ -23,7 +23,7 @@
 #define ESPINA_CODE_TOOL_H
 
 // ESPINA
-#include <Support/Widgets/RefineTool.h>
+#include <Support/Widgets/EditTool.h>
 
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Widgets/NumericalInput.h>
@@ -33,7 +33,7 @@
 namespace ESPINA {
 
   class CODEToolBase
-  : public Support::Widgets::RefineTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
 

@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include "RefineTool.h"
+#include "EditTool.h"
 
 
 // Qt
@@ -32,7 +32,7 @@ using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
-RefineTool::RefineTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context)
+EditTool::EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context)
 : ProgressTool(id, icon, tooltip, context)
 {
   connect(getSelection().get(), SIGNAL(selectionChanged()),
@@ -40,12 +40,12 @@ RefineTool::RefineTool(const QString &id, const QString& icon, const QString& to
 }
 
 //------------------------------------------------------------------------
-RefineTool::~RefineTool()
+EditTool::~EditTool()
 {
 }
 
 //------------------------------------------------------------------------
-bool RefineTool::acceptsVolumetricSegmenations(SegmentationAdapterList segmentations)
+bool EditTool::acceptsVolumetricSegmenations(SegmentationAdapterList segmentations)
 {
   bool hasRequiredData = true;
 
@@ -58,7 +58,7 @@ bool RefineTool::acceptsVolumetricSegmenations(SegmentationAdapterList segmentat
 }
 
 //------------------------------------------------------------------------
-void RefineTool::updateStatus()
+void EditTool::updateStatus()
 {
   auto selection = getSelectedSegmentations();
 
@@ -68,19 +68,19 @@ void RefineTool::updateStatus()
 }
 
 //------------------------------------------------------------------------
-void RefineTool::onToolGroupActivated()
+void EditTool::onToolGroupActivated()
 {
   updateStatus();
 }
 
 //------------------------------------------------------------------------
-bool RefineTool::acceptsSelection(SegmentationAdapterList segmentations)
+bool EditTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
   return true;
 }
 
 //------------------------------------------------------------------------
-bool RefineTool::selectionIsNotBeingModified(SegmentationAdapterList segmentations)
+bool EditTool::selectionIsNotBeingModified(SegmentationAdapterList segmentations)
 {
   bool beingModified = false;
 
