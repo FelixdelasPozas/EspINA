@@ -39,6 +39,12 @@ AutoSave::AutoSave()
 }
 
 //------------------------------------------------------------------------
+AutoSave::~AutoSave()
+{
+  clear();
+}
+
+//------------------------------------------------------------------------
 void AutoSave::setPath(const QDir& path)
 {
   if (!path.exists())
@@ -62,7 +68,7 @@ void AutoSave::setInterval(const unsigned int minutes)
 }
 
 //------------------------------------------------------------------------
-unsigned int AutoSave::interval() const
+int AutoSave::interval() const
 {
   return m_timer.interval()/60/1000;
 }

@@ -20,31 +20,51 @@
 #ifndef ESPINA_AUTOSAVE_H
 #define ESPINA_AUTOSAVE_H
 
+// Qt
 #include <QDir>
 #include <QTimer>
 
 class QString;
-namespace ESPINA {
-
+namespace ESPINA
+{
   class AutoSave
   : public QObject
   {
     Q_OBJECT
 
   public:
+    /** \brief AutoSave class constructor.
+     *
+     */
     AutoSave();
 
+    /** \brief AutoSave class destructor.
+     *
+     */
+    ~AutoSave();
+
+    /** \brief Sets the path for the auto save file.
+     * \param[in] path file system path for the auto save file.
+     *
+     */
     void setPath(const QDir &path);
 
+    /** \brief Returns the path for the auto save file.
+     *
+     */
     QDir path() const
     { return m_path; }
 
     /** \brief Sets the time interval for auto save events
+     * \param[in] minutes time interval in minutes.
      *
      */
     void setInterval(const unsigned int minutes);
 
-    unsigned int interval() const;
+    /** \brief Returns the time interval for auto save events.
+     *
+     */
+    int interval() const;
 
     /** \brief Resets time to next auto save event
      *
@@ -66,6 +86,9 @@ namespace ESPINA {
      */
     void clear();
 
+    /** \brief Returns true if the given filename is equal to the auto save file.
+     *
+     */
     bool isAutoSaveFile(const QString &filename);
 
   signals:
@@ -74,6 +97,9 @@ namespace ESPINA {
     void saveToFile(const QString);
 
   private slots:
+    /** \brief Resets the timer and emits the save signal.
+     *
+     */
     void autoSave();
 
   private:

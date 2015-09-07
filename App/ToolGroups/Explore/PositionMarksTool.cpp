@@ -208,10 +208,21 @@ void PositionMarksTool::apply()
 {
   auto bookmark = m_bookmarks.at(m_combobox->currentIndex());
 
+  NmVector3 crosshair;
+  auto spacing = getContext().viewState().coordinateSystem()->resolution();
+
   for(auto view: m_views)
   {
     view->setCameraState(bookmark.states[view->viewName()]);
+    auto plane = bookmark.states[view->viewName()].plane;
+    if(plane != Plane::UNDEFINED)
+    {
+      auto index = normalCoordinateIndex(plane);
+      crosshair[index] = bookmark.states[view->viewName()].slice * spacing[index];
+    }
   }
+
+  getContext().viewState().setCrosshair(crosshair);
 }
 
 //-----------------------------------------------------------------------------

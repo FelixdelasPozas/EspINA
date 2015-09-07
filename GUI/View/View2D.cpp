@@ -1069,7 +1069,11 @@ void View2D::setCameraState(CameraState state)
     camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
     camera->Zoom(viewHeightLength() / state.heightLength);
 
-    m_scrollBar->setValue(state.slice);
+    // NOTE: next line removed to avoid several changes in the crosshair. Just one change in the crosshair
+    // is made from PositionMarks tool. If used outside the positions tool a manual crosshair change must
+    // be made. TODO: review when Managers class has been refactorized.
+    //
+    // m_scrollBar->setValue(state.slice);
 
     refresh();
   }

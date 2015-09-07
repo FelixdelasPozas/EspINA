@@ -86,7 +86,7 @@ void View3D::buildViewActionsButtons()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_cameraReset = createButton(QString(":/espina/reset_view.svng"), tr("Reset View"));
+  m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(onCameraResetPressed()));
 
