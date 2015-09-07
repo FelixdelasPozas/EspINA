@@ -42,7 +42,7 @@ namespace ESPINA
   class Dialog3D;
 
   class DefaultView
-  : QWidget
+  : public QWidget
   {
     Q_OBJECT
   public:
@@ -69,12 +69,12 @@ namespace ESPINA
     /** \brief Returns a reference to the XZ panel
      *
      */
-    DockWidget *panelXZ();
+    Panel *panelXZ();
 
     /** \brief Returns a reference to the YZ panel
      *
      */
-    DockWidget *panelYZ();
+    Panel *panelYZ();
 
     /** \brief Returns a reference to the 3D dialog.
      *
@@ -89,7 +89,7 @@ namespace ESPINA
     /* Used by other classes */
     static const QString FIT_TO_SLICES_KEY;
 
-  private slots:
+  public slots:
     /** \brief Shows/hides the view's ruler.
      * \param[in] visible true to show the ruler, false to hide.
      */
@@ -131,7 +131,7 @@ namespace ESPINA
 
     QList<RenderView *> m_views;
 
-    DockWidget  *m_panelYZ, *m_panelXZ;
+    Panel  *m_panelYZ, *m_panelXZ;
     Dialog3D    *m_dialog3D;
   };
 

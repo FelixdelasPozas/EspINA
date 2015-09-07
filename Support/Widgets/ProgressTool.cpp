@@ -23,6 +23,7 @@
 #include <QPushButton>
 #include <QAction>
 #include <QHBoxLayout>
+#include <QGraphicsWidget>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
@@ -70,7 +71,7 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
 , m_action    {new ProgressAction(icon, tooltip, this)}
 , m_settings  {new ProgressTool::NestedWidgets(this)}
 , m_isExlusive{false}
-, m_groupName {"zzzzzzzz"}
+, m_groupName {""}
 , m_id        {id}
 {
   connect(m_action, SIGNAL(toggled(bool)),
@@ -133,9 +134,10 @@ void ProgressTool::setExclusive(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::setGroupWith(const QString& name)
+void ProgressTool::setOrder(const QString& name, const QString& group)
 {
-  m_groupName = name;
+  m_positionName = name;
+  m_groupName    = group;
 }
 
 //----------------------------------------------------------------------------
@@ -145,9 +147,15 @@ QString ProgressTool::groupWith() const
 }
 
 //----------------------------------------------------------------------------
+QString ProgressTool::positionName() const
+{
+  return m_positionName + "-" + id();
+}
+
+//----------------------------------------------------------------------------
 void ProgressTool::setToolTip(const QString &tooltip)
 {
-  m_action->setToolTip(tooltip);
+  m_action->setActionToolTip(tooltip);
 }
 
 //----------------------------------------------------------------------------
@@ -311,14 +319,31 @@ QKeySequence ProgressTool::shortcut() const
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::saveCheckSetting(std::shared_ptr<QSettings> settings)
+void ProgressTool::saveCheckedState(std::shared_ptr<QSettings> settings)
 {
   settings->setValue(TOOL_ENABLED_KEY, isChecked());
 }
 
 //----------------------------------------------------------------------------
-bool ProgressTool::checkSetting(std::shared_ptr<QSettings> settings)
+void ProgressTool::restoreCheckedState(std::shared_ptr<QSettings> settings)
 {
-  return settings->value(TOOL_ENABLED_KEY, false).toBool();
+  auto checked = settings->value(TOOL_ENABLED_KEY, false).toBool();
+
+  if(checked != isChecked())
+  {
+    setChecked(checked);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ProgressTool::setIcon(const QIcon icon)
+{
+  m_action->setActionIcon(icon);
+}
+
+//----------------------------------------------------------------------------
+QIcon ProgressTool::icon() const
+{
+  return m_action->icon();
 }
 

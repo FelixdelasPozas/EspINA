@@ -254,7 +254,7 @@ void RenderView::takeSnapshot()
     {
       auto message = tr("Snapshot not exported. Unrecognized extension ");
 
-      DefaultDialogs::InformationMessage(title, message);
+      DefaultDialogs::InformationMessage(message, title);
     }
   }
 }

@@ -26,7 +26,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ReportsTool::ReportsTool(Support::Context &context)
-: ProgressTool("ReportsTool", ":/espina/reports.svg", tr("Create Reports"), context)
+: ProgressTool("CreateReports", ":/espina/reports.svg", tr("Create Reports"), context)
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered(bool)));

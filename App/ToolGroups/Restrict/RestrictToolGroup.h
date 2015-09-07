@@ -38,9 +38,9 @@ namespace ESPINA
 {
 
   class ROISettings;
-  class ManualROITool;
+  class FreehandROITool;
   class OrthogonalROITool;
-  class CleanROITool;
+  class DeleteROITool;
 
   /// Seed Growing Segmentation Plugin
   class RestrictToolGroup
@@ -124,16 +124,16 @@ namespace ESPINA
     class ConsumeROICommand;
 
   private:
-    using ManualROIToolSPtr      = std::shared_ptr<ManualROITool>;
+    using FreehandROIToolSPtr      = std::shared_ptr<FreehandROITool>;
     using OrthogonalROIToolSPtr  = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr       = std::shared_ptr<CleanROITool>;
+    using CleanROIToolSPtr       = std::shared_ptr<DeleteROITool>;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
     Support::Context &m_context;
 
-    ManualROIToolSPtr     m_manualROITool;
-    OrthogonalROIToolSPtr m_ortogonalROITool;
-    CleanROIToolSPtr      m_cleanROITool;
+    FreehandROIToolSPtr     m_freehandROI;
+    OrthogonalROIToolSPtr m_orthogonalROI;
+    CleanROIToolSPtr      m_deleteROI;
 
     bool   m_enabled;
     bool   m_visible;

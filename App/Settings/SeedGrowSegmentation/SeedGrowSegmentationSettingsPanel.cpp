@@ -59,7 +59,8 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
   m_ySize->setEnabled(!settings->applyCategoryROI());
   m_zSize->setEnabled(!settings->applyCategoryROI());
 
-  m_applyClosing->setEnabled(settings->applyClose());
+  m_applyClosing->setChecked(settings->applyClose());
+  m_closing->setEnabled(m_applyClosing->isChecked());
   m_closing->setValue(settings->closeRadius());
 
   connect(m_applyCategoryROI, SIGNAL(stateChanged(int)),
@@ -104,13 +105,14 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
   ESPINA_SETTINGS(settings);
 
   bool returnValue = false;
+
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
   returnValue |= (m_zSize->value() != m_settings->zSize());
   returnValue |= (m_applyCategoryROI->isChecked() != m_settings->applyCategoryROI());
   returnValue |= (m_pixelSelector->value()        != m_settings->bestPixelValue());
   returnValue |= (m_applyClosing->isChecked()     != m_settings->applyClose());
-  returnValue |= (m_applyClosing->isChecked() ? returnValue : (m_closing->value() != m_settings->closeRadius()));
+  returnValue |= (m_applyClosing->isChecked() ? (m_closing->value() != m_settings->closeRadius()) : returnValue);
 
   return returnValue;
 }

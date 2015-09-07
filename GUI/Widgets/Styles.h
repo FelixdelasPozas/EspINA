@@ -33,9 +33,33 @@ namespace ESPINA
   {
     namespace Widgets
     {
+      class ToolButton;
+
       namespace Styles
       {
-        const int CONTEXTUAL_BAR_HEIGHT = 44;
+        /** \brief Set the default cursor during the scope of its instances
+         *
+         */
+        class DefaultCursor
+        {
+        public:
+          DefaultCursor();
+
+          ~DefaultCursor();
+        };
+
+        /** \brief Set the waiting cursor during the scope of its instances
+         *
+         */
+        class WaitingCursor
+        {
+        public:
+          WaitingCursor();
+
+          ~WaitingCursor();
+        };
+
+        const int CONTEXTUAL_BAR_HEIGHT = 50;
 
         void setNestedStyle(QWidget *widget);
 
@@ -43,12 +67,12 @@ namespace ESPINA
 
         QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
 
-        QPushButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
+        ToolButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
 
-        QPushButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
+        ToolButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
 
         constexpr int buttonSize()
-        { return 30; }
+        { return 36; }
 
         constexpr int iconSize()
         { return 0.74*buttonSize(); }

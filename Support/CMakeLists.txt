@@ -15,11 +15,11 @@ qt4_wrap_cpp(Support_MOC
   Plugin.h
   Representations/RepresentationSwitch.h
   Representations/Slice3DManager.h
-  Widgets/DockWidget.h
+  Widgets/Panel.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
   Widgets/ProgressTool.h
-  Widgets/RefineTool.h
+  Widgets/EditTool.h
   Widgets/PanelSwitch.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -76,13 +76,13 @@ set (Support_SOURCES
   Context.cpp
   ContextFactories.cpp
   Widgets/ActionGroupWidget.cpp
-  Widgets/DockWidget.cpp
+  Widgets/Panel.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/ProgressTool.cpp
   Widgets/PanelSwitch.cpp
   Widgets/ColorEngineSwitch.cpp
-  Widgets/RefineTool.cpp
+  Widgets/EditTool.cpp
   )
 
 set(Support_EXTERNAL_LIBS

@@ -53,13 +53,13 @@ namespace ESPINA
     {}
 
     virtual const QString shortDescription() override
-    { return tr("Seed Grow Segmentation"); }
+    { return tr("Grey Level Segmentation"); }
 
     virtual const QString longDescription() override
-    { return tr("Seed Grow Segmentation"); }
+    { return tr("Create segmentation using similar grey level voxels."); }
 
     virtual const QIcon icon() override
-    { return QIcon(":/espina/bestPixelSelector.svg"); }
+    { return QIcon(":/espina/grey_level_segmentation.svg"); }
 
     virtual void acceptChanges() override;
 

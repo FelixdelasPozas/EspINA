@@ -31,6 +31,8 @@ namespace ESPINA
 {
   namespace IO
   {
+    class ProgressReporter;
+
     class EspinaCore_EXPORT AnalysisReader
     {
     public:
@@ -61,9 +63,10 @@ namespace ESPINA
        * \param[in] hander error handler smart pointer.
        *
        */
-      virtual AnalysisSPtr read(const QFileInfo& file,
-                                CoreFactorySPtr  factory,
-                                ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
+      virtual AnalysisSPtr read(const QFileInfo&  file,
+                                CoreFactorySPtr   factory,
+                                ProgressReporter *reporter = nullptr,
+                                ErrorHandlerSPtr  handler = ErrorHandlerSPtr()) = 0;
     };
   } // namespace IO
 

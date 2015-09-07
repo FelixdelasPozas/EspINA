@@ -28,6 +28,7 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Types.h>
 
 namespace ESPINA
@@ -43,7 +44,7 @@ namespace ESPINA
      * \param[in] flags dialog flags.
      *
      */
-    explicit GeneralSettingsDialog(QWidget *parent = nullptr,
+    explicit GeneralSettingsDialog(QWidget *parent = GUI::DefaultDialogs::defaultParentWidget(),
                                    Qt::WindowFlags flags  = 0);
 
     virtual void accept() override;

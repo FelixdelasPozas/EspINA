@@ -48,7 +48,7 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-class Panel::GUI
+class CF::Panel::GUI
 : public QWidget
 , public Ui::Panel
 {
@@ -59,7 +59,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-Panel::GUI::GUI()
+CF::Panel::GUI::GUI()
 {
   setupUi(this);
 
@@ -82,7 +82,7 @@ Panel::GUI::GUI()
 }
 
 //------------------------------------------------------------------------
-void Panel::GUI::setOffsetRanges(int min, int max)
+void CF::Panel::GUI::setOffsetRanges(int min, int max)
 {
   leftMargin ->setMinimum(min);
   leftMargin ->setMaximum(max);
@@ -101,7 +101,7 @@ void Panel::GUI::setOffsetRanges(int min, int max)
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
-class Panel::CFModel
+class CF::Panel::CFModel
 : public QAbstractTableModel
 {
 public:
@@ -168,7 +168,7 @@ private:
 };
 
 //------------------------------------------------------------------------
-QVariant Panel::CFModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant CF::Panel::CFModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (Qt::DisplayRole == role && Qt::Horizontal == orientation)
   {
@@ -187,7 +187,7 @@ QVariant Panel::CFModel::headerData(int section, Qt::Orientation orientation, in
 }
 
 //------------------------------------------------------------------------
-QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
+QVariant CF::Panel::CFModel::data(const QModelIndex& index, int role) const
 {
   auto cf = countingFrame(index);
   int  c  = index.column();
@@ -225,7 +225,7 @@ QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
 }
 
 //------------------------------------------------------------------------
-bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool CF::Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   if (Qt::EditRole == role)
   {
@@ -249,7 +249,7 @@ bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, in
 }
 
 //------------------------------------------------------------------------
-Qt::ItemFlags Panel::CFModel::flags(const QModelIndex& index) const
+Qt::ItemFlags CF::Panel::CFModel::flags(const QModelIndex& index) const
 {
   auto flags = QAbstractItemModel::flags(index);
 
@@ -264,12 +264,12 @@ Qt::ItemFlags Panel::CFModel::flags(const QModelIndex& index) const
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
-const QString Panel::ID = "CountingFrameExtension";
+const QString CF::Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
-Panel::Panel(CountingFrameManager *manager,
+CF::Panel::Panel(CountingFrameManager *manager,
              Support::Context &context)
-: DockWidget(tr("Counting Frame Dock"), context)
+: ESPINA::Panel(tr("Counting Frame Dock"), context)
 , m_manager  {manager}
 , m_context  (context)
 , m_gui      {new GUI()}
@@ -331,7 +331,7 @@ Panel::Panel(CountingFrameManager *manager,
 }
 
 //------------------------------------------------------------------------
-Panel::~Panel()
+CF::Panel::~Panel()
 {
   for(auto cf: m_countingFrames)
   {
@@ -345,7 +345,7 @@ Panel::~Panel()
 }
 
 //------------------------------------------------------------------------
-void Panel::reset()
+void CF::Panel::reset()
 {
   m_gui->countingFrameDescription->clear();
 
@@ -363,7 +363,7 @@ void Panel::reset()
 }
 
 //------------------------------------------------------------------------
-void Panel::deleteCountingFrame(CountingFrame *cf)
+void CF::Panel::deleteCountingFrame(CountingFrame *cf)
 {
   if (cf == m_activeCF)
   {
@@ -405,7 +405,7 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
 }
 
 //------------------------------------------------------------------------
-void Panel::applyCategoryConstraint()
+void CF::Panel::applyCategoryConstraint()
 {
   if (m_activeCF && m_gui->useCategoryConstraint->isChecked())
   {
@@ -423,7 +423,7 @@ void Panel::applyCategoryConstraint()
 }
 
 //------------------------------------------------------------------------
-void Panel::enableCategoryConstraints(bool enable)
+void CF::Panel::enableCategoryConstraints(bool enable)
 {
   m_gui->categorySelector->setEnabled(enable);
 
@@ -431,7 +431,7 @@ void Panel::enableCategoryConstraints(bool enable)
 }
 
 //------------------------------------------------------------------------
-void Panel::updateUI(QModelIndex index)
+void CF::Panel::updateUI(QModelIndex index)
 {
   bool validCF = !m_countingFrames.isEmpty() && index.isValid();
 
@@ -481,7 +481,7 @@ void Panel::updateUI(QModelIndex index)
 }
 
 //------------------------------------------------------------------------
-void Panel::createCountingFrame()
+void CF::Panel::createCountingFrame()
 {
   if (!m_pendingCFs.isEmpty()) return;
 
@@ -519,7 +519,7 @@ void Panel::createCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void Panel::resetActiveCountingFrame()
+void CF::Panel::resetActiveCountingFrame()
 {
   if (m_activeCF)
   {
@@ -538,7 +538,7 @@ void Panel::resetActiveCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void Panel::updateActiveCountingFrameMargins()
+void CF::Panel::updateActiveCountingFrameMargins()
 {
   if (!m_activeCF) return;
 
@@ -552,7 +552,7 @@ void Panel::updateActiveCountingFrameMargins()
 }
 
 //------------------------------------------------------------------------
-void Panel::deleteActiveCountingFrame()
+void CF::Panel::deleteActiveCountingFrame()
 {
   if (!m_activeCF) return;
 
@@ -560,7 +560,7 @@ void Panel::deleteActiveCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void Panel::onChannelChanged(ChannelAdapterPtr channel)
+void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
 {
   auto model = m_context.model().get();
 
@@ -591,7 +591,7 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
-void Panel::showInfo(CountingFrame* activeCF)
+void CF::Panel::showInfo(CountingFrame* activeCF)
 {
   if (!activeCF || !getActiveChannel()) return;
 
@@ -664,7 +664,7 @@ void Panel::showInfo(CountingFrame* activeCF)
 }
 
 //------------------------------------------------------------------------
-QModelIndex Panel::findCategoryIndex(const QString& classificationName)
+QModelIndex CF::Panel::findCategoryIndex(const QString& classificationName)
 {
   auto model    = m_context.model();
   auto category = model->classification()->category(classificationName);
@@ -673,7 +673,7 @@ QModelIndex Panel::findCategoryIndex(const QString& classificationName)
 }
 
 //------------------------------------------------------------------------
-void Panel::updateSegmentationRepresentations()
+void CF::Panel::updateSegmentationRepresentations()
 {
   auto model         = m_context.model();
   auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
@@ -682,7 +682,7 @@ void Panel::updateSegmentationRepresentations()
 }
 
 //------------------------------------------------------------------------
-void Panel::updateSegmentationExtensions()
+void CF::Panel::updateSegmentationExtensions()
 {
   for (auto seg: m_context.model()->segmentations())
   {
@@ -700,7 +700,7 @@ void Panel::updateSegmentationExtensions()
 }
 
 //------------------------------------------------------------------------
-void Panel::saveActiveCountingFrameDescription()
+void CF::Panel::saveActiveCountingFrameDescription()
 {
   auto title    = tr("Save Counting Frame Description");
   auto formats  = SupportedFormats(tr("Text File"), "txt");
@@ -720,7 +720,7 @@ void Panel::saveActiveCountingFrameDescription()
 }
 
 //------------------------------------------------------------------------
-void Panel::changeUnitMode(bool useSlices)
+void CF::Panel::changeUnitMode(bool useSlices)
 {
   m_useSlices = useSlices;
 
@@ -739,7 +739,7 @@ void Panel::changeUnitMode(bool useSlices)
 }
 
 //------------------------------------------------------------------------
-void Panel::reportProgess(int progress)
+void CF::Panel::reportProgess(int progress)
 {
   QIcon icon(":/create-cf.svg");
 
@@ -775,7 +775,7 @@ void Panel::reportProgess(int progress)
 
 //------------------------------------------------------------------------
 // WARNING: if further changes are needed unify implementation
-void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
+void CF::Panel::computeOptimalMargins(ChannelAdapterPtr channel,
                                   Nm inclusion[3],
                                   Nm exclusion[3])
 {
@@ -814,7 +814,7 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 }
 
 //------------------------------------------------------------------------
-void Panel::inclusionMargins(double values[3])
+void CF::Panel::inclusionMargins(double values[3])
 {
   values[0] = m_gui->leftMargin ->value();
   values[1] = m_gui->topMargin  ->value();
@@ -830,7 +830,7 @@ void Panel::inclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void Panel::exclusionMargins(double values[3])
+void CF::Panel::exclusionMargins(double values[3])
 {
   values[0] = m_gui->rightMargin ->value();
   values[1] = m_gui->bottomMargin->value();
@@ -846,7 +846,7 @@ void Panel::exclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void Panel::onMarginsComputed()
+void CF::Panel::onMarginsComputed()
 {
   auto task = dynamic_cast<TaskPtr>(sender());
   PendingCF                 pendingCF;
@@ -880,7 +880,7 @@ void Panel::onMarginsComputed()
 
 
 //------------------------------------------------------------------------
-void Panel::onCountingFrameCreated(CountingFrame* cf)
+void CF::Panel::onCountingFrameCreated(CountingFrame* cf)
 {
   connect(cf,   SIGNAL(modified(CountingFrame*)),
           this, SLOT(showInfo(CountingFrame*)));
@@ -899,13 +899,13 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 }
 
 //------------------------------------------------------------------------
-void Panel::onCountingFrameApplied(CountingFrame *cf)
+void CF::Panel::onCountingFrameApplied(CountingFrame *cf)
 {
   updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------
-void Panel::onSegmentationsAdded(ViewItemAdapterSList items)
+void CF::Panel::onSegmentationsAdded(ViewItemAdapterSList items)
 {
   SegmentationAdapterSList segmentations;
   for (auto item : items)
@@ -920,14 +920,14 @@ void Panel::onSegmentationsAdded(ViewItemAdapterSList items)
 }
 
 //------------------------------------------------------------------------
-void Panel::updateTable()
+void CF::Panel::updateTable()
 {
   m_gui->countingFrames->setModel(nullptr);
   m_gui->countingFrames->setModel(m_cfModel);
 }
 
 //------------------------------------------------------------------------
-void Panel::exportCountingFrameDescriptionAsText(const QString &filename)
+void CF::Panel::exportCountingFrameDescriptionAsText(const QString &filename)
 {
   QFile file(filename);
   file.open(QIODevice::WriteOnly |  QIODevice::Text);
@@ -939,13 +939,13 @@ void Panel::exportCountingFrameDescriptionAsText(const QString &filename)
 }
 
 //------------------------------------------------------------------------
-void Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
+void CF::Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
 {
 
 }
 
 //------------------------------------------------------------------------
-void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
+void CF::Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 {
   for (auto segmentation : segmentations)
   {
@@ -973,7 +973,7 @@ void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 }
 
 //------------------------------------------------------------------------
-void Panel::deleteCountingFrames()
+void CF::Panel::deleteCountingFrames()
 {
   for(auto cf: m_countingFrames)
   {

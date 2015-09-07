@@ -33,6 +33,7 @@
 #include <GUI/Widgets/PixelValueSelector.h>
 #include <GUI/Widgets/NumericalInput.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
@@ -47,7 +48,6 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
-#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
@@ -101,15 +101,15 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterRefinerRegister        &filterRefiners,
                                                    Support::Context             &context)
-: ProgressTool("SeedGrowSegmentation", ":/espina/pixelSelector.svg", tr("Create segmentation based on selected pixel"), context)
+: ProgressTool("1-GreyLevelSegmentation", ":/espina/grey_level_segmentation.svg", tr("Grey Level Segmentation"), context)
 , m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
-, m_useBestPixel    {Styles::createToolButton(":espina/bestPixelSelector.svg", tr("Apply on best pixel"))}
+, m_useBestPixel    {Styles::createToolButton(":espina/best_pixel_selector.svg", tr("Apply on best pixel"))}
 , m_colorLabel      {new QLabel(tr("Pixel Color:"))}
 , m_colorSelector   {new PixelValueSelector()}
 , m_roi             {new CustomROIWidget()}
-, m_applyClose      {Styles::createToolButton(":espina/close.png", tr("Apply close"))}
+, m_applyClose      {Styles::createToolButton(":espina/morphological_close.svg", tr("Apply close"))}
 , m_close           {new NumericalInput()}
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}
@@ -345,7 +345,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
-    filter->setDescription(tr("Seed Grow Segmentation"));
+    filter->setDescription(tr("Grey Level Segmentation"));
 
     if(m_applyClose->isChecked())
     {
@@ -374,10 +374,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   else
   {
-    auto title = tr("Seed Grow Segmentation");
+    auto title = tr("Grey Level Segmentation");
     auto msg   = tr("The seed is not inside the channel or the region of interest.");
 
-    GUI::DefaultDialogs::InformationMessage(title, msg);
+    GUI::DefaultDialogs::InformationMessage(msg, title);
   }
 }
 
@@ -412,7 +412,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     if(sgsFilter->isTouchingROI())
     {
       QMessageBox box;
-      box.setWindowTitle(tr("Seed Grow Segmentation"));
+      box.setWindowTitle(tr("Grey Level Segmentation"));
       box.setText(tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString()));
       box.setStandardButtons(QMessageBox::Ok);
       box.setIcon(QMessageBox::Information);

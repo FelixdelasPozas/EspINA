@@ -22,13 +22,17 @@
 
 #include <Support/Report.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <GUI/Dialogs/DefaultDialogs.h>
+
+using ESPINA::GUI::DefaultDialogs;
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 ReportSelectorDialog::ReportSelectorDialog(Support::ReportSList &reports, Support::Context &context)
-: WithContext(context)
+: QDialog(DefaultDialogs::defaultParentWidget())
+, WithContext(context)
 , m_reports(reports)
 {
   setupUi(this);

@@ -25,9 +25,9 @@
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
 #include <Dialogs/View3DDialog/3DDialog.h>
-#include "Docks/ChannelExplorer/ChannelExplorer.h"
-#include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Docks/SegmentationInformation/SegmentationInformation.h"
+#include "Panels/StackExplorer/StackExplorer.h"
+#include "Panels/SegmentationExplorer/SegmentationExplorer.h"
+#include "Panels/SegmentationProperties/SegmentationProperties.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
@@ -47,12 +47,17 @@
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include "ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h"
+#include "ToolGroups/Visualize/GenericTogglableTool.h"
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
-#include <ToolGroups/Explore/ResetZoom.h>
-#include <ToolGroups/Explore/ZoomTool.h>
-#include <ToolGroups/Explore/VisualBookmarks.h>
+#include <ToolGroups/Explore/ResetViewTool.h>
+#include <ToolGroups/Explore/ZoomRegionTool.h>
+#include <ToolGroups/Explore/PositionMarksTool.h>
+#include <ToolGroups/Session/FileOpenTool.h>
+#include <ToolGroups/Session/FileSaveTool.h>
+#include <ToolGroups/Session/UndoRedoTools.h>
+#include "RecentDocuments.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -88,29 +93,13 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-
-//------------------------------------------------------------------------
-EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
-: menu(nullptr)
-{
-}
-
-//------------------------------------------------------------------------
-EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
-{
-  for(DynamicMenuNode *node : submenus)
-  {
-    delete node;
-  }
-}
-
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_minimizedStatus(false)
 , m_context(this, &m_minimizedStatus)
 , m_analysis(new Analysis())
+, m_errorHandler(new EspinaErrorHandler(this))
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     {new GeneralSettings()}
@@ -122,11 +111,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_view(new DefaultView(m_context, this))
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy{false}
-, m_dynamicMenuRoot{new DynamicMenuNode()}
-, m_errorHandler(new EspinaErrorHandler(this))
 {
-  m_dynamicMenuRoot->menu = nullptr;
-
   updateUndoStackIndex();
 
   auto factory = m_context.factory();
@@ -145,8 +130,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   setContextMenuPolicy(Qt::NoContextMenu);
 
-  createMenus();
-
   createToolbars();
 
   createToolGroups();
@@ -155,7 +138,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   initRepresentations();
 
-  initColorEngines(m_viewMenu);
+  initColorEngines();
 
   loadPlugins(plugins);
 
@@ -167,12 +150,10 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   restoreGeometry();
 
-  configureAutoSave();
-
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
 
-  activateToolGroup(m_exploreToolGroup);
+  m_sessionToolGroup->setChecked(true);
 }
 
 //------------------------------------------------------------------------
@@ -194,8 +175,6 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_visualizeToolGroup;
   delete m_analyzeToolGroup;
   delete m_roiSettings;
-  //delete m_colorEngineMenu;
-  delete m_dynamicMenuRoot;
 }
 
 //------------------------------------------------------------------------
@@ -232,16 +211,19 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         qDebug() << plugin << "- Tool " /*<< tool.second->toolTip()*/ << " ...... OK";
         switch (tool.first)
         {
+          case ToolCategory::SESSION:
+            m_sessionToolGroup->addTool(tool.second);
+            break;
           case ToolCategory::EXPLORE:
             m_exploreToolGroup->addTool(tool.second);
             break;
-          case ToolCategory::RESTRICT:
+          case ToolCategory::ROI:
             m_restrictToolGroup->addTool(tool.second);
             break;
           case ToolCategory::SEGMENT:
             m_segmentToolGroup->addTool(tool.second);
             break;
-          case ToolCategory::REFINE:
+          case ToolCategory::EDIT:
             m_refineToolGroup->addTool(tool.second);
             break;
           case ToolCategory::VISUALIZE:
@@ -288,12 +270,6 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
         registerRepresentationFactory(factory);
       }
-
-      for(auto entry: validPlugin->menuEntries())
-      {
-//        qDebug() << plugin << "- Menu Entries " << entry;
-        createDynamicMenu(entry);
-      }
     }
   }
 }
@@ -301,82 +277,29 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::isModelModified()
 {
-  return m_context.undoStack()->index() != m_undoStackSavedIndex;
+  return m_context.undoStack()->index() != m_savedUndoStackIndex;
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::enableWidgets(bool value)
 {
-  m_addMenu            ->setEnabled(value);
-  m_saveAnalysisAs       ->setEnabled(value);
-  m_saveSessionAnalysis->setEnabled(value);
-  m_closeAnalysis      ->setEnabled(value);
-  m_editMenu           ->setEnabled(value);
-  m_viewMenu           ->setEnabled(value);
-
   for (auto dock : findChildren<QDockWidget *>())
   {
     dock->setEnabled(value);
   }
 
+  auto sessionTools = m_sessionToolGroup->groupedTools();
+  sessionTools[0][1]->setEnabled(value);
+  sessionTools[1][1]->setEnabled(value);
+
+  for(auto action: m_mainBar->actions())
+  {
+    if(action == m_mainBar->actions().first()) continue;
+
+    action->setEnabled(value);
+  }
+
   centralWidget()->setEnabled(value);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
-{
-  auto node = m_dynamicMenuRoot;
-
-  for(int i=0; i < entry.first.size(); i++)
-  {
-    auto entryName = entry.first[i];
-
-    int index = -1;
-    for(int m=0; m<node->submenus.size(); m++)
-    {
-      if (node->submenus[m]->menu->title() == entryName)
-      {
-        index = m;
-        node = node->submenus[m];
-        break;
-      }
-    }
-
-    if (-1 == index)
-    {
-      auto subnode = new DynamicMenuNode();
-      if (node == m_dynamicMenuRoot)
-        subnode->menu = menuBar()->addMenu(entryName);
-      else
-        subnode->menu = node->menu->addMenu(entryName);
-      node->submenus << subnode;
-      node = subnode;
-    }
-  }
-
-  node->menu->addAction(entry.second);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::checkAutosave()
-{
-  QDir autosavePath = m_settings->autosavePath();
-  if (autosavePath.exists(AUTOSAVE_FILE))
-  {
-    auto msg= tr("ESPINA closed unexpectedly. "
-                 "Do you want to load autosave file?");
-
-    if (DefaultDialogs::UserConfirmation(windowTitle(), msg))
-    {
-      QStringList files(autosavePath.absoluteFilePath(AUTOSAVE_FILE));
-     
-      openAnalysis(files);
-    }
-    else
-    {
-      autosavePath.remove(AUTOSAVE_FILE);
-    }
-  }
 }
 
 //------------------------------------------------------------------------
@@ -402,6 +325,11 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   m_minimizedStatus = false;
+
+  if (!m_analysis)
+  {
+    checkAutoSavedAnalysis();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -432,9 +360,6 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     saveGeometry();
 
     event->accept();
-
-    QDir autosavePath = m_settings->autosavePath();
-    autosavePath.remove(AUTOSAVE_FILE);
   }
   else
   {
@@ -452,16 +377,17 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 {
   if (isModelModified())
   {
+    auto message = tr("Current session has not been saved. Do you want to save it now?");
+
     QMessageBox warning;
     warning.setWindowTitle(windowTitle());
-    warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
+    warning.setText(message);
     warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-    int res = warning.exec();
 
-    switch(res)
+    switch(warning.exec())
     {
       case QMessageBox::Yes:
-        saveAnalysisAs();
+        m_saveAsTool->saveAnalysis();
         break;
       case QMessageBox::Cancel:
         return false;
@@ -478,23 +404,22 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
+  m_saveTool->setSaveFilename("");
+
   m_context.model()->clear();
   m_analysis.reset();
 
   enableWidgets(false);
   enableToolShortcuts(false);
 
-  updateSceneState(m_context.viewState(), ViewItemAdapterSList());
-  m_context.viewState().resetCamera();
-  m_context.viewState().refresh();
+  auto &viewState = m_context.viewState();
 
-  m_sessionFile = QFileInfo();
+  updateSceneState(viewState, ViewItemAdapterSList());
 
-  setWindowTitle(QString("ESPINA Interactive Neuron Analyzer"));
+  viewState.resetCamera();
+  viewState.refresh();
 
-  m_mainBar->setEnabled(false);
-  m_contextualBar->setEnabled(false);
-  m_mainBar->actions().first()->setChecked(true);
+  setWindowTitle(tr("ESPINA Interactive Neuron Analyzer"));
 
   emit analysisClosed();
 
@@ -502,84 +427,81 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::openAnalysis()
+void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 {
-  auto title = tr("Start New Analysis From File");
-  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions());
+  if(!closeCurrentAnalysis()) return;
 
-  if (!selectedFiles.isEmpty())
+  Q_ASSERT(analysis);
+
+  if(!analysis->classification())
   {
-    openAnalysis(selectedFiles);
+    QFileInfo defaultClassification(":/espina/defaultClassification.xml");
+
+    auto classification = IO::ClassificationXML::load(defaultClassification);
+    analysis->setClassification(classification);
   }
+
+  auto model = m_context.model();
+
+  model->setAnalysis(analysis, m_context.factory());
+
+  m_analysis = analysis;
+
+  updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
+  m_context.viewState().resetCamera();
+
+  initializeCrosshair();
+
+  updateToolsSettings();
+
+  enableWidgets(true);
+
+  enableToolShortcuts(true);
+
+  assignActiveChannel();
+
+  analyzeChannelEdges();
+
+  auto files = m_openFileTool->loadedFiles();
+
+  Q_ASSERT(!files.isEmpty());
+  auto referenceFile = files.first();
+
+  setWindowTitle(referenceFile);
+
+  updateUndoStackIndex();
+
+  m_saveTool->setSaveFilename(referenceFile);
+  m_saveTool->setEnabled(files.size() == 1 && referenceFile.endsWith(".seg", Qt::CaseInsensitive));
+
+  m_saveAsTool->setSaveFilename(referenceFile);
+
+  m_autoSave.resetCountDown();
+
+  if(!m_context.model()->isEmpty())
+  {
+    checkAnalysisConsistency();
+  }
+
+  m_autoSave.resetCountDown();
+
+  emit analysisChanged();
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::openAnalysis(const QStringList files)
+void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 {
-  if (!closeCurrentAnalysis()) return;
+  auto model = m_context.model();
 
-  QElapsedTimer timer;
-  timer.start();
+  emit abortOperation();
 
-  auto mergedAnalysis = loadedAnalysis(files);
+  auto mergedAnalysis = merge(m_analysis, analysis);
 
-  if (mergedAnalysis)
-  {
-    if (!mergedAnalysis->classification())
-    {
-      QFileInfo defaultClassification(":/espina/defaultClassification.xml");
-      auto classification = IO::ClassificationXML::load(defaultClassification);
-      mergedAnalysis->setClassification(classification);
-    }
+  model->setAnalysis(mergedAnalysis, m_context.factory());
 
-    auto model = m_context.model();
+  m_analysis = mergedAnalysis;
 
-    model->setAnalysis(mergedAnalysis, m_context.factory());
-
-    m_analysis = mergedAnalysis;
-
-    updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
-    m_context.viewState().resetCamera();
-
-    initializeCrosshair();
-
-    int secs = timer.elapsed()/1000.0;
-    int mins = 0;
-    if (secs > 60)
-    {
-      mins = secs / 60;
-      secs = secs % 60;
-    }
-
-    updateStatus(tr("File Loaded in %1m%2s").arg(mins).arg(secs));
-
-    updateToolsSettings();
-
-    enableWidgets(true);
-    enableToolShortcuts(true);
-
-    assignActiveChannel();
-
-    analyzeChannelEdges();
-
-    setWindowTitle(files.first());
-
-    m_sessionFile = files.first();
-
-    // We need to override the default state of the save session analysis entry
-    bool enableSave = files.size() == 1 && m_sessionFile.suffix().toLower() == QString("seg");
-    m_saveSessionAnalysis->setEnabled(enableSave);
-
-    m_mainBar->setEnabled(true);
-    m_contextualBar->setEnabled(true);
-
-    if (!m_context.model()->isEmpty())
-    {
-      checkAnalysisConsistency();
-    }
-  }
-
-  emit analysisChanged();
+  assignActiveChannel();
 }
 
 //------------------------------------------------------------------------
@@ -588,215 +510,6 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
   IssueListDialog dialog(issues);
 
   dialog.exec();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::openRecentAnalysis()
-{
-  QAction *action = qobject_cast<QAction *>(sender());
-
-  if (action && !action->data().isNull())
-  {
-    QStringList files(action->data().toString());
-    if (MenuState::OPEN_STATE == m_menuState)
-    {
-      openAnalysis(files);
-    }
-    else
-    {
-      addToAnalysis(files);
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::addToAnalysis()
-{
-  auto title = tr("Add Data To Analysis");
-  auto selectedFiles = DefaultDialogs::OpenFiles(title, m_context.factory()->supportedFileExtensions(), m_sessionFile.absoluteDir().absolutePath());
-
-  if (!selectedFiles.isEmpty())
-  {
-    addToAnalysis(selectedFiles);
-  }
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::addRecentToAnalysis()
-{
-  auto action = qobject_cast<QAction *>(sender());
-
-  if (!action || action->data().isNull()) return;
-
-  QStringList files(action->data().toString());
-
-  addToAnalysis(files);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::addToAnalysis(const QStringList files)
-{
-  QElapsedTimer timer;
-  timer.start();
-
-  auto model = m_context.model();
-
-  emit abortOperation();
- 
-  auto newAnalyses    = loadedAnalysis(files);
-  auto mergedAnalysis = merge(m_analysis, newAnalyses);
-
-  model->setAnalysis(mergedAnalysis, m_context.factory());
-
-  m_analysis = mergedAnalysis;
-
-  assignActiveChannel();
-
-  int secs = timer.elapsed()/1000.0;
-  int mins = 0;
-  if (secs > 60)
-  {
-    mins = secs / 60;
-    secs = secs % 60;
-  }
-
-  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-
-  for(auto file : files)
-  {
-    m_recentDocuments1.addDocument(file);
-  }
-  m_recentDocuments2.updateDocumentList();
-}
-
-//------------------------------------------------------------------------
-AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
-{
-  QList<AnalysisSPtr> analyses;
-
-  auto factory = m_context.factory();
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  for(auto file : files)
-  {
-    m_errorHandler->setDefaultDir(QFileInfo(file).dir());
-
-    auto readers = factory->readers(file);
-
-    if (readers.isEmpty())
-    {
-      QApplication::restoreOverrideCursor();
-      QMessageBox::warning(this, tr("File Extension is not supported"), file);
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-      continue;
-    }
-
-    auto reader = readers.first();
-
-    if (readers.size() > 1)
-    {
-      //TODO 2015-04-20: show reader selection dialog
-    }
-
-    try
-    {
-      analyses << factory->read(reader, file, m_errorHandler);
-
-      if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
-      {
-        m_recentDocuments1.addDocument(file);
-        m_recentDocuments2.updateDocumentList();
-      }
-    }
-    catch (...)
-    {
-      QApplication::restoreOverrideCursor();
-
-      if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
-      {
-        auto message = tr("File \"%1\" could not be loaded.\n"
-                          "Do you want to remove it from recent documents list?")
-                          .arg(file);
-
-        if (DefaultDialogs::UserConfirmation(windowTitle(), message))
-        {
-          m_recentDocuments1.removeDocument(file);
-          m_recentDocuments2.updateDocumentList();
-        }
-      }
-      else
-      {
-        auto message = tr("The autosave file could not be loaded.\n");
-        DefaultDialogs::InformationMessage(windowTitle(), message);
-      }
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-    }
-  }
-
-  AnalysisSPtr mergedAnalysis;
-  if (!analyses.isEmpty())
-  {
-    mergedAnalysis = analyses.first();
-
-    for(int i = 1; i < analyses.size(); ++i)
-    {
-      mergedAnalysis = merge(mergedAnalysis, analyses[i]);
-    }
-  }
-  QApplication::restoreOverrideCursor();
-
-  return mergedAnalysis;
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysisAs()
-{
-  QString suggestedFileName;
-  if (m_sessionFile.suffix().toLower() == "seg")
-  {
-    suggestedFileName = m_sessionFile.fileName();
-  }
-  else
-  {
-    suggestedFileName = m_sessionFile.baseName() + QString(".seg");
-  }
-
-  auto analysisFile = DefaultDialogs::SaveFile(tr("Save ESPINA Analysis"),
-                                               SupportedFormats().addSegFormat(),
-                                               m_sessionFile.absolutePath(),
-                                               "seg",
-                                               suggestedFileName);
-
-  if (analysisFile.isEmpty()) return;
-
-  Q_ASSERT(analysisFile.toLower().endsWith(tr(".seg")));
-
-  saveAnalysis(analysisFile);
-
-  QStringList fileParts = analysisFile.split(QDir::separator());
-  setWindowTitle(fileParts[fileParts.size()-1]);
-
-  m_saveSessionAnalysis->setEnabled(true);
-  m_sessionFile = analysisFile;
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::saveSessionAnalysis()
-{
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_busy = true;
-
-  saveToolsSettings();
-
-  IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
-
-  QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
-  m_busy = false;
-
-  m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------
@@ -824,7 +537,7 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   GeneralSettingsDialog dialog;
 
-  dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_settings));
+  dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_autoSave, m_settings));
   dialog.resize(800, 600);
 
   for(auto panel : m_availableSettingsPanels)
@@ -844,70 +557,10 @@ void EspinaMainWindow::showAboutDialog()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::autosave()
-{
-  if (!isModelModified()) return;
-
-  m_busy = true;
-
-  QDir autosavePath = m_settings->autosavePath();
-  if (!autosavePath.exists())
-    autosavePath.mkpath(autosavePath.absolutePath());
-
-  const QFileInfo analysisFile = autosavePath.absoluteFilePath(AUTOSAVE_FILE);
-
-  IO::SegFile::save(m_analysis.get(), analysisFile, nullptr);
-
-  updateStatus(tr("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
-  m_busy = false;
-  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::cancelOperation()
 {
   m_context.viewState().setEventHandler(nullptr);
   m_context.viewState().refresh();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::undoTextChanged(QString text)
-{
-  m_undoAction->setText(tr("Undo ") + text);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::redoTextChanged(QString text)
-{
-  m_redoAction->setText(tr("Redo ") + text);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::canRedoChanged(bool value)
-{
-  m_redoAction->setEnabled(value);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::canUndoChanged(bool value)
-{
-  m_undoAction->setEnabled(value);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::undoAction(bool unused)
-{
-  emit abortOperation();
-
-  m_context.undoStack()->undo();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::redoAction(bool unused)
-{
-  emit abortOperation();
-
-  m_context.undoStack()->redo();
 }
 
 //------------------------------------------------------------------------
@@ -946,10 +599,14 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
           }
         }
 
+        if (tools != toolGroup->groupedTools().last())
+        {
+
 //         auto separator = new QWidget();
 //         separator->setMinimumWidth(8);
 //         m_contextualBar->addWidget(separator);
-        m_contextualBar->addSeparator();
+          m_contextualBar->addSeparator();
+        }
       }
     }
 
@@ -973,21 +630,18 @@ void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine, const QString &
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
+void EspinaMainWindow::initColorEngines()
 {
-
-  //m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
-
   auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
   connect(colorEngine.get(), SIGNAL(modified()),
           this,              SLOT(onColorEngineModified()));
 
-  //parentMenu->addMenu(m_colorEngineMenu);
-
   createColorEngine(std::make_shared<NumberColorEngine>(), "number");
+
   auto categoryColorEngine = std::make_shared<CategoryColorEngine>();
   categoryColorEngine->setActive(true);
   createColorEngine(categoryColorEngine, "category");
+
   registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
   //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
@@ -1011,161 +665,6 @@ void EspinaMainWindow::initRepresentations()
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }
 
-//------------------------------------------------------------------------
-void EspinaMainWindow::createMenus()
-{
-  createFileMenu();
-
-  createEditMenu();
-
-  createViewMenu();
-
-  createSettingsMenu();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::createFileMenu()
-{
-  auto fileMenu = new QMenu(tr("File"), this);
-
-  auto openMenu = fileMenu->addMenu(tr("&Open"));
-  openMenu->setIcon(DefaultIcons::Load());
-  openMenu->setToolTip(tr("Open New Analysis"));
-
-  auto openAction = new QAction(DefaultIcons::File(), tr("&File"),this);
-
-  openMenu->addAction(openAction);
-  openMenu->addSeparator();
-  openMenu->addActions(m_recentDocuments1.list());
-
-  for (int i = 0; i < m_recentDocuments1.list().size(); i++)
-  {
-    connect(m_recentDocuments1.list()[i], SIGNAL(triggered()),
-            this,                         SLOT(openRecentAnalysis()));
-  }
-
-  connect(openMenu, SIGNAL(aboutToShow()),
-          this,     SLOT(openState()));
-  connect(openMenu, SIGNAL(hovered(QAction*)),
-          this,     SLOT(updateTooltip(QAction*)));
-  connect(openAction, SIGNAL(triggered(bool)),
-          this,       SLOT(openAnalysis()));
-
-  m_addMenu = fileMenu->addMenu(tr("&Add"));
-  m_addMenu->setIcon(QIcon(":espina/add.svg"));
-  m_addMenu->setToolTip(tr("Add File to Analysis"));
-  m_addMenu->setEnabled(false);
-
-  auto addAction = new QAction(DefaultIcons::File(), tr("&File"),this);
-
-  m_addMenu->addAction(addAction);
-  m_addMenu->addSeparator();
-  m_addMenu->addActions(m_recentDocuments2.list());
-
-  for (int i = 0; i < m_recentDocuments2.list().size(); i++)
-  {
-    connect(m_recentDocuments2.list()[i], SIGNAL(triggered()),
-            this,                         SLOT(openRecentAnalysis()));
-  }
-
-  connect(m_addMenu, SIGNAL(aboutToShow()),
-          this,      SLOT(addState()));
-  connect(addAction, SIGNAL(triggered(bool)),
-          this,      SLOT(addToAnalysis()));
-
-  m_saveSessionAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("&Save"));
-  m_saveSessionAnalysis->setEnabled(false);
-  m_saveSessionAnalysis->setShortcut(Qt::CTRL+Qt::Key_S);
-
-  connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
-          this,                  SLOT(saveSessionAnalysis()));
-
-  m_saveAnalysisAs = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
-  m_saveAnalysisAs->setEnabled(false);
-
-  connect(m_saveAnalysisAs, SIGNAL(triggered(bool)),
-          this,             SLOT(saveAnalysisAs()));
-
-
-  m_closeAnalysis = fileMenu->addAction(tr("&Close"));
-  m_closeAnalysis->setEnabled(false);
-  connect(m_closeAnalysis, SIGNAL(triggered(bool)),
-          this,            SLOT(closeCurrentAnalysis()));
-
-  auto exit = fileMenu->addAction(tr("&Exit"));
-  connect(exit, SIGNAL(triggered(bool)),
-          this, SLOT(close()));
-
-  connect(fileMenu, SIGNAL(triggered(QAction*)),
-          this,     SLOT(openRecentAnalysis()));
-
-  menuBar()->addMenu(fileMenu);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::createEditMenu()
-{
-  m_editMenu = new QMenu(tr("Edit"), this);
-  m_undoAction = new QAction(QIcon(":espina/edit-undo.svg"), tr("Undo"), this);
-  m_undoAction->setEnabled(false);
-  m_undoAction->setCheckable(false);
-  m_undoAction->setShortcut(QString("Ctrl+Z"));
-  m_editMenu->addAction(m_undoAction);
-
-  connect(m_undoAction, SIGNAL(triggered(bool)),
-          this,         SLOT(undoAction(bool)));
-
-  m_redoAction = new QAction(QIcon(":espina/edit-redo.svg"), tr("Redo"), this);
-  m_redoAction->setEnabled(false);
-  m_redoAction->setCheckable(false);
-  m_redoAction->setShortcut(QString("Ctrl+Shift+Z"));
-  m_editMenu->addAction(m_redoAction);
-
-  connect(m_redoAction, SIGNAL(triggered(bool)),
-          this,         SLOT(redoAction(bool)));
-
-  menuBar()->addMenu(m_editMenu);
-
-  auto undoStack = m_context.undoStack();
-  // undo connection with menu actions
-  connect(undoStack, SIGNAL(canRedoChanged(bool)),
-          this,      SLOT(canRedoChanged(bool)));
-  connect(undoStack, SIGNAL(canUndoChanged(bool)),
-          this,      SLOT(canUndoChanged(bool)));
-  connect(undoStack, SIGNAL(redoTextChanged(QString)),
-          this,      SLOT(redoTextChanged(QString)));
-  connect(undoStack, SIGNAL(undoTextChanged(QString)),
-          this,      SLOT(undoTextChanged(QString)));
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::createViewMenu()
-{
-  m_viewMenu = new QMenu(tr("View"));
-  m_view->createViewMenu(m_viewMenu);
-
-  menuBar()->addMenu(m_viewMenu);
-
-  m_viewMenu->addSeparator();
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::createSettingsMenu()
-{
-  auto settingsMenu = new QMenu(tr("&Settings"));
-  auto configure = new QAction(tr("&Configure ESPINA"), this);
-
-  connect(configure, SIGNAL(triggered(bool)),
-          this, SLOT(showPreferencesDialog()));
-  settingsMenu->addAction(configure);
-
-  QAction *about = new QAction(tr("About"), this);
-  connect(about, SIGNAL(triggered(bool)),
-          this, SLOT(showAboutDialog()));
-  settingsMenu->addAction(about);
-
-  menuBar()->addMenu(settingsMenu);
-}
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolbars()
@@ -1189,13 +688,15 @@ void EspinaMainWindow::createToolbars()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolGroups()
 {
+  createSessionToolGroup();
+
   createExploreToolGroup();
 
   createRestrictToolGroup();
 
   createSegmentToolGroup();
 
-  createRefineToolGroup();
+  createEditToolGroup();
 
   createVisualizeToolGroup();
 
@@ -1203,41 +704,163 @@ void EspinaMainWindow::createToolGroups()
 }
 
 //------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0: Import
+//   0: Open
+//   1: Add
+// 1: Export
+//   0: Save
+//   1: Save As
+// 2: Undo/Redo
+//   0: Undo
+//   1: Redo
+// 3: Configuration
+//   0: Settings
+// 4: Information
+//   0: About ESPINA
+// 5: Exit
+//   0: Quit
+//------------------------------------------------------------------------
+void EspinaMainWindow::createSessionToolGroup()
+{
+  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
+
+  m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open File"), m_context, m_errorHandler);
+  m_openFileTool->setShortcut(Qt::CTRL+Qt::Key_O);
+  m_openFileTool->setOrder("0-0", "1-Session");
+
+  connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
+          this,                 SLOT(onAnalysisLoaded(AnalysisSPtr)));
+
+  connect(&m_autoSave,          SIGNAL(restoreFromFile(QString)),
+          m_openFileTool.get(), SLOT(loadAnalysis(QString)));
+
+  auto importTool = std::make_shared<FileOpenTool>("FileAdd", ":/espina/file_add.svg", tr("Import File"), m_context, m_errorHandler);
+  importTool->setShortcut(Qt::CTRL+Qt::Key_I);
+  importTool->setOrder("0-1", "1-Session");
+
+  connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
+          this,      SLOT(onAnalysisImported(AnalysisSPtr)));
+
+  m_saveTool = std::make_shared<FileSaveTool>("FileSave",  ":/espina/file_save.svg", tr("Save Analysis"), m_context, m_analysis, m_errorHandler);
+  m_saveTool->setOrder("1-0", "1_FileGroup");
+  m_saveTool->setShortcut(Qt::CTRL+Qt::Key_S);
+  m_saveTool->setEnabled(false);
+
+  connect(&m_autoSave,      SIGNAL(saveToFile(QString)),
+          m_saveTool.get(), SLOT(saveAnalysis(QString)));
+
+  connect(m_saveTool.get(), SIGNAL(aboutToSaveSession()),
+          this,             SLOT(onAboutToSaveSession()));
+
+  connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &)),
+          this,             SLOT(onSessionSaved(const QString &)));
+
+  m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save Analysis As"), m_context, m_analysis, m_errorHandler);
+  m_saveAsTool->setOrder("1-1", "1_FileGroup");
+  m_saveAsTool->setAlwaysAskUser(true);
+
+  connect(m_saveAsTool.get(), SIGNAL(aboutToSaveSession()),
+          this,               SLOT(onAboutToSaveSession()));
+
+  connect(m_saveAsTool.get(), SIGNAL(sessionSaved(const QString &)),
+          this,               SLOT(onSessionSaved(const QString &)));
+
+  m_sessionToolGroup->addTool(m_openFileTool);
+  m_sessionToolGroup->addTool(importTool);
+  m_sessionToolGroup->addTool(m_saveTool);
+  m_sessionToolGroup->addTool(m_saveAsTool);
+
+  auto undo = std::make_shared<UndoTool>(m_context);
+  undo->setOrder("2-0", "2-RedoUndo");
+
+  connect(undo.get(), SIGNAL(executed()),
+          this,       SIGNAL(abortOperation()));
+
+  auto redo = std::make_shared<RedoTool>(m_context);
+  redo->setOrder("2-1", "2-RedoUndo");
+
+  connect(redo.get(), SIGNAL(executed()),
+          this,       SIGNAL(abortOperation()));
+
+  m_sessionToolGroup->addTool(undo);
+  m_sessionToolGroup->addTool(redo);
+
+  auto settings = std::make_shared<ProgressTool>("Settings", ":/espina/settings.svg", tr("Settings"), m_context);
+  settings->setOrder("3-0", "3-Settings");
+
+  connect(settings.get(), SIGNAL(triggered(bool)),
+          this,           SLOT(showPreferencesDialog()));
+
+  m_sessionToolGroup->addTool(settings);
+
+  auto about = std::make_shared<ProgressTool>("About", ":/espina/info.svg", tr("About ESPINA"), m_context);
+  about->setOrder("4-0", "3-Settings");
+
+  connect(about.get(), SIGNAL(triggered(bool)),
+          this,        SLOT(showAboutDialog()));
+
+  m_sessionToolGroup->addTool(about);
+
+  auto exit = std::make_shared<ProgressTool>("Exit", ":/espina/exit.svg", tr("Exit ESPINA"), m_context);
+  exit->setOrder("5-0", "3-Settings");
+  exit->setShortcut(Qt::CTRL+Qt::Key_Q);
+
+  connect(exit.get(), SIGNAL(triggered(bool)),
+          this,       SLOT(close()));
+
+  m_sessionToolGroup->addTool(exit);
+
+  registerToolGroup(m_sessionToolGroup);
+}
+
+//------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0: Explorers
+//   0: Channels
+//   1: Segmentations
+// 1: Camera
+//   0: Zoom Region
+//   1: Reset View
+// 2: Positions
+//------------------------------------------------------------------------
 void EspinaMainWindow::createExploreToolGroup()
 {
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
 
-  auto channelExplorerSwitch = std::make_shared<PanelSwitch>("ChannelExplorer",
-                                                             new ChannelExplorer(m_context),
-                                                             ":espina/channel_explorer_switch.svg",
-                                                             tr("Display Channel Explorer"),
-                                                             m_context);
+  auto stackExplorerSwitch = std::make_shared<PanelSwitch>("StackExplorer",
+                                                           new StackExplorer(m_context),
+                                                           ":espina/display_stack_explorer.svg",
+                                                           tr("Stack Explorer"),
+                                                           m_context);
+  stackExplorerSwitch->setOrder("0-0"); // Explorers-Channels
 
   auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
                                                                   new SegmentationExplorer(m_filterRefiners, m_context),
-                                                                  ":espina/segmentation_explorer_switch.svg",
-                                                                  tr("Display Segmentation Explorer"),
+                                                                  ":espina/display_segmentation_explorer.svg",
+                                                                  tr("Segmentation Explorer"),
                                                                   m_context);
+  segmentationExplorerSwitch->setOrder("0-1"); // Explorers-Segmetnations
 
-  auto zoomTool      = std::make_shared<ZoomTool>(m_context);
-  auto resetZoom     = std::make_shared<ResetZoom>(m_context);
-  auto bookmarksTool = std::make_shared<VisualBookmarks>(m_context, m_view->renderviews());
+  auto zoomRegion = std::make_shared<ZoomRegionTool>(m_context);
+  auto resetView  = std::make_shared<ResetViewTool>(m_context);
+
+  zoomRegion->setOrder("1-0");
+  resetView->setOrder("1-1");
+
+  auto bookmarksTool = std::make_shared<PositionMarksTool>(m_context, m_view->renderviews());
+
+  bookmarksTool->setOrder("2");
 
   connect(this,                SIGNAL(analysisClosed()),
           bookmarksTool.get(), SLOT(clear()));
 
-  channelExplorerSwitch     ->setGroupWith("explorer");
-  segmentationExplorerSwitch->setGroupWith("explorer");
-
-  zoomTool ->setGroupWith("zoom");
-  resetZoom->setGroupWith("zoom");
-
-  bookmarksTool->setGroupWith("visual bookmarks");
-
-  m_exploreToolGroup->addTool(channelExplorerSwitch);
+  m_exploreToolGroup->addTool(stackExplorerSwitch);
   m_exploreToolGroup->addTool(segmentationExplorerSwitch);
-  m_exploreToolGroup->addTool(zoomTool);
-  m_exploreToolGroup->addTool(resetZoom);
+  m_exploreToolGroup->addTool(zoomRegion);
+  m_exploreToolGroup->addTool(resetView);
   m_exploreToolGroup->addTool(bookmarksTool);
 
   registerToolGroup(m_exploreToolGroup);
@@ -1256,11 +879,10 @@ void EspinaMainWindow::createSegmentToolGroup()
 {
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
 
+  m_segmentToolGroup->setToolTip(tr("Create New Segmentations"));
+
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
-
-  manualSegment->setGroupWith("manual_segment");
-  sgsSegment   ->setGroupWith("sgs_segment");
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
@@ -1269,24 +891,66 @@ void EspinaMainWindow::createSegmentToolGroup()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createRefineToolGroup()
+void EspinaMainWindow::createEditToolGroup()
 {
-  m_refineToolGroup = new RefineToolGroup(m_filterRefiners, m_context);
+  m_refineToolGroup = new EditToolGroup(m_filterRefiners, m_context);
 
   registerToolGroup(m_refineToolGroup);
 }
 
 //------------------------------------------------------------------------
+// Order
+//------------------------------------------------------------------------
+// 0-Display (Representations)
+// 0: Channels
+// 1: Segmentations
+// ##################
+// 1-Color by
+// ##################
+// 2-Display (widgets)
+// 0: View Settings
+//   0: Thumbnail
+//   1: Scalebar
+// 1: Widgets
+// ##################
+// 3-Views
+//------------------------------------------------------------------------
 void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
+
+  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
+                                                          ":/espina/display_view_thumbnail.svg",
+                                                          tr("Display Thumbnail"),
+                                                          m_context);
+  connect(thumbnail.get(), SIGNAL(toggled(bool)),
+          m_view.get(), SLOT(showThumbnail(bool)));
+
+  thumbnail->setOrder("0-0", "2-Display");
+  thumbnail->setChecked(true);
+
+  m_visualizeToolGroup->addTool(thumbnail);
+
+  auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
+                                                         ":/espina/display_view_scalebar.svg",
+                                                         tr("Display Scalebar"),
+                                                         m_context);
+
+  connect(scalebar.get(), SIGNAL(toggled(bool)),
+          m_view.get(),   SLOT(setRulerVisibility(bool)));
+
+  scalebar->setOrder("0-1", "2-Display");
+  scalebar->setChecked(true);
+
+  m_visualizeToolGroup->addTool(scalebar);
+
 
   auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",
                                                      m_view->panelXZ(),
                                                      ":espina/panel_xz.svg",
                                                      tr("Display XZ View"),
                                                      m_context);
-  panelSwitchXY->setGroupWith("view_panels");
+  panelSwitchXY->setOrder("0","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchXY);
 
   auto panelSwitchYZ = std::make_shared<PanelSwitch>("YZ",
@@ -1294,13 +958,13 @@ void EspinaMainWindow::createVisualizeToolGroup()
                                                      ":espina/panel_yz.svg",
                                                      tr("Display YZ View"),
                                                      m_context);
-  panelSwitchYZ->setGroupWith("view_panels");
+  panelSwitchYZ->setOrder("1","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
-  auto dialog3dTool = m_view->dialog3D()->tool();
-  dialog3dTool->setGroupWith("view_panels");
+  auto dialogSwith3D = m_view->dialog3D()->tool();
+  dialogSwith3D->setOrder("2","3-Views");
 
-  m_visualizeToolGroup->addTool(dialog3dTool);
+  m_visualizeToolGroup->addTool(dialogSwith3D);
 
   registerToolGroup(m_visualizeToolGroup);
 }
@@ -1323,20 +987,22 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 void EspinaMainWindow::createDefaultPanels()
 {
 
-  auto segmentationInformation       = new SegmentationInformation(m_filterRefiners, m_context);
-  auto segmentationInformationSwitch = std::make_shared<PanelSwitch>("SegmentationInformation",
-                                                                     segmentationInformation,
-                                                                     ":espina/segmentation_information_switch.svg",
-                                                                     tr("Display Segmentation Information"),
-                                                                     m_context);
-  m_analyzeToolGroup->addTool(segmentationInformationSwitch);
+  auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
+  auto segmentationPropertiesSwitch = std::make_shared<PanelSwitch>("SegmentationProperties",
+                                                                    segmentationProperties,
+                                                                    ":espina/display_segmentation_properties.svg",
+                                                                    tr("Segmentation Properties"),
+                                                                    m_context);
+  segmentationPropertiesSwitch->setOrder("0");
+
+  m_refineToolGroup->addTool(segmentationPropertiesSwitch);
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolShortcuts()
 {
   QList<QKeySequence> alreadyUsed;
-  alreadyUsed << Qt::Key_Escape << Qt::CTRL+Qt::Key_S << Qt::CTRL+Qt::Key_Z << Qt::CTRL+Qt::SHIFT+Qt::Key_Z;
+  alreadyUsed << Qt::Key_Escape;
 
   for (auto tool : availableTools())
   {
@@ -1403,18 +1069,6 @@ void EspinaMainWindow::restoreGeometry()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::configureAutoSave()
-{
-  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
-  m_autosave.start();
-
-  connect(&m_autosave, SIGNAL(timeout()),
-          this,        SLOT(autosave()));
-
-  checkAutosave();
-}
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
   auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D|ViewType::VIEW_3D);
@@ -1423,13 +1077,37 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
   {
     if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
     {
-      m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+      m_visualizeToolGroup->addRepresentationSwitch(repSwitch);
     }
   }
 
   m_view->addRepresentation(representation);
 
   m_context.availableRepresentations() << factory;
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::checkAutoSavedAnalysis()
+{
+  if (m_autoSave.canRestore())
+  {
+    auto msg = tr("ESPINA closed unexpectedly. Do you want to load autosaved analysis?");
+
+    if (DefaultDialogs::UserConfirmation(msg))
+    {
+      m_autoSave.restore();
+    }
+    else
+    {
+      m_autoSave.clear();
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::updateUndoStackIndex()
+{
+  m_savedUndoStackIndex = m_context.undoStack()->index();
 }
 
 //------------------------------------------------------------------------
@@ -1441,12 +1119,6 @@ void EspinaMainWindow::checkAnalysisConsistency()
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
   checkerTask->submit(checkerTask);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::updateUndoStackIndex()
-{
-  m_undoStackSavedIndex = m_context.undoStack()->index();
 }
 
 //------------------------------------------------------------------------
@@ -1499,23 +1171,34 @@ void EspinaMainWindow::updateToolsSettings()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::saveAnalysis(const QString &filename)
+void EspinaMainWindow::onAboutToSaveSession()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_busy = true;
-
   saveToolsSettings();
+  m_busy = true;
+}
 
-  IO::SegFile::save(m_analysis.get(), filename, m_errorHandler);
+//------------------------------------------------------------------------
+void EspinaMainWindow::onSessionSaved(const QString &filename)
+{
+  if (!m_autoSave.isAutoSaveFile(filename))
+  {
+    updateStatus(tr("File saved successfully as %1").arg(filename));
 
-  QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfully in %1").arg(filename));
+    QFileInfo file = filename;
+    setWindowTitle(file.fileName());
+
+    m_saveTool->setSaveFilename(filename);
+    m_saveAsTool->setSaveFilename(filename);
+
+    m_autoSave.resetCountDown();
+
+    updateUndoStackIndex();
+
+    RecentDocuments recent;
+    recent.addDocument(filename);
+  }
+
   m_busy = false;
-
-  m_recentDocuments1.addDocument(filename);
-  m_recentDocuments2.updateDocumentList();
-
-  updateUndoStackIndex();
 }
 
 //------------------------------------------------------------------------
@@ -1548,6 +1231,7 @@ void EspinaMainWindow::saveToolsSettings()
 const QList<ToolGroupPtr> EspinaMainWindow::toolGroups() const
 {
   return QList<ToolGroupPtr>{
+    m_sessionToolGroup,
     m_exploreToolGroup,
     m_restrictToolGroup,
     m_segmentToolGroup,

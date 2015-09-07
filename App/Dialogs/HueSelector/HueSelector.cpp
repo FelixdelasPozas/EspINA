@@ -20,57 +20,56 @@
  */
 
 #include <Dialogs/HueSelector/HueSelector.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::GUI;
+
+//------------------------------------------------------------------------
+HueSelectorDialog::HueSelectorDialog(const Hue value)
+: QDialog(DefaultDialogs::defaultParentWidget())
+, m_hue{ value }
 {
-  //------------------------------------------------------------------------
-  HueSelectorDialog::HueSelectorDialog(const Hue value)
-  : m_hue{value}
-  {
-    setupUi(this);
-    this->setWindowTitle(QObject::tr("Hue Selection"));
+  setupUi(this);
+  this->setWindowTitle(QObject::tr("Hue Selection"));
 
-    m_selector = new HueSelector();
-    m_selector->setFixedHeight(25);
-    m_selector->reserveInitialValue(true);
-    m_selector->setHueValue(value);
-    m_selector->setVisible(true);
-    m_hueSpinbox->setValue(value);
-    m_hueSpinbox->setMaximum(359);
-    m_layout->addWidget(m_selector,1);
+  m_selector = new HueSelector();
+  m_selector->setFixedHeight(25);
+  m_selector->reserveInitialValue(true);
+  m_selector->setHueValue(value);
+  m_selector->setVisible(true);
+  m_hueSpinbox->setValue(value);
+  m_hueSpinbox->setMaximum(359);
+  m_layout->addWidget(m_selector, 1);
 
-    connect(m_selector, SIGNAL(newHsv(int, int, int)),
-            this,       SLOT(onSelectorValueChanged(int, int, int)));
+  connect(m_selector, SIGNAL(newHsv(int, int, int)), this, SLOT(onSelectorValueChanged(int, int, int)));
 
-    connect(m_hueSpinbox, SIGNAL(valueChanged(int)),
-            this,       SLOT(onSpinboxValueChanged(int)));
-  }
+  connect(m_hueSpinbox, SIGNAL(valueChanged(int)), this, SLOT(onSpinboxValueChanged(int)));
+}
 
-  //------------------------------------------------------------------------
-  HueSelectorDialog::~HueSelectorDialog()
-  {
-  }
+//------------------------------------------------------------------------
+HueSelectorDialog::~HueSelectorDialog()
+{
+}
 
-  //------------------------------------------------------------------------
-  void HueSelectorDialog::onSelectorValueChanged(int h, int s, int v)
-  {
-    m_selector->blockSignals(true);
-    m_hueSpinbox->setValue(h);
-    m_selector->blockSignals(false);
-  }
+//------------------------------------------------------------------------
+void HueSelectorDialog::onSelectorValueChanged(int h, int s, int v)
+{
+  m_selector->blockSignals(true);
+  m_hueSpinbox->setValue(h);
+  m_selector->blockSignals(false);
+}
 
-  //------------------------------------------------------------------------
-  void HueSelectorDialog::onSpinboxValueChanged(int h)
-  {
-    m_hueSpinbox->blockSignals(true);
-    m_selector->setHueValue(h);
-    m_hueSpinbox->blockSignals(false);
-  }
+//------------------------------------------------------------------------
+void HueSelectorDialog::onSpinboxValueChanged(int h)
+{
+  m_hueSpinbox->blockSignals(true);
+  m_selector->setHueValue(h);
+  m_hueSpinbox->blockSignals(false);
+}
 
-  //------------------------------------------------------------------------
-  Hue HueSelectorDialog::hueValue() const
-  {
-    return m_hueSpinbox->value();
-  }
-    
-} // namespace ESPINA
+//------------------------------------------------------------------------
+Hue HueSelectorDialog::hueValue() const
+{
+  return m_hueSpinbox->value();
+}

@@ -21,7 +21,7 @@
 // ESPINA
 #include "SegmentationInspector.h"
 
-#include <Docks/SegmentationInformation/NoFilterRefiner.h>
+#include <Panels/SegmentationProperties/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>

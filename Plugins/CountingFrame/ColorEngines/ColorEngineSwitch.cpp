@@ -27,7 +27,7 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(CountingFrameColorEngineSPtr engine, Support::Context& context)
-: Support::Widgets::ColorEngineSwitch(engine, ":cf-switch2D.svg", context)
+: Support::Widgets::ColorEngineSwitch(engine, ":color_by_cf.svg", context)
 , m_engine(engine)
 {
   initWidgets();

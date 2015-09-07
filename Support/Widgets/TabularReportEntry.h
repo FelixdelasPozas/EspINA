@@ -52,7 +52,8 @@ namespace ESPINA
   public:
     explicit Entry(const QString   &category,
                    ModelAdapterSPtr model,
-                   ModelFactorySPtr factory);
+                   ModelFactorySPtr factory,
+                   QWidget         *parent);
     virtual ~Entry();
 
     void setProxy(InformationProxy *proxy);

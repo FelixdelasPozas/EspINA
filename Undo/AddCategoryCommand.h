@@ -36,26 +36,26 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** \brief AddCategoryCommand class constructor.
-  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
-  	 * \param[in] category, smart pointer of the category adapter to add.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddCategoryCommand class constructor.
+     * \param[in] parentCategory parent category adapter.
+     * \param[in] category to add.
+     * \param[in] model espina model
+     * \param[in] parent QUndoCommand
+     *
+     */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 CategoryAdapterSPtr category,
                                 ModelAdapterSPtr    model,
                                 QUndoCommand*       parent = nullptr);
 
-  	/** \brief AddCategoryCommand class constructor.
-  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
-  	 * \param[in] name, name of the new category.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] color, QColor of the new category.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddCategoryCommand class constructor.
+     * \param[in] parentCategory parent category adapter.
+     * \param[in] name of the new category.
+     * \param[in] model espina model
+     * \param[in] color the new category.
+     * \param[in] parent QUndoCommand.
+     *
+     */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 const QString&      name,
                                 ModelAdapterSPtr    model,

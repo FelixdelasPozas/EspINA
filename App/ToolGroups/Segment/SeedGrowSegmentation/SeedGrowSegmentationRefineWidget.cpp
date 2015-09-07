@@ -309,7 +309,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       auto threshold = m_gui->threshold->value();
       auto radius    = m_gui->closingRadius->value();
 
-      undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
+      undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
       undoStack->push(new SGSFilterModification(m_segmentation, m_filter, roi, threshold, radius));
       undoStack->endMacro();
 
@@ -317,7 +317,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       {
         auto message = tr("New segmentation may be incomplete due to ROI restriction.");
 
-        GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+        GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
       }
 
       auto currentFilterROI = m_filter->roi();
@@ -328,9 +328,9 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
     }
     else
     {
-      auto message = tr("Segmentation couldn't be modified. Seed is outside ROI");
+      auto message = tr("Segmentation couldn't be modified. Selected voxel is outside ROI");
 
-      GUI::DefaultDialogs::InformationMessage(dialogTitle(), message);
+      GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
     }
   }
 }
@@ -357,7 +357,7 @@ void SeedGrowSegmentationRefineWidget::setClosingRadius(int value)
 //----------------------------------------------------------------------------
 QString SeedGrowSegmentationRefineWidget::dialogTitle() const
 {
-  return tr("Seed Grow Segmentation");
+  return tr("Grey Level Segmentation");
 }
 
 //----------------------------------------------------------------------------
@@ -367,5 +367,5 @@ bool SeedGrowSegmentationRefineWidget::discardChangesConfirmed() const
                     "Updating this filter will result in losing user modifications."
                     "Do you want to proceed?");
 
-  return GUI::DefaultDialogs::UserConfirmation(dialogTitle() ,message);
+  return GUI::DefaultDialogs::UserConfirmation(message, dialogTitle());
 }

@@ -117,8 +117,11 @@ namespace ESPINA
      * \param[in] handler smart pointer of the error handler to use.
      *
      */
-    AnalysisSPtr read(AnalysisReaderSPtr reader, const QFileInfo& file, ErrorHandlerSPtr handler = ErrorHandlerSPtr())
-    { return reader->read(file, m_factory, handler); }
+    AnalysisSPtr read(AnalysisReaderSPtr reader,
+                      const QFileInfo& file,
+                      IO::ProgressReporter *reporter = nullptr,
+                      ErrorHandlerSPtr handler = ErrorHandlerSPtr())
+    { return reader->read(file, m_factory, reporter, handler); }
 
     /** \brief Creates and returns a new sample adapter.
      * \param[in] name name of the sample.

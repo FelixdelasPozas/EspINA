@@ -97,11 +97,11 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
-, m_showThumbnail   {true}
+, m_showThumbnail   {false}
 , m_inThumbnail     {false}
 , m_inThumbnailClick{true}
 , m_scaleValue      {1.0}
-, m_scaleVisibility {true}
+, m_scaleVisibility {false}
 , m_scale           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_plane           {plane}
 , m_normalCoord     {normalCoordinateIndex(plane)}
@@ -396,7 +396,7 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_cameraReset = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
+  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(onCameraResetPressed()));
 
@@ -1069,7 +1069,11 @@ void View2D::setCameraState(CameraState state)
     camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
     camera->Zoom(viewHeightLength() / state.heightLength);
 
-    m_scrollBar->setValue(state.slice);
+    // NOTE: next line removed to avoid several changes in the crosshair. Just one change in the crosshair
+    // is made from PositionMarks tool. If used outside the positions tool a manual crosshair change must
+    // be made. TODO: review when Managers class has been refactorized.
+    //
+    // m_scrollBar->setValue(state.slice);
 
     refresh();
   }

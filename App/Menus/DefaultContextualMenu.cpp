@@ -23,11 +23,18 @@
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/ChangeSegmentationNotes.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Support/Utils/TagUtils.h>
+
+#include <itkLabelObject.h>
+#include <itkLabelMap.h>
+#include <itkBinaryImageToLabelMapFilter.h>
+#include <itkLabelMapToLabelImageFilter.h>
+#include <itkMergeLabelMapFilter.h>
 
 // Qt
 #include <QWidgetAction>
@@ -39,8 +46,11 @@
 #include <QInputDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
@@ -55,6 +65,7 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
   createNoteEntry();
   createTagsEntry();
   createRenameEntry();
+  createExportEntry();
   createDeleteEntry();
 }
 
@@ -137,12 +148,14 @@ void DefaultContextualMenu::resetRootItem()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
+  auto renameTitle = tr("Rename Segmentation");
+
   QMap<SegmentationAdapterPtr, QString> renames;
 
   for (auto segmentation : m_segmentations)
   {
     QString oldName = segmentation->data().toString();
-    QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
+    QString alias = QInputDialog::getText(this, oldName, renameTitle, QLineEdit::Normal, oldName);
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
@@ -152,8 +165,10 @@ void DefaultContextualMenu::renameSegmentation()
 
     if (exists)
     {
-      QMessageBox::warning(this, tr("Alias duplicated"),
-          tr("Segmentation alias is already used by another segmentation."));
+      auto title = tr("Alias duplicated");
+      auto msg   = tr("Segmentation alias is already used by another segmentation.");
+
+      DefaultDialogs::InformationMessage(msg, title);
     }
     else
     {
@@ -164,9 +179,103 @@ void DefaultContextualMenu::renameSegmentation()
   if (renames.size() != 0)
   {
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(QString("Rename segmentations"));
+    undoStack->beginMacro(renameTitle);
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
+  }
+}
+
+template<typename T>
+void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &segmentations, const QString &file)
+{
+  using Label      = itk::LabelObject<T, 3>;
+  using LabelMap   = itk::LabelMap<Label>;
+  using LabelImage = itk::Image<T, 3>;
+
+  using MergFilter = itk::MergeLabelMapFilter<LabelMap>;
+
+  auto origin  = channel->position();
+  auto spacing = channel->output()->spacing();
+
+  auto labelMap = LabelMap::New();
+  labelMap->SetSpacing(ItkSpacing<LabelMap>(spacing));
+  labelMap->SetRegions(equivalentRegion<LabelMap>(origin, spacing, channel->bounds()));
+  labelMap->Allocate();
+
+  T i = 1;
+  for (auto segmentation : segmentations)
+  {
+    auto volume = readLockVolume(segmentation->output())->itkImage();
+
+    auto segLabelMapFilter = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>::New();
+    segLabelMapFilter->SetInput(volume);
+    segLabelMapFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
+    segLabelMapFilter->FullyConnectedOff();
+    segLabelMapFilter->Update();
+
+    auto segLabelMap = segLabelMapFilter->GetOutput();
+
+    auto label = segLabelMap->GetNthLabelObject(0);
+
+    // BinaryImageToLabelMapFilter create different labels for non connected components:
+    // Merge disconnected components into first label object
+    for (int n = 1; n <segLabelMap->GetNumberOfLabelObjects(); ++n)
+    {
+      auto part = segLabelMap->GetNthLabelObject(n);
+      for (int l = 0; l < part->GetNumberOfLines(); ++l)
+      {
+        label->AddLine(part->GetLine(l));
+      }
+    }
+    label->SetLabel(i++);
+    labelMap->AddLabelObject(label);
+  }
+  //qDebug() << "Total labels" << labelMap->GetNumberOfLabelObjects();
+
+  auto image = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>::New();
+
+  image->SetInput(labelMap);
+  image->SetNumberOfThreads(1);
+
+  try
+  {
+    image->Update();
+
+    exportVolume<LabelImage>(image->GetOutput(), file);
+  }
+  catch(itk::MemoryAllocationError &e)
+  {
+    auto title = QObject::tr("Export Segmentation Binarization");
+    auto msg   = QObject::tr("Insufficient memory to export selected segmentations.");
+
+    if (segmentations.size() >= 256)
+    {
+      msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit labelmaps instead of 16 bit ones"));
+    }
+
+    DefaultDialogs::InformationMessage(msg, title);
+  }
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::exportSelectedSegmentations()
+{
+  auto title  = tr("Export selected segmentations");
+  auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
+
+  auto file = DefaultDialogs::SaveFile(title, format);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
+
+  if (m_segmentations.size() < 256)
+  {
+    exportSegmentations<unsigned char>(getActiveChannel(), m_segmentations, file);
+  }
+  else
+  {
+    exportSegmentations<unsigned short>(getActiveChannel(), m_segmentations, file);
   }
 }
 
@@ -176,7 +285,7 @@ void DefaultContextualMenu::deleteSelectedSementations()
   this->hide();
 
   auto undoStack = getUndoStack();
-  undoStack->beginMacro("Delete Segmentations");
+  undoStack->beginMacro(tr("Delete Segmentations"));
   undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
   undoStack->endMacro();
 
@@ -191,17 +300,18 @@ void DefaultContextualMenu::setSelection(SelectionSPtr selection)
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createNoteEntry()
 {
-  QAction *noteAction = addAction(tr("Notes"));
-  noteAction->setIcon(QIcon(":/espina/note.svg"));
-  connect(noteAction, SIGNAL(triggered(bool)),
-          this, SLOT(addNote()));
+  auto action = addAction(tr("Notes"));
+
+  action->setIcon(QIcon(":/espina/note.svg"));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(addNote()));
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createChangeCategoryMenu()
 {
-   QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
-   QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
+   auto changeCategoryMenu = new QMenu(tr("Change Category"));
+   auto categoryListAction = new QWidgetAction(changeCategoryMenu);
 
    auto model = getModel();
 
@@ -210,8 +320,10 @@ void DefaultContextualMenu::createChangeCategoryMenu()
    m_classification->setModel(model.get());
    m_classification->setRootIndex(model->classificationRoot());
    m_classification->expandAll();
+
    connect(model.get(), SIGNAL(modelReset()),
-           this,          SLOT(resetRootItem()));
+           this,        SLOT(resetRootItem()));
+
    connect(m_classification, SIGNAL(clicked(QModelIndex)),
            this, SLOT(changeSegmentationsCategory(QModelIndex)));
 
@@ -223,10 +335,10 @@ void DefaultContextualMenu::createChangeCategoryMenu()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  auto tagsAction = addAction(tr("Tags"));
-  tagsAction->setIcon(QIcon(":/espina/tag.svg"));
+  auto action = addAction(tr("Tags"));
+  action->setIcon(QIcon(":/espina/tag.svg"));
 
-  connect(tagsAction, SIGNAL(triggered(bool)),
+  connect(action, SIGNAL(triggered(bool)),
           this,       SLOT(manageTags()));
 
 }
@@ -236,15 +348,24 @@ void DefaultContextualMenu::createRenameEntry()
 {
   auto action = addAction(tr("&Rename"));
   connect(action, SIGNAL(triggered(bool)),
-          this, SLOT(renameSegmentation()));
+          this,   SLOT(renameSegmentation()));
 }
 
 
 //------------------------------------------------------------------------
+void DefaultContextualMenu::createExportEntry()
+{
+  auto action = addAction(tr("Export"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(exportSelectedSegmentations()));
+}
+
+//------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  auto deleteAction = addAction(tr("Delete"));
+  auto action = addAction(tr("Delete"));
 
-  connect(deleteAction, SIGNAL(triggered(bool)),
-          this,         SLOT(deleteSelectedSementations()));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(deleteSelectedSementations()));
 }

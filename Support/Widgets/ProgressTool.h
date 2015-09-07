@@ -74,8 +74,24 @@ namespace ESPINA
         };
 
       public:
+        /** \brief ProgressTool constructor
+         *
+         * \param[in] id of the tool
+         * \param[in] icon for the tool
+         * \param[in] tooltip to be display on mouse hover
+         * \param[in] context application context
+         *
+         */
         explicit ProgressTool(const QString &id, const QIcon &icon, const QString &tooltip, Context &context);
 
+        /** \brief ProgressTool constructor
+         *
+         * \param[in] id of the tool
+         * \param[in] icon for the tool
+         * \param[in] tooltip to be display on mouse hover
+         * \param[in] context application context
+         *
+         */
         explicit ProgressTool(const QString &id, const QString &icon, const QString &tooltip, Context &context);
 
         virtual ~ProgressTool();
@@ -106,14 +122,20 @@ namespace ESPINA
          */
         void setExclusive(bool value);
 
-        /** \brief Sets the group name which tools are grouped with
+        /** \brief Sets the grouping criteria
          *
          */
-        void setGroupWith(const QString &name);
+        void setOrder(const QString &name, const QString &group = QString());
 
         QString groupWith() const;
 
+        QString positionName() const;
+
         void setToolTip(const QString &tooltip);
+
+        void setIcon(const QIcon icon);
+
+        QIcon icon() const;
 
         QList<QAction *> actions() const;
 
@@ -176,17 +198,17 @@ namespace ESPINA
 
         void deactivateEventHandler();
 
-        /** \brief Helper method to save the state of the tool (checked/unchecked) to the settings object.
+        /** \brief Helper method to save tool's checked state
          * \param[inout] settings QSettings object.
          *
          */
-        void saveCheckSetting(std::shared_ptr<QSettings> settings);
+        void saveCheckedState(std::shared_ptr<QSettings> settings);
 
-        /** \brief Helper method to retrieve the value of the state of the tool from the settings object.
+        /** \brief Helper method to restore tool's checked state
          * \param[inout] settings QSettings object.
          *
          */
-        bool checkSetting(std::shared_ptr<QSettings> settings);
+        void restoreCheckedState(std::shared_ptr<QSettings> settings);
 
       private slots:
         void onActionToggled(bool value);
@@ -198,7 +220,10 @@ namespace ESPINA
         NestedWidgets                *m_settings;
 
         bool    m_isExlusive;
+
+        QString m_positionName;
         QString m_groupName;
+
         const QString m_id;
         QKeySequence m_shortcutSequence;
 

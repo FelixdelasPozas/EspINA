@@ -19,10 +19,10 @@
 
 #include "ProgressAction.h"
 #include "Styles.h"
+#include "ToolButton.h"
 
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QProgressBar>
 
 using namespace ESPINA::GUI::Widgets;
@@ -36,7 +36,7 @@ ProgressAction::ProgressAction(const QString &icon, const QString &tooltip, QObj
 //------------------------------------------------------------------------
 ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent)
 : QWidgetAction(parent)
-, m_progress(0)
+, m_progress(100)
 {
   setIcon(icon);
   setToolTip(tooltip);
@@ -58,6 +58,22 @@ QWidget* ProgressAction::createWidget(QWidget* parent)
   createProgress(button);
 
   return widget;
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::setActionIcon(const QIcon& icon)
+{
+  setIcon(icon);
+
+  emit iconChanged(icon);
+}
+
+//------------------------------------------------------------------------
+void ProgressAction::setActionToolTip(const QString& tooltip)
+{
+  setToolTip(tooltip);
+
+  emit toolChanged(tooltip);
 }
 
 //------------------------------------------------------------------------
@@ -117,6 +133,12 @@ QPushButton* ProgressAction::createActionButton(QWidget* parent)
 
   connect(this,   SIGNAL(actionChecked(bool)),
           action, SLOT(setChecked(bool)));
+
+  connect(this,   SIGNAL(iconChanged(QIcon)),
+          action, SLOT(changeIcon(QIcon)));
+
+  connect(this,   SIGNAL(toolChanged(QString)),
+          action, SLOT(changeTooltip(QString)));
 
   return action;
 }
@@ -178,5 +200,5 @@ constexpr int ProgressAction::progressVerticalPosition()
 //------------------------------------------------------------------------
 bool ProgressAction::displayProgress(int progress)
 {
-  return 0 < progress && progress < 100;
+  return 0 <= progress && progress < 100;
 }

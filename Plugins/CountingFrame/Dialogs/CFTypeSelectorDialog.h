@@ -25,6 +25,7 @@
 #include "ui_CFTypeSelectorDialog.h"
 
 #include <CountingFrames/CountingFrame.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
 
@@ -42,7 +43,7 @@ namespace ESPINA
       Q_OBJECT
 
     public:
-      CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent);
+      CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
       virtual ~CFTypeSelectorDialog() {};
 

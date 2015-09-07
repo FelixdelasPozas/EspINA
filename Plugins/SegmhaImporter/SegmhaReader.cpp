@@ -51,6 +51,7 @@
 #include <itkVTKImageToImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::IO;
 
 using SegmentationLabelMap  = itk::Image<unsigned short , 3>;
 using LabelMapReader        = itk::ImageFileReader<SegmentationLabelMap>;
@@ -77,9 +78,12 @@ IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 }
 
 //---------------------------------------------------------------------------
-AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
+AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
+                                CoreFactorySPtr factory,
+                                ProgressReporter *reporter,
+                                ErrorHandlerSPtr handler)
 {
-  ClassificationSPtr classification{new Classification()};
+  auto classification = std::make_shared<Classification>();
 
   QFileInfo localFile = file;
 
@@ -96,7 +100,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   QFileInfo channelFile = localFile.absoluteFilePath().replace(".segmha", ".mhd");
   ChannelReader channelReader;
 
-  auto analysis = channelReader.read(channelFile, factory, handler);
+  auto analysis = channelReader.read(channelFile, factory, nullptr, handler);
 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 

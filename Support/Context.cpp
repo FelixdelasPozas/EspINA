@@ -17,7 +17,7 @@
 
 #include "Context.h"
 #include "Utils/FactoryUtils.h"
-#include "Widgets/DockWidget.h"
+#include "Widgets/Panel.h"
 #include <Core/MultiTasking/Scheduler.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 #include <QUndoStack>
@@ -113,7 +113,7 @@ RepresentationInvalidator &Context::representationInvalidator()
 }
 
 //------------------------------------------------------------------------
-void Context::addPanel(DockWidget *panel)
+void Context::addPanel(Panel *panel)
 {
   m_mainWindow->addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, panel);
 }

@@ -59,6 +59,10 @@ void TaskGroupProgress::updateProgress()
 
       total = total / m_tasks.size();
     }
+    else
+    {
+      total = 100;
+    }
   }
 
   emit progress(total);

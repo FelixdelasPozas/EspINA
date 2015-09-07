@@ -18,14 +18,39 @@
  */
 
 #include "Styles.h"
+#include "ToolButton.h"
 
 #include <QWidget>
 #include <QPushButton>
 #include <QAction>
+#include <QApplication>
 
 using namespace ESPINA::GUI::Widgets;
 
 //-----------------------------------------------------------------------------
+Styles::DefaultCursor::DefaultCursor()
+{
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+//-----------------------------------------------------------------------------
+Styles::DefaultCursor::~DefaultCursor()
+{
+  QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+Styles::WaitingCursor::WaitingCursor()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+//-----------------------------------------------------------------------------
+Styles::WaitingCursor::~WaitingCursor()
+{
+  QApplication::restoreOverrideCursor();
+}
+
 void Styles::setNestedStyle(QWidget *widget)
 {
   widget->setObjectName("NestedWidget");
@@ -61,15 +86,15 @@ QAction* Styles::createToolAction(const QIcon& icon, const QString& tooltip, QOb
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* Styles::createToolButton(const QString& icon, const QString& tooltip, QWidget *parent)
+ToolButton* Styles::createToolButton(const QString& icon, const QString& tooltip, QWidget *parent)
 {
   return createToolButton(QIcon(icon), tooltip, parent);
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip, QWidget *parent)
+ToolButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip, QWidget *parent)
 {
-  auto button = new QPushButton(parent);
+  auto button = new ToolButton(parent);
 
   button->setIcon(icon);
   button->setIconSize(QSize(iconSize(), iconSize()));

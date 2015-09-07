@@ -46,10 +46,11 @@ namespace ESPINA
 
     enum class ToolCategory
     {
+      SESSION,
       EXPLORE,
-      RESTRICT,
+      ROI,
       SEGMENT,
-      REFINE,
+      EDIT,
       VISUALIZE,
       ANALYZE
     };
@@ -131,13 +132,6 @@ namespace ESPINA
       virtual Settings::SettingsPanelSList settingsPanels() const
       { return Settings::SettingsPanelSList(); }
 
-      /** \brief Returns a list of menu entries to add to the main application.
-       *
-       */
-      //DEPRECATED
-      virtual QList<MenuEntry> menuEntries() const
-      { return QList<MenuEntry>(); }
-
     public slots:
       /** \brief Perform operations when an analysis is closed.
        *
@@ -158,6 +152,6 @@ namespace ESPINA
   }
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.5")
+Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.6")
 
 #endif // ESPINA_PLUGIN_H

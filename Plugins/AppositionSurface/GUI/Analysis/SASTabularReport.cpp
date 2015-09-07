@@ -80,7 +80,7 @@ void SASTabularReport::createCategoryEntry(const QString& category)
 
   if (m_tabs->tabText(i) != category)
   {
-    auto entry = new Entry(category, m_model, factory);
+    auto entry = new Entry(category, m_model, factory, this);
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));
@@ -182,7 +182,7 @@ void SASTabularReport::exportInformation()
   if (!exported)
   {
     auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(title, message);
+    DefaultDialogs::InformationMessage(message, title);
   }
 }
 
@@ -270,6 +270,6 @@ void SASTabularReport::Entry::extractInformation()
   if (!exported)
   {
     auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(title, message);
+    DefaultDialogs::InformationMessage(message, title);
   }
 }

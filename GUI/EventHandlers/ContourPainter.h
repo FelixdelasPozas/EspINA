@@ -51,6 +51,11 @@ namespace ESPINA
        */
       void clearContours() const;
 
+      /** \brief Forces rasterization of the actual contours (if any).
+       *
+       */
+      void rasterizeContours();
+
     signals:
       void configure(Nm distance, QColor color, NmVector3 spacing) const;
       void rasterize() const;

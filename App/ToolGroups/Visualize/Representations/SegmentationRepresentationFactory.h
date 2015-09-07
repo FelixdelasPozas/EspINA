@@ -41,12 +41,9 @@ namespace ESPINA
     void createSliceRepresentation     (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
     void createContourRepresentation   (Representation &representation, Support::Context &context) const;
     void createSkeletonRepresentation  (Representation &representation, Support::Context &context) const;
-    void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;
     void createMeshRepresentation      (Representation &representation, Support::Context &context) const;
 
-    void groupSwitch(Support::Widgets::ToolSPtr tool) const;
-
-    void groupSwitch3D(Support::Widgets::ToolSPtr tool) const;
+    void groupSwitch(const QString &order, Support::Widgets::ToolSPtr tool) const;
 
   private:
     static const unsigned int WINDOW_SIZE;

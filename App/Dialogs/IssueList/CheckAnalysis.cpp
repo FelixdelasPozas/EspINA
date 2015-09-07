@@ -117,6 +117,12 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 }
 
 //------------------------------------------------------------------------
+QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
+{
+  return tr("Delete %1").arg(isSegmentation(item.get())?"segmentation":"channel");
+}
+
+//------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 : Task{scheduler}
 , m_finishedTasks{0}
@@ -193,12 +199,6 @@ void CheckAnalysis::addIssue(IssueSPtr issue)
 }
 
 //------------------------------------------------------------------------
-QString deleteHint(NeuroItemAdapterSPtr item)
-{
-  return QObject::tr("Delete %1.").arg(isSegmentation(item.get())?"segmentation":"channel");
-}
-
-//------------------------------------------------------------------------
 void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 {
   auto output = viewItem->output();
@@ -233,7 +233,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
-      auto description = tr("Item does not have any data at all.");
+      auto description = tr("Item does not have any data at all");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -241,7 +241,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (filter == nullptr)
   {
-    auto description = tr("Can't find the origin of the item.");
+    auto description = tr("Can't find the origin of the item");
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
@@ -270,9 +270,13 @@ void CheckSegmentationTask::checkVolumeIsEmpty() const
   auto volume = readLockVolume(m_segmentation->output());
   if (volume.isNull() || volume->isEmpty())
   {
-    auto description = tr("Segmentation has a volume associated but is empty.");
+    auto description = tr("Segmentation has a volume associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+  else
+  {
+    checkDataBounds(volume);
   }
 }
 
@@ -283,9 +287,13 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 
   if (mesh.isNull() || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
   {
-    auto description = tr("Segmentation has a mesh associated but is empty.");
+    auto description = tr("Segmentation has a mesh associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+  else
+  {
+    checkDataBounds(mesh);
   }
 }
 
@@ -296,20 +304,7 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 
   if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
   {
-    auto description = tr("Segmentation has a skeleton associated but is empty.");
-
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
-  }
-}
-
-//------------------------------------------------------------------------
-void CheckSegmentationTask::checkHasChannel() const
-{
-  auto channels = QueryAdapter::channels(m_segmentation);
-
-  if(channels.empty())
-  {
-    auto description = tr("Segmentation is not related to any channel.");
+    auto description = tr("Segmentation has a skeleton associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -322,9 +317,43 @@ void CheckSegmentationTask::checkRelations() const
 
   if(relations.empty())
   {
-    auto description = tr("Segmentation is not related to any sample.");
+    auto description = tr("Segmentation is not related to any sample");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+}
+
+//------------------------------------------------------------------------
+void CheckSegmentationTask::checkHasChannel() const
+{
+  auto channels = QueryAdapter::channels(m_segmentation);
+
+  if(channels.empty())
+  {
+    auto description = tr("Segmentation is not related to any channel");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+  else if (channels.size() > 1)
+  {
+    auto description = tr("Segmentation is related to several channels");
+
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
+  }
+  else
+  {
+    checkIsInsideChannel(channels.first().get());
+  }
+}
+
+//------------------------------------------------------------------------
+void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) const
+{
+  if (!contains(channel->output()->bounds(), m_segmentation->output()->bounds()))
+  {
+    auto description = tr("Segmentation is partially outside its channel");
+
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
   }
 }
 
@@ -343,7 +372,7 @@ void CheckChannelTask::checkVolumeIsEmpty() const
     auto volume = readLockVolume(m_channel->output());
     if(volume.isNull())
     {
-      auto description = tr("Channel has a volume associated but can't find it.");
+      auto description = tr("Channel has a volume associated but can't find it");
 
       reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
@@ -357,8 +386,8 @@ void CheckChannelTask::checkRelations() const
 
   if(relations.empty())
   {
-    auto description = tr("Channel is not related to any sample.");
-    auto hint        = tr("Change relations in the \"Channel Explorer\" dialog.");
+    auto description = tr("Stack is not related to any sample");
+    auto hint        = tr("Change relations in the \"Stack Explorer\" panel");
 
     reportIssue(m_channel, Issue::Severity::CRITICAL, description, hint);
   }

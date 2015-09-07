@@ -88,7 +88,8 @@ protected:
 TabularReport::TabularReport(Support::Context &context,
                              QWidget          *parent,
                              Qt::WindowFlags   flags)
-: m_context       (context)
+: QAbstractItemView(parent)
+, m_context       (context)
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {
@@ -434,7 +435,7 @@ void TabularReport::exportInformation()
 
   if (!result)
   {
-    DefaultDialogs::InformationMessage(title, tr("Unable to export %1").arg(fileName));
+    DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title);
   }
 }
 
@@ -478,7 +479,7 @@ void TabularReport::createCategoryEntry(const QString &category)
 
   if (m_tabs->tabText(i) != category)
   {
-    auto entry = new Entry(category, m_model, factory());
+    auto entry = new Entry(category, m_model, factory(), this);
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));

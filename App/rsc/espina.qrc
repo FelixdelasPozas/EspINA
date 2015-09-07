@@ -1,12 +1,11 @@
 <RCC>
   <qresource prefix="/espina">
-    <file>info.svg</file>
     <file>accept.png</file>
-    <file>activeChannel.svg</file>
+    <file>active_stack.svg</file>
     <file>add.svg</file>
     <file>add_child.svg</file>
-    <file>appPlane.svg</file>
-    <file>bestPixelSelector.svg</file>
+    <file>apposition_surface.svg</file>
+    <file>best_pixel_selector.svg</file>
     <file>brush_2D.svg</file>
     <file>brush_3D.svg</file>
     <file>brush_new.svg</file>
@@ -14,33 +13,28 @@
     <file>cancel.png</file>
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
-    <file>channel_explorer_switch.svg</file>
-    <file>segmentation_explorer_switch.svg</file>
-    <file>segmentation_information_switch.svg</file>
-    <file>channels_slice2D_switch.svg</file>
-    <file>channels_slice3D_switch.svg</file>
-    <file>channels_slice_switch.png</file>
-    <file>channels_switch.png</file>
+    <file>morphological_close.svg</file>
     <file>color_engine_switch_category.svg</file>
     <file>color_engine_switch_number.svg</file>
     <file>color_engine_switch_property.svg</file>
-    <file>close.png</file>
-    <file>contour.png</file>
-    <file>create_node.png</file>
+    <file>create_category.svg</file>
     <file>create_seg_from_parts.svg</file>
-    <file>create_subnode.png</file>
+    <file>create_subcategory.svg</file>
     <file>cross-check.png</file>
     <file>cross-minus.png</file>
     <file>cross-plus.png</file>
     <file>crossRegion.svg</file>
-    <file>panel_xz.svg</file>
-    <file>panel_yz.svg</file>
-    <file>panel_3d.svg</file>
-    <file>crosshairs2D_switch.svg</file>
-    <file>crosshairs3D_switch.svg</file>
-    <file>crosshairs_switch.svg</file>
     <file>database.png</file>
-    <file>dilate.png</file>
+    <file>display_crosshairs.svg</file>
+    <file>display_segmentation_contours.svg</file>
+    <file>display_segmentation_explorer.svg</file>
+    <file>display_segmentation_properties.svg</file>
+    <file>display_segmentations.svg</file>
+    <file>display_segmentation_projections.svg</file>
+    <file>display_stack_explorer.svg</file>
+    <file>display_stacks.svg</file>
+    <file>display_view_thumbnail.svg</file>
+    <file>display_view_scalebar.svg</file>
     <file>down.png</file>
     <file>drawing_contour.svg</file>
     <file>edges-image.png</file>
@@ -49,96 +43,94 @@
     <file>edit-undo.svg</file>
     <file>editor.ico</file>
     <file>eraser.png</file>
-    <file>erode.png</file>
     <file>es_ES.qm</file>
     <file>espina.svg</file>
     <file>export_scene.svg</file>
-    <file>fillHoles.svg</file>
+    <file>exit.svg</file>
+    <file>file_add.svg</file>
+    <file>file_open.svg</file>
+    <file>file_auto_save.svg</file>
+    <file>file_save.svg</file>
+    <file>file_save_as.svg</file>
+    <file>fill_holes.svg</file>
     <file>from_slice.svg</file>
-    <file>hide_3D.svg</file>
+    <file>grey_level_segmentation.svg</file>
     <file>hide_all.svg</file>
-    <file>hide_planes.svg</file>
+    <file>info.svg</file>
     <file>leftIn.png</file>
     <file>leftOut.png</file>
     <file>manual_edition.svg</file>
     <file>manual_segmentation.svg</file>
-    <file>measure.png</file>
-    <file>single_stroke.svg</file>
+    <file>measure_length.svg</file>
+    <file>measure_selection.svg</file>    
+    <file>morphological_dilate.svg</file>
+    <file>morphological_erode.svg</file>
+    <file>logical_union.svg</file>
+    <file>logical_difference.svg</file>
     <file>multi_stroke.svg</file>
+    <file>tag_create.svg</file>
     <file>next_segmentation.svg</file>
-    <file>measure3D.png</file>
-    <file>mesh.png</file>
-    <file>newTag.svg</file>
-    <file>non_traceable.png</file>
     <file>note.svg</file>
-    <file>open.png</file>
+    <file>morphological_open.svg</file>
+    <file>panel_3d.svg</file>
+    <file>panel_xz.svg</file>
+    <file>panel_yz.svg</file>
     <file>pixelSelector.svg</file>
     <file>planar_split.svg</file>
+    <file>position_marks.svg</file>
+    <file>preview_not_available.png</file>
+    <file>preview_raw_information.png</file>
     <file>rainbow.svg</file>
-    <file>refresh.png</file>
+    <file>refresh.svg</file>
     <file>remove.svg</file>
     <file>removeSeg.svg</file>
+    <file>reports.svg</file>
     <file>representation_group_2D_separator.svg</file>
     <file>representation_group_3D_separator.svg</file>
     <file>reset_roi.svg</file>
+    <file>reset_view.svg</file>
     <file>resize_roi.svg</file>
     <file>rightIn.png</file>
     <file>rightOut.png</file>
     <file>roi.svg</file>
-    <file>roi_manual.svg</file>
-    <file>roi_clean.svg</file>
     <file>roi_define.svg</file>
     <file>roi_define_cursor.svg</file>
-    <file>roi_orthogonal.svg</file>
+    <file>roi_delete_roi.svg</file>
+    <file>roi_freehand_roi.svg</file>
+    <file>roi_orthogonal_roi.svg</file>
     <file>roi_out.svg</file>
-    <file>segmentations_slice3D_switch.svg</file>
-    <file>segmentations_slice_switch.svg</file>
-    <file>segmentations_switch.svg</file>
-    <file>settings.png</file>
-    <file>show_3D.svg</file>
-    <file>show_Mesh.svg</file>
+    <file>settings.svg</file>
     <file>show_all.svg</file>
-    <file>show_channels.png</file>
     <file>show_partially.svg</file>
     <file>show_planes.svg</file>
-    <file>show_segmentations.svg</file>
+    <file>single_stroke.svg</file>
     <file>skelCreate.png</file>
     <file>skelModify.png</file>
-    <file>slice.png</file>
-    <file>smoothedmesh.png</file>
     <file>snapshot_scene.svg</file>
     <file>tag.svg</file>
-    <file>tick.png</file>
+    <file>apply.svg</file>
     <file>to_slice.svg</file>
     <file>toolgroup_analyze.svg</file>
     <file>toolgroup_explore.svg</file>
+    <file>toolgroup_file.svg</file>
     <file>toolgroup_refine.svg</file>
     <file>toolgroup_restrict.svg</file>
     <file>toolgroup_segment.svg</file>
     <file>toolgroup_visualize.svg</file>
-    <file>traceable.png</file>
     <file>trash-full.svg</file>
     <file>tubular.svg</file>
     <file>up.png</file>
-    <file>preview_raw_information.png</file>
-    <file>preview_not_available.png</file>
-    <file>reports.svg</file>
     <file>upm.gif</file>
     <file>view-refresh.svg</file>
-    <file>voxel.png</file>
-    <file>voxelGPU.png</file>
-    <file>zoom_cursor.png</file>
-    <file>zoom_reset.png</file>
-    <file>zoom_selection.png</file>
-    <file>zoom_tools.png</file>
-    <file>visualBookmarks.svg</file>
     <file>visualBookmarks_add.svg</file>
-    <file>visualBookmarks_remove.svg</file>
     <file>visualBookmarks_apply.svg</file>
+    <file>visualBookmarks_remove.svg</file>
     <file>warning.svg</file>
-    <file>warning_slim.svg</file>
     <file>warning_critical.svg</file>
     <file>warning_critical_slim.svg</file>
-    <file>gpuchip.png</file>
+    <file>warning_slim.svg</file>
+    <file>zoom_cursor.png</file>
+    <file>zoom_region.svg</file>
+    <file>zoom_tools.png</file>
   </qresource>
 </RCC>

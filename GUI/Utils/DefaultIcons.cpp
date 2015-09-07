@@ -32,14 +32,13 @@ using namespace ESPINA::GUI;
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Save()
 {
-  return qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  return QIcon(":/espina/file_save.svg");
 }
 
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Load()
 {
-
- return qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+  return QIcon(":/espina/file_open.svg");
 }
 
 //------------------------------------------------------------------------
@@ -57,5 +56,5 @@ QIcon DefaultIcons::Information()
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Settings()
 {
-  return QIcon(":/espina/settings.png");
+  return QIcon(":/espina/settings.svg");
 }

@@ -41,9 +41,10 @@ AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
 
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFileReader::read(const QFileInfo& file,
-                                 CoreFactorySPtr  factory,
-                                 ErrorHandlerSPtr handler)
+AnalysisSPtr SegFileReader::read(const QFileInfo  &file,
+                                 CoreFactorySPtr   factory,
+                                 ProgressReporter *reporter,
+                                 ErrorHandlerSPtr  handler)
 {
-  return SegFile::load(file, factory, handler);
+  return SegFile::load(file, factory, reporter, handler);
 }

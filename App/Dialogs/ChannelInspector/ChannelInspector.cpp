@@ -38,6 +38,7 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 #if USE_METADONA
   #include <Producer.h>
@@ -67,13 +68,15 @@
 #include <itkStatisticsImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
-: WithContext(context)
+: QDialog(DefaultDialogs::defaultParentWidget())
+, WithContext(context)
 , m_spacingModified   {false}
 , m_edgesModified     {false}
 , m_pixelSelector     {new PixelValueSelector(this)}

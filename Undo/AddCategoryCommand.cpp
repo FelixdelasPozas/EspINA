@@ -68,12 +68,12 @@ void AddCategoryCommand::redo()
   }
   else
   {
-    m_model->addCategory(m_parentCategory, m_category);
+    m_model->addCategory(m_category, m_parentCategory);
   }
 }
 
 //------------------------------------------------------------------------
 void AddCategoryCommand::undo()
 {
-  m_model->removeCategory(m_parentCategory, m_category);
+  m_model->removeCategory(m_category, m_parentCategory);
 }

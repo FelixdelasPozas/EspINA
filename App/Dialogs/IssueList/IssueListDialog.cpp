@@ -20,12 +20,15 @@
 
 // ESPINA
 #include <Dialogs/IssueList/IssueListDialog.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI;
 
   //------------------------------------------------------------------------
 IssueListDialog::IssueListDialog(IssueList issuesList)
+: QDialog(DefaultDialogs::defaultParentWidget())
 {
   setupUi(this);
   setWindowTitle(tr("Current session problems"));

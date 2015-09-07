@@ -21,8 +21,8 @@
 // ESPINA
 #include "RestrictToolGroup.h"
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
-#include "CleanROITool.h"
-#include "ManualROITool.h"
+#include "DeleteROITool.h"
+#include "FreehandROITool.h"
 #include "OrthogonalROITool.h"
 #include <Undo/ROIUndoCommand.h>
 
@@ -50,7 +50,7 @@ private:
 RestrictToolGroup::DefineOrthogonalROICommand::DefineOrthogonalROICommand(ROISPtr roi, RestrictToolGroup* tool)
 : m_ROI(roi)
 , m_tool(tool)
-, m_prevROI{tool->m_ortogonalROITool->currentROI()}
+, m_prevROI{tool->m_orthogonalROI->currentROI()}
 {
 }
 
@@ -63,7 +63,7 @@ void RestrictToolGroup::DefineOrthogonalROICommand::redo()
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::DefineOrthogonalROICommand::undo()
 {
-  m_tool->m_ortogonalROITool->setROI(m_prevROI);
+  m_tool->m_orthogonalROI->setROI(m_prevROI);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ private:
 RestrictToolGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMaskSPtr<unsigned char> mask, RestrictToolGroup* tool)
 : m_mask     {mask}
 , m_tool     {tool}
-, m_oROI     {tool->m_ortogonalROITool->currentROI()}
+, m_oROI     {tool->m_orthogonalROI->currentROI()}
 , m_firstROI {tool->m_accumulator == nullptr}
 , m_image    {nullptr}
 , m_ROIbounds{Bounds()}
@@ -171,7 +171,7 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 
     if (m_oROI)
     {
-      m_tool->m_ortogonalROITool->setROI(m_oROI);
+      m_tool->m_orthogonalROI->setROI(m_oROI);
     }
   }
 }
@@ -179,25 +179,33 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
                                      Support::Context &context)
-: ToolGroup         {":/espina/toolgroup_restrict.svg", tr("Restrict")}
-, m_context         (context)
-, m_manualROITool   {new ManualROITool(context, this)}
-, m_ortogonalROITool{new OrthogonalROITool(settings, context, this)}
-, m_cleanROITool    {new CleanROITool(context, this)}
-, m_enabled         {true}
-, m_visible         {true}
-, m_color           {Qt::yellow}
+: ToolGroup      {":/espina/toolgroup_restrict.svg", tr("ROI")}
+, m_context      (context)
+, m_freehandROI  {new FreehandROITool(context, this)}
+, m_orthogonalROI{new OrthogonalROITool(settings, context, this)}
+, m_deleteROI    {new DeleteROITool(context, this)}
+, m_enabled      {true}
+, m_visible      {true}
+, m_color        {Qt::yellow}
 {
   setColor(m_color);
 
-  addTool(m_ortogonalROITool);
-  addTool(m_manualROITool);
-  addTool(m_cleanROITool);
+  setToolTip(tr("Region of Interest"));
 
-  connect(m_manualROITool.get(),    SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
-          this,                     SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
-  connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
-          this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
+  m_orthogonalROI->setOrder("0-0");
+  m_freehandROI->setOrder("0-1");
+  m_deleteROI->setOrder("1");
+
+  addTool(m_orthogonalROI);
+  addTool(m_freehandROI);
+  addTool(m_deleteROI);
+
+  connect(m_freehandROI.get(), SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
+          this,                SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
+  connect(m_orthogonalROI.get(), SIGNAL(roiDefined(ROISPtr)),
+          this,                  SLOT(onOrthogonalROIDefined(ROISPtr)));
+
+  m_deleteROI->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -219,11 +227,11 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 
   if (roi && roi->isOrthogonal())
   {
-    m_ortogonalROITool->setROI(roi);
+    m_orthogonalROI->setROI(roi);
   }
   else
   {
-    m_ortogonalROITool->setROI(nullptr);
+    m_orthogonalROI->setROI(nullptr);
   }
 
   if (roi && !roi->isOrthogonal())
@@ -244,7 +252,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 //-----------------------------------------------------------------------------
 ROISPtr RestrictToolGroup::currentROI()
 {
-  auto roi = m_ortogonalROITool->currentROI();
+  auto roi = m_orthogonalROI->currentROI();
 
   if (m_accumulator)
   {
@@ -269,14 +277,14 @@ void RestrictToolGroup::setColor(const QColor& color)
 {
   m_color = color;
 
-  m_manualROITool->setColor(color);
-  m_ortogonalROITool->setColor(color);
+  m_freehandROI->setColor(color);
+  m_orthogonalROI->setColor(color);
 }
 
 //-----------------------------------------------------------------------------
 bool RestrictToolGroup::hasValidROI() const
 {
-  return m_accumulator || m_ortogonalROITool->currentROI();
+  return m_accumulator || m_orthogonalROI->currentROI();
 }
 
 //-----------------------------------------------------------------------------
@@ -296,9 +304,9 @@ void RestrictToolGroup::setVisible(bool visible)
     }
   }
 
-  if (m_ortogonalROITool->currentROI())
+  if (m_orthogonalROI->currentROI())
   {
-    m_ortogonalROITool->setVisible(visible);
+    m_orthogonalROI->setVisible(visible);
   }
 
   m_visible = visible;
@@ -331,11 +339,11 @@ void RestrictToolGroup::undoStackPush(QUndoCommand *command)
 
   if(hasValidROI())
   {
-    undoStack->beginMacro(tr("Modify Region Of Interest"));
+    undoStack->beginMacro(tr("Modify ROI"));
   }
   else
   {
-    undoStack->beginMacro(tr("Create Region Of Interest"));
+    undoStack->beginMacro(tr("Create ROI"));
   }
   undoStack->push(command);
   undoStack->endMacro();
@@ -345,14 +353,14 @@ void RestrictToolGroup::undoStackPush(QUndoCommand *command)
 void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
 {
   // añadir previa OROI al acumulador
-  auto prevROI = m_ortogonalROITool->currentROI();
+  auto prevROI = m_orthogonalROI->currentROI();
 
   if (prevROI)
   {
     addOrthogonalROI(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
   }
 
-  m_ortogonalROITool->setROI(roi); // this roi can now be edited
+  m_orthogonalROI->setROI(roi); // this roi can now be edited
 }
 
 //-----------------------------------------------------------------------------

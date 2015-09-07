@@ -43,7 +43,8 @@ namespace ESPINA
     static const QString FILE;
 
   public:
-    static const Type    TYPE;
+    static const Type           TYPE;
+    static const InformationKey TOUCH_EDGES;
 
     InformationKey cfKey(CountingFrame *cf) const;
 

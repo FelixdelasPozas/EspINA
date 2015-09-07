@@ -32,7 +32,7 @@
 namespace ESPINA
 {
 
-class DockWidget;
+class Panel;
   namespace CF
   {
     class CountingFramePlugin_EXPORT CountingFramePlugin
@@ -65,7 +65,7 @@ class DockWidget;
       ModelAdapterSPtr             m_model;
       SchedulerSPtr                m_scheduler;
       QUndoStack                  *m_undoStack;
-      DockWidget                  *m_dockWidget;
+      Panel                  *m_dockWidget;
       Support::Context            *m_context;
 
       CountingFrameColorEngineSPtr  m_colorEngine;

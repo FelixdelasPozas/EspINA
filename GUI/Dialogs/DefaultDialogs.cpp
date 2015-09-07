@@ -21,22 +21,34 @@
 
 // ESPINA
 #include "DefaultDialogs.h"
+#include <GUI/Widgets/Styles.h>
 
 // Qt
 #include <QMessageBox>
 #include <QDebug>
+#include <QApplication>
+#include <QMainWindow>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
-QString DefaultDialogs::OpenFile(const QString       &title,
+QString DefaultDialogs::DefaultPath()
+{
+  return QString();
+}
+
+//------------------------------------------------------------------------
+QString DefaultDialogs::OpenFile(const QString          &title,
                                  const SupportedFormats &filters,
-                                 const QString       &path)
+                                 const QString          &path,
+                                 const QList<QUrl>      &recent,
+                                 QWidget                *parent)
 {
   QString fileName;
 
-  auto fileNames = OpenFiles(title, filters, path);
+  auto fileNames = OpenFiles(title, filters, path, recent,  parent);
   if (!fileNames.isEmpty())
   {
     fileName = fileNames.first();
@@ -46,23 +58,33 @@ QString DefaultDialogs::OpenFile(const QString       &title,
 }
 
 //------------------------------------------------------------------------
-QStringList DefaultDialogs::OpenFiles(const QString       &title,
+QStringList DefaultDialogs::OpenFiles(const QString          &title,
                                       const SupportedFormats &filters,
-                                      const QString       &path)
+                                      const QString          &path,
+                                      const QList<QUrl>      &recent,
+                                      QWidget                *parent)
 {
   QStringList fileNames;
 
-  QFileDialog fileDialog;
+  QFileDialog fileDialog(parent);
   fileDialog.setWindowTitle(title);
-  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDirectory(path);
   fileDialog.setNameFilters(filters);
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+  fileDialog.setModal(true);
 
+  QList<QUrl> urls;
+
+  urls << recent << fileDialog.sidebarUrls();
+
+  fileDialog.setSidebarUrls(urls);
+
+  DefaultCursor cursor;
+  
   if (fileDialog.exec() == QDialog::Accepted)
   {
     fileNames = fileDialog.selectedFiles();
@@ -72,15 +94,42 @@ QStringList DefaultDialogs::OpenFiles(const QString       &title,
 }
 
 //------------------------------------------------------------------------
-QString DefaultDialogs::SaveFile(const QString& title,
+QDir DefaultDialogs::SaveDirectory(const QString& title, const QString& path, QWidget *parent)
+{
+  QDir dir;
+
+  QFileDialog fileDialog(parent);
+  fileDialog.setWindowTitle(title);
+  fileDialog.setFileMode(QFileDialog::DirectoryOnly);
+  fileDialog.setDirectory(path);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  fileDialog.resize(800, 480);
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setModal(true);
+
+  DefaultCursor cursor;
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    dir = fileDialog.directory();
+  }
+
+  return dir;
+}
+
+
+//------------------------------------------------------------------------
+QString DefaultDialogs::SaveFile(const QString&          title,
                                  const SupportedFormats& filters,
-                                 const QString& path,
-                                 const QString& suffix,
-                                 const QString& suggestion)
+                                 const QString&          path,
+                                 const QString&          suffix,
+                                 const QString&          suggestion,
+                                 QWidget                *parent)
 {
   QString fileName;
 
-  auto fileNames = SaveFiles(title, filters, path, suffix, suggestion);
+  auto fileNames = SaveFiles(title, filters, path, suffix, suggestion, parent);
   if (!fileNames.isEmpty())
   {
     fileName = fileNames.first();
@@ -90,26 +139,30 @@ QString DefaultDialogs::SaveFile(const QString& title,
 }
 
 //------------------------------------------------------------------------
-QStringList DefaultDialogs::SaveFiles(const QString& title,
+QStringList DefaultDialogs::SaveFiles(const QString&          title,
                                       const SupportedFormats& filters,
-                                      const QString& path,
-                                      const QString& suffix,
-                                      const QString& suggestion)
+                                      const QString&          path,
+                                      const QString&          suffix,
+                                      const QString&          suggestion,
+                                      QWidget                *parent)
 {
   QStringList fileNames;
 
-  QFileDialog fileDialog;
+  QFileDialog fileDialog(parent);
   fileDialog.setWindowTitle(title);
-  fileDialog.setWindowFlags(Qt::WindowStaysOnTopHint);
   fileDialog.setDefaultSuffix(suffix);
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile(suggestion);
   fileDialog.setFilter(filters);
   fileDialog.setDirectory(path);
   fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
   fileDialog.setConfirmOverwrite(true);
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setModal(true);
+
+  DefaultCursor cursor;
 
   if (fileDialog.exec() == QDialog::Accepted)
   {
@@ -133,26 +186,55 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
 }
 
 //------------------------------------------------------------------------
-bool DefaultDialogs::UserConfirmation(const QString& title, const QString& message)
+QString DefaultDialogs::DefaultTitle()
 {
-  QMessageBox dialog;
+  return QObject::tr("ESPINA");
+}
+
+//------------------------------------------------------------------------
+bool DefaultDialogs::UserConfirmation(const QString& message, const QString& title, QWidget *parent)
+{
+  QMessageBox dialog(parent);
 
   dialog.setWindowTitle(title);
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+  dialog.setModal(true);
+
+  DefaultCursor cursor;
 
   return dialog.exec() == QMessageBox::Ok;
 }
 
 //------------------------------------------------------------------------
-void DefaultDialogs::InformationMessage(const QString& title, const QString& message)
+void DefaultDialogs::InformationMessage(const QString& message, const QString& title, QWidget *parent)
 {
-  QMessageBox dialog;
+  QMessageBox dialog(parent);
 
   dialog.setWindowTitle(title);
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
   dialog.setModal(true);
 
+  DefaultCursor cursor;
+
   dialog.exec();
+}
+
+//------------------------------------------------------------------------
+QWidget *DefaultDialogs::defaultParentWidget()
+{
+  auto widgets = QApplication::topLevelWidgets();
+
+  for(auto widget: widgets)
+  {
+    if(widget->inherits("QMainWindow"))
+    {
+      auto mainWin = qobject_cast<QMainWindow *>(widget);
+
+      return mainWin->centralWidget();
+    }
+  }
+
+  return nullptr;
 }

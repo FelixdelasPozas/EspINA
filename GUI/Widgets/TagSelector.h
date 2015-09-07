@@ -28,7 +28,9 @@
 #ifndef TAGSELECTOR_H
 #define TAGSELECTOR_H
 
+// ESPINA
 #include "GUI/EspinaGUI_Export.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -50,7 +52,7 @@ namespace ESPINA
      */
     explicit TagSelector(const QString      &title,
                          QStandardItemModel &tags,
-                         QWidget            *parent = nullptr,
+                         QWidget            *parent = ESPINA::GUI::DefaultDialogs::defaultParentWidget(),
                          Qt::WindowFlags     flags = 0);
 
     /** \brief TagSelector class virtual destructor.

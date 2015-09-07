@@ -72,6 +72,9 @@ namespace ESPINA
     void createSAS();
 
   private:
+    QString defaultTooltip() const;
+
+  private:
     AppositionSurfacePlugin *m_plugin;
   };
 

@@ -25,7 +25,7 @@
 #include "ui_SegmentationInspector.h"
 #include <QWidget>
 
-#include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
+#include <Panels/SegmentationExplorer/SegmentationExplorerLayout.h>
 #include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Representations/RepresentationFactory.h>
