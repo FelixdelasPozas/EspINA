@@ -14,7 +14,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Segmentaion cannot be modified</string>
+      <string>Segmentation cannot be modified</string>
      </property>
     </widget>
    </item>

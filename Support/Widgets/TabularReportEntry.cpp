@@ -89,8 +89,9 @@ class InformationDelegate
 //------------------------------------------------------------------------
 TabularReport::Entry::Entry(const QString   &category,
                             ModelAdapterSPtr model,
-                            ModelFactorySPtr factory)
-: QWidget()
+                            ModelFactorySPtr factory,
+                            QWidget         *parent)
+: QWidget(parent)
 , m_category(category)
 , m_model(model)
 , m_factory(factory)
@@ -201,7 +202,7 @@ void TabularReport::Entry::changeDisplayedInformation()
 
   auto selection = lastDisplayedInformation();
 
-  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), false);
+  InformationSelector tagSelector(available, selection, tr("Select Analysis' Information"), false, this->parentWidget());
 
   if (tagSelector.exec() == QDialog::Accepted)
   {

@@ -20,9 +20,13 @@
 // ESPINA
 #include "AboutDialog.h"
 #include "EspinaConfig.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
+
+using namespace ESPINA::GUI;
 
 //-----------------------------------------------------------------------------
 AboutDialog::AboutDialog()
+: QDialog(DefaultDialogs::defaultParentWidget())
 {
   setupUi(this);
 

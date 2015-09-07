@@ -25,6 +25,7 @@
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/ModelFactory.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Widgets/TabularReportEntry.h>
@@ -45,7 +46,7 @@ namespace ESPINA
      *
      */
     SASTabularReport(Support::Context &context,
-                     QWidget          *parent = nullptr,
+                     QWidget          *parent = GUI::DefaultDialogs::defaultParentWidget(),
                      Qt::WindowFlags  flags  = Qt::WindowFlags{Qt::WindowNoState})
     : TabularReport(context, parent, flags)
     , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation()}
@@ -75,8 +76,9 @@ namespace ESPINA
      */
     explicit Entry(const QString   &category,
                    ModelAdapterSPtr model,
-                   ModelFactorySPtr factory)
-    : TabularReport::Entry{category, model, factory}
+                   ModelFactorySPtr factory,
+                   QWidget         *parent)
+    : TabularReport::Entry{category, model, factory, parent}
     {};
 
     GUI::InformationSelector::GroupedInfo availableInformation();

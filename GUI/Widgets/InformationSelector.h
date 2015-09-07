@@ -26,6 +26,7 @@
 // ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -48,12 +49,16 @@ namespace ESPINA
       /** \brief InformationSelector class constructor.
        * \param[in] availableGroups map of available title-tags groups.
        * \param[in] selection map of checked title-tags groups.
+       * \param[in] title title of the dialog.
+       * \param[in] exclusive true to make the item selecion exclusive and false otherwise.
        * \param[in] parent raw pointer of the QWidget parent of this one.
+       *
        */
       explicit InformationSelector(const GroupedInfo &availableGroups,
                                    GroupedInfo       &selection,
                                    const QString     &title,
-                                   const bool         exclusive);
+                                   const bool         exclusive,
+                                   QWidget           *parent = GUI::DefaultDialogs::defaultParentWidget());
 
       /** \brief InformationSelector class virtual destructor.
        *

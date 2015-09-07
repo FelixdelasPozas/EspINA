@@ -36,12 +36,12 @@ namespace ESPINA {
 
     class EspinaGUI_EXPORT DefaultDialogs
     {
+    public:
       /** \brief Returns the top level main window pointer for use of the dialogs.
        *
        */
-      static QWidget *applicationCentralWidgetInstance();
+      static QWidget *defaultParentWidget();
 
-    public:
       static QString DefaultPath();
 
     public:
@@ -59,7 +59,7 @@ namespace ESPINA {
                               const SupportedFormats &filters = SupportedFormats().addAllFormat(),
                               const QString          &path    = QString(),
                               const QList<QUrl>      &recent  = QList<QUrl>(),
-                              QWidget                *parent  = applicationCentralWidgetInstance());
+                              QWidget                *parent  = defaultParentWidget());
 
       /** \brief Dialog for asking the user for a unspecified group of files.
        * \param[in] title of the dialog.
@@ -75,7 +75,7 @@ namespace ESPINA {
                                    const SupportedFormats &filters = SupportedFormats().addAllFormat(),
                                    const QString          &path    = QString(),
                                    const QList<QUrl>      &recent  = QList<QUrl>(),
-                                   QWidget                *parent  = applicationCentralWidgetInstance());
+                                   QWidget                *parent  = defaultParentWidget());
 
       /** \brief Dialog to select a directory to save files on
        * \param[in] title of the dialog.
@@ -87,7 +87,7 @@ namespace ESPINA {
        */
       static QDir SaveDirectory(const QString& title,
                                 const QString& path   = QString(),
-                                QWidget       *parent = applicationCentralWidgetInstance());
+                                QWidget       *parent = defaultParentWidget());
 
       /** \brief Dialog for saving a file.
        * \param[in] title of the dialog.
@@ -105,7 +105,7 @@ namespace ESPINA {
                               const QString&          path       = QString(),
                               const QString&          suffix     = QString(),
                               const QString&          suggestion = QString(),
-                              QWidget                *parent     = applicationCentralWidgetInstance());
+                              QWidget                *parent     = defaultParentWidget());
 
       /** \brief Dialog for saving a group of files.
        * \param[in] title title of the dialog.
@@ -123,7 +123,7 @@ namespace ESPINA {
                                    const QString&          path       = QString(),
                                    const QString&          suffix     = QString(),
                                    const QString&          suggestion = QString(),
-                                   QWidget                *parent     = applicationCentralWidgetInstance());
+                                   QWidget                *parent     = defaultParentWidget());
 
       static QString DefaultTitle();
 
@@ -135,7 +135,7 @@ namespace ESPINA {
        */
       static bool UserConfirmation(const QString& message,
                                    const QString& title   = DefaultDialogs::DefaultTitle(),
-                                   QWidget       *parent  = applicationCentralWidgetInstance());
+                                   QWidget       *parent  = defaultParentWidget());
 
       /** \brief Dialog to inform the user.
        * \param[in] title title of the dialog.
@@ -144,7 +144,7 @@ namespace ESPINA {
        */
       static void InformationMessage(const QString& message,
                                      const QString& title  = DefaultDialogs::DefaultTitle(),
-                                     QWidget       *parent = applicationCentralWidgetInstance());
+                                     QWidget       *parent = defaultParentWidget());
     };
   } // namespace GUI
 } // namespace ESPINA

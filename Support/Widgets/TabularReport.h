@@ -24,6 +24,7 @@
 #include "Support/EspinaSupport_Export.h"
 
 // ESPINA
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Context.h>
 
@@ -54,7 +55,7 @@ namespace ESPINA
      *
      */
     explicit TabularReport(Support::Context &context,
-                           QWidget          *parent = nullptr,
+                           QWidget          *parent = GUI::DefaultDialogs::defaultParentWidget(),
                            Qt::WindowFlags   flags = Qt::WindowFlags{Qt::WindowNoState});
 
     /** \brief TabularReport class virtual destructor.

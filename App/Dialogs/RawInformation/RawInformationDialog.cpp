@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "RawInformationDialog.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Utils/SelectionUtils.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -29,11 +30,13 @@
 #include <QDialogButtonBox>
 #include <QLayout>
 
+using ESPINA::GUI::DefaultDialogs;
+
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
-
+: QDialog(DefaultDialogs::defaultParentWidget())
 {
   setObjectName("Raw Information Analysis");
 

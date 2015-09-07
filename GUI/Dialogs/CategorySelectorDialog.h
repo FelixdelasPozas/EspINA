@@ -25,6 +25,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include "GUI/ui_CategorySelectorDialog.h"
@@ -45,7 +46,7 @@ namespace ESPINA {
 			 * \param[in] f, window flags.
 			 */
 			explicit CategorySelectorDialog(ModelAdapterSPtr model,
-																			QWidget*         parent = nullptr,
+																			QWidget*         parent = GUI::DefaultDialogs::defaultParentWidget(),
 																			Qt::WindowFlags  f = 0);
 
 			/** \brief Returns the list of category adapter smart pointers.

@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "InformationSelector.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/CategoryAdapter.h>
 
 // Qt
@@ -37,8 +38,10 @@ class InformationSelector::UI
 InformationSelector::InformationSelector(const InformationSelector::GroupedInfo &available,
                                          InformationSelector::GroupedInfo       &selection,
                                          const QString                          &title,
-                                         const bool                             exclusive)
-: m_gui      {new UI()}
+                                         const bool                             exclusive,
+                                         QWidget                               *parent)
+: QDialog(parent)
+, m_gui      {new UI()}
 , m_exclusive{exclusive}
 , m_selection(selection)
 {

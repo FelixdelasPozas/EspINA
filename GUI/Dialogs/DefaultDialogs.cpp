@@ -222,7 +222,7 @@ void DefaultDialogs::InformationMessage(const QString& message, const QString& t
 }
 
 //------------------------------------------------------------------------
-QWidget *DefaultDialogs::applicationCentralWidgetInstance()
+QWidget *DefaultDialogs::defaultParentWidget()
 {
   auto widgets = QApplication::topLevelWidgets();
 
