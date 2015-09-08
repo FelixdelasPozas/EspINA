@@ -31,7 +31,8 @@ const TimeStamp Timer::MAXIMUM_TIME_STAMP = std::numeric_limits<std::uint64_t>::
 
 //------------------------------------------------------------------------
 Timer::Timer(TimeStamp time)
-: m_timeStamp{time}
+: m_canIncrement{false}
+, m_timeStamp   {time}
 {
 }
 

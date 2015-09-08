@@ -109,6 +109,8 @@ void PointTracker::startTrack(const QPoint &pos, RenderView *view)
     double minRes = VTK_DOUBLE_MAX;
     for(int i: {0,1,2})
     {
+      if(i == planeIndex) continue;
+
       minRes = std::min(res[i], minRes);
     }
     m_maxDistance2 = minRes*minRes;

@@ -339,6 +339,7 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 void RenderView::reset()
 {
   resetImplementation();
+
   onRenderRequest();
 }
 
@@ -418,17 +419,20 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
           this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
 
-  connect(&m_state, SIGNAL(viewFocusChanged()),
-          this,     SLOT(onFocusChanged()));
+  connect(&m_state, SIGNAL(viewFocusChanged(NmVector3)),
+          this,     SLOT(onFocusChanged(NmVector3)));
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
            this,                              SLOT(onSceneBoundsChanged(Bounds)));
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onFocusChanged()
+void RenderView::onFocusChanged(NmVector3 point)
 {
+  m_focusPoint = point;
   m_requiresFocusChange = true;
+
+  onRenderRequest();
 }
 
 //-----------------------------------------------------------------------------
@@ -464,8 +468,8 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
 
       manager->hide(t);
 
-      //NOTE: managers should be removed from m_temporalManagers after processing render
-      //      request of t so they can hide its representations
+    //NOTE: managers should be removed from m_temporalManagers after processing render
+    //      request of t so they can hide its representations
     }
     else
     {
@@ -480,18 +484,18 @@ void RenderView::onRenderRequest()
   if (!isVisible()) return;
 
   auto readyManagers = pendingManagers();
-  auto renderTime    = latestReadyTimeStamp(readyManagers);
+  auto renderTime = latestReadyTimeStamp(readyManagers);
 
   if (m_lastRender < renderTime)
   {
-//     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
-//     m_timer.restart();
-    display(readyManagers,  renderTime);
+    //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
+    //     m_timer.restart();
+    display(readyManagers, renderTime);
 
     //qDebug() << viewName() << ": Update actors:" << renderTime;
 
     m_requiresRender = true;
-    m_lastRender     = renderTime;
+    m_lastRender = renderTime;
 
     m_state.timer().activate();
 
@@ -504,13 +508,15 @@ void RenderView::onRenderRequest()
     //qDebug() << viewName() << ": Reset camera:" << renderTime;
 
     m_requiresCameraReset = false;
-    m_requiresRender      = true;
+    m_requiresRender = true;
   }
 
-  if(m_requiresFocusChange)
+  if (m_requiresFocusChange)
   {
     m_requiresFocusChange = false;
-    moveCamera(crosshair());
+
+    moveCamera(m_focusPoint);
+
     m_requiresRender = true;
   }
 
@@ -520,7 +526,7 @@ void RenderView::onRenderRequest()
 
   if (m_requiresRender)
   {
-//     qDebug() << viewName() << "Rendering frame" << renderTime;
+    //     qDebug() << viewName() << "Rendering frame" << renderTime;
     mainRenderer()->ResetCameraClippingRange();
     m_view->update();
 

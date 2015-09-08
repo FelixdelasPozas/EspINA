@@ -151,7 +151,7 @@ namespace ESPINA
 
         void sliceSelectorRemoved(SliceSelectorSPtr selector);
 
-        void viewFocusChanged();
+        void viewFocusChanged(NmVector3 point);
 
         void resetCameraRequested();
 

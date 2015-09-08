@@ -158,9 +158,8 @@ public:
 private:
   void update()
   {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    Styles::WaitingCursor cursor;
     m_filter->update();
-    QApplication::restoreOverrideCursor();
   }
 
   void invalidateRepresentations()
@@ -184,9 +183,9 @@ private:
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr         segmentation,
-                                                                     SeedGrowSegmentationFilterSPtr filter,
-                                                                     RestrictToolGroup             *roiTools,
-                                                                     Support::Context              &context)
+                                                                   SeedGrowSegmentationFilterSPtr filter,
+                                                                   RestrictToolGroup             *roiTools,
+                                                                   Support::Context              &context)
 : WithContext(context)
 , m_segmentation(segmentation)
 , m_gui(new Ui::SeedGrowSegmentationRefineWidget())

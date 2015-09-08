@@ -310,7 +310,7 @@ namespace ESPINA
     void deleteInactiveWidgetManagers();
 
   private slots:
-    void onFocusChanged();
+    void onFocusChanged(NmVector3 point);
 
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
 
@@ -351,6 +351,7 @@ namespace ESPINA
     TimeStamp     m_lastRender;
     QMap<TemporalPrototypesSPtr, RepresentationManagerSPtr> m_temporalManagers;
 
+    NmVector3 m_focusPoint;
   };
 
 } // namespace ESPINA

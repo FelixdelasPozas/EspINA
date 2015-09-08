@@ -82,13 +82,11 @@ bool ROIWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
 void ROIWidget::initialize(RenderView *view)
 {
   m_contour = vtkSmartPointer<vtkVoxelContour2D>::New();
-//   m_contour->UpdateWholeExtent();
 
   m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   m_mapper->SetColorModeToDefault();
   m_mapper->ScalarVisibilityOff();
   m_mapper->StaticOff();
-//   m_mapper->UpdateWholeExtent();
 
   m_actor = vtkSmartPointer<vtkActor>::New();
   m_actor->SetMapper(m_mapper);
@@ -97,7 +95,6 @@ void ROIWidget::initialize(RenderView *view)
   m_actor->GetProperty()->Modified();
   m_actor->SetVisibility(false);
   m_actor->SetDragable(false);
-//   m_actor->Modified();
 
   m_view = view;
 
@@ -147,13 +144,11 @@ void ROIWidget::setCrosshair(const NmVector3 &crosshair)
   updateCurrentSlice();
 }
 
-
 //----------------------------------------------------------------------------
 void ROIWidget::onROIChanged()
 {
   updateCurrentSlice();
 }
-
 
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
