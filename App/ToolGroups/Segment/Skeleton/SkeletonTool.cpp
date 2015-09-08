@@ -504,7 +504,7 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     auto activeChannel = getActiveChannel();
 
     auto spacing  = activeChannel->output()->spacing();
-    auto filter   = getFactory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+    auto filter   = getFactory()->createFilter<SourceFilter>(activeChannel, SOURCE_FILTER);
     auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
     auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
     output->setData(skeleton);

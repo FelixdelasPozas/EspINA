@@ -527,7 +527,7 @@ void ESPINA::StackExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   QMenu contextMenu;
 
-  auto setActive = contextMenu.addAction(tr("Set as the active channel"));
+  auto setActive = contextMenu.addAction(tr("Set as the active stack"));
   setActive->setCheckable(true);
   setActive->setChecked(channels.first() == getActiveChannel());
   connect(setActive, SIGNAL(triggered(bool)),
@@ -535,7 +535,7 @@ void ESPINA::StackExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   contextMenu.addSeparator();
 
-  auto properties = contextMenu.addAction(tr("Channel properties..."));
+  auto properties = contextMenu.addAction(tr("Stack properties..."));
   connect(properties, SIGNAL(triggered(bool)),
           this,       SLOT(showInformation()));
 

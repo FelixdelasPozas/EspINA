@@ -416,6 +416,8 @@ namespace ESPINA
      */
     void remove(SegmentationAdapterSList segmentations);
 
+    void changeSpacing(ChannelAdapterSPtr channel, const NmVector3 &spacing);
+
     /** \brief Returns the list of sample adapters in the model.
      *
      */

@@ -724,7 +724,7 @@ void EspinaMainWindow::createToolGroups()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createSessionToolGroup()
 {
-  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
+  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_session.svg", tr("Session"));
 
   m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open File"), m_context, m_errorHandler);
   m_openFileTool->setShortcut(Qt::CTRL+Qt::Key_O);

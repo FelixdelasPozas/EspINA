@@ -226,7 +226,10 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   auto spacing = output->spacing();
   auto origin  = channel->position();
 
-  auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+  InputSList inputs;
+  inputs << channel->asInput();
+
+  auto filter = m_factory->createFilter<SourceFilter>(inputs, SOURCE_FILTER);
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(mask->bounds().bounds(), spacing, origin);
   volume->draw(mask);

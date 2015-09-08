@@ -546,7 +546,7 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
   const int BUTTON_SIZE = 22;
   const int ICON_SIZE   = 20;
 
-  QPushButton *button = new QPushButton();
+  auto button = new QPushButton();
 
   button->setIcon(QIcon(icon));
   button->setToolTip(tooltip);

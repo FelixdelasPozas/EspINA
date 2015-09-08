@@ -153,6 +153,27 @@ State SeedGrowSegmentationFilter::state() const
 }
 
 //------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  auto prevSpacing = output(0)->spacing();
+
+  auto seed = equivalentRegion<itkVolumeType>(origin, prevSpacing, Bounds(m_seed));
+
+  auto updatedSeed = volumeBounds<itkVolumeType>(origin, spacing, seed);
+
+  m_seed = centroid(updatedSeed);
+
+  auto currentROI = roi();
+
+  if (currentROI)
+  {
+    currentROI->setSpacing(spacing);
+  }
+
+  Filter::changeSpacing(origin, spacing);
+}
+
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 {
   m_lowerTh = th;

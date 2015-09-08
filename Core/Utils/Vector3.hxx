@@ -166,6 +166,24 @@ namespace ESPINA
                                 .arg(m_values[2]);
   }
 
+  /** \brief Multiplies each component of lhs by the corresponding one of rhs
+   *
+   */
+  template<typename T>
+  Vector3<T> operator*(const Vector3<T> &lhs, const Vector3<T> &rhs)
+  {
+    return {lhs[0]*rhs[0], lhs[1]*rhs[1], lhs[2]*rhs[2]};
+  }
+
+  /** \brief Divides each component of lhs by the corresponding one of rhs
+   *
+   */
+  template<typename T>
+  Vector3<T> operator/(const Vector3<T> &lhs, const Vector3<T> &rhs)
+  {
+    return {lhs[0]/rhs[0], lhs[1]/rhs[1], lhs[2]/rhs[2]};
+  }
+
   /** \brief Vector3 operator<< for streams.
    *
    */

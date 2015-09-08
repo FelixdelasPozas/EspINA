@@ -175,14 +175,16 @@ namespace ESPINA
     /** \brief Changes the spacing of the channel and associated segmentations.
      *
      */
-    void changeChannelSpacing();
+    void updateStackPreview();
 
-    void changeSegmentationSpacing();
+    void changeStackSpacing();
 
     /** \brief Initializes the pixel value selector widget.
      *
      */
     void initPixelValueSelector();
+
+    NmVector3 currentSpacing() const;
 
   private:
     bool   m_spacingModified;

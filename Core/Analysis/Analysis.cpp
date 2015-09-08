@@ -73,7 +73,7 @@ void Analysis::setClassification(ClassificationSPtr classification)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SampleSPtr sample) throw (Existing_Item_Exception)
+void Analysis::add(SampleSPtr sample)
 {
   if (m_samples.contains(sample)) throw (Existing_Item_Exception());
 
@@ -95,7 +95,7 @@ void Analysis::add(SampleSList samples)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(ChannelSPtr channel) throw (Existing_Item_Exception)
+void Analysis::add(ChannelSPtr channel)
 {
   if (m_channels.contains(channel)) throw (Existing_Item_Exception());
 
@@ -126,7 +126,7 @@ void Analysis::add(ChannelSList channels)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SegmentationSPtr segmentation) throw (Existing_Item_Exception)
+void Analysis::add(SegmentationSPtr segmentation)
 {
   if (m_segmentations.contains(segmentation))
     throw (Existing_Item_Exception());
@@ -156,7 +156,7 @@ void Analysis::add(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SampleSPtr sample) throw (Item_Not_Found_Exception)
+void Analysis::remove(SampleSPtr sample)
 {
   if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
 
@@ -178,10 +178,10 @@ void Analysis::remove(SampleSList samples)
 
 
 //------------------------------------------------------------------------
-void Analysis::remove(ChannelSPtr channel) throw (Item_Not_Found_Exception)
+void Analysis::remove(ChannelSPtr channel)
 {
   if (!m_channels.contains(channel))
-  	throw (Item_Not_Found_Exception());
+    throw (Item_Not_Found_Exception());
 
   channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
@@ -202,7 +202,7 @@ void Analysis::remove(ChannelSList channels)
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SegmentationSPtr segmentation) throw (Item_Not_Found_Exception)
+void Analysis::remove(SegmentationSPtr segmentation)
 {
   if (!m_segmentations.contains(segmentation))
     throw (Item_Not_Found_Exception());
@@ -226,9 +226,19 @@ void Analysis::remove(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
+void Analysis::changeSpacing(ChannelSPtr channel, const NmVector3 &spacing)
+{
+  auto origin = channel->position();
+  for (auto filter : downStreamPipeline(channel->filter()))
+  {
+    filter->changeSpacing(origin, spacing);
+  }
+}
+
+//------------------------------------------------------------------------
 void Analysis::addRelation(PersistentSPtr    ancestor,
                            PersistentSPtr    succesor,
-                           const RelationName& relation)  throw (Item_Not_Found_Exception,Existing_Relation_Exception)
+                           const RelationName& relation)
 {
   if (!m_relations->contains(ancestor))
     throw (Item_Not_Found_Exception());
@@ -245,12 +255,22 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
 //------------------------------------------------------------------------
 void Analysis::deleteRelation(PersistentSPtr    ancestor,
                               PersistentSPtr    succesor,
-                              const RelationName& relation) throw (Relation_Not_Found_Exception)
+                              const RelationName& relation)
 {
   if (!findRelation(ancestor, succesor, relation))
     throw (Relation_Not_Found_Exception());
 
   m_relations->removeRelation(ancestor, succesor, relation);
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeIfIsolated(FilterSPtr filter)
+{
+  if (removeIfIsolated(m_content, filter))
+  {
+    filter->setAnalysis(nullptr);
+    m_filters.removeOne(filter);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -284,7 +304,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
 
       addIfNotExists(inputFilter);
 
-      auto ancestor    = find<Filter>(inputFilter.get(), m_filters);
+      auto ancestor = find<Filter>(inputFilter.get(), m_filters);
       Q_ASSERT(ancestor);
 
       m_content->addRelation(ancestor, filter, QString("%1-%2").arg(i).arg(input->output()->id()));
@@ -292,15 +312,32 @@ void Analysis::addIfNotExists(FilterSPtr filter)
   }
 }
 
-
 //------------------------------------------------------------------------
-void Analysis::removeIfIsolated(FilterSPtr filter)
+FilterSList Analysis::downStreamPipeline(FilterSPtr filter)
 {
-  if (removeIfIsolated(m_content, filter))
+  FilterSList inFilters;
+  FilterSList outFilters;
+
+  inFilters  << filter;
+  outFilters << filter;
+
+  while (!inFilters.isEmpty())
   {
-    filter->setAnalysis(nullptr);
-    m_filters.removeOne(filter);
+    auto ancestor = inFilters.takeFirst();
+
+    for(auto edge : m_content->outEdges(ancestor))
+    {
+      auto succesor = std::dynamic_pointer_cast<Filter>(edge.target);
+
+      if (succesor)
+      {
+        inFilters  << succesor;
+        outFilters << succesor;
+      }
+    }
   }
+
+  return outFilters;
 }
 
 //------------------------------------------------------------------------

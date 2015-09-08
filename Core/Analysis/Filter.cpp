@@ -307,6 +307,14 @@ bool Filter::restorePreviousOutputs() const
   return !m_outputs.isEmpty();
 }
 
+//----------------------------------------------------------------------------
+void Filter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  for (auto output : outputs())
+  {
+    output->setSpacing(spacing);
+  }
+}
 
 //----------------------------------------------------------------------------
 unsigned int Filter::numberOfOutputs() const

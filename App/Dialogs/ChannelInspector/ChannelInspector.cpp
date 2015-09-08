@@ -19,26 +19,28 @@
  */
 
 // ESPINA
+#include "ChannelInspector.h"
+
 #include <EspinaConfig.h>
 
 #include <Core/Analysis/Channel.h>
-#include "ChannelInspector.h"
-#include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
-#include <GUI/View/View2D.h>
-#include <Support/Representations/SliceManager.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Widgets/PixelValueSelector.h>
-#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
-#include <Core/Types.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Utils/Vector3.hxx>
+#include <Core/Utils/ListUtils.hxx>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
+#include <GUI/View/View2D.h>
+#include <GUI/Widgets/PixelValueSelector.h>
+#include <GUI/Widgets/Styles.h>
+#include <Support/Representations/SliceManager.h>
 
 #if USE_METADONA
   #include <Producer.h>
@@ -68,8 +70,10 @@
 #include <itkStatisticsImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
@@ -157,7 +161,7 @@ void ChannelInspector::onSpacingChanged()
 {
   m_spacingModified = true;
 
-  changeChannelSpacing();
+  updateStackPreview();
 
   m_view->resetCamera();
   applyModifications();
@@ -313,9 +317,7 @@ void ChannelInspector::onChangesAccepted()
 
   if (m_spacingModified)
   {
-    changeChannelSpacing();
-
-    changeSegmentationSpacing();
+    changeStackSpacing();
 
     m_spacingModified = false;
 
@@ -632,35 +634,23 @@ void ChannelInspector::initColorSettings()
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::changeChannelSpacing()
+void ChannelInspector::updateStackPreview()
 {
-  NmVector3 spacing;
-  spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
-  spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
-  spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
-
-  m_channel->output()->setSpacing(spacing);
+  // TODO: Make a copy of the channel and update only the preview, not
+  //       the channel itself
+  m_channel->output()->setSpacing(currentSpacing());
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::changeSegmentationSpacing()
+void ChannelInspector::changeStackSpacing()
 {
-  auto spacing = m_channel->output()->spacing();
+  WaitingCursor cursor;
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  getModel()->changeSpacing(m_channel, currentSpacing());
 
-  ViewItemAdapterList segmentations;
-
-  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(m_channel))
-  {
-    segmentation->output()->setSpacing(spacing);
-
-    segmentations << segmentation.get();
-  }
+  auto segmentations = toRawList<ViewItemAdapter>(QueryAdapter::segmentationsOnChannelSample(m_channel));
 
   getContext().representationInvalidator().invalidateRepresentations(segmentations);
-
-  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
@@ -672,4 +662,16 @@ void ChannelInspector::initPixelValueSelector()
   layout->setMargin(0);
   layout->addWidget(m_pixelSelector);
   m_colorFrame->setLayout(layout);
+}
+
+//------------------------------------------------------------------------
+NmVector3 ChannelInspector::currentSpacing() const
+{
+  NmVector3 spacing;
+
+  spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
+
+  return spacing;
 }

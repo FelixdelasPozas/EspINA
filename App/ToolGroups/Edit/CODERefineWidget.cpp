@@ -19,12 +19,14 @@
 #include "CODERefineWidget.h"
 
 #include "ui_CODERefineWidget.h"
+#include <GUI/Widgets/Styles.h>
 
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QToolBar>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 class CODEModification
 : public QUndoCommand
@@ -104,9 +106,9 @@ public:
 private:
   void update()
   {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    WaitingCursor cursor;
+
     m_filter->update();
-    QApplication::restoreOverrideCursor();
   }
 
   void invalidateRepresentations()

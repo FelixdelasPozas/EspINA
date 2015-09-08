@@ -286,13 +286,8 @@ namespace ESPINA
   {
     if (m_spacing != spacing)
     {
-      auto itkSpacing = ItkSpacing<T>(spacing);
-
-      NmVector3 spacingRatio;
-      for (int i = 0; i < 3; ++i)
-      {
-        spacingRatio[i] = spacing[i]/m_spacing[i];
-      }
+      auto itkSpacing   = ItkSpacing<T>(spacing);
+      auto spacingRatio = spacing/m_spacing;
 
       QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
       while(it.hasNext())
@@ -755,14 +750,19 @@ namespace ESPINA
       auto index = blockRegion.GetIndex();
       auto key   = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
-      if (!m_blocks.contains(key) &&
-          (size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
-          (index[0] % s_blockSize == 0) && (index[1] % s_blockSize == 0) && (index[2] % s_blockSize == 0))
+      if (!m_blocks.contains(key)
+        && (size[0] == s_blockSize)
+        && (size[1] == s_blockSize)
+        && (size[2] == s_blockSize)
+        && (index[0] % s_blockSize == 0)
+        && (index[1] % s_blockSize == 0)
+        && (index[2] % s_blockSize == 0))
       {
         m_blocks[key] = image;
       }
       else
       {
+        //FIXME: Calling draw override edited regions!!
         this->draw(image);
       }
 

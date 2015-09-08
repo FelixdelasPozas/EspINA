@@ -153,6 +153,11 @@ namespace ESPINA
      */
     bool restorePreviousOutputs() const;
 
+    /** \brief Transform filter internals to comply for changes in origin/spacing
+     *
+     */
+    virtual void changeSpacing(const NmVector3 &origin, const NmVector3 &spacing);
+
   protected:
     /** \brief Filter class constructor.
      * \param[in] inputs list of input smart pointers.

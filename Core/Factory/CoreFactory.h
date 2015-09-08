@@ -57,14 +57,29 @@ namespace ESPINA
      * \param[in] factory filter factory smart pointer.
      *
      */
-    void registerFilterFactory(FilterFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+    void registerFilterFactory(FilterFactorySPtr factory);
 
     /** \brief Creates a filter given the inputs and the type.
      * \param[in] inputs list of input smart pointers.
      * \param[in] type filter type.
      *
      */
-    FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
+    FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const;
+
+    /** \brief Convenience method to create filters with a single view item input
+     * \param[in] input view item
+     * \param[in] type filter type.
+     *
+     * This is a convenience method to create input
+     */
+    template<typename T>
+    std::shared_ptr<T> createFilter(ViewItem *input, const Filter::Type &type) const
+    {
+      InputSList inputs;
+      inputs << input->asInput();
+
+      return createFilter<T>(inputs, type);
+    }
 
     /** \brief Creates filter given the inputs and the type.
      * \param[in] inputs list of input smart pointers.
@@ -74,7 +89,7 @@ namespace ESPINA
     template<typename T>
     std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
     {
-      auto filter = std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
+      auto filter = std::make_shared<T>(inputs, type, m_scheduler);
       filter->setStorage(m_defaultStorage);
       return filter;
     }
@@ -98,7 +113,7 @@ namespace ESPINA
      *  From now on, CoreFactory can create all the channel extensions provided by
      *  the registered factory
      */
-    void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+    void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
 
     /** \brief Returns the list of channel extensions types this factory can create.
      *
@@ -130,7 +145,7 @@ namespace ESPINA
      *  From now on, CoreFactory can create all the segmentation extensions provided by
      *  the registered factory.
      */
-    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
 
     /** \brief Returns a list of segmentation extension types that this factory can create.
      *

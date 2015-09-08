@@ -35,13 +35,12 @@
     <file>display_stacks.svg</file>
     <file>display_view_thumbnail.svg</file>
     <file>display_view_scalebar.svg</file>
-    <file>down.png</file>
+    <file>down.svg</file>
     <file>drawing_contour.svg</file>
     <file>edges-image.png</file>
     <file>edges-stack.png</file>
     <file>edit-redo.svg</file>
     <file>edit-undo.svg</file>
-    <file>editor.ico</file>
     <file>eraser.png</file>
     <file>es_ES.qm</file>
     <file>espina.svg</file>
@@ -112,14 +111,14 @@
     <file>to_slice.svg</file>
     <file>toolgroup_analyze.svg</file>
     <file>toolgroup_explore.svg</file>
-    <file>toolgroup_file.svg</file>
+    <file>toolgroup_session.svg</file>
     <file>toolgroup_refine.svg</file>
     <file>toolgroup_restrict.svg</file>
     <file>toolgroup_segment.svg</file>
     <file>toolgroup_visualize.svg</file>
     <file>trash-full.svg</file>
     <file>tubular.svg</file>
-    <file>up.png</file>
+    <file>up.svg</file>
     <file>upm.gif</file>
     <file>view-refresh.svg</file>
     <file>visualBookmarks_add.svg</file>
