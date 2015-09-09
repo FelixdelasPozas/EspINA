@@ -82,7 +82,7 @@ namespace ESPINA
        */
       template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
 
-      void draw(const vtkImplicitFunction*     brush,
+      void draw(vtkImplicitFunction           *brush,
                 const Bounds&                  bounds,
                 const itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 

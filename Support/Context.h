@@ -18,13 +18,13 @@
 #ifndef ESPINA_SUPPORT_CONTEXT_H
 #define ESPINA_SUPPORT_CONTEXT_H
 
+#include <GUI/Types.h>
 #include <Support/Types.h>
 
 #include "Support/ROIAccumulator.h"
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/ColorEngines/MultiColorEngine.h>
 #include <QUndoStack>
 
 class QMainWindow;
@@ -49,10 +49,12 @@ class Panel;
       ModelAdapterSPtr           model() const;
       ROIAccumulatorSPtr         roiProvider();
       GUI::View::ViewState      &viewState();
-      GUI::ColorEngines::MultiColorEngineSPtr colorEngine() const;
+      GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
       QUndoStack *               undoStack();
       RepresentationFactorySList &availableRepresentations();
       ModelFactorySPtr           factory() const;
+
+      void addColorEngine(GUI::ColorEngines::ColorEngineSPtr engine);
 
       Timer &timer();
       GUI::View::RepresentationInvalidator &representationInvalidator();

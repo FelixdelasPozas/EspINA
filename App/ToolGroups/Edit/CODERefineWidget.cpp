@@ -131,7 +131,7 @@ private:
 CODERefineWidget::CODERefineWidget(const QString                 &title,
                                    SegmentationAdapterPtr         segmentation,
                                    MorphologicalEditionFilterSPtr filter,
-                                   Support::Context        &context)
+                                   Support::Context              &context)
 : WithContext(context)
 , m_gui(new Ui::CODERefineWidget())
 , m_title(title)

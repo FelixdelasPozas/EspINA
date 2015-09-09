@@ -74,7 +74,7 @@ namespace ESPINA
 
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual void draw(const vtkImplicitFunction*  brush,
+    virtual void draw(vtkImplicitFunction*        brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
@@ -159,7 +159,7 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::draw(const vtkImplicitFunction*  brush,
+  void RasterizedVolume<T>::draw(vtkImplicitFunction*        brush,
                                  const Bounds&               bounds,
                                  const typename T::ValueType value)
   {

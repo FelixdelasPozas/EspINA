@@ -20,17 +20,19 @@
 
  // ESPINA
 #include "ManualEditionTool.h"
-#include <Core/Analysis/Data/VolumetricData.hxx>
+
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Filters/SourceFilter.h>
+#include <GUI/ColorEngines/MultiColorEngine.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/View/RenderView.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
-#include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Filters/SourceFilter.h>
-#include <GUI/Model/SegmentationAdapter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 

@@ -95,9 +95,15 @@ GUI::View::ViewState &Context::viewState()
 }
 
 //------------------------------------------------------------------------
-MultiColorEngineSPtr Context::colorEngine() const
+ColorEngineSPtr Context::colorEngine() const
 {
   return m_colorEngine;
+}
+
+//------------------------------------------------------------------------
+void Context::addColorEngine(ColorEngineSPtr engine)
+{
+  m_colorEngine->add(engine);
 }
 
 //------------------------------------------------------------------------

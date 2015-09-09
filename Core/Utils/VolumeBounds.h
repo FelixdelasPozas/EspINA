@@ -218,12 +218,21 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs);
 
+  /** \brief Resize bounds according to spacing
+   *
+   */
+  VolumeBounds changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing);
+
   /** \brief Returns a binary serialization of the volume bounds
    *
    */
   QByteArray EspinaCore_EXPORT serializeVolumeBounds(const VolumeBounds &bounds);
 
+  /** \brief Returns the VolumeBounds from its binary serialization
+   *
+   */
   VolumeBounds EspinaCore_EXPORT deserializeVolumeBounds(const QByteArray &serialization);
+
 }
 
 

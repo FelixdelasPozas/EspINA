@@ -65,6 +65,14 @@ namespace ESPINA
   template<typename T>
   typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
 
+  /** \brief Return the bounds for the largest region of an image.
+   * \param[in] large itk image smart pointer.
+   *
+   * Bounds are given in nm using (0,0,0) as origin
+   */
+  template<typename T>
+  Bounds equivalentBounds(const typename T::Pointer image);
+
   /** \brief Return the bounds for a given image region and an image.
    * \param[in] large itk image smart pointer.
    * \param[in] region region to translate.

@@ -652,7 +652,7 @@ void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwit
 {
   auto colorEngine = colorEngineSwitch->colorEngine();
   //m_colorEngineMenu->addColorEngine(colorEngine->tooltip(), colorEngine);
-  m_context.colorEngine()->add(colorEngine);
+  m_context.addColorEngine(colorEngine);
 
   m_visualizeToolGroup->addTool(colorEngineSwitch);
 }

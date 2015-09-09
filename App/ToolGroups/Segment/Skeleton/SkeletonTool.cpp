@@ -30,6 +30,7 @@
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 #include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>

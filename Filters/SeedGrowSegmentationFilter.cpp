@@ -155,13 +155,9 @@ State SeedGrowSegmentationFilter::state() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
 {
-  auto prevSpacing = output(0)->spacing();
+  VolumeBounds seed(Bounds(m_seed), output(0)->spacing(), origin);
 
-  auto seed = equivalentRegion<itkVolumeType>(origin, prevSpacing, Bounds(m_seed));
-
-  auto updatedSeed = volumeBounds<itkVolumeType>(origin, spacing, seed);
-
-  m_seed = centroid(updatedSeed);
+  m_seed = centroid(ESPINA::changeSpacing(seed, spacing));
 
   auto currentROI = roi();
 

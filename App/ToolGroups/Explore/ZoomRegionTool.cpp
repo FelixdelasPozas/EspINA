@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "ZoomRegionTool.h"
+
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget2D.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget3D.h>

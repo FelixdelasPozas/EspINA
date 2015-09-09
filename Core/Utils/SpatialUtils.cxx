@@ -95,6 +95,13 @@ typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3
 
 //-----------------------------------------------------------------------------
 template<typename T>
+Bounds equivalentBounds(const typename T::Pointer image)
+{
+  return equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region)
 {
   Bounds bounds;

@@ -86,7 +86,7 @@ namespace ESPINA {
     {
       if (!m_storage)
       {
-        m_storage = TemporalStorageSPtr{new TemporalStorage()};
+        m_storage = std::make_shared<TemporalStorage>();
       }
       return m_storage;
     }

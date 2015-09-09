@@ -64,10 +64,7 @@ void Output::setSpacing(const NmVector3& spacing)
     for(auto type : m_data.keys())
     {
       auto data = writeLockData<Data>(type);
-      if (data->isValid())
-      {
-        data->setSpacing(spacing);
-      }
+      data->setSpacing(spacing);
     }
 
     // NOTE: spacing change must be set after propagating it to the data
