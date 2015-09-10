@@ -30,7 +30,7 @@ const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
 NumberColorEngine::NumberColorEngine()
-: ColorEngine("NumberColorEngine", tr("Number"))
+: ColorEngine("NumberColorEngine", tr("Segmentation"))
 {
 
 }

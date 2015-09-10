@@ -155,16 +155,33 @@ State SeedGrowSegmentationFilter::state() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
 {
-  VolumeBounds seed(Bounds(m_seed), output(0)->spacing(), origin);
+  Q_ASSERT(m_outputs.size() == 1);
 
-  m_seed = centroid(ESPINA::changeSpacing(seed, spacing));
+  auto output     = this->output(0);
+  auto oldSpacing = output->spacing();
 
-  auto currentROI = roi();
-
-  if (currentROI)
+  auto changeSeedSpacing = [&oldSpacing](const NmVector3 &seed, const NmVector3 &origin, const NmVector3 &spacing)
   {
-    currentROI->setSpacing(spacing);
+    VolumeBounds seedBounds(Bounds(seed), oldSpacing, origin);
+
+    return centroid(ESPINA::changeSpacing(seedBounds, spacing));
+  };
+
+  m_seed     = changeSeedSpacing(m_seed, origin, spacing);
+  m_prevSeed = changeSeedSpacing(m_prevSeed, origin, spacing);
+
+  if (m_prevROI && m_prevROI != m_ROI.get())
+  {
+    Q_ASSERT(m_ROI);
+    m_prevROI->setSpacing(spacing);
   }
+
+  if (m_ROI)
+  {
+    m_ROI->setSpacing(spacing);
+  }
+
+  output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
 
   Filter::changeSpacing(origin, spacing);
 }
@@ -227,6 +244,8 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
       m_ROI.reset();
     }
 
+    m_ROI->setSpacing(output(0)->spacing());
+
     m_prevROI = m_ROI.get();
   }
   
@@ -278,11 +297,7 @@ void SeedGrowSegmentationFilter::execute()
 
   if (!canExecute()) return;
 
-  Bounds seedBounds;
-  for (int i = 0; i < 3; ++i)
-  {
-    seedBounds[2*i] = seedBounds[2*i+1] = m_seed[i];
-  }
+  Bounds seedBounds(m_seed);
   seedBounds.setUpperInclusion(true);
 
   itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
@@ -291,10 +306,12 @@ void SeedGrowSegmentationFilter::execute()
 
   auto extractFilter = ExtractFilterType::New();
 
-  if(m_ROI != nullptr)
+  auto activeROI = roi();
+
+  if(activeROI)
   {
     auto image = input->itkImage();
-    auto intersectionBounds = intersection(input->bounds(), m_ROI->bounds());
+    auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
     auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
 
     extractFilter->SetNumberOfThreads(1);
@@ -312,7 +329,7 @@ void SeedGrowSegmentationFilter::execute()
 
     if (outValue >= 0)
     {
-      m_ROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+      activeROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
     }
   }
 
@@ -324,7 +341,7 @@ void SeedGrowSegmentationFilter::execute()
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
 
-  if(m_ROI != nullptr)
+  if(activeROI)
   {
     connectedFilter->SetInput(extractFilter->GetOutput());
   }

@@ -276,8 +276,7 @@ namespace ESPINA
     /** \brief Increments modification time for the output.
      *
      */
-    void updateModificationTime()
-    { m_timeStamp = s_tick++; }
+    void updateModificationTime();
 
   private slots:
     /** \brief Emits modification signal for this object.

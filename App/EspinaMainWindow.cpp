@@ -909,8 +909,8 @@ void EspinaMainWindow::createEditToolGroup()
 // ##################
 // 2-Display (widgets)
 // 0: View Settings
-//   0: Thumbnail
-//   1: Scalebar
+//   0: Scalebar
+//   1: Thumbnail
 // 1: Widgets
 // ##################
 // 3-Views
@@ -919,17 +919,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
 
-  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
-                                                          ":/espina/display_view_thumbnail.svg",
-                                                          tr("Display Thumbnail"),
-                                                          m_context);
-  connect(thumbnail.get(), SIGNAL(toggled(bool)),
-          m_view.get(), SLOT(showThumbnail(bool)));
-
-  thumbnail->setOrder("0-0", "2-Display");
-  thumbnail->setChecked(true);
-
-  m_visualizeToolGroup->addTool(thumbnail);
 
   auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
                                                          ":/espina/display_view_scalebar.svg",
@@ -939,10 +928,23 @@ void EspinaMainWindow::createVisualizeToolGroup()
   connect(scalebar.get(), SIGNAL(toggled(bool)),
           m_view.get(),   SLOT(setRulerVisibility(bool)));
 
-  scalebar->setOrder("0-1", "2-Display");
+  scalebar->setOrder("0-0", "2-Display");
   scalebar->setChecked(true);
 
   m_visualizeToolGroup->addTool(scalebar);
+
+
+  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
+                                                          ":/espina/display_view_thumbnail.svg",
+                                                          tr("Display Thumbnail"),
+                                                          m_context);
+  connect(thumbnail.get(), SIGNAL(toggled(bool)),
+          m_view.get(), SLOT(showThumbnail(bool)));
+
+  thumbnail->setOrder("0-1", "2-Display");
+  thumbnail->setChecked(true);
+
+  m_visualizeToolGroup->addTool(thumbnail);
 
 
   auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",

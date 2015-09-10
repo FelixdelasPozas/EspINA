@@ -195,9 +195,17 @@ bool Output::isValid() const
 }
 
 //----------------------------------------------------------------------------
+void Output::updateModificationTime()
+{
+  m_timeStamp = s_tick++;
+
+  emit modified();;
+}
+
+//----------------------------------------------------------------------------
 void Output::onDataChanged()
 {
-  emit modified();
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------
@@ -219,10 +227,9 @@ void Output::setData(Output::DataSPtr data)
   data->setEditedRegions(regions);
 
   updateModificationTime();
-  emit modified();
 
   connect(data.get(), SIGNAL(dataChanged()),
-          this, SLOT(onDataChanged()));
+          this,       SLOT(onDataChanged()));
 }
 
 //----------------------------------------------------------------------------
