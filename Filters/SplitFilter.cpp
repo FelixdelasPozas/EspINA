@@ -64,9 +64,10 @@ void SplitFilter::execute()
   if (!canExecute()) return;
 
   Q_ASSERT(m_inputs.size() == 1);
-  auto volume = readLockVolume(m_inputs.first()->output());
+  auto input  = m_inputs[0]->output();
+  auto volume = readLockVolume(input);
 
-  if (nullptr == m_stencil && !fetchCacheStencil())
+  if (!m_stencil && !fetchCacheStencil())
   {
     if (m_outputs.isEmpty())
       Q_ASSERT(false);
@@ -95,6 +96,15 @@ void SplitFilter::execute()
   reportProgress(25);
   if (!canExecute()) return;
 
+  int shift[3]; // Stencil origin differ from creation to fetch
+  for (int i = 0; i < 3; ++i)
+  {
+    shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+  }
+
+  bool hasVoxels1 = false;
+  bool hasVoxels2 = false;
+
   itk::ImageRegionConstIterator<itkVolumeType> it(itkVolume, itkVolume->GetLargestPossibleRegion());
   itk::ImageRegionIterator<itkVolumeType> split1it(split1, split1->GetLargestPossibleRegion());
   itk::ImageRegionIterator<itkVolumeType> split2it(split2, split2->GetLargestPossibleRegion());
@@ -102,15 +112,6 @@ void SplitFilter::execute()
   it.GoToBegin();
   split1it.GoToBegin();
   split2it.GoToBegin();
-
-  bool isEmpty1 = true;
-  bool isEmpty2 = true;
-
-  int shift[3]; // Stencil origin differ from creation to fetch
-  for (int i = 0; i < 3; ++i)
-  {
-    shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
-  }
 
   for(; !it.IsAtEnd(); ++it, ++split1it, ++split2it)
   {
@@ -120,15 +121,13 @@ void SplitFilter::execute()
     {
       split1it.Set(value);
       split2it.Set(SEG_BG_VALUE);
-      if (isEmpty1)
-        isEmpty1 = (value != SEG_VOXEL_VALUE);
+      hasVoxels1 |= (value == SEG_VOXEL_VALUE);
     }
     else
     {
       split1it.Set(SEG_BG_VALUE);
       split2it.Set(value);
-      if (isEmpty2)
-        isEmpty2 = (value != SEG_VOXEL_VALUE);
+      hasVoxels2 |= (value == SEG_VOXEL_VALUE);
     }
   }
 
@@ -137,14 +136,15 @@ void SplitFilter::execute()
 
   itkVolumeType::Pointer volumes[2]{split1, split2};
 
-  if (!isEmpty1 && !isEmpty2)
+  if (hasVoxels1 && hasVoxels2)
   {
+    auto spacing = input->spacing();
+
     for(auto i: {0, 1})
     {
-      auto spacing = m_inputs.first()->output()->spacing();
       auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
-
-      DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      
       volume->draw(volumes[i], bounds);
 
       if (!m_outputs.contains(i))

@@ -27,6 +27,7 @@ set (FILTERS_SOURCES
   SplitFilter.cpp
   SourceFilter.cpp
   Utils/vtkTube.cpp
+  Utils/Stencil.cpp
   VolumetricStreamReader.cpp
   )
 

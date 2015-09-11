@@ -92,11 +92,13 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Filters
 set (FILTERS_SOURCES
-  ${FILTERS_DIR}/SourceFilter.cpp
   ${FILTERS_DIR}/DilateFilter.cpp
-  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/ImageLogicFilter.cpp
+  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
+  ${FILTERS_DIR}/SourceFilter.cpp
+  ${FILTERS_DIR}/SplitFilter.cpp
+  ${FILTERS_DIR}/Utils/Stencil.cpp
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )
 add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})

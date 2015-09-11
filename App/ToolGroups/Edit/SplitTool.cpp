@@ -23,6 +23,7 @@
 
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
+#include <Filters/Utils/Stencil.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
@@ -38,10 +39,6 @@
 
 // VTK
 #include <vtkImageStencilData.h>
-#include <vtkImplicitFunctionToImageStencil.h>
-#include <vtkMath.h>
-#include <vtkSmartPointer.h>
-#include <vtkPlane.h>
 
 // Qt
 #include <QAction>
@@ -53,6 +50,7 @@
 using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
 
 using namespace ESPINA;
+using namespace ESPINA::Filters::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::Support::Widgets;
@@ -159,6 +157,7 @@ void SplitTool::showCuttingPlane()
   getViewState().addTemporalRepresentations(m_factory);
 
   auto segmentation = getSelectedSegmentations().first();
+
   for(auto widget: m_splitWidgets)
   {
     widget->setSegmentationBounds(segmentation->bounds());
@@ -204,30 +203,17 @@ void SplitTool::applyCurrentState()
 
   showTaskProgress(filter);
 
-  auto spacing = selectedSeg->output()->spacing();
-  auto bounds = selectedSeg->bounds();
+  auto output = selectedSeg->output();
+  VolumeBounds bounds(output->bounds(), output->spacing());
 
-  int extent[6]{ vtkMath::Round((bounds[0] + spacing[0] / 2) / spacing[0]),
-                 vtkMath::Round((bounds[1] + spacing[0] / 2) / spacing[0]),
-                 vtkMath::Round((bounds[2] + spacing[1] / 2) / spacing[1]),
-                 vtkMath::Round((bounds[3] + spacing[1] / 2) / spacing[1]),
-                 vtkMath::Round((bounds[4] + spacing[2] / 2) / spacing[2]),
-                 vtkMath::Round((bounds[5] + spacing[2] / 2) / spacing[2]) };
-
-  auto plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-  plane2stencil->SetInput(m_splitPlane);
-  plane2stencil->SetOutputOrigin(0, 0, 0);
-  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-  plane2stencil->SetOutputWholeExtent(extent);
-  plane2stencil->Update();
-
-  vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
+  auto stencil = Stencil::fromPlane(m_splitPlane, bounds);
   filter->setStencil(stencil);
 
   Data data(filter, getModel()->smartPointer(selectedSeg));
   m_executingTasks.insert(filter.get(), data);
 
-  connect(filter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
+  connect(filter.get(), SIGNAL(finished()),
+          this,        SLOT(createSegmentations()));
 
   Task::submit(filter);
 }

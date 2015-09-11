@@ -217,7 +217,6 @@ void Filter::restoreEditedRegions()
         {
           if (isDataSection(xml))
           {
-            qDebug() << data->type() << "restoring edited regions";
             data->setEditedRegions(editedRegions);
             data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
           }

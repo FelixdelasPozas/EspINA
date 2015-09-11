@@ -9,5 +9,7 @@ set(FILTERS_DEPENDECIES
   EspinaFiltersTesting
   EspinaTesting
 )
+
 add_subdirectory(VolumetricStreamReader)
 add_subdirectory(SeedGrowSegmentation)
+add_subdirectory(PlanarSplit)

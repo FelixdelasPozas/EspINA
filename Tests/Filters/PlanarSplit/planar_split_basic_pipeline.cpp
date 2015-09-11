@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (c) 2015, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,51 +23,50 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include "Filters/SeedGrowSegmentationFilter.h"
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <testing_support_channel_input.h>
 
-#include "testing_support_channel_input.h"
+#include "testing.h"
 
-using namespace ESPINA;
-using namespace ESPINA::Testing;
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
-int seed_grow_segmentation_simple_execution(int argc, char** argv)
+int planar_split_basic_pipeline( int argc, char** argv )
 {
   bool error = false;
 
-  InputSList   inputs;
-  inputs << channelInput();
+  auto channel = std::make_shared<Channel>(Testing::channelInput());
+  channel->setName("channel");
 
-  Filter::Type  type{"SGS"};
+  auto segmentations = gls_split(channel);
 
-  SchedulerSPtr scheduler;
+  auto bounds1 = segmentations[0]->bounds();
+  auto bounds2 = segmentations[1]->bounds();
+  auto bounds3 = segmentations[2]->bounds();
 
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
-
-  sgsf.setSeed({5, 5, 5});
-  sgsf.setThreshold(10);
-  sgsf.update();
-
-  if (sgsf.numberOfOutputs() != 1) {
-    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;
-    error = true;
+  for (auto i : {0, 1, 4, 5})
+  {
+    if ( bounds1[i] != bounds2[i]
+      || bounds1[i] != bounds3[i])
+    {
+      std::cerr << "Incorrect bounds on dimension " << i << std::endl;
+      error = true;
+    }
   }
-  else {
-    if (sgsf.output(0)->isEdited()) {
-      cerr << "Recently updated output shouldn't be marked as modified" << endl;
-      error = true;
-    }
 
-    Bounds inputBounds  = inputs[0]->output()->bounds();
-    Bounds outputBounds = sgsf.output(0)->bounds();
-
-    if (inputBounds != outputBounds) {
-      cerr << inputBounds << " != " << outputBounds << endl;
-      error = true;
-    }
+  auto halfBounds1 = (bounds1[3] + bounds1[2]) / 2;
+  if ( halfBounds1 != bounds2[3]
+    || halfBounds1 != bounds3[2])
+  {
+    std::cerr << "Incorrect bounds on split dimension " << std::endl;
+    error = true;
   }
 
   return error;

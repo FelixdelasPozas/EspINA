@@ -37,14 +37,14 @@ DummyChannelReader::DummyChannelReader()
 //----------------------------------------------------------------------------
 void DummyChannelReader::execute()
 {
-  Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
+  Bounds bounds{-0.5, 9.5, -0.5, 9.5,-0.5, 9.5};
 
-  DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
+  auto data = std::make_shared<ChannelVolume>(bounds);
   data->setBackgroundValue(50);
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
+    m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});
   }
 
   m_outputs[0]->setData(data);
@@ -55,7 +55,7 @@ void DummyChannelReader::execute()
 InputSPtr ESPINA::Testing::channelInput()
 {
 
-  std::shared_ptr<DummyChannelReader> filter{new DummyChannelReader()};
+  auto filter = std::make_shared<DummyChannelReader>();
   filter->update();
 
   return getInput(filter, 0);
