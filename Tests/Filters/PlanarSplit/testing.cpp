@@ -20,8 +20,9 @@
 #include "testing.h"
 
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/SegFile.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Filters/SplitFilter.h>
@@ -31,7 +32,48 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 using namespace ESPINA::Filters::Utils;
+
+//------------------------------------------------------------------------
+FilterTypeList ESPINA::TestFilterFactory::providedFilters() const
+{
+  FilterTypeList list;
+
+  list << "SGS" << "SPLIT" << "DILATE" << "DummyChannelReader";
+
+  return list;
+}
+
+//------------------------------------------------------------------------
+FilterSPtr ESPINA::TestFilterFactory::createFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler) const
+{
+  FilterSPtr filter;
+
+  if (type == "DummyChannelReader")
+  {
+    filter = make_shared<DummyChannelReader>();
+  }
+  else if ("SGS" == type) {
+    filter = make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
+  }
+  else if ("SPLIT" == type)
+  {
+    filter = make_shared<SplitFilter>(inputs, type, scheduler);
+  }
+  else if ("DILATE" == type)
+  {
+    filter = make_shared<DilateFilter>(inputs, type, scheduler);
+  }
+  else
+  {
+    Q_ASSERT(false);
+  }
+
+  filter->setDataFactory(make_shared<MarchingCubesFromFetchedVolumetricData>());
+
+  return filter;
+}
 
 //------------------------------------------------------------------------
 SegmentationSList ESPINA::gls_split(ChannelSPtr channel)
@@ -78,33 +120,164 @@ SegmentationSList ESPINA::gls_split(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-FilterTypeList ESPINA::TestFilterFactory::providedFilters() const
+bool ESPINA::dilate(SegmentationSPtr segmentation)
 {
-  FilterTypeList list;
+  auto beforeBounds = segmentation->bounds();
 
-  list << "SGS" << "SPLIT" << "DILATE";
+  InputSList inputs;
+  inputs << segmentation->asInput();
 
-  return list;
+  auto dilate = std::make_shared<DilateFilter>(inputs, "DILATE", SchedulerSPtr());
+  dilate->setRadius(1);
+  dilate->update();
+
+  segmentation->changeOutput(getInput(dilate, 0));
+
+  bool error = false;
+
+  if ( segmentation->bounds() == beforeBounds
+    || !contains(segmentation->bounds(), beforeBounds))
+  {
+    cerr << "Dilate bounds should be bigger than original ones" << endl;
+    error = true;
+  }
+
+  if (!dynamic_cast<DilateFilter*>(segmentation->output()->filter()))
+  {
+    cerr << "Output filter is not a dilate filter" << endl;
+    error = true;
+  }
+
+  return error;
 }
 
 //------------------------------------------------------------------------
-FilterSPtr ESPINA::TestFilterFactory::createFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler) const
+bool ESPINA::checkSplitBounds(SegmentationSPtr source, SegmentationSPtr split1, SegmentationSPtr split2)
 {
-  FilterSPtr filter;
+  bool error = false;
 
-  if ("SGS" == type) {
-    filter = make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
-  }
-  else if ("SPLIT" == type)
+  auto bounds1 = source->bounds();
+  auto bounds2 = split1->bounds();
+  auto bounds3 = split2->bounds();
+
+  for (auto i : {0, 1, 4, 5})
   {
-    filter = make_shared<SplitFilter>(inputs, type, scheduler);
+    if ( bounds1[i] != bounds2[i]
+      || bounds1[i] != bounds3[i])
+    {
+      std::cerr << "Incorrect bounds on dimension " << i << std::endl;
+      error = true;
+    }
   }
-  else if ("DILATE" == type)
+
+  auto halfBounds1 = (bounds1[3] + bounds1[2]) / 2;
+  if ( halfBounds1 != bounds2[3]
+    || halfBounds1 != bounds3[2])
   {
-    filter = make_shared<DilateFilter>(inputs, type, scheduler);
+    std::cerr << "Incorrect bounds on split dimension " << std::endl;
+    error = true;
   }
 
-  filter->setDataFactory(make_shared<MarchingCubesFromFetchedVolumetricData>());
-
-  return filter;
+  return error;
 }
+
+//------------------------------------------------------------------------
+AnalysisSPtr ESPINA::loadAnalyisis(QFileInfo file, CoreFactorySPtr factory)
+{
+  AnalysisSPtr analysis;
+
+  try
+  {
+   analysis = IO::SegFile::load(file, factory);
+  } catch (...)
+  {
+  }
+
+  return analysis;
+}
+
+//------------------------------------------------------------------------
+bool ESPINA::checkSegmentations(AnalysisSPtr analysis, int number)
+{
+  bool error = analysis->segmentations().size() != number;
+
+  if (error)
+  {
+    cerr << "Unexpeceted number of segmentations" << endl;
+  }
+
+  return error;
+}
+
+//------------------------------------------------------------------------
+bool ESPINA::checkValidData(SegmentationSPtr segmentation, int numVolumeEditedRegions)
+{
+  bool error = false;
+
+  auto loadedOuptut = segmentation->output();
+
+  if (!loadedOuptut->hasData(VolumetricData<itkVolumeType>::TYPE))
+  {
+    cerr << "Expected Volumetric Data" << endl;
+    error = true;
+  }
+  else
+  {
+    auto volume = readLockVolume(loadedOuptut);
+
+    if (!volume->isValid())
+    {
+      cerr << "Unexpeceted invalid volumetric data" << endl;
+      error = true;
+    }
+
+    if (volume->editedRegions().size() != numVolumeEditedRegions)
+    {
+      cerr << "Unexpeceted number of edited regions" << endl;
+      error = true;
+    }
+
+    auto tmpStorage = make_shared<TemporalStorage>();
+    for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
+    {
+      if (snapshot.first.contains("EditedRegion"))
+      {
+        cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
+        error = true;
+      }
+    }
+  }
+
+  if (!loadedOuptut->hasData(MeshData::TYPE))
+  {
+    cerr << "Expected Mesh Data" << endl;
+    error = true;
+  }
+  else
+  {
+    auto mesh = readLockMesh(loadedOuptut);
+
+    if (!mesh->mesh())
+    {
+      cerr << "Expected Mesh Data Polydata" << endl;
+      error = true;
+    }
+  }
+
+  return error;
+}
+
+//------------------------------------------------------------------------
+bool ESPINA::checkSpacingChange(const NmVector3& lhs, const NmVector3& rhs)
+{
+  bool error = lhs == rhs;
+
+  if (error)
+  {
+    cerr << "Unexpeceted same spacing " << lhs << rhs << endl;
+  }
+  return error;
+}
+
+
+

@@ -46,11 +46,6 @@ int planar_split_load_pipeline( int argc, char** argv )
 {
   bool error = false;
 
-  SchedulerSPtr scheduler;
-
-  auto factory = std::make_shared<CoreFactory>();
-  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
-
   Analysis analysis;
 
   auto classification = std::make_shared<Classification>("Test");
@@ -88,80 +83,24 @@ int planar_split_load_pipeline( int argc, char** argv )
     error = true;
   }
 
-  AnalysisSPtr analysis2;
-  try
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
+
+  auto analysis2 = loadAnalyisis(file, factory);
+
+  if (analysis2)
   {
-   analysis2 = SegFile::load(file, factory);
-  } catch (...)
+    error |= checkSegmentations(analysis2, 2)
+          || checkFilterType<SplitFilter>(analysis2->segmentations()[0])
+          || checkFilterType<SplitFilter>(analysis2->segmentations()[1])
+          || checkValidData(analysis2->segmentations()[0], 0)
+          || checkValidData(analysis2->segmentations()[1], 0)
+          || checkSplitBounds(segmentation1, analysis2->segmentations()[0], analysis2->segmentations()[1]);
+  }
+  else
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
-  }
-
-  if (analysis2->segmentations().size() != 2) {
-    cerr << "Unexpeceted number of segmentations" << endl;
-    error = true;
-  }
-
-  for (int i = 0; i < 2; ++i)
-  {
-    auto loadedSegmentation = analysis2->segmentations()[i];
-    auto loadedOuptut       = loadedSegmentation->output();
-    auto loadedFilter       = dynamic_cast<SplitFilter*>(loadedOuptut->filter());
-
-    if (!loadedFilter)
-    {
-      cerr << "Couldn't recover Planar Split filter" << endl;
-      error = true;
-    }
-
-    if (!loadedOuptut->hasData(VolumetricData<itkVolumeType>::TYPE))
-    {
-      cerr << "Expected Volumetric Data" << endl;
-      error = true;
-    }
-    else
-    {
-      auto volume = readLockVolume(loadedOuptut);
-
-      if (!volume->isValid())
-      {
-        cerr << "Unexpeceted invalid volumetric data" << endl;
-        error = true;
-      }
-
-      if (volume->editedRegions().size() != 0)
-      {
-        cerr << "Unexpeceted number of edited regions" << endl;
-        error = true;
-      }
-
-      auto tmpStorage = make_shared<TemporalStorage>();
-      for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
-      {
-        if (snapshot.first.contains("EditedRegion"))
-        {
-          cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
-          error = true;
-        }
-      }
-    }
-
-    if (!loadedOuptut->hasData(MeshData::TYPE))
-    {
-      cerr << "Expected Mesh Data" << endl;
-      error = true;
-    }
-    else
-    {
-      auto mesh = readLockMesh(loadedOuptut);
-
-      if (!mesh->mesh())
-      {
-        cerr << "Expected Mesh Data Polydata" << endl;
-        error = true;
-      }
-    }
   }
 
   file.absoluteDir().remove(file.fileName());

@@ -280,7 +280,7 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return m_outputs.isEmpty() || !validOutput(0) || ignoreStorageContent();
+  return !validOutput(0) || ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------

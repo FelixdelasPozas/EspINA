@@ -40,34 +40,10 @@ using namespace ESPINA::IO;
 
 int planar_split_basic_pipeline( int argc, char** argv )
 {
-  bool error = false;
-
   auto channel = std::make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   auto segmentations = gls_split(channel);
 
-  auto bounds1 = segmentations[0]->bounds();
-  auto bounds2 = segmentations[1]->bounds();
-  auto bounds3 = segmentations[2]->bounds();
-
-  for (auto i : {0, 1, 4, 5})
-  {
-    if ( bounds1[i] != bounds2[i]
-      || bounds1[i] != bounds3[i])
-    {
-      std::cerr << "Incorrect bounds on dimension " << i << std::endl;
-      error = true;
-    }
-  }
-
-  auto halfBounds1 = (bounds1[3] + bounds1[2]) / 2;
-  if ( halfBounds1 != bounds2[3]
-    || halfBounds1 != bounds3[2])
-  {
-    std::cerr << "Incorrect bounds on split dimension " << std::endl;
-    error = true;
-  }
-
-  return error;
+  return checkSplitBounds(segmentations[0], segmentations[1], segmentations[2]);
 }

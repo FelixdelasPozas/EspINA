@@ -97,9 +97,16 @@ void SplitFilter::execute()
   if (!canExecute()) return;
 
   int shift[3]; // Stencil origin differ from creation to fetch
+
+  double origin[3];
+  double spacing[3];
+
+  m_stencil->GetOrigin(origin);
+  m_stencil->GetSpacing(spacing);
+
   for (int i = 0; i < 3; ++i)
   {
-    shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+    shift[i] = vtkMath::Round(origin[i] / spacing[i]);
   }
 
   bool hasVoxels1 = false;
@@ -178,22 +185,7 @@ bool SplitFilter::areEditedRegionsInvalidated()
 //----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
-}
-
-//----------------------------------------------------------------------------
-bool SplitFilter::needUpdate(Output::Id id) const
-{
-  if (id != 0 && id != 1) throw Undefined_Output_Exception();
-
-  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
-}
-
-//----------------------------------------------------------------------------
-void SplitFilter::execute(Output::Id id)
-{
-  Q_ASSERT(id == 0 || id == 1);
-  execute();
+  return !validOutput(0) || ignoreStorageContent();
 }
 
 //-----------------------------------------------------------------------------
@@ -207,12 +199,12 @@ bool SplitFilter::fetchCacheStencil() const
   if (storage()->exists(stencilFile()))
   {
     QString fileName = storage()->absoluteFilePath(stencilFile());
-    vtkSmartPointer<vtkGenericDataObjectReader> stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+    auto stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
     stencilReader->SetFileName(fileName.toStdString().c_str());
     stencilReader->ReadAllFieldsOn();
     stencilReader->Update();
 
-    vtkSmartPointer<vtkImageToImageStencil> convert = vtkSmartPointer<vtkImageToImageStencil>::New();
+    auto convert = vtkSmartPointer<vtkImageToImageStencil>::New();
     convert->SetInputData(vtkImageData::SafeDownCast(stencilReader->GetOutput()));
     convert->ThresholdBetween(1,1);
     convert->Update();
@@ -226,6 +218,24 @@ bool SplitFilter::fetchCacheStencil() const
 }
 
 //-----------------------------------------------------------------------------
+void SplitFilter::setStencil(vtkSmartPointer< vtkImageStencilData > stencil)
+{
+  m_stencil = stencil;
+  m_ignoreCurrentOutputs = true;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkImageStencilData> SplitFilter::stencil() const
+{
+  if (!m_stencil)
+  {
+    fetchCacheStencil();
+  }
+
+  return m_stencil;
+}
+
+//-----------------------------------------------------------------------------
 Snapshot SplitFilter::saveFilterSnapshot() const
 {
   Snapshot snapshot;
@@ -234,22 +244,27 @@ Snapshot SplitFilter::saveFilterSnapshot() const
   // NOTE: not aborting if the file is not found fixes a bug in earlier versions that didn't store
   // the vti file in the seg, this renders this filter a read-only filter, that is, cannot be executed
   // again.
-  if(m_stencil != nullptr || fetchCacheStencil())
+  if(m_stencil || fetchCacheStencil())
   {
-    vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+    auto convert = vtkSmartPointer<vtkImageStencilToImage>::New();
     convert->SetInputData(m_stencil);
     convert->SetInsideValue(1);
     convert->SetOutsideValue(0);
     convert->SetOutputScalarTypeToUnsignedChar();
     convert->Update();
 
-    vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    stencilWriter->SetInputConnection(convert->GetOutputPort());
+    auto stencilImage = convert->GetOutput();
+    stencilImage->SetOrigin(m_stencil->GetOrigin());
+    stencilImage->SetSpacing(m_stencil->GetSpacing());
+
+    auto stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+    stencilWriter->SetInputData(stencilImage);
     stencilWriter->SetFileTypeToBinary();
     stencilWriter->SetWriteToOutputString(true);
     stencilWriter->Write();
 
     snapshot << SnapshotData{stencilFile(), QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
   }
+
   return snapshot;
 }

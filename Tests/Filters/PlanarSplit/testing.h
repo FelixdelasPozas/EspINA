@@ -22,11 +22,11 @@
 
 #include <Core/Types.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Core/Analysis/Segmentation.h>
+#include <testing_support_channel_input.h>
 
 namespace ESPINA
 {
-  SegmentationSList gls_split(ChannelSPtr channel);
-
   class TestFilterFactory
   : public FilterFactory
   {
@@ -35,6 +35,36 @@ namespace ESPINA
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const;
   };
+
+  SegmentationSList gls_split(ChannelSPtr channel);
+
+  bool dilate(SegmentationSPtr segmentation);
+
+
+  bool checkSplitBounds(SegmentationSPtr source, SegmentationSPtr split1, SegmentationSPtr split2);
+
+  AnalysisSPtr loadAnalyisis(QFileInfo file, CoreFactorySPtr factory);
+
+  bool checkSegmentations(AnalysisSPtr analysis, int number);
+
+  bool checkValidData(SegmentationSPtr segmentation, int numVolumeEditedRegions);
+
+  bool checkSpacingChange(const NmVector3 &lhs, const NmVector3 &rhs);
+
+  template<typename T>
+  bool checkFilterType(SegmentationSPtr segmentation)
+  {
+    auto filter = dynamic_cast<T *>(segmentation->output()->filter());
+
+    bool error = !filter;
+
+    if (error)
+    {
+      std::cerr << "Unexpected Filter Type " << filter->type().toStdString() << std::endl;
+    }
+
+    return error;
+  }
 }
 
 #endif // PLANAR_SPLIT_TESTING_H

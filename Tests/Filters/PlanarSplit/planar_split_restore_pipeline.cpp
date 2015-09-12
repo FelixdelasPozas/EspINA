@@ -31,13 +31,13 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/Factory/CoreFactory.h>
-#include <testing_support_channel_input.h>
 
 #include "testing.h"
-#include <Filters/SplitFilter.h>
+#include <Filters/DilateFilter.h>
 
 using namespace std;
 using namespace ESPINA;
@@ -45,7 +45,7 @@ using namespace ESPINA::IO;
 
 int planar_split_restore_pipeline( int argc, char** argv )
 {
-  bool error = true; // Add dilate before saving seg file
+  bool error = false;
 
   SchedulerSPtr scheduler;
 
@@ -76,6 +76,9 @@ int planar_split_restore_pipeline( int argc, char** argv )
   auto segmentation2 = splitSegmentations[1];
   auto segmentation3 = splitSegmentations[2];
 
+  error |= dilate(segmentation2);
+  error |= dilate(segmentation3);
+
   analysis.remove(segmentation1);
   analysis.add(segmentation2);
   analysis.add(segmentation3);
@@ -89,80 +92,33 @@ int planar_split_restore_pipeline( int argc, char** argv )
     error = true;
   }
 
-  AnalysisSPtr analysis2;
-  try
+  auto analysis2 = loadAnalyisis(file, factory);
+
+  if (analysis2)
   {
-   analysis2 = SegFile::load(file, factory);
-  } catch (...)
+    auto checkRestore = [](SegmentationSPtr segmentation)
+    {
+      auto output = segmentation->output();
+      auto filter = dynamic_cast<DilateFilter*>(output->filter());
+
+      filter->setRadius(2);
+      filter->update();
+
+      return false;
+    };
+
+    error |= checkSegmentations(analysis2, 2)
+          || checkFilterType<DilateFilter>(analysis2->segmentations()[0])
+          || checkFilterType<DilateFilter>(analysis2->segmentations()[1])
+          || checkRestore(analysis2->segmentations()[0])
+          || checkRestore(analysis2->segmentations()[1])
+          || checkValidData(analysis2->segmentations()[0], 0)
+          || checkValidData(analysis2->segmentations()[1], 0);
+  }
+  else
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
-  }
-
-  if (analysis2->segmentations().size() != 2) {
-    cerr << "Unexpeceted number of segmentations" << endl;
-    error = true;
-  }
-
-  for (int i = 0; i < 2; ++i)
-  {
-    auto loadedSegmentation = analysis2->segmentations()[i];
-    auto loadedOuptut       = loadedSegmentation->output();
-    auto loadedFilter       = dynamic_cast<SplitFilter*>(loadedOuptut->filter());
-
-    if (!loadedFilter)
-    {
-      cerr << "Couldn't recover Planar Split filter" << endl;
-      error = true;
-    }
-
-    if (!loadedOuptut->hasData(VolumetricData<itkVolumeType>::TYPE))
-    {
-      cerr << "Expected Volumetric Data" << endl;
-      error = true;
-    }
-    else
-    {
-      auto volume = readLockVolume(loadedOuptut);
-
-      if (!volume->isValid())
-      {
-        cerr << "Unexpeceted invalid volumetric data" << endl;
-        error = true;
-      }
-
-      if (volume->editedRegions().size() != 0)
-      {
-        cerr << "Unexpeceted number of edited regions" << endl;
-        error = true;
-      }
-
-      auto tmpStorage = make_shared<TemporalStorage>();
-      for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
-      {
-        if (snapshot.first.contains("EditedRegion"))
-        {
-          cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
-          error = true;
-        }
-      }
-    }
-
-    if (!loadedOuptut->hasData(MeshData::TYPE))
-    {
-      cerr << "Expected Mesh Data" << endl;
-      error = true;
-    }
-    else
-    {
-      auto mesh = readLockMesh(loadedOuptut);
-
-      if (!mesh->mesh())
-      {
-        cerr << "Expected Mesh Data Polydata" << endl;
-        error = true;
-      }
-    }
   }
 
   file.absoluteDir().remove(file.fileName());
