@@ -43,25 +43,25 @@ int analysis_change_segmentation_output(int argc, char** argv )
 
   Analysis analysis;
 
-  FilterSPtr filter{new DummyFilter()};
+  auto filter = make_shared<DummyFilter>();
 
   auto filterOutput = getInput(filter, 0);
 
-  ChannelSPtr channel(new Channel(filterOutput));
+  auto channel = make_shared<Channel>(filterOutput);
 
   InputSList inputs1;
   inputs1 << filterOutput;
 
-  FilterSPtr filterWithInputs1{new DummyFilterWithInputs(inputs1)};
+  auto filterWithInputs1 = make_shared<DummyFilterWithInputs>(inputs1);
 
   auto filter1Output = getInput(filterWithInputs1, 0);
 
-  SegmentationSPtr segmentation(new Segmentation(filter1Output));
+  auto segmentation = make_shared<Segmentation>(filter1Output);
 
   analysis.add(channel);
   analysis.add(segmentation);
 
-  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 2, 3, 1);
+  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 2, 3, 0);
 
   if (analysis.content()->inEdges(segmentation).first().source != filterWithInputs1) {
     cerr << "Unexpected segmentation input filter in analysis" << endl;
@@ -71,13 +71,13 @@ int analysis_change_segmentation_output(int argc, char** argv )
   InputSList inputs2;
   inputs2 << filter1Output;
 
-  FilterSPtr filterWithInputs2{new DummyFilterWithInputs(inputs2)};
+  auto filterWithInputs2 = make_shared<DummyFilterWithInputs>(inputs2);
 
   auto filter2Output = getInput(filterWithInputs2, 0);
 
   segmentation->changeOutput(filter2Output);
 
-  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 3, 4, 1);
+  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 3, 4, 0);
 
   if (analysis.content()->inEdges(segmentation).first().source != filterWithInputs2) {
     cerr << "Unexpected segmentation input filter in analysis" << endl;
@@ -86,7 +86,7 @@ int analysis_change_segmentation_output(int argc, char** argv )
 
   segmentation->changeOutput(filter1Output);
 
-  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 2, 3, 1);
+  error |= checkAnalysisExpectedElements(analysis, 0, 1, 1, 2, 3, 0);
 
   if (analysis.content()->inEdges(segmentation).first().source != filterWithInputs1) {
     cerr << "Unexpected segmentation input filter in analysis" << endl;

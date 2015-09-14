@@ -63,7 +63,7 @@ bool ESPINA::Testing::checkAnalysisExpectedElements(Analysis& analysis,
     error = true;
   }
 
-  if (!analysis.relationships()->edges().size() != numRelations) {
+  if (analysis.relationships()->edges().size() != numRelations) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }
