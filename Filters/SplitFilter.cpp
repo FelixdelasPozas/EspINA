@@ -211,10 +211,38 @@ bool SplitFilter::fetchCacheStencil() const
 
     m_stencil = vtkSmartPointer<vtkImageStencilData>(convert->GetOutput());
 
+    changeStencilSpacing(output(0)->spacing());
+
     returnVal = true;
   }
 
   return returnVal;
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::changeStencilSpacing(const NmVector3& spacing) const
+{
+  double stencilSpacing[3];
+  m_stencil->GetSpacing(stencilSpacing);
+
+  NmVector3 ratio{
+    spacing[0]/stencilSpacing[0],
+    spacing[1]/stencilSpacing[1],
+    spacing[2]/stencilSpacing[2]
+  };
+
+  double stencilOrigin[3];
+  m_stencil->GetOrigin(stencilOrigin);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    stencilOrigin[i] *= ratio[i];
+    stencilSpacing[i] = spacing[i];
+  }
+
+  m_stencil->SetOrigin(stencilOrigin);
+  m_stencil->SetSpacing(stencilSpacing);
+  m_stencil->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -233,6 +261,17 @@ vtkSmartPointer<vtkImageStencilData> SplitFilter::stencil() const
   }
 
   return m_stencil;
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::changeSpacing(const NmVector3& origin, const NmVector3& spacing)
+{
+  if (m_stencil)
+  {
+    changeStencilSpacing(spacing);
+  }
+
+  Filter::changeSpacing(origin, spacing);
 }
 
 //-----------------------------------------------------------------------------

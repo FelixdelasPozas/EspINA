@@ -26,37 +26,48 @@
  * 
  */
 
-#include <Scheduler.h>
+#include "Filters/SeedGrowSegmentationFilter.h"
 
-#include "SleepyTask.h"
-
-#include <iostream>
-#include <unistd.h>
+#include "testing_support_channel_input.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 using namespace std;
 
-int scheduler_sleep_main_thread( int argc, char** argv )
+int seed_grow_segmentation_basic_pipeline(int argc, char** argv)
 {
-  int error = 0;
+  bool error = false;
 
-  int  period = 2000; //0.002 sec
-  auto scheduler  = make_shared<Scheduler>(period);
-  auto sleepyTask = make_shared<SleepyTask>(period, scheduler);
+  InputSList   inputs;
+  inputs << channelInput();
 
-  if (sleepyTask->Result != -1) {
-    error = 1;
-    std::cerr << "Unexpected initial sleepy task value" << std::endl;
+  Filter::Type  type{"SGS"};
+
+  SchedulerSPtr scheduler;
+
+  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
+
+  sgsf.setSeed({5, 5, 5});
+  sgsf.setThreshold(10);
+  sgsf.update();
+
+  if (sgsf.numberOfOutputs() != 1) {
+    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;
+    error = true;
   }
+  else {
+    if (sgsf.output(0)->isEdited()) {
+      cerr << "Recently updated output shouldn't be marked as modified" << endl;
+      error = true;
+    }
 
-  Task::submit(sleepyTask);
+    Bounds inputBounds  = inputs[0]->output()->bounds();
+    Bounds outputBounds = sgsf.output(0)->bounds();
 
-  const int WAIT_CICLES = SleepyTask::Iterations + 1;
-  usleep(WAIT_CICLES*period);
-
-  if (sleepyTask->Result != SleepyTask::Iterations) {
-    error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
+    if (inputBounds != outputBounds) {
+      cerr << inputBounds << " != " << outputBounds << endl;
+      error = true;
+    }
   }
 
   return error;

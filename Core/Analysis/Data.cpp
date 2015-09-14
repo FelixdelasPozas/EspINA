@@ -49,10 +49,14 @@ void Data::setFetchContext(const TemporalStorageSPtr storage,
   m_needFetch   = true;
 }
 
+
 //----------------------------------------------------------------------------
-QList<Data::Type> Data::dependencies() const
+void Data::copyFetchContext(DataSPtr data)
 {
-  return updateDependencies();
+  m_path        = data->m_path;
+  m_id          = data->m_id;
+  m_fetchBounds = data->m_fetchBounds;
+  m_storage     = data->m_storage;
 }
 
 //----------------------------------------------------------------------------
@@ -65,4 +69,10 @@ bool Data::fetchData()
   m_needFetch = !dataFetched;
 
   return dataFetched;
+}
+
+//----------------------------------------------------------------------------
+QList<Data::Type> Data::dependencies() const
+{
+  return updateDependencies();
 }

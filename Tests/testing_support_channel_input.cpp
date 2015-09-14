@@ -31,7 +31,15 @@ using ChannelVolume = SparseVolume<itkVolumeType>;
 DummyChannelReader::DummyChannelReader()
 
 : Filter(InputSList(), "DummyChannelReader", SchedulerSPtr())
+, m_spacing({1, 1, 1})
 {
+}
+
+//----------------------------------------------------------------------------
+void DummyChannelReader::changeSpacing(const NmVector3& origin, const NmVector3& spacing)
+{
+  m_spacing = spacing;
+  Filter::changeSpacing(origin, spacing);
 }
 
 //----------------------------------------------------------------------------
@@ -41,10 +49,11 @@ void DummyChannelReader::execute()
 
   auto data = std::make_shared<ChannelVolume>(bounds);
   data->setBackgroundValue(50);
+  data->setSpacing(m_spacing);
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});
+    m_outputs[0] = std::make_shared<Output>(this, 0, m_spacing);
   }
 
   m_outputs[0]->setData(data);

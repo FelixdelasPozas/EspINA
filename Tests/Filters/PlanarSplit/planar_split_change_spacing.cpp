@@ -26,32 +26,23 @@
  *
  */
 
-#include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
-#include <Core/Analysis/Data/VolumetricData.hxx>
-#include <Core/MultiTasking/Scheduler.h>
-#include <Core/IO/SegFile.h>
-#include <Core/Factory/CoreFactory.h>
-
+#include <Filters/SplitFilter.h>
+#include <testing_support_channel_input.h>
 #include "testing.h"
-#include <Filters/DilateFilter.h>
+
+#include <vtkImageStencilData.h>
+
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
-int planar_split_restore_pipeline( int argc, char** argv )
+int planar_split_change_spacing( int argc, char** argv )
 {
-  bool error = false;
-
-  SchedulerSPtr scheduler;
-
-  auto factory = std::make_shared<CoreFactory>();
-  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
-
   Analysis analysis;
 
   auto classification = std::make_shared<Classification>("Test");
@@ -76,52 +67,19 @@ int planar_split_restore_pipeline( int argc, char** argv )
   auto segmentation2 = splitSegmentations[0];
   auto segmentation3 = splitSegmentations[1];
 
-  error |= dilate(segmentation2);
-  error |= dilate(segmentation3);
-
   analysis.remove(segmentation1);
   analysis.add(segmentation2);
   analysis.add(segmentation3);
 
-  QFileInfo file("analysis.seg");
-  try {
-    SegFile::save(&analysis, file);
-  }
-  catch (SegFile::IO_Error_Exception &e) {
-    cerr << "Couldn't save seg file" << endl;
-    error = true;
-  }
+  auto split = dynamic_cast<SplitFilter*>(segmentation2->filter().get());
 
-  auto analysis2 = loadAnalyisis(file, factory);
+  NmVector3 prevStencil(split->stencil()->GetSpacing());
 
-  if (analysis2)
-  {
-    auto checkRestore = [](SegmentationSPtr segmentation)
-    {
-      auto output = segmentation->output();
-      auto filter = dynamic_cast<DilateFilter*>(output->filter());
+  analysis.changeSpacing(channel, NmVector3{4,2,4});
 
-      filter->setRadius(2);
-      filter->update();
+  NmVector3 stencil(split->stencil()->GetSpacing());
 
-      return false;
-    };
-
-    error |= checkSegmentations(analysis2, 2)
-          || checkFilterType<DilateFilter>(analysis2->segmentations()[0])
-          || checkFilterType<DilateFilter>(analysis2->segmentations()[1])
-          || checkRestore(analysis2->segmentations()[0])
-          || checkRestore(analysis2->segmentations()[1])
-          || checkValidData(analysis2->segmentations()[0], 0)
-          || checkValidData(analysis2->segmentations()[1], 0);
-  }
-  else
-  {
-    cerr << "Couldn't load seg file" << endl;
-    error = true;
-  }
-
-  file.absoluteDir().remove(file.fileName());
-
-  return error;
+  return checkSplitBounds(segmentation1, segmentation2, segmentation3)
+      || !checkSpacing(prevStencil, stencil)
+      || checkSpacing(stencil, NmVector3{4,2,4});
 }

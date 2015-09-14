@@ -56,6 +56,10 @@ namespace ESPINA
 
       virtual void set(DataSPtr data) override
       {
+        if (m_data)
+        {
+          data->copyFetchContext(m_data);
+        }
         m_data = std::dynamic_pointer_cast<SkeletonData>(data);
       }
 

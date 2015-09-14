@@ -37,13 +37,13 @@
 #include <Core/Factory/CoreFactory.h>
 
 #include "testing.h"
-#include <Filters/DilateFilter.h>
+#include <Filters/SeedGrowSegmentationFilter.h>
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
-int planar_split_restore_pipeline( int argc, char** argv )
+int seed_grow_segmentation_change_spacing_restore_pipeline( int argc, char** argv )
 {
   bool error = false;
 
@@ -71,18 +71,6 @@ int planar_split_restore_pipeline( int argc, char** argv )
   auto segmentation1 = gls(channel);
   analysis.add(segmentation1);
 
-  auto splitSegmentations = split(segmentation1);
-
-  auto segmentation2 = splitSegmentations[0];
-  auto segmentation3 = splitSegmentations[1];
-
-  error |= dilate(segmentation2);
-  error |= dilate(segmentation3);
-
-  analysis.remove(segmentation1);
-  analysis.add(segmentation2);
-  analysis.add(segmentation3);
-
   QFileInfo file("analysis.seg");
   try {
     SegFile::save(&analysis, file);
@@ -94,26 +82,26 @@ int planar_split_restore_pipeline( int argc, char** argv )
 
   auto analysis2 = loadAnalyisis(file, factory);
 
+  analysis2->changeSpacing(analysis2->channels()[0], NmVector3{4,2,4});
+
   if (analysis2)
   {
     auto checkRestore = [](SegmentationSPtr segmentation)
     {
       auto output = segmentation->output();
-      auto filter = dynamic_cast<DilateFilter*>(output->filter());
+      auto filter = dynamic_cast<SeedGrowSegmentationFilter*>(output->filter());
 
-      filter->setRadius(2);
+      cerr << "Update Filter" << endl;
+      filter->setThreshold(40);
       filter->update();
 
       return false;
     };
 
-    error |= checkSegmentations(analysis2, 2)
-          || checkFilterType<DilateFilter>(analysis2->segmentations()[0])
-          || checkFilterType<DilateFilter>(analysis2->segmentations()[1])
+    error |= checkSegmentations(analysis2, 1)
+          || checkFilterType<SeedGrowSegmentationFilter>(analysis2->segmentations()[0])
           || checkRestore(analysis2->segmentations()[0])
-          || checkRestore(analysis2->segmentations()[1])
-          || checkValidData(analysis2->segmentations()[0], 0)
-          || checkValidData(analysis2->segmentations()[1], 0);
+          || checkValidData(analysis2->segmentations()[0], 0);
   }
   else
   {

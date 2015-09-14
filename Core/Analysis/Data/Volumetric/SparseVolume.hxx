@@ -197,21 +197,6 @@ namespace ESPINA
      */
     Bounds blockIntersection(typename T::Pointer block, const Bounds &bounds) const;
 
-    /** \brief Changes the spacing of the block updating its origin position
-     * \param[in] block index
-     * \param[in] spacing to be changed
-     *
-     */
-    void changeSpacing(typename T::Pointer block, typename T::SpacingType &spacing) const;
-
-    /** \brief Changes the spacing of the block updating its origin position
-     * \param[in] block index
-     * \param[in] spacing to be changed
-     * \param[in] ratio spacing conversion ration
-     *
-     */
-    void changeSpacing(typename T::Pointer block, typename T::SpacingType &spacing, const NmVector3 &ratio) const;
-
     /** \brief Helper method to assist fetching data from disk.
      *
      */
@@ -319,7 +304,7 @@ namespace ESPINA
 
       for(auto &block : m_blocks)
       {
-        changeSpacing(block, itkSpacing, spacingRatio);
+        changeSpacing<T>(block, itkSpacing, spacingRatio);
       }
 
       BoundsList regions;
@@ -817,7 +802,7 @@ namespace ESPINA
       {
         auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
 
-        changeSpacing(editedRegion, spacing);
+        changeSpacing<T>(editedRegion, spacing);
 
         expandAndDraw<T>(this, editedRegion);
       }
@@ -952,42 +937,6 @@ namespace ESPINA
     }
 
     return true;
-  }
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  void SparseVolume<T>::changeSpacing(typename T::Pointer block, typename T::SpacingType &spacing) const
-  {
-    auto blockSpacing = block->GetSpacing();
-
-    NmVector3 ratio{
-      spacing[0]/blockSpacing[0],
-      spacing[1]/blockSpacing[1],
-      spacing[2]/blockSpacing[2]
-    };
-
-    changeSpacing(block, spacing, ratio);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  void SparseVolume<T>::changeSpacing(typename T::Pointer block, typename T::SpacingType &spacing, const NmVector3 &ratio) const
-  {
-    auto origin = block->GetOrigin();
-
-    for (int i = 0; i < 3; ++i)
-    {
-      origin[i] *= ratio[i];
-    }
-
-    //auto preBlockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-    block->SetOrigin(origin);
-    block->SetSpacing(spacing);
-    block->Update();
-    //auto postBlockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-    //qDebug() << "Update block bounds" << preBlockBounds << "to"<< postBlockBounds;
-
   }
 
   //-----------------------------------------------------------------------------

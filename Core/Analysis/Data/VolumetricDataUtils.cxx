@@ -266,4 +266,39 @@ namespace ESPINA
 
     return it;
   }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing)
+  {
+    auto imageSpacing = image->GetSpacing();
+
+    NmVector3 ratio{
+      spacing[0]/imageSpacing[0],
+      spacing[1]/imageSpacing[1],
+      spacing[2]/imageSpacing[2]
+    };
+
+    changeSpacing<T>(image, spacing, ratio);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing, const NmVector3 &ratio)
+  {
+    auto origin = image->GetOrigin();
+
+    for (int i = 0; i < 3; ++i)
+    {
+      origin[i] *= ratio[i];
+    }
+
+    //auto preBlockBounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+    image->SetOrigin(origin);
+    image->SetSpacing(spacing);
+    image->Update();
+    //auto postBlockBounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+    //qDebug() << "Update image bounds" << preBlockBounds << "to"<< postBlockBounds;
+  }
+
 } // namespace ESPINA

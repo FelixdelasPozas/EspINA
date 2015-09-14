@@ -65,6 +65,8 @@ namespace ESPINA
 
     vtkSmartPointer<vtkImageStencilData> stencil() const;
 
+    virtual void changeSpacing(const NmVector3& origin, const NmVector3& spacing);
+
   protected:
     virtual Snapshot saveFilterSnapshot() const;
 
@@ -88,6 +90,8 @@ namespace ESPINA
      *
      */
     bool fetchCacheStencil() const;
+
+    void changeStencilSpacing(const NmVector3 &spacing) const;
 
   private:
     bool m_ignoreCurrentOutputs;

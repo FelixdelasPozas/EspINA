@@ -43,7 +43,7 @@ using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
-int planar_split_restore_pipeline( int argc, char** argv )
+int planar_split_change_spacing_restore_pipeline( int argc, char** argv )
 {
   bool error = false;
 
@@ -94,6 +94,8 @@ int planar_split_restore_pipeline( int argc, char** argv )
 
   auto analysis2 = loadAnalyisis(file, factory);
 
+  analysis2->changeSpacing(analysis2->channels()[0], NmVector3{4,2,4});
+
   if (analysis2)
   {
     auto checkRestore = [](SegmentationSPtr segmentation)
@@ -101,6 +103,7 @@ int planar_split_restore_pipeline( int argc, char** argv )
       auto output = segmentation->output();
       auto filter = dynamic_cast<DilateFilter*>(output->filter());
 
+      cerr << "Update Filter" << endl;
       filter->setRadius(2);
       filter->update();
 

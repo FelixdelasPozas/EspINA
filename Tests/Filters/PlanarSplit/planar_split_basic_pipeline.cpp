@@ -43,7 +43,8 @@ int planar_split_basic_pipeline( int argc, char** argv )
   auto channel = std::make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
-  auto segmentations = gls_split(channel);
+  auto segmentation  = gls(channel);
+  auto segmentations = split(segmentation);
 
-  return checkSplitBounds(segmentations[0], segmentations[1], segmentations[2]);
+  return checkSplitBounds(segmentation, segmentations[0], segmentations[1]);
 }

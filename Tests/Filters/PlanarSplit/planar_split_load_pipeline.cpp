@@ -62,13 +62,13 @@ int planar_split_load_pipeline( int argc, char** argv )
 
   analysis.addRelation(sample, channel, "Stain");
 
-  auto splitSegmentations = gls_split(channel);
-
-  auto segmentation1 = splitSegmentations[0];
+  auto segmentation1 = gls(channel);
   analysis.add(segmentation1);
 
-  auto segmentation2 = splitSegmentations[1];
-  auto segmentation3 = splitSegmentations[2];
+  auto splitSegmentations = split(segmentation1);
+
+  auto segmentation2 = splitSegmentations[0];
+  auto segmentation3 = splitSegmentations[1];
 
   analysis.remove(segmentation1);
   analysis.add(segmentation2);

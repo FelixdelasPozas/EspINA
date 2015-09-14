@@ -250,7 +250,7 @@ bool Filter::restorePreviousOutputs() const
 //   qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
-    //qDebug() << " - Accepted";
+//     qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
 //     qDebug() << buffer;

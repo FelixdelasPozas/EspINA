@@ -1,3 +1,7 @@
+include_directories(.)
+
+add_library(FilterSupport testing.cpp)
+
 set(FILTERS_DEPENDECIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -8,6 +12,7 @@ set(FILTERS_DEPENDECIES
   EspinaCoreTesting
   EspinaFiltersTesting
   EspinaTesting
+  FilterSupport
 )
 
 add_subdirectory(VolumetricStreamReader)

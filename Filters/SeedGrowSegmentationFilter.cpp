@@ -181,7 +181,14 @@ void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const Nm
     m_ROI->setSpacing(spacing);
   }
 
-  output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
+  // NOTE: current implementation of output->setData add an edited region
+  //       equivalent to the bounds of the data being added
+  //       This was done when datas could be added to outputs
+  //       Propably we should change that implementation when moving to
+  //       single data approach
+  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
+  output->setData(mesh);
+  mesh->setEditedRegions(BoundsList());
 
   Filter::changeSpacing(origin, spacing);
 }
@@ -492,7 +499,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -534,7 +541,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -576,7 +583,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();

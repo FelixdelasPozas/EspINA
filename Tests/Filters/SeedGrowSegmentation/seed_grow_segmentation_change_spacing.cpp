@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (c) 2015, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,52 +23,53 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include "Filters/SeedGrowSegmentationFilter.h"
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Filters/SeedGrowSegmentationFilter.h>
+#include <testing_support_channel_input.h>
+#include "testing.h"
 
-#include "testing_support_channel_input.h"
+#include <vtkImageStencilData.h>
 
-using namespace ESPINA;
-using namespace ESPINA::Testing;
+
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
-int seed_grow_segmentation_simple_execution(int argc, char** argv)
+int seed_grow_segmentation_change_spacing( int argc, char** argv )
 {
-  bool error = false;
+  Analysis analysis;
 
-  InputSList   inputs;
-  inputs << channelInput();
+  auto classification = std::make_shared<Classification>("Test");
+  classification->createNode("Synapse");
+  analysis.setClassification(classification);
 
-  Filter::Type  type{"SGS"};
+  auto sample = std::make_shared<Sample>("C3P0");
+  analysis.add(sample);
 
-  SchedulerSPtr scheduler;
+  auto channel = std::make_shared<Channel>(Testing::channelInput());
+  channel->setName("channel");
 
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
+  analysis.add(channel);
 
-  sgsf.setSeed({5, 5, 5});
-  sgsf.setThreshold(10);
-  sgsf.update();
+  analysis.addRelation(sample, channel, "Stain");
 
-  if (sgsf.numberOfOutputs() != 1) {
-    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;
-    error = true;
-  }
-  else {
-    if (sgsf.output(0)->isEdited()) {
-      cerr << "Recently updated output shouldn't be marked as modified" << endl;
-      error = true;
-    }
+  auto segmentation = gls(channel);
+  analysis.add(segmentation);
 
-    Bounds inputBounds  = inputs[0]->output()->bounds();
-    Bounds outputBounds = sgsf.output(0)->bounds();
+  auto filter = dynamic_cast<SeedGrowSegmentationFilter *>(segmentation->output()->filter());
 
-    if (inputBounds != outputBounds) {
-      cerr << inputBounds << " != " << outputBounds << endl;
-      error = true;
-    }
-  }
+  NmVector3 spacing{4,2,4};
 
-  return error;
+  auto prevSeed = filter->seed();
+  analysis.changeSpacing(channel, spacing);
+  auto seed = filter->seed();
+
+  return !checkSpacing(prevSeed, seed)
+      ||  checkSpacing(seed, spacing);
 }

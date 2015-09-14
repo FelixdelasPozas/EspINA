@@ -219,6 +219,7 @@ void Output::setData(Output::DataSPtr data)
   }
 
   proxy(type)->set(data);
+//   qDebug() << "Set proxy data[" << m_data[type].get() << "]:" << data.get();
 
   // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful

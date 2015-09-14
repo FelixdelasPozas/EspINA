@@ -36,7 +36,9 @@ namespace ESPINA
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const;
   };
 
-  SegmentationSList gls_split(ChannelSPtr channel);
+  SegmentationSPtr gls(ChannelSPtr channel);
+
+  SegmentationSList split(SegmentationSPtr segmentation);
 
   bool dilate(SegmentationSPtr segmentation);
 
@@ -49,7 +51,7 @@ namespace ESPINA
 
   bool checkValidData(SegmentationSPtr segmentation, int numVolumeEditedRegions);
 
-  bool checkSpacingChange(const NmVector3 &lhs, const NmVector3 &rhs);
+  bool checkSpacing(const NmVector3 &lhs, const NmVector3 &rhs);
 
   template<typename T>
   bool checkFilterType(SegmentationSPtr segmentation)

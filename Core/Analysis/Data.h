@@ -109,6 +109,8 @@ namespace ESPINA
      */
     virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
 
+    void copyFetchContext(DataSPtr data);
+
     /** \brief Recover data from Persistent Storage.
      */
     bool fetchData();
@@ -217,6 +219,7 @@ namespace ESPINA
                                          const QString      &id,
                                          const VolumeBounds &bounds) = 0;
 
+
   private:
     /** \brief Returns the list of data types on which this
      *         data type relies on
@@ -228,10 +231,10 @@ namespace ESPINA
     QString             m_path;
     QString             m_id;
     TemporalStorageSPtr m_storage;
+    VolumeBounds        m_fetchBounds;
 
   private:
     bool         m_needFetch;
-    VolumeBounds m_fetchBounds;
     TimeStamp    m_timeStamp;
     BoundsList   m_editedRegions;
 

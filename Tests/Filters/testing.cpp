@@ -76,23 +76,27 @@ FilterSPtr ESPINA::TestFilterFactory::createFilter(InputSList inputs, const Filt
 }
 
 //------------------------------------------------------------------------
-SegmentationSList ESPINA::gls_split(ChannelSPtr channel)
+SegmentationSPtr ESPINA::gls(ChannelSPtr channel)
 {
-  SegmentationSList result;
-
   SchedulerSPtr scheduler;
 
   InputSList inputs;
   inputs << channel->asInput();
 
-  auto segFilter1 = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
-  segFilter1->update();
+  auto filter = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
+  filter->setSeed(NmVector3{1,1,1});
+  filter->update();
 
-  auto segmentation1 = make_shared<Segmentation>(getInput(segFilter1, 0));
-  segmentation1->setNumber(1);
-  result << segmentation1;
+  auto segmentation = make_shared<Segmentation>(getInput(filter, 0));
+  segmentation->setNumber(1);
 
-  auto output = segmentation1->output();
+  return segmentation;
+}
+
+//------------------------------------------------------------------------
+SegmentationSList ESPINA::split(SegmentationSPtr segmentation)
+{
+  auto output = segmentation->output();
   VolumeBounds planeBounds(output->bounds(), output->spacing());
 
   auto origin = centroid(planeBounds);
@@ -102,11 +106,13 @@ SegmentationSList ESPINA::gls_split(ChannelSPtr channel)
   plane->SetNormal(0, 1, 0);
 
   InputSList splitInputs;
-  splitInputs << segmentation1->asInput();
+  splitInputs << segmentation->asInput();
 
-  auto split = make_shared<SplitFilter>(splitInputs, "SPLIT", scheduler);
+  auto split = make_shared<SplitFilter>(splitInputs, "SPLIT", SchedulerSPtr());
   split->setStencil(Stencil::fromPlane(plane, planeBounds));
   split->update();
+
+  SegmentationSList result;
 
   auto segmentation2 = make_shared<Segmentation>(getInput(split, 0));
   segmentation2->setNumber(2);
@@ -268,13 +274,13 @@ bool ESPINA::checkValidData(SegmentationSPtr segmentation, int numVolumeEditedRe
 }
 
 //------------------------------------------------------------------------
-bool ESPINA::checkSpacingChange(const NmVector3& lhs, const NmVector3& rhs)
+bool ESPINA::checkSpacing(const NmVector3& lhs, const NmVector3& rhs)
 {
-  bool error = lhs == rhs;
+  bool error = lhs != rhs;
 
   if (error)
   {
-    cerr << "Unexpeceted same spacing " << lhs << rhs << endl;
+    cerr << "Unexpeceted spacing " << lhs << rhs << endl;
   }
   return error;
 }
