@@ -34,13 +34,15 @@ using ESPINA::GUI::DefaultDialogs;
 
 using namespace ESPINA;
 
+const QString SETTINGS_GROUP = "Raw Information Report";
+
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
 : QDialog(DefaultDialogs::defaultParentWidget())
 {
-  setObjectName("Raw Information Analysis");
+  setObjectName("Raw Information Report");
 
-  setWindowTitle(tr("Raw Information"));
+  setWindowTitle(tr("Raw Information Report"));
 
   auto report = new TabularReport(context, this);
   report->setModel(context.model());
@@ -56,9 +58,13 @@ RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Suppor
 
   ESPINA_SETTINGS(settings);
 
-  settings.beginGroup("Raw Information Analysis");
-  resize(settings.value("size", QSize (400, 200)).toSize());
-  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
+  auto pos = DefaultDialogs::defaultParentWidget()->pos();
+  pos.setX(pos.x()+200);
+  pos.setY(pos.y()+200);
+
+  settings.beginGroup(SETTINGS_GROUP);
+  resize(settings.value("size", QSize(450, 250)).toSize());
+  move  (settings.value("pos",  pos).toPoint());
   settings.endGroup();
 }
 
@@ -67,7 +73,7 @@ void RawInformationDialog::closeEvent(QCloseEvent *event)
 {
   ESPINA_SETTINGS(settings);
 
-  settings.beginGroup("Raw Information Analysis");
+  settings.beginGroup(SETTINGS_GROUP);
   settings.setValue("size", size());
   settings.setValue("pos", pos());
   settings.endGroup();

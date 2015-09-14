@@ -28,7 +28,6 @@ using namespace ESPINA::GUI;
 RawInformationReport::RawInformationReport(Support::Context &context)
 : WithContext(context)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -40,7 +39,8 @@ QString RawInformationReport::name() const
 //----------------------------------------------------------------------------
 QString RawInformationReport::description() const
 {
-  return tr("Tabular report of the information available for each structure.");
+  return tr("Create a table with the segmentation information.\n\n" \
+            "Different types of information can be selected in the \"Select Information\" dialog in the menu and they will be shown in separated columns.");
 }
 
 //----------------------------------------------------------------------------

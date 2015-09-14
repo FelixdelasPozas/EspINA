@@ -36,7 +36,7 @@ ReportSelectorDialog::ReportSelectorDialog(Support::ReportSList &reports, Suppor
 , m_reports(reports)
 {
   setupUi(this);
-  setWindowTitle(tr("Report Selector"));
+  setWindowTitle(tr("Create Reports"));
 
   connect(this, SIGNAL(accepted()),
           this, SLOT(showReport()));

@@ -32,7 +32,6 @@ using namespace ESPINA::GUI;
 SASReport::SASReport(Support::Context &context)
 : WithContext(context)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -44,7 +43,9 @@ QString SASReport::name() const
 //----------------------------------------------------------------------------
 QString SASReport::description() const
 {
-  return tr("Display the information of every synpasis and its synaptic apposition surface");
+  return tr("Display the information of every synapsis and its synaptic apposition surface in the same row.\n\n"  \
+            "Different types of information can be selected in the \"Select Information\" dialog in the menu and " \
+            "they will be shown in separated columns.");
 }
 
 //----------------------------------------------------------------------------
