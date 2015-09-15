@@ -235,6 +235,9 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
           this,                           SLOT(modifyFilter()));
   connect(m_roiTools,                     SIGNAL(roiChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
+
+  connect(m_filter->output(0).get(), SIGNAL(modified()),
+          this,                      SLOT(onOutputModified()));
 }
 
 //----------------------------------------------------------------------------
@@ -246,6 +249,12 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
   s_mutex.unlock();
 
   m_roiTools->setCurrentROI(nullptr);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationRefineWidget::onOutputModified()
+{
+  m_roiTools->setCurrentROI(m_filter->roi());
 }
 
 //----------------------------------------------------------------------------

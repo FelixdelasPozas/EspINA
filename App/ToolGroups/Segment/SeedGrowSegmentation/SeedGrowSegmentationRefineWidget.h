@@ -63,6 +63,7 @@ namespace ESPINA {
     void closingRadiusChanged(int);
 
   private slots:
+    void onOutputModified();
     void onThresholdChanged(int value);
     void onApplyClosingChanged(bool value);
     void onClosingRadiusChanged(int value);
