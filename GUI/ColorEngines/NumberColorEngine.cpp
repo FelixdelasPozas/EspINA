@@ -38,18 +38,17 @@ NumberColorEngine::NumberColorEngine()
 //-----------------------------------------------------------------------------
 QColor NumberColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
-  int r = 255;
-  int g = 0;
-  int b = 0;
+  int h = 359;
+  int s = 255;
+  int v = 255;
 
   if (segmentation)
   {
-    r = (segmentation->number() * 25) % 200;
-    g = (segmentation->number() * 73) % 200;
-    b = (segmentation->number() * 53) % 200;
+    const int HUE_SHIFT = 41;
+    h = (segmentation->number() * HUE_SHIFT) % 360;
   }
 
-  return QColor(r, g, b);
+  return QColor::fromHsv(h, s, v);
 }
 
 //-----------------------------------------------------------------------------
