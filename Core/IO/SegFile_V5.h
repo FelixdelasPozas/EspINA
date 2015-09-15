@@ -171,6 +171,9 @@ namespace ESPINA {
           DataFactorySPtr         m_dataFactory;
           DirectedGraphSPtr       m_content;
           DirectedGraph::Vertices m_loadedVertices;
+
+          bool m_fixSourceInputs;
+          ChannelSPtr m_souceInput;
         };
 
       public:

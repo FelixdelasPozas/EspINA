@@ -55,6 +55,10 @@ namespace ESPINA
 
     virtual void set(DataSPtr data) override
     {
+      if (m_data)
+      {
+        data->copyFetchContext(m_data);
+      }
       m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
     }
 
@@ -114,8 +118,8 @@ namespace ESPINA
       return m_data->backgroundValue();
     }
 
-    virtual void draw(const vtkImplicitFunction* brush,
-                      const Bounds&      bounds,
+    virtual void draw(vtkImplicitFunction*        brush,
+                      const Bounds&               bounds,
                       const typename T::ValueType value)                   override
     {
       m_data->draw(brush, bounds, value);

@@ -19,6 +19,8 @@
 
 #include "ColorEngineSwitch.h"
 
+#include <GUI/ColorEngines/ColorEngine.h>
+
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Support;

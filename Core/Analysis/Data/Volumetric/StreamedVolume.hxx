@@ -100,7 +100,7 @@ namespace ESPINA {
 
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual void draw(const vtkImplicitFunction*  brush,
+    virtual void draw(vtkImplicitFunction*        brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value)                   override
     {}

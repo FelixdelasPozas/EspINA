@@ -146,11 +146,11 @@ void SchedulerProgress::showTaskProgress(bool visible)
   {
     m_notificationArea->show();
     updateNotificationWidget();
-    m_showTasks->setIcon(QIcon(":/espina/down.png"));
+    m_showTasks->setIcon(QIcon(":/espina/down.svg"));
   } else
   {
     m_notificationArea->hide();
-    m_showTasks->setIcon(QIcon(":/espina/up.png"));
+    m_showTasks->setIcon(QIcon(":/espina/up.svg"));
   }
 }
 

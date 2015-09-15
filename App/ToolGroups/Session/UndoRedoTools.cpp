@@ -25,8 +25,8 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-UndoRedoTool::UndoRedoTool(Support::Context &context, const QString id, const QIcon icon, const QString tooltip)
-: ProgressTool   {id, icon, tooltip, context}
+UndoRedoTool::UndoRedoTool(Support::Context &context, const QString &id, const QIcon &icon, const QString &tooltip)
+: ProgressTool   (id, icon, tooltip, context)
 , m_undoStack    {context.undoStack()}
 , m_tooltipPrefix{tooltip}
 {

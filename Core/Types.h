@@ -31,6 +31,8 @@ namespace ESPINA
   using SampleSPtr  = std::shared_ptr<Sample> ;
   using SampleSList = QList<SampleSPtr>;
 
+  class ViewItem;
+
   class Channel;
   using ChannelPtr   = Channel *;
   using ChannelList  = QList<ChannelPtr>;

@@ -53,15 +53,9 @@ namespace ESPINA
     virtual ~SourceFilter()
     {};
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
     virtual void restoreState(const State &state)
     {};
 
-    /** \brief Implements Persistent::state().
-     *
-     */
     virtual State state() const
     { return State(); }
 
@@ -80,6 +74,14 @@ namespace ESPINA
      *  If any data already exists for the output, it is replaced with the new one
      */
     void addOutputData(Output::Id id, DataSPtr data);
+
+    /** \brief Assigns input to source filter
+     *
+     * This method is needed to fix older seg file whose
+     * source filters may not have any valid input
+     */
+    void setInput(InputSPtr input);
+
 
   protected:
     virtual Snapshot saveFilterSnapshot() const

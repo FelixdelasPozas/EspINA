@@ -38,6 +38,7 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include "ProgressReporter.h"
+#include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -49,7 +50,9 @@ const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 const QString CONTENT_FILE        = "content.dot";
 const QString RELATIONS_FILE      = "relations.dot";
 const QString CLASSIFICATION_FILE = "classification.xml";
-const QString SEG_FILE_VERSION    = "5";
+const QString CURRENT_SEG_FILE_VERSION = "6";
+
+const int FIX_SOURCE_INPUTS_SEG_FILE_VERSION = 5;
 
 const unsigned CLASSIFICATION_PROGRESS =  5;
 const unsigned SNAPSHOT_PROGRESS       = 20;
@@ -60,6 +63,7 @@ const float SNAPSHOT_PROGRESS_CHUNK  = SNAPSHOT_PROGRESS  - CLASSIFICATION_PROGR
 const float CONTENT_PROGRESS_CHUNK   = CONTENT_PROGRESS   - SNAPSHOT_PROGRESS;
 const float RELATIONS_PROGRESS_CHUNK = RELATIONS_PROGRESS - CONTENT_PROGRESS;
 
+const QString SEG_FILE_VERSION = "SegFile Version";
 
 struct Vertex_Not_Found_Exception{};
 
@@ -72,10 +76,22 @@ QByteArray formatInfo()
 
   QTextStream infoStream(&info);
 
-  infoStream << QString("SegFile Version=%1").arg(SEG_FILE_VERSION) << endl;
+  infoStream << QString("%1=%2").arg(SEG_FILE_VERSION).arg(CURRENT_SEG_FILE_VERSION) << endl;
   infoStream << QString("ESPINA Version=%1").arg(ESPINA_VERSION) << endl;
 
   return info;
+}
+
+//-----------------------------------------------------------------------------
+int segFileVersion(const QString &formatInfo)
+{
+  const int EQUAL_LENGTH = 1;
+  auto start = formatInfo.indexOf(SEG_FILE_VERSION)
+             + SEG_FILE_VERSION.length()
+             + EQUAL_LENGTH;
+  auto n     = formatInfo.indexOf("\n", start) - start;
+
+  return formatInfo.mid(start, n).toInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -89,6 +105,7 @@ SegFile_V5::Loader::Loader(QuaZip           &zip,
 , m_handler    {handler}
 , m_analysis   {new Analysis()}
 , m_dataFactory{new RawDataFactory()}
+, m_fixSourceInputs{false}
 {
 }
 
@@ -134,10 +151,17 @@ AnalysisSPtr SegFile_V5::Loader::load()
   {
     QString file = m_zip.getCurrentFileName();
 
-    if (file != FORMAT_INFO_FILE &&
-      file != CLASSIFICATION_FILE &&
-      file != CONTENT_FILE &&
-      file != RELATIONS_FILE)
+    if (file == FORMAT_INFO_FILE)
+    {
+      auto formatInfo = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+      if (segFileVersion(formatInfo) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
+      {
+        m_fixSourceInputs = true;
+      }
+   }
+    else if (file != CLASSIFICATION_FILE
+          && file != CONTENT_FILE
+          && file != RELATIONS_FILE)
     {
       auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
       m_storage->saveSnapshot(SnapshotData(file, currentFile));
@@ -226,6 +250,15 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   try
   {
     filter = m_factory->createFilter(inputs, roVertex->name());
+
+    if (m_fixSourceInputs)
+    {
+      auto sourceFilter = dynamic_cast<SourceFilter *>(filter.get());
+      if (sourceFilter)
+      {
+        sourceFilter->setInput(m_souceInput->asInput());
+      }
+    }
   }
   catch (const CoreFactory::Unknown_Type_Exception &e)
   {
@@ -345,7 +378,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
       {
         try
         {
-          vertex = createChannel(roVertex);
+          vertex = m_souceInput = createChannel(roVertex);
         }
         catch (...)
         {

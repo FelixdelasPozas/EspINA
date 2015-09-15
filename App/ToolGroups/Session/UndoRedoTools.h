@@ -44,7 +44,7 @@ namespace ESPINA
        * \param[in] tooltip tool initial tooltip.
        *
        */
-      UndoRedoTool(Support::Context &context, const QString id, const QIcon icon, const QString tooltip);
+      UndoRedoTool(Support::Context &context, const QString &id, const QIcon &icon, const QString &tooltip);
 
       /** \brief UndoRedoTool class virtual destructor.
        *

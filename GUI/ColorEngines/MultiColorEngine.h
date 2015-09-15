@@ -22,8 +22,8 @@
 #define ESPINA_MULTI_COLOR_ENGINE_H
 
 // ESPINA
-
 #include "ColorEngine.h"
+
 #include <GUI/Types.h>
 
 // Qt
@@ -68,8 +68,6 @@ namespace ESPINA
         QList<ColorEngine *>   m_activeEngines;
         QList<ColorEngineSPtr> m_availableEngines;
       };
-
-      using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
     }
   }
 }// namespace ESPINA

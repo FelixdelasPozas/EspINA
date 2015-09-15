@@ -166,7 +166,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset>
+         <iconset resource="../../../rsc/espina.qrc">
           <normaloff>:/espina/reset_roi.svg</normaloff>:/espina/reset_roi.svg</iconset>
         </property>
         <property name="iconSize">
@@ -187,9 +187,6 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </item>
-   <item>
     <widget class="QFrame" name="frame_2">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -199,14 +196,39 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="applyClosing">
-        <property name="text">
-         <string>Apply closing algorithm</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="applyClosing">
+          <property name="maximumSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Apply Closing Step</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../rsc/espina.qrc">
+            <normaloff>:/espina/morphological_close.svg</normaloff>:/espina/morphological_close.svg</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>22</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QLabel" name="closingRadiusLabel">
           <property name="enabled">
@@ -303,14 +325,14 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Show Information</string>
+        <string>Apply changes</string>
        </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/espina/tick.png</normaloff>:/espina/tick.png</iconset>
+        <iconset resource="../../../rsc/espina.qrc">
+         <normaloff>:/espina/apply.svg</normaloff>:/espina/apply.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -332,7 +354,7 @@
   <zorder>roiFrame</zorder>
  </widget>
  <resources>
-  <include location="../../rsc/espina.qrc"/>
+  <include location="../../../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

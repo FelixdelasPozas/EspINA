@@ -296,6 +296,12 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
 }
 
 //------------------------------------------------------------------------
+void ModelAdapter::changeSpacing(ChannelAdapterSPtr channel, const NmVector3 &spacing)
+{
+  m_analysis->changeSpacing(channel->m_channel, spacing);
+}
+
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
 {
   // We avoid setting the classification root as the parent of an index

@@ -143,14 +143,14 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Show Information</string>
+        <string>Apply changes</string>
        </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
         <iconset resource="../../rsc/espina.qrc">
-         <normaloff>:/espina/tick.png</normaloff>:/espina/tick.png</iconset>
+         <normaloff>:/espina/apply.svg</normaloff>:/espina/apply.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

@@ -153,6 +153,47 @@ State SeedGrowSegmentationFilter::state() const
 }
 
 //------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  Q_ASSERT(m_outputs.size() == 1);
+
+  auto output     = this->output(0);
+  auto oldSpacing = output->spacing();
+
+  auto changeSeedSpacing = [&oldSpacing](const NmVector3 &seed, const NmVector3 &origin, const NmVector3 &spacing)
+  {
+    VolumeBounds seedBounds(Bounds(seed), oldSpacing, origin);
+
+    return centroid(ESPINA::changeSpacing(seedBounds, spacing));
+  };
+
+  m_seed     = changeSeedSpacing(m_seed, origin, spacing);
+  m_prevSeed = changeSeedSpacing(m_prevSeed, origin, spacing);
+
+  if (m_prevROI && m_prevROI != m_ROI.get())
+  {
+    Q_ASSERT(m_ROI);
+    m_prevROI->setSpacing(spacing);
+  }
+
+  if (m_ROI)
+  {
+    m_ROI->setSpacing(spacing);
+  }
+
+  // NOTE: current implementation of output->setData add an edited region
+  //       equivalent to the bounds of the data being added
+  //       This was done when datas could be added to outputs
+  //       Propably we should change that implementation when moving to
+  //       single data approach
+  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
+  output->setData(mesh);
+  mesh->setEditedRegions(BoundsList());
+
+  Filter::changeSpacing(origin, spacing);
+}
+
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 {
   m_lowerTh = th;
@@ -210,6 +251,8 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
       m_ROI.reset();
     }
 
+    m_ROI->setSpacing(output(0)->spacing());
+
     m_prevROI = m_ROI.get();
   }
   
@@ -244,7 +287,7 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return m_outputs.isEmpty() || !validOutput(0) || ignoreStorageContent();
+  return !validOutput(0) || ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -261,11 +304,7 @@ void SeedGrowSegmentationFilter::execute()
 
   if (!canExecute()) return;
 
-  Bounds seedBounds;
-  for (int i = 0; i < 3; ++i)
-  {
-    seedBounds[2*i] = seedBounds[2*i+1] = m_seed[i];
-  }
+  Bounds seedBounds(m_seed);
   seedBounds.setUpperInclusion(true);
 
   itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
@@ -274,10 +313,12 @@ void SeedGrowSegmentationFilter::execute()
 
   auto extractFilter = ExtractFilterType::New();
 
-  if(m_ROI != nullptr)
+  auto activeROI = roi();
+
+  if(activeROI)
   {
     auto image = input->itkImage();
-    auto intersectionBounds = intersection(input->bounds(), m_ROI->bounds());
+    auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
     auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
 
     extractFilter->SetNumberOfThreads(1);
@@ -295,7 +336,7 @@ void SeedGrowSegmentationFilter::execute()
 
     if (outValue >= 0)
     {
-      m_ROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+      activeROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
     }
   }
 
@@ -307,7 +348,7 @@ void SeedGrowSegmentationFilter::execute()
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
 
-  if(m_ROI != nullptr)
+  if(activeROI)
   {
     connectedFilter->SetInput(extractFilter->GetOutput());
   }
@@ -458,7 +499,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -500,7 +541,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -542,7 +583,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();

@@ -292,6 +292,17 @@ bool ESPINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 }
 
 //-----------------------------------------------------------------------------
+VolumeBounds ESPINA::changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing)
+{
+  auto origin      = bounds.origin();
+  auto prevSpacing = bounds.spacing();
+
+  auto region = equivalentRegion<itkVolumeType>(origin, prevSpacing, bounds);
+
+  return volumeBounds<itkVolumeType>(origin, spacing, region);
+}
+
+//-----------------------------------------------------------------------------
 QByteArray ESPINA::serializeVolumeBounds(const VolumeBounds& bounds)
 {
   QByteArray serialization;

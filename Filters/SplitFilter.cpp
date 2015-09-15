@@ -64,9 +64,10 @@ void SplitFilter::execute()
   if (!canExecute()) return;
 
   Q_ASSERT(m_inputs.size() == 1);
-  auto volume = readLockVolume(m_inputs.first()->output());
+  auto input  = m_inputs[0]->output();
+  auto volume = readLockVolume(input);
 
-  if (nullptr == m_stencil && !fetchCacheStencil())
+  if (!m_stencil && !fetchCacheStencil())
   {
     if (m_outputs.isEmpty())
       Q_ASSERT(false);
@@ -95,6 +96,22 @@ void SplitFilter::execute()
   reportProgress(25);
   if (!canExecute()) return;
 
+  int shift[3]; // Stencil origin differ from creation to fetch
+
+  double origin[3];
+  double spacing[3];
+
+  m_stencil->GetOrigin(origin);
+  m_stencil->GetSpacing(spacing);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    shift[i] = vtkMath::Round(origin[i] / spacing[i]);
+  }
+
+  bool hasVoxels1 = false;
+  bool hasVoxels2 = false;
+
   itk::ImageRegionConstIterator<itkVolumeType> it(itkVolume, itkVolume->GetLargestPossibleRegion());
   itk::ImageRegionIterator<itkVolumeType> split1it(split1, split1->GetLargestPossibleRegion());
   itk::ImageRegionIterator<itkVolumeType> split2it(split2, split2->GetLargestPossibleRegion());
@@ -102,15 +119,6 @@ void SplitFilter::execute()
   it.GoToBegin();
   split1it.GoToBegin();
   split2it.GoToBegin();
-
-  bool isEmpty1 = true;
-  bool isEmpty2 = true;
-
-  int shift[3]; // Stencil origin differ from creation to fetch
-  for (int i = 0; i < 3; ++i)
-  {
-    shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
-  }
 
   for(; !it.IsAtEnd(); ++it, ++split1it, ++split2it)
   {
@@ -120,15 +128,13 @@ void SplitFilter::execute()
     {
       split1it.Set(value);
       split2it.Set(SEG_BG_VALUE);
-      if (isEmpty1)
-        isEmpty1 = (value != SEG_VOXEL_VALUE);
+      hasVoxels1 |= (value == SEG_VOXEL_VALUE);
     }
     else
     {
       split1it.Set(SEG_BG_VALUE);
       split2it.Set(value);
-      if (isEmpty2)
-        isEmpty2 = (value != SEG_VOXEL_VALUE);
+      hasVoxels2 |= (value == SEG_VOXEL_VALUE);
     }
   }
 
@@ -137,14 +143,15 @@ void SplitFilter::execute()
 
   itkVolumeType::Pointer volumes[2]{split1, split2};
 
-  if (!isEmpty1 && !isEmpty2)
+  if (hasVoxels1 && hasVoxels2)
   {
+    auto spacing = input->spacing();
+
     for(auto i: {0, 1})
     {
-      auto spacing = m_inputs.first()->output()->spacing();
       auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
-
-      DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      
       volume->draw(volumes[i], bounds);
 
       if (!m_outputs.contains(i))
@@ -178,22 +185,7 @@ bool SplitFilter::areEditedRegionsInvalidated()
 //----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
-}
-
-//----------------------------------------------------------------------------
-bool SplitFilter::needUpdate(Output::Id id) const
-{
-  if (id != 0 && id != 1) throw Undefined_Output_Exception();
-
-  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
-}
-
-//----------------------------------------------------------------------------
-void SplitFilter::execute(Output::Id id)
-{
-  Q_ASSERT(id == 0 || id == 1);
-  execute();
+  return !validOutput(0) || ignoreStorageContent();
 }
 
 //-----------------------------------------------------------------------------
@@ -207,22 +199,79 @@ bool SplitFilter::fetchCacheStencil() const
   if (storage()->exists(stencilFile()))
   {
     QString fileName = storage()->absoluteFilePath(stencilFile());
-    vtkSmartPointer<vtkGenericDataObjectReader> stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+    auto stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
     stencilReader->SetFileName(fileName.toStdString().c_str());
     stencilReader->ReadAllFieldsOn();
     stencilReader->Update();
 
-    vtkSmartPointer<vtkImageToImageStencil> convert = vtkSmartPointer<vtkImageToImageStencil>::New();
+    auto convert = vtkSmartPointer<vtkImageToImageStencil>::New();
     convert->SetInputData(vtkImageData::SafeDownCast(stencilReader->GetOutput()));
     convert->ThresholdBetween(1,1);
     convert->Update();
 
     m_stencil = vtkSmartPointer<vtkImageStencilData>(convert->GetOutput());
 
+    changeStencilSpacing(output(0)->spacing());
+
     returnVal = true;
   }
 
   return returnVal;
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::changeStencilSpacing(const NmVector3& spacing) const
+{
+  double stencilSpacing[3];
+  m_stencil->GetSpacing(stencilSpacing);
+
+  NmVector3 ratio{
+    spacing[0]/stencilSpacing[0],
+    spacing[1]/stencilSpacing[1],
+    spacing[2]/stencilSpacing[2]
+  };
+
+  double stencilOrigin[3];
+  m_stencil->GetOrigin(stencilOrigin);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    stencilOrigin[i] *= ratio[i];
+    stencilSpacing[i] = spacing[i];
+  }
+
+  m_stencil->SetOrigin(stencilOrigin);
+  m_stencil->SetSpacing(stencilSpacing);
+  m_stencil->Modified();
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::setStencil(vtkSmartPointer< vtkImageStencilData > stencil)
+{
+  m_stencil = stencil;
+  m_ignoreCurrentOutputs = true;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkImageStencilData> SplitFilter::stencil() const
+{
+  if (!m_stencil)
+  {
+    fetchCacheStencil();
+  }
+
+  return m_stencil;
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::changeSpacing(const NmVector3& origin, const NmVector3& spacing)
+{
+  if (m_stencil)
+  {
+    changeStencilSpacing(spacing);
+  }
+
+  Filter::changeSpacing(origin, spacing);
 }
 
 //-----------------------------------------------------------------------------
@@ -234,22 +283,27 @@ Snapshot SplitFilter::saveFilterSnapshot() const
   // NOTE: not aborting if the file is not found fixes a bug in earlier versions that didn't store
   // the vti file in the seg, this renders this filter a read-only filter, that is, cannot be executed
   // again.
-  if(m_stencil != nullptr || fetchCacheStencil())
+  if(m_stencil || fetchCacheStencil())
   {
-    vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+    auto convert = vtkSmartPointer<vtkImageStencilToImage>::New();
     convert->SetInputData(m_stencil);
     convert->SetInsideValue(1);
     convert->SetOutsideValue(0);
     convert->SetOutputScalarTypeToUnsignedChar();
     convert->Update();
 
-    vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    stencilWriter->SetInputConnection(convert->GetOutputPort());
+    auto stencilImage = convert->GetOutput();
+    stencilImage->SetOrigin(m_stencil->GetOrigin());
+    stencilImage->SetSpacing(m_stencil->GetSpacing());
+
+    auto stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+    stencilWriter->SetInputData(stencilImage);
     stencilWriter->SetFileTypeToBinary();
     stencilWriter->SetWriteToOutputString(true);
     stencilWriter->Write();
 
     snapshot << SnapshotData{stencilFile(), QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
   }
+
   return snapshot;
 }

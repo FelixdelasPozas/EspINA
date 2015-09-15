@@ -40,9 +40,9 @@ int scheduler_sleep_main_thread( int argc, char** argv )
 {
   int error = 0;
 
-  int period = 5000; //0.005 sec
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period));
-  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(period, scheduler)};
+  int  period = 2000; //0.002 sec
+  auto scheduler  = make_shared<Scheduler>(period);
+  auto sleepyTask = make_shared<SleepyTask>(period, scheduler);
 
   if (sleepyTask->Result != -1) {
     error = 1;
@@ -51,7 +51,8 @@ int scheduler_sleep_main_thread( int argc, char** argv )
 
   Task::submit(sleepyTask);
 
-  usleep(20*period);
+  const int WAIT_CICLES = SleepyTask::Iterations + 1;
+  usleep(WAIT_CICLES*period);
 
   if (sleepyTask->Result != SleepyTask::Iterations) {
     error = 1;

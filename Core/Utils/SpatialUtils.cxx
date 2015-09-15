@@ -23,8 +23,8 @@
 template<typename T>
 typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 {
+  typename T::PointType   o = image->GetOrigin();
   typename T::SpacingType s = image->GetSpacing();
-  typename T::PointType o = image->GetOrigin();
 
   typename T::PointType p0, p1;
   for (int i = 0; i < 3; ++i)
@@ -91,6 +91,13 @@ typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3
   typename T::Pointer image = define_itkImage<T>(origin, spacing);
 
   return equivalentRegion<T>(image, bounds);
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+Bounds equivalentBounds(const typename T::Pointer image)
+{
+  return equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 }
 
 //-----------------------------------------------------------------------------

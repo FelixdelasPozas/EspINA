@@ -190,12 +190,12 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   auto labelMap = image2label->GetOutput();
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
-  auto sourceFilter = factory->createFilter<SourceFilter>(InputSList(), SEGMHA_FILTER);
 
   auto sample  = analysis->samples().first();
   auto channel = analysis->channels().first();
-
   auto spacing = ItkSpacing<itkVolumeType>(channel->output()->spacing());
+
+  auto sourceFilter = factory->createFilter<SourceFilter>(channel.get(), SEGMHA_FILTER);
 
   Output::Id id = 0;
 
@@ -228,12 +228,11 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
       auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
-      Bounds    bounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
-      NmVector3 spacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
+      auto bounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
+      auto spacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
 
       auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
       volume->draw(segmentationVolume);
-
 
       output->setData(volume);
       output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));

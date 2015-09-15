@@ -133,10 +133,10 @@ void Filter::unload()
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  //qDebug() << "Update Request: " << m_type;
+//   qDebug() << "Update Request: " << m_type;
   if (m_outputs.isEmpty() || needUpdate())
   {
-    //qDebug() << " - Accepted";
+//     qDebug() << " - Accepted";
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -144,6 +144,7 @@ void Filter::update()
       input->update();
     }
 
+//     qDebug() << "Executing: " << m_type;
     execute();
 
     if (invalidatePreviousEditedRegions)
@@ -249,7 +250,7 @@ bool Filter::restorePreviousOutputs() const
 //   qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
-    //qDebug() << " - Accepted";
+//     qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
 //     qDebug() << buffer;
@@ -307,6 +308,14 @@ bool Filter::restorePreviousOutputs() const
   return !m_outputs.isEmpty();
 }
 
+//----------------------------------------------------------------------------
+void Filter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  for (auto output : outputs())
+  {
+    output->setSpacing(spacing);
+  }
+}
 
 //----------------------------------------------------------------------------
 unsigned int Filter::numberOfOutputs() const

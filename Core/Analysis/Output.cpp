@@ -64,10 +64,7 @@ void Output::setSpacing(const NmVector3& spacing)
     for(auto type : m_data.keys())
     {
       auto data = writeLockData<Data>(type);
-      if (data->isValid())
-      {
-        data->setSpacing(spacing);
-      }
+      data->setSpacing(spacing);
     }
 
     // NOTE: spacing change must be set after propagating it to the data
@@ -81,16 +78,6 @@ void Output::setSpacing(const NmVector3& spacing)
 NmVector3 Output::spacing() const
 {
   return m_spacing;
-//   NmVector3 result = m_spacing;
-//
-//   if (result == NmVector3{0,0,0})
-//   {
-//     if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
-//
-//     result = m_data[m_data.keys().first()]->spacing();
-//   }
-//
-//  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -208,9 +195,17 @@ bool Output::isValid() const
 }
 
 //----------------------------------------------------------------------------
+void Output::updateModificationTime()
+{
+  m_timeStamp = s_tick++;
+
+  emit modified();;
+}
+
+//----------------------------------------------------------------------------
 void Output::onDataChanged()
 {
-  emit modified();
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------
@@ -224,6 +219,7 @@ void Output::setData(Output::DataSPtr data)
   }
 
   proxy(type)->set(data);
+//   qDebug() << "Set proxy data[" << m_data[type].get() << "]:" << data.get();
 
   // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful
@@ -232,10 +228,9 @@ void Output::setData(Output::DataSPtr data)
   data->setEditedRegions(regions);
 
   updateModificationTime();
-  emit modified();
 
   connect(data.get(), SIGNAL(dataChanged()),
-          this, SLOT(onDataChanged()));
+          this,       SLOT(onDataChanged()));
 }
 
 //----------------------------------------------------------------------------

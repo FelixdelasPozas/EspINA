@@ -30,6 +30,7 @@
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 #include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
@@ -504,7 +505,7 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     auto activeChannel = getActiveChannel();
 
     auto spacing  = activeChannel->output()->spacing();
-    auto filter   = getFactory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+    auto filter   = getFactory()->createFilter<SourceFilter>(activeChannel, SOURCE_FILTER);
     auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
     auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
     output->setData(skeleton);

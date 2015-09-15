@@ -119,7 +119,7 @@ namespace ESPINA
 
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual void draw(const vtkImplicitFunction*  brush,
+    virtual void draw(vtkImplicitFunction        *brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
@@ -154,6 +154,8 @@ namespace ESPINA
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
+    using BlockIndexes = QList<liVector3>;
+
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
     { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
 
@@ -162,14 +164,19 @@ namespace ESPINA
      * \param[in] bounds bounds.
      *
      */
-    QList<liVector3> toBlockIndexes(const itk::ImageRegion<3> &region) const;
+    BlockIndexes toBlockIndexes(const itk::ImageRegion<3> &region) const;
 
     /** \brief Returns the list of block indexes that comprises (total or partially)
      * the bounds passed as the argument.
      * \param[in] bounds bounds.
      *
      */
-    QList<liVector3> toBlockIndexes(const Bounds &bounds) const;
+    BlockIndexes toBlockIndexes(const Bounds &bounds) const;
+
+    /** \brief Update the sparse volume time stamp and edited regions and return the affected block indexes
+     *
+     */
+    Bounds editRegion(const ESPINA::VolumeBounds &bounds);
 
     /** \brief Creates a block for the given index
      * \param[in] index block index.
@@ -183,7 +190,13 @@ namespace ESPINA
      */
     bool isEmpty(const liVector3 &index) const;
 
-  private:
+    /** \brief Returns an iterator to iterate all pixels of block containted in bounds
+     * \param[in] block index
+     * \param[in] bounds to iterate its voxels
+     *
+     */
+    Bounds blockIntersection(typename T::Pointer block, const Bounds &bounds) const;
+
     /** \brief Helper method to assist fetching data from disk.
      *
      */
@@ -261,7 +274,7 @@ namespace ESPINA
   template<typename T>
   Bounds SparseVolume<T>::bounds() const
   {
-    return m_bounds.bounds();
+    return m_bounds;
   }
 
   //-----------------------------------------------------------------------------
@@ -286,20 +299,25 @@ namespace ESPINA
   {
     if (m_spacing != spacing)
     {
-      auto itkSpacing = ItkSpacing<T>(spacing);
-      QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
-      while(it.hasNext())
+      auto itkSpacing   = ItkSpacing<T>(spacing);
+      auto spacingRatio = spacing/m_spacing;
+
+      for(auto &block : m_blocks)
       {
-        it.next();
-        it.value()->SetSpacing(itkSpacing);
-        it.value()->Update();
+        changeSpacing<T>(block, itkSpacing, spacingRatio);
       }
 
+      BoundsList regions;
+      for (auto regionBounds : this->editedRegions())
+      {
+        VolumeBounds bounds(regionBounds, m_spacing, m_origin);
+
+        regions << ESPINA::changeSpacing(bounds, spacing);
+      }
+      this->setEditedRegions(regions);
+
       m_spacing = spacing;
-
-      auto region = equivalentRegion<T>(m_origin, spacing, m_bounds.bounds());
-
-      m_bounds = volumeBounds<T>(m_origin, spacing, region);
+      m_bounds  = ESPINA::changeSpacing(m_bounds, spacing);
     }
   }
 
@@ -307,7 +325,7 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage() const
   {
-    return itkImage(m_bounds.bounds());
+    return itkImage(m_bounds);
   }
 
   //-----------------------------------------------------------------------------
@@ -337,13 +355,11 @@ namespace ESPINA
     {
       if(!m_blocks.contains(index)) continue;
 
-      auto block = m_blocks[index];
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, expectedBounds);
 
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto intersectionBounds = intersection(blockBounds, expectedBounds);
-
-      auto iit = itkImageIterator<T>(image, intersectionBounds);
-      auto bit = itkImageConstIterator<T>(block, intersectionBounds);
+      auto iit = itkImageIterator<T>(image, blockBounds);
+      auto bit = itkImageConstIterator<T>(block, blockBounds);
 
       while(!iit.IsAtEnd())
       {
@@ -361,19 +377,14 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void SparseVolume<T>::draw(const vtkImplicitFunction  *brush,
+  void SparseVolume<T>::draw(vtkImplicitFunction        *brush,
                              const Bounds               &bounds,
                              const typename T::ValueType value)
   {
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(m_bounds, requestedBounds))
-    {
-      return;
-    }
-
-    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto editedBounds    = editRegion(requestedBounds);
+    auto affectedIndexes = toBlockIndexes(editedBounds);
 
     for(auto index: affectedIndexes)
     {
@@ -387,11 +398,10 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block = m_blocks[index];
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto blockIntersection = intersection(blockBounds, intersectionBounds);
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, editedBounds);
 
-      auto bit = itkImageIteratorWithIndex<T>(block, blockIntersection);
+      auto bit = itkImageIteratorWithIndex<T>(block, blockBounds);
       while(!bit.IsAtEnd())
       {
         auto index = bit.GetIndex();
@@ -399,7 +409,7 @@ namespace ESPINA
                         index[1]*m_spacing[1] + m_spacing[1]/2,
                         index[2]*m_spacing[2] + m_spacing[2]/2};
 
-        if (const_cast<vtkImplicitFunction *>(brush)->FunctionValue(point[0], point[1], point[2]) <= 0)
+        if (brush->FunctionValue(point[0], point[1], point[2]) <= 0)
         {
           bit.Set(value);
         }
@@ -412,9 +422,6 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
-
-    this->addEditedRegion(intersectionBounds);
-    this->updateModificationTime();
   }
 
 
@@ -425,13 +432,8 @@ namespace ESPINA
   {
     VolumeBounds requestedBounds(mask->bounds(), m_spacing, m_origin);
 
-    if (!intersect(m_bounds, requestedBounds))
-    {
-      return;
-    }
-
-    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto editedBounds    = editRegion(requestedBounds);
+    auto affectedIndexes = toBlockIndexes(editedBounds);
 
     for(auto index: affectedIndexes)
     {
@@ -445,14 +447,13 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block = m_blocks[index];
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto blockIntersection = intersection(blockBounds, intersectionBounds);
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, editedBounds);
 
-      BinaryMask<unsigned char>::region_iterator mit(mask.get(), blockIntersection);
+      auto bit = itkImageIterator<T>(block, blockBounds);
+      BinaryMask<unsigned char>::region_iterator mit(mask.get(), blockBounds);
+
       mit.goToBegin();
-      auto bit = itkImageIteratorWithIndex<T>(block, blockIntersection);
-
       while(!mit.isAtEnd())
       {
         if(mit.isSet())
@@ -469,25 +470,18 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
-
-    this->addEditedRegion(intersectionBounds);
-    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void SparseVolume<T>::draw(const typename T::Pointer image)
   {
-    Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+    Bounds bounds = equivalentBounds<T>(image);
 
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
-    if (!intersect(m_bounds, requestedBounds))
-    {
-      return;
-    }
 
-    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto editedBounds    = editRegion(requestedBounds);
+    auto affectedIndexes = toBlockIndexes(editedBounds);
 
     for(auto index: affectedIndexes)
     {
@@ -496,12 +490,11 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block             = m_blocks[index];
-      auto blockBounds       = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto blockIntersection = intersection(blockBounds, intersectionBounds);
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, editedBounds);
 
-      auto iit = itkImageConstIterator<T>(image, blockIntersection);
-      auto bit = itkImageIterator<T>(block, blockIntersection);
+      auto iit = itkImageConstIterator<T>(image, blockBounds);
+      auto bit = itkImageIterator<T>(block, blockBounds);
 
       while(!iit.IsAtEnd())
       {
@@ -516,9 +509,6 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
-
-    this->addEditedRegion(intersectionBounds);
-    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -528,13 +518,8 @@ namespace ESPINA
   {
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(m_bounds, requestedBounds))
-    {
-      return;
-    }
-
-    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto editedBounds    = editRegion(requestedBounds);
+    auto affectedIndexes = toBlockIndexes(editedBounds);
 
     for(auto index: affectedIndexes)
     {
@@ -543,12 +528,11 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block = m_blocks[index];
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto blockIntersection = intersection(blockBounds, intersectionBounds);
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, editedBounds);
 
-      auto iit = itkImageConstIterator<T>(image, blockIntersection);
-      auto bit = itkImageIterator<T>(block, blockIntersection);
+      auto iit = itkImageConstIterator<T>(image, blockBounds);
+      auto bit = itkImageIterator<T>(block, blockBounds);
 
       while(!iit.IsAtEnd())
       {
@@ -563,9 +547,6 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
-
-    this->addEditedRegion(intersectionBounds);
-    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -575,7 +556,7 @@ namespace ESPINA
   {
     Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
                     index[1] * m_spacing[1], index[1] * m_spacing[1],
-                    index[2] * m_spacing[2], index[2]	* m_spacing[2] };
+                    index[2] * m_spacing[2], index[2] * m_spacing[2]};
 
     draw(bounds, value);
   }
@@ -587,13 +568,8 @@ namespace ESPINA
   {
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
-    if (!intersect(m_bounds, requestedBounds))
-    {
-      return;
-    }
-
-    auto intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
-    auto affectedIndexes = toBlockIndexes(intersectionBounds);
+    auto editedBounds    = editRegion(requestedBounds);
+    auto affectedIndexes = toBlockIndexes(editedBounds);
 
     for (auto index : affectedIndexes)
     {
@@ -607,11 +583,10 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block = m_blocks[index];
-      auto blockBounds = equivalentBounds<T>(block, block->GetLargestPossibleRegion());
-      auto blockIntersection = intersection(blockBounds, intersectionBounds);
+      auto block       = m_blocks[index];
+      auto blockBounds = blockIntersection(block, editedBounds);
 
-      auto bit = itkImageIterator<T>(block, blockIntersection);
+      auto bit = itkImageIterator<T>(block, blockBounds);
 
       while (!bit.IsAtEnd())
       {
@@ -625,9 +600,6 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
-
-    this->addEditedRegion(intersectionBounds);
-    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -709,9 +681,11 @@ namespace ESPINA
       if (blockFile.exists()) break;
     }
 
+    auto regions = this->editedRegions();
+
     while (blockFile.exists())
     {
-      VolumeReader::Pointer reader = VolumeReader::New();
+      auto reader = VolumeReader::New();
       reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
 
       try
@@ -729,16 +703,20 @@ namespace ESPINA
       image->SetSpacing(ItkSpacing<T>(m_spacing));
       image->Update();
 
-      auto bounds      = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+      auto bounds      = equivalentBounds<T>(image);
       auto blockRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
 
       auto size  = blockRegion.GetSize();
       auto index = blockRegion.GetIndex();
       auto key   = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
-      if (!m_blocks.contains(key) &&
-          (size[0] == s_blockSize) && (size[1] == s_blockSize) && (size[2] == s_blockSize) &&
-          (index[0] % s_blockSize == 0) && (index[1] % s_blockSize == 0) && (index[2] % s_blockSize == 0))
+      if (!m_blocks.contains(key)
+        && (size[0] == s_blockSize)
+        && (size[1] == s_blockSize)
+        && (size[2] == s_blockSize)
+        && (index[0] % s_blockSize == 0)
+        && (index[1] % s_blockSize == 0)
+        && (index[2] % s_blockSize == 0))
       {
         m_blocks[key] = image;
       }
@@ -758,6 +736,8 @@ namespace ESPINA
 
       dataFetched = true;
     }
+
+    this->setEditedRegions(regions);
 
     return dataFetched;
   }
@@ -812,6 +792,8 @@ namespace ESPINA
   {
     auto restoredEditedRegions = this->editedRegions();
 
+    auto spacing = ItkSpacing<T>(m_spacing);
+
     for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
     {
       QFileInfo filename(storage->absoluteFilePath(path + editedRegionSnapshotId(id, regionId)));
@@ -819,6 +801,8 @@ namespace ESPINA
       if (filename.exists())
       {
         auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
+
+        changeSpacing<T>(editedRegion, spacing);
 
         expandAndDraw<T>(this, editedRegion);
       }
@@ -858,13 +842,15 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  QList<liVector3> SparseVolume<T>::toBlockIndexes(const itk::ImageRegion<3> &region) const
+  typename SparseVolume<T>::BlockIndexes SparseVolume<T>::toBlockIndexes(const itk::ImageRegion<3> &region) const
   {
-    QList<liVector3> result;
+    BlockIndexes result;
     liVector3 minimum, maximum;
 
     auto index  = region.GetIndex();
     auto size   = region.GetSize();
+//     qDebug() << "Partitioning Region";
+//     region.Print(std::cout);
 
     for(int i = 0; i < 3; ++i)
     {
@@ -882,16 +868,36 @@ namespace ESPINA
         }
       }
     }
+    //qDebug() << result;
 
     return result;
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  QList<liVector3> SparseVolume<T>::toBlockIndexes(const Bounds &bounds) const
+  typename SparseVolume<T>::BlockIndexes SparseVolume<T>::toBlockIndexes(const Bounds &bounds) const
   {
-    return toBlockIndexes(equivalentRegion<T>(m_origin, m_spacing, bounds));
+    return bounds.areValid()?toBlockIndexes(equivalentRegion<T>(m_origin, m_spacing, bounds))
+                             :BlockIndexes();
   }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Bounds SparseVolume<T>::editRegion(const VolumeBounds &bounds)
+  {
+    Bounds editionBounds;
+
+    if (intersect(m_bounds, bounds))
+    {
+      editionBounds = intersection(m_bounds, bounds);
+
+      this->addEditedRegion(editionBounds);
+      this->updateModificationTime();
+    }
+
+    return editionBounds;
+  }
+
 
   //-----------------------------------------------------------------------------
   template<typename T>
@@ -919,8 +925,8 @@ namespace ESPINA
     auto block  = m_blocks[index];
     auto region = block->GetLargestPossibleRegion();
     auto it     = itk::ImageRegionIterator<T>(block, region);
-    it.GoToBegin();
 
+    it.GoToBegin();
     while(!it.IsAtEnd())
     {
       if(it.Value() != SEG_BG_VALUE)
@@ -931,6 +937,14 @@ namespace ESPINA
     }
 
     return true;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Bounds SparseVolume<T>::blockIntersection(typename T::Pointer block, const Bounds &bounds) const
+  {
+    auto blockBounds = equivalentBounds<T>(block);
+    return intersection(blockBounds, bounds);
   }
 }
 

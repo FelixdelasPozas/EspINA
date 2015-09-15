@@ -336,11 +336,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if (validSeed)
   {
-    InputSList inputs;
-
-    inputs << channel->asInput();
-
-    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
+    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SGS_FILTER);
 
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());

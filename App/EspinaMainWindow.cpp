@@ -652,7 +652,7 @@ void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwit
 {
   auto colorEngine = colorEngineSwitch->colorEngine();
   //m_colorEngineMenu->addColorEngine(colorEngine->tooltip(), colorEngine);
-  m_context.colorEngine()->add(colorEngine);
+  m_context.addColorEngine(colorEngine);
 
   m_visualizeToolGroup->addTool(colorEngineSwitch);
 }
@@ -724,7 +724,7 @@ void EspinaMainWindow::createToolGroups()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createSessionToolGroup()
 {
-  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_file.svg", tr("Session"));
+  m_sessionToolGroup = createToolGroup(":/espina/toolgroup_session.svg", tr("Session"));
 
   m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open File"), m_context, m_errorHandler);
   m_openFileTool->setShortcut(Qt::CTRL+Qt::Key_O);
@@ -909,8 +909,8 @@ void EspinaMainWindow::createEditToolGroup()
 // ##################
 // 2-Display (widgets)
 // 0: View Settings
-//   0: Thumbnail
-//   1: Scalebar
+//   0: Scalebar
+//   1: Thumbnail
 // 1: Widgets
 // ##################
 // 3-Views
@@ -919,17 +919,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
 
-  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
-                                                          ":/espina/display_view_thumbnail.svg",
-                                                          tr("Display Thumbnail"),
-                                                          m_context);
-  connect(thumbnail.get(), SIGNAL(toggled(bool)),
-          m_view.get(), SLOT(showThumbnail(bool)));
-
-  thumbnail->setOrder("0-0", "2-Display");
-  thumbnail->setChecked(true);
-
-  m_visualizeToolGroup->addTool(thumbnail);
 
   auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
                                                          ":/espina/display_view_scalebar.svg",
@@ -939,10 +928,23 @@ void EspinaMainWindow::createVisualizeToolGroup()
   connect(scalebar.get(), SIGNAL(toggled(bool)),
           m_view.get(),   SLOT(setRulerVisibility(bool)));
 
-  scalebar->setOrder("0-1", "2-Display");
+  scalebar->setOrder("0-0", "2-Display");
   scalebar->setChecked(true);
 
   m_visualizeToolGroup->addTool(scalebar);
+
+
+  auto thumbnail = std::make_shared<GenericTogglableTool>("Thumbnail",
+                                                          ":/espina/display_view_thumbnail.svg",
+                                                          tr("Display Thumbnail"),
+                                                          m_context);
+  connect(thumbnail.get(), SIGNAL(toggled(bool)),
+          m_view.get(), SLOT(showThumbnail(bool)));
+
+  thumbnail->setOrder("0-1", "2-Display");
+  thumbnail->setChecked(true);
+
+  m_visualizeToolGroup->addTool(thumbnail);
 
 
   auto panelSwitchXY = std::make_shared<PanelSwitch>("XZ",

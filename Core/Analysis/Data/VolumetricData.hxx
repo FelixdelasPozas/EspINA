@@ -118,8 +118,8 @@ namespace ESPINA
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
-    virtual void draw(const vtkImplicitFunction*  brush,
-                      const Bounds&               bounds,
+    virtual void draw(vtkImplicitFunction        *brush,
+                      const Bounds               &bounds,
                       const typename T::ValueType value) = 0;
 
     /** \brief Method to modify the volume using an itk image.

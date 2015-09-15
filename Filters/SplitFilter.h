@@ -37,66 +37,65 @@ namespace ESPINA
   class EspinaFilters_EXPORT SplitFilter
   : public Filter
   {
-    public:
-      /** \brief SplitFilter class constructor.
-       * \param[in] inputs list of input smart pointers.
-       * \param[in] type SplitFilter type.
-       * \param[in] scheduler scheduler smart pointer.
-       *
-       */
-      explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
+  public:
+    /** \brief SplitFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type SplitFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
+    explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
 
-      /** \brief SplitFilter class virtual destructor.
-       *
-       */
-      virtual ~SplitFilter();
+    /** \brief SplitFilter class virtual destructor.
+     *
+     */
+    virtual ~SplitFilter();
 
-      virtual void restoreState(const State& state)
-      {}
+    virtual void restoreState(const State& state)
+    {}
 
-      virtual State state() const
-      { return State(); }
+    virtual State state() const
+    { return State(); }
 
-      /** \brief Sets the stencil used to split the input.
-       * \param[in] stencil a vtkSmartPointer<vtkImageStencilData> object.
-       *
-       */
-      void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
-      {
-        m_stencil = stencil;
-        m_ignoreCurrentOutputs = true;
-      }
+    /** \brief Sets the stencil used to split the input.
+     * \param[in] stencil a vtkSmartPointer<vtkImageStencilData> object.
+     *
+     */
+    void setStencil(vtkSmartPointer<vtkImageStencilData> stencil);
 
-      /** \brief Try to locate an snapshot of the filter in temporalStorage, returns true
-       * if all volume snapshot can be recovered and false otherwise.
-       *
-       */
-      virtual bool fetchCacheStencil() const;
+    vtkSmartPointer<vtkImageStencilData> stencil() const;
 
-    protected:
-      virtual Snapshot saveFilterSnapshot() const;
+    virtual void changeSpacing(const NmVector3& origin, const NmVector3& spacing);
 
-      virtual bool needUpdate() const;
+  protected:
+    virtual Snapshot saveFilterSnapshot() const;
 
-      virtual bool needUpdate(Output::Id id) const;
+    virtual bool needUpdate() const;
 
-      virtual void execute();
+    virtual void execute();
 
-      virtual void execute(Output::Id id);
+    virtual bool ignoreStorageContent() const;
 
-      virtual bool ignoreStorageContent() const;
+    virtual bool areEditedRegionsInvalidated();
 
-      virtual bool areEditedRegionsInvalidated();
+    /** \brief Helper method that returns the stencil file name.
+     *
+     */
+    QString stencilFile() const
+    { return prefix() + "stencil.vti"; }
 
-      /** \brief Helper method that returns the stencil file name.
-       *
-       */
-      QString stencilFile() const
-      { return prefix() + "stencil.vti"; }
+  private:
+    /** \brief Try to locate an snapshot of the filter in temporalStorage, returns true
+     * if all volume snapshot can be recovered and false otherwise.
+     *
+     */
+    bool fetchCacheStencil() const;
 
-    private:
-      bool m_ignoreCurrentOutputs;
-      mutable vtkSmartPointer<vtkImageStencilData> m_stencil;
+    void changeStencilSpacing(const NmVector3 &spacing) const;
+
+  private:
+    bool m_ignoreCurrentOutputs;
+    mutable vtkSmartPointer<vtkImageStencilData> m_stencil;
   };
 
   using SplitFilterPtr  = SplitFilter *;

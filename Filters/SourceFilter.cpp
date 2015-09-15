@@ -44,6 +44,12 @@ void SourceFilter::addOutputData(Output::Id id, DataSPtr data)
 }
 
 //----------------------------------------------------------------------------
+void SourceFilter::setInput(InputSPtr input)
+{
+  m_inputs << input;
+}
+
+//----------------------------------------------------------------------------
 bool SourceFilter::needUpdate(Output::Id id) const
 {
   if (!m_outputs.contains(id)) throw Undefined_Output_Exception();
@@ -54,6 +60,8 @@ bool SourceFilter::needUpdate(Output::Id id) const
 //----------------------------------------------------------------------------
 void SourceFilter::execute(Output::Id id)
 {
+  Q_ASSERT(m_inputs.size() == 1);
+
   if (!m_outputs.contains(id)) throw Undefined_Output_Exception();
 
   if (m_inputs.size() != 0) throw Invalid_Number_Of_Inputs_Exception();

@@ -61,6 +61,9 @@ namespace ESPINA
       class ColorEngine;
       using ColorEngineSPtr  = std::shared_ptr<ColorEngine>;
 
+      class MultiColorEngine;
+      using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
+
       class InformationColorEngine;
     }
 

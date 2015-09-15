@@ -87,12 +87,12 @@ namespace ESPINA
 
     virtual TimeStamp lastModified() const override;
 
-  private:
     /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
      *
      */
     void updateMesh();
 
+  private:
     virtual QList<Data::Type> updateDependencies() const override;
 
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;

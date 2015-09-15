@@ -219,10 +219,10 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
 
     // BinaryImageToLabelMapFilter create different labels for non connected components:
     // Merge disconnected components into first label object
-    for (int n = 1; n <segLabelMap->GetNumberOfLabelObjects(); ++n)
+    for (unsigned int n = 1; n <segLabelMap->GetNumberOfLabelObjects(); ++n)
     {
       auto part = segLabelMap->GetNthLabelObject(n);
-      for (int l = 0; l < part->GetNumberOfLines(); ++l)
+      for (unsigned int l = 0; l < part->GetNumberOfLines(); ++l)
       {
         label->AddLine(part->GetLine(l));
       }

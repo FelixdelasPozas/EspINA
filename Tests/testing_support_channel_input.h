@@ -35,11 +35,15 @@ namespace ESPINA {
 
       virtual void restoreState(const State& state) override {}
       virtual State state() const                   override {return State();}
+      virtual void changeSpacing(const NmVector3& origin, const NmVector3& spacing);
     protected:
       virtual Snapshot saveFilterSnapshot() const   override {return Snapshot();}
       virtual bool needUpdate() const               override {return true;}
       virtual void execute()                        override;
       virtual bool ignoreStorageContent() const     override {return false;}
+
+    private:
+      NmVector3 m_spacing;
     };
 
     InputSPtr channelInput();

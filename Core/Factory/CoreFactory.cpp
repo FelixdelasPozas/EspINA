@@ -42,7 +42,6 @@ CoreFactory::~CoreFactory()
 
 //-----------------------------------------------------------------------------
 void CoreFactory::registerFilterFactory(FilterFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
 {
   for(auto filter : factory->providedFilters())
   {
@@ -61,7 +60,6 @@ SampleSPtr CoreFactory::createSample(const QString& name) const
 
 //-----------------------------------------------------------------------------
 FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type) const
-throw (Unknown_Type_Exception)
 {
   FilterSPtr filter;
 
@@ -92,7 +90,6 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
 
 //-----------------------------------------------------------------------------
 void CoreFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
 {
   for(auto extension : factory->providedExtensions())
   {
@@ -140,7 +137,6 @@ SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id i
 
 //-----------------------------------------------------------------------------
 void CoreFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
 {
   for(auto extension : factory->providedExtensions())
   {

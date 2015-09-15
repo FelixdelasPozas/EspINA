@@ -177,6 +177,23 @@ namespace ESPINA
    */
   template<typename T>
   itk::ImageRegionConstIteratorWithIndex<T> itkImageRegionConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds);
+
+  /** \brief Changes the spacing of the block updating its origin position
+   * \param[in] image index
+   * \param[in] spacing to be changed
+   *
+   */
+  template<typename T>
+  void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing);
+
+  /** \brief Changes the spacing of the image updating its origin position
+   * \param[in] image index
+   * \param[in] spacing to be changed
+   * \param[in] ratio spacing conversion ration
+   *
+   */
+  template<typename T>
+  void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing, const NmVector3 &ratio);
 }
 
 #include "Core/Analysis/Data/VolumetricDataUtils.cxx"

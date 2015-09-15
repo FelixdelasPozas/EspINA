@@ -107,7 +107,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ItemAdapter class constructor.
-     * \param[in] analysisItem, Persistent item smart pointer.
+     * \param[in] analysisItem Persistent item smart pointer.
      *
      */
     explicit ItemAdapter(PersistentSPtr analysisItem)
@@ -121,14 +121,14 @@ namespace ESPINA
     {}
 
     /** \brief Returns the item data specified by the parameter.
-     * \param[in] role, Qt::ItemDataRole type.
+     * \param[in] role Qt::ItemDataRole type.
      *
      */
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
     /** \brief Sets the item data specified by the parameter.
-     * \param[in] value, value of the data.
-     * \param[in] role, Qt::ItemDataRole type.
+     * \param[in] value value of the data.
+     * \param[in] role Qt::ItemDataRole type.
      *
      */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;

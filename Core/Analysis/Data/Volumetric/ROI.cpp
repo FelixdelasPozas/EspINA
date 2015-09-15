@@ -53,7 +53,7 @@ bool ROI::isOrthogonal() const
 }
 
 //-----------------------------------------------------------------------------
-void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const itkVolumeType::ValueType value)
+void ROI::draw(vtkImplicitFunction *brush, const Bounds& bounds, const itkVolumeType::ValueType value)
 {
   m_isOrthogonal = false;
   SparseVolume<itkVolumeType>::draw(brush, bounds, value);

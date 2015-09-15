@@ -51,6 +51,8 @@ namespace ESPINA
 
     virtual State state() const;
 
+    virtual void changeSpacing(const NmVector3 &origin, const NmVector3 &spacing);
+
     /** \brief Sets the lower value of the threshold.
      * \param[in] th lower threshold value.
      *

@@ -73,10 +73,10 @@ QString SASReport::requiredInputDescription() const
 //----------------------------------------------------------------------------
 void SASReport::show(SegmentationAdapterList input) const
 {
-    auto undoStack = getUndoStack();
-    auto model     = getModel();
-    auto factory   = getFactory();
-    auto SAS       = QObject::tr("SAS");
+//     auto undoStack = getUndoStack();
+//     auto model     = getModel();
+//     auto factory   = getFactory();
+//     auto SAS       = QObject::tr("SAS");
 
 //     if (model->classification()->category(SAS) == nullptr)
 //     {

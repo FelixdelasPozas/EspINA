@@ -129,6 +129,21 @@ namespace ESPINA
      */
     SampleAdapterSPtr createSample(const QString& name = QString()) const;
 
+    /** \brief Convenience method to create filters with a single view item input
+     * \param[in] input view item
+     * \param[in] type filter type.
+     *
+     * This is a convenience method to create input
+     */
+    template<typename T>
+    std::shared_ptr<T> createFilter(ViewItemAdapter *input, const Filter::Type &type) const
+    {
+      InputSList inputs;
+      inputs << input->asInput();
+
+      return m_factory->createFilter<T>(inputs, type);
+    }
+
     /** \brief Creates and returns a filter of the specified type.
      * \param[in] inputs list of input smart pointers.
      * \param[in] type type of the filter to return.
