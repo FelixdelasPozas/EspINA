@@ -44,9 +44,9 @@ QColor NumberColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 
   if (segmentation)
   {
-    r = (segmentation->number() * 25) % 255;
-    g = (segmentation->number() * 73) % 255;
-    b = (segmentation->number() * 53) % 255;
+    r = (segmentation->number() * 25) % 200;
+    g = (segmentation->number() * 73) % 200;
+    b = (segmentation->number() * 53) % 200;
   }
 
   return QColor(r, g, b);

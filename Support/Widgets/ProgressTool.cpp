@@ -336,7 +336,7 @@ void ProgressTool::restoreCheckedState(std::shared_ptr<QSettings> settings)
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::setIcon(const QIcon icon)
+void ProgressTool::setIcon(const QIcon &icon)
 {
   m_action->setActionIcon(icon);
 }

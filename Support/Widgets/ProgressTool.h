@@ -133,7 +133,7 @@ namespace ESPINA
 
         void setToolTip(const QString &tooltip);
 
-        void setIcon(const QIcon icon);
+        void setIcon(const QIcon &icon);
 
         QIcon icon() const;
 
