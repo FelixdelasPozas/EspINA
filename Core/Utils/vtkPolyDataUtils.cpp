@@ -94,7 +94,7 @@ void EspinaCore_EXPORT ESPINA::PolyDataUtils::scalePolyData(vtkSmartPointer<vtkP
 }
 
 //------------------------------------------------------------------------------------
-ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing)
+vtkSmartPointer<vtkImageData> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterizeContourToVTKImage(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing)
 {
   double bounds[6];
   contour->ComputeBounds();
@@ -102,8 +102,6 @@ ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::r
   auto contourBounds = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
   auto idx = normalCoordinateIndex(plane);
   contourBounds[2*idx] = contourBounds[(2*idx)+1] = slice;
-
-  auto mask = std::make_shared<BinaryMask<unsigned char>>(contourBounds, spacing);
 
   // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane.
   int count = contour->GetPoints()->GetNumberOfPoints();
@@ -220,7 +218,27 @@ ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::r
   stencilToImage->SetOutsideValue(0);
   stencilToImage->Update();
 
-  auto outputImage = stencilToImage->GetOutput();
+  auto image = vtkSmartPointer<vtkImageData>::New();
+  image->DeepCopy(stencilToImage->GetOutput());
+
+  return image;
+}
+
+//------------------------------------------------------------------------------------
+ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing)
+{
+  double bounds[6];
+  contour->ComputeBounds();
+  contour->GetBounds(bounds);
+  auto contourBounds = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  auto idx = normalCoordinateIndex(plane);
+  contourBounds[2*idx] = contourBounds[(2*idx)+1] = slice;
+
+  auto mask = std::make_shared<BinaryMask<unsigned char>>(contourBounds, spacing);
+
+  auto image = rasterizeContourToVTKImage(contour, plane, slice, spacing);
+  int extent[6];
+  image->GetExtent(extent);
 
   BinaryMask<unsigned char>::IndexType imageIndex;
   imageIndex.x = imageIndex.y = imageIndex.z = 0;
@@ -253,7 +271,7 @@ ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::r
             break;
         }
 
-        pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));
+        pixel = reinterpret_cast<unsigned char*>(image->GetScalarPointer(x, y, z));
 
         if (*pixel == 1)
         {

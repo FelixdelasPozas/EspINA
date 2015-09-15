@@ -109,7 +109,7 @@ void ContourWidget2D::initialize()
 void ContourWidget2D::configure(Nm distance, QColor color, NmVector3 spacing)
 {
   m_widget->SetContinuousDrawTolerance(distance);
-  m_widget->setPolygonColor(color);
+  m_widget->setColor(color);
   m_spacing = spacing;
 }
 
@@ -219,4 +219,10 @@ void ContourWidget2D::rasterize()
 
     emit contour(mask);
   }
+}
+
+//----------------------------------------------------------------------------
+void ContourWidget2D::notifyContourEnd()
+{
+  rasterize();
 }

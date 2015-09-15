@@ -54,11 +54,6 @@ namespace ESPINA
           emit rasterize();
           return true;
         }
-        if (ke->key() == Qt::Key_Backspace)
-        {
-          emit clear();
-          return true;
-        }
         // no break
       case QEvent::KeyRelease:
         if(ke->key() == Qt::Key_Shift)
@@ -92,12 +87,6 @@ namespace ESPINA
   {
     emit drawingModeChanged(drawingMode());
     emit configure(m_minDistance, color(), m_maskSpacing);
-  }
-
-  //------------------------------------------------------------------------
-  void ContourPainter::clearContours() const
-  {
-    emit clear();
   }
 
   //------------------------------------------------------------------------

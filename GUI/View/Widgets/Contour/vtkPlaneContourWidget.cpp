@@ -66,7 +66,7 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , Orientation            {Plane::XY}
 , ContinuousDrawTolerance{40}
 , mouseButtonDown        {false}
-, m_polygonColor         {Qt::black}
+, m_color                {Qt::black}
 , m_mode                 {DrawingMode::PAINTING}
 , m_actualMode           {DrawingMode::PAINTING}
 , m_depth                {0}
@@ -137,8 +137,10 @@ void vtkPlaneContourWidget::CloseLoop()
   {
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->ClosedLoopOn();
-    rep->UseContourPolygon(true);
-    this->Render();
+//    rep->UseContourPolygon(true);
+//    this->Render();
+
+    this->m_parent->notifyContourEnd();
   }
 }
 
@@ -204,7 +206,6 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       // around.
       if ((self->FollowCursor || self->ContinuousDraw) && (rep->GetNumberOfNodes() == 0))
       {
-        self->m_parent->rasterize();
         auto repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
         switch(self->m_actualMode)
         {
@@ -240,11 +241,13 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
 
         // set the closed loop now
         rep->ClosedLoopOn();
-        rep->UseContourPolygon(true);
+        // rep->UseContourPolygon(true);
         self->WidgetState = vtkPlaneContourWidget::Manipulate;
         self->EventCallbackCommand->SetAbortFlag(1);
         self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
         self->m_mode = self->m_actualMode;
+
+        self->m_parent->notifyContourEnd();
       }
       else
       {
@@ -360,7 +363,7 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 
   // set the closed loop now
   rep->ClosedLoopOn();
-  rep->UseContourPolygon(true);
+  // rep->UseContourPolygon(true);
 
   self->WidgetState = vtkPlaneContourWidget::Manipulate;
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -373,13 +376,14 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
   int state = self->WidgetRep->GetInteractionState();
   self->SetCursor(state);
 
-  if (rep->GetNeedToRender())
-  {
-    self->Render();
-    rep->NeedToRenderOff();
-  }
+//  if (rep->GetNeedToRender())
+//  {
+//    self->Render();
+//    rep->NeedToRenderOff();
+//  }
 
   self->m_mode = self->m_actualMode;
+  self->m_parent->notifyContourEnd();
 }
 
 //----------------------------------------------------------------------------
@@ -392,6 +396,7 @@ void vtkPlaneContourWidget::AddNode()
   auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
 
   int numNodes = rep->GetNumberOfNodes();
+
   if (numNodes > 1)
   {
     int closestNode = this->FindClosestNode();
@@ -411,7 +416,7 @@ void vtkPlaneContourWidget::AddNode()
 
       // set the closed loop now
       rep->ClosedLoopOn();
-      rep->UseContourPolygon(true);
+      // rep->UseContourPolygon(true);
 
       this->WidgetState = vtkPlaneContourWidget::Manipulate;
       this->Render();
@@ -427,6 +432,7 @@ void vtkPlaneContourWidget::AddNode()
       int state = this->WidgetRep->GetInteractionState();
       this->SetCursor(state);
 
+      this->m_parent->notifyContourEnd();
       return;
     }
   }
@@ -622,12 +628,14 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
 
             // set the closed loop now
             rep->ClosedLoopOn();
-            rep->UseContourPolygon(true);
+            // rep->UseContourPolygon(true);
 
             self->WidgetState = vtkPlaneContourWidget::Manipulate;
             self->EventCallbackCommand->SetAbortFlag(1);
             self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
             self->m_mode = self->m_actualMode;
+
+            self->m_parent->notifyContourEnd();
             return;
           }
         }
@@ -969,18 +977,18 @@ bool vtkPlaneContourWidget::IsPointTooClose(int X, int Y)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlaneContourWidget::setPolygonColor(const QColor &color)
+void vtkPlaneContourWidget::setColor(const QColor &color)
 {
-  if(color == m_polygonColor) return;
+  if(color == m_color) return;
 
-  this->m_polygonColor = color;
+  this->m_color = color;
   reinterpret_cast<vtkPlaneContourRepresentationGlyph *>(this->WidgetRep)->setPolygonColor(color);
 }
 
 //----------------------------------------------------------------------------
-QColor vtkPlaneContourWidget::getPolygonColor()
+QColor vtkPlaneContourWidget::getColor()
 {
-  return this->m_polygonColor;
+  return this->m_color;
 }
 
 //----------------------------------------------------------------------------

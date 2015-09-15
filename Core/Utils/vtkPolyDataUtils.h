@@ -58,7 +58,16 @@ namespace ESPINA
      */
     void EspinaCore_EXPORT scalePolyData(vtkSmartPointer<vtkPolyData> polyData, const NmVector3 &ratio);
 
-    /** \brief Rasterizes the polyData to a DefaultVolumetricDataSPtr.
+    /** \brief Rasterizes the polyData to a vtkImageData.
+     * \param[in] polyData vtkPolyData raw pointer to rasterize to a volume.
+     * \param[in] plane orientation of the contour.
+     * \param[in] slice position of the contour.
+     * \param[in] spacing spacing of the volume.
+     *
+     */
+    vtkSmartPointer<vtkImageData> EspinaCore_EXPORT rasterizeContourToVTKImage(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
+
+    /** \brief Rasterizes the polyData to a BinaryMask object.
      * \param[in] polyData vtkPolyData raw pointer to rasterize to a volume.
      * \param[in] plane orientation of the contour.
      * \param[in] slice position of the contour.

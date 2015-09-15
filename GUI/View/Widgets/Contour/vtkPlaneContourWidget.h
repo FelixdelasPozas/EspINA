@@ -160,15 +160,15 @@ namespace ESPINA
              */
             virtual Plane GetOrientation();
 
-            /** \brief Sets the contour polygon color.
+            /** \brief Sets the contour polygon actor color.
              *
              */
-            virtual void setPolygonColor(const QColor &color);
+            virtual void setColor(const QColor &color);
 
-            /** \brief Returns the contour polygon color.
+            /** \brief Returns the contour polygon actor color.
              *
              */
-            virtual QColor getPolygonColor();
+            virtual QColor getColor();
 
             /** \brief Sets the parent ContourWidget for this vtk widget.
              * \param[in] parent, ContourWidget raw pointer.
@@ -276,7 +276,7 @@ namespace ESPINA
 
             QCursor        crossMinusCursor, crossPlusCursor, crossCheckCursor;
             bool           mouseButtonDown; /// to create almost equally spaced points when using continuous drawing
-            QColor         m_polygonColor;
+            QColor         m_color;
             DrawingMode    m_mode;
             DrawingMode    m_actualMode;
             Nm             m_depth;

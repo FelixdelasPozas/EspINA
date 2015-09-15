@@ -115,6 +115,8 @@ namespace ESPINA
 
               virtual void setCrosshair(const NmVector3 &crosshair);
 
+              void notifyContourEnd();
+
             private:
               friend class vtkPlaneContourWidget;
 

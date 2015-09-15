@@ -46,18 +46,14 @@ namespace ESPINA
        */
       void updateWidgetsValues() const;
 
-      /** \brief Removes contours from widgets.
-       *
-       */
-      void clearContours() const;
-
-      /** \brief Forces rasterization of the actual contours (if any).
+      /** \brief Forces rasterization of the actual contours (if any exists).
        *
        */
       void rasterizeContours();
 
     signals:
       void configure(Nm distance, QColor color, NmVector3 spacing) const;
+
       void rasterize() const;
 
     private:

@@ -245,7 +245,7 @@ void DrawingWidget::onEventHandlerInUse(bool value)
     }
   }
 
-  if (displayContourControls() && handler == m_contourPainter.get())
+  if (handler == m_contourPainter.get())
   {
     if(value)
     {
@@ -394,7 +394,7 @@ QPushButton *DrawingWidget::registerBrush(const QString   &icon,
   connect(painter.get(), SIGNAL(radiusChanged(int)),
           this,          SLOT(radiusChanged(int)));
 
-  connect(painter.get(), SIGNAL(strokeStarted(BrushPainter *, RenderView*)),
+  connect(painter.get(), SIGNAL(strokeStarted(BrushPainter *, RenderView *)),
           this,          SIGNAL(strokeStarted(BrushPainter *, RenderView *)));
 
   return button;
