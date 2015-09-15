@@ -74,7 +74,7 @@ void FillHolesTool::fillHoles()
     taskContext.Operation    = tr("Fill Segmentation Holes");
     taskContext.Segmentation = segmentation;
 
-    segmentation->setBeingModified(true);
+    markAsBeingModified(segmentation, true);
 
     m_executingTasks[filter.get()] = taskContext;
 
@@ -92,10 +92,10 @@ void FillHolesTool::onTaskFinished()
 {
   auto filter = dynamic_cast<FillHolesFilterPtr>(sender());
 
+  auto taskContext = m_executingTasks[filter];
+
   if (!filter->isAborted())
   {
-    auto taskContext = m_executingTasks[filter];
-
     if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
     auto undoStack = getUndoStack();
@@ -104,8 +104,8 @@ void FillHolesTool::onTaskFinished()
     undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
     undoStack->endMacro();
 
-    taskContext.Segmentation->setBeingModified(false);
   }
+  markAsBeingModified(taskContext.Segmentation, false);
 
   m_executingTasks.remove(filter);
 }

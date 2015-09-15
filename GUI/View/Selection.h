@@ -98,6 +98,11 @@ namespace ESPINA
          */
         void clear();
 
+        /** \brief Emit selection state changed
+         *
+         */
+        void modified();
+
       signals:
         /** \brief These signals are emitted when the selection changes in any way
          *  (contents, ordering of the selection, etc). The channels or segmentations
@@ -122,12 +127,12 @@ namespace ESPINA
 
       private:
         /** \brief Helper method to set the given list of channels as selected.
-         * \param[in] list, list of channel adapter raw pointers.
+         * \param[in] list list of channel adapter raw pointers.
          */
         ChannelAdapterList setChannels(ChannelAdapterList list);
 
         /** \brief Helper method to set the given list of segmentations as selected.
-         * \param[in] list, list of segmentation adapter raw pointers.
+         * \param[in] list list of segmentation adapter raw pointers.
          */
         SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 

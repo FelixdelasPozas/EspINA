@@ -76,6 +76,7 @@ void ImageLogicTool::applyFilter()
   {
     segmentation->setBeingModified(true);
     inputs << segmentation->asInput();
+    getSelection()->modified();
   }
 
   auto type        = ADDITION_FILTER;
@@ -134,6 +135,7 @@ void ImageLogicTool::onTaskFinished()
       undoStack->push(new RemoveSegmentations(segmentation, getModel()));
       segmentation->setBeingModified(false);
     }
+    getSelection()->modified();
 
     undoStack->endMacro();
 

@@ -50,6 +50,8 @@ namespace ESPINA
       protected:
         bool acceptsVolumetricSegmenations(SegmentationAdapterList segmentations);
 
+        void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
+
       private slots:
         /** \brief
          *

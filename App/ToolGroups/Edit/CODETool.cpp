@@ -111,7 +111,7 @@ void CODEToolBase::onApplyClicked()
     task.Operation    = tr("%1 Segmentation").arg(m_name);
     task.Segmentation = segmentation;
 
-    segmentation->setBeingModified(true);
+    markAsBeingModified(segmentation, true);
 
     m_executingTasks[filter.get()] = task;
 
@@ -141,9 +141,10 @@ void CODEToolBase::onTaskFinished()
 {
   auto filter = dynamic_cast<MorphologicalEditionFilterPtr>(sender());
 
+  auto taskContext = m_executingTasks[filter];
+
   if (!filter->isAborted())
   {
-    auto taskContext = m_executingTasks[filter];
     auto undoStack   = getUndoStack();
 
     if (!filter->validOutput(0))
@@ -169,8 +170,8 @@ void CODEToolBase::onTaskFinished()
       undoStack->endMacro();
     }
 
-    taskContext.Segmentation->setBeingModified(false);
   }
+  markAsBeingModified(taskContext.Segmentation, false);
 
   m_executingTasks.remove(filter);
 }

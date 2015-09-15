@@ -35,8 +35,13 @@ using namespace ESPINA::Support::Widgets;
 EditTool::EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context)
 : ProgressTool(id, icon, tooltip, context)
 {
-  connect(getSelection().get(), SIGNAL(selectionChanged()),
-          this,                 SLOT(updateStatus()));
+  auto selection = getSelection().get();
+
+//   connect(selection, SIGNAL(selectionChanged()),
+//           this,      SLOT(updateStatus()));
+
+  connect(selection, SIGNAL(selectionStateChanged()),
+          this,      SLOT(updateStatus()));
 }
 
 //------------------------------------------------------------------------
@@ -55,6 +60,13 @@ bool EditTool::acceptsVolumetricSegmenations(SegmentationAdapterList segmentatio
   }
 
   return hasRequiredData;
+}
+
+//------------------------------------------------------------------------
+void EditTool::markAsBeingModified(SegmentationAdapterPtr segmentation, bool value)
+{
+  segmentation->setBeingModified(value);
+  getSelection()->modified();
 }
 
 //------------------------------------------------------------------------

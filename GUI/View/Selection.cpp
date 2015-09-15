@@ -241,3 +241,9 @@ void Selection::clear()
 {
   set(ViewItemAdapterList());
 }
+
+//----------------------------------------------------------------------------
+void Selection::modified()
+{
+  emit selectionStateChanged();
+}
