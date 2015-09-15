@@ -1123,7 +1123,7 @@ void vtkCTPFFindTrueEdges(
 
     double p0[3], p1[3], p2[3];
     double v1[3], v2[3];
-    double l1, l2;
+    double l1;
 
     points->GetPoint(oldPoly[n-1], p0);
     points->GetPoint(oldPoly[0], p1);
@@ -1132,6 +1132,7 @@ void vtkCTPFFindTrueEdges(
 
     for (size_t j = 0; j < n; j++)
       {
+      double l2;
       size_t k = j+1;
       if (k >= n) { k -= n; }
 
@@ -1863,7 +1864,7 @@ void vtkCTPFFindSharpestVerts(
 {
   double p1[3], p2[3];
   double v1[3], v2[3], v[3];
-  double l1, l2;
+  double l1;
 
   double minVal[2];
   minVal[0] = 0;
@@ -1881,6 +1882,7 @@ void vtkCTPFFindSharpestVerts(
 
   for (size_t j = 0; j < n; j++)
     {
+    double l2;
     size_t k = j+1;
     if (k == n) { k = 0; }
 

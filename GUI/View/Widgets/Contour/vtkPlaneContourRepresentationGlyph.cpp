@@ -74,6 +74,8 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   this->m_polygonMapper = nullptr;
   this->useContourPolygon = false;
   this->m_polygonColor = Qt::black;
+  this->LastEventPosition[0] = this->LastEventPosition[1] = 0;
+  this->LastPickPosition[0] = this->LastPickPosition[1] = this->LastPickPosition[2] = 0;
 
   // Initialize state
   this->InteractionState = vtkPlaneContourRepresentation::Outside;
@@ -469,11 +471,10 @@ void vtkPlaneContourRepresentationGlyph::BuildLines()
   auto points = vtkSmartPointer<vtkPoints>::New();
   auto lines = vtkSmartPointer<vtkCellArray>::New();
 
-  int i, j;
   vtkIdType index = 0;
 
   int count = this->GetNumberOfNodes();
-  for (i = 0; i < this->GetNumberOfNodes(); i++)
+  for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
     count += this->GetNumberOfIntermediatePoints(i);
   }
@@ -488,7 +489,7 @@ void vtkPlaneContourRepresentationGlyph::BuildLines()
     vtkIdType *lineIndices = new vtkIdType[numLines];
 
     double pos[3];
-    for (i = 0; i < this->GetNumberOfNodes(); i++)
+    for (int i = 0; i < this->GetNumberOfNodes(); i++)
     {
       // Add the node
       this->GetNthNodeWorldPosition(i, pos);
@@ -498,7 +499,7 @@ void vtkPlaneContourRepresentationGlyph::BuildLines()
 
       int numIntermediatePoints = this->GetNumberOfIntermediatePoints(i);
 
-      for (j = 0; j < numIntermediatePoints; j++)
+      for (int j = 0; j < numIntermediatePoints; j++)
       {
         this->GetIntermediatePointWorldPosition(i, j, pos);
         points->InsertPoint(index, pos);

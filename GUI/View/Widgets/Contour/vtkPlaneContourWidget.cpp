@@ -831,18 +831,19 @@ void vtkPlaneContourWidget::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 int vtkPlaneContourWidget::FindClosestNode()
 {
-  double lastNodePos[3], nodePos[3];
   int closestNode = -1;
   double closestDistance = VTK_DOUBLE_MAX;
 
   auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   if (rep->GetNumberOfNodes() >= 4)
   {
+    double lastNodePos[3];
     int pixelTolerance = rep->GetPixelTolerance();
     rep->GetNthNodeWorldPosition(rep->GetNumberOfNodes()-1, lastNodePos);
 
     for (int i = 0; i < rep->GetNumberOfNodes()-1; ++i)
     {
+      double nodePos[3];
       rep->GetNthNodeWorldPosition(i, nodePos);
       double distance = vtkMath::Distance2BetweenPoints(nodePos, lastNodePos);
       if ((distance < pixelTolerance) && (distance < closestDistance))
