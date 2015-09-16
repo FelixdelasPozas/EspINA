@@ -162,11 +162,24 @@ void RestrictToolGroup::DefineManualROICommand::undo()
   else
   {
     auto currentROI = m_tool->currentROI();
-    currentROI->resize(m_ROIbounds);
+
+    if(currentROI)
+    {
+      currentROI->resize(m_ROIbounds);
+    }
 
     if(m_image)
     {
-      currentROI->draw(m_image);
+      if(currentROI)
+      {
+        currentROI->draw(m_image);
+      }
+      else
+      {
+        auto mask = std::make_shared<BinaryMask<unsigned char>>(m_image);
+
+        m_tool->setCurrentROI(std::make_shared<ROI>(mask));
+      }
     }
 
     if (m_oROI)
@@ -202,6 +215,7 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
 
   connect(m_freehandROI.get(), SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)),
           this,                SLOT(onManualROIDefined(BinaryMaskSPtr<unsigned char>)));
+
   connect(m_orthogonalROI.get(), SIGNAL(roiDefined(ROISPtr)),
           this,                  SLOT(onOrthogonalROIDefined(ROISPtr)));
 
@@ -388,6 +402,11 @@ void RestrictToolGroup::addManualROI(const BinaryMaskSPtr<unsigned char> mask)
   if (m_accumulator)
   {
     expandAndDraw(m_accumulator.get(), mask);
+
+    if(m_accumulator->isEmpty())
+    {
+      setCurrentROI(nullptr);
+    }
   }
   else
   {
