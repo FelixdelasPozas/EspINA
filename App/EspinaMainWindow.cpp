@@ -383,6 +383,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     warning.setWindowTitle(windowTitle());
     warning.setText(message);
     warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+    warning.setIcon(QMessageBox::Question);
 
     switch(warning.exec())
     {

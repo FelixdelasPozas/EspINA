@@ -76,6 +76,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
 : ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal ROI"), context)
+, m_roi{nullptr}
 , m_roiRepresentation{new OrthogonalRepresentation()}
 , m_resizeHandler    {new EventHandler()}
 , m_defineHandler    {new PixelSelector()}

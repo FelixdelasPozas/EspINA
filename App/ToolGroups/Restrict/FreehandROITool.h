@@ -68,7 +68,7 @@ namespace ESPINA
 
     void cancelROI();
 
-    void ROIChanged();
+    void ROIChanged(ROISPtr roi);
 
   private:
     void configureDrawingTools();

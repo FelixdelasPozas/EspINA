@@ -82,6 +82,9 @@ namespace ESPINA
     int radius() const
     { return m_brush->radius(); }
 
+    void showEraseStrokes(bool value)
+    { m_showEraseStrokes = value; }
+
   signals:
     void strokeStarted(BrushPainter *painter, RenderView *view);
 
@@ -108,6 +111,7 @@ namespace ESPINA
     BrushSPtr         m_brush;
     StrokePainterSPtr m_strokePainter;
     bool              m_showStroke;
+    bool              m_showEraseStrokes;
     DrawingMode       m_actualStrokeMode;
   };
 

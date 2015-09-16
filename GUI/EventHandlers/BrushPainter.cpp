@@ -29,6 +29,7 @@ BrushPainter::BrushPainter(BrushSPtr brush)
 : MaskPainter       {brush}
 , m_brush           {brush}
 , m_showStroke      {true}
+, m_showEraseStrokes{false}
 , m_actualStrokeMode{DrawingMode::PAINTING}
 {
   setCursor(m_brush->cursor());
@@ -73,13 +74,17 @@ void BrushPainter::onStrokeStarted(RenderView *view)
   m_brush->setMaximumPointDistance(0.25 * radius() * view2D_cast(view)->scale());
   m_actualStrokeMode = currentMode();
 
+  if(m_showEraseStrokes)
+  {
+    m_strokePainter->overrideStrokeValue(1);
+  }
+
   emit strokeStarted(this, view);
 
   if (m_showStroke)
   {
     view->addActor(m_strokePainter->strokeActor());
   }
-
 }
 
 //-----------------------------------------------------------------------------

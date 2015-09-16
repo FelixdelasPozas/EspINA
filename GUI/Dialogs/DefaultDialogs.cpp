@@ -200,6 +200,7 @@ bool DefaultDialogs::UserConfirmation(const QString& message, const QString& tit
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
   dialog.setModal(true);
+  dialog.setIcon(QMessageBox::Question);
 
   DefaultCursor cursor;
 
@@ -215,6 +216,7 @@ void DefaultDialogs::InformationMessage(const QString& message, const QString& t
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
   dialog.setModal(true);
+  dialog.setIcon(QMessageBox::Information);
 
   DefaultCursor cursor;
 

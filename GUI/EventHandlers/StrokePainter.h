@@ -47,15 +47,36 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    /** \brief StrokePainter class constructor.
+     * \param[in] spacing spacing of the stroke canvas image.
+     * \param[in] origin origin of  the stroke canvas image.
+     * \param[in] view view where the stroke actor will be shown.
+     * \param[in] mode mode of the stroke.
+     * \param[in] brush brush object that will make the stroke.
+     *
+     */
     StrokePainter(const NmVector3 &spacing,
                   const NmVector3 &origin,
                   RenderView      *view,
                   DrawingMode      mode,
                   Brush           *brush);
 
+    /** \brief Returns the canvas image.
+     *
+     */
     vtkSmartPointer<vtkImageData> strokeCanvas() const;
 
+    /** \brief Returns the stroke actor.
+     *
+     */
     vtkSmartPointer<vtkProp> strokeActor() const;
+
+    /** \brief Overrides the default value to paint the stroke.
+     * \param[in] value unsigned char value to use as stroke value.
+     *
+     */
+    void overrideStrokeValue(unsigned char value)
+    { m_strokeValue = value; }
 
   private slots:
     void onStroke(Brush::Stroke stroke);

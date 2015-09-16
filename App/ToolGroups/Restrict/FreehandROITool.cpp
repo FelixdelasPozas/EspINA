@@ -31,7 +31,7 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 FreehandROITool::FreehandROITool(Support::Context  &context,
-                             RestrictToolGroup *toolGroup)
+                                 RestrictToolGroup *toolGroup)
 : ProgressTool("FreehandROI", ":espina/roi_freehand_roi.svg", tr("Freehand ROI"), context)
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
@@ -53,7 +53,10 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
 
-  setEventHandler(m_drawingWidget.painter());
+  connect(toolGroup, SIGNAL(roiChanged(ROISPtr)),
+          this,      SLOT(ROIChanged(ROISPtr)));
+
+  onPainterChanged(m_drawingWidget.painter());
 }
 
 //-----------------------------------------------------------------------------
@@ -73,8 +76,16 @@ void FreehandROITool::setColor(const QColor& color)
 }
 
 //-----------------------------------------------------------------------------
-void FreehandROITool::ROIChanged()
+void FreehandROITool::ROIChanged(ROISPtr roi)
 {
+  auto value = roi != nullptr;
+
+  m_drawingWidget.setCanErase(value);
+
+  if(value)
+  {
+    m_drawingWidget.setMaskProperties(roi->spacing(), roi->origin());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -86,6 +97,11 @@ void FreehandROITool::cancelROI()
 //-----------------------------------------------------------------------------
 void FreehandROITool::onPainterChanged(MaskPainterSPtr painter)
 {
+  auto brushPainter = std::dynamic_pointer_cast<BrushPainter>(painter);
+  if(brushPainter)
+  {
+    brushPainter->showEraseStrokes(true);
+  }
   setEventHandler(painter);
 }
 
@@ -126,4 +142,5 @@ void FreehandROITool::configureDrawingTools()
 {
   m_drawingWidget.setDrawingColor(Qt::yellow);
   m_drawingWidget.showCategoryControls(false);
+  m_drawingWidget.setCanErase(false);
 }
