@@ -51,7 +51,7 @@ int scheduler_sleep_main_thread( int argc, char** argv )
 
   Task::submit(sleepyTask);
 
-  const int WAIT_CICLES = SleepyTask::Iterations + 1;
+  const int WAIT_CICLES = SleepyTask::Iterations + 3;
   usleep(WAIT_CICLES*period);
 
   if (sleepyTask->Result != SleepyTask::Iterations) {

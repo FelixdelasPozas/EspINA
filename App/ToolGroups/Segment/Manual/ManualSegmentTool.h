@@ -116,6 +116,8 @@ namespace ESPINA
 
     void onEventHandlerActivated(bool inUse);
 
+    void onVoxelDeletion(ViewItemAdapterPtr item);
+
   protected:
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;

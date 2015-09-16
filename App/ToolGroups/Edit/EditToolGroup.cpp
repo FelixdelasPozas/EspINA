@@ -391,7 +391,7 @@ void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
   auto segmentation = segmentationPtr(item);
 
   {
-    auto volume       = writeLockVolume(segmentation->output());
+    auto volume = writeLockVolume(segmentation->output());
 
     if (volume->isEmpty())
     {

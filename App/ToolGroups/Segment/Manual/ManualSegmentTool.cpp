@@ -20,11 +20,13 @@
 
  // ESPINA
 #include "ManualSegmentTool.h"
+
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
 #include <GUI/Widgets/Styles.h>
@@ -34,6 +36,7 @@
 #include <Filters/SourceFilter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/RemoveSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 
 // Qt
@@ -46,8 +49,10 @@ const Filter::Type SOURCE_FILTER    = "FreeFormSource";
 const Filter::Type SOURCE_FILTER_V4 = "::FreeFormSource";
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Model::Utils;
 
 const QString MODE = "Stroke mode";
 
@@ -275,7 +280,7 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
-    emit voxelsDeleted(m_referenceItem);
+    onVoxelDeletion(m_referenceItem);
   }
 }
 
@@ -379,15 +384,6 @@ void ManualSegmentTool::onPainterChanged(MaskPainterSPtr painter)
 }
 
 //------------------------------------------------------------------------
-void ManualSegmentTool::onEventHandlerActivated(bool inUse)
-{
-  if(inUse)
-  {
-    onSelectionChanged();
-  }
-}
-
-//------------------------------------------------------------------------
 void ManualSegmentTool::onToolToggled(bool toggled)
 {
   if (toggled)
@@ -444,4 +440,57 @@ void ManualSegmentTool::saveSettings(std::shared_ptr<QSettings> settings)
 void ManualSegmentTool::startNextSegmentation()
 {
   setInitialStroke();
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::onEventHandlerActivated(bool inUse)
+{
+  if(inUse)
+  {
+    onSelectionChanged();
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
+{
+  Q_ASSERT(item && isSegmentation(item) && hasVolumetricData(item->output()));
+
+  bool removeSegmentation = false;
+
+  auto segmentation = segmentationPtr(item);
+
+  {
+    auto volume = writeLockVolume(segmentation->output());
+
+    if (volume->isEmpty())
+    {
+      removeSegmentation = true;
+    }
+    else
+    {
+      fitToContents(volume, SEG_BG_VALUE);
+    }
+  }
+
+  if (removeSegmentation)
+  {
+    getViewState().setEventHandler(EventHandlerSPtr());
+
+    auto name  = segmentation->data(Qt::DisplayRole).toString();
+    auto title = tr("Deleting segmentation");
+    auto msg   = tr("%1 will be deleted because all its voxels were erased.").arg(name);
+
+    DefaultDialogs::InformationMessage(msg, title);
+
+    auto undoStack = getUndoStack();
+
+    undoStack->blockSignals(true);
+    undoStack->undo();
+    undoStack->blockSignals(false);
+
+    undoStack->beginMacro(tr("Remove Segmentation"));
+    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+    undoStack->endMacro();
+  }
 }

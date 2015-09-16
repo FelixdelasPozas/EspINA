@@ -53,6 +53,8 @@ public:
   GUI()
   {
     setupUi(this);
+    groupLabel->setVisible(false);
+    groupList->setVisible(false);
     view->setSortingEnabled(true);
     view->sortByColumn(0, Qt::AscendingOrder);
   }

@@ -586,14 +586,22 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
 
     if (toolGroup)
     {
+//       auto key = Qt::Key_1;
       for(auto tools : toolGroup->groupedTools())
       {
         for (auto tool : tools)
         {
           tool->onToolGroupActivated();
 
+//           bool first = true;
           for(auto action : tool->actions())
           {
+//             if (key <= Qt::Key_9 && first)
+//             {
+//               action->setShortcut(Qt::ALT+key);
+//               key  = key + 1;
+//               first = false;
+//             }
             m_contextualBar->addAction(action);
           }
         }
@@ -872,6 +880,7 @@ void EspinaMainWindow::createExploreToolGroup()
 void EspinaMainWindow::createRestrictToolGroup()
 {
   m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);
+  m_restrictToolGroup->setShortcut(Qt::CTRL+Qt::Key_3);
 
   registerToolGroup(m_restrictToolGroup);
 }
@@ -882,6 +891,7 @@ void EspinaMainWindow::createSegmentToolGroup()
   m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
 
   m_segmentToolGroup->setToolTip(tr("Create New Segmentations"));
+  m_segmentToolGroup->setShortcut(Qt::CTRL+Qt::Key_4);
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
@@ -896,6 +906,7 @@ void EspinaMainWindow::createSegmentToolGroup()
 void EspinaMainWindow::createEditToolGroup()
 {
   m_refineToolGroup = new EditToolGroup(m_filterRefiners, m_context);
+  m_refineToolGroup->setShortcut(Qt::CTRL+Qt::Key_5);
 
   registerToolGroup(m_refineToolGroup);
 }
@@ -920,6 +931,7 @@ void EspinaMainWindow::createEditToolGroup()
 void EspinaMainWindow::createVisualizeToolGroup()
 {
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
+  m_visualizeToolGroup->setShortcut(Qt::CTRL+Qt::Key_6);
 
 
   auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
@@ -977,6 +989,7 @@ void EspinaMainWindow::createVisualizeToolGroup()
 void EspinaMainWindow::createAnalyzeToolGroup()
 {
   m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
+  m_analyzeToolGroup->setShortcut(Qt::CTRL+Qt::Key_7);
 
   registerToolGroup(m_analyzeToolGroup);
 }
