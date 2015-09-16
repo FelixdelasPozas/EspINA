@@ -85,6 +85,8 @@ void FileOpenTool::loadAnalysis(const QString& file)
 //----------------------------------------------------------------------------
 void FileOpenTool::load(const QStringList &files)
 {
+  m_loadedFiles.clear();
+
   QElapsedTimer timer;
   timer.start();
 

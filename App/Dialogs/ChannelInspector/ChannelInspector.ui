@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Channel Information</string>
+   <string>Stack Information</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_9">
    <item>
@@ -512,7 +512,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Channel Edges Detection</string>
+          <string>Stack Edges Detection</string>
          </property>
         </widget>
        </item>
