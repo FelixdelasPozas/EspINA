@@ -87,6 +87,11 @@ namespace ESPINA
      */
     virtual ~EspinaMainWindow();
 
+    /** \brief Close current analysis.
+     *
+     */
+    bool closeCurrentAnalysis();
+
   signals:
     void analysisChanged();
     void analysisAboutToBeClosed();
@@ -122,11 +127,6 @@ namespace ESPINA
      */
     void onSessionSaved(const QString &filename);
 
-
-    /** \brief Close current analysis.
-     *
-     */
-    bool closeCurrentAnalysis();
 
     /** \brief Change context bar to display tools of the selected group
      *

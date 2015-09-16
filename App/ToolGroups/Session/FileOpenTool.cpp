@@ -26,6 +26,7 @@
 #include <Core/IO/ProgressReporter.h>
 #include <Core/Utils/AnalysisUtils.h>
 #include <EspinaErrorHandler.h>
+#include <EspinaMainWindow.h>
 #include <GUI/Widgets/Styles.h>
 
 #include <QElapsedTimer>
@@ -39,6 +40,7 @@ using namespace ESPINA::Support::Widgets;
 FileOpenTool::FileOpenTool(const QString& id, const QString& icon, const QString& tooltip, Support::Context& context, EspinaErrorHandlerSPtr handler)
 : ProgressTool(id, icon, tooltip, context)
 , m_errorHandler{handler}
+, m_closeCallaback{nullptr}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered()));
@@ -51,8 +53,16 @@ QStringList FileOpenTool::loadedFiles() const
 }
 
 //----------------------------------------------------------------------------
+void FileOpenTool::setCloseCallback(EspinaMainWindow *callback)
+{
+  m_closeCallaback = callback;
+}
+
+//----------------------------------------------------------------------------
 void FileOpenTool::onTriggered()
 {
+  if (m_closeCallaback && !m_closeCallaback->closeCurrentAnalysis()) return;
+
   auto title  = tr("Open Analysis");
   auto filter = getFactory()->supportedFileExtensions();
 

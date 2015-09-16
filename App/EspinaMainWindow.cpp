@@ -429,8 +429,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 {
-  if(!closeCurrentAnalysis()) return;
-
   Q_ASSERT(analysis);
 
   if(!analysis->classification())
@@ -725,10 +723,12 @@ void EspinaMainWindow::createToolGroups()
 void EspinaMainWindow::createSessionToolGroup()
 {
   m_sessionToolGroup = createToolGroup(":/espina/toolgroup_session.svg", tr("Session"));
+  m_sessionToolGroup->setShortcut(Qt::CTRL+Qt::Key_1);
 
   m_openFileTool = std::make_shared<FileOpenTool>("FileOpen",  ":/espina/file_open.svg", tr("Open File"), m_context, m_errorHandler);
   m_openFileTool->setShortcut(Qt::CTRL+Qt::Key_O);
   m_openFileTool->setOrder("0-0", "1-Session");
+  m_openFileTool->setCloseCallback(this);
 
   connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
           this,                 SLOT(onAnalysisLoaded(AnalysisSPtr)));
@@ -741,7 +741,7 @@ void EspinaMainWindow::createSessionToolGroup()
   importTool->setOrder("0-1", "1-Session");
 
   connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
-          this,      SLOT(onAnalysisImported(AnalysisSPtr)));
+          this,             SLOT(onAnalysisImported(AnalysisSPtr)));
 
   m_saveTool = std::make_shared<FileSaveTool>("FileSave",  ":/espina/file_save.svg", tr("Save Analysis"), m_context, m_analysis, m_errorHandler);
   m_saveTool->setOrder("1-0", "1_FileGroup");
@@ -829,6 +829,7 @@ void EspinaMainWindow::createSessionToolGroup()
 void EspinaMainWindow::createExploreToolGroup()
 {
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
+  m_exploreToolGroup->setShortcut(Qt::CTRL+Qt::Key_2);
 
   auto stackExplorerSwitch = std::make_shared<PanelSwitch>("StackExplorer",
                                                            new StackExplorer(m_context),

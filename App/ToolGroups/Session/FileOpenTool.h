@@ -27,6 +27,8 @@
 
 namespace ESPINA
 {
+
+class EspinaMainWindow;
   /** \class FileOpenTool
    * \brief Class to load session files in a background task.
    *
@@ -57,6 +59,8 @@ namespace ESPINA
      */
     QStringList loadedFiles() const;
 
+    void setCloseCallback(EspinaMainWindow *callback);
+
   public slots:
     /** \brief Load requested file
      * \param[in] file to load.
@@ -82,6 +86,8 @@ namespace ESPINA
   private:
     EspinaErrorHandlerSPtr    m_errorHandler;  /** application error handler */
     QStringList               m_loadedFiles; /** list of file names to be loaded in the task. */
+
+    EspinaMainWindow *m_closeCallaback;
   };
 }
 
