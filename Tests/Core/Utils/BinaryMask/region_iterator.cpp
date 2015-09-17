@@ -49,12 +49,12 @@ int region_iterator(int argc, char** argv)
   rit.goToEnd();
   try
   {
-    unsigned char test = rit.Get();
+    cerr << rit.Get();
     error |= true;
+    cerr << "Invalid end position access" << endl;
   }
   catch(BMask::Out_Of_Bounds_Exception const &e)
   {
-    error |= false;
   }
 
   try
@@ -64,7 +64,6 @@ int region_iterator(int argc, char** argv)
   }
   catch (BMask::Overflow_Exception const &e)
   {
-    error |= false;
   }
 
   rit.goToBegin();
@@ -75,7 +74,6 @@ int region_iterator(int argc, char** argv)
   }
   catch(BMask::Underflow_Exception const &e)
   {
-    error |= false;
   }
 
   mask.setForegroundValue(1);

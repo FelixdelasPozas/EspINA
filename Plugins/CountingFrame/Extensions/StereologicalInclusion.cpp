@@ -416,7 +416,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
   if (hasVolumetricData(output))
   {
     auto volume = readLockVolume(output);
-    auto bounds = intersection(volume->bounds(), collisionBounds, volume->spacing());
+    auto bounds = intersection(volume->bounds(), collisionBounds, volume->bounds().spacing());
 
     if (bounds.areValid())
     {

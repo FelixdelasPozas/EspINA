@@ -22,7 +22,7 @@
 #include "ImageLogicFilter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/BinaryMask.hxx>
@@ -94,7 +94,7 @@ void ImageLogicFilter::addition()
 {
   auto firstVolume    = readLockVolume(m_inputs[0]->output());
   auto boundingBounds = firstVolume->bounds();
-  auto spacing        = firstVolume->spacing();
+  auto spacing        = boundingBounds.spacing();
 
   reportProgress(0);
   if (!canExecute()) return;
@@ -102,7 +102,7 @@ void ImageLogicFilter::addition()
   for(auto input: m_inputs)
   {
     auto inputVolume = readLockVolume(input->output());
-    boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, spacing);
+    boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds);
   }
 
   reportProgress(50);
@@ -142,7 +142,7 @@ void ImageLogicFilter::addition()
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 }
 
@@ -151,7 +151,7 @@ void ImageLogicFilter::subtraction()
 {
   auto firstVolume = readLockVolume(m_inputs[0]->output());
   auto bounds      = firstVolume->bounds();
-  auto spacing     = firstVolume->spacing();
+  auto spacing     = bounds.spacing();
 
   auto outputVolume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
   outputVolume->draw(firstVolume->itkImage());
@@ -195,7 +195,7 @@ void ImageLogicFilter::subtraction()
   }
 
   m_outputs[0]->setData(outputVolume);
-  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 }
 

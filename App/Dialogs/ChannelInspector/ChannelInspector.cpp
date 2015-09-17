@@ -338,8 +338,8 @@ void ChannelInspector::onChangesRejected()
 {
   bool modified = false;
 
-  auto volume = readLockVolume(m_channel->output());
-  NmVector3 spacing = volume->spacing();
+  auto volume  = readLockVolume(m_channel->output());
+  auto spacing = volume->bounds().spacing();
 
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != spacing[2])
   {
@@ -531,8 +531,8 @@ void ChannelInspector::initSliceView()
 //------------------------------------------------------------------------
 void ChannelInspector::initSpacingSettings()
 {
-  auto volume = readLockVolume(m_channel->output());
-  NmVector3 spacing = volume->spacing();
+  auto volume  = readLockVolume(m_channel->output());
+  auto spacing = volume->bounds().spacing();
 
   // prefer dots instead of commas
   QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);

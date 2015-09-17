@@ -57,7 +57,7 @@ namespace ESPINA {
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
     virtual bool isEmpty() const {return false;}
-    virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
+    virtual VolumeBounds bounds() const { return VolumeBounds(Bounds{0,1,0,1,0,1}, m_spacing);}
     virtual void setSpacing(const NmVector3& spacing){ m_spacing = spacing; }
     virtual NmVector3 spacing() const {return m_spacing;}
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
@@ -90,8 +90,11 @@ namespace ESPINA {
     virtual void set(DataSPtr data)
     { m_data = std::dynamic_pointer_cast<DummyData>(data); }
 
-    virtual Bounds bounds() const
+    virtual VolumeBounds bounds() const
     { return m_data->bounds(); }
+
+    virtual void setSpacing(const NmVector3& spacing)
+    { m_data->setSpacing(spacing); }
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)

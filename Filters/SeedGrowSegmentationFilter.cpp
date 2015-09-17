@@ -23,7 +23,7 @@
 #include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/StatePair.h>
 
 // C++
@@ -186,7 +186,7 @@ void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const Nm
   //       This was done when datas could be added to outputs
   //       Propably we should change that implementation when moving to
   //       single data approach
-  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
+  auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
   output->setData(mesh);
   mesh->setEditedRegions(BoundsList());
 
@@ -406,7 +406,7 @@ void SeedGrowSegmentationFilter::execute()
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
 
   m_outputs[0]->setSpacing(spacing);
 
@@ -445,8 +445,8 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
   if (!m_ROI) return false;
 
   auto volume    = readLockVolume(m_outputs[0], DataUpdatePolicy::Ignore);
-  auto spacing   = volume->spacing();
   auto boundsSeg = volume->bounds();
+  auto spacing   = boundsSeg.spacing();
 
   if(m_ROI->isOrthogonal())
   {

@@ -21,7 +21,7 @@
 // ESPINA
 #include "MorphologicalEditionFilter.h"
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 // Qt
@@ -129,7 +129,7 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
     volume->draw(output, bounds);
 
     m_outputs[0]->setData(volume);
-    m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+    m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
     m_outputs[0]->setSpacing(spacing); // it may change after re-execution
 
     m_prevRadius = m_radius;

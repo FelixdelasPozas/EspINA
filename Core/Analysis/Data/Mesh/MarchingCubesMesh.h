@@ -25,54 +25,57 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifndef ESPINA_MARCHING_CUBES_MESH_H
+#define ESPINA_MARCHING_CUBES_MESH_H
+
+#include "Core/EspinaCore_Export.h"
+
 // ESPINA
-#include "Data.h"
-#include "Output.h"
-#include "Filter.h"
+#include "RawMesh.h"
 
-using namespace ESPINA;
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkImageConstantPad.h>
+#include <vtkDiscreteMarchingCubes.h>
 
-//----------------------------------------------------------------------------
-TimeStamp Data::s_tick = 0;
-
-//----------------------------------------------------------------------------
-void Data::setFetchContext(const TemporalStorageSPtr storage,
-                           const QString &path,
-                           const QString &id,
-                           const VolumeBounds &bounds)
+namespace ESPINA
 {
-  QMutexLocker lock(&m_mutex);
-  m_path        = path;
-  m_id          = id;
-  m_bounds = bounds;
-  m_storage     = storage;
-  m_needFetch   = true;
-}
 
+  class EspinaCore_EXPORT MarchingCubesMesh
+  : public RawMesh
+  {
+  public:
+    /** \brief MarchingCubesMesh class constructor.
+     * \param[in] output to obtain the volumetric data from
+     *
+     * NOTE: this data doesn't updates the output to access its volumetric data
+     */
+    explicit MarchingCubesMesh(Output *output);
 
-//----------------------------------------------------------------------------
-void Data::copyFetchContext(DataSPtr data)
-{
-  m_path        = data->m_path;
-  m_id          = data->m_id;
-  m_bounds = data->m_bounds;
-  m_storage     = data->m_storage;
-}
+    /** \brief MarchingCubesMesh class virtual destructor.
+     *
+     */
+    virtual ~MarchingCubesMesh();
 
-//----------------------------------------------------------------------------
-bool Data::fetchData()
-{
-  QMutexLocker lock(&m_mutex);
+    virtual bool isValid() const override;
 
-  auto dataFetched = fetchDataImplementation(m_storage, m_path, m_id, m_bounds);
+    virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
-  m_needFetch = !dataFetched;
+    virtual TimeStamp lastModified() const override;
 
-  return dataFetched;
-}
+    /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
+     *
+     */
+    void updateMesh();
 
-//----------------------------------------------------------------------------
-QList<Data::Type> Data::dependencies() const
-{
-  return updateDependencies();
-}
+  private:
+    virtual QList<Data::Type> updateDependencies() const override;
+
+  private:
+    Output   *m_output;
+    TimeStamp m_lastVolumeModification;
+  };
+
+} // namespace ESPINA
+
+#endif // ESPINA_MARCHING_CUBES_MESH_H

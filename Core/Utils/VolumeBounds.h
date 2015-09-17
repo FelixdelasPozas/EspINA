@@ -64,21 +64,21 @@ namespace ESPINA
       { return m_spacing[0] > 0 && m_spacing[1] > 0 && m_spacing[2] > 0 && m_bounds.areValid(); }
 
       /** \brief VolumeBounds operator[]
-       * \param[in] idx, value in (0,5)
+       * \param[in] idx value in (0,5)
        *
        */
       const double& operator[](int idx) const
       { return m_bounds[idx]; }
 
       /** \brief Return the distance between both sides of the bounds in a given direction.
-       * \param[in] dir, axis direction.
+       * \param[in] dir axis direction.
        *
        */
       double lenght(const Axis dir) const
       { return m_bounds.lenght(dir); }
 
       /** \brief Sets volume origin.
-       * \param[in] origin.
+       * \param[in] origin
        *
        */
       void setOrigin(const NmVector3& origin)
@@ -91,7 +91,7 @@ namespace ESPINA
       { return m_origin; }
 
       /** \brief Sets volume spacing.
-       * \param[in] spacing.
+       * \param[in] spacing
        *
        */
       void setSpacing(const NmVector3& spacing)

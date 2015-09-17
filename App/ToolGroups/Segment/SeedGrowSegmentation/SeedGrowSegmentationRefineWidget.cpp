@@ -307,7 +307,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
   {
     auto volume = readLockVolume(output);
 
-    auto spacing = volume->spacing();
+    auto spacing = volume->bounds().spacing();
     auto roi     = m_roiTools->currentROI();
     auto seed    = m_filter->seed();
 

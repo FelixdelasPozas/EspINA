@@ -59,7 +59,7 @@
      </property>
      <property name="icon">
       <iconset resource="../../App/rsc/espina.qrc">
-       <normaloff>:/espina/up.png</normaloff>:/espina/up.png</iconset>
+       <normaloff>:/espina/up.svg</normaloff>:/espina/up.svg</iconset>
      </property>
      <property name="iconSize">
       <size>

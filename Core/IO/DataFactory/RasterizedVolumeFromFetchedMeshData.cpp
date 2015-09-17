@@ -47,8 +47,8 @@ namespace ESPINA
       if (!data->fetchData())
       {
         auto mesh       = fetchMeshData(output, storage, path, bounds);
-        auto spacing    = mesh->spacing();
         auto meshBounds = mesh->bounds();
+        auto spacing    = meshBounds.spacing();
 
         if (mesh)
         {

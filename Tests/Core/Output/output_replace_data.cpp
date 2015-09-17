@@ -33,7 +33,7 @@ using namespace ESPINA::Testing;
 
 int output_replace_data( int argc, char** argv )
 {
-  static Bounds modified{1,2,3,4,5,6};
+  static VolumeBounds modified(Bounds{1,2,3,4,5,6});
 
   class NoProxyData
   : public DummyData
@@ -42,7 +42,7 @@ int output_replace_data( int argc, char** argv )
     struct Invalid_Create_Proxy_Exception{};
 
   public:
-    virtual Bounds bounds() const
+    virtual VolumeBounds bounds() const
     { return modified; }
     virtual DataSPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
   };

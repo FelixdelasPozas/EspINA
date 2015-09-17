@@ -63,8 +63,6 @@ namespace ESPINA
     virtual ~VolumetricData()
     {}
 
-    virtual Bounds bounds() const = 0;
-
     virtual Data::Type type() const final
     { return TYPE; }
 
@@ -76,11 +74,6 @@ namespace ESPINA
      *
      */
     virtual void setOrigin(const NmVector3& origin) = 0;
-
-    /** \brief Returns the origin of the image.
-     *
-     */
-    virtual NmVector3 origin() const = 0;
 
     /** \brief Return a read only ItkImage equivalent to the whole volume representation.
      *
@@ -192,20 +185,16 @@ namespace ESPINA
    *  This function ensures the output is up to date by callig ouput::update() first
    */
   Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(Output          *output,
-                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                               throw (Unavailable_Output_Data_Exception);
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(OutputSPtr       output,
-                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                               throw (Unavailable_Output_Data_Exception);
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(Output          *output,
-                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                                 throw (Unavailable_Output_Data_Exception);
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(OutputSPtr       output,
-                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                                 throw (Unavailable_Output_Data_Exception);
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   /** \brief Returns true if the output has a volumetric data and false otherwise.
    * \param[in] output, Output object smart pointer.

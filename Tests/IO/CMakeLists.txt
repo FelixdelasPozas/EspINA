@@ -6,7 +6,7 @@ create_test_sourcelist(IO_Tests IO_Tests.cpp # this file is created by this comm
   io_load_seg_file_analysis_without_registered_filters.cpp
   io_classification_xml_io.cpp
   io_sgs_sas.cpp
-  io_skeleton.cpp
+#   io_skeleton.cpp
   io_save_merged_analysis.cpp
 )
 
@@ -23,4 +23,4 @@ add_test("\"IO: Analysis Seg File IO\""                      IO_Tests io_analysi
 add_test("\"IO: Load Seg File Without Registered Filters\""  IO_Tests io_load_seg_file_analysis_without_registered_filters)
 add_test("\"IO: Save Merged Analysis\""                      IO_Tests io_save_merged_analysis)
 add_test("\"IO: SGS SAS\""                                   IO_Tests io_sgs_sas)
-add_test("\"IO: Skeleton\""                                  IO_Tests io_skeleton)
+# add_test("\"IO: Skeleton\""                                  IO_Tests io_skeleton)

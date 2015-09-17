@@ -26,28 +26,24 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 Output::ReadLockData<DefaultVolumetricData> ESPINA::readLockVolume(Output *output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
 {
   return outputReadLockData<DefaultVolumetricData>(output, policy);
 }
 
 //----------------------------------------------------------------------------
 Output::ReadLockData<DefaultVolumetricData> ESPINA::readLockVolume(OutputSPtr output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
 {
   return readLockVolume(output.get(), policy);
 }
 
 //----------------------------------------------------------------------------
 Output::WriteLockData<DefaultVolumetricData> ESPINA::writeLockVolume(Output *output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
 {
   return outputWriteLockData<DefaultVolumetricData>(output, policy);
 }
 
 //----------------------------------------------------------------------------
 Output::WriteLockData<DefaultVolumetricData> ESPINA::writeLockVolume(OutputSPtr output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
 {
   return writeLockVolume(output.get(), policy);
 }

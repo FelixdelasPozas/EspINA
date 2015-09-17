@@ -48,6 +48,12 @@ namespace ESPINA
       explicit ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
       /** \brief ROI class constructor.
+       * \param[in] bounds initial bounds of the volume.
+       *
+       */
+      explicit ROI(const VolumeBounds &bounds);
+
+      /** \brief ROI class constructor.
        * \param[in] mask mask used as a volume.
        *
        */
@@ -122,10 +128,13 @@ namespace ESPINA
   template<class T>
   inline void ROI::applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const
   {
+    auto volumeOrigin  = volume->bounds().origin();
+    auto volumeSpacing = volume->bounds().spacing();
+
     if(!intersect(bounds(), volume->bounds()))
     {
       // erase the image
-      BinaryMaskSPtr<typename T::ValueType> mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume->bounds(), volume->spacing(), volume->origin()}};
+      auto mask = std::make_shared<BinaryMask<typename T::ValueType>>(volume->bounds(), volumeSpacing, volumeOrigin);
       mask->setForegroundValue(outsideValue);
       volume->draw(mask, outsideValue);
 
@@ -138,13 +147,13 @@ namespace ESPINA
     auto image = volume->itkImage(intersectionBounds);
 
     // erase the rest of the voxels
-    auto mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume->bounds(), volume->spacing(), volume->origin()}};
+    auto mask = std::make_shared<BinaryMask<typename T::ValueType>>(volume->bounds(), volumeSpacing, volumeOrigin);
     volume->draw(mask, outsideValue);
 
     BinaryMask<unsigned char>::const_region_iterator crit(this, intersectionBounds);
     crit.goToBegin();
 
-    if(spacing() == volume->spacing())
+    if(m_bounds.spacing() == volumeSpacing)
     {
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
       it.Begin();
@@ -161,7 +170,7 @@ namespace ESPINA
     else
     {
       // mask interpolation needed, more costly
-      auto spacing = this->spacing();
+      auto spacing = this->m_bounds.spacing();
 
       while(!crit.isAtEnd())
       {
@@ -192,7 +201,7 @@ namespace ESPINA
   template<class T>
   inline void ROI::applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const
   {
-    auto imageBounds = equivalentBounds<T>(volume, volume->GetLargestPossibleRegion());
+    auto imageBounds        = equivalentBounds<T>(volume);
     auto intersectionBounds = intersection(imageBounds, bounds());
 
     if (!intersectionBounds.areValid())
@@ -249,14 +258,20 @@ namespace ESPINA
       }
       else
       {
+        auto roiOrigin  = this->m_bounds.origin();
+        auto roiSpacing = this->m_bounds.spacing();
+
         while(!it.IsAtEnd())
         {
           if(it.Value() != SEG_VOXEL_VALUE)
           {
-            auto index = it.GetIndex();
+            auto index  = it.GetIndex();
             auto origin = image->GetOrigin();
-            NmVector3 point{ (index[0]+origin[0]) * roiSpacing[0], (index[1]*origin[1]) * roiSpacing[1], (index[2]*origin[2]) * roiSpacing[2]};
-            VolumeBounds vBounds{Bounds(point), this->spacing(), this->origin()};
+            NmVector3 point{ (index[0]+origin[0]) * roiSpacing[0],
+                             (index[1]*origin[1]) * roiSpacing[1],
+                             (index[2]*origin[2]) * roiSpacing[2]};
+
+            VolumeBounds vBounds{Bounds(point), roiSpacing, roiOrigin};
             auto region = equivalentRegion<T>(volume, vBounds.bounds());
             itk::ImageRegionIterator<T> rit(volume, region);
             rit.GoToBegin();

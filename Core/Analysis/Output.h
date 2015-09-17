@@ -294,8 +294,9 @@ namespace ESPINA
 
   private:
     template<typename T>
-    std::shared_ptr<T> data(const Data::Type &type) const throw (Unavailable_Output_Data_Exception)
+    std::shared_ptr<T> data(const Data::Type &type) const
     {
+      QReadLocker lock(&m_lock);
       if (!m_data.contains(type)) throw Unavailable_Output_Data_Exception();
 
       return std::dynamic_pointer_cast<T>(m_data.value(type));
@@ -316,7 +317,8 @@ namespace ESPINA
 
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataSPtr>       m_data;
+    mutable QReadWriteLock     m_lock;
+    QMap<Data::Type, DataSPtr> m_data;
   };
 
   using OutputIdList = QList<Output::Id>;

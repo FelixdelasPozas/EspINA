@@ -55,8 +55,6 @@ namespace ESPINA
 
     virtual DataSPtr createProxy() const override final;
 
-    Bounds bounds() const                override;
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
 
     /** \brief Returns the vtkPolyData smart pointer object.
@@ -72,6 +70,8 @@ namespace ESPINA
   protected:
     // Default implementation
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override = 0;
+
+    VolumeBounds meshBounds(vtkSmartPointer<vtkPolyData> mesh, const NmVector3 &spacing, const NmVector3 &origin) const;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const

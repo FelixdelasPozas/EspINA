@@ -83,18 +83,14 @@ namespace ESPINA {
     virtual size_t memoryUsage() const override
     { return 0; }
 
-    virtual Bounds bounds() const override;
+    virtual VolumeBounds bounds() const override;
 
     virtual void setOrigin(const NmVector3& origin) override
     { m_origin = origin; }
 
-    virtual NmVector3 origin() const override
-    { return m_origin; }
-
     virtual void setSpacing(const NmVector3& spacing) override
     { m_spacing = spacing; }
 
-    virtual NmVector3 spacing() const override;
 
     virtual const typename T::Pointer itkImage() const override;
 
@@ -198,7 +194,7 @@ namespace ESPINA {
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Bounds StreamedVolume<T>::bounds() const
+  VolumeBounds StreamedVolume<T>::bounds() const
   {
     if (!isValid()) throw File_Not_Found_Exception();
 
@@ -209,16 +205,9 @@ namespace ESPINA {
 
     typename T::Pointer image = reader->GetOutput();
 
-    return equivalentBounds<T>(m_origin, m_spacing, image->GetLargestPossibleRegion());
-  }
+    auto bounds = equivalentBounds<T>(m_origin, m_spacing, image->GetLargestPossibleRegion());
 
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  NmVector3 StreamedVolume<T>::spacing() const
-  {
-    if (!isValid()) throw File_Not_Found_Exception();
-
-    return m_spacing;
+    return VolumeBounds(bounds, m_spacing, m_origin);
   }
 
   //-----------------------------------------------------------------------------

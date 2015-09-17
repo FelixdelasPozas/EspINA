@@ -73,7 +73,7 @@ namespace ESPINA
       return m_data->memoryUsage();
     }
 
-    virtual Bounds bounds() const override
+    virtual VolumeBounds bounds() const override
     {
       return m_data->bounds();
     }
@@ -83,19 +83,9 @@ namespace ESPINA
       m_data->setOrigin(origin);
     }
 
-    virtual NmVector3 origin() const override
-    {
-      return m_data->origin();
-    }
-
     virtual void setSpacing(const NmVector3& spacing) override
     {
       m_data->setSpacing(spacing);
-    }
-
-    virtual NmVector3 spacing() const override
-    {
-      return m_data->spacing();
     }
 
     virtual const typename T::Pointer itkImage() const override

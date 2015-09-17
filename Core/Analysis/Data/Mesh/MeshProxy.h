@@ -69,14 +69,11 @@ namespace ESPINA
     virtual bool needFetch() const override
     { return m_data->needFetch(); }
 
-    virtual Bounds bounds() const override
+    virtual VolumeBounds bounds() const override
     { return m_data->bounds(); }
 
     virtual void setSpacing(const NmVector3& spacing) override
     { m_data->setSpacing(spacing); }
-
-    virtual NmVector3 spacing() const override
-    { return m_data->spacing(); }
 
     virtual TimeStamp lastModified() const override
     { return m_data->lastModified(); }

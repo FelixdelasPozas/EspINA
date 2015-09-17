@@ -225,11 +225,11 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
       ++numberOfDatas;
     }
 
-    if (hasSkeletonData(output))
-    {
-      checkSkeletonIsEmpty();
-      ++numberOfDatas;
-    }
+//     if (hasSkeletonData(output))
+//     {
+//       checkSkeletonIsEmpty();
+//       ++numberOfDatas;
+//     }
 
     if (numberOfDatas == 0)
     {
@@ -300,14 +300,14 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkSkeletonIsEmpty() const
 {
-  auto skeleton = readLockSkeleton(m_segmentation->output());
-
-  if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
-  {
-    auto description = tr("Segmentation has a skeleton associated but is empty");
-
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
-  }
+//   auto skeleton = readLockSkeleton(m_segmentation->output());
+//
+//   if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
+//   {
+//     auto description = tr("Segmentation has a skeleton associated but is empty");
+//
+//     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+//   }
 }
 
 //------------------------------------------------------------------------

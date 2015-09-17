@@ -22,7 +22,7 @@
 #include "ErodeFilter.h"
 #include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>

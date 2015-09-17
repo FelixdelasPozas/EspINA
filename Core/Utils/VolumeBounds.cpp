@@ -294,12 +294,24 @@ bool ESPINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 //-----------------------------------------------------------------------------
 VolumeBounds ESPINA::changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing)
 {
-  auto origin      = bounds.origin();
-  auto prevSpacing = bounds.spacing();
+  VolumeBounds result;
 
-  auto region = equivalentRegion<itkVolumeType>(origin, prevSpacing, bounds);
+  if (bounds.areValid())
+  {
+    auto origin      = bounds.origin();
+    auto prevSpacing = bounds.spacing();
 
-  return volumeBounds<itkVolumeType>(origin, spacing, region);
+    auto region = equivalentRegion<itkVolumeType>(origin, prevSpacing, bounds);
+
+    result = volumeBounds<itkVolumeType>(origin, spacing, region);
+  }
+  else
+  {
+    result.setOrigin(bounds.origin()*spacing/bounds.spacing());
+    result.setSpacing(spacing);
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------

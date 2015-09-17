@@ -37,27 +37,27 @@ namespace ESPINA
   {
   }
   
-  //----------------------------------------------------------------------------
-  Bounds SkeletonData::bounds() const
-  {
-    Bounds result;
-
-    auto skeletonData = this->skeleton();
-
-    if(skeletonData != nullptr)
-    {
-      Nm bounds[6];
-
-      skeletonData->GetBounds(bounds);
-
-      Bounds polyDataBounds{bounds[0], bounds[1], bounds[2],
-                            bounds[3], bounds[4], bounds[5]};
-
-      result = VolumeBounds{polyDataBounds, spacing(), NmVector3{0,0,0}}.bounds();
-    }
-
-    return result;
-  }
+//   //----------------------------------------------------------------------------
+//   Bounds SkeletonData::bounds() const
+//   {
+//     Bounds result;
+//
+//     auto skeletonData = this->skeleton();
+//
+//     if(skeletonData != nullptr)
+//     {
+//       Nm bounds[6];
+//
+//       skeletonData->GetBounds(bounds);
+//
+//       Bounds polyDataBounds{bounds[0], bounds[1], bounds[2],
+//                             bounds[3], bounds[4], bounds[5]};
+//
+//       result = VolumeBounds{polyDataBounds, spacing(), NmVector3{0,0,0}}.bounds();
+//     }
+//
+//     return result;
+//   }
 
   //----------------------------------------------------------------------------
   bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)

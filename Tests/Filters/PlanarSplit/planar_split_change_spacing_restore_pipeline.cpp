@@ -76,6 +76,9 @@ int planar_split_change_spacing_restore_pipeline( int argc, char** argv )
   auto segmentation2 = splitSegmentations[0];
   auto segmentation3 = splitSegmentations[1];
 
+  cerr << segmentation2->output()->bounds() << endl;
+  cerr << segmentation3->output()->bounds() << endl;
+
   error |= dilate(segmentation2);
   error |= dilate(segmentation3);
 
@@ -109,6 +112,9 @@ int planar_split_change_spacing_restore_pipeline( int argc, char** argv )
 
       return false;
     };
+
+    cerr << analysis2->segmentations()[0]->output()->bounds() << endl;
+    cerr << analysis2->segmentations()[1]->output()->bounds() << endl;
 
     error |= checkSegmentations(analysis2, 2)
           || checkFilterType<DilateFilter>(analysis2->segmentations()[0])

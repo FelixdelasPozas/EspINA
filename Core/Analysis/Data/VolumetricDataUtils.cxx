@@ -85,7 +85,7 @@ namespace ESPINA
   {
     Bounds bounds{point};
 
-    bool result = contains(volume->bounds(), bounds, volume->spacing());
+    bool result = contains(volume->bounds(), bounds, volume->bounds().spacing());
 
     if (result)
     {
@@ -112,7 +112,7 @@ namespace ESPINA
 
     if (!drawingBounds.areValid())
     {
-      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume);
     }
 
     volume->resize(boundingBox(drawingBounds, volume->bounds()));
@@ -127,7 +127,7 @@ namespace ESPINA
 
     if (!drawingBounds.areValid())
     {
-      drawingBounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+      drawingBounds = equivalentBounds<T>(drawnVolume);
     }
 
     volume->resize(boundingBox(drawingBounds, volume->bounds()));
@@ -138,7 +138,7 @@ namespace ESPINA
   template<class T>
   void expandAndDraw(Output::WriteLockData<VolumetricData<T>> &volume, const BinaryMaskSPtr<unsigned char> &mask)
   {
-    volume->resize(boundingBox(mask->bounds().bounds(), volume->bounds()));
+    volume->resize(boundingBox(mask->bounds(), volume->bounds()));
     volume->draw(mask, mask->foregroundValue());
   }
 

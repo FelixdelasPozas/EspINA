@@ -327,12 +327,14 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   auto validSeed = true;
 
+  auto volumeSpacing = volume->bounds().spacing();
+
   if(currentROI)
   {
-    validSeed = contains(currentROI.get(), seed, volume->spacing());
+    validSeed = contains(currentROI.get(), seed, volumeSpacing);
   }
 
-  validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
+  validSeed &= contains(volume->bounds(), seedBounds, volumeSpacing);
 
   if (validSeed)
   {

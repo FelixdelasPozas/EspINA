@@ -76,9 +76,9 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
 
   if (isVisible(state) && hasVolumetricData(channel->output()))
   {
-    auto volume       = readLockVolume(channel->output());
-    auto sliceBounds  = volume->bounds();
-    auto reslicePoint = crosshairPosition(m_plane, state);
+    auto volume        = readLockVolume(channel->output());
+    auto reslicePoint  = crosshairPosition(m_plane, state);
+    Bounds sliceBounds = volume->bounds();
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {

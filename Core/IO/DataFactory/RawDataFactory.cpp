@@ -42,12 +42,12 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
     }
     else if (MeshData::TYPE == requestedType)
     {
-      data = std::make_shared<RawMesh>(bounds.spacing(), bounds.origin());
+      data = std::make_shared<RawMesh>();
     }
-    else if (SkeletonData::TYPE == requestedType)
-    {
-      data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
-    }
+//     else if (SkeletonData::TYPE == requestedType)
+//     {
+//       data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
+//     }
 
     if (data)
     {

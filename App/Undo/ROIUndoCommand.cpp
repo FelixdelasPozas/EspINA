@@ -38,9 +38,9 @@ namespace ESPINA
     else
     {
       m_bounds = roi->bounds();
-      if(intersect(m_bounds, m_mask->bounds().bounds(), roi->spacing()))
+      if(intersect(m_bounds, m_mask->bounds()))
       {
-        auto bounds = intersection(m_bounds, m_mask->bounds().bounds());
+        auto bounds = intersection(m_bounds, m_mask->bounds());
         m_image = roi->itkImage(bounds);
       }
     }

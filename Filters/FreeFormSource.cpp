@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <GUI/ModelFactory.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
@@ -99,7 +99,7 @@ void FreeFormSource::execute(Output::Id id)
     m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 
   reportProgress(100);

@@ -59,7 +59,7 @@ int output_concurrent_write_data( int argc, char** argv )
 
     cout << "Write Task started" << endl;
 
-    if (writeData->spacing() != data->spacing()) {
+    if (writeData->bounds().spacing() != data->spacing()) {
       cerr << "Unxpected output data spacing" << endl;
       error = true;
     }
@@ -68,7 +68,10 @@ int output_concurrent_write_data( int argc, char** argv )
 
     writeData->setSpacing({2, 2, 2});
 
-    cout << "Write Task finished" << endl;
+    if (writeData->bounds().spacing() != NmVector3{2, 2, 2}) {
+      cerr << "Unxpected output data spacing " << writeData->bounds().spacing() << endl;
+      error = true;
+    }
   }));
 
   usleep(100);
@@ -78,8 +81,8 @@ int output_concurrent_write_data( int argc, char** argv )
 
     cout << "Read Task started" << endl;
 
-    if (readData->spacing() != NmVector3{2, 2, 2}) {
-      cerr << "Unxpected output data spacing" << endl;
+    if (readData->bounds().spacing() != NmVector3{2, 2, 2}) {
+      cerr << "Unxpected output data spacing " << readData->bounds().spacing() << endl;
       error = true;
     }
 

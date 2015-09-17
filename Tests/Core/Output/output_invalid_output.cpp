@@ -39,7 +39,7 @@ class InvalidData
 {
 public:
   virtual DataSPtr createProxy() const;
-  virtual Bounds bounds() const { return Bounds(); }
+  virtual VolumeBounds bounds() const { return VolumeBounds(); }
   virtual void setSpacing(const NmVector3& spacing){}
   virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
   virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}

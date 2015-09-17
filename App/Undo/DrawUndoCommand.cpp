@@ -22,7 +22,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/SignalBlocker.h>
 #include <Undo/DrawUndoCommand.h>
 
@@ -46,7 +46,7 @@ private:
   {
     auto output = m_segmentation->output();
 
-    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get());
+    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
     output->setData(mesh);
 
     m_segmentation->invalidateRepresentations();
@@ -71,15 +71,15 @@ DrawUndoCommand::DrawUndoCommand(Support::Context &context,
     auto volume = readLockVolume(seg->output());
     m_bounds = volume->bounds();
 
-    if(intersect(m_bounds, mask->bounds().bounds(), volume->spacing()))
+    if(intersect(m_bounds, mask->bounds()))
     {
-      auto bounds = intersection(m_bounds, mask->bounds().bounds());
+      auto bounds = intersection(m_bounds, mask->bounds());
       m_image  = volume->itkImage(bounds);
     }
   }
   else
   {
-    m_bounds = mask->bounds().bounds();
+    m_bounds = mask->bounds();
     m_image  = mask->itkImage();
   }
 }
@@ -102,7 +102,7 @@ void DrawUndoCommand::redo()
     volume->draw(m_image);
 
     output->setData(volume);
-    //output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
+    //output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
   }
 
   Task::submit(m_updateMesh);

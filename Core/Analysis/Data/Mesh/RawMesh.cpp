@@ -34,45 +34,42 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawMesh::RawMesh(const NmVector3             &spacing,
-                 const NmVector3             &origin)
+RawMesh::RawMesh()
 : m_mesh(nullptr)
-, m_spacing(spacing)
-, m_origin(origin)
 {
 }
+
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  const NmVector3             &spacing,
                  const NmVector3             &origin)
 : m_mesh(mesh)
-, m_spacing(spacing)
-, m_origin(origin)
 {
+  m_bounds = meshBounds(mesh, spacing, origin);
 }
 
 
 //----------------------------------------------------------------------------
-void RawMesh::setSpacing(const NmVector3 &newSpacing)
+void RawMesh::setSpacing(const NmVector3 &spacing)
 {
-  if(m_mesh != nullptr)
+  auto prevSpacing = m_bounds.spacing();
+  if(m_mesh)
   {
-    Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
-    NmVector3 ratio{newSpacing[0]/m_spacing[0],
-                    newSpacing[1]/m_spacing[1],
-                    newSpacing[2]/m_spacing[2]};
+    Q_ASSERT(spacing[0] != 0 && spacing[1] != 0 && spacing[2] != 0);
+    auto ratio = spacing / prevSpacing;
 
     PolyDataUtils::scalePolyData(m_mesh, ratio);
     updateModificationTime();
   }
 
-  m_spacing = m_spacing;
+  m_bounds = changeSpacing(m_bounds, spacing);
 }
 
 //----------------------------------------------------------------------------
 void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
-  m_mesh = mesh;
+  m_mesh        = mesh;
+  m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
 
   BoundsList editedRegions;
   if (m_mesh)
@@ -80,13 +77,25 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
     editedRegions << bounds();
   }
   setEditedRegions(editedRegions);
+
+  updateModificationTime();
+}
+
+//----------------------------------------------------------------------------
+bool RawMesh::isValid() const
+{
+  return m_bounds.areValid() && !needFetch();
+}
+
+//----------------------------------------------------------------------------
+bool RawMesh::isEmpty() const
+{
+  return !m_mesh || m_mesh->GetNumberOfCells() == 0;
 }
 
 //----------------------------------------------------------------------------
 size_t RawMesh::memoryUsage() const
 {
-  if (m_mesh)
-    return m_mesh->GetActualMemorySize();
-
-  return 0;
+  const int BYTES = 1024;
+  return m_mesh?m_mesh->GetActualMemorySize()*BYTES:0;
 }

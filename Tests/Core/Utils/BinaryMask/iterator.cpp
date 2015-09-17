@@ -51,7 +51,7 @@ int iterator(int argc, char** argv)
   it.goToEnd();
   try
   {
-    unsigned char test = it.Get();
+    cerr << it.Get();
     error |= true;
   }
   catch(BMask::Out_Of_Bounds_Exception const &e)

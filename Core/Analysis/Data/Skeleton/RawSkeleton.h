@@ -83,8 +83,6 @@ namespace ESPINA
 
       void setSpacing(const NmVector3 &spacing) override;
 
-      NmVector3 spacing() const override;
-
       size_t memoryUsage() const override;
 
     protected:

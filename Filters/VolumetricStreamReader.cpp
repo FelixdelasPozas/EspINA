@@ -132,23 +132,24 @@ void VolumetricStreamReader::execute()
     throw File_Not_Found_Exception();
   }
 
-  auto volume = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
+  auto volume  = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
+  auto spacing = volume->bounds().spacing();
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = std::make_shared<Output>(this, 0, volume->spacing());
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
   m_outputs[0]->setData(volume);
 
   if (m_outputs[0]->spacing() == NmVector3())
   {
-    m_outputs[0]->setSpacing(volume->spacing());
+    m_outputs[0]->setSpacing(spacing);
   }
   else
   {
     volume->setSpacing(m_outputs[0]->spacing());
   }
 
-  qDebug() << "Loading Channel with Spacing" << volume->spacing();
+  qDebug() << "Loading Channel with Spacing" << volume->bounds().spacing();
 }

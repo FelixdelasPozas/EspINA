@@ -64,9 +64,9 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-  ToolGroups/Segment/Skeleton/SkeletonTool.h
-  ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
-  ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
+#   ToolGroups/Segment/Skeleton/SkeletonTool.h
+#   ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
+#   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h
@@ -174,9 +174,9 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
-  ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
-  ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
+#   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+#   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
+#   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp

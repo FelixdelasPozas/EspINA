@@ -35,25 +35,6 @@ MeshData::MeshData()
 }
 
 //----------------------------------------------------------------------------
-Bounds MeshData::bounds() const
-{
-  Bounds result;
-
-  auto meshPolyData = mesh();
-
-  if (meshPolyData)
-  {
-    Nm bounds[6];
-
-    meshPolyData->GetBounds(bounds);
-
-    result = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
-  }
-
-  return result;
-}
-
-//----------------------------------------------------------------------------
 bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)
 {
   bool dataFetched = false;
@@ -71,8 +52,29 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
     }
   }
 
+  Q_ASSERT((!m_bounds.areValid() && !bounds.areValid()) ||  m_bounds == bounds);
+  m_bounds = bounds;
+
   return dataFetched;
 }
+
+//----------------------------------------------------------------------------
+VolumeBounds MeshData::meshBounds(vtkSmartPointer<vtkPolyData> mesh, const NmVector3 &spacing, const NmVector3 &origin) const
+{
+  Bounds result;
+
+  if (mesh && mesh->GetNumberOfCells() > 0)
+  {
+    Nm bounds[6];
+
+    mesh->GetBounds(bounds);
+
+    result = Bounds(bounds);
+  }
+
+  return VolumeBounds(result, spacing, origin);
+}
+
 
 //----------------------------------------------------------------------------
 Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
@@ -80,6 +82,7 @@ Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, co
   Snapshot snapshot;
 
   auto currentMesh = mesh();
+
   if (currentMesh)
   {
     QString fileName = snapshotFilename(path, id);

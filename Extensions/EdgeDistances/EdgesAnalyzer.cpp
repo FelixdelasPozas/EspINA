@@ -50,7 +50,7 @@ EdgesAnalyzer::~EdgesAnalyzer()
 void EdgesAnalyzer::run()
 {
   //qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
-  auto volume  = readLockVolume(m_extension->m_extendedItem->output());
+  auto volume = readLockVolume(m_extension->m_extendedItem->output());
 
   m_useDistanceToBounds = 0;
 

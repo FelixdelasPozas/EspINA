@@ -326,8 +326,10 @@ Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 {
   auto channel = m_extension->extendedItem();
   auto volume  = readLockVolume(channel->output());
+  auto origin  = volume->bounds().origin();
+  auto spacing = volume->bounds().spacing();
 
-  VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
+  VolumeBounds volumeBounds(bounds, spacing, origin);
 
   return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
 }

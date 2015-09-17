@@ -256,7 +256,7 @@ namespace ESPINA
   template<typename T>
   bool RasterizedVolume<T>::isValid() const
   {
-    return (this->m_bounds.areValid() && (!this->m_blocks.isEmpty() || this->m_output->hasData(MeshData::TYPE)));
+    return SparseVolume<T>::isValid() || this->m_output->hasData(MeshData::TYPE);
   }
 
   //----------------------------------------------------------------------------
@@ -285,7 +285,10 @@ namespace ESPINA
       return;
     }
 
-    double minSpacing = std::min(this->m_spacing[0], std::min(this->m_spacing[1], this->m_spacing[2]));
+    auto origin  = this->m_bounds.origin();
+    auto spacing = this->m_bounds.spacing();
+
+    double minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
     double meshBounds[6];
     double point[3];
 
@@ -294,10 +297,10 @@ namespace ESPINA
     distance->SetTolerance(0);
 
     mesh->GetBounds(meshBounds);
-    auto rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
+    auto rasterizationBounds = Bounds{meshBounds};
 
-    auto region = equivalentRegion<T>(this->m_origin, this->m_spacing, rasterizationBounds);
-    typename T::Pointer image = create_itkImage<T>(rasterizationBounds, SEG_BG_VALUE, this->m_spacing, this->m_origin);
+    auto region = equivalentRegion<T>(origin, spacing, rasterizationBounds);
+    typename T::Pointer image = create_itkImage<T>(rasterizationBounds, SEG_BG_VALUE, spacing, origin);
 
     itk::ImageRegionIteratorWithIndex<T> it(image, image->GetLargestPossibleRegion());
     it.GoToBegin();
@@ -307,7 +310,7 @@ namespace ESPINA
 
       for(auto i: {0,1,2})
       {
-        point[i] = index[i] * this->m_spacing[i];
+        point[i] = index[i] * spacing[i];
       }
 
       if (std::abs(distance->EvaluateFunction(point)) <= minSpacing)
@@ -323,7 +326,11 @@ namespace ESPINA
     }
     m_rasterizationTime = mesh->GetMTime();
 
-    const_cast<RasterizedVolume<T> *>(this)->SparseVolume<T>::draw(image);
+    auto const_this = const_cast<RasterizedVolume<T> *>(this);
+
+    auto regions = this->editedRegions();
+    const_this->SparseVolume<T>::draw(image);
+    const_this->setEditedRegions(regions);
 
     this->m_mutex.unlock();
     //const_cast<RasterizedVolume<T> *>(this)->draw(image);

@@ -21,7 +21,7 @@
  // ESPINA
 #include "ManualEditionTool.h"
 
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SourceFilter.h>
@@ -115,7 +115,7 @@ void ManualEditionTool::updateReferenceItem(SegmentationAdapterPtr segmentation)
   m_drawingWidget.setCanErase(validVolume);
 
   auto output  = m_referenceItem->output();
-  auto origin  = readLockVolume(output)->origin();
+  auto origin  = readLockVolume(output)->bounds().origin();
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);
@@ -162,7 +162,8 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
   painter->setStrokeVisibility(false);
 
-  auto volume = readLockVolume(m_referenceItem->output());
+  auto volume        = readLockVolume(m_referenceItem->output());
+  auto volumeBounds  = volume->bounds();
   auto strokePainter = painter->strokePainter();
 
   auto canvas = strokePainter->strokeCanvas();
@@ -172,11 +173,11 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
   canvas->GetExtent(extent);
   auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-  m_validStroke = intersect(volume->bounds(), view->previewBounds(false), volume->spacing());
+  m_validStroke = intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
 
   if (m_validStroke)
   {
-    auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
+    auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
 
     auto slice = volume->itkImage(bounds);
 

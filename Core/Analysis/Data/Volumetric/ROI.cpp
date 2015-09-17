@@ -34,6 +34,13 @@ ROI::ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin
 }
 
 //-----------------------------------------------------------------------------
+ROI::ROI(const VolumeBounds &bounds)
+: SparseVolume{bounds}
+, m_isOrthogonal{true}
+{
+}
+
+//-----------------------------------------------------------------------------
 ROI::ROI(const BinaryMaskSPtr<unsigned char> mask)
 : SparseVolume<itkVolumeType>{mask->bounds().bounds(), mask->spacing(), mask->origin()}
 , m_isOrthogonal{false}
@@ -99,7 +106,7 @@ void ROI::draw(const typename itkVolumeType::IndexType &index,
 //-----------------------------------------------------------------------------
 ROISPtr ROI::clone() const
 {
-  ROISPtr newROI{new ROI(bounds(), spacing(), origin())};
+  auto newROI = std::make_shared<ROI>(bounds());
 
   if (!isOrthogonal())
   {
@@ -119,9 +126,7 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
   if (m_storage->exists(volumeBounds))
   {
 
-    m_bounds  = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
-    m_origin  = m_bounds.origin();
-    m_spacing = m_bounds.spacing();
+    m_bounds = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
 
     m_isOrthogonal = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, temporalStorageId(id), m_bounds);
 
@@ -164,13 +169,13 @@ bool ESPINA::contains(ROIPtr roi, NmVector3 point, NmVector3 spacing)
   //-----------------------------------------------------------------------------
   void ESPINA::expandAndDraw(ROIPtr roi, const BinaryMaskSPtr<unsigned char> mask)
   {
-    if(contains(roi->bounds(), mask->bounds().bounds(), roi->spacing()))
+    if(contains(roi->bounds(), mask->bounds()))
     {
       roi->draw(mask, mask->foregroundValue());
     }
     else
     {
-      roi->resize(boundingBox(roi->bounds(), mask->bounds().bounds()));
+      roi->resize(boundingBox(roi->bounds(), mask->bounds()));
       roi->draw(mask, mask->foregroundValue());
     }
   }

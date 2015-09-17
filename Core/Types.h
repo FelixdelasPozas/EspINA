@@ -80,6 +80,9 @@ namespace ESPINA
 
   using Hue = unsigned short int;
 
+  class RawMesh;
+  using RawMeshPtr = RawMesh *;
+  using RawMeshSPtr = std::shared_ptr<RawMesh>;
 } // namespace ESPINA
 
 #endif// Types_H

@@ -21,7 +21,7 @@
 
 #include "SegmhaReader.h"
 
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Sample.h>
@@ -235,7 +235,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
       volume->draw(segmentationVolume);
 
       output->setData(volume);
-      output->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(output.get()));
+      output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
       output->setSpacing(spacing);
 
       sourceFilter->addOutput(id, output);

@@ -153,10 +153,10 @@ void ROIWidget::onROIChanged()
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
 {
-  auto bounds = m_ROI->bounds();
-  auto normal = slicingNormal();
+  Bounds bounds = m_ROI->bounds();
+  auto   normal = slicingNormal();
 
-  bounds[2 * normal] = bounds[(2 * normal) + 1] = reslicePosition();
+  bounds[2*normal] = bounds[(2*normal) + 1] = reslicePosition();
 
   bounds.setUpperInclusion(toAxis(normal), true);
 

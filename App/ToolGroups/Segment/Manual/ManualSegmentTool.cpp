@@ -22,7 +22,7 @@
 #include "ManualSegmentTool.h"
 
 #include <Core/Analysis/Data/VolumetricData.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -207,7 +207,7 @@ void ManualSegmentTool::setInitialStroke()
   m_drawingWidget.setCanErase(false);
 
   auto output  = m_referenceItem->output();
-  auto origin  = readLockVolume(output)->origin();
+  auto origin  = readLockVolume(output)->bounds().origin();
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);
@@ -241,7 +241,7 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 
   filter->addOutputData(0, volume);
 
-  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(filter->output(0).get());
+  auto mesh = std::make_shared<MarchingCubesMesh>(filter->output(0).get());
 
   filter->addOutputData(0, mesh);
 
@@ -293,7 +293,8 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 
   if (!showStroke)
   {
-    auto volume = readLockVolume(m_referenceItem->output());
+    auto volume  = readLockVolume(m_referenceItem->output());
+    auto spacing = volume->bounds().spacing();
     auto strokePainter = painter->strokePainter();
 
     auto canvas = strokePainter->strokeCanvas();
@@ -303,11 +304,11 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     canvas->GetExtent(extent);
     auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-    m_validStroke = intersect(volume->bounds(), view->previewBounds(false), volume->spacing());
+    m_validStroke = intersect(volume->bounds(), view->previewBounds(false), spacing);
 
     if (m_validStroke)
     {
-      auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
+      auto bounds = intersection(volume->bounds(), view->previewBounds(false), spacing);
 
       auto slice = volume->itkImage(bounds);
 

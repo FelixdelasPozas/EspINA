@@ -168,44 +168,44 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 //----------------------------------------------------------------------------
 void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation &representation, Support::Context &context) const
 {
-  auto scheduler   = context.scheduler();
-  auto colorEngine = context.colorEngine();
-  auto &timer      = context.timer();
-
-  auto skeletonSettings     = std::make_shared<SegmentationSlicePoolSettings>(); // TODO: create SkeletonPoolSettings
-  auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
-  auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
-  auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);
-  auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipeline2DSkeletonXY, scheduler, WINDOW_SIZE);
-  auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipeline2DSkeletonXZ, scheduler, WINDOW_SIZE);
-  auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipeline2DSkeletonYZ, scheduler, WINDOW_SIZE);
-  auto skeletonManager2D    = std::make_shared<SliceManager>(poolSkeleton2DXY, poolSkeleton2DXZ, poolSkeleton2DYZ);
-
-  auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
-  auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineSkeleton3D);
-  auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
-
-  poolSkeleton2DXY->setSettings(skeletonSettings);
-  poolSkeleton2DXZ->setSettings(skeletonSettings);
-  poolSkeleton2DYZ->setSettings(skeletonSettings);
-
-  skeletonManager2D->setName(QObject::tr("Skeleton 2D Representation"));
-  skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
-  skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
-
-  auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>("SkeletonSwitch", skeletonManager2D, ViewType::VIEW_2D, timer, context);
-
-  poolSkeleton3D->setSettings(skeletonSettings);
-
-  skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
-  skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
-  skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
-
-  auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>("Skeleton3DSwitch", skeletonManager3D, ViewType::VIEW_3D, timer, context);
-
-  representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ << poolSkeleton3D;
-  representation.Managers << skeletonManager2D << skeletonManager3D;
-  representation.Switches << skeletonSwitch2D << skeletonSwitch3D;
+//   auto scheduler   = context.scheduler();
+//   auto colorEngine = context.colorEngine();
+//   auto &timer      = context.timer();
+//
+//   auto skeletonSettings     = std::make_shared<SegmentationSlicePoolSettings>(); // TODO: create SkeletonPoolSettings
+//   auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
+//   auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
+//   auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);
+//   auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipeline2DSkeletonXY, scheduler, WINDOW_SIZE);
+//   auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipeline2DSkeletonXZ, scheduler, WINDOW_SIZE);
+//   auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipeline2DSkeletonYZ, scheduler, WINDOW_SIZE);
+//   auto skeletonManager2D    = std::make_shared<SliceManager>(poolSkeleton2DXY, poolSkeleton2DXZ, poolSkeleton2DYZ);
+//
+//   auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
+//   auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineSkeleton3D);
+//   auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
+//
+//   poolSkeleton2DXY->setSettings(skeletonSettings);
+//   poolSkeleton2DXZ->setSettings(skeletonSettings);
+//   poolSkeleton2DYZ->setSettings(skeletonSettings);
+//
+//   skeletonManager2D->setName(QObject::tr("Skeleton 2D Representation"));
+//   skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
+//   skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
+//
+//   auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>("SkeletonSwitch", skeletonManager2D, ViewType::VIEW_2D, timer, context);
+//
+//   poolSkeleton3D->setSettings(skeletonSettings);
+//
+//   skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
+//   skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
+//   skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
+//
+//   auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>("Skeleton3DSwitch", skeletonManager3D, ViewType::VIEW_3D, timer, context);
+//
+//   representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ << poolSkeleton3D;
+//   representation.Managers << skeletonManager2D << skeletonManager3D;
+//   representation.Switches << skeletonSwitch2D << skeletonSwitch3D;
 }
 
 //----------------------------------------------------------------------------

@@ -371,14 +371,14 @@ void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
 
   if (prevROI)
   {
-    addOrthogonalROI(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
+    addOrthogonalROI(prevROI->bounds());
   }
 
   m_orthogonalROI->setROI(roi); // this roi can now be edited
 }
 
 //-----------------------------------------------------------------------------
-void RestrictToolGroup::addOrthogonalROI(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+void RestrictToolGroup::addOrthogonalROI(const VolumeBounds& bounds)
 {
   if (m_accumulator)
   {
@@ -387,7 +387,7 @@ void RestrictToolGroup::addOrthogonalROI(const Bounds& bounds, const NmVector3& 
   }
   else
   {
-    auto roi = std::make_shared<ROI>(bounds, spacing, origin);
+    auto roi = std::make_shared<ROI>(bounds);
 
     roi->draw(bounds, SEG_VOXEL_VALUE);
 

@@ -61,8 +61,8 @@ int pipeline_single_filter( int argc, char** argv )
       FilterSPtr filter;
 
       if (type == "SGS") {
-        filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setDataFactory(DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()});
+        filter = make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
+        filter->setDataFactory(make_shared<MarchingCubesFromFetchedVolumetricData>());
       }
 
       return filter;
@@ -71,19 +71,19 @@ int pipeline_single_filter( int argc, char** argv )
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = make_shared<CoreFactory>();
+  factory->registerFilterFactory(make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  auto channel = make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -93,7 +93,7 @@ int pipeline_single_filter( int argc, char** argv )
   InputSList inputs;
   inputs << channel->asInput();
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
+  auto segFilter = make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   segFilter->update();
 
   auto segVolume = readLockVolume(segFilter->output(0));
@@ -103,7 +103,7 @@ int pipeline_single_filter( int argc, char** argv )
     error = true;
   }
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segmentation = make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -117,7 +117,7 @@ int pipeline_single_filter( int argc, char** argv )
     error = true;
   }
 
-  AnalysisSPtr analysis2;
+  auto analysis2 = make_shared<Analysis>();
   try
   {
    analysis2 = SegFile::load(file, factory);
@@ -158,7 +158,7 @@ int pipeline_single_filter( int argc, char** argv )
       error = true;
     }
 
-    TemporalStorageSPtr tmpStorage(new TemporalStorage());
+    auto tmpStorage = make_shared<TemporalStorage>();
     for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
     {
       if (snapshot.first.contains("EditedRegion"))

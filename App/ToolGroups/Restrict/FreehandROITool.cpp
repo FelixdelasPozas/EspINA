@@ -84,7 +84,10 @@ void FreehandROITool::ROIChanged(ROISPtr roi)
 
   if(value)
   {
-    m_drawingWidget.setMaskProperties(roi->spacing(), roi->origin());
+    auto origin  = roi->bounds().origin();
+    auto spacing = roi->bounds().spacing();
+    
+    m_drawingWidget.setMaskProperties(spacing, origin);
   }
 }
 
@@ -111,7 +114,7 @@ void FreehandROITool::updateReferenceItem(ChannelAdapterPtr channel)
   Q_ASSERT(channel);
 
   auto output  = channel->output();
-  auto origin  = readLockVolume(output)->origin();
+  auto origin  = readLockVolume(output)->bounds().origin();
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);

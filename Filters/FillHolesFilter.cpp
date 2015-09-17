@@ -23,7 +23,7 @@
 #include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 
 // ITK
 #include <itkBinaryFillholeImageFilter.h>
@@ -108,11 +108,11 @@ void FillHolesFilter::execute(Output::Id id)
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[0].get()));
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 }
 

@@ -67,6 +67,16 @@ int planar_split_change_spacing( int argc, char** argv )
   auto segmentation2 = splitSegmentations[0];
   auto segmentation3 = splitSegmentations[1];
 
+//   {
+//     cerr << "Before" << endl;
+//     auto volume2 = readLockVolume(segmentation2->output());
+//     auto mesh2   = readLockMesh(segmentation2->output());
+//
+//     cerr << segmentation2->output()->bounds() << endl;
+//     cerr << volume2->bounds() << endl;
+//     cerr << mesh2->bounds() << endl;
+//   }
+
   analysis.remove(segmentation1);
   analysis.add(segmentation2);
   analysis.add(segmentation3);
@@ -76,6 +86,16 @@ int planar_split_change_spacing( int argc, char** argv )
   NmVector3 prevStencil(split->stencil()->GetSpacing());
 
   analysis.changeSpacing(channel, NmVector3{4,2,4});
+
+//   {
+//     cerr << "After" << endl;
+//     auto volume2 = readLockVolume(segmentation2->output());
+//     auto mesh2   = readLockMesh(segmentation2->output());
+//
+//     cerr << segmentation2->output()->bounds() << endl;
+//     cerr << volume2->bounds() << endl;
+//     cerr << mesh2->bounds() << endl;
+//   }
 
   NmVector3 stencil(split->stencil()->GetSpacing());
 

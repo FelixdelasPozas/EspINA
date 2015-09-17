@@ -164,17 +164,13 @@ namespace ESPINA
     /** \brief Returns the bounds of the contained data.
      *
      */
-    virtual Bounds bounds() const = 0;
+    virtual VolumeBounds bounds() const
+    { return m_bounds; }
 
     /** \brief Sets the spacing of the data.
      *
      */
     virtual void setSpacing(const NmVector3& spacing) = 0;
-
-    /** \brief Returns the spacing of the data.
-     *
-     */
-    virtual NmVector3 spacing() const = 0;
 
     /** \brief Returns true if the object has been edited.
      *
@@ -231,7 +227,7 @@ namespace ESPINA
     QString             m_path;
     QString             m_id;
     TemporalStorageSPtr m_storage;
-    VolumeBounds        m_fetchBounds;
+    VolumeBounds        m_bounds;
 
   private:
     bool         m_needFetch;

@@ -22,7 +22,7 @@
 #include "SplitFilter.h"
 #include <Core/Types.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
@@ -159,7 +159,7 @@ void SplitFilter::execute()
         m_outputs[i] = std::make_shared<Output>(this, i, spacing);
       }
       m_outputs[i]->setData(volume);
-      m_outputs[i]->setData(std::make_shared<MarchingCubesMesh<itkVolumeType>>(m_outputs[i].get()));
+      m_outputs[i]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[i].get()));
       m_outputs[i]->setSpacing(spacing);
 
       reportProgress(75 + 25*i);

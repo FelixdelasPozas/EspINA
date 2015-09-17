@@ -37,13 +37,7 @@ namespace ESPINA
   : public MeshData
   {
   public:
-    /** \brief RawMesh class constructor.
-     * \param[in] spacing spacing of origin volume.
-     * \param[in] output smart pointer of associated output.
-     *
-     */
-    explicit RawMesh(const NmVector3 &spacing = NmVector3{1,1,1},
-                     const NmVector3 &origin  = NmVector3{0,0,0});
+    explicit RawMesh();
 
     /** \brief RawMesh class constructor.
      * \param[in] mesh vtkPolyData smart pointer.
@@ -61,11 +55,11 @@ namespace ESPINA
     virtual ~RawMesh()
     {};
 
-    virtual bool isValid() const override
-    { return (m_mesh.Get() != nullptr); }
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
-    virtual bool isEmpty() const override
-    { return !isValid(); }
+    virtual bool isValid() const override;
+
+    virtual bool isEmpty() const override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override
     { return MeshData::snapshot(storage, path, id); }
@@ -78,17 +72,12 @@ namespace ESPINA
     { return MeshData::snapshot(storage, path, id); };
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
-    { fetchDataImplementation(storage, path, id, VolumeBounds(bounds(), spacing(), m_origin)); }
+    { fetchDataImplementation(storage, path, id, m_bounds); }
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const       override
+    virtual vtkSmartPointer<vtkPolyData> mesh() const override
     { return m_mesh; }
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
-
-    void setSpacing(const NmVector3&) override;
-
-    NmVector3 spacing() const override
-    { return m_spacing; }
+    void setSpacing(const NmVector3 &spacing) override;
 
     size_t memoryUsage() const override;
 
@@ -112,12 +101,7 @@ namespace ESPINA
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
-    NmVector3 m_spacing;
-    NmVector3 m_origin;
   };
-
-  using RawMeshPtr = RawMesh *;
-  using RawMeshSPtr = std::shared_ptr<RawMesh>;
 }
 
 #endif // ESPINA_RAW_MESH_H

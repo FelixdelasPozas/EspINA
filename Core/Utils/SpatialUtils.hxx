@@ -111,6 +111,13 @@ namespace ESPINA
 
   /** \brief Return the minimum complete bounds for any image of given origin and spacing.
    * \param[in] image itk image smart pointer.
+   *
+   */
+  template<typename T>
+  VolumeBounds volumeBounds(const typename T::Pointer image);
+
+  /** \brief Return the minimum complete bounds for any image of given origin and spacing.
+   * \param[in] image itk image smart pointer.
    * \param[in] region region to translate.
    *
    */

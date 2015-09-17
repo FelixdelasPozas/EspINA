@@ -92,22 +92,12 @@ namespace ESPINA
 
     virtual size_t memoryUsage() const override;
 
-    virtual Bounds bounds() const override;
-
     /** \brief Sets the origin of the volume.
      *
      */
     virtual void setOrigin(const NmVector3& origin) override;
 
-    /** \brief Returns the origin of the volume.
-     *
-     */
-    virtual NmVector3 origin() const override;
-
     virtual void setSpacing(const NmVector3& spacing) override;
-
-    virtual NmVector3 spacing() const override
-    { return m_spacing; }
 
     /** \brief Returns the equivalent itk image of the volume.
      *
@@ -179,10 +169,6 @@ namespace ESPINA
     { return QList<Data::Type>(); }
 
   protected:
-    NmVector3    m_origin;
-    NmVector3    m_spacing;
-    VolumeBounds m_bounds;
-
     typename T::Pointer m_image;
   };
 
@@ -190,10 +176,8 @@ namespace ESPINA
   template<typename T>
   RawVolume<T>::RawVolume(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
   : VolumetricData<T>()
-  , m_origin {origin}
-  , m_spacing{spacing}
   {
-    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
+    this->m_bounds = VolumeBounds(bounds, spacing, origin);
 
     this->setBackgroundValue(SEG_BG_VALUE);
 
@@ -204,11 +188,9 @@ namespace ESPINA
   template<typename T>
   RawVolume<T>::RawVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
   : VolumetricData<T>()
-  , m_origin {origin}
-  , m_spacing{spacing}
   {
     m_image  = volume;
-    m_bounds = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
+    this->m_bounds = volumeBounds<T>(m_image);
   }
 
   //-----------------------------------------------------------------------------
@@ -216,10 +198,8 @@ namespace ESPINA
   RawVolume<T>::RawVolume(const typename T::Pointer volume)
   : VolumetricData<T>()
   {
-    m_image   = volume;
-    m_spacing = ToNmVector3<T>(m_image->GetSpacing());
-    m_origin  = ToNmVector3<T>(m_image->GetOrigin());
-    m_bounds  = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
+    m_image       = volume;
+    this->m_bounds = volumeBounds<T>(m_image);
   }
 
   //-----------------------------------------------------------------------------
@@ -231,41 +211,26 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Bounds RawVolume<T>::bounds() const
-  {
-    return m_bounds.bounds();
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
   void RawVolume<T>::setOrigin(const NmVector3& origin)
   {
     //NmVector3 shift = m_origin - origin;
     m_image->SetOrigin(ItkPoint<T>(origin));
     m_image->Update();
 
-    m_origin = origin;
-    m_bounds = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  NmVector3 RawVolume<T>::origin() const
-  {
-    return m_origin;
+    this->m_bounds = volumeBounds<T>(m_image);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void RawVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    if (m_spacing != spacing)
+    auto prevSpacing = this->m_bounds.spacing();
+    if (prevSpacing != spacing)
     {
       m_image->SetSpacing(ItkSpacing<T>(spacing));
       m_image->Update();
 
-      m_spacing = spacing;
-      m_bounds  = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
+      this->m_bounds = volumeBounds<T>(m_image);
     }
   }
 
@@ -285,11 +250,13 @@ namespace ESPINA
       throw Invalid_Image_Bounds_Exception();
     }
 
-    VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
+    auto origin  = this->m_bounds.origin();
+    auto spacing = this->m_bounds.spacing();
+    VolumeBounds expectedBounds(bounds, spacing, origin);
 
-    if (!contains(m_bounds, expectedBounds))
+    if (!contains(this->m_bounds, expectedBounds))
     {
-      qDebug() << m_bounds;
+      qDebug() << this->m_bounds;
       qDebug() << expectedBounds;
       throw Invalid_Image_Bounds_Exception();
     }
@@ -368,7 +335,7 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::isValid() const
   {
-    return m_bounds.areValid() && !this->needFetch();
+    return this->m_bounds.areValid() && !this->needFetch();
   }
 
   //-----------------------------------------------------------------------------
@@ -484,7 +451,7 @@ namespace ESPINA
     int regionId = 0;
     for(auto region : regions)
     {
-      auto editedBounds = intersection(region, bounds());
+      auto editedBounds = intersection(region, this->bounds());
       if (editedBounds.areValid())
       {
         auto snapshotId    = editedRegionSnapshotId(id, regionId);

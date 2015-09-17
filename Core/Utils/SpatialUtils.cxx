@@ -158,6 +158,13 @@ VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds)
 
 //-----------------------------------------------------------------------------
 template<typename T>
+VolumeBounds volumeBounds(const typename T::Pointer image)
+{
+  return volumeBounds<T>(image, equivalentBounds<T>(image, image->GetLargestPossibleRegion()));
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region)
 {
   return volumeBounds<T>(image, equivalentBounds<T>(image, region));
@@ -165,10 +172,10 @@ VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::Reg
 
 //-----------------------------------------------------------------------------
 template<typename T>
-Bounds leftSliceBounds(const  T &volume)
+Bounds leftSliceBounds(const T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[1] = slice[0] + spacing[0]/2.0;
 
@@ -179,8 +186,8 @@ Bounds leftSliceBounds(const  T &volume)
 template<typename T>
 Bounds rightSliceBounds(const  T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[0] = slice[1] - spacing[0]/2.0;
 
@@ -191,8 +198,8 @@ Bounds rightSliceBounds(const  T &volume)
 template<typename T>
 Bounds topSliceBounds(const  T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[3] = slice[2] + spacing[1]/2.0;
 
@@ -203,8 +210,8 @@ Bounds topSliceBounds(const  T &volume)
 template<typename T>
 Bounds bottomSliceBounds(const  T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[2] = slice[3] - spacing[1]/2.0;
 
@@ -215,8 +222,8 @@ Bounds bottomSliceBounds(const  T &volume)
 template<typename T>
 Bounds frontSliceBounds(const  T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[5] = slice[4] + spacing[2]/2.0;
 
@@ -227,8 +234,8 @@ Bounds frontSliceBounds(const  T &volume)
 template<typename T>
 Bounds backSliceBounds(const  T &volume)
 {
-  auto slice   = volume->bounds();
-  auto spacing = volume->spacing();
+  Bounds slice = volume->bounds();
+  auto spacing = volume->bounds().spacing();
 
   slice[4] = slice[5] - spacing[2]/2.0;
 

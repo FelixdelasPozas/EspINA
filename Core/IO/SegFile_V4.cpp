@@ -546,7 +546,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
               else
               {
                 bounds.insert(output, volume.bounds());
-                spacings.insert(output, volume.spacing());
+                spacings.insert(output, volume.bounds().spacing());
               }
             }
           }
