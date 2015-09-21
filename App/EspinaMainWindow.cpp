@@ -345,10 +345,9 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
   {
-    QMessageBox warning;
-    warning.setWindowTitle(tr("ESPINA"));
-    warning.setText(tr("ESPINA has pending actions. Do you really want to quit anyway?"));
-    if (QMessageBox::Ok != warning.exec())
+    auto answer = DefaultDialogs::UserConfirmation(tr("ESPINA has pending actions. Do you really want to quit anyway?"),
+                                                   tr("ESPINA"));
+    if(answer == false)
     {
       event->ignore();
       return;
