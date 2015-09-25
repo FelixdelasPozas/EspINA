@@ -36,7 +36,9 @@ sudo apt-get -y install cmake
 #sudo apt-get -y upgrade
 ```
 ### rest of dependencies (bundle)
-
+```sh
+sudo apt-get -y install g++ gcc autoconf automake cmake-curses-gui libqt4-dev zlib1g-dev freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev libboost-regex-dev #g++-4.4
+```
 
 ## How do I get it?
 ```sh
