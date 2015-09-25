@@ -58,7 +58,7 @@ cd ../..
 ```
 
 #-> Compile VTK 6
-Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
+###Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
 ```sh
 sudo apt-get -y install freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev
 ```
@@ -82,7 +82,7 @@ cd ../..
 ```
 
 #-> Compile ITK 4.4.2
-Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
+###Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
 ```sh
 sudo apt-get -y install freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev
 ```
@@ -109,7 +109,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
 ```
 
 #-> Compile ESPINA
-##Ubuntu dependencies: libboost-regex-dev
+###Ubuntu dependencies: libboost-regex-dev
 ```sh
 sudo apt-get -y install libboost-regex-dev
 ```
@@ -145,6 +145,7 @@ make -jN
 
 
 #-> Script for Ubuntu (tested in Ubuntu-14.04.3)
+###Remember to change the make -j3 option depending on the number of cores that you have
 ```sh
 #!/bin/bash
 
