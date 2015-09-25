@@ -18,14 +18,15 @@ EspINA relies in several external libraries, namely:
 - Metadona (optional)
 
 ## Compilation dependencies
+### cmake
 ```sh
 sudo apt-get -y install cmake
 ```
-# (ccmake)
+### ccmake
 ```sh
 sudo apt-get -y install cmake-curses-gui
 ```
-Or download latest version of cmake
+### Or download latest version of cmake
 ```sh
 sudo apt-get -y install software-properties-common
 read
@@ -34,6 +35,8 @@ sudo apt-get -y update
 sudo apt-get -y install cmake
 #sudo apt-get -y upgrade
 ```
+### rest of dependencies (bundle)
+
 
 ## How do I get it?
 ```sh
