@@ -25,7 +25,7 @@ sudo apt-get -y install cmake
 ```sh
 sudo apt-get -y install cmake-curses-gui
 ```
-Or download last version of cmake
+Or download latest version of cmake
 ```sh
 sudo apt-get -y install software-properties-common
 read
