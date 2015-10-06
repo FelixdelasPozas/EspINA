@@ -29,6 +29,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 
 // VTK
@@ -63,10 +64,7 @@ RenderView::RenderView(ViewState &state, ViewType type)
 , m_state(state)
 , m_selection{state.selection()}
 , m_type {type}
-, m_requiresCameraReset{true}
-, m_requiresFocusChange{false}
-, m_requiresRender{false}
-, m_lastRender{Timer::INVALID_TIME_STAMP}
+, m_latestFrame{Frame::InvalidFrame()}
 {
   connectSignals();
 }
@@ -86,21 +84,15 @@ TimeStamp RenderView::timeStamp() const
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  connect(&m_state,      SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
-          manager.get(), SLOT(onCrosshairChanged(NmVector3,TimeStamp)));
-
-  connect(&m_state,      SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
-          manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
-
-  connect(&m_state,      SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
-          manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
+  connect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
+          manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
 
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderRequest()), Qt::QueuedConnection);
 
   configureManager(manager);
 
-  manager->setView(this);
+  manager->setView(this, m_latestFrame);
 
   m_managers << manager;
 }
@@ -110,14 +102,8 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 {
   if (m_managers.removeOne(manager))
   {
-    disconnect(&m_state, SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-               manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
-
-    disconnect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
-               manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
-
-    disconnect(&m_state, SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
-               manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
+    disconnect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
+               manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
 
     disconnect(manager.get(), SIGNAL(renderRequested()),
                this,          SLOT(onRenderRequest()));
@@ -260,12 +246,6 @@ void RenderView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-bool RenderView::requiresCameraReset() const
-{
-  return m_requiresCameraReset;
-}
-
-//-----------------------------------------------------------------------------
 bool RenderView::hasVisibleRepresentations() const
 {
   for (auto manager : m_managers)
@@ -344,9 +324,13 @@ void RenderView::reset()
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onCameraResetPressed()
+void RenderView::resetCamera()
 {
-  resetCamera();
+  auto frame = m_state.createFrame();
+
+  frame->reset = true;
+
+  onCameraReset(frame);
   refresh();
 }
 
@@ -370,16 +354,14 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::resetCamera()
+void RenderView::onCameraReset(FrameCSPtr frame)
 {
-  m_requiresCameraReset = true;
+  //TODO
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
-  m_requiresRender = true;
-
   onRenderRequest();
 }
 
@@ -395,23 +377,20 @@ void RenderView::connectSignals()
   connect(this,     SIGNAL(viewFocusedOn(NmVector3)),
           &m_state, SLOT(focusViewOn(NmVector3)));
 
-  connect(&m_state, SIGNAL(resetCameraRequested()),
-          this,     SLOT(resetCamera()));
+  connect(&m_state, SIGNAL(resetCamera(GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onCameraReset(GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(refreshRequested()),
-          this,     SLOT(refresh()));
+//   connect(&m_state, SIGNAL(refreshRequested()),
+//           this,     SLOT(refresh()));
 
-  connect(&m_state, SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
-          this,     SLOT(onCrosshairChanged(NmVector3)));
+  connect(&m_state, SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onCrosshairChanged(GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
-          this,     SLOT(onSceneResolutionChanged(NmVector3)));
+  connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
-          this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
-
-  connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)),
-          this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
   connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
           this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
@@ -419,24 +398,27 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
           this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
 
-  connect(&m_state, SIGNAL(viewFocusChanged(NmVector3)),
-          this,     SLOT(onFocusChanged(NmVector3)));
+//   connect(&m_state, SIGNAL(viewFocusChanged(NmVector3)),
+//           this,     SLOT(onFocusChanged(NmVector3)));
+
+  connect(m_state.coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
+          this,                             SLOT(onSceneResolutionChanged(NmVector3)));
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
-           this,                              SLOT(onSceneBoundsChanged(Bounds)));
+           this,                             SLOT(onSceneBoundsChanged(Bounds)));
 }
 
-//-----------------------------------------------------------------------------
-void RenderView::onFocusChanged(NmVector3 point)
-{
-  m_focusPoint = point;
-  m_requiresFocusChange = true;
+// //-----------------------------------------------------------------------------
+// void RenderView::onFocusChanged(NmVector3 point)
+// {
+//   m_focusPoint = point;
+//   m_requiresFocusChange = true;
+//
+//   onRenderRequest();
+// }
 
-  onRenderRequest();
-}
-
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
+void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, const GUI::Representations::FrameCSPtr frame)
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
@@ -446,7 +428,7 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 
       addRepresentationManager(manager);
 
-      manager->show(t);
+      manager->show(frame);
 
       m_temporalManagers[prototypes] = manager;
     }
@@ -458,7 +440,7 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t)
+void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, const GUI::Representations::FrameCSPtr frame)
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
@@ -466,7 +448,7 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, TimeStamp t
     {
       auto manager = m_temporalManagers[prototypes];
 
-      manager->hide(t);
+      manager->hide(frame);
 
     //NOTE: managers should be removed from m_temporalManagers after processing render
     //      request of t so they can hide its representations
@@ -484,53 +466,41 @@ void RenderView::onRenderRequest()
   if (!isVisible()) return;
 
   auto readyManagers = pendingManagers();
-  auto renderTime = latestReadyTimeStamp(readyManagers);
 
-  if (m_lastRender < renderTime)
+  auto frame = latestReadyFrame(readyManagers);
+
+  if (m_latestFrame->time < frame->time)
   {
     //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
     //     m_timer.restart();
-    display(readyManagers, renderTime);
+    display(readyManagers, frame);
 
     //qDebug() << viewName() << ": Update actors:" << renderTime;
-
-    m_requiresRender = true;
-    m_lastRender = renderTime;
 
     m_state.timer().activate();
 
     deleteInactiveWidgetManagers();
-  }
 
-  if (hasVisibleRepresentations() && requiresCameraReset())
-  {
-    resetCameraImplementation();
-    //qDebug() << viewName() << ": Reset camera:" << renderTime;
+    if (hasVisibleRepresentations() && frame->reset)
+    {
+      resetCameraImplementation();
+      //qDebug() << viewName() << ": Reset camera:" << renderTime;
+    }
 
-    m_requiresCameraReset = false;
-    m_requiresRender = true;
-  }
+    if (frame->focus)
+    {
+      moveCamera(frame->crosshair);
+    }
 
-  if (m_requiresFocusChange)
-  {
-    m_requiresFocusChange = false;
+    updateViewActions(managerFlags());
 
-    moveCamera(m_focusPoint);
+    refreshViewImplementation();
 
-    m_requiresRender = true;
-  }
-
-  updateViewActions(managerFlags());
-
-  refreshViewImplementation();
-
-  if (m_requiresRender)
-  {
     //     qDebug() << viewName() << "Rendering frame" << renderTime;
     mainRenderer()->ResetCameraClippingRange();
     m_view->update();
 
-    m_requiresRender = false;
+    m_latestFrame = frame;
   }
 }
 
@@ -593,9 +563,11 @@ RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSLis
 }
 
 //-----------------------------------------------------------------------------
-TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) const
+FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) const
 {
   TimeStamp latest = Timer::INVALID_TIME_STAMP;
+
+  RepresentationManagerSPtr activeManager;
 
   if (!managers.isEmpty())
   {
@@ -609,11 +581,12 @@ TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) 
 
       if (manager->isActive())
       {
+        activeManager = manager;
         activeManagers++;
 
-        for(auto timeStamp: manager->readyRange())
+        for(auto time: manager->readyRange())
         {
-          count[timeStamp] = count.value(timeStamp, 0) + 1;
+          count[time] = count.value(time, 0) + 1;
         }
       }
     }
@@ -623,7 +596,7 @@ TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) 
     {
       //qDebug() << viewName() << "Frames Availabe: " << count;
 
-      for(auto time: count.keys())
+      for(auto time : count.keys())
       {
         // We allow display of managers which are pending a hide request
         // even it is not synched with the current frame
@@ -636,26 +609,26 @@ TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) 
         }
       }
     }
-    else
-    {
-      // We don't care about the actual frame as all managers are pending to
-      // hide their actors. We only need to be greater than the last render
-      // time stamp so it actually performs a display on every manager
-      latest = m_lastRender + 1;
-    }
+//     else
+//     {
+//       // We don't care about the actual frame as all managers are pending to
+//       // hide their actors. We only need to be greater than the last render
+//       // time stamp so it actually performs a display on every manager
+//       latest = m_lastRender + 1;
+//     }
 
     //qDebug() << viewName() << "Latest common frame "<< latest;
   }
 
-  return latest;
+  return (activeManager && latest != Timer::INVALID_TIME_STAMP)?activeManager->frame(latest):Frame::InvalidFrame();
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
+void RenderView::display(RepresentationManagerSList managers, const GUI::Representations::FrameCSPtr frame)
 {
   for (auto manager : managers)
   {
-    manager->display(t);
+    manager->display(frame);
   }
 }
 

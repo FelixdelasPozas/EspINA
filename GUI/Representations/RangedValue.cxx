@@ -69,7 +69,7 @@ namespace ESPINA
   template<typename R>
   void RangedValue<R>::addValue(R representation, TimeStamp t)
   {
-    if(m_lastTime < t)
+    if(m_lastTime < t || m_representations.isEmpty())
     {
       m_lastTime = t;
     }

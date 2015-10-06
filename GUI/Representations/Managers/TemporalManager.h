@@ -125,8 +125,6 @@ namespace ESPINA
 
           virtual ~TemporalManager();
 
-          virtual TimeRange readyRangeImplementation() const override;
-
           virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
           virtual void setPlane(Plane plane) override;
@@ -143,11 +141,11 @@ namespace ESPINA
         private:
           virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+          virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
-          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
+          virtual void changeCrosshair(const FrameCSPtr frame) override;
 
-          virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
+          virtual void changeSceneResolution(const FrameCSPtr frame) override;
 
           virtual void onShow(TimeStamp t) override;
 
@@ -164,12 +162,6 @@ namespace ESPINA
 
           Plane m_plane;
           Nm    m_depth;
-
-          enum Type {INIT, CROSSHAIR, RESOLUTION };
-
-          using Action = QPair<Type, NmVector3>;
-
-          RangedValue<Action> m_pendingActions;
 
           TemporalRepresentationSPtr  m_representation;
         };

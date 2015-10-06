@@ -49,13 +49,13 @@ ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews()
 //----------------------------------------------------------------------------
 void BasicRepresentationSwitch::showRepresentations(TimeStamp t)
 {
-  m_manager->show(t);
+  m_manager->show(m_manager->frame(t));
 }
 
 //----------------------------------------------------------------------------
 void BasicRepresentationSwitch::hideRepresentations(TimeStamp t)
 {
-  m_manager->hide(t);
+  m_manager->hide(m_manager->frame(t));
 }
 
 //----------------------------------------------------------------------------

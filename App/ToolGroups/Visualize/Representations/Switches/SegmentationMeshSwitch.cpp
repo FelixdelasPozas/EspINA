@@ -73,11 +73,11 @@ void SegmentationMeshSwitch::showRepresentations(TimeStamp t)
 {
   if(m_smooth->value() != 0)
   {
-    m_smoothedMeshManager->show(t);
+    m_smoothedMeshManager->show(m_smoothedMeshManager->frame(t));
   }
   else
   {
-    m_meshManager->show(t);
+    m_meshManager->show(m_meshManager->frame(t));
   }
 }
 
@@ -86,11 +86,11 @@ void SegmentationMeshSwitch::hideRepresentations(TimeStamp t)
 {
   if(m_smooth->value() != 0)
   {
-    m_smoothedMeshManager->hide(t);
+    m_smoothedMeshManager->hide(m_smoothedMeshManager->frame(t));
   }
   else
   {
-    m_meshManager->hide(t);
+    m_meshManager->hide(m_meshManager->frame(t));
   }
 }
 
@@ -166,13 +166,13 @@ void SegmentationMeshSwitch::switchManagers()
 
   if(m_smoothEnabled)
   {
-    m_meshManager->hide(t);
-    m_smoothedMeshManager->show(t);
+    m_meshManager->hide(m_meshManager->frame(t));
+    m_smoothedMeshManager->show(m_smoothedMeshManager->frame(t));
   }
   else
   {
-    m_smoothedMeshManager->hide(t);
-    m_meshManager->show(t);
+    m_smoothedMeshManager->hide(m_smoothedMeshManager->frame(t));
+    m_meshManager->show(m_meshManager->frame(t));
   }
 }
 

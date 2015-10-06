@@ -19,6 +19,7 @@
 
 // ESPINA
 #include "RepresentationManager.h"
+#include "Frame.h"
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
@@ -33,7 +34,6 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, Manag
 , m_status{Status::IDLE}
 , m_flags {flags}
 , m_supportedViews{supportedViews}
-, m_lastRenderRequestTime{Timer::INVALID_TIME_STAMP}
 {
 }
 
@@ -98,46 +98,42 @@ RepresentationManager::ManagerFlags RepresentationManager::flags() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::setView(RenderView *view)
+void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
   m_view = view;
 
-  auto t = view->timeStamp();
-
-  m_crosshair  = m_view->crosshair();
-  m_resolution = m_view->sceneResolution();
-  m_bounds     = m_view->sceneBounds();
+  m_frames.addValue(frame, frame->time);
 
   if (m_isActive)
   {
-    updateRepresentations(t);
+    updateRepresentations(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::show(TimeStamp t)
+void RepresentationManager::show(const GUI::Representations::FrameCSPtr frame)
 {
   m_isActive = true;
 
   if (m_view)
   {
-    updateRepresentations(t);
+    updateRepresentations(frame);
   }
 
   for (auto child : m_childs)
   {
-    child->show(t);
+    child->show(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::hide(TimeStamp t)
+void RepresentationManager::hide(const GUI::Representations::FrameCSPtr frame)
 {
   m_isActive = false;
 
   if (m_view)
   {
-    onHide(t);
+    onHide(frame->time);
 
     //qDebug() << debugName() << "Requested hide" << t;
 
@@ -145,13 +141,13 @@ void RepresentationManager::hide(TimeStamp t)
     {
       waitForDisplay();
 
-      emitRenderRequest(t);
+      emitRenderRequest(frame);
     }
   }
 
   for (auto child : m_childs)
   {
-    child->hide(t);
+    child->hide(frame);
   }
 }
 
@@ -170,37 +166,66 @@ bool RepresentationManager::isIdle() const
 //-----------------------------------------------------------------------------
 TimeRange RepresentationManager::readyRange() const
 {
-  TimeRange range;
-
-  if (isActive())
-  {
-    range = readyRangeImplementation();
-  }
-  else
-  {
-    range << m_lastRenderRequestTime;
-  }
-
-  return range;
+  return m_frames.timeRange();
+//   TimeRange range;
+//
+//   if (isActive())
+//   {
+//     range = readyRangeImplementation();
+//   }
+//   else
+//   {
+//     range << m_latestFrame->time;
+//   }
+//
+//   return range;
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::display(TimeStamp t)
+FrameCSPtr RepresentationManager::frame(TimeStamp t) const
+{
+  auto result = std::make_shared<Frame>();
+
+  if (t <= m_frames.lastTime())
+  {
+    auto value = m_frames.value(t);
+
+    result->time = t;
+    result->crosshair = value->crosshair;
+    result->resolution = value->resolution;
+    result->bounds = value->bounds;
+    result->focus = value->focus;
+    result->reset = value->reset;
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+FrameCSPtr RepresentationManager::lastFrame() const
+{
+  return frame(m_frames.lastTime());
+}
+
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::display(const GUI::Representations::FrameCSPtr frame)
 {
   Q_ASSERT(m_view);
 
   if (isActive())
   {
     //qDebug() << debugName() << "Display actors at" << t;
-    displayRepresentations(t);
+    displayRepresentations(frame->time);
+    m_frames.invalidatePreviousValues(frame->time);
   }
   else
   {
     //qDebug() << debugName() << "Hide frame" << m_lastRenderRequestTime << "at" << t;
-    hideRepresentations(m_lastRenderRequestTime);
+    hideRepresentations(m_frames.lastTime());
   }
 
-  if (!hasNewerFrames(t))
+  if (!hasNewerFrames(frame->time))
   {
     //qDebug() << debugName() << "Displayed las frame" << t;
     idle();
@@ -233,12 +258,20 @@ QString RepresentationManager::debugName() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp t)
+void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
-  if (acceptCrosshairChange(crosshair))
-  {
-    m_crosshair = crosshair;
+  if (!frame->isValid()) return;
 
+  auto lastFrame = m_frames.last();
+
+  if (!lastFrame->isValid()
+    || acceptCrosshairChange(frame->crosshair)
+    || acceptSceneResolutionChange(frame->resolution)
+    || acceptSceneBoundsChange(frame->bounds)
+    || frame->focus != lastFrame->focus
+    || frame->reset != lastFrame->reset
+  )
+  {
     if (isActive())
     {
       if(hasRepresentations())
@@ -246,48 +279,17 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp t)
         waitForDisplay();
       }
 
-      changeCrosshair(crosshair, t);
+      changeCrosshair(frame);
+      changeSceneResolution(frame);
+      changeSceneBounds(frame);
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
-{
-  if (acceptSceneResolutionChange(resolution))
+  else if (!isIdle())
   {
-    m_resolution = resolution;
-
-    if (isActive())
-    {
-      if(hasRepresentations())
-      {
-        waitForDisplay();
-      }
-
-      changeSceneResolution(m_resolution, t);
-    }
+    m_frames.reusePreviousValue(frame->time);
   }
 }
 
-//-----------------------------------------------------------------------------
-void RepresentationManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp t)
-{
-  if (acceptSceneBoundsChange(bounds))
-  {
-    m_bounds = bounds;
-
-    if (isActive())
-    {
-      if(hasRepresentations())
-      {
-        waitForDisplay();
-      }
-
-      changeSceneBounds(m_bounds, t);
-    }
-  }
-}
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::setFlag(const FlagValue flag, const bool value)
@@ -305,28 +307,34 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
 //-----------------------------------------------------------------------------
 NmVector3 RepresentationManager::currentCrosshair() const
 {
-  return m_crosshair;
+  return m_frames.last()->crosshair;
 }
 
 //-----------------------------------------------------------------------------
 NmVector3 RepresentationManager::currentSceneResolution() const
 {
-  return m_resolution;
+  return m_frames.last()->resolution;
 }
 
 //-----------------------------------------------------------------------------
 Bounds RepresentationManager::currentSceneBounds() const
 {
-  return m_bounds;
+  return m_frames.last()->bounds;
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
+  emitRenderRequest(frame(t));
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
+{
   //qDebug() << debugName() << "Requested to emit renderRequested at" << t;
-  if(t > m_lastRenderRequestTime)
+  if(m_frames.isEmpty() || frame->time > m_frames.lastTime())
   {
-    m_lastRenderRequestTime = t;
+    m_frames.addValue(frame, frame->time);
 
     //qDebug() << debugName() << "Emit renderRequested at" << t;
     emit renderRequested();
@@ -337,7 +345,7 @@ void RepresentationManager::emitRenderRequest(TimeStamp t)
 void RepresentationManager::invalidateRepresentations()
 {
   // qDebug() << debugName() << "last render timestamp invalid";
-  m_lastRenderRequestTime = Timer::INVALID_TIME_STAMP;
+  m_frames.invalidate();
 }
 
 //-----------------------------------------------------------------------------
@@ -355,38 +363,38 @@ void RepresentationManager::idle()
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return m_crosshair != crosshair;
+  return m_frames.last()->crosshair != crosshair;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return m_resolution != resolution;
+  return m_frames.last()->resolution != resolution;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return m_bounds != bounds;
+  return m_frames.last()->bounds != bounds;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::hasNewerFrames(TimeStamp t) const
 {
-  return t < m_lastRenderRequestTime;
+  return t < m_frames.lastTime();
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::updateRepresentations(TimeStamp t)
+void RepresentationManager::updateRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  onShow(t);
+  onShow(frame->time);
 
   if (hasRepresentations())
   {
     waitForDisplay();
   }
 
-  updateRepresentations(m_crosshair, m_resolution, m_bounds, t);
+  updateFrameRepresentations(frame);
 }
 
 //-----------------------------------------------------------------------------

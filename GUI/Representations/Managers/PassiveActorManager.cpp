@@ -22,6 +22,7 @@
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
 #include <GUI/Representations/RepresentationPool.h>
+#include <GUI/Representations/Frame.h>
 #include <GUI/View/RenderView.h>
 
 // VTK
@@ -39,12 +40,6 @@ PassiveActorManager::PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFl
 }
 
 //----------------------------------------------------------------------------
-TimeRange PassiveActorManager::readyRangeImplementation() const
-{
-  return m_pool->readyRange();
-}
-
-//----------------------------------------------------------------------------
 ViewItemAdapterList PassiveActorManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return m_pool->pick(point, actor);
@@ -57,9 +52,9 @@ bool PassiveActorManager::hasRepresentations() const
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void PassiveActorManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  m_pool->updatePipelines(crosshair, resolution, t);
+  m_pool->updatePipelines(frame->crosshair, frame->resolution, frame->time);
 }
 
 //----------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Representations/Frame.h>
 
 // Qt
 #include <QApplication>
@@ -69,7 +70,7 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
 {
   setupUI();
 
-  onCrosshairChanged(state.crosshair());
+  onCrosshairChanged(state.createFrame());
 }
 
 //-----------------------------------------------------------------------------
@@ -88,7 +89,7 @@ void View3D::buildViewActionsButtons()
 
   m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
-          this,          SLOT(onCameraResetPressed()));
+          this,          SLOT(resetCamera()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
   connect(m_snapshot,  SIGNAL(clicked()),
@@ -109,11 +110,13 @@ void View3D::buildViewActionsButtons()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::onCrosshairChanged(const NmVector3 &point)
+void View3D::onCrosshairChanged(const FrameCSPtr frame)
 {
+  auto point = frame->crosshair;
+
   if (m_showCrosshairPlaneSelectors)
   {
-    auto resolution = sceneResolution();
+    auto resolution = frame->resolution;
 
     int iCenter[3] = { vtkMath::Round(point[0]/resolution[0]),
                        vtkMath::Round(point[1]/resolution[1]),

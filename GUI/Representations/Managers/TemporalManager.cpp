@@ -16,6 +16,7 @@
  */
 
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Representations/Frame.h>
 
 #include <GUI/View/RenderView.h>
 
@@ -68,11 +69,6 @@ TemporalManager::~TemporalManager()
 {
 }
 
-//------------------------------------------------------------------------
-TimeRange TemporalManager::readyRangeImplementation() const
-{
-  return m_pendingActions.timeRange();
-}
 
 //------------------------------------------------------------------------
 ViewItemAdapterList TemporalManager::pick(const NmVector3 &point, vtkProp *actor) const
@@ -119,7 +115,7 @@ bool TemporalManager::hasRepresentations() const
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
   if (m_plane != Plane::UNDEFINED)
   {
@@ -136,24 +132,20 @@ void TemporalManager::updateRepresentations(const NmVector3 &crosshair, const Nm
   }
 
   m_representation->initialize(m_view);
-  m_representation->setCrosshair(crosshair);
-  m_representation->setSceneResolution(resolution);
+  m_representation->setCrosshair(frame->crosshair);
+  m_representation->setSceneResolution(frame->resolution);
 
-  m_pendingActions.addValue(Action(INIT, NmVector3()), t);
-
-  emitRenderRequest(t);
+  emitRenderRequest(frame);
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
+void TemporalManager::changeCrosshair(const FrameCSPtr frame)
 {
-  m_pendingActions.addValue(Action(CROSSHAIR, crosshair), t);
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
+void TemporalManager::changeSceneResolution(const FrameCSPtr frame)
 {
-  m_pendingActions.addValue(Action(RESOLUTION, resolution), t);
 }
 
 //------------------------------------------------------------------------
@@ -169,18 +161,13 @@ void TemporalManager::onHide(TimeStamp t)
 //------------------------------------------------------------------------
 void TemporalManager::displayRepresentations(TimeStamp t)
 {
-  auto action = m_pendingActions.value(t, Action(INIT, NmVector3()));
+  auto frame = this->frame(t);
 
-  if (action.first == CROSSHAIR)
+  if (frame)
   {
-    m_representation->setCrosshair(action.second);
+    m_representation->setCrosshair(frame->crosshair);
+    m_representation->setSceneResolution(frame->resolution);
   }
-  else if (action.first == RESOLUTION)
-  {
-    m_representation->setSceneResolution(action.second);
-  }
-
-  m_pendingActions.invalidatePreviousValues(t);
 }
 
 //------------------------------------------------------------------------

@@ -515,8 +515,7 @@ void ChannelInspector::initSliceView()
 
   poolXY->setPipelineSources(&m_sources);
 
-  auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
-  sliceManager->show(m_view->timeStamp());
+  auto sliceManager = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
 
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
@@ -524,6 +523,8 @@ void ChannelInspector::initSliceView()
   mainLayout->insertWidget(0, m_view.get(), 1);
 
   m_view->addRepresentationManager(sliceManager);
+
+  sliceManager->show(sliceManager->lastFrame());
 
   updateSceneState(m_viewState, toViewItemSList(m_channel));
 }

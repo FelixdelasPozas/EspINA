@@ -38,8 +38,6 @@ namespace ESPINA
 
       virtual ~RepresentationManager2D();
 
-      virtual TimeRange readyRangeImplementation() const override;
-
       virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
       virtual void setPlane(Plane plane) override;
@@ -69,9 +67,9 @@ namespace ESPINA
     private:
       virtual bool hasRepresentations() const override;
 
-      virtual void changeCrosshair(const NmVector3& crosshair, TimeStamp t) override;
+      virtual void changeCrosshair(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+      virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
       virtual void onShow(TimeStamp t) override;
 
@@ -98,8 +96,6 @@ namespace ESPINA
     private:
       Plane     m_plane;
       Nm        m_depth;
-      NmVector3 m_resolution;
-      RangedValue<NmVector3> m_crosshairs;
 
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;

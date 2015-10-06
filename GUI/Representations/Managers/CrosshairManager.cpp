@@ -21,6 +21,7 @@
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <GUI/Representations/Managers/CrosshairManager.h>
+#include <GUI/Representations/Frame.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -76,12 +77,6 @@ CrosshairManager::CrosshairManager(ViewTypeFlags supportedViews)
 }
 
 //-----------------------------------------------------------------------------
-TimeRange CrosshairManager::readyRangeImplementation() const
-{
-  return m_crosshairs.timeRange();
-}
-
-//-----------------------------------------------------------------------------
 ViewItemAdapterList CrosshairManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return ViewItemAdapterList();
@@ -94,37 +89,26 @@ bool CrosshairManager::hasRepresentations() const
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void CrosshairManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  m_crosshairs.addValue(crosshair,t);
+  updateCrosshairs(frame);
 
-  updateCrosshairs(t);
-
-  emitRenderRequest(t);
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
+void CrosshairManager::changeCrosshair(const FrameCSPtr frame)
 {
-  if(m_crosshairs.isEmpty() || crosshair != m_crosshairs.last())
+  if(hasActors())
   {
-    m_crosshairs.addValue(crosshair, t);
-
-    if(hasActors())
-    {
-      emitRenderRequest(t);
-    }
-  }
-  else
-  {
-    m_crosshairs.reusePreviousValue(t);
+    emitRenderRequest(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
 bool CrosshairManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return true;
+  return !lastFrame()->isValid() || lastFrame()->crosshair != crosshair;
 }
 
 //-----------------------------------------------------------------------------
@@ -142,7 +126,7 @@ bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 //-----------------------------------------------------------------------------
 void CrosshairManager::displayRepresentations(TimeStamp t)
 {
-  updateCrosshairs(t);
+  updateCrosshairs(frame(t));
 
   if (!hasActors())
   {
@@ -151,8 +135,6 @@ void CrosshairManager::displayRepresentations(TimeStamp t)
     m_view->addActor(m_actors[1]);
     m_view->addActor(m_actors[2]);
   }
-
-  m_crosshairs.invalidatePreviousValues(t);
 }
 
 //-----------------------------------------------------------------------------
@@ -310,19 +292,17 @@ void CrosshairManager::setPointInternal(int index, double *point1, double *point
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::updateCrosshairs(const TimeStamp t)
+void CrosshairManager::updateCrosshairs(const FrameCSPtr frame)
 {
   if(m_view)
   {
-    auto crosshair = m_crosshairs.value(t, NmVector3());
-
     if (view3D_cast(m_view))
     {
-      configure3DActors(crosshair);
+      configure3DActors(frame->crosshair);
     }
     else
     {
-      configure2DActors(crosshair);
+      configure2DActors(frame->crosshair);
     }
   }
 }

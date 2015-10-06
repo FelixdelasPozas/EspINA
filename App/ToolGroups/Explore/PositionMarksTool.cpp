@@ -240,12 +240,12 @@ void PositionMarksTool::clear()
 //-----------------------------------------------------------------------------
 void PositionMarksTool::initWidgets()
 {
-  m_add = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_add.svg", tr("Add current visual state as a bookmark"));
+  m_add = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_add.svg", tr("Add position mark"));
 
-  m_remove = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_remove.svg", tr("Remove current bookmark"));
+  m_remove = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_remove.svg", tr("Remove position mark"));
   m_remove->setEnabled(false);
 
-  m_apply  = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_apply.svg", tr("Apply current bookmark"));
+  m_apply  = GUI::Widgets::Styles::createToolButton(":/espina/visualBookmarks_apply.svg", tr("Restore position mark"));
   m_apply->setEnabled(false);
 
   m_combobox = new QComboBox();
@@ -271,6 +271,6 @@ void PositionMarksTool::initWidgets()
 void PositionMarksTool::resetComboBox()
 {
   m_combobox->clear();
-  m_combobox->insertItem(0, tr("No bookmarks"));
+  m_combobox->insertItem(0, tr("No position marks"));
   m_combobox->setCurrentIndex(0);
 }

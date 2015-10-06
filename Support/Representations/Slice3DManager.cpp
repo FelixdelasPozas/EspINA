@@ -20,6 +20,7 @@
 // ESPINA
 #include "Slice3DManager.h"
 #include <GUI/View/RenderView.h>
+#include <GUI/Representations/Frame.h>
 
 // VTK
 #include <vtkProp.h>
@@ -36,31 +37,6 @@ Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
 : PoolManager(ViewType::VIEW_3D, flags)
 {
   m_pools << poolXY << poolXZ << poolYZ;
-}
-
-//----------------------------------------------------------------------------
-TimeRange Slice3DManager::readyRangeImplementation() const
-{
-  QMap<TimeStamp, int> count;
-
-  for (auto pool : m_pools)
-  {
-    for(auto timeStamp: pool->readyRange())
-    {
-      count[timeStamp] = count.value(timeStamp, 0) + 1;
-    }
-  }
-
-  TimeRange range;
-  for (auto timeStamp : count.keys())
-  {
-    if (count[timeStamp] == m_pools.size())
-    {
-      range << timeStamp;
-    }
-  }
-
-  return range;
 }
 
 //----------------------------------------------------------------------------
@@ -110,11 +86,11 @@ bool Slice3DManager::hasRepresentations() const
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void Slice3DManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
   for (auto pool : m_pools)
   {
-    pool->updatePipelines(crosshair, resolution, t);
+    pool->updatePipelines(frame->crosshair, frame->resolution, frame->time);
   }
 }
 
@@ -131,20 +107,20 @@ void Slice3DManager::onHide(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
+void Slice3DManager::changeCrosshair(const FrameCSPtr frame)
 {
   for (auto pool : m_pools)
   {
-    pool->setCrosshair(crosshair, time);
+    pool->setCrosshair(frame->crosshair, frame->time);
   }
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
+void Slice3DManager::changeSceneResolution(const FrameCSPtr frame)
 {
   for (auto pool : m_pools)
   {
-    pool->setSceneResolution(resolution, t);
+    pool->setSceneResolution(frame->resolution, frame->time);
   }
 }
 
@@ -236,6 +212,6 @@ void Slice3DManager::checkRenderRequest()
 
     auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
 
-    emitRenderRequest(lastTime);
+    emitRenderRequest(frame(lastTime));
   }
 }

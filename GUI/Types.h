@@ -83,6 +83,11 @@ namespace ESPINA
         class TemporalPrototypes;
         using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
       }
+
+      class Frame;
+      using FrameSPtr   = std::shared_ptr<Frame>;
+      using FrameCSPtr  = std::shared_ptr<const Frame>;
+      using FrameCSList = QList<FrameCSPtr>;
     }
 
    namespace Utils
@@ -97,6 +102,7 @@ namespace ESPINA
      using ViewStateSPtr = std::shared_ptr<ViewState>;
    }
   }
+  class RenderView; //TODO: Move to View namespace
 }
 
 #endif // ESPINA_GUI_TYPES_H_

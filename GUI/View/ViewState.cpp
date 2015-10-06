@@ -19,12 +19,14 @@
 
 // ESPINA
 #include "ViewState.h"
+#include <GUI/Representations/Frame.h>
 
 // VTK
 #include <vtkMath.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
@@ -35,10 +37,6 @@ ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
 , m_selection(new Selection(invalidator))
 {
-  connect(m_coordinateSystem.get(), SIGNAL(resolutionChanged(NmVector3)),
-          this,                     SLOT(onResolutionChanged(NmVector3)));
-  connect(m_coordinateSystem.get(), SIGNAL(boundsChanged(Bounds)),
-          this,                     SLOT(onBoundsChanged(Bounds)));
 }
 
 //----------------------------------------------------------------------------
@@ -54,7 +52,7 @@ RepresentationInvalidator &ViewState::representationInvalidator() const
 }
 
 //----------------------------------------------------------------------------
-ESPINA::NmVector3 ViewState::crosshair() const
+NmVector3 ViewState::crosshair() const
 {
   return m_crosshair;
 }
@@ -69,6 +67,7 @@ SelectionSPtr ViewState::selection() const
 void ViewState::setFitToSlices(bool value)
 {
   m_fitToSlices = value;
+  //TODO REVIEW
 }
 
 //----------------------------------------------------------------------------
@@ -118,21 +117,34 @@ void ViewState::focusViewOn(const NmVector3 &point)
 {
   auto center = crosshairPoint(point);
 
-  emit viewFocusChanged(center);
+//   emit viewFocusChanged(center);
 
-  changeCrosshair(center);
+  changeCrosshair(center, true);
 }
 
 //----------------------------------------------------------------------------
 void ViewState::resetCamera()
 {
-  emit resetCameraRequested();
+  auto frame = createFrame();
+
+  frame->reset = true;
+
+  emit resetCamera(frame);
 }
 
 //----------------------------------------------------------------------------
 void ViewState::refresh()
 {
-  emit refreshRequested();
+//   emit refreshRequested();
+}
+
+//----------------------------------------------------------------------------
+void ViewState::setCoordinateSystem(const NmVector3 &resolution, const Bounds &bounds)
+{
+  m_coordinateSystem->setBounds(bounds);
+  m_coordinateSystem->setResolution(resolution);
+
+  emit frameChanged(createFrame());
 }
 
 //----------------------------------------------------------------------------
@@ -178,15 +190,13 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 //----------------------------------------------------------------------------
 void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto t = m_timer.increment();
-  emit widgetsAdded(factory, t);
+  emit widgetsAdded(factory, createFrame());
 }
 
 //----------------------------------------------------------------------------
 void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto t = m_timer.increment();
-  emit widgetsRemoved(factory, t);
+  emit widgetsRemoved(factory, createFrame());
 }
 
 //----------------------------------------------------------------------------
@@ -208,34 +218,39 @@ CoordinateSystemSPtr ViewState::coordinateSystem() const
 }
 
 //----------------------------------------------------------------------------
-void ViewState::changeCrosshair(const NmVector3 &point)
+void ViewState::changeCrosshair(const NmVector3 &point, bool focus)
 {
-  if (m_crosshair != point)
+  if (m_crosshair != point || focus)
   {
     m_crosshair = point;
 
     m_timer.activate(); // we need to increment on every crosshair change
                         // to improve speed on consecutive slice changes
-    auto t = m_timer.increment();
+    auto frame = createFrame();
 
-    emit crosshairChanged(point, t);
+    frame->focus = focus;
+
+    emit frameChanged(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-void ViewState::onResolutionChanged(const NmVector3 &resolution)
+FrameSPtr ViewState::createFrame()
 {
-  auto t = m_timer.increment();
-
-  emit sceneResolutionChanged(resolution, t);
+  return createFrame(m_crosshair);
 }
 
 //-----------------------------------------------------------------------------
-void ViewState::onBoundsChanged(const Bounds &bounds)
+FrameSPtr ViewState::createFrame(const NmVector3 &point)
 {
-  auto t = m_timer.increment();
+  auto frame = std::make_shared<Frame>();
 
-  emit sceneBoundsChanged(bounds, t);
+  frame->time       = m_timer.increment();
+  frame->crosshair  = point;
+  frame->resolution = m_coordinateSystem->resolution();
+  frame->bounds     = m_coordinateSystem->bounds();
+
+  return frame;
 }
 
 //-----------------------------------------------------------------------------
@@ -267,6 +282,5 @@ void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList 
     }
   }
 
-  state.coordinateSystem()->setBounds(bounds);
-  state.coordinateSystem()->setResolution(resolution);
+  state.setCoordinateSystem(resolution, bounds);
 }

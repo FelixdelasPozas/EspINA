@@ -153,6 +153,7 @@ set (GUI_SOURCES
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp
+  Representations/Frame.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/ColorRange.cpp

@@ -204,7 +204,12 @@ namespace ESPINA
     /** \brief Resets the view's camera.
      *
      */
-    void resetCamera();
+    void onCameraReset(GUI::Representations::FrameCSPtr frame);
+
+    /** \brief Resets the camera using the camera reset button of the view.
+     *
+     */
+    virtual void resetCamera();
 
     /** \brief Request a graphical refresh of the current view content
      *
@@ -224,11 +229,6 @@ namespace ESPINA
      *
      */
     virtual void reset();
-
-    /** \brief Resets the camera using the camera reset button of the view.
-     *
-     */
-    virtual void onCameraResetPressed();
 
   protected:
     /** \brief RenderView class constructor.
@@ -266,8 +266,6 @@ namespace ESPINA
      */
     void showSegmentationTooltip(const int x, const int y);
 
-    bool requiresCameraReset() const;
-
     bool hasVisibleRepresentations() const;
 
     GUI::View::ViewState &state() const;
@@ -301,20 +299,20 @@ namespace ESPINA
 
     GUI::Representations::RepresentationManagerSList pendingManagers(GUI::Representations::RepresentationManagerSList managers) const;
 
-    TimeStamp latestReadyTimeStamp(GUI::Representations::RepresentationManagerSList managers) const;
+    GUI::Representations::FrameCSPtr latestReadyFrame(GUI::Representations::RepresentationManagerSList managers) const;
 
-    void display(GUI::Representations::RepresentationManagerSList managers, TimeStamp t);
+    void display(GUI::Representations::RepresentationManagerSList managers, const GUI::Representations::FrameCSPtr frame);
 
     GUI::Representations::RepresentationManager::ManagerFlags managerFlags() const;
 
     void deleteInactiveWidgetManagers();
 
-  private slots:
-    void onFocusChanged(NmVector3 point);
-
-    virtual void onCrosshairChanged(const NmVector3 &point) = 0;
-
     virtual void moveCamera(const NmVector3 &point) = 0;
+
+  private slots:
+//     void onFocusChanged(NmVector3 point);
+
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) = 0;
 
     virtual void onSceneResolutionChanged(const NmVector3 &resolution) = 0;
 
@@ -324,9 +322,9 @@ namespace ESPINA
 
     virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
 
-    void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
+    void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
-    void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
+    void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
     void onRenderRequest();
 
@@ -345,13 +343,8 @@ namespace ESPINA
 
     QElapsedTimer m_timer;
     ViewType      m_type;
-    bool          m_requiresCameraReset;
-    bool          m_requiresFocusChange;
-    bool          m_requiresRender;
-    TimeStamp     m_lastRender;
+    GUI::Representations::FrameCSPtr m_latestFrame;
     QMap<TemporalPrototypesSPtr, RepresentationManagerSPtr> m_temporalManagers;
-
-    NmVector3 m_focusPoint;
   };
 
 } // namespace ESPINA

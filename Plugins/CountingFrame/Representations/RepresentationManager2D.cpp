@@ -18,6 +18,7 @@
  */
 
 #include "RepresentationManager2D.h"
+#include <GUI/Representations/Frame.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -46,12 +47,6 @@ RepresentationManager2D::~RepresentationManager2D()
 }
 
 //-----------------------------------------------------------------------------
-TimeRange RepresentationManager2D::readyRangeImplementation() const
-{
-  return m_crosshairs.timeRange();
-}
-
-//-----------------------------------------------------------------------------
 ViewItemAdapterList RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return ViewItemAdapterList();
@@ -72,7 +67,7 @@ void RepresentationManager2D::setRepresentationDepth(Nm depth)
 //-----------------------------------------------------------------------------
 bool RepresentationManager2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return m_crosshairs.isEmpty() || isNormalDifferent(crosshair, m_crosshairs.last());
+  return !lastFrame()->isValid() || isNormalDifferent(crosshair, lastFrame()->crosshair);
 }
 
 //-----------------------------------------------------------------------------
@@ -116,26 +111,15 @@ bool RepresentationManager2D::hasRepresentations() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
+void RepresentationManager2D::changeCrosshair(const GUI::Representations::FrameCSPtr frame)
 {
-  m_crosshairs.addValue(crosshair, t);
 }
 
+
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void RepresentationManager2D::updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  m_resolution = resolution;
-
-  if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
-  {
-    m_crosshairs.addValue(crosshair, t);
-  }
-  else
-  {
-    m_crosshairs.reusePreviousValue(t);
-  }
-
-  emitRenderRequest(t);
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -161,8 +145,6 @@ void RepresentationManager2D::displayRepresentations(TimeStamp t)
   {
     showWidget(widget, t);
   }
-
-  m_crosshairs.invalidatePreviousValues(t);
 }
 
 //-----------------------------------------------------------------------------
@@ -183,7 +165,7 @@ RepresentationManagerSPtr RepresentationManager2D::cloneImplementation()
 //-----------------------------------------------------------------------------
 Nm RepresentationManager2D::slicingPosition(TimeStamp t) const
 {
-  auto crosshair = m_crosshairs.value(t);
+  auto crosshair = frame(t)->crosshair;
 
   Q_ASSERT(m_plane != Plane::UNDEFINED);
   return crosshair[normalCoordinateIndex(m_plane)];

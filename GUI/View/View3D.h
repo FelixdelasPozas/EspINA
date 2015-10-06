@@ -90,7 +90,7 @@ namespace ESPINA
     void onTakeSnapshot();
 
   private:
-    virtual void onCrosshairChanged(const NmVector3 &point) override;
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame);
 
     virtual void moveCamera(const NmVector3 &point) override;
 

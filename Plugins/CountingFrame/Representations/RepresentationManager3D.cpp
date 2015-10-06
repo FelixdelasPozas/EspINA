@@ -26,7 +26,6 @@ using namespace ESPINA::GUI::Representations;
 //-----------------------------------------------------------------------------
 RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
 : RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
-, m_requestTime{0}
 , m_manager(manager)
 {
   connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
@@ -43,16 +42,6 @@ RepresentationManager3D::~RepresentationManager3D()
   {
     deleteWidget(cf);
   }
-}
-
-//-----------------------------------------------------------------------------
-TimeRange RepresentationManager3D::readyRangeImplementation() const
-{
-  TimeRange range;
-
-  range << m_requestTime;
-
-  return range;
 }
 
 //-----------------------------------------------------------------------------
@@ -102,11 +91,9 @@ bool RepresentationManager3D::hasRepresentations() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void RepresentationManager3D::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  m_requestTime = t;
-
-  emitRenderRequest(t);
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------

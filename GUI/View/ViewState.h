@@ -52,7 +52,7 @@ namespace ESPINA
          */
         explicit ViewState(Timer &timer, RepresentationInvalidator &invalidator);
 
-        Timer        &timer() const;
+        Timer &timer() const;
 
         RepresentationInvalidator &representationInvalidator() const;
 
@@ -118,6 +118,11 @@ namespace ESPINA
 
         void refresh();
 
+        void setCoordinateSystem(const NmVector3 &resolution, const Bounds &bounds);
+
+        Representations::FrameSPtr createFrame();
+        Representations::FrameSPtr createFrame(const NmVector3 &point);
+
       public slots:
         /** \brief Changes the crosshair position to point
          *
@@ -137,37 +142,28 @@ namespace ESPINA
       signals:
         void eventHandlerChanged();
 
-        void crosshairChanged(const NmVector3 &point, TimeStamp t);
+        void frameChanged(const GUI::Representations::FrameCSPtr frame);
 
-        void sceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+        void widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
-        void sceneBoundsChanged(const Bounds &bounds, TimeStamp t);
-
-        void widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
-
-        void widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, TimeStamp t);
+        void widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
         void sliceSelectorAdded(SliceSelectorSPtr selector, SliceSelectionType type);
 
         void sliceSelectorRemoved(SliceSelectorSPtr selector);
 
-        void viewFocusChanged(NmVector3 point);
+//         void viewFocusChanged(NmVector3 point);
 
-        void resetCameraRequested();
+        void resetCamera(const GUI::Representations::FrameCSPtr frame);
 
-        void refreshRequested();
+        //void refreshRequested();
 
       private:
         NmVector3 crosshairPoint(const NmVector3 &point) const;
 
         NmVector3 voxelCenter(const NmVector3 &point) const;
 
-        void changeCrosshair(const NmVector3 &point);
-
-      private slots:
-        void onResolutionChanged(const NmVector3 &resolution);
-
-        void onBoundsChanged(const Bounds &bounds);
+        void changeCrosshair(const NmVector3 &point, bool focus = false);
 
       private:
         Timer                     &m_timer;

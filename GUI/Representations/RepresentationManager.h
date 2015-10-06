@@ -120,12 +120,12 @@ namespace ESPINA
         /** \brief Shows all representations
          *
          */
-        void show(TimeStamp t);
+        void show(const GUI::Representations::FrameCSPtr frame);
 
         /** \brief Hides all representations
          *
          */
-        void hide(TimeStamp t);
+        void hide(const GUI::Representations::FrameCSPtr frame);
 
         /** \brief Returns if the manager has been requested to display its actors
          *
@@ -142,10 +142,14 @@ namespace ESPINA
          */
         TimeRange readyRange() const;
 
+        FrameCSPtr frame(TimeStamp t) const;
+
+        FrameCSPtr lastFrame() const;
+
         /** \brief Updates view's actors with those available at the given time.
          *
          */
-        void display(TimeStamp t);
+        void display(const GUI::Representations::FrameCSPtr frame);
 
         /** \brief Returns the item picked
          *
@@ -168,11 +172,7 @@ namespace ESPINA
         virtual RepresentationPoolSList pools() const;
 
       public slots:
-        void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
-
-        void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
-
-        void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
+        void onFrameChanged(const GUI::Representations::FrameCSPtr frame);
 
       signals:
         void renderRequested();
@@ -182,6 +182,8 @@ namespace ESPINA
 
         void emitRenderRequest(TimeStamp t);
 
+        void emitRenderRequest(const GUI::Representations::FrameCSPtr frame);
+
         void waitForDisplay();
 
         void idle();
@@ -190,6 +192,8 @@ namespace ESPINA
         explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
         void setFlag(const FlagValue flag, const bool value);
+
+        //virtual void acceptFrame(const GUI::Representations::FrameCSPtr frame);
 
         /** \brief Returns if the manager should react to the requested crosshair change
          *
@@ -207,22 +211,22 @@ namespace ESPINA
         Bounds currentSceneBounds() const;
 
       private:
-        virtual TimeRange readyRangeImplementation() const = 0;
-
         virtual bool hasRepresentations() const = 0;
 
-        void updateRepresentations(TimeStamp t);
+        void updateRepresentations(const FrameCSPtr frame);
 
-        virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) = 0;
+        virtual void updateFrameRepresentations(const FrameCSPtr frame) = 0;
 
         /** \brief Performs the actual crosshair change for the underlying representations
          *
          */
-        virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
+        virtual void changeCrosshair(const FrameCSPtr frame) {}
+        virtual void changeSceneResolution(const FrameCSPtr frame) {}
+        virtual void changeSceneBounds(const FrameCSPtr frame) {}
 
-        virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) {}
-
-        virtual void changeSceneBounds(const Bounds &bounds, TimeStamp t) {}
+//         virtual void changeSceneResolution(const NmVector3 &resolution, const GUI::Representations::FrameCSList frame) {}
+//
+//         virtual void changeSceneBounds(const Bounds &bounds, const GUI::Representations::FrameCSList frame) {}
 
         bool hasNewerFrames(TimeStamp t) const;
 
@@ -239,7 +243,7 @@ namespace ESPINA
         /** \brief Sets the view where representation are managed
          *
          */
-        void setView(RenderView *view);
+        void setView(RenderView *view, const FrameCSPtr frame);
 
         friend class ESPINA::RenderView;
 
@@ -255,11 +259,7 @@ namespace ESPINA
         ManagerFlags m_flags;
 
         ViewTypeFlags m_supportedViews;
-        TimeStamp     m_lastRenderRequestTime;
-
-        NmVector3 m_crosshair;
-        NmVector3 m_resolution; // CoordinateSystem?
-        Bounds    m_bounds;
+        RangedValue<FrameCSPtr> m_frames;
 
         RepresentationManagerSList m_childs;
       };

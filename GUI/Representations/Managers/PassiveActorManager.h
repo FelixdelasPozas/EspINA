@@ -48,8 +48,6 @@ namespace ESPINA
            */
           PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews, ManagerFlags flags = ManagerFlags());
 
-          virtual TimeRange readyRangeImplementation() const override;
-
           virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
           virtual RepresentationPoolSList pools() const override;
@@ -57,7 +55,7 @@ namespace ESPINA
         private:
           virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+          virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 

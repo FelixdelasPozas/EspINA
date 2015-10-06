@@ -28,6 +28,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/View/PlanarBehaviour.h>
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
+#include <GUI/Representations/Frame.h>
 
 // Debug
 #include <QDebug>
@@ -398,7 +399,7 @@ void View2D::setupUI()
 
   m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
   connect(m_cameraReset, SIGNAL(clicked()),
-          this,          SLOT(onCameraResetPressed()));
+          this,          SLOT(resetCamera()));
 
   m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
   connect(m_snapshot, SIGNAL(clicked(bool)),
@@ -960,8 +961,10 @@ void View2D::updateScaleValue()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::onCrosshairChanged(const NmVector3 &point)
+void View2D::onCrosshairChanged(const FrameCSPtr frame)
 {
+  auto point = frame->crosshair;
+
   // Disable scrollbar signals to avoid calling setting slice
   m_spinBox  ->blockSignals(true);
   m_scrollBar->blockSignals(true);

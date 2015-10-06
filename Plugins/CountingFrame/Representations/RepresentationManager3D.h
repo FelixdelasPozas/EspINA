@@ -37,8 +37,6 @@ namespace ESPINA
 
       virtual ~RepresentationManager3D();
 
-      virtual TimeRange readyRangeImplementation() const override;
-
       virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
     protected:
@@ -65,7 +63,7 @@ namespace ESPINA
     private:
       virtual bool hasRepresentations() const override;
 
-      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+    virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
       virtual void onShow(TimeStamp t) override;
 
@@ -86,7 +84,6 @@ namespace ESPINA
       void deleteWidget(CountingFrame *cf);
 
     private:
-      TimeStamp              m_requestTime;
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;
       QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;

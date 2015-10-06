@@ -20,6 +20,7 @@
 #include "SliceManager.h"
 #include "RepresentationUtils.h"
 #include <GUI/View/RenderView.h>
+#include <GUI/Representations/Frame.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -36,19 +37,6 @@ SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
 , m_XZ{poolXZ}
 , m_YZ{poolYZ}
 {
-}
-
-//----------------------------------------------------------------------------
-TimeRange SliceManager::readyRangeImplementation() const
-{
-  TimeRange range;
-
-  if(validPlane())
-  {
-    range = planePool()->readyRange();
-  }
-
-  return range;
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +69,7 @@ void SliceManager::setRepresentationDepth(Nm depth)
 //----------------------------------------------------------------------------
 bool SliceManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return normalCoordinate(currentCrosshair()) != normalCoordinate(crosshair);
+  return  normalCoordinate(currentCrosshair()) != normalCoordinate(crosshair);
 }
 
 //----------------------------------------------------------------------------
@@ -106,27 +94,27 @@ bool SliceManager::hasRepresentations() const
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+void SliceManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
   Q_ASSERT(validPlane());
 
-  planePool()->updatePipelines(crosshair, resolution, t);
+  planePool()->updatePipelines(frame->crosshair, frame->resolution, frame->time);
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
+void SliceManager::changeCrosshair(const FrameCSPtr frame)
 {
   Q_ASSERT(validPlane());
 
-  planePool()->setCrosshair(crosshair, time);
+  planePool()->setCrosshair(frame->crosshair, frame->time);
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
+void SliceManager::changeSceneResolution(const FrameCSPtr frame)
 {
   Q_ASSERT(validPlane());
 
-  planePool()->setSceneResolution(resolution, t);
+  planePool()->setSceneResolution(frame->resolution, frame->time);
 }
 
 //----------------------------------------------------------------------------

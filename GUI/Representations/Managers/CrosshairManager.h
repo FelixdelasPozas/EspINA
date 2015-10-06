@@ -51,16 +51,14 @@ namespace ESPINA
            */
           explicit CrosshairManager(ViewTypeFlags supportedViews);
 
-          virtual TimeRange readyRangeImplementation() const override;
-
           virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
         private:
           virtual bool hasRepresentations() const override;
 
-          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+          virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
-          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
+          virtual void changeCrosshair(const FrameCSPtr frame);
 
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
@@ -101,7 +99,7 @@ namespace ESPINA
           /** \brief Updates the actors with the crosshair associated to t.
            *
            */
-          void updateCrosshairs(const TimeStamp t);
+          void updateCrosshairs(const FrameCSPtr frame);
 
         private:
           vtkSmartPointer<vtkPoints>         m_points[3];
@@ -109,8 +107,6 @@ namespace ESPINA
           vtkSmartPointer<vtkPolyData>       m_datas[3];
           vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];
           vtkSmartPointer<vtkActor>          m_actors[3];
-
-          RangedValue<NmVector3> m_crosshairs;
         };
       }
     }
