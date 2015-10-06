@@ -122,7 +122,7 @@ void ViewState::resetCamera()
 
   frame->reset = true;
 
-  emit resetCamera(frame);
+  emit frameChanged(frame);
 }
 
 //----------------------------------------------------------------------------

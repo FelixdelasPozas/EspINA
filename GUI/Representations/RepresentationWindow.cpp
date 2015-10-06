@@ -33,7 +33,7 @@ RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
 , m_currentPos(windowSize)
 , m_witdh(windowSize)
 {
-  qRegisterMetaType<FrameCSPtr>("FrameCSPtr");
+  qRegisterMetaType<GUI::Representations::FrameCSPtr>("GUI::Representations::FrameCSPtr");
   qRegisterMetaType<RepresentationPipeline::Actors>("RepresentationPipelineActors");
 
   for (unsigned int i = 0; i < 2*windowSize + 1; ++i)

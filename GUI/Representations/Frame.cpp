@@ -22,6 +22,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
 
+//------------------------------------------------------------------------
 Frame::Frame()
 : time(Timer::INVALID_TIME_STAMP)
 , focus(false)
@@ -29,14 +30,22 @@ Frame::Frame()
 {
 }
 
+//------------------------------------------------------------------------
 FrameCSPtr Frame::InvalidFrame()
 {
   return std::make_shared<Frame>();
 }
 
+//------------------------------------------------------------------------
 bool Frame::isValid() const
 {
   return time != Timer::INVALID_TIME_STAMP;
 }
 
-Q_DECLARE_METATYPE(GUI::Representations::FrameCSPtr)
+//------------------------------------------------------------------------
+QDebug GUI::Representations::operator<<(QDebug d, const FrameCSPtr frame)
+{
+  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->reset << "F:" << frame->focus << "]";
+
+  return d;
+}

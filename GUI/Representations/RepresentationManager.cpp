@@ -266,6 +266,8 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!frame->isValid()) return;
 
+  qDebug() << debugName() << frame;
+
   if (needsRepresentationUpdate(frame))
   {
     if (isActive())

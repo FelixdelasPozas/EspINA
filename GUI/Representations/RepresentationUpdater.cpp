@@ -178,10 +178,8 @@ void RepresentationUpdater::run()
   QMutexLocker lock(&m_mutex);
 
   qDebug() << "Task" << description() << "running" << " - " << crosshairPoint(m_settings);
-
-  // Local copy needed to prevent condition race on same TimeStamp
-  // (usually due to invalidation view item representations)
-
+  // Local copy needed to prevent condition race on same frame
+  // (usually due to invalidation view item representations
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
 

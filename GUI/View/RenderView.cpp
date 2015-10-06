@@ -356,7 +356,7 @@ void RenderView::onCameraReset(FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
-  onRenderRequest();
+  //onRenderRequest();
 }
 
 //-----------------------------------------------------------------------------
@@ -463,6 +463,7 @@ void RenderView::onRenderRequest()
 
   auto frame = latestReadyFrame(readyManagers);
 
+  qDebug() << viewName() << "Render request" << frame << "- Last rendered frame:" << m_latestFrame->time;
   if (m_latestFrame->time < frame->time)
   {
     //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
@@ -490,7 +491,6 @@ void RenderView::onRenderRequest()
 
     refreshViewImplementation();
 
-    //     qDebug() << viewName() << "Rendering frame" << renderTime;
     mainRenderer()->ResetCameraClippingRange();
     m_view->update();
 
