@@ -139,16 +139,6 @@ void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::changeCrosshair(const FrameCSPtr frame)
-{
-}
-
-//------------------------------------------------------------------------
-void TemporalManager::changeSceneResolution(const FrameCSPtr frame)
-{
-}
-
-//------------------------------------------------------------------------
 void TemporalManager::onShow(TimeStamp t)
 {
 }

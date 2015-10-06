@@ -193,8 +193,6 @@ namespace ESPINA
 
         void setFlag(const FlagValue flag, const bool value);
 
-        //virtual void acceptFrame(const GUI::Representations::FrameCSPtr frame);
-
         /** \brief Returns if the manager should react to the requested crosshair change
          *
          */
@@ -203,6 +201,8 @@ namespace ESPINA
         virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
         virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
+
+        virtual bool acceptFrame(const FrameCSPtr frame);
 
         NmVector3 currentCrosshair() const;
 
@@ -217,16 +217,7 @@ namespace ESPINA
 
         virtual void updateFrameRepresentations(const FrameCSPtr frame) = 0;
 
-        /** \brief Performs the actual crosshair change for the underlying representations
-         *
-         */
-        virtual void changeCrosshair(const FrameCSPtr frame) {}
-        virtual void changeSceneResolution(const FrameCSPtr frame) {}
-        virtual void changeSceneBounds(const FrameCSPtr frame) {}
-
-//         virtual void changeSceneResolution(const NmVector3 &resolution, const GUI::Representations::FrameCSList frame) {}
-//
-//         virtual void changeSceneBounds(const Bounds &bounds, const GUI::Representations::FrameCSList frame) {}
+        bool needsRepresentationUpdate(const FrameCSPtr frame);
 
         bool hasNewerFrames(TimeStamp t) const;
 

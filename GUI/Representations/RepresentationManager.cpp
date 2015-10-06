@@ -102,11 +102,18 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
   m_view = view;
 
-  m_frames.addValue(frame, frame->time);
-
-  if (m_isActive)
+  if (frame->isValid())
   {
-    updateRepresentations(frame);
+    m_frames.addValue(frame, frame->time);
+
+    if (m_isActive)
+    {
+      updateRepresentations(frame);
+    }
+  }
+  else
+  {
+    onShow(frame->time);
   }
 }
 
@@ -186,7 +193,7 @@ FrameCSPtr RepresentationManager::frame(TimeStamp t) const
 {
   auto result = std::make_shared<Frame>();
 
-  if (t <= m_frames.lastTime())
+  if (!m_frames.isEmpty() && t <= m_frames.lastTime())
   {
     auto value = m_frames.value(t);
 
@@ -206,7 +213,6 @@ FrameCSPtr RepresentationManager::lastFrame() const
 {
   return frame(m_frames.lastTime());
 }
-
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::display(const GUI::Representations::FrameCSPtr frame)
@@ -262,15 +268,7 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!frame->isValid()) return;
 
-  auto lastFrame = m_frames.last();
-
-  if (!lastFrame->isValid()
-    || acceptCrosshairChange(frame->crosshair)
-    || acceptSceneResolutionChange(frame->resolution)
-    || acceptSceneBoundsChange(frame->bounds)
-    || frame->focus != lastFrame->focus
-    || frame->reset != lastFrame->reset
-  )
+  if (needsRepresentationUpdate(frame))
   {
     if (isActive())
     {
@@ -279,9 +277,7 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
         waitForDisplay();
       }
 
-      changeCrosshair(frame);
-      changeSceneResolution(frame);
-      changeSceneBounds(frame);
+      updateFrameRepresentations(frame);
     }
   }
   else if (!isIdle())
@@ -305,38 +301,50 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationManager::acceptFrame(const FrameCSPtr frame)
+{
+  return acceptCrosshairChange(frame->crosshair)
+      || acceptSceneResolutionChange(frame->resolution)
+      || acceptSceneBoundsChange(frame->bounds);
+}
+
+//-----------------------------------------------------------------------------
 NmVector3 RepresentationManager::currentCrosshair() const
 {
-  return m_frames.last()->crosshair;
+  return lastFrame()->crosshair;
 }
 
 //-----------------------------------------------------------------------------
 NmVector3 RepresentationManager::currentSceneResolution() const
 {
-  return m_frames.last()->resolution;
+  return lastFrame()->resolution;
 }
 
 //-----------------------------------------------------------------------------
 Bounds RepresentationManager::currentSceneBounds() const
 {
-  return m_frames.last()->bounds;
+  return lastFrame()->bounds;
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
-  emitRenderRequest(frame(t));
+  auto renderFrame = frame(t);
+
+  Q_ASSERT(renderFrame->time == t);
+
+  emitRenderRequest(renderFrame);
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  //qDebug() << debugName() << "Requested to emit renderRequested at" << t;
+  qDebug() << debugName() << "Requested to emit renderRequested at" << frame->time;
   if(m_frames.isEmpty() || frame->time > m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 
-    //qDebug() << debugName() << "Emit renderRequested at" << t;
+    qDebug() << debugName() << "Emit renderRequested at" << frame->time;
     emit renderRequested();
   }
 }
@@ -344,13 +352,14 @@ void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameC
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateRepresentations()
 {
-  // qDebug() << debugName() << "last render timestamp invalid";
+  qDebug() << debugName() << "last render timestamp invalid";
   m_frames.invalidate();
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
+  qDebug() << debugName() << "pending display";
   m_status = Status::PENDING_DISPLAY;
 }
 
@@ -363,19 +372,30 @@ void RepresentationManager::idle()
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return m_frames.last()->crosshair != crosshair;
+  return lastFrame()->crosshair != crosshair;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return m_frames.last()->resolution != resolution;
+  return lastFrame()->resolution != resolution;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return m_frames.last()->bounds != bounds;
+  return lastFrame()->bounds != bounds;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::needsRepresentationUpdate(const FrameCSPtr frame)
+{
+  auto currentFrame = lastFrame();
+
+  return !currentFrame->isValid()
+       || acceptFrame(frame)
+       || frame->focus != currentFrame->focus
+       || frame->reset != currentFrame->reset;
 }
 
 //-----------------------------------------------------------------------------
@@ -403,3 +423,5 @@ RepresentationPoolSList RepresentationManager::pools() const
   // NOTE: default value returned, implement if needed in the subclass.
   return RepresentationPoolSList();
 }
+
+//-----------------------------------------------------------------------------

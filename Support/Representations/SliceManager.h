@@ -56,10 +56,6 @@ namespace ESPINA
 
     virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void changeCrosshair(const GUI::Representations::FrameCSPtr frame) override;
-
-    virtual void changeSceneResolution(const GUI::Representations::FrameCSPtr frame) override;
-
     virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
     virtual void invalidatePreviousActors(TimeStamp t) override;

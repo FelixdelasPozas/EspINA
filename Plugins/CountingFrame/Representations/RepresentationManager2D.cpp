@@ -111,12 +111,6 @@ bool RepresentationManager2D::hasRepresentations() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::changeCrosshair(const GUI::Representations::FrameCSPtr frame)
-{
-}
-
-
-//-----------------------------------------------------------------------------
 void RepresentationManager2D::updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   emitRenderRequest(frame);

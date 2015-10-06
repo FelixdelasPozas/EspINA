@@ -107,24 +107,6 @@ void Slice3DManager::onHide(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::changeCrosshair(const FrameCSPtr frame)
-{
-  for (auto pool : m_pools)
-  {
-    pool->setCrosshair(frame->crosshair, frame->time);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Slice3DManager::changeSceneResolution(const FrameCSPtr frame)
-{
-  for (auto pool : m_pools)
-  {
-    pool->setSceneResolution(frame->resolution, frame->time);
-  }
-}
-
-//----------------------------------------------------------------------------
 RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp t)
 {
   RepresentationPipeline::Actors actors;

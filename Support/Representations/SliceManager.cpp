@@ -101,21 +101,21 @@ void SliceManager::updateFrameRepresentations(const FrameCSPtr frame)
   planePool()->updatePipelines(frame->crosshair, frame->resolution, frame->time);
 }
 
-//----------------------------------------------------------------------------
-void SliceManager::changeCrosshair(const FrameCSPtr frame)
-{
-  Q_ASSERT(validPlane());
+// //----------------------------------------------------------------------------
+// void SliceManager::changeCrosshair(const FrameCSPtr frame)
+// {
+//   Q_ASSERT(validPlane());
+//
+//   planePool()->setCrosshair(frame->crosshair, frame->time);
+// }
 
-  planePool()->setCrosshair(frame->crosshair, frame->time);
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::changeSceneResolution(const FrameCSPtr frame)
-{
-  Q_ASSERT(validPlane());
-
-  planePool()->setSceneResolution(frame->resolution, frame->time);
-}
+// //----------------------------------------------------------------------------
+// void SliceManager::changeSceneResolution(const FrameCSPtr frame)
+// {
+//   Q_ASSERT(validPlane());
+//
+//   planePool()->setSceneResolution(frame->resolution, frame->time);
+// }
 
 //----------------------------------------------------------------------------
 RepresentationPipeline::Actors SliceManager::actors(TimeStamp t)

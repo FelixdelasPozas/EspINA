@@ -475,7 +475,7 @@ void RenderView::onRenderRequest()
     //     m_timer.restart();
     display(readyManagers, frame);
 
-    //qDebug() << viewName() << ": Update actors:" << renderTime;
+    qDebug() << viewName() << ": Rendering frame " << frame->time;
 
     m_state.timer().activate();
 
@@ -594,7 +594,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 
     if (activeManagers > 0)
     {
-      //qDebug() << viewName() << "Frames Availabe: " << count;
+      qDebug() << viewName() << "Frames Availabe: " << count;
 
       for(auto time : count.keys())
       {
@@ -617,7 +617,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 //       latest = m_lastRender + 1;
 //     }
 
-    //qDebug() << viewName() << "Latest common frame "<< latest;
+    qDebug() << viewName() << "Latest common frame "<< latest;
   }
 
   return (activeManager && latest != Timer::INVALID_TIME_STAMP)?activeManager->frame(latest):Frame::InvalidFrame();

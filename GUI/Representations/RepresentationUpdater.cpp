@@ -183,7 +183,7 @@ void RepresentationUpdater::run()
 {
   QMutexLocker lock(&m_mutex);
 
-  //qDebug() << "Task" << description() << "running" << " - " << this;
+  qDebug() << "Task" << description() << "running" << " - " << this;
 
   // Local copy needed to prevent condition race on same TimeStamp
   // (usually due to invalidation view item representations)

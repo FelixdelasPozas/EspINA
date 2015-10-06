@@ -67,8 +67,6 @@ namespace ESPINA
     private:
       virtual bool hasRepresentations() const override;
 
-      virtual void changeCrosshair(const GUI::Representations::FrameCSPtr frame) override;
-
       virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
       virtual void onShow(TimeStamp t) override;

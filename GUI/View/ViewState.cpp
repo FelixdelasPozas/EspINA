@@ -256,8 +256,8 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
 //-----------------------------------------------------------------------------
 void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)
 {
-  Bounds    bounds;
-  NmVector3 resolution;
+  Bounds    bounds{0, 1, 0, 1, 0, 1};
+  NmVector3 resolution{1,1,1};
 
   if (!viewItems.isEmpty())
   {
@@ -280,6 +280,7 @@ void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList 
         bounds[(2*i)+1] = std::max(bounds[(2*i)+1], itemBounds[(2*i)+1]);
       }
     }
+
   }
 
   state.setCoordinateSystem(resolution, bounds);
