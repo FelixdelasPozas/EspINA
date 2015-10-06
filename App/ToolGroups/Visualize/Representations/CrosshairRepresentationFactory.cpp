@@ -80,7 +80,7 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
   crossManager->setIcon(QIcon(icon));
   crossManager->setDescription(description);
 
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayCrosshair", crossManager, flags, context.timer(), context);
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayCrosshair", crossManager, flags, context);
   crossSwitch->setOrder("0", "2-Display");
 
   if(flags.testFlag(ViewType::VIEW_2D))

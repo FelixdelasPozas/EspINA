@@ -27,11 +27,11 @@ namespace ESPINA
   public:
     explicit ManualPipelineSources(GUI::View::RepresentationInvalidator &invalidator);
 
-    void addSource(ViewItemAdapterList sources, TimeStamp t);
+    void addSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void removeSource(ViewItemAdapterList sources, TimeStamp t);
+    void removeSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void updateRepresentation(ViewItemAdapterList sources, TimeStamp t);
+    void updateRepresentation(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
   };
 }
 

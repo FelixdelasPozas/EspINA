@@ -44,11 +44,11 @@ namespace ESPINA
     GUI::View::RepresentationInvalidator &invalidator();
 
   signals:
-    void sourcesAdded  (ViewItemAdapterList sources, TimeStamp t);
-    void sourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
-    void representationsInvalidated(ViewItemAdapterList sources, TimeStamp t);
-    void representationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t);
-    void updateTimeStamp(TimeStamp t);
+    void sourcesAdded  (ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void sourcesRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void representationsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void representationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void updateTimeStamp(const GUI::Representations::FrameCSPtr frame);
 
   protected:
     void insert(ViewItemAdapterList sources);
@@ -57,12 +57,12 @@ namespace ESPINA
 
     void remove(ViewItemAdapterList sources);
 
-    TimeStamp timeStamp() const;
+    GUI::Representations::FrameCSPtr createFrame() const;
 
   private slots:
-    void onRepresentationsInvalidated(ViewItemAdapterList items, TimeStamp t);
+    void onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
-    void onRepresentationColorsInvalidated(ViewItemAdapterList items, TimeStamp t);
+    void onRepresentationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
   private:
     ViewItemAdapterList acceptedItems(const ViewItemAdapterList &items);

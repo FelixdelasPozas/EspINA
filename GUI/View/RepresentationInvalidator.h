@@ -18,7 +18,7 @@
 #ifndef ESPINA_GUI_REPRESENTATION_INVALIDATOR_H
 #define ESPINA_GUI_REPRESENTATION_INVALIDATOR_H
 
-#include <GUI/Utils/Timer.h>
+#include <GUI/Types.h>
 #include <GUI/Model/ViewItemAdapter.h>
 
 namespace ESPINA
@@ -40,7 +40,7 @@ namespace ESPINA
         };
 
       public:
-        explicit RepresentationInvalidator(Timer &timer);
+        explicit RepresentationInvalidator(ViewState &state);
 
         /** \brief Invalidates item representations
          * \param[in] items to invalide their representations
@@ -58,7 +58,7 @@ namespace ESPINA
         void invalidateRepresentationColors(const ViewItemAdapterList &items,
                                             const Scope scope = Scope::SELECTED_ITEMS);
 
-        Timer &timer() const;
+        GUI::Representations::FrameCSPtr createFrame() const;
 
       public slots:
         /** \brief Invalidates item representations
@@ -67,15 +67,15 @@ namespace ESPINA
         void invalidateRepresentations(ViewItemAdapterPtr item);
 
       signals:
-        void representationsInvalidated(ViewItemAdapterList items, TimeStamp t);
-        void representationColorsInvalidated(ViewItemAdapterList items, TimeStamp t);
+        void representationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
+        void representationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
       private:
         ViewItemAdapterList scopedItems(const ViewItemAdapterList &items,
                                         const Scope scope = Scope::SELECTED_ITEMS);
 
       private:
-        Timer &m_timer;
+        ViewState &m_state;
       };
     }
   }

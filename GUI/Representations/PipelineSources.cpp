@@ -24,11 +24,11 @@ using namespace ESPINA;
 PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidator)
 : m_representationInvalidator(invalidator)
 {
-  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
-          this,                         SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
+  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+          this,                         SLOT(onRepresentationsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_representationInvalidator, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
-          this,                         SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
+  connect(&m_representationInvalidator, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+          this,                         SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
 }
 
 //-----------------------------------------------------------------------------
@@ -75,30 +75,30 @@ void PipelineSources::remove(ViewItemAdapterList sources)
 }
 
 //-----------------------------------------------------------------------------
-TimeStamp PipelineSources::timeStamp() const
+GUI::Representations::FrameCSPtr PipelineSources::createFrame() const
 {
-  return m_representationInvalidator.timer().timeStamp();
+  return m_representationInvalidator.createFrame();
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onRepresentationsInvalidated(ViewItemAdapterList items, TimeStamp t)
+void PipelineSources::onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame)
 {
   auto invalidatedItems = acceptedItems(items);
 
   if (!invalidatedItems.isEmpty())
   {
-    emit representationsInvalidated(invalidatedItems, t);
+    emit representationsInvalidated(invalidatedItems, frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onRepresentationColorsInvalidated(ViewItemAdapterList items, TimeStamp t)
+void PipelineSources::onRepresentationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame)
 {
   auto invalidatedItems = acceptedItems(items);
 
   if (!invalidatedItems.isEmpty())
   {
-    emit representationColorsInvalidated(invalidatedItems, t);
+    emit representationColorsInvalidated(invalidatedItems, frame);
   }
 }
 

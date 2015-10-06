@@ -76,12 +76,6 @@ RenderView::~RenderView()
 }
 
 //-----------------------------------------------------------------------------
-TimeStamp RenderView::timeStamp() const
-{
-  return m_state.timer().timeStamp();
-}
-
-//-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
   connect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
@@ -477,7 +471,7 @@ void RenderView::onRenderRequest()
 
     qDebug() << viewName() << ": Rendering frame " << frame->time;
 
-    m_state.timer().activate();
+    //m_state.timer().activate();
 
     deleteInactiveWidgetManagers();
 

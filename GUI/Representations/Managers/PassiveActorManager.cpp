@@ -54,7 +54,7 @@ bool PassiveActorManager::hasRepresentations() const
 //----------------------------------------------------------------------------
 void PassiveActorManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  m_pool->updatePipelines(frame->crosshair, frame->resolution, frame->time);
+  m_pool->updatePipelines(frame);
 }
 
 //----------------------------------------------------------------------------
@@ -105,8 +105,8 @@ void PassiveActorManager::connectPools()
   connect(m_pool.get(), SIGNAL(actorsInvalidated()),
           this,         SLOT(waitForDisplay()));
 
-  connect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
-          this,         SLOT(emitRenderRequest(TimeStamp)));
+  connect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
+          this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
   connect(m_pool.get(), SIGNAL(actorsInvalidated()),
           this,         SLOT(invalidateRepresentations()));
@@ -120,8 +120,8 @@ void PassiveActorManager::disconnectPools()
   disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
              this,         SLOT(waitForDisplay()));
 
-  disconnect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
-             this,         SLOT(emitRenderRequest(TimeStamp)));
+  disconnect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
+             this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
   disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
              this,         SLOT(invalidateRepresentations()));

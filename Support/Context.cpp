@@ -33,18 +33,17 @@ using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
 Context::Context(QMainWindow *mainWindow, bool *minimizedStatus)
-: m_invalidator(m_timer)
-, m_viewState(m_timer, m_invalidator)
+: m_viewState()
 , m_model(new ModelAdapter())
 , m_activeROI(new ROIAccumulator())
 , m_scheduler(new Scheduler(PERIOD_uSEC))
-, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler, &m_invalidator))
+, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 , m_colorEngine(std::make_shared<MultiColorEngine>())
 , m_minimizedStatus(minimizedStatus)
 , m_mainWindow(mainWindow)
 {
-  QObject::connect(m_model.get(), SIGNAL(modelChanged()),
-                  &m_timer,       SLOT(increment()));
+//   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
+//                   &m_timer,       SLOT(increment()));
 }
 
 //------------------------------------------------------------------------
@@ -104,18 +103,6 @@ ColorEngineSPtr Context::colorEngine() const
 void Context::addColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine->add(engine);
-}
-
-//------------------------------------------------------------------------
-Timer &Context::timer()
-{
-  return m_viewState.timer();
-}
-
-//------------------------------------------------------------------------
-RepresentationInvalidator &Context::representationInvalidator()
-{
-  return m_viewState.representationInvalidator();
 }
 
 //------------------------------------------------------------------------

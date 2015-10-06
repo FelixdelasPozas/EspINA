@@ -37,9 +37,8 @@ const QString SEGMENTATION_CONTOUR_PATTERN_KEY = "Pattern";
 SegmentationContourSwitch::SegmentationContourSwitch(GUI::Representations::RepresentationManagerSPtr  manager,
                                                      std::shared_ptr<SegmentationContourPoolSettings> settings,
                                                      ViewTypeFlags                                    supportedViews,
-                                                     Timer                                           &timer,
                                                      Support::Context                                &context)
-: BasicRepresentationSwitch("SegmentationContourSwitch", manager, supportedViews, timer, context)
+: BasicRepresentationSwitch("SegmentationContourSwitch", manager, supportedViews, context)
 , m_settings{settings}
 {
   initWidgets();

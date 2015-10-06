@@ -22,6 +22,7 @@
 #include <cmath>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
 RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
@@ -32,15 +33,15 @@ RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
 , m_currentPos(windowSize)
 , m_witdh(windowSize)
 {
-  qRegisterMetaType<TimeStamp>("TimeStamp");
+  qRegisterMetaType<FrameCSPtr>("FrameCSPtr");
   qRegisterMetaType<RepresentationPipeline::Actors>("RepresentationPipelineActors");
 
   for (unsigned int i = 0; i < 2*windowSize + 1; ++i)
   {
     auto task = std::make_shared<RepresentationUpdater>(scheduler, pipeline);
 
-    connect(task.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
-            this,       SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
+    connect(task.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
+            this,       SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
 
     m_buffer << task;
   }

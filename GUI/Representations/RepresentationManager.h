@@ -180,8 +180,6 @@ namespace ESPINA
       protected slots:
         void invalidateRepresentations();
 
-        void emitRenderRequest(TimeStamp t);
-
         void emitRenderRequest(const GUI::Representations::FrameCSPtr frame);
 
         void waitForDisplay();

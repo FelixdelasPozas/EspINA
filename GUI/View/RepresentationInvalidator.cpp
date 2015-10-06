@@ -16,13 +16,15 @@
  */
 
 #include "RepresentationInvalidator.h"
+#include "ViewState.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
 
 //------------------------------------------------------------------------
-RepresentationInvalidator::RepresentationInvalidator(Timer &timer)
-: m_timer(timer)
+RepresentationInvalidator::RepresentationInvalidator(ViewState &state)
+: m_state(state)
 {
 }
 
@@ -30,24 +32,20 @@ RepresentationInvalidator::RepresentationInvalidator(Timer &timer)
 void RepresentationInvalidator::invalidateRepresentations(const ViewItemAdapterList &items,
                                                           const Scope scope)
 {
-  auto t = m_timer.increment();
-
-  emit representationsInvalidated(scopedItems(items), t);
+  emit representationsInvalidated(scopedItems(items), m_state.createFrame());
 }
 
 //------------------------------------------------------------------------
 void RepresentationInvalidator::invalidateRepresentationColors(const ViewItemAdapterList &items,
                                                                const RepresentationInvalidator::Scope scope)
 {
-  auto t = m_timer.increment();
-
-  emit representationColorsInvalidated(scopedItems(items), t);
+  emit representationColorsInvalidated(scopedItems(items), m_state.createFrame());
 }
 
 //------------------------------------------------------------------------
-Timer &RepresentationInvalidator::timer() const
+Representations::FrameCSPtr RepresentationInvalidator::createFrame() const
 {
-  return m_timer;
+  return m_state.createFrame();
 }
 
 //------------------------------------------------------------------------

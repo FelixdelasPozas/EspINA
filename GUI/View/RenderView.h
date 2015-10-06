@@ -76,8 +76,6 @@ namespace ESPINA
     ViewType type() const
     { return m_type; }
 
-    TimeStamp timeStamp() const;
-
     /** \brief Adds a representation manager to the view
      *
      */

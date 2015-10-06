@@ -609,7 +609,7 @@ void ClassificationLayout::changeCategoryColor()
       auto undoStack = getUndoStack();
       undoStack->beginMacro(tr("Change category color"));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
-                                                     getContext().representationInvalidator(),
+                                                     getViewState().representationInvalidator(),
                                                      category,
                                                      hueSelector.hueValue()));
       undoStack->endMacro();

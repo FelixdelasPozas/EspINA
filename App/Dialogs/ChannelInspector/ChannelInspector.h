@@ -187,6 +187,8 @@ namespace ESPINA
     NmVector3 currentSpacing() const;
 
   private:
+    GUI::View::ViewState m_viewState;
+
     bool   m_spacingModified;
     bool   m_edgesModified;
 
@@ -194,13 +196,10 @@ namespace ESPINA
 
     ChannelAdapterSPtr m_channel;
 
-    Timer                     m_timer;
-    RepresentationInvalidator m_invalidator;
     ManualPipelineSources     m_sources;
-    GUI::View::ViewState      m_viewState;
     std::shared_ptr<View2D>   m_view;
 
-    HueSelector      *m_hueSelector;
+    HueSelector *m_hueSelector;
 
     bool m_useDistanceToEdges;
     int  m_backgroundColor;

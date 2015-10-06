@@ -51,14 +51,14 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
 {
   const unsigned WINDOW_SIZE = 10;
 
-  auto scheduler      = context.scheduler();
-  auto &timer         = context.timer();
-  auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
-  auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
-  auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
-  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, scheduler, WINDOW_SIZE);
-  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
-  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
+  auto scheduler  = context.scheduler();
+
+  auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
+  auto pipelineXZ = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
+  auto pipelineYZ = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
+  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, scheduler, WINDOW_SIZE);
+  auto poolXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
+  auto poolYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -67,7 +67,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
     sliceManager->setIcon(QIcon(":espina/display_stacks.svg"));
     sliceManager->setDescription(QObject::tr("Display Stacks"));
 
-    auto sliceSwitch = std::make_shared<BasicRepresentationSwitch>("DisplayStacks", sliceManager, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch = std::make_shared<BasicRepresentationSwitch>("DisplayStacks", sliceManager, ViewType::VIEW_2D, context);
     sliceSwitch->setChecked(true);
     sliceSwitch->setOrder("0-0", "0-Representations");
 
@@ -82,7 +82,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
     slice3DManager->setIcon(QIcon(":espina/display_stacks.svg"));
     slice3DManager->setDescription(QObject::tr("Display Stacks"));
 
-    auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayStackCrosshairs", slice3DManager, ViewType::VIEW_3D, timer, context);
+    auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayStackCrosshairs", slice3DManager, ViewType::VIEW_3D, context);
     slice3DSwitch->setOrder("0-0", "0-Representations");
 
     representation.Group    = CHANNELS_GROUP;

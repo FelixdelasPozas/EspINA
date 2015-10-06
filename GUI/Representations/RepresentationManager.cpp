@@ -104,8 +104,6 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 
   if (frame->isValid())
   {
-    m_frames.addValue(frame, frame->time);
-
     if (m_isActive)
     {
       updateRepresentations(frame);
@@ -324,16 +322,6 @@ NmVector3 RepresentationManager::currentSceneResolution() const
 Bounds RepresentationManager::currentSceneBounds() const
 {
   return lastFrame()->bounds;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::emitRenderRequest(TimeStamp t)
-{
-  auto renderFrame = frame(t);
-
-  Q_ASSERT(renderFrame->time == t);
-
-  emitRenderRequest(renderFrame);
 }
 
 //-----------------------------------------------------------------------------

@@ -678,7 +678,7 @@ void CF::Panel::updateSegmentationRepresentations()
   auto model         = m_context.model();
   auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
 
-  m_context.representationInvalidator().invalidateRepresentationColors(segmentations);
+  getViewState().representationInvalidator().invalidateRepresentationColors(segmentations);
 }
 
 //------------------------------------------------------------------------

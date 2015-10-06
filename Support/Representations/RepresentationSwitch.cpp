@@ -25,10 +25,8 @@ using namespace ESPINA;
 RepresentationSwitch::RepresentationSwitch(const QString &id,
                                            const QIcon &icon,
                                            const QString &description,
-                                           Timer &timer,
                                            Support::Context &context)
 : ProgressTool(id, icon, description, context)
-, m_timer(timer)
 {
   setCheckable(true);
 
@@ -39,15 +37,15 @@ RepresentationSwitch::RepresentationSwitch(const QString &id,
 //-----------------------------------------------------------------------------
 void RepresentationSwitch::switchRepresentations(bool show)
 {
-  auto t = m_timer.increment();
+  auto frame = getViewState().createFrame();
 
   if (show)
   {
-    showRepresentations(t);
+    showRepresentations(frame);
   }
   else
   {
-    hideRepresentations(t);
+    hideRepresentations(frame);
   }
 }
 
@@ -56,7 +54,8 @@ void RepresentationSwitch::invalidateRepresentations(ViewItemAdapterList items)
 {
   if(!items.isEmpty())
   {
-    auto t = m_timer.increment();
-    invalidateRepresentationsImplementation(items, t);
+    auto frame = getViewState().createFrame();
+
+    invalidateRepresentationsImplementation(items, frame);
   }
 }

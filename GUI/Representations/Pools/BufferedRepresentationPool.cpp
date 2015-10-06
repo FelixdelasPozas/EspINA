@@ -19,6 +19,7 @@
 
 // ESPINA
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
+#include <GUI/Representations/Frame.h>
 
 using namespace ESPINA;
 
@@ -32,14 +33,14 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_init{false}
 , m_normalRes{1}
 {
-  connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
-          this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
+  connect(&m_updateWindow, SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
+          this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
 }
 
 
 //-----------------------------------------------------------------------------
 ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
-                                                    vtkProp *actor) const
+                                                     vtkProp *actor) const
 {
   ViewItemAdapterList pickedItems;
 
@@ -52,12 +53,12 @@ ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t)
+void BufferedRepresentationPool::updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame)
 {
-  m_normalRes = resolution[m_normalIdx];
+  m_normalRes = frame->resolution[m_normalIdx];
 
-  auto shift       = m_init?distanceFromLastCrosshair(crosshair):invalidationShift();
-  auto invalidated = updateBuffer(crosshair, shift, t);
+  auto shift       = m_init?distanceFromLastCrosshair(frame->crosshair):invalidationShift();
+  auto invalidated = updateBuffer(frame->crosshair, shift, frame);
 
   m_init = true;
 
@@ -67,34 +68,34 @@ void BufferedRepresentationPool::updatePipelinesImplementation(const NmVector3 &
   }
 }
 
+// //-----------------------------------------------------------------------------
+// void BufferedRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, const GUI::Representations::FrameCSPtr frame)
+// {
+//   auto normalRes = resolution[m_normalIdx];
+//
+//   if (m_normalRes != normalRes)
+//   {
+//     m_normalRes = normalRes;
+//
+//     auto invalidated = updateBuffer(m_crosshair, invalidationShift(), t);
+//
+//     updatePipelines(invalidated);
+//   }
+// }
+//
+// //-----------------------------------------------------------------------------
+// void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &crosshair, const GUI::Representations::FrameCSPtr frame)
+// {
+//   auto shift       = distanceFromLastCrosshair(crosshair);
+//   auto invalidated = updateBuffer(crosshair, shift, t);
+//
+//   updatePipelines(invalidated);
+// }
+
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t)
+void BufferedRepresentationPool::updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  auto normalRes = resolution[m_normalIdx];
-
-  if (m_normalRes != normalRes)
-  {
-    m_normalRes = normalRes;
-
-    auto invalidated = updateBuffer(m_crosshair, invalidationShift(), t);
-
-    updatePipelines(invalidated);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &crosshair, TimeStamp t)
-{
-  auto shift       = distanceFromLastCrosshair(crosshair);
-  auto invalidated = updateBuffer(crosshair, shift, t);
-
-  updatePipelines(invalidated);
-}
-
-//-----------------------------------------------------------------------------
-void BufferedRepresentationPool::updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
-{
-  m_updateWindow.current()->setTimeStamp(t);
+  m_updateWindow.current()->setFrame(frame);
 
   auto updaters = m_updateWindow.all();
 
@@ -107,9 +108,9 @@ void BufferedRepresentationPool::updateRepresentationsAtImlementation(TimeStamp 
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
+void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  m_updateWindow.current()->setTimeStamp(t);
+  m_updateWindow.current()->setFrame(frame);
 
   auto updaters = m_updateWindow.all();
 
@@ -190,7 +191,7 @@ NmVector3 BufferedRepresentationPool::representationCrosshair(const NmVector3 &p
 //-----------------------------------------------------------------------------
 RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVector3 &point,
                                                                     int   shift,
-                                                                    const TimeStamp t)
+                                                                    const GUI::Representations::FrameCSPtr frame)
 {
   RepresentationUpdaterSList invalidated;
 
@@ -209,7 +210,7 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
     invalidated << updateTask;
   }
 
-  m_updateWindow.current()->setTimeStamp(t);
+  m_updateWindow.current()->setFrame(frame);
   m_crosshair = point;
 
   return invalidated;
@@ -238,7 +239,7 @@ void BufferedRepresentationPool::checkCurrentActors()
 
   if (current->hasFinished())
   {
-    onActorsReady(current->timeStamp(), current->actors());
+    onActorsReady(current->frame(), current->actors());
   }
 }
 

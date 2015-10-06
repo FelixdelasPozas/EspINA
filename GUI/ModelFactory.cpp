@@ -33,11 +33,9 @@ using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(CoreFactorySPtr factory,
-                           SchedulerSPtr scheduler,
-                           View::RepresentationInvalidator *invalidator)
+                           SchedulerSPtr scheduler)
 : m_factory(factory)
 , m_scheduler(scheduler)
-, m_invalidator(invalidator)
 {
   if (!m_factory)
   {
@@ -180,10 +178,5 @@ ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
-  SegmentationAdapterSPtr adaptedSegmentation(new SegmentationAdapter(segmentation));
-
-  QObject::connect(adaptedSegmentation.get(), SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
-                   m_invalidator,             SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
-
-  return adaptedSegmentation;
+  return SegmentationAdapterSPtr{new SegmentationAdapter(segmentation)};
 }

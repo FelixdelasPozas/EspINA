@@ -19,6 +19,7 @@
 
 // ESPINA
 #include <GUI/Representations/Pools/BasicRepresentationPool.h>
+#include <GUI/Representations/Frame.h>
 
 using namespace ESPINA;
 
@@ -26,8 +27,8 @@ using namespace ESPINA;
 BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
 : m_updater{std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
 {
-  connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
-          this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
+  connect(m_updater.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
+          this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
 }
 
 //-----------------------------------------------------------------------------
@@ -37,49 +38,29 @@ ViewItemAdapterList BasicRepresentationPool::pick(const NmVector3 &point, vtkPro
 }
 
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t)
+void BasicRepresentationPool::updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame)
 {
   m_updater->invalidate();
-  m_updater->setCrosshair(crosshair);
-  m_updater->setResolution(resolution);
-  m_updater->setTimeStamp(t);
+  m_updater->setCrosshair(frame->crosshair);
+  m_updater->setResolution(frame->resolution);
+  m_updater->setFrame(frame);
 
   updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crosshair, TimeStamp t)
+void BasicRepresentationPool::updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  m_updater->invalidate();
-  m_updater->setCrosshair(crosshair);
-  m_updater->setTimeStamp(t);
-
-  updateRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t)
-{
-  m_updater->invalidate();
-  m_updater->setResolution(resolution);
-  m_updater->setTimeStamp(t);
-
-  updateRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void BasicRepresentationPool::updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
-{
-  m_updater->setTimeStamp(t);
+  m_updater->setFrame(frame);
   m_updater->updateRepresentations(modifiedItems);
 
   updateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems)
+void BasicRepresentationPool::updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  m_updater->setTimeStamp(t);
+  m_updater->setFrame(frame);
   m_updater->updateRepresentationColors(modifiedItems);
 
   updateRepresentations();

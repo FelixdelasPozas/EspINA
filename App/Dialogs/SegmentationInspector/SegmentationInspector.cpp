@@ -57,8 +57,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
 , WithContext           (context)
 , m_register            (filterRefiners)
 , m_selectedSegmentation(nullptr)
-, m_channelSources      (context.representationInvalidator())
-, m_segmentationSources (context.representationInvalidator())
+, m_channelSources      (getViewState().representationInvalidator())
+, m_segmentationSources (getViewState().representationInvalidator())
 , m_view                (context.viewState(), true)
 , m_tabularReport       (context)
 {
@@ -110,7 +110,9 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
   if (!m_segmentations.contains(segmentation))
   {
     m_segmentations << segmentation;
-    m_segmentationSources.addSource(toViewItemList(segmentation), m_view.timeStamp());
+    
+    auto frame = getViewState().createFrame();//FIXME: Should use its own viewstate...
+    m_segmentationSources.addSource(toViewItemList(segmentation), frame);
 
     auto channels = QueryAdapter::channels(segmentation);
 
@@ -192,7 +194,9 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
   if (!m_channels.contains(channel))
   {
     m_channels << channel;
-    m_channelSources.addSource(toViewItemList(channel), m_view.timeStamp());
+
+    auto frame = getViewState().createFrame();
+    m_channelSources.addSource(toViewItemList(channel), frame);
 
     m_view.refresh();
 

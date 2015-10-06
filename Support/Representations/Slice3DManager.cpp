@@ -90,7 +90,7 @@ void Slice3DManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
   for (auto pool : m_pools)
   {
-    pool->updatePipelines(frame->crosshair, frame->resolution, frame->time);
+    pool->updatePipelines(frame);
   }
 }
 
@@ -141,7 +141,7 @@ void Slice3DManager::connectPools()
     connect(pool.get(), SIGNAL(actorsInvalidated()),
             this,       SLOT(waitForDisplay()));
 
-    connect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
+    connect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,       SLOT(checkRenderRequest()));
 
     connect(pool.get(), SIGNAL(actorsInvalidated()),
@@ -159,7 +159,7 @@ void Slice3DManager::disconnectPools()
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),
                this,       SLOT(waitForDisplay()));
 
-    disconnect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
+    disconnect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,       SLOT(checkRenderRequest()));
 
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),

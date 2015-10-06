@@ -84,7 +84,6 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 {
   auto scheduler   = context.scheduler();
   auto colorEngine = context.colorEngine();
-  auto &timer      = context.timer();
 
   auto sliceSettings   = std::make_shared<SegmentationSlicePoolSettings>();
   auto pipelineSliceXY = std::make_shared<SegmentationSlicePipeline>(Plane::XY, colorEngine);
@@ -108,7 +107,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     sliceManager->setIcon(QIcon(":espina/display_segmentations.svg"));
     sliceManager->setDescription(QObject::tr("Display Segmentations"));
 
-    auto sliceSwitch     = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentations", sliceManager, sliceSettings, ViewType::VIEW_2D, timer, context);
+    auto sliceSwitch     = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentations", sliceManager, sliceSettings, ViewType::VIEW_2D, context);
     sliceSwitch->setChecked(true);
     sliceSwitch->setShortcut(Qt::Key_Space);
 
@@ -125,7 +124,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     slice3DManager->setIcon(QIcon(":espina/display_segmentation_projections.svg"));
     slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Proyections"));
 
-    auto slice3DSwitch   = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, timer, context);
+    auto slice3DSwitch   = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, context);
     groupSwitch("1-1", slice3DSwitch);
 
     representation.Managers << slice3DManager;
@@ -138,7 +137,6 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 {
   auto scheduler   = context.scheduler();
   auto colorEngine = context.colorEngine();
-  auto &timer      = context.timer();
 
   auto contourSettings   = std::make_shared<SegmentationContourPoolSettings>();
   auto pipelineContourXY = std::make_shared<SegmentationContourPipeline>(Plane::XY, colorEngine);
@@ -157,7 +155,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   contourManager->setIcon(QIcon(":espina/display_segmentation_contours.svg"));
   contourManager->setDescription(QObject::tr("Display Segmentation Contours"));
 
-  auto contourSwitch = std::make_shared<SegmentationContourSwitch>(contourManager, contourSettings, ViewType::VIEW_2D, timer, context);
+  auto contourSwitch = std::make_shared<SegmentationContourSwitch>(contourManager, contourSettings, ViewType::VIEW_2D, context);
   groupSwitch("1-1", contourSwitch);
 
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
@@ -213,7 +211,6 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 {
   auto scheduler   = context.scheduler();
   auto colorEngine = context.colorEngine();
-  auto &timer      = context.timer();
 
   auto meshesSettings = std::make_shared<SegmentationMeshPoolSettings>();
 
@@ -235,7 +232,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 
   smoothedMeshManager->setName("DisplaySmoothedSegmentationMesh");
 
-  auto meshSwitch = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, ViewType::VIEW_3D, timer, context);
+  auto meshSwitch = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, ViewType::VIEW_3D, context);
   groupSwitch("1-0", meshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;

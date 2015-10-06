@@ -51,7 +51,6 @@ namespace ESPINA
       explicit SegmentationContourSwitch(GUI::Representations::RepresentationManagerSPtr  manager,
                                          std::shared_ptr<SegmentationContourPoolSettings> settings,
                                          ViewTypeFlags                                    supportedViews,
-                                         Timer                                           &timer,
                                          Support::Context                                &context);
 
       /** \brief SegmentationContour class virtual destructor.

@@ -57,8 +57,7 @@ namespace ESPINA
      *
      */
     explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(),
-                          SchedulerSPtr scheduler = SchedulerSPtr(),
-                          GUI::View::RepresentationInvalidator *invalidator = nullptr);
+                          SchedulerSPtr scheduler = SchedulerSPtr());
 
     /** \brief ModelFactory class destructor.
      *

@@ -47,12 +47,12 @@ namespace ESPINA
     /** \brief Shows the managed representations on the view.
      *
      */
-    virtual void showRepresentations(TimeStamp t) = 0;
+    virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) = 0;
 
     /** \brief Hides the managed representations from the view.
      *
      */
-    virtual void hideRepresentations(TimeStamp t) = 0;
+    virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) = 0;
 
     /** \brief Invalidates the representations of the given items.
      * \param[in] items list of ViewItemAdapter.
@@ -72,7 +72,6 @@ namespace ESPINA
     explicit RepresentationSwitch(const QString    &id,
                                   const QIcon      &icon,
                                   const QString    &description,
-                                  Timer            &timer,
                                   Support::Context &context);
 
   private slots:
@@ -86,10 +85,7 @@ namespace ESPINA
      * \param[in] items list of ViewItemAdapter.
      *
      */
-    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) = 0;
-
-  protected:
-    Timer &m_timer;
+    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) = 0;
   };
 
   using RepresentationSwitchSPtr  = std::shared_ptr<RepresentationSwitch>;

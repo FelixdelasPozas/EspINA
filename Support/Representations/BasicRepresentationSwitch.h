@@ -32,16 +32,15 @@ namespace ESPINA {
     explicit BasicRepresentationSwitch(const QString &id,
                                        GUI::Representations::RepresentationManagerSPtr manager,
                                        ViewTypeFlags supportedViews,
-                                       Timer &timer,
                                        Support::Context &context);
 
     virtual ViewTypeFlags supportedViews() override;
 
-    virtual void showRepresentations(TimeStamp t) override;
+    virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void hideRepresentations(TimeStamp t) override;
+    virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) override;
+    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
 
   protected:
     GUI::Representations::RepresentationManagerSPtr m_manager;

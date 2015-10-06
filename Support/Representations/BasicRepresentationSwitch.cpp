@@ -31,9 +31,8 @@ using namespace ESPINA::GUI::Widgets;
 BasicRepresentationSwitch::BasicRepresentationSwitch(const QString            &id,
                                                      RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews,
-                                                     Timer                    &timer,
                                                      Support::Context         &context)
-: RepresentationSwitch(id, manager->icon(), manager->description(), timer, context)
+: RepresentationSwitch(id, manager->icon(), manager->description(), context)
 , m_manager(manager)
 , m_flags(supportedViews)
 {
@@ -47,22 +46,23 @@ ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews()
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::showRepresentations(TimeStamp t)
+void BasicRepresentationSwitch::showRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  m_manager->show(m_manager->frame(t));
+  m_manager->show(frame);
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::hideRepresentations(TimeStamp t)
+void BasicRepresentationSwitch::hideRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  m_manager->hide(m_manager->frame(t));
+  m_manager->hide(frame);
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t)
+void BasicRepresentationSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items,
+                                                                        const GUI::Representations::FrameCSPtr frame)
 {
   for(auto pool: m_manager->pools())
   {
-    pool->invalidateRepresentations(items, t);
+    pool->invalidateRepresentations(items, frame);
   }
 }

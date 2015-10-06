@@ -56,19 +56,13 @@ class Panel;
 
       void addColorEngine(GUI::ColorEngines::ColorEngineSPtr engine);
 
-      Timer &timer();
-      GUI::View::RepresentationInvalidator &representationInvalidator();
-
       void addPanel(Panel *panel);
 
       bool isMinimized() const;
 
     private:
-      using Invalidator = GUI::View::RepresentationInvalidator;
       using ViewState   = GUI::View::ViewState;
 
-      Timer                m_timer;
-      Invalidator          m_invalidator;
       ViewState            m_viewState;
       ModelAdapterSPtr     m_model;
       ROIAccumulatorSPtr   m_activeROI;

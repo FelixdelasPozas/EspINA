@@ -27,23 +27,23 @@ ManualPipelineSources::ManualPipelineSources(GUI::View::RepresentationInvalidato
 }
 
 //-----------------------------------------------------------------------------
-void ManualPipelineSources::addSource(ViewItemAdapterList sources, TimeStamp t)
+void ManualPipelineSources::addSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   insert(sources);
 
-  emit sourcesAdded(sources, t);
+  emit sourcesAdded(sources, frame);
 }
 
 //-----------------------------------------------------------------------------
-void ManualPipelineSources::removeSource(ViewItemAdapterList sources, TimeStamp t)
+void ManualPipelineSources::removeSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   remove(sources);
 
-  emit sourcesAdded(sources, t);
+  emit sourcesAdded(sources, frame);
 }
 
 //-----------------------------------------------------------------------------
-void ManualPipelineSources::updateRepresentation(ViewItemAdapterList sources, TimeStamp t)
+void ManualPipelineSources::updateRepresentation(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
-  emit representationsInvalidated(sources, t);
+  emit representationsInvalidated(sources, frame);
 }

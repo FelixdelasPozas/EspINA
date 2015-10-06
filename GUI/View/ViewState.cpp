@@ -30,23 +30,16 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
-ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
-: m_timer(timer)
-, m_invalidator(invalidator)
+ViewState::ViewState()
+: m_invalidator(*this)
 , m_fitToSlices{true}
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
-, m_selection(new Selection(invalidator))
+, m_selection(new Selection(m_invalidator))
 {
 }
 
 //----------------------------------------------------------------------------
-Timer &ViewState::timer() const
-{
-  return m_timer;
-}
-
-//----------------------------------------------------------------------------
-RepresentationInvalidator &ViewState::representationInvalidator() const
+RepresentationInvalidator &ViewState::representationInvalidator()
 {
   return m_invalidator;
 }

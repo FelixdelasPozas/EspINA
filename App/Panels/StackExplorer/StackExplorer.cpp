@@ -54,7 +54,7 @@ StackExplorer::StackExplorer(Support::Context &context)
 , m_model       {context.model()}
 , m_scheduler   {context.scheduler()}
 , m_undoStack   {context.undoStack()}
-, m_invalidator (context.representationInvalidator())
+// , m_invalidator (context.representationInvalidator())
 , m_channelProxy{new ChannelProxy(context.model())}
 , m_sort        {new QSortFilterProxyModel()}
 , m_gui         {new CentralWidget()}

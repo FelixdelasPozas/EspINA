@@ -50,11 +50,9 @@ namespace ESPINA
          * \param[in] timer state timer object.
          *
          */
-        explicit ViewState(Timer &timer, RepresentationInvalidator &invalidator);
+        explicit ViewState();
 
-        Timer &timer() const;
-
-        RepresentationInvalidator &representationInvalidator() const;
+        RepresentationInvalidator &representationInvalidator();
 
         NmVector3 crosshair() const;
 
@@ -166,8 +164,8 @@ namespace ESPINA
         void changeCrosshair(const NmVector3 &point, bool focus = false);
 
       private:
-        Timer                     &m_timer;
-        RepresentationInvalidator &m_invalidator;
+        Timer                     m_timer;
+        RepresentationInvalidator m_invalidator;
 
         bool                 m_fitToSlices;
         NmVector3            m_crosshair;

@@ -24,6 +24,7 @@
 
 #include <GUI/Model/ViewItemAdapter.h>
 #include "RepresentationState.h"
+#include <GUI/Types.h>
 
 namespace ESPINA
 {
@@ -78,22 +79,17 @@ namespace ESPINA
     /** \brief Sets the execution TimeStamp of the task
      *
      */
-    void setTimeStamp(TimeStamp time);
+    void setFrame(const GUI::Representations::FrameCSPtr frame);
 
     /** \brief Returns the execution TimeStamp of the task
      *
      */
-    TimeStamp timeStamp() const;
+    GUI::Representations::FrameCSPtr frame() const;
 
     /** \brief Invalidates the execution TimeStamp of the task
      *
      */
     void invalidate();
-
-    /** \brief Returns if task has a valid TimeStamp
-     *
-     */
-    bool hasValidTimeStamp() const;
 
     ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
 
@@ -103,7 +99,7 @@ namespace ESPINA
     RepresentationPipeline::Actors actors() const;
 
   signals:
-    void actorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
+    void actorsReady(const GUI::Representations::FrameCSPtr frame, RepresentationPipeline::Actors actors);
 
   protected:
     virtual void run();
@@ -123,8 +119,7 @@ namespace ESPINA
     static void removeUpdateRequest(UpdateRequestList &list, ViewItemAdapterPtr item);
 
   private:
-    TimeStamp m_timeStamp;
-    bool      m_timeStampValid;
+    GUI::Representations::FrameCSPtr m_frame;
 
     RepresentationPipelineSPtr m_pipeline;
 

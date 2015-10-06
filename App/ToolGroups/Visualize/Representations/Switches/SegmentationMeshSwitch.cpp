@@ -33,9 +33,8 @@ SegmentationMeshSwitch::SegmentationMeshSwitch(GUI::Representations::Representat
                                                GUI::Representations::RepresentationManagerSPtr smoothedMeshManager,
                                                std::shared_ptr<SegmentationMeshPoolSettings>   settings,
                                                ViewTypeFlags                                   supportedViews,
-                                               Timer                                          &timer,
                                                Support::Context                               &context)
-: RepresentationSwitch ("SegmentationMeshSwitch", meshManager->icon(), meshManager->description(), timer, context)
+: RepresentationSwitch ("SegmentationMeshSwitch", meshManager->icon(), meshManager->description(), context)
 , m_meshManager        {meshManager}
 , m_smoothedMeshManager{smoothedMeshManager}
 , m_settings           {settings}
@@ -69,28 +68,28 @@ ViewTypeFlags SegmentationMeshSwitch::supportedViews()
 }
 
 //----------------------------------------------------------------------------
-void SegmentationMeshSwitch::showRepresentations(TimeStamp t)
+void SegmentationMeshSwitch::showRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   if(m_smooth->value() != 0)
   {
-    m_smoothedMeshManager->show(m_smoothedMeshManager->frame(t));
+    m_smoothedMeshManager->show(frame);
   }
   else
   {
-    m_meshManager->show(m_meshManager->frame(t));
+    m_meshManager->show(frame);
   }
 }
 
 //----------------------------------------------------------------------------
-void SegmentationMeshSwitch::hideRepresentations(TimeStamp t)
+void SegmentationMeshSwitch::hideRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   if(m_smooth->value() != 0)
   {
-    m_smoothedMeshManager->hide(m_smoothedMeshManager->frame(t));
+    m_smoothedMeshManager->hide(frame);
   }
   else
   {
-    m_meshManager->hide(m_meshManager->frame(t));
+    m_meshManager->hide(frame);
   }
 }
 
@@ -162,27 +161,27 @@ void SegmentationMeshSwitch::switchManagers()
 {
   if(!isChecked()) return;
 
-  auto t = getViewState().timer().increment();
+  auto frame = getViewState().createFrame();
 
   if(m_smoothEnabled)
   {
-    m_meshManager->hide(m_meshManager->frame(t));
-    m_smoothedMeshManager->show(m_smoothedMeshManager->frame(t));
+    m_meshManager->hide(frame);
+    m_smoothedMeshManager->show(frame);
   }
   else
   {
-    m_smoothedMeshManager->hide(m_smoothedMeshManager->frame(t));
-    m_meshManager->show(m_meshManager->frame(t));
+    m_smoothedMeshManager->hide(frame);
+    m_meshManager->show(frame);
   }
 }
 
 //----------------------------------------------------------------------------
-void SegmentationMeshSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t)
+void SegmentationMeshSwitch::invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame)
 {
   auto manager = (m_smoothEnabled ? m_smoothedMeshManager : m_meshManager);
 
   for(auto pool: manager->pools())
   {
-    pool->invalidateRepresentations(items, t);
+    pool->invalidateRepresentations(items, frame);
   }
 }

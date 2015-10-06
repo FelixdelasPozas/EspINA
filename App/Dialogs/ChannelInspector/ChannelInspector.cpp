@@ -85,9 +85,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 , m_edgesModified     {false}
 , m_pixelSelector     {new PixelValueSelector(this)}
 , m_channel           {channel}
-, m_invalidator       {m_timer}
-, m_sources           {m_invalidator}
-, m_viewState         {m_timer, m_invalidator}
+, m_sources           {m_viewState.representationInvalidator()}
 , m_view              {new View2D(m_viewState, Plane::XY)}
 {
   setupUi(this);
@@ -303,8 +301,9 @@ void ChannelInspector::applyModifications()
 //------------------------------------------------------------------------
 void ChannelInspector::invalidateChannelRepresentation()
 {
-  m_viewState.timer().increment();
-  m_sources.updateRepresentation(toViewItemList(m_channel.get()), m_view->timeStamp());
+  auto frame = m_viewState.createFrame();
+
+  m_sources.updateRepresentation(toViewItemList(m_channel.get()), frame);
 }
 
 //------------------------------------------------------------------------
@@ -508,7 +507,8 @@ void ChannelInspector::initPropertiesTab()
 //------------------------------------------------------------------------
 void ChannelInspector::initSliceView()
 {
-  m_sources.addSource(toViewItemList(m_channel.get()), m_view->timeStamp());
+  auto frame = m_viewState.createFrame();
+  m_sources.addSource(toViewItemList(m_channel.get()), frame);
 
   auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, getScheduler(), 10);
@@ -651,7 +651,7 @@ void ChannelInspector::changeStackSpacing()
 
   auto segmentations = toRawList<ViewItemAdapter>(QueryAdapter::segmentationsOnChannelSample(m_channel));
 
-  getContext().representationInvalidator().invalidateRepresentations(segmentations);
+  //FIXME getContext().representationInvalidator().invalidateRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------

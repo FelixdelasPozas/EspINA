@@ -31,10 +31,12 @@ Frame::Frame()
 
 FrameCSPtr Frame::InvalidFrame()
 {
-  return std::make_shared<const Frame>();
+  return std::make_shared<Frame>();
 }
 
 bool Frame::isValid() const
 {
   return time != Timer::INVALID_TIME_STAMP;
 }
+
+Q_DECLARE_METATYPE(GUI::Representations::FrameCSPtr)

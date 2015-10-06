@@ -98,7 +98,7 @@ void SliceManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
   Q_ASSERT(validPlane());
 
-  planePool()->updatePipelines(frame->crosshair, frame->resolution, frame->time);
+  planePool()->updatePipelines(frame);
 }
 
 // //----------------------------------------------------------------------------
@@ -158,8 +158,8 @@ void SliceManager::connectPools()
     connect(planePool().get(), SIGNAL(actorsInvalidated()),
             this,              SLOT(waitForDisplay()));
 
-    connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
-            this,              SLOT(emitRenderRequest(TimeStamp)));
+    connect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
+            this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
     connect(planePool().get(), SIGNAL(actorsInvalidated()),
             this,              SLOT(invalidateRepresentations()));
@@ -176,8 +176,8 @@ void SliceManager::disconnectPools()
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
                this,              SLOT(waitForDisplay()));
 
-    disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
-               this,              SLOT(emitRenderRequest(TimeStamp)));
+    disconnect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
+               this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
                this,              SLOT(invalidateRepresentations()));

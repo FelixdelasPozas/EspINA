@@ -91,17 +91,7 @@ namespace ESPINA
      * \param[in] crosshair scene crosshair
      * \param[in] resolution scene resolution
      */
-    void updatePipelines(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t);
-
-    /** \brief Updates pool representation actors to the given position
-     *
-     */
-    void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
-
-    /** \brief Sets the resolution to be used for its representations
-     *
-     */
-    void setSceneResolution(const NmVector3 &resolution, TimeStamp t);
+    void updatePipelines(const GUI::Representations::FrameCSPtr frame);
 
     virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
@@ -125,7 +115,7 @@ namespace ESPINA
 
     void invalidatePreviousActors(TimeStamp t);
 
-    void reuseRepresentations(TimeStamp t);
+    void reuseRepresentations(const GUI::Representations::FrameCSPtr frame);
 
     /** \brief Increment the number of active managers using this pool
      *
@@ -142,7 +132,7 @@ namespace ESPINA
      * \param[in] t timestamp of the new actors after invalidation.
      *
      */
-    void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t);
+    void invalidateRepresentations(ViewItemAdapterList items, GUI::Representations::FrameCSPtr frame);
 
   signals:
     /** \brief Some managers may be interested in changes in the actors of the pool
@@ -150,7 +140,7 @@ namespace ESPINA
      *   This signal is only emitted whenever two consecutive time stamps generate
      *   different actors
      */
-    void actorsReady(TimeStamp t);
+    void actorsReady(const GUI::Representations::FrameCSPtr frame);
 
     void actorsInvalidated();
 
@@ -167,18 +157,18 @@ namespace ESPINA
     bool isEnabled() const;
 
   protected slots:
-    void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
+    void onActorsReady(const GUI::Representations::FrameCSPtr frame, RepresentationPipeline::Actors actors);
 
   private slots:
-    void onSourcesAdded(ViewItemAdapterList sources, TimeStamp t);
+    void onSourcesAdded(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
+    void onSourcesRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void onRepresentationsInvalidated(ViewItemAdapterList sources, TimeStamp t);
+    void onRepresentationsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void onRepresentationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t);
+    void onRepresentationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
-    void onTimeStampUpdated(TimeStamp t);
+    void onTimeStampUpdated(const GUI::Representations::FrameCSPtr frame);
 
     void onSettingsModified();
 
@@ -187,21 +177,17 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
-    virtual void setCrosshairImplementation(const NmVector3 &crosshair, TimeStamp t) = 0;
-
-    virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) = 0;
-
-    virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) = 0;
+    virtual void updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame) = 0;
 
     virtual void applySettings(const RepresentationState &settings) = 0;
 
-    void updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
+    void updateRepresentationsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
 
-    void updateRepresentationColorsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
+    void updateRepresentationColorsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
 
-    virtual void updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
+    virtual void updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) = 0;
 
-    virtual void updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
+    virtual void updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) = 0;
 
     bool actorsChanged(const RepresentationPipeline::Actors &actors) const;
 
@@ -218,9 +204,6 @@ namespace ESPINA
 
     PoolSettingsSPtr    m_settings;
     RepresentationState m_poolState;
-
-    NmVector3 m_crosshair;
-    NmVector3 m_resolution;
 
     ViewItemAdapterList m_pendingSources;
 

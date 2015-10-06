@@ -51,7 +51,6 @@ namespace ESPINA
                                        GUI::Representations::RepresentationManagerSPtr manager,
                                        std::shared_ptr<SegmentationSlicePoolSettings>  settings,
                                        ViewTypeFlags                                   supportedViews,
-                                       Timer                                          &timer,
                                        Support::Context                               &context);
 
       /** \brief SegmentationSliceSwitch class virtual destructor.

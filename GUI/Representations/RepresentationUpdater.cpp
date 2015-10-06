@@ -18,19 +18,20 @@
  */
 
 #include "RepresentationUpdater.h"
+#include "Frame.h"
 #include <vtkProp.h>
 #include <QCoreApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //----------------------------------------------------------------------------
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
                                              RepresentationPipelineSPtr pipeline)
-: Task            {scheduler}
-, m_timeStamp     {0}
-, m_timeStampValid{false}
-, m_pipeline      {pipeline}
-, m_updateList    {&m_sources}
+: Task         {scheduler}
+, m_frame      {Frame::InvalidFrame()}
+, m_pipeline   {pipeline}
+, m_updateList {&m_sources}
 {
   setHidden(true);
 }
@@ -114,30 +115,23 @@ void RepresentationUpdater::updateRepresentationColors(const ViewItemAdapterList
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::setTimeStamp(TimeStamp time)
+void RepresentationUpdater::setFrame(const GUI::Representations::FrameCSPtr frame)
 {
   QMutexLocker lock(&m_mutex);
 
-  m_timeStamp      = time;
-  m_timeStampValid = true;
+  m_frame = frame;
 }
 
 //----------------------------------------------------------------------------
-TimeStamp RepresentationUpdater::timeStamp() const
+FrameCSPtr RepresentationUpdater::frame() const
 {
-  return m_timeStamp;
+  return m_frame;
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::invalidate()
 {
-  m_timeStampValid = false;
-}
-
-//----------------------------------------------------------------------------
-bool RepresentationUpdater::hasValidTimeStamp() const
-{
-  return m_timeStampValid;
+  m_frame = Frame::InvalidFrame();
 }
 
 //----------------------------------------------------------------------------
@@ -183,7 +177,7 @@ void RepresentationUpdater::run()
 {
   QMutexLocker lock(&m_mutex);
 
-  qDebug() << "Task" << description() << "running" << " - " << this;
+  qDebug() << "Task" << description() << "running" << " - " << crosshairPoint(m_settings);
 
   // Local copy needed to prevent condition race on same TimeStamp
   // (usually due to invalidation view item representations)
@@ -198,10 +192,10 @@ void RepresentationUpdater::run()
 
   while (canExecute() && it != updateList.end())
   {
-    auto  item     = it->first;
-    auto  pipeline = sourcePipeline(item);
+    auto item     = it->first;
+    auto pipeline = sourcePipeline(item);
 
-    auto state  = pipeline->representationState(item, m_settings);
+    auto state = pipeline->representationState(item, m_settings);
 
     if (it->second)
     {
@@ -218,11 +212,11 @@ void RepresentationUpdater::run()
     reportProgress((i/static_cast<double>(size))*100);
   }
 
-  if (hasValidTimeStamp() && canExecute())
+  if (m_frame->isValid() && canExecute())
   {
     m_requestedSources.clear();
 
-    emit actorsReady(timeStamp(), m_actors);
+    emit actorsReady(m_frame, m_actors);
   }
 }
 

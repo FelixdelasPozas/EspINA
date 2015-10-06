@@ -52,7 +52,6 @@ namespace ESPINA
                                       GUI::Representations::RepresentationManagerSPtr  smoothedMeshManager,
                                       std::shared_ptr<SegmentationMeshPoolSettings>    settings,
                                       ViewTypeFlags                                    supportedViews,
-                                      Timer                                           &timer,
                                       Support::Context                                &context);
 
       /** \brief SegmentationMeshSwitch class virtual destructor.
@@ -62,9 +61,9 @@ namespace ESPINA
 
       virtual ViewTypeFlags supportedViews() override;
 
-      virtual void showRepresentations(TimeStamp t) override;
+      virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void hideRepresentations(TimeStamp t) override;
+      virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
@@ -88,7 +87,7 @@ namespace ESPINA
        */
       void switchManagers();
 
-      virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, TimeStamp t) override;
+      virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
 
     private:
       GUI::Representations::RepresentationManagerSPtr m_meshManager;

@@ -56,8 +56,8 @@ DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
 : m_model              (context.model())
 , m_viewState          (context.viewState())
-, m_channelSources     (m_model, ItemAdapter::Type::CHANNEL,      context.representationInvalidator())
-, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, context.representationInvalidator())
+, m_channelSources     (m_model, ItemAdapter::Type::CHANNEL,      m_viewState.representationInvalidator())
+, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, m_viewState.representationInvalidator())
 , m_viewXY             {new View2D(context.viewState(), Plane::XY)}
 , m_viewYZ             {new View2D(context.viewState(), Plane::YZ)}
 , m_viewXZ             {new View2D(context.viewState(), Plane::XZ)}

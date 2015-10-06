@@ -62,15 +62,15 @@ void PipelineSourcesFilter::onSourcesAdded(ViewItemAdapterSList sources)
 
   insert(filteredSources);
 
-  auto t = timeStamp();
+  auto frame = createFrame();
 
   if (filteredSources.isEmpty())
   {
-    emit updateTimeStamp(t);
+    emit updateTimeStamp(frame);
   }
   else
   {
-    emit sourcesAdded(filteredSources, t);
+    emit sourcesAdded(filteredSources, frame);
   }
 }
 
@@ -81,15 +81,15 @@ void PipelineSourcesFilter::onSourcesRemoved(ViewItemAdapterSList sources)
 
   remove(filteredSources);
 
-  auto t = timeStamp();
+  auto frame = createFrame();
 
   if (filteredSources.isEmpty())
   {
-    emit updateTimeStamp(t);
+    emit updateTimeStamp(frame);
   }
   else
   {
-    emit sourcesRemoved(filteredSources, t);
+    emit sourcesRemoved(filteredSources, frame);
   }
 }
 
@@ -98,7 +98,7 @@ void PipelineSourcesFilter::onReset()
 {
   if (!m_sources.isEmpty())
   {
-    emit sourcesRemoved(m_sources, timeStamp());
+    emit sourcesRemoved(m_sources, createFrame());
 
     m_sources.clear();
   }

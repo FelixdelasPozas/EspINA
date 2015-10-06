@@ -19,6 +19,7 @@
 
 // ESPINA
 #include "RepresentationPool.h"
+#include "Frame.h"
 
 // VTK
 #include <vtkProp.h>
@@ -55,20 +56,18 @@ RepresentationPool::~RepresentationPool()
 //-----------------------------------------------------------------------------
 void RepresentationPool::setPipelineSources(PipelineSources *sources)
 {
-  auto t = sources->invalidator().timer().increment();
-
   if (m_sources)
   {
-    disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
-               this,      SLOT(onSourcesAdded(ViewItemAdapterList,TimeStamp)));
-    disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
-               this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
-    disconnect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
-               this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
-    disconnect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
-               this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
-    disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
-               this,      SLOT(onTimeStampUpdated(TimeStamp)));
+    disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+               this,      SLOT(onSourcesAdded(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
+    disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+               this,      SLOT(onSourcesRemoved(ViewItemAdapterList, GUI::Representations::FrameCSPtr)));
+    disconnect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList, GUI::Representations::FrameCSPtr)),
+               this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, GUI::Representations::FrameCSPtr)));
+    disconnect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+               this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
+    disconnect(m_sources, SIGNAL(updateTimeStamp(GUI::Representations::FrameCSPtr)),
+               this,      SLOT(onTimeStampUpdated(GUI::Representations::FrameCSPtr)));
 
     removeSources(m_sources->sources());
   }
@@ -77,21 +76,21 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 
   if (m_sources)
   {
-    connect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList, TimeStamp)),
-            this,      SLOT(onSourcesAdded(ViewItemAdapterList, TimeStamp)));
-    connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList, TimeStamp)),
-            this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
-    connect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
-            this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, TimeStamp)));
-    connect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,TimeStamp)),
-            this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,TimeStamp)));
-    connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
-            this,      SLOT(onTimeStampUpdated(TimeStamp)));
+    connect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+            this,      SLOT(onSourcesAdded(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
+    connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+            this,      SLOT(onSourcesRemoved(ViewItemAdapterList, GUI::Representations::FrameCSPtr)));
+    connect(m_sources, SIGNAL(representationsInvalidated(ViewItemAdapterList, GUI::Representations::FrameCSPtr)),
+            this,      SLOT(onRepresentationsInvalidated(ViewItemAdapterList, GUI::Representations::FrameCSPtr)));
+    connect(m_sources, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+            this,      SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
+    connect(m_sources, SIGNAL(updateTimeStamp(GUI::Representations::FrameCSPtr)),
+            this,      SLOT(onTimeStampUpdated(GUI::Representations::FrameCSPtr)));
 
     addSources(m_sources->sources());
   }
 
-  updateRepresentationsAt(t, m_sources->sources());
+  //NOTE: vamos a ver si podemos dejar que lo haga otro metodo>> updateRepresentationsAt(t, m_sources->sources());
 }
 
 //-----------------------------------------------------------------------------
@@ -129,32 +128,13 @@ RepresentationState RepresentationPool::settings() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
+void RepresentationPool::updatePipelines(const GUI::Representations::FrameCSPtr frame)
 {
-  m_crosshair = crosshair;
-
-  if (notHasBeenProcessed(t))
-  {
-    setCrosshairImplementation(crosshair, t);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::setSceneResolution(const NmVector3 &resolution, TimeStamp t)
-{
-  m_resolution = resolution;
-
-  setSceneResolutionImplementation(resolution, t);
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::updatePipelines(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t)
-{
-  if (notHasBeenProcessed(t))
+  if (notHasBeenProcessed(frame->time))
   {
     processPendingSources();
 
-    updatePipelinesImplementation(crosshair, resolution, t);
+    updatePipelinesImplementation(frame);
   }
 }
 
@@ -183,13 +163,13 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::reuseRepresentations(TimeStamp t)
+void RepresentationPool::reuseRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   if (!m_validActors.isEmpty())
   {
-    m_validActors.reusePreviousValue(t);
+    m_validActors.reusePreviousValue(frame->time);
 
-    emit actorsReady(t);
+    emit actorsReady(frame);
   }
 }
 
@@ -214,9 +194,9 @@ void RepresentationPool::decrementObservers()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
+void RepresentationPool::invalidateRepresentations(ViewItemAdapterList items, GUI::Representations::FrameCSPtr frame)
 {
-  onRepresentationsInvalidated(items, t);
+  onRepresentationsInvalidated(items, frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -226,24 +206,25 @@ bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Actors actors)
+void RepresentationPool::onActorsReady(const GUI::Representations::FrameCSPtr frame, RepresentationPipeline::Actors actors)
 {
-  if (notHasBeenProcessed(t))
+  if (notHasBeenProcessed(frame->time))
   {
     if (actorsChanged(actors))
     {
-      m_validActors.addValue(actors, t);
+      m_validActors.addValue(actors, frame->time);
     }
     else
     {
-      m_validActors.reusePreviousValue(t);
+      m_validActors.reusePreviousValue(frame->time);
     }
-    emit actorsReady(t);
+
+    emit actorsReady(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, TimeStamp t)
+void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   addSources(sources);
 
@@ -251,16 +232,16 @@ void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, TimeStamp t
   {
     processPendingSources();
 
-    updateRepresentationsAt(t, sources);
+    updateRepresentationsAt(frame, sources);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t)
+void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   if (removeSources(sources))
   {
-    updateRepresentationsAt(t);
+    updateRepresentationsAt(frame);
   }
 
   if(m_sourcesCount == 0)
@@ -269,28 +250,28 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
 
     emit actorsInvalidated();
 
-    onActorsReady(t, RepresentationPipeline::Actors());
+    onActorsReady(frame, RepresentationPipeline::Actors());
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterList sources, TimeStamp t)
+void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterList sources,  const GUI::Representations::FrameCSPtr frame)
 {
-  updateRepresentationsAt(t, sources);
+  updateRepresentationsAt(frame, sources);
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onRepresentationColorsInvalidated(ViewItemAdapterList sources, TimeStamp t)
+void RepresentationPool::onRepresentationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
-  updateRepresentationColorsAt(t, sources);
+  updateRepresentationColorsAt(frame, sources);
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onTimeStampUpdated(TimeStamp t)
+void RepresentationPool::onTimeStampUpdated(const GUI::Representations::FrameCSPtr frame)
 {
   if(!m_validActors.isEmpty())
   {
-    m_validActors.reusePreviousValue(t);
+    m_validActors.reusePreviousValue(frame->time);
   }
 }
 
@@ -317,7 +298,7 @@ bool RepresentationPool::actorsChanged(const RepresentationPipeline::Actors &act
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+void RepresentationPool::updateRepresentationsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
   m_validActors.invalidate();
 
@@ -325,12 +306,12 @@ void RepresentationPool::updateRepresentationsAt(TimeStamp t, ViewItemAdapterLis
   {
     emit actorsInvalidated();
 
-    updateRepresentationsAtImlementation(t, modifiedItems);
+    updateRepresentationsAtImlementation(frame, modifiedItems);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::updateRepresentationColorsAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+void RepresentationPool::updateRepresentationColorsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
   m_validActors.invalidate();
 
@@ -338,7 +319,7 @@ void RepresentationPool::updateRepresentationColorsAt(TimeStamp t, ViewItemAdapt
   {
     emit actorsInvalidated();
 
-    updateRepresentationColorsAtImlementation(t, modifiedItems);
+    updateRepresentationColorsAtImlementation(frame, modifiedItems);
   }
 }
 

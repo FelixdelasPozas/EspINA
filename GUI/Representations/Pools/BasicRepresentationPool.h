@@ -35,15 +35,11 @@ namespace ESPINA
     virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
   private:
-    virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) override;
+    virtual void updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
+    virtual void updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
 
-    virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) override;
-
-    virtual void updateRepresentationsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) override;
-
-    virtual void updateRepresentationColorsAtImlementation(TimeStamp t, ViewItemAdapterList modifiedItems) override;
+    virtual void updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
 
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 

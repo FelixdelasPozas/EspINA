@@ -32,9 +32,8 @@ SegmentationSliceSwitch::SegmentationSliceSwitch(const QString &id,
                                                  GUI::Representations::RepresentationManagerSPtr manager,
                                                  std::shared_ptr<SegmentationSlicePoolSettings>  settings,
                                                  ViewTypeFlags                                   supportedViews,
-                                                 Timer                                          &timer,
                                                  Support::Context                               &context)
-: BasicRepresentationSwitch(id, manager, supportedViews, timer, context)
+: BasicRepresentationSwitch(id, manager, supportedViews, context)
 , m_settings{settings}
 {
   initWidgets();
