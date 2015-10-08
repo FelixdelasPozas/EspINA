@@ -35,6 +35,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/View/ViewState.h>
 
 #include "classification_proxy_testing_support.h"
 #include "ModelProfiler.h"
@@ -44,16 +45,15 @@
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
-using Invalidator = GUI::View::RepresentationInvalidator;
+using ViewState = GUI::View::ViewState;
 
 int classification_proxy_change_segmentation_category( int argc, char** argv )
 {
   bool error = false;
 
-  Timer               timer;
-  Invalidator         invalidator(timer);
+  ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, invalidator);
+  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
   ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();

@@ -54,6 +54,8 @@ void PipelineSources::insert(ViewItemAdapterList sources)
   for (auto source : sources)
   {
     Q_ASSERT(!contains(source));
+    connect(source, SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
+            &m_representationInvalidator, SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
     m_sources.append(source);
   }
 }

@@ -219,28 +219,28 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void SegmentationInspector::updateWindowTitle()
 {
-  QString title(tr("Segmentation Inspector - "));
+  auto title = tr("Segmentation Inspector - ");
 
   for(auto segmentation : m_segmentations)
   {
     title += segmentation->data().toString();
     if(segmentation != m_segmentations.last())
     {
-      title += QString(" + ");
+      title += " + ";
     }
   }
 
-  title += QString(" [");
+  title += " [";
 
   for(auto channel : m_channels)
   {
     title += channel->data().toString();
     if (channel != m_channels.last())
     {
-      title += QString(" + ");
+      title += " + ";
     }
   }
-  title += QString("]");
+  title += "]";
 
   setWindowTitle(title);
 }

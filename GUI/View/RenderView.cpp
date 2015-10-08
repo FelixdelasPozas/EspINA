@@ -324,8 +324,17 @@ void RenderView::resetCamera()
 
   frame->reset = true;
 
-  onCameraReset(frame);
-  refresh();
+  for (auto manager : m_managers)
+  {
+    manager->onFrameChanged(frame);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::refresh()
+{
+  //m_view->update();
+  onRenderRequest();
 }
 
 //-----------------------------------------------------------------------------
@@ -348,18 +357,6 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onCameraReset(FrameCSPtr frame)
-{
-  //TODO
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::refresh()
-{
-  //onRenderRequest();
-}
-
-//-----------------------------------------------------------------------------
 void RenderView::connectSignals()
 {
   connect(this,     SIGNAL(crosshairChanged(NmVector3)),
@@ -371,14 +368,11 @@ void RenderView::connectSignals()
   connect(this,     SIGNAL(viewFocusedOn(NmVector3)),
           &m_state, SLOT(focusViewOn(NmVector3)));
 
-  connect(&m_state, SIGNAL(resetCamera(GUI::Representations::FrameCSPtr)),
-          this,     SLOT(onCameraReset(GUI::Representations::FrameCSPtr)));
-
-//   connect(&m_state, SIGNAL(refreshRequested()),
-//           this,     SLOT(refresh()));
-
   connect(&m_state, SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
           this,     SLOT(onCrosshairChanged(GUI::Representations::FrameCSPtr)));
+
+  connect(&m_state, SIGNAL(refreshRequested()),
+          this,     SLOT(refresh()));
 
   connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
           this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
@@ -392,24 +386,12 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
           this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
 
-//   connect(&m_state, SIGNAL(viewFocusChanged(NmVector3)),
-//           this,     SLOT(onFocusChanged(NmVector3)));
-
   connect(m_state.coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                             SLOT(onSceneResolutionChanged(NmVector3)));
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
            this,                             SLOT(onSceneBoundsChanged(Bounds)));
 }
-
-// //-----------------------------------------------------------------------------
-// void RenderView::onFocusChanged(NmVector3 point)
-// {
-//   m_focusPoint = point;
-//   m_requiresFocusChange = true;
-//
-//   onRenderRequest();
-// }
 
 //-----------------------------------------------------------------------------
 void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes, const GUI::Representations::FrameCSPtr frame)
@@ -470,9 +452,7 @@ void RenderView::onRenderRequest()
     //     m_timer.restart();
     display(readyManagers, frame);
 
-    qDebug() << viewName() << ": Rendering frame " << frame->time;
-
-    //m_state.timer().activate();
+    qDebug() << viewName() << "> Rendering frame " << frame->time;
 
     deleteInactiveWidgetManagers();
 
@@ -492,10 +472,11 @@ void RenderView::onRenderRequest()
     refreshViewImplementation();
 
     mainRenderer()->ResetCameraClippingRange();
-    m_view->update();
 
     m_latestFrame = frame;
   }
+
+  m_view->update();
 }
 
 //-----------------------------------------------------------------------------
@@ -603,15 +584,6 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
         }
       }
     }
-//     else
-//     {
-//       // We don't care about the actual frame as all managers are pending to
-//       // hide their actors. We only need to be greater than the last render
-//       // time stamp so it actually performs a display on every manager
-//       latest = m_lastRender + 1;
-//     }
-
-    qDebug() << viewName() << "Latest common frame "<< latest;
   }
 
   return (activeManager && latest != Timer::INVALID_TIME_STAMP)?activeManager->frame(latest):Frame::InvalidFrame();

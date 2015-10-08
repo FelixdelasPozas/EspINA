@@ -383,9 +383,9 @@ bool RepresentationManager::needsRepresentationUpdate(const FrameCSPtr frame)
   auto currentFrame = lastFrame();
 
   return !currentFrame->isValid()
-       || acceptFrame(frame)
-       || frame->focus != currentFrame->focus
-       || frame->reset != currentFrame->reset;
+       || frame->focus
+       || frame->reset
+       || acceptFrame(frame);
 }
 
 //-----------------------------------------------------------------------------

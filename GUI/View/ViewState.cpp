@@ -110,8 +110,6 @@ void ViewState::focusViewOn(const NmVector3 &point)
 {
   auto center = crosshairPoint(point);
 
-//   emit viewFocusChanged(center);
-
   changeCrosshair(center, true);
 }
 
@@ -128,12 +126,14 @@ void ViewState::resetCamera()
 //----------------------------------------------------------------------------
 void ViewState::refresh()
 {
-//   emit refreshRequested();
+  emit refreshRequested();
 }
 
 //----------------------------------------------------------------------------
-void ViewState::setCoordinateSystem(const NmVector3 &resolution, const Bounds &bounds)
+void ViewState::setScene(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds)
 {
+  m_crosshair = crosshair;
+
   m_coordinateSystem->setBounds(bounds);
   m_coordinateSystem->setResolution(resolution);
 
@@ -217,8 +217,6 @@ void ViewState::changeCrosshair(const NmVector3 &point, bool focus)
   {
     m_crosshair = point;
 
-    m_timer.activate(); // we need to increment on every crosshair change
-                        // to improve speed on consecutive slice changes
     auto frame = createFrame();
 
     frame->focus = focus;
@@ -249,6 +247,7 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
 //-----------------------------------------------------------------------------
 void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)
 {
+  NmVector3 crosshair;
   Bounds    bounds{0, 1, 0, 1, 0, 1};
   NmVector3 resolution{1,1,1};
 
@@ -256,6 +255,7 @@ void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList 
   {
     auto output = viewItems.first()->output();
 
+    crosshair  = state.crosshair();
     bounds     = output->bounds();
     resolution = output->spacing();
 
@@ -276,5 +276,5 @@ void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList 
 
   }
 
-  state.setCoordinateSystem(resolution, bounds);
+  state.setScene(crosshair, resolution, bounds);
 }

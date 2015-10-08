@@ -199,11 +199,6 @@ namespace ESPINA
     virtual const QString viewName() const = 0;
 
   public slots:
-    /** \brief Resets the view's camera.
-     *
-     */
-    void onCameraReset(GUI::Representations::FrameCSPtr frame);
-
     /** \brief Resets the camera using the camera reset button of the view.
      *
      */

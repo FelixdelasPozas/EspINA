@@ -30,20 +30,20 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/View/ViewState.h>
 #include "ModelTest.h"
 
 using namespace ESPINA;
 using namespace std;
-using Invalidator = GUI::View::RepresentationInvalidator;
+using ViewState = GUI::View::ViewState;
 
 int classification_proxy_empty_analysis_constructor(int argc, char** argv )
 {
   bool error = false;
 
-  Timer               timer;
-  Invalidator         invalidator(timer);
+  ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, invalidator);
+  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
   ModelTest           modelTester(&proxy);
 
   return error;

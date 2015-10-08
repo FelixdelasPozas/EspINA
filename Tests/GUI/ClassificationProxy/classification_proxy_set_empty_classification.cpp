@@ -31,11 +31,13 @@
 
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ClassificationProxy.h>
+#include <GUI/View/ViewState.h>
 #include "ModelTest.h"
 
 using namespace ESPINA;
 using namespace std;
-using Invalidator = GUI::View::RepresentationInvalidator;
+using ViewState = GUI::View::ViewState;
+
 
 int classification_proxy_set_empty_classification( int argc, char** argv )
 {
@@ -43,10 +45,9 @@ int classification_proxy_set_empty_classification( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  Timer               timer;
-  Invalidator         invalidator(timer);
+  ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, invalidator);
+  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
   ModelTest           modelTester(&proxy);
 
   SchedulerSPtr sch;

@@ -54,6 +54,7 @@ namespace ESPINA
   using SegmentationAdapterSPtr     = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList    = QList<SegmentationAdapterSPtr>;
 
+
   namespace GUI
   {
     namespace ColorEngines

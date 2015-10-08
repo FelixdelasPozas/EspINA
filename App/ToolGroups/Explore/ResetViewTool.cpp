@@ -46,4 +46,5 @@ ResetViewTool::~ResetViewTool()
 void ResetViewTool::resetViews()
 {
   m_viewState.resetCamera();
+  m_viewState.refresh();
 }

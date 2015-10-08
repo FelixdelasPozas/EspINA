@@ -116,7 +116,7 @@ namespace ESPINA
 
         void refresh();
 
-        void setCoordinateSystem(const NmVector3 &resolution, const Bounds &bounds);
+        void setScene(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds);
 
         Representations::FrameSPtr createFrame();
         Representations::FrameSPtr createFrame(const NmVector3 &point);
@@ -150,11 +150,9 @@ namespace ESPINA
 
         void sliceSelectorRemoved(SliceSelectorSPtr selector);
 
-//         void viewFocusChanged(NmVector3 point);
-
         void resetCamera(const GUI::Representations::FrameCSPtr frame);
 
-        //void refreshRequested();
+        void refreshRequested();
 
       private:
         NmVector3 crosshairPoint(const NmVector3 &point) const;

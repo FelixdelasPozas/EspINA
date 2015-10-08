@@ -31,8 +31,7 @@ const TimeStamp Timer::MAXIMUM_TIME_STAMP = std::numeric_limits<std::uint64_t>::
 
 //------------------------------------------------------------------------
 Timer::Timer(TimeStamp time)
-: m_canIncrement{true}
-, m_timeStamp   {time}
+: m_timeStamp{time}
 {
 }
 
@@ -40,20 +39,15 @@ Timer::Timer(TimeStamp time)
 TimeStamp Timer::increment()
 {
   QMutexLocker lock(&m_mutex);
-  if (m_canIncrement)
+  if(willOverflow())
   {
-    m_canIncrement = false;
+    resetImplemenation();
+  }
+  else
+  {
+    ++m_timeStamp;
 
-    if(willOverflow())
-    {
-      resetImplemenation();
-    }
-    else
-    {
-      ++m_timeStamp;
-
-      emit tic(m_timeStamp);
-    }
+    emit tic(m_timeStamp);
   }
 
   return m_timeStamp;
@@ -87,10 +81,4 @@ void Timer::resetImplemenation()
 bool Timer::willOverflow() const
 {
   return m_timeStamp == MAXIMUM_TIME_STAMP;
-}
-
-//------------------------------------------------------------------------
-void Timer::activate()
-{
-  m_canIncrement = true;
 }
