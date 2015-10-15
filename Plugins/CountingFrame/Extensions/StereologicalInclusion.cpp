@@ -53,7 +53,6 @@ const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
 
 const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 1.0\n";
-const char SEP = ';';
 
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFrame *cf) const

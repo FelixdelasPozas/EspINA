@@ -43,7 +43,7 @@ int classification_proxy_empty_analysis_constructor(int argc, char** argv )
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   return error;

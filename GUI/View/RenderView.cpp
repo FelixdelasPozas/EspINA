@@ -450,9 +450,8 @@ void RenderView::onRenderRequest()
   {
     //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
     //     m_timer.restart();
-    display(readyManagers, frame);
-
     qDebug() << viewName() << "> Rendering frame " << frame->time;
+    display(readyManagers, frame);
 
     deleteInactiveWidgetManagers();
 
@@ -569,7 +568,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 
     if (activeManagers > 0)
     {
-      qDebug() << viewName() << "Frames Availabe: " << count;
+      qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
 
       for(auto time : count.keys())
       {

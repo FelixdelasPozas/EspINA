@@ -124,7 +124,6 @@ qt4_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
   ${GUI_DIR}/Utils/Timer.h
-  ${GUI_DIR}/View/RepresentationInvalidator.h
   ${GUI_DIR}/View/ViewState.h
   ${GUI_DIR}/View/CoordinateSystem.h
   ${GUI_DIR}/View/EventHandler.h
@@ -152,7 +151,6 @@ set (GUI_SOURCES
   ${GUI_DIR}/Utils/Timer.cpp
   ${GUI_DIR}/View/CoordinateSystem.cpp
   ${GUI_DIR}/View/EventHandler.cpp
-  ${GUI_DIR}/View/RepresentationInvalidator.cpp
   ${GUI_DIR}/View/Selection.cpp
   ${GUI_DIR}/View/ViewState.cpp
 )

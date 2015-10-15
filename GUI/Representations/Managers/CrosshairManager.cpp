@@ -147,12 +147,12 @@ void CrosshairManager::hideRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::onShow(TimeStamp t)
+void CrosshairManager::onShow()
 {
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::onHide(TimeStamp t)
+void CrosshairManager::onHide()
 {
 }
 

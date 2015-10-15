@@ -19,7 +19,8 @@
 #define ESPINA_PIPELINE_SOURCES_H
 
 #include <GUI/Model/ViewItemAdapter.h>
-#include <GUI/View/RepresentationInvalidator.h>
+
+#include <GUI/Types.h>
 
 namespace ESPINA
 {
@@ -29,7 +30,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit PipelineSources(GUI::View::RepresentationInvalidator &invalidator);
+    explicit PipelineSources(GUI::View::ViewState &viewState);
 
     virtual ~PipelineSources();
 
@@ -40,8 +41,6 @@ namespace ESPINA
 
     int size() const
     { return m_sources.size(); }
-
-    GUI::View::RepresentationInvalidator &invalidator();
 
   signals:
     void sourcesAdded  (ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
@@ -71,7 +70,7 @@ namespace ESPINA
     ViewItemAdapterList m_sources;
 
   private:
-    GUI::View::RepresentationInvalidator &m_representationInvalidator;
+    GUI::View::ViewState &m_viewState;
   };
 }
 

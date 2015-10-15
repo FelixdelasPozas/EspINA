@@ -60,9 +60,9 @@ namespace ESPINA
 
     virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    void onShow(TimeStamp t) override;
+    void onShow() override;
 
-    void onHide(TimeStamp t) override;
+    void onHide() override;
 
     virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 

@@ -59,7 +59,7 @@ int classification_proxy_set_default_classification( int argc, char** argv )
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   auto coreFactory = make_shared<CoreFactory>();

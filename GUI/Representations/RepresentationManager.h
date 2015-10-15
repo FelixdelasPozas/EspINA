@@ -223,9 +223,9 @@ namespace ESPINA
 
         virtual void hideRepresentations(TimeStamp t) = 0;
 
-        virtual void onShow(TimeStamp t) = 0;
+        virtual void onShow() = 0;
 
-        virtual void onHide(TimeStamp t) = 0;
+        virtual void onHide() = 0;
 
         virtual RepresentationManagerSPtr cloneImplementation() = 0;
 

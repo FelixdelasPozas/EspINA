@@ -25,7 +25,7 @@ namespace ESPINA
   : public PipelineSources
   {
   public:
-    explicit ManualPipelineSources(GUI::View::RepresentationInvalidator &invalidator);
+    explicit ManualPipelineSources(GUI::View::ViewState &viewState);
 
     void addSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 

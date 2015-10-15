@@ -77,5 +77,5 @@ void ChangeCategoryCommand::updateSelection(ViewItemAdapterList segmentations)
 {
   getViewState().selection()->clear();
   getViewState().selection()->set(segmentations);
-  getViewState().representationInvalidator().invalidateRepresentationColors(segmentations);
+  getViewState().invalidateRepresentationColors(segmentations);
 }

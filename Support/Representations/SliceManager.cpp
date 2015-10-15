@@ -134,7 +134,7 @@ void SliceManager::invalidatePreviousActors(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onShow(TimeStamp t)
+void SliceManager::onShow()
 {
   connectPools();
 
@@ -145,7 +145,7 @@ void SliceManager::onShow(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onHide(TimeStamp t)
+void SliceManager::onHide()
 {
   disconnectPools();
 }
@@ -164,6 +164,7 @@ void SliceManager::connectPools()
     connect(planePool().get(), SIGNAL(actorsInvalidated()),
             this,              SLOT(invalidateRepresentations()));
 
+    qDebug() << debugName() << "Activating representation pools";
     planePool()->incrementObservers();
   }
 }
@@ -182,6 +183,7 @@ void SliceManager::disconnectPools()
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
                this,              SLOT(invalidateRepresentations()));
 
+    qDebug() << debugName() << "Dectivating representation pools";
     planePool()->decrementObservers();
   }
 }

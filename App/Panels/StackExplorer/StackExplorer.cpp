@@ -50,11 +50,6 @@ public:
 //------------------------------------------------------------------------
 StackExplorer::StackExplorer(Support::Context &context)
 : Panel(tr("StackExplorer"), context)
-, m_context     (context)
-, m_model       {context.model()}
-, m_scheduler   {context.scheduler()}
-, m_undoStack   {context.undoStack()}
-, m_invalidator (context.viewState().representationInvalidator())
 , m_channelProxy{new ChannelProxy(context.model())}
 , m_sort        {new QSortFilterProxyModel()}
 , m_gui         {new CentralWidget()}
@@ -103,7 +98,7 @@ StackExplorer::StackExplorer(Support::Context &context)
 
   updateTooltips(0);
 
-  auto selection = m_context.viewState().selection();
+  auto selection = getSelection();
 
   connect(selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this,            SLOT(onActiveChannelChanged(ChannelAdapterPtr)));
@@ -460,8 +455,8 @@ void StackExplorer::showInformation()
 
      if (isChannel(currentItem))
      {
-       auto channel   = channelPtr(currentItem);
-       ChannelInspector dialog(m_model->smartPointer(channel), m_context);
+       auto channel = channelPtr(currentItem);
+       ChannelInspector dialog(getModel()->smartPointer(channel), getContext());
 
        dialog.exec();
      }
@@ -489,15 +484,15 @@ void StackExplorer::activateChannel()
 //------------------------------------------------------------------------
 void StackExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapterPtr sample)
 {
-  auto smartSample = m_model->smartPointer(sample);
+  auto smartSample = getModel()->smartPointer(sample);
 
   for (auto channel : channels)
   {
     auto prevSample   = QueryAdapter::sample(channel);
-    auto smartChannel = m_model->smartPointer(channel);
+    auto smartChannel = getModel()->smartPointer(channel);
 
-    m_model->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
-    m_model->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
+    getModel()->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
+    getModel()->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
   }
 }
 
@@ -547,5 +542,5 @@ void StackExplorer::updateChannelRepresentations(QModelIndex index)
 {
   auto item = itemAdapter(m_sort->mapToSource(index));
 
-  m_invalidator.invalidateRepresentations(toViewItemList(item));
+  getViewState().invalidateRepresentations(toViewItemList(item));
 }

@@ -47,7 +47,7 @@ int classification_proxy_set_empty_classification( int argc, char** argv )
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   SchedulerSPtr sch;

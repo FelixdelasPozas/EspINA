@@ -118,7 +118,7 @@ int classification_proxy_add_different_category_segmentations( int argc, char** 
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   //ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();

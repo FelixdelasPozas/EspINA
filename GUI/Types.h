@@ -54,6 +54,7 @@ namespace ESPINA
   using SegmentationAdapterSPtr     = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList    = QList<SegmentationAdapterSPtr>;
 
+  class Panel;
 
   namespace GUI
   {
@@ -85,7 +86,7 @@ namespace ESPINA
         using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
       }
 
-      class Frame;
+      struct Frame;
       using FrameSPtr   = std::shared_ptr<Frame>;
       using FrameCSPtr  = std::shared_ptr<const Frame>;
       using FrameCSList = QList<FrameCSPtr>;

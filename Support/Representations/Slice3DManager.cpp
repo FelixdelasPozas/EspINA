@@ -95,13 +95,13 @@ void Slice3DManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onShow(TimeStamp t)
+void Slice3DManager::onShow()
 {
   connectPools();
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onHide(TimeStamp t)
+void Slice3DManager::onHide()
 {
   disconnectPools();
 }
@@ -136,6 +136,7 @@ void Slice3DManager::invalidatePreviousActors(TimeStamp t)
 //----------------------------------------------------------------------------
 void Slice3DManager::connectPools()
 {
+  qDebug() << debugName() << "Activating representation pools";
   for (auto pool : m_pools)
   {
     connect(pool.get(), SIGNAL(actorsInvalidated()),
@@ -154,6 +155,7 @@ void Slice3DManager::connectPools()
 //----------------------------------------------------------------------------
 void Slice3DManager::disconnectPools()
 {
+  qDebug() << debugName() << "Dectivating representation pools";
   for (auto pool : m_pools)
   {
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),

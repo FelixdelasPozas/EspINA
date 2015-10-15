@@ -57,8 +57,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
 , WithContext           (context)
 , m_register            (filterRefiners)
 , m_selectedSegmentation(nullptr)
-, m_channelSources      (getViewState().representationInvalidator())
-, m_segmentationSources (getViewState().representationInvalidator())
+, m_channelSources      (getViewState())
+, m_segmentationSources (getViewState())
 , m_view                (context.viewState(), true)
 , m_tabularReport       (context)
 {

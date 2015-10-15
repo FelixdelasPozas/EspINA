@@ -51,7 +51,7 @@ int classification_proxy_add_segmentation_without_category( int argc, char** arg
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();

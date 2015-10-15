@@ -331,7 +331,7 @@ void AppositionSurfacePlugin::finishedTask()
   undoStack->push(new AddRelationsCommand(createdRelations, model));
   undoStack->endMacro();
 
-  m_context->viewState().representationInvalidator().invalidateRepresentations(segmentationsToUpdate);
+  m_context->viewState().invalidateRepresentations(segmentationsToUpdate);
 
   m_finishedTasks.clear();
 

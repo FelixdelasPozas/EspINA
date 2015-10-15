@@ -43,7 +43,6 @@ qt4_wrap_cpp(GUI_MOC
   View/View2D.h
   View/ViewState.h
   View/View3D.h
-  View/RepresentationInvalidator.h
   View/Widgets/Measures/MeasureEventHandler.h
   View/Widgets/Measures/MeasureWidget.h
   View/Widgets/PlanarSplit/PlanarSplitEventHandler.h
@@ -177,7 +176,6 @@ set (GUI_SOURCES
   View/ViewState.cpp
   View/Utils.cpp
   View/View3D.cpp
-  View/RepresentationInvalidator.cpp
   View/Widgets/EspinaWidget.cpp
   View/Widgets/Contour/ContourWidget2D.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp

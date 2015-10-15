@@ -25,7 +25,6 @@
 #include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Types.h>
-#include <GUI/View/RepresentationInvalidator.h>
 #include <GUI/Utils/Timer.h>
 #include <GUI/View/Selection.h>
 #include "CoordinateSystem.h"
@@ -46,13 +45,18 @@ namespace ESPINA
       {
         Q_OBJECT
       public:
+        enum class Invalidate
+        {
+          SELECTED_ITEMS,
+          DEPENDENT_ITEMS
+        };
+
+      public:
         /** \brief Class ViewState class constructor.
          * \param[in] timer state timer object.
          *
          */
         explicit ViewState();
-
-        RepresentationInvalidator &representationInvalidator();
 
         NmVector3 crosshair() const;
 
@@ -112,6 +116,22 @@ namespace ESPINA
 
         CoordinateSystemSPtr coordinateSystem() const;
 
+        /** \brief Invalidates item representations
+         * \param[in] items to invalide their representations
+         * \param[in] scope of the invalidation.
+         *
+         */
+        void invalidateRepresentations(const ViewItemAdapterList &items,
+                                       const Invalidate scope = Invalidate::SELECTED_ITEMS);
+
+        /** \brief Update item representation colors
+         * \param[in] items to invalide their representation colors
+         * \param[in] scope of the invalidation.
+         *
+         */
+        void invalidateRepresentationColors(const ViewItemAdapterList &items,
+                                            const Invalidate scope = Invalidate::SELECTED_ITEMS);
+
         void resetCamera();
 
         void refresh();
@@ -119,6 +139,7 @@ namespace ESPINA
         void setScene(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds);
 
         Representations::FrameSPtr createFrame();
+
         Representations::FrameSPtr createFrame(const NmVector3 &point);
 
       public slots:
@@ -137,6 +158,11 @@ namespace ESPINA
          */
         void focusViewOn(const NmVector3 &point);
 
+        /** \brief Invalidates item representations
+         *
+         */
+        void invalidateRepresentations(ViewItemAdapterPtr item);
+
       signals:
         void eventHandlerChanged();
 
@@ -154,6 +180,10 @@ namespace ESPINA
 
         void refreshRequested();
 
+        void representationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
+
+        void representationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
+
       private:
         NmVector3 crosshairPoint(const NmVector3 &point) const;
 
@@ -161,9 +191,11 @@ namespace ESPINA
 
         void changeCrosshair(const NmVector3 &point, bool focus = false);
 
+        ViewItemAdapterList scopedItems(const ViewItemAdapterList &items,
+                                        const Invalidate scope = Invalidate::SELECTED_ITEMS);
+
       private:
-        Timer                     m_timer;
-        RepresentationInvalidator m_invalidator;
+        Timer m_timer;
 
         bool                 m_fitToSlices;
         NmVector3            m_crosshair;

@@ -75,7 +75,7 @@ namespace ESPINA
                * \param[in] contour initial contour.
                *
                */
-              void initialize(Contour contour);
+              void initializeContour(Contour contour);
 
             signals:
               void contour(BinaryMaskSPtr<unsigned char> mask);
@@ -84,7 +84,7 @@ namespace ESPINA
               /** \brief Resets all contours in all planes without rasterizing.
                *
                */
-              void initialize();
+              void resetContours();
 
               /** \brief Configures the widget.
                *

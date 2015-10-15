@@ -97,7 +97,7 @@ void RepresentationManager3D::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::onShow(TimeStamp t)
+void RepresentationManager3D::onShow()
 {
   for (auto cf : m_pendingCFs)
   {
@@ -108,7 +108,7 @@ void RepresentationManager3D::onShow(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::onHide(TimeStamp t)
+void RepresentationManager3D::onHide()
 {
 }
 

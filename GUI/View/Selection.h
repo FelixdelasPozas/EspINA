@@ -27,7 +27,6 @@
 // ESPINA
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/View/RepresentationInvalidator.h>
 
 // Qt
 #include <QObject>
@@ -46,7 +45,7 @@ namespace ESPINA
          * \param[in] invalidator reference to the view state representation invalidator.
          *
          */
-        explicit Selection(RepresentationInvalidator &invalidator);
+        explicit Selection();
 
         /** \brief Sets the given list of channels as selected.
          * \param[in] selection, list of channel adapter raw pointers.
@@ -143,7 +142,6 @@ namespace ESPINA
         ChannelAdapterList         m_channels;
         SegmentationAdapterList    m_segmentations;
         ChannelAdapterPtr          m_activeChannel;
-        RepresentationInvalidator &m_invalidator;
       };
 
       using SelectionSPtr = std::shared_ptr<Selection>;

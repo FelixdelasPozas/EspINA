@@ -59,7 +59,7 @@ namespace ESPINA
 
     virtual bool isValid() const override;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
     virtual TimeStamp lastModified() const override;
 

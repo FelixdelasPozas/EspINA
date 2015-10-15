@@ -17,17 +17,18 @@
 
 // ESPINA
 #include "PipelineSources.h"
+#include <GUI/View/ViewState.h>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidator)
-: m_representationInvalidator(invalidator)
+PipelineSources::PipelineSources(GUI::View::ViewState &viewState)
+: m_viewState(viewState)
 {
-  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+  connect(&m_viewState, SIGNAL(representationsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
           this,                         SLOT(onRepresentationsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_representationInvalidator, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
+  connect(&m_viewState, SIGNAL(representationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)),
           this,                         SLOT(onRepresentationColorsInvalidated(ViewItemAdapterList,GUI::Representations::FrameCSPtr)));
 }
 
@@ -43,19 +44,15 @@ ViewItemAdapterList PipelineSources::sources() const
 }
 
 //-----------------------------------------------------------------------------
-GUI::View::RepresentationInvalidator &PipelineSources::invalidator()
-{
-  return m_representationInvalidator;
-}
-
-//-----------------------------------------------------------------------------
 void PipelineSources::insert(ViewItemAdapterList sources)
 {
   for (auto source : sources)
   {
     Q_ASSERT(!contains(source));
-    connect(source, SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
-            &m_representationInvalidator, SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
+
+    connect(source,       SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
+            &m_viewState, SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
+
     m_sources.append(source);
   }
 }
@@ -72,6 +69,10 @@ void PipelineSources::remove(ViewItemAdapterList sources)
   for (auto source : sources)
   {
     Q_ASSERT(contains(source));
+
+    disconnect(source,       SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
+               &m_viewState, SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
+
     m_sources.removeOne(source);
   }
 }
@@ -79,7 +80,7 @@ void PipelineSources::remove(ViewItemAdapterList sources)
 //-----------------------------------------------------------------------------
 GUI::Representations::FrameCSPtr PipelineSources::createFrame() const
 {
-  return m_representationInvalidator.createFrame();
+  return m_viewState.createFrame();
 }
 
 //-----------------------------------------------------------------------------

@@ -241,7 +241,7 @@ namespace ESPINA
     inline int voxelSlice(const Nm position, const Plane plane) const;
 
   private slots:
-    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame);
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) override;
 
     /** \brief Centers view camera on the given point.
      * \param[in] center point to center camera on.

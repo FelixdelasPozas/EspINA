@@ -29,7 +29,6 @@
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
-#include <GUI/View/RepresentationInvalidator.h>
 
 // C++
 #include <memory>
@@ -207,11 +206,8 @@ namespace ESPINA
     { return m_scheduler; }
 
   private:
-    using Invalidator = GUI::View::RepresentationInvalidator;
-
     CoreFactorySPtr m_factory;
     SchedulerSPtr   m_scheduler;
-    Invalidator    *m_invalidator;
 
     AnalysisReaderSList                m_readers;
     QMap<QString, AnalysisReaderSList> m_readerExtensions;

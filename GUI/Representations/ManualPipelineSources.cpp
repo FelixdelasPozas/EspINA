@@ -20,8 +20,8 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-ManualPipelineSources::ManualPipelineSources(GUI::View::RepresentationInvalidator &invalidator)
-: PipelineSources(invalidator)
+ManualPipelineSources::ManualPipelineSources(GUI::View::ViewState &viewState)
+: PipelineSources(viewState)
 {
 
 }

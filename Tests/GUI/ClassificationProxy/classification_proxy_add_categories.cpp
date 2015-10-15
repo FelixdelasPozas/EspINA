@@ -51,7 +51,7 @@ int classification_proxy_add_categories( int argc, char** argv )
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();

@@ -37,7 +37,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::RepresentationInvalidator &invalidator);
+    explicit PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::ViewState &viewState);
 
     virtual ~PipelineSourcesFilter();
 

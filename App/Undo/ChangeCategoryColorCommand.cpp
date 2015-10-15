@@ -23,6 +23,7 @@
 #include <Core/Utils/ListUtils.hxx>
 #include <Undo/ChangeCategoryColorCommand.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
+#include <GUI/View/ViewState.h>
 
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Core::Utils;
@@ -31,11 +32,11 @@ namespace ESPINA
 {
   //------------------------------------------------------------------------
   ChangeCategoryColorCommand::ChangeCategoryColorCommand(ModelAdapterSPtr model,
-                                                         RepresentationInvalidator &invalidator,
+                                                         GUI::View::ViewState &viewState,
                                                          CategoryAdapterPtr category,
                                                          Hue hueValue)
   : m_model{model}
-  , m_invalidator(invalidator)
+  , m_viewState(viewState)
   , m_category{category}
   , m_hueValue{hueValue}
   {
@@ -77,7 +78,7 @@ namespace ESPINA
     }
 
     auto itemList = toList<ViewItemAdapter, SegmentationAdapter>(segmentations);
-    m_invalidator.invalidateRepresentations(itemList);
+    m_viewState.invalidateRepresentations(itemList);
   }
 
     

@@ -43,6 +43,7 @@ namespace ESPINA
 
   class DefaultView
   : public QWidget
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
@@ -51,7 +52,7 @@ namespace ESPINA
      * \param[in] parent of the qobject
      */
     explicit DefaultView(Support::Context &context,
-                         QMainWindow   *parent = nullptr);
+                         QMainWindow      *parent = nullptr);
 
     /** \brief DefaultView class virtual destructor.
      *
@@ -107,6 +108,9 @@ namespace ESPINA
      */
     void setFitToSlices(bool enabled);
 
+  private slots:
+    void onColorEngineChanged();
+
   private:
     void initView(RenderView *view, QMainWindow *parent);
 
@@ -115,9 +119,6 @@ namespace ESPINA
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
   private:
-    ModelAdapterSPtr      m_model;
-    GUI::View::ViewState &m_viewState;
-
     PipelineSourcesFilter m_channelSources;
     PipelineSourcesFilter m_segmentationSources;
 

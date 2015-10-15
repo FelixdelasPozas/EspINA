@@ -26,7 +26,6 @@
 #include <Core/Types.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/RepresentationInvalidator.h>
 
 // Qt
 #include <QUndoStack>
@@ -40,22 +39,22 @@ namespace ESPINA
   {
     public:
       ChangeCategoryColorCommand(ModelAdapterSPtr model,
-                                 RepresentationInvalidator &invalidator,
+                                 GUI::View::ViewState &viewState,
                                  CategoryAdapterPtr category,
                                  Hue hueValue);
 
       virtual ~ChangeCategoryColorCommand();
-      
+
       virtual void redo() override;
       virtual void undo() override;
 
     private:
       void invalidateDependentSegmentations() const;
 
-      ModelAdapterSPtr           m_model;
-      RepresentationInvalidator &m_invalidator;
-      CategoryAdapterPtr         m_category;
-      Hue                        m_hueValue;
+      ModelAdapterSPtr      m_model;
+      GUI::View::ViewState &m_viewState;
+      CategoryAdapterPtr    m_category;
+      Hue                   m_hueValue;
   };
     
 } // namespace ESPINA

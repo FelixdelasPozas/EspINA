@@ -23,7 +23,6 @@
 
 #include <QAbstractProxyModel>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/RepresentationInvalidator.h>
 
 namespace ESPINA
 {
@@ -41,7 +40,7 @@ namespace ESPINA
      * \param[in] parent raw pointer of the parent of this object.
      *
      */
-    ClassificationProxy(ModelAdapterSPtr sourceModel, GUI::View::RepresentationInvalidator &invalidator, QObject *parent = nullptr);
+    ClassificationProxy(ModelAdapterSPtr sourceModel, GUI::View::ViewState &viewState, QObject *parent = nullptr);
 
     /** \brief ClassificationProxy class virtual destructor.
      *
@@ -323,8 +322,8 @@ namespace ESPINA
     bool hasValidIndexes() const;
 
   private:
-    ModelAdapterSPtr                      m_model;
-    GUI::View::RepresentationInvalidator &m_representationInvalidator;
+    ModelAdapterSPtr      m_model;
+    GUI::View::ViewState &m_viewState;
     // Keep a reference to the categories which belong to the classification root
     CategoryAdapterList m_rootCategories;
 

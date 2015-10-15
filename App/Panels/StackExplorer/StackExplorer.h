@@ -26,7 +26,6 @@
 #include <Support/Widgets/Panel.h>
 #include <Support/Context.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
-#include <GUI/View/RepresentationInvalidator.h>
 
 //Qt
 #include <QSortFilterProxyModel>
@@ -42,7 +41,9 @@ namespace ESPINA
   : public Panel
   {
     Q_OBJECT
+
     class CentralWidget;
+
   public:
     /** \brief StackExplorer class constructor.
      *
@@ -94,12 +95,6 @@ namespace ESPINA
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
-    Support::Context          &m_context;
-    ModelAdapterSPtr           m_model;
-    SchedulerSPtr              m_scheduler;
-    QUndoStack                *m_undoStack;
-    ESPINA::GUI::View::RepresentationInvalidator &m_invalidator;
-
     std::shared_ptr<ChannelProxy>          m_channelProxy;
     std::shared_ptr<QSortFilterProxyModel> m_sort;
 

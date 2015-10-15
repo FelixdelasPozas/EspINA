@@ -33,7 +33,6 @@ class QUndoStack;
 namespace ESPINA
 {
 
-class Panel;
   namespace Support
   {
     class Context

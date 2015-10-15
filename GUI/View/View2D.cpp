@@ -955,7 +955,7 @@ void View2D::updateScaleValue()
   world = coords->GetComputedWorldValue(m_renderer);
   worldWidth = fabs(worldWidth - world[xCoord]);
   display = coords->GetComputedDisplayValue(m_renderer);
-  displayWidth = fabs(displayWidth - display[0]);
+  displayWidth = abs(displayWidth - display[0]);
 
   m_scaleValue = worldWidth/displayWidth;
 }

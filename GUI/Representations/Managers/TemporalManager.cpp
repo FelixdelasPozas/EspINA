@@ -139,12 +139,12 @@ void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::onShow(TimeStamp t)
+void TemporalManager::onShow()
 {
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::onHide(TimeStamp t)
+void TemporalManager::onHide()
 {
 }
 

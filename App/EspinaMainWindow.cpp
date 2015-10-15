@@ -564,12 +564,6 @@ void EspinaMainWindow::cancelOperation()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onColorEngineModified()
 {
-  //FIXME
-//   auto  segmentations   = m_context.model()->segmentations();
-//   auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);
-//   auto &invalidator     = m_context.representationInvalidator();
-//
-//   invalidator.invalidateRepresentationColors(invalidateItems);
 }
 
 //------------------------------------------------------------------------

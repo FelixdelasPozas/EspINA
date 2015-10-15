@@ -71,10 +71,10 @@ namespace ESPINA
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
-    virtual bool acceptsNInputs(int n) const
+    virtual bool acceptsNInputs(int n) const override
     { return n == 1; }
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+    virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);

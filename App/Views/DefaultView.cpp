@@ -54,15 +54,15 @@ const QString DefaultView::FIT_TO_SLICES_KEY = "FitToSlices";
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
-: m_model              (context.model())
-, m_viewState          (context.viewState())
-, m_channelSources     (m_model, ItemAdapter::Type::CHANNEL,      m_viewState.representationInvalidator())
-, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, m_viewState.representationInvalidator())
+: WithContext          (context)
+, m_channelSources     (getModel(), ItemAdapter::Type::CHANNEL,      getViewState())
+, m_segmentationSources(getModel(), ItemAdapter::Type::SEGMENTATION, getViewState())
 , m_viewXY             {new View2D(context.viewState(), Plane::XY)}
 , m_viewYZ             {new View2D(context.viewState(), Plane::YZ)}
 , m_viewXZ             {new View2D(context.viewState(), Plane::XZ)}
 {
   setObjectName("viewXY");
+
   setLayout(new QVBoxLayout());
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
@@ -136,8 +136,6 @@ void DefaultView::createViewMenu(QMenu* menu)
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
-//   auto sr = settings.value(SHOW_RULER_KEY,     true).toBool();
-//   auto st = settings.value(SHOW_THUMBNAIL_KEY, true).toBool();
   auto fs = settings.value(FIT_TO_SLICES_KEY,  true).toBool();
 
   settings.endGroup();
@@ -149,8 +147,6 @@ void DefaultView::createViewMenu(QMenu* menu)
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this,        SLOT(setFitToSlices(bool)));
 
-//   setRulerVisibility(sr);
-//   showThumbnail(st);
   setFitToSlices(fs);
 }
 
@@ -175,11 +171,6 @@ Dialog3D* DefaultView::dialog3D()
 //-----------------------------------------------------------------------------
 void DefaultView::setRulerVisibility(bool visible)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  settings.setValue(SHOW_RULER_KEY, visible);
-  settings.endGroup();
-
   m_viewXY->setScaleVisibility(visible);
   m_viewYZ->setScaleVisibility(visible);
   m_viewXZ->setScaleVisibility(visible);
@@ -188,10 +179,6 @@ void DefaultView::setRulerVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultView::showThumbnail(bool visible)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  settings.setValue(SHOW_THUMBNAIL_KEY, visible);
-  settings.endGroup();
   m_viewXY->setThumbnailVisibility(visible);
   m_viewYZ->setThumbnailVisibility(visible);
   m_viewXZ->setThumbnailVisibility(visible);
@@ -200,13 +187,13 @@ void DefaultView::showThumbnail(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool enabled)
 {
-  if(enabled != m_viewState.fitToSlices())
+  if(enabled != getViewState().fitToSlices())
   {
     auto resolution = NmVector3{1,1,1};
 
     if(enabled)
     {
-      auto channels = m_model->channels();
+      auto channels = getModel()->channels();
       resolution = channels.first()->output()->spacing();
 
       for(auto channel: channels)
@@ -219,18 +206,28 @@ void DefaultView::setFitToSlices(bool enabled)
       }
     }
 
-    m_viewState.setFitToSlices(enabled);
-    m_viewState.coordinateSystem()->setResolution(resolution);
+    getViewState().setFitToSlices(enabled);
+    getViewState().coordinateSystem()->setResolution(resolution);
 
-    auto channelList = toRawList<ViewItemAdapter>(m_model->channels());
-    auto segmentationList = toRawList<ViewItemAdapter>(m_model->segmentations());
-    m_viewState.representationInvalidator().invalidateRepresentations(channelList + segmentationList);
+    auto channelList      = toRawList<ViewItemAdapter>(getModel()->channels());
+    auto segmentationList = toRawList<ViewItemAdapter>(getModel()->segmentations());
+
+    getViewState().invalidateRepresentations(channelList + segmentationList);
 
     ESPINA_SETTINGS(settings);
     settings.beginGroup(DEFAULT_VIEW_SETTINGS);
     settings.setValue(FIT_TO_SLICES_KEY, enabled);
     settings.endGroup();
   }
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::onColorEngineChanged()
+{
+  auto  segmentations   = getModel()->segmentations();
+  auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);
+
+  getViewState().invalidateRepresentationColors(invalidateItems);
 }
 
 //-----------------------------------------------------------------------------

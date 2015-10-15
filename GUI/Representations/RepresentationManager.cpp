@@ -102,16 +102,14 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
   m_view = view;
 
-  if (frame->isValid())
+  if (isActive())
   {
-    if (m_isActive)
+    if (hasRepresentations())
     {
       updateRepresentations(frame);
     }
-  }
-  else
-  {
-    onShow(frame->time);
+
+    onShow();
   }
 }
 
@@ -120,7 +118,7 @@ void RepresentationManager::show(const GUI::Representations::FrameCSPtr frame)
 {
   m_isActive = true;
 
-  if (m_view)
+  if (isActive() && hasRepresentations())
   {
     updateRepresentations(frame);
   }
@@ -138,7 +136,7 @@ void RepresentationManager::hide(const GUI::Representations::FrameCSPtr frame)
 
   if (m_view)
   {
-    onHide(frame->time);
+    onHide();
 
     //qDebug() << debugName() << "Requested hide" << t;
 
@@ -172,18 +170,6 @@ bool RepresentationManager::isIdle() const
 TimeRange RepresentationManager::readyRange() const
 {
   return m_frames.timeRange();
-//   TimeRange range;
-//
-//   if (isActive())
-//   {
-//     range = readyRangeImplementation();
-//   }
-//   else
-//   {
-//     range << m_latestFrame->time;
-//   }
-//
-//   return range;
 }
 
 //-----------------------------------------------------------------------------
@@ -217,10 +203,13 @@ void RepresentationManager::display(const GUI::Representations::FrameCSPtr frame
 {
   Q_ASSERT(m_view);
 
+  qDebug() << "\t" << debugName() << "rendering" << frame;
+
   if (isActive())
   {
     //qDebug() << debugName() << "Display actors at" << t;
     displayRepresentations(frame->time);
+
     m_frames.invalidatePreviousValues(frame->time);
   }
   else
@@ -266,7 +255,7 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!frame->isValid()) return;
 
-  qDebug() << debugName() << frame;
+  //qDebug() << debugName() << frame;
 
   if (needsRepresentationUpdate(frame))
   {
@@ -329,12 +318,12 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  qDebug() << debugName() << "Requested to emit renderRequested at" << frame->time;
+  //qDebug() << debugName() << "Requested to emit renderRequested at" << frame->time;
   if(m_frames.isEmpty() || frame->time > m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 
-    qDebug() << debugName() << "Emit renderRequested at" << frame->time;
+    qDebug() << debugName() << "Render Request for" << frame;
     emit renderRequested();
   }
 }
@@ -342,14 +331,14 @@ void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameC
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateRepresentations()
 {
-  qDebug() << debugName() << "last render timestamp invalid";
+  qDebug() << debugName() << "invalidating representions";
   m_frames.invalidate();
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
-  qDebug() << debugName() << "pending display";
+  //qDebug() << debugName() << "pending display";
   m_status = Status::PENDING_DISPLAY;
 }
 
@@ -397,7 +386,7 @@ bool RepresentationManager::hasNewerFrames(TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationManager::updateRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  onShow(frame->time);
+  onShow();
 
   if (hasRepresentations())
   {

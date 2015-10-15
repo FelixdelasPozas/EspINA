@@ -41,7 +41,7 @@ ContourWidget2D::ContourWidget2D(ContourPainterSPtr handler)
   m_widget->setParentWidget(this);
 
   connect(m_handler.get(), SIGNAL(clear()),
-          this,            SLOT(initialize()));
+          this,            SLOT(resetContours()));
 
   connect(m_handler.get(), SIGNAL(rasterize()),
           this,            SLOT(rasterize()));
@@ -82,7 +82,7 @@ TemporalRepresentation2DSPtr ContourWidget2D::clone()
 }
 
 //----------------------------------------------------------------------------
-void ContourWidget2D::initialize(Contour contour)
+void ContourWidget2D::initializeContour(Contour contour)
 {
   if(normalCoordinateIndex(contour.plane) != m_index) return;
 
@@ -99,7 +99,7 @@ void ContourWidget2D::initialize(Contour contour)
 }
 
 //----------------------------------------------------------------------------
-void ContourWidget2D::initialize()
+void ContourWidget2D::resetContours()
 {
   m_widget->Initialize();
   m_storedContour.polyData = nullptr;
@@ -176,7 +176,7 @@ void ContourWidget2D::setCrosshair(const NmVector3& crosshair)
 
   if (m_storedContour.polyData != nullptr && m_storedContour.slice == slice)
   {
-    initialize(m_storedContour);
+    initializeContour(m_storedContour);
     Q_ASSERT(!m_storedContour.polyData);
   }
 

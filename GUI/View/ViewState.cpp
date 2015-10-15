@@ -31,17 +31,10 @@ using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
 ViewState::ViewState()
-: m_invalidator(*this)
-, m_fitToSlices{true}
+: m_fitToSlices{true}
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
-, m_selection(new Selection(m_invalidator))
+, m_selection(new Selection())
 {
-}
-
-//----------------------------------------------------------------------------
-RepresentationInvalidator &ViewState::representationInvalidator()
-{
-  return m_invalidator;
 }
 
 //----------------------------------------------------------------------------
@@ -111,6 +104,26 @@ void ViewState::focusViewOn(const NmVector3 &point)
   auto center = crosshairPoint(point);
 
   changeCrosshair(center, true);
+}
+
+//----------------------------------------------------------------------------
+void ViewState::invalidateRepresentations(ViewItemAdapterPtr item)
+{
+  invalidateRepresentations(toViewItemList(item));
+}
+
+//----------------------------------------------------------------------------
+void ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
+                                               const Invalidate scope)
+{
+  emit representationsInvalidated(scopedItems(items), createFrame());
+}
+
+//----------------------------------------------------------------------------
+void ViewState::invalidateRepresentations(const ViewItemAdapterList& items,
+                                          const Invalidate scope)
+{
+  emit representationColorsInvalidated(scopedItems(items), createFrame());
 }
 
 //----------------------------------------------------------------------------
@@ -243,6 +256,21 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
 
   return frame;
 }
+
+//-----------------------------------------------------------------------------
+ViewItemAdapterList ViewState::scopedItems(const ViewItemAdapterList& items,
+                                           const Invalidate scope)
+{
+  auto scopedItems = items;
+
+  if (Invalidate::DEPENDENT_ITEMS == scope)
+  {
+    // TODO 2015-04-20: search dependent items on relationship graph
+  }
+
+  return scopedItems;
+}
+
 
 //-----------------------------------------------------------------------------
 void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)

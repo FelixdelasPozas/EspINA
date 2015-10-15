@@ -22,8 +22,8 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-PipelineSourcesFilter::PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::RepresentationInvalidator &invalidator)
-: PipelineSources(invalidator)
+PipelineSourcesFilter::PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::ViewState &viewState)
+: PipelineSources(viewState)
 , m_model{model}
 , m_type{type}
 {

@@ -52,7 +52,7 @@ int classification_proxy_remove_segmentation_from_subcategory( int argc, char** 
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   ClassificationAdapterSPtr classification{new ClassificationAdapter()};

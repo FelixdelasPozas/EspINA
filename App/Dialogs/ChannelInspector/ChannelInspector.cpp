@@ -85,7 +85,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 , m_edgesModified     {false}
 , m_pixelSelector     {new PixelValueSelector(this)}
 , m_channel           {channel}
-, m_sources           {m_viewState.representationInvalidator()}
+, m_sources           {m_viewState}
 , m_view              {new View2D(m_viewState, Plane::XY)}
 {
   setupUi(this);
@@ -329,7 +329,7 @@ void ChannelInspector::onChangesAccepted()
   }
 
   updateSceneState(getViewState(), toViewItemSList(m_channel));
-  getViewState().representationInvalidator().invalidateRepresentations(m_channel.get());
+  getViewState().invalidateRepresentations(m_channel.get());
 }
 
 //------------------------------------------------------------------------

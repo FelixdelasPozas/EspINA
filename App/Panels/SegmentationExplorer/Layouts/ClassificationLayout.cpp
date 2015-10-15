@@ -174,7 +174,7 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
                                            Support::FilterRefinerRegister &filterRefiners,
                                            Support::Context               &context)
 : Layout               {view, filterRefiners, context}
-, m_proxy              {new ClassificationProxy(context.model(), context.viewState().representationInvalidator())}
+, m_proxy              {new ClassificationProxy(context.model(), context.viewState())}
 , m_sort               {new SortFilter()}
 , m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}
 {
@@ -609,7 +609,7 @@ void ClassificationLayout::changeCategoryColor()
       auto undoStack = getUndoStack();
       undoStack->beginMacro(tr("Change category color"));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
-                                                     getViewState().representationInvalidator(),
+                                                     getViewState(),
                                                      category,
                                                      hueSelector.hueValue()));
       undoStack->endMacro();

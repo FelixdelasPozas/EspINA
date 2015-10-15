@@ -76,13 +76,13 @@ bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::onShow(TimeStamp t)
+void PassiveActorManager::onShow()
 {
   connectPools();
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::onHide(TimeStamp t)
+void PassiveActorManager::onHide()
 {
   disconnectPools();
 }
@@ -111,6 +111,7 @@ void PassiveActorManager::connectPools()
   connect(m_pool.get(), SIGNAL(actorsInvalidated()),
           this,         SLOT(invalidateRepresentations()));
 
+  qDebug() << debugName() << "Activating representation pools";
   m_pool->incrementObservers();
 }
 
@@ -126,6 +127,7 @@ void PassiveActorManager::disconnectPools()
   disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
              this,         SLOT(invalidateRepresentations()));
 
+  qDebug() << debugName() << "Dectivating representation pools";
   m_pool->decrementObservers();
 }
 

@@ -56,5 +56,5 @@ void ColorEngineSwitch::onOpacityChanged(int value)
   m_engine->setExclusionOpacity(value/100.0);
 
   auto segmentations = toRawList<ViewItemAdapter>(getModel()->segmentations());
-  getViewState().representationInvalidator().invalidateRepresentationColors(segmentations);
+  getViewState().invalidateRepresentationColors(segmentations);
 }

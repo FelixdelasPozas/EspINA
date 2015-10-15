@@ -32,9 +32,8 @@ using namespace ESPINA::GUI::View;
 using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
-Selection::Selection(RepresentationInvalidator &invalidator)
+Selection::Selection()
 : m_activeChannel{nullptr}
-, m_invalidator  (invalidator)
 {
 }
 
@@ -128,13 +127,14 @@ void Selection::onChannelsModified(ChannelAdapterList channels)
 //----------------------------------------------------------------------------
 void Selection::onSegmentationsModified(SegmentationAdapterList segmentations)
 {
-  if(!segmentations.isEmpty())
-  {
-    emit selectionStateChanged(segmentations);
-
-    auto invalidItems = toList<ViewItemAdapter>(segmentations);
-    m_invalidator.invalidateRepresentationColors(invalidItems);
-  }
+  //TODO Move to viewstate?
+//   if(!segmentations.isEmpty())
+//   {
+//     emit selectionStateChanged(segmentations);
+//
+//     auto invalidItems = toList<ViewItemAdapter>(segmentations);
+//     m_invalidator.invalidateRepresentationColors(invalidItems);
+//   }
 }
 
 //----------------------------------------------------------------------------

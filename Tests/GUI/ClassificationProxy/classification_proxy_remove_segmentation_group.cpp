@@ -53,7 +53,7 @@ int classification_proxy_remove_segmentation_group(int argc, char** argv)
 
   ViewState           viewState;
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter, viewState.representationInvalidator());
+  ClassificationProxy proxy(modelAdapter, viewState);
   ModelTest           modelTester(&proxy);
 
   modelAdapter->setClassification(make_shared<ClassificationAdapter>());

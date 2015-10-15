@@ -67,7 +67,7 @@ void RepresentationManager2D::setRepresentationDepth(Nm depth)
 //-----------------------------------------------------------------------------
 bool RepresentationManager2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return !lastFrame()->isValid() || isNormalDifferent(crosshair, lastFrame()->crosshair);
+  return isNormalDifferent(crosshair, lastFrame()->crosshair);
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +117,7 @@ void RepresentationManager2D::updateFrameRepresentations(const GUI::Representati
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::onShow(TimeStamp t)
+void RepresentationManager2D::onShow()
 {
   for (auto cf : m_pendingCFs)
   {
@@ -128,7 +128,7 @@ void RepresentationManager2D::onShow(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::onHide(TimeStamp t)
+void RepresentationManager2D::onHide()
 {
 }
 

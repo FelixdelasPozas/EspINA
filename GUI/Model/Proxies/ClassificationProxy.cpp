@@ -22,6 +22,7 @@
 #include "ClassificationProxy.h"
 
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/View/ViewState.h>
 
 // Qt
 #include <QMimeData>
@@ -45,10 +46,10 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(DragSource)
 
 //------------------------------------------------------------------------
 ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model,
-                                         GUI::View::RepresentationInvalidator &invalidator,
+                                         GUI::View::ViewState &viewState,
                                          QObject* parent)
 : QAbstractProxyModel{parent}
-, m_representationInvalidator(invalidator)
+, m_viewState(viewState)
 , m_classification   {new ClassificationAdapter()}
 {
   setSourceModel(model);
@@ -1337,7 +1338,7 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
     Q_ASSERT(false);
   }
 
-  m_representationInvalidator.invalidateRepresentations(modifiedItems);
+  m_viewState.invalidateRepresentations(modifiedItems);
 }
 
 //------------------------------------------------------------------------

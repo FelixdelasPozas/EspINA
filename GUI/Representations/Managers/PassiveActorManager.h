@@ -63,9 +63,9 @@ namespace ESPINA
 
           virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-          virtual void onShow(TimeStamp t) override;
+          virtual void onShow() override;
 
-          virtual void onHide(TimeStamp t) override;
+          virtual void onHide() override;
 
           virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
