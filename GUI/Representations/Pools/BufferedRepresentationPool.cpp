@@ -32,8 +32,7 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
 : RepresentationPool(type)
 , m_normalIdx{normalCoordinateIndex(plane)}
 , m_updateWindow{scheduler, pipeline, windowSize}
-, m_init{false}
-, m_normalRes{1}
+, m_normalRes{0}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -57,12 +56,18 @@ ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame)
 {
-  m_normalRes = frame->resolution[m_normalIdx];
+  auto res = frame->resolution[m_normalIdx];
 
-  auto shift       = m_init?distanceFromLastCrosshair(frame->crosshair):invalidationShift();
+  bool invalidate = false;
+
+  if (res != m_normalRes)
+  {
+    invalidate = true;
+    m_normalRes = res;
+  }
+
+  auto shift       = invalidate?invalidationShift():distanceFromLastCrosshair(frame->crosshair);
   auto invalidated = updateBuffer(frame->crosshair, shift, frame);
-
-  m_init = true;
 
   if (!m_updateWindow.current()->isEmpty())
   {

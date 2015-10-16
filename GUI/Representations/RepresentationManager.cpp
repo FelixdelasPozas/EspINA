@@ -206,7 +206,7 @@ void RepresentationManager::display(const GUI::Representations::FrameCSPtr frame
 {
   Q_ASSERT(m_view);
 
-  qDebug() << "\t" << debugName() << "rendering" << frame;
+  //qDebug() << "\t" << debugName() << "rendering" << frame;
 
   if (isActive())
   {
@@ -258,8 +258,7 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!frame->isValid()) return;
 
-  qDebug() << debugName() << "Changing to" << frame;
-
+  //qDebug() << debugName() << "Changing to" << frame;
   if (needsRepresentationUpdate(frame))
   {
     if (isActive())
@@ -321,12 +320,12 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  qDebug() << debugName() << "Render request for" << frame;
+  //qDebug() << debugName() << "Render request for" << frame;
   if((m_frames.isEmpty() && frame->isValid()) || frame->time > m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 
-    qDebug() << debugName() << "Actors ready for" << frame;
+    //qDebug() << debugName() << "Actors ready for" << frame;
     emit renderRequested();
   }
 }
@@ -334,8 +333,7 @@ void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameC
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay(const FrameCSPtr frame)
 {
-  qDebug() << debugName() << "waiting actors for" << frame;
-
+  //qDebug() << debugName() << "waiting actors for" << frame;
   Q_ASSERT(m_lastFrameChanged <= frame->time);
   m_lastFrameChanged = frame->time;
 

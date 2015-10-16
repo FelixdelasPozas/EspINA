@@ -79,7 +79,6 @@ namespace ESPINA
 
     RepresentationWindow m_updateWindow;
 
-    bool      m_init;
     Nm        m_normalRes;
     NmVector3 m_crosshair;
   };
