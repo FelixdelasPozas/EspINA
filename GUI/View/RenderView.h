@@ -32,7 +32,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/EventHandler.h>
 #include "ViewState.h"
-#include <GUI/Representations/PipelineSourcesFilter.h>
+#include <GUI/Representations/ModelSources.h>
 
 // Qt
 #include <QWidget>

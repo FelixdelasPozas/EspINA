@@ -161,9 +161,6 @@ void SliceManager::connectPools()
     connect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-    connect(planePool().get(), SIGNAL(actorsInvalidated()),
-            this,              SLOT(invalidateRepresentations()));
-
     qDebug() << debugName() << "Activating representation pools";
     planePool()->incrementObservers();
   }
@@ -179,9 +176,6 @@ void SliceManager::disconnectPools()
 
     disconnect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
-    disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
-               this,              SLOT(invalidateRepresentations()));
 
     qDebug() << debugName() << "Dectivating representation pools";
     planePool()->decrementObservers();

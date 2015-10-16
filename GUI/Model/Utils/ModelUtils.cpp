@@ -24,14 +24,16 @@
 #include "ModelUtils.h"
 
 #include <Core/Analysis/Segmentation.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QString>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model;
 
 //------------------------------------------------------------------------
-unsigned int ESPINA::GUI::Model::Utils::firstUnusedSegmentationNumber(const ModelAdapterSPtr model)
+unsigned int Utils::firstUnusedSegmentationNumber(const ModelAdapterSPtr model)
 {
   unsigned int number = 0;
 
@@ -44,5 +46,25 @@ unsigned int ESPINA::GUI::Model::Utils::firstUnusedSegmentationNumber(const Mode
   }
 
   return ++number;
+}
+
+//------------------------------------------------------------------------
+Utils::Items Utils::classifyViewItems(const ViewItemAdapterList &items)
+{
+  Items result;
+
+  for (auto item : items)
+  {
+    if (isChannel(item))
+    {
+      result.stacks << item;
+    }
+    else
+    {
+      result.segmentations << item;
+    }
+  }
+
+  return result;
 }
 

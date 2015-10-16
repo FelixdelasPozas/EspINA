@@ -36,7 +36,7 @@ namespace ESPINA
 
     TimeStamp lastTime() const;
 
-    void addValue(R representation, TimeStamp t);
+    void addValue(R value, TimeStamp t);
 
     void reusePreviousValue(TimeStamp t);
 
@@ -48,10 +48,24 @@ namespace ESPINA
 
     bool isEmpty() const;
 
+    void print() const
+    {
+      for (auto key : m_values.keys())
+      {
+        qDebug() << "\t" << key << m_values[key];
+      }
+    }
+
+//     QDebug operator<<(QDebug &debug) const
+//     {
+//       debug << QString("[%1@%2]").arg(last()).arg(lastTime()) << m_values.keys();
+//       return debug;
+//     }
+
   private:
     TimeRange m_times;
     TimeStamp m_lastTime;
-    QMap<TimeStamp, R> m_representations;
+    QMap<TimeStamp, R> m_values;
   };
 }
 

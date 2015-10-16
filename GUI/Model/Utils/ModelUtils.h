@@ -41,6 +41,17 @@ namespace ESPINA
          *
          */
         unsigned int EspinaGUI_EXPORT firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
+
+//         void EspinaGUI_EXPORT classifyViewItems(const ViewItemAdapterList &items, ChannelAdapterList &channels, SegmentationAdapterList &segmentations);
+
+        struct Items
+        {
+          ViewItemAdapterList stacks;
+          ViewItemAdapterList segmentations;
+        };
+
+        Items classifyViewItems(const ViewItemAdapterList &items);
+
       } // namespace Util
     } // namespace Model
   } // namespace GUI

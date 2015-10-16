@@ -34,7 +34,8 @@ namespace ESPINA
   : public RepresentationPool
   {
   public:
-    explicit BufferedRepresentationPool(const Plane                plane,
+    explicit BufferedRepresentationPool(const ItemAdapter::Type   &type,
+                                        const Plane                plane,
                                         RepresentationPipelineSPtr pipeline,
                                         SchedulerSPtr              scheduler,
                                         unsigned                   windowSize);

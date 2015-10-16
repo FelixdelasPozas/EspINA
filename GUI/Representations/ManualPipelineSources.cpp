@@ -30,20 +30,16 @@ ManualPipelineSources::ManualPipelineSources(GUI::View::ViewState &viewState)
 void ManualPipelineSources::addSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   insert(sources);
-
-  emit sourcesAdded(sources, frame);
 }
 
 //-----------------------------------------------------------------------------
 void ManualPipelineSources::removeSource(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
   remove(sources);
-
-  emit sourcesAdded(sources, frame);
 }
 
 //-----------------------------------------------------------------------------
 void ManualPipelineSources::updateRepresentation(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
-  emit representationsInvalidated(sources, frame);
+  onRepresentationsInvalidated(sources, frame);
 }

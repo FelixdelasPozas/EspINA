@@ -113,15 +113,15 @@ void ViewState::invalidateRepresentations(ViewItemAdapterPtr item)
 }
 
 //----------------------------------------------------------------------------
-void ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
-                                               const Invalidate scope)
+void ViewState::invalidateRepresentations(const ViewItemAdapterList& items,
+                                          const Invalidate scope)
 {
   emit representationsInvalidated(scopedItems(items), createFrame());
 }
 
 //----------------------------------------------------------------------------
-void ViewState::invalidateRepresentations(const ViewItemAdapterList& items,
-                                          const Invalidate scope)
+void ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
+                                               const Invalidate scope)
 {
   emit representationColorsInvalidated(scopedItems(items), createFrame());
 }
@@ -132,6 +132,8 @@ void ViewState::resetCamera()
   auto frame = createFrame();
 
   frame->reset = true;
+
+  qDebug() << "Reset on" << frame;
 
   emit frameChanged(frame);
 }
@@ -253,6 +255,8 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
   frame->crosshair  = point;
   frame->resolution = m_coordinateSystem->resolution();
   frame->bounds     = m_coordinateSystem->bounds();
+
+  qDebug() << "Creating" << frame;
 
   return frame;
 }

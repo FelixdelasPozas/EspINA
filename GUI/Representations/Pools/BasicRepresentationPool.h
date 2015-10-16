@@ -30,7 +30,7 @@ namespace ESPINA
   : public RepresentationPool
   {
   public:
-    explicit BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
+    explicit BasicRepresentationPool(const ItemAdapter::Type &type, SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
     virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 

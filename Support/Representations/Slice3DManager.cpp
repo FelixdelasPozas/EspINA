@@ -145,9 +145,6 @@ void Slice3DManager::connectPools()
     connect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,       SLOT(checkRenderRequest()));
 
-    connect(pool.get(), SIGNAL(actorsInvalidated()),
-            this,       SLOT(invalidateRepresentations()));
-
     pool->incrementObservers();
   }
 }
@@ -163,9 +160,6 @@ void Slice3DManager::disconnectPools()
 
     disconnect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,       SLOT(checkRenderRequest()));
-
-    disconnect(pool.get(), SIGNAL(actorsInvalidated()),
-               this,       SLOT(invalidateRepresentations()));
 
     pool->decrementObservers();
   }

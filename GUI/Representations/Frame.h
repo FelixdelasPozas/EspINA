@@ -49,6 +49,8 @@ namespace ESPINA
         static FrameCSPtr InvalidFrame();
       };
 
+      QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameSPtr frame);
+
       QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameCSPtr frame);
     }
   }

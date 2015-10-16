@@ -34,20 +34,22 @@ namespace ESPINA
 
     virtual ~PipelineSources();
 
-    ViewItemAdapterList sources() const;
+    ViewItemAdapterList sources(const ItemAdapter::Type &type) const;
 
-    bool isEmpty() const
-    { return m_sources.isEmpty(); }
+    bool isEmpty() const;
 
-    int size() const
-    { return m_sources.size(); }
+    int size() const;
 
   signals:
-    void sourcesAdded  (ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-    void sourcesRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-    void representationsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-    void representationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-    void updateTimeStamp(const GUI::Representations::FrameCSPtr frame);
+    void stacksAdded  (ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void stacksRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void stacksInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void stackColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+
+    void segmentationsAdded  (ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void segmentationsRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void segmentationsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void segmentationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
   protected:
     void insert(ViewItemAdapterList sources);
@@ -58,16 +60,14 @@ namespace ESPINA
 
     GUI::Representations::FrameCSPtr createFrame() const;
 
-  private slots:
+  protected slots:
     void onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
     void onRepresentationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
-  private:
-    ViewItemAdapterList acceptedItems(const ViewItemAdapterList &items);
-
   protected:
-    ViewItemAdapterList m_sources;
+    ViewItemAdapterList m_stacks;
+    ViewItemAdapterList m_segmentations;
 
   private:
     GUI::View::ViewState &m_viewState;

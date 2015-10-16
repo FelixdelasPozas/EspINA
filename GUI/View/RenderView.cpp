@@ -553,15 +553,12 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     {
       Q_ASSERT(!manager->isIdle());
 
-      if (manager->isActive())
-      {
-        activeManager = manager;
-        activeManagers++;
+      activeManager = manager;
+      activeManagers++;
 
-        for(auto time: manager->readyRange())
-        {
-          count[time] = count.value(time, 0) + 1;
-        }
+      for(auto time: manager->readyRange())
+      {
+        count[time] = count.value(time, 0) + 1;
       }
     }
 

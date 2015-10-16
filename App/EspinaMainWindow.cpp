@@ -633,10 +633,6 @@ void EspinaMainWindow::createColorEngine(ColorEngineSPtr engine, const QString &
 //------------------------------------------------------------------------
 void EspinaMainWindow::initColorEngines()
 {
-  auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
-  connect(colorEngine.get(), SIGNAL(modified()),
-          this,              SLOT(onColorEngineModified()));
-
   createColorEngine(std::make_shared<NumberColorEngine>(), "number");
 
   auto categoryColorEngine = std::make_shared<CategoryColorEngine>();

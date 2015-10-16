@@ -56,9 +56,9 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
   auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
   auto pipelineYZ = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
-  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, scheduler, WINDOW_SIZE);
-  auto poolXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
-  auto poolYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
+  auto poolXY     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::CHANNEL, Plane::XY, pipelineXY, scheduler, WINDOW_SIZE);
+  auto poolXZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::CHANNEL, Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
+  auto poolYZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::CHANNEL, Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {

@@ -27,6 +27,7 @@
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 #include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt
@@ -54,12 +55,11 @@ const QString DefaultView::FIT_TO_SLICES_KEY = "FitToSlices";
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
-: WithContext          (context)
-, m_channelSources     (getModel(), ItemAdapter::Type::CHANNEL,      getViewState())
-, m_segmentationSources(getModel(), ItemAdapter::Type::SEGMENTATION, getViewState())
-, m_viewXY             {new View2D(context.viewState(), Plane::XY)}
-, m_viewYZ             {new View2D(context.viewState(), Plane::YZ)}
-, m_viewXZ             {new View2D(context.viewState(), Plane::XZ)}
+: WithContext(context)
+, m_sources  (getModel(), getViewState())
+, m_viewXY   {new View2D(context.viewState(), Plane::XY)}
+, m_viewYZ   {new View2D(context.viewState(), Plane::YZ)}
+, m_viewXZ   {new View2D(context.viewState(), Plane::XZ)}
 {
   setObjectName("viewXY");
 
@@ -86,6 +86,10 @@ DefaultView::DefaultView(Support::Context &context,
   initDialog3D(m_dialog3D, parent);
 
   parent->setCentralWidget(this);
+
+  //auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
+  connect(getContext().colorEngine().get(), SIGNAL(modified()),
+          this,                             SLOT(onColorEngineModified()));
 }
 
 //-----------------------------------------------------------------------------
@@ -117,16 +121,8 @@ void DefaultView::addRepresentation(const Representation& representation)
 
   for (auto pool : representation.Pools)
   {
-    if (CHANNELS_GROUP == representation.Group)
-    {
-      pool->setPipelineSources(&m_channelSources);
-      m_channelPools << pool;
-    }
-    else if (SEGMENTATIONS_GROUP == representation.Group)
-    {
-      pool->setPipelineSources(&m_segmentationSources);
-      m_segmentationPools << pool;
-    }
+    pool->setPipelineSources(&m_sources);
+    m_pools << pool;
   }
 }
 
@@ -222,7 +218,7 @@ void DefaultView::setFitToSlices(bool enabled)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::onColorEngineChanged()
+void DefaultView::onColorEngineModified()
 {
   auto  segmentations   = getModel()->segmentations();
   auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);

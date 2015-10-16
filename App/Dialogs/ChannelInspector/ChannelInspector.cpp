@@ -511,7 +511,7 @@ void ChannelInspector::initSliceView()
   m_sources.addSource(toViewItemList(m_channel.get()), frame);
 
   auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);
-  auto poolXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, getScheduler(), 10);
+  auto poolXY     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::CHANNEL, Plane::XY, pipelineXY, getScheduler(), 10);
 
   poolXY->setPipelineSources(&m_sources);
 

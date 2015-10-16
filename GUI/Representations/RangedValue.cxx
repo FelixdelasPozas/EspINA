@@ -51,8 +51,8 @@ namespace ESPINA
 
     if (!m_times.isEmpty())
     {
-      Q_ASSERT(m_representations.contains(m_times.last()));
-      result = m_representations[m_times.last()];
+      Q_ASSERT(m_values.contains(m_times.last()));
+      result = m_values[m_times.last()];
     }
 
     return result;
@@ -67,9 +67,9 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename R>
-  void RangedValue<R>::addValue(R representation, TimeStamp t)
+  void RangedValue<R>::addValue(R value, TimeStamp t)
   {
-    if(m_lastTime < t || m_representations.isEmpty())
+    if(m_lastTime < t || m_values.isEmpty())
     {
       m_lastTime = t;
     }
@@ -88,7 +88,7 @@ namespace ESPINA
       qSort(m_times);
     }
 
-    m_representations[t] = representation;
+    m_values[t] = value;
   }
 
   //-----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace ESPINA
       ++i;
     }
 
-    return m_representations.value(valueTime, invalid);
+    return m_values.value(valueTime, invalid);
   }
 
   //-----------------------------------------------------------------------------
@@ -140,7 +140,7 @@ namespace ESPINA
   {
     m_lastTime = 0;
     m_times.clear();
-    m_representations.clear();
+    m_values.clear();
   }
 
   //-----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ namespace ESPINA
 
     bool found                = false;
     auto validTime            = m_times.takeFirst();
-    auto validRepresentations = m_representations[validTime];
+    auto validRepresentations = m_values[validTime];
 
     while (!found && !m_times.isEmpty())
     {
@@ -161,21 +161,21 @@ namespace ESPINA
 
       if (!found)
       {
-        m_representations.remove(validTime);
+        m_values.remove(validTime);
 
         validTime            = nextTime;
-        validRepresentations = m_representations[nextTime];
+        validRepresentations = m_values[nextTime];
       }
     }
 
     m_times.prepend(t);
-    m_representations[t] = validRepresentations;
+    m_values[t] = validRepresentations;
   }
 
   //-----------------------------------------------------------------------------
   template<typename R>
   bool RangedValue<R>::isEmpty() const
   {
-    return m_representations.isEmpty();
+    return m_values.isEmpty();
   }
 }

@@ -24,8 +24,9 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
-: m_updater{std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
+BasicRepresentationPool::BasicRepresentationPool(const ItemAdapter::Type &type, SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
+: RepresentationPool(type)
+, m_updater{std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
 {
   connect(m_updater.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);

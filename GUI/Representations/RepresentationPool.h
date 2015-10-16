@@ -25,7 +25,7 @@
 #include <GUI/Representations/RangedValue.hxx>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
-#include "PipelineSourcesFilter.h"
+#include "ModelSources.h"
 #include <GUI/Model/ViewItemAdapter.h>
 #include <memory>
 
@@ -147,7 +147,7 @@ namespace ESPINA
     void taskStarted(TaskSPtr task);
 
   protected:
-    explicit RepresentationPool();
+    explicit RepresentationPool(const ItemAdapter::Type &type);
 
     bool notHasBeenProcessed(const TimeStamp t) const;
 
@@ -161,14 +161,9 @@ namespace ESPINA
 
   private slots:
     void onSourcesAdded(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-
     void onSourcesRemoved(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-
-    void onRepresentationsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-
-    void onRepresentationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
-
-    void onTimeStampUpdated(const GUI::Representations::FrameCSPtr frame);
+    void onSourcesInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
+    void onSourceColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
     void onSettingsModified();
 
@@ -200,7 +195,8 @@ namespace ESPINA
     void processPendingSources();
 
   private:
-    PipelineSources    *m_sources;
+    ItemAdapter::Type m_type;
+    PipelineSources  *m_sources;
 
     PoolSettingsSPtr    m_settings;
     RepresentationState m_poolState;

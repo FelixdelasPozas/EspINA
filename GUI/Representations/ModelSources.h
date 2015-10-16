@@ -31,17 +31,15 @@ namespace ESPINA
    *         of pipeline representations
    *
    */
-  class PipelineSourcesFilter
+  class ModelSources
   : public PipelineSources
   {
     Q_OBJECT
 
   public:
-    explicit PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::ViewState &viewState);
+    explicit ModelSources(ModelAdapterSPtr model, GUI::View::ViewState &viewState);
 
-    virtual ~PipelineSourcesFilter();
-
-    void setSelectedSources(ViewItemAdapterSList sources);
+    virtual ~ModelSources();
 
   private slots:
     void onSourcesAdded  (ViewItemAdapterSList sources);
@@ -49,17 +47,7 @@ namespace ESPINA
     void onReset();
 
   private:
-    ViewItemAdapterList filter(ViewItemAdapterSList sources);
-
-    inline bool acceptedType(ViewItemAdapterSPtr source) const;
-
-    inline bool acceptedSource(ViewItemAdapterSPtr source) const;
-
-  private:
-    ModelAdapterSPtr    m_model;
-    ItemAdapter::Type   m_type;
-
-    ViewItemAdapterList m_selectedSources;
+    ModelAdapterSPtr m_model;
   };
 }
 

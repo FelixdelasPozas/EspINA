@@ -24,11 +24,13 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-BufferedRepresentationPool::BufferedRepresentationPool(const Plane                plane,
+BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type   &type,
+                                                       const Plane                plane,
                                                        RepresentationPipelineSPtr pipeline,
                                                        SchedulerSPtr              scheduler,
                                                        unsigned                   windowSize)
-: m_normalIdx{normalCoordinateIndex(plane)}
+: RepresentationPool(type)
+, m_normalIdx{normalCoordinateIndex(plane)}
 , m_updateWindow{scheduler, pipeline, windowSize}
 , m_init{false}
 , m_normalRes{1}

@@ -22,7 +22,6 @@
 #define ESPINA_CROSSHAIR_MANAGER_H_
 
 // ESPINA
-#include <GUI/Representations/RangedValue.hxx>
 #include <GUI/Representations/RepresentationManager.h>
 
 // VTK

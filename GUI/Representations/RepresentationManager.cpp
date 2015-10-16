@@ -180,6 +180,8 @@ FrameCSPtr RepresentationManager::frame(TimeStamp t) const
   if (!m_frames.isEmpty() && t <= m_frames.lastTime())
   {
     auto value = m_frames.value(t);
+    //qDebug() << debugName() << "Frames at time:" << t;
+    //m_frames.print();
 
     result->time = t;
     result->crosshair = value->crosshair;
@@ -318,27 +320,20 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  //qDebug() << debugName() << "Requested to emit renderRequested at" << frame->time;
+  //qDebug() << debugName() << "Render request for" << frame;
   if(m_frames.isEmpty() || frame->time > m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 
-    qDebug() << debugName() << "Render Request for" << frame;
+    qDebug() << debugName() << "Actors ready for" << frame;
     emit renderRequested();
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::invalidateRepresentations()
-{
-  qDebug() << debugName() << "invalidating representions";
-  m_frames.invalidate();
-}
-
-//-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
-  //qDebug() << debugName() << "pending display";
+  //qDebug() << debugName() << "waiting actors for" << frame;
   m_status = Status::PENDING_DISPLAY;
 }
 
@@ -402,5 +397,3 @@ RepresentationPoolSList RepresentationManager::pools() const
   // NOTE: default value returned, implement if needed in the subclass.
   return RepresentationPoolSList();
 }
-
-//-----------------------------------------------------------------------------

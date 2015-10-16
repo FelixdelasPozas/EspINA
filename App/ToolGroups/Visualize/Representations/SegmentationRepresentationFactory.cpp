@@ -89,9 +89,9 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   auto pipelineSliceXY = std::make_shared<SegmentationSlicePipeline>(Plane::XY, colorEngine);
   auto pipelineSliceXZ = std::make_shared<SegmentationSlicePipeline>(Plane::XZ, colorEngine);
   auto pipelineSliceYZ = std::make_shared<SegmentationSlicePipeline>(Plane::YZ, colorEngine);
-  auto poolSliceXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineSliceXY, scheduler, WINDOW_SIZE);
-  auto poolSliceXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineSliceXZ, scheduler, WINDOW_SIZE);
-  auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineSliceYZ, scheduler, WINDOW_SIZE);
+  auto poolSliceXY     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XY, pipelineSliceXY, scheduler, WINDOW_SIZE);
+  auto poolSliceXZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XZ, pipelineSliceXZ, scheduler, WINDOW_SIZE);
+  auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::YZ, pipelineSliceYZ, scheduler, WINDOW_SIZE);
 
   poolSliceXY->setSettings(sliceSettings);
   poolSliceXZ->setSettings(sliceSettings);
@@ -142,9 +142,9 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   auto pipelineContourXY = std::make_shared<SegmentationContourPipeline>(Plane::XY, colorEngine);
   auto pipelineContourXZ = std::make_shared<SegmentationContourPipeline>(Plane::XZ, colorEngine);
   auto pipelineContourYZ = std::make_shared<SegmentationContourPipeline>(Plane::YZ, colorEngine);
-  auto poolContourXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineContourXY, scheduler, WINDOW_SIZE);
-  auto poolContourXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineContourXZ, scheduler, WINDOW_SIZE);
-  auto poolContourYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineContourYZ, scheduler, WINDOW_SIZE);
+  auto poolContourXY     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XY, pipelineContourXY, scheduler, WINDOW_SIZE);
+  auto poolContourXZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XZ, pipelineContourXZ, scheduler, WINDOW_SIZE);
+  auto poolContourYZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::YZ, pipelineContourYZ, scheduler, WINDOW_SIZE);
   auto contourManager    = std::make_shared<SliceManager>(poolContourXY, poolContourXZ, poolContourYZ);
 
   poolContourXY->setSettings(contourSettings);
@@ -215,11 +215,11 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto meshesSettings = std::make_shared<SegmentationMeshPoolSettings>();
 
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
-  auto poolMesh       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineMesh);
+  auto poolMesh       = std::make_shared<BasicRepresentationPool>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineMesh);
   auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
 
   auto pipelineSmoothedMesh = std::make_shared<SegmentationSmoothedMeshPipeline>(colorEngine);
-  auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(scheduler, pipelineSmoothedMesh);
+  auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineSmoothedMesh);
   auto smoothedMeshManager  = std::make_shared<PassiveActorManager>(poolSmoothedMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
 
   poolMesh->setSettings(meshesSettings);

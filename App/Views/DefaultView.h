@@ -109,7 +109,7 @@ namespace ESPINA
     void setFitToSlices(bool enabled);
 
   private slots:
-    void onColorEngineChanged();
+    void onColorEngineModified();
 
   private:
     void initView(RenderView *view, QMainWindow *parent);
@@ -119,12 +119,8 @@ namespace ESPINA
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
   private:
-    PipelineSourcesFilter m_channelSources;
-    PipelineSourcesFilter m_segmentationSources;
-
-    RepresentationPoolSList m_channelPools;
-    RepresentationPoolSList m_segmentationPools;
-    RepresentationPoolSList m_autonomousPools;
+    ModelSources   m_sources;
+    RepresentationPoolSList m_pools;
 
     GUI::Representations::RepresentationManagerSList m_repManagers;
 
@@ -132,8 +128,8 @@ namespace ESPINA
 
     QList<RenderView *> m_views;
 
-    Panel  *m_panelYZ, *m_panelXZ;
-    Dialog3D    *m_dialog3D;
+    Panel *m_panelYZ, *m_panelXZ;
+    Dialog3D *m_dialog3D;
   };
 
 

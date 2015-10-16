@@ -43,6 +43,14 @@ bool Frame::isValid() const
 }
 
 //------------------------------------------------------------------------
+QDebug GUI::Representations::operator<<(QDebug d, const FrameSPtr frame)
+{
+  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->reset << "F:" << frame->focus << "]";
+
+  return d;
+}
+
+//------------------------------------------------------------------------
 QDebug GUI::Representations::operator<<(QDebug d, const FrameCSPtr frame)
 {
   d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->reset << "F:" << frame->focus << "]";
