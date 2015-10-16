@@ -25,7 +25,7 @@
 #include <GUI/View/View3D.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Types.h>
-#include "ui_3DDialog.h"
+#include "ui_Dialog3D.h"
 #include <ToolGroups/ToolGroup.h>
 
 // Qt
@@ -55,7 +55,7 @@ namespace ESPINA
 
   class Dialog3D
   : public QDialog
-  , public Ui::View3DDialog
+  , public Ui::Dialog3D
   , private Support::WithContext
   {
     Q_OBJECT

@@ -24,7 +24,7 @@
 #include "Dialogs/About/AboutDialog.h"
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/RawInformation/RawInformationDialog.h"
-#include <Dialogs/View3DDialog/3DDialog.h>
+#include <Dialogs/Dialog3D/Dialog3D.h>
 #include "Panels/StackExplorer/StackExplorer.h"
 #include "Panels/SegmentationExplorer/SegmentationExplorer.h"
 #include "Panels/SegmentationProperties/SegmentationProperties.h"

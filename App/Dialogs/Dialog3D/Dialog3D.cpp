@@ -19,7 +19,7 @@
 */
 
 // ESPINA
-#include <Dialogs/View3DDialog/3DDialog.h>
+#include <Dialogs/Dialog3D/Dialog3D.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/Widgets/Styles.h>
@@ -40,7 +40,7 @@ const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 Dialog3D::Dialog3D(Support::Context   &context)
 : QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
 , WithContext      (context)
-, m_view3D         {context.viewState(), false}
+, m_view3D         {context.viewState(), true}
 , m_representations("", "")
 {
   setupUi(this);

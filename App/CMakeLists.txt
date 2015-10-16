@@ -23,7 +23,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/IssueList/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
-  Dialogs/View3DDialog/3DDialog.h
+  Dialogs/Dialog3D/Dialog3D.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -90,7 +90,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Dialogs/View3DDialog/3DDialog.ui
+  Dialogs/Dialog3D/Dialog3D.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/NoFilterRefiner.ui
@@ -125,7 +125,7 @@ set (ESPINA_SOURCES
   Dialogs/RawInformation/RawInformationDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
-  Dialogs/View3DDialog/3DDialog.cpp
+  Dialogs/Dialog3D/Dialog3D.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp

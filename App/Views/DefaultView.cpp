@@ -22,7 +22,7 @@
 #include "DefaultView.h"
 #include <App/EspinaMainWindow.h>
 #include <Core/Utils/ListUtils.hxx>
-#include <Dialogs/View3DDialog/3DDialog.h>
+#include <Dialogs/Dialog3D/Dialog3D.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>

@@ -320,8 +320,8 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  //qDebug() << debugName() << "Render request for" << frame;
-  if(m_frames.isEmpty() || frame->time > m_frames.lastTime())
+  qDebug() << debugName() << "Render request for" << frame;
+  if((m_frames.isEmpty() && frame->isValid()) || frame->time > m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 

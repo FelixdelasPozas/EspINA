@@ -67,7 +67,7 @@ namespace ESPINA {
     void disconnectPools();
 
   private slots:
-    void checkRenderRequest();
+    void checkRenderRequest(const GUI::Representations::FrameCSPtr frame);
 
   private:
     RepresentationPoolSList m_pools;

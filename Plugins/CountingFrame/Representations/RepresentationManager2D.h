@@ -67,6 +67,8 @@ namespace ESPINA
     private:
       virtual bool hasRepresentations() const override;
 
+      virtual bool needsRepresentationUpdate(const GUI::Representations::FrameCSPtr frame) override;
+
       virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
       virtual void onShow() override;

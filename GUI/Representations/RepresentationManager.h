@@ -200,6 +200,8 @@ namespace ESPINA
 
         virtual bool acceptFrame(const FrameCSPtr frame);
 
+        virtual bool needsRepresentationUpdate(const FrameCSPtr frame);
+
         NmVector3 currentCrosshair() const;
 
         NmVector3 currentSceneResolution() const;
@@ -213,7 +215,6 @@ namespace ESPINA
 
         virtual void updateFrameRepresentations(const FrameCSPtr frame) = 0;
 
-        bool needsRepresentationUpdate(const FrameCSPtr frame);
 
         bool hasNewerFrames(TimeStamp t) const;
 

@@ -333,8 +333,8 @@ void RenderView::resetCamera()
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
-  //m_view->update();
-  onRenderRequest();
+  m_view->update();
+  //onRenderRequest();
 }
 
 //-----------------------------------------------------------------------------

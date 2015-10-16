@@ -173,7 +173,7 @@ TimeRange RepresentationPool::readyRange() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::hasSources() const
 {
-  return m_sourcesCount > 0;
+  return m_sourcesCount > 0 || hasPendingSources();
 }
 
 //-----------------------------------------------------------------------------

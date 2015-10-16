@@ -143,7 +143,7 @@ void Slice3DManager::connectPools()
             this,       SLOT(waitForDisplay()));
 
     connect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
-            this,       SLOT(checkRenderRequest()));
+            this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));
 
     pool->incrementObservers();
   }
@@ -159,7 +159,7 @@ void Slice3DManager::disconnectPools()
                this,       SLOT(waitForDisplay()));
 
     disconnect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
-               this,       SLOT(checkRenderRequest()));
+               this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));
 
     pool->decrementObservers();
   }
@@ -180,7 +180,7 @@ RepresentationPoolSList Slice3DManager::pools() const
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::checkRenderRequest()
+void Slice3DManager::checkRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
   if (!isIdle())
   {
@@ -190,6 +190,9 @@ void Slice3DManager::checkRenderRequest()
 
     auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
 
-    emitRenderRequest(frame(lastTime));
+    if (frame->isValid() && lastTime == frame->time)
+    {
+      emitRenderRequest(frame);
+    }
   }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>View3DDialog</class>
- <widget class="QWidget" name="View3DDialog">
+ <class>Dialog3D</class>
+ <widget class="QWidget" name="Dialog3D">
   <property name="geometry">
    <rect>
     <x>0</x>

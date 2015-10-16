@@ -65,6 +65,13 @@ void RepresentationManager2D::setRepresentationDepth(Nm depth)
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationManager2D::needsRepresentationUpdate(const GUI::Representations::FrameCSPtr frame)
+{
+  return !m_widgets.isEmpty()
+      && GUI::Representations::RepresentationManager::needsRepresentationUpdate(frame);
+}
+
+//-----------------------------------------------------------------------------
 bool RepresentationManager2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
   return isNormalDifferent(crosshair, lastFrame()->crosshair);

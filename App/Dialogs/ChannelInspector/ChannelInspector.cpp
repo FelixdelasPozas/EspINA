@@ -337,8 +337,7 @@ void ChannelInspector::onChangesRejected()
 {
   bool modified = false;
 
-  auto volume  = readLockVolume(m_channel->output());
-  auto spacing = volume->bounds().spacing();
+  auto spacing = m_channel->output()->spacing();
 
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != spacing[2])
   {
