@@ -19,11 +19,13 @@
 
 // ESPINA
 #include <GUI/Representations/Managers/PoolManager.h>
+#include <GUI/Representations/Frame.h>
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
@@ -33,11 +35,11 @@ PoolManager::PoolManager(ViewTypeFlags supportedViews, ManagerFlags flags)
 }
 
 //-----------------------------------------------------------------------------
-void PoolManager::displayRepresentations(TimeStamp t)
+void PoolManager::displayRepresentations(const FrameCSPtr frame)
 {
-  hideRepresentations(t);
+  hideRepresentations(frame);
 
-  auto currentActors = actors(t);
+  auto currentActors = actors(frame->time);
 
   //qDebug() << "Displaying" << currentActors.size() << "actors";
 
@@ -53,7 +55,7 @@ void PoolManager::displayRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void PoolManager::hideRepresentations(TimeStamp t)
+void PoolManager::hideRepresentations(const FrameCSPtr frame)
 {
   for (auto itemActors : m_viewActors)
   {
@@ -67,5 +69,5 @@ void PoolManager::hideRepresentations(TimeStamp t)
 
   m_viewActors.clear();
 
-  invalidatePreviousActors(t);
+  invalidatePreviousActors(frame->time);
 }

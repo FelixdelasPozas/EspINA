@@ -135,7 +135,7 @@ void ViewState::resetCamera()
 
   qDebug() << "Reset on" << frame;
 
-  emit frameChanged(frame);
+  emitFrameChanged(frame);
 }
 
 //----------------------------------------------------------------------------
@@ -152,7 +152,7 @@ void ViewState::setScene(const NmVector3 &crosshair, const NmVector3 &resolution
   m_coordinateSystem->setBounds(bounds);
   m_coordinateSystem->setResolution(resolution);
 
-  emit frameChanged(createFrame());
+  emitFrameChanged(createFrame());
 }
 
 //----------------------------------------------------------------------------
@@ -236,7 +236,7 @@ void ViewState::changeCrosshair(const NmVector3 &point, bool focus)
 
     frame->focus = focus;
 
-    emit frameChanged(frame);
+    emitFrameChanged(frame);
   }
 }
 
@@ -275,6 +275,12 @@ ViewItemAdapterList ViewState::scopedItems(const ViewItemAdapterList& items,
   return scopedItems;
 }
 
+//-----------------------------------------------------------------------------
+void ViewState::emitFrameChanged(const FrameCSPtr frame)
+{
+  emit frameChanged(frame);
+  emit afterFrameChanged(frame);
+}
 
 //-----------------------------------------------------------------------------
 void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)

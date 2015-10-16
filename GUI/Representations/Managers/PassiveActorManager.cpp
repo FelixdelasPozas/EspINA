@@ -76,13 +76,13 @@ bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::onShow()
+void PassiveActorManager::onShow(const FrameCSPtr frame)
 {
   connectPools();
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::onHide()
+void PassiveActorManager::onHide(const FrameCSPtr frame)
 {
   disconnectPools();
 }
@@ -102,14 +102,11 @@ void PassiveActorManager::invalidatePreviousActors(TimeStamp t)
 //----------------------------------------------------------------------------
 void PassiveActorManager::connectPools()
 {
-  connect(m_pool.get(), SIGNAL(actorsInvalidated()),
-          this,         SLOT(waitForDisplay()));
+  connect(m_pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+          this,         SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
 
   connect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
           this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
-  connect(m_pool.get(), SIGNAL(actorsInvalidated()),
-          this,         SLOT(invalidateRepresentations()));
 
   qDebug() << debugName() << "Activating representation pools";
   m_pool->incrementObservers();
@@ -118,24 +115,21 @@ void PassiveActorManager::connectPools()
 //----------------------------------------------------------------------------
 void PassiveActorManager::disconnectPools()
 {
-  disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
-             this,         SLOT(waitForDisplay()));
+  disconnect(m_pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+             this,         SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
 
   disconnect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
              this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
-  disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
-             this,         SLOT(invalidateRepresentations()));
 
   qDebug() << debugName() << "Dectivating representation pools";
   m_pool->decrementObservers();
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::displayRepresentations(const TimeStamp t)
+void PassiveActorManager::displayRepresentations(const FrameCSPtr frame)
 {
   auto currentActors = m_viewActors;
-  auto futureActors  = m_pool->actors(t);
+  auto futureActors  = m_pool->actors(frame->time);
 
   auto currentSegs = currentActors.keys().toSet();
   auto futureSegs  = futureActors.keys().toSet();

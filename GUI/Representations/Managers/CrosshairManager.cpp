@@ -91,9 +91,9 @@ bool CrosshairManager::hasRepresentations() const
 //-----------------------------------------------------------------------------
 void CrosshairManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  updateCrosshairs(frame);
-
-  emitRenderRequest(frame);
+//   updateCrosshairs(frame);
+//
+//   emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -124,9 +124,9 @@ bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::displayRepresentations(TimeStamp t)
+void CrosshairManager::displayRepresentations(const FrameCSPtr frame)
 {
-  updateCrosshairs(frame(t));
+  updateCrosshairs(frame);
 
   if (!hasActors())
   {
@@ -138,7 +138,7 @@ void CrosshairManager::displayRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::hideRepresentations(TimeStamp t)
+void CrosshairManager::hideRepresentations(const FrameCSPtr frame)
 {
   setFlag(HAS_ACTORS, false);
   m_view->removeActor(m_actors[0]);
@@ -147,13 +147,19 @@ void CrosshairManager::hideRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::onShow()
+void CrosshairManager::onShow(const FrameCSPtr frame)
 {
+  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::onHide()
+void CrosshairManager::onHide(const FrameCSPtr frame)
 {
+  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 }
 
 //-----------------------------------------------------------------------------

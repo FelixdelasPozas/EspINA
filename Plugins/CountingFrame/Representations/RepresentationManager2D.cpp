@@ -19,6 +19,7 @@
 
 #include "RepresentationManager2D.h"
 #include <GUI/Representations/Frame.h>
+#include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -120,11 +121,10 @@ bool RepresentationManager2D::hasRepresentations() const
 //-----------------------------------------------------------------------------
 void RepresentationManager2D::updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::onShow()
+void RepresentationManager2D::onShow(const GUI::Representations::FrameCSPtr frame)
 {
   for (auto cf : m_pendingCFs)
   {
@@ -132,24 +132,32 @@ void RepresentationManager2D::onShow()
   }
 
   m_pendingCFs.clear();
+
+  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::onHide()
+void RepresentationManager2D::onHide(const GUI::Representations::FrameCSPtr frame)
 {
+  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::displayRepresentations(TimeStamp t)
+void RepresentationManager2D::displayRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   for (auto widget : m_widgets)
   {
-    showWidget(widget, t);
+    showWidget(widget, frame->time);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager2D::hideRepresentations(TimeStamp t)
+void RepresentationManager2D::hideRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
   for (auto widget : m_widgets)
   {

@@ -274,7 +274,7 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, const GUI
   {
     m_validActors.invalidate();
 
-    emit actorsInvalidated();
+    emit actorsInvalidated(frame);
 
     onActorsReady(frame, RepresentationPipeline::Actors());
   }
@@ -304,7 +304,7 @@ void RepresentationPool::onSourceColorsInvalidated(ViewItemAdapterList sources, 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSettingsModified()
 {
-  emit actorsInvalidated();
+  //emit actorsInvalidated();
 
   m_poolState.apply(m_settings->settings());
 
@@ -330,7 +330,7 @@ void RepresentationPool::updateRepresentationsAt(const GUI::Representations::Fra
 
   if (isEnabled())
   {
-    emit actorsInvalidated();
+    emit actorsInvalidated(frame);
 
     updateRepresentationsAtImlementation(frame, modifiedItems);
   }
@@ -343,7 +343,7 @@ void RepresentationPool::updateRepresentationColorsAt(const GUI::Representations
 
   if (isEnabled())
   {
-    emit actorsInvalidated();
+    emit actorsInvalidated(frame);
 
     updateRepresentationColorsAtImlementation(frame, modifiedItems);
   }

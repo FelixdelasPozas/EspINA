@@ -198,6 +198,8 @@ namespace ESPINA
 
     virtual const QString viewName() const = 0;
 
+    GUI::View::ViewState &state() const;
+
   public slots:
     /** \brief Resets the camera using the camera reset button of the view.
      *
@@ -260,8 +262,6 @@ namespace ESPINA
     void showSegmentationTooltip(const int x, const int y);
 
     bool hasVisibleRepresentations() const;
-
-    GUI::View::ViewState &state() const;
 
     bool hasChannelSources() const;
 

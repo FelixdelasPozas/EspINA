@@ -134,7 +134,7 @@ void SliceManager::invalidatePreviousActors(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onShow()
+void SliceManager::onShow(const FrameCSPtr frame)
 {
   connectPools();
 
@@ -145,7 +145,7 @@ void SliceManager::onShow()
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onHide()
+void SliceManager::onHide(const FrameCSPtr frame)
 {
   disconnectPools();
 }
@@ -155,8 +155,8 @@ void SliceManager::connectPools()
 {
   if (validPlane())
   {
-    connect(planePool().get(), SIGNAL(actorsInvalidated()),
-            this,              SLOT(waitForDisplay()));
+    connect(planePool().get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+            this,              SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
 
     connect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));

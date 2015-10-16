@@ -168,6 +168,8 @@ namespace ESPINA
 
         void frameChanged(const GUI::Representations::FrameCSPtr frame);
 
+        void afterFrameChanged(const GUI::Representations::FrameCSPtr frame);
+
         void widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
         void widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
@@ -193,6 +195,8 @@ namespace ESPINA
 
         ViewItemAdapterList scopedItems(const ViewItemAdapterList &items,
                                         const Invalidate scope = Invalidate::SELECTED_ITEMS);
+
+        void emitFrameChanged(const GUI::Representations::FrameCSPtr frame);
 
       private:
         Timer m_timer;

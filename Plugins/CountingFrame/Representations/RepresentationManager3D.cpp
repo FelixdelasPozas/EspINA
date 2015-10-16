@@ -97,7 +97,7 @@ void RepresentationManager3D::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::onShow()
+void RepresentationManager3D::onShow(const FrameCSPtr frame)
 {
   for (auto cf : m_pendingCFs)
   {
@@ -108,12 +108,12 @@ void RepresentationManager3D::onShow()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::onHide()
+void RepresentationManager3D::onHide(const FrameCSPtr frame)
 {
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::displayRepresentations(TimeStamp t)
+void RepresentationManager3D::displayRepresentations(const FrameCSPtr frame)
 {
   for (auto widget : m_widgets)
   {
@@ -122,7 +122,7 @@ void RepresentationManager3D::displayRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager3D::hideRepresentations(TimeStamp t)
+void RepresentationManager3D::hideRepresentations(const FrameCSPtr frame)
 {
   for (auto widget : m_widgets)
   {

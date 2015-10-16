@@ -139,29 +139,24 @@ void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::onShow()
+void TemporalManager::onShow(const FrameCSPtr frame)
 {
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::onHide()
+void TemporalManager::onHide(const FrameCSPtr frame)
 {
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::displayRepresentations(TimeStamp t)
+void TemporalManager::displayRepresentations(const FrameCSPtr frame)
 {
-  auto frame = this->frame(t);
-
-  if (frame)
-  {
-    m_representation->setCrosshair(frame->crosshair);
-    m_representation->setSceneResolution(frame->resolution);
-  }
+  m_representation->setCrosshair(frame->crosshair);
+  m_representation->setSceneResolution(frame->resolution);
 }
 
 //------------------------------------------------------------------------
-void TemporalManager::hideRepresentations(TimeStamp t)
+void TemporalManager::hideRepresentations(const FrameCSPtr frame)
 {
   m_representation->hide();
   m_representation->uninitialize();

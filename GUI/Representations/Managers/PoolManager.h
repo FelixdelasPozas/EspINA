@@ -64,9 +64,9 @@ namespace ESPINA
           bool hasActorsInDisplay() const;
 
         private:
-          virtual void displayRepresentations(TimeStamp t) override;
+          virtual void displayRepresentations(const FrameCSPtr frame) override;
 
-          virtual void hideRepresentations(TimeStamp t) override;
+          virtual void hideRepresentations(const FrameCSPtr frame) override;
 
           virtual RepresentationPipeline::Actors actors(TimeStamp t) = 0;
 

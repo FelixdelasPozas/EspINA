@@ -142,7 +142,7 @@ namespace ESPINA
      */
     void actorsReady(const GUI::Representations::FrameCSPtr frame);
 
-    void actorsInvalidated();
+    void actorsInvalidated(const GUI::Representations::FrameCSPtr frame);
 
     void taskStarted(TaskSPtr task);
 

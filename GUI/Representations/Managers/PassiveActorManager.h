@@ -63,9 +63,9 @@ namespace ESPINA
 
           virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-          virtual void onShow() override;
+          virtual void onShow(const FrameCSPtr frame) override;
 
-          virtual void onHide() override;
+          virtual void onHide(const FrameCSPtr frame) override;
 
           virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
@@ -75,7 +75,7 @@ namespace ESPINA
 
           void disconnectPools();
 
-          virtual void displayRepresentations(TimeStamp t) override;
+          virtual void displayRepresentations(const FrameCSPtr frame) override;
 
           virtual RepresentationManagerSPtr cloneImplementation() override;
 

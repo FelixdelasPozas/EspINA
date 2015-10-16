@@ -143,13 +143,13 @@ namespace ESPINA
 
           virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
-          virtual void onShow() override;
+          virtual void onShow(const FrameCSPtr frame) override;
 
-          virtual void onHide() override;
+          virtual void onHide(const FrameCSPtr frame) override;
 
-          virtual void displayRepresentations(TimeStamp t) override;
+          virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-          virtual void hideRepresentations(TimeStamp t) override;
+          virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
           virtual RepresentationManagerSPtr cloneImplementation() override;
 

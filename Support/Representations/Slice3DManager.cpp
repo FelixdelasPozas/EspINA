@@ -95,13 +95,13 @@ void Slice3DManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onShow()
+void Slice3DManager::onShow(const FrameCSPtr frame)
 {
   connectPools();
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onHide()
+void Slice3DManager::onHide(const FrameCSPtr frame)
 {
   disconnectPools();
 }
@@ -139,8 +139,8 @@ void Slice3DManager::connectPools()
   qDebug() << debugName() << "Activating representation pools";
   for (auto pool : m_pools)
   {
-    connect(pool.get(), SIGNAL(actorsInvalidated()),
-            this,       SLOT(waitForDisplay()));
+    connect(pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+            this,       SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
 
     connect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));
@@ -155,8 +155,8 @@ void Slice3DManager::disconnectPools()
   qDebug() << debugName() << "Dectivating representation pools";
   for (auto pool : m_pools)
   {
-    disconnect(pool.get(), SIGNAL(actorsInvalidated()),
-               this,       SLOT(waitForDisplay()));
+    disconnect(pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+               this,       SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
 
     disconnect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));

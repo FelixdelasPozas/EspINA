@@ -180,7 +180,7 @@ namespace ESPINA
       protected slots:
         void emitRenderRequest(const GUI::Representations::FrameCSPtr frame);
 
-        void waitForDisplay();
+        void waitForDisplay(const GUI::Representations::FrameCSPtr frame);
 
         void idle();
 
@@ -216,15 +216,15 @@ namespace ESPINA
         virtual void updateFrameRepresentations(const FrameCSPtr frame) = 0;
 
 
-        bool hasNewerFrames(TimeStamp t) const;
+        bool waitingNewerFrames(TimeStamp t) const;
 
-        virtual void displayRepresentations(TimeStamp t) = 0;
+        virtual void displayRepresentations(const FrameCSPtr frame) = 0;
 
-        virtual void hideRepresentations(TimeStamp t) = 0;
+        virtual void hideRepresentations(const FrameCSPtr frame) = 0;
 
-        virtual void onShow() = 0;
+        virtual void onShow(const FrameCSPtr frame) = 0;
 
-        virtual void onHide() = 0;
+        virtual void onHide(const FrameCSPtr frame) = 0;
 
         virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
@@ -248,6 +248,8 @@ namespace ESPINA
 
         ViewTypeFlags m_supportedViews;
         RangedValue<FrameCSPtr> m_frames;
+
+        TimeStamp m_lastFrameChanged;
 
         RepresentationManagerSList m_childs;
       };

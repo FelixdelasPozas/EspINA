@@ -52,9 +52,9 @@ namespace ESPINA {
 
     virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void onShow() override;
+    virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void onHide() override;
+    virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
