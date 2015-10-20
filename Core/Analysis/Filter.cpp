@@ -133,10 +133,10 @@ void Filter::unload()
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-//   qDebug() << "Update Request: " << m_type;
+  qDebug() << "Update Request: " << m_type;
   if (m_outputs.isEmpty() || needUpdate())
   {
-//     qDebug() << " - Accepted";
+    qDebug() << " - Accepted";
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -144,7 +144,7 @@ void Filter::update()
       input->update();
     }
 
-//     qDebug() << "Executing: " << m_type;
+    qDebug() << "Executing: " << m_type;
     execute();
 
     if (invalidatePreviousEditedRegions)

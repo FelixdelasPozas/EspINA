@@ -251,7 +251,7 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
       m_ROI.reset();
     }
 
-    m_ROI->setSpacing(output(0)->spacing());
+    m_ROI->setSpacing(m_inputs[0]->output()->spacing());
 
     m_prevROI = m_ROI.get();
   }

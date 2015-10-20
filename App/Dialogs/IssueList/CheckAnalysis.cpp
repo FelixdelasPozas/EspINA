@@ -237,6 +237,12 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
+    if (output->spacing() == NmVector3{0,0,0})
+    {
+      auto description = tr("Invalid output spacing");
+
+      reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
+    }
   }
 
   if (filter == nullptr)
@@ -245,6 +251,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
+
 }
 
 //------------------------------------------------------------------------

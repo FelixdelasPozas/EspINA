@@ -21,7 +21,6 @@
 #include "FreeFormSource.h"
 
 // ESPINA
-#include <GUI/ModelFactory.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
@@ -86,7 +85,7 @@ void FreeFormSource::execute(Output::Id id)
   reportProgress(50);
   if (!canExecute()) return;
 
-  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
+  auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin());
   volume->draw(m_mask);
 
   reportProgress(75);

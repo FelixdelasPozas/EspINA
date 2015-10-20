@@ -209,7 +209,10 @@ namespace ESPINA
         EventHandlerSPtr m_eventHandler;
       };
 
-      void updateSceneState(ViewState & state, ViewItemAdapterSList viewItems);
+      /** \brief Compute scene bounds and minimal resolution
+       *
+       */
+      void updateSceneState(const NmVector3 &crosshair, ViewState & state, ViewItemAdapterSList viewItems);
     }
   }
 }

@@ -480,7 +480,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
   {
-    QString file = m_zip.getCurrentFileName();
+    auto file = m_zip.getCurrentFileName();
 
     if (file != FORMAT_INFO_FILE
       && file != CLASSIFICATION_FILE

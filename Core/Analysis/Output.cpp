@@ -234,12 +234,6 @@ void Output::setData(Output::DataSPtr data)
   proxy(type)->set(data);
 //   qDebug() << "Set proxy data[" << m_data[type].get() << "]:" << data.get();
 
-  // Alternatively we could keep the previous edited regions
-  // but at the moment I can't find any scenario where it could be useful
-  BoundsList regions;
-  regions << data->bounds();
-  data->setEditedRegions(regions);
-
   updateModificationTime();
 
   connect(data.get(), SIGNAL(dataChanged()),
@@ -280,11 +274,18 @@ unsigned int Output::numberOfDatas() const
 void Output::update()
 {
 //   QReadLocker lock(&m_lock);
-  for (auto data : m_data)
+  if (m_data.isEmpty())
   {
-    if (!data->isValid())
+    m_filter->update();
+  }
+  else
+  {
+    for (auto data : m_data)
     {
-      update(data->type());
+      if (!data->isValid())
+      {
+        update(data->type());
+      }
     }
   }
 }

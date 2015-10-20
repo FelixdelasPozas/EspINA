@@ -26,6 +26,7 @@
 #include <QStack>
 #include <QXmlStreamReader>
 #include <QColor>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -37,11 +38,12 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
   QStringRef name = stream.attributes().value("name");
 
-  ClassificationSPtr classification{new Classification(name.toString())};
+  auto classification = std::make_shared<Classification>(name.toString());
 
   QStack<CategorySPtr> stack;
 
   CategorySPtr parent;
+
   while (!stream.atEnd())
   {
     stream.readNextStartElement();
@@ -80,6 +82,12 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 }
 
 //-----------------------------------------------------------------------------
+bool validProperty(const QString& property)
+{
+  return !property.isEmpty();
+}
+
+//-----------------------------------------------------------------------------
 void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 {
   stream.writeStartElement("category");
@@ -91,7 +99,10 @@ void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 
   for(auto prop: category->properties())
   {
-    stream.writeAttribute(prop, category->property(prop).toString());
+    if (validProperty(prop))
+    {
+      stream.writeAttribute(prop, category->property(prop).toString());
+    }
   }
 
   for(auto subCategory: category->subCategories())
@@ -125,7 +136,7 @@ void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& 
 ClassificationSPtr ClassificationXML::load(const QFileInfo& file,
                                            ErrorHandlerSPtr handler )
 {
-  ClassificationSPtr classification{new Classification()};
+  auto classification = std::make_shared<Classification>();
 
   QFile xmlFile(file.absoluteFilePath());
   if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))

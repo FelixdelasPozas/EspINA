@@ -128,8 +128,9 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
   try
   {
-    auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-    m_analysis->setClassification(ClassificationXML::parse(currentFile, m_handler));
+    auto currentFile    = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+    auto classification = ClassificationXML::parse(currentFile, m_handler);
+    m_analysis->setClassification(classification);
   }
   catch (const ClassificationXML::Parse_Exception &e)
   {
@@ -256,7 +257,9 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
       auto sourceFilter = dynamic_cast<SourceFilter *>(filter.get());
       if (sourceFilter)
       {
-        sourceFilter->setInput(m_souceInput->asInput());
+        InputSList inputs;
+        inputs << m_souceInput->asInput();
+        sourceFilter->setInputs(inputs);
       }
     }
   }
@@ -271,6 +274,11 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   filter->restoreState(roVertex->state());
   filter->setStorage(m_storage);
   filter->restorePreviousOutputs();
+
+  if (filter->output(0)->spacing() == NmVector3{0,0,0})
+  {
+    qDebug() << "Filer with invalid data";
+  }
 
   return filter;
 }

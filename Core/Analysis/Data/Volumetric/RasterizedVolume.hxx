@@ -110,7 +110,7 @@ namespace ESPINA
 
 
     Output                      *m_output;
-    mutable unsigned long int    m_rasterizationTime;
+    mutable unsigned long long   m_rasterizationTime;
     mutable QMutex               m_mutex;
   };
 

@@ -283,9 +283,10 @@ void ViewState::emitFrameChanged(const FrameCSPtr frame)
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)
+void ESPINA::GUI::View::updateSceneState(const NmVector3 &crosshair,
+                                         ViewState &state,
+                                         ViewItemAdapterSList viewItems)
 {
-  NmVector3 crosshair;
   Bounds    bounds{0, 1, 0, 1, 0, 1};
   NmVector3 resolution{1,1,1};
 
@@ -293,7 +294,6 @@ void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList 
   {
     auto output = viewItems.first()->output();
 
-    crosshair  = state.crosshair();
     bounds     = output->bounds();
     resolution = output->spacing();
 

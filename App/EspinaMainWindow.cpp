@@ -414,10 +414,9 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   auto &viewState = m_context.viewState();
 
-  updateSceneState(viewState, ViewItemAdapterSList());
+  updateSceneState(NmVector3{0,0,0}, viewState, ViewItemAdapterSList());
 
   viewState.resetCamera();
-  viewState.refresh();
 
   setWindowTitle(tr("ESPINA Interactive Neuron Analyzer"));
 
@@ -445,7 +444,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   m_analysis = analysis;
 
-  updateSceneState(m_context.viewState(), toViewItemSList(model->channels()));
+  updateSceneState(NmVector3{0,0,0}, m_context.viewState(), toViewItemSList(model->channels()));
+
   m_context.viewState().resetCamera();
 
   initializeCrosshair();
@@ -500,6 +500,8 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
   m_analysis = mergedAnalysis;
 
   assignActiveChannel();
+
+  updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
 }
 
 //------------------------------------------------------------------------

@@ -293,7 +293,9 @@ void ChannelInspector::applyModifications()
 {
   if (isVisible())
   {
-    updateSceneState(m_viewState, toViewItemSList(m_channel));
+    auto crosshair = m_viewState.crosshair();
+    // TODO: Update crosshair with new spacing ratio
+    updateSceneState(crosshair, m_viewState, toViewItemSList(m_channel));
     invalidateChannelRepresentation();
   }
 }
@@ -328,8 +330,10 @@ void ChannelInspector::onChangesAccepted()
     applyEdgesChanges();
   }
 
-  updateSceneState(getViewState(), toViewItemSList(m_channel));
-  getViewState().invalidateRepresentations(m_channel.get());
+  auto crosshair = getViewState().crosshair();
+  // TODO: Update crosshair with spacing ratio
+  updateSceneState(crosshair, getViewState(), toViewItemSList(m_channel));
+  m_channel->invalidateRepresentations();
 }
 
 //------------------------------------------------------------------------
@@ -525,7 +529,7 @@ void ChannelInspector::initSliceView()
 
   sliceManager->show(sliceManager->lastFrame());
 
-  updateSceneState(m_viewState, toViewItemSList(m_channel));
+  updateSceneState(NmVector3{0,0,0}, m_viewState, toViewItemSList(m_channel));
 }
 
 //------------------------------------------------------------------------
@@ -650,7 +654,7 @@ void ChannelInspector::changeStackSpacing()
 
   auto segmentations = toRawList<ViewItemAdapter>(QueryAdapter::segmentationsOnChannelSample(m_channel));
 
-  //FIXME getContext().representationInvalidator().invalidateRepresentations(segmentations);
+  getViewState().invalidateRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------
