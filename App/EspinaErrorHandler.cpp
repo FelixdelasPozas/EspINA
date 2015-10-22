@@ -45,9 +45,8 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo &file,
     QString title     = (hint.isEmpty())? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
     QDir    directory = (dir == QDir()) ? m_defaultDir : dir;
 
-    QApplication::changeOverrideCursor(Qt::ArrowCursor);
+
     auto filename = DefaultDialogs::OpenFile(title, filters, directory.absolutePath());
-    QApplication::restoreOverrideCursor();
 
     if (!filename.isEmpty())
     {

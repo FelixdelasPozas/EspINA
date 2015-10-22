@@ -52,7 +52,9 @@ using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
 using namespace ESPINA;
 using namespace ESPINA::Filters::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::Support::ContextFactories;
 
@@ -262,7 +264,7 @@ void SplitTool::onSelectionChanged()
 //------------------------------------------------------------------------
 void SplitTool::createSegmentations()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  WaitingCursor cursor;
 
   auto filter = dynamic_cast<FilterPtr>(sender());
   Q_ASSERT(m_executingTasks.keys().contains(filter));
@@ -298,19 +300,14 @@ void SplitTool::createSegmentations()
     }
     else
     {
-      QApplication::restoreOverrideCursor();
-      QMessageBox warning;
-      warning.setWindowModality(Qt::WindowModal);
-      warning.setWindowTitle(tr("ESPINA"));
-      warning.setIcon(QMessageBox::Warning);
-      warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
-      warning.setStandardButtons(QMessageBox::Yes);
-      warning.exec();
+      auto msg = tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations.");
+      
+      DefaultDialogs::InformationMessage(msg);
+
       return;
     }
   }
 
-  QApplication::restoreOverrideCursor();
   m_executingTasks.remove(filter);
 }
 

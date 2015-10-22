@@ -181,6 +181,8 @@ namespace ESPINA
      */
     void showIssuesDialog(Extensions::IssueList problems) const;
 
+    void onAutoSave(const QString &file);
+
   private:
     void initColorEngines();
 

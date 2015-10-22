@@ -513,6 +513,16 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::onAutoSave(const QString& file)
+{
+  auto currentToolGroup = m_activeToolGroup;
+
+  m_sessionToolGroup->setChecked(true);
+  m_saveAsTool->saveAnalysis(file);
+  currentToolGroup->setChecked(true);
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::updateStatus(QString msg)
 {
   if (msg.isEmpty())
@@ -750,7 +760,7 @@ void EspinaMainWindow::createSessionToolGroup()
   m_saveTool->setEnabled(false);
 
   connect(&m_autoSave,      SIGNAL(saveToFile(QString)),
-          m_saveTool.get(), SLOT(saveAnalysis(QString)));
+          this,             SLOT(onAutoSave(QString)));
 
   connect(m_saveTool.get(), SIGNAL(aboutToSaveSession()),
           this,             SLOT(onAboutToSaveSession()));

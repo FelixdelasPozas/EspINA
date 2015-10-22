@@ -27,6 +27,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Widgets/Styles.h>
 #include <Filters/FreeFormSource.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ContourUndoCommand.h>
@@ -37,6 +38,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
 
@@ -217,10 +219,10 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   Q_ASSERT(m_undoStack->index() >= 1);
   const QUndoCommand *command = m_undoStack->command(m_undoStack->index()-1);
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  WaitingCursor cursor;
   if (command->text() == QString("Draw segmentation using contours"))
   {
-    const ContourAddSegmentation *addCommand = dynamic_cast<const ContourAddSegmentation *>(command->child(0));
+    auto addCommand = dynamic_cast<const ContourAddSegmentation *>(command->child(0));
     addCommand->rasterizeContour(contour);
 
     m_currentSeg = addCommand->getCreatedSegmentation();
@@ -228,7 +230,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   else
     if (command->text() == QString("Modify segmentation using contours"))
     {
-      const ContourRasterizeUndoCommand *undoCommand = dynamic_cast<const ContourRasterizeUndoCommand *>(command->child(0));
+      auto undoCommand = dynamic_cast<const ContourRasterizeUndoCommand *>(command->child(0));
       undoCommand->rasterizeContour(contour);
     }
     else
@@ -238,7 +240,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   {
     try
     {
-      SegmentationVolumeSPtr segVolume = segmentationVolume(m_currentSeg->output());
+      auto segVolume = segmentationVolume(m_currentSeg->output());
       segVolume->fitToContent();
     }
     catch (...)
@@ -254,7 +256,6 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   if (m_currentSource)
     m_currentSource->notifyModification();
 
-  QApplication::restoreOverrideCursor();
   m_widgetHasContour = false;
 }
 

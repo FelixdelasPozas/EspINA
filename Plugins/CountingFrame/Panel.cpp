@@ -33,6 +33,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
@@ -44,6 +45,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
 
@@ -512,9 +514,8 @@ void CF::Panel::createCountingFrame()
 
     auto extension = retrieveExtension<CountingFrameExtension>(extensions);
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    WaitingCursor cursor;
     extension->createCountingFrame(type, inclusion, exclusion, constraint);
-    QApplication::restoreOverrideCursor();
   }
 }
 
