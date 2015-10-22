@@ -127,14 +127,10 @@ void Selection::onChannelsModified(ChannelAdapterList channels)
 //----------------------------------------------------------------------------
 void Selection::onSegmentationsModified(SegmentationAdapterList segmentations)
 {
-  //TODO Move to viewstate?
-//   if(!segmentations.isEmpty())
-//   {
-//     emit selectionStateChanged(segmentations);
-//
-//     auto invalidItems = toList<ViewItemAdapter>(segmentations);
-//     m_invalidator.invalidateRepresentationColors(invalidItems);
-//   }
+  if(!segmentations.isEmpty())
+  {
+    emit selectionStateChanged(segmentations);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -144,12 +140,7 @@ void Selection::set(SegmentationAdapterList selection)
   {
     auto modifiedSegmentations = setSegmentations(selection);
 
-    if(!modifiedSegmentations.isEmpty())
-    {
-      onSegmentationsModified(modifiedSegmentations);
-
-      emit selectionStateChanged(modifiedSegmentations);
-    }
+    onSegmentationsModified(modifiedSegmentations);
 
     emit selectionStateChanged();
 

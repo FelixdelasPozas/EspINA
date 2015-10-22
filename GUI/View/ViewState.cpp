@@ -20,11 +20,13 @@
 // ESPINA
 #include "ViewState.h"
 #include <GUI/Representations/Frame.h>
+#include <Core/Utils/ListUtils.hxx>
 
 // VTK
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View;
@@ -35,6 +37,8 @@ ViewState::ViewState()
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
 , m_selection(new Selection())
 {
+  connect(m_selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this,              SLOT(selectionChanged(SegmentationAdapterList)));
 }
 
 //----------------------------------------------------------------------------
@@ -133,7 +137,7 @@ void ViewState::resetCamera()
 
   frame->reset = true;
 
-  qDebug() << "Reset on" << frame;
+  //qDebug() << "Reset on" << frame;
 
   emitFrameChanged(frame);
 }
@@ -171,6 +175,13 @@ void ViewState::setCrosshairPlane(const Plane plane, const Nm position)
 
   setCrosshair(crosshair);
 }
+
+//----------------------------------------------------------------------------
+void ViewState::selectionChanged(SegmentationAdapterList segmentations)
+{
+  invalidateRepresentationColors(toList<ViewItemAdapter>(segmentations));
+}
+
 
 //----------------------------------------------------------------------------
 NmVector3 ViewState::crosshairPoint(const NmVector3 &point) const
@@ -264,7 +275,7 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
   frame->resolution = m_coordinateSystem->resolution();
   frame->bounds     = m_coordinateSystem->bounds();
 
-  qDebug() << "Creating" << frame;
+  //qDebug() << "Creating" << frame;
 
   return frame;
 }

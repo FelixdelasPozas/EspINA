@@ -186,6 +186,9 @@ namespace ESPINA
 
         void representationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
+      private slots:
+        void selectionChanged(SegmentationAdapterList segmentations);
+
       private:
         NmVector3 crosshairPoint(const NmVector3 &point) const;
 
