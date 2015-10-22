@@ -273,7 +273,8 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
   }
   else if (!isIdle())
   {
-    m_frames.reusePreviousValue(frame->time);
+//     qDebug() << debugName() << "reusing previous frame for" << frame;
+    m_frames.addValue(frame, frame->time);
   }
 }
 

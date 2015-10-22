@@ -553,6 +553,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     {
       Q_ASSERT(!manager->isIdle());
 
+      qDebug() << viewName() << manager->debugName();
       activeManager = manager;
       activeManagers++;
 

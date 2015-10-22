@@ -200,6 +200,7 @@ void ManualSegmentTool::setInitialStroke()
   }
 
   m_referenceItem = getActiveChannel();
+
   auto brushColor = m_drawingWidget.selectedCategory()->color();
 
   m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
@@ -413,7 +414,10 @@ void ManualSegmentTool::onStrokeModeToggled(bool toggled)
     button->setIcon(QIcon(":espina/single_stroke.svg"));
   }
 
-  setInitialStroke();
+  if (isChecked())
+  {
+    setInitialStroke();
+  }
 }
 
 //------------------------------------------------------------------------

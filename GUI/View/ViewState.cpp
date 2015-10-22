@@ -198,13 +198,21 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 //----------------------------------------------------------------------------
 void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  emit widgetsAdded(factory, createFrame());
+  auto frame = createFrame();
+
+  emit widgetsAdded(factory, frame);
+
+  emitFrameChanged(frame);
 }
 
 //----------------------------------------------------------------------------
 void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  emit widgetsRemoved(factory, createFrame());
+  auto frame = createFrame();
+
+  emit widgetsRemoved(factory, frame);
+
+  emitFrameChanged(frame);
 }
 
 //----------------------------------------------------------------------------
@@ -279,6 +287,7 @@ ViewItemAdapterList ViewState::scopedItems(const ViewItemAdapterList& items,
 void ViewState::emitFrameChanged(const FrameCSPtr frame)
 {
   emit frameChanged(frame);
+
   emit afterFrameChanged(frame);
 }
 
