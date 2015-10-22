@@ -23,6 +23,7 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget2D.h>
 #include <GUI/View/Widgets/PlanarSplit/vtkPlanarSplitWidget.h>
+#include <GUI/Representations/Frame.h>
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -31,6 +32,7 @@
 #include <vtkMath.h>
 #include <vtkRenderWindow.h>
 
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View::Widgets;
 
 //-----------------------------------------------------------------------------
@@ -193,12 +195,12 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget2D::getImplicitPlane(const NmVector3 
 }
 
 //-----------------------------------------------------------------------------
-void PlanarSplitWidget2D::setCrosshair(const NmVector3 &crosshair)
+void PlanarSplitWidget2D::display(const ESPINA::GUI::Representations::FrameCSPtr& frame)
 {
   if(m_widget->getPlane() == Plane::UNDEFINED || m_widget->GetEnabled() == false) return;
 
   auto idx = normalCoordinateIndex(m_widget->getPlane());
-  m_widget->setSlice(crosshair[idx]);
+  m_widget->setSlice(frame->crosshair[idx]);
 }
 
 //-----------------------------------------------------------------------------

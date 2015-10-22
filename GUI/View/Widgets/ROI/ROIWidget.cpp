@@ -23,6 +23,7 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 #include <GUI/View/Utils.h>
+#include <GUI/Representations/Frame.h>
 #include <vtkImageCanvasSource2D.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
@@ -137,9 +138,9 @@ void ROIWidget::setColor(const QColor& color)
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::setCrosshair(const NmVector3 &crosshair)
+void ROIWidget::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  changeReslicePosition(crosshair);
+  changeReslicePosition(frame->crosshair);
 
   updateCurrentSlice();
 }

@@ -320,14 +320,11 @@ void RenderView::reset()
 //-----------------------------------------------------------------------------
 void RenderView::resetCamera()
 {
-  auto frame = m_state.createFrame();
+  resetCameraImplementation();
 
-  frame->reset = true;
+  refreshViewImplementation();
 
-  for (auto manager : m_managers)
-  {
-    manager->onFrameChanged(frame);
-  }
+  m_view->update();
 }
 
 //-----------------------------------------------------------------------------
@@ -445,12 +442,12 @@ void RenderView::onRenderRequest()
 
   auto frame = latestReadyFrame(readyManagers);
 
-  qDebug() << viewName() << "Render request" << frame << "- Last rendered frame:" << m_latestFrame->time;
+  //qDebug() << viewName() << "Render request" << frame << "- Last rendered frame:" << m_latestFrame->time;
   if (m_latestFrame->time < frame->time)
   {
     //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
     //     m_timer.restart();
-    qDebug() << viewName() << "> Rendering frame " << frame->time;
+    //qDebug() << viewName() << "> Rendering frame " << frame->time;
     display(readyManagers, frame);
 
     deleteInactiveWidgetManagers();
@@ -553,7 +550,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     {
       Q_ASSERT(!manager->isIdle());
 
-      qDebug() << viewName() << manager->debugName();
+      //qDebug() << viewName() << manager->debugName();
       activeManager = manager;
       activeManagers++;
 
@@ -566,7 +563,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 
     if (activeManagers > 0)
     {
-      qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
+      //qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
 
       for(auto time : count.keys())
       {

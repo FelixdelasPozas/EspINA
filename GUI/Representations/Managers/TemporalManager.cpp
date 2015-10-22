@@ -117,6 +117,14 @@ bool TemporalManager::hasRepresentations() const
 //------------------------------------------------------------------------
 void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
+}
+
+//------------------------------------------------------------------------
+void TemporalManager::onShow(const FrameCSPtr frame)
+{
+  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+
   if (m_plane != Plane::UNDEFINED)
   {
     auto representation2D = m_prototypes->createRepresentation2D();
@@ -132,15 +140,6 @@ void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
   }
 
   m_representation->initialize(m_view);
-  m_representation->setCrosshair(frame->crosshair);
-  m_representation->setSceneResolution(frame->resolution);
-}
-
-//------------------------------------------------------------------------
-void TemporalManager::onShow(const FrameCSPtr frame)
-{
-  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
   emitRenderRequest(frame);
 }
@@ -155,8 +154,7 @@ void TemporalManager::onHide(const FrameCSPtr frame)
 //------------------------------------------------------------------------
 void TemporalManager::displayRepresentations(const FrameCSPtr frame)
 {
-  m_representation->setCrosshair(frame->crosshair);
-  m_representation->setSceneResolution(frame->resolution);
+  m_representation->display(frame);
 }
 
 //------------------------------------------------------------------------

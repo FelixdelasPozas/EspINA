@@ -24,8 +24,10 @@
 #include "OrthogonalRepresentation.h"
 
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include <GUI/Representations/Frame.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
@@ -99,13 +101,13 @@ TemporalRepresentation2DSPtr OrthogonalWidget2D::clone()
 //----------------------------------------------------------------------------
 bool OrthogonalWidget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return true;
+  return m_slice != crosshair[m_index];
 }
 
 //----------------------------------------------------------------------------
 bool OrthogonalWidget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return true;
+  return m_resolution != resolution[m_index];
 }
 
 //----------------------------------------------------------------------------
@@ -118,19 +120,19 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
   onPatternChanged   (m_representation->representationPattern());
 
   connect(m_representation.get(), SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
-          this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
+          this,                   SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
   connect(m_representation.get(), SIGNAL(resolutionChanged(NmVector3)),
-          this,      SLOT(onResolutionChanged(NmVector3)));
+          this,                   SLOT(onResolutionChanged(NmVector3)));
 
   connect(m_representation.get(), SIGNAL(boundsChanged(Bounds)),
           this,      SLOT(onBoundsChanged(Bounds)));
 
   connect(m_representation.get(), SIGNAL(colorChanged(QColor)),
-          this,      SLOT(onColorChanged(QColor)));
+          this,                   SLOT(onColorChanged(QColor)));
 
   connect(m_representation.get(), SIGNAL(patternChanged(int)),
-          this,      SLOT(onPatternChanged(int)));
+          this,                   SLOT(onPatternChanged(int)));
 
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 }
@@ -139,19 +141,19 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
 void OrthogonalWidget2D::uninitializeImplementation()
 {
   disconnect(m_representation.get(), SIGNAL(modeChanged(OrthogonalRepresentation::Mode)),
-             this,      SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
+             this,                   SLOT(onModeChanged(OrthogonalRepresentation::Mode)));
 
   disconnect(m_representation.get(), SIGNAL(resolutionChanged(NmVector3)),
-             this,      SLOT(onResolutionChanged(NmVector3)));
+             this,                   SLOT(onResolutionChanged(NmVector3)));
 
   disconnect(m_representation.get(), SIGNAL(boundsChanged(Bounds)),
-             this,      SLOT(onBoundsChanged(Bounds)));
+             this,                   SLOT(onBoundsChanged(Bounds)));
 
   disconnect(m_representation.get(), SIGNAL(colorChanged(QColor)),
-             this,      SLOT(onColorChanged(QColor)));
+             this,                   SLOT(onColorChanged(QColor)));
 
   disconnect(m_representation.get(), SIGNAL(patternChanged(int)),
-             this,      SLOT(onPatternChanged(int)));
+             this,                   SLOT(onPatternChanged(int)));
 
   m_widget->RemoveObserver(m_command);
 }
@@ -163,9 +165,9 @@ vtkAbstractWidget *OrthogonalWidget2D::vtkWidget()
 }
 
 //----------------------------------------------------------------------------
-void OrthogonalWidget2D::setCrosshair(const NmVector3 &crosshair)
+void OrthogonalWidget2D::display(const FrameCSPtr& frame)
 {
-  m_slice = crosshair[m_index];
+  m_slice = frame->crosshair[m_index];
 
   m_widget->SetSlice(m_slice);
 }
@@ -186,6 +188,7 @@ void OrthogonalWidget2D::onModeChanged(const OrthogonalRepresentation::Mode mode
 //----------------------------------------------------------------------------
 void OrthogonalWidget2D::onResolutionChanged(const NmVector3 &resolution)
 {
+  m_resolution = resolution[m_index];
 }
 
 //----------------------------------------------------------------------------

@@ -75,7 +75,7 @@ namespace ESPINA
 
             virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-            virtual void setCrosshair(const NmVector3 &crosshair) override;
+            virtual void display(const Representations::FrameCSPtr& frame) override;
 
             virtual void initializeImplementation(RenderView *view) override;
 

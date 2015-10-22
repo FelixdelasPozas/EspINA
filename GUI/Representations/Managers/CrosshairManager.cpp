@@ -108,13 +108,13 @@ void CrosshairManager::changeCrosshair(const FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 bool CrosshairManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return !lastFrame()->isValid() || lastFrame()->crosshair != crosshair;
+  return lastFrame()->crosshair != crosshair;
 }
 
 //-----------------------------------------------------------------------------
 bool CrosshairManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return true;
+  return lastFrame()->resolution != resolution;
 }
 
 //-----------------------------------------------------------------------------

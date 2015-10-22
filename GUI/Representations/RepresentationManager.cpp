@@ -218,7 +218,9 @@ void RepresentationManager::display(const GUI::Representations::FrameCSPtr frame
   else
   {
     //qDebug() << debugName() << "Hide frame" << m_lastRenderRequestTime << "at" << t;
-    hideRepresentations(m_frames.last());
+    auto last = lastFrame();
+    hideRepresentations(last);
+    m_frames.invalidatePreviousValues(last->time);
   }
 
   if (!waitingNewerFrames(frame->time))
@@ -258,10 +260,10 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!frame->isValid()) return;
 
-  //qDebug() << debugName() << "Changing to" << frame;
-  if (needsRepresentationUpdate(frame))
+  if (isActive())
   {
-    if (isActive())
+    //qDebug() << debugName() << "Changing to" << frame;
+    if (needsRepresentationUpdate(frame))
     {
       if(hasRepresentations())
       {
@@ -270,10 +272,16 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 
       updateFrameRepresentations(frame);
     }
+    else if (frame->reset || frame->focus)
+    {
+      waitForDisplay(frame);
+//       qDebug() << debugName() << "needs representation update: update valid range with" << frame;
+      m_frames.addValue(frame, frame->time);
+    }
   }
   else if (!isIdle())
   {
-//     qDebug() << debugName() << "reusing previous frame for" << frame;
+//     qDebug() << debugName() << "doesn't need representation update: update valid range with" << frame;
     m_frames.addValue(frame, frame->time);
   }
 }
@@ -371,8 +379,8 @@ bool RepresentationManager::needsRepresentationUpdate(const FrameCSPtr frame)
   auto currentFrame = lastFrame();
 
   return !currentFrame->isValid()
-       || frame->focus
-       || frame->reset
+//        || frame->focus
+//        || frame->reset
        || acceptFrame(frame);
 }
 

@@ -76,7 +76,7 @@ namespace ESPINA
             void setColor(const QColor &color);
 
           private:
-            virtual void setCrosshair(const NmVector3 &crosshair) override;
+            virtual void display(const Representations::FrameCSPtr& frame) override;
 
             vtkSmartPointer<vtkImageData> currentSlice() const;
 

@@ -69,7 +69,7 @@ namespace ESPINA
             virtual vtkAbstractWidget* vtkWidget() override;
 
           private:
-            virtual void setCrosshair(const NmVector3& crosshair) override;
+            virtual void display(const Representations::FrameCSPtr& frame) override;
 
           private slots:
             void onModeChanged(const OrthogonalRepresentation::Mode mode);
@@ -92,6 +92,7 @@ namespace ESPINA
 
             int m_index;
             Nm  m_slice;
+            Nm  m_resolution;
           };
         }
       }
