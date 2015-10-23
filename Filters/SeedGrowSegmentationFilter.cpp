@@ -43,7 +43,6 @@
 
 using namespace ESPINA;
 
-using ExtractFilterType      = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
 using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
 using LabelObjectType        = itk::StatisticsLabelObject<unsigned int, 3>;
 using LabelMapType           = itk::LabelMap<LabelObjectType>;
@@ -310,22 +309,14 @@ void SeedGrowSegmentationFilter::execute()
   itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
   itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
   itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
-
-  auto extractFilter = ExtractFilterType::New();
+  itkVolumeType::Pointer image = nullptr;
 
   auto activeROI = roi();
 
   if(activeROI)
   {
-    auto image = input->itkImage();
     auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
-    auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
-
-    extractFilter->SetNumberOfThreads(1);
-    extractFilter->SetInput(image);
-    extractFilter->SetExtractionRegion(extractRegion);
-    extractFilter->ReleaseDataFlagOn();
-    extractFilter->Update();
+    image = input->itkImage(intersectionBounds);
 
     int outValue = seedIntensity + m_upperTh + 1;
 
@@ -336,8 +327,12 @@ void SeedGrowSegmentationFilter::execute()
 
     if (outValue >= 0)
     {
-      activeROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+      activeROI->applyROI<itkVolumeType>(image, outValue);
     }
+  }
+  else
+  {
+    image = input->itkImage();
   }
 
   reportProgress(25);
@@ -347,16 +342,7 @@ void SeedGrowSegmentationFilter::execute()
   auto connectedFilter = ConnectedFilterType::New();
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
-
-  if(activeROI)
-  {
-    connectedFilter->SetInput(extractFilter->GetOutput());
-  }
-  else
-  {
-    connectedFilter->SetInput(input->itkImage());
-  }
-
+  connectedFilter->SetInput(image);
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
   connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
@@ -377,7 +363,7 @@ void SeedGrowSegmentationFilter::execute()
 
     ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
 
-     //     qDebug() << "Closing Segmentation";
+     // qDebug() << "Closing Segmentation";
     StructuringElementType ball;
     ball.SetRadius(m_radius);
     ball.CreateStructuringElement();
@@ -407,7 +393,6 @@ void SeedGrowSegmentationFilter::execute()
 
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
-
   m_outputs[0]->setSpacing(spacing);
 
   m_prevLowerTh = m_lowerTh;

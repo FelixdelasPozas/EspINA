@@ -125,7 +125,6 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
 
   if (m_storage->exists(volumeBounds))
   {
-
     m_bounds = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
 
     m_isOrthogonal = !SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, temporalStorageId(id), m_bounds);

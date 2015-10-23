@@ -124,3 +124,16 @@ QList<Data::Type> MarchingCubesMesh::updateDependencies() const
 
   return types;
 }
+
+//----------------------------------------------------------------------------
+VolumeBounds MarchingCubesMesh::bounds() const
+{
+  auto mesh = RawMesh::mesh();
+
+  if (!mesh)
+  {
+    const_cast<MarchingCubesMesh *>(this)->updateMesh();
+  }
+
+  return RawMesh::bounds();
+}

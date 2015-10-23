@@ -68,6 +68,8 @@ namespace ESPINA
      */
     void updateMesh();
 
+    virtual VolumeBounds bounds() const override;
+
   private:
     virtual QList<Data::Type> updateDependencies() const override;
 

@@ -161,7 +161,9 @@ namespace ESPINA
       while(!crit.isAtEnd())
       {
         if(!crit.isSet())
+        {
           it.Set(outsideValue);
+        }
 
         ++crit;
         ++it;

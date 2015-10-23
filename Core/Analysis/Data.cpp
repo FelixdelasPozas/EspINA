@@ -44,7 +44,7 @@ void Data::setFetchContext(const TemporalStorageSPtr storage,
   QMutexLocker lock(&m_mutex);
   m_path        = path;
   m_id          = id;
-  m_bounds = bounds;
+  m_bounds      = bounds;
   m_storage     = storage;
   m_needFetch   = true;
 }
@@ -53,10 +53,15 @@ void Data::setFetchContext(const TemporalStorageSPtr storage,
 //----------------------------------------------------------------------------
 void Data::copyFetchContext(DataSPtr data)
 {
+  QMutexLocker lock(&m_mutex);
   m_path        = data->m_path;
   m_id          = data->m_id;
-  m_bounds = data->m_bounds;
   m_storage     = data->m_storage;
+
+  if(m_needFetch)
+  {
+    m_bounds = data->bounds();
+  }
 }
 
 //----------------------------------------------------------------------------
