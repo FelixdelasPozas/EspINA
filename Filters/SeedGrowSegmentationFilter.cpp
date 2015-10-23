@@ -248,9 +248,12 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
     if (!m_ROI->fetchData())
     {
       m_ROI.reset();
+      qWarning() << "Unable to fetch ROI data.";
     }
-
-    m_ROI->setSpacing(m_inputs[0]->output()->spacing());
+    else
+    {
+      m_ROI->setSpacing(m_inputs[0]->output()->spacing());
+    }
 
     m_prevROI = m_ROI.get();
   }
