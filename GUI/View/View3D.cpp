@@ -24,6 +24,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Frame.h>
+#include <GUI/Widgets/Styles.h>
 
 // Qt
 #include <QApplication>
@@ -45,6 +46,9 @@
 #include <QVTKWidget.h>
 #include <vtkCamera.h>
 #include <vtkPOVExporter.h>
+#include <vtkIVExporter.h>
+#include <vtkOBJExporter.h>
+#include <vtkOOGLExporter.h>
 #include <vtkVRMLExporter.h>
 #include <vtkX3DExporter.h>
 #include <vtkAbstractWidget.h>
@@ -56,10 +60,14 @@
 #include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
 
+// C++
+#include <clocale>
+
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
@@ -447,11 +455,15 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
 void View3D::exportScene()
 {
   auto title      = tr("Export 3D scene");
-  auto suggestion = tr("scene.vrml");
-  auto formats    = SupportedFormats(tr("POV-Ray files"), "pov")
-                        .addFormat(tr("X3D format"),    "x3d")
-                        .addFormat(tr("VRML files"),    "vrml");
-  auto fileName = DefaultDialogs::SaveFile(title, formats, "", ".vrml", suggestion);
+  auto suggestion = tr("scene.wrl");
+  auto formats    = SupportedFormats(tr("POV-Ray format"),          "pov")
+                          .addFormat(tr("Blender X3D format"),      "x3d")
+                          .addFormat(tr("VRML 2.0 format"),         "wrl")
+                          .addFormat(tr("OpenInventor 2.0 format"), "iv")
+                          .addFormat(tr("Wavefront format"),        "obj")
+                          .addFormat(tr("Geomview format"),         "oogl");
+
+  auto fileName = DefaultDialogs::SaveFile(title, formats, "", ".wrl", suggestion);
 
   if (!fileName.isEmpty())
   {
@@ -459,45 +471,98 @@ void View3D::exportScene()
     QString extension = splittedName[((splittedName.size())-1)].toUpper();
 
     QStringList validFileExtensions;
-    validFileExtensions << "X3D" << "POV" << "VRML";
+    validFileExtensions << "POV" << "X3D" << "WRL" << "IV" << "OBJ" << "OOGL";
 
     if (validFileExtensions.contains(extension))
     {
-      if (QString("POV") == extension)
+      // NOTE: locale affects the filters when writing numbers to a file and most of the formats
+      // require a point instead of a comma for the decimal point separator.
+      auto locale = std::localeconv();
+      bool changed_locale = false;
+
+      if(locale->decimal_point[0] != '.')
       {
-        vtkPOVExporter *exporter = vtkPOVExporter::New();
-        exporter->DebugOn();
-        exporter->SetGlobalWarningDisplay(true);
-        exporter->SetFileName(fileName.toUtf8());
-        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        exporter->Write();
-        QApplication::restoreOverrideCursor();
-        exporter->Delete();
+        std::setlocale(LC_NUMERIC, "en_US.UTF-8");
+        changed_locale = true;
       }
 
-      if (QString("VRML") == extension)
+      if (QString("POV") == extension)
       {
-        vtkVRMLExporter *exporter = vtkVRMLExporter::New();
-        exporter->DebugOn();
+        auto exporter = vtkSmartPointer<vtkPOVExporter>::New();
         exporter->SetFileName(fileName.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        exporter->Write();
-        QApplication::restoreOverrideCursor();
-        exporter->Delete();
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
+      }
+
+      if (QString("WRL") == extension)
+      {
+        auto exporter = vtkSmartPointer<vtkVRMLExporter>::New();
+        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
       }
 
       if (QString("X3D") == extension)
       {
-        vtkX3DExporter *exporter = vtkX3DExporter::New();
-        exporter->DebugOn();
+        auto exporter = vtkSmartPointer<vtkX3DExporter>::New();
         exporter->SetFileName(fileName.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        exporter->Write();
-        QApplication::restoreOverrideCursor();
-        exporter->Delete();
+        exporter->SetBinary(false);
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
+      }
+
+      if (QString("IV") == extension)
+      {
+        auto exporter = vtkSmartPointer<vtkIVExporter>::New();
+        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
+      }
+
+      if (QString("OBJ") == extension)
+      {
+        auto file = QFileInfo(fileName);
+        auto prefix = file.absoluteDir().absolutePath();
+
+        if(!prefix.endsWith('/')) prefix += QString('/');
+
+        prefix += file.baseName();
+
+        auto exporter = vtkSmartPointer<vtkOBJExporter>::New();
+        exporter->SetFilePrefix(prefix.toUtf8());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
+      }
+
+      if (QString("OOGL") == extension)
+      {
+        auto exporter = vtkSmartPointer<vtkOOGLExporter>::New();
+        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        {
+          WaitingCursor cursor;
+          exporter->Write();
+        }
+      }
+
+      if(changed_locale)
+      {
+        std::setlocale(LC_NUMERIC, "");
       }
     }
     else
