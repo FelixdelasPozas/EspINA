@@ -42,15 +42,23 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo &file,
 
   if (!m_files.contains(key))
   {
-    QString title     = (hint.isEmpty())? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
-    QDir    directory = (dir == QDir()) ? m_defaultDir : dir;
+    QString locatedFilename;
 
-
-    auto filename = DefaultDialogs::OpenFile(title, filters, directory.absolutePath());
-
-    if (!filename.isEmpty())
+    if(m_defaultDir.exists(file.fileName()))
     {
-      m_files[key] = QFileInfo(filename);
+      locatedFilename = m_defaultDir.filePath(file.fileName());
+    }
+    else
+    {
+      QString title     = (hint.isEmpty())? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
+      QDir    directory = (dir == QDir()) ? m_defaultDir : dir;
+
+      locatedFilename = DefaultDialogs::OpenFile(title, filters, directory.absolutePath());
+    }
+
+    if (!locatedFilename.isEmpty())
+    {
+      m_files[key] = QFileInfo(locatedFilename);
     }
   }
 

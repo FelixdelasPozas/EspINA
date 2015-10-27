@@ -72,6 +72,9 @@ void FileOpenTool::onTriggered()
 
   if (!files.isEmpty())
   {
+    auto fileInfo = QFileInfo(files.first());
+    m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
+
     load(files);
   }
 }
@@ -154,7 +157,9 @@ void FileOpenTool::load(const QStringList &files)
     {
       message.append(QString("%1\n").arg(file));
     }
-    message.append(tr("Do you want to remove it from recent documents list?"));
+
+    auto number = (failedFiles.size() > 1) ? QString("them") : QString("it");
+    message.append(tr("Do you want to remove %1 from the recent folders list?").arg(number));
 
     if (DefaultDialogs::UserConfirmation(message))
     {
@@ -163,9 +168,6 @@ void FileOpenTool::load(const QStringList &files)
         recent.removeDocument(file);
       }
     }
-
-    //         auto message = tr("The autosave file could not be loaded.\n");
-    //         DefaultDialogs::InformationMessage(message);
   }
 
   if (!analyses.isEmpty())
@@ -175,12 +177,8 @@ void FileOpenTool::load(const QStringList &files)
     for(int i = 1; i < analyses.size(); ++i)
     {
       analysis = merge(analysis, analyses[i]);
-
-//       reporter.setProgress(100.0*i/analyses.size());
     }
   }
-
-//   reporter.setProgress(100);
 
   int secs = timer.elapsed()/1000.0;
   int mins = 0;
@@ -190,7 +188,7 @@ void FileOpenTool::load(const QStringList &files)
     secs = secs % 60;
   }
 
-  qDebug() << QString("File Loaded in %1m%2s").arg(mins).arg(secs);
+  qDebug() << QString("File Loaded in %1:%2 seconds").arg(mins).arg(secs);
 
   reporter.setProgress(100);
 

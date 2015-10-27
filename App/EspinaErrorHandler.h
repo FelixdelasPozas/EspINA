@@ -42,6 +42,7 @@ namespace ESPINA
   public:
     /** \brief EspinaErrorHandler class constructor.
      * \param[in] parent QWidget raw pointer of the parent of this object.
+     *
      */
     EspinaErrorHandler(QWidget *parent = nullptr)
     : m_parent(parent)
@@ -49,6 +50,7 @@ namespace ESPINA
 
     /** \brief Sets the default directory.
      * \param[in] dir QDir const reference.
+     *
      */
     void setDefaultDir(const QDir &dir)
     { m_defaultDir = dir; }
