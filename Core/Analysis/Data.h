@@ -195,8 +195,7 @@ namespace ESPINA
     : m_needFetch(false)
     , m_timeStamp{s_tick++}
     , m_mutex(QMutex::Recursive)
-    {
-    }
+    {}
 
     /** \brief Increments the modification time and signals the modification of the data.
      *
@@ -222,6 +221,11 @@ namespace ESPINA
      *
      */
     virtual QList<Data::Type> updateDependencies() const = 0;
+
+    /** \brief Auxiliary virtual method in case a data type needs to fix something wrong from
+     * previous versions.
+     */
+    virtual void applyFixes() {};
 
   protected:
     QString             m_path;

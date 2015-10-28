@@ -184,10 +184,19 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  bool TemporalStorage::exists(const QString &name)
+  bool TemporalStorage::exists(const QString &name) const
   {
     QFileInfo file(m_storageDir.absoluteFilePath(name));
     return file.exists();
+  }
+
+  //----------------------------------------------------------------------------
+  bool TemporalStorage::rename(const QString &oldName, const QString &newName) const
+  {
+    QFileInfo oldFile(m_storageDir.absoluteFilePath(oldName));
+    QFileInfo newFile(m_storageDir.absoluteFilePath(newName));
+
+    return (oldFile.exists() && !newFile.exists() && QFile::rename(oldFile.absoluteFilePath(), newFile.absoluteFilePath()));
   }
 
   //----------------------------------------------------------------------------

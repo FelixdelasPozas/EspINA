@@ -151,6 +151,38 @@ Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const Q
 }
 
 //-----------------------------------------------------------------------------
+void ESPINA::ROI::applyFixes()
+{
+  fixVersion2_0_1();
+}
+
+//-----------------------------------------------------------------------------
+void ESPINA::ROI::fixVersion2_0_1()
+{
+  // 2.0.1 seg files had "roi" has the id, would not load when part of a sgs filter nowadays.
+  if(m_id == "sgs")
+  {
+    auto volumeBounds = temporalStorageBoundsId(m_path, "roi");
+    if(m_storage->exists(volumeBounds))
+    {
+      auto newVolumeBounds = temporalStorageBoundsId(m_path, m_id);
+      m_storage->rename(volumeBounds, newVolumeBounds);
+
+      auto oldNameGenerator = [this](int i) { return QString("roi_%2_%3.mhd").arg(this->type()).arg(i); };
+      auto newNameGenerator = [this](int i) { return QString("%1_%2_%3.mhd").arg(m_id).arg(this->type()).arg(i); };
+      int i = 0;
+      auto name = oldNameGenerator(i);
+
+      while(m_storage->exists(name))
+      {
+        m_storage->rename(name, newNameGenerator(i));
+        name = oldNameGenerator(++i);
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool ESPINA::contains(ROIPtr roi, NmVector3 point, NmVector3 spacing)
 {
   bool result = contains(roi->bounds(), point, spacing);
@@ -164,17 +196,16 @@ bool ESPINA::contains(ROIPtr roi, NmVector3 point, NmVector3 spacing)
   return result;
 }
 
-
-  //-----------------------------------------------------------------------------
-  void ESPINA::expandAndDraw(ROIPtr roi, const BinaryMaskSPtr<unsigned char> mask)
+//-----------------------------------------------------------------------------
+void ESPINA::expandAndDraw(ROIPtr roi, const BinaryMaskSPtr<unsigned char> mask)
+{
+  if (contains(roi->bounds(), mask->bounds()))
   {
-    if(contains(roi->bounds(), mask->bounds()))
-    {
-      roi->draw(mask, mask->foregroundValue());
-    }
-    else
-    {
-      roi->resize(boundingBox(roi->bounds(), mask->bounds()));
-      roi->draw(mask, mask->foregroundValue());
-    }
+    roi->draw(mask, mask->foregroundValue());
   }
+  else
+  {
+    roi->resize(boundingBox(roi->bounds(), mask->bounds()));
+    roi->draw(mask, mask->foregroundValue());
+  }
+}

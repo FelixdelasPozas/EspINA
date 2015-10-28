@@ -42,7 +42,7 @@ namespace ESPINA
   class EspinaCore_EXPORT TemporalStorage
   {
   public:
-    enum class Mode: std::int8_t { RECURSIVE = 1, NORECURSIVE = 2 };
+    enum class Mode: char { RECURSIVE = 1, NORECURSIVE = 2 };
 
   public:
     /** \brief TemporalStorage class constructor.
@@ -98,7 +98,14 @@ namespace ESPINA
     /** \brief Returns true if final given as argument exists in this storage.
      *
      */
-    bool exists(const QString &name);
+    bool exists(const QString &name) const;
+
+    /** \brief Renames a file, return true on sucess and false otherwise.
+     * \param[in] oldName file old name.
+     * \param[in] newName file new name.
+     *
+     */
+    bool rename(const QString &oldName, const QString &newName) const;
 
     /** \brief Returns the session settings for this storage.
      *

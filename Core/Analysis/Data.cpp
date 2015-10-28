@@ -47,6 +47,8 @@ void Data::setFetchContext(const TemporalStorageSPtr storage,
   m_bounds      = bounds;
   m_storage     = storage;
   m_needFetch   = true;
+
+  applyFixes();
 }
 
 
@@ -62,6 +64,8 @@ void Data::copyFetchContext(DataSPtr data)
   {
     m_bounds = data->bounds();
   }
+
+  applyFixes();
 }
 
 //----------------------------------------------------------------------------

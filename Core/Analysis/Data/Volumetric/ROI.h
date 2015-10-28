@@ -120,6 +120,13 @@ namespace ESPINA
     QString temporalStorageBoundsId(const QString &path, const QString &id) const
     { return path + QString("%2.bin").arg(temporalStorageId(id)); }
 
+    virtual void applyFixes();
+
+    /** \brief Fixes a problem with 2.0.1 seg files.
+     *
+     */
+    void fixVersion2_0_1();
+
   private:
     bool m_isOrthogonal;
   };
