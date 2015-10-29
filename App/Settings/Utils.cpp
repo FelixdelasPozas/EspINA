@@ -50,6 +50,21 @@ void ESPINA::copySettings(std::shared_ptr<QSettings> from, std::shared_ptr<QSett
 }
 
 //-----------------------------------------------------------------------------
+QDebug ESPINA::operator<< (QDebug debug, std::shared_ptr<QSettings> settings)
+{
+  debug << "\n---- QSettings ----\n";
+
+  for(auto key: settings->allKeys())
+  {
+    debug << "Key:" << key << "->" << settings->value(key) << "\n";
+  }
+
+  debug << "-------------------\n";
+
+  return debug;
+}
+
+//-----------------------------------------------------------------------------
 SettingsContainer::SettingsContainer()
 {
   m_file.open();

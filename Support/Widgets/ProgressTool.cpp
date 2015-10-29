@@ -291,13 +291,13 @@ void ProgressTool::onEventHandlerInUse(bool isUsed)
 //----------------------------------------------------------------------------
 void ProgressTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  // Empty by default, reimplement if needed.
+  restoreCheckedState(settings);
 }
 
 //----------------------------------------------------------------------------
 void ProgressTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
-  // Empty by default, reimplement if needed.
+  saveCheckedState(settings);
 }
 
 //----------------------------------------------------------------------------

@@ -28,6 +28,7 @@
 // Qt
 #include <QTemporaryFile>
 #include <QSettings>
+#include <QDebug>
 
 namespace ESPINA
 {
@@ -70,6 +71,13 @@ namespace ESPINA
    *
    */
   void copySettings(std::shared_ptr<QSettings> from, std::shared_ptr<QSettings> to);
+
+  /** \brief Convenience method for printing all the values of a QSettings object for debugging.
+   * \param[in] debug QDebug stream.
+   * \param[in] settings QSettings shared pointer.
+   *
+   */
+  QDebug operator<< (QDebug debug, std::shared_ptr<QSettings> settings);
 }
 
 #endif // APP_SETTINGS_UTILS_H_

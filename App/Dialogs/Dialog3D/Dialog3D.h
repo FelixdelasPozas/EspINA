@@ -39,18 +39,22 @@ namespace ESPINA
   class Dialog3DTool
   : public Support::Widgets::ProgressTool
   {
-  public:
-    explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
+    public:
+      /** \brief Dialog3DTool class constructor.
+       * \param[in] context application context.
+       * \param[in] dialog pointer of the dialog managed by this tool.
+       *
+       */
+      explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-  private:
-    Support::Widgets::ToolSList tools() const;
+    private:
+      Support::Widgets::ToolSList tools() const;
 
-  private:
-    Dialog3D *m_dialog;
+      Dialog3D *m_dialog;
   };
 
   class Dialog3D
@@ -116,12 +120,29 @@ namespace ESPINA
      */
     void saveGeometryState();
 
+    /** \brief Sets the settings for the included tools.
+     * \param[in] settings tools' settings.
+     *
+     */
+    void setToolsSettings(std::shared_ptr<QSettings> settings);
+
+    /** \brief Restores the settings of the tools.
+     *
+     */
+    void restoreToolsSettings();
+
+    /** \brief Saves the current settings of the tools to the QSettings object and deactivates the tools.
+     *
+     */
+    void saveToolsSettings();
+
   private:
     friend class Dialog3DTool;
 
-    View3D                    m_view3D;
-    QToolBar                  m_toolbar;
-    ToolGroup                 m_representations;
+    View3D                     m_view3D;
+    QToolBar                   m_toolbar;
+    ToolGroup                  m_representations;
+    std::shared_ptr<QSettings> m_toolsSettings;
   };
 
 } // namespace ESPINA
