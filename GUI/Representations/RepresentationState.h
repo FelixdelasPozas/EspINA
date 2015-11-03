@@ -24,7 +24,7 @@
 
 namespace ESPINA
 {
-  /** \class RepresentationSettings
+  /** \class RepresentationState
    *
    * This class is not ThreadSafe
    */
@@ -92,6 +92,8 @@ namespace ESPINA
   bool isCrosshairPositionModified(const Plane &plane, const RepresentationState &state);
 
   bool isVisible(const RepresentationState &state);
+
+  QDebug operator<<(QDebug debug, const RepresentationState &state);
 }
 
 #endif // ESPINA_REPRESENTATIONSTATE_H

@@ -22,6 +22,7 @@
 
 // ESPINA
 #include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Types.h>
 #include "CountingFrameManager.h"
 
 namespace ESPINA

@@ -31,6 +31,8 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View;
 
+const int FRAME_LIMIT = 20;
+
 //----------------------------------------------------------------------------
 ViewState::ViewState()
 : m_fitToSlices{true}
@@ -133,11 +135,7 @@ void ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
 //----------------------------------------------------------------------------
 void ViewState::resetCamera()
 {
-  auto frame = createFrame();
-
-  frame->reset = true;
-
-  //qDebug() << "Reset on" << frame;
+  auto frame = createFrame(m_crosshair, false, true, true);
 
   emitFrameChanged(frame);
 }
@@ -156,13 +154,14 @@ void ViewState::setScene(const NmVector3 &crosshair, const NmVector3 &resolution
   m_coordinateSystem->setBounds(bounds);
   m_coordinateSystem->setResolution(resolution);
 
-  emitFrameChanged(createFrame());
+  auto frame = createFrame(m_crosshair, false, false, true);
+
+  emitFrameChanged(frame);
 }
 
 //----------------------------------------------------------------------------
 void ViewState::setCrosshair(const NmVector3 &point)
 {
-  //qDebug() << "Requested crosshair" << point;
   changeCrosshair(crosshairPoint(point));
 }
 
@@ -181,7 +180,6 @@ void ViewState::selectionChanged(SegmentationAdapterList segmentations)
 {
   invalidateRepresentationColors(toList<ViewItemAdapter>(segmentations));
 }
-
 
 //----------------------------------------------------------------------------
 NmVector3 ViewState::crosshairPoint(const NmVector3 &point) const
@@ -209,7 +207,7 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 //----------------------------------------------------------------------------
 void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame();
+  auto frame = createFrame(m_crosshair);
 
   emit widgetsAdded(factory, frame);
 
@@ -219,7 +217,7 @@ void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPr
 //----------------------------------------------------------------------------
 void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame();
+  auto frame = createFrame(m_crosshair);
 
   emit widgetsRemoved(factory, frame);
 
@@ -251,22 +249,24 @@ void ViewState::changeCrosshair(const NmVector3 &point, bool focus)
   {
     m_crosshair = point;
 
-    auto frame = createFrame();
-
-    frame->focus = focus;
+    auto frame = createFrame(m_crosshair, focus, false, true);
 
     emitFrameChanged(frame);
   }
 }
 
 //-----------------------------------------------------------------------------
-FrameSPtr ViewState::createFrame()
+FrameCSPtr ViewState::createFrame()
 {
-  return createFrame(m_crosshair);
+  auto frame = createFrame(m_crosshair);
+
+  emitFrameChanged(frame);
+
+  return frame;
 }
 
 //-----------------------------------------------------------------------------
-FrameSPtr ViewState::createFrame(const NmVector3 &point)
+FrameCSPtr ViewState::createFrame(const NmVector3 &point, bool focus, bool reset, bool keyframe)
 {
   auto frame = std::make_shared<Frame>();
 
@@ -275,9 +275,49 @@ FrameSPtr ViewState::createFrame(const NmVector3 &point)
   frame->resolution = m_coordinateSystem->resolution();
   frame->bounds     = m_coordinateSystem->bounds();
 
-  //qDebug() << "Creating" << frame;
+  Q_ASSERT(!focus || !reset); // both can't be active
+  if(focus)
+  {
+    frame->flags |= Frame::Focus;
+  }
+
+  if(reset)
+  {
+    frame->flags |= Frame::Reset;
+  }
+
+  qDebug() << "viewstate created frame" << frame->time;
+
+  m_frames << frame;
+
+  if(m_frames.size() > FRAME_LIMIT)
+  {
+    m_frames.takeFirst();
+  }
 
   return frame;
+}
+
+//-----------------------------------------------------------------------------
+FrameCSPtr ViewState::frame(TimeStamp t)
+{
+  qDebug() << "asking for frame" << t;
+  auto result = Frame::InvalidFrame();
+
+  if(!m_frames.isEmpty())
+  {
+    for(int i = m_frames.size() - 1; i > 0; --i)
+    {
+      auto frame = m_frames.at(i);
+      if(frame->time == t) return frame;
+    }
+  }
+  else
+  {
+    qDebug() << "frames emtpy";
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------

@@ -286,7 +286,7 @@ void DrawingWidget::initPainters()
                                            m_sphericalPainter);
 
   m_contourPainter       = std::make_shared<ContourPainter>();
-  m_contourWidgetfactory = std::make_shared<TemporalPrototypes>(std::make_shared<ContourWidget2D>(m_contourPainter), TemporalRepresentation3DSPtr());
+  m_contourWidgetfactory = std::make_shared<TemporalPrototypes>(std::make_shared<ContourWidget2D>(m_contourPainter), TemporalRepresentation3DSPtr(), QString("Contour"));
 
   m_contourPainter->setMinimumPointDistance(m_contourDistance);
   m_contourPainterAction   = registerPainter(":/espina/drawing_contour.svg",

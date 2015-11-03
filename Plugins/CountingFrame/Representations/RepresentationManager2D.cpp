@@ -17,7 +17,10 @@
  *
  */
 
+// Plugin
 #include "RepresentationManager2D.h"
+
+// ESPINA
 #include <GUI/Representations/Frame.h>
 #include <GUI/View/RenderView.h>
 
@@ -68,8 +71,7 @@ void RepresentationManager2D::setRepresentationDepth(Nm depth)
 //-----------------------------------------------------------------------------
 bool RepresentationManager2D::needsRepresentationUpdate(const GUI::Representations::FrameCSPtr frame)
 {
-  return !m_widgets.isEmpty()
-      && GUI::Representations::RepresentationManager::needsRepresentationUpdate(frame);
+  return !m_widgets.isEmpty() && GUI::Representations::RepresentationManager::needsRepresentationUpdate(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -87,7 +89,7 @@ void RepresentationManager2D::onCountingFrameCreated(CountingFrame *cf)
 
     m_widgets.insert(cf, widget);
 
-    emit renderRequested();
+    emitRenderRequest(m_view->state().createFrame());
   }
   else
   {
@@ -108,7 +110,7 @@ void RepresentationManager2D::onCountingFrameDeleted(CountingFrame *cf)
 
     deleteWidget(cf);
 
-    emit renderRequested();
+    emitRenderRequest(m_view->state().createFrame());
   }
 }
 
@@ -133,18 +135,12 @@ void RepresentationManager2D::onShow(const GUI::Representations::FrameCSPtr fram
 
   m_pendingCFs.clear();
 
-  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
   emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager2D::onHide(const GUI::Representations::FrameCSPtr frame)
 {
-  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
 }
 
 //-----------------------------------------------------------------------------

@@ -24,9 +24,7 @@ using namespace ESPINA::GUI::Representations;
 
 //------------------------------------------------------------------------
 Frame::Frame()
-: time(Timer::INVALID_TIME_STAMP)
-, focus(false)
-, reset(false)
+: time    {Timer::INVALID_TIME_STAMP}
 {
 }
 
@@ -37,15 +35,27 @@ FrameCSPtr Frame::InvalidFrame()
 }
 
 //------------------------------------------------------------------------
-bool Frame::isValid() const
+bool GUI::Representations::isValid(const FrameCSPtr frame)
 {
-  return time != Timer::INVALID_TIME_STAMP;
+  return frame->time != Timer::INVALID_TIME_STAMP;
+}
+
+//------------------------------------------------------------------------
+bool GUI::Representations::requiresFocus(const FrameCSPtr frame)
+{
+  return frame->flags.testFlag(Frame::Focus);
+}
+
+//------------------------------------------------------------------------
+bool GUI::Representations::requiresReset(const FrameCSPtr frame)
+{
+  return frame->flags.testFlag(Frame::Reset);
 }
 
 //------------------------------------------------------------------------
 QDebug GUI::Representations::operator<<(QDebug d, const FrameSPtr frame)
 {
-  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->reset << "F:" << frame->focus << "]";
+  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->flags.testFlag(Frame::Reset) << "F:" << frame->flags.testFlag(Frame::Focus) << "]";
 
   return d;
 }
@@ -53,7 +63,7 @@ QDebug GUI::Representations::operator<<(QDebug d, const FrameSPtr frame)
 //------------------------------------------------------------------------
 QDebug GUI::Representations::operator<<(QDebug d, const FrameCSPtr frame)
 {
-  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->reset << "F:" << frame->focus << "]";
+  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->flags.testFlag(Frame::Reset) << "F:" << frame->flags.testFlag(Frame::Focus) << "]";
 
   return d;
 }

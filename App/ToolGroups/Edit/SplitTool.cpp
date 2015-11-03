@@ -94,7 +94,7 @@ FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          input
 //------------------------------------------------------------------------
 SplitTool::SplitTool(Support::Context &context)
 : EditTool("Split", ":/espina/planar_split.svg", tr("Split Segmentation"), context)
-, m_handler{new PlanarSplitEventHandler()}
+, m_handler{std::make_shared<PlanarSplitEventHandler>()}
 {
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
@@ -116,7 +116,8 @@ SplitTool::SplitTool(Support::Context &context)
           this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
   m_factory = std::make_shared<TemporalPrototypes>(std::make_shared<PlanarSplitWidget2D>(m_handler.get()),
-                                                   std::make_shared<PlanarSplitWidget3D>(m_handler.get()));
+                                                   std::make_shared<PlanarSplitWidget3D>(m_handler.get()),
+                                                   id());
 
   setEventHandler(m_handler);
 }

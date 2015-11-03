@@ -272,6 +272,13 @@ namespace ESPINA
     bool eventHandlerFilterEvent(QEvent *event);
 
   private:
+    /** \brief Renders the last frame in all the managers.
+     * \param[in] frame frame to render
+     * \param[in] managers managers to render the frame.
+     *
+     */
+    void renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers);
+
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 
     virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager) {}
@@ -290,11 +297,13 @@ namespace ESPINA
 
     GUI::Representations::RepresentationManagerSList pendingManagers() const;
 
+    unsigned int activeManagers() const;
+
     GUI::Representations::RepresentationManagerSList pendingManagers(GUI::Representations::RepresentationManagerSList managers) const;
 
     GUI::Representations::FrameCSPtr latestReadyFrame(GUI::Representations::RepresentationManagerSList managers) const;
 
-    void display(GUI::Representations::RepresentationManagerSList managers, const GUI::Representations::FrameCSPtr frame);
+    void display(GUI::Representations::RepresentationManagerSList managers, const TimeStamp time);
 
     GUI::Representations::RepresentationManager::ManagerFlags managerFlags() const;
 
@@ -329,6 +338,7 @@ namespace ESPINA
     ContextualMenuSPtr         m_contextMenu;
     QVTKWidget                *m_view;
     RepresentationManagerSList m_managers;
+    unsigned int m_lastFrameActiveManagers;
 
   private:
     GUI::View::ViewState &m_state;

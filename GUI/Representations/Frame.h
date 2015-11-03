@@ -31,27 +31,57 @@ namespace ESPINA
   {
     namespace Representations
     {
-      struct Frame
+      struct EspinaCore_EXPORT Frame
       {
-      public:
-        explicit Frame();
+        public:
+          /** \brief Frame struct constructor.
+           *
+           */
+          explicit Frame();
 
-        TimeStamp time;
-        NmVector3 crosshair;
-        NmVector3 resolution;
-        Bounds    bounds;
+          /** \brief Returns an invalid frame.
+           *
+           */
+          static FrameCSPtr InvalidFrame();
 
-        bool      focus;
-        bool      reset;
+          enum Option
+          {
+            None = 0x0, Focus = 0x1, Reset = 0x2
+          };
 
-        bool isValid() const;
+          Q_DECLARE_FLAGS(Options, Option)
 
-        static FrameCSPtr InvalidFrame();
+          TimeStamp time;
+          NmVector3 crosshair;
+          NmVector3 resolution;
+          Bounds    bounds;
+          Options   flags;
       };
 
+      /** \brief QDebug stream operator<< for a Frame (for debug purposes).
+       *
+       */
       QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameSPtr frame);
 
+      /** \brief QDebug stream operator<< for a const Frame (for debug purposes).
+       *
+       */
       QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameCSPtr frame);
+
+      /** \brief Returns true if the frame is valid (timestamp is valid).
+      *
+      */
+      bool isValid(const FrameCSPtr frame);
+
+      /** \brief Returns true if the frame requires a camera reset.
+       *
+       */
+      bool requiresReset(const FrameCSPtr frame);
+
+      /** \brief Returns true if the frame requires a focus on the frame crosshair.
+       *
+       */
+      bool requiresFocus(const FrameCSPtr frame);
     }
   }
 }

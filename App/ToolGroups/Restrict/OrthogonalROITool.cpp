@@ -419,5 +419,5 @@ void OrthogonalROITool::hideSliceSelectors()
 //-----------------------------------------------------------------------------
 OrthogonalROITool::TemporalPrototypesSPtr OrthogonalROITool::createTemporalRepresentationPrototype() const
 {
-  return std::make_shared<TemporalPrototypes>(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr());
+  return std::make_shared<TemporalPrototypes>(std::make_shared<OrthogonalWidget2D>(m_roiRepresentation), TemporalRepresentation3DSPtr(), id());
 }

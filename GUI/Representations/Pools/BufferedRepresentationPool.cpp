@@ -75,30 +75,6 @@ void BufferedRepresentationPool::updatePipelinesImplementation(const GUI::Repres
   }
 }
 
-// //-----------------------------------------------------------------------------
-// void BufferedRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, const GUI::Representations::FrameCSPtr frame)
-// {
-//   auto normalRes = resolution[m_normalIdx];
-//
-//   if (m_normalRes != normalRes)
-//   {
-//     m_normalRes = normalRes;
-//
-//     auto invalidated = updateBuffer(m_crosshair, invalidationShift(), t);
-//
-//     updatePipelines(invalidated);
-//   }
-// }
-//
-// //-----------------------------------------------------------------------------
-// void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &crosshair, const GUI::Representations::FrameCSPtr frame)
-// {
-//   auto shift       = distanceFromLastCrosshair(crosshair);
-//   auto invalidated = updateBuffer(crosshair, shift, t);
-//
-//   updatePipelines(invalidated);
-// }
-
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
@@ -117,6 +93,8 @@ void BufferedRepresentationPool::updateRepresentationsAtImlementation(const GUI:
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
+  qDebug() << "BufferedPool, update colors at" << frame->time << "items" << modifiedItems.size();
+
   m_updateWindow.current()->setFrame(frame);
 
   auto updaters = m_updateWindow.all();
@@ -127,6 +105,13 @@ void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(const
   }
 
   updatePipelines(updaters);
+
+  qDebug() << "---Tasks";
+  for(auto updater: m_updateWindow.all())
+  {
+    qDebug() << updater->description();
+  }
+  qDebug() << "--------";
 }
 
 
@@ -167,7 +152,7 @@ void BufferedRepresentationPool::updatePriorities()
     closest->setPriority(Priority::HIGH);
   }
 
-  for (auto further : m_updateWindow.further())
+  for (auto further : m_updateWindow.farther())
   {
     further->setPriority(Priority::LOW);
   }
@@ -226,6 +211,7 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updatePipelines(RepresentationUpdaterSList updaters)
 {
+  qDebug() << "BufferedRepresentationPool: update pipelines en " << updaters.size() << "updaters -- has sources" << hasSources();
   updatePriorities();
 
   if(hasSources())

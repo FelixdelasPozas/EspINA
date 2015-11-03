@@ -47,7 +47,7 @@ namespace ESPINA
            */
           virtual void initialize(RenderView *view) = 0;
 
-          /** \brief
+          /** \brief De-initializes the temporal representation.
            *
            */
           virtual void uninitialize() = 0;
@@ -99,7 +99,7 @@ namespace ESPINA
         class TemporalPrototypes
         {
         public:
-          explicit TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D, TemporalRepresentation3DSPtr prototype3D);
+          explicit TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D, TemporalRepresentation3DSPtr prototype3D, const QString &name);
 
           ViewTypeFlags supportedViews() const;
 
@@ -107,9 +107,12 @@ namespace ESPINA
 
           TemporalRepresentation3DSPtr createRepresentation3D() const;
 
+          QString name() const;
+
         private:
           TemporalRepresentation2DSPtr m_prototype2D;
           TemporalRepresentation3DSPtr m_prototype3D;
+          QString                      m_name;
         };
 
         using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;

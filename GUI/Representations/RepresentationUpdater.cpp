@@ -177,11 +177,11 @@ void RepresentationUpdater::run()
 {
   QMutexLocker lock(&m_mutex);
 
-  //qDebug() << "Task" << description() << "running" << " - " << crosshairPoint(m_settings);
   // Local copy needed to prevent condition race on same frame
   // (usually due to invalidation view item representations
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
+  m_requestedSources.clear();
 
   auto it   = updateList.begin();
   auto size = updateList.size();
@@ -210,10 +210,8 @@ void RepresentationUpdater::run()
     reportProgress((i/static_cast<double>(size))*100);
   }
 
-  if (m_frame->isValid() && canExecute())
+  if (isValid(m_frame) && canExecute())
   {
-    m_requestedSources.clear();
-
     emit actorsReady(m_frame, m_actors);
   }
 }

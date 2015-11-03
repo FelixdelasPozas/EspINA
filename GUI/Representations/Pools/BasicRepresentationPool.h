@@ -29,29 +29,39 @@ namespace ESPINA
   class BasicRepresentationPool
   : public RepresentationPool
   {
-  public:
-    explicit BasicRepresentationPool(const ItemAdapter::Type &type, SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
+    public:
+      /** \brief BasicRepresentationPool class constructor.
+       * \param[in] type type of the items being managed.
+       * \param[in] scheduler task scheduler for launching the updater.
+       * \param[in] pipeline representation updater.
+       *
+       */
+      explicit BasicRepresentationPool(const ItemAdapter::Type &type, SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
-    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-  private:
-    virtual void updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame) override;
+    private:
+      virtual void updatePipelinesImplementation(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
+      virtual void updateRepresentationsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
 
-    virtual void updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
+      virtual void updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems) override;
 
-    virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
+      virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
+      virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void applySettings(const RepresentationState &settings) override;
+      virtual void applySettings(const RepresentationState &settings) override;
 
-  private:
-    void updateRepresentations();
+    private:
+      /** brief Helper method to update the items' representations.
+       *
+       */
+      void updateRepresentations();
 
-  private:
-    RepresentationUpdaterSPtr m_updater;
+    private:
+      RepresentationUpdaterSPtr m_updater; /** pool's representation updater. */
+      QString m_description;               /** updater's description          */
   };
 }
 

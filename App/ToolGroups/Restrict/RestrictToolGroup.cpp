@@ -255,7 +255,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
     auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
     roi2D->setColor(m_color);
 
-    m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr());
+    m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr(), QString("ManualROI"));
 
     m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
   }

@@ -439,29 +439,12 @@ void RenderView::onRenderRequest()
   if (!isVisible()) return;
 
   auto readyManagers = pendingManagers();
-
   auto frame = latestReadyFrame(readyManagers);
 
-  //qDebug() << viewName() << "Render request" << frame << "- Last rendered frame:" << m_latestFrame->time;
+  qDebug() << "onRenderRequest---------------------------" << viewName() << "frame" << frame->time << "last frame" << m_latestFrame->time;
   if (m_latestFrame->time < frame->time)
   {
-    //     qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
-    //     m_timer.restart();
-    //qDebug() << viewName() << "> Rendering frame " << frame->time;
-    display(readyManagers, frame);
-
-    deleteInactiveWidgetManagers();
-
-    if (hasVisibleRepresentations() && frame->reset)
-    {
-      resetCameraImplementation();
-      //qDebug() << viewName() << ": Reset camera:" << renderTime;
-    }
-
-    if (frame->focus)
-    {
-      moveCamera(frame->crosshair);
-    }
+    renderFrame(frame, readyManagers);
 
     updateViewActions(managerFlags());
 
@@ -469,10 +452,34 @@ void RenderView::onRenderRequest()
 
     mainRenderer()->ResetCameraClippingRange();
 
+    m_lastFrameActiveManagers = activeManagers();
+
     m_latestFrame = frame;
   }
 
   m_view->update();
+
+  qDebug() << "------------------------------------------";
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
+{
+  display(managers, frame->time);
+
+  deleteInactiveWidgetManagers();
+
+  auto numManagers = activeManagers();
+
+  if ((hasVisibleRepresentations() && requiresReset(frame)) || (m_lastFrameActiveManagers == 0 && numManagers != 0))
+  {
+    resetCameraImplementation();
+  }
+
+  if (requiresFocus(frame))
+  {
+    moveCamera(frame->crosshair);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -518,6 +525,19 @@ RepresentationManagerSList RenderView::pendingManagers() const
 }
 
 //-----------------------------------------------------------------------------
+unsigned int RenderView::activeManagers() const
+{
+  unsigned int active = 0;
+
+  for(auto manager: m_managers)
+  {
+    if(manager->isActive() && manager->hasActors() && !manager->needsActors()) ++active;
+  }
+
+  return active;
+}
+
+//-----------------------------------------------------------------------------
 RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSList managers) const
 {
   RepresentationManagerSList result;
@@ -550,9 +570,10 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     {
       Q_ASSERT(!manager->isIdle());
 
-      //qDebug() << viewName() << manager->debugName();
+      qDebug() << viewName() << manager->debugName() << manager->readyRange();
+
       activeManager = manager;
-      activeManagers++;
+      ++activeManagers;
 
       for(auto time: manager->readyRange())
       {
@@ -560,10 +581,9 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
       }
     }
 
-
     if (activeManagers > 0)
     {
-      //qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
+      qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
 
       for(auto time : count.keys())
       {
@@ -580,15 +600,16 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     }
   }
 
-  return (activeManager && latest != Timer::INVALID_TIME_STAMP)?activeManager->frame(latest):Frame::InvalidFrame();
+  qDebug() << "last common frame"  << latest;
+  return ((latest > 0) ? m_state.frame(latest) : Frame::InvalidFrame());
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::display(RepresentationManagerSList managers, const GUI::Representations::FrameCSPtr frame)
+void RenderView::display(RepresentationManagerSList managers, const TimeStamp time)
 {
   for (auto manager : managers)
   {
-    manager->display(frame);
+    manager->display(time);
   }
 }
 

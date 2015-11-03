@@ -17,7 +17,11 @@
  *
  */
 
+// Plugin
 #include "RepresentationManager3D.h"
+
+// ESPINA
+#include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -59,7 +63,7 @@ void RepresentationManager3D::onCountingFrameCreated(CountingFrame *cf)
 
     m_widgets.insert(cf, widget);
 
-    emit renderRequested();
+    emitRenderRequest(m_view->state().createFrame());
   }
   else
   {
@@ -80,7 +84,7 @@ void RepresentationManager3D::onCountingFrameDeleted(CountingFrame *cf)
 
     deleteWidget(cf);
 
-    emit renderRequested();
+    emitRenderRequest(m_view->state().createFrame());
   }
 }
 

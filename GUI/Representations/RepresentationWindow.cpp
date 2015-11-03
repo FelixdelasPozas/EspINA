@@ -25,13 +25,11 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
-RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
+RepresentationWindow::RepresentationWindow(SchedulerSPtr              scheduler,
                                            RepresentationPipelineSPtr pipeline,
-                                           unsigned windowSize)
-: m_scheduler(scheduler)
-, m_pipeline(pipeline)
-, m_currentPos(windowSize)
-, m_witdh(windowSize)
+                                           unsigned int               windowSize)
+: m_currentPos{windowSize}
+, m_width     {windowSize}
 {
   qRegisterMetaType<GUI::Representations::FrameCSPtr>("GUI::Representations::FrameCSPtr");
   qRegisterMetaType<RepresentationPipeline::Actors>("RepresentationPipelineActors");
@@ -56,34 +54,26 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
   {
     if (abs(distance) >= m_buffer.size())
     {
-      m_currentPos = m_witdh;
+      m_currentPos = m_width;
 
-      //     std::cout << "Invalidate buffer:" << std::endl;
-      for (int i = 0, d = m_witdh; d > 0; ++i, --d)
+      for(unsigned int i = 0, j = -m_width; i < (2*m_width)+1; ++i, ++j)
       {
-        invalid << Cursor(m_buffer[i], -d);
-        //       std::cout << "\tInvalidate (" << i << ", " << -d << ")\n";
-        invalid << Cursor(m_buffer[m_witdh+i], i);
-        //       std::cout << "\tInvalidate (" << m_witdh + i << ", " << i << ")\n";
+        invalid << Cursor(m_buffer[i],j);
       }
-      invalid << Cursor(m_buffer.last(), m_witdh);
-      //     std::cout << "\tInvalidate (" << m_buffer.size() - 1 << ", " << m_witdh << ")\n";
     }
     else
     {
       int n = abs(distance);
       int s = copysign(1.0, distance);
-      int i = innerPosition(m_currentPos - s*m_witdh);
+      int i = innerPosition(m_currentPos - s*m_width);
 
-      //     std::cout << "Moving " << distance << ":" << std::endl;
       while (n > 0)
       {
-        int d = s*(m_witdh - n + 1);
+        int d = s*(m_width - n + 1);
 
         invalid << Cursor(m_buffer[i], d);
-        //       std::cout << "\tInvalidate (" << i << ", " << d << ")\n";
 
-        i = (s > 0)?nextPosition(i):prevPosition(i);
+        i = (s > 0) ? nextPosition(i) : prevPosition(i);
 
         --n;
       }
@@ -91,7 +81,6 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
       m_currentPos = innerPosition(m_currentPos + distance);
     }
   }
-//   std::cout << "Current Position: " << m_currentPos << std::endl;
 
   return invalid;
 }
@@ -115,13 +104,13 @@ ESPINA::RepresentationUpdaterSList RepresentationWindow::all() const
 //-----------------------------------------------------------------------------
 ESPINA::RepresentationUpdaterSList RepresentationWindow::behind() const
 {
-  return behindOf(m_currentPos, m_witdh);
+  return behindOf(m_currentPos, m_width);
 }
 
 //-----------------------------------------------------------------------------
 ESPINA::RepresentationUpdaterSList RepresentationWindow::ahead() const
 {
-  return aheadFrom(m_currentPos, m_witdh);
+  return aheadFrom(m_currentPos, m_width);
 }
 
 
@@ -139,26 +128,27 @@ ESPINA::RepresentationUpdaterSList RepresentationWindow::closestAhead() const
 }
 
 //-----------------------------------------------------------------------------
-ESPINA::RepresentationUpdaterSList RepresentationWindow::furtherBehind() const
+ESPINA::RepresentationUpdaterSList RepresentationWindow::fartherBehind() const
 {
-  return behindOf(m_currentPos-closestDistance(), furtherDistance());
+  return behindOf(m_currentPos-closestDistance(), fartherDistance());
 }
 
 //-----------------------------------------------------------------------------
-ESPINA::RepresentationUpdaterSList RepresentationWindow::furtherAhead() const
+ESPINA::RepresentationUpdaterSList RepresentationWindow::fartherAhead() const
 {
-  return aheadFrom(m_currentPos+closestDistance(), furtherDistance());
+  return aheadFrom(m_currentPos+closestDistance(), fartherDistance());
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationWindow::incrementBuffer()
 {
+  // TODO: increment buffer size on miss
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationWindow::decrementBuffer()
 {
-
+  // TODO: decrement buffer on status reset
 }
 
 //-----------------------------------------------------------------------------
@@ -210,25 +200,25 @@ RepresentationUpdaterSList RepresentationWindow::behindOf(int pos, int length) c
 //-----------------------------------------------------------------------------
 int RepresentationWindow::closestDistance() const
 {
-  return m_witdh/2;
+  return std::floor(m_width/2);
 }
 
 //-----------------------------------------------------------------------------
-int RepresentationWindow::furtherDistance() const
+int RepresentationWindow::fartherDistance() const
 {
-  return m_witdh - closestDistance();
+  return m_width - closestDistance();
 }
 
 //-----------------------------------------------------------------------------
 unsigned RepresentationWindow::nextPosition(int pos) const
 {
-  return (pos == m_buffer.size() - 1)?0:pos + 1;
+  return (pos == m_buffer.size() - 1) ? 0 : pos + 1;
 }
 
 //-----------------------------------------------------------------------------
 unsigned RepresentationWindow::prevPosition(int pos) const
 {
-  return (pos == 0)?m_buffer.size() - 1:pos - 1;
+  return (pos == 0) ? m_buffer.size() - 1 : pos - 1;
 }
 
 //-----------------------------------------------------------------------------
@@ -240,10 +230,26 @@ unsigned int RepresentationWindow::innerPosition(int pos) const
   {
     result = pos + m_buffer.size();
   }
-  else if (pos >= m_buffer.size())
+  else
   {
-    result = pos - m_buffer.size();
+    if (pos >= m_buffer.size())
+    {
+      result = pos - m_buffer.size();
+    }
   }
 
   return result;
+}
+
+//-----------------------------------------------------------------------------
+QDebug ESPINA::operator<<(QDebug debug, const QList<RepresentationWindow::Cursor> &cursors)
+{
+  debug << "\n--- Window ------------------\n";
+  for(auto cursor: cursors)
+  {
+    debug << "updater:" << cursor.first.get() << "pos:" << cursor.second << "\n";
+  }
+  debug << "\n-----------------------------\n";
+
+  return debug;
 }

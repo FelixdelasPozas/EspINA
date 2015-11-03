@@ -152,3 +152,16 @@ bool ESPINA::isVisible(const RepresentationState &state)
 {
   return state.getValue<bool>(VISIBLE);
 }
+
+//----------------------------------------------------------------------------
+QDebug ESPINA::operator<<(QDebug debug, const RepresentationState &state)
+{
+  debug << "\n---RepresentationState---\n";
+  for(auto key: state.m_properties.keys())
+  {
+    debug << "key:" << key << "value:" << state.m_properties[key].first << "modified:" << state.m_properties[key].second << "\n";
+  }
+  debug << "-------------------------\n";
+
+  return debug;
+}

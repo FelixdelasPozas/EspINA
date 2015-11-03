@@ -52,7 +52,8 @@ namespace ESPINA
       {
         Q_OBJECT
       public:
-        enum class Status: int8_t {
+        enum class Status: int8_t
+        {
           IDLE,
           PENDING_DISPLAY
         };
@@ -147,9 +148,10 @@ namespace ESPINA
         FrameCSPtr lastFrame() const;
 
         /** \brief Updates view's actors with those available at the given time.
+         * \param[in] time TimeStamp value.
          *
          */
-        void display(const GUI::Representations::FrameCSPtr frame);
+        void display(TimeStamp time);
 
         /** \brief Returns the item picked
          *
@@ -250,6 +252,7 @@ namespace ESPINA
         RangedValue<FrameCSPtr> m_frames;
 
         TimeStamp m_lastFrameChanged;
+        QMap<TimeStamp, TimeRange> m_lazyFrames;
 
         RepresentationManagerSList m_childs;
       };

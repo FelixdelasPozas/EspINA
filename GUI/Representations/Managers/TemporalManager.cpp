@@ -26,9 +26,11 @@ using namespace ESPINA::GUI::Representations::Managers;
 
 //------------------------------------------------------------------------
 TemporalPrototypes::TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D,
-                                       TemporalRepresentation3DSPtr prototype3D)
-: m_prototype2D(prototype2D)
-, m_prototype3D(prototype3D)
+                                       TemporalRepresentation3DSPtr prototype3D,
+                                       const QString               &name)
+: m_prototype2D{prototype2D}
+, m_prototype3D{prototype3D}
+, m_name       {name}
 {
 }
 
@@ -56,12 +58,19 @@ TemporalRepresentation3DSPtr TemporalPrototypes::createRepresentation3D() const
 }
 
 //------------------------------------------------------------------------
+QString TemporalPrototypes::name() const
+{
+  return m_name;
+}
+
+//------------------------------------------------------------------------
 TemporalManager::TemporalManager(TemporalPrototypesSPtr prototypes, ManagerFlags flags)
 : RepresentationManager{prototypes->supportedViews(), flags}
 , m_prototypes         {prototypes}
 , m_plane              {Plane::UNDEFINED}
 , m_depth              {0}
 {
+  setName(QString("TemporalManager::%1").arg(prototypes->name()));
 }
 
 //------------------------------------------------------------------------
@@ -169,7 +178,6 @@ RepresentationManagerSPtr TemporalManager::cloneImplementation()
 {
   return std::make_shared<TemporalManager>(m_prototypes, flags());
 }
-
 
 //------------------------------------------------------------------------
 AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()

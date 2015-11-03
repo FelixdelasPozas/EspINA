@@ -214,9 +214,14 @@ void RepresentationPool::incrementObservers()
 //-----------------------------------------------------------------------------
 void RepresentationPool::decrementObservers()
 {
-  if (m_numObservers == 0) qWarning() << "Unexpected observer decrement";
-
-  --m_numObservers;
+  if (m_numObservers == 0)
+  {
+    qWarning() << "Unexpected observer decrement";
+  }
+  else
+  {
+    --m_numObservers;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -289,23 +294,13 @@ void RepresentationPool::onSourcesInvalidated(ViewItemAdapterList sources,  cons
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourceColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
+  qDebug() << "RepresentationPool: colors invalidated" << frame->time;
   updateRepresentationColorsAt(frame, sources);
 }
-
-// //-----------------------------------------------------------------------------
-// void RepresentationPool::onTimeStampUpdated(const GUI::Representations::FrameCSPtr frame)
-// {
-//   if(!m_validActors.isEmpty())
-//   {
-//     m_validActors.reusePreviousValue(frame->time);
-//   }
-// }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSettingsModified()
 {
-  //emit actorsInvalidated();
-
   m_poolState.apply(m_settings->settings());
 
   applySettings(m_poolState);

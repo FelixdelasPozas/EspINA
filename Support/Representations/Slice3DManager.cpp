@@ -190,7 +190,7 @@ void Slice3DManager::checkRenderRequest(const GUI::Representations::FrameCSPtr f
 
     auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
 
-    if (frame->isValid() && lastTime == frame->time)
+    if (isValid(frame) && lastTime == frame->time)
     {
       emitRenderRequest(frame);
     }

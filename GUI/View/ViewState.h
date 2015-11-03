@@ -53,13 +53,18 @@ namespace ESPINA
 
       public:
         /** \brief Class ViewState class constructor.
-         * \param[in] timer state timer object.
          *
          */
         explicit ViewState();
 
+        /** \brief Returns the current view's state crosshair value.
+         *
+         */
         NmVector3 crosshair() const;
 
+        /** \brief Returns the current view's state selection.
+         *
+         */
         SelectionSPtr selection() const;
 
         /** \brief Enables/disables the "fit to slices" flag.
@@ -132,15 +137,34 @@ namespace ESPINA
         void invalidateRepresentationColors(const ViewItemAdapterList &items,
                                             const Invalidate scope = Invalidate::SELECTED_ITEMS);
 
+        /** \brief Resets the cameras of all the views.
+         *
+         */
         void resetCamera();
 
+        /** \brief Updates all the views.
+         *
+         */
         void refresh();
 
+        /** \brief Sets the paremeters of the scene.
+         * \param[in] crosshair crosshair point.
+         * \param[in] resolution scene's resolution.
+         * \param[in] bounds scene's bounds.
+         *
+         */
         void setScene(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds);
 
-        Representations::FrameSPtr createFrame();
+        /** \brief Creates and returns a new frame.
+         *
+         */
+        Representations::FrameCSPtr createFrame();
 
-        Representations::FrameSPtr createFrame(const NmVector3 &point);
+        /** \brief Returns the frame with the specified timestamp.
+         * \param[in] t TimeStamp of the required frame.
+         *
+         */
+        Representations::FrameCSPtr frame(TimeStamp t);
 
       public slots:
         /** \brief Changes the crosshair position to point
@@ -190,15 +214,44 @@ namespace ESPINA
         void selectionChanged(SegmentationAdapterList segmentations);
 
       private:
+        /** \brief Creates a frame with the given parameters and returns it.
+         * \param[in] point frames crosshair point.
+         * \param[in] focus true to focus the views on the frame's point and false otherwise.
+         * \param[in] reset true to reset the view's camera and false otherwise.
+         * \param[in] keyframe true to set the frame as keyframe and false otherwise.
+         *
+         * NOTE: a frame with focus or reset to true is always a keyframe.
+         *
+         */
+        Representations::FrameCSPtr createFrame(const NmVector3 &point, bool focus = false, bool reset = false, bool keyframe = false);
+
         NmVector3 crosshairPoint(const NmVector3 &point) const;
 
+        /** \brief Returns the voxel center point to the given point using the state's resolution.
+         * \param[in] point point coordinates.
+         *
+         */
         NmVector3 voxelCenter(const NmVector3 &point) const;
 
+        /** \brief Changes the state crosshair point.
+         * \param[in] point new crosshair point coordinates.
+         * \param[in] focus true to focus the views on the new crosshair point.
+         *
+         */
         void changeCrosshair(const NmVector3 &point, bool focus = false);
 
+        /** \brief Returns the list of items related to the given ones using the model relationship graph.
+         * \param[in] item view items list.
+         * \param[in] scope scope of the relationship.
+         *
+         */
         ViewItemAdapterList scopedItems(const ViewItemAdapterList &items,
                                         const Invalidate scope = Invalidate::SELECTED_ITEMS);
 
+        /** \brief Emits the frameChanged signal with the given frame.
+         * \param[in] frame frame to emit as parameter.
+         *
+         */
         void emitFrameChanged(const GUI::Representations::FrameCSPtr frame);
 
       private:
@@ -208,6 +261,8 @@ namespace ESPINA
         NmVector3            m_crosshair;
         CoordinateSystemSPtr m_coordinateSystem;
         SelectionSPtr        m_selection;
+
+        QList<GUI::Representations::FrameCSPtr> m_frames;
 
         EventHandlerSPtr m_eventHandler;
       };

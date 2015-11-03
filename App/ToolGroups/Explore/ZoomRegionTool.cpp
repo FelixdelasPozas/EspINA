@@ -38,7 +38,7 @@ ZoomRegionTool::ZoomRegionTool(Support::Context &context)
 : ProgressTool("ZoomRegion", ":/espina/zoom_region.svg", tr("Zoom Region"), context)
 , m_viewState(context.viewState())
 , m_handler  {new ZoomEventHandler()}
-, m_factory  {new TemporalPrototypes{std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get())}}
+, m_factory  {std::make_shared<TemporalPrototypes>(std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get()), id())}
 {
   setCheckable(true);
 
