@@ -282,7 +282,11 @@ bool Filter::restorePreviousOutputs() const
             if (!data)
             {
               // TODO 2014-04-20: Create ReadOnlyData to preserve data information in further savings
-              qWarning() << "Unable to create requested data type";
+              qWarning() << "Unable to create requested data type: prefix[" << prefix() << "]";
+              for(auto attr: xml.attributes().toList())
+              {
+                qWarning() << "xml attr" << attr.name().toString() << attr.value().toString();
+              }
             }
             editedRegions.clear();
           }

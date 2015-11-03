@@ -20,15 +20,23 @@
 
 // ESPINA
 #include "MorphologicalInformation.h"
+#include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Segmentation.h>
 
 // ITK
 #include <itkShapeLabelObject.h>
+#include <vtkMeshQuality.h>
+#include <vtkSmartPointer.h>
 
 // Qt
 #include <QApplication>
 #include <QDebug>
+
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+#include <vtkMeshQuality.h>
 
 using namespace ESPINA;
 
@@ -59,6 +67,7 @@ const SegmentationExtension::Key MORPHOLOGICAL_FD    = "Feret Diameter";
 const SegmentationExtension::Key MORPHOLOGICAL_EEDx  = "Equivalent Ellipsoid Diameter X";
 const SegmentationExtension::Key MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Diameter Y";
 const SegmentationExtension::Key MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
+const SegmentationExtension::Key MORPHOLOGICAL_AREA  = "Surface Area";
 
 //TODO: Review values to be used from new ITK version
 //------------------------------------------------------------------------
@@ -101,7 +110,8 @@ SegmentationExtension::InformationKeyList MorphologicalInformation::availableInf
                      MORPHOLOGICAL_BPA10, MORPHOLOGICAL_BPA11, MORPHOLOGICAL_BPA12,
                      MORPHOLOGICAL_BPA20, MORPHOLOGICAL_BPA21, MORPHOLOGICAL_BPA22,
                      MORPHOLOGICAL_FD,
-                     MORPHOLOGICAL_EEDx, MORPHOLOGICAL_EEDy, MORPHOLOGICAL_EEDz})
+                     MORPHOLOGICAL_EEDx, MORPHOLOGICAL_EEDy, MORPHOLOGICAL_EEDz,
+                     MORPHOLOGICAL_AREA})
   {
     keys << createKey(value);
   }
@@ -125,7 +135,7 @@ QVariant MorphologicalInformation::cacheFail(const InformationKey& key) const
 
   QVariant info;
 
-  if (hasVolumetricData(m_extendedItem->output()))
+  if (hasVolumetricData(m_extendedItem->output()) && hasMeshData(m_extendedItem->output()))
   {
     updateInformation();
 
@@ -143,16 +153,21 @@ void MorphologicalInformation::updateInformation() const
 {
   QWriteLocker lock(&m_mutex);
 //   qDebug() << "Updating" << m_seg->data().toString() << ID;
-  Q_ASSERT(hasVolumetricData(m_extendedItem->output()));
+  Q_ASSERT(hasVolumetricData(m_extendedItem->output()) && hasMeshData(m_extendedItem->output()));
 
-  auto segVolume = readLockVolume(m_extendedItem->output());
+  itkVolumeType::Pointer segVolume = nullptr;
 
-  bool          validInfo = !segVolume.isNull();
+  {
+    auto data = readLockVolume(m_extendedItem->output());
+    segVolume = data->itkImage();
+  }
+
+  bool          validInfo = (segVolume != nullptr);
   LabelMapType *labelMap  = nullptr;
 
   if (validInfo)
   {
-    m_labelMap->SetInput(segVolume->itkImage());
+    m_labelMap->SetInput(segVolume);
     m_labelMap->Update();
     m_labelMap->ReleaseDataFlagOn();
     m_labelMap->Modified();
@@ -197,5 +212,25 @@ void MorphologicalInformation::updateInformation() const
     {
       updateInfoCache(MORPHOLOGICAL_FD, m_statistic->GetFeretDiameter());
     }
+  }
+
+  vtkSmartPointer<vtkPolyData> mesh = nullptr;
+
+  {
+    auto data = readLockMesh(m_extendedItem->output());
+    mesh = data->mesh();
+  }
+
+  if(mesh != nullptr)
+  {
+    double area = 0.0;
+
+    for(long long i = 0; i < mesh->GetNumberOfCells(); ++i)
+    {
+      auto cell = mesh->GetCell(i);
+      area += vtkMeshQuality::TriangleArea(cell);
+    }
+
+    updateInfoCache(MORPHOLOGICAL_AREA, area);
   }
 }
