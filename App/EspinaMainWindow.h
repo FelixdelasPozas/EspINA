@@ -92,6 +92,12 @@ namespace ESPINA
      */
     bool closeCurrentAnalysis();
 
+    /** \brief Opens a list of seg files.
+     * \param[in] filenames list of SEG file filenames.
+     *
+     */
+    void openAnalysis(QStringList filenames);
+
   signals:
     void analysisChanged();
     void analysisAboutToBeClosed();

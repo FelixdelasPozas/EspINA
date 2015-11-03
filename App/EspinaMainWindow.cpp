@@ -426,6 +426,46 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::openAnalysis(QStringList filenames)
+{
+  QStringList failedFiles, successFiles;
+
+  for(auto filename: filenames)
+  {
+    QFileInfo fileInfo(filename);
+
+    if(!fileInfo.exists())
+    {
+      failedFiles << filename;
+    }
+    else
+    {
+      successFiles << filename;
+    }
+  }
+
+  if(closeCurrentAnalysis())
+  {
+    if(!successFiles.isEmpty())
+    {
+      m_openFileTool->load(successFiles);
+    }
+
+    if(!failedFiles.isEmpty())
+    {
+      QString message(tr("The following files couldn't be loaded because they do not exist:\n"));
+      for(auto filename: failedFiles)
+      {
+        message += QString("\n") + filename;
+      }
+
+      DefaultDialogs::InformationMessage(message, tr("Error loading files"), this);
+    }
+  }
+
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 {
   Q_ASSERT(analysis);
