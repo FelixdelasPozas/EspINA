@@ -34,6 +34,24 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
+QWidget *DefaultDialogs::defaultParentWidget()
+{
+  auto widgets = QApplication::topLevelWidgets();
+
+  for(auto widget: widgets)
+  {
+    if(widget->inherits("QMainWindow"))
+    {
+      auto mainWin = qobject_cast<QMainWindow *>(widget);
+
+      return mainWin->centralWidget();
+    }
+  }
+
+  return nullptr;
+}
+
+//------------------------------------------------------------------------
 QString DefaultDialogs::DefaultPath()
 {
   return QString();
@@ -192,22 +210,6 @@ QString DefaultDialogs::DefaultTitle()
 }
 
 //------------------------------------------------------------------------
-bool DefaultDialogs::UserConfirmation(const QString& message, const QString& title, QWidget *parent)
-{
-  QMessageBox dialog(parent);
-
-  dialog.setWindowTitle(title);
-  dialog.setText(message);
-  dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-  dialog.setModal(true);
-  dialog.setIcon(QMessageBox::Question);
-
-  DefaultCursor cursor;
-
-  return dialog.exec() == QMessageBox::Ok;
-}
-
-//------------------------------------------------------------------------
 void DefaultDialogs::InformationMessage(const QString& message, const QString& title, QWidget *parent)
 {
   QMessageBox dialog(parent);
@@ -224,19 +226,20 @@ void DefaultDialogs::InformationMessage(const QString& message, const QString& t
 }
 
 //------------------------------------------------------------------------
-QWidget *DefaultDialogs::defaultParentWidget()
+QMessageBox::StandardButton DefaultDialogs::UserQuestion(const QString& message,
+                                                         const QMessageBox::StandardButtons buttons,
+                                                         const QString& title,
+                                                         QWidget* parent)
 {
-  auto widgets = QApplication::topLevelWidgets();
+  QMessageBox dialog(parent);
 
-  for(auto widget: widgets)
-  {
-    if(widget->inherits("QMainWindow"))
-    {
-      auto mainWin = qobject_cast<QMainWindow *>(widget);
+  dialog.setWindowTitle(title);
+  dialog.setText(message);
+  dialog.setStandardButtons(buttons);
+  dialog.setModal(true);
+  dialog.setIcon(QMessageBox::Question);
 
-      return mainWin->centralWidget();
-    }
-  }
+  DefaultCursor cursor;
 
-  return nullptr;
+  return static_cast<QMessageBox::StandardButton>(dialog.exec());
 }

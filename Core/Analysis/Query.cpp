@@ -275,7 +275,9 @@ namespace ESPINA
 
       ChannelSList channelList;
       for (auto sample : samplesSList)
+      {
         channelList << channels(sample);
+      }
 
       // In case no stain relation is found we try to find using content
       if (channelList.isEmpty())
@@ -294,7 +296,9 @@ namespace ESPINA
       for(auto analysisSegmentation: segmentations)
       {
         if(analysisSegmentation.get() == segmentation)
+        {
           return channels(analysisSegmentation);
+        }
       }
 
       return ChannelSList();

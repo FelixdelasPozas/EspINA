@@ -151,6 +151,7 @@ void FileOpenTool::load(const QStringList &files)
 
   if(!failedFiles.empty())
   {
+    auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
     auto message = tr("The following files couldn't be loaded:\n");
 
     for(auto file: failedFiles)
@@ -161,7 +162,7 @@ void FileOpenTool::load(const QStringList &files)
     auto number = (failedFiles.size() > 1) ? QString("them") : QString("it");
     message.append(tr("Do you want to remove %1 from the recent folders list?").arg(number));
 
-    if (DefaultDialogs::UserConfirmation(message))
+    if (DefaultDialogs::UserQuestion(message, buttons) == QMessageBox::Yes)
     {
       for (auto file : failedFiles)
       {

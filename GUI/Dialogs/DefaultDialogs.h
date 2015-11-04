@@ -85,8 +85,8 @@ namespace ESPINA {
        * Returns the path to the directory used to save files on
        *
        */
-      static QDir SaveDirectory(const QString& title,
-                                const QString& path   = QString(),
+      static QDir SaveDirectory(const QString &title,
+                                const QString &path   = QString(),
                                 QWidget       *parent = defaultParentWidget());
 
       /** \brief Dialog for saving a file.
@@ -100,11 +100,11 @@ namespace ESPINA {
        * Returns the file name specified by the user.
        *
        */
-      static QString SaveFile(const QString&          title,
-                              const SupportedFormats& filters    = SupportedFormats().addAllFormat(),
-                              const QString&          path       = QString(),
-                              const QString&          suffix     = QString(),
-                              const QString&          suggestion = QString(),
+      static QString SaveFile(const QString          &title,
+                              const SupportedFormats &filters    = SupportedFormats().addAllFormat(),
+                              const QString          &path       = QString(),
+                              const QString          &suffix     = QString(),
+                              const QString          &suggestion = QString(),
                               QWidget                *parent     = defaultParentWidget());
 
       /** \brief Dialog for saving a group of files.
@@ -118,33 +118,39 @@ namespace ESPINA {
        * Returns the file names specified by the user.
        *
        */
-      static QStringList SaveFiles(const QString&          title,
-                                   const SupportedFormats& filters    = SupportedFormats().addAllFormat(),
-                                   const QString&          path       = QString(),
-                                   const QString&          suffix     = QString(),
-                                   const QString&          suggestion = QString(),
+      static QStringList SaveFiles(const QString          &title,
+                                   const SupportedFormats &filters    = SupportedFormats().addAllFormat(),
+                                   const QString          &path       = QString(),
+                                   const QString          &suffix     = QString(),
+                                   const QString          &suggestion = QString(),
                                    QWidget                *parent     = defaultParentWidget());
 
       static QString DefaultTitle();
 
-      /** \brief Dialog to ask for user ok/cancel confirmation.
-       * \param[in] title title of the dialog.
-       * \param[in] message message to ask for confirmation.
-       * \param[in] parent parent widget.
-       *
-       */
-      static bool UserConfirmation(const QString& message,
-                                   const QString& title   = DefaultDialogs::DefaultTitle(),
-                                   QWidget       *parent  = defaultParentWidget());
-
       /** \brief Dialog to inform the user.
        * \param[in] title title of the dialog.
        * \param[in] message message to show.
+       * \param[in] parent parent widget.
        *
        */
-      static void InformationMessage(const QString& message,
-                                     const QString& title  = DefaultDialogs::DefaultTitle(),
+      static void InformationMessage(const QString &message,
+                                     const QString &title  = DefaultDialogs::DefaultTitle(),
                                      QWidget       *parent = defaultParentWidget());
+
+
+      /** \brief Dialog to ask an answer from the user.
+       * \param[in] title title of the dialog.
+       * \param[in] buttons QMessageBox::StandardButtons flags object with the buttons to show.
+       * \param[in] message message to show.
+       * \param[in] parent parent widget.
+       *
+       * Returns the button chosen by the user.
+       *
+       */
+      static QMessageBox::StandardButton UserQuestion(const QString                     &message,
+                                                      const QMessageBox::StandardButtons buttons = QMessageBox::Yes|QMessageBox::Cancel,
+                                                      const QString                     &title   = DefaultDialogs::DefaultTitle(),
+                                                      QWidget                           *parent  = DefaultDialogs::defaultParentWidget());
     };
   } // namespace GUI
 } // namespace ESPINA

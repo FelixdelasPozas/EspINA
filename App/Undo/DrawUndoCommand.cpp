@@ -102,7 +102,6 @@ void DrawUndoCommand::redo()
     volume->draw(m_image);
 
     output->setData(volume);
-    //output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
   }
 
   Task::submit(m_updateMesh);

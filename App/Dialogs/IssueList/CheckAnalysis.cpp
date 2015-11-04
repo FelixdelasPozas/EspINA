@@ -33,51 +33,78 @@ using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
 
+//------------------------------------------------------------------------
 class NeuroItemIssue
 : public Issue
 {
-public:
-  explicit NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString())
-  : Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
-  {}
+  public:
+    explicit NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString())
+    : Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
+    {}
 };
 
+//------------------------------------------------------------------------
 class SegmentationIssue
 : public NeuroItemIssue
 {
-public:
-  explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString())
-  : NeuroItemIssue(segmentation, severity, description, suggestion)
-  {
-    addSeverityTag(segmentation, severity);
-  }
-
-protected:
-  void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
-  {
-    auto tagExtensions = retrieveOrCreateExtension<SegmentationTags>(segmentation->extensions());
-
-    for (auto tag : tags)
+  public:
+    explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString())
+    : NeuroItemIssue(segmentation, severity, description, suggestion)
     {
-      tagExtensions->addTag(tag);
+      addSeverityTag(segmentation, severity);
     }
-  }
 
-private:
-  void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
-  {
-    if (Severity::CRITICAL == severity)
+  protected:
+    void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
     {
-      addIssueTag(segmentation, {"critical"});
+      auto tagExtensions = retrieveOrCreateExtension<SegmentationTags>(segmentation->extensions());
+
+      for (auto tag : tags)
+      {
+        tagExtensions->addTag(tag);
+      }
     }
-    else if (Severity::WARNING == severity)
+
+  private:
+    void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
     {
-      addIssueTag(segmentation, {"warning"});
+      if (Severity::CRITICAL == severity)
+      {
+        addIssueTag(segmentation,
+        { "critical" });
+      }
+      else
+        if (Severity::WARNING == severity)
+        {
+          addIssueTag(segmentation,
+          { "warning" });
+        }
     }
-  }
 };
 
+//------------------------------------------------------------------------
+class DuplicatedIssue
+: public SegmentationIssue
+{
+  public:
+    explicit DuplicatedIssue(SegmentationAdapterPtr segmentation, SegmentationAdapterPtr duplicated)
+    : SegmentationIssue(duplicated, Severity::WARNING, description(segmentation), suggestion())
+    {
+      addIssueTag(duplicated, { "duplicated" });
+    }
 
+  private:
+    static QString description(const SegmentationAdapterPtr original)
+    {
+      return QObject::tr("Possible duplicated segmentation of %1").arg(original->data(Qt::DisplayRole).toString());
+    }
+
+    static QString suggestion()
+    {
+      return QObject::tr("Delete unnecesary segmentation");
+    }
+
+};
 
 //------------------------------------------------------------------------
 void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
@@ -237,7 +264,10 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
-    if (output->spacing() == NmVector3{0,0,0})
+
+
+    auto spacing = output->spacing();
+    if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
     {
       auto description = tr("Invalid output spacing");
 
@@ -251,7 +281,6 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
-
 }
 
 //------------------------------------------------------------------------
@@ -456,25 +485,6 @@ void CheckDuplicatedSegmentationsTask::run()
   }
 }
 
-class DuplicatedIssue
-: public SegmentationIssue
-{
-public:
-  explicit DuplicatedIssue(SegmentationAdapterPtr segmentation, SegmentationAdapterPtr duplicated)
-  : SegmentationIssue(duplicated, Severity::WARNING, description(segmentation), suggestion())
-  {
-    addIssueTag(duplicated, {"duplicated"});
-  }
-
-private:
-  static QString description(const SegmentationAdapterPtr original)
-  { return QObject::tr("Possible duplicated segmentation of %1").arg(original->data(Qt::DisplayRole).toString()); }
-
-  static QString suggestion()
-  { return QObject::tr("Delete unnecesary segmentation"); }
-
-};
-
 //------------------------------------------------------------------------
 IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdapterPtr original,
                                                                 SegmentationAdapterPtr duplicated) const
@@ -482,3 +492,21 @@ IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdap
   return std::make_shared<DuplicatedIssue>(original, duplicated);
 }
 
+//------------------------------------------------------------------------
+CheckDataTask::CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
+: CheckTask{scheduler, model}
+, m_item(item)
+{
+  setDescription(tr("Checking %1").arg(item->data().toString())); // for debugging, the user will never see this
+}
+
+//------------------------------------------------------------------------
+template<typename T> void CheckDataTask::checkDataBounds(Output::ReadLockData<T> &data) const
+{
+  if (!data->bounds().areValid())
+  {
+    auto description = tr("%1 has invalid bounds.").arg(data->type());
+
+    reportIssue(m_item, Extensions::Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+}

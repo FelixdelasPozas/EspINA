@@ -178,11 +178,12 @@ void CODERefineWidget::refineFilter()
 
   if (output->isEdited())
   {
-    auto msg = tr("Filter contains segmentations that have been manually modified by the user."
+    auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
+    auto message = tr("Filter contains segmentations that have been manually modified by the user."
                   "Updating this filter will result in losing user modifications."
                   "Do you want to proceed?");
 
-    if (!GUI::DefaultDialogs::UserConfirmation(msg, m_title)) return;
+    if (GUI::DefaultDialogs::UserQuestion(message, buttons, m_title) == QMessageBox::Cancel) return;
   }
 
   auto volume  = readLockVolume(output);

@@ -371,9 +371,10 @@ QString SeedGrowSegmentationRefineWidget::dialogTitle() const
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationRefineWidget::discardChangesConfirmed() const
 {
+  auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
   auto message = tr("Filter contains segmentations that have been manually modified by the user."
                     "Updating this filter will result in losing user modifications."
                     "Do you want to proceed?");
 
-  return GUI::DefaultDialogs::UserConfirmation(message, dialogTitle());
+  return (GUI::DefaultDialogs::UserQuestion(message, buttons, dialogTitle()) == QMessageBox::Yes);
 }

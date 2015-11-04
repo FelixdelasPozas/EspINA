@@ -345,9 +345,9 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
   {
-    auto answer = DefaultDialogs::UserConfirmation(tr("ESPINA has pending actions. Do you really want to quit anyway?"),
-                                                   tr("ESPINA"));
-    if(answer == false)
+    auto answer = DefaultDialogs::UserQuestion(tr("ESPINA has pending actions. Do you really want to quit anyway?"), QMessageBox::Yes|QMessageBox::Cancel,
+                                               tr("ESPINA"));
+    if(answer == QMessageBox::Cancel)
     {
       event->ignore();
       return;
@@ -377,14 +377,10 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   if (isModelModified())
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
+    auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
+    auto userResponse = DefaultDialogs::UserQuestion(message, buttons, windowTitle());
 
-    QMessageBox warning;
-    warning.setWindowTitle(windowTitle());
-    warning.setText(message);
-    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-    warning.setIcon(QMessageBox::Question);
-
-    switch(warning.exec())
+    switch(userResponse)
     {
       case QMessageBox::Yes:
         m_saveAsTool->saveAnalysis();
@@ -1152,7 +1148,7 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
   {
     auto msg = tr("ESPINA closed unexpectedly. Do you want to load autosaved analysis?");
 
-    if (DefaultDialogs::UserConfirmation(msg))
+    if (QMessageBox::Yes == DefaultDialogs::UserQuestion(msg))
     {
       m_autoSave.restore();
     }

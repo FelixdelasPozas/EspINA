@@ -123,51 +123,52 @@ namespace ESPINA
       Extensions::IssueList m_issues;
   };
 
-  class CheckDataTask
-  : public CheckTask
+  //------------------------------------------------------------------------
+  class CheckDataTask: public CheckTask
   {
-  public:
-    explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-    : CheckTask{scheduler, model}
-    , m_item(item)
-    {
-      setDescription(tr("Checking %1").arg(item->data().toString())); // for debugging, the user will never see this
-    }
+    public:
+      /** \brief CheckDataTask class constructor.
+       * \param[in] scheduler scheduler smart pointer.
+       * \param[in] item item whose datas will be checked.
+       * \param[in] mode model adapter smart pointer.
+       *
+       */
+      explicit CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
-  protected:
-    template<typename T>
-    void checkDataBounds(Output::ReadLockData<T> &data) const
-    {
-      if (!data->bounds().areValid())
-      {
-        auto description = tr("%1 has invalid bounds.").arg(data->type());
+      /** \brief CheckDataTask class virtual destructor.
+       *
+       */
+      virtual ~CheckDataTask()
+      {};
 
-        reportIssue(m_item, Extensions::Issue::Severity::CRITICAL, description, deleteHint(m_item));
-      }
-    }
+    protected:
+      /** \brief Checks if a data object has valid bounds.
+       *
+       */
+      template<typename T> void checkDataBounds(Output::ReadLockData<T> &data) const;
 
-    /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
-     *
-     */
-    virtual void checkVolumeIsEmpty() const = 0;
+      /** \brief Checks if a view item is empty, emits issue(Issue) if it is.
+       *
+       */
+      virtual void checkVolumeIsEmpty() const = 0;
 
-    /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
-     *
-     */
-    virtual void checkMeshIsEmpty() const = 0;
+      /** \brief Checks if a segmentation mesh is empty, emits issue(Issue) if it is.
+       *
+       */
+      virtual void checkMeshIsEmpty() const = 0;
 
-    /** \brief Checks if a segmentation skeleton is empty, emits issue(Issue) if it is.
-     *
-     */
-    virtual void checkSkeletonIsEmpty() const = 0;
+      /** \brief Checks if a segmentation skeleton is empty, emits issue(Issue) if it is.
+       *
+       */
+      virtual void checkSkeletonIsEmpty() const = 0;
 
-    /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
-     * Returns true if no problem are found, and false otherwise.
-     *
-     */
-    void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
+      /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
+       * Returns true if no problem are found, and false otherwise.
+       *
+       */
+      void checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const;
 
-    NeuroItemAdapterSPtr m_item;
+      NeuroItemAdapterSPtr m_item;
   };
 
   //------------------------------------------------------------------------
@@ -199,14 +200,23 @@ namespace ESPINA
 
       virtual void checkSkeletonIsEmpty() const override final;
 
+      /** \brief Checks the segmentation's relationships.
+       *
+       */
       void checkRelations() const;
 
+      /** \brief Checks if the segmentation is associated to a channel.
+       *
+       */
       void checkHasChannel() const;
 
+      /** \brief Checks that the segmentation is inside the channel's bounds.
+       *
+       */
       void checkIsInsideChannel(ChannelAdapterPtr channel) const;
 
     private:
-      SegmentationAdapterSPtr m_segmentation;
+      SegmentationAdapterSPtr m_segmentation; /** segmentation to check. */
   };
 
   //------------------------------------------------------------------------
@@ -219,6 +229,7 @@ namespace ESPINA
        * \param[in] scheduler scheduler smart pointer.
        * \param[in] item neuro item adapter smart pointer that will be tested.
        * \param[in] model model adapter smart pointer containing the item.
+       *
        */
       explicit CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
@@ -239,10 +250,13 @@ namespace ESPINA
       virtual void checkSkeletonIsEmpty() const override final
       {};
 
+      /** \brief Checks the channel's relations.
+       *
+       */
       void checkRelations() const;
 
     private:
-      ChannelAdapterSPtr m_channel;
+      ChannelAdapterSPtr m_channel; /** channel to check. */
   };
 
   //------------------------------------------------------------------------
@@ -255,6 +269,7 @@ namespace ESPINA
        * \param[in] scheduler to launch the task
        * \param[in] item that will be tested.
        * \param[in] model containing the item.
+       *
        */
       explicit CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model);
 
@@ -277,21 +292,30 @@ namespace ESPINA
       {};
 
     private:
-      SampleAdapterSPtr m_sample;
+      SampleAdapterSPtr m_sample; /** sample to check. */
   };
 
   //------------------------------------------------------------------------
   class CheckDuplicatedSegmentationsTask
   : public CheckTask
   {
-  public:
-    explicit CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model);
+    public:
+      /** \brief CheckDuplicatedSegmentationsTask class constructor.
+       *
+       *
+       */
+      explicit CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model);
 
-  private:
-    virtual void run() override final;
+      /** \brief CheckDuplicatedSegmentationsTask class virtual destructor.
+       *
+       */
+      ~CheckDuplicatedSegmentationsTask()
+      {}
 
-    Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original,
-                                              SegmentationAdapterPtr duplicated) const;
+    private:
+      virtual void run() override final;
+
+      Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated) const;
   };
 
 } // namespace ESPINA

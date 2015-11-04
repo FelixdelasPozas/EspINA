@@ -128,8 +128,7 @@ void Analysis::add(ChannelSList channels)
 //------------------------------------------------------------------------
 void Analysis::add(SegmentationSPtr segmentation)
 {
-  if (m_segmentations.contains(segmentation))
-    throw (Existing_Item_Exception());
+  if (m_segmentations.contains(segmentation)) throw (Existing_Item_Exception());
 
   m_segmentations << segmentation;
 
@@ -180,8 +179,7 @@ void Analysis::remove(SampleSList samples)
 //------------------------------------------------------------------------
 void Analysis::remove(ChannelSPtr channel)
 {
-  if (!m_channels.contains(channel))
-    throw (Item_Not_Found_Exception());
+  if (!m_channels.contains(channel)) throw (Item_Not_Found_Exception());
 
   channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
@@ -204,8 +202,7 @@ void Analysis::remove(ChannelSList channels)
 //------------------------------------------------------------------------
 void Analysis::remove(SegmentationSPtr segmentation)
 {
-  if (!m_segmentations.contains(segmentation))
-    throw (Item_Not_Found_Exception());
+  if (!m_segmentations.contains(segmentation)) throw (Item_Not_Found_Exception());
 
   segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
@@ -240,14 +237,9 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
                            PersistentSPtr    succesor,
                            const RelationName& relation)
 {
-  if (!m_relations->contains(ancestor))
-    throw (Item_Not_Found_Exception());
-
-  if (!m_relations->contains(succesor))
-    throw (Item_Not_Found_Exception());
-
-  if (findRelation(ancestor, succesor, relation))
-    throw (Existing_Relation_Exception());
+  if (!m_relations->contains(ancestor)) throw (Item_Not_Found_Exception());
+  if (!m_relations->contains(succesor)) throw (Item_Not_Found_Exception());
+  if (findRelation(ancestor, succesor, relation)) throw (Existing_Relation_Exception());
 
   m_relations->addRelation(ancestor, succesor, relation);
 }
@@ -257,8 +249,7 @@ void Analysis::deleteRelation(PersistentSPtr    ancestor,
                               PersistentSPtr    succesor,
                               const RelationName& relation)
 {
-  if (!findRelation(ancestor, succesor, relation))
-    throw (Relation_Not_Found_Exception());
+  if (!findRelation(ancestor, succesor, relation)) throw (Relation_Not_Found_Exception());
 
   m_relations->removeRelation(ancestor, succesor, relation);
 }
