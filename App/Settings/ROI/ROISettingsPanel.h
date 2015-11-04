@@ -63,7 +63,7 @@ namespace ESPINA
     { return tr("Orthogonal Region Of Interest"); }
 
     virtual const QIcon icon() override
-    { return QIcon(":/espina/roi.svg"); }
+    { return QIcon(":/espina/roi_orthogonal_roi.svg"); }
 
     virtual void acceptChanges() override;
 

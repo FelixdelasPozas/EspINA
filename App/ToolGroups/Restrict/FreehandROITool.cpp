@@ -32,7 +32,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 FreehandROITool::FreehandROITool(Support::Context  &context,
                                  RestrictToolGroup *toolGroup)
-: ProgressTool("FreehandROI", ":espina/roi_freehand_roi.svg", tr("Freehand ROI"), context)
+: ProgressTool("FreehandROI", ":espina/roi_freehand_roi.svg", tr("Freehand 2D/3D ROI"), context)
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context.viewState(), context.model()}

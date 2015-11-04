@@ -75,7 +75,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
-: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal ROI"), context)
+: ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal 3D ROI"), context)
 , m_roi{nullptr}
 , m_roiRepresentation{new OrthogonalRepresentation()}
 , m_resizeHandler    {new EventHandler()}

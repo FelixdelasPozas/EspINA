@@ -33,7 +33,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 DeleteROITool::DeleteROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
-: ProgressTool("DeleteROI", ":/espina/roi_delete_roi.svg", tr("Delete ROI"), context)
+: ProgressTool("DeleteROI", ":/espina/roi_delete_roi.svg", tr("Delete Current ROI"), context)
 , m_context  (context)
 , m_toolGroup{toolGroup}
 {
