@@ -52,6 +52,7 @@ namespace ESPINA
       FilterSPtr                  Task;
       ImageLogicFilter::Operation Operation;
       SegmentationAdapterList     Segmentations;
+      bool                        Remove;
     };
 
     ImageLogicFilter::Operation m_operation;

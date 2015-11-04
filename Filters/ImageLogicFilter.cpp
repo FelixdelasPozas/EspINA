@@ -150,17 +150,19 @@ void ImageLogicFilter::addition()
 void ImageLogicFilter::subtraction()
 {
   auto firstVolume = readLockVolume(m_inputs[0]->output());
-  auto bounds      = firstVolume->bounds();
-  auto spacing     = bounds.spacing();
+  auto firstBounds = firstVolume->bounds();
+  auto spacing     = firstBounds.spacing();
 
-  auto outputVolume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+  auto outputVolume = std::make_shared<SparseVolume<itkVolumeType>>(firstBounds, spacing);
   outputVolume->draw(firstVolume->itkImage());
 
   for(auto i = 1; i < m_inputs.size(); ++i)
   {
-    if(intersect(bounds, m_inputs[i]->output()->bounds(), spacing))
+    auto secondBounds = readLockVolume(m_inputs[i]->output())->bounds();
+
+    if(intersect(firstBounds, secondBounds, spacing))
     {
-      auto intersectionBounds = intersection(m_inputs[0]->output()->bounds(), m_inputs[i]->output()->bounds(), spacing);
+      auto intersectionBounds = intersection(firstBounds, secondBounds, spacing);
       auto inputImage         = readLockVolume(m_inputs[i]->output())->itkImage(intersectionBounds);
       auto region             = inputImage->GetLargestPossibleRegion();
       auto inputBounds        = equivalentBounds<itkVolumeType>(inputImage, region);
@@ -203,12 +205,20 @@ void ImageLogicFilter::subtraction()
 void ImageLogicFilter::restoreState(const State& state)
 {
   if(state.compare("Operation=ADDITION"))
+  {
     m_operation = Operation::ADDITION;
+  }
   else
+  {
     if(state.compare("Operation=SUBTRACTION"))
+    {
       m_operation = Operation::SUBTRACTION;
+    }
     else
+    {
       Q_ASSERT(false);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -216,17 +226,20 @@ State ImageLogicFilter::state() const
 {
   State state;
 
-  if(m_operation == Operation::ADDITION)
+  if (m_operation == Operation::ADDITION)
   {
     state = State("Operation=ADDITION");
   }
-  else if(m_operation == Operation::SUBTRACTION)
-  {
-      state = State("Operation=SUBTRACTION");
-  }
   else
   {
+    if (m_operation == Operation::SUBTRACTION)
+    {
+      state = State("Operation=SUBTRACTION");
+    }
+    else
+    {
       Q_ASSERT(false);
+    }
   }
 
   return state;

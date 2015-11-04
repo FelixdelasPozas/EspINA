@@ -81,23 +81,27 @@ void ImageLogicTool::applyFilter()
 
   auto type        = ADDITION_FILTER;
   auto description = tr("Segmentation addition");
+  auto remove      = true;
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
     type        = SUBSTRACTION_FILTER;
     description = tr("Segmentation substraction");
+    remove      = (QMessageBox::Yes == GUI::DefaultDialogs::UserQuestion(tr("Do you want to remove the subtracting segmentations?"),
+                                                                         QMessageBox::Yes|QMessageBox::No,
+                                                                         tr("Logical Subtraction")));
   }
 
   auto filter = getFactory()->createFilter<ImageLogicFilter>(inputs, type);
   filter->setOperation(m_operation);
   filter->setDescription(description);
 
-
   TaskContext taskContext;
 
   taskContext.Task          = filter;
   taskContext.Operation     = m_operation;
   taskContext.Segmentations = segmentations;
+  taskContext.Remove        = remove;
 
   m_executingTasks.insert(filter.get(), taskContext);
 
@@ -124,6 +128,7 @@ void ImageLogicTool::onTaskFinished()
     undoStack->beginMacro(filter->description());
 
     auto segmentation = getFactory()->createSegmentation(taskContext.Task, 0);
+
     segmentation->setCategory(taskContext.Segmentations.first()->category());
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
@@ -132,14 +137,18 @@ void ImageLogicTool::onTaskFinished()
 
     for(auto segmentation: taskContext.Segmentations)
     {
-      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
       segmentation->setBeingModified(false);
+
+      if(!taskContext.Remove && (segmentation != taskContext.Segmentations.first()))
+      {
+        continue;
+      }
+
+      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
     }
     getSelection()->modified();
 
     undoStack->endMacro();
-
-    //REVIEW m_viewManager->updateViews();
   }
 
   m_executingTasks.remove(filter);
