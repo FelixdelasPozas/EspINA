@@ -51,6 +51,8 @@ namespace ESPINA
 
     virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
+    virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
+
   private:
     virtual bool hasRepresentations() const override;
 

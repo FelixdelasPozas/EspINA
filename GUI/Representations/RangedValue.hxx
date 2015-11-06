@@ -174,8 +174,7 @@ namespace ESPINA
   template<typename R>
   void RangedValue<R>::reusePreviousValue(TimeStamp t)
   {
-    Q_ASSERT(!m_times.isEmpty() && m_lastTime <= t);
-    m_lastTime = t;
+    if(!m_times.empty() && m_lastTime <= t) m_lastTime = t;
   }
 
   //-----------------------------------------------------------------------------

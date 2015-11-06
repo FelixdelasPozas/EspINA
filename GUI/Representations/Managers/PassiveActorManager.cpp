@@ -76,6 +76,14 @@ bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //----------------------------------------------------------------------------
+bool PassiveActorManager::acceptInvalidationFrame(const FrameCSPtr frame) const
+{
+  auto type = m_pool->type();
+
+  return invalidatesRepresentations(frame, type);
+}
+
+//----------------------------------------------------------------------------
 void PassiveActorManager::onShow(const FrameCSPtr frame)
 {
   connectPools();

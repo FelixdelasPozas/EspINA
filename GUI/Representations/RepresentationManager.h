@@ -200,6 +200,8 @@ namespace ESPINA
 
         virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
 
+        virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const = 0;
+
         virtual bool acceptFrame(const FrameCSPtr frame);
 
         virtual bool needsRepresentationUpdate(const FrameCSPtr frame);
@@ -270,6 +272,11 @@ namespace ESPINA
 
         virtual void setRepresentationDepth(Nm depth) = 0;
       };
+
+      /** \brief Returns true if the frame invalidates the representations of the given item type.
+       *
+       */
+      bool invalidatesRepresentations(GUI::Representations::FrameCSPtr frame, ItemAdapter::Type type);
 
       Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::ManagerFlags)
 

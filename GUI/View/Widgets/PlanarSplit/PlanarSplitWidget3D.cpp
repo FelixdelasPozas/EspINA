@@ -72,6 +72,12 @@ bool PlanarSplitWidget3D::acceptSceneResolutionChange(const NmVector3& resolutio
 }
 
 //-----------------------------------------------------------------------------
+bool PlanarSplitWidget3D::acceptInvalidationFrame(const Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 void PlanarSplitWidget3D::initializeImplementation(RenderView* view)
 {
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);

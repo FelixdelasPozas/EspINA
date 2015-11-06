@@ -53,6 +53,12 @@ bool Widget3D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 }
 
 //----------------------------------------------------------------------------
+bool Widget3D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void Widget3D::initializeImplementation(RenderView *view)
 {
   updateSelectionMeasure();

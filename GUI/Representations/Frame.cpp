@@ -53,9 +53,28 @@ bool GUI::Representations::requiresReset(const FrameCSPtr frame)
 }
 
 //------------------------------------------------------------------------
+bool GUI::Representations::invalidatesSegmentations(const FrameCSPtr frame)
+{
+  return frame->flags.testFlag(Frame::InvalidateSegmentation);
+}
+
+//------------------------------------------------------------------------
+bool GUI::Representations::invalidatesChannels(const FrameCSPtr frame)
+{
+  return frame->flags.testFlag(Frame::InvalidateChannel);
+}
+
+//------------------------------------------------------------------------
 QDebug GUI::Representations::operator<<(QDebug d, const FrameSPtr frame)
 {
-  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->flags.testFlag(Frame::Reset) << "F:" << frame->flags.testFlag(Frame::Focus) << "]";
+  d << "Frame" << frame->time
+    << "["
+    << frame->crosshair
+    << "R:" << frame->flags.testFlag(Frame::Reset)
+    << "F:" << frame->flags.testFlag(Frame::Focus)
+    << "IS:" << frame->flags.testFlag(Frame::InvalidateSegmentation)
+    << "IC:" << frame->flags.testFlag(Frame::InvalidateChannel)
+    << "]";
 
   return d;
 }
@@ -63,7 +82,14 @@ QDebug GUI::Representations::operator<<(QDebug d, const FrameSPtr frame)
 //------------------------------------------------------------------------
 QDebug GUI::Representations::operator<<(QDebug d, const FrameCSPtr frame)
 {
-  d << "Frame" << frame->time << "[" << frame->crosshair << "R:" << frame->flags.testFlag(Frame::Reset) << "F:" << frame->flags.testFlag(Frame::Focus) << "]";
+  d << "Frame" << frame->time
+    << "["
+    << frame->crosshair
+    << "R:" << frame->flags.testFlag(Frame::Reset)
+    << "F:" << frame->flags.testFlag(Frame::Focus)
+    << "IS:" << frame->flags.testFlag(Frame::InvalidateSegmentation)
+    << "IC:" << frame->flags.testFlag(Frame::InvalidateChannel)
+    << "]";
 
   return d;
 }

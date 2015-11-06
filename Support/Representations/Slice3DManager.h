@@ -41,11 +41,13 @@ namespace ESPINA {
     virtual RepresentationPoolSList pools() const override;
 
   protected:
-    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
-    virtual bool acceptSceneResolutionChange( const NmVector3 &resolution) const override;
+    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
     virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
+
+    virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const override;
 
   private:
     virtual bool hasRepresentations() const override;

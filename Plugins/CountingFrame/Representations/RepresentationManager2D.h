@@ -54,6 +54,9 @@ namespace ESPINA
       virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
       { return false; }
 
+      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+      { return false; }
+
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
        *

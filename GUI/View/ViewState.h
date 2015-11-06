@@ -21,14 +21,15 @@
 #define ESPINA_VIEW_STATE_H
 
 // ESPINA
+#include "CoordinateSystem.h"
+#include "EventHandler.h"
 #include <Core/Utils/Bounds.h>
 #include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Frame.h>
 #include <GUI/Types.h>
 #include <GUI/Utils/Timer.h>
 #include <GUI/View/Selection.h>
-#include "CoordinateSystem.h"
-#include "EventHandler.h"
 #include <GUI/Widgets/SliceSelector.h>
 
 // Qt
@@ -45,11 +46,7 @@ namespace ESPINA
       {
         Q_OBJECT
       public:
-        enum class Invalidate
-        {
-          SELECTED_ITEMS,
-          DEPENDENT_ITEMS
-        };
+        enum class Invalidate: char { SELECTED_ITEMS, DEPENDENT_ITEMS };
 
       public:
         /** \brief Class ViewState class constructor.
@@ -121,21 +118,21 @@ namespace ESPINA
 
         CoordinateSystemSPtr coordinateSystem() const;
 
-        /** \brief Invalidates item representations
+        /** \brief Invalidates item representations and returns the invalidation frame.
          * \param[in] items to invalide their representations
          * \param[in] scope of the invalidation.
          *
          */
-        void invalidateRepresentations(const ViewItemAdapterList &items,
-                                       const Invalidate scope = Invalidate::SELECTED_ITEMS);
+        GUI::Representations::FrameCSPtr invalidateRepresentations(const ViewItemAdapterList &items,
+                                                                   const Invalidate scope = Invalidate::SELECTED_ITEMS);
 
-        /** \brief Update item representation colors
+        /** \brief Update item representation colors and returns the invalidation frame.
          * \param[in] items to invalide their representation colors
          * \param[in] scope of the invalidation.
          *
          */
-        void invalidateRepresentationColors(const ViewItemAdapterList &items,
-                                            const Invalidate scope = Invalidate::SELECTED_ITEMS);
+        GUI::Representations::FrameCSPtr invalidateRepresentationColors(const ViewItemAdapterList &items,
+                                                                        const Invalidate scope = Invalidate::SELECTED_ITEMS);
 
         /** \brief Resets the cameras of all the views.
          *
@@ -182,7 +179,7 @@ namespace ESPINA
          */
         void focusViewOn(const NmVector3 &point);
 
-        /** \brief Invalidates item representations
+        /** \brief Invalidates item representations.
          *
          */
         void invalidateRepresentations(ViewItemAdapterPtr item);
@@ -216,14 +213,17 @@ namespace ESPINA
       private:
         /** \brief Creates a frame with the given parameters and returns it.
          * \param[in] point frames crosshair point.
-         * \param[in] focus true to focus the views on the frame's point and false otherwise.
-         * \param[in] reset true to reset the view's camera and false otherwise.
-         * \param[in] keyframe true to set the frame as keyframe and false otherwise.
+         * \param[in] options frame options
          *
          * NOTE: a frame with focus or reset to true is always a keyframe.
          *
          */
-        Representations::FrameCSPtr createFrame(const NmVector3 &point, bool focus = false, bool reset = false, bool keyframe = false);
+        Representations::FrameCSPtr createFrame(const NmVector3 &point, const GUI::Representations::Frame::Options options = GUI::Representations::Frame::Options());
+
+        /** \brief Creates an invalidation frame for the given items and returns it.
+         *
+         */
+        Representations::FrameCSPtr createInvalidationFrame(ViewItemAdapterList items);
 
         NmVector3 crosshairPoint(const NmVector3 &point) const;
 

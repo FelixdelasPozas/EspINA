@@ -409,12 +409,10 @@ void SeedGrowSegmentationTool::createSegmentation()
     auto sgsFilter = m_executingFilters[filter];
     if(sgsFilter->isTouchingROI())
     {
-      QMessageBox box;
-      box.setWindowTitle(tr("Grey Level Segmentation"));
-      box.setText(tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString()));
-      box.setStandardButtons(QMessageBox::Ok);
-      box.setIcon(QMessageBox::Information);
-      box.exec();
+      auto message = tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString());
+      auto title   = tr("Grey Level Segmentation");
+
+      GUI::DefaultDialogs::InformationMessage(message, title);
     }
   }
 

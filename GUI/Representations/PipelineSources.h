@@ -58,8 +58,6 @@ namespace ESPINA
 
     void remove(ViewItemAdapterList sources);
 
-    GUI::Representations::FrameCSPtr createFrame() const;
-
   protected slots:
     void onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 

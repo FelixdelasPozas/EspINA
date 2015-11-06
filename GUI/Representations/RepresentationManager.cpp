@@ -253,8 +253,8 @@ QString RepresentationManager::debugName() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
-  qDebug() << debugName() << "received frame" << frame->time;
-  if (!isValid(frame)) return;
+  if (!isValid(frame) || frame->time <= m_lastFrameChanged) return;
+  qDebug() << debugName() << "received frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged));
 
   if (isActive())
   {
@@ -269,11 +269,23 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
     }
     else
     {
-      m_lazyFrames[m_lastFrameChanged] << frame->time;
-
-      if(hasRepresentations() && (requiresReset(frame) || requiresFocus(frame)))
+      if(acceptInvalidationFrame(frame))
       {
-        waitForDisplay(frame);
+        if(hasRepresentations())
+        {
+          waitForDisplay(frame);
+        }
+      }
+      else
+      {
+        if(!isIdle())
+        {
+          m_lazyFrames[m_lastFrameChanged] << frame->time;
+        }
+        else
+        {
+          m_frames.reusePreviousValue(frame->time);
+        }
       }
     }
   }
@@ -281,9 +293,10 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
   {
     if (!isIdle())
     {
-      m_frames.reusePreviousValue(frame->time);
+      m_lazyFrames[m_lastFrameChanged] << frame->time;
     }
   }
+  qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged));
 }
 
 
@@ -303,9 +316,9 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptFrame(const FrameCSPtr frame)
 {
-  return acceptCrosshairChange(frame->crosshair)
-      || acceptSceneResolutionChange(frame->resolution)
-      || acceptSceneBoundsChange(frame->bounds);
+  return acceptCrosshairChange(frame->crosshair)        ||
+         acceptSceneResolutionChange(frame->resolution) ||
+         acceptSceneBoundsChange(frame->bounds);
 }
 
 //-----------------------------------------------------------------------------
@@ -339,6 +352,7 @@ void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameC
     {
       for(auto time: it.value())
       {
+        qDebug() << debugName() << "adding lazy frame:" << time;
         m_frames.reusePreviousValue(time);
       }
 
@@ -404,7 +418,6 @@ void RepresentationManager::updateRepresentations(const GUI::Representations::Fr
   if (hasRepresentations())
   {
     waitForDisplay(frame);
-
   }
 
   updateFrameRepresentations(frame);
@@ -415,4 +428,22 @@ RepresentationPoolSList RepresentationManager::pools() const
 {
   // NOTE: default value returned, implement if needed in the subclass.
   return RepresentationPoolSList();
+}
+
+//-----------------------------------------------------------------------------
+bool GUI::Representations::invalidatesRepresentations(GUI::Representations::FrameCSPtr frame, ItemAdapter::Type type)
+{
+  if(ItemAdapter::Type::SEGMENTATION == type)
+  {
+    return invalidatesSegmentations(frame);
+  }
+  else
+  {
+    if(ItemAdapter::Type::CHANNEL == type)
+    {
+      return invalidatesChannels(frame);
+    }
+  }
+
+  return false;
 }

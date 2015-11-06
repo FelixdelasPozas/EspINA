@@ -117,6 +117,12 @@ bool Widget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 }
 
 //----------------------------------------------------------------------------
+bool Widget2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void Widget2D::initializeImplementation(RenderView *view)
 {
   m_camera = view->mainRenderer()->GetActiveCamera();

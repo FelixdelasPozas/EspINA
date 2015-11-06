@@ -382,6 +382,12 @@ bool RepresentationPool::removeSources(ViewItemAdapterList sources)
 }
 
 //-----------------------------------------------------------------------------
+ItemAdapter::Type RepresentationPool::type() const
+{
+  return m_type;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::processPendingSources()
 {
   for (auto source : m_pendingSources)

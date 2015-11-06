@@ -228,6 +228,12 @@ bool MeasureWidget::acceptSceneResolutionChange(const NmVector3 &resolution) con
 }
 
 //----------------------------------------------------------------------------
+bool MeasureWidget::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void MeasureWidget::initializeImplementation(RenderView *view)
 {
   m_command->setDistanceWidget(m_widget);

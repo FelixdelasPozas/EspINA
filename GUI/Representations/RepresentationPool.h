@@ -134,6 +134,11 @@ namespace ESPINA
      */
     void invalidateRepresentations(ViewItemAdapterList items, GUI::Representations::FrameCSPtr frame);
 
+    /** \brief Returns the type of items of the pool.
+     *
+     */
+    ItemAdapter::Type type() const;
+
   signals:
     /** \brief Some managers may be interested in changes in the actors of the pool
      *

@@ -101,6 +101,12 @@ bool ZoomWidget3D::acceptSceneResolutionChange(const NmVector3& resolution) cons
 }
 
 //----------------------------------------------------------------------------
+bool ZoomWidget3D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void ZoomWidget3D::initializeImplementation(RenderView* view)
 {
   m_view = view;

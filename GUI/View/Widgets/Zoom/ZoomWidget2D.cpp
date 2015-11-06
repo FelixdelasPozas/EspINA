@@ -107,6 +107,12 @@ bool ZoomWidget2D::acceptSceneResolutionChange(const NmVector3& resolution) cons
 }
 
 //----------------------------------------------------------------------------
+bool ZoomWidget2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void ZoomWidget2D::setCrosshair(const NmVector3& crosshair)
 {
   if(m_view && m_plane != Plane::UNDEFINED)

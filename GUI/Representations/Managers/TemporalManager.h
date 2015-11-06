@@ -64,9 +64,11 @@ namespace ESPINA
 
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
-          virtual void display(const FrameCSPtr &frame) {}
-
           virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
+
+          virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const = 0;
+
+          virtual void display(const FrameCSPtr &frame) {}
         };
 
         using TemporalRepresentationSPtr = std::shared_ptr<TemporalRepresentation>;
@@ -138,6 +140,8 @@ namespace ESPINA
           virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
           virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
+
+          virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const override;
 
         private:
           virtual bool hasRepresentations() const override;

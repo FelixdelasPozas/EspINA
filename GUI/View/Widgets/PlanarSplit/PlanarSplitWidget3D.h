@@ -71,6 +71,8 @@ namespace ESPINA
 
             virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
+            virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
+
             virtual void initializeImplementation(RenderView *view) override;
 
             virtual void uninitializeImplementation() override;

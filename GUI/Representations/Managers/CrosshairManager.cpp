@@ -91,9 +91,6 @@ bool CrosshairManager::hasRepresentations() const
 //-----------------------------------------------------------------------------
 void CrosshairManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-//   updateCrosshairs(frame);
-//
-//   emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -121,6 +118,12 @@ bool CrosshairManager::acceptSceneResolutionChange(const NmVector3 &resolution) 
 bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
   return true;
+}
+
+//-----------------------------------------------------------------------------
+bool CrosshairManager::acceptInvalidationFrame(const FrameCSPtr frame) const
+{
+  return false;
 }
 
 //-----------------------------------------------------------------------------

@@ -46,7 +46,7 @@ namespace ESPINA
 
           enum Option
           {
-            None = 0x0, Focus = 0x1, Reset = 0x2
+            None = 0x0, Focus = 0x1, Reset = 0x2, InvalidateSegmentation = 0x4, InvalidateChannel = 0x8
           };
 
           Q_DECLARE_FLAGS(Options, Option)
@@ -82,6 +82,16 @@ namespace ESPINA
        *
        */
       bool requiresFocus(const FrameCSPtr frame);
+
+      /** \brief Returns true if the frame invalidates segmentation representations.
+       *
+       */
+      bool invalidatesSegmentations(const FrameCSPtr frame);
+
+      /** \brief Returns true if the frame invalidates channels representations.
+       *
+       */
+      bool invalidatesChannels(const FrameCSPtr frame);
     }
   }
 }

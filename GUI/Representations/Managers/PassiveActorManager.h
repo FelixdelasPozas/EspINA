@@ -63,6 +63,8 @@ namespace ESPINA
 
           virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
+          virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const override;
+
           virtual void onShow(const FrameCSPtr frame) override;
 
           virtual void onHide(const FrameCSPtr frame) override;

@@ -132,6 +132,12 @@ bool ContourWidget2D::acceptSceneResolutionChange(const NmVector3& resolution) c
 }
 
 //----------------------------------------------------------------------------
+bool ContourWidget2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void ContourWidget2D::initializeImplementation(RenderView* view)
 {
 }

@@ -72,7 +72,7 @@ SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExte
     throw Extension_Not_Provided_Exception();
   }
 
-  return SegmentationExtensionSPtr{new StereologicalInclusion(cache)};
+  return std::make_shared<StereologicalInclusion>(cache);
 }
 
 //-----------------------------------------------------------------------------

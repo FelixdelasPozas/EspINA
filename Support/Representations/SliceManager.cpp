@@ -69,7 +69,7 @@ void SliceManager::setRepresentationDepth(Nm depth)
 //----------------------------------------------------------------------------
 bool SliceManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return  normalCoordinate(currentCrosshair()) != normalCoordinate(crosshair);
+  return normalCoordinate(currentCrosshair()) != normalCoordinate(crosshair);
 }
 
 //----------------------------------------------------------------------------
@@ -84,6 +84,13 @@ bool SliceManager::acceptSceneBoundsChange(const Bounds &bounds) const
   return false;
 }
 
+//----------------------------------------------------------------------------
+bool SliceManager::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  auto type = planePool()->type();
+
+  return invalidatesRepresentations(frame, type);
+}
 
 //----------------------------------------------------------------------------
 bool SliceManager::hasRepresentations() const

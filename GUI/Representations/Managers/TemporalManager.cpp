@@ -112,6 +112,13 @@ bool TemporalManager::acceptSceneResolutionChange(const NmVector3 &resolution) c
 }
 
 //------------------------------------------------------------------------
+bool TemporalManager::acceptInvalidationFrame(GUI::Representations::FrameCSPtr frame) const
+{
+  Q_ASSERT(m_representation);
+  return m_representation->acceptInvalidationFrame(frame);
+}
+
+//------------------------------------------------------------------------
 bool TemporalManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
   return false;
@@ -156,8 +163,6 @@ void TemporalManager::onShow(const FrameCSPtr frame)
 //------------------------------------------------------------------------
 void TemporalManager::onHide(const FrameCSPtr frame)
 {
-  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -171,6 +176,9 @@ void TemporalManager::hideRepresentations(const FrameCSPtr frame)
 {
   m_representation->hide();
   m_representation->uninitialize();
+
+  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 }
 
 //------------------------------------------------------------------------

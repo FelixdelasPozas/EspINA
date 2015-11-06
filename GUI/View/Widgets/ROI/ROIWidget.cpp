@@ -80,6 +80,12 @@ bool ROIWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
 }
 
 //-----------------------------------------------------------------------------
+bool ROIWidget::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 void ROIWidget::initialize(RenderView *view)
 {
   m_contour = vtkSmartPointer<vtkVoxelContour2D>::New();

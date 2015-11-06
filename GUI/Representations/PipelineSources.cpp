@@ -86,7 +86,7 @@ void PipelineSources::insert(ViewItemAdapterList sources)
 
   if (!stacks.isEmpty() || !segmentations.isEmpty())
   {
-    auto frame = createFrame();
+    auto frame = m_viewState.invalidateRepresentations(sources);
 
     if (!stacks.isEmpty())
     {
@@ -136,7 +136,7 @@ void PipelineSources::remove(ViewItemAdapterList sources)
 
   if (!stacks.isEmpty() || !segmentations.isEmpty())
   {
-    auto frame = createFrame();
+    auto frame = m_viewState.invalidateRepresentations(sources);
 
     if (!stacks.isEmpty())
     {
@@ -148,12 +148,6 @@ void PipelineSources::remove(ViewItemAdapterList sources)
       emit segmentationsRemoved(segmentations, frame);
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-GUI::Representations::FrameCSPtr PipelineSources::createFrame() const
-{
-  return m_viewState.createFrame();
 }
 
 //-----------------------------------------------------------------------------

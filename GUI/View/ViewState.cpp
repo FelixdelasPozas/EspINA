@@ -19,8 +19,9 @@
 
 // ESPINA
 #include "ViewState.h"
-#include <GUI/Representations/Frame.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <GUI/Model/Utils/ModelUtils.h>
+#include <GUI/Representations/Frame.h>
 
 // VTK
 #include <vtkMath.h>
@@ -119,23 +120,35 @@ void ViewState::invalidateRepresentations(ViewItemAdapterPtr item)
 }
 
 //----------------------------------------------------------------------------
-void ViewState::invalidateRepresentations(const ViewItemAdapterList& items,
-                                          const Invalidate scope)
+FrameCSPtr ViewState::invalidateRepresentations(const ViewItemAdapterList& items,
+                                                const Invalidate scope)
 {
-  emit representationsInvalidated(scopedItems(items), createFrame());
+  auto frame = createInvalidationFrame(items);
+
+  emitFrameChanged(frame);
+
+  emit representationsInvalidated(scopedItems(items), frame);
+
+  return frame;
 }
 
 //----------------------------------------------------------------------------
-void ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
-                                               const Invalidate scope)
+FrameCSPtr ViewState::invalidateRepresentationColors(const ViewItemAdapterList& items,
+                                                     const Invalidate scope)
 {
-  emit representationColorsInvalidated(scopedItems(items), createFrame());
+  auto frame = createInvalidationFrame(items);
+
+  emitFrameChanged(frame);
+
+  emit representationColorsInvalidated(scopedItems(items), frame);
+
+  return frame;
 }
 
 //----------------------------------------------------------------------------
 void ViewState::resetCamera()
 {
-  auto frame = createFrame(m_crosshair, false, true, true);
+  auto frame = createFrame(m_crosshair, Frame::Reset);
 
   emitFrameChanged(frame);
 }
@@ -154,7 +167,7 @@ void ViewState::setScene(const NmVector3 &crosshair, const NmVector3 &resolution
   m_coordinateSystem->setBounds(bounds);
   m_coordinateSystem->setResolution(resolution);
 
-  auto frame = createFrame(m_crosshair, false, false, true);
+  auto frame = createFrame(m_crosshair);
 
   emitFrameChanged(frame);
 }
@@ -249,7 +262,9 @@ void ViewState::changeCrosshair(const NmVector3 &point, bool focus)
   {
     m_crosshair = point;
 
-    auto frame = createFrame(m_crosshair, focus, false, true);
+    Frame::Options options = (focus ? Frame::Focus : Frame::Options());
+
+    auto frame = createFrame(m_crosshair, options);
 
     emitFrameChanged(frame);
   }
@@ -266,7 +281,7 @@ FrameCSPtr ViewState::createFrame()
 }
 
 //-----------------------------------------------------------------------------
-FrameCSPtr ViewState::createFrame(const NmVector3 &point, bool focus, bool reset, bool keyframe)
+FrameCSPtr ViewState::createFrame(const NmVector3 &point, const Frame::Options options)
 {
   auto frame = std::make_shared<Frame>();
 
@@ -274,19 +289,11 @@ FrameCSPtr ViewState::createFrame(const NmVector3 &point, bool focus, bool reset
   frame->crosshair  = point;
   frame->resolution = m_coordinateSystem->resolution();
   frame->bounds     = m_coordinateSystem->bounds();
+  frame->flags      = options;
 
-  Q_ASSERT(!focus || !reset); // both can't be active
-  if(focus)
-  {
-    frame->flags |= Frame::Focus;
-  }
+  Q_ASSERT(!options.testFlag(Frame::Focus) || !options.testFlag(Frame::Reset)); // both can't be active
 
-  if(reset)
-  {
-    frame->flags |= Frame::Reset;
-  }
-
-  qDebug() << "viewstate created frame" << frame->time;
+  qDebug() << "viewstate created frame" << frame;
 
   m_frames << frame;
 
@@ -296,6 +303,18 @@ FrameCSPtr ViewState::createFrame(const NmVector3 &point, bool focus, bool reset
   }
 
   return frame;
+}
+
+//-----------------------------------------------------------------------------
+FrameCSPtr ViewState::createInvalidationFrame(ViewItemAdapterList items)
+{
+  Frame::Options options;
+  auto sortedItems = GUI::Model::Utils::classifyViewItems(items);
+
+  if(!sortedItems.segmentations.isEmpty()) options |= Frame::Option::InvalidateSegmentation;
+  if(!sortedItems.stacks.isEmpty())        options |= Frame::Option::InvalidateChannel;
+
+  return createFrame(m_crosshair, options);
 }
 
 //-----------------------------------------------------------------------------

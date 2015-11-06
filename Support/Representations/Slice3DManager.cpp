@@ -55,13 +55,13 @@ ViewItemAdapterList Slice3DManager::pick(const NmVector3 &point, vtkProp *actor)
 }
 
 //----------------------------------------------------------------------------
-bool Slice3DManager::acceptCrosshairChange(const NmVector3 &crosshair) const
+bool Slice3DManager::acceptCrosshairChange(const NmVector3& crosshair) const
 {
   return RepresentationManager::acceptCrosshairChange(crosshair);
 }
 
 //----------------------------------------------------------------------------
-bool Slice3DManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
+bool Slice3DManager::acceptSceneResolutionChange(const NmVector3& resolution) const
 {
   return RepresentationManager::acceptSceneResolutionChange(resolution);
 }
@@ -70,6 +70,14 @@ bool Slice3DManager::acceptSceneResolutionChange(const NmVector3 &resolution) co
 bool Slice3DManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
   return false;
+}
+
+//----------------------------------------------------------------------------
+bool Slice3DManager::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  auto type = m_pools.first()->type();
+
+  return invalidatesRepresentations(frame, type);
 }
 
 //----------------------------------------------------------------------------

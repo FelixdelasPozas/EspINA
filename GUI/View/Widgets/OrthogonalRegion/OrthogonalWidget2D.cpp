@@ -111,6 +111,12 @@ bool OrthogonalWidget2D::acceptSceneResolutionChange(const NmVector3 &resolution
 }
 
 //----------------------------------------------------------------------------
+bool OrthogonalRegion::OrthogonalWidget2D::acceptInvalidationFrame(const Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void OrthogonalWidget2D::initializeImplementation(RenderView *view)
 {
   onModeChanged      (m_representation->mode());

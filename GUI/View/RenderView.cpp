@@ -558,28 +558,21 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 {
   TimeStamp latest = Timer::INVALID_TIME_STAMP;
 
-  RepresentationManagerSPtr activeManager;
-
   if (!managers.isEmpty())
   {
-    QMap<TimeStamp, unsigned> count;
-
-    unsigned activeManagers = 0;
+    QMap<TimeStamp, int> count;
 
     for (auto manager : managers)
     {
-      Q_ASSERT(!manager->isIdle());
-
       qDebug() << viewName() << manager->debugName() << manager->readyRange();
-
-      activeManager = manager;
-      ++activeManagers;
 
       for(auto time: manager->readyRange())
       {
         count[time] = count.value(time, 0) + 1;
       }
     }
+
+    auto activeManagers = managers.size();
 
     if (activeManagers > 0)
     {

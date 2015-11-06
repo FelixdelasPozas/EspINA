@@ -112,6 +112,12 @@ bool PlanarSplitWidget2D::acceptSceneResolutionChange(const NmVector3& resolutio
 }
 
 //-----------------------------------------------------------------------------
+bool PlanarSplitWidget2D::acceptInvalidationFrame(const Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 void PlanarSplitWidget2D::initializeImplementation(RenderView* view)
 {
   auto view2D = view2D_cast(view);
