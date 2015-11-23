@@ -19,50 +19,69 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
 #define ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
 
+// ESPINA
 #include <Support/FilterRefiner.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <ToolGroups/Restrict/RestrictToolGroup.h>
 
-
-namespace ESPINA {
-
-  class RestrictToolGroup;
+namespace ESPINA
+{
   class ROISettings;
 
   class SeedGrowSegmentationRefiner
   : public FilterRefiner
   {
-    Q_OBJECT
-  public:
-    SeedGrowSegmentationRefiner();
+      Q_OBJECT
+    public:
+      /** \brief SeedGrowSegmentationRefiner class constructor.
+       *
+       */
+      SeedGrowSegmentationRefiner();
 
-    virtual ~SeedGrowSegmentationRefiner();
+      /** \brief SeedGrowSegmentationRefiner class virtual destructor.
+       *
+       */
+      virtual ~SeedGrowSegmentationRefiner();
 
-    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
+      virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
 
-  signals:
-    void thresholdChanged(SegmentationAdapterPtr , int);
-    void applyClosingChanged(SegmentationAdapterPtr, bool);
-    void closingRadiusChanged(SegmentationAdapterPtr, int);
+      /** \brief Returns the roi refinement tools used by the widgets.
+       *
+       */
+      static RestrictToolGroupSPtr tools(Support::Context &context);
 
-  private slots:
-    /**
-     *  Decrease widget count and hides ROI if no widgets are visible
-     */
-    void onWidgetDestroyed(QObject *widget);
+    signals:
+      void thresholdChanged(SegmentationAdapterPtr , int);
+      void applyClosingChanged(SegmentationAdapterPtr, bool);
+      void closingRadiusChanged(SegmentationAdapterPtr, int);
 
-  private:
-    struct RefineWidget
-    {
-      RefineWidget(SegmentationAdapterPtr segmentation, Support::Context &context);
-      ~RefineWidget();
+    private slots:
+      /**
+       *  Decrease widget count and hides ROI if no widgets are visible
+       */
+      void onWidgetDestroyed(QObject *widget);
 
-      int                Count;
-      ROISettings       *RoiSettings;
-      RestrictToolGroup *RoiTools;
-    };
+    private:
+      struct RefineWidget
+      {
+        /** \brief RefineWidget struct constructor.
+         * \param[in] segmentation input segmentation.
+         * \param[in] context application context.
+         *
+         */
+        RefineWidget(SegmentationAdapterPtr segmentation, Support::Context &context);
 
-    QMap<SegmentationAdapterPtr, RefineWidget *> m_refineWidgets;
-    QMap<QObject *, SegmentationAdapterPtr>      m_widgetSegmentation;
+        /** \brief RefineWidget struct destructor.
+         *
+         */
+        ~RefineWidget();
+
+        int                   Count;    /** contains the widgets in effect. */
+        RestrictToolGroupSPtr RoiTools; /** ROI refinement tools */
+      };
+
+      QMap<SegmentationAdapterPtr, RefineWidget *> m_refineWidgets;       /** refinement widgets. */
+      QMap<QObject *, SegmentationAdapterPtr>      m_widgetSegmentation;  /** refinement widget-segmentation map. */
   };
 
 } // namespace ESPINA

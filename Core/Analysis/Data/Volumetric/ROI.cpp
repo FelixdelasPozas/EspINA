@@ -159,7 +159,7 @@ void ESPINA::ROI::applyFixes()
 //-----------------------------------------------------------------------------
 void ESPINA::ROI::fixVersion2_0_1()
 {
-  // 2.0.1 seg files had "roi" has the id, would not load when part of a sgs filter nowadays.
+  // 2.0.1 seg files had "roi" as the id, would not load when part of a sgs filter nowadays.
   if(m_id == "sgs")
   {
     auto volumeBounds = temporalStorageBoundsId(m_path, "roi");

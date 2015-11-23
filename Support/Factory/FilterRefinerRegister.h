@@ -37,12 +37,14 @@ namespace ESPINA {
       /** \brief Register a filter refiner to modify filters of given \p type
        * \param[in] refiner create widgets to modify filters of given \p type
        * \param[in] type of filters
+       *
        */
       void registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type);
 
       /** \brief Returns the filter refiner for \p segmentation filter
        * \param[in] segmentation whose filter is going to be refined
        * \param[in] context of current session
+       *
        */
       QWidget *createRefineWidget(SegmentationAdapterPtr segmentation, Context &context) throw (Unknown_Filter_Type_Exception);
 

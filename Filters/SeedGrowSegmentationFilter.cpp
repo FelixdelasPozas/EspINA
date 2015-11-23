@@ -169,6 +169,8 @@ void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const Nm
   m_seed     = changeSeedSpacing(m_seed, origin, spacing);
   m_prevSeed = changeSeedSpacing(m_prevSeed, origin, spacing);
 
+  emit seedModified(m_seed);
+
   if (m_prevROI && m_prevROI != m_ROI.get())
   {
     Q_ASSERT(m_ROI);
@@ -195,7 +197,12 @@ void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const Nm
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 {
-  m_lowerTh = th;
+  if(th != m_lowerTh)
+  {
+    m_lowerTh = th;
+
+    emit thresholdModified(m_lowerTh, m_upperTh);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -207,7 +214,12 @@ int SeedGrowSegmentationFilter::lowerThreshold() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setUpperThreshold(int th)
 {
-  m_upperTh = th;
+  if(th != m_upperTh)
+  {
+    m_upperTh = th;
+
+    emit thresholdModified(m_lowerTh, m_upperTh);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -219,7 +231,12 @@ int SeedGrowSegmentationFilter::upperThreshold() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setSeed(const NmVector3& seed)
 {
-  m_seed = seed;
+  if(seed != m_seed)
+  {
+    m_seed = seed;
+
+    emit seedModified(m_seed);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -231,9 +248,14 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-  m_ROI        = roi;
-  m_hasROI     = m_ROI != nullptr;
-  m_touchesROI = false;
+  if(roi != m_ROI)
+  {
+    m_ROI        = roi;
+    m_hasROI     = m_ROI != nullptr;
+    m_touchesROI = false;
+
+    emit roiModified(m_ROI);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -264,7 +286,12 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 {
-  m_radius = radius;
+  if(radius != m_radius)
+  {
+    m_radius = radius;
+
+    emit radiusModified(m_radius);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -615,8 +642,10 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
     roiCheckIt.GoToBegin();
     while(!imageIt.IsAtEnd())
     {
-      if((roiCheckIt.Value() == SEG_VOXEL_VALUE)
-         && (imageIt.Value() == SEG_VOXEL_VALUE)) return true;
+      if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
+      {
+        return true;
+      }
 
       ++roiCheckIt;
       ++imageIt;

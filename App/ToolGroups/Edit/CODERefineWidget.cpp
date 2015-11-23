@@ -28,128 +28,94 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets::Styles;
 
-class CODEModification
-: public QUndoCommand
+//----------------------------------------------------------------------------
+CODEModification::CODEModification(SegmentationAdapterPtr segmentation,
+                                   unsigned int           radius,
+                                   QUndoCommand          *parent)
+: QUndoCommand  {parent}
+, m_segmentation{segmentation}
+, m_filter      {std::dynamic_pointer_cast<MorphologicalEditionFilter>(segmentation->filter())}
+, m_radius      {radius}
+, m_oldRadius   {m_filter->radius()}
 {
-public:
-  CODEModification(SegmentationAdapterPtr         segmentation,
-                   MorphologicalEditionFilterSPtr filter,
-                   int radius,
-                   QUndoCommand *parent = NULL)
-  : QUndoCommand(parent)
-  , m_segmentation(segmentation)
-  , m_filter(filter)
-  , m_radius(radius)
+  Q_ASSERT(m_filter != nullptr);
+}
+
+//----------------------------------------------------------------------------
+void CODEModification::redo()
+{
+  auto output = m_filter->output(0);
+
+  if (!m_oldVolume && output->isEdited())
   {
-    m_oldRadius = m_filter->radius();
+    auto volume = readLockVolume(output);
+    m_oldBounds = volume->bounds();
+    m_oldVolume = volume->itkImage();
+    m_editedRegions = volume->editedRegions();
   }
 
-  //----------------------------------------------------------------------------
-  virtual void redo()
+  m_filter->setRadius(m_radius);
+
+  update();
+
+  invalidateRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void CODEModification::undo()
+{
+  m_filter->setRadius(m_oldRadius);
+
+  if (m_oldVolume.IsNotNull())
   {
     auto output = m_filter->output(0);
+    auto volume = writeLockVolume(output);
 
-
-    if (!m_oldVolume && (output->isEdited() /*|| volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE*/))
-    {
-      auto volume = readLockVolume(output);
-      m_oldBounds     = volume->bounds();
-      m_oldVolume     = volume->itkImage();
-      m_editedRegions = volume->editedRegions();
-    }
-
-    m_filter->setRadius(m_radius);
-
+    volume->resize(m_oldBounds);
+    volume->draw(m_oldVolume);
+    volume->setEditedRegions(m_editedRegions);
+  }
+  else
+  {
     update();
-
-//     if (m_newVolume.IsNull())
-//     {
-//       update();
-//
-//       if (m_filter->isOutputEmpty())
-//         return;
-//
-//       SegmentationVolumeSPtr newVolume = volume;
-//       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-//         m_newVolume = volume->cloneVolume();
-//     }
-//     else
-//     {
-//       volume->setVolume(m_newVolume);
-//     }
-//
-//     output->clearEditedRegions();
-    m_segmentation->invalidateRepresentations();
   }
 
-  //----------------------------------------------------------------------------
-  virtual void undo()
-  {
-    m_filter->setRadius(m_oldRadius);
+  invalidateRepresentations();
+}
+//----------------------------------------------------------------------------
+void CODEModification::update()
+{
+  WaitingCursor cursor;
 
-    if (m_oldVolume.IsNotNull())
-    {
-      auto output = m_filter->output(0);
-      auto volume = writeLockVolume(output);
+  m_filter->update();
+}
 
-      volume->resize(m_oldBounds);
-      volume->draw(m_oldVolume);
-      volume->setEditedRegions(m_editedRegions);
-    }
-    else
-    {
-      update();
-    }
-    invalidateRepresentations();
-  }
+//----------------------------------------------------------------------------
+void CODEModification::invalidateRepresentations()
+{
+  m_segmentation->invalidateRepresentations();
+}
 
-private:
-  void update()
-  {
-    WaitingCursor cursor;
-
-    m_filter->update();
-  }
-
-  void invalidateRepresentations()
-  {
-    m_segmentation->invalidateRepresentations();
-  }
-
-private:
-  SegmentationAdapterPtr         m_segmentation;
-  MorphologicalEditionFilterSPtr m_filter;
-
-  int m_radius, m_oldRadius;
-
-  Bounds m_oldBounds;
-  itkVolumeType::Pointer m_oldVolume;
-  BoundsList             m_editedRegions;
-  //itkVolumeType::Pointer m_newVolume;
-};
 //----------------------------------------------------------------------------
 CODERefineWidget::CODERefineWidget(const QString                 &title,
                                    SegmentationAdapterPtr         segmentation,
-                                   MorphologicalEditionFilterSPtr filter,
                                    Support::Context              &context)
-: WithContext(context)
-, m_gui(new Ui::CODERefineWidget())
-, m_title(title)
-, m_segmentation(segmentation)
-, m_filter(filter)
+: WithContext   (context)
+, m_gui         {new Ui::CODERefineWidget()}
+, m_title       {title}
+, m_segmentation{segmentation}
+, m_filter      {std::dynamic_pointer_cast<MorphologicalEditionFilter>(segmentation->filter())}
 {
   m_gui->setupUi(this);
 
   m_gui->titleLabel->setText(m_title + ":");
   m_gui->radius->setValue(m_filter->radius());
 
-  connect(m_gui->radius, SIGNAL(valueChanged(int)),
-          this,          SLOT(onRadiusChanged(int)));
   connect(m_gui->apply,  SIGNAL(clicked(bool)),
           this,          SLOT(refineFilter()));
 
-  connect(m_segmentation->output().get(), SIGNAL(modified()),
-          this,                           SLOT(onFilterModified()));
+  connect(m_filter.get(), SIGNAL(radiusModified(int)),
+          this,           SLOT(onRadiusModified(int)));
 }
 
 //----------------------------------------------------------------------------
@@ -158,17 +124,9 @@ CODERefineWidget::~CODERefineWidget()
 }
 
 //----------------------------------------------------------------------------
-void CODERefineWidget::onRadiusChanged(int value)
+void CODERefineWidget::onRadiusModified(int value)
 {
-  m_gui->apply->setEnabled(true);
-
-  emit radiusChanged(value);
-}
-
-//----------------------------------------------------------------------------
-void CODERefineWidget::onFilterModified()
-{
-  m_gui->radius->setValue(m_filter->radius());
+  m_gui->radius->setValue(value);
 }
 
 //----------------------------------------------------------------------------
@@ -186,19 +144,10 @@ void CODERefineWidget::refineFilter()
     if (GUI::DefaultDialogs::UserQuestion(message, buttons, m_title) == QMessageBox::Cancel) return;
   }
 
-  auto volume  = readLockVolume(output);
-
   auto undoStack = getUndoStack();
-
   undoStack->beginMacro(tr("Modify %1 radius").arg(m_title));
   {
-    undoStack->push(new CODEModification(m_segmentation, m_filter, m_gui->radius->value()));
+    undoStack->push(new CODEModification(m_segmentation, static_cast<unsigned int>(m_gui->radius->value())));
   }
   undoStack->endMacro();
-}
-
-//----------------------------------------------------------------------------
-void CODERefineWidget::setRadius(int value)
-{
-  m_gui->radius->setValue(value);
 }

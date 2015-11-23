@@ -92,7 +92,12 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Filters
+qt4_wrap_cpp(FILTERS_MOCS
+  ${FILTERS_DIR}/MorphologicalEditionFilter.h
+  ${FILTERS_DIR}/SeedGrowSegmentationFilter.h
+)
 set (FILTERS_SOURCES
+  ${FILTERS_MOCS}
   ${FILTERS_DIR}/DilateFilter.cpp
   ${FILTERS_DIR}/ImageLogicFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp

@@ -100,14 +100,7 @@ void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings
 
   auto smoothValue = settings->value(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, 0).toInt();
 
-  m_settings->setSmoothValue(smoothValue);
-  auto smoothEnabled = (smoothValue != 0);
-
-  if (m_smoothEnabled != smoothEnabled)
-  {
-    m_smoothEnabled = smoothEnabled;
-    switchManagers();
-  }
+  m_smooth->setValue(smoothValue);
 }
 
 //----------------------------------------------------------------------------
@@ -165,12 +158,18 @@ void SegmentationMeshSwitch::switchManagers()
 
   if(m_smoothEnabled)
   {
+    m_meshManager->blockSignals(true);
     m_meshManager->hide(frame);
+    m_meshManager->blockSignals(false);
+
     m_smoothedMeshManager->show(frame);
   }
   else
   {
+    m_smoothedMeshManager->blockSignals(true);
     m_smoothedMeshManager->hide(frame);
+    m_smoothedMeshManager->blockSignals(false);
+
     m_meshManager->show(frame);
   }
 }

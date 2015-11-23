@@ -42,130 +42,149 @@ namespace ESPINA
   class OrthogonalROITool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief OrthogonalROITool class constructor.
-     * \param[in] context
-     * \param[in] toolGroup
-     */
-    explicit OrthogonalROITool(ROISettings       *settings,
-                               Support::Context  &context,
-                               RestrictToolGroup *toolgroup);
+      Q_OBJECT
+    public:
+      /** \brief OrthogonalROITool class constructor.
+       * \param[in] context application context.
+       * \param[in] toolGroup parent toolgroup.
+       *
+       */
+      explicit OrthogonalROITool(ROISettings       *settings,
+                                 Support::Context  &context,
+                                 RestrictToolGroup *toolgroup);
 
-    /** \brief OrthogonalROITool class virtual destructor.
-     *
-     */
-    virtual ~OrthogonalROITool();
+      /** \brief OrthogonalROITool class virtual destructor.
+       *
+       */
+      virtual ~OrthogonalROITool();
 
-    /** \brief Sets ROI to be resized by this tool
-     *
-     *  If ROI is null then resize action is disabled
-     */
-    void setROI(ROISPtr roi);
+      /** \brief Sets ROI to be resized by this tool
+       *
+       *  If ROI is null then resize action is disabled
+       */
+      void setROI(ROISPtr roi);
 
-    ROISPtr currentROI() const
-    { return m_roi; }
+      /** \brief Returns the current orthogonal ROI.
+       *
+       */
+      ROISPtr currentROI() const
+      { return m_roi; }
 
-    void setVisible(bool visible);
+      /** \brief Sets the ROI widget visibility.
+       * \param[in] visible true to set to visible and false otherwise.
+       *
+       */
+      void setVisible(bool visible);
 
-    void setColor(const QColor &color);
+      /** \brief Sets the color of the ROI widget.
+       * \param[in] color widget color.
+       *
+       */
+      void setColor(const QColor &color);
 
-    static Bounds createRegion(const NmVector3 &centroid, const Nm xSize, const Nm ySize, const Nm zSize);
+      /** \brief Creates the orthogonal region.
+       * \param[in] centroid center of the region.
+       * \param[in] xSize size inthe x coordinate in Nm.
+       * \param[in] ySize size inthe y coordinate in Nm.
+       * \param[in] zSize size inthe z coordinate in Nm.
+       *
+       */
+      static Bounds createRegion(const NmVector3 &centroid, const Nm xSize, const Nm ySize, const Nm zSize);
 
-  signals:
-    void roiDefined(ROISPtr);
+    signals:
+      void roiDefined(ROISPtr);
 
-  private slots:
-    /** \brief Activates/Deactivates the tool
-     *  \param[in] value true to activate the tool
-     *
-     *  When the tool is active, it will display the two actions available.
-     *  When the tool is deactivated, Orthogonal ROI widget interaction will be disabled.
-     */
-    void setActive(bool value);
-
-
-    /** \brief Modifies the tool and activates/deactivates the event handler for this tool.
-     * \param[in] value true to activate tool and eventhandler, false to deactivate event handler.
-     */
-    void setDefinitionMode(bool value);
-
-    /** \brief Update GUI status to be in accordance with the event handler state
-     * \param[in] active event handler status
-     */
-    void onEventHandlerChanged();
-
-
-
-    /** \brief Sets the operation mode of the Orthogonal ROI
-     *
-     *   \param[in] resizable true value allows ROI modification using a widget,
-     *                        false value only diplays the ROI on the views
-     */
-    void setResizable(bool resizable);
-
-    /** \brief Defines a new ROI based on the selection.
-     * \param[in] selection selection containing the active channel and selected voxel.
-     *
-     */
-    void defineROI(Selector::Selection selection);
+    private slots:
+      /** \brief Activates/Deactivates the tool
+       *  \param[in] value true to activate the tool
+       *
+       *  When the tool is active, it will display the two actions available.
+       *  When the tool is deactivated, Orthogonal ROI widget interaction will be disabled.
+       */
+      void setActive(bool value);
 
 
-    void updateBounds(Bounds bounds);
+      /** \brief Modifies the tool and activates/deactivates the event handler for this tool.
+       * \param[in] value true to activate tool and eventhandler, false to deactivate event handler.
+       */
+      void setDefinitionMode(bool value);
 
-    void updateRegionRepresentation();
+      /** \brief Update GUI status to be in accordance with the event handler state
+       * \param[in] active event handler status
+       */
+      void onEventHandlerChanged();
 
-  private:
-    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
-    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
-    using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
-    using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
-    using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
 
-  private:
-    virtual void onToolGroupActivated();
 
-    void initControls();
+      /** \brief Sets the operation mode of the Orthogonal ROI
+       *
+       *   \param[in] resizable true value allows ROI modification using a widget,
+       *                        false value only diplays the ROI on the views
+       */
+      void setResizable(bool resizable);
 
-    /** \brief Creates the rectangular region widget for the current roi
-     *
-     */
-    void createOrthogonalWidget();
+      /** \brief Defines a new ROI based on the selection.
+       * \param[in] selection selection containing the active channel and selected voxel.
+       *
+       */
+      void defineROI(Selector::Selection selection);
 
-    /** \brief Removes the current widget.
-     *
-     */
-    void destroyOrthogonalWidget();
 
-    void disableOrthogonalWidget();
+      void updateBounds(Bounds bounds);
 
-    bool isResizable() const;
+      void updateRegionRepresentation();
 
-    void setRepresentationResizable(const bool value);
+    private:
+      using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::OrthogonalSliceSelector;
+      using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
+      using Representation         = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentation;
+      using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
 
-    bool invalidSettings() const;
+    private:
+      virtual void onToolGroupActivated();
 
-    void showSliceSelectors();
+      void initControls();
 
-    void hideSliceSelectors();
+      /** \brief Creates the rectangular region widget for the current roi
+       *
+       */
+      void createOrthogonalWidget();
 
-    TemporalPrototypesSPtr createTemporalRepresentationPrototype() const;
+      /** \brief Removes the current widget.
+       *
+       */
+      void destroyOrthogonalWidget();
 
-  private:
-    QPushButton *m_resizeROI;
-    QPushButton *m_applyROI;
+      void disableOrthogonalWidget();
 
-    bool             m_enabled;
+      bool isResizable() const;
 
-    ROISPtr                m_roi;
-    RepresentationSPtr     m_roiRepresentation;
-    TemporalPrototypesSPtr m_prototype;
+      void setRepresentationResizable(const bool value);
 
-    EventHandlerSPtr   m_resizeHandler;
-    PixelSelectorSPtr  m_defineHandler;
+      bool invalidSettings() const;
 
-    OrthogonalSelectorSPtr m_sliceSelector;
-    ROISettings           *m_settings;
+      void showSliceSelectors();
+
+      void hideSliceSelectors();
+
+      TemporalPrototypesSPtr createTemporalRepresentationPrototype() const;
+
+    private:
+      QPushButton *m_resizeROI;
+      QPushButton *m_applyROI;
+
+      bool m_visible;
+
+      ROISPtr                m_roi;
+      RepresentationSPtr     m_roiRepresentation;
+      TemporalPrototypesSPtr m_prototype;
+
+      EventHandlerSPtr   m_resizeHandler;
+      PixelSelectorSPtr  m_defineHandler;
+
+      OrthogonalSelectorSPtr m_sliceSelector;
+      ROISettings           *m_settings;
   };
 
   using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;

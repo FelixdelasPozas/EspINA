@@ -233,21 +233,21 @@ namespace ESPINA
    * \param[in] bounds to compute its centroid
    *
    */
-  NmVector3 centroid(const Bounds &bounds);
+  NmVector3 EspinaCore_EXPORT centroid(const Bounds &bounds);
 
   /** \brief Returns the start point of the lower voxel
    * \param[in] bounds to compute its lower bound
    *
    *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
    */
-  NmVector3 lowerPoint(const Bounds &bounds);
+  NmVector3 EspinaCore_EXPORT lowerPoint(const Bounds &bounds);
 
   /** \brief Returns the end point of the upper voxel
    * \param[in] bounds to compute its lower bound
    *
    *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
    */
-  NmVector3 upperrPoint(const Bounds &bounds);
+  NmVector3 EspinaCore_EXPORT upperrPoint(const Bounds &bounds);
 
   /** \brief Add bounds to boundingBox
    * \param[in] boundingBox to be updated

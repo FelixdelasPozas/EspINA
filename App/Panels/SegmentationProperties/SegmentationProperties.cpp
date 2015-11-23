@@ -173,18 +173,17 @@ void SegmentationProperties::showInformation(SegmentationAdapterPtr segmentation
 
     if (m_segmentation)
     {
+      showSegmentationName();
+      addRefineWidget();
+      showTags();
+      showNotes();
+
       connect(m_segmentation, SIGNAL(outputModified()),
                  this,        SLOT(onOutputModified()));
 
       connect(m_gui->notes, SIGNAL(textChanged()),
               this,         SLOT(onNotesModified()));
-
-      showSegmentationName();
-      addRefineWidget();
-      showTags();
-      showNotes();
     }
-
   }
 }
 
@@ -249,12 +248,12 @@ void SegmentationProperties::removeRefineWidget()
   auto layout = m_gui->refineGroup->layout();
   if (layout->count() == 1)
   {
-  auto widget = layout->itemAt(0)->widget();
+    auto widget = layout->itemAt(0)->widget();
 
-  Q_ASSERT(widget);
-  layout->removeWidget(widget);
+    Q_ASSERT(widget);
+    layout->removeWidget(widget);
 
-  delete widget;
+    delete widget;
   }
 }
 //----------------------------------------------------------------------------
@@ -267,6 +266,10 @@ void SegmentationProperties::showTags()
     auto extension = retrieveExtension<SegmentationTags>(extensions);
 
     m_gui->tags->setText(extension->tags().join(", "));
+  }
+  else
+  {
+    clearTags();
   }
 }
 
@@ -286,6 +289,10 @@ void SegmentationProperties::showNotes()
     auto extension = retrieveExtension<SegmentationNotes>(extensions);
 
     m_gui->notes->setText(extension->notes());
+  }
+  else
+  {
+    clearNotes();
   }
 }
 

@@ -16,32 +16,32 @@
  *
  */
 
+// ESPINA
 #include "SeedGrowSegmentationRefiner.h"
 #include "SeedGrowSegmentationRefineWidget.h"
-
-#include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
+#include <ToolGroups/Restrict/RestrictToolGroup.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Support;
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::RefineWidget::RefineWidget(SegmentationAdapterPtr segmentation, Context& context)
-: Count(0)
-, RoiSettings(new ROISettings())
-, RoiTools   (new RestrictToolGroup(RoiSettings, context))
+: Count      {0}
+, RoiTools   {SeedGrowSegmentationRefiner::tools(context)}
 {
   QColor sgsROIColor{Qt::yellow};
   sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
 
   RoiTools->setColor(sgsROIColor);
 
-  auto filter = dynamic_cast<SeedGrowSegmentationFilter *>(segmentation->filter().get());
+  auto filter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter());
 
   auto currentFilterROI = filter->roi();
   if (currentFilterROI)
   {
     RoiTools->setCurrentROI(currentFilterROI->clone());
+    RoiTools->setVisible(true);
   }
 }
 
@@ -50,18 +50,24 @@ SeedGrowSegmentationRefiner::RefineWidget::~RefineWidget()
 {
   RoiTools->setCurrentROI(nullptr);
   RoiTools->setVisible(false);
-
-  delete RoiTools;
-  delete RoiSettings;
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::SeedGrowSegmentationRefiner()
-{}
+{
+}
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::~SeedGrowSegmentationRefiner()
 {
+}
+
+//-----------------------------------------------------------------------------
+RestrictToolGroupSPtr SeedGrowSegmentationRefiner::tools(Context &context)
+{
+  static RestrictToolGroupSPtr tools = std::make_shared<RestrictToolGroup>(new ROISettings(), context);
+
+  return tools;
 }
 
 //-----------------------------------------------------------------------------
@@ -77,27 +83,10 @@ QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmen
   rw->Count++;
   rw->RoiTools->setVisible(true);
 
-  auto filter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter());
-  auto widget = new SeedGrowSegmentationRefineWidget(segmentation, filter, rw->RoiTools, context);
+  auto widget = new SeedGrowSegmentationRefineWidget(segmentation, rw->RoiTools, context);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed(QObject *)));
-
-//   connect(widget, SIGNAL(thresholdChanged(int)),
-//           this,   SIGNAL(thresholdChanged(int)));
-//   connect(this,   SIGNAL(thresholdChanged(int)),
-//           widget, SLOT(setThreshold(int)));
-//
-//   connect(widget, SIGNAL(applyClosingChanged(bool)),
-//           this,   SIGNAL(applyClosingChanged(bool)));
-//
-//   connect(this,   SIGNAL(applyClosingChanged(bool)),
-//           widget, SLOT(setApplyClosing(bool)));
-//
-//   connect(widget, SIGNAL(closingRadiusChanged(int)),
-//           this,   SIGNAL(closingRadiusChanged(int)));
-//   connect(this,   SIGNAL(closingRadiusChanged(int)),
-//           widget, SLOT(setClosingRadius(int)));
 
   m_widgetSegmentation[widget] = segmentation;
 

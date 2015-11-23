@@ -214,6 +214,8 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 {
   Bounds res;
 
+  if(!b1.areValid() || !b2.areValid()) return res;
+
   int lo = 0, up = 1, i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
   {

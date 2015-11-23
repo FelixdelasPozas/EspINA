@@ -59,8 +59,6 @@ Output::~Output()
 //----------------------------------------------------------------------------
 void Output::setSpacing(const NmVector3& spacing)
 {
-//   QReadLocker lock(&m_lock);
-
   if (m_spacing != spacing)
   {
     for(auto type : m_data.keys())
@@ -89,8 +87,6 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 {
   Snapshot snapshot;
 
-//   QReadLocker lock(&m_lock);
-
   auto saveOutput = isSegmentationOutput();
 
   for(auto data : m_data)
@@ -106,8 +102,8 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
       // We need to crop the edited regions bounds in case
       // the data bounds have been reduced to prevent
       // out of bounds data requests
-      auto editedBounds = intersection(bounds, data->editedRegions()[i]);
-      if (editedBounds.areValid())
+      auto editedBounds = intersection(bounds, data->editedRegions().at(i));
+      if (bounds.areValid() && editedBounds.areValid())
       {
         xml.writeStartElement("EditedRegion");
         xml.writeAttribute("id",     QString::number(i));
@@ -148,8 +144,6 @@ Bounds Output::bounds() const
 {
   Bounds bounds;
 
-//   QReadLocker lock(&m_lock);
-
   for(auto data : m_data)
   {
     if (data->isValid() && data->bounds().areValid())
@@ -171,7 +165,6 @@ Bounds Output::bounds() const
 //----------------------------------------------------------------------------
 void Output::clearEditedRegions()
 {
-//   QReadLocker lock(&m_lock);
   for(auto data: m_data)
   {
     data->clearEditedRegions();
@@ -181,7 +174,6 @@ void Output::clearEditedRegions()
 //----------------------------------------------------------------------------
 bool Output::isEdited() const
 {
-//   QReadLocker lock(&m_lock);
   for(auto data: m_data)
   {
     if (data->isEdited()) return true;
@@ -197,7 +189,6 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-//   QReadLocker lock(&m_lock);
   for(auto data : m_data)
   {
     if (!data->isValid()) return false;
@@ -225,14 +216,12 @@ void Output::setData(Output::DataSPtr data)
 {
   Data::Type type = data->type();
 
-//   QWriteLocker lock(&m_lock);
   if (!m_data.contains(type))
   {
     m_data[type] = data->createProxy();
   }
 
   proxy(type)->set(data);
-//   qDebug() << "Set proxy data[" << m_data[type].get() << "]:" << data.get();
 
   updateModificationTime();
 
@@ -243,21 +232,18 @@ void Output::setData(Output::DataSPtr data)
 //----------------------------------------------------------------------------
 void Output::removeData(const Data::Type& type)
 {
-//   QWriteLocker lock(&m_lock);
   m_data.remove(type);
 }
 
 //----------------------------------------------------------------------------
 bool Output::hasData(const Data::Type& type) const
 {
-//   QReadLocker lock(&m_lock);
   return m_data.contains(type);
 }
 
 //----------------------------------------------------------------------------
 unsigned int Output::numberOfDatas() const
 {
-//   QReadLocker lock(&m_lock);
   unsigned int result = 0;
   for(auto data : m_data)
   {
@@ -273,7 +259,6 @@ unsigned int Output::numberOfDatas() const
 //----------------------------------------------------------------------------
 void Output::update()
 {
-//   QReadLocker lock(&m_lock);
   if (m_data.isEmpty())
   {
     m_filter->update();

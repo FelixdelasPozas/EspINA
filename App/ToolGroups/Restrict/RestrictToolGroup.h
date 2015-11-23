@@ -17,6 +17,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef ESPINA_ROI_TOOLS_H
 #define ESPINA_ROI_TOOLS_H
 
@@ -36,112 +37,110 @@ class QUndoStack;
 
 namespace ESPINA
 {
-
   class ROISettings;
   class FreehandROITool;
   class OrthogonalROITool;
   class DeleteROITool;
 
-  /// Seed Growing Segmentation Plugin
   class RestrictToolGroup
   : public ToolGroup
   , public ROIProvider
   {
-  Q_OBJECT
-  public:
-    /** \brief VolumeOfInterestTools class constructor.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent QWidget raw pointer of the parent of this object.
-     */
-    RestrictToolGroup(ROISettings*      settings,
-                      Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief RestrictToolGroup class constructor.
+       * \param[in] settings application ROI settings.
+       * \param[in] context application context.
+       *
+       */
+      RestrictToolGroup(ROISettings*      settings,
+                        Support::Context &context);
 
-    /** \brief VolumeOfInteresetTools class virtual destructor.
-     *
-     */
-    virtual ~RestrictToolGroup();
+      /** \brief RestrictToolGroup class virtual destructor.
+       *
+       */
+      virtual ~RestrictToolGroup();
 
-    /** \brief Set roi to be managed by this tool
-     * \param[in] roi region of interest
-     *
-     */
-    void setCurrentROI(ROISPtr roi);
+      /** \brief Set roi to be managed by this tool
+       * \param[in] roi region of interest
+       *
+       */
+      void setCurrentROI(ROISPtr roi);
 
-    virtual ROISPtr currentROI() override;
+      virtual ROISPtr currentROI() override;
 
-    virtual void consumeROI() override;
+      virtual void consumeROI() override;
 
-    ROISPtr accumulator()
-    { return m_accumulator; }
+      ROISPtr accumulator()
+      { return m_accumulator; }
 
-    void setColor(const QColor &color);
+      void setColor(const QColor &color);
 
-    /** \brief Returns true if there is a valid roi.
-     *
-     */
-    bool hasValidROI() const;
+      /** \brief Returns true if there is a valid roi.
+       *
+       */
+      bool hasValidROI() const;
 
-    /** \brief Set wheter or not the accumulated ROI is visible
-     *  \param[in] visible ROI visibility state
-     */
-    void setVisible(bool visible);
+      /** \brief Set wheter or not the accumulated ROI is visible
+       *  \param[in] visible ROI visibility state
+       */
+      void setVisible(bool visible);
 
-    /** \brief Returns wheter or not the accumulated ROI is visible
-     */
-    bool isVisible() const
-    { return m_visible; }
+      /** \brief Returns wheter or not the accumulated ROI is visible
+       */
+      bool isVisible() const
+      { return m_visible; }
 
-  signals:
-    void roiChanged(ROISPtr);
+    signals:
+      void roiChanged(ROISPtr);
 
-  private slots:
-    /** \brief Updates ROI accumulator when a new ROI is defined
-     *
-     */
-    void onManualROIDefined(BinaryMaskSPtr<unsigned char> roi);
+    private slots:
+      /** \brief Updates ROI accumulator when a new ROI is defined
+       *
+       */
+      void onManualROIDefined(BinaryMaskSPtr<unsigned char> roi);
 
-    void onOrthogonalROIDefined(ROISPtr roi);
+      void onOrthogonalROIDefined(ROISPtr roi);
 
-    void undoStackPush(QUndoCommand *command);
+      void undoStackPush(QUndoCommand *command);
 
-  private:
-    /** \brief Add orthogonal ROI to accumulator if any is already defined
-     *
-     *  \param[in] roi next ROI to be managed by the Orthogonal ROI tool
-     */
-    void commitPendingOrthogonalROI(ROISPtr roi);
+    private:
+      /** \brief Add orthogonal ROI to accumulator if any is already defined
+       *
+       *  \param[in] roi next ROI to be managed by the Orthogonal ROI tool
+       */
+      void commitPendingOrthogonalROI(ROISPtr roi);
 
-    void addOrthogonalROI(const VolumeBounds &bounds);
+      void addOrthogonalROI(const VolumeBounds &bounds);
 
-    void addManualROI(const BinaryMaskSPtr<unsigned char> mask);
+      void addManualROI(const BinaryMaskSPtr<unsigned char> mask);
 
-  private:
-    class DefineOrthogonalROICommand;
-    class DefineManualROICommand;
-    class ConsumeROICommand;
+    private:
+      class DefineOrthogonalROICommand;
+      class DefineManualROICommand;
+      class ConsumeROICommand;
 
-  private:
-    using FreehandROIToolSPtr      = std::shared_ptr<FreehandROITool>;
-    using OrthogonalROIToolSPtr  = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr       = std::shared_ptr<DeleteROITool>;
-    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    private:
+      using FreehandROIToolSPtr    = std::shared_ptr<FreehandROITool>;
+      using OrthogonalROIToolSPtr  = std::shared_ptr<OrthogonalROITool>;
+      using CleanROIToolSPtr       = std::shared_ptr<DeleteROITool>;
+      using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    Support::Context &m_context;
+      Support::Context &m_context;
 
-    FreehandROIToolSPtr     m_freehandROI;
-    OrthogonalROIToolSPtr m_orthogonalROI;
-    CleanROIToolSPtr      m_deleteROI;
+      FreehandROIToolSPtr   m_freehandROI;
+      OrthogonalROIToolSPtr m_orthogonalROI;
+      CleanROIToolSPtr      m_deleteROI;
 
-    bool   m_enabled;
-    bool   m_visible;
-    QColor m_color;
+      bool   m_enabled;
+      bool   m_visible;
+      QColor m_color;
 
-    ROISPtr                m_accumulator;
-    TemporalPrototypesSPtr m_roiPrototypes;
+      ROISPtr                m_accumulator;
+      TemporalPrototypesSPtr m_roiPrototypes;
   };
+
+  using RestrictToolGroupSPtr = std::shared_ptr<RestrictToolGroup>;
 
 } // namespace ESPINA
 

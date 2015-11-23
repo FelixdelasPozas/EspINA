@@ -31,58 +31,110 @@ namespace ESPINA
   class SegmentationProperties
   : public Panel
   {
-    Q_OBJECT
-  public:
-    explicit SegmentationProperties(Support::FilterRefinerRegister &filterRefiners,
-                                     Support::Context               &context);
-    virtual ~SegmentationProperties();
+      Q_OBJECT
+    public:
+      /** \brief SegmentationProperties class constructor.
+       * \param[in] filterRefiners refine widgets factory.
+       * \param[in] context application context.
+       *
+       */
+      explicit SegmentationProperties(Support::FilterRefinerRegister &filterRefiners,
+                                      Support::Context               &context);
 
-    virtual void showEvent(QShowEvent* event);
+      /** \brief SegmentationProperties class virtual destructor.
+       *
+       */
+      virtual ~SegmentationProperties();
 
-    virtual void hideEvent(QHideEvent* event);
+      virtual void showEvent(QShowEvent* event);
 
-    virtual void reset();
+      virtual void hideEvent(QHideEvent* event);
 
-  private slots:
-    void onSelectionChanged(SegmentationAdapterList selection);
+      virtual void reset();
 
-    void onOutputModified();
+    private slots:
+      /** \brief Updates the widget based on the current selection.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList selection);
 
-    void manageTags();
+      /** \brief Destroys the current refine widget and creates a new one for the modified output.
+       *
+       */
+      void onOutputModified();
 
-    void onNotesModified();
+      /** \brief Shows the tags dialog and updates the changes.
+       *
+       */
+      void manageTags();
 
-  private:
-    void showInformation(SegmentationAdapterPtr segmentation);
+      /** \brief Updates the segmentation's notes.
+       *
+       */
+      void onNotesModified();
 
-    void hideInformation();
+    private:
+      /** \brief Creates or replaces the current refine widget for the given segmentation's refine widget.
+       * \param[in] segmentation segmentation to refine.
+       *
+       */
+      void showInformation(SegmentationAdapterPtr segmentation);
 
-    void showSegmentationName();
+      /** \brief Hides the segmentation's information.
+       *
+       */
+      void hideInformation();
 
-    void clearSegmentationName();
+      /** \brief Updates the segmentation's name widget.
+       *
+       */
+      void showSegmentationName();
 
-    void addRefineWidget();
+      /** \brief Clears the segmentation's name widget.
+       *
+       */
+      void clearSegmentationName();
 
-    void removeRefineWidget();
+      /** \brief Adds a refine widget for the segmentation.
+       *
+       */
+      void addRefineWidget();
 
-    void showTags();
+      /** \brief Removes the current refine widget.
+       *
+       */
+      void removeRefineWidget();
 
-    void clearTags();
+      /** \brief Updates the tags widget with the segmentation's tags.
+       *
+       */
+      void showTags();
 
-    void showNotes();
+      /** \brief Clears the tags widget.
+       *
+       */
+      inline void clearTags();
 
-    void clearNotes();
+      /** \brief Updates the notes widget with the segmentation's notes.
+       *
+       */
+      void showNotes();
 
-  private:
-    class UI;
+      /** \brief Clears the notes widget.
+       *
+       */
+      void clearNotes();
 
-  private:
-    Support::FilterRefinerRegister &m_register;
+    private:
+      class UI;
 
-    FilterSPtr             m_filter;
-    SegmentationAdapterPtr m_segmentation;
+    private:
+      Support::FilterRefinerRegister &m_register; /** refine widget's factory. */
 
-    UI *m_gui;
+      FilterSPtr             m_filter;        /** segmentation's filter.  */
+      SegmentationAdapterPtr m_segmentation;  /** segmentation to refine. */
+
+      UI *m_gui; /** widget's gui, chessire cat. */
   };
 
 } // namespace ESPINA

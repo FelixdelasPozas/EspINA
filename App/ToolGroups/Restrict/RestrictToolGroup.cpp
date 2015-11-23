@@ -233,7 +233,10 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
+    if(m_visible)
+    {
+      m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
+    }
 
     m_accumulator  .reset();
     m_roiPrototypes.reset();
@@ -252,12 +255,15 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
   {
     m_accumulator = roi;
 
-    auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
-    roi2D->setColor(m_color);
+    if(m_visible)
+    {
+      auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
+      roi2D->setColor(m_color);
 
-    m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr(), QString("ManualROI"));
+      m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr(), QString("ManualROI"));
 
-    m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
+      m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
+    }
   }
 
   emit roiChanged(roi);
@@ -366,7 +372,7 @@ void RestrictToolGroup::undoStackPush(QUndoCommand *command)
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
 {
-  // añadir previa OROI al acumulador
+  // add previous ROI to accumulator.
   auto prevROI = m_orthogonalROI->currentROI();
 
   if (prevROI)

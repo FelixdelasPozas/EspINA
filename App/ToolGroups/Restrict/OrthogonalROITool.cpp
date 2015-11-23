@@ -76,7 +76,8 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context  &context,
                                      RestrictToolGroup *toolGroup)
 : ProgressTool("OrthogonalROI", ":/espina/roi_orthogonal_roi.svg", tr("Orthogonal 3D ROI"), context)
-, m_roi{nullptr}
+, m_visible          {true}
+, m_roi              {nullptr}
 , m_roiRepresentation{new OrthogonalRepresentation()}
 , m_resizeHandler    {new EventHandler()}
 , m_defineHandler    {new PixelSelector()}
@@ -105,7 +106,7 @@ OrthogonalROITool::~OrthogonalROITool()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setROI(ROISPtr roi)
 {
-  if (m_roi)
+  if (m_roi && m_visible)
   {
     destroyOrthogonalWidget();
   }
@@ -114,11 +115,17 @@ void OrthogonalROITool::setROI(ROISPtr roi)
   if (validRectangularROI)
   {
     m_roi = roi;
-    createOrthogonalWidget();
+    if(m_visible)
+    {
+      createOrthogonalWidget();
+    }
   }
   else
   {
-    disableOrthogonalWidget();
+    if(m_visible)
+    {
+      disableOrthogonalWidget();
+    }
   }
 
   m_resizeROI->setEnabled(validRectangularROI);
@@ -127,13 +134,18 @@ void OrthogonalROITool::setROI(ROISPtr roi)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setVisible(bool visible)
 {
-  if (visible)
+  if(m_visible != visible)
   {
-    createOrthogonalWidget();
-  }
-  else
-  {
-    destroyOrthogonalWidget();
+    m_visible = visible;
+
+    if (visible)
+    {
+      createOrthogonalWidget();
+    }
+    else
+    {
+      destroyOrthogonalWidget();
+    }
   }
 }
 
@@ -162,8 +174,8 @@ void OrthogonalROITool::initControls()
   m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal ROI"));
   m_applyROI  = Styles::createToolButton(":/espina/roi_define.svg", tr("Define Orthogonal ROI"));
 
-  m_resizeROI ->setCheckable(true);
-  m_applyROI  ->setCheckable(true);
+  m_resizeROI->setCheckable(true);
+  m_applyROI ->setCheckable(true);
   m_resizeROI->setEnabled(false);
 
   m_defineHandler->setMultiSelection(false);
@@ -184,7 +196,7 @@ void OrthogonalROITool::initControls()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::createOrthogonalWidget()
 {
-  Q_ASSERT(!m_prototype);
+  Q_ASSERT(!m_prototype && m_visible);
 
   updateRegionRepresentation();
 
@@ -208,6 +220,8 @@ void OrthogonalROITool::createOrthogonalWidget()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::destroyOrthogonalWidget()
 {
+  Q_ASSERT(m_visible);
+
   hideSliceSelectors();
 
   getViewState().removeTemporalRepresentations(m_prototype);

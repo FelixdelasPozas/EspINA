@@ -72,6 +72,13 @@ State MorphologicalEditionFilter::state() const
   return state;
 }
 
+//-----------------------------------------------------------------------------
+void MorphologicalEditionFilter::setRadius(int value)
+{
+  m_radius = static_cast<unsigned int>(value);
+
+  emit radiusModified(value);
+}
 
 //-----------------------------------------------------------------------------
 Snapshot MorphologicalEditionFilter::saveFilterSnapshot() const

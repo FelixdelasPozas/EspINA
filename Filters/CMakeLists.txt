@@ -3,14 +3,17 @@ include (${VTK_USE_FILE})
 
 include_directories(
   ${CMAKE_BINARY_DIR}         # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}/Filters # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
 include (GenerateExportHeader)
 
-# qt4_wrap_cpp(FILTERS_MOC
-#   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
-#   )
+qt4_wrap_cpp(FILTERS_MOC
+  MorphologicalEditionFilter.h
+  SeedGrowSegmentationFilter.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+  )
 
 set (FILTERS_SOURCES
   ${FILTERS_MOC}

@@ -41,31 +41,81 @@ namespace ESPINA
   : public QWidget
   , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    explicit CODERefineWidget(const QString                  &title,
-                              SegmentationAdapterPtr         segmentation,
-                              MorphologicalEditionFilterSPtr filter,
-                              Support::Context        &context);
-    virtual ~CODERefineWidget();
+      Q_OBJECT
+    public:
+      /** \brief CODERefineWidget class constructor.
+       * \param[in] title widget title.
+       * \param[in] segmentation input segmentation.
+       * \param[in] filter segmentation's filter.
+       * \param[in] context application context.
+       *
+       */
+      explicit CODERefineWidget(const QString                 &title,
+                                SegmentationAdapterPtr         segmentation,
+                                Support::Context              &context);
 
-  public slots:
-    void setRadius(int value);
+      /** \brief CODERefineWidget class destructor.
+       *
+       */
+      virtual ~CODERefineWidget();
 
-  signals:
-    void radiusChanged(int);
+    private slots:
+      /** \brief Updates the GUI radius value when the filter radius changes.
+       *
+       */
+      void onRadiusModified(int value);
 
-  private slots:
-    void onRadiusChanged(int value);
-    void onFilterModified();
-    void refineFilter();
+      /** \brief Updates the filter.
+       *
+       */
+      void refineFilter();
 
-  private:
-    Ui::CODERefineWidget *m_gui;
+    private:
+      Ui::CODERefineWidget *m_gui;
 
-    QString                m_title;
-    SegmentationAdapterPtr m_segmentation;
-    MorphologicalEditionFilterSPtr m_filter;
+      QString m_title;
+      SegmentationAdapterPtr m_segmentation;
+      MorphologicalEditionFilterSPtr m_filter;
+  };
+
+  class CODEModification
+  : public QUndoCommand
+  {
+    public:
+      /** \brief CODEModification class constructor.
+       * \param[in] segmentation input segmentation.
+       * \param[in] radius new radius value.
+       * \param[in] parent pointer to QUndoCommand parent of this one.
+       *
+       */
+      CODEModification(SegmentationAdapterPtr segmentation,
+                       unsigned int           radius,
+                       QUndoCommand          *parent = nullptr);
+
+      virtual ~CODEModification() {};
+
+      virtual void redo() override;
+      virtual void undo() override;
+
+    private:
+      /** \brief Updates the filter.
+       *
+       */
+      void update();
+
+      /** \brief Invalidates the segmentation's representations after an update
+       *
+       */
+      void invalidateRepresentations();
+
+      SegmentationAdapterPtr         m_segmentation;
+      MorphologicalEditionFilterSPtr m_filter;
+      unsigned int                   m_radius;
+
+      unsigned int           m_oldRadius;
+      Bounds                 m_oldBounds;
+      itkVolumeType::Pointer m_oldVolume;
+      BoundsList             m_editedRegions;
   };
 
 } // namespace ESPINA

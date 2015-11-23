@@ -26,19 +26,10 @@ using namespace ESPINA;
 CODERefiner::CODERefiner(const QString& title)
 : m_title{title}
 {
-
 }
 
 //-----------------------------------------------------------------------------
 QWidget* CODERefiner::createWidget(SegmentationAdapterPtr segmentation, Support::Context& context)
 {
-  auto filter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(segmentation->filter());
-  auto widget = new CODERefineWidget(m_title, segmentation, filter, context);
-
-//   connect(widget, SIGNAL(radiusChanged(int)),
-//           this,   SIGNAL(radiusChanged(int)));
-//   connect(this,   SIGNAL(radiusChanged(int)),
-//           widget, SLOT(setRadius(int)));
-
-  return widget;
+  return new CODERefineWidget(m_title, segmentation, context);
 }

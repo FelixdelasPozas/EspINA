@@ -35,6 +35,7 @@ namespace ESPINA
   class EspinaFilters_EXPORT MorphologicalEditionFilter
   : public Filter
   {
+      Q_OBJECT
   public:
     /** \brief MorphologicalEditionFilter class virtual destructor.
      *
@@ -55,8 +56,7 @@ namespace ESPINA
      * \param[in] radius radius of the morphological operation.
      *
      */
-    void setRadius(int radius)
-    { m_radius = radius; }
+    void setRadius(int radius);
 
     /** \brief Returs true if the output is empty.
      *
@@ -65,6 +65,9 @@ namespace ESPINA
      */
     bool isOutputEmpty()
     { return m_isOutputEmpty; }
+
+  signals:
+    void radiusModified(int value);
 
   protected:
     /** \brief MorphologicalEditionFilter class constructor.

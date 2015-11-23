@@ -36,161 +36,126 @@ bool SeedGrowSegmentationRefineWidget::s_exists = false;
 QMutex SeedGrowSegmentationRefineWidget::s_mutex;
 // END DEBUG Only
 
-class DiscardROIModificationsCommand
-: public QUndoCommand
+//----------------------------------------------------------------------------
+DiscardROIModificationsCommand::DiscardROIModificationsCommand(RestrictToolGroupSPtr roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent)
+: m_roiTools{roiTools}
 {
-public:
-  explicit DiscardROIModificationsCommand(RestrictToolGroup *roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent = 0)
-  : m_roiTools{roiTools}
+  if (filter->roi())
   {
-    if (filter->roi())
-    {
-      m_ROI = filter->roi()->clone();
-    }
+    m_ROI = filter->roi()->clone();
   }
-
-  virtual void redo()
-  { swapCurrentROI(); }
-
-  virtual void undo()
-  { swapCurrentROI(); }
-
-private:
-  void swapCurrentROI()
-  {
-    auto currentROI = m_roiTools->currentROI();
-
-    m_roiTools->setCurrentROI(m_ROI);
-
-    m_ROI = currentROI;
-  }
-
-private:
-  RestrictToolGroup *m_roiTools;
-  ROISPtr        m_ROI;
-};
-
-class SGSFilterModification
-: public QUndoCommand
-{
-public:
-  /** \brief Create a new undo command to modify a SeedGrowSegmentationFilter
-   *
-   *  \param[in] filter the SeedGrowSegmentationFilter to modify
-   *  \param[in] roi to be applied to limit the seed grow algorithm
-   *  \param[in] threshold symmetric threshold to be used to determine connectivity respect
-   *                       from the gray level value of the seed voxel
-   *  \param[in] closeRadius value of the radius to be applied to the closing post-proccessing.
-   *                       If this value is 0 no post-proccessing will be executed
-   *  \param[in] parent the undo command which will trigger this one
-   */
-  SGSFilterModification(SegmentationAdapterPtr         segmentation,
-                        SeedGrowSegmentationFilterSPtr filter,
-                        ROISPtr                        roi,
-                        int                            threshold,
-                        int                            closeRadius,
-                        QUndoCommand                  *parent = nullptr)
-  : QUndoCommand(parent)
-  , m_segmentation(segmentation)
-  , m_filter(filter)
-  , m_ROI(roi)
-  , m_threshold(threshold)
-  , m_closingRadius(closeRadius)
-  {
-    m_oldROI           = m_filter->roi();
-    m_oldThreshold     = m_filter->lowerThreshold();
-    m_oldClosingRadius = m_filter->closingRadius();
-  }
-
-  virtual void redo()
-  {
-    auto output = m_filter->output(0);
-//     int volumeSize = 1;
-//     for (auto dir : {Axis::X, Axis::Y, Axis::Z})
-//     {
-//       volumeSize *= volume->bounds().lenght(dir);
-//     }
-
-    // if (!m_oldVolume && (output->isEdited() || volumeSize < MAX_UNDO_SIZE))
-    if (!m_oldVolume && output->isEdited())
-    {
-      auto volume = readLockVolume(output);
-      m_oldBounds     = volume->bounds();
-      m_oldVolume     = volume->itkImage();
-      m_editedRegions = volume->editedRegions();
-    }
-
-    //bool ignoreUpdate = m_newVolume.IsNotNull();
-
-    m_filter->setLowerThreshold(m_threshold);
-    m_filter->setUpperThreshold(m_threshold);
-    m_filter->setROI(m_ROI);
-    m_filter->setClosingRadius(m_closingRadius);
-
-    update();
-
-    invalidateRepresentations();
-  }
-
-  virtual void undo()
-  {
-    m_filter->setLowerThreshold(m_oldThreshold);
-    m_filter->setUpperThreshold(m_oldThreshold);
-    m_filter->setROI(m_oldROI);
-    m_filter->setClosingRadius(m_oldClosingRadius);
-
-    auto output = m_filter->output(0);
-
-    if (m_oldVolume.IsNotNull())
-    {
-      auto volume = writeLockVolume(output);
-      volume->resize(m_oldBounds);
-      volume->draw(m_oldVolume);
-      volume->setEditedRegions(m_editedRegions);
-    } else
-    {
-      update();
-    }
-
-    invalidateRepresentations();
-  }
-
-private:
-  void update()
-  {
-    Styles::WaitingCursor cursor;
-    m_filter->update();
-  }
-
-  void invalidateRepresentations()
-  {
-    m_segmentation->invalidateRepresentations();
-  }
-
-private:
-  SegmentationAdapterPtr         m_segmentation;
-  SeedGrowSegmentationFilterSPtr m_filter;
-
-  ROISPtr m_ROI,           m_oldROI;
-  int     m_threshold,     m_oldThreshold;
-  int     m_closingRadius, m_oldClosingRadius;
-
-  Bounds                 m_oldBounds;
-  itkVolumeType::Pointer m_oldVolume;
-  BoundsList             m_editedRegions;
-  //itkVolumeType::Pointer m_newVolume;
-};
+}
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr         segmentation,
-                                                                   SeedGrowSegmentationFilterSPtr filter,
-                                                                   RestrictToolGroup             *roiTools,
-                                                                   Support::Context              &context)
-: WithContext(context)
-, m_segmentation(segmentation)
-, m_gui(new Ui::SeedGrowSegmentationRefineWidget())
-, m_filter(filter)
-, m_roiTools(roiTools)
+void DiscardROIModificationsCommand::redo()
+{
+  swapCurrentROI();
+}
+
+//----------------------------------------------------------------------------
+void DiscardROIModificationsCommand::undo()
+{
+  swapCurrentROI();
+}
+
+//----------------------------------------------------------------------------
+void DiscardROIModificationsCommand::swapCurrentROI()
+{
+  auto currentROI = m_roiTools->currentROI();
+
+  m_roiTools->setCurrentROI(m_ROI);
+
+  m_ROI = currentROI;
+}
+
+//----------------------------------------------------------------------------
+SGSFilterModification::SGSFilterModification(SegmentationAdapterPtr         segmentation,
+                                             ROISPtr                        roi,
+                                             int                            threshold,
+                                             int                            closeRadius,
+                                             QUndoCommand                  *parent)
+: QUndoCommand   {parent}
+, m_segmentation {segmentation}
+, m_filter       {std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter())}
+, m_ROI          {roi}
+, m_threshold    {threshold}
+, m_closingRadius{closeRadius}
+{
+  m_oldROI           = m_filter->roi();
+  m_oldThreshold     = m_filter->lowerThreshold();
+  m_oldClosingRadius = m_filter->closingRadius();
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterModification::redo()
+{
+  auto output = m_filter->output(0);
+
+  if (!m_oldVolume && output->isEdited())
+  {
+    auto volume = readLockVolume(output);
+    m_oldBounds = volume->bounds();
+    m_oldVolume = volume->itkImage();
+    m_editedRegions = volume->editedRegions();
+  }
+
+  m_filter->setLowerThreshold(m_threshold);
+  m_filter->setUpperThreshold(m_threshold);
+  m_filter->setROI(m_ROI);
+  m_filter->setClosingRadius(m_closingRadius);
+
+  update();
+
+  invalidateRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterModification::undo()
+{
+  m_filter->setLowerThreshold(m_oldThreshold);
+  m_filter->setUpperThreshold(m_oldThreshold);
+  m_filter->setROI(m_oldROI);
+  m_filter->setClosingRadius(m_oldClosingRadius);
+
+  auto output = m_filter->output(0);
+
+  if (m_oldVolume.IsNotNull())
+  {
+    auto volume = writeLockVolume(output);
+    volume->resize(m_oldBounds);
+    volume->draw(m_oldVolume);
+    volume->setEditedRegions(m_editedRegions);
+  }
+  else
+  {
+    update();
+  }
+
+  invalidateRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterModification::update()
+{
+  Styles::WaitingCursor cursor;
+  m_filter->update();
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterModification::invalidateRepresentations()
+{
+  m_segmentation->invalidateRepresentations();
+}
+
+//----------------------------------------------------------------------------
+SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr segmentation,
+                                                                   RestrictToolGroupSPtr  roiTools,
+                                                                   Support::Context      &context)
+: WithContext   (context)
+, m_segmentation{segmentation}
+, m_gui         {new Ui::SeedGrowSegmentationRefineWidget()}
+, m_filter      {std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter())}
+, m_roiTools    {roiTools}
 {
   s_mutex.lock();
   Q_ASSERT(!s_exists);
@@ -200,20 +165,9 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
   m_gui->setupUi(this);
 
   auto toolbar = new QToolBar();
-
   toolbar->setMinimumHeight(Styles::CONTEXTUAL_BAR_HEIGHT);
 
-  // TODO: create aux function to populate toolbar with tool group actions
-  for (auto tools : m_roiTools->groupedTools())
-  {
-    for (auto tool : tools)
-    {
-      for (auto action : tool->actions())
-      {
-        toolbar->addAction(action);
-      }
-    }
-  }
+  populateToolBar(toolbar, m_roiTools->groupedTools());
 
   m_gui->roiFrame->layout()->addWidget(toolbar);
 
@@ -222,6 +176,13 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
   m_gui->threshold->setMaximum(255);
   m_gui->threshold->setValue(m_filter->lowerThreshold());
   m_gui->closingRadius->setValue(m_filter->closingRadius());
+
+  auto enabled = (m_filter->closingRadius() != 0);
+  m_gui->applyClosing->setChecked(enabled);
+  m_gui->closingRadius->setEnabled(enabled);
+  m_gui->closingRadiusLabel->setEnabled(enabled);
+
+  m_gui->apply->setEnabled(false);
 
   connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
           this,                           SLOT(onThresholdChanged(int)));
@@ -233,11 +194,15 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
           this,                           SLOT(onDiscardROIModifications()));
   connect(m_gui->apply,                   SIGNAL(clicked(bool)),
           this,                           SLOT(modifyFilter()));
-  connect(m_roiTools,                     SIGNAL(roiChanged(ROISPtr)),
+  connect(m_roiTools.get(),               SIGNAL(roiChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
 
-  connect(m_filter->output(0).get(), SIGNAL(modified()),
-          this,                      SLOT(onOutputModified()));
+  connect(m_filter.get(), SIGNAL(thresholdModified(int, int)),
+          this,           SLOT(onFilterThresholdModified(int, int)));
+  connect(m_filter.get(), SIGNAL(radiusModified(int)),
+          this,           SLOT(onFilterRadiusModified(int)));
+  connect(m_filter.get(), SIGNAL(roiModified(ROISPtr)),
+          this,           SLOT(onFilterroiModified(ROISPtr)));
 }
 
 //----------------------------------------------------------------------------
@@ -249,45 +214,67 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
   s_mutex.unlock();
 
   m_roiTools->setCurrentROI(nullptr);
+  m_roiTools->setVisible(false);
+}
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationRefineWidget::onFilterThresholdModified(int lower, int upper)
+{
+  // NOTE: assuming simmetric threshold.
+  m_gui->threshold->setValue(lower);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationRefineWidget::onOutputModified()
+void SeedGrowSegmentationRefineWidget::onFilterRadiusModified(int value)
 {
-  m_roiTools->setCurrentROI(m_filter->roi());
+  auto enabled = (value != 0);
+
+  m_gui->closingRadius->setValue(value);
+
+  m_gui->applyClosing->setChecked(enabled);
+  m_gui->closingRadius->setEnabled(enabled);
+  m_gui->closingRadiusLabel->setEnabled(enabled);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationRefineWidget::onFilterroiModified(ROISPtr roi)
+{
+  m_roiTools->setCurrentROI(roi);
 }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onThresholdChanged(int value)
 {
-  m_gui->apply->setEnabled(true);
+  auto enabled = (m_filter->upperThreshold() != value);
 
-  emit thresholdChanged(value);
+  m_gui->apply->setEnabled(enabled);
 }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onApplyClosingChanged(bool value)
 {
-  m_gui->apply->setEnabled(true);
+  auto filterClosingEnabled = (m_filter->closingRadius() != 0);
+  auto enabled = (value != filterClosingEnabled);
+
+  m_gui->apply->setEnabled(enabled);
 
   m_gui->closingRadius->setEnabled(value);
   m_gui->closingRadiusLabel->setEnabled(value);
-
-  emit applyClosingChanged(value);
 }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onClosingRadiusChanged(int value)
 {
-  emit closingRadiusChanged(value);
+  auto enabled = (value != m_filter->closingRadius());
+
+  m_gui->apply->setEnabled(enabled);
 }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onROIChanged()
 {
   m_roiTools->setEnabled(true);
+  m_gui->apply->setEnabled(true);
 }
-
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onDiscardROIModifications()
@@ -318,8 +305,10 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       auto radius    = m_gui->closingRadius->value();
 
       undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
-      undoStack->push(new SGSFilterModification(m_segmentation, m_filter, roi, threshold, radius));
+      undoStack->push(new SGSFilterModification(m_segmentation, roi, threshold, radius));
       undoStack->endMacro();
+
+      m_gui->apply->setEnabled(false);
 
       if (m_filter->isTouchingROI())
       {
@@ -341,25 +330,6 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
       GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
     }
   }
-}
-
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationRefineWidget::setThreshold(int value)
-{
-  m_gui->threshold->setValue(value);
-}
-
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationRefineWidget::setApplyClosing(bool value)
-{
-  m_gui->applyClosing->setChecked(value);
-  m_gui->closingRadius->setEnabled(value);
-}
-
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationRefineWidget::setClosingRadius(int value)
-{
-  m_gui->closingRadius->setValue(value);
 }
 
 //----------------------------------------------------------------------------

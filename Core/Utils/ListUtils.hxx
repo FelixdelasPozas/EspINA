@@ -101,6 +101,19 @@ namespace ESPINA
 
         return result;
       }
+
+      template <typename T>
+      QSet<T *> toRawSet(const QList<std::shared_ptr<T>> &list)
+      {
+        QSet<T> result;
+
+        for(auto item: list)
+        {
+          result.insert(item.get());
+        }
+
+        return result;
+      }
     }
   }
 }
