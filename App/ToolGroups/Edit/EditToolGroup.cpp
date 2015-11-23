@@ -62,12 +62,6 @@ const QString ERODE_RADIUS ("EditTools::ErodeRadius");
 const QString OPEN_RADIUS  ("EditTools::OpenRadius");
 const QString CLOSE_RADIUS ("EditTools::CloseRadius");
 
-//   ESPINA_SETTINGS(settings);
-//   m_erode .setRadius(settings.value(ERODE_RADIUS,  3).toInt());
-//   m_dilate.setRadius(settings.value(DILATE_RADIUS, 3).toInt());
-//   m_open  .setRadius(settings.value(OPEN_RADIUS,   3).toInt());
-//   m_close .setRadius(settings.value(CLOSE_RADIUS,  3).toInt());
-
 const Filter::Type CLOSE_FILTER          = "CloseSegmentation";
 const Filter::Type CLOSE_FILTER_V4       = "EditorToolBar::ClosingFilter";
 const Filter::Type OPEN_FILTER           = "OpenSegmentation";
@@ -82,6 +76,7 @@ const Filter::Type IMAGE_LOGIC_FILTER    = "ImageLogicFilter";
 const Filter::Type ADDITION_FILTER       = "AdditionFilter";
 const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
 
+//------------------------------------------------------------------------
 class MorphologicalFilterFactory
 : public FilterFactory
 {
@@ -268,7 +263,7 @@ bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) 
 
 //-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerRegister &filgerRefiners,
-                                 Support::Context               &context)
+                             Support::Context               &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Edit")}
 , WithContext(context)
 {
@@ -332,7 +327,7 @@ void EditToolGroup::initManualEditionTool()
 void EditToolGroup::initSplitTool()
 {
   auto split = std::make_shared<SplitTool>(getContext());
-  split->setOrder("3-2");
+  split->setOrder("3-3");
   addTool(split);
 }
 
@@ -368,17 +363,23 @@ void EditToolGroup::initFillHolesTool()
 //-----------------------------------------------------------------------------
 void EditToolGroup::initImageLogicTools()
 {
-  auto addition  = std::make_shared<ImageLogicTool>("Merge", ":/espina/logical_union.svg",    tr("Merge Selected Segmentations"),     getContext());
+  auto addition  = std::make_shared<ImageLogicTool>("Merge", ":/espina/logical_union.svg", tr("Merge selected segmentations"), getContext());
   addition->setOperation(ImageLogicFilter::Operation::ADDITION);
 
-  auto substract = std::make_shared<ImageLogicTool>("Substract", ":/espina/logical_difference.svg", tr("Substract Selected Segmentations"), getContext());
-  substract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
+  auto subtract = std::make_shared<ImageLogicTool>("Substract", ":/espina/logical_difference.svg", tr("Subtract selected segmentations"), getContext());
+  subtract->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
+  subtract->removeOnSubtract(false);
 
-  addition->setOrder("3-0");
-  substract->setOrder("3-1");
+  auto subtractAndErase = std::make_shared<ImageLogicTool>("SubstractErase", ":/espina/logical_difference_erase.svg", tr("Subtract selected segmentations deleting the subtracted segmentations"), getContext());
+  subtractAndErase->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
+
+  addition        ->setOrder("3-0");
+  subtract        ->setOrder("3-1");
+  subtractAndErase->setOrder("3-2");
 
   addTool(addition);
-  addTool(substract);
+  addTool(subtract);
+  addTool(subtractAndErase);
 }
 
 //-----------------------------------------------------------------------------

@@ -30,6 +30,8 @@
 // Qt
 #include <QAction>
 
+class QToolBar;
+
 namespace ESPINA
 {
   class RenderView;
@@ -85,6 +87,14 @@ namespace ESPINA
   };
 
   using ToolGroupPtr = ToolGroup *;
+
+  /** \brief Helper method to populate a QToolbar with all the tool actions.
+   * \param[in] bar QToolBar object.
+   * \param[in] tools grouped tools.
+   *
+   */
+  void populateToolBar(QToolBar *bar, ToolGroup::GroupedTools tools);
+
 } // namespace ESPINA
 
 #endif // ESPINA_TOOL_GROUP_H

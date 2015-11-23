@@ -28,36 +28,62 @@ namespace ESPINA
   class ImageLogicTool
   : public Support::Widgets::EditTool
   {
-    Q_OBJECT
-  public:
-    explicit ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief ImageLogicTool class constructor.
+       * \param[in] id tool id.
+       * \param[in] icon icon string in the aplication resource file.
+       * \param[in] tooltip tool tooltip text.
+       * \param[in] context application context.
+       *
+       */
+      explicit ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context);
 
-    void setOperation(ImageLogicFilter::Operation operation);
+      /** \brief Sets the logic operation of the tool
+       * \param[in] operation logic operation of the tool.
+       *
+       */
+      void setOperation(ImageLogicFilter::Operation operation);
 
-    virtual void abortOperation();
+      virtual void abortOperation();
 
-  private:
-    virtual bool acceptsNInputs(int n) const;
+      /** \brief Sets if the segmentations of a substract operation should be removed after finishing.
+       * \param[in] value true to remove and false otherwise.
+       *
+       * NOTE: this has no effect on addition operation, obviously.
+       */
+      void removeOnSubtract(bool value)
+      { m_removeOnSubtract = value; }
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+    private:
+      virtual bool acceptsNInputs(int n) const;
 
-  private slots:
-    void applyFilter();
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
-    void onTaskFinished();
+    private slots:
+      /** \brief Launches the operation task.
+       *
+       */
+      void applyFilter();
 
-  private:
-    struct TaskContext
-    {
-      FilterSPtr                  Task;
-      ImageLogicFilter::Operation Operation;
-      SegmentationAdapterList     Segmentations;
-      bool                        Remove;
-    };
+      /** \brief Performs post operations after the task has finished.
+       *
+       */
+      void onTaskFinished();
 
-    ImageLogicFilter::Operation m_operation;
+    private:
+      /** context of the operation task. */
+      struct TaskContext
+      {
+        FilterSPtr                  Task;           /** task object.                                                   */
+        ImageLogicFilter::Operation Operation;      /** operation of the task.                                         */
+        SegmentationAdapterList     Segmentations;  /** list of segmentation involved in the operation.                */
+        bool                        Remove;         /** true to remove the segmentations after the operation finishes. */
+      };
 
-    QMap<TaskPtr, TaskContext> m_executingTasks;
+      ImageLogicFilter::Operation m_operation;         /** operation of the tool.                 */
+      bool                        m_removeOnSubtract;  /** optional flag for subtract operation.  */
+      QMap<TaskPtr, TaskContext>  m_executingTasks;    /** map of task-context for running tasks. */
   };
 }
 

@@ -17,6 +17,7 @@
  *
  */
 
+// ESPINA
 #include "ImageLogicTool.h"
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/AddSegmentations.h>
@@ -31,8 +32,9 @@ const Filter::Type SUBSTRACTION_FILTER = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 ImageLogicTool::ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context)
-: EditTool(id, icon, tooltip, context)
-, m_operation(ImageLogicFilter::Operation::ADDITION)
+: EditTool          (id, icon, tooltip, context)
+, m_operation       {ImageLogicFilter::Operation::ADDITION}
+, m_removeOnSubtract{true}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(applyFilter()));
@@ -47,7 +49,6 @@ void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)
 //------------------------------------------------------------------------
 void ImageLogicTool::abortOperation()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -69,16 +70,6 @@ void ImageLogicTool::applyFilter()
 
   Q_ASSERT(segmentations.size() > 1);
 
-  getSelection()->clear();
-
-  InputSList inputs;
-  for(auto segmentation: segmentations)
-  {
-    segmentation->setBeingModified(true);
-    inputs << segmentation->asInput();
-    getSelection()->modified();
-  }
-
   auto type        = ADDITION_FILTER;
   auto description = tr("Segmentation addition");
   auto remove      = true;
@@ -86,11 +77,21 @@ void ImageLogicTool::applyFilter()
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
     type        = SUBSTRACTION_FILTER;
-    description = tr("Segmentation substraction");
-    remove      = (QMessageBox::Yes == GUI::DefaultDialogs::UserQuestion(tr("Do you want to remove the subtracting segmentations?"),
-                                                                         QMessageBox::Yes|QMessageBox::No,
-                                                                         tr("Logical Subtraction")));
+    description = tr("Segmentation subtraction");
+    remove      = m_removeOnSubtract;
   }
+
+  auto selection = getSelection();
+  selection->clear();
+
+  InputSList inputs;
+  for(auto segmentation: segmentations)
+  {
+    segmentation->setBeingModified(true);
+    inputs << segmentation->asInput();
+  }
+
+  selection->set(segmentations);
 
   auto filter = getFactory()->createFilter<ImageLogicFilter>(inputs, type);
   filter->setOperation(m_operation);
@@ -125,30 +126,37 @@ void ImageLogicTool::onTaskFinished()
     auto taskContext = m_executingTasks[filter];
     auto undoStack   = getUndoStack();
 
-    undoStack->beginMacro(filter->description());
-
     auto segmentation = getFactory()->createSegmentation(taskContext.Task, 0);
 
     segmentation->setCategory(taskContext.Segmentations.first()->category());
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
 
+    undoStack->beginMacro(filter->description());
     undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
 
-    for(auto segmentation: taskContext.Segmentations)
-    {
-      segmentation->setBeingModified(false);
+    SegmentationAdapterList segmentationList;
 
-      if(!taskContext.Remove && (segmentation != taskContext.Segmentations.first()))
+    for(auto item: taskContext.Segmentations)
+    {
+      item->setBeingModified(false);
+
+      if(!taskContext.Remove && (item != taskContext.Segmentations.first()))
       {
         continue;
       }
 
-      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+      segmentationList << item;
     }
-    getSelection()->modified();
 
+    undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
     undoStack->endMacro();
+
+    segmentationList.clear();
+    segmentationList << segmentation.get();
+
+    auto selection = getSelection();
+    selection->set(segmentationList);
   }
 
   m_executingTasks.remove(filter);

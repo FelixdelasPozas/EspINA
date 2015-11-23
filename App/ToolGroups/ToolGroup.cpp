@@ -21,6 +21,9 @@
 // ESPINA
 #include "ToolGroup.h"
 
+// Qt
+#include <QToolBar>
+
 using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
 
@@ -103,5 +106,20 @@ void ToolGroup::activate(bool value)
   if (value)
   {
     emit activated(this);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ESPINA::populateToolBar(QToolBar *bar, ToolGroup::GroupedTools tools)
+{
+  for(auto list: tools)
+  {
+    for(auto tool: list)
+    {
+      for(auto action: tool->actions())
+      {
+        bar->addAction(action);
+      }
+    }
   }
 }
