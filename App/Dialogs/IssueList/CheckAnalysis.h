@@ -115,6 +115,9 @@ namespace ESPINA
       void addIssue(Extensions::IssueSPtr issue);
 
     private:
+      void removePreviousIssues(ModelAdapterSPtr model);
+
+    private:
       using CheckList = QList<std::shared_ptr<CheckTask>>;
       QMutex    m_progressMutex;
       CheckList m_checkList;

@@ -289,8 +289,9 @@ void EspinaMainWindow::enableWidgets(bool value)
   }
 
   auto sessionTools = m_sessionToolGroup->groupedTools();
-  sessionTools[0][1]->setEnabled(value);
-  sessionTools[1][1]->setEnabled(value);
+  sessionTools[0][1]->setEnabled(value); // Add
+  sessionTools[1][1]->setEnabled(value); // Save as
+  sessionTools[3][0]->setEnabled(value); // Check
 
   for(auto action: m_mainBar->actions())
   {
@@ -345,8 +346,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
   {
-    auto answer = DefaultDialogs::UserQuestion(tr("ESPINA has pending actions. Do you really want to quit anyway?"), QMessageBox::Yes|QMessageBox::Cancel,
-                                               tr("ESPINA"));
+    auto answer = DefaultDialogs::UserQuestion(tr("ESPINA has pending actions. Do you really want to quit anyway?"),
+                                               QMessageBox::Yes|QMessageBox::Cancel);
     if(answer == QMessageBox::Cancel)
     {
       event->ignore();
@@ -834,8 +835,16 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(undo);
   m_sessionToolGroup->addTool(redo);
 
+  auto checkAnalysis = std::make_shared<ProgressTool>("CheckAnalysis", ":/espina/checklist.svg", tr("Check session for issues"), m_context);
+  checkAnalysis->setOrder("3-0", "3-Settings");
+
+  connect(checkAnalysis.get(), SIGNAL(triggered(bool)),
+          this,                SLOT(checkAnalysisConsistency()));
+
+  m_sessionToolGroup->addTool(checkAnalysis);
+
   auto settings = std::make_shared<ProgressTool>("Settings", ":/espina/settings.svg", tr("Settings"), m_context);
-  settings->setOrder("3-0", "3-Settings");
+  settings->setOrder("4-0", "3-Settings");
 
   connect(settings.get(), SIGNAL(triggered(bool)),
           this,           SLOT(showPreferencesDialog()));
@@ -843,7 +852,7 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(settings);
 
   auto about = std::make_shared<ProgressTool>("About", ":/espina/info.svg", tr("About ESPINA"), m_context);
-  about->setOrder("4-0", "3-Settings");
+  about->setOrder("5-0", "3-Settings");
 
   connect(about.get(), SIGNAL(triggered(bool)),
           this,        SLOT(showAboutDialog()));
@@ -851,7 +860,7 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(about);
 
   auto exit = std::make_shared<ProgressTool>("Exit", ":/espina/exit.svg", tr("Exit ESPINA"), m_context);
-  exit->setOrder("5-0", "3-Settings");
+  exit->setOrder("6-0", "3-Settings");
   exit->setShortcut(Qt::CTRL+Qt::Key_Q);
 
   connect(exit.get(), SIGNAL(triggered(bool)),
@@ -1172,6 +1181,13 @@ void EspinaMainWindow::checkAnalysisConsistency()
 
   connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
+
+  if(sender())
+  {
+    auto tool = dynamic_cast<ProgressTool *>(sender());
+    connect(checkerTask.get(), SIGNAL(progress(int)),
+            tool,              SLOT(setProgress(int)));
+  }
 
   checkerTask->submit(checkerTask);
 }

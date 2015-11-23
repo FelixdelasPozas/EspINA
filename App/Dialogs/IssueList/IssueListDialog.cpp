@@ -32,6 +32,7 @@ IssueListDialog::IssueListDialog(IssueList issuesList)
 {
   setupUi(this);
   setWindowTitle(tr("Current session problems"));
+  setWindowIcon(QIcon(":/espina/checklist.svg"));
   m_issueTable->setAlternatingRowColors(true);
   m_issueTable->setRowCount(issuesList.size());
   m_issueTable->setColumnCount(4);

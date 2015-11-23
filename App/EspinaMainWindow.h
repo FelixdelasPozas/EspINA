@@ -187,7 +187,15 @@ namespace ESPINA
      */
     void showIssuesDialog(Extensions::IssueList problems) const;
 
+    /** \brief Changes the current group to the session one when saving a file.
+     *
+     */
     void onAutoSave(const QString &file);
+
+    /** \brief Runs a series of test on the analysis to check for issues.
+     *
+     */
+    void checkAnalysisConsistency();
 
   private:
     void initColorEngines();
@@ -237,11 +245,6 @@ namespace ESPINA
     void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
     void checkAutoSavedAnalysis();
-
-    /** \brief Runs a series of test on the analysis to check for issues.
-     *
-     */
-    void checkAnalysisConsistency();
 
     /** \brief Adds a tool group to the application.
      * \param[in] tools tool group raw pointer.

@@ -46,6 +46,10 @@ namespace ESPINA {
         CRITICAL    = 3
       };
 
+      static QString INFORMATION_TAG;
+      static QString WARNING_TAG;
+      static QString CRITICAL_TAG;
+
       // required by qRegisterMetaType
       explicit Issue()
       : m_severity(Severity::CRITICAL)

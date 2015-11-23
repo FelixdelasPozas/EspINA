@@ -141,7 +141,8 @@ namespace ESPINA
           if (channel && !channels.contains(channel))
           {
             channels << channel;
-          } else
+          }
+          else
           {
             ancestors << content->ancestors(ancestor);
           }
@@ -245,7 +246,9 @@ namespace ESPINA
       for(auto analysisSegmentation: segmentations)
       {
         if(analysisSegmentation.get() == segmentation)
+        {
           return samples(analysisSegmentation);
+        }
       }
 
       SampleSList emptyList;
@@ -271,21 +274,9 @@ namespace ESPINA
     //------------------------------------------------------------------------
     ChannelSList channels(SegmentationSPtr segmentation)
     {
-      auto samplesSList = samples(segmentation);
-
-      ChannelSList channelList;
-      for (auto sample : samplesSList)
-      {
-        channelList << channels(sample);
-      }
-
-      // In case no stain relation is found we try to find using content
-      if (channelList.isEmpty())
-      {
-        channelList = QueryContents::channels(segmentation);
-      }
-
-      return channelList;
+      // NOTE: there is no way using relations to know what channel is the one
+      // used as the origin for the segmentation. Using contents is the only way.
+      return QueryContents::channels(segmentation);
     }
 
     //------------------------------------------------------------------------

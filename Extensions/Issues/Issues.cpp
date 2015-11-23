@@ -21,6 +21,10 @@
 
 using namespace ESPINA::Extensions;
 
+QString Issue::INFORMATION_TAG = "information";
+QString Issue::WARNING_TAG     = "warning";
+QString Issue::CRITICAL_TAG    = "critical";
+
 //------------------------------------------------------------------------
 QString Issue::displayName() const
 {

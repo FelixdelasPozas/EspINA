@@ -33,6 +33,8 @@ using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
 
+const QString DUPLICATED_TAG = "duplicated";
+
 //------------------------------------------------------------------------
 class NeuroItemIssue
 : public Issue
@@ -68,17 +70,20 @@ class SegmentationIssue
   private:
     void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
     {
-      if (Severity::CRITICAL == severity)
+      switch(severity)
       {
-        addIssueTag(segmentation,
-        { "critical" });
+        case Severity::CRITICAL:
+          addIssueTag(segmentation, { Issue::CRITICAL_TAG });
+          break;
+        case Severity::WARNING:
+          addIssueTag(segmentation, { Issue::WARNING_TAG });
+          break;
+        case Severity::INFORMATION:
+          addIssueTag(segmentation, { Issue::INFORMATION_TAG });
+          break;
+        default:
+          break;
       }
-      else
-        if (Severity::WARNING == severity)
-        {
-          addIssueTag(segmentation,
-          { "warning" });
-        }
     }
 };
 
@@ -90,7 +95,7 @@ class DuplicatedIssue
     explicit DuplicatedIssue(SegmentationAdapterPtr segmentation, SegmentationAdapterPtr duplicated)
     : SegmentationIssue(duplicated, Severity::WARNING, description(segmentation), suggestion())
     {
-      addIssueTag(duplicated, { "duplicated" });
+      addIssueTag(duplicated, { DUPLICATED_TAG });
     }
 
   private:
@@ -101,7 +106,7 @@ class DuplicatedIssue
 
     static QString suggestion()
     {
-      return QObject::tr("Delete unnecesary segmentation");
+      return QObject::tr("Delete unnecessary segmentation");
     }
 
 };
@@ -158,6 +163,8 @@ CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
   setPriority(Priority::LOW);
 
   qRegisterMetaType<Extensions::IssueList>("Extensions::IssueList");
+
+  removePreviousIssues(model);
 
   for(auto seg: model->segmentations())
   {
@@ -223,6 +230,47 @@ void CheckAnalysis::addIssue(IssueSPtr issue)
   QMutexLocker lock(&m_progressMutex);
 
   m_issues << issue;
+}
+
+//------------------------------------------------------------------------
+void CheckAnalysis::removePreviousIssues(ModelAdapterSPtr model)
+{
+  for(auto segmentation: model->segmentations())
+  {
+    auto extensions = segmentation->extensions();
+    if(extensions->hasExtension(SegmentationIssues::TYPE))
+    {
+      extensions->remove(SegmentationIssues::TYPE);
+    }
+
+    if(extensions->hasExtension(SegmentationTags::TYPE))
+    {
+      auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+      for(auto tag: tagExtension->tags())
+      {
+        for(auto issueTag: {Issue::CRITICAL_TAG, Issue::INFORMATION_TAG, Issue::CRITICAL_TAG, DUPLICATED_TAG})
+        if(tag.compare(issueTag) == 0)
+        {
+          tagExtension->removeTag(tag);
+        }
+      }
+
+      if(tagExtension->tags().isEmpty())
+      {
+        extensions->remove(tagExtension);
+      }
+    }
+  }
+
+  for(auto channel: model->channels())
+  {
+    // TODO: implement ChannelIssues channel extension
+  }
+
+  for(auto sample: model->samples())
+  {
+    // EMPTY
+  }
 }
 
 //------------------------------------------------------------------------
@@ -366,19 +414,22 @@ void CheckSegmentationTask::checkHasChannel() const
 
   if(channels.empty())
   {
-    auto description = tr("Segmentation is not related to any channel");
+    auto description = tr("Segmentation is not related to any stack");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
-  else if (channels.size() > 1)
-  {
-    auto description = tr("Segmentation is related to several channels");
-
-    reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
-  }
   else
   {
-    checkIsInsideChannel(channels.first().get());
+    if (channels.size() > 1)
+    {
+      auto description = tr("Segmentation is related to several stacks");
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
+    }
+    else
+    {
+      checkIsInsideChannel(channels.first().get());
+    }
   }
 }
 
@@ -387,7 +438,7 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
 {
   if (!contains(channel->output()->bounds(), m_segmentation->output()->bounds()))
   {
-    auto description = tr("Segmentation is partially outside its channel");
+    auto description = tr("Segmentation is partially outside its stack");
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
   }
@@ -408,7 +459,7 @@ void CheckChannelTask::checkVolumeIsEmpty() const
     auto volume = readLockVolume(m_channel->output());
     if(volume.isNull())
     {
-      auto description = tr("Channel has a volume associated but can't find it");
+      auto description = tr("Stack has a volume associated but can't find it");
 
       reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }

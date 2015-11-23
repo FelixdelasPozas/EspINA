@@ -13,6 +13,7 @@
     <file>cancel.png</file>
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
+    <file>checklist.svg</file>
     <file>morphological_close.svg</file>
     <file>color_engine_switch_category.svg</file>
     <file>color_engine_switch_number.svg</file>
@@ -66,6 +67,7 @@
     <file>morphological_erode.svg</file>
     <file>logical_union.svg</file>
     <file>logical_difference.svg</file>
+    <file>logical_difference_erase.svg</file>
     <file>multi_stroke.svg</file>
     <file>tag_create.svg</file>
     <file>next_segmentation.svg</file>

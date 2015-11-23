@@ -71,6 +71,7 @@ namespace ESPINA
       virtual bool invalidateOnChange() const override
       { return false; }
 
+      // NOTE: save to seg? requires further issues management in checker.
       virtual State state() const override
       { return State(); }
 
@@ -87,13 +88,28 @@ namespace ESPINA
 
       virtual QString toolTipText() const override;
 
+      /** \brief Adds an issue to the list of issues.
+       * \param[in] issue issue to add.
+       *
+       */
       void addIssue(IssueSPtr issue);
 
+      /** \brief Returns the list of issues.
+       *
+       */
       IssueList issues() const
       { return m_issues; }
 
+      /** \brief Returns the highest severity level of the list of issues.
+       *
+       */
       Issue::Severity highestSeverity() const;
 
+      /** \brief Returns the icon to the given issue level.
+       * \param[in] severity issue severity level.
+       * \param[in] slim true to return the slim icon and false to return the normal one.
+       *
+       */
       static QString severityIcon(const Issue::Severity severity, bool slim = false);
 
     protected:
