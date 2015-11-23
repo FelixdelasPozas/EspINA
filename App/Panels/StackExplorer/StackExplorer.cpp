@@ -21,10 +21,12 @@
 // ESPINA
 #include "StackExplorer.h"
 #include "EspinaConfig.h"
+#include <Dialogs/ChannelInspector/ChannelInspector.h>
 #include <Menus/DefaultContextualMenu.h>
-#include "Dialogs/ChannelInspector/ChannelInspector.h"
-#include <GUI/Model/Utils/QueryAdapter.h>
 #include <Core/Analysis/Channel.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <Undo/RemoveChannel.h>
 
 // Qt
 #include <QMessageBox>
@@ -33,6 +35,7 @@
 #include <ui_StackExplorer.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 class StackExplorer::CentralWidget
@@ -81,10 +84,8 @@ StackExplorer::StackExplorer(Support::Context &context)
           this, SLOT(moveRight()));
   connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
           this, SLOT(channelSelected()));
-  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
-          this, SLOT(focusOnChannel()));
-   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-           this, SLOT(updateChannelRepresentations(QModelIndex)));
+  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
+          this, SLOT(updateChannelRepresentations(QModelIndex)));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
           this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
@@ -104,6 +105,14 @@ StackExplorer::StackExplorer(Support::Context &context)
           this,            SLOT(onActiveChannelChanged(ChannelAdapterPtr)));
 
   onActiveChannelChanged(selection->activeChannel());
+
+  auto model = getModel().get();
+  connect(model, SIGNAL(channelsAdded(ViewItemAdapterSList)),
+          this,  SLOT(onChannelsModified()));
+  connect(model, SIGNAL(channelsRemoved(ViewItemAdapterSList)),
+          this,  SLOT(onChannelsModified()));
+
+  onChannelsModified();
 
   setWidget(m_gui);
 }
@@ -375,72 +384,36 @@ void StackExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void StackExplorer::unloadChannel()
 {
-  // TODO Update APIs
-//   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
-//   if (!index.isValid())
-//     return;
-//
-//   ModelItemPtr item = indexPtr(index);
-//   if (ESPINA::CHANNEL != item->type())
-//     return;
-//
-//   ChannelPtr channel = channelPtr(item);
-//   ModelItemSList relItems = channel->relatedItems(ESPINA::RELATION_OUT);
-//
-//   if (!relItems.empty())
-//   {
-//     QString msgText;
-//     if (relItems.size() > 1)
-//     {
-//       QString number;
-//       number.setNum(relItems.size());
-//       msgText = QString("That channel cannot be unloaded because there are ") + number + QString(" segmentations that depend on it.");
-//     }
-//
-//     else
-//       msgText = QString("That channel cannot be unloaded because there is a segmentation that depends on it.");
-//     QMessageBox msgBox;
-//     msgBox.setIcon(QMessageBox::Information);
-//     msgBox.setText(msgText);
-//     msgBox.setStandardButtons(QMessageBox::Ok);
-//     msgBox.exec();
-//     return;
-//   }
-//   else
-//   {
-//     SampleSPtr sample = channel->sample();
-//     m_undoStack->beginMacro("Unload Channel");
-//     {
-//       m_undoStack->push(new UnloadChannelCommand(channel, m_model));
-//       if (sample->channels().isEmpty())
-//       {
-//         m_undoStack->push(new UnloadSampleCommand(sample, m_model));
-//       }
-//     }
-//     m_undoStack->endMacro();
-//   }
-}
+  auto index = m_sort->mapToSource(m_gui->view->currentIndex());
 
-//------------------------------------------------------------------------
-void StackExplorer::focusOnChannel()
-{
-  //TODO Focus on channel
-//   QModelIndex currentIndex = m_gui->view->currentIndex();
-//   if (!currentIndex.parent().isValid())
-//     return;
-//
-//   QModelIndex index = m_sort->mapToSource(currentIndex);
-//   ModelItemPtr currentItem = indexPtr(index);
-//   if (ESPINA::CHANNEL == currentItem->type())
-//   {
-//     ChannelPtr channel = channelPtr(currentItem);
-//     Nm bounds[6];
-//     channel->volume()->bounds(bounds);
-// //     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
-// //     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-// //     view->setCameraFocus(pos);
-// //     view->forceRender();
-//   }
+  if (!index.isValid()) return;
+
+  auto item = itemAdapter(index);
+
+  if (!isChannel(item)) return;
+
+  auto channel      = channelPtr(item);
+  auto relatedItems = QueryAdapter::segmentationsOnChannelSample(channel);
+
+  if (!relatedItems.isEmpty())
+  {
+    auto plural  = (relatedItems.size() > 1);
+    auto title   = tr("Unload channel");
+    auto message = QString("The channel cannot be unloaded because there %1 %2 segmentation%3 that depends on it.").arg(plural ? "are" : "is").arg(relatedItems.size()).arg(plural ? "s" : "");
+
+    GUI::DefaultDialogs::InformationMessage(message, title);
+    return;
+  }
+  else
+  {
+    auto model        = getModel();
+    auto smartChannel = model->smartPointer(channel);
+    auto undoStack    = getUndoStack();
+
+    undoStack->beginMacro("Unload Channel");
+    undoStack->push(new RemoveChannel(smartChannel, getContext()));
+    undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -466,7 +439,7 @@ void StackExplorer::showInformation()
 //------------------------------------------------------------------------
 void StackExplorer::activateChannel()
 {
-  QModelIndex currentIndex = m_gui->view->currentIndex();
+  auto currentIndex = m_gui->view->currentIndex();
 
   if (currentIndex.parent().isValid())
   {
@@ -517,8 +490,7 @@ void ESPINA::StackExplorer::contextMenuEvent(QContextMenuEvent *e)
     }
   }
 
-  if(channels.empty() || channels.size() != 1)
-    return;
+  if(channels.empty() || channels.size() != 1) return;
 
   QMenu contextMenu;
 
@@ -527,6 +499,10 @@ void ESPINA::StackExplorer::contextMenuEvent(QContextMenuEvent *e)
   setActive->setChecked(channels.first() == getActiveChannel());
   connect(setActive, SIGNAL(triggered(bool)),
           this,      SLOT(activateChannel()));
+
+  auto remove = contextMenu.addAction(tr("Unload stack"));
+  connect(remove, SIGNAL(triggered(bool)),
+          this,   SLOT(unloadChannel()));
 
   contextMenu.addSeparator();
 
@@ -543,4 +519,13 @@ void StackExplorer::updateChannelRepresentations(QModelIndex index)
   auto item = itemAdapter(m_sort->mapToSource(index));
 
   getViewState().invalidateRepresentations(toViewItemList(item));
+}
+
+//------------------------------------------------------------------------
+void StackExplorer::onChannelsModified()
+{
+  auto model   = getModel();
+  auto enabled = model->channels().size() > 1;
+
+  m_gui->unloadChannel->setEnabled(enabled);
 }

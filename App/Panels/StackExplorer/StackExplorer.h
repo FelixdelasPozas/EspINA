@@ -69,12 +69,23 @@ namespace ESPINA
     void moveRight();
     void moveLelft();
     void updateChannelPosition();
-    void unloadChannel();
-    void focusOnChannel();
     void updateTooltips(int index);
-    void activateChannel();
     /******************************************************/
 
+    /** \brief Sets the currently selected channel as the active one.
+     *
+     */
+    void activateChannel();
+
+    /** \brief Removes the channel from the analysis.
+     *
+     */
+    void unloadChannel();
+
+    /** \brief Updates the channel representation.
+     * \param[in] index item index in the tree.
+     *
+     */
     void updateChannelRepresentations(QModelIndex index);
 
     /** \brief Opens a channel inspector dialog.
@@ -91,6 +102,11 @@ namespace ESPINA
      *
      */
     void onActiveChannelChanged(ChannelAdapterPtr channel);
+
+    /** \brief Updates the unload button state.
+     *
+     */
+    void onChannelsModified();
 
     virtual void contextMenuEvent(QContextMenuEvent *);
 

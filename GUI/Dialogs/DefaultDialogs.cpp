@@ -226,15 +226,17 @@ void DefaultDialogs::InformationMessage(const QString& message, const QString& t
 }
 
 //------------------------------------------------------------------------
-QMessageBox::StandardButton DefaultDialogs::UserQuestion(const QString& message,
+QMessageBox::StandardButton DefaultDialogs::UserQuestion(const QString                     &message,
                                                          const QMessageBox::StandardButtons buttons,
-                                                         const QString& title,
-                                                         QWidget* parent)
+                                                         const QString                     &title,
+                                                         const QString                     &details,
+                                                         QWidget                           *parent)
 {
   QMessageBox dialog(parent);
 
   dialog.setWindowTitle(title);
   dialog.setText(message);
+  dialog.setDetailedText(details);
   dialog.setStandardButtons(buttons);
   dialog.setModal(true);
   dialog.setIcon(QMessageBox::Question);

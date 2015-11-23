@@ -196,6 +196,7 @@ set (ESPINA_SOURCES
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
+  Undo/RemoveChannel.cpp
   Views/DefaultView.cpp
   main.cpp
   )

@@ -510,6 +510,8 @@ void ChannelInspector::initPropertiesTab()
 //------------------------------------------------------------------------
 void ChannelInspector::initSliceView()
 {
+  updateSceneState(NmVector3{0,0,0}, m_viewState, toViewItemSList(m_channel));
+
   auto frame = m_viewState.createFrame();
   m_sources.addSource(toViewItemList(m_channel.get()), frame);
 
@@ -526,10 +528,7 @@ void ChannelInspector::initSliceView()
   mainLayout->insertWidget(0, m_view.get(), 1);
 
   m_view->addRepresentationManager(sliceManager);
-
-  sliceManager->show(sliceManager->lastFrame());
-
-  updateSceneState(NmVector3{0,0,0}, m_viewState, toViewItemSList(m_channel));
+  sliceManager->show(m_viewState.createFrame());
 }
 
 //------------------------------------------------------------------------

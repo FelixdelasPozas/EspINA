@@ -38,13 +38,7 @@ namespace ESPINA
   , public Core::Analysis::Extensible<ChannelExtension, Channel>
   {
   public:
-    static const RelationName LINK;
     static const RelationName STAIN_LINK;
-    static const RelationName VOLUME_LINK;
-
-    // Extended Information and representation tags
-    static const QString NAME;
-    static const QString VOLUMETRIC;
 
   public:
     /** \brief Channel class constructor.

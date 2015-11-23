@@ -150,6 +150,7 @@ namespace ESPINA {
       static QMessageBox::StandardButton UserQuestion(const QString                     &message,
                                                       const QMessageBox::StandardButtons buttons = QMessageBox::Yes|QMessageBox::Cancel,
                                                       const QString                     &title   = DefaultDialogs::DefaultTitle(),
+                                                      const QString                     &details = QString(),
                                                       QWidget                           *parent  = DefaultDialogs::defaultParentWidget());
     };
   } // namespace GUI
