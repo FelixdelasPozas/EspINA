@@ -103,8 +103,7 @@ void PipelineSources::insert(ViewItemAdapterList sources)
 //-----------------------------------------------------------------------------
 bool PipelineSources::contains(ViewItemAdapterPtr source) const
 {
-  return isChannel(source)?m_stacks.contains(channelPtr(source))
-                          :m_segmentations.contains(segmentationPtr(source));
+  return isChannel(source) ? m_stacks.contains(channelPtr(source)) : m_segmentations.contains(segmentationPtr(source));
 }
 
 //-----------------------------------------------------------------------------
@@ -119,7 +118,6 @@ void PipelineSources::remove(ViewItemAdapterList sources)
 
     disconnect(source,       SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
                &m_viewState, SLOT(invalidateRepresentations(ViewItemAdapterPtr)));
-
 
     if (isChannel(source))
     {
@@ -153,12 +151,17 @@ void PipelineSources::remove(ViewItemAdapterList sources)
 //-----------------------------------------------------------------------------
 void PipelineSources::onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame)
 {
-  auto invalidated = classifyViewItems(items);
+  GUI::Model::Utils::Items sources;
+  sources.segmentations = m_segmentations;
+  sources.stacks        = m_stacks;
+
+  auto invalidated = classifyViewItems(items, sources);
 
   if (!invalidated.stacks.isEmpty())
   {
     emit stacksInvalidated(invalidated.stacks, frame);
   }
+
   if (!invalidated.segmentations.isEmpty())
   {
     emit segmentationsInvalidated(invalidated.segmentations, frame);
@@ -168,7 +171,11 @@ void PipelineSources::onRepresentationsInvalidated(ViewItemAdapterList items, co
 //-----------------------------------------------------------------------------
 void PipelineSources::onRepresentationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame)
 {
-  auto invalidated = classifyViewItems(items);
+  GUI::Model::Utils::Items sources;
+  sources.segmentations = m_segmentations;
+  sources.stacks        = m_stacks;
+
+  auto invalidated = classifyViewItems(items, sources);
 
   if (!invalidated.stacks.isEmpty())
   {

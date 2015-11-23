@@ -87,16 +87,7 @@ QAction *Dialog3D::toggleViewAction()
 //------------------------------------------------------------------------
 void Dialog3D::showEvent(QShowEvent* event)
 {
-  for(auto group : m_representations.groupedTools())
-  {
-    for (auto tool : group)
-    {
-      for (auto action : tool->actions())
-      {
-        m_toolbar.addAction(action);
-      }
-    }
-  }
+  populateToolBar(&m_toolbar, m_representations.groupedTools());
 
   QDialog::showEvent(event);
 }

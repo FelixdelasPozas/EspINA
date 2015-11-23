@@ -30,14 +30,31 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    /** \brief PipelineSources class constructor.
+     * \param[in] viewState view state.
+     *
+     */
     explicit PipelineSources(GUI::View::ViewState &viewState);
 
+    /** \brief PipelineSources class virtual destructor.
+     *
+     */
     virtual ~PipelineSources();
 
+    /** \brief Returs the sources of the type managed by the class.
+     * \param[in] type type of the sources to return.
+     *
+     */
     ViewItemAdapterList sources(const ItemAdapter::Type &type) const;
 
+    /** \brief Returns true if the sources are empty.
+     *
+     */
     bool isEmpty() const;
 
+    /** \brief Returns the number of managed sources.
+     *
+     */
     int size() const;
 
   signals:
@@ -52,23 +69,45 @@ namespace ESPINA
     void segmentationColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame);
 
   protected:
+    /** \brief Inserts a list of items.
+     * \param[in] sources items to insert.
+     *
+     */
     void insert(ViewItemAdapterList sources);
 
+    /** \brief Returns true if the class contains the item.
+     * \param[in] source item.
+     *
+     */
     bool contains(ViewItemAdapterPtr source) const;
 
+    /** \brief Removes a list of items.
+     * \param[in] sources items to remove.
+     *
+     */
     void remove(ViewItemAdapterList sources);
 
   protected slots:
+    /** \brief Emits the invalidation signal for the source items contained in this class.
+     * \param[in] items invalidated items.
+     * \param[in] frame invalidation frame.
+     *
+     */
     void onRepresentationsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
+    /** \brief Emits the color invalidation signal for the source items contained in this class.
+     * \param[in] items invalidated items.
+     * \param[in] frame invalidation frame.
+     *
+     */
     void onRepresentationColorsInvalidated(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame);
 
   protected:
-    ViewItemAdapterList m_stacks;
-    ViewItemAdapterList m_segmentations;
+    ViewItemAdapterList m_stacks;        /** stack items. */
+    ViewItemAdapterList m_segmentations; /** segmentation items. */
 
   private:
-    GUI::View::ViewState &m_viewState;
+    GUI::View::ViewState &m_viewState;   /** view state to obtain the frames. */
   };
 }
 

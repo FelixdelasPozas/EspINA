@@ -48,8 +48,8 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DefaultView class constructor.
-     * \param[in] context ESPINA context
-     * \param[in] parent of the qobject
+     * \param[in] context application context
+     * \param[in] parent pointer of the object parent of this one.
      */
     explicit DefaultView(Support::Context &context,
                          QMainWindow      *parent = nullptr);

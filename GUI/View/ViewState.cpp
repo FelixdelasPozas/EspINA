@@ -293,8 +293,6 @@ FrameCSPtr ViewState::createFrame(const NmVector3 &point, const Frame::Options o
 
   Q_ASSERT(!options.testFlag(Frame::Focus) || !options.testFlag(Frame::Reset)); // both can't be active
 
-  qDebug() << "viewstate created frame" << frame;
-
   m_frames << frame;
 
   if(m_frames.size() > FRAME_LIMIT)
@@ -320,20 +318,15 @@ FrameCSPtr ViewState::createInvalidationFrame(ViewItemAdapterList items)
 //-----------------------------------------------------------------------------
 FrameCSPtr ViewState::frame(TimeStamp t)
 {
-  qDebug() << "asking for frame" << t;
   auto result = Frame::InvalidFrame();
 
   if(!m_frames.isEmpty())
   {
-    for(int i = m_frames.size() - 1; i > 0; --i)
+    for(int i = m_frames.size() - 1; i >= 0; --i)
     {
       auto frame = m_frames.at(i);
       if(frame->time == t) return frame;
     }
-  }
-  else
-  {
-    qDebug() << "frames emtpy";
   }
 
   return result;
@@ -359,6 +352,14 @@ void ViewState::emitFrameChanged(const FrameCSPtr frame)
   emit frameChanged(frame);
 
   emit afterFrameChanged(frame);
+}
+
+//-----------------------------------------------------------------------------
+void ViewState::updateSelection(ViewItemAdapterSList items)
+{
+  auto list = Core::Utils::toRawList<ViewItemAdapter>(items);
+
+  m_selection->unset(list);
 }
 
 //-----------------------------------------------------------------------------

@@ -42,8 +42,11 @@ Context::Context(QMainWindow *mainWindow, bool *minimizedStatus)
 , m_minimizedStatus(minimizedStatus)
 , m_mainWindow(mainWindow)
 {
-//   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
-//                   &m_timer,       SLOT(increment()));
+   QObject::connect(m_model.get(), SIGNAL(channelsRemoved(ViewItemAdapterSList)),
+                   &m_viewState,   SLOT(updateSelection(ViewItemAdapterSList)));
+
+   QObject::connect(m_model.get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+                   &m_viewState,   SLOT(updateSelection(ViewItemAdapterSList)));
 }
 
 //------------------------------------------------------------------------

@@ -112,6 +112,7 @@ namespace ESPINA
     void copyFetchContext(DataSPtr data);
 
     /** \brief Recover data from Persistent Storage.
+     *
      */
     bool fetchData();
 

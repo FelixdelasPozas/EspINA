@@ -22,11 +22,11 @@
 #define ESPINA_DIALOG_3D_H
 
 // ESPINA
+#include <App/ToolGroups/ToolGroup.h>
 #include <GUI/View/View3D.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Types.h>
 #include "ui_Dialog3D.h"
-#include <ToolGroups/ToolGroup.h>
 
 // Qt
 #include <QDialog>

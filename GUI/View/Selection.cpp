@@ -185,10 +185,34 @@ void Selection::set(ViewItemAdapterList selection)
     onChannelsModified(modifiedChannels);
     onSegmentationsModified(modifiedSegmentations);
 
-
     emit selectionChanged();
     emit selectionChanged(m_channels);
     emit selectionChanged(m_segmentations);
+  }
+}
+
+//----------------------------------------------------------------------------
+void Selection::unset(ViewItemAdapterList itemList)
+{
+  ViewItemAdapterList toDeselect;
+  auto selection = items();
+
+  for(auto item: selection)
+  {
+    if(itemList.contains(item))
+    {
+      toDeselect << item;
+    }
+  }
+
+  if(!toDeselect.isEmpty())
+  {
+    for(auto item: toDeselect)
+    {
+      selection.removeOne(item);
+    }
+
+    set(selection);
   }
 }
 

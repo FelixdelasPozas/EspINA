@@ -68,3 +68,25 @@ Utils::Items Utils::classifyViewItems(const ViewItemAdapterList &items)
   return result;
 }
 
+//------------------------------------------------------------------------
+Utils::Items Utils::classifyViewItems(const ViewItemAdapterList &items, const Items &group)
+{
+  Items result;
+
+  for (auto item : items)
+  {
+    if (isChannel(item) && group.stacks.contains(item))
+    {
+      result.stacks << item;
+    }
+    else
+    {
+      if(group.segmentations.contains(item))
+      {
+        result.segmentations << item;
+      }
+    }
+  }
+
+  return result;
+}

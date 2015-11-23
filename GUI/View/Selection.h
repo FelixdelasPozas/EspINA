@@ -65,11 +65,22 @@ namespace ESPINA
          */
         void set(ViewItemAdapterList selection);
 
+        /** \brief Deselects the given items (if the selection contains the items).
+         * \param[in] items items to deselect.
+         *
+         */
+        void unset(ViewItemAdapterList itemList);
+
+        /** \brief Sets the given channel as the active one (the one used for segmentation).
+         * \param[in] channel channel item.
+         *
+         */
         void setActiveChannel(ChannelAdapterPtr channel);
 
-
+        /** \brief Returns the active channel.
+         *
+         */
         ChannelAdapterPtr activeChannel() const;
-
 
         /** \brief Returns the list of selected channels.
          *

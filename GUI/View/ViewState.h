@@ -210,6 +210,8 @@ namespace ESPINA
       private slots:
         void selectionChanged(SegmentationAdapterList segmentations);
 
+        void updateSelection(ViewItemAdapterSList items);
+
       private:
         /** \brief Creates a frame with the given parameters and returns it.
          * \param[in] point frames crosshair point.

@@ -42,15 +42,24 @@ namespace ESPINA
          */
         unsigned int EspinaGUI_EXPORT firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
 
-//         void EspinaGUI_EXPORT classifyViewItems(const ViewItemAdapterList &items, ChannelAdapterList &channels, SegmentationAdapterList &segmentations);
-
         struct Items
         {
           ViewItemAdapterList stacks;
           ViewItemAdapterList segmentations;
         };
 
+        /** \brief Classifies items into segmentations and channels.
+         * \param[in] items items to classify.
+         *
+         */
         Items classifyViewItems(const ViewItemAdapterList &items);
+
+        /** \brief Classifies items belonging to the subgroup into segmentations and channels.
+         * \param[in] items items to classify.
+         * \param[in] group group of items.
+         *
+         */
+        Items classifyViewItems(const ViewItemAdapterList &items, const Items &group);
 
       } // namespace Util
     } // namespace Model
