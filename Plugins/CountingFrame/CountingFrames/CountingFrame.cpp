@@ -27,6 +27,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -56,9 +57,17 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
-  m_command->setWidget(this);
+  m_command->setCountingFrame(this);
 
   m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
+
+  /* TODO: use the extension in the application, right now the manager computes the
+   * channel edges and the CFs get the information via the extension. Not a pretty
+   * thing to do but avoids the computation of the same edges for every extension.
+   * Also, StereologicalInclusion extension still gets the data from the channel
+   * extensions.
+   */
+  m_channelEdges = extension->channelEdges();
 
   connect(m_applyCountingFrame.get(), SIGNAL(finished()),
           this,                       SLOT(onCountingFrameApplied()));
@@ -211,14 +220,14 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
   auto view2D = view2D_cast(view);
   Q_ASSERT(view2D);
   auto slice  = view2D->crosshair()[normalCoordinateIndex(view2D->plane())];
+  auto spacing = m_extension->extendedItem()->output()->spacing();
 
   auto widget = CountingFrame2DWidgetAdapter::New();
 
   widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
   widget->SetRepresentationDepth(view2D->widgetDepth());
   widget->SetPlane(view2D->plane());
-  widget->SetSlicingStep(view2D->sceneResolution());
-  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
   widget->SetSlice(slice);
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
@@ -239,8 +248,9 @@ vtkCountingFrame3DWidget *CountingFrame::createWidget(RenderView *view)
   Q_ASSERT(view3D_cast(view));
 
   auto widget = CountingFrame3DWidgetAdapter::New();
+  auto spacing = m_extension->extendedItem()->output()->spacing();
 
-  widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
+  widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion, spacing);
   widget->SetCurrentRenderer(view->mainRenderer());
   widget->SetInteractor(view->renderWindow()->GetInteractor());
   widget->SetEnabled(true);
@@ -290,14 +300,16 @@ void CountingFrame::updateCountingFrame()
     QMutexLocker lockWidgets(&m_widgetMutex);
     QReadLocker  lockMargins(&m_marginsMutex);
 
+    auto spacing = m_extension->extendedItem()->output()->spacing();
+
     for(auto widget : m_widgets2D)
     {
-      widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+      widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
     }
 
     for(auto widget : m_widgets3D)
     {
-      widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
+      widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion, spacing);
     }
   }
 
@@ -372,25 +384,25 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
     widget->GetExclusionOffset(exOffset);
 
     {
-      QWriteLocker lock(&m_widget->m_marginsMutex);
+      QWriteLocker lock(&m_cf->m_marginsMutex);
       for (int i = 0; i < 3; i++)
       {
-        m_widget->m_inclusion[i] = inOffset[i];
-        if (m_widget->m_inclusion[i] < 0)
+        m_cf->m_inclusion[i] = inOffset[i];
+        if (m_cf->m_inclusion[i] < 0)
         {
-          m_widget->m_inclusion[i] = 0;
+          m_cf->m_inclusion[i] = 0;
         }
 
-        m_widget->m_exclusion[i] = exOffset[i];
-        if (m_widget->m_exclusion[i] < 0)
+        m_cf->m_exclusion[i] = exOffset[i];
+        if (m_cf->m_exclusion[i] < 0)
         {
-          m_widget->m_exclusion[i] = 0;
+          m_cf->m_exclusion[i] = 0;
         }
       }
     }
 
-    m_widget->updateCountingFrame();
-    m_widget->apply();
+    m_cf->updateCountingFrame();
+    m_cf->apply();
   }
 }
 

@@ -39,42 +39,80 @@ namespace ESPINA
     class CountingFramePlugin_EXPORT AdaptiveCountingFrame
     : public CountingFrame
     {
-    public:
-      static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
-                                        const Bounds &bounds,
-                                        Nm inclusion[3],
-                                        Nm exclusion[3],
-                                        SchedulerSPtr scheduler)
-      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion, scheduler); }
+      public:
+        /** \brief AdaptiveCountingFrame vtk-style static New constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         * \param[in] scheduler task scheduler.
+         *
+         */
+        static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
+                                          Nm inclusion[3],
+                                          Nm exclusion[3],
+                                          SchedulerSPtr scheduler)
+        { return new AdaptiveCountingFrame(extension, inclusion, exclusion, scheduler); }
 
-      virtual ~AdaptiveCountingFrame();
+        /** \brief AdaptiveCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~AdaptiveCountingFrame();
 
-      virtual CFType cfType() const
-      { return CF::ADAPTIVE; }
+        virtual CFType cfType() const
+        { return CF::ADAPTIVE; }
 
-      virtual QString typeName() const { return ADAPTIVE_CF; }
+        virtual QString typeName() const { return ADAPTIVE_CF; }
 
-      virtual void updateCountingFrameImplementation();
+        virtual void updateCountingFrameImplementation();
 
-    protected:
-      explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
-                                     const Bounds &bounds,
-                                     Nm inclusion[3],
-                                     Nm exclusion[3],
-                                     SchedulerSPtr scheduler);
+      protected:
+        /** \brief AdaptiveCountingFrame class constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         * \param[in] scheduler task scheduler.
+         *
+         */
+        explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
+                                       Nm inclusion[3],
+                                       Nm exclusion[3],
+                                       SchedulerSPtr scheduler);
 
-    protected:
-      Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
-      Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
-      Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
-      Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
-      Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
-      Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
+      protected:
+        /** \brief Returns the left inclusion margin.
+         *
+         */
+        Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
 
-    private:
-      Channel *m_channel;
+        /** \brief Returns the top inclusion margin.
+         *
+         */
+        Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
 
-      friend class vtkCountingFrameCommand;
+        /** \brief Returns the front inclusion margin.
+         *
+         */
+        Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
+
+        /** \brief Returns the right exclusion margin.
+         *
+         */
+        Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
+
+        /** \brief Returns the bottom exclusion margin.
+         *
+         */
+        Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
+
+        /** \brief Returns the back exclusion margin.
+         *
+         */
+        Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
+
+      private:
+        Channel *m_channel; /** extension's extended item. */
+
+        friend class vtkCountingFrameCommand;
     };
   } // namespace CF
 } // namespace ESPINA

@@ -21,59 +21,82 @@
 #ifndef ESPINA_CF_ORTOGONAL_COUNTING_FRAME_H
 #define ESPINA_CF_ORTOGONAL_COUNTING_FRAME_H
 
-// Plugin
 #include "CountingFramePlugin_Export.h"
+
+// Plugin
 #include "CountingFrames/CountingFrame.h"
 
 namespace ESPINA
 {
   namespace CF
   {
+    class vtkCountingFrameCommand;
+    class CountingFrameExtension;
 
-  class vtkCountingFrameCommand;
-  class CountingFrameExtension;
+    const QString ORTOGONAL_CF = QObject::tr("Orthogonal");
 
-  const QString ORTOGONAL_CF = QObject::tr("Orthogonal");
+    class CountingFramePlugin_EXPORT OrthogonalCountingFrame
+    : public CountingFrame
+    {
+      public:
+        /** \brief OrthogonalCountingFrame static vtk-style New constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         * \param[in] scheduler task scheduler.
+         *
+         */
+        static OrthogonalCountingFrame *New(CountingFrameExtension *extension,
+                                            Nm inclusion[3],
+                                            Nm exclusion[3],
+                                            SchedulerSPtr scheduler)
+        { return new OrthogonalCountingFrame(extension, inclusion, exclusion, scheduler);}
 
-  class CountingFramePlugin_EXPORT OrthogonalCountingFrame
-  : public CountingFrame
-  {
-  public:
-    static OrthogonalCountingFrame *New(CountingFrameExtension *extension,
-                                        const Bounds &bounds,
+        /** \brief OrthogonalCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~OrthogonalCountingFrame();
+
+        virtual CFType cfType() const
+        { return CF::ORTOGONAL; }
+
+        virtual QString typeName() const { return ORTOGONAL_CF; }
+
+        virtual void updateCountingFrameImplementation();
+
+      protected:
+        /** \brief OrthogonalCountingFrame class constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         * \param[in] scheduler task scheduler.
+         *
+         */
+        explicit OrthogonalCountingFrame(CountingFrameExtension *extension,
                                         Nm inclusion[3],
                                         Nm exclusion[3],
-                                        SchedulerSPtr scheduler)
-    { return new OrthogonalCountingFrame(extension, bounds, inclusion, exclusion, scheduler);}
+                                        SchedulerSPtr scheduler);
 
-    virtual ~OrthogonalCountingFrame();
+        /** \brief Returns a vtkPolyData prism with the given limits.
+         * \param[in] left left side limit in Nm.
+         * \param[in] top top side limit in Nm.
+         * \param[in] front front side limit in Nm.
+         * \param[in] right right side limit in Nm.
+         * \param[in] bottom bottom side limit in Nm.
+         * \param[in] back back side limit in Nm.
+         */
+        vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
+                                                             Nm top,
+                                                             Nm front,
+                                                             Nm right,
+                                                             Nm bottom,
+                                                             Nm back);
 
-    virtual CFType cfType() const
-    { return CF::ORTOGONAL; }
+      private:
+        Bounds m_bounds; /** bounds of the extension's extended item. */
 
-    virtual QString typeName() const { return ORTOGONAL_CF; }
-
-    virtual void updateCountingFrameImplementation();
-
-  protected:
-    explicit OrthogonalCountingFrame(CountingFrameExtension *extension,
-                                    const Bounds &bounds,
-                                    Nm inclusion[3],
-                                    Nm exclusion[3],
-                                    SchedulerSPtr scheduler);
-
-    vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
-                                                         Nm top,
-                                                         Nm front,
-                                                         Nm right,
-                                                         Nm bottom,
-                                                         Nm back);
-
-  private:
-    Bounds m_bounds;
-
-    friend class vtkCountingFrameCommand;
-  };
+        friend class vtkCountingFrameCommand;
+    };
 
   } // namespace CF
 } // namespace ESPINA

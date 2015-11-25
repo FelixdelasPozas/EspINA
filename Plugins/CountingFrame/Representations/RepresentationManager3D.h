@@ -31,65 +31,89 @@ namespace ESPINA
     class RepresentationManager3D
     : public GUI::Representations::RepresentationManager
     {
-      Q_OBJECT
-    public:
-      explicit RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+        Q_OBJECT
+      public:
+        /** \brief RepresentationManager3D class constructor.
+         * \param[in] manager counting frame manager.
+         * \param[in] supportedViews types of views supported by this manager.
+         *
+         */
+        explicit RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
 
-      virtual ~RepresentationManager3D();
+        /** \brief RepresentationManager3D class constructor.
+         *
+         */
+        virtual ~RepresentationManager3D();
 
-      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+        virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override
-      { return false; }
+      protected:
+        virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override
+        { return false; }
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
-      { return false; }
+        virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
+        { return false; }
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
-      { return false; }
+        virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
+        { return false; }
 
-      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
-      { return false; }
+        virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+        { return false; }
 
-    private slots:
-      /** \brief Helper method to update internal data when a CF is created.
-       *
-       */
-      void onCountingFrameCreated(CountingFrame *cf);
+      private slots:
+        /** \brief Helper method to update internal data when a CF is created.
+         *
+         */
+        void onCountingFrameCreated(CountingFrame *cf);
 
-      /** \brief Helper method to update internal data when a CF is removed.
-       *
-       */
-      void onCountingFrameDeleted(CountingFrame *cf);
+        /** \brief Helper method to update internal data when a CF is removed.
+         *
+         */
+        void onCountingFrameDeleted(CountingFrame *cf);
 
-    private:
-      virtual bool hasRepresentations() const override;
+      private:
+        virtual bool hasRepresentations() const override;
 
-    virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
+        virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
-      vtkCountingFrame3DWidget *createWidget(CountingFrame *cf);
+        /** \brief Creates and returns a 3D widget for the given counting frame.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        vtkCountingFrame3DWidget *createWidget(CountingFrame *cf);
 
-      void showWidget(vtkCountingFrameWidget *widget);
+        /** \brief Shows the given widget.
+         * \param[in] widget 3D widget.
+         *
+         */
+        void showWidget(vtkCountingFrameWidget *widget);
 
-      void hideWidget(vtkCountingFrameWidget *widget);
+        /** \brief Hides the given widget.
+         * \param[in] widget 3D widget.
+         *
+         */
+        void hideWidget(vtkCountingFrameWidget *widget);
 
-      void deleteWidget(CountingFrame *cf);
+        /** \brief Hides and deletes the widgets for the given counting frame.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        void deleteWidget(CountingFrame *cf);
 
-    private:
-      CountingFrameManager  &m_manager;
-      QList<CountingFrame *> m_pendingCFs;
-      QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;
+      private:
+        CountingFrameManager  &m_manager;                            /** counting frame manager. */
+        QList<CountingFrame *> m_pendingCFs;                         /** list of counting frames pending widget creation. */
+        QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets; /** map of created widgets - counting frames. */
     };
   }
 }

@@ -29,6 +29,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
+#include <vtkMath.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
@@ -309,7 +310,7 @@ ESPINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
 
   regionBounds(0, frontBounds);
 
-  double shift = int(InclusionOffset[2]/SlicingStep[2])+0.5;
+  auto shift = vtkMath::Round(InclusionOffset[2]/SlicingStep[2])+0.5;
 
   return frontBounds[4] + shift*SlicingStep[2];
 }
@@ -321,7 +322,7 @@ ESPINA::Nm vtkCountingFrameRepresentationXY::backSlice() const
 
   regionBounds(NumSlices - 1, backBounds);
 
-  double shift = int(ExclusionOffset[2]/SlicingStep[2])+0.5;
+  auto shift = vtkMath::Round(ExclusionOffset[2]/SlicingStep[2])+0.5;
 
   return backBounds[5] - shift*SlicingStep[2];
 }

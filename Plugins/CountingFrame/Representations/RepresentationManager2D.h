@@ -33,77 +33,111 @@ namespace ESPINA
     : public GUI::Representations::RepresentationManager
     , public GUI::Representations::RepresentationManager2D
     {
-      Q_OBJECT
-    public:
-      explicit RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+        Q_OBJECT
+      public:
+        /** \brief RepresentationManager2D class constructor.
+         * \param[in] manager counting frame manager.
+         * \param[in] supportedViews views supported by this manager.
+         *
+         */
+        explicit RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
 
-      virtual ~RepresentationManager2D();
+        /** \brief RepresentationManager2D class virtual destructor.
+         *
+         */
+        virtual ~RepresentationManager2D();
 
-      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+        virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-      virtual void setPlane(Plane plane) override;
+        virtual void setPlane(Plane plane) override;
 
-      virtual void setRepresentationDepth(Nm depth) override;
+        virtual void setRepresentationDepth(Nm depth) override;
 
-    protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+      protected:
+        virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
-      { return true; }
+        virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
+        { return true; }
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
-      { return false; }
+        virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
+        { return false; }
 
-      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
-      { return false; }
+        virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+        { return false; }
 
-    private slots:
-      /** \brief Helper method to update internal data when a CF is created.
-       *
-       */
-      void onCountingFrameCreated(CountingFrame *cf);
+      private slots:
+        /** \brief Helper method to update internal data when a CF is created.
+         *
+         */
+        void onCountingFrameCreated(CountingFrame *cf);
 
-      /** \brief Helper method to update internal data when a CF is removed.
-       *
-       */
-      void onCountingFrameDeleted(CountingFrame *cf);
+        /** \brief Helper method to update internal data when a CF is removed.
+         *
+         */
+        void onCountingFrameDeleted(CountingFrame *cf);
 
-    private:
-      virtual bool hasRepresentations() const override;
+      private:
+        virtual bool hasRepresentations() const override;
 
-      virtual bool needsRepresentationUpdate(const GUI::Representations::FrameCSPtr frame) override;
+        virtual bool needsRepresentationUpdate(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+        virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
+        virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
-      Nm slicingPosition(TimeStamp t) const;
+        /** \brief Returns the slicing position for a given time.
+         * \param[in] t timestamp.
+         *
+         */
+        Nm slicingPosition(TimeStamp t) const;
 
-      vtkCountingFrameSliceWidget *createWidget(CountingFrame *cf);
+        /** \brief Creates an returns an slice widget for the given counting frame.
+         * \param[in] cf counting frame object pointer to create the widget from.
+         *
+         */
+        vtkCountingFrameSliceWidget *createWidget(CountingFrame *cf);
 
-      void showWidget(vtkCountingFrameSliceWidget *widget, TimeStamp t);
+        /** \brief Shows the given widget for the given time.
+         * \param[in] widget slice widget to show.
+         * \param[in] t timestamp.
+         *
+         */
+        void showWidget(vtkCountingFrameSliceWidget *widget, TimeStamp t);
 
-      void hideWidget(vtkCountingFrameSliceWidget *widget);
+        /** \brief Hides the given widget.
+         * \param[in] widget slice widget to hide.
+         *
+         */
+        void hideWidget(vtkCountingFrameSliceWidget *widget);
 
-      void deleteWidget(CountingFrame *cf);
+        /** \brief Hides the slice widgets for the given counting frame and deletes them.
+         * \param[in] cf counting frame object pointer to remove the widgets.
+         *
+         */
+        void deleteWidget(CountingFrame *cf);
 
-      bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
+        /** \brief Returns true if the value in the normal plane is different between two given points.
+         * \param[in] p1 point 1 coordinates.
+         * \param[in] p2 point 2 coordinates.
+         *
+         */
+        bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
 
-    private:
-      Plane     m_plane;
-      Nm        m_depth;
+      private:
+        Plane  m_plane;  /** plane of the representations. */
+        Nm     m_depth;  /** distance in Nm from the current crosshair where the representations will be shown. */
 
-      CountingFrameManager  &m_manager;
-      QList<CountingFrame *> m_pendingCFs;
-      QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_widgets;
+        CountingFrameManager  &m_manager;                                 /** counting frame manager. */
+        QList<CountingFrame *> m_pendingCFs;                              /** list of counting frames pending widget creation. */
+        QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_widgets;   /** map of counting frame - corresponding widget. */
     };
   }
 }

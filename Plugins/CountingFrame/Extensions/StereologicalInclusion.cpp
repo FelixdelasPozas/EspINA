@@ -247,7 +247,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
       i++;
     }
 
-    m_isExcluded = excluded;// || isOnEdge();
+    m_isExcluded = excluded;
   }
 }
 
@@ -263,7 +263,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto output  = m_extendedItem->output();
   auto inputBB = output->bounds();
   auto spacing = output->spacing();
-//   qDebug() << "InputBB:" << inputBB;
+  //qDebug() << "InputBB:" << inputBB;
 
   auto region       = cf->polyData();
   auto regionPoints = region->GetPoints();
@@ -441,6 +441,8 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
   {
     // TODO: Detect collision using other techniques
     //       (possibly collision detection should be part of the data API)
+    // @felix: use mesh to mesh collision detection by vtk instead a slice by slice collision
+    //         using the CF polydata.
   }
 
   return false;
@@ -459,7 +461,7 @@ void StereologicalInclusion::checkSampleCountingFrames()
 
   if (samples.size() > 1)
   {
-    qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
+    qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not supported";
   }
   else
   {

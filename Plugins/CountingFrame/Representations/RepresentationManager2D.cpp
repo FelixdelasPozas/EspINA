@@ -117,7 +117,7 @@ void RepresentationManager2D::onCountingFrameDeleted(CountingFrame *cf)
 //-----------------------------------------------------------------------------
 bool RepresentationManager2D::hasRepresentations() const
 {
-  return !m_widgets.isEmpty();
+  return !m_widgets.isEmpty() || !m_pendingCFs.isEmpty();
 }
 
 //-----------------------------------------------------------------------------
@@ -136,11 +136,16 @@ void RepresentationManager2D::onShow(const GUI::Representations::FrameCSPtr fram
   m_pendingCFs.clear();
 
   emitRenderRequest(frame);
+
+  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager2D::onHide(const GUI::Representations::FrameCSPtr frame)
 {
+  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 }
 
 //-----------------------------------------------------------------------------

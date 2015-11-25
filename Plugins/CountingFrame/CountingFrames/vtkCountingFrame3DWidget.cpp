@@ -46,7 +46,7 @@ vtkCountingFrame3DWidget::~vtkCountingFrame3DWidget()
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3])
+void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3], ESPINA::NmVector3 resolution)
 {
   if (!this->WidgetRep)
   {

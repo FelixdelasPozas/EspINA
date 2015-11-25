@@ -41,14 +41,13 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 OrthogonalCountingFrame::OrthogonalCountingFrame(CountingFrameExtension *channelExt,
-                                               const Bounds &bounds,
                                                Nm inclusion[3],
                                                Nm exclusion[3],
                                                SchedulerSPtr scheduler)
 : CountingFrame(channelExt, inclusion, exclusion, scheduler)
-, m_bounds(bounds)
+, m_bounds(channelExt->extendedItem()->bounds())
 {
-  updateCountingFrameImplementation();
+  updateCountingFrame();
 }
 
 

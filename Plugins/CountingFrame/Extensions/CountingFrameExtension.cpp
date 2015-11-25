@@ -134,6 +134,12 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 }
 
 //-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CountingFrameExtension::channelEdges()
+{
+  return m_manager->edges(m_extendedItem);
+}
+
+//-----------------------------------------------------------------------------
 void CountingFrameExtension::onExtendedItemSet(Channel *channel)
 {
   const int ID_POS              = 0;
@@ -153,7 +159,8 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
       if (params.size() % NUM_FIELDS != 0)
       {
         qWarning() << "Invalid CF Extension state:\n" << m_prevState;
-      } else
+      }
+      else
       {
         CFType type = static_cast<CFType>(params[TYPE_POS].toInt());
 
@@ -193,11 +200,11 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 
   if (CFType::ORTOGONAL == type)
   {
-    cf = OrthogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
+    cf = OrthogonalCountingFrame::New(this, inclusion, exclusion, m_scheduler);
   }
   else if (CFType::ADAPTIVE == type)
   {
-    cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
+    cf = AdaptiveCountingFrame::New(this, inclusion, exclusion, m_scheduler);
   }
   else
   {
@@ -211,14 +218,6 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 
   m_manager->registerCountingFrame(cf);
 }
-
-//-----------------------------------------------------------------------------
-//TODO ModelItem::ExtIdList CountingFrameExtension::dependencies() const
-// {
-//   ModelItem::ExtIdList deps;
-//   deps << AdaptiveEdgesID;
-//   return deps;
-// }
 
 //-----------------------------------------------------------------------------
 CountingFrameExtensionSPtr ESPINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)

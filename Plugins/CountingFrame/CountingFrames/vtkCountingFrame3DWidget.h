@@ -39,7 +39,7 @@ public:
   vtkTypeMacro(vtkCountingFrame3DWidget, vtkCountingFrameWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3]);
+  virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3], ESPINA::NmVector3 resolution);
 
   // Description:
   // Create the default widget representation if one is not set. By default,

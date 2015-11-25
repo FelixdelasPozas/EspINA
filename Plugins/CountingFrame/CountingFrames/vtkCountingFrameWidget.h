@@ -46,11 +46,13 @@ public:
    * \param[in] region Counting frame region as a polydata.
    * \param[in] inclussionOffset
    * \param[in] exclussionOffset
+   * \param[in] resolution spacing between slices.
    *
    */
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                  ESPINA::Nm inclusionOffset[3],
-                                 ESPINA::Nm exclusionOffset[3]) = 0;
+                                 ESPINA::Nm exclusionOffset[3],
+                                 ESPINA::NmVector3 resolution) = 0;
 
   /** \brief Sets widget visibility.
    * \param[in] visible true to set visible and false otherwise.

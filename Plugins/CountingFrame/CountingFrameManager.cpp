@@ -19,12 +19,16 @@
  *
  */
 
+// Plugin
 #include "CountingFrameManager.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
 #include "CountingFrames/OrthogonalCountingFrame.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
+
+// Qt
+#include <QMutex>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -101,4 +105,26 @@ CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) 
   }
 
   return suggestedId;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::clearEdges()
+{
+  m_edges.clear();
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CountingFrameManager::edges(ChannelPtr channel)
+{
+  QMutexLocker lock(&m_edgesMutex);
+
+  if (!m_edges.keys().contains(channel))
+  {
+    ChannelEdges edgesExtension;
+    edgesExtension.setExtendedItem(channel);
+
+    m_edges.insert(channel, edgesExtension.channelEdges());
+  }
+
+  return m_edges[channel];
 }

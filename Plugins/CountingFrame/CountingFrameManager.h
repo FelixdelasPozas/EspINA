@@ -22,39 +22,83 @@
 #ifndef ESPINA_CF_EXTENSION_FACTORY_H
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
+// Plugin
 #include <CountingFrames/CountingFrame.h>
 #include "Extensions/CountingFrameExtension.h"
 #include <GUI/Types.h>
 
-namespace ESPINA {
-  namespace CF {
+// VTK
+#include <vtkSmartPointer.h>
+class vtkPolyData;
 
+// Qt
+#include <QMutex>
+
+namespace ESPINA
+{
+  namespace CF
+  {
     class CountingFrameManager
     : public QObject
     {
       Q_OBJECT
 
     public:
+      /** \brief Creates and returns a counting frame extension.
+       * \param[in] scheduler task scheduler.
+       * \param[in] state extension state.
+       *
+       */
       CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
                                                  const State& state = State()) const;
 
+      /** \brief Returns the list of created counting frames.
+       *
+       */
       CountingFrameList countingFrames() const
       { return m_countingFrames.keys(); }
 
+      /** \brief Adds the given counting frame to the map of counting frames.
+       * \param[in] cf counting frame object pointer.
+       *
+       */
       void registerCountingFrame(CountingFrame *cf);
 
+      /** \brief Removes the given counting frame from the map of counting frames.
+       * \param[in] cf counting frame object pointer.
+       *
+       */
       void unregisterCountingFrame(CountingFrame *cf);
 
+      /** \brief Returns the default id for the given constraint, or "Global" if the constraint is empty.
+       *
+       */
       CountingFrame::Id defaultCountingFrameId(const QString& constraint) const;
 
+      /** \brief Suggest a counting frame id for a new counting frame taking into account the existing counting frames' ids.
+       *
+       */
       CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
+
+      /** \brief Returns the edges data of the given channel.
+       * \param[in] channel channel object pointer.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> edges(ChannelPtr channel);
+
+      /** \brief Clears the edges map.
+       *
+       */
+      void clearEdges();
 
     signals:
       void countingFrameCreated(CountingFrame *cf);
       void countingFrameDeleted(CountingFrame *cf);
 
     private:
-      QMap<CountingFrame *, ChannelPtr> m_countingFrames;
+      QMap<CountingFrame *, ChannelPtr> m_countingFrames;      /** maps counting frame with its channel. */
+      QMap<ChannelPtr, vtkSmartPointer<vtkPolyData>> m_edges;  /** maps channels with the edges data. */
+      QMutex m_edgesMutex;
     };
   }
 }

@@ -61,15 +61,10 @@ public:
    */
   virtual void SetSlice(ESPINA::Nm pos);
 
-  /** \brief Sets the spacing between slices.
-   * \param[in] slicingStep spacing vector in Nm.
-   *
-   */
-  virtual void SetSlicingStep(ESPINA::NmVector3 slicingStep);
-
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
                                 ESPINA::Nm   inclusionOffset[3],
-                                ESPINA::Nm   exclusionOffset[3]);
+                                ESPINA::Nm   exclusionOffset[3],
+                                ESPINA::NmVector3 resolution);
 
   // Description:
   // Create the default widget representation if one is not set. By default,

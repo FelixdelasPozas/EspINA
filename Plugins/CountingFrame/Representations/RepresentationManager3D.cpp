@@ -91,7 +91,7 @@ void RepresentationManager3D::onCountingFrameDeleted(CountingFrame *cf)
 //-----------------------------------------------------------------------------
 bool RepresentationManager3D::hasRepresentations() const
 {
-  return !m_widgets.isEmpty();
+  return !m_widgets.isEmpty() || !m_pendingCFs.empty();
 }
 
 //-----------------------------------------------------------------------------
@@ -109,6 +109,8 @@ void RepresentationManager3D::onShow(const FrameCSPtr frame)
   }
 
   m_pendingCFs.clear();
+
+  emitRenderRequest(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -151,12 +153,14 @@ vtkCountingFrame3DWidget *RepresentationManager3D::createWidget(CountingFrame *c
 //-----------------------------------------------------------------------------
 void RepresentationManager3D::showWidget(vtkCountingFrameWidget *widget)
 {
+  widget->setVisible(true);
   widget->SetEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager3D::hideWidget(vtkCountingFrameWidget *widget)
 {
+  widget->setVisible(false);
   widget->SetEnabled(false);
 }
 

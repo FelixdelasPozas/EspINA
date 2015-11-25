@@ -326,16 +326,13 @@ void vtkCountingFrameSliceWidget::SetSlice(ESPINA::Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlicingStep(ESPINA::NmVector3 slicingStep)
-{
-  SlicingStep = slicingStep;
-}
-
-//----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                                    ESPINA::Nm inclusionOffset[3],
-                                                   ESPINA::Nm exclusionOffset[3])
+                                                   ESPINA::Nm exclusionOffset[3],
+                                                   ESPINA::NmVector3 resolution)
 {
+  SlicingStep = resolution;
+
   if (!this->WidgetRep)
   {
     CreateDefaultRepresentation();
@@ -351,7 +348,7 @@ void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> 
   memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
 
   auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
+  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, resolution);
   rep->SetSlice(Slice);
 
   this->Render();
