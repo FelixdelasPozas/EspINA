@@ -22,8 +22,9 @@
 #ifndef VTK_COUNTING_FRAME_REPRESENTATION_XZ_H
 #define VTK_COUNTING_FRAME_REPRESENTATION_XZ_H
 
-// Plugin
 #include "CountingFramePlugin_Export.h"
+
+// Plugin
 #include "CountingFrames/vtkCountingFrameSliceRepresentation.h"
 
 class CountingFramePlugin_EXPORT vtkCountingFrameRepresentationXZ

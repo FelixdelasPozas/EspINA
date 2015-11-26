@@ -69,6 +69,7 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
         this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
       }
     }
+
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
     {
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
@@ -108,17 +109,17 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   LB[2] = LT[2] = RT[2] = RB[2] = Depth;
 
   // Shift edges' points
-  LB[0] += InclusionOffset[hCoord];
-  LT[0] += InclusionOffset[hCoord];
+  LB[0] += InclusionOffset[0];
+  LT[0] += InclusionOffset[0];
 
-  LT[1] += InclusionOffset[vCoord];
-  RT[1] += InclusionOffset[vCoord];
+  LT[1] += InclusionOffset[1];
+  RT[1] += InclusionOffset[1];
 
-  RB[0] -= ExclusionOffset[hCoord];
-  RT[0] -= ExclusionOffset[hCoord];
+  RB[0] -= ExclusionOffset[0];
+  RT[0] -= ExclusionOffset[0];
 
-  RB[1] -= ExclusionOffset[vCoord];
-  LB[1] -= ExclusionOffset[vCoord];
+  RB[1] -= ExclusionOffset[1];
+  LB[1] -= ExclusionOffset[1];
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -134,9 +135,8 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
 {
-  double shift = p2[hCoord] - p1[hCoord];
-
-  ESPINA::Nm offset   = InclusionOffset[hCoord] + shift;
+  auto shift  = p2[0] - p1[0];
+  auto offset = InclusionOffset[0] + shift;
 
   if (offset < 0)
   {
@@ -155,7 +155,7 @@ void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -170,16 +170,15 @@ void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
     }
   }
 
-  InclusionOffset[hCoord] = offset;
+  InclusionOffset[0] = offset;
   CreateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
 {
-  double shift = p2[hCoord] - p1[hCoord];
-
-  ESPINA::Nm offset = ExclusionOffset[hCoord] - shift;
+  auto shift  = p2[0] - p1[0];
+  auto offset = ExclusionOffset[0] - shift;
 
   if (offset < 0)
   {
@@ -198,7 +197,7 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -213,15 +212,15 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
     }
   }
 
-  ExclusionOffset[hCoord] = offset;
+  ExclusionOffset[0] = offset;
   CreateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
 {
-  double shift = p2[vCoord] - p1[vCoord];
-  ESPINA::Nm offset = InclusionOffset[vCoord] + shift;
+  auto shift  = p2[1] - p1[1];
+  auto offset = InclusionOffset[1] + shift;
 
   if (offset < 0)
   {
@@ -240,7 +239,7 @@ void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -255,16 +254,15 @@ void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
     }
   }
 
-  InclusionOffset[vCoord] = offset;
+  InclusionOffset[1] = offset;
   CreateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 {
-  double shift = p2[vCoord] - p1[vCoord];
-
-  ESPINA::Nm offset = ExclusionOffset[vCoord] - shift;
+  auto shift  = p2[1] - p1[1];
+  auto offset = ExclusionOffset[1] - shift;
 
   if (offset < 0)
   {
@@ -283,7 +281,7 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -298,7 +296,7 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
     }
   }
 
-  ExclusionOffset[vCoord] = offset;
+  ExclusionOffset[1] = offset;
   CreateRegion();
 }
 
@@ -310,7 +308,7 @@ ESPINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
 
   regionBounds(0, frontBounds);
 
-  auto shift = vtkMath::Round(InclusionOffset[2]/SlicingStep[2])+0.5;
+  auto shift = vtkMath::Floor(InclusionOffset[2]/SlicingStep[2])+0.5;
 
   return frontBounds[4] + shift*SlicingStep[2];
 }
@@ -322,7 +320,7 @@ ESPINA::Nm vtkCountingFrameRepresentationXY::backSlice() const
 
   regionBounds(NumSlices - 1, backBounds);
 
-  auto shift = vtkMath::Round(ExclusionOffset[2]/SlicingStep[2])+0.5;
+  auto shift = vtkMath::Floor(ExclusionOffset[2]/SlicingStep[2])+0.5;
 
   return backBounds[5] - shift*SlicingStep[2];
 }

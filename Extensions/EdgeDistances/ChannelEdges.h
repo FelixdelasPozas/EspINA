@@ -211,18 +211,6 @@ namespace ESPINA
   using ChannelEdgesPtr  = ChannelEdges *;
   using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
 
-  /** \brief Casts a channel extension pointer to a ChannelEdges extension raw pointer.
-   *
-   * Returns nullptr if the extension it's not a ChannelEdges extension.
-   *
-   */
-//   ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
-
-  /** \brief Returns a smart pointer of the channel's ChannelEdges extension.
-   *
-   */
-//   ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
-
 }// namespace ESPINA
 
 #endif // ESPINA_CHANNEL_EDGES_H

@@ -93,23 +93,16 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
 {
   if(Region.GetPointer() == nullptr) return;
 
-//   std::cout << "Created YZ FACE" << std::endl;
   double LB[3], RB[3];
   this->Region->GetPoint(0, LB);
   this->Region->GetPoint(NumPoints-1, RB);
 
-//   std::cout << "LB: " << LB[2] << std::endl;
-//   std::cout << "RB: " << RB[2] << std::endl;
-//   std::cout << "LB+Shift: " << LB[2] + InclusionOffset[2]  << std::endl;
-//   std::cout << "RB+Shift: " << RB[2]+ ExclusionOffset[2] << std::endl;
   int UpperSlice = sliceNumber(LB[2] + InclusionOffset[2]);
   int LowerSlice = sliceNumber(RB[2] - ExclusionOffset[2]);
   if (UpperSlice == LowerSlice)
   {
     UpperSlice--;
   }
-//   std::cout << "Upper Slice: " << UpperSlice << std::endl;
-//   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
   int numRepSlices = LowerSlice - UpperSlice + 1;
 
@@ -221,9 +214,8 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
 {
-  double shift = p2[2] - p1[2];
-
-  ESPINA::Nm offset = InclusionOffset[2] + shift;
+  auto shift  = p2[2] - p1[2];
+  auto offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
   {
@@ -274,9 +266,8 @@ void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
 {
-  double shift = p2[2] - p1[2];
-
-  ESPINA::Nm offset = ExclusionOffset[2] - shift;
+  auto shift  = p2[2] - p1[2];
+  auto offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
   {
@@ -328,8 +319,8 @@ void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
 {
-  double shift = p2[1] - p1[1];
-  ESPINA::Nm offset = InclusionOffset[1] + shift;
+  auto shift  = p2[1] - p1[1];
+  auto offset = InclusionOffset[1] + shift;
 
   if (offset < 0)
   {
@@ -371,9 +362,8 @@ void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationYZ::MoveBottomEdge(double* p1, double* p2)
 {
-  double shift = p2[1] - p1[1];
-
-  ESPINA::Nm offset = ExclusionOffset[1] - shift;
+  auto shift  = p2[1] - p1[1];
+  auto offset = ExclusionOffset[1] - shift;
 
   if (offset < 0)
   {

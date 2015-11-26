@@ -28,10 +28,8 @@
 
 using namespace ESPINA;
 
-static const QString SEGMHA = "segmha";
-
 static const Filter::Type SEGMHA_FILTER_V4 = "Segmha Importer";
-static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
+static const Filter::Type SEGMHA_FILTER    = "SegmhaReader";
 
 //-----------------------------------------------------------------------------
 FilterSPtr SegmhaImporterPlugin::SegmhaFilterFactory::createFilter(InputSList inputs,

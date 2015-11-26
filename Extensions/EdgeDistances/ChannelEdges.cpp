@@ -71,8 +71,8 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 , m_backgroundColor(-1)
 , m_computedVolume(0)
 , m_threshold(-1)
-, m_edgesCreator (AdaptiveEdgesCreatorSPtr{new AdaptiveEdgesCreator(this, scheduler)})
-, m_edgesAnalyzer(EdgesAnalyzerSPtr{new EdgesAnalyzer(this, scheduler)})
+, m_edgesCreator (std::make_shared<AdaptiveEdgesCreator>(this, scheduler))
+, m_edgesAnalyzer(std::make_shared<EdgesAnalyzer>(this, scheduler))
 {
   if (!state.isEmpty())
   {
@@ -517,18 +517,3 @@ void ChannelEdges::computeSurfaces()
     m_faces[face] = poly;
  }
 }
-
-// //-----------------------------------------------------------------------------
-// ChannelEdgesPtr ESPINA::channelEdgesExtension(ChannelExtensionPtr extension)
-// {
-//   return dynamic_cast<ChannelEdgesPtr>(extension);
-// }
-//
-// //-----------------------------------------------------------------------------
-// ChannelEdgesSPtr ESPINA::channelEdgesExtension(ChannelPtr channel)
-// {
-//   auto extension = channel->extension(ChannelEdges::TYPE);
-//
-//   return std::dynamic_pointer_cast<ChannelEdges>(extension);
-// }
-// 

@@ -36,48 +36,51 @@ class vtkPolyData;
 class CountingFramePlugin_EXPORT vtkCountingFrameWidget
 : public vtkAbstractWidget
 {
-public:
-  vtkTypeMacro(vtkCountingFrameWidget, vtkAbstractWidget);
+  public:
+    vtkTypeMacro(vtkCountingFrameWidget, vtkAbstractWidget);
 
-  vtkGetVector3Macro(InclusionOffset, ESPINA::Nm);
-  vtkGetVector3Macro(ExclusionOffset, ESPINA::Nm);
+    vtkGetVector3Macro(InclusionOffset, ESPINA::Nm);
+    vtkGetVector3Macro(ExclusionOffset, ESPINA::Nm);
 
-  /** \brief Sets the counting frame the widget will represent.
-   * \param[in] region Counting frame region as a polydata.
-   * \param[in] inclussionOffset
-   * \param[in] exclussionOffset
-   * \param[in] resolution spacing between slices.
-   *
-   */
-  virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                 ESPINA::Nm inclusionOffset[3],
-                                 ESPINA::Nm exclusionOffset[3],
-                                 ESPINA::NmVector3 resolution) = 0;
+    /** \brief Sets the counting frame the widget will represent.
+     * \param[in] region Counting frame region as a polydata.
+     * \param[in] inclussionOffset
+     * \param[in] exclussionOffset
+     * \param[in] resolution spacing between slices.
+     *
+     */
+    virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
+                                   ESPINA::Nm inclusionOffset[3],
+                                   ESPINA::Nm exclusionOffset[3],
+                                   ESPINA::NmVector3 resolution) = 0;
 
-  /** \brief Sets widget visibility.
-   * \param[in] visible true to set visible and false otherwise.
-   *
-   */
-  virtual void setVisible(bool visible) = 0;
+    /** \brief Sets widget visibility.
+     * \param[in] visible true to set visible and false otherwise.
+     *
+     */
+    virtual void setVisible(bool visible) = 0;
 
-  /** \brief Returns true if the widget is visible and false otherwise.
-   *
-   */
-  virtual bool isVisible() const
-  { return Visible; }
+    /** \brief Returns true if the widget is visible and false otherwise.
+     *
+     */
+    virtual bool isVisible() const
+    { return Visible; }
 
-protected:
-  ESPINA::Nm InclusionOffset[3];
-  ESPINA::Nm ExclusionOffset[3];
-  bool Visible;
+  protected:
+    ESPINA::Nm InclusionOffset[3]; /** inclusion offset position. */
+    ESPINA::Nm ExclusionOffset[3]; /** exclusion offset position. */
+    bool Visible;                  /** true if the slice is visible and false otherwise. */
 
-protected:
-  vtkCountingFrameWidget()
-  : Visible{true}
-  {
-    memset(InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
-    memset(ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
-  }
+  protected:
+    /** \brief vtkCountingFrame class constructor.
+     *
+     */
+    vtkCountingFrameWidget()
+    : Visible{true}
+    {
+      memset(InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+      memset(ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+    }
 };
 
 #endif // VTKBOUNDINGFRAMEWIDGET_H

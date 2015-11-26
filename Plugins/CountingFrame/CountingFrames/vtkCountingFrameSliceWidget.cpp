@@ -249,6 +249,8 @@ void vtkCountingFrameSliceWidget::SetCursor(int state)
 void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  auto rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
+
   if (self->WidgetState == vtkCountingFrameSliceWidget::Start)
   {
     return;
@@ -256,10 +258,12 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 
   // Return state to not active
   self->WidgetState = vtkCountingFrameSliceWidget::Start;
-  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->SetInteractionState(SliceRepresentation::Outside);
+  if(rep)
+  {
+    rep->SetInteractionState(SliceRepresentation::Outside);
+  }
   self->ReleaseFocus();
 
-  auto rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
   if (rep)
   {
     rep->GetInclusionOffset(self->InclusionOffset);
@@ -278,7 +282,7 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget *self)
 {
-  auto voxelCenter = [](double offset, double spacing){ return int(offset/spacing)*spacing + spacing/2; };
+  auto voxelCenter = [](double offset, double spacing){ return vtkMath::Floor(offset/spacing)*spacing + 0.5*spacing; };
 
   for (int i = 0; i < 3; i++)
   {

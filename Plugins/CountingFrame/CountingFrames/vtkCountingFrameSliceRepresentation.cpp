@@ -114,7 +114,6 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::reset()
 {
-//   std::cout << "Shift's been reset" << std::endl;
   memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   CreateRegion();
@@ -326,13 +325,10 @@ void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::PlaceWidget(double bds[6])
 {
-//   std::cout << "Place Widget: ";
   int i;
   double bounds[6], center[3];
 
   this->AdjustBounds(bds,bounds,center);
-//   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
-//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
   this->Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
   this->Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
