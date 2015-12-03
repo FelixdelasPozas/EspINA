@@ -136,7 +136,6 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
   }
 
 //   std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-//
 //   qDebug() << type() << s_plane << "Execution Time" <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   return actors;
@@ -147,14 +146,13 @@ void ChannelSlicePipeline::updateColors(ActorList& actors,
                                         ConstViewItemAdapterPtr   item,
                                         const RepresentationState &state)
 {
-
   if (actors.size() == 1)
   {
-    auto actor       = dynamic_cast<vtkImageActor *>(actors.first().Get());
-    auto mapToColors = dynamic_cast<vtkImageMapToColors *>(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
+    auto actor       = vtkImageActor::SafeDownCast(actors.first().Get());
+    auto mapToColors = vtkImageMapToColors::SafeDownCast(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
 
     auto color = stain(state);
-    auto lut   = dynamic_cast<vtkLookupTable *>(mapToColors->GetLookupTable());
+    auto lut   = vtkLookupTable::SafeDownCast(mapToColors->GetLookupTable());
 
     lut->SetHueRange(color.hueF(), color.hueF());
     lut->SetSaturationRange(0.0, color.saturationF());

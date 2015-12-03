@@ -22,6 +22,7 @@
 #include <GUI/Representations/Frame.h>
 #include <GUI/View/RenderView.h>
 
+// Qt
 #include <vtkProp.h>
 
 using namespace ESPINA;
@@ -39,17 +40,20 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
 {
   hideRepresentations(frame);
 
-  auto currentActors = actors(frame->time);
+  auto frameActors = actors(frame->time);
 
-  //qDebug() << "Displaying" << currentActors.size() << "actors";
-
-  for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
+  if(frameActors != nullptr)
   {
-    for (auto actor : it.value())
+    QReadLocker lock(&frameActors->lock);
+
+    for (auto itemActors : frameActors->actors)
     {
-      setFlag(HAS_ACTORS, true);
-      m_view->addActor(actor);
-      m_viewActors[it.key()] << actor;
+      for (auto actor : itemActors)
+      {
+        setFlag(HAS_ACTORS, true);
+        m_view->addActor(actor);
+        m_viewActors << actor;
+      }
     }
   }
 }
@@ -57,17 +61,20 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 void PoolManager::hideRepresentations(const FrameCSPtr frame)
 {
-  for (auto itemActors : m_viewActors)
+  for (auto actor : m_viewActors)
   {
-    for (auto actor : itemActors)
-    {
-      m_view->removeActor(actor);
-    }
+    m_view->removeActor(actor);
   }
 
   setFlag(HAS_ACTORS, false);
 
   m_viewActors.clear();
+}
 
-  invalidatePreviousActors(frame->time);
+//-----------------------------------------------------------------------------
+void PoolManager::onActorsInvalidated(const GUI::Representations::FrameCSPtr frame)
+{
+  invalidateFrames(frame);
+
+  waitForDisplay(frame);
 }

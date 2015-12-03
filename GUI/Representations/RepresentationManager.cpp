@@ -35,6 +35,7 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, Manag
 , m_flags {flags}
 , m_supportedViews{supportedViews}
 , m_lastFrameChanged{Timer::INVALID_TIME_STAMP}
+, m_lastInvalidationFrame{Timer::INVALID_TIME_STAMP}
 {
 }
 
@@ -144,6 +145,8 @@ void RepresentationManager::hide(const GUI::Representations::FrameCSPtr frame)
       waitForDisplay(frame);
 
       emitRenderRequest(frame);
+
+      updateRepresentations(frame);
     }
   }
 
@@ -174,14 +177,12 @@ TimeRange RepresentationManager::readyRange() const
 //-----------------------------------------------------------------------------
 FrameCSPtr RepresentationManager::frame(TimeStamp t) const
 {
-  auto result = Frame::InvalidFrame();
-
   if (!m_frames.isEmpty() && t <= m_frames.lastTime())
   {
-    result = m_frames.value(t);
+    return m_frames.value(t, Frame::InvalidFrame());
   }
 
-  return result;
+  return Frame::InvalidFrame();
 }
 
 //-----------------------------------------------------------------------------
@@ -195,24 +196,21 @@ void RepresentationManager::display(TimeStamp time)
 {
   Q_ASSERT(m_view);
 
-  qDebug() << "\t" << debugName() << "rendering" << time;
-
   if(m_frames.value(time, Frame::InvalidFrame()) == Frame::InvalidFrame())
   {
-    qDebug() << debugName() << "FAIL: requesting invalid frame" << time;
     return;
   }
 
   if (isActive())
   {
-    qDebug() << "\t" << debugName() << "Display actors at" << time << "corresponding frame" << m_frames.value(time)->time;
+    // qDebug() << "\t" << debugName() << "Display actors at" << time << "corresponding frame" << m_frames.value(time)->time;
     displayRepresentations(m_frames.value(time));
 
     m_frames.invalidatePreviousValues(time);
   }
   else
   {
-    qDebug() << "\t" << debugName() << "Hide frame at" << time;
+    // qDebug() << "\t" << debugName() << "Hide frame at" << time << lastFrame();
     auto last = lastFrame();
     hideRepresentations(last);
     m_frames.invalidatePreviousValues(last->time);
@@ -220,12 +218,12 @@ void RepresentationManager::display(TimeStamp time)
 
   if (!waitingNewerFrames(time))
   {
-    qDebug() << "\t" << debugName() << "Displayed last frame" << time << "going idle";
+    // qDebug() << "\t" << debugName() << "Displayed last frame" << time << "going idle";
     idle();
   }
   else
   {
-    qDebug() << "\t" << debugName() << "Waiting from frame" << m_lastFrameChanged;
+    // qDebug() << "\t" << debugName() << "Waiting from frame" << m_lastFrameChanged;
   }
 }
 
@@ -254,49 +252,45 @@ QString RepresentationManager::debugName() const
 void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 {
   if (!isValid(frame) || frame->time <= m_lastFrameChanged) return;
-  qDebug() << debugName() << "received frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged));
+
+//   qDebug() << debugName() << "received frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << "last time" << m_frames.lastTime();
+   QString path;
 
   if (isActive())
   {
+    path.append("active|");
     if (needsRepresentationUpdate(frame))
     {
+      path.append("needsrep|");
       if(hasRepresentations())
       {
+        path.append("hasreps|");
         waitForDisplay(frame);
       }
 
       updateFrameRepresentations(frame);
+//       qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << path;
+      return;
     }
     else
     {
-      if(acceptInvalidationFrame(frame))
+      if(acceptInvalidationFrame(frame) && hasRepresentations())
       {
-        if(hasRepresentations())
-        {
-          waitForDisplay(frame);
-        }
-      }
-      else
-      {
-        if(!isIdle())
-        {
-          m_lazyFrames[m_lastFrameChanged] << frame->time;
-        }
-        else
-        {
-          m_frames.reusePreviousValue(frame->time);
-        }
+        path.append("acceptinv&hasreps|");
+        waitForDisplay(frame);
+//         qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << path;
+        return;
       }
     }
   }
-  else
+
+  if (!isIdle())
   {
-    if (!isIdle())
-    {
-      m_lazyFrames[m_lastFrameChanged] << frame->time;
-    }
+    path.append("notidle|");
+    reuseTimeValue(frame->time);
   }
-  qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged));
+
+//   qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << path;
 }
 
 
@@ -342,24 +336,21 @@ Bounds RepresentationManager::currentSceneBounds() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameCSPtr frame)
 {
-  //qDebug() << debugName() << "Render request for" << frame;
-  if((m_frames.isEmpty() && isValid(frame)) || frame->time > m_frames.lastTime())
+//  qDebug() << debugName() << "ask renderrequest" << frame->time << "last inv" << m_lastInvalidationFrame;
+  if(frame->time < m_lastInvalidationFrame) return;
+
+  if((m_frames.isEmpty() && isValid(frame)) || frame->time >= m_frames.lastTime())
   {
     m_frames.addValue(frame, frame->time);
 
-    auto it = m_lazyFrames.find(frame->time);
-    if(it != m_lazyFrames.end())
+    if(m_lazyFrames.keys().contains(frame->time))
     {
-      for(auto time: it.value())
-      {
-        qDebug() << debugName() << "adding lazy frame:" << time;
-        m_frames.reusePreviousValue(time);
-      }
+      m_frames.reusePreviousValue(m_lazyFrames.value(frame->time));
 
-      m_lazyFrames.erase(it);
+      m_lazyFrames.remove(frame->time);
     }
 
-    qDebug() << debugName() << "Actors ready for" << frame << "emit request";
+//    qDebug() << debugName() << "emit" << frame->time;
     emit renderRequested();
   }
 }
@@ -367,7 +358,6 @@ void RepresentationManager::emitRenderRequest(const GUI::Representations::FrameC
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay(const FrameCSPtr frame)
 {
-  //qDebug() << debugName() << "waiting actors for" << frame;
   Q_ASSERT(m_lastFrameChanged <= frame->time);
   m_lastFrameChanged = frame->time;
 
@@ -383,19 +373,19 @@ void RepresentationManager::idle()
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return lastFrame()->crosshair != crosshair;
+  return !isValid(lastFrame()) || lastFrame()->crosshair != crosshair;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return lastFrame()->resolution != resolution;
+  return !isValid(lastFrame()) || lastFrame()->resolution != resolution;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return lastFrame()->bounds != bounds;
+  return !isValid(lastFrame()) || lastFrame()->bounds != bounds;
 }
 
 //-----------------------------------------------------------------------------
@@ -446,4 +436,29 @@ bool GUI::Representations::invalidatesRepresentations(GUI::Representations::Fram
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::reuseTimeValue(TimeStamp t)
+{
+  Q_ASSERT(!isIdle());
+
+  // current actor already computed in the pool.
+  if(m_frames.lastTime() == m_lastFrameChanged)
+  {
+    m_frames.reusePreviousValue(t);
+    m_lastFrameChanged = t;
+  }
+  else
+  {
+    m_lazyFrames.insert(m_lastFrameChanged, t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::invalidateFrames(const FrameCSPtr frame)
+{
+//  qDebug() << debugName() << "invalidates frames on" << frame->time;
+  m_lastInvalidationFrame = frame->time;
+  m_frames.invalidate();
 }

@@ -20,16 +20,20 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <GUI/Utils/Timer.h>
 
 // Qt
 #include <QMap>
 #include <QDebug>
+#include <QReadWriteLock>
 
 namespace ESPINA
 {
   template<typename R> class RangedValue;
 
   /** \brief Prints all the values in the range, for debugging purposes.
+   *
+   * TODO: doesn't work if T is a smart pointer.
    *
    */
   template<typename T> QDebug operator<<(QDebug debug, RangedValue<T> range);
@@ -97,15 +101,17 @@ namespace ESPINA
     private:
       friend QDebug operator<< <>(QDebug debug, RangedValue range);
 
-      TimeRange m_times;
-      TimeStamp m_lastTime;
-      QMap<TimeStamp, R> m_values;
+      TimeStamp          m_lastTime; /** last range time that the object has a value for. */
+      QMap<TimeStamp, R> m_values;   /** time-value map. */
+      R                  m_default;  /** default value to return. Needed to avoid returning a temporary in case of smartpointers. */
+
+      mutable QReadWriteLock m_mutex;
   };
 
   //-----------------------------------------------------------------------------
   template<typename R>
   RangedValue<R>::RangedValue()
-  : m_lastTime{0}
+  : m_lastTime{Timer::INVALID_TIME_STAMP}
   {
   }
 
@@ -113,11 +119,13 @@ namespace ESPINA
   template<typename R>
   TimeRange RangedValue<R>::timeRange() const
   {
+    QReadLocker lock(&m_mutex);
+
     TimeRange range;
 
-    if (!m_times.isEmpty())
+    if (!m_values.isEmpty())
     {
-      for (auto i = m_times.first(); i <= m_lastTime; ++i)
+      for (auto i = m_values.keys().first(); i <= m_lastTime; ++i)
       {
         range << i;
       }
@@ -130,13 +138,13 @@ namespace ESPINA
   template<typename R>
   R RangedValue<R>::last() const
   {
-    R result;
+    QReadLocker lock(&m_mutex);
 
-    if (!m_times.isEmpty())
+    auto result = m_default;
+
+    if (!m_values.isEmpty())
     {
-      Q_ASSERT(m_values.contains(m_times.last()));
-
-      result = m_values[m_times.last()];
+      result = m_values.value(m_values.keys().last());
     }
 
     return result;
@@ -146,6 +154,8 @@ namespace ESPINA
   template<typename R>
   TimeStamp RangedValue<R>::lastTime() const
   {
+    QReadLocker lock(&m_mutex);
+
     return m_lastTime;
   }
 
@@ -153,71 +163,54 @@ namespace ESPINA
   template<typename R>
   void RangedValue<R>::addValue(R value, TimeStamp t)
   {
+    QWriteLocker lock(&m_mutex);
+
     if (m_lastTime < t || m_values.isEmpty())
     {
       m_lastTime = t;
     }
 
-    auto needSort = !m_times.isEmpty() && t < m_times.last();
-
-    m_times << t;
-
-    if (needSort)
-    {
-      qSort(m_times);
-    }
-
-    m_values[t] = value;
+    m_values.insert(t, value);
   }
 
   //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::reusePreviousValue(TimeStamp t)
   {
-    if(!m_times.empty() && m_lastTime <= t) m_lastTime = t;
+    QWriteLocker lock(&m_mutex);
+
+    if(m_lastTime < t)
+    {
+      m_lastTime = t;
+    }
   }
 
   //-----------------------------------------------------------------------------
   template<typename R>
   R RangedValue<R>::value(TimeStamp t, R invalid) const
   {
-    TimeStamp valueTime = 0;
+    QReadLocker lock(&m_mutex);
 
-    if (m_times.isEmpty())
+    if(m_values.empty() || (t > m_lastTime) || (t < m_values.keys().first())) return invalid;
+
+    auto time = t;
+    while((m_values.find(time) == m_values.end()) && (time >= m_values.keys().first()))
     {
-      qWarning() << "Accessing invalid value";
-    }
-    else
-    {
-      valueTime = m_times.first();
-    }
-
-    int i = 1;
-    bool found = false;
-
-    while (!found && i < m_times.size())
-    {
-      auto nextTime = m_times[i];
-
-      found = nextTime > t;
-
-      if (!found)
-      {
-        valueTime = nextTime;
-      }
-
-      ++i;
+      --time;
     }
 
-    return m_values.value(valueTime, invalid);
+    Q_ASSERT(m_values.find(time) != m_values.end());
+
+    return m_values.value(time, invalid);
   }
 
   //-----------------------------------------------------------------------------
   template<typename R>
   void RangedValue<R>::invalidate()
   {
+    QWriteLocker lock(&m_mutex);
+
     m_lastTime = 0;
-    m_times.clear();
     m_values.clear();
   }
 
@@ -225,36 +218,48 @@ namespace ESPINA
   template<typename R>
   void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
   {
-    if (m_times.isEmpty())
-      return;
+    QWriteLocker lock(&m_mutex);
 
-    bool found = false;
-    auto validTime = m_times.takeFirst();
-    auto validRepresentations = m_values[validTime];
+    if (m_values.isEmpty() || t < m_values.keys().first()) return;
+    Q_ASSERT(t <= m_lastTime);
 
-    while (!found && !m_times.isEmpty())
+    if(m_values.find(t) == m_values.end())
     {
-      auto nextTime = m_times.takeFirst();
-
-      found = nextTime > t;
-
-      if (!found)
+      auto time = t;
+      while(m_values.find(time) == m_values.end())
       {
-        m_values.remove(validTime);
+        --time;
+      }
+      Q_ASSERT(m_values.find(time) != m_values.end());
 
-        validTime = nextTime;
-        validRepresentations = m_values[nextTime];
+      auto timeValue = m_values.value(time);
+      m_values.insert(t, timeValue);
+    }
+
+    for(auto time: m_values.keys())
+    {
+      if(time < t)
+      {
+        m_values.remove(time);
+      }
+      else
+      {
+        return;
       }
     }
 
-    m_times.prepend(t);
-    m_values[t] = validRepresentations;
+    if(m_values.empty())
+    {
+      m_lastTime = 0;
+    }
   }
 
   //-----------------------------------------------------------------------------
   template<typename R>
   bool RangedValue<R>::isEmpty() const
   {
+    QReadLocker lock(&m_mutex);
+
     return m_values.isEmpty();
   }
 
@@ -263,10 +268,9 @@ namespace ESPINA
   {
     debug << "\n---RangedValue---------------\n";
     debug << "last:" << range.m_lastTime << "\n";
-    debug << "times:" << range.m_times << "\n";
     for (auto key : range.m_values.keys())
     {
-      debug << key << range.m_values[key];
+      debug << key << range.m_values.value(key);
     }
     debug << "\n-----------------------------\n";
 

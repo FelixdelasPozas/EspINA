@@ -149,6 +149,12 @@ namespace ESPINA
            */
           virtual void setSlice(double slice);
 
+          /** \brief Returns the current slice point.
+           *
+           */
+          Nm slice() const
+          { return m_slice; }
+
         protected:
           /** \brief vtkPlanarSplitWidget class constructor.
            *

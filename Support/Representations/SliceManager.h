@@ -30,60 +30,83 @@ namespace ESPINA
   : public GUI::Representations::Managers::PoolManager
   , public GUI::Representations::RepresentationManager2D
   {
-  public:
-    SliceManager(RepresentationPoolSPtr poolXY,
-                 RepresentationPoolSPtr poolXZ,
-                 RepresentationPoolSPtr poolYZ,
-                 ManagerFlags           flags = ManagerFlags());
+    public:
+      /** \brief SliceManager class constructor.
+       * \param[in] poolXY pool for the Axial plane.
+       * \param[in] poolXZ pool for the Coronal plane.
+       * \param[in] ppolYZ pool for the Sagittal plane.
+       * \param[in] flags manager's flags values.
+       *
+       */
+      explicit SliceManager(RepresentationPoolSPtr poolXY,
+                            RepresentationPoolSPtr poolXZ,
+                            RepresentationPoolSPtr poolYZ,
+                            ManagerFlags           flags = ManagerFlags());
 
-    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual void setPlane(Plane plane) override;
+      virtual void setPlane(Plane plane) override;
 
-    virtual void setRepresentationDepth(Nm depth) override;
+      virtual void setRepresentationDepth(Nm depth) override;
 
-    virtual RepresentationPoolSList pools() const override;
+      virtual RepresentationPoolSList pools() const override;
 
-  protected:
-    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+    protected:
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-    virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
+      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
 
-  private:
-    virtual bool hasRepresentations() const override;
+    private:
+      virtual bool hasRepresentations() const override;
 
-    virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
+      virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 
-    virtual void invalidatePreviousActors(TimeStamp t) override;
+      virtual void invalidatePreviousActors(TimeStamp time) override;
 
-    virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
+      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
-    void connectPools();
+      /** \brief Helper method to connect the pool's signals.
+       *
+       */
+      void connectPools();
 
-    void disconnectPools();
+      /** \brief Helper method to disconnect the pool's signals.
+       *
+       */
+      void disconnectPools();
 
-    RepresentationPoolSPtr planePool() const;
+      /** \brief Returns the pool corresponding to the manager's plane.
+       *
+       */
+      RepresentationPoolSPtr planePool() const;
 
-    bool validPlane() const;
+      /** \brief Returns true if the manager has a valid plane configured.
+       *
+       */
+      bool validPlane() const;
 
-    Nm normalCoordinate(const NmVector3 &value) const;
+      /** \brief Returns the normal coordinate for the given point according to the configured plane.
+       * \param[in] point point coordinates.
+       *
+       */
+      Nm normalCoordinate(const NmVector3 &point) const;
 
-  private:
-    Plane m_plane;
-    Nm    m_depth;
-    RepresentationPoolSPtr m_XY;
-    RepresentationPoolSPtr m_XZ;
-    RepresentationPoolSPtr m_YZ;
+    private:
+      Plane m_plane;                /** plane of the manager.                                         */
+      Nm    m_depth;                /** distance from the plane position to show the representations. */
+      RepresentationPoolSPtr m_XY;  /** Axial plane pool.                                             */
+      RepresentationPoolSPtr m_XZ;  /** Coronal plane pool.                                           */
+      RepresentationPoolSPtr m_YZ;  /** Sagittal plane pool.                                          */
   };
 }
 

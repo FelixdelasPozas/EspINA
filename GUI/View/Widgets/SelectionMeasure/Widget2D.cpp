@@ -107,13 +107,19 @@ TemporalRepresentation2DSPtr Widget2D::clone()
 //----------------------------------------------------------------------------
 bool Widget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return true;
+  return (crosshair[m_index] != m_slice);
 }
 
 //----------------------------------------------------------------------------
 bool Widget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return true;
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool Widget2D::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
 }
 
 //----------------------------------------------------------------------------

@@ -42,7 +42,8 @@ namespace ESPINA
            */
           virtual ~TemporalRepresentation() {}
 
-          /** \brief Initializes temporal representation for view
+          /** \brief Initializes temporal representation for the given view
+           * \param[in] view view to show the temporal representations.
            *
            */
           virtual void initialize(RenderView *view) = 0;
@@ -62,13 +63,34 @@ namespace ESPINA
            */
           virtual void hide() = 0;
 
+          /** \brief Returns true if the representation needs to be updated after a crosshair change.
+           * \param[in] crosshair scene's new crosshair.
+           *
+           */
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
+          /** \brief Returns true if the representation needs to be updated after a resolution change.
+           * \param[in] resolution scene's new resolution.
+           *
+           */
           virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
+          /** \brief Returns true if the representation needs to be updated after a bounds change.
+           * \param[in] bounds scene's new bounds.
+           *
+           */
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
+
+          /** \brief Returns true if the representation needs to be updated after an invalidation frame.
+           * \param[in] frame const invalidation frame.
+           *
+           */
           virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const = 0;
 
-          virtual void display(const FrameCSPtr &frame) {}
+          /** \brief Updates the representation for the given frame.
+           * \param[in] frame const frame object.
+           */
+          virtual void display(const FrameCSPtr &frame) {};
         };
 
         using TemporalRepresentationSPtr = std::shared_ptr<TemporalRepresentation>;
@@ -82,39 +104,70 @@ namespace ESPINA
         class TemporalRepresentation2D
         : public TemporalRepresentation
         {
-        public:
-          virtual void setPlane(Plane plane) = 0;
+          public:
+            /** \brief Sets the orientation of the 2D representations.
+             * \param[in] plane plane enum value.
+             *
+             */
+            virtual void setPlane(Plane plane) = 0;
 
-          virtual void setRepresentationDepth(Nm depth) = 0;
+            /** \brief Sets the depth of the representations in relation to the current scene crosshair.
+             * \param[in] depth distace from the current crosshair where the representations should be shown.
+             *
+             */
+            virtual void setRepresentationDepth(Nm depth) = 0;
 
-          virtual TemporalRepresentation2DSPtr clone() = 0;
-
+            /** \brief Clones the representation.
+             *
+             */
+            virtual TemporalRepresentation2DSPtr clone() = 0;
         };
 
         class TemporalRepresentation3D
         : public TemporalRepresentation
         {
-        public:
-          virtual TemporalRepresentation3DSPtr clone() = 0;
+          public:
+            /** \brief Clones the representation.
+             *
+             */
+            virtual TemporalRepresentation3DSPtr clone() = 0;
         };
 
         class TemporalPrototypes
         {
-        public:
-          explicit TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D, TemporalRepresentation3DSPtr prototype3D, const QString &name);
+          public:
+            /** \brief TemporalPrototypes class constructor.
+             * \param[in] prototype2D temporal representation for 2D views.
+             * \param[in] prototype3D temporal representation for 3D views.
+             * \param[in] name name of the temporal prototypes object.
+             *
+             */
+            explicit TemporalPrototypes(TemporalRepresentation2DSPtr prototype2D, TemporalRepresentation3DSPtr prototype3D, const QString &name);
 
-          ViewTypeFlags supportedViews() const;
+            /** \brief Returns the types of views supported by the temporal representations.
+             *
+             */
+            ViewTypeFlags supportedViews() const;
 
-          TemporalRepresentation2DSPtr createRepresentation2D() const;
+            /** \brief Clones and returns a 2D representation.
+             *
+             */
+            TemporalRepresentation2DSPtr createRepresentation2D() const;
 
-          TemporalRepresentation3DSPtr createRepresentation3D() const;
+            /** \brief Clones and returns a 3D representation.
+             *
+             */
+            TemporalRepresentation3DSPtr createRepresentation3D() const;
 
-          QString name() const;
+            /** \brief Returns the name of the temporal prototypes object.
+             *
+             */
+            QString name() const;
 
-        private:
-          TemporalRepresentation2DSPtr m_prototype2D;
-          TemporalRepresentation3DSPtr m_prototype3D;
-          QString                      m_name;
+          private:
+            TemporalRepresentation2DSPtr m_prototype2D; /** 2D temporal representation. */
+            TemporalRepresentation3DSPtr m_prototype3D; /** 3D temporal representation. */
+            QString                      m_name;        /** name of the object.         */
         };
 
         using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
@@ -123,76 +176,54 @@ namespace ESPINA
         : public RepresentationManager
         , public RepresentationManager2D
         {
-        public:
-          explicit TemporalManager(TemporalPrototypesSPtr factory, ManagerFlags flags = ManagerFlags());
+          public:
+            /** \brief TemporalManager class constructor.
+             * \param[in] factory temporal prototypes object.
+             * \param[in] flags manager's flags values.
+             *
+             */
+            explicit TemporalManager(TemporalPrototypesSPtr factory, ManagerFlags flags = ManagerFlags());
 
-          virtual ~TemporalManager();
+            /** \brief TemporalManager class virtual destructor.
+             *
+             */
+            virtual ~TemporalManager();
 
-          virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+            virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-          virtual void setPlane(Plane plane) override;
+            virtual void setPlane(Plane plane) override;
 
-          virtual void setRepresentationDepth(Nm depth) override;
+            virtual void setRepresentationDepth(Nm depth) override;
 
-        protected:
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+          protected:
+            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
+            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
+            virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-          virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const override;
+            virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const override;
 
-        private:
-          virtual bool hasRepresentations() const override;
+          private:
+            virtual bool hasRepresentations() const override;
 
-          virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
+            virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
-          virtual void onShow(const FrameCSPtr frame) override;
+            virtual void onShow(const FrameCSPtr frame) override;
 
-          virtual void onHide(const FrameCSPtr frame) override;
+            virtual void onHide(const FrameCSPtr frame) override;
 
-          virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+            virtual void displayRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-          virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+            virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-          virtual RepresentationManagerSPtr cloneImplementation() override;
+            virtual RepresentationManagerSPtr cloneImplementation() override;
 
-        private:
-          TemporalPrototypesSPtr m_prototypes;
-
-          Plane m_plane;
-          Nm    m_depth;
-
-          TemporalRepresentationSPtr  m_representation;
-        };
-
-        class AcceptOnlyPlaneCrosshairChanges
-        {
-        protected:
-          AcceptOnlyPlaneCrosshairChanges();
-
-          void acceptChangesOnPlane(Plane plane);
-
-          bool acceptPlaneCrosshairChange(const NmVector3 &crosshair) const;
-
-          void changeReslicePosition(const NmVector3 &crosshair);
-
-          int slicingNormal() const
-          { return m_normalIndex; }
-
-          Nm reslicePosition() const
-          { return m_reslicePosition; }
-
-          Plane reslicePlane() const
-          { return m_reslicePlane; }
-
-          Nm normalCoordinate(const NmVector3 &value) const;
-
-        private:
-          int   m_normalIndex;
-          Nm    m_reslicePosition;
-          Plane m_reslicePlane;
+          private:
+            TemporalPrototypesSPtr m_prototypes;          /** manager's temporal representations. */
+            Plane m_plane;                                /** plane of the representations. */
+            Nm    m_depth;                                /** distance from the current crosshair to show the representations. */
+            TemporalRepresentationSPtr  m_representation; /** representation currently managed. */
         };
       }
     }

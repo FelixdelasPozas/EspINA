@@ -740,7 +740,6 @@ int vtkPlaneContourRepresentationGlyph::RenderTranslucentPolygonalGeometry(vtkVi
     count += this->m_polygon->RenderTranslucentPolygonalGeometry(viewport);
   }
 
-
   return count;
 }
 

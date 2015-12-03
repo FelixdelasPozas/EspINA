@@ -48,9 +48,7 @@ using namespace ESPINA::GUI::Widgets;
 DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model, QWidget *parent)
 : QWidget(parent)
 , m_viewState           (viewState)
-, m_categorySelector    {new CategorySelector(model)}
-, m_radiusWidget        {new NumericalInput()}
-, m_opacityWidget       {new NumericalInput()}
+, m_categorySelector    {model}
 , m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"))}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
@@ -139,9 +137,9 @@ void DrawingWidget::clearBrushImage()
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr DrawingWidget::selectedCategory() const
+CategoryAdapterSPtr DrawingWidget::selectedCategory()
 {
-  return m_categorySelector->selectedCategory();
+  return m_categorySelector.selectedCategory();
 }
 
 //------------------------------------------------------------------------
@@ -188,9 +186,9 @@ void DrawingWidget::showOpacityControls(bool value)
 //------------------------------------------------------------------------
 void DrawingWidget::setCategory(CategoryAdapterSPtr category)
 {
-  if (m_categorySelector->selectedCategory() != category)
+  if (m_categorySelector.selectedCategory() != category)
   {
-    m_categorySelector->selectCategory(category);
+    m_categorySelector.selectCategory(category);
   }
 }
 
@@ -299,10 +297,10 @@ void DrawingWidget::initPainters()
 //------------------------------------------------------------------------
 void DrawingWidget::initCategoryWidget()
 {
-  addWidget(m_categorySelector);
+  addWidget(&m_categorySelector);
 
-  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,               SLOT(onCategoryChange(CategoryAdapterSPtr)));
+  connect(&m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,                SLOT(onCategoryChange(CategoryAdapterSPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -319,31 +317,31 @@ void DrawingWidget::initEraseWidget()
 //------------------------------------------------------------------------
 void DrawingWidget::initRadiusWidget()
 {
-  addWidget(m_radiusWidget);
+  addWidget(&m_radiusWidget);
 
-  m_radiusWidget->setValue(m_brushRadius);
-  m_radiusWidget->setMinimum(5);
-  m_radiusWidget->setMaximum(40);
-  m_radiusWidget->setSpinBoxVisibility(false);
-  m_radiusWidget->setLabelText(tr("Radius Size"));
+  m_radiusWidget.setValue(m_brushRadius);
+  m_radiusWidget.setMinimum(5);
+  m_radiusWidget.setMaximum(40);
+  m_radiusWidget.setSpinBoxVisibility(false);
+  m_radiusWidget.setLabelText(tr("Radius Size"));
 
-  connect(m_radiusWidget, SIGNAL(valueChanged(int)),
+  connect(&m_radiusWidget, SIGNAL(valueChanged(int)),
           this,           SLOT(changeRadius(int)));
 }
 
 //------------------------------------------------------------------------
 void DrawingWidget::initOpacityWidget()
 {
-  addWidget(m_opacityWidget);
+  addWidget(&m_opacityWidget);
 
-  m_opacityWidget->setMinimum(1);
-  m_opacityWidget->setMaximum(100);
-  m_opacityWidget->setValue(m_opacity);
-  m_opacityWidget->setSpinBoxVisibility(false);
-  m_opacityWidget->setLabelText(tr("Opacity"));
+  m_opacityWidget.setMinimum(1);
+  m_opacityWidget.setMaximum(100);
+  m_opacityWidget.setValue(m_opacity);
+  m_opacityWidget.setSpinBoxVisibility(false);
+  m_opacityWidget.setLabelText(tr("Opacity"));
 
-  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
-          this,            SLOT(changeOpacity(int)));
+  connect(&m_opacityWidget, SIGNAL(valueChanged(int)),
+          this,             SLOT(changeOpacity(int)));
 }
 
 
@@ -445,26 +443,26 @@ bool DrawingWidget::displayContourControls() const
 //-----------------------------------------------------------------------------
 void DrawingWidget::updateVisibleControls()
 {
-  m_categorySelector->setVisible(m_showCategoryControls);
-  m_radiusWidget    ->setVisible(m_showRadiusControls);
-  m_opacityWidget   ->setVisible(m_showOpacityControls);
+  m_categorySelector.setVisible(m_showCategoryControls);
+  m_radiusWidget    .setVisible(m_showRadiusControls);
+  m_opacityWidget   .setVisible(m_showOpacityControls);
   m_eraserWidget    ->setVisible(m_showEraserControls);
 
   if (displayContourControls())
   {
-    m_radiusWidget->setLabelText(tr("Minimum Point Distance"));
-    m_radiusWidget->setMinimum(1);
-    m_radiusWidget->setMaximum(100);
-    m_radiusWidget->setValue(m_contourDistance);
+    m_radiusWidget.setLabelText(tr("Minimum Point Distance"));
+    m_radiusWidget.setMinimum(1);
+    m_radiusWidget.setMaximum(100);
+    m_radiusWidget.setValue(m_contourDistance);
 
     m_contourPainter->setMinimumPointDistance(m_contourDistance);
   }
   else
   {
-    m_radiusWidget->setLabelText(tr("Radius Size"));
-    m_radiusWidget->setMinimum(5);
-    m_radiusWidget->setMaximum(40);
-    m_radiusWidget->setValue(m_brushRadius);
+    m_radiusWidget.setLabelText(tr("Radius Size"));
+    m_radiusWidget.setMinimum(5);
+    m_radiusWidget.setMaximum(40);
+    m_radiusWidget.setValue(m_brushRadius);
   }
 }
 
@@ -497,9 +495,9 @@ void DrawingWidget::changeRadius(int value)
 //------------------------------------------------------------------------
 void DrawingWidget::radiusChanged(int value)
 {
-  m_radiusWidget->blockSignals(true);
-  m_radiusWidget->setValue(value);
-  m_radiusWidget->blockSignals(false);
+  m_radiusWidget.blockSignals(true);
+  m_radiusWidget.setValue(value);
+  m_radiusWidget.blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -547,7 +545,7 @@ void DrawingWidget::setEraserMode(bool value)
 void DrawingWidget::onCategoryChange(CategoryAdapterSPtr category)
 {
   auto color = category->color();
-  color.setAlphaF(m_opacityWidget->value()/100.0);
+  color.setAlphaF(m_opacityWidget.value()/100.0);
 
   if (m_showCategoryControls)
   {

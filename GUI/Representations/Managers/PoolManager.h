@@ -49,31 +49,46 @@ namespace ESPINA
         {
           Q_OBJECT
         public:
-          /** \brief RangedActorManager class virtual destructor.
+          /** \brief PoolManager class virtual destructor.
            *
            */
           virtual ~PoolManager()
           {}
 
         protected:
-          /** \brief RangedActorManager class protected constructor.
+          /** \brief PoolManager class constructor.
            * \param[in] supportedViews flags of the views supported by the manager.
+           * \param[in] flags manager flags values.
+           *
            */
           explicit PoolManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
-          bool hasActorsInDisplay() const;
+        protected slots:
+          /** \brief Invalidates frames on pool's actors invalidation.
+           * \param[in] frame invalidation frame.
+           *
+           */
+          void onActorsInvalidated(const GUI::Representations::FrameCSPtr frame);
 
         private:
           virtual void displayRepresentations(const FrameCSPtr frame) override;
 
           virtual void hideRepresentations(const FrameCSPtr frame) override;
 
+          /** \brief Returns the list of actors corresponding to the given time.
+           * \param[in] t timestamp.
+           *
+           */
           virtual RepresentationPipeline::Actors actors(TimeStamp t) = 0;
 
-          virtual void invalidatePreviousActors(TimeStamp t) = 0;
+          /** \brief Invalidates all the actors previous to the given time.
+           * \param[in] t timestamp.
+           *
+           */
+          virtual void invalidatePreviousActors(TimeStamp time) = 0;
 
         protected:
-          RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
+          RepresentationPipeline::ActorList m_viewActors; /** actors being rendered by its view. */
         };
       }
     } // namespace Representations

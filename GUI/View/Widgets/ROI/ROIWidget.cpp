@@ -24,7 +24,10 @@
 #include <GUI/View/View3D.h>
 #include <GUI/View/Utils.h>
 #include <GUI/Representations/Frame.h>
+
+// VTK
 #include <vtkImageCanvasSource2D.h>
+#include <vtkLookupTable.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformTextureCoords.h>
@@ -38,17 +41,19 @@ using namespace ESPINA::GUI::View::Utils;
 
 //-----------------------------------------------------------------------------
 ROIWidget::ROIWidget(ROISPtr roi)
-: m_ROI{roi}
-, m_color{Qt::yellow}
-, m_depth{0.0}
-, m_view{nullptr}
+: m_ROI         {roi}
+, m_color       {Qt::yellow}
+, m_depth       {0}
+, m_reslicePoint{VTK_DOUBLE_MAX}
+, m_index       {-1}
+, m_view        {nullptr}
 {
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::setPlane(Plane plane)
 {
-  acceptChangesOnPlane(plane);
+  // intentionally empty.
 }
 
 //-----------------------------------------------------------------------------
@@ -70,13 +75,19 @@ TemporalRepresentation2DSPtr ROIWidget::clone()
 //-----------------------------------------------------------------------------
 bool ROIWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  return acceptPlaneCrosshairChange(crosshair);
+  return m_view && (m_reslicePoint != crosshair[m_index]);
 }
 
 //-----------------------------------------------------------------------------
 bool ROIWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return true;
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -88,6 +99,12 @@ bool ROIWidget::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr f
 //-----------------------------------------------------------------------------
 void ROIWidget::initialize(RenderView *view)
 {
+  if(m_view || !isView2D(view)) return;
+
+  m_view         = view;
+  m_index        = normalCoordinateIndex(view2D_cast(view)->plane());
+  m_reslicePoint = m_view->crosshair()[m_index];
+
   m_contour = vtkSmartPointer<vtkVoxelContour2D>::New();
 
   m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -103,7 +120,9 @@ void ROIWidget::initialize(RenderView *view)
   m_actor->SetVisibility(false);
   m_actor->SetDragable(false);
 
-  m_view = view;
+  repositionActor(m_actor, m_depth, m_index);
+
+  updateCurrentSlice();
 
   m_view->addActor(m_actor);
 
@@ -114,21 +133,25 @@ void ROIWidget::initialize(RenderView *view)
 //-----------------------------------------------------------------------------
 void ROIWidget::uninitialize()
 {
-  disconnect(m_ROI.get(), SIGNAL(dataChanged()));
+  disconnect(m_ROI.get(), SIGNAL(dataChanged()),
+             this,        SLOT(onROIChanged()));
 
   m_view->removeActor(m_actor);
+  m_view = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::show()
 {
   m_actor->SetVisibility(true);
+  m_actor->Modified();
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::hide()
 {
   m_actor->SetVisibility(false);
+  m_actor->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -138,17 +161,20 @@ void ROIWidget::setColor(const QColor& color)
   {
     auto actorProp = m_actor->GetProperty();
     actorProp->SetColor(color.redF(), color.greenF(), color.blueF());
-  }
 
-  m_color = color;
+    m_color = color;
+  }
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  changeReslicePosition(frame->crosshair);
+  if(m_view)
+  {
+    m_reslicePoint = frame->crosshair[m_index];
 
-  updateCurrentSlice();
+    updateCurrentSlice();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -161,13 +187,10 @@ void ROIWidget::onROIChanged()
 vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
 {
   Bounds bounds = m_ROI->bounds();
-  auto   normal = slicingNormal();
+  bounds[2*m_index] = bounds[(2*m_index) + 1] = m_reslicePoint;
+  bounds.setUpperInclusion(toAxis(m_index), true);
 
-  bounds[2*normal] = bounds[(2*normal) + 1] = reslicePosition();
-
-  bounds.setUpperInclusion(toAxis(normal), true);
-
-  vtkSmartPointer<vtkImageData> slice;
+  vtkSmartPointer<vtkImageData> slice = nullptr;
 
   if (intersect(m_ROI->bounds(), bounds))
   {
@@ -182,9 +205,9 @@ void ROIWidget::updateCurrentSlice()
 {
   auto image = currentSlice();
 
-  bool isVisible = image.Get() != nullptr;
+  bool hasSlice = image.Get() != nullptr;
 
-  if (isVisible)
+  if (hasSlice)
   {
     m_contour->SetInputData(image);
     m_contour->SetUpdateExtent(image->GetExtent());
@@ -195,10 +218,7 @@ void ROIWidget::updateCurrentSlice()
     m_mapper->SetUpdateExtent(image->GetExtent());
     m_mapper->UpdateWholeExtent();
     m_mapper->Update();
-
-    repositionActor(m_actor, m_depth, slicingNormal());
   }
 
-  m_actor->SetVisibility(isVisible);
   m_actor->Modified();
 }

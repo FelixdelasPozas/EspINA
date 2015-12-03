@@ -20,11 +20,15 @@
 #ifndef ESPINA_DRAWING_WIDGET_H
 #define ESPINA_DRAWING_WIDGET_H
 
+// ESPINA
 #include <GUI/EventHandlers/BrushPainter.h>
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Types.h>
+#include "NumericalInput.h"
+#include "CategorySelector.h"
 
+// Qt
 #include <QAction>
 #include <QMap>
 
@@ -63,7 +67,7 @@ namespace ESPINA
 
         void clearBrushImage();
 
-        CategoryAdapterSPtr selectedCategory() const;
+        CategoryAdapterSPtr selectedCategory();
 
         void setMaskProperties(const NmVector3 &spacing, const NmVector3 &origin=NmVector3());
 
@@ -228,9 +232,9 @@ namespace ESPINA
         ContourPainterSPtr m_contourPainter;
         MaskPainterSPtr    m_currentPainter;
 
-        CategorySelector *m_categorySelector;
-        NumericalInput   *m_radiusWidget;
-        NumericalInput   *m_opacityWidget;
+        CategorySelector m_categorySelector;
+        NumericalInput   m_radiusWidget;
+        NumericalInput   m_opacityWidget;
         QPushButton      *m_eraserWidget;
 
         QPushButton *m_circularPainterAction;

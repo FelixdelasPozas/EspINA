@@ -109,14 +109,6 @@ namespace ESPINA
      */
     NmVector3 worldEventPosition(const QPoint &pos);
 
-//     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
-//      * \param[in] flags view item types to be selected.
-//      * \param[in] mask  Area selected to intersect with the items in the view.
-//      * \param[in] multiselection if true several view items may be returned.
-//      *
-//      */
-//     virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
-
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
      * \param[in] flags view item types to be selected.
      * \param[in] point position in WORLD coordinates.
@@ -196,8 +188,14 @@ namespace ESPINA
      */
     static QPushButton *createButton(const QString& icon, const QString& tooltip);
 
+    /** \brief Returns the name of the view, for debugging purposes.
+     *
+     */
     virtual const QString viewName() const = 0;
 
+    /** \brief Returns the ViewState used by the view.
+     *
+     */
     GUI::View::ViewState &state() const;
 
   public slots:
@@ -225,6 +223,11 @@ namespace ESPINA
      */
     virtual void reset();
 
+    /** \brief Tries to update the view when a manager request for a render.
+     *
+     */
+    void onRenderRequest();
+
   protected:
     /** \brief RenderView class constructor.
      * \param[in] parent raw pointer of the QWidget parent of this one.
@@ -232,6 +235,13 @@ namespace ESPINA
      */
     explicit RenderView(GUI::View::ViewState &state, ViewType type);
 
+    /** \brief Returns the point world coordinates corresponding to the given ones in the given renderer.
+     * \param[in] renderer vtkRenderer used for transformation.
+     * \param[in] x x axis display coordinates.
+     * \param[in] y y axis display coordinates.
+     * \param[in] z z axis display coordinates.
+     *
+     */
     NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 
     /** \brief Updates the view when the selection changes.
@@ -327,8 +337,6 @@ namespace ESPINA
     void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
     void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
-
-    void onRenderRequest();
 
   protected:
     using TemporalPrototypesSPtr     = GUI::Representations::Managers::TemporalPrototypesSPtr;

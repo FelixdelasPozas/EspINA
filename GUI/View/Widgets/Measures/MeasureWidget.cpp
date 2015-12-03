@@ -50,40 +50,40 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 class MeasureWidget::vtkDistanceCommand
 : public vtkCommand
 {
-  vtkTypeMacro(vtkDistanceCommand, vtkCommand);
+    vtkTypeMacro(vtkDistanceCommand, vtkCommand);
 
-  virtual ~vtkDistanceCommand();
+    virtual ~vtkDistanceCommand();
 
-  /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-   *
-   */
-  static vtkDistanceCommand* New()
-  { return new vtkDistanceCommand(); }
+    /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+     *
+     */
+    static vtkDistanceCommand* New()
+    { return new vtkDistanceCommand(); }
 
-  void setDistanceWidget(vtkDistanceWidget *widget);
+    void setDistanceWidget(vtkDistanceWidget *widget);
 
-  virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
+    virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
-private:
-  /** \brief Class vtkDistanceCommand class private constructor.
-   *
-   */
-  explicit vtkDistanceCommand()
-  : m_widget{nullptr}
-  , m_camera{nullptr}
-  {}
+  private:
+    /** \brief Class vtkDistanceCommand class private constructor.
+     *
+     */
+    explicit vtkDistanceCommand()
+    : m_widget{nullptr}
+    , m_camera{nullptr}
+    {}
 
-  vtkProperty2D *pointProperty(vtkHandleRepresentation *point) const;
+    vtkProperty2D *pointProperty(vtkHandleRepresentation *point) const;
 
-  /** \brief Computes optimal tick distance for current representation
-   * \param[in] length numerical value.
-   *
-   */
-  Nm optimalTickDistance(vtkDistanceRepresentation2D *representation) const;
+    /** \brief Computes optimal tick distance for current representation
+     * \param[in] length numerical value.
+     *
+     */
+    Nm optimalTickDistance(vtkDistanceRepresentation2D *representation) const;
 
-private:
-  vtkDistanceWidget *m_widget;
-  vtkCamera         *m_camera;
+  private:
+    vtkDistanceWidget *m_widget;
+    vtkCamera         *m_camera;
 };
 
 //----------------------------------------------------------------------------
@@ -195,18 +195,18 @@ MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
 //----------------------------------------------------------------------------
 MeasureWidget::~MeasureWidget()
 {
+  m_widget = nullptr;
+  m_command = nullptr;
 }
 
 //----------------------------------------------------------------------------
 void MeasureWidget::setPlane(Plane plane)
 {
-
 }
 
 //----------------------------------------------------------------------------
 void MeasureWidget::setRepresentationDepth(Nm depth)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -223,6 +223,12 @@ bool MeasureWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
 
 //----------------------------------------------------------------------------
 bool MeasureWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool MeasureWidget::acceptSceneBoundsChange(const Bounds &bounds) const
 {
   return false;
 }

@@ -72,6 +72,12 @@ bool PlanarSplitWidget3D::acceptSceneResolutionChange(const NmVector3& resolutio
 }
 
 //-----------------------------------------------------------------------------
+bool PlanarSplitWidget3D::acceptSceneBoundsChange(const Bounds& bounds) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 bool PlanarSplitWidget3D::acceptInvalidationFrame(const Representations::FrameCSPtr frame) const
 {
   return false;

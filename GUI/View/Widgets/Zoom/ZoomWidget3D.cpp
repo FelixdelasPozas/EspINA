@@ -101,6 +101,12 @@ bool ZoomWidget3D::acceptSceneResolutionChange(const NmVector3& resolution) cons
 }
 
 //----------------------------------------------------------------------------
+bool ZoomWidget3D::acceptSceneBoundsChange(const Bounds& bounds) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 bool ZoomWidget3D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
 {
   return false;

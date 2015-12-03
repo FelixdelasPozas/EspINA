@@ -93,6 +93,8 @@ namespace ESPINA
 
             virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
+            virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+
             virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
 
             virtual void setCrosshair(const NmVector3 &crosshair);

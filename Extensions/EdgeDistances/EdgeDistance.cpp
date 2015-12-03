@@ -54,17 +54,13 @@ EdgeDistance::~EdgeDistance()
 //-----------------------------------------------------------------------------
 State EdgeDistance::state() const
 {
-  State state;
-
-  return state;
+  return State();
 }
 
 //-----------------------------------------------------------------------------
 Snapshot EdgeDistance::snapshot() const
 {
-  Snapshot snapshot;
-
-  return snapshot;
+  return Snapshot();
 }
 
 //-----------------------------------------------------------------------------

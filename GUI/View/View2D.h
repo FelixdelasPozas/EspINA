@@ -136,6 +136,8 @@ namespace ESPINA
 
     virtual vtkRenderer *mainRenderer() const override;
 
+    virtual void showEvent(QShowEvent *event) override;
+
   public slots:
     /** \brief Sets the scale visibility.
      * \param[in] visibile true to set the ruler visible, false otherwise.

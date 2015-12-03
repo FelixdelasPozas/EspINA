@@ -61,6 +61,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 RenderView::RenderView(ViewState &state, ViewType type)
 : SelectableView(state)
 , m_view {new QVTKWidget()}
+, m_lastFrameActiveManagers{0}
 , m_state(state)
 , m_selection{state.selection()}
 , m_type {type}
@@ -78,6 +79,8 @@ RenderView::~RenderView()
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
+  if(m_managers.contains(manager)) return;
+
   connect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
           manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
 
@@ -312,6 +315,11 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 //-----------------------------------------------------------------------------
 void RenderView::reset()
 {
+  for(auto manager: m_managers)
+  {
+    manager->reset();
+  }
+
   resetImplementation();
 
   onRenderRequest();
@@ -423,8 +431,8 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, const GUI::
 
       manager->hide(frame);
 
-    //NOTE: managers should be removed from m_temporalManagers after processing render
-    //      request of t so they can hide its representations
+      //NOTE: managers should be removed from m_temporalManagers after processing render
+      //      request of so they can hide its representations
     }
     else
     {
@@ -436,15 +444,14 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes, const GUI::
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-  if (!isVisible()) return;
+//  auto senderObj = dynamic_cast<RepresentationManager *>(sender());
+  auto managers = pendingManagers();
+  auto frame = latestReadyFrame(managers);
 
-  auto readyManagers = pendingManagers();
-  auto frame = latestReadyFrame(readyManagers);
-
-  qDebug() << "onRenderRequest---------------------------" << viewName() << "frame" << frame->time << "last frame" << m_latestFrame->time;
-  if (m_latestFrame->time < frame->time)
+//   qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
+  if (isValid(frame) && m_latestFrame->time < frame->time)
   {
-    renderFrame(frame, readyManagers);
+    renderFrame(frame, managers);
 
     updateViewActions(managerFlags());
 
@@ -459,26 +466,30 @@ void RenderView::onRenderRequest()
 
   m_view->update();
 
-  qDebug() << "------------------------------------------";
+//   qDebug() << "------------------------------------------";
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
 {
+//   qDebug() << "display" << frame->time;
   display(managers, frame->time);
 
   deleteInactiveWidgetManagers();
 
   auto numManagers = activeManagers();
 
-  if ((hasVisibleRepresentations() && requiresReset(frame)) || (m_lastFrameActiveManagers == 0 && numManagers != 0))
+  if(hasVisibleRepresentations())
   {
-    resetCameraImplementation();
-  }
+    if (requiresReset(frame) || (m_lastFrameActiveManagers == 0 && numManagers != 0))
+    {
+      resetCameraImplementation();
+    }
 
-  if (requiresFocus(frame))
-  {
-    moveCamera(frame->crosshair);
+    if (requiresFocus(frame))
+    {
+      moveCamera(frame->crosshair);
+    }
   }
 }
 
@@ -564,7 +575,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 
     for (auto manager : managers)
     {
-      qDebug() << viewName() << manager->debugName() << manager->readyRange();
+//       qDebug() << viewName() << manager->debugName() << manager->readyRange();
 
       for(auto time: manager->readyRange())
       {
@@ -576,7 +587,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
 
     if (activeManagers > 0)
     {
-      qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
+//       qDebug() << viewName() << tr("Available Frames[%1]: ").arg(activeManagers) << count;
 
       for(auto time : count.keys())
       {
@@ -593,7 +604,7 @@ FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) con
     }
   }
 
-  qDebug() << "last common frame"  << latest;
+//   qDebug() << viewName() << "last common frame"  << latest;
   return ((latest > 0) ? m_state.frame(latest) : Frame::InvalidFrame());
 }
 

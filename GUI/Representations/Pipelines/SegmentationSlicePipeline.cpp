@@ -137,12 +137,12 @@ void SegmentationSlicePipeline::updateColors(ActorList                &actors,
   {
     auto segmentation = segmentationPtr(item);
 
-    auto actor = dynamic_cast<vtkImageActor *>(actors.first().Get());
+    auto actor = vtkImageActor::SafeDownCast(actors.first().Get());
     auto color = m_colorEngine->color(segmentation);
 
     actor->SetOpacity(opacity(state) * color.alphaF());
 
-    auto mapToColors = dynamic_cast<vtkImageMapToColors *>(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
+    auto mapToColors = vtkImageMapToColors::SafeDownCast(actor->GetMapper()->GetInputConnection(0,0)->GetProducer());
     mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
   }
 }

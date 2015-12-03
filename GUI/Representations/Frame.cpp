@@ -17,6 +17,7 @@
  *
  */
 
+// ESPINA
 #include "Frame.h"
 
 using namespace ESPINA;
@@ -24,14 +25,26 @@ using namespace ESPINA::GUI::Representations;
 
 //------------------------------------------------------------------------
 Frame::Frame()
-: time    {Timer::INVALID_TIME_STAMP}
+: time      {Timer::INVALID_TIME_STAMP}
+, crosshair {NmVector3{0,0,0}}
+, resolution{NmVector3{1,1,1}}
+, bounds    {Bounds{0,1,0,1,0,1}}
+, flags     {Options()}
 {
+}
+
+//------------------------------------------------------------------------
+Frame::~Frame()
+{
+  //qDebug() << "destroy frame" << time;
 }
 
 //------------------------------------------------------------------------
 FrameCSPtr Frame::InvalidFrame()
 {
-  return std::make_shared<Frame>();
+  static FrameCSPtr invalidFrame = std::make_shared<Frame>();
+
+  return invalidFrame;
 }
 
 //------------------------------------------------------------------------

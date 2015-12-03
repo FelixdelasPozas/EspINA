@@ -20,6 +20,7 @@
 #ifndef ESPINA_GUI_REPRESENTATIONS_FRAME_H
 #define ESPINA_GUI_REPRESENTATIONS_FRAME_H
 
+// ESPINA
 #include "GUI/Types.h"
 #include "GUI/Utils/Timer.h"
 #include <Core/Utils/Bounds.h>
@@ -38,6 +39,7 @@ namespace ESPINA
            *
            */
           explicit Frame();
+          ~Frame();
 
           /** \brief Returns an invalid frame.
            *

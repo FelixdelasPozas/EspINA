@@ -94,15 +94,6 @@ void CrosshairManager::updateFrameRepresentations(const FrameCSPtr frame)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::changeCrosshair(const FrameCSPtr frame)
-{
-  if(hasActors())
-  {
-    emitRenderRequest(frame);
-  }
-}
-
-//-----------------------------------------------------------------------------
 bool CrosshairManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
   return lastFrame()->crosshair != crosshair;
@@ -117,7 +108,7 @@ bool CrosshairManager::acceptSceneResolutionChange(const NmVector3 &resolution) 
 //-----------------------------------------------------------------------------
 bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return true;
+  return lastFrame()->bounds != bounds;
 }
 
 //-----------------------------------------------------------------------------

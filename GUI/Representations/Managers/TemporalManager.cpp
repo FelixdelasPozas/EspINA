@@ -78,7 +78,6 @@ TemporalManager::~TemporalManager()
 {
 }
 
-
 //------------------------------------------------------------------------
 ViewItemAdapterList TemporalManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
@@ -94,34 +93,31 @@ void TemporalManager::setPlane(Plane plane)
 //------------------------------------------------------------------------
 void TemporalManager::setRepresentationDepth(Nm depth)
 {
-  m_depth = 2*depth;
+  m_depth = depth;
 }
 
 //------------------------------------------------------------------------
 bool TemporalManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  Q_ASSERT(m_representation);
-  return m_representation->acceptCrosshairChange(crosshair);
+  return (m_representation && m_representation->acceptCrosshairChange(crosshair));
 }
 
 //------------------------------------------------------------------------
 bool TemporalManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  Q_ASSERT(m_representation);
-  return m_representation->acceptSceneResolutionChange(resolution);
-}
-
-//------------------------------------------------------------------------
-bool TemporalManager::acceptInvalidationFrame(GUI::Representations::FrameCSPtr frame) const
-{
-  Q_ASSERT(m_representation);
-  return m_representation->acceptInvalidationFrame(frame);
+  return (m_representation && m_representation->acceptSceneResolutionChange(resolution));
 }
 
 //------------------------------------------------------------------------
 bool TemporalManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return false;
+  return (m_representation && m_representation->acceptSceneBoundsChange(bounds));
+}
+
+//------------------------------------------------------------------------
+bool TemporalManager::acceptInvalidationFrame(GUI::Representations::FrameCSPtr frame) const
+{
+  return (m_representation && m_representation->acceptInvalidationFrame(frame));
 }
 
 //------------------------------------------------------------------------
@@ -133,11 +129,15 @@ bool TemporalManager::hasRepresentations() const
 //------------------------------------------------------------------------
 void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
+  // intentionally empty, representations must be computed on display().
 }
 
 //------------------------------------------------------------------------
 void TemporalManager::onShow(const FrameCSPtr frame)
 {
+  // if already initialized return
+  if(m_representation) return;
+
   connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
           this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
@@ -163,6 +163,7 @@ void TemporalManager::onShow(const FrameCSPtr frame)
 //------------------------------------------------------------------------
 void TemporalManager::onHide(const FrameCSPtr frame)
 {
+  // intentionally empty.
 }
 
 //------------------------------------------------------------------------
@@ -185,37 +186,4 @@ void TemporalManager::hideRepresentations(const FrameCSPtr frame)
 RepresentationManagerSPtr TemporalManager::cloneImplementation()
 {
   return std::make_shared<TemporalManager>(m_prototypes, flags());
-}
-
-//------------------------------------------------------------------------
-AcceptOnlyPlaneCrosshairChanges::AcceptOnlyPlaneCrosshairChanges()
-: m_normalIndex    {0}
-, m_reslicePosition{0.0}
-, m_reslicePlane   {Plane::UNDEFINED}
-{
-}
-
-//------------------------------------------------------------------------
-void AcceptOnlyPlaneCrosshairChanges::acceptChangesOnPlane(Plane plane)
-{
-  m_reslicePlane = plane;
-  m_normalIndex  = normalCoordinateIndex(plane);
-}
-
-//------------------------------------------------------------------------
-bool AcceptOnlyPlaneCrosshairChanges::acceptPlaneCrosshairChange(const NmVector3 &crosshair) const
-{
-  return normalCoordinate(crosshair) != m_reslicePosition;
-}
-
-//------------------------------------------------------------------------
-void AcceptOnlyPlaneCrosshairChanges::changeReslicePosition(const NmVector3 &crosshair)
-{
-  m_reslicePosition = normalCoordinate(crosshair);
-}
-
-//------------------------------------------------------------------------
-Nm AcceptOnlyPlaneCrosshairChanges::normalCoordinate(const NmVector3 &value) const
-{
-  return value[m_normalIndex];
 }

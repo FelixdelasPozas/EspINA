@@ -102,11 +102,18 @@ TemporalRepresentation2DSPtr PlanarSplitWidget2D::clone()
 //-----------------------------------------------------------------------------
 bool PlanarSplitWidget2D::acceptCrosshairChange(const NmVector3& crosshair) const
 {
-  return true;
+  auto idx = normalCoordinateIndex(m_widget->getPlane());
+  return m_widget->slice() != crosshair[idx];
 }
 
 //-----------------------------------------------------------------------------
 bool PlanarSplitWidget2D::acceptSceneResolutionChange(const NmVector3& resolution) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool PlanarSplitWidget2D::acceptSceneBoundsChange(const Bounds& bounds) const
 {
   return false;
 }

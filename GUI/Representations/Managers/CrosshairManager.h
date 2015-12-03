@@ -57,8 +57,6 @@ namespace ESPINA
 
           virtual void updateFrameRepresentations(const FrameCSPtr frame) override;
 
-          virtual void changeCrosshair(const FrameCSPtr frame);
-
           virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
           virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;

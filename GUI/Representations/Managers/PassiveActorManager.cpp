@@ -66,13 +66,13 @@ bool PassiveActorManager::acceptCrosshairChange(const NmVector3 &crosshair) cons
 //----------------------------------------------------------------------------
 bool PassiveActorManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return false;
+  return !isValid(lastFrame()) || (lastFrame()->resolution != resolution);
 }
 
 //----------------------------------------------------------------------------
 bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return false;
+  return !isValid(lastFrame()) || (lastFrame()->bounds != bounds);
 }
 
 //----------------------------------------------------------------------------
@@ -96,27 +96,26 @@ void PassiveActorManager::onHide(const FrameCSPtr frame)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Actors PassiveActorManager::actors(TimeStamp t)
+RepresentationPipeline::Actors PassiveActorManager::actors(TimeStamp time)
 {
-  return m_pool->actors(t);
+  return m_pool->actors(time);
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::invalidatePreviousActors(TimeStamp t)
+void PassiveActorManager::invalidatePreviousActors(TimeStamp time)
 {
-  m_pool->invalidatePreviousActors(t);
+  m_pool->invalidatePreviousActors(time);
 }
 
 //----------------------------------------------------------------------------
 void PassiveActorManager::connectPools()
 {
   connect(m_pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
-          this,         SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
+          this,         SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)));
 
   connect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
           this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-  qDebug() << debugName() << "Activating representation pools";
   m_pool->incrementObservers();
 }
 
@@ -124,88 +123,25 @@ void PassiveActorManager::connectPools()
 void PassiveActorManager::disconnectPools()
 {
   disconnect(m_pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
-             this,         SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
+             this,         SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)));
 
   disconnect(m_pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
              this,         SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-  qDebug() << debugName() << "Dectivating representation pools";
   m_pool->decrementObservers();
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::displayRepresentations(const FrameCSPtr frame)
+QSet<vtkProp *> toRawSet(QList<vtkSmartPointer<vtkProp>> list)
 {
-  auto currentActors = m_viewActors;
-  auto futureActors  = m_pool->actors(frame->time);
+  QSet<vtkProp *> result;
 
-  auto currentSegs = currentActors.keys().toSet();
-  auto futureSegs  = futureActors.keys().toSet();
-
-  auto temporalSet = currentSegs;
-  auto toRemove    = temporalSet.subtract(futureSegs);
-
-  temporalSet    = currentSegs;
-  auto toCompare = temporalSet.intersect(futureSegs);
-
-  temporalSet    = futureSegs;
-  auto toAdd     = temporalSet.subtract(currentSegs);
-
-  // remove
-  for(auto item: toRemove)
+  for(auto item: list)
   {
-    for(auto actor: currentActors[item])
-    {
-      m_view->removeActor(actor);
-    }
-
-    m_viewActors.remove(item);
+    result.insert(item.GetPointer());
   }
 
-  // compare
-  for(auto item: toCompare)
-  {
-    auto oldActors = toSet(m_viewActors[item]);
-    auto newActors = toSet(futureActors[item]);
-
-    if(oldActors != newActors)
-    {
-      auto temporalSet = oldActors;
-      for (auto oldActor : temporalSet.subtract(newActors))
-      {
-        m_view->removeActor(oldActor);
-      }
-
-      temporalSet = newActors;
-      for (auto newActor : temporalSet.subtract(oldActors))
-      {
-        m_view->addActor(newActor);
-      }
-    }
-
-    m_viewActors[item] = futureActors[item];
-  }
-
-  // add
-  for(auto item: toAdd)
-  {
-    for(auto actor: futureActors[item])
-    {
-      m_view->addActor(actor);
-    }
-
-    m_viewActors.insert(item, futureActors[item]);
-  }
-
-  // set flag
-  for(auto actors : m_viewActors)
-  {
-    if(!actors.isEmpty())
-    {
-      setFlag(HAS_ACTORS, true);
-      break;
-    }
-  }
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -221,17 +157,4 @@ RepresentationPoolSList PassiveActorManager::pools() const
   result << m_pool;
 
   return result;
-}
-
-//----------------------------------------------------------------------------
-QSet<vtkProp *> PassiveActorManager::toSet(const RepresentationPipeline::ActorList &list) const
-{
-  QSet<vtkProp *> set;
-
-  for (auto actor : list)
-  {
-    set.insert(actor.Get());
-  }
-
-  return set;
 }

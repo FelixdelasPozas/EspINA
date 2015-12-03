@@ -211,6 +211,12 @@ vtkRenderer *View2D::mainRenderer() const
 }
 
 //-----------------------------------------------------------------------------
+void View2D::showEvent(QShowEvent *event)
+{
+  onRenderRequest();
+}
+
+//-----------------------------------------------------------------------------
 Nm scaleResolution(Nm value)
 {
   int factor = 100;

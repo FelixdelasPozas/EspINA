@@ -112,9 +112,9 @@ bool ContourSelector::filterEvent(QEvent* e, RenderView *view)
                 m_widget->m_widgets[view2d]->GetInteractor()->RightButtonPressEvent();
               }
             }
-            return true;
           }
         }
+        return true;
       }
       break;
     case QEvent::MouseMove:
@@ -132,8 +132,8 @@ bool ContourSelector::filterEvent(QEvent* e, RenderView *view)
           }
 
           m_widget->m_widgets[view2d]->GetInteractor()->MouseMoveEvent();
-          return true;
         }
+        return true;
       }
       break;
     case QEvent::MouseButtonRelease:
@@ -159,9 +159,8 @@ bool ContourSelector::filterEvent(QEvent* e, RenderView *view)
           {
             m_widget->m_widgets[view2d]->GetInteractor()->RightButtonReleaseEvent();
           }
-
-          return true;
         }
+        return true;
       }
       break;
     default:

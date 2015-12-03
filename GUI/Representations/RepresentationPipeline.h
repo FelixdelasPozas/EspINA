@@ -20,83 +20,117 @@
 #ifndef ESPINA_REPRESENTATION_PIPELINE_H
 #define ESPINA_REPRESENTATION_PIPELINE_H
 
+// ESPINA
 #include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Types.h>
 #include "RepresentationState.h"
 
+// Qt
 #include <QString>
 #include <QList>
+#include <QReadWriteLock>
 
+// C++
 #include <memory>
 
+// VTK
 #include <vtkSmartPointer.h>
 
 class vtkProp;
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   /** \class RepresentationPipeline
    *
    * This representation pipeline settings are ThreadSafe
    */
   class RepresentationPipeline
   {
-  public:
-    using Type      = QString;
-    using VTKActor  = vtkSmartPointer<vtkProp>;
-    using ActorList = QList<VTKActor>;
-    using Actors    = QMap<ViewItemAdapter*, ActorList>;
+    public:
+      using Type      = QString;
+      using VTKActor  = vtkSmartPointer<vtkProp>;
+      using ActorList = QList<VTKActor>;
 
-  public:
-    virtual ~RepresentationPipeline()
-    {}
+      struct ActorsData
+      {
+          QMap<ViewItemAdapter*, ActorList> actors; /** map of item-item's actors. */
+          QReadWriteLock                    lock;   /** access lock.               */
+      };
 
-    /** \brief Returns the type of the representation pipeline
-     *
-     */
-    Type type() const
-    { return m_type; }
+      using Actors = std::shared_ptr<ActorsData>;
 
-    /** \brief Returns the serialized settings of the representation
-     *
-     */
-    virtual QString serializeSettings();
+    public:
+      /** \brief RepresentationPipeline class virtual destructor.
+       *
+       */
+      virtual ~RepresentationPipeline()
+      {}
 
-    /** \brief Restores the settings for the representation
-     * \param[in] settings serialization
-     *
-     */
-    virtual void restoreSettings(QString settings);
+      /** \brief Returns the type of the representation pipeline
+       *
+       */
+      Type type() const
+      { return m_type; }
 
-    virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
-                                                    const RepresentationState &settings) = 0;
+      /** \brief Returns the serialized settings of the representation
+       *
+       */
+      virtual QString serializeSettings();
 
-    /** \brief Create the actors for the view item with the given state
-     *
-     *  NOTE: This function must be reentrant
-     */
-    virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr  item,
-                                                           const RepresentationState &state) = 0;
+      /** \brief Restores the settings for the representation
+       * \param[in] settings serialization
+       *
+       */
+      virtual void restoreSettings(QString settings);
 
-    /** \brief Update the color of the representationa actors
-     *
-     *  NOTE: This function must be reentrant
-     */
-    virtual void updateColors(RepresentationPipeline::ActorList &actors,
-                              ConstViewItemAdapterPtr           item,
-                              const RepresentationState         &state) = 0;
+      /** \brief Returns the representation settings for the given item.
+       * \param[in] item view item pointer.
+       * \param[in] settings pipeline settings.
+       *
+       */
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
+                                                      const RepresentationState &settings) = 0;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const = 0;
+      /** \brief Returns true if the point is inside the item representation.
+       * \param[in] item void item pointer to check.
+       * \param[in] point picked point.
+       *
+       */
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const = 0;
 
-  protected:
-    explicit RepresentationPipeline(Type type);
+      /** \brief Create the actors for the view item with the given state.
+       * \param[in] item view item pointer.
+       * \param[in] state item's representation settings.
+       *
+       *  NOTE: This function must be reentrant
+       */
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr  item,
+                                                             const RepresentationState &state) = 0;
 
-    void setType(const Type &type)
-    { m_type = type; }
+      /** \brief Update the color of the representation actors
+       * \param[in] actors list of previous actors to modify.
+       * \param[in] item view item pointer.
+       * \param[in] state item's representation settings.
+       *
+       *  NOTE: This function must be reentrant
+       */
+      virtual void updateColors(RepresentationPipeline::ActorList &actors,
+                                ConstViewItemAdapterPtr           item,
+                                const RepresentationState         &state) = 0;
 
-  private:
-    Type m_type;
+    protected:
+      /** \brief RepresentationPipeline constructor.
+       * \param[in] type type of the pipeline.
+       *
+       */
+      explicit RepresentationPipeline(Type type);
+
+      void setType(const Type &type)
+      { m_type = type; }
+
+    private:
+      Type m_type; /** type of the pipeline. */
   };
 
   using RepresentationPipelineSPtr  = std::shared_ptr<RepresentationPipeline>;

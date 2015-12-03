@@ -106,7 +106,11 @@ namespace ESPINA
 
               virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
+              virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+
               virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
+
+              virtual void display(const GUI::Representations::FrameCSPtr &frame) override;
 
             private:
               virtual void initializeImplementation(RenderView *view);
@@ -126,7 +130,7 @@ namespace ESPINA
               Contour            m_storedContour;
               vtkSmartPointer<vtkPlaneContourWidget> m_widget;
 
-              int       m_slice;
+              Nm        m_slice;
               int       m_index;
               NmVector3 m_spacing;
           };

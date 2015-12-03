@@ -22,6 +22,7 @@
 // ESPINA
 #include <Core/Utils/vtkPolyDataUtils.h>
 #include <GUI/EventHandlers/ContourPainter.h>
+#include <GUI/View/RenderView.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
@@ -132,14 +133,27 @@ bool ContourWidget2D::acceptSceneResolutionChange(const NmVector3& resolution) c
 }
 
 //----------------------------------------------------------------------------
+bool ContourWidget2D::acceptSceneBoundsChange(const Bounds& bounds) const
+{
+  return true;
+}
+
+//----------------------------------------------------------------------------
 bool ContourWidget2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
 {
   return false;
 }
 
 //----------------------------------------------------------------------------
+void ContourWidget2D::display(const GUI::Representations::FrameCSPtr &frame)
+{
+  setCrosshair(frame->crosshair);
+}
+
+//----------------------------------------------------------------------------
 void ContourWidget2D::initializeImplementation(RenderView* view)
 {
+  setCrosshair(view->crosshair());
 }
 
 //----------------------------------------------------------------------------

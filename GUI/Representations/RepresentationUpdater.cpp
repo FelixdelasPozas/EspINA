@@ -17,9 +17,14 @@
  *
  */
 
+// ESPINA
 #include "RepresentationUpdater.h"
 #include "Frame.h"
+
+// VTK
 #include <vtkProp.h>
+
+// Qt
 #include <QCoreApplication>
 
 using namespace ESPINA;
@@ -32,6 +37,7 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 , m_frame      {Frame::InvalidFrame()}
 , m_pipeline   {pipeline}
 , m_updateList {&m_sources}
+, m_actors     {std::make_shared<RepresentationPipeline::ActorsData>()}
 {
   setHidden(true);
 }
@@ -49,13 +55,16 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
   QMutexLocker lock(&m_mutex);
 
-  if(m_actors.keys().contains(item))
   {
-    m_actors.remove(item);
+    QReadLocker actorsLock(&m_actors->lock);
+
+    if(m_actors->actors.keys().contains(item))
+    {
+      m_actors->actors.remove(item);
+    }
   }
 
   removeUpdateRequest(m_sources, item);
-
   removeUpdateRequest(m_requestedSources, item);
 }
 
@@ -152,7 +161,9 @@ ViewItemAdapterList RepresentationUpdater::pick(const NmVector3 &point, vtkProp 
   }
   else
   {
-    for (auto item : m_actors.keys())
+    QReadLocker actorsLock(&m_actors->lock);
+
+    for (auto item : m_actors->actors.keys())
     {
       if (m_pipeline->pick(item, point))
       {
@@ -168,6 +179,8 @@ ViewItemAdapterList RepresentationUpdater::pick(const NmVector3 &point, vtkProp 
 RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   QMutexLocker lock(&m_mutex);
+
+  QReadLocker actorsLock(&m_actors->lock);
 
   return m_actors;
 }
@@ -188,26 +201,28 @@ void RepresentationUpdater::run()
 
   int i  = 0;
 
-  while (canExecute() && it != updateList.end())
   {
-    auto item     = it->first;
-    auto pipeline = sourcePipeline(item);
+    QWriteLocker actorsLock(&m_actors->lock);
 
-    auto state = pipeline->representationState(item, m_settings);
-
-    if (it->second)
+    while (canExecute() && it != updateList.end())
     {
-      auto actors = pipeline->createActors(item, state);
+      auto item     = it->first;
+      auto pipeline = sourcePipeline(item);
 
-      m_actors[item]  = actors;
+      auto state = pipeline->representationState(item, m_settings);
+
+      if (it->second)
+      {
+        m_actors->actors[item] = pipeline->createActors(item, state);
+      }
+
+      pipeline->updateColors(m_actors->actors[item], item, state);
+
+      ++it;
+      ++i;
+
+      reportProgress((i/static_cast<double>(size))*100);
     }
-
-    pipeline->updateColors(m_actors[item], item, state);
-
-    ++it;
-    ++i;
-
-    reportProgress((i/static_cast<double>(size))*100);
   }
 
   if (isValid(m_frame) && canExecute())
@@ -234,8 +249,10 @@ ViewItemAdapterPtr RepresentationUpdater::findActorItem(vtkProp *actor) const
 {
   ViewItemAdapterPtr item = nullptr;
 
-  auto it = m_actors.begin();
-  while (it != m_actors.end() && !item)
+  QReadLocker lock(&m_actors->lock);
+
+  auto it = m_actors->actors.begin();
+  while (it != m_actors->actors.end() && !item)
   {
     for (auto itemActor : it.value())
     {
@@ -257,8 +274,16 @@ void RepresentationUpdater::updateRepresentations(ViewItemAdapterList sources, c
 {
   QMutexLocker lock(&m_mutex);
 
+  ViewItemAdapterList sourceItems;
+  for(auto source: m_sources)
+  {
+    sourceItems << source.first;
+  }
+
   for(auto item: sources)
   {
+    if(!sourceItems.contains(item)) continue;
+
     addUpdateRequest(m_requestedSources, item, createActors);
   }
 

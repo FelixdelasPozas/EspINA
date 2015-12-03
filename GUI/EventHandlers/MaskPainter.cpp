@@ -75,28 +75,37 @@ void MaskPainter::setMaskProperties(const NmVector3 &spacing, const NmVector3 &o
 //------------------------------------------------------------------------
 void MaskPainter::setCanErase(bool value)
 {
-  m_canErase = value;
-
-  if(!m_canErase && m_mode == DrawingMode::ERASING)
+  if(value != m_canErase)
   {
-    setDrawingMode(DrawingMode::PAINTING);
+    m_canErase = value;
+
+    if(!m_canErase && m_mode == DrawingMode::ERASING)
+    {
+      setDrawingMode(DrawingMode::PAINTING);
+    }
   }
 }
 
 //------------------------------------------------------------------------
 void MaskPainter::setDrawingMode(const DrawingMode mode)
 {
-  m_mode = mode;
+  if(mode != m_mode)
+  {
+    m_mode = mode;
 
-  updateDrawingMode();
+    updateDrawingMode();
+  }
 }
 
 //------------------------------------------------------------------------
 void MaskPainter::setColor(const QColor &color)
 {
-  m_color = color;
+  if(color != m_color)
+  {
+    m_color = color;
 
-  updateCursor(m_mode);
+    updateCursor(m_mode);
+  }
 }
 
 //------------------------------------------------------------------------

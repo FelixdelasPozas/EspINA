@@ -29,59 +29,63 @@
 
 class QTreeView;
 
+/** \class QComboTreeView
+ * \brief Combobox showwing the nodes of a tree.
+ *
+ */
 class EspinaGUI_EXPORT QComboTreeView
 : public QComboBox
 {
-  Q_OBJECT
-public:
-  /** \brief QComboTreeView class constructor.
-   * \param[in] parent raw pointer of the QWidget parent of this one.
-   *
-   */
-  explicit QComboTreeView(QWidget* parent = nullptr);
+    Q_OBJECT
+  public:
+    /** \brief QComboTreeView class constructor.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
+     *
+     */
+    explicit QComboTreeView(QWidget* parent = nullptr);
 
-  void setModel(QAbstractItemModel *model);
+    void setModel(QAbstractItemModel *model);
 
-  void setRootModelIndex( const QModelIndex &index);
+    void setRootModelIndex( const QModelIndex &index);
 
-  /** \brief Sets the current model index as the given one.
-   * \param[in] index model index.
-   *
-   */
-  void setCurrentModelIndex(const QModelIndex &index);
+    /** \brief Sets the current model index as the given one.
+     * \param[in] index model index.
+     *
+     */
+    void setCurrentModelIndex(const QModelIndex &index);
 
-  /** \brief Returns the current model index.
-   *
-   */
-  QModelIndex currentModelIndex() const
-  {return m_currentModelIndex;}
+    /** \brief Returns the current model index.
+     *
+     */
+    QModelIndex currentModelIndex() const
+    {return m_currentModelIndex;}
 
-  virtual void mousePressEvent(QMouseEvent* e) override;
+    virtual void mousePressEvent(QMouseEvent* e) override;
 
-protected:
-  virtual void showPopup() override;
+  protected:
+    virtual void showPopup() override;
 
-private slots:
-	/** \brief Sets the current model index to the given one.
-	 * \param[in] index model index.
-	 *
-	 */
-  void indexEntered(const QModelIndex &index);
+  private slots:
+    /** \brief Sets the current model index to the given one.
+     * \param[in] index model index.
+     *
+     */
+    void indexEntered(const QModelIndex &index);
 
-  /** \brief Emits the activation signal for the current model index.
-   *
-   */
-  void indexActivated();
+    /** \brief Emits the activation signal for the current model index.
+     *
+     */
+    void indexActivated();
 
-signals:
-  void activated(const QModelIndex &index);
+  signals:
+    void activated(const QModelIndex &index);
 
-private:
-  QModelIndex m_rootModelIndex;
-  QModelIndex m_currentModelIndex;
-  QTreeView   m_treeView;
+  private:
+    QModelIndex m_rootModelIndex;
+    QModelIndex m_currentModelIndex;
+    QTreeView   m_treeView;
 
-  bool m_usePressedIndex;
+    bool m_usePressedIndex;
 };
 
 

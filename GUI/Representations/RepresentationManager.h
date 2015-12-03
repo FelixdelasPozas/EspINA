@@ -54,8 +54,8 @@ namespace ESPINA
       public:
         enum class Status: int8_t
         {
-          IDLE,
-          PENDING_DISPLAY
+          IDLE,            /** no need to update the current representations.   */
+          PENDING_DISPLAY  /** waiting to show new representations.             */
         };
 
         enum FlagValue
@@ -68,6 +68,9 @@ namespace ESPINA
         Q_DECLARE_FLAGS(ManagerFlags, FlagValue)
 
       public:
+        /** \brief Representation manager class virtual destructor.
+         *
+         */
         virtual ~RepresentationManager()
         {}
 
@@ -101,14 +104,29 @@ namespace ESPINA
          */
         QIcon icon() const;
 
+        /** \brief Returns true if the manager has actors on the view.
+         *
+         */
         bool hasActors() const;
 
+        /** \brief Returns true if the manager needs actors from other managers to show it's own representations.
+         *
+         */
         bool needsActors() const;
 
+        /** \brief Returns true if the representations of the manager can be exported in a 3D view.
+         *
+         */
         bool exports3D() const;
 
+        /** \brief Returns the manager's properties flags values.
+         *
+         */
         ManagerFlags flags() const;
 
+        /** \brief Returns the types of views supported by this manager (2D, 3D or both).
+         *
+         */
         ViewTypeFlags supportedViews() const
         { return m_supportedViews; }
 
@@ -143,10 +161,6 @@ namespace ESPINA
          */
         TimeRange readyRange() const;
 
-        FrameCSPtr frame(TimeStamp t) const;
-
-        FrameCSPtr lastFrame() const;
-
         /** \brief Updates view's actors with those available at the given time.
          * \param[in] time TimeStamp value.
          *
@@ -173,63 +187,164 @@ namespace ESPINA
          */
         virtual RepresentationPoolSList pools() const;
 
+        /** \brief Resets the manager's state to the initial state.
+         *
+         * TODO: implement for next release 2.1.1
+         */
+        virtual void reset() {};
+
       public slots:
-        void onFrameChanged(const GUI::Representations::FrameCSPtr frame);
+        /** \brief Managers the view's state frame change.
+         * \param[in] frame new frame object.
+         *
+         */
+        virtual void onFrameChanged(const GUI::Representations::FrameCSPtr frame);
 
       signals:
         void renderRequested();
 
       protected slots:
+        /** \brief Emits a render request for the given frame if the conditions apply.
+         * \param[in] frame const frame object.
+         *
+         */
         void emitRenderRequest(const GUI::Representations::FrameCSPtr frame);
 
+        /** \brief Sets the status of the manager to "Waiting" for the given frame.
+         * \param[in] frame const frame object.
+         *
+         */
         void waitForDisplay(const GUI::Representations::FrameCSPtr frame);
 
+        /** \brief Sets the status of the manager to idle.
+         *
+         */
         void idle();
 
       protected:
         explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
+        /** \brief Sets a manager flag.
+         * \param[in] flag flag identifier.
+         * \param[in] value boolean value to set.
+         *
+         */
         void setFlag(const FlagValue flag, const bool value);
 
+        /** \brief Returns the frame corresponding to the given time in the frame range.
+         * \param[in] t requested timestamp.
+         */
+        FrameCSPtr frame(TimeStamp t) const;
+
+        /** \brief Returns the last frame in the frame range.
+         *
+         */
+        FrameCSPtr lastFrame() const;
+
         /** \brief Returns if the manager should react to the requested crosshair change
+         * \param[in] crosshair new crosshair.
          *
          */
         virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
+        /** \brief Returns if the manager should react to the requested resolution change
+         * \param[in] resolution new resolution.
+         *
+         */
         virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
+        /** \brief Returns if the manager should react to the requested bounds change
+         * \param[in] bounds new bounds.
+         *
+         */
         virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
 
+        /** \brief Returns true if the manager should react to the invalidation of one of its sources.
+         * \param[in] frame const frame object.
+         *
+         */
         virtual bool acceptInvalidationFrame(const FrameCSPtr frame) const = 0;
 
+        /** \brief Returns true if the frame modifies the current representations of the manager.
+         * \param[in] frame const frame object.
+         *
+         */
         virtual bool acceptFrame(const FrameCSPtr frame);
 
+        /** \brief Returns true if the manager needs to update the representations for the given frame.
+         * \param[in] frame const frame object.
+         *
+         */
         virtual bool needsRepresentationUpdate(const FrameCSPtr frame);
 
+        /** \brief Returns the current representation's crosshair.
+         *
+         */
         NmVector3 currentCrosshair() const;
 
+        /** \brief Returns the current representation's resolution.
+         *
+         */
         NmVector3 currentSceneResolution() const;
 
+        /** \brief Returns the current representation's bounds.
+         *
+         */
         Bounds currentSceneBounds() const;
 
+        /** \brief Empties the frames range values.
+         * \param[in] frame invalidation frame.
+         *
+         */
+        void invalidateFrames(const FrameCSPtr frame);
+
       private:
+        /** \brief Returns true if the manager has representations to show and false otherwise.
+         *
+         */
         virtual bool hasRepresentations() const = 0;
 
+        /** \brief Updates the representations for the given frame.
+         * \param[in] frame const frame object.
+         *
+         */
         void updateRepresentations(const FrameCSPtr frame);
 
         virtual void updateFrameRepresentations(const FrameCSPtr frame) = 0;
 
-
+        /** \brief Returns true if the manager is waiting the representations for frames higher than the given time.
+         * \param[in] t timestamp.
+         *
+         */
         bool waitingNewerFrames(TimeStamp t) const;
 
+        /** \brief Displays the representations for the given frame.
+         * \param[in] frame const frame object.
+         *
+         */
         virtual void displayRepresentations(const FrameCSPtr frame) = 0;
 
+        /** \brief Hides the representations for the given frame.
+         * \param[in] frame const frame object.
+         *
+         */
         virtual void hideRepresentations(const FrameCSPtr frame) = 0;
 
+        /** \brief Updates the manager state on a show event.
+         * \param[in] frame const frame object of the show event.
+         *
+         */
         virtual void onShow(const FrameCSPtr frame) = 0;
 
+        /** \brief Updates the manager state on a hide event.
+         * \param[in] frame const frame object of the hide event.
+         *
+         */
         virtual void onHide(const FrameCSPtr frame) = 0;
 
+        /** \brief Clones the manager.
+         *
+         */
         virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
         /** \brief Sets the view where representation are managed
@@ -237,26 +352,33 @@ namespace ESPINA
          */
         void setView(RenderView *view, const FrameCSPtr frame);
 
-        friend class ESPINA::RenderView;
+        /** \brief Adds the value to the ready times or stores it in the temporal buffer if the actors for the current position are not yet available.
+         * \param[in] t time stamp to store.
+         *
+         */
+        void reuseTimeValue(TimeStamp t);
+
+        friend class ESPINA::RenderView; /* setView() */
 
       protected:
-        RenderView *m_view;
+        RenderView *m_view; /** manager's view. */
 
       private:
-        QString      m_name;
-        QIcon        m_icon;
-        QString      m_description;
-        bool         m_isActive;
-        Status       m_status;
-        ManagerFlags m_flags;
+        QString      m_name;        /** manager's name. */
+        QIcon        m_icon;        /** display icon. */
+        QString      m_description; /** manager description. */
+        bool         m_isActive;    /** true if the manager is enabled and false otherwise. */
+        Status       m_status;      /** current manager's status. */
+        ManagerFlags m_flags;       /** manager's properties flags values */
 
-        ViewTypeFlags m_supportedViews;
-        RangedValue<FrameCSPtr> m_frames;
+        ViewTypeFlags m_supportedViews;   /** types of views supported by this manager. */
+        RangedValue<FrameCSPtr> m_frames; /** frame range of available representations. */
 
-        TimeStamp m_lastFrameChanged;
-        QMap<TimeStamp, TimeRange> m_lazyFrames;
+        TimeStamp m_lastFrameChanged;            /** last frame the manager has attended ?? */
+        TimeStamp m_lastInvalidationFrame;       /** last received invalidation signal. */
+        QMap<TimeStamp, TimeStamp> m_lazyFrames; /** list of frames received during a waiting state. */
 
-        RepresentationManagerSList m_childs;
+        RepresentationManagerSList m_childs; /** list of cloned childs. */
       };
 
       class RepresentationManager2D
@@ -268,8 +390,16 @@ namespace ESPINA
         virtual ~RepresentationManager2D()
         {};
 
+        /** \brief Sets the plane of the managed representations for the 2D manager.
+         * \param[in] plane plane enum value.
+         *
+         */
         virtual void setPlane(Plane plane) = 0;
 
+        /** \brief Sets the depth in Nm where the representations of the manager should be shown.
+         * \param[in] depth distance in Nm from the manager's current crosshair.
+         *
+         */
         virtual void setRepresentationDepth(Nm depth) = 0;
       };
 

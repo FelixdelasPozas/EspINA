@@ -35,6 +35,9 @@ namespace ESPINA
           {
             Q_OBJECT
           public:
+            /** \brief MeasureEventHandler class constructor.
+             *
+             */
             MeasureEventHandler()
             { setCursor(Qt::CrossCursor); }
 

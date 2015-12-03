@@ -69,15 +69,20 @@ bool Slice3DManager::acceptSceneResolutionChange(const NmVector3& resolution) co
 //----------------------------------------------------------------------------
 bool Slice3DManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  return false;
+  return RepresentationManager::acceptSceneBoundsChange(bounds);
 }
 
 //----------------------------------------------------------------------------
 bool Slice3DManager::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
 {
-  auto type = m_pools.first()->type();
+  bool result = false;
 
-  return invalidatesRepresentations(frame, type);
+  for(auto pool: m_pools)
+  {
+    result |= invalidatesRepresentations(frame, pool->type());
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -115,17 +120,18 @@ void Slice3DManager::onHide(const FrameCSPtr frame)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp t)
+RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
 {
-  RepresentationPipeline::Actors actors;
+  auto actors = std::make_shared<RepresentationPipeline::ActorsData>();
 
   for (auto pool : m_pools)
   {
-    auto poolActors = pool->actors(t);
+    auto poolActors = pool->actors(time);
 
-    for(auto it = poolActors.begin(); it != poolActors.end(); ++it)
+    QReadLocker lock(&poolActors->lock);
+    for(auto it = poolActors->actors.begin(); it != poolActors->actors.end(); ++it)
     {
-      actors[it.key()] << it.value();
+      actors->actors[it.key()] << it.value();
     }
   }
 
@@ -133,22 +139,21 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp t)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::invalidatePreviousActors(TimeStamp t)
+void Slice3DManager::invalidatePreviousActors(TimeStamp time)
 {
-  for (auto pool : m_pools)
+  for(auto pool: m_pools)
   {
-    pool->invalidatePreviousActors(t);
+    pool->invalidatePreviousActors(time);
   }
 }
 
 //----------------------------------------------------------------------------
 void Slice3DManager::connectPools()
 {
-  qDebug() << debugName() << "Activating representation pools";
   for (auto pool : m_pools)
   {
     connect(pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
-            this,       SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
+            this,       SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)), Qt::DirectConnection);
 
     connect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));
@@ -160,11 +165,10 @@ void Slice3DManager::connectPools()
 //----------------------------------------------------------------------------
 void Slice3DManager::disconnectPools()
 {
-  qDebug() << debugName() << "Dectivating representation pools";
   for (auto pool : m_pools)
   {
     disconnect(pool.get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
-               this,       SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
+               this,       SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)));
 
     disconnect(pool.get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,       SLOT(checkRenderRequest(GUI::Representations::FrameCSPtr)));

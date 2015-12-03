@@ -116,7 +116,6 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 
     addSources(m_sources->sources(m_type));
   }
-  //NOTE: vamos a ver si podemos dejar que lo haga otro metodo>> updateRepresentationsAt(t, m_sources->sources());
 }
 
 //-----------------------------------------------------------------------------
@@ -277,9 +276,9 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, const GUI
 
   if(m_sourcesCount == 0)
   {
-    m_validActors.invalidate();
-
     emit actorsInvalidated(frame);
+
+    m_validActors.invalidate();
 
     onActorsReady(frame, RepresentationPipeline::Actors());
   }
@@ -294,7 +293,6 @@ void RepresentationPool::onSourcesInvalidated(ViewItemAdapterList sources,  cons
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourceColorsInvalidated(ViewItemAdapterList sources, const GUI::Representations::FrameCSPtr frame)
 {
-  qDebug() << "RepresentationPool: colors invalidated" << frame->time;
   updateRepresentationColorsAt(frame, sources);
 }
 
@@ -313,34 +311,52 @@ bool RepresentationPool::isEnabled() const
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::actorsChanged(const RepresentationPipeline::Actors &actors) const
+bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) const
 {
-  return m_validActors.isEmpty() || m_validActors.last() != actors;
+  if(m_validActors.isEmpty())
+  {
+    return (actors != nullptr) && !actors->actors.isEmpty();
+  }
+
+  auto currentActors = m_validActors.last();
+
+  QReadLocker (&currentActors->lock);
+  QReadLocker (&actors->lock);
+
+  return (actors->actors.values() != currentActors->actors.values());
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::updateRepresentationsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  m_validActors.invalidate();
-
   if (isEnabled())
   {
     emit actorsInvalidated(frame);
 
+    m_validActors.invalidate();
+
     updateRepresentationsAtImlementation(frame, modifiedItems);
+  }
+  else
+  {
+    m_validActors.invalidate();
   }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::updateRepresentationColorsAt(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  m_validActors.invalidate();
-
   if (isEnabled())
   {
     emit actorsInvalidated(frame);
 
+    m_validActors.invalidate();
+
     updateRepresentationColorsAtImlementation(frame, modifiedItems);
+  }
+  else
+  {
+    m_validActors.invalidate();
   }
 }
 

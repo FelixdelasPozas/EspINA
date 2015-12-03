@@ -17,6 +17,7 @@
  *
  */
 
+// ESPINA
 #include "RepresentationPipeline.h"
 
 using namespace ESPINA;
@@ -37,5 +38,4 @@ QString RepresentationPipeline::serializeSettings()
 //----------------------------------------------------------------------------
 void RepresentationPipeline::restoreSettings(QString settings)
 {
-
 }

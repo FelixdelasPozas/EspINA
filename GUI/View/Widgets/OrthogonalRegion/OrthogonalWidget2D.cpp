@@ -53,7 +53,9 @@ public:
   virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
 private:
-  explicit Command() {}
+  explicit Command()
+  : m_region{nullptr}
+  {};
 
   OrthogonalRepresentation *m_region;
 };
@@ -69,11 +71,12 @@ void OrthogonalWidget2D::Command::Execute(vtkObject *caller, long unsigned int e
 
 //----------------------------------------------------------------------------
 OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentationSPtr representation)
-: m_representation(representation)
-, m_widget(vtkSmartPointer<vtkOrthogonalWidget2D>::New())
-, m_command(vtkSmartPointer<Command>::New())
-, m_index(0)
-, m_slice(0)
+: m_representation{representation}
+, m_widget        {vtkSmartPointer<vtkOrthogonalWidget2D>::New()}
+, m_command       {vtkSmartPointer<Command>::New()}
+, m_index         {0}
+, m_slice         {0}
+, m_resolution    {1}
 {
   m_command->setRepresentation(m_representation.get());
 }
@@ -108,6 +111,12 @@ bool OrthogonalWidget2D::acceptCrosshairChange(const NmVector3 &crosshair) const
 bool OrthogonalWidget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
   return m_resolution != resolution[m_index];
+}
+
+//----------------------------------------------------------------------------
+bool OrthogonalWidget2D::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
 }
 
 //----------------------------------------------------------------------------

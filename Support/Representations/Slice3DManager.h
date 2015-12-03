@@ -29,50 +29,73 @@ namespace ESPINA {
   class Slice3DManager
   : public GUI::Representations::Managers::PoolManager
   {
-    Q_OBJECT
-  public:
-    Slice3DManager(RepresentationPoolSPtr poolXY,
-                   RepresentationPoolSPtr poolXZ,
-                   RepresentationPoolSPtr poolYZ,
-                   ManagerFlags           flags = ManagerFlags());
+      Q_OBJECT
+    public:
+      /** \brief Slice3DManager class constructor.
+       * \param[in] poolXY pool for the Axial plane.
+       * \param[in] poolXZ pool for the Coronal plane.
+       * \param[in] ppolYZ pool for the Sagittal plane.
+       * \param[in] flags manager's flags values.
+       *
+       */
+      explicit Slice3DManager(RepresentationPoolSPtr poolXY,
+                              RepresentationPoolSPtr poolXZ,
+                              RepresentationPoolSPtr poolYZ,
+                              ManagerFlags           flags = ManagerFlags());
 
-    virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+      /** \brief Slice3DManager class virtual destructor.
+       *
+       */
+      virtual ~Slice3DManager()
+      {};
 
-    virtual RepresentationPoolSList pools() const override;
+      virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
-  protected:
-    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+      virtual RepresentationPoolSList pools() const override;
 
-    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+    protected:
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
-    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
-    virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const override;
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
-  private:
-    virtual bool hasRepresentations() const override;
+      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const override;
 
-    virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+    private:
+      virtual bool hasRepresentations() const override;
 
-    virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void updateFrameRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void onShow(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
+      virtual void onHide(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void invalidatePreviousActors(TimeStamp t) override;
+      virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 
-    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
+      virtual void invalidatePreviousActors(TimeStamp time) override;
 
-    void connectPools();
+      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
-    void disconnectPools();
+      /** \brief Helper method to connect the pool's signals.
+       *
+       */
+      void connectPools();
 
-  private slots:
-    void checkRenderRequest(const GUI::Representations::FrameCSPtr frame);
+      /** \brief Helper method to disconnect the pool's signals.
+       *
+       */
+      void disconnectPools();
 
-  private:
-    RepresentationPoolSList m_pools;
+    private slots:
+      /** \brief Helper method to emit a render request only when all the pools have the actors ready for the given frame.
+       * \param[in] frame const frame object.
+       *
+       */
+      void checkRenderRequest(const GUI::Representations::FrameCSPtr frame);
+
+    private:
+      RepresentationPoolSList m_pools; /** list of managed pools. */
   };
 }
 

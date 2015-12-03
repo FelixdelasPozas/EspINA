@@ -237,7 +237,6 @@ void Brush::updateCursor()
   int width = 2*m_radius;
 
   QPixmap pixmap(width, width);
-
   pixmap.fill(Qt::transparent);
 
   QPainter painter(&pixmap);

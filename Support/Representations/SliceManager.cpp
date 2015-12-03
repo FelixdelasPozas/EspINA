@@ -17,6 +17,7 @@
  *
  */
 
+// ESPINA
 #include "SliceManager.h"
 #include "RepresentationUtils.h"
 #include <GUI/View/RenderView.h>
@@ -95,33 +96,36 @@ bool SliceManager::acceptInvalidationFrame(const GUI::Representations::FrameCSPt
 //----------------------------------------------------------------------------
 bool SliceManager::hasRepresentations() const
 {
-  Q_ASSERT(validPlane());
-
-  return planePool()->hasSources();
+  return validPlane() && planePool()->hasSources();
 }
 
 //----------------------------------------------------------------------------
 void SliceManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
-  Q_ASSERT(validPlane());
-
-  planePool()->updatePipelines(frame);
+  if(validPlane())
+  {
+    planePool()->updatePipelines(frame);
+  }
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Actors SliceManager::actors(TimeStamp t)
+RepresentationPipeline::Actors SliceManager::actors(TimeStamp time)
 {
-  Q_ASSERT(validPlane());
+  if(validPlane())
+  {
+    return planePool()->actors(time);
+  }
 
-  return planePool()->actors(t);
+  return RepresentationPipeline::Actors();
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::invalidatePreviousActors(TimeStamp t)
+void SliceManager::invalidatePreviousActors(TimeStamp time)
 {
-  Q_ASSERT(validPlane());
-
-  planePool()->invalidatePreviousActors(t);
+  if(validPlane())
+  {
+    planePool()->invalidatePreviousActors(time);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -147,12 +151,11 @@ void SliceManager::connectPools()
   if (validPlane())
   {
     connect(planePool().get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
-            this,              SLOT(waitForDisplay(GUI::Representations::FrameCSPtr)));
+            this,              SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)));
 
     connect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
             this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-    qDebug() << debugName() << "Activating representation pools";
     planePool()->incrementObservers();
   }
 }
@@ -162,13 +165,12 @@ void SliceManager::disconnectPools()
 {
   if (validPlane())
   {
-    disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
-               this,              SLOT(waitForDisplay()));
+    disconnect(planePool().get(), SIGNAL(actorsInvalidated(GUI::Representations::FrameCSPtr)),
+               this,              SLOT(onActorsInvalidated(GUI::Representations::FrameCSPtr)));
 
     disconnect(planePool().get(), SIGNAL(actorsReady(GUI::Representations::FrameCSPtr)),
                this,              SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-    qDebug() << debugName() << "Dectivating representation pools";
     planePool()->decrementObservers();
   }
 }
@@ -218,7 +220,7 @@ RepresentationPoolSList SliceManager::pools() const
 }
 
 //----------------------------------------------------------------------------
-Nm SliceManager::normalCoordinate(const NmVector3 &value) const
+Nm SliceManager::normalCoordinate(const NmVector3 &point) const
 {
-  return value[normalCoordinateIndex(m_plane)];
+  return point[normalCoordinateIndex(m_plane)];
 }

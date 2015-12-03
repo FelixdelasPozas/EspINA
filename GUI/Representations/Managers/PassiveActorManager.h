@@ -40,7 +40,7 @@ namespace ESPINA
         {
           Q_OBJECT
         public:
-          /** \brief Passive Actor Manager class constructor
+          /** \brief PassiveActorManager class constructor
            * \param[in] pool managed pool smart pointer
            * \param[in] supportedViews flags of the views supported by this manager.
            * \param[in] flags initial flags.
@@ -73,18 +73,20 @@ namespace ESPINA
 
           virtual void invalidatePreviousActors(TimeStamp t) override;
 
+          /** \brief Helper method to connect the pool's signals.
+           *
+           */
           void connectPools();
 
+          /** \brief Helper method to disconnect the pool's signals.
+           *
+           */
           void disconnectPools();
-
-          virtual void displayRepresentations(const FrameCSPtr frame) override;
 
           virtual RepresentationManagerSPtr cloneImplementation() override;
 
-          QSet<vtkProp *> toSet(const RepresentationPipeline::ActorList &list) const;
-
         private:
-          RepresentationPoolSPtr m_pool;
+          RepresentationPoolSPtr m_pool; /** managed actor's pool */
         };
       }
     }

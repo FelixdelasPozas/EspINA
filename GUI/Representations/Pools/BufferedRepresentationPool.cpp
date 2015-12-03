@@ -66,7 +66,7 @@ void BufferedRepresentationPool::updatePipelinesImplementation(const GUI::Repres
     m_normalRes = res;
   }
 
-  auto shift       = invalidate?invalidationShift():distanceFromLastCrosshair(frame->crosshair);
+  auto shift       = invalidate ? invalidationShift() : distanceFromLastCrosshair(frame->crosshair);
   auto invalidated = updateBuffer(frame->crosshair, shift, frame);
 
   if (!m_updateWindow.current()->isEmpty())
@@ -93,8 +93,6 @@ void BufferedRepresentationPool::updateRepresentationsAtImlementation(const GUI:
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(const GUI::Representations::FrameCSPtr frame, ViewItemAdapterList modifiedItems)
 {
-  qDebug() << "BufferedPool, update colors at" << frame->time << "items" << modifiedItems.size();
-
   m_updateWindow.current()->setFrame(frame);
 
   auto updaters = m_updateWindow.all();
@@ -105,13 +103,6 @@ void BufferedRepresentationPool::updateRepresentationColorsAtImlementation(const
   }
 
   updatePipelines(updaters);
-
-  qDebug() << "---Tasks";
-  for(auto updater: m_updateWindow.all())
-  {
-    qDebug() << updater->description();
-  }
-  qDebug() << "--------";
 }
 
 
@@ -161,11 +152,11 @@ void BufferedRepresentationPool::updatePriorities()
 //-----------------------------------------------------------------------------
 int BufferedRepresentationPool::distanceFromLastCrosshair(const NmVector3 &crosshair)
 {
-  return vtkMath::Round((normal(crosshair) - normal(m_crosshair))/m_normalRes);
+  return vtkMath::Round((normalCoordinate(crosshair) - normalCoordinate(m_crosshair))/m_normalRes);
 }
 
 //-----------------------------------------------------------------------------
-Nm BufferedRepresentationPool::normal(const NmVector3 &point) const
+Nm BufferedRepresentationPool::normalCoordinate(const NmVector3 &point) const
 {
   return point[m_normalIdx];
 }
@@ -196,8 +187,7 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
 
     updateTask->invalidate();
     updateTask->setCrosshair(crosshair);
-    updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
-    //qDebug() << this << "Invalidating:" << old << " to " << updateTask->description() ;
+    updateTask->setDescription(QString("Slice %1").arg(normalCoordinate(crosshair)));
 
     invalidated << updateTask;
   }
@@ -211,7 +201,6 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updatePipelines(RepresentationUpdaterSList updaters)
 {
-  qDebug() << "BufferedRepresentationPool: update pipelines en " << updaters.size() << "updaters -- has sources" << hasSources();
   updatePriorities();
 
   if(hasSources())
