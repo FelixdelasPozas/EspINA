@@ -114,7 +114,10 @@ void SegFile::save(AnalysisPtr analysis,
   if (file.baseName().isEmpty())
   {
     if (handler)
+    {
       handler->error(QObject::tr("Invalid empty filename."));
+    }
+
     throw(IO_Error_Exception());
   }
 
@@ -128,7 +131,9 @@ void SegFile::save(AnalysisPtr analysis,
   if (!zip.open(QuaZip::mdCreate))
   {
     if (handler)
+    {
       handler->error("Failed to create " + tmpFile.File.fileName() + " file");
+    }
 
     throw(IO_Error_Exception());
   }
@@ -142,7 +147,9 @@ void SegFile::save(AnalysisPtr analysis,
   if (zip.getZipError() != UNZ_OK)
   {
     if (handler)
+    {
       handler->error("Unable to create " + tmpFile.File.fileName());
+    }
 
     throw(IO_Error_Exception());
   }
@@ -155,7 +162,9 @@ void SegFile::save(AnalysisPtr analysis,
   if (!tmpFile.File.copy(file.absoluteFilePath()))
   {
     if (handler)
+    {
       handler->error("Couldn't save file on " + file.absoluteFilePath());
+    }
 
     throw(IO_Error_Exception());
   }

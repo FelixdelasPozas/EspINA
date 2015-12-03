@@ -135,9 +135,17 @@ namespace ESPINA
     m_storageDir.mkpath(fileName.absolutePath());
 
     QFile file(fileName.absoluteFilePath());
-    file.open(QIODevice::WriteOnly);
-    file.write(data.second);
-    file.close();
+    if(!file.open(QIODevice::WriteOnly))
+    {
+      qWarning() << "TemporalStorage: can't create file:" << fileName.absoluteFilePath();
+      qWarning() << "Cause:" << file.errorString();
+    }
+    else
+    {
+      file.write(data.second);
+      file.flush();
+      file.close();
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -148,10 +156,15 @@ namespace ESPINA
     QByteArray data;
 
     QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly))
+    if (file.exists() && file.open(QIODevice::ReadOnly))
     {
       data = file.readAll();
       file.close();
+    }
+    else
+    {
+      qWarning() << "TemporalStorage can't open:" << fileName;
+      qWarning() << "Cause:" << file.errorString();
     }
 
     return data;

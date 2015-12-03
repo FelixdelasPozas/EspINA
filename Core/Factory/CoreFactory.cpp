@@ -67,7 +67,8 @@ FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type
   {
     filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
     filter->setStorage(m_defaultStorage);
-  } else
+  }
+  else
   {
     throw CoreFactory::Unknown_Type_Exception();
   }

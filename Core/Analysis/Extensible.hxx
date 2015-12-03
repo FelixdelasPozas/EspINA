@@ -25,12 +25,13 @@
 #include <QMap>
 #include <QVariant>
 
-namespace ESPINA {
-  namespace Core {
-    namespace Analysis {
-
+namespace ESPINA
+{
+  namespace Core
+  {
+    namespace Analysis
+    {
       struct Existing_Extension{};
-
       struct Extension_Not_Found{};
 
       template<typename E, typename T>
@@ -42,36 +43,62 @@ namespace ESPINA {
 
         class Iterator
         {
-        public:
-          Iterator(const Extensions<E, T> *container, unsigned index)
-          : m_containter(container)
-          , m_index(index)
-          {}
+          public:
+            /** \brief Extensible Iterator class constructor.
+             * \param[in] container extension map.
+             * \param[in] index current iterator index.
+             *
+             */
+            Iterator(const Extensions<E, T> *container, unsigned index)
+            : m_containter(container)
+            , m_index(index)
+            {}
 
-          bool operator !=(const Iterator &rhs)
-          { return m_index != rhs.m_index; }
+            /** \brief Operator not equal.
+             * \param[in] rhs right hand side iterator.
+             *
+             */
+            bool operator !=(const Iterator &rhs)
+            { return m_index != rhs.m_index; }
 
-          const Iterator& operator++()
-          {
-            m_index++;
-            return *this;
-          }
+            /** \brief Operator ++
+             *
+             */
+            const Iterator& operator++()
+            {
+              ++m_index;
+              return *this;
+            }
 
-          ExtensionSPtr &operator*() const
-          {
-            auto extensions = m_containter->m_extensions;
-            return extensions[extensions.keys()[m_index]];
-          }
+            /** \brief Operator ()
+             *
+             */
+            ExtensionSPtr &operator*() const
+            {
+              auto extensions = m_containter->m_extensions;
+              return extensions[extensions.keys()[m_index]];
+            }
 
-        private:
-          const Extensions<E, T> *m_containter;
-          unsigned m_index;
+          private:
+            const Extensions<E, T> *m_containter; /** extensions container map. */
+            unsigned m_index;                     /** current iterator index.   */
         };
 
       public:
+        /** \brief Extensions class constructor.
+         * \param[in] item extended item pointer.
+         *
+         */
         Extensions(T *item)
         : m_item(item)
         {}
+
+        /** \brief Extensions class virtual destructor.
+         *
+         */
+        virtual ~Extensions()
+        {}
+
         /** \brief Adds a extension to extendible
          * \param[in] extension to be added to extendible object
          *
@@ -109,6 +136,9 @@ namespace ESPINA {
          */
         ExtensionSPtr operator[](const typename E::Type& extension) const;
 
+        /** \brief Returns the extension of the specified type in the template parameter.
+         *
+         */
         template<typename Extension>
         std::shared_ptr<Extension> get() const
         {
@@ -133,6 +163,10 @@ namespace ESPINA {
          */
         virtual typename E::InformationKeyList availableInformation() const;
 
+        /** \brief Returns true if any of the extensions has an information corrending to the given key.
+         * \param[in] key information key.
+         *
+         */
         bool hasInformation(const typename E::InformationKey &key) const
         { return availableInformation().contains(key); }
 
@@ -148,6 +182,9 @@ namespace ESPINA {
          */
         bool isReady(const typename E::InformationKey &key) const;
 
+        /** \brief Returns true if the extensions map is empty.
+         *
+         */
         bool isEmpty() const
         { return m_extensions.isEmpty(); }
 
@@ -157,19 +194,25 @@ namespace ESPINA {
         unsigned int size() const
         { return m_extensions.size(); }
 
+        /** \brief Begin extensions iterator.
+         *
+         */
         Iterator begin() const
         { return Iterator(this, 0); }
 
+        /** \brief End extensions iterator.
+         *
+         */
         Iterator end() const
         { return Iterator(this, m_extensions.size()); }
 
       private:
         using ExtensionSMap = QMap<typename E::Type, ExtensionSPtr>;
 
-        QReadWriteLock m_lock;
-        ExtensionSMap  m_extensions;
+        QReadWriteLock m_lock;        /** access lock. */
+        ExtensionSMap  m_extensions;  /** extensions map. */
 
-        T             *m_item;
+        T             *m_item;        /** extended item. */
 
         template<typename U, typename V> friend class ReadLockExtensions;
         template<typename U, typename V> friend class WriteLockExtensions;
@@ -179,82 +222,137 @@ namespace ESPINA {
       template<typename E, typename T>
       class ReadLockExtensions
       {
-      public:
-        ReadLockExtensions(const Extensions<E, T> &extensions)
-        : m_extensions(extensions)
-        { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.lockForRead(); }
+        public:
+          /** \brief ReadLockExtensions class constructor.
+           * \param[in] extensions extensions class object.
+           *
+           */
+          ReadLockExtensions(const Extensions<E, T> &extensions)
+          : m_extensions(extensions)
+          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.lockForRead(); }
 
-        ~ReadLockExtensions()
-        { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.unlock(); }
+          /** \brief ReadLockExtensions class destructor.
+           *
+           */
+          ~ReadLockExtensions()
+          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.unlock(); }
 
-        typename Extensions<E, T>::Iterator begin() const
-        { return m_extensions.begin(); }
+          /** \brief Extensions Iterator begin.
+           *
+           */
+          typename Extensions<E, T>::Iterator begin() const
+          { return m_extensions.begin(); }
 
-        typename Extensions<E, T>::Iterator end() const
-        { return m_extensions.end(); }
+          /** \brief Extensions Iterator end.
+           *
+           */
+          typename Extensions<E, T>::Iterator end() const
+          { return m_extensions.end(); }
 
-        typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type) const
-        { return m_extensions[type]; }
+          /** \brief Extensions operator []
+           * \param[in] type extension type.
+           *
+           */
+          typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type) const
+          { return m_extensions[type]; }
 
-        const Extensions<E, T> * operator ->() const
-        { return &m_extensions; }
+          /** \brief Extensions indirection operator.
+           *
+           */
+          const Extensions<E, T> * operator ->() const
+          { return &m_extensions; }
 
-      private:
-        const Extensions<E, T> &m_extensions;
+        private:
+          const Extensions<E, T> &m_extensions; /** extensions map. */
       };
 
       template<typename E, typename T>
       class WriteLockExtensions
       {
-      public:
-        WriteLockExtensions(Extensions<E, T> &extensions)
-        : m_extensions(extensions)
-        { m_extensions.m_lock.lockForWrite(); }
+        public:
+          /** \brief WriteLockExtensions class constructor.
+           * \param[in] extensions extensions class object.
+           *
+           */
+          WriteLockExtensions(Extensions<E, T> &extensions)
+          : m_extensions(extensions)
+          { m_extensions.m_lock.lockForWrite(); }
 
-        ~WriteLockExtensions()
-        { m_extensions.m_lock.unlock(); }
+          /** \brief WriteLockExtensions class destructor.
+           *
+           */
+          ~WriteLockExtensions()
+          { m_extensions.m_lock.unlock(); }
 
-        typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type)
-        { return m_extensions[type]; }
+          /** \brief Extensions Iterator begin.
+           *
+           */
+          typename Extensions<E, T>::Iterator begin() const
+          { return m_extensions.begin(); }
 
-        typename Extensions<E, T>::Iterator begin() const
-        { return m_extensions.begin(); }
+          /** \brief Extensions Iterator end.
+           *
+           */
+          typename Extensions<E, T>::Iterator end() const
+          { return m_extensions.end(); }
 
-        typename Extensions<E, T>::Iterator end() const
-        { return m_extensions.end(); }
+          /** \brief Extensions operator []
+           * \param[in] type extension type.
+           *
+           */
+          typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type)
+          { return m_extensions[type]; }
 
+          /** \brief Extensions indirection operator.
+           *
+           */
+          Extensions<E, T> * operator ->() const
+          { return &m_extensions; }
 
-        Extensions<E, T> * operator ->() const
-        { return &m_extensions; }
-
-      private:
-        Extensions<E, T> &m_extensions;
+        private:
+          Extensions<E, T> &m_extensions; /** extensions map. */
       };
 
       template<typename E, typename T>
       class Extensible
       {
-      public:
-        Extensible(T *item)
-        : m_extensions(item)
-        {}
+        public:
+          /** \brief Extensible class constructor.
+           * \param[in] item model item to be extended.
+           *
+           */
+          Extensible(T *item)
+          : m_extensions(item)
+          {}
 
-        const ReadLockExtensions<E, T> readOnlyExtensions() const
-        { return ReadLockExtensions<E, T>(m_extensions); }
+          /** \brief Extensible class virtual destructor.
+           *
+           */
+          virtual ~Extensible()
+          {}
 
-        WriteLockExtensions<E, T> extensions()
-        { return WriteLockExtensions<E, T>(m_extensions); }
+          /** \brief Returns the map of extensions in read-only mode. Locks extensions map for reading.
+           *
+           */
+          const ReadLockExtensions<E, T> readOnlyExtensions() const
+          { return ReadLockExtensions<E, T>(m_extensions); }
 
-        /** \brief Returns the value of the specified information key.
-         * \param[in] key information key.
-         *
-         * WARNING: Do not use this method if you are already accessing via Read/WriteLockExtensions
-         *
-         */
-        virtual QVariant information(const typename E::InformationKey& key) const;
+          /** \brief Returns the map of extensions in write mode. Locks extensions map for writing.
+           *
+           */
+          WriteLockExtensions<E, T> extensions()
+          { return WriteLockExtensions<E, T>(m_extensions); }
 
-      private:
-        Extensions<E, T> m_extensions;
+          /** \brief Returns the value of the specified information key.
+           * \param[in] key information key.
+           *
+           * NOTE: Do not use this method if you are already accessing via Read/WriteLockExtensions
+           *
+           */
+          virtual QVariant information(const typename E::InformationKey& key) const;
+
+        private:
+          Extensions<E, T> m_extensions;
       };
     }
   }

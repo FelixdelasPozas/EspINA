@@ -135,7 +135,6 @@ namespace ESPINA
       QVariant Extensible<E, T>::information(const typename E::InformationKey& key) const
       {
         typename Extensions<E, T>::ExtensionSPtr extension;
-
         {
           auto extensions = readOnlyExtensions();
 

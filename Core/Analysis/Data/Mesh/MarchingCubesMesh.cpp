@@ -77,6 +77,12 @@ void MarchingCubesMesh::updateMesh()
 {
   auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
 
+  if(!volume->isValid())
+  {
+    qWarning() << "can't update mesh, origin volume is invalid!";
+    return;
+  }
+
   if(m_lastVolumeModification == volume->lastModified()) return;
 
   auto image = vtkImage(volume, volume->bounds());
@@ -128,11 +134,16 @@ QList<Data::Type> MarchingCubesMesh::updateDependencies() const
 //----------------------------------------------------------------------------
 VolumeBounds MarchingCubesMesh::bounds() const
 {
-  auto mesh = RawMesh::mesh();
+  auto bounds = RawMesh::bounds();
 
-  if (!mesh)
+  if(!bounds.areValid())
   {
-    const_cast<MarchingCubesMesh *>(this)->updateMesh();
+    auto mesh = RawMesh::mesh();
+
+    if (!mesh)
+    {
+      const_cast<MarchingCubesMesh *>(this)->updateMesh();
+    }
   }
 
   return RawMesh::bounds();

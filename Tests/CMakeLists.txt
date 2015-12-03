@@ -170,7 +170,6 @@ qt4_wrap_cpp(PLUGIN_MOCS
 set (PLUGIN_SOURCES
   ${PLUGIN_MOCS}
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
-  ${PLUGINS_DIR}/AppositionSurface/Filter/SASDataFactory.cpp
 )
 add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
 target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )

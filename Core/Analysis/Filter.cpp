@@ -40,13 +40,8 @@
 
 using namespace ESPINA;
 
-namespace ESPINA {
-//   class ReadOnlyData
-//   : public Data
-//   {
-//     virtual DataProxySPtr createProxy() const;
-//   };
-
+namespace ESPINA
+{
   namespace OutputParser
   {
     bool isOutputSection(const QXmlStreamReader& xml)
@@ -127,16 +122,16 @@ Snapshot Filter::snapshot() const
 //----------------------------------------------------------------------------
 void Filter::unload()
 {
-
 }
 
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  qDebug() << "Update Request: " << m_type;
+//  QString debugPath;
+//  debugPath.append(QString("Update Request: %1").arg(m_type));
   if (m_outputs.isEmpty() || needUpdate())
   {
-    qDebug() << " - Accepted";
+//    debugPath.append(" - Accepted");
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -144,7 +139,7 @@ void Filter::update()
       input->update();
     }
 
-    qDebug() << "Executing: " << m_type;
+//    debugPath.append(QString(" - Executing: %1").arg(m_type));
     execute();
 
     if (invalidatePreviousEditedRegions)
@@ -159,6 +154,8 @@ void Filter::update()
        restoreEditedRegions();
     }
   }
+
+//  qDebug() << debugPath;
 }
 
 //----------------------------------------------------------------------------
@@ -184,7 +181,7 @@ void Filter::restoreEditedRegions()
       QXmlStreamReader xml(buffer);
 
       OutputSPtr output;
-      Output::WriteLockData<Data> data;
+      Data::Type dataType;
       BoundsList editedRegions;
 
       while (!xml.atEnd())
@@ -202,15 +199,11 @@ void Filter::restoreEditedRegions()
           }
           else if (isDataSection(xml) && output)
           {
-            data = output->writeLockData<Data>(parseDataType(xml));
-
-            //Q_ASSERT(data);
-
+            dataType = parseDataType(xml);
             editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            //Q_ASSERT(data);
             editedRegions << parseEditedRegionsBounds(xml);
           }
         }
@@ -218,6 +211,7 @@ void Filter::restoreEditedRegions()
         {
           if (isDataSection(xml))
           {
+            auto data = output->writeLockData<Data>(dataType);
             data->setEditedRegions(editedRegions);
             data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
           }
@@ -250,7 +244,7 @@ bool Filter::restorePreviousOutputs() const
 //   qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
-//     qDebug() << " - Accepted";
+//     qDebug() << " - Accepted - outputfile" << outputFile();
     QByteArray buffer = storage()->snapshot(outputFile());
 
 //     qDebug() << buffer;
@@ -282,10 +276,10 @@ bool Filter::restorePreviousOutputs() const
             if (!data)
             {
               // TODO 2014-04-20: Create ReadOnlyData to preserve data information in further savings
-              qWarning() << "Unable to create requested data type: prefix[" << prefix() << "]";
+              qWarning() << name() << ":" << uuid() << "Unable to create requested data type: prefix[" << prefix() << "]";
               for(auto attr: xml.attributes().toList())
               {
-                qWarning() << "xml attr" << attr.name().toString() << attr.value().toString();
+                qWarning() << "xml Attribute: " << attr.name().toString() << attr.value().toString();
               }
             }
             editedRegions.clear();

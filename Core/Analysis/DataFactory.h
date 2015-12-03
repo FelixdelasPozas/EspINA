@@ -37,26 +37,26 @@
 // Qt
 #include <QXmlStreamReader>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   class EspinaCore_EXPORT DataFactory
   {
-  public:
-    /** \brief Class DataFactory class virtual destructor.
-     *
-     */
-    virtual ~DataFactory()
-    {};
+    public:
+      /** \brief Class DataFactory class virtual destructor.
+       *
+       */
+      virtual ~DataFactory()
+      {};
 
-    /** \brief Loads the data from disk and set the data into the given output.
-     * \param[inout] output output object smart pointer.
-     * \param[in]    storage temporal storage where data snapshots are stored
-     * \param[in]    path    temporal storage relative path where data snapshots are stored
-     * \param[in]    info    xml data that specifies the type of data to fetch.
-     * \return       smart pointer to the fetched data
-     *
-     */
-    virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
+      /** \brief Loads the data from disk and set the data into the given output.
+       * \param[inout] output output object smart pointer.
+       * \param[in]    storage temporal storage where data snapshots are stored
+       * \param[in]    path    temporal storage relative path where data snapshots are stored
+       * \param[in]    info    xml data that specifies the type of data to fetch.
+       * \return       smart pointer to the fetched data
+       *
+       */
+      virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
   };
 
   using DataFactorySPtr = std::shared_ptr<DataFactory>;

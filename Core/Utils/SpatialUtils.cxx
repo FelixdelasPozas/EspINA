@@ -67,9 +67,7 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   {
     if(i0[i] > i1[i])
     {
-      auto temp = i0[i];
-      i0[i] = i1[i];
-      i1[i] = temp;
+      std::swap(i0[i], i1[i]);
     }
   }
 
@@ -78,8 +76,12 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   region.SetUpperIndex(i1);
 
   for (auto i: {0,1,2})
+  {
     if (region.GetSize(i) == 0)
+    {
       region.SetSize(i,1);
+    }
+  }
 
     return region;
 }

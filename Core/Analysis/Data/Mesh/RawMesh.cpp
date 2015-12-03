@@ -68,15 +68,18 @@ void RawMesh::setSpacing(const NmVector3 &spacing)
 //----------------------------------------------------------------------------
 void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
-  m_mesh        = mesh;
+  bool existsMesh = (m_mesh != nullptr);
+
+  m_mesh   = mesh;
   m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
 
-  BoundsList editedRegions;
-  if (m_mesh)
+  // only add as an edited region if there was a previous mesh.
+  if (existsMesh)
   {
+    BoundsList editedRegions;
     editedRegions << bounds();
+    setEditedRegions(editedRegions);
   }
-  setEditedRegions(editedRegions);
 
   updateModificationTime();
 }

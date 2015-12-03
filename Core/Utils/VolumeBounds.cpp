@@ -126,11 +126,11 @@ bool ESPINA::isMultiple(Nm point, Nm spacing)
 //-----------------------------------------------------------------------------
 bool ESPINA::isAligned(Nm point, Nm origin, Nm spacing)
 {
-  Nm indexValue = (point - spacing/2.0 - origin) / spacing;
+  Nm indexValue = (point - (spacing/2.0) - origin) / spacing;
 
   Nm delta      = fabs(vtkMath::Round(indexValue) - indexValue);
 
-  return areEqual(delta, 0);
+  return areEqual(delta, 0, spacing);
 }
 
 //-----------------------------------------------------------------------------

@@ -38,14 +38,15 @@ using namespace ESPINA;
 using namespace ESPINA::Testing;
 using namespace ESPINA::PolyDataUtils;
 
-int raw_mesh_load_edited_regions( int argc, char** argv )
+int raw_mesh_load_edited_regions(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
+  Bounds bounds{ -0.5, 3.5, -0.5, 3.5, -0.5, 3.5 };
 
   RawMesh rawMesh;
-  if (!rawMesh.editedRegions().isEmpty()) {
+  if (!rawMesh.editedRegions().isEmpty())
+  {
     cerr << "Empty raw mesh shouldn't have edited regions " << endl;
     error = true;
   }
@@ -60,13 +61,23 @@ int raw_mesh_load_edited_regions( int argc, char** argv )
     error = true;
   }
 
-  if (rawMesh.editedRegions().size() != 1) {
+  if (rawMesh.editedRegions().size() != 0)
+  {
     cerr << "Unexpected number of edited regions" << endl;
     error = true;
-  } else
+  }
+  else
   {
+    rawMesh.setMesh(mesh);
+
+    if (rawMesh.editedRegions().size() != 1)
+    {
+      cerr << "Unexpected number of edited regions" << endl;
+      error = true;
+    }
+
     auto editedRegions = rawMesh.editedRegions();
-    auto editedRegion  = editedRegions.first();
+    auto editedRegion = editedRegions.first();
 
     if (editedRegion != rawMesh.bounds())
     {
@@ -82,14 +93,15 @@ int raw_mesh_load_edited_regions( int argc, char** argv )
     {
       cerr << "Unxexpected number of edited regions snapshots" << endl;
       error = true;
-    } else
+    }
+    else
     {
       auto snapshot = editedRegionSnapshots.first();
       storage->saveSnapshot(snapshot);
     }
 
     rawMesh.setMesh(nullptr); // Clear mesh
-    rawMesh.setEditedRegions(editedRegions);// restore expected edited regions
+    rawMesh.setEditedRegions(editedRegions); // restore expected edited regions
 
     if (rawMesh.mesh() == mesh)
     {
@@ -99,19 +111,22 @@ int raw_mesh_load_edited_regions( int argc, char** argv )
 
     rawMesh.restoreEditedRegions(storage, "mesh", "0");
 
-    if (editedRegions != rawMesh.editedRegions()) {
+    if (editedRegions != rawMesh.editedRegions())
+    {
       cerr << "Edited regions shouldn't be modified after restoration" << endl;
       error = true;
     }
 
     auto restoredMesh = rawMesh.mesh();
 
-    if (restoredMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints()){
+    if (restoredMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints())
+    {
       cerr << "Unxexpected number of edited region points" << endl;
       error = true;
     }
 
-    if (restoredMesh->GetNumberOfCells() != mesh->GetNumberOfCells()){
+    if (restoredMesh->GetNumberOfCells() != mesh->GetNumberOfCells())
+    {
       cerr << "Unxexpected number of edited region cells" << endl;
       error = true;
     }

@@ -103,11 +103,15 @@ namespace ESPINA
     const T& operator[](const Axis dir) const
     { return m_values[idx(dir)]; }
 
+    /** \brief Returns the modulus of the vector (vector magnitude).
+     *
+     */
+    double modulus() const;
+
     /** \brief Dumps the contents of the vector formatted to a string.
      *
      */
     QString toString() const;
-
   private:
     T m_values[3];
   };
@@ -164,6 +168,13 @@ namespace ESPINA
     return QString("{%1,%2,%3}").arg(m_values[0])
                                 .arg(m_values[1])
                                 .arg(m_values[2]);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  double Vector3<T>::modulus() const
+  {
+    return std::sqrt(std::pow(m_values[0],2) + std::pow(m_values[0],2) + std::pow(m_values[0],2));
   }
 
   /** \brief Multiplies each component of lhs by the corresponding one of rhs

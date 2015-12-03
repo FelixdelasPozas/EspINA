@@ -34,28 +34,10 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
   if ("VolumetricData" == info.value("type"))
   {
     data = createVolumetricData(output, storage, path, bounds);
-    Q_ASSERT(data);
-
-    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
-    mesh->setFetchContext(storage, path, QString::number(output->id()), bounds);
-
-    output->setData(mesh);
   }
   else if ("MeshData" == info.value("type"))
   {
-//     if (!hasMeshData(output))
-//     {
-//       auto volume = createVolumetricData(output, storage, path, bounds);
-//       Q_ASSERT(volume);
-//
-//       data = std::make_shared<MarchingCubesMesh>(output.get());
-//       data->setFetchContext(storage, path, QString::number(output->id()), volume->bounds());
-//
-//       output->setData(data);
-//     }
-//
-//     MeshDataSPtr mesh = writeLockMesh(output, DataUpdatePolicy::Ignore);
-//     data = mesh;
+    data = createMeshData(output, storage, path, bounds);
   }
 
   return data;
@@ -73,8 +55,28 @@ DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetr
     //       we could try to remove bounds from fetch context API as needFetch/fetchBounds workaround
     auto data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
     data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+
     output->setData(data);
   }
 
   return writeLockVolume(output, DataUpdatePolicy::Ignore);
+}
+
+//----------------------------------------------------------------------------
+MeshDataSPtr MarchingCubesFromFetchedVolumetricData::createMeshData(OutputSPtr          output,
+                                                                    TemporalStorageSPtr storage,
+                                                                    const QString      &path,
+                                                                    const VolumeBounds &bounds)
+{
+  if (!output->hasData(MeshData::TYPE))
+  {
+    createVolumetricData(output, storage, path, bounds);
+
+    auto data = std::make_shared<MarchingCubesMesh>(output.get());
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+
+    output->setData(data);
+  }
+
+  return writeLockMesh(output, DataUpdatePolicy::Ignore);
 }

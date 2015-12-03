@@ -173,7 +173,7 @@ namespace ESPINA {
           DirectedGraph::Vertices m_loadedVertices;
 
           bool m_fixSourceInputs;
-          ChannelSPtr m_souceInput;
+          ChannelSPtr m_sourceInput;
         };
 
       public:

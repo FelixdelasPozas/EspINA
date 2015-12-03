@@ -35,41 +35,46 @@ using namespace std;
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
 
-int raw_mesh_default_constructor( int argc, char** argv )
+int raw_mesh_default_constructor(int argc, char** argv)
 {
   bool error = false;
 
- RawMesh mesh;
+  RawMesh mesh;
 
- Bounds defaultBounds = mesh.bounds();
+  Bounds defaultBounds = mesh.bounds();
 
- if (defaultBounds.areValid())
- {
-   cerr << "Default constructed mesh bounds: " << defaultBounds << ". Expected invalid bounds" << endl;
-   error = true;
- }
+  if (defaultBounds.areValid())
+  {
+    cerr << "Default constructed mesh bounds: " << defaultBounds << ". Expected invalid bounds" << endl;
+    error = true;
+  }
 
- for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-   if (!defaultBounds.areLowerIncluded(dir)) {
-     cerr << "Default mesh bounds must have lower bounds included" << endl;
-     error = true;
-   }
+  for (Axis dir : { Axis::X, Axis::Y, Axis::Z })
+  {
+    if (!defaultBounds.areLowerIncluded(dir))
+    {
+      cerr << "Default mesh bounds must have lower bounds included" << endl;
+      error = true;
+    }
 
-   if (defaultBounds.areUpperIncluded(dir)) {
-     cerr << "Default mesh bounds must have upper bounds excluded" << endl;
-     error = true;
-   }
- }
+    if (defaultBounds.areUpperIncluded(dir))
+    {
+      cerr << "Default mesh bounds must have upper bounds excluded" << endl;
+      error = true;
+    }
+  }
 
- if (mesh.memoryUsage() != 0) {
-   cerr << "Default constructed ItkVolume memory usage must be 0" << endl;
-   error = true;
- }
+  if (mesh.memoryUsage() != 0)
+  {
+    cerr << "Default constructed ItkVolume memory usage must be 0" << endl;
+    error = true;
+  }
 
- if (mesh.mesh() != nullptr) {
-   cerr << "Default mesh polydata must be empty" << endl;
-   error = true;
- }
+  if (mesh.mesh() != nullptr)
+  {
+    cerr << "Default mesh polydata must be empty" << endl;
+    error = true;
+  }
 
   return error;
 }

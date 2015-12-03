@@ -38,14 +38,15 @@ using namespace ESPINA;
 using namespace ESPINA::Testing;
 using namespace ESPINA::PolyDataUtils;
 
-int raw_mesh_save_edited_regions( int argc, char** argv )
+int raw_mesh_save_edited_regions(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
+  Bounds bounds  { -0.5, 3.5, -0.5, 3.5, -0.5, 3.5 };
 
   RawMesh rawMesh;
-  if (!rawMesh.editedRegions().isEmpty()) {
+  if (!rawMesh.editedRegions().isEmpty())
+  {
     cerr << "Empty raw mesh shouldn't have edited regions " << endl;
     error = true;
   }
@@ -60,11 +61,21 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
     error = true;
   }
 
-  if (rawMesh.editedRegions().size() != 1) {
+  if (rawMesh.editedRegions().size() != 0)
+  {
     cerr << "Unexpected number of edited regions" << endl;
     error = true;
-  } else
+  }
+  else
   {
+    rawMesh.setMesh(mesh);
+
+    if (rawMesh.editedRegions().size() != 1)
+    {
+      cerr << "Unexpected number of edited regions" << endl;
+      error = true;
+    }
+
     auto editedRegion = rawMesh.editedRegions().first();
 
     if (editedRegion != rawMesh.bounds())
@@ -73,7 +84,8 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
       error = true;
     }
 
-    TemporalStorageSPtr storage{new TemporalStorage()};
+    TemporalStorageSPtr storage
+    { new TemporalStorage() };
 
     auto editedRegionSnapshots = rawMesh.editedRegionsSnapshot(storage, "testing", "0");
 
@@ -81,20 +93,23 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
     {
       cerr << "Unxexpected number of edited regions snapshots" << endl;
       error = true;
-    } else
+    }
+    else
     {
       auto snapshot = editedRegionSnapshots.first();
       storage->saveSnapshot(snapshot);
 
-      auto filename     = storage->absoluteFilePath(snapshot.first);
-      auto editedMesh   = readPolyDataFromFile(filename);
+      auto filename = storage->absoluteFilePath(snapshot.first);
+      auto editedMesh = readPolyDataFromFile(filename);
 
-      if (editedMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints()){
+      if (editedMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints())
+      {
         cerr << "Unxexpected number of edited region points" << endl;
         error = true;
       }
 
-      if (editedMesh->GetNumberOfCells() != mesh->GetNumberOfCells()){
+      if (editedMesh->GetNumberOfCells() != mesh->GetNumberOfCells())
+      {
         cerr << "Unxexpected number of edited region cells" << endl;
         error = true;
       }

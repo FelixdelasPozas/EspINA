@@ -284,12 +284,7 @@ void Output::update(const Data::Type &type)
   {
     m_mutex.lock();
 
-    if (requestedData->fetchData())
-    {
-      BoundsList editedRegions = requestedData->editedRegions();
-      requestedData->setEditedRegions(editedRegions);
-    }
-    else
+    if (!requestedData->fetchData())
     {
       auto dependencies = requestedData->dependencies();
 
