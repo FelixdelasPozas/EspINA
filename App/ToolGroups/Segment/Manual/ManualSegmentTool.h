@@ -34,108 +34,172 @@
 
 class QUndoStack;
 
-using namespace ESPINA::GUI::View;
-
 namespace ESPINA
 {
-  class ManualSegmentTool
-  : public Support::Widgets::ProgressTool
+  /** \class ManualFilterFactory
+   * \brief Factory for SourceFilter filters.
+   */
+  class ManualFilterFactory
+  : public FilterFactory
   {
-    Q_OBJECT
+    public:
+      static const Filter::Type SOURCE_FILTER;
+      static const Filter::Type SOURCE_FILTER_V4;
 
-    enum class Mode
-    {
-      SINGLE_STROKE,
-      MULTI_STROKE
-    };
-
-    class ManualFilterFactory
-    : public FilterFactory
-    {
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const override;
 
       virtual FilterTypeList providedFilters() const override;
 
     private:
-      mutable DataFactorySPtr m_dataFactory;
-    };
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this provider. */
+  };
 
-  public:
-    /** \brief ManualSegmentTool class constructor.
-     * \param[in] context to be used for this tool
-     *
-     */
-    ManualSegmentTool(Support::Context &context);
+  /** \class ManualSegmentTool
+   * \brief Tool for manual segmentation filters.
+   *
+   */
+  class ManualSegmentTool
+  : public Support::Widgets::ProgressTool
+  {
+      Q_OBJECT
 
-    /** \brief ManualSegmentTool class virtual destructor.
-     *
-     */
-    virtual ~ManualSegmentTool();
+      enum class Mode
+      {
+        SINGLE_STROKE,
+        MULTI_STROKE
+      };
 
-    virtual void abortOperation() override;
+    public:
+      /** \brief ManualSegmentTool class constructor.
+       * \param[in] context application context.
+       *
+       */
+      ManualSegmentTool(Support::Context &context);
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+      /** \brief ManualSegmentTool class virtual destructor.
+       *
+       */
+      virtual ~ManualSegmentTool();
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void abortOperation() override;
 
-  signals:
-    void voxelsDeleted(ViewItemAdapterPtr item);
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-  public slots:
-    void onSelectionChanged();
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-  private:
-    void initMultiStrokeWidgets();
+    signals:
+      void voxelsDeleted(ViewItemAdapterPtr item);
 
-    void setInitialStroke();
+    public slots:
+      /** \brief Updates GUI and the tool when the current selection changes.
+       *
+       */
+      void onSelectionChanged();
 
-    void setMultiStroke();
+    private:
+      /** \brief Initializes multi stroke option widgets.
+       *
+       */
+      void initMultiStrokeWidgets();
 
-    void createSegmentation(BinaryMaskSPtr<unsigned char> mask);
+      /** \brief Updates the tool before the first user stroke.
+       *
+       */
+      void setInitialStroke();
 
-    void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
+      /** \brief Updates the tool when the multi stroke option changes state.
+       *
+       */
+      void setMultiStroke();
 
-    bool isCreationMode() const;
+      /** \brief Helper method to create a segmentation.
+       * \param[in] mask segmentation volume mask.
+       *
+       */
+      void createSegmentation(BinaryMaskSPtr<unsigned char> mask);
 
-    SegmentationAdapterSPtr referenceSegmentation() const;
+      /** \brief Helper to modify the volume of a segmentation.
+       * \param[in] mask modification volume mask.
+       *
+       */
+      void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
-  private slots:
-    void onStrokeStarted(BrushPainter *painter, RenderView *view);
+      bool isCreationMode() const;
 
-    void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
+      SegmentationAdapterSPtr referenceSegmentation() const;
 
-    void onCategoryChange(CategoryAdapterSPtr category);
+    private slots:
+      /** \brief Updates the GUI when a stroke is started.
+       * \param[in] painter painter doing the stroke.
+       * \param[in] view view to show the stroke.
+       *
+       */
+      void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
-    void onPainterChanged(MaskPainterSPtr painter);
+      /** \brief Creates or modifies a segmentation with the mask's volume.
+       * \param[in] mask volume mask.
+       *
+       */
+      void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    void onToolToggled(bool toggled);
+      /** \brief Updates the tool and the GUI when the edition category changes.
+       * \param[in] category new selected category.
+       *
+       */
+      void onCategoryChange(CategoryAdapterSPtr category);
 
-    void onStrokeModeToggled(bool toggled);
+      /** \brief
+       *
+       */
+      void onPainterChanged(MaskPainterSPtr painter);
 
-    void startNextSegmentation();
+      /** \brief Updates the tool when enabling/disabling it.
+       * \param[in] toggled true if checked and false otherwise.
+       *
+       */
+      void onToolToggled(bool toggled);
 
-    void onEventHandlerActivated(bool inUse);
+      /** \brief Updates the tool when the stroke mode changes state.
+       * \param[in] toggled true if checked and false otherwise.
+       *
+       */
+      void onStrokeModeToggled(bool toggled);
 
-    void onVoxelDeletion(ViewItemAdapterPtr item);
+      /** \brief Updates the tool when the user clicks on the next segmentation button.
+       *
+       */
+      void startNextSegmentation();
 
-  protected:
-    ModelAdapterSPtr  m_model;
-    ModelFactorySPtr  m_factory;
-    GUI::ColorEngines::ColorEngineSPtr   m_colorEngine;
-    FilterFactorySPtr m_filterFactory;
+      /** \brief Updates the tool and GUI when a new event handler changes state.
+       * \param[in] inUse true if the handler is active and false otherwise.
+       *
+       */
+      void onEventHandlerActivated(bool inUse);
 
-    using DrawingTool = GUI::Widgets::DrawingWidget;
+      /** \brief Checks for complete deletion of the given item.
+       * \param[in] item view item to check.
+       *
+       */
+      void onVoxelDeletion(ViewItemAdapterPtr item);
 
-    DrawingTool        m_drawingWidget;
-    QPushButton       *m_multiStroke;
-    Mode               m_mode;
-    bool               m_createSegmentation;
-    ViewItemAdapterPtr m_referenceItem;
+    protected:
+      ModelAdapterSPtr                   m_model;         /** current analysis model. */
+      ModelFactorySPtr                   m_factory;       /** current analysis factory. */
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;   /** application color engine for coloring. */
+      FilterFactorySPtr                  m_filterFactory; /** tool's filter factory. */
 
-    MaskPainterSPtr m_currentPainter;
+      using DrawingTool = GUI::Widgets::DrawingWidget;
 
-    bool                      m_validStroke;
-    SliceEditionPipelineSPtr  m_temporalPipeline;
+      DrawingTool        m_drawingWidget;      /** drawing widget. */
+      QPushButton       *m_multiStroke;        /** multi stroke button. */
+      Mode               m_mode;               /** edition mode: paint/erase. */
+      bool               m_createSegmentation; /** true to create a segmentation when a mask object is received. */
+      ViewItemAdapterPtr m_referenceItem;      /** item used to take spacing reference. */
+
+      MaskPainterSPtr m_currentPainter; /** current painter. */
+
+      bool                      m_validStroke;      /** true if the last stroke is a valid one and false otherwise. */
+      SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
   };
 } // namespace ESPINA
 

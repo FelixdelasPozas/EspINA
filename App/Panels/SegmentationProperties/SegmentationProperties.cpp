@@ -60,7 +60,6 @@ SegmentationProperties::SegmentationProperties(FilterRefinerRegister &filterRefi
 
   connect(m_gui->manageTags, SIGNAL(clicked(bool)),
           this,              SLOT(manageTags()));
-
 }
 
 //----------------------------------------------------------------------------
@@ -103,7 +102,7 @@ void SegmentationProperties::onSelectionChanged(SegmentationAdapterList selectio
 {
   Q_ASSERT(isVisible());
 
-  auto validSelection = selection.size() == 1;
+  auto validSelection = (selection.size() == 1);
 
   if (validSelection)
   {

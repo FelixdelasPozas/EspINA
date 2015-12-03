@@ -35,21 +35,38 @@
 
 namespace ESPINA
 {
+  /** \class ASFilterFactory
+   * \brief Factory for apposition surface filters.
+   *
+   */
+  class AppositionSurfacePlugin_EXPORT ASFilterFactory
+  : public FilterFactory
+  {
+    public:
+      static const Filter::Type AS_FILTER; /** apposition surface filter signature. */
+
+      virtual FilterTypeList providedFilters() const;
+
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+    private:
+      mutable DataFactorySPtr m_dataFactory; /** data factory of this provider. */
+  };
+
   class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
   : public Support::Plugin
   {
     Q_OBJECT
     Q_INTERFACES(ESPINA::Support::Plugin)
 
-    class ASFilterFactory
-    : public FilterFactory
-    {
-        virtual FilterTypeList providedFilters() const;
-        virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-    };
-
   public:
+    /** \brief AppositionSurfacePlugin class constructor.
+     *
+     */
     explicit AppositionSurfacePlugin();
+
+    /** \brief AppositionSurfacePlugin class virtual destructor.
+     *
+     */
     virtual ~AppositionSurfacePlugin();
 
     virtual void init(Support::Context &context);
@@ -64,43 +81,72 @@ namespace ESPINA
 
     virtual FilterFactorySList filterFactories() const;
 
+    /** \brief Returns true if the segmentation given is of a correct category.
+     * \param[in] segmentation segmentation to check for correct category.
+     *
+     */
     static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
+    /** \brief Returs the apposition surface segmentation corresponding to the given segmentation.
+     * \param[in] segmentation to search for it's corresponding SAS.
+     *
+     */
     static SegmentationAdapterPtr segmentationSAS(SegmentationAdapterPtr segmentation);
 
   public slots:
+    /** \brief Creates SAS for the newly created segmentations given.
+     * \param[in] segmentations list of recently created segmentations.
+     *
+     */
     void segmentationsAdded(ViewItemAdapterSList segmentations);
 
+    /** \brief Adds the created SAS to the model and creates SAS category if necessary.
+     *
+     */
     void finishedTask();
 
   private:
+    /** \brief Returs true if the given item is a SAS.
+     * \param[in] item view item to check.
+     *
+     */
     static bool isSAS(ItemAdapterSPtr item);
 
   private:
+    /** \struct Data
+     * \brief Filters data needed for execution.
+     *
+     */
     struct Data
     {
-      FilterSPtr              adapter;
-      SegmentationAdapterSPtr segmentation;
+      FilterSPtr              adapter;      /** SAS filter. */
+      SegmentationAdapterSPtr segmentation; /** originating segmentation. */
 
+      /** \brief Data constructor.
+       * \param[in] adapterP SAS filter.
+       * \param[in] segmentation originating segmentation.
+       *
+       */
       Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
       : adapter{adapterP}, segmentation{segmentationP}
       {};
 
+      /** \brief Data empty constructor.
+       *
+       */
       Data(): adapter{nullptr}, segmentation{nullptr}
       {};
     };
 
 
   private:
-    Support::Context                *m_context;
-    Support::Settings::SettingsPanelSPtr m_settings;
-    SegmentationExtensionFactorySPtr m_extensionFactory;
-    FilterFactorySPtr                m_filterFactory;
-    //bool                             m_delayedAnalysis;
-    SegmentationAdapterList          m_analysisSynapses;
+    Support::Context                    *m_context;          /** application context. */
+    Support::Settings::SettingsPanelSPtr m_settings;         /** SAS execution settings. */
+    SegmentationExtensionFactorySPtr     m_extensionFactory; /** segmentation extensions factory. */
+    FilterFactorySPtr                    m_filterFactory;    /** filters factory. */
 
-    QMap<FilterPtr, struct Data> m_executingTasks;
-    QMap<FilterPtr, struct Data> m_finishedTasks;
+    QMap<FilterPtr, struct Data> m_executingTasks; /** task currenty in execution, maps filter-data. */
+    QMap<FilterPtr, struct Data> m_finishedTasks;  /** finished tasks, maps filter-data. */
 
     friend class AppositionSurfaceTool;
   };

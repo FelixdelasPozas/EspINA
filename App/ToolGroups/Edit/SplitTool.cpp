@@ -58,11 +58,11 @@ using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::Support::ContextFactories;
 
-const Filter::Type SPLIT_FILTER    = "SplitFilter";
-const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
+const Filter::Type SplitFilterFactory::SPLIT_FILTER    = "SplitFilter";
+const Filter::Type SplitFilterFactory::SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SplitTool::SplitFilterFactory::providedFilters() const
+FilterTypeList SplitFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -73,9 +73,9 @@ FilterTypeList SplitTool::SplitFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SplitTool::SplitFilterFactory::createFilter(InputSList          inputs,
-                                                       const Filter::Type& type,
-                                                       SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr SplitFilterFactory::createFilter(InputSList          inputs,
+                                            const Filter::Type& type,
+                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
   if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
 
@@ -202,7 +202,7 @@ void SplitTool::applyCurrentState()
   InputSList inputs;
   inputs << selectedSeg->asInput();
 
-  auto filter = getFactory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+  auto filter = getFactory()->createFilter<SplitFilter>(inputs, SplitFilterFactory::SPLIT_FILTER);
 
   showTaskProgress(filter);
 

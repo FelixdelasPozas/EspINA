@@ -77,17 +77,13 @@ StereologicalInclusion::~StereologicalInclusion()
 //------------------------------------------------------------------------
 State StereologicalInclusion::state() const
 {
-  State state;
-
-  return state;
+  return State();
 }
 
 //------------------------------------------------------------------------
 Snapshot StereologicalInclusion::snapshot() const
 {
-  Snapshot snapshot;
-
-  return snapshot;
+  return Snapshot();
 }
 
 //------------------------------------------------------------------------

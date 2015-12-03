@@ -36,6 +36,10 @@ bool SeedGrowSegmentationRefineWidget::s_exists = false;
 QMutex SeedGrowSegmentationRefineWidget::s_mutex;
 // END DEBUG Only
 
+// TODO: 26-11-2015 @felix - Would be interesting to add "TouchesROI" to the data shown on the widget,
+// but requires recalculation after loading from disk or storing the value on the SEG with the rest of
+// the filter data.
+
 //----------------------------------------------------------------------------
 DiscardROIModificationsCommand::DiscardROIModificationsCommand(RestrictToolGroupSPtr roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent)
 : m_roiTools{roiTools}
@@ -184,6 +188,13 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 
   m_gui->apply->setEnabled(false);
 
+  auto roi = m_filter->roi();
+  if(roi)
+  {
+    m_roiTools->setVisible(true);
+    m_roiTools->setCurrentROI(roi);
+  }
+
   connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
           this,                           SLOT(onThresholdChanged(int)));
   connect(m_gui->applyClosing,            SIGNAL(toggled(bool)),
@@ -213,8 +224,11 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
   s_exists = false;
   s_mutex.unlock();
 
-  m_roiTools->setCurrentROI(nullptr);
-  m_roiTools->setVisible(false);
+  if(m_roiTools->currentROI() != nullptr)
+  {
+    m_roiTools->setCurrentROI(nullptr);
+    m_roiTools->setVisible(false);
+  }
 }
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onFilterThresholdModified(int lower, int upper)
@@ -239,6 +253,7 @@ void SeedGrowSegmentationRefineWidget::onFilterRadiusModified(int value)
 void SeedGrowSegmentationRefineWidget::onFilterroiModified(ROISPtr roi)
 {
   m_roiTools->setCurrentROI(roi);
+  m_roiTools->setVisible(roi != nullptr);
 }
 
 //----------------------------------------------------------------------------

@@ -34,7 +34,8 @@ namespace ESPINA
   {
     public:
       enum class Operation : std::int8_t
-      { ADDITION = 1,
+      {
+        ADDITION = 1,
         SUBTRACTION = 2,
         NOSIGN = 3
       };
@@ -53,15 +54,8 @@ namespace ESPINA
        */
       virtual ~ImageLogicFilter();
 
-      /** \brief Implements Persistent::restoreState().
-       *
-       */
       virtual void restoreState(const State& state);
 
-
-      /** \brief Implements Persistent::state().
-       *
-       */
       virtual State state() const;
 
       /** \brief Sets the operation to be executed by the filter.
@@ -71,40 +65,17 @@ namespace ESPINA
       void setOperation(Operation op);
 
     protected:
-      /** \brief Implements Filter::saveFilterSnapshot().
-       *
-       */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /** \brief Implements Filter::needUpdate().
-       *
-       */
       virtual bool needUpdate() const;
 
-      /** \brief Implements Filter::needUpdate(oid).
-       *
-       */
       virtual bool needUpdate(Output::Id id) const;
 
-      /** \brief Implements Filter::execute().
-       *
-       */
       virtual void execute();
 
-      /** \brief Implements Filter::execute(oid).
-       *
-       */
       virtual void execute(Output::Id id);
 
-      /** \brief Implements Filter::ignoreStorageContents().
-       *
-       */
       virtual bool ignoreStorageContent() const;
-
-      /** \brief Implements Filter::invalidateEditedRegions().
-       *
-       */
-      virtual bool areEditedRegionsInvalidated();
 
     protected:
       /** \brief Performs the logical addition of the input segmentations.

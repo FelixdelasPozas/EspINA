@@ -40,23 +40,32 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
 
-  class SeedGrowSegmentationTool
-  : public Support::Widgets::ProgressTool
+  /** \class SeedGrowSegmentationFactory
+   * \brief Factory for seed grow segmentation filters.
+   */
+  class SeedGrowSegmentationFilterFactory
+  : public FilterFactory
   {
-    Q_OBJECT
-
-    class SGSFactory
-    : public FilterFactory
-    {
     public:
+      static const Filter::Type SGS_FILTER;    /** seed grow filter signature. */
+      static const Filter::Type SGS_FILTER_V4; /** seed grow filter old signature. */
+
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
     private:
-      mutable DataFactorySPtr m_dataFactory;
-    };
+      mutable DataFactorySPtr m_dataFactory; /** data factory of this provider. */
+  };
 
+  /** \class SeedGrowSegmentationTool
+   * \brief Tool for seed grow segmentation filter (now grey level segmentation).
+   *
+   */
+  class SeedGrowSegmentationTool
+  : public Support::Widgets::ProgressTool
+  {
+    Q_OBJECT
   public:
     /** \brief SeedGrowSegmentationTool class constructor.
      * \param[in] settings raw pointer to a SeedGrowSegmentationSettings object.
@@ -161,7 +170,7 @@ namespace ESPINA
     SelectorSPtr m_pixelSelector;
     SelectorSPtr m_activeSelector;
 
-    std::shared_ptr<SGSFactory>  m_sgsFactory;
+    std::shared_ptr<SeedGrowSegmentationFilterFactory>  m_sgsFactory;
 
     QMap<FilterPtr, FilterSPtr> m_executingTasks;
     QMap<FilterPtr, SeedGrowSegmentationFilterSPtr> m_executingFilters;

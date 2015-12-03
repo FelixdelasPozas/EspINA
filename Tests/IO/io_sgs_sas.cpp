@@ -36,10 +36,10 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <testing_support_channel_input.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Plugins/AppositionSurface/Filter/AppositionSurfaceFilter.h>
-#include <Plugins/AppositionSurface/Filter/SASDataFactory.h>
 
 using namespace std;
 using namespace ESPINA;
@@ -67,7 +67,7 @@ int io_sgs_sas( int argc, char** argv )
       } else if (type == "SAS")
       {
         filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
-        filter->setDataFactory(std::make_shared<SASDataFactory>());
+        filter->setDataFactory(std::make_shared<RasterizedVolumeFromFetchedMeshData>());
       }
 
       return filter;
@@ -158,13 +158,13 @@ int io_sgs_sas( int argc, char** argv )
     
     if (!volume->isValid())
     {
-      cerr << "Unexpeceted invalid volumetric data" << endl;
+      cerr << "Unexpected invalid volumetric data" << endl;
       error = true;
     }
 
     if (volume->editedRegions().size() != 0)
     {
-      cerr << "Unexpeceted number of edited regions" << endl;
+      cerr << "Unexpected number of edited regions" << endl;
       error = true;
     }
 

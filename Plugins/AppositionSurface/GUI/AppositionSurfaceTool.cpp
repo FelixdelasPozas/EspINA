@@ -127,7 +127,7 @@ void AppositionSurfaceTool::createSAS()
       InputSList inputs;
       inputs << seg->asInput();
 
-      auto filter = getFactory()->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+      auto filter = getFactory()->createFilter<AppositionSurfaceFilter>(inputs, ASFilterFactory::AS_FILTER);
 
       AppositionSurfacePlugin::Data data(filter, model->smartPointer(seg));
       m_plugin->m_executingTasks.insert(filter.get(), data);

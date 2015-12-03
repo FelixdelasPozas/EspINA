@@ -25,6 +25,7 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/Spatial.h>
 
 // ITK
 #include <itkImageRegionConstIteratorWithIndex.h>
@@ -70,10 +71,14 @@ void SplitFilter::execute()
   if (!m_stencil && !fetchCacheStencil())
   {
     if (m_outputs.isEmpty())
+    {
       Q_ASSERT(false);
+    }
     else
+    {
       // read-only filter.
       return;
+    }
   }
 
   auto itkVolume = volume->itkImage();
@@ -177,12 +182,6 @@ bool SplitFilter::ignoreStorageContent() const
 }
 
 //----------------------------------------------------------------------------
-bool SplitFilter::areEditedRegionsInvalidated()
-{
-  return false;
-}
-
-//----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
   return !validOutput(0) || ignoreStorageContent();
@@ -192,7 +191,9 @@ bool SplitFilter::needUpdate() const
 bool SplitFilter::fetchCacheStencil() const
 {
   if (m_ignoreCurrentOutputs)
+  {
     return false;
+  }
 
   bool returnVal = false;
 
@@ -209,7 +210,8 @@ bool SplitFilter::fetchCacheStencil() const
     convert->ThresholdBetween(1,1);
     convert->Update();
 
-    m_stencil = vtkSmartPointer<vtkImageStencilData>(convert->GetOutput());
+    m_stencil = vtkSmartPointer<vtkImageStencilData>::New();
+    m_stencil->DeepCopy(convert->GetOutput());
 
     changeStencilSpacing(output(0)->spacing());
 
@@ -222,31 +224,35 @@ bool SplitFilter::fetchCacheStencil() const
 //-----------------------------------------------------------------------------
 void SplitFilter::changeStencilSpacing(const NmVector3& spacing) const
 {
-  double stencilSpacing[3];
-  m_stencil->GetSpacing(stencilSpacing);
-
-  NmVector3 ratio{
-    spacing[0]/stencilSpacing[0],
-    spacing[1]/stencilSpacing[1],
-    spacing[2]/stencilSpacing[2]
-  };
-
-  double stencilOrigin[3];
-  m_stencil->GetOrigin(stencilOrigin);
-
-  for (int i = 0; i < 3; ++i)
+  if(areEqual(spacing[0], 0) || areEqual(spacing[1], 0) || areEqual(spacing[2], 0))
   {
-    stencilOrigin[i] *= ratio[i];
-    stencilSpacing[i] = spacing[i];
+    qWarning() << name() << "(" << uuid() << ") attempting to use invalid spacing" << spacing;
+  }
+  else
+  {
+    double stencilSpacing[3], stencilOrigin[3];
+    m_stencil->GetSpacing(stencilSpacing);
+    m_stencil->GetOrigin(stencilOrigin);
+
+    NmVector3 ratio{spacing[0]/stencilSpacing[0],
+                    spacing[1]/stencilSpacing[1],
+                    spacing[2]/stencilSpacing[2]};
+
+    for (int i = 0; i < 3; ++i)
+    {
+      stencilOrigin[i] *= ratio[i];
+      stencilSpacing[i] = spacing[i];
+    }
+
+    m_stencil->SetOrigin(stencilOrigin);
+    m_stencil->SetSpacing(stencilSpacing);
   }
 
-  m_stencil->SetOrigin(stencilOrigin);
-  m_stencil->SetSpacing(stencilSpacing);
   m_stencil->Modified();
 }
 
 //-----------------------------------------------------------------------------
-void SplitFilter::setStencil(vtkSmartPointer< vtkImageStencilData > stencil)
+void SplitFilter::setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
 {
   m_stencil = stencil;
   m_ignoreCurrentOutputs = true;
@@ -292,9 +298,11 @@ Snapshot SplitFilter::saveFilterSnapshot() const
     convert->SetOutputScalarTypeToUnsignedChar();
     convert->Update();
 
-    auto stencilImage = convert->GetOutput();
+    auto stencilImage = vtkSmartPointer<vtkImageData>::New();
+    stencilImage->DeepCopy(convert->GetOutput());
     stencilImage->SetOrigin(m_stencil->GetOrigin());
     stencilImage->SetSpacing(m_stencil->GetSpacing());
+    stencilImage->Modified();
 
     auto stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
     stencilWriter->SetInputData(stencilImage);

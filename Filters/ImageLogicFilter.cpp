@@ -69,7 +69,6 @@ void ImageLogicFilter::execute(Output::Id oId)
   Q_ASSERT(m_inputs.size() > 1);
 
   // NOTE: Updating this filter will result in invalidating previous outputs
-  areEditedRegionsInvalidated();
   m_outputs.clear();
 
   switch (m_operation)
@@ -259,12 +258,6 @@ bool ImageLogicFilter::needUpdate() const
 
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::ignoreStorageContent() const
-{
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool ImageLogicFilter::areEditedRegionsInvalidated()
 {
   return false;
 }

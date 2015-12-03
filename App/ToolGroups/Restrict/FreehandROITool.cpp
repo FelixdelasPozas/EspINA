@@ -78,7 +78,7 @@ void FreehandROITool::setColor(const QColor& color)
 //-----------------------------------------------------------------------------
 void FreehandROITool::ROIChanged(ROISPtr roi)
 {
-  auto value = roi != nullptr;
+  auto value = (roi != nullptr);
 
   m_drawingWidget.setCanErase(value);
 

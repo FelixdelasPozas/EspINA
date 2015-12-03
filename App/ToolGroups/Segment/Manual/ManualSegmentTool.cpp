@@ -23,6 +23,7 @@
 
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Analysis/Filter.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -43,33 +44,32 @@
 #include <QAction>
 #include <QUndoStack>
 
-using ESPINA::Filter;
-
-const Filter::Type SOURCE_FILTER    = "FreeFormSource";
-const Filter::Type SOURCE_FILTER_V4 = "::FreeFormSource";
-
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Model::Utils;
 
+const Filter::Type ManualFilterFactory::SOURCE_FILTER    = "FreeFormSource";
+const Filter::Type ManualFilterFactory::SOURCE_FILTER_V4 = "::FreeFormSource";
+
 const QString MODE = "Stroke mode";
 
 //-----------------------------------------------------------------------------
-FilterTypeList ManualSegmentTool::ManualFilterFactory::providedFilters() const
+FilterTypeList ManualFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
+  filters << SOURCE_FILTER;
+  filters << SOURCE_FILTER_V4;
 
   return filters;
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr ManualSegmentTool::ManualFilterFactory::createFilter(InputSList          inputs,
-                                                                const Filter::Type& filter,
-                                                                SchedulerSPtr       scheduler) const
+FilterSPtr ManualFilterFactory::createFilter(InputSList          inputs,
+                                             const Filter::Type& filter,
+                                             SchedulerSPtr       scheduler) const
 {
   if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
 
@@ -235,7 +235,7 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   InputSList inputs;
   inputs << channel->asInput();
 
-  auto filter = m_factory->createFilter<SourceFilter>(inputs, SOURCE_FILTER);
+  auto filter = m_factory->createFilter<SourceFilter>(inputs, ManualFilterFactory::SOURCE_FILTER);
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(mask->bounds().bounds(), spacing, origin);
   volume->draw(mask);

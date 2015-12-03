@@ -31,33 +31,50 @@
 
 namespace ESPINA
 {
-  class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
-  : public Support::Plugin
+  /** \class SegmhaFilterFactory
+   * \brief Factory for Segmha importer filters.
+   *
+   */
+  class SegmhaImporterPlugin_EXPORT SegmhaFilterFactory
+  : public FilterFactory
   {
-    Q_OBJECT
-    Q_INTERFACES(ESPINA::Support::Plugin)
-
-    class SegmhaFilterFactory
-    : public FilterFactory
-    {
     public:
-      virtual ~SegmhaFilterFactory()
-      {};
+      static const Filter::Type SEGMHA_FILTER;    /** segmha filter signature. */
+      static const Filter::Type SEGMHA_FILTER_V4; /** segmha filter old signature. */
 
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-    };
+    private:
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this filters provider */
+  };
 
-  public:
-    explicit SegmhaImporterPlugin();
-    virtual ~SegmhaImporterPlugin();
+  /** \class SegmhaImporterPlugin
+   * \brief Plugin to import old segmha EspINA files.
+   *
+   */
+  class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
+  : public Support::Plugin
+  {
+      Q_OBJECT
+      Q_INTERFACES(ESPINA::Support::Plugin)
 
-    virtual void init(Support::Context &context);
+    public:
+      /** \brief Class SegmhaImporterPlugin class constructor.
+       *
+       */
+      explicit SegmhaImporterPlugin();
 
-    virtual FilterFactorySList filterFactories() const;
+      /** \brief Class SegmhaImporterPlugin class virtual destructor.
+       *
+       */
+      virtual ~SegmhaImporterPlugin();
 
-    virtual AnalysisReaderSList analysisReaders() const;
+      virtual void init(Support::Context &context);
+
+      virtual FilterFactorySList filterFactories() const;
+
+      virtual AnalysisReaderSList analysisReaders() const;
   };
 } // namespace ESPINA
 

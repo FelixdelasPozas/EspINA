@@ -54,8 +54,8 @@ using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
-const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
-const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+const Filter::Type SeedGrowSegmentationFilterFactory::SGS_FILTER    = "SeedGrowSegmentation";
+const Filter::Type SeedGrowSegmentationFilterFactory::SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 const QString UPPER_THRESHOLD = "Upper threshold";
 const QString LOWER_THRESHOLD = "Lower threshold";
@@ -69,7 +69,7 @@ const QString BEST_VALUE      = "Best value";
 const QString CATEGORY        = "Category selected";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
+FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -80,11 +80,14 @@ FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList          inputs,
+FilterSPtr SeedGrowSegmentationFilterFactory::createFilter(InputSList          inputs,
                                                               const Filter::Type& filter,
                                                               SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
-  if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
+  if ((filter != SGS_FILTER) && (filter != SGS_FILTER_V4))
+  {
+    throw Unknown_Filter_Exception();
+  }
 
   auto sgsFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, filter, scheduler);
 
@@ -112,7 +115,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_applyClose      {Styles::createToolButton(":espina/morphological_close.svg", tr("Apply close"))}
 , m_close           {new NumericalInput()}
 , m_settings        {settings}
-, m_sgsFactory      {new SGSFactory()}
+, m_sgsFactory      {new SeedGrowSegmentationFilterFactory()}
 {
   setCheckable(true);
   setExclusive(true);
@@ -338,7 +341,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if (validSeed)
   {
-    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SGS_FILTER);
+    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
 
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());

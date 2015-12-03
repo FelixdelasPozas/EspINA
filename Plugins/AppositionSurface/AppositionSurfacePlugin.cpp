@@ -23,9 +23,9 @@
 
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Extensions/ExtensionFactory.h>
+#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Filter/AppositionSurfaceFilter.h>
-#include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASReportDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
@@ -50,6 +50,9 @@
 #include <QString>
 #include <QVariant>
 
+// C++
+#include <memory>
+
 const QString SAS = QObject::tr("SAS");
 const QString SAS_PREFIX = QObject::tr("SAS ");
 
@@ -58,8 +61,10 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Settings;
 
+const Filter::Type ASFilterFactory::AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
+
 //-----------------------------------------------------------------------------
-FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
+FilterTypeList ASFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -69,9 +74,9 @@ FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    inputs,
-                                                            const Filter::Type& type,
-                                                            SchedulerSPtr       scheduler) const
+FilterSPtr ASFilterFactory::createFilter(InputSList    inputs,
+                                         const Filter::Type& type,
+                                         SchedulerSPtr       scheduler) const
 throw (Unknown_Filter_Exception)
 {
 
@@ -79,7 +84,12 @@ throw (Unknown_Filter_Exception)
 
   auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
 
-  filter->setDataFactory(std::make_shared<SASDataFactory>());
+  if(!m_dataFactory)
+  {
+    m_dataFactory = std::make_shared<RasterizedVolumeFromFetchedMeshData>();
+  }
+
+  filter->setDataFactory(m_dataFactory);
 
   return filter;
 }
@@ -90,7 +100,6 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_settings        {new AppositionSurfaceSettings()}
 , m_extensionFactory{new ASExtensionFactory()}
 , m_filterFactory   {new ASFilterFactory()}
-//, m_delayedAnalysis {false}
 {
 }
 
@@ -221,7 +230,7 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
     InputSList inputs;
     inputs << seg->asInput();
 
-    auto filter = factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+    auto filter = factory->createFilter<AppositionSurfaceFilter>(inputs, ASFilterFactory::AS_FILTER);
 
     struct Data data(filter, model->smartPointer(seg));
     m_executingTasks.insert(filter.get(), data);
@@ -334,16 +343,6 @@ void AppositionSurfacePlugin::finishedTask()
   m_context->viewState().invalidateRepresentations(segmentationsToUpdate);
 
   m_finishedTasks.clear();
-
-//   if(m_delayedAnalysis)
-//   {
-//     QApplication::restoreOverrideCursor();
-//     SASAnalysisDialog dialog(m_analysisSynapses, *m_context);
-//     dialog.exec();
-//
-//     m_delayedAnalysis = false;
-//     m_analysisSynapses.clear();
-//   }
 }
 
 //-----------------------------------------------------------------------------

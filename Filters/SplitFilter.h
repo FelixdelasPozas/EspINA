@@ -63,6 +63,9 @@ namespace ESPINA
      */
     void setStencil(vtkSmartPointer<vtkImageStencilData> stencil);
 
+    /** \brief Returns the stencil object used to split the input.
+     *
+     */
     vtkSmartPointer<vtkImageStencilData> stencil() const;
 
     virtual void changeSpacing(const NmVector3& origin, const NmVector3& spacing);
@@ -75,8 +78,6 @@ namespace ESPINA
     virtual void execute();
 
     virtual bool ignoreStorageContent() const;
-
-    virtual bool areEditedRegionsInvalidated();
 
     /** \brief Helper method that returns the stencil file name.
      *
@@ -91,6 +92,9 @@ namespace ESPINA
      */
     bool fetchCacheStencil() const;
 
+    /** \brief Updates the spacing of the stencil object.
+     *
+     */
     void changeStencilSpacing(const NmVector3 &spacing) const;
 
   private:

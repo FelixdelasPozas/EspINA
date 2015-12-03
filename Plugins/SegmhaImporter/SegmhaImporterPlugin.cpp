@@ -28,11 +28,11 @@
 
 using namespace ESPINA;
 
-static const Filter::Type SEGMHA_FILTER_V4 = "Segmha Importer";
-static const Filter::Type SEGMHA_FILTER    = "SegmhaReader";
+const Filter::Type SegmhaFilterFactory::SEGMHA_FILTER_V4 = "Segmha Importer";
+const Filter::Type SegmhaFilterFactory::SEGMHA_FILTER    = "SegmhaReader";
 
 //-----------------------------------------------------------------------------
-FilterSPtr SegmhaImporterPlugin::SegmhaFilterFactory::createFilter(InputSList inputs,
+FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs,
                                                                    const Filter::Type &type,
                                                                    SchedulerSPtr scheduler) const
 throw (Unknown_Filter_Exception)
@@ -52,13 +52,17 @@ throw (Unknown_Filter_Exception)
     throw Unknown_Filter_Exception();
   }
 
-  filter->setDataFactory(std::make_shared<MarchingCubesFromFetchedVolumetricData>());
+  if(!m_dataFactory)
+  {
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
+  }
+  filter->setDataFactory(m_dataFactory);
 
   return filter;
 }
 
 //-----------------------------------------------------------------------------
-FilterTypeList SegmhaImporterPlugin::SegmhaFilterFactory::providedFilters() const
+FilterTypeList SegmhaFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

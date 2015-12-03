@@ -352,7 +352,7 @@ void CheckSegmentationTask::run()
 void CheckSegmentationTask::checkVolumeIsEmpty() const
 {
   auto volume = readLockVolume(m_segmentation->output());
-  if (volume.isNull() || volume->isEmpty())
+  if (volume->isEmpty())
   {
     auto description = tr("Segmentation has a volume associated but is empty");
 
@@ -369,7 +369,7 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 {
   auto mesh = readLockMesh(m_segmentation->output());
 
-  if (mesh.isNull() || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
+  if (mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
   {
     auto description = tr("Segmentation has a mesh associated but is empty");
 
@@ -457,9 +457,9 @@ void CheckChannelTask::checkVolumeIsEmpty() const
   if(hasVolumetricData(m_channel->output()))
   {
     auto volume = readLockVolume(m_channel->output());
-    if(volume.isNull())
+    if(volume->isEmpty())
     {
-      auto description = tr("Stack has a volume associated but can't find it");
+      auto description = tr("Stack has a volume associated but it's empty");
 
       reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }

@@ -53,8 +53,6 @@ namespace ESPINA
 {
   class SASDataFactory;
 
-  const Filter::Type AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
-
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilter
   : public Filter
   {

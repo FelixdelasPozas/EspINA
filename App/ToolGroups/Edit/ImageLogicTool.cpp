@@ -22,13 +22,10 @@
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/AddSegmentations.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include "EditToolGroup.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
-
-const Filter::Type IMAGE_LOGIC_FILTER  = "ImageLogicFilter";
-const Filter::Type ADDITION_FILTER     = "AdditionFilter";
-const Filter::Type SUBSTRACTION_FILTER = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 ImageLogicTool::ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context)
@@ -70,13 +67,13 @@ void ImageLogicTool::applyFilter()
 
   Q_ASSERT(segmentations.size() > 1);
 
-  auto type        = ADDITION_FILTER;
+  auto type        = MorphologicalFilterFactory::ADDITION_FILTER;
   auto description = tr("Segmentation addition");
   auto remove      = true;
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
-    type        = SUBSTRACTION_FILTER;
+    type        = MorphologicalFilterFactory::SUBTRACTION_FILTER;
     description = tr("Segmentation subtraction");
     remove      = m_removeOnSubtract;
   }

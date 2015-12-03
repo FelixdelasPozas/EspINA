@@ -34,22 +34,11 @@ SeedGrowSegmentationRefiner::RefineWidget::RefineWidget(SegmentationAdapterPtr s
   sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
 
   RoiTools->setColor(sgsROIColor);
-
-  auto filter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter());
-
-  auto currentFilterROI = filter->roi();
-  if (currentFilterROI)
-  {
-    RoiTools->setCurrentROI(currentFilterROI->clone());
-    RoiTools->setVisible(true);
-  }
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::RefineWidget::~RefineWidget()
 {
-  RoiTools->setCurrentROI(nullptr);
-  RoiTools->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -81,7 +70,6 @@ QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmen
   auto rw = m_refineWidgets[segmentation];
 
   rw->Count++;
-  rw->RoiTools->setVisible(true);
 
   auto widget = new SeedGrowSegmentationRefineWidget(segmentation, rw->RoiTools, context);
 

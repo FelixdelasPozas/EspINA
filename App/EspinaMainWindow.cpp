@@ -555,7 +555,9 @@ void EspinaMainWindow::onAutoSave(const QString& file)
   auto currentToolGroup = m_activeToolGroup;
 
   m_sessionToolGroup->setChecked(true);
+
   m_saveAsTool->saveAnalysis(file);
+
   currentToolGroup->setChecked(true);
 }
 
@@ -1120,7 +1122,7 @@ void EspinaMainWindow::restoreGeometry()
 {
   ESPINA_SETTINGS(settings);
 
-  // Instead of using save/restoreGeometry resice+move
+  // Instead of using save/restoreGeometry resize+move
   // Works better in Ubuntu Unity when espina is closed while is maximized
   settings.beginGroup("MainWindow");
   resize(settings.value("size", QSize (800, 600)).toSize());

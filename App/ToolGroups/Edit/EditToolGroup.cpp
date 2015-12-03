@@ -62,51 +62,20 @@ const QString ERODE_RADIUS ("EditTools::ErodeRadius");
 const QString OPEN_RADIUS  ("EditTools::OpenRadius");
 const QString CLOSE_RADIUS ("EditTools::CloseRadius");
 
-const Filter::Type CLOSE_FILTER          = "CloseSegmentation";
-const Filter::Type CLOSE_FILTER_V4       = "EditorToolBar::ClosingFilter";
-const Filter::Type OPEN_FILTER           = "OpenSegmentation";
-const Filter::Type OPEN_FILTER_V4        = "EditorToolBar::OpeningFilter";
-const Filter::Type DILATE_FILTER         = "DilateSegmentation";
-const Filter::Type DILATE_FILTER_V4      = "EditorToolBar::DilateFilter";
-const Filter::Type ERODE_FILTER          = "ErodeSegmentation";
-const Filter::Type ERODE_FILTER_V4       = "EditorToolBar::ErodeFilter";
-const Filter::Type FILL_HOLES_FILTER     = "FillSegmentationHoles";
-const Filter::Type FILL_HOLES_FILTER_V4  = "EditorToolBar::FillHolesFilter";
-const Filter::Type IMAGE_LOGIC_FILTER    = "ImageLogicFilter";
-const Filter::Type ADDITION_FILTER       = "AdditionFilter";
-const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
-
-//------------------------------------------------------------------------
-class MorphologicalFilterFactory
-: public FilterFactory
-{
-public:
-  static FilterTypeList CloseFilters();
-
-  static FilterTypeList OpenFilters();
-
-  static FilterTypeList DilateFilters();
-
-  static FilterTypeList ErodeFilters();
-
-private:
-  virtual FilterTypeList providedFilters() const;
-
-  virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
-  throw (Unknown_Filter_Exception);
-
-private:
-  bool isCloseFilter       (const Filter::Type &type) const;
-  bool isOpenFilter        (const Filter::Type &type) const;
-  bool isDilateFilter      (const Filter::Type &type) const;
-  bool isErodeFilter       (const Filter::Type &type) const;
-  bool isFillHolesFilter   (const Filter::Type &type) const;
-  bool isAdditionFilter    (const Filter::Type &type) const;
-  bool isSubstractionFilter(const Filter::Type &type) const;
-
-private:
-  mutable DataFactorySPtr m_dataFactory;
-};
+// NOTE: there's a typo, don't change now or old files won't load correctly.
+const Filter::Type MorphologicalFilterFactory::CLOSE_FILTER         = "CloseSegmentation";
+const Filter::Type MorphologicalFilterFactory::CLOSE_FILTER_V4      = "EditorToolBar::ClosingFilter";
+const Filter::Type MorphologicalFilterFactory::OPEN_FILTER          = "OpenSegmentation";
+const Filter::Type MorphologicalFilterFactory::OPEN_FILTER_V4       = "EditorToolBar::OpeningFilter";
+const Filter::Type MorphologicalFilterFactory::DILATE_FILTER        = "DilateSegmentation";
+const Filter::Type MorphologicalFilterFactory::DILATE_FILTER_V4     = "EditorToolBar::DilateFilter";
+const Filter::Type MorphologicalFilterFactory::ERODE_FILTER         = "ErodeSegmentation";
+const Filter::Type MorphologicalFilterFactory::ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
+const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER    = "FillSegmentationHoles";
+const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
+const Filter::Type MorphologicalFilterFactory::IMAGE_LOGIC_FILTER   = "ImageLogicFilter";
+const Filter::Type MorphologicalFilterFactory::ADDITION_FILTER      = "AdditionFilter";
+const Filter::Type MorphologicalFilterFactory::SUBTRACTION_FILTER   = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::CloseFilters()
@@ -154,6 +123,18 @@ FilterTypeList MorphologicalFilterFactory::ErodeFilters()
 }
 
 //------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::ImageLogicFilters()
+{
+  FilterTypeList filters;
+
+  filters << IMAGE_LOGIC_FILTER;
+  filters << ADDITION_FILTER;
+  filters << SUBTRACTION_FILTER;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
@@ -162,6 +143,7 @@ FilterTypeList MorphologicalFilterFactory::providedFilters() const
   filters << OpenFilters();
   filters << DilateFilters();
   filters << ErodeFilters();
+  filters << ImageLogicFilters();
 
   return filters;
 }
@@ -257,7 +239,7 @@ bool MorphologicalFilterFactory::isAdditionFilter(const Filter::Type &type) cons
 //------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) const
 {
-  return SUBSTRACTION_FILTER == type;
+  return SUBTRACTION_FILTER == type;
 }
 
 
@@ -334,15 +316,15 @@ void EditToolGroup::initSplitTool()
 //-----------------------------------------------------------------------------
 void EditToolGroup::initCODETools()
 {
-  auto close  = std::make_shared<CODETool<CloseFilter>> (CLOSE_FILTER, "CloseTool",  tr("Close"), ":/espina/morphological_close.svg",  tr("Close Segmentations") , getContext());
-  auto open   = std::make_shared<CODETool<OpenFilter>>  (OPEN_FILTER,  "OpenTool",   tr("Open"),  ":/espina/morphological_open.svg",   tr("Open Segmentations")  , getContext());
-  auto dilate = std::make_shared<CODETool<DilateFilter>>(DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/morphological_dilate.svg", tr("Dilate Segmentations"), getContext());
-  auto erode  = std::make_shared<CODETool<ErodeFilter>> (ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/morphological_erode.svg",  tr("Erode Segmentations") , getContext());
+  auto close  = std::make_shared<CODETool<CloseFilter>> (MorphologicalFilterFactory::CLOSE_FILTER, "CloseTool",  tr("Close"), ":/espina/morphological_close.svg",  tr("Close Segmentations") , getContext());
+  auto open   = std::make_shared<CODETool<OpenFilter>>  (MorphologicalFilterFactory::OPEN_FILTER,  "OpenTool",   tr("Open"),  ":/espina/morphological_open.svg",   tr("Open Segmentations")  , getContext());
+  auto dilate = std::make_shared<CODETool<DilateFilter>>(MorphologicalFilterFactory::DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/morphological_dilate.svg", tr("Dilate Segmentations"), getContext());
+  auto erode  = std::make_shared<CODETool<ErodeFilter>> (MorphologicalFilterFactory::ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/morphological_erode.svg",  tr("Erode Segmentations") , getContext());
 
-  close->setOrder("2-0");
-  open->setOrder("2-1");
+  close ->setOrder("2-0");
+  open  ->setOrder("2-1");
   dilate->setOrder("2-2");
-  erode->setOrder("2-3");
+  erode ->setOrder("2-3");
 
   addTool(close);
   addTool(open);

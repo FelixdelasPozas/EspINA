@@ -44,112 +44,144 @@ using namespace ESPINA::GUI::View::Widgets;
 
 namespace ESPINA
 {
-  class SplitTool
-  : public Support::Widgets::EditTool
+  /** \class SplitFilterFactory
+   * \brief Factory for split filters.
+   *
+   */
+  class SplitFilterFactory
+  : public FilterFactory
   {
-    Q_OBJECT
+    public:
+      static const Filter::Type SPLIT_FILTER;    /** split filter signature. */
+      static const Filter::Type SPLIT_FILTER_V4; /** split filter old signature. */
 
-    class SplitFilterFactory
-    : public FilterFactory
-    {
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
     private:
       mutable DataFactorySPtr m_dataFactory;
-    };
+  };
 
-  public:
-    /** \brief SplitTool class constructor.
-     * \param[in] context ESPINA context
-     *
-     */
-    SplitTool(Support::Context &context);
+  /** \class SplitTool
+   * \brief Tool for split filters.
+   *
+   */
+  class SplitTool
+  : public Support::Widgets::EditTool
+  {
+      Q_OBJECT
+    public:
+      /** \brief SplitTool class constructor.
+       * \param[in] context ESPINA context
+       *
+       */
+      SplitTool(Support::Context &context);
 
-    /** \brief SplitTool class virtual destructor.
-     *
-     */
-    virtual ~SplitTool();
+      /** \brief SplitTool class virtual destructor.
+       *
+       */
+      virtual ~SplitTool();
 
-  signals:
-    void splittingStopped();
+    signals:
+      void splittingStopped();
 
-  private:
-    void initSplitWidgets();
+    private:
+      /** \brief Initializes the split option widgets.
+       *
+       */
+      void initSplitWidgets();
 
-    void showCuttingPlane();
+      /** \brief Shows the widgets on the views.
+       *
+       */
+      void showCuttingPlane();
 
-    void hideCuttingPlane();
+      /** \brief Hides the widgets from the views.
+       *
+       */
+      void hideCuttingPlane();
 
-  public slots:
-    /** \brief Helper method called by the widgets on creation.
-     *
-     */
-    void onWidgetCreated(PlanarSplitWidgetPtr widget);
+    public slots:
+      /** \brief Helper method called by the widgets on creation.
+       *
+       */
+      void onWidgetCreated(PlanarSplitWidgetPtr widget);
 
-    /** \brief Helper method called by the widgets on destruction.
-     *
-     */
-    void onWidgetDestroyed(PlanarSplitWidgetPtr widget);
+      /** \brief Helper method called by the widgets on destruction.
+       *
+       */
+      void onWidgetDestroyed(PlanarSplitWidgetPtr widget);
 
-    /** \brief Helper method called by the widget that has finished defining the splitting plane.
-     *
-     */
-    void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
+      /** \brief Helper method called by the widget that has finished defining the splitting plane.
+       *
+       */
+      void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
 
-    /** \brief Disables the widget when the selection changes.
-     *
-     */
-    void onSelectionChanged();
+      /** \brief Disables the widget when the selection changes.
+       *
+       */
+      void onSelectionChanged();
 
-  private slots:
-    void toggleWidgetsVisibility(bool enable);
+    private slots:
+      void toggleWidgetsVisibility(bool enable);
 
-    /** \brief Splits the segmentation using the current state of the tool.
-     *
-     */
-    void applyCurrentState();
+      /** \brief Splits the segmentation using the current state of the tool.
+       *
+       */
+      void applyCurrentState();
 
-    /** \brief Creates the segmentations and adds them to the model.
-     *
-     */
-    void createSegmentations();
+      /** \brief Creates the segmentations and adds them to the model.
+       *
+       */
+      void createSegmentations();
 
-    /** \brief Stops current operation.
-     *
-     */
-    void stopSplitting()
-    { toggleWidgetsVisibility(false); }
+      /** \brief Stops current operation.
+       *
+       */
+      void stopSplitting()
+      { toggleWidgetsVisibility(false); }
 
-  private:
-    virtual bool acceptsNInputs(int n) const;
+    private:
+      virtual bool acceptsNInputs(int n) const;
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
-  private:
-    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    private:
+      using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    struct Data
-    {
-      FilterSPtr              adapter;
-      SegmentationAdapterSPtr segmentation;
+      /** \struct Data
+       * \brief Split filters required data for execution and results return.
+       *
+       */
+      struct Data
+      {
+        FilterSPtr              adapter;      /** filter . */
+        SegmentationAdapterSPtr segmentation; /** segmentation to cut. */
 
-      Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
-      : adapter{adapterP}, segmentation{segmentationP}
-      {};
+        /** \brief Data constructor.
+         * \param[in] adapter filter.
+         * \param[in] segmentation segmentation to cut.
+         *
+         */
+        Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
+        : adapter{adapterP}, segmentation{segmentationP}
+        {};
 
-      Data(): adapter{nullptr}, segmentation{nullptr}
-      {};
-    };
+        /** \brief Data empty constructor.
+         *
+         */
+        Data(): adapter{nullptr}, segmentation{nullptr}
+        {};
+      };
 
-    QPushButton *m_apply;
+      QPushButton *m_apply; /** apply cutting button. */
 
-    PlanarSplitEventHandlerSPtr  m_handler;
-    QMap<FilterPtr, struct Data> m_executingTasks;
-    TemporalPrototypesSPtr       m_factory;
-    QList<PlanarSplitWidgetPtr>  m_splitWidgets;
-    vtkSmartPointer<vtkPlane>    m_splitPlane;
+      PlanarSplitEventHandlerSPtr  m_handler;        /** widget's event handler. */
+      QMap<FilterPtr, struct Data> m_executingTasks; /** map of executing filters and it's data. */
+      TemporalPrototypesSPtr       m_factory;        /** widget's factory. */
+      QList<PlanarSplitWidgetPtr>  m_splitWidgets;   /** list of present widgets. */
+      vtkSmartPointer<vtkPlane>    m_splitPlane;     /** user defined splitting plane. */
   };
 
   using SplitToolPtr  = SplitTool *;

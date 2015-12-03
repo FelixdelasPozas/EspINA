@@ -149,29 +149,27 @@ namespace ESPINA
 
       virtual bool ignoreStorageContent() const;
 
-      //virtual bool areEditedRegionsInvalidated();
-
     private:
       /** \brief Helper method that returns true if the segmentation touches the ROI.
        *
        */
        bool computeTouchesROIValue() const;
 
+       /** \brief Returns the ROI id for this filter.
+        *
+        */
        QString roiId() const
        { return "sgs"; }
 
     private:
-      int       m_lowerTh, m_prevLowerTh;
+      int       m_lowerTh, m_prevLowerTh; /** lower threshold, settings lower threshold.*/
       int       m_upperTh, m_prevUpperTh;
       NmVector3 m_seed,    m_prevSeed;
       int       m_radius,  m_prevRadius;
-      bool      m_hasROI;
 
-      mutable
-      ROISPtr   m_ROI;
-
-      mutable
-      ROIPtr    m_prevROI;
+      mutable bool    m_hasROI;  // roi() const
+      mutable ROISPtr m_ROI;     // roi() const
+      mutable ROIPtr  m_prevROI; // roi() const
 
       bool      m_touchesROI;
       bool      m_forceUpdate;

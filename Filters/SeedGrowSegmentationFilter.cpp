@@ -31,22 +31,14 @@
 
 // ITK
 #include <itkImage.h>
-#include <itkVTKImageToImageFilter.h>
-#include <itkImageToVTKImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
-#include <itkStatisticsLabelObject.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
 using namespace ESPINA;
 
 using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
-using LabelObjectType        = itk::StatisticsLabelObject<unsigned int, 3>;
-using LabelMapType           = itk::LabelMap<LabelObjectType>;
-using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
@@ -85,13 +77,15 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
   for (auto token : state.split(';'))
   {
-    QStringList tokens = token.split('=');
+    auto tokens = token.split('=');
     if (tokens.size() != 2)
+    {
       continue;
+    }
 
     if (SEED == tokens[0])
     {
-      QStringList seed = tokens[1].split(",");
+      auto seed = tokens[1].split(",");
       for(int i = 0; i < 3; ++i)
       {
         m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
@@ -182,11 +176,11 @@ void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const Nm
     m_ROI->setSpacing(spacing);
   }
 
-  // NOTE: current implementation of output->setData add an edited region
+  // TODO: current implementation of output->setData add an edited region
   //       equivalent to the bounds of the data being added
   //       This was done when datas could be added to outputs
-  //       Propably we should change that implementation when moving to
-  //       single data approach
+  //       Probably we should change that implementation when moving to
+  //       single data approach.
   auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
   output->setData(mesh);
   mesh->setEditedRegions(BoundsList());
@@ -251,7 +245,7 @@ void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
   if(roi != m_ROI)
   {
     m_ROI        = roi;
-    m_hasROI     = m_ROI != nullptr;
+    m_hasROI     = (m_ROI != nullptr);
     m_touchesROI = false;
 
     emit roiModified(m_ROI);
@@ -270,7 +264,8 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
     if (!m_ROI->fetchData())
     {
       m_ROI.reset();
-      qWarning() << "Unable to fetch ROI data.";
+      m_hasROI = false;
+      qWarning() << "Has a ROI but was unable to fetch the data.";
     }
     else
     {
@@ -336,9 +331,9 @@ void SeedGrowSegmentationFilter::execute()
   Bounds seedBounds(m_seed);
   seedBounds.setUpperInclusion(true);
 
-  itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
-  itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
-  itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
+  auto seedVoxel               = input->itkImage(seedBounds);
+  auto seedIndex               = seedVoxel->GetLargestPossibleRegion().GetIndex();
+  auto seedIntensity           = seedVoxel->GetPixel(seedIndex);
   itkVolumeType::Pointer image = nullptr;
 
   auto activeROI = roi();
@@ -447,11 +442,11 @@ bool SeedGrowSegmentationFilter::ignoreStorageContent() const
   // TODO: Check if prevROI keeps true after two consecutive executions
   // recovering from storage
   return m_forceUpdate
-      || m_lowerTh   != m_prevLowerTh
-      || m_upperTh   != m_prevUpperTh
-      || m_seed      != m_prevSeed
-      || m_radius    != m_prevRadius
-      || m_ROI.get() != m_prevROI;
+      || (m_lowerTh   != m_prevLowerTh)
+      || (m_upperTh   != m_prevUpperTh)
+      || (m_seed      != m_prevSeed)
+      || (m_radius    != m_prevRadius)
+      || (m_ROI.get() != m_prevROI);
 }
 
 //-----------------------------------------------------------------------------
