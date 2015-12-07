@@ -43,7 +43,7 @@ int region_const_iterator(int argc, char** argv)
     crit.Set();
     error |= true;
   }
-  catch (BMask::Const_Violation_Exception const &e)
+  catch (...)
   {
     error |= false;
   }
@@ -53,7 +53,7 @@ int region_const_iterator(int argc, char** argv)
     crit.Unset();
     error |= true;
   }
-  catch (BMask::Const_Violation_Exception const &e)
+  catch (...)
   {
     error |= false;
   }

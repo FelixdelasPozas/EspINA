@@ -35,12 +35,14 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Utils/EspinaException.h>
 
 #include "testing.h"
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 int seed_grow_segmentation_change_spacing_restore_pipeline( int argc, char** argv )
@@ -72,10 +74,12 @@ int seed_grow_segmentation_change_spacing_restore_pipeline( int argc, char** arg
   analysis.add(segmentation1);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

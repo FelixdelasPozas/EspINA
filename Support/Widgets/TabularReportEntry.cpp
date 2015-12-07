@@ -361,7 +361,6 @@ SegmentationExtension::InformationKeyList TabularReport::Entry::lastInformationO
 {
   SegmentationExtension::InformationKeyList informationTags, availableInformationTags;
 
-  //auto entriesFile = TabularReport::extraPath(m_category + ".xml");
   auto groupedInfo = availableInformation();
 
   for (auto extension : groupedInfo.keys())
@@ -372,15 +371,21 @@ SegmentationExtension::InformationKeyList TabularReport::Entry::lastInformationO
     }
   }
 
-  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+  if(m_model->storage()->exists(selectedInformationFile()))
+  {
+    QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
 
-//   for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
-//   {
-//     if (availableInformationTags.contains(tag))
-//     {
-//       informationTags << tag;
-//     }
-//   }
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+    {
+      for(auto key: availableInformationTags)
+      {
+        if(key.value() == tag)
+        {
+          informationTags << key;
+        }
+      }
+    }
+  }
 
   return informationTags;
 }
@@ -392,14 +397,17 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 
   available = availableInformation();
 
-  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
-  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+  if(m_model->storage()->exists(selectedInformationFile()))
   {
-    for (auto extension : available.keys())
+    QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
     {
-      if (available[extension].contains(tag))
+      for (auto extension : available.keys())
       {
-        info[extension] << tag;
+        if (available[extension].contains(tag))
+        {
+          info[extension] << tag;
+        }
       }
     }
   }

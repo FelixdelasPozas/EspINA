@@ -51,7 +51,7 @@ const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList         segmentations,
-                                             Support::FilterRefinerRegister &filterRefiners,
+                                             Support::FilterRefinerFactory &filterRefiners,
                                              Support::Context               &context)
 : QWidget               (nullptr, Qt::WindowStaysOnTopHint)
 , WithContext           (context)

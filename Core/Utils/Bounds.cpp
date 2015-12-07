@@ -28,29 +28,37 @@
 
 // ESPINA
 #include "Bounds.h"
+#include <Core/Utils/EspinaException.h>
 
 // C++
 #include <tgmath.h>
 #include <QStringList>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 Bounds::Bounds()
 : m_bounds{0, -1, 0, -1, 0, -1}
 {
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+  for (Axis dir : { Axis::X, Axis::Y, Axis::Z })
+  {
     m_lowerInclusion[idx(dir)] = true;
     m_upperInclusion[idx(dir)] = false;
   }
 }
 
 //-----------------------------------------------------------------------------
-bool lowerBoundsInclusion(double value) {
+bool lowerBoundsInclusion(double value)
+{
   if (value == '[') return true;
   if (value == '(') return false;
 
-  throw Invalid_Bounds_Token();
+  auto charValue = QChar(static_cast<int>(value));
+  auto what      = QObject::tr("Invalid bounds initial token, token: %1").arg(charValue);
+  auto details   = QObject::tr("Bounds() -> Invalid bounds initial token, token: %1").arg(charValue);
+
+  throw EspinaException(what, details);
 }
 
 //-----------------------------------------------------------------------------
@@ -58,46 +66,59 @@ bool upperBoundsInclusion(double value) {
   if (value == ']') return true;
   if (value == ')') return false;
 
-  throw Invalid_Bounds_Token();
+  auto charValue = QChar(static_cast<int>(value));
+  auto what      = QObject::tr("Invalid bounds final token, token: %1").arg(charValue);
+  auto details   = QObject::tr("Bounds() -> Invalid bounds final token, token: %1").arg(charValue);
+
+  throw EspinaException(what, details);
 }
 
 //-----------------------------------------------------------------------------
 Bounds::Bounds(std::initializer_list<double> bounds)
 {
   int i = 0;
-  switch (bounds.size()) {
-    case 6: {
-      for (auto b=bounds.begin(); b!=bounds.end(); ++b, ++i) {
+  switch (bounds.size())
+  {
+    case 6:
+    {
+      for (auto b=bounds.begin(); b!=bounds.end(); ++b, ++i)
+      {
         m_bounds[i] = *b;
       }
 
-      for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+      for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+      {
         m_lowerInclusion[idx(dir)] = true;
         m_upperInclusion[idx(dir)] = false;
       }
       break;
     }
-    case 8: {
+    case 8:
+    {
       auto b = bounds.begin();
 
       bool lowerInclusion = lowerBoundsInclusion(*b);
       ++b;
 
-      for (; i < 6; ++b, ++i) {
+      for (; i < 6; ++b, ++i)
+      {
         m_bounds[i] = *b;
       }
       bool upperInclusion = upperBoundsInclusion(*b);
 
-      for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+      for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+      {
         m_lowerInclusion[idx(dir)] = lowerInclusion;
         m_upperInclusion[idx(dir)] = upperInclusion;
       }
       break;
     }
-    case 12: {
+    case 12:
+    {
       auto b = bounds.begin();
 
-      for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+      for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+      {
         m_lowerInclusion[idx(dir)] = lowerBoundsInclusion(*b);
         ++b;
         m_bounds[i] = *b;
@@ -110,9 +131,15 @@ Bounds::Bounds(std::initializer_list<double> bounds)
       break;
     }
     default:
-      throw Wrong_Number_Initial_Values{};
-  }
+    {
+      auto what = QObject::tr("Invalid initializer list size, size: %1").arg(bounds.size());
+      auto details = QObject::tr("Bounds::constructor(initializer list) -> Invalid initializer list size, size: %1").arg(bounds.size());
 
+      throw EspinaException(what, details);
+
+      break;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -122,6 +149,7 @@ Bounds::Bounds(const NmVector3& point)
   {
     m_bounds[i] = point[i/2];
   }
+
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
   {
     m_lowerInclusion[idx(dir)] = true;
@@ -138,12 +166,31 @@ Bounds::Bounds(Nm *bounds)
 //-----------------------------------------------------------------------------
 Bounds::Bounds(const QString& string)
 {
-  if (string.left(1)  != "{") throw Invalid_Bounds_Token();
-  if (string.right(1) != "}") throw Invalid_Bounds_Token();
+  if (string.left(1)  != "{")
+  {
+    auto what = QObject::tr("Invalid string initial token, token: %1").arg(string.left(1));
+    auto details = QObject::tr("Bounds::constructor(QString) -> Invalid string initial token, token: %1").arg(string.left(1));
 
-  QStringList ranges = string.split(",");
+    throw EspinaException(what, details);
+  }
 
-  if (ranges.size() != 6) throw Invalid_Bounds_Token();
+  if (string.right(1) != "}")
+  {
+    auto what = QObject::tr("Invalid string final token, token: %1").arg(string.right(1));
+    auto details = QObject::tr("Bounds::constructor(QString) -> Invalid string final token, token: %1").arg(string.right(1));
+
+    throw EspinaException(what, details);
+  }
+
+  auto ranges = string.split(",");
+
+  if (ranges.size() != 6)
+  {
+    auto what = QObject::tr("Invalid string items number, size: %1").arg(ranges.size());
+    auto details = QObject::tr("Bounds::constructor(QString) -> Invalid string items number, size: %1").arg(ranges.size());
+
+    throw EspinaException(what, details);
+  }
 
   m_lowerInclusion[0] = ranges[0].startsWith("{[");
   m_lowerInclusion[1] = ranges[2].startsWith("[");
@@ -165,11 +212,15 @@ QString Bounds::toString() const
 {
   QString string = "{";
   int i = 0;
-  for (auto axis : {Axis::X , Axis::Y, Axis::Z}) {
-    if (i > 0) {string += ",";}
-    string += areLowerIncluded(axis)?"[":"(";
-    string += QString("%1,%2").arg(m_bounds[i]).arg(m_bounds[i+1]);
-    string += areUpperIncluded(axis)?"]":")";
+  for (auto axis : { Axis::X, Axis::Y, Axis::Z })
+  {
+    if (i > 0)
+    {
+      string += ",";
+    }
+    string += areLowerIncluded(axis) ? "[" : "(";
+    string += QString("%1,%2").arg(m_bounds[i]).arg(m_bounds[i + 1]);
+    string += areUpperIncluded(axis) ? "]" : ")";
     i += 2;
   }
   string += "}";
@@ -180,14 +231,13 @@ QString Bounds::toString() const
 //-----------------------------------------------------------------------------
 bool ESPINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
-//   auto lessThan         = [](double a, double b){return a <  b;};
   auto lessEqualThan    = [](double a, double b){return a <= b;};
-//   auto greaterThan      = [](double a, double b){return a >  b;};
   auto greaterEqualThan = [](double a, double b){return a >= b;};
 
   bool overlap = true;
   int  i = 0;
-  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z})
+  {
     overlap &= lessEqualThan(b1[i], b2[i+1]) && greaterEqualThan(b1[i+1], b2[i]);
 
     if (areEqual(b1[i],   b2[i+1], spacing[i/2]))
@@ -255,6 +305,7 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 
   if(!res.areValid())
   {
+    // TODO: use EspinaException.
     qWarning() << "Bounds::intersection() resulted in invalid bounds: " << res;
   }
 
@@ -267,7 +318,6 @@ Bounds ESPINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
 {
   Bounds bb;
 
-  //for(int min = 0, max = 1; min < 6; min += 2, max +=2)
   int min = 0, max = 1, i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
   {
@@ -334,17 +384,25 @@ std::ostream& ESPINA::operator<<(std::ostream& os, const Bounds& bounds)
 QDebug ESPINA::operator<< (QDebug d, const Bounds &bounds)
 {
   char borders[6];
-  for(auto i: { 0,1,2 })
+  for (auto i : { 0, 1, 2 })
   {
     if (bounds.areLowerIncluded(toAxis(i)))
-      borders[2*i] = '[';
+    {
+      borders[2 * i] = '[';
+    }
     else
-      borders[2*i] = '(';
+    {
+      borders[2 * i] = '(';
+    }
 
     if (bounds.areUpperIncluded(toAxis(i)))
-      borders[(2*i)+1] = ']';
+    {
+      borders[(2 * i) + 1] = ']';
+    }
     else
-      borders[(2*i)+1] = ')';
+    {
+      borders[(2 * i) + 1] = ')';
+    }
   }
 
   d << borders[0] << bounds[0] << "," << bounds[1] << borders[1] << borders[2] << bounds[2] << "," << bounds[3] << borders[3] << borders[4] << bounds[4] << "," << bounds[5] << borders[5];
@@ -355,29 +413,41 @@ QDebug ESPINA::operator<< (QDebug d, const Bounds &bounds)
 //-----------------------------------------------------------------------------
 bool ESPINA::contains(const Bounds& container, const Bounds& contained, const NmVector3& spacing)
 {
-  //return intersection(container, contained) == contained;
-
   int i = 0;
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (areEqual(contained[i], container[i], spacing[i/2]))
+  for (Axis dir : { Axis::X, Axis::Y, Axis::Z })
+  {
+    if (areEqual(contained[i], container[i], spacing[i / 2]))
     {
       if (!container.areLowerIncluded(dir) && contained.areLowerIncluded(dir))
       {
-	return false;
+        return false;
       }
-    } else if (contained[i] < container[i]) {
-      return false;
     }
+    else
+    {
+      if (contained[i] < container[i])
+      {
+        return false;
+      }
+    }
+
     ++i;
-    if (areEqual(contained[i], container[i], spacing[i/2]))
+
+    if (areEqual(contained[i], container[i], spacing[i / 2]))
     {
       if (!container.areUpperIncluded(dir) && contained.areUpperIncluded(dir))
       {
-	return false;
+        return false;
       }
-    } else if (container[i] < contained[i]) {
-      return false;
     }
+    else
+    {
+      if (container[i] < contained[i])
+      {
+        return false;
+      }
+    }
+
     ++i;
   }
 
@@ -390,18 +460,33 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
   int i = 0;
   int j = 0;
 
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (point[j] < bounds[i]) {
-      return false;
-    } else if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areLowerIncluded(dir)) {
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  {
+    if (point[j] < bounds[i])
+    {
       return false;
     }
+    else
+    {
+      if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areLowerIncluded(dir))
+      {
+        return false;
+      }
+    }
+
     ++i;
-    if (bounds[i] < point[j]) {
+
+    if (bounds[i] < point[j])
+    {
       return false;
-    } else if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areUpperIncluded(dir)) {
-      return false;
+    } else
+    {
+      if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areUpperIncluded(dir))
+      {
+        return false;
+      }
     }
+
     ++i;
     ++j;
   }
@@ -432,10 +517,12 @@ bool ESPINA::operator==(const Bounds &lhs, const Bounds &rhs)
     if (!areEqual(lhs[i], rhs[i])) return false;
   }
 
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (lhs.areLowerIncluded(dir) != rhs.areLowerIncluded(dir)
-     || lhs.areUpperIncluded(dir) != rhs.areUpperIncluded(dir))
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  {
+    if (lhs.areLowerIncluded(dir) != rhs.areLowerIncluded(dir) || lhs.areUpperIncluded(dir) != rhs.areUpperIncluded(dir))
+    {
       return false;
+    }
   }
 
   return true;
@@ -453,13 +540,19 @@ bool ESPINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
   int coincident = 0;
   int adjacent = 0;
 
-  for(int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i)
   {
-    if (areEqual(lhs[2*i],rhs[2*i+1]) || areEqual(lhs[2*i+1],rhs[2*i]))
+    if (areEqual(lhs[2 * i], rhs[2 * i + 1]) || areEqual(lhs[2 * i + 1], rhs[2 * i]))
+    {
       ++adjacent;
+    }
     else
-      if (areEqual(lhs[2*i], rhs[2*i]) && areEqual(lhs[2*i+1], rhs[2*i+1]))
+    {
+      if (areEqual(lhs[2 * i], rhs[2 * i]) && areEqual(lhs[2 * i + 1], rhs[2 * i + 1]))
+      {
         ++coincident;
+      }
+    }
   }
 
   return ((coincident == 2) && (adjacent == 1));

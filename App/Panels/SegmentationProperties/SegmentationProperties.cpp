@@ -47,7 +47,7 @@ public:
 };
 
 //----------------------------------------------------------------------------
-SegmentationProperties::SegmentationProperties(FilterRefinerRegister &filterRefiners,
+SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners,
                                                  Context               &context)
 : Panel(tr("Segmentation Properties"), context)
 , m_register(filterRefiners)

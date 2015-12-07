@@ -30,10 +30,11 @@
 #define ESPINA_STREAMED_VOLUME_H
 
 // ESPINA
-#include "Core/Analysis/Data/VolumetricData.hxx"
-#include "Core/Analysis/Data/VolumetricDataUtils.hxx"
-#include "Core/Utils/BinaryMask.hxx"
-#include "Core/Utils/Bounds.h"
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/BinaryMask.hxx>
+#include <Core/Utils/Bounds.h>
+#include <Core/Utils/EspinaException.h>
 
 // ITK
 #include <itkImageRegionIterator.h>
@@ -44,119 +45,118 @@ namespace ESPINA {
 
   template class VolumetricData<itk::Image<unsigned char, 3>>;
 
+  /** \class StreamedVolume
+   * \brief Class to stream a volume from disk.
+   *
+   */
   template<typename T>
   class StreamedVolume
   : public VolumetricData<T>
   {
-  public:
-    struct File_Not_Found_Exception{};
+    public:
+      /** \brief StreamedVolume class constructor.
+       *
+       */
+      explicit StreamedVolume();
 
-  public:
-    /** \brief StreamedVolume class constructor.
-     *
-     */
-    explicit StreamedVolume();
+      /** \brief StreamedVolume class constructor.
+       * \param[in] fileName name of the image file used for streaming.
+       *
+       */
+      explicit StreamedVolume(const QFileInfo& fileName);
 
-    /** \brief StreamedVolume class constructor.
-     * \param[in] fileName name of the image file used for streaming.
-     *
-     */
-    explicit StreamedVolume(const QFileInfo& fileName);
+      /** \brief StreamedVolume class virtual destructor.
+       *
+       */
+      virtual ~StreamedVolume()
+      {};
 
-    /** \brief StreamedVolume class virtual destructor.
-     *
-     */
-    virtual ~StreamedVolume()
-    {};
+      /** \brief Sets the file name of the image file used for streaming.
+       *
+       */
+      void setFileName(const QFileInfo& fileName);
 
-    /** \brief Sets the file name of the image file used for streaming.
-     *
-     */
-    void setFileName(const QFileInfo& fileName);
+      /** \brief Returns the file name of the image file used for streaming.
+       *
+       */
+      QFileInfo fileName() const
+      { return m_fileName; }
 
-    /** \brief Returns the file name of the image file used for streaming.
-     *
-     */
-    QFileInfo fileName() const
-    { return m_fileName; }
+      virtual size_t memoryUsage() const override
+      { return 0; }
 
-    virtual size_t memoryUsage() const override
-    { return 0; }
+      virtual VolumeBounds bounds() const override;
 
-    virtual VolumeBounds bounds() const override;
+      virtual void setOrigin(const NmVector3& origin) override
+      { m_origin = origin; }
 
-    virtual void setOrigin(const NmVector3& origin) override
-    { m_origin = origin; }
+      virtual void setSpacing(const NmVector3& spacing) override
+      { m_spacing = spacing; }
 
-    virtual void setSpacing(const NmVector3& spacing) override
-    { m_spacing = spacing; }
+      virtual const typename T::Pointer itkImage() const override;
 
+      virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual const typename T::Pointer itkImage() const override;
+      virtual void draw(vtkImplicitFunction*        brush,
+                        const Bounds&               bounds,
+                        const typename T::ValueType value)                   override
+      {}
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
+      virtual void draw(const typename T::Pointer volume)                    override
+      {}
 
-    virtual void draw(vtkImplicitFunction*        brush,
-                      const Bounds&               bounds,
-                      const typename T::ValueType value)                   override
-    {}
+      virtual void draw(const typename T::Pointer volume,
+                        const Bounds&             bounds)                    override
+      {}
 
-    virtual void draw(const typename T::Pointer volume)                    override
-    {}
+      virtual void draw(const typename T::IndexType &index,
+                        const typename T::PixelType  value = SEG_VOXEL_VALUE) override
+      {}
 
-    virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds)                    override
-    {}
+      virtual void draw(const Bounds               &bounds,
+                        const typename T::PixelType value = SEG_VOXEL_VALUE) override
+      {}
 
-    virtual void draw(const typename T::IndexType &index,
-                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override
-    {}
-
-    virtual void draw(const Bounds               &bounds,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
-    {}
-
-    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) override
-    {}
+      virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                        const typename T::ValueType value = SEG_VOXEL_VALUE) override
+      {}
 
 
-    virtual void resize(const Bounds &bounds) override
-    {}
+      virtual void resize(const Bounds &bounds) override
+      {}
 
-    virtual bool isValid() const override
-    { return QFileInfo(m_fileName).exists(); }
+      virtual bool isValid() const override
+      { return QFileInfo(m_fileName).exists(); }
 
-    virtual bool isEmpty() const override
-    { return !isValid(); }
+      virtual bool isEmpty() const override
+      { return !isValid(); }
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
-    { return Snapshot(); }
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+      { return Snapshot(); }
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
-    { return Snapshot(); }
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+      { return Snapshot(); }
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
-    {}
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+      {}
 
-  protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
-    { return false; }
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
+      { return false; }
 
+    private:
+      typedef itk::ImageRegionIterator<T> ImageIterator;
 
-  private:
-    typedef itk::ImageRegionIterator<T> ImageIterator;
+      virtual QList<Data::Type> updateDependencies() const override
+      { return QList<Data::Type>(); }
 
-    virtual QList<Data::Type> updateDependencies() const override
-    { return QList<Data::Type>(); }
+    private:
+      NmVector3 m_origin;
+      NmVector3 m_spacing;
 
-  private:
-    NmVector3 m_origin;
-    NmVector3 m_spacing;
-
-    Bounds  m_bounds;
-    QString m_fileName;
-    QString m_storageFileName;
+      Bounds  m_bounds;
+      QString m_fileName;
+      QString m_storageFileName;
   };
 
   template<typename T> using StreamReaderType  = itk::ImageFileReader<T>;
@@ -196,7 +196,13 @@ namespace ESPINA {
   template<typename T>
   VolumeBounds StreamedVolume<T>::bounds() const
   {
-    if (!isValid()) throw File_Not_Found_Exception();
+    if (!isValid())
+    {
+      auto what = QObject::tr("Uninitialized StreamedVolume.");
+      auto details = QObject::tr("StreamedVolume::bounds() -> Uninitialized file.");
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     auto reader = StreamReaderType<T>::New();
     reader->ReleaseDataFlagOn();
@@ -214,7 +220,13 @@ namespace ESPINA {
   template<typename T>
   const typename T::Pointer StreamedVolume<T>::itkImage() const
   {
-    if (!isValid()) throw File_Not_Found_Exception();
+    if (!isValid())
+    {
+      auto what = QObject::tr("Uninitialized StreamedVolume.");
+      auto details = QObject::tr("StreamedVolume::itkImage() -> Uninitialized file.");
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     auto reader = StreamReaderType<T>::New();
     reader->ReleaseDataFlagOn();
@@ -233,7 +245,13 @@ namespace ESPINA {
   template<typename T>
   const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) const
   {
-    if (!isValid()) throw File_Not_Found_Exception();
+    if (!isValid())
+    {
+      auto what = QObject::tr("Uninitialized StreamedVolume.");
+      auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> Uninitialized file.");
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     auto reader = StreamReaderType<T>::New();
     reader->ReleaseDataFlagOn();

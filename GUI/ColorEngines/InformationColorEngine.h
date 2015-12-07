@@ -20,9 +20,10 @@
 #ifndef ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
 #define ESPINA_GUI_INFORMATION_COLOR_ENGINE_H
 
+// ESPINA
+#include <Core/Analysis/Extensions.h>
 #include <GUI/Types.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <Core/Analysis/Extension.h>
 
 namespace ESPINA
 {
@@ -30,34 +31,55 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
+      /** \class InformationColorEngine
+       * \brief Colors the segmentations according to some information key and value.
+       *
+       */
       class InformationColorEngine
       : public ColorEngine
       {
-      public:
-        explicit InformationColorEngine();
+        public:
+          /** \brief InformationColorEngine class constructor.
+           *
+           */
+          explicit InformationColorEngine();
 
-        virtual ~InformationColorEngine();
+          /** \brief InformationColorEngine class destructor.
+           *
+           */
+          virtual ~InformationColorEngine();
 
-        void setInformation(const SegmentationExtension::InformationKey &key, double min, double max);
+          /** \brief Sets the information key and range values.
+           * \param[in] key extension information key.
+           * \param[in] min minimum value.
+           * \param[in] max maximum value.
+           *
+           */
+          void setInformation(const SegmentationExtension::InformationKey &key, double min, double max);
 
-        SegmentationExtension::InformationKey information() const
-        { return m_key; }
+          /** \brief Returns the used information key,.
+           *
+           */
+          SegmentationExtension::InformationKey information() const
+          { return m_key; }
 
-        virtual QColor color(ConstSegmentationAdapterPtr segmentation);
+          virtual QColor color(ConstSegmentationAdapterPtr segmentation);
 
-        virtual LUTSPtr lut(ConstSegmentationAdapterPtr segmentation);
+          virtual LUTSPtr lut(ConstSegmentationAdapterPtr segmentation);
 
-        virtual Composition supportedComposition() const
-        { return ColorEngine::Color; }
+          virtual Composition supportedComposition() const
+          { return ColorEngine::Color; }
 
-        Utils::RangeHSV *colorRange() const
-        { return m_colorRange; }
+          /** \brief Returns the used color range.
+           *
+           */
+          Utils::RangeHSV *colorRange() const
+          { return m_colorRange; }
 
-      private:
-        SegmentationExtension::InformationKey m_key;
-
-        Utils::RangeHSV      *m_colorRange;
-        QMap<QColor, LUTSPtr> m_luts;
+        private:
+          SegmentationExtension::InformationKey m_key;        /** used key to get segmentation information. */
+          Utils::RangeHSV                      *m_colorRange; /** used color range.                         */
+          QMap<QColor, LUTSPtr>                 m_luts;       /** color-lookuptable map.                    */
       };
     }
   }

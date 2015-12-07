@@ -25,6 +25,7 @@
 // ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkIdList.h>
@@ -49,6 +50,7 @@ using EdgeListIterator = vtkSmartPointer<vtkEdgeListIterator>;
 using PolyDataNormals = vtkSmartPointer<vtkPolyDataNormals>;
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 ///-----------------------------------------------------------------------
 /// APPOSITION SURFACE EXTENSION-
@@ -250,8 +252,12 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
 
       if (components->GetValue(edge.Source) != components->GetValue(edge.Target) )
       {
-        throw "ERROR: Edge between 2 disconnected component";
+        auto what = QObject::tr("Edge between two disconnected component.");
+        auto details = QObject::tr("AppositionSurfaceExtension::computePerimeter() -> Edge between two disconnected component.");
+
+        throw EspinaException(what, details);
       }
+
       double x[3];
       double y[3];
       asMesh->GetPoint(pedigree->GetValue(edge.Source), x);

@@ -33,6 +33,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using BinaryErodeFilter      = itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
@@ -58,11 +59,23 @@ void ErodeFilter::execute(Output::Id id)
   Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("ErodeFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
 
   auto input       = m_inputs[0];
   auto inputVolume = readLockVolume(input->output());
-  if (!inputVolume->isValid()) throw Invalid_Input_Data_Exception();
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("ErodeFilter::execute(id) ->Invalid input volume.");
+
+    throw EspinaException(what, details);
+  }
 
   reportProgress(0);
   if (!canExecute()) return;

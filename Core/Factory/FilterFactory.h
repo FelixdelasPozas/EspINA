@@ -33,10 +33,6 @@ namespace ESPINA
   class EspinaCore_EXPORT FilterFactory
   {
   public:
-    struct Unknown_Filter_Exception{};
-    struct Filter_Not_Provided_Exception{};
-
-  public:
     /** \brief FilterFactory class destructor.
      *
      */

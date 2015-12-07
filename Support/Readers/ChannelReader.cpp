@@ -26,6 +26,8 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Utils/EspinaException.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 
@@ -40,36 +42,40 @@
 #endif
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
-const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";
-const Filter::Type ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
+const Filter::Type ChannelReader::VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";
+const Filter::Type ChannelReader::ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
 
 class UpdateFilterDataFactory
 : public DataFactory
 {
-public:
-  virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, QXmlStreamAttributes info) override
-  {
-    DataSPtr data;
+  public:
+    virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, QXmlStreamAttributes info) override
+    {
+      DataSPtr data;
 
-    if ("VolumetricData" == info.value("type"))
+      if ("VolumetricData" == info.value("type"))
+      {
+        data = fetchData(output);
+      }
+      else
+      {
+        data = m_fetchData.createData(output, storage, path, info);
+      }
+
+      return data;
+    }
+
+  private:
+    DefaultVolumetricDataSPtr fetchData(OutputSPtr output)
     {
       output->filter()->update();
-
-      DefaultVolumetricDataSPtr volume = writeLockVolume(output, DataUpdatePolicy::Ignore);
-      data = volume;
-    }
-    else
-    {
-      data = m_fetchData.createData(output, storage, path, info);
+      return writeLockVolume(output, DataUpdatePolicy::Ignore);
     }
 
-    return data;
-  }
-
-private:
-  RawDataFactory m_fetchData;
+    RawDataFactory m_fetchData;
 };
 
 //------------------------------------------------------------------------
@@ -83,12 +89,16 @@ FilterTypeList ChannelReader::providedFilters() const
 }
 
 //------------------------------------------------------------------------
-FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
 {
   static auto dataFactory = std::make_shared<UpdateFilterDataFactory>();
 
-  if (filter != VOLUMETRIC_STREAM_READER
-   && filter != ESPINA_1_3_2_CHANNEL_READER) throw Unknown_Filter_Exception();
+  if (filter != VOLUMETRIC_STREAM_READER && filter != ESPINA_1_3_2_CHANNEL_READER)
+  {
+    auto what    = QObject::tr("Unable to create filter: %1").arg(filter);
+    auto details = QObject::tr("ChannelReader::createFilter() -> Unknown filter type: %1").arg(filter);
+    throw EspinaException(what, details);
+  }
 
   auto reader = std::make_shared<VolumetricStreamReader>(inputs, VOLUMETRIC_STREAM_READER, scheduler);
 
@@ -116,11 +126,11 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
                                  ProgressReporter *reporter,
                                  ErrorHandlerSPtr handler)
 {
-  AnalysisSPtr analysis{new Analysis()};
+  auto analysis = std::make_shared<Analysis>();
 
-  analysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
+  analysis->setStorage(std::make_shared<TemporalStorage>());
 
-  QString sampleName = "Unknown Sample";
+  auto sampleName = QString("Unknown Sample");
 
   QString channelMetadata;
 
@@ -180,7 +190,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   filter->setFileName(file);
   filter->update();
 
-  ChannelSPtr channel = factory->createChannel(filter, 0);
+  auto channel = factory->createChannel(filter, 0);
   channel->setName(file.fileName());
   channel->setMetadata(channelMetadata);
 

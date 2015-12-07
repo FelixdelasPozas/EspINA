@@ -38,13 +38,11 @@ int output_replace_data( int argc, char** argv )
   class NoProxyData
   : public DummyData
   {
-  public:
-    struct Invalid_Create_Proxy_Exception{};
+    public:
+      virtual VolumeBounds bounds() const
+      { return modified; }
 
-  public:
-    virtual VolumeBounds bounds() const
-    { return modified; }
-    virtual DataSPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
+      virtual DataSPtr createProxy() const { throw -1; }
   };
 
   bool error = false;
@@ -53,24 +51,28 @@ int output_replace_data( int argc, char** argv )
 
   Output output(&filter, 0, NmVector3{1,1,1});
 
-  DataSPtr data{new DummyData()};
+  auto data = std::make_shared<DummyData>();
   output.setData(data);
 
-  if (output.readLockData<Data>(data->type())->bounds() == modified) {
+  if (output.readLockData<Data>(data->type())->bounds() == modified)
+  {
     cerr << "Unxpected data bounds" << endl;
     error = true;
   }
 
-  DataSPtr noProxyData{new NoProxyData()};
-  try {
+  auto noProxyData = std::make_shared<NoProxyData>();
+  try
+  {
     output.setData(noProxyData);
-  } catch (NoProxyData::Invalid_Create_Proxy_Exception &e) 
+  }
+  catch (...)
   {
     cerr << "Output is creating a new data proxy instead of replacing proxy delegate" << endl;
     error = true;
   }
 
-  if (output.readLockData<Data>(data->type())->bounds() != modified) {
+  if (output.readLockData<Data>(data->type())->bounds() != modified)
+  {
     cerr << "Unxpected data bounds" << endl;
     error = true;
   }

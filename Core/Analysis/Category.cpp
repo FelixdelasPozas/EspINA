@@ -1,5 +1,8 @@
 #include "Core/Analysis/Category.h"
 
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
 // Qt
 #include <QString>
 #include <QColor>
@@ -30,15 +33,20 @@ Category::Category(CategoryPtr parent,
 //------------------------------------------------------------------------
 Category::~Category()
 {
-//    qDebug() << "Destroy category " << m_name;
+//  qDebug() << "Destroy category " << m_name;
 }
 
 //------------------------------------------------------------------------
 void Category::setName(const QString &name)
 {
-  if (m_parent != nullptr && m_parent->subCategory(name).get() != nullptr) {
-    throw AlreadyDefinedCategoryException();
+  if (m_parent != nullptr && m_parent->subCategory(name).get() != nullptr)
+  {
+    auto what = QObject::tr("Category already defined, category: %1").arg(name);
+    auto details = QObject::tr("Category::setName() -> Category already defined, category: %1").arg(name);
+
+    throw Core::Utils::EspinaException(what, details);
   }
+
   m_name = name;
 }
 
@@ -52,9 +60,11 @@ QString Category::name() const
 QString Category::classificationName() const
 {
   if (m_parent && !m_parent->name().isEmpty())
+  {
     return m_parent->classificationName() + "/" + m_name;
-  else
-    return m_name;
+  }
+
+  return m_name;
 }
 
 //------------------------------------------------------------------------
@@ -104,9 +114,13 @@ void Category::removeSubCategory(CategoryPtr subCategory)
   while (!subNode && index < m_subCategories.size())
   {
     if (m_subCategories[index].get() == subCategory)
+    {
       subNode = m_subCategories[index];
+    }
     else
+    {
       index++;
+    }
   }
 
   if (subNode)
@@ -125,7 +139,9 @@ CategorySPtr Category::subCategory(const QString& name) const
   while (!res && i < m_subCategories.size())
   {
     if (m_subCategories[i]->name() == name)
+    {
       res = m_subCategories[i];
+    }
 
     i++;
   }
@@ -143,7 +159,9 @@ void Category::addProperty(const QString& prop, const QVariant& value)
 void Category::deleteProperty(const QString& prop)
 {
   if (m_properties.contains(prop))
+  {
     m_properties.remove(prop);
+  }
 }
 
 //------------------------------------------------------------------------

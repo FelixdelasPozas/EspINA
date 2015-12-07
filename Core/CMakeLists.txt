@@ -15,7 +15,7 @@ qt4_add_resources(CORE_RCC
 
 qt4_wrap_cpp(CORE_MOC
   Analysis/Data.h
-  Analysis/Extension.h
+  Analysis/Extensions.h
   Analysis/Output.h
   Analysis/ViewItem.h
   MultiTasking/Scheduler.h
@@ -65,6 +65,7 @@ set (CORE_SOURCES
   MultiTasking/TaskGroupProgress.cpp
   Utils/AnalysisUtils.cpp
   Utils/Bounds.cpp
+  Utils/EspinaException.cpp
   Utils/Measure.cpp
   Utils/SparseBinaryVolume.cpp
   Utils/TemporalStorage.cpp

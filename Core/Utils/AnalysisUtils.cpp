@@ -32,8 +32,10 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
@@ -88,7 +90,8 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         {
           mergedCategory[category] = classification->createNode(category->classificationName());
           mergedCategory[category]->setColor(category->color());
-        } catch (Already_Defined_Node_Exception &e)
+        }
+        catch (const EspinaException &e)
         {
           mergedCategory[category] = classification->node(category->classificationName());
         }
@@ -176,8 +179,9 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       try
       {
         mergedAnalysis->addRelation(source, target, relationship);
-      } catch (Analysis::Existing_Relation_Exception &e)
+      } catch (const EspinaException &e)
       {
+        // do nothing
       }
     }
   }

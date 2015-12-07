@@ -24,10 +24,10 @@
 #include "Extensions/EspinaExtensions_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
-#include <Core/Utils/Spatial.h>
 #include "AdaptiveEdgesCreator.h"
 #include "EdgesAnalyzer.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Analysis/Extensions.h>
 
 // VTK
 #include <vtkSmartPointer.h>

@@ -26,11 +26,11 @@
 #include <QWidget>
 
 #include <Panels/SegmentationExplorer/SegmentationExplorerLayout.h>
-#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Representations/ManualPipelineSources.h>
+#include <Support/Factory/FilterRefinerFactory.h>
 
 // Qt
 #include <QScrollArea>
@@ -56,7 +56,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      */
     SegmentationInspector(SegmentationAdapterList         segmentations,
-                          Support::FilterRefinerRegister &filterRefiners,
+                          Support::FilterRefinerFactory &filterRefiners,
                           Support::Context               &context);
 
     /** \brief SegmentationInspector class destructor.
@@ -140,7 +140,7 @@ namespace ESPINA
   private:
     static const QString GEOMETRY_SETTINGS_KEY;
     static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
-    Support::FilterRefinerRegister &m_register;
+    Support::FilterRefinerFactory &m_register;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;

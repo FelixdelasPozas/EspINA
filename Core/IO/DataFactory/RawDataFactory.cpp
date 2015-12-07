@@ -19,7 +19,7 @@
 #include "RawDataFactory.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
-#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+//#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 
 using namespace ESPINA;
 

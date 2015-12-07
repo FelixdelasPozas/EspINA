@@ -31,17 +31,17 @@
 using namespace ESPINA;
 using namespace std;
 
-int bounding_box( int argc, char** argv )
+int bounding_box(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds b1{-1.5, 0.5, -1.5, 0.5, -1.5, 0.5};
-  Bounds b2{0.5, 1.5, 0.5, 1.5, 0.5, 1.5};
-  Bounds bb{-1.5, 1.5, -1.5, 1.5, -1.5, 1.5};
+  Bounds b1{ -1.5, 0.5, -1.5, 0.5, -1.5, 0.5 };
+  Bounds b2{ 0.5, 1.5, 0.5, 1.5, 0.5, 1.5 };
+  Bounds bb{ -1.5, 1.5, -1.5, 1.5, -1.5, 1.5 };
 
-  VolumeBounds vb1{b1};
-  VolumeBounds vb2{b2};
-  VolumeBounds vbb{bb};
+  VolumeBounds vb1{ b1 };
+  VolumeBounds vb2{ b2 };
+  VolumeBounds vbb{ bb };
 
   auto bb1_1 = boundingBox(vb1, vb1);
   if (vb1 != bb1_1)
@@ -62,17 +62,19 @@ int bounding_box( int argc, char** argv )
     auto bb1_invalid = boundingBox(vb1, VolumeBounds());
     cerr << "Expected exception due to invalid bounds: " << bb1_invalid << endl;
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception &e)
+  }
+  catch (...)
   {
   }
 
-  VolumeBounds incompatible{b1, NmVector3{2, 2, 2}};
+  VolumeBounds incompatible{ b1, NmVector3{ 2, 2, 2 } };
   try
   {
     auto bb1_incompatible = boundingBox(vb1, incompatible);
     cerr << "Expected exception due to incompatible bounds: " << bb1_incompatible << endl;
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception &e)
+  }
+  catch (...)
   {
   }
 

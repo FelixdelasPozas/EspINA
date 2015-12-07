@@ -49,10 +49,8 @@ int io_analysis_seg_file_io( int argc, char** argv )
   {
     virtual FilterTypeList providedFilters() const
     { FilterTypeList list; list << "DummyFilter"; return list; }
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
-    {
-      return  std::make_shared<DummyFilter>();
-    }
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+    { return  std::make_shared<DummyFilter>(); }
   } dummyFactory;
 
   bool error = false;
@@ -89,10 +87,12 @@ int io_analysis_seg_file_io( int argc, char** argv )
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

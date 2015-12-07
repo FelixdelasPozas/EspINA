@@ -23,10 +23,15 @@
 #define ESPINA_EXTENSION_FACTORY_H
 
 #include "Extensions/EspinaExtensions_Export.h"
-#include <Core/Analysis/Extension.h>
+
+// ESPINA
+#include <Core/Analysis/Extensions.h>
 
 namespace ESPINA
 {
+  /** \class EspinaFactory
+   * \brief Factory for extensions creation.
+   */
   class EspinaExtensions_EXPORT ExtensionFactory
   {
   public:

@@ -32,6 +32,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/IO/SegFile.h>
+#include <Core/Utils/EspinaException.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
 #include <Filters/SplitFilter.h>
@@ -40,6 +41,7 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 int planar_split_load_pipeline( int argc, char** argv )
@@ -78,7 +80,8 @@ int planar_split_load_pipeline( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

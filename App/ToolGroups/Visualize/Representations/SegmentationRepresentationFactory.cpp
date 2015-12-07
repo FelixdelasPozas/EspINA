@@ -116,6 +116,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     representation.Managers << sliceManager;
     representation.Switches << sliceSwitch;
   }
+
   if (supportedViews.testFlag(ESPINA::VIEW_3D))
   {
     auto slice3DManager = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);

@@ -39,9 +39,11 @@ namespace ESPINA
   {
     namespace Graph
     {
-      enum class PrintFormat: std::int8_t { BOOST = 1, DEBUG = 2 };
-
-      struct Unknown_Type_Found{};
+      enum class PrintFormat: std::int8_t
+      {
+        BOOST = 1,
+        DEBUG = 2
+      };
 
       enum class VertexType: std::int8_t
       {

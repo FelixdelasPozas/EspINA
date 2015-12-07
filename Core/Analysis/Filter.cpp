@@ -22,6 +22,7 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 
 // ITK
@@ -39,6 +40,7 @@
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 namespace ESPINA
 {
@@ -330,7 +332,13 @@ bool Filter::validOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 OutputSPtr Filter::output(Output::Id id) const
 {
-  if (!existOutput(id)) throw Undefined_Output_Exception();
+  if (!existOutput(id))
+  {
+    auto what = QObject::tr("Invalid output id, id: %1, filter: %2").arg(id).arg(type());
+    auto details = QObject::tr("Filter::output(id) -> Invalid output id, id: %1, filter: %2").arg(id).arg(type());
+
+    throw EspinaException(what, details);
+  }
 
   return m_outputs[id];
 }

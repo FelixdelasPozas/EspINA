@@ -41,230 +41,223 @@ namespace ESPINA
    */
   class EspinaCore_EXPORT DirectedGraph
   {
-  public:
-    struct Null_Item_Exception {};
-    struct Existing_Item_Exception {};
-    struct Existing_Relation_Exception {};
-    struct Item_Not_Found_Exception {};
-    struct Relation_Not_Found_Exception {};
+    public:
+      using Vertex    = PersistentSPtr;
+      using VertexPtr = PersistentPtr;
 
-  public:
-    using Vertex    = PersistentSPtr;
-    using VertexPtr = PersistentPtr;
+      struct EdgeProperty
+      {
+        std::string relationship;  /** relationship name .*/
+      };
 
-    struct EdgeProperty
-    {
-      std::string relationship;
-    };
+      /** \brief Relationships between analysis items connected by an edge
+       *
+       */
+      struct Edge
+      {
+        Vertex      source;        /** origin of the relation.      */
+        Vertex      target;        /** destination of the relation. */
+        std::string relationship;  /** relation name.               */
+      };
 
-    /** \brief Relationships between analysis items connected by an edge
-     *
-     */
-    struct Edge
-    {
-      Vertex      source;
-      Vertex      target;
-      std::string relationship;
-    };
+      typedef QList<Vertex> Vertices;
+      typedef QList<Edge>   Edges;
 
-    typedef QList<Vertex> Vertices;
-    typedef QList<Edge>   Edges;
+    private:
+      typedef unsigned int IndexType;
 
-  private:
-    typedef unsigned int IndexType;
+      // Boost edge implementation
+      typedef boost::adjacency_list
+      < boost::listS
+      , boost::vecS
+      , boost::bidirectionalS
+      , Vertex
+      , EdgeProperty
+      > Graph;
 
-    // Boost edge implementation
-    typedef boost::adjacency_list
-    < boost::listS
-    , boost::vecS
-    , boost::bidirectionalS
-    , Vertex
-    , EdgeProperty
-    > Graph;
+      typedef boost::graph_traits<Graph>     GraphTraits;
 
-    typedef boost::graph_traits<Graph>     GraphTraits;
+      using EdgeDescriptor   = GraphTraits::edge_descriptor;
+      using VertexDescriptor = GraphTraits::vertex_descriptor;
+      using VertexIterator   = GraphTraits::vertex_iterator;
 
-    using EdgeDescriptor   = GraphTraits::edge_descriptor;
-    using VertexDescriptor = GraphTraits::vertex_descriptor;
-    using VertexIterator   = GraphTraits::vertex_iterator;
+      using EdgeIterator     = GraphTraits::edge_iterator;
+      using InEdgeIterator   = GraphTraits::in_edge_iterator;
+      using OutEdgeIterator  = GraphTraits::out_edge_iterator;
 
-    using EdgeIterator     = GraphTraits::edge_iterator;
-    using InEdgeIterator   = GraphTraits::in_edge_iterator;
-    using OutEdgeIterator  = GraphTraits::out_edge_iterator;
+      using EdgeIteratorRange = std::pair<OutEdgeIterator, OutEdgeIterator>;
 
-    using EdgeIteratorRange = std::pair<OutEdgeIterator, OutEdgeIterator>;
+    public:
+      /** \brief DirectedGraph class constructor.
+       *
+       */
+      explicit DirectedGraph();
 
-  public:
-    /** \brief DirectedGraph class constructor.
-     *
-     */
-    explicit DirectedGraph();
+      /** \brief DirectedGraph class destructor.
+       *
+       */
+      ~DirectedGraph()
+      {}
 
-    /** \brief DirectedGraph class destructor.
-     *
-     */
-    ~DirectedGraph()
-    {}
+      /** \brief Remove all vertices and edges from the graph;
+       *
+       */
+      void clear()
+      { m_graph.clear(); }
 
-    /** \brief Remove all vertices and edges from the graph;
-     *
-     */
-    void clear()
-    { m_graph.clear(); }
+      /** \brief Add a vertex to the graph.
+       * \param[in] vertex, vertex to add.
+       *
+       */
+      void add(Vertex vertex);
 
-    /** \brief Add a vertex to the graph.
-     * \param[in] vertex, vertex to add.
-     *
-     */
-    void add(Vertex vertex);
+      /** \brief Remove a vertex from the graph.
+       * \param[in] vertex, vertex to remove.
+       *
+       */
+      void remove(Vertex vertex);
 
-    /** \brief Remove a vertex from the graph.
-     * \param[in] vertex, vertex to remove.
-     *
-     */
-    void remove(Vertex vertex);
+      /** \brief Add given relation if relation doesn't already exists.
+       * \param[in] ancestor, origin vertex.
+       * \param[in] successor, destination vertex.
+       * \param[in] description, description of the relation.
+       *
+       */
+      void addRelation(Vertex ancestor,
+                       Vertex successor,
+                       const QString &description);
 
-    /** \brief Add given relation if relation doesn't already exists.
-     * \param[in] ancestor, origin vertex.
-     * \param[in] successor, destination vertex.
-     * \param[in] description, description of the relation.
-     *
-     */
-    void addRelation(Vertex ancestor,
-                     Vertex successor,
-                     const QString &description);
+      /** \brief Remove given relation if it exists.
+       * \param[in] ancestor, origin vertex.
+       * \param[in] successor, destination vertex.
+       * \param[in] description, description of the relation.
+       *
+       */
+      void removeRelation(Vertex  ancestor,
+                          Vertex  successor,
+                          const QString &description);
 
-    /** \brief Remove given relation if it exists.
-     * \param[in] ancestor, origin vertex.
-     * \param[in] successor, destination vertex.
-     * \param[in] description, description of the relation.
-     *
-     */
-    void removeRelation(Vertex  ancestor,
-                        Vertex  successor,
-                        const QString &description);
+      /** \brief Returns true if the graph contains the vertex.
+       * \param[in] vertex, vertex to check.
+       *
+       */
+      bool contains(Vertex vertex);
 
-    /** \brief Returns true if the graph contains the vertex.
-     * \param[in] vertex, vertex to check.
-     *
-     */
-    bool contains(Vertex vertex);
+      /** \brief Returns all graph's edges that match the filter.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges edges(const QString &filter = "");
 
-    /** \brief Returns all graph's edges that match the filter.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges edges(const QString &filter = "");
+      /** \brief Return a list of edges whose destination vertex is v.
+       * \param[in] vertex, vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges inEdges(Vertex vertex, const QString &filter = "");
 
-    /** \brief Return a list of edges whose destination vertex is v.
-     * \param[in] vertex, vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges inEdges(Vertex vertex, const QString &filter = "");
+      /** \brief Return a list of edges whose destination vertex is v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges inEdges(VertexPtr vertex, const QString &filter = "");
 
-    /** \brief Return a list of edges whose destination vertex is v.
-     * \param[in] vertex, raw pointer to a vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges inEdges(VertexPtr vertex, const QString &filter = "");
+      ///
+      /** \brief Return a list of edges whose source vertex is v.
+       * \param[in] vertex, vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges outEdges(Vertex vertex, const QString &filter = "");
 
-    ///
-    /** \brief Return a list of edges whose source vertex is v.
-     * \param[in] vertex, vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges outEdges(Vertex vertex, const QString &filter = "");
+      /** \brief Return a list of edges whose source vertex is v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges outEdges(VertexPtr vertex, const QString &filter = "");
 
-    /** \brief Return a list of edges whose source vertex is v.
-     * \param[in] vertex, raw pointer to a vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges outEdges(VertexPtr vertex, const QString &filter = "");
+      /** \brief Return a list of edges whose source or destination vertex is v.
+       * \param[in] vertex, vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges edges   (Vertex vertex, const QString &filter = "");
 
-    /** \brief Return a list of edges whose source or destination vertex is v.
-     * \param[in] vertex, vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Edges edges   (Vertex vertex, const QString &filter = "");
+      /** \brief Remove all edges whose source or destination vertex is v.
+       * \param[in] vertex, vertex to check.
+       *
+       */
+      void removeEdges(Vertex vertex);
 
-    /** \brief Remove all edges whose source or destination vertex is v.
-     * \param[in] vertex, vertex to check.
-     *
-     */
-    void removeEdges(Vertex vertex);
+      /** \brief Return all graph's vertices.
+       *
+       */
+      Vertices vertices() const;
 
-    /** \brief Return all graph's vertices.
-     *
-     */
-    Vertices vertices() const;
+      /** \brief Return all vertices whose outgoing edges end on v.
+       * \param[in] vertex, vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Vertices ancestors(Vertex vertex, const QString &filter = "") const;
 
-    /** \brief Return all vertices whose outgoing edges end on v.
-     * \param[in] vertex, vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Vertices ancestors(Vertex vertex, const QString &filter = "") const;
+      /** \brief Return all vertices whose outgoing edges end on v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
 
-    /** \brief Return all vertices whose outgoing edges end on v.
-     * \param[in] vertex, raw pointer to a vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
+      /** \brief Return all vertices whose incoming edges start on v.
+       * \param[in] vertex, vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Vertices successors(Vertex vertex, const QString &filter = "") const;
 
-    /** \brief Return all vertices whose incoming edges start on v.
-     * \param[in] vertex, vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Vertices successors(Vertex vertex, const QString &filter = "") const;
+      /** \brief Return all vertices whose incoming edges start on v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Vertices successors(VertexPtr vertex, const QString &filter = "") const;
 
-    /** \brief Return all vertices whose incoming edges start on v.
-     * \param[in] vertex, raw pointer to a vertex to check.
-     * \param[in] filter, discrimination filter.
-     *
-     */
-    Vertices successors(VertexPtr vertex, const QString &filter = "") const;
+    private:
+      /** \brief Returns a vertex associated to a given descriptor.
+       * \param[in] descriptor, vertex descriptor.
+       *
+       */
+      DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
 
-  private:
-    /** \brief Returns a vertex associated to a given descriptor.
-     * \param[in] descriptor, vertex descriptor.
-     *
-     */
-    DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
+      /** \brief Returns a descriptor associated to a given vertex.
+       * \param[in] vertex, vertex object.
+       *
+       */
+      DirectedGraph::VertexDescriptor descriptor(Vertex vertex) const;
 
-    /** \brief Returns a descriptor associated to a given vertex.
-     * \param[in] vertex, vertex object.
-     *
-     */
-    DirectedGraph::VertexDescriptor descriptor(Vertex vertex) const;
+      /** \brief Returns a descriptor associated to a given vertex.
+       * \param[in] vertex, vertex raw pointer.
+       *
+       */
+      DirectedGraph::VertexDescriptor descriptor(VertexPtr vertex) const;
 
-    /** \brief Returns a descriptor associated to a given vertex.
-     * \param[in] vertex, vertex raw pointer.
-     *
-     */
-    DirectedGraph::VertexDescriptor descriptor(VertexPtr vertex) const;
+      /** \brief Returns an edge iterator if the given relation between vertices is found.
+       * \param[in] source, source vertex descriptor.
+       * \param[in] destination, destination vertex descriptor.
+       * \param[in] relation, relation description.
+       *
+       */
+      DirectedGraph::OutEdgeIterator findRelation(const VertexDescriptor source,
+                                                  const VertexDescriptor destination,
+                                                  const QString         &relation) const;
 
-    /** \brief Returns an edge iterator if the given relation between vertices is found.
-     * \param[in] source, source vertex descriptor.
-     * \param[in] destination, destination vertex descriptor.
-     * \param[in] relation, relation description.
-     *
-     */
-    DirectedGraph::OutEdgeIterator findRelation(const VertexDescriptor source,
-                                                const VertexDescriptor destination,
-                                                const QString         &relation) const;
+    private:
+      mutable Graph m_graph;
 
-  private:
-    mutable Graph m_graph;
-
-   friend void IO::Graph::read(std::istream& stream, DirectedGraphSPtr graph, IO::Graph::PrintFormat format);
-   friend void IO::Graph::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::Graph::PrintFormat format);
+     friend void IO::Graph::read(std::istream& stream, DirectedGraphSPtr graph, IO::Graph::PrintFormat format);
+     friend void IO::Graph::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::Graph::PrintFormat format);
   };
 
   using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;

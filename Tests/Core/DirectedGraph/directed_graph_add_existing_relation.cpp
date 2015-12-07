@@ -35,37 +35,42 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_existing_relation(int argc, char** argv )
+int directed_graph_add_existing_relation(int argc, char** argv)
 {
   bool error = false;
 
   DirectedGraph graph;
 
-  DummyItemSPtr item1{new DummyItem()};
-  DummyItemSPtr item2{new DummyItem()};
-  QString       relation{"link"};
+  auto item1 = std::make_shared<DummyItem>();
+  auto item2 = std::make_shared<DummyItem>();
+  QString relation
+  { "link" };
 
   graph.add(item1);
-
   graph.add(item2);
-
   graph.addRelation(item1, item2, relation);
 
-  try {
+  try
+  {
     graph.addRelation(item1, item2, relation);
     cerr << "Expected existing relation exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Relation_Exception &e) {
+  }
+  catch (...)
+  {
   }
 
-  DummyItemSPtr ref1{item1};
-  DummyItemSPtr ref2{item2};
+  auto ref1 = item1;
+  auto ref2 = item2;
 
-  try {
+  try
+  {
     graph.addRelation(ref1, ref2, relation);
     cerr << "Expected existing relation exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Relation_Exception &e) {
+  }
+  catch (...)
+  {
   }
 
   return error;

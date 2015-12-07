@@ -38,19 +38,19 @@ int model_adapter_add_existing_relation( int argc, char** argv )
 {
   bool error = true;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto analysis = std::make_shared<Analysis>();
 
   ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  auto coreFactory = std::make_shared<CoreFactory>(sch);
+  auto factory     = std::make_shared<ModelFactory>(coreFactory);
 
   modelAdapter.setAnalysis(analysis, factory);
 
-  SampleAdapterSPtr sample1 = factory->createSample("Sample 1");
-  SampleAdapterSPtr sample2 = factory->createSample("Sample 2");
+  auto sample1 = factory->createSample("Sample 1");
+  auto sample2 = factory->createSample("Sample 2");
 
   modelAdapter.add(sample1);
   modelAdapter.add(sample2);
@@ -58,49 +58,60 @@ int model_adapter_add_existing_relation( int argc, char** argv )
   RelationName relation{"link"};
   modelAdapter.addRelation(sample1, sample2, relation);
 
-  try {
+  try
+  {
     modelAdapter.addRelation(sample1, sample2, relation);
     cerr << "Adding already existing relation" << endl;
-  } catch (ModelAdapter::Existing_Relation_Exception &e) {
-      error = false;
+  }
+  catch (...)
+  {
+    error = false;
   }
 
-  if (analysis->classification().get() != nullptr) {
+  if (analysis->classification().get() != nullptr)
+  {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
 
-  if (analysis->samples().size() != 2) {
+  if (analysis->samples().size() != 2)
+  {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
 
-  if (!analysis->channels().isEmpty()) {
+  if (!analysis->channels().isEmpty())
+  {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
 
-  if (!analysis->segmentations().isEmpty()) {
+  if (!analysis->segmentations().isEmpty())
+  {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
 
-  if (analysis->content()->vertices().size() != 2) {
+  if (analysis->content()->vertices().size() != 2)
+  {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis->content()->edges().isEmpty()) {
+  if (!analysis->content()->edges().isEmpty())
+  {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (analysis->relationships()->vertices().size() != 2) {
+  if (analysis->relationships()->vertices().size() != 2)
+  {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
 
-  if (analysis->relationships()->edges().size() != 1) {
+  if (analysis->relationships()->edges().size() != 1)
+  {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }

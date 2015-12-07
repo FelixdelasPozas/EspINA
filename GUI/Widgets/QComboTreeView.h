@@ -44,6 +44,11 @@ class EspinaGUI_EXPORT QComboTreeView
      */
     explicit QComboTreeView(QWidget* parent = nullptr);
 
+    /** \brief QComboTreeView class destructor.
+     *
+     */
+    virtual ~QComboTreeView();
+
     void setModel(QAbstractItemModel *model);
 
     void setRootModelIndex( const QModelIndex &index);

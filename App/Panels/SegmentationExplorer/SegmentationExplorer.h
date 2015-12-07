@@ -22,12 +22,12 @@
 
 // ESPINA
 #include <Support/Widgets/Panel.h>
-#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Context.h>
 
 // Qt
 #include <ui_SegmentationExplorer.h>
 #include <GUI/View/SelectableView.h>
+#include <Support/Factory/FilterRefinerFactory.h>
 #include <QStringListModel>
 
 class QUndoStack;
@@ -48,7 +48,7 @@ namespace ESPINA
   public:
     /** \brief SegmentationExplorer class constructor.
      */
-    explicit SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
+    explicit SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
                                   Support::Context               &context);
 
     /** \brief SegmentationExplorer class virtual destructor.

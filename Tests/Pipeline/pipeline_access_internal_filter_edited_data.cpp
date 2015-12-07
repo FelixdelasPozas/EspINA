@@ -35,6 +35,7 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Utils/EspinaException.h>
 #include <testing_support_channel_input.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
@@ -45,6 +46,7 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Testing;
 using namespace ESPINA::IO;
 
@@ -62,27 +64,28 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
-      if (type == "DummyChannelReader") {
-        filter = FilterSPtr{new DummyChannelReader()};
+      if (type == "DummyChannelReader")
+      {
+        filter = std::make_shared<DummyChannelReader>();
       }
       else
       {
         if (type == "SGS")
         {
-          filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+          filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
         }
         else if (type == "Dilate")
         {
-          filter = FilterSPtr{new DilateFilter(inputs, type, scheduler)};
+          filter = std::make_shared<DilateFilter>(inputs, type, scheduler);
         } else
         {
           Q_ASSERT(false);
         }
-        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
+        filter->setDataFactory(std::make_shared<RawDataFactory>());
       }
 
       return filter;
@@ -148,7 +151,7 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

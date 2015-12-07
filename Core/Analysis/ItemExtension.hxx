@@ -1,40 +1,46 @@
 /*
- *
- *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
- *
- *    This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation, either version 3 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+ ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
  */
 
-
-#ifndef ESPINA_EXTENSION_H
-#define ESPINA_EXTENSION_H
+#ifndef ESPINA_ITEM_EXTENSION_H_
+#define ESPINA_ITEM_EXTENSION_H_
 
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/Types.h"
+#include <Core/Types.h>
 #include <Core/Analysis/ViewItem.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
-#include <QVariant>
+#include <QList>
 #include <QReadWriteLock>
+#include <QString>
+#include <QStringList>
 
 namespace ESPINA
 {
-
+  /** \class Extension
+   * \brief Adds additional information to an item, thus extending it.
+   *
+   */
   template<typename T>
   class EspinaCore_EXPORT Extension
   : public QObject
@@ -96,8 +102,6 @@ namespace ESPINA
 
     using InformationKeyList = QList<InformationKey>;
     using InfoCache          = QMap<Key, QVariant>;
-
-    struct Invalid_Extension_Key{};
 
     static QString ExtensionFilePath(T *item)
     {
@@ -186,7 +190,13 @@ namespace ESPINA
 
     bool isReady(const InformationKey &key) const
     {
-      if (key.extension() != type()) throw Invalid_Extension_Key();
+      if (key.extension() != type())
+      {
+        auto what = QObject::tr("Invalid extension key, key: %1.").arg(key);
+        auto details = QObject::tr("Extension::isReady(key) -> Invalid extension key, key: %1.").arg(key);
+
+        throw Core::Utils::EspinaException(what, details);
+      }
 
       return readyInformation().contains(key);
     }
@@ -197,7 +207,13 @@ namespace ESPINA
      */
     QVariant information(const InformationKey &key) const
     {
-      if (!hasInformation(key)) throw Invalid_Extension_Key();
+      if (!hasInformation(key))
+      {
+        auto what = QObject::tr("Unknown extension key, key: %1.").arg(key);
+        auto details = QObject::tr("Extension::information(key) -> Unknown extension key, key: %1.").arg(key);
+
+        throw Core::Utils::EspinaException(what, details);
+      }
 
       QVariant info = cachedInfo(key);
 
@@ -297,73 +313,8 @@ namespace ESPINA
     mutable QReadWriteLock m_lock;
   };
 
-  class EspinaCore_EXPORT ChannelExtension
-  : public Extension<Channel>
-  {
-    Q_OBJECT
+}
 
-  public slots:
-    virtual void invalidate()
-    {
-      Extension<Channel>::invalidate();
-    }
+// Qt
 
-  protected:
-    /** \brief ChannelExtension class constructor.
-     * \param[in] infoCache cache object.
-     *
-     */
-    ChannelExtension(const InfoCache &infoCache)
-    : Extension<Channel>(infoCache)
-    {}
-  };
-
-  using ChannelExtensionPtr      = ChannelExtension *;
-  using ChannelExtensionList     = QList<ChannelExtensionPtr>;
-  using ChannelExtensionSPtr     = std::shared_ptr<ChannelExtension>;
-  using ChannelExtensionSList    = QList<ChannelExtensionSPtr>;
-  using ChannelExtensionSMap     = QMap<QString, ChannelExtensionSPtr>;
-  using ChannelExtensionTypeList = QList<ChannelExtension::Type>;
-
-  class EspinaCore_EXPORT SegmentationExtension
-  : public Extension<Segmentation>
-  {
-    Q_OBJECT
-  public:
-    /** \brief Returns true if the extension is applicable to given category.
-     * \param[in] classification name.
-     *
-     */
-    virtual bool validCategory(const QString &classification) const = 0;
-
-  public slots:
-    virtual void invalidate()
-    {
-      Extension<Segmentation>::invalidate();
-    }
-
-  protected:
-  /** \brief SegmentationExtension class constructor.
-   * \param[in] infoCache cache object.
-   *
-   */
-    SegmentationExtension(const InfoCache &infoCache)
-    : Extension<Segmentation>(infoCache)
-    {}
-  };
-
-  using SegmentationExtensionPtr      = SegmentationExtension *;
-  using SegmentationExtensionList     = QList<SegmentationExtensionPtr>;
-  using SegmentationExtensionSPtr     = std::shared_ptr<SegmentationExtension>;
-  using SegmentationExtensionSList    = QList<SegmentationExtensionSPtr>;
-  using SegmentationExtensionSMap     = QMap<QString,SegmentationExtensionSPtr>;
-  using SegmentationExtensionTypeList = QList<SegmentationExtension::Type>;
-
-  template<typename E> typename E::InformationKey createKey(const std::shared_ptr<E> &extension, const typename E::Key &key)
-  {
-    return typename E::InformationKey(extension->type(), key);
-  }
-
-} // namespace ESPINA
-
-#endif // ESPINA_EXTENSION_H
+#endif // ESPINA_ITEM_EXTENSION_H_

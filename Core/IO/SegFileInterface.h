@@ -39,6 +39,10 @@ namespace ESPINA
 
     namespace SegFile
     {
+      /** \class SegFileInterface
+       * \brief Interface to read and write files from a SEG file.
+       *
+       */
       class EspinaCore_EXPORT SegFileInterface
       {
       public:

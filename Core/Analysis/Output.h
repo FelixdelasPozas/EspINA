@@ -28,14 +28,17 @@
 #ifndef ESPINA_OUTPUT_H
 #define ESPINA_OUTPUT_H
 
-#include <Core/Utils/Vector3.hxx>
-#include <Core/Utils/Locker.h>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
+#include <Core/Utils/Vector3.hxx>
+#include <Core/Utils/Locker.h>
+#include <Core/Utils/EspinaException.h>
 #include "Core/Types.h"
 #include "Core/Analysis/Data.h"
 #include "DataProxy.h"
+
+// Qt
 #include <QMap>
 #include <QXmlStreamWriter>
 
@@ -43,9 +46,6 @@ class QDir;
 
 namespace ESPINA
 {
-  struct Invalid_Output_Expection{};
-  struct Unavailable_Output_Data_Exception {};
-
   class EspinaCore_EXPORT Output
   : public QObject
   {
@@ -203,7 +203,7 @@ namespace ESPINA
        *
        */
       template<typename T>
-      ReadLockData<T> readLockData(const Data::Type &type) const throw (Unavailable_Output_Data_Exception)
+      ReadLockData<T> readLockData(const Data::Type &type) const
       { return ReadLockData<T>(data<T>(type)); }
 
       /** \brief Returns the data of the specified type locked for read/write access.
@@ -211,7 +211,7 @@ namespace ESPINA
        *
        */
       template<typename T>
-      WriteLockData<T> writeLockData(const Data::Type &type) throw (Unavailable_Output_Data_Exception)
+      WriteLockData<T> writeLockData(const Data::Type &type)
       { return WriteLockData<T>(data<T>(type)); }
 
       /** \brief Returns true if the output has a data of the specified type.
@@ -277,7 +277,13 @@ namespace ESPINA
       std::shared_ptr<T> data(const Data::Type &type) const
       {
         QMutexLocker lock(&m_mutex);
-        if (!m_data.contains(type)) throw Unavailable_Output_Data_Exception();
+        if (!m_data.contains(type))
+        {
+          auto what    = QObject::tr("Attempt to obtain an unknown data, data type: %1").arg(type);
+          auto details = QObject::tr("Output::data(type) -> Attempt to obtain an unknown data, data type: %1").arg(type);
+
+          throw Core::Utils::EspinaException(what, details);
+        }
 
         return std::dynamic_pointer_cast<T>(m_data.value(type));
       }

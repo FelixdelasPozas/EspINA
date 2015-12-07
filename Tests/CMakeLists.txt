@@ -39,7 +39,7 @@ qt4_add_resources(CORE_RCCS
 qt4_wrap_cpp(CORE_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
-  ${CORE_DIR}/Analysis/Extension.h
+  ${CORE_DIR}/Analysis/Extensions.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
@@ -79,10 +79,12 @@ set (CORE_SOURCES
   ${CORE_DIR}/IO/SegFileInterface.cpp
   ${CORE_DIR}/IO/SegFile_V4.cpp
   ${CORE_DIR}/IO/SegFile_V5.cpp
+  ${CORE_DIR}/IO/ZipUtils.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/AnalysisUtils.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/EspinaException.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp

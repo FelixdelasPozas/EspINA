@@ -37,6 +37,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
@@ -317,10 +318,22 @@ bool SeedGrowSegmentationFilter::needUpdate() const
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute()
 {
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
 
   auto input = readLockVolume(m_inputs[0]->output());
-  if (!input->isValid()) throw Invalid_Input_Data_Exception();
+  if (!input->isValid())
+  {
+    auto what    = QObject::tr("Invalid input.");
+    auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> Invalid input.");
+
+    throw EspinaException(what, details);
+  }
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 

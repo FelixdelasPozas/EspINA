@@ -22,6 +22,8 @@
 // ESPINA
 #include "SegFileInterface.h"
 #include "SegFile.h"
+#include <Core/Utils/EspinaException.h>
+#include "ZipUtils.h"
 
 // QuaZip
 #include <quazip/quazipfile.h>
@@ -31,9 +33,9 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
-
 
 //-----------------------------------------------------------------------------
 void SegFileInterface::addFileToZip(const QString    &fileName,
@@ -41,39 +43,18 @@ void SegFileInterface::addFileToZip(const QString    &fileName,
                                     QuaZip           &zip,
                                     ErrorHandlerSPtr  handler)
 {
-  QuaZipFile zFile(&zip);
-  QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
-  zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
-
-  if (!zFile.open(QIODevice::WriteOnly, zFileInfo))
+  try
   {
-    if (handler)
-      handler->error(QObject::tr("Could not save %1 into seg file").arg(fileName));
-      qWarning() << "SegFileInterface::addFileToZip(): Could not open" << fileName << "in zip file"
-                 << "- Code error:" << zFile.getZipError();
-    throw (SegFile::IO_Error_Exception());
+    ZipUtils::AddFileToZip(fileName, content, zip);
   }
-
-  zFile.write(content);
-
-  if (zFile.getZipError() != UNZ_OK)
+  catch(EspinaException &e)
   {
     if (handler)
+    {
       handler->error(QObject::tr("Could not save %1 into seg file").arg(fileName));
-      qWarning() << "SegFileInterface::addFileToZip(): Could not write" << fileName << "in zip file"
-                 << "- Code error:" << zFile.getZipError();
-    throw (SegFile::IO_Error_Exception());
-  }
+    }
 
-  zFile.close();
-
-  if (zFile.getZipError() != UNZ_OK)
-  {
-    if (handler)
-      handler->error(QObject::tr("Could not save %1 into seg file").arg(fileName));
-      qWarning() << "SegFileInterface::addFileToZip(): Could not close" << fileName << "in zip file"
-                 << "- Code error:" << zFile.getZipError();
-    throw (SegFile::IO_Error_Exception());
+    throw(e);
   }
 }
 
@@ -82,28 +63,44 @@ QByteArray SegFileInterface::readFileFromZip(const QString&   fileName,
                                              QuaZip&          zip,
                                              ErrorHandlerSPtr handler)
 {
-  if (!zip.setCurrentFile(fileName))
+  QByteArray contents;
+
+  try
+  {
+    contents = ZipUtils::readFileFromZip(fileName, zip);
+  }
+  catch(EspinaException &e)
   {
     if (handler)
+    {
       handler->error(QObject::tr("Could not find %1 in seg file").arg(fileName));
+    }
 
-    throw (File_Not_Found_Exception());
+    throw(e);
   }
 
-  return readCurrentFileFromZip(zip, handler);
+  return contents;
 }
 
 //-----------------------------------------------------------------------------
 QByteArray SegFileInterface::readCurrentFileFromZip(QuaZip& zip,
                                                     ErrorHandlerSPtr handler)
 {
-  QuaZipFile zFile(&zip);
-  if (!zFile.open(QIODevice::ReadOnly))
+  QByteArray contents;
+
+  try
+  {
+    contents = ZipUtils::readCurrentFileFromZip(zip);
+  }
+  catch(EspinaException &e)
   {
     if (handler)
-      handler->error(QObject::tr("Couldn't extract %1 from seg file").arg(zFile.getFileName()));
+    {
+      handler->error(QObject::tr("Couldn't extract %1 from seg file").arg(zip.getCurrentFileName()));
+    }
 
-    throw (IO_Error_Exception());
+    throw(e);
   }
-  return zFile.readAll();
+
+  return contents;
 }

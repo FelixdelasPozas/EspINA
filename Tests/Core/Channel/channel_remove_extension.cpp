@@ -70,14 +70,16 @@ int channel_remove_extension(int argc, char** argv )
 
   extensions->add(extension);
 
-  if (!extensions->hasExtension(extension->type())) {
+  if (!extensions->hasExtension(extension->type()))
+  {
     cerr << "Couldn't find expected extension" << endl;
     error = true;
   }
 
   extensions->remove(extension);
 
-  if (extensions->hasExtension(extension->type())) {
+  if (extensions->hasExtension(extension->type()))
+  {
     cerr << "Unexpected deleted extension" << endl;
     error = true;
   }

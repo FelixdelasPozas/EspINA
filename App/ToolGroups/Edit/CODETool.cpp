@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "CODETool.h"
+#include <Core/Utils/EspinaException.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveSegmentations.h>
@@ -30,6 +31,7 @@
 #include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support::Widgets;
@@ -164,7 +166,12 @@ void CODEToolBase::onTaskFinished()
     }
     else
     {
-      if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+      if (filter->numberOfOutputs() != 1)
+      {
+        auto what    = QObject::tr("Unable to process filter result.");
+        auto details = QObject::tr("CODEToolBase::onTaskFinished() -> Invalid number of outputs: %1").arg(filter->numberOfOutputs());
+        throw EspinaException(what, details);
+      }
 
       undoStack->beginMacro(taskContext.Operation);
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));

@@ -27,12 +27,14 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Utils/EspinaException.h>
 
 // QuaZip
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
 
@@ -54,7 +56,10 @@ AnalysisSPtr SegFile::load(const QFileInfo  &file,
       handler->error("IOEspinaFile: Could not open file" + file.filePath());
     }
 
-    throw(IO_Error_Exception());
+    auto what    = QObject::tr("Can't open ZIP container, file: %1, error code: %2").arg(file.filePath()).arg(zip.getZipError());
+    auto details = QObject::tr("SegFile::load() -> Can't open ZIP container, file: %1, error code: %2").arg(file.filePath()).arg(zip.getZipError());
+
+    throw EspinaException(what, details);
   }
 
   SegFileLoaderSPtr loader;
@@ -62,7 +67,10 @@ AnalysisSPtr SegFile::load(const QFileInfo  &file,
   {
     if (!zip.setCurrentFile(SegFile_V4::FORMAT_INFO_FILE))
     {
-      throw(IO_Error_Exception());
+      auto what    = QObject::tr("Unknown SEG file, can't find format info: %1, error code: %2").arg(file.filePath()).arg(zip.getZipError());
+      auto details = QObject::tr("SegFile::load() -> Unknown SEG file, can't find format info: %1, error code: %2").arg(file.filePath()).arg(zip.getZipError());
+
+      throw EspinaException(what, details);
     }
     // NOTE: it may be necessary to select another reader depending on the file content
     loader = std::make_shared<SegFile_V4>();
@@ -118,7 +126,10 @@ void SegFile::save(AnalysisPtr analysis,
       handler->error(QObject::tr("Invalid empty filename."));
     }
 
-    throw(IO_Error_Exception());
+    auto what    = QObject::tr("Attempting to save without filename");
+    auto details = QObject::tr("SegFile::save() -> Attempting to save without filename");
+
+    throw EspinaException(what, details);
   }
 
   QDir tmpDir = QDir::tempPath();
@@ -135,7 +146,10 @@ void SegFile::save(AnalysisPtr analysis,
       handler->error("Failed to create " + tmpFile.File.fileName() + " file");
     }
 
-    throw(IO_Error_Exception());
+    auto what    = QObject::tr("Can't create file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
+    auto details = QObject::tr("SegFile::save() -> Can't create file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
+
+    throw EspinaException(what, details);
   }
 
   SegFile_V5 segFile;
@@ -151,7 +165,10 @@ void SegFile::save(AnalysisPtr analysis,
       handler->error("Unable to create " + tmpFile.File.fileName());
     }
 
-    throw(IO_Error_Exception());
+    auto what    = QObject::tr("Can't close file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
+    auto details = QObject::tr("SegFile::save() -> Can't close file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
+
+    throw EspinaException(what, details);
   }
 
   if (file.exists())
@@ -166,6 +183,9 @@ void SegFile::save(AnalysisPtr analysis,
       handler->error("Couldn't save file on " + file.absoluteFilePath());
     }
 
-    throw(IO_Error_Exception());
+    auto what    = QObject::tr("Can't copy file to path, file: %1, path: %2").arg(tmpFile.File.fileName()).arg(file.absoluteFilePath());
+    auto details = QObject::tr("SegFile::save() -> Can't copy file to path, file: %1, path: %2").arg(tmpFile.File.fileName()).arg(file.absoluteFilePath());
+
+    throw EspinaException(what, details);
   }
 }

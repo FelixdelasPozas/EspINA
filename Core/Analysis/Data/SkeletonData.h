@@ -87,20 +87,16 @@ namespace ESPINA
    * \param[in] output Output object smart pointer
    */
   Output::ReadLockData<SkeletonData> EspinaCore_EXPORT readLockSkeleton(OutputSPtr       output,
-                                                                        DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                        throw (Unavailable_Output_Data_Exception);
+                                                                        DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::ReadLockData<SkeletonData> EspinaCore_EXPORT readLockSkeleton(Output          *output,
-                                                                        DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                        throw (Unavailable_Output_Data_Exception);
+                                                                        DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<SkeletonData> EspinaCore_EXPORT writeLockSkeleton(Output          *output,
-                                                                          DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                          throw (Unavailable_Output_Data_Exception);
+                                                                          DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<SkeletonData> EspinaCore_EXPORT writeLockSkeleton(OutputSPtr       output,
-                                                                          DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                          throw (Unavailable_Output_Data_Exception);
+                                                                          DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
 } // namespace ESPINA
 

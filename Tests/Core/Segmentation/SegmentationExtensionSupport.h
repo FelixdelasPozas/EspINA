@@ -20,7 +20,7 @@
 #ifndef SEGMENTATIONEXTENSIONSUPPORT_H_
 #define SEGMENTATIONEXTENSIONSUPPORT_H_
 
-#include "Core/Analysis/Extension.h"
+#include <Extensions.h>
 
 using namespace ESPINA;
 

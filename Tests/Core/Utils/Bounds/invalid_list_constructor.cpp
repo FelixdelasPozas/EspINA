@@ -31,42 +31,62 @@
 using namespace ESPINA;
 using namespace std;
 
-int invalid_list_constructor( int argc, char** argv )
+int invalid_list_constructor(int argc, char** argv)
 {
   int error = 0;
-  try {
-    Bounds bounds{0,1,2,3};
+  try
+  {
+    Bounds bounds
+    { 0, 1, 2, 3 };
     error = EXIT_FAILURE;
     cerr << bounds << endl;
-  } catch (Wrong_Number_Initial_Values& e) {
+  }
+  catch (...)
+  {
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8};
+  try
+  {
+    Bounds bounds
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
     error = EXIT_FAILURE;
     cerr << bounds << endl;
-  } catch (Wrong_Number_Initial_Values& e) {
+  }
+  catch (...)
+  {
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7};
+  try
+  {
+    Bounds bounds
+    { 0, 1, 2, 3, 4, 5, 6, 7 };
     error = EXIT_FAILURE;
     cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
+  }
+  catch (...)
+  {
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8,9,10,11};
+  try
+  {
+    Bounds bounds
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
     error = EXIT_FAILURE;
     cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
+  }
+  catch (...)
+  {
   }
 
-  try {
-    Bounds bounds{'(',1,2,3,4,5,6,7,8,9,10,11};
+  try
+  {
+    Bounds bounds
+    { '(', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
     error = EXIT_FAILURE;
     cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
+  }
+  catch (...)
+  {
   }
 
   return error;

@@ -25,37 +25,36 @@
 #include <Core/Analysis/Filter.h>
 #include <Support/FilterRefiner.h>
 
-namespace ESPINA {
-
-  struct Unknown_Filter_Type_Exception{};
-
+namespace ESPINA
+{
   namespace Support
   {
-    class EspinaSupport_EXPORT FilterRefinerRegister
+    /** \class FilterRefinerRegister
+     * \brief Factory for filter refiner widgets.
+     *
+     */
+    class EspinaSupport_EXPORT FilterRefinerFactory
     {
-    public:
-      /** \brief Register a filter refiner to modify filters of given \p type
-       * \param[in] refiner create widgets to modify filters of given \p type
-       * \param[in] type of filters
-       *
-       */
-      void registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type);
+      public:
+        /** \brief Register a filter refiner to modify filters of given \p type
+         * \param[in] refiner create widgets to modify filters of given \p type
+         * \param[in] type of filters
+         *
+         */
+        void registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type);
 
-      /** \brief Returns the filter refiner for \p segmentation filter
-       * \param[in] segmentation whose filter is going to be refined
-       * \param[in] context of current session
-       *
-       */
-      QWidget *createRefineWidget(SegmentationAdapterPtr segmentation, Context &context) throw (Unknown_Filter_Type_Exception);
+        /** \brief Returns the filter refiner for \p segmentation filter
+         * \param[in] segmentation whose filter is going to be refined
+         * \param[in] context of current session
+         *
+         */
+        QWidget *createRefineWidget(SegmentationAdapterPtr segmentation, Context &context);
 
-      // TODO: DEPRECATED
-      void unregisterFilterRefiners();
+        // TODO: DEPRECATED
+        void unregisterFilterRefiners();
 
-    private:
-      //     using Factory = QPair<FilterRefinerSPtr, Filter::Type>;
-
-      QMap<Filter::Type, FilterRefinerSPtr> m_register;
-      //     QMap<SegmentationAdapterPtr, Factory> m_instances;
+      private:
+        QMap<Filter::Type, FilterRefinerSPtr> m_register;
     };
   }
 

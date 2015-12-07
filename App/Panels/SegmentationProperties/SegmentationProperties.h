@@ -21,8 +21,8 @@
 #ifndef ESPINA_SEGMENTATION_INFORMATION_H
 #define ESPINA_SEGMENTATION_INFORMATION_H
 
+#include <Support/Factory/FilterRefinerFactory.h>
 #include <Support/Widgets/Panel.h>
-#include <Support/Factory/FilterRefinerRegister.h>
 
 class QUndoStack;
 
@@ -38,7 +38,7 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      explicit SegmentationProperties(Support::FilterRefinerRegister &filterRefiners,
+      explicit SegmentationProperties(Support::FilterRefinerFactory &filterRefiners,
                                       Support::Context               &context);
 
       /** \brief SegmentationProperties class virtual destructor.
@@ -129,7 +129,7 @@ namespace ESPINA
       class UI;
 
     private:
-      Support::FilterRefinerRegister &m_register; /** refine widget's factory. */
+      Support::FilterRefinerFactory &m_register; /** refine widget's factory. */
 
       FilterSPtr             m_filter;        /** segmentation's filter.  */
       SegmentationAdapterPtr m_segmentation;  /** segmentation to refine. */

@@ -25,6 +25,8 @@
 #include "SeedGrowSegmentationRefineWidget.h"
 #include "CustomROIWidget.h"
 #include "SeedGrowSegmentationRefiner.h"
+#include <Core/Utils/EspinaException.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
@@ -38,7 +40,6 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
 #include <App/Settings/ROI/ROISettings.h>
-#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
 // Qt
@@ -50,6 +51,7 @@
 #include <QHBoxLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
@@ -81,12 +83,14 @@ FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
 
 //-----------------------------------------------------------------------------
 FilterSPtr SeedGrowSegmentationFilterFactory::createFilter(InputSList          inputs,
-                                                              const Filter::Type& filter,
-                                                              SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                                           const Filter::Type& filter,
+                                                           SchedulerSPtr       scheduler) const
 {
   if ((filter != SGS_FILTER) && (filter != SGS_FILTER_V4))
   {
-    throw Unknown_Filter_Exception();
+    auto what    = QObject::tr("Unable to create filter: %1").arg(filter);
+    auto details = QObject::tr("SeedGrowSegmentationFilterFactory::createFilter() -> Unknown filter: %1").arg(filter);
+    throw EspinaException(what, details);
   }
 
   auto sgsFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, filter, scheduler);
@@ -102,7 +106,7 @@ FilterSPtr SeedGrowSegmentationFilterFactory::createFilter(InputSList          i
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                                   FilterRefinerRegister        &filterRefiners,
+                                                   FilterRefinerFactory        &filterRefiners,
                                                    Support::Context             &context)
 : ProgressTool("1-GreyLevelSegmentation", ":/espina/grey_level_segmentation.svg", tr("Grey Level Segmentation"), context)
 , m_context         (context)
@@ -391,7 +395,11 @@ void SeedGrowSegmentationTool::createSegmentation()
   {
     auto adapter = m_executingTasks[filter];
 
-    if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+    if (filter->numberOfOutputs() != 1)
+    {
+      auto message = QObject::tr("SeedGrowSegmentationTool::createSegmentation() -> Invalid number of outputs in filter: %1").arg(filter->numberOfOutputs());
+      throw EspinaException(message, message);
+    }
 
     auto segmentation = m_context.factory()->createSegmentation(adapter, 0);
 

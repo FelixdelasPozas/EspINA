@@ -29,9 +29,11 @@
 #include "classification_adapter_testing_support.h"
 
 #include <GUI/Model/ClassificationAdapter.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 int classification_adapter_change_existing_name( int argc, char** argv )
 {
@@ -50,7 +52,7 @@ int classification_adapter_change_existing_name( int argc, char** argv )
     level2->setName(name1);
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException &e)
+  } catch (const EspinaException &e)
   {
   }
 

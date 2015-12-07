@@ -30,11 +30,13 @@
 #include "VolumeBounds.h"
 #include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 VolumeBounds::VolumeBounds(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
@@ -199,9 +201,14 @@ bool ESPINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
 
 //-----------------------------------------------------------------------------
 VolumeBounds ESPINA::intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
-throw (Incompatible_Volume_Bounds_Exception)
 {
-  if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
+  if (!isCompatible(lhs, rhs))
+  {
+    auto what    = QObject::tr("Attempt to intersect incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+    auto details = QObject::tr("interction(Volumebounds, Volumebounds) -> Attempt to intersect incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+
+    throw EspinaException(what, details);
+  }
 
   Bounds bounds;
 
@@ -216,9 +223,14 @@ throw (Incompatible_Volume_Bounds_Exception)
 
 //-----------------------------------------------------------------------------
 VolumeBounds ESPINA::boundingBox(const VolumeBounds &lhs, const VolumeBounds &rhs)
-throw (Incompatible_Volume_Bounds_Exception)
 {
-  if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
+  if (!isCompatible(lhs, rhs))
+  {
+    auto what    = QObject::tr("Attempt to make a bounding box of incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+    auto details = QObject::tr("boundingBox(Volumebounds, Volumebounds) -> Attempt to make a bounding box of incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+
+    throw EspinaException(what, details);
+  }
 
   return VolumeBounds(boundingBox(lhs.bounds(), rhs.bounds()), lhs.spacing(), lhs.origin());
 }

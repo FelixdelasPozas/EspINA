@@ -23,6 +23,7 @@
 #include <GUI/Model/SampleAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QPixmap>
@@ -31,6 +32,7 @@
 #include <QFont>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using ChannelSet = QSet<ItemAdapterPtr>;
 
@@ -184,7 +186,9 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
 QModelIndex ChannelProxy::parent(const QModelIndex& child) const
 {
   if (!child.isValid())
+  {
     return QModelIndex();
+  }
 
   ItemAdapterPtr childItem = itemAdapter(child);
   Q_ASSERT(childItem);
@@ -195,16 +199,24 @@ QModelIndex ChannelProxy::parent(const QModelIndex& child) const
   {
     //TODO: Support nested samples
     parent = QModelIndex();
-  } else if (ItemAdapter::Type::CHANNEL == childItem->type())
+  }
+  else
   {
-    for(auto sample : m_channels.keys())
+    if (ItemAdapter::Type::CHANNEL == childItem->type())
     {
-      if (m_channels[sample].contains(childItem))
-        parent = mapFromSource(m_model->sampleIndex(sample));
+      for (auto sample : m_channels.keys())
+      {
+        if (m_channels[sample].contains(childItem))
+          parent = mapFromSource(m_model->sampleIndex(sample));
+      }
     }
-  } else
-  {
-    throw -1;
+    else
+    {
+      auto what = QObject::tr("Unknown or invalid item type for child, item type value: %1").arg(static_cast<int>(childItem->type()));
+      auto details = QObject::tr("ChannelProxy::parent() -> Unknown or invalid item type for child, item type value: %1").arg(static_cast<int>(childItem->type()));
+
+      throw EspinaException(what, details);
+    }
   }
 
   return parent;
@@ -260,7 +272,9 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
 QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
+  {
     return QModelIndex();
+  }
 
   ItemAdapterPtr proxyItem = itemAdapter(proxyIndex);
 
@@ -269,13 +283,21 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
   {
     SampleAdapterPtr proxySample = samplePtr(proxyItem);
     sourceIndex = m_model->sampleIndex(proxySample);
-  } else if (ItemAdapter::Type::CHANNEL == proxyItem->type())
+  }
+  else
   {
-    ChannelAdapterPtr proxyChannel = channelPtr(proxyItem);
-    sourceIndex = m_model->channelIndex(proxyChannel);
-  } else
-  {
-    throw -1;
+    if (ItemAdapter::Type::CHANNEL == proxyItem->type())
+    {
+      ChannelAdapterPtr proxyChannel = channelPtr(proxyItem);
+      sourceIndex = m_model->channelIndex(proxyChannel);
+    }
+    else
+    {
+      auto what = QObject::tr("Unknown or invalid item type for proxy index, item type value: %1").arg(static_cast<int>(proxyItem->type()));
+      auto details = QObject::tr("ChannelProxy::mapToSource() -> Unknown or invalid item type for proxy index, item type value: %1").arg(static_cast<int>(proxyItem->type()));
+
+      throw EspinaException(what, details);
+    }
   }
 
   return sourceIndex;

@@ -29,6 +29,7 @@
 
 #include <App/ToolGroups/Edit/CODERefiner.h>
 #include <Core/Analysis/Output.h>
+#include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/CloseFilter.h>
 #include <Filters/DilateFilter.h>
@@ -53,6 +54,7 @@
 #include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -152,7 +154,6 @@ FilterTypeList MorphologicalFilterFactory::providedFilters() const
 FilterSPtr MorphologicalFilterFactory::createFilter(InputSList          inputs,
                                                     const Filter::Type& filter,
                                                     SchedulerSPtr       scheduler) const
-throw (Unknown_Filter_Exception)
 {
   FilterSPtr morphologicalFilter;
 
@@ -191,7 +192,9 @@ throw (Unknown_Filter_Exception)
   }
   else
   {
-    throw Unknown_Filter_Exception();
+    auto what    = QObject::tr("Unable to create filter %1").arg(filter);
+    auto details = QObject::tr("MorphologicalFilterFactory::createFilter() -> Unknown filter type: %1").arg(filter);
+    throw EspinaException(what, details);
   }
 
   morphologicalFilter->setDataFactory(m_dataFactory);
@@ -244,7 +247,7 @@ bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) 
 
 
 //-----------------------------------------------------------------------------
-EditToolGroup::EditToolGroup(Support::FilterRefinerRegister &filgerRefiners,
+EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
                              Support::Context               &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Edit")}
 , WithContext(context)
@@ -269,7 +272,7 @@ EditToolGroup::~EditToolGroup()
 }
 
 //-----------------------------------------------------------------------------
-void EditToolGroup::registerFilterRefiners(Support::FilterRefinerRegister &filterReginers)
+void EditToolGroup::registerFilterRefiners(Support::FilterRefinerFactory &filterReginers)
 {
   for (auto type : MorphologicalFilterFactory::CloseFilters())
   {

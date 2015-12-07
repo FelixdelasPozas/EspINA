@@ -20,11 +20,13 @@
 
 // ESPINA
 #include "ClassificationAdapter.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(const QString& name)
@@ -129,7 +131,10 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
 
       if (i == path.size() - 1 && requestedCategory != nullptr)
       {
-        throw Already_Defined_Node_Exception();
+        auto what    = QObject::tr("Attempt to create an already existing category, category: %1").arg(relativeName);
+        auto details = QObject::tr("ClassificationAdapter::createCategory() -> Attempt to create an already existing category, category: %1").arg(relativeName);
+
+        throw EspinaException(what, details);
       }
 
       if (!requestedCategory)

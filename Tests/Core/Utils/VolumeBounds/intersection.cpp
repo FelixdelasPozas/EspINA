@@ -31,57 +31,64 @@
 using namespace ESPINA;
 using namespace std;
 
-int intersection( int argc, char** argv )
+int intersection(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds b1{-1.5, 0.5, -1.5, 0.5, -1.5, 0.5};
-  Bounds b2{-0.5, 1.5, -0.5, 1.5, -0.5, 1.5};
+  Bounds b1{ -1.5, 0.5, -1.5, 0.5, -1.5, 0.5 };
+  Bounds b2{ -0.5, 1.5, -0.5, 1.5, -0.5, 1.5 };
 
-  VolumeBounds vb1{b1};
-  VolumeBounds vb2{b2};
+  VolumeBounds vb1{ b1 };
+  VolumeBounds vb2{ b2 };
 
-  if (!intersect(vb1, vb1)) {
+  if (!intersect(vb1, vb1))
+  {
     cerr << "Every bound should intersect with itself" << endl;
     error = true;
   }
 
-  if (!intersect(vb1, vb2)) {
+  if (!intersect(vb1, vb2))
+  {
     cerr << vb1 << " intersects " << vb2 << endl;
     error = true;
   }
 
-  if (!intersect(vb2, vb1)) {
+  if (!intersect(vb2, vb1))
+  {
     cerr << vb2 << " intersects " << vb1 << ". Intersection is symmetric" << endl;
     error = true;
   }
 
-  Bounds ib{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
-  VolumeBounds expectedIntersection{ib};
+  Bounds ib{ -0.5, 0.5, -0.5, 0.5, -0.5, 0.5 };
+  VolumeBounds expectedIntersection{ ib };
 
   auto actualInteresction = ESPINA::intersection(vb1, vb2);
-  if (!isEquivalent(expectedIntersection, actualInteresction)) {
+  if (!isEquivalent(expectedIntersection, actualInteresction))
+  {
     cerr << "Expected bounds intersection " << expectedIntersection << " but got" << actualInteresction << " instead" << endl;
     error = true;
   }
 
-  if (!actualInteresction.areValid()) {
+  if (!actualInteresction.areValid())
+  {
     cerr << vb1 << " and " << vb2 << " intersection should be a valid bounds" << endl;
     error = true;
   }
 
-  Bounds b3{0.5, 1.5, 0.5, 1.5, 0.5, 1.5};
-  VolumeBounds vb3{b3};
+  Bounds b3{ 0.5, 1.5, 0.5, 1.5, 0.5, 1.5 };
+  VolumeBounds vb3{ b3 };
 
-  if (intersect(vb1, vb3)) {
+  if (intersect(vb1, vb3))
+  {
     cerr << vb1 << " doesn't intersects " << vb3 << endl;
     error = true;
   }
 
-  Bounds b4{-1.5, -0.5, -1.5, -0.5, -1.5, -0.5};
-  VolumeBounds vb4{b4};
+  Bounds b4{ -1.5, -0.5, -1.5, -0.5, -1.5, -0.5 };
+  VolumeBounds vb4 { b4 };
 
-  if (intersect(vb2, vb4)) {
+  if (intersect(vb2, vb4))
+  {
     cerr << vb2 << " doesn't intersects " << vb4 << endl;
     error = true;
   }
@@ -96,11 +103,12 @@ int intersection( int argc, char** argv )
   {
     auto invalidIntersection = ESPINA::intersection(vb1, VolumeBounds());
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception &e)
+  }
+  catch (...)
   {
   }
 
-  VolumeBounds incompatible{b1, NmVector3{2, 2, 2}};
+  VolumeBounds incompatible{ b1, NmVector3{ 2, 2, 2 } };
 
   if (intersect(vb1, incompatible))
   {
@@ -113,7 +121,8 @@ int intersection( int argc, char** argv )
     auto incompatibleIntersection = ESPINA::intersection(vb1, incompatible);
     cerr << "incompatible intersection: " << incompatibleIntersection << endl;
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception &e)
+  }
+  catch (...)
   {
   }
 

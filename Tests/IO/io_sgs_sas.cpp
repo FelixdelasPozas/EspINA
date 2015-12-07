@@ -37,12 +37,14 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
+#include <Core/Utils/EspinaException.h>
 #include <testing_support_channel_input.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Plugins/AppositionSurface/Filter/AppositionSurfaceFilter.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 int io_sgs_sas( int argc, char** argv )
@@ -57,7 +59,7 @@ int io_sgs_sas( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
@@ -122,7 +124,7 @@ int io_sgs_sas( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

@@ -63,7 +63,7 @@ namespace ESPINA
     }
 
     virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
-    { return m_data->setFetchContext(storage, path, id, bounds); }
+    { m_data->setFetchContext(storage, path, id, bounds); }
 
     virtual bool needFetch() const override
     { return m_data->needFetch(); }

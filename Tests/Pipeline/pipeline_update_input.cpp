@@ -32,7 +32,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/RawDataFactory.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -47,38 +47,41 @@ int pipeline_update_input( int argc, char** argv )
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
-    {
-      FilterTypeList list;
-      list << "SGS" << "DILATE";
-      return list;
-    }
-
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
-    {
-      if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new RawDataFactory()});
-        return filter;
+    public:
+      virtual FilterTypeList providedFilters() const
+      {
+        FilterTypeList list;
+        list << "SGS";
+        return list;
       }
-    }
+
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
+      {
+        if (type == "SGS")
+        {
+          auto filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
+          filter->setFetchBehaviour(std::make_shared<RawDataFactory>());
+          return filter;
+        }
+        return nullptr;
+      }
   };
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  auto channel = std::make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -88,19 +91,21 @@ int pipeline_update_input( int argc, char** argv )
   InputSList inputs;
   inputs << channel->asInput();
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
+  auto segFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   segFilter->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -108,16 +113,17 @@ int pipeline_update_input( int argc, char** argv )
   AnalysisSPtr analysis2;
   try
   {
-   analysis2 = SegFile::load(file, factory);
-  } catch (...)
+    analysis2 = SegFile::load(file, factory);
+  }
+  catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
   }
 
   auto loadedSegmentation = analysis2->segmentations().first();
-  auto loadedOuptut       = loadedSegmentation->output();
-  auto volume             = readLockVolume(loadedOuptut);
+  auto loadedOuptut = loadedSegmentation->output();
+  auto volume = readLockVolume(loadedOuptut);
 
   if (volume->editedRegions().size() != 0)
   {
@@ -125,7 +131,7 @@ int pipeline_update_input( int argc, char** argv )
     error = true;
   }
 
-  TemporalStorageSPtr tmpStorage(new TemporalStorage());
+  auto tmpStorage = std::make_shared<TemporalStorage>();
   for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))

@@ -25,20 +25,24 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/IO/SegFileInterface.h"
-#include <Core/Analysis/Extension.h>
+#include <Core/IO/SegFileInterface.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/DataFactory.h>
+#include <Core/Analysis/Extensions.h>
 
-namespace ESPINA {
-
-  namespace IO {
-
+namespace ESPINA
+{
+  namespace IO
+  {
     class ProgressReporter;
 
-    namespace SegFile {
-
+    namespace SegFile
+    {
+      /** \class SegFile_V5
+       * \brief Interface to load/save EspINA SEG files version 5.
+       *
+       */
       class EspinaCore_EXPORT SegFile_V5
       : public SegFileInterface
       {
@@ -160,17 +164,20 @@ namespace ESPINA {
            */
           void loadExtensions(SegmentationSPtr segmentation);
 
+          /** \brief Reports the progress passed as parameter.
+           * \param[in] progress progress value in [0-100].
+           */
           void reportProgress(unsigned int progress);
 
-          QuaZip                 &m_zip;
-          CoreFactorySPtr         m_factory;
-          ProgressReporter       *m_reporter;
-          ErrorHandlerSPtr        m_handler;
-          AnalysisSPtr            m_analysis;
-          TemporalStorageSPtr     m_storage;
-          DataFactorySPtr         m_dataFactory;
-          DirectedGraphSPtr       m_content;
-          DirectedGraph::Vertices m_loadedVertices;
+          QuaZip                 &m_zip;            /** SEG file.                           */
+          CoreFactorySPtr         m_factory;        /** object factory.                     */
+          ProgressReporter       *m_reporter;       /** progress reporter.                  */
+          ErrorHandlerSPtr        m_handler;        /** error handler.                      */
+          AnalysisSPtr            m_analysis;       /** analysis object.                    */
+          TemporalStorageSPtr     m_storage;        /** storage for files.                  */
+          DataFactorySPtr         m_dataFactory;    /** data factory.                       */
+          DirectedGraphSPtr       m_content;        /** content graph.                      */
+          DirectedGraph::Vertices m_loadedVertices; /** loaded vertices from content graph. */
 
           bool m_fixSourceInputs;
           ChannelSPtr m_sourceInput;

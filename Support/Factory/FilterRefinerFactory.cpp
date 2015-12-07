@@ -16,31 +16,39 @@
  *
  */
 
-#include "FilterRefinerRegister.h"
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+#include <Support/Factory/FilterRefinerFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
-void FilterRefinerRegister::registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type)
+void FilterRefinerFactory::registerFilterRefiner(const FilterRefinerSPtr refiner, const Filter::Type type)
 {
   m_register[type] = refiner;
 }
 
 //------------------------------------------------------------------------
-QWidget *FilterRefinerRegister::createRefineWidget(SegmentationAdapterPtr segmentation, Context& context)
-throw (Unknown_Filter_Type_Exception)
+QWidget *FilterRefinerFactory::createRefineWidget(SegmentationAdapterPtr segmentation, Context& context)
 {
   auto filter = segmentation->filter();
   auto type   = filter->type();
 
-  if (!m_register.contains(type)) throw Unknown_Filter_Type_Exception();
+  if (!m_register.contains(type))
+  {
+    auto what    = QObject::tr("Failed to create refiner, unknown filter register type, type: %1").arg(type);
+    auto details = QObject::tr("FilterRefinerFactory::createRefineWidget() -> Unknown filter register type, type: %1").arg(type);
+
+    throw EspinaException(what, details);
+  }
 
   return m_register[type]->createWidget(segmentation, context);
 }
 
 //------------------------------------------------------------------------
-void FilterRefinerRegister::unregisterFilterRefiners()
+void FilterRefinerFactory::unregisterFilterRefiners()
 {
   m_register.clear();
 }

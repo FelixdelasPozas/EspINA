@@ -63,9 +63,6 @@ namespace ESPINA
      static const QString Z_DIM;
 
   public:
-    struct AlreadyDefinedCategoryException {};
-
-  public:
     /** \brief Category class destructor.
      *
      */

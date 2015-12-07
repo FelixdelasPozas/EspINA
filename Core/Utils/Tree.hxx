@@ -23,7 +23,10 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// Qt dependencies
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
+// Qt
 #include <QMap>
 #include <QStringList>
 
@@ -32,8 +35,6 @@
 
 namespace ESPINA
 {
-  struct Already_Defined_Node_Exception{};
-
   /** \class Tree
    *  \brief Tree-like structure representing categorical relationships.
    */
@@ -146,7 +147,11 @@ namespace ESPINA
         requestedNode = parentNode->subCategory(path.at(i));
         if (i == path.size() - 1 && requestedNode != nullptr)
         {
-          throw Already_Defined_Node_Exception();
+
+          auto what = QObject::tr("Attempt to create an already defined node, node: %1").arg(relativeName);
+          auto details = QObject::tr("Tree::createNode() -> Attempt to create an already defined node, node: %1").arg(relativeName);
+
+          throw Core::Utils::EspinaException(what, details);
         }
 
         if (!requestedNode)

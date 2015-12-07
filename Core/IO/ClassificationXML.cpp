@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "ClassificationXML.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QStack>
@@ -29,6 +30,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
@@ -139,11 +141,16 @@ ClassificationSPtr ClassificationXML::load(const QFileInfo& file,
   auto classification = std::make_shared<Classification>();
 
   QFile xmlFile(file.absoluteFilePath());
-  if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+  if (!xmlFile.open(QIODevice::ReadOnly|QIODevice::Text))
   {
     if (handler)
+    {
       handler->error(QObject::tr("Could not load file %1").arg(file.fileName()));
-    throw (IO_Exception());
+    }
+
+    auto what    = QObject::tr("Unable to load classification file.");
+    auto details = QObject::tr("ClassificationXML::load() -> Unable to load file: %1, cause: %2").arg(file.absoluteFilePath()).arg(xmlFile.errorString());
+    throw EspinaException(what, details);
   }
 
   QXmlStreamReader stream(&xmlFile);
@@ -157,7 +164,9 @@ void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo&
   QFile xmlFile(file.absoluteFilePath());
   if (!xmlFile.open(QIODevice::WriteOnly))
   {
-    throw (ClassificationXML::IO_Exception());
+    auto what    = QObject::tr("Unable to save classification file.");
+    auto details = QObject::tr("ClassificationXML::save() -> Unable to save file: %1, cause: %2").arg(file.absoluteFilePath()).arg(xmlFile.errorString());
+    throw EspinaException(what, details);
   }
 
   QXmlStreamWriter stream(&xmlFile);

@@ -24,7 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "Core/Types.h"
+#include <Core/Types.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QModelIndex>
@@ -52,107 +53,117 @@ namespace ESPINA
   class EspinaGUI_EXPORT ItemAdapter
   : public QObject
   {
-  public:
-    enum class Type: std::int8_t  {
-      SAMPLE = 0,
-      CHANNEL = 1,
-      SEGMENTATION = 2,
-      CLASSIFICATION = 4,
-      CATEGORY = 5
-    };
+    public:
+      enum class Type: std::int8_t
+      {
+        SAMPLE = 0,
+        CHANNEL = 1,
+        SEGMENTATION = 2,
+        CLASSIFICATION = 4,
+        CATEGORY = 5
+      };
 
-    /** \brief Returns the numerical value associated to the type.
-     * \param[in] type.
-     *
-     */
-    static int typeId(Type type)
-    {
-      switch (type) {
-        case Type::SAMPLE:
-          return 0;
-        case Type::CHANNEL:
-          return 1;
-        case Type::SEGMENTATION:
-          return 2;
-        case Type::CLASSIFICATION:
-          return 4;
-        case Type::CATEGORY:
-          return 5;
+      /** \brief Returns the numerical value associated to the type.
+       * \param[in] type.
+       *
+       */
+      static int typeId(Type type)
+      {
+        switch (type)
+        {
+          case Type::SAMPLE:
+            return 0;
+          case Type::CHANNEL:
+            return 1;
+          case Type::SEGMENTATION:
+            return 2;
+          case Type::CLASSIFICATION:
+            return 4;
+          case Type::CATEGORY:
+            return 5;
+        }
+
+        auto what = QObject::tr("Unknown item type, type int value: %1").arg(static_cast<int>(type));
+        auto details = QObject::tr("ItemAdapter::typeId() -> Unknown item type, type int value: %1").arg(static_cast<int>(type));
+
+        throw Core::Utils::EspinaException(what, details);
       }
-      return -1;
-    }
 
-    /** \brief Returns the type associated to the numerical value.
-     * \param[in] id, numerical value.
-     *
-     */
-    static Type type(int id)
-    {
-      switch (id) {
-        case 0:
-          return Type::SAMPLE;
-        case 1:
-          return Type::CHANNEL;
-        case 2:
-          return Type::SEGMENTATION;
-        case 4:
-          return Type::CLASSIFICATION;
-        case 5:
-          return Type::CATEGORY;
-        default:
-          throw -1;
+      /** \brief Returns the type associated to the numerical value.
+       * \param[in] id, numerical value.
+       *
+       */
+      static Type type(int id)
+      {
+        switch (id)
+        {
+          case 0:
+            return Type::SAMPLE;
+          case 1:
+            return Type::CHANNEL;
+          case 2:
+            return Type::SEGMENTATION;
+          case 4:
+            return Type::CLASSIFICATION;
+          case 5:
+            return Type::CATEGORY;
+        }
+
+        auto what = QObject::tr("Unknown item type numeric value: %1").arg(id);
+        auto details = QObject::tr("ItemAdapter::type() -> Unknown item type numeric value: %1").arg(id);
+
+        throw Core::Utils::EspinaException(what, details);
       }
-    }
 
-    Q_OBJECT
-  public:
-    /** \brief ItemAdapter class constructor.
-     * \param[in] analysisItem Persistent item smart pointer.
-     *
-     */
-    explicit ItemAdapter(PersistentSPtr analysisItem)
-    : m_analysisItem{analysisItem}
-    {}
+      Q_OBJECT
+    public:
+      /** \brief ItemAdapter class constructor.
+       * \param[in] analysisItem Persistent item smart pointer.
+       *
+       */
+      explicit ItemAdapter(PersistentSPtr analysisItem)
+      : m_analysisItem{analysisItem}
+      {}
 
-    /** \brief ItemAdapter class destructor.
-     *
-     */
-    virtual ~ItemAdapter()
-    {}
+      /** \brief ItemAdapter class destructor.
+       *
+       */
+      virtual ~ItemAdapter()
+      {}
 
-    /** \brief Returns the item data specified by the parameter.
-     * \param[in] role Qt::ItemDataRole type.
-     *
-     */
-    virtual QVariant data(int role=Qt::DisplayRole) const = 0;
+      /** \brief Returns the item data specified by the parameter.
+       * \param[in] role Qt::ItemDataRole type.
+       *
+       */
+      virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
-    /** \brief Sets the item data specified by the parameter.
-     * \param[in] value value of the data.
-     * \param[in] role Qt::ItemDataRole type.
-     *
-     */
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
+      /** \brief Sets the item data specified by the parameter.
+       * \param[in] value value of the data.
+       * \param[in] role Qt::ItemDataRole type.
+       *
+       */
+      virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
 
-    /** \brief Returns the type of the item adapter.
-     *
-     */
-    virtual ItemAdapter::Type type() const = 0;
+      /** \brief Returns the type of the item adapter.
+       *
+       */
+      virtual ItemAdapter::Type type() const = 0;
 
-  public slots:
-    /** \brief Signals when the item has been modified.
-     *
-     */
-    virtual void notifyModification()
-    { emit modified(this); }
+    public slots:
+      /** \brief Signals when the item has been modified.
+       *
+       */
+      virtual void notifyModification()
+      { emit modified(this); }
 
-  signals:
-    void modified(ItemAdapterPtr);
+    signals:
+      void modified(ItemAdapterPtr);
 
-  protected:
+    protected:
 
-    PersistentSPtr m_analysisItem;
+      PersistentSPtr m_analysisItem; /** adapted item. */
 
-    friend class ModelAdapter;
+      friend class ModelAdapter;
   };
 
 } // ESPINA

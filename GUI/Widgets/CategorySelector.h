@@ -51,6 +51,11 @@ namespace ESPINA
         explicit CategorySelector(ModelAdapterSPtr model,
                                   QWidget         *parent = nullptr);
 
+        /** \brief CategorySelector class virtual destructor.
+         *
+         */
+        virtual ~CategorySelector();
+
         /** \brief Selects the given category in the widget.
          * \param[in] category smart pointer of the category adapter to select.
          *

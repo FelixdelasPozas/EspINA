@@ -37,14 +37,6 @@ namespace ESPINA
 
     namespace SegFile
     {
-      struct IO_Error_Exception{};
-
-      struct Classification_Not_Found_Exception{};
-
-      struct File_Not_Found_Exception{};
-
-      struct Parse_Exception{};
-
       /** \brief Loads an analysis from a file in disk.
        * \param[in] file, QFileInfo object with the file info.
        * \param[in] factory, factory smart pointer.

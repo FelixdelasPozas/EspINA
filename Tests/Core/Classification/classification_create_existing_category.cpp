@@ -31,20 +31,23 @@
 using namespace ESPINA;
 using namespace std;
 
-int classification_create_existing_category( int argc, char** argv )
+int classification_create_existing_category(int argc, char** argv)
 {
   bool error = false;
 
   Classification classification;
 
   QString name = "Apples";
-  CategorySPtr category1 = classification.createNode(name);
+  auto category1 = classification.createNode(name);
 
-  try {
-    CategorySPtr category1 = classification.createNode(name);
+  try
+  {
+    auto category1 = classification.createNode(name);
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Already_Defined_Node_Exception &e) {
+  }
+  catch (...)
+  {
     
   }
   

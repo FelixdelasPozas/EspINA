@@ -26,6 +26,7 @@
 #include "ReadOnlyFilter.h"
 #include "ReadOnlyChannelExtension.h"
 #include "ReadOnlySegmentationExtension.h"
+#include "ProgressReporter.h"
 #include <EspinaConfig.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
@@ -34,13 +35,14 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
-#include "ProgressReporter.h"
+#include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
 #include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
 using namespace ESPINA::IO::Graph;
@@ -64,10 +66,6 @@ const float CONTENT_PROGRESS_CHUNK   = CONTENT_PROGRESS   - SNAPSHOT_PROGRESS;
 const float RELATIONS_PROGRESS_CHUNK = RELATIONS_PROGRESS - CONTENT_PROGRESS;
 
 const QString SEG_FILE_VERSION = "SegFile Version";
-
-struct Vertex_Not_Found_Exception{};
-
-struct Invalid_Input_Exception{};
 
 //-----------------------------------------------------------------------------
 QByteArray formatInfo()
@@ -123,7 +121,9 @@ AnalysisSPtr SegFile_V5::Loader::load()
       m_handler->error(QObject::tr("Could not load analysis classification"));
     }
 
-    throw(Classification_Not_Found_Exception());
+    auto what    = QObject::tr("Classification not found.");
+    auto details = QObject::tr("SegFile_V5::load() -> Can't load classification.");
+    throw EspinaException(what, details);
   }
 
   try
@@ -132,14 +132,14 @@ AnalysisSPtr SegFile_V5::Loader::load()
     auto classification = ClassificationXML::parse(currentFile, m_handler);
     m_analysis->setClassification(classification);
   }
-  catch (const ClassificationXML::Parse_Exception &e)
+  catch (const EspinaException &e)
   {
     if (m_handler)
     {
       m_handler->error(QObject::tr("Error while loading classification"));
     }
 
-    throw(Parse_Exception());
+    throw(e);
   }
 
   reportProgress(CLASSIFICATION_PROGRESS);
@@ -263,7 +263,7 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
       }
     }
   }
-  catch (const CoreFactory::Unknown_Type_Exception &e)
+  catch (const EspinaException &e)
   {
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_dataFactory);
@@ -335,7 +335,9 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 
   if (!filter)
   {
-    throw Invalid_Input_Exception();
+    auto what    = QObject::tr("Invalid input, filter is null in vertex %1").arg(roVertex->name());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+    throw EspinaException(what, details);
   }
 
   auto segmentation = m_factory->createSegmentation(filter, outputId);
@@ -383,10 +385,15 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         {
           vertex = m_sourceInput = createChannel(roVertex);
         }
-        catch (...)
+        catch (const EspinaException &e)
         {
-          qWarning() << "SEGFILE_V5 - Failed to create channel" << roVertex->name() << roVertex->uuid() << roVertex->state();
-          throw (Parse_Exception());
+          auto what    = QObject::tr("Failed to create channel: %1").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
         }
         break;
       }
@@ -396,10 +403,15 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         {
           vertex = createFilter(roVertex);
         }
-        catch (...)
+        catch (const EspinaException &e)
         {
-          qWarning() << "SEGFILE_V5 - Failed to create filter" << roVertex->name() << roVertex->uuid() << roVertex->state();
-          throw (Parse_Exception());
+          auto what    = QObject::tr("Failed to create filter: %1").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
         }
         break;
       }
@@ -409,16 +421,23 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         {
           vertex = createSegmentation(roVertex);
         }
-        catch (...)
+        catch (const EspinaException &e)
         {
-          qWarning() << "SEGFILE_V5 - Failed to create segmentation" << roVertex->name() << roVertex->uuid() << roVertex->state();
-          throw (Parse_Exception());
+          auto what    = QObject::tr("Failed to create segmentation: %1").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
         }
         break;
       }
       default:
-        qWarning() << "SEGFILE_V5 - Unknown vertex type" << static_cast<int>(rov->type());
-        throw Graph::Unknown_Type_Found();
+        auto what    = QObject::tr("Unknown vertex type: %1").arg(static_cast<int>(rov->type()));
+        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+
+        throw EspinaException(what, details);
         break;
     }
 
@@ -489,7 +508,7 @@ void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
   {
     extension = m_factory->createChannelExtension(type, cache, state);
   }
-  catch (const CoreFactory::Unknown_Type_Exception &e)
+  catch (const EspinaException &e)
   {
     extension = std::make_shared<ReadOnlyChannelExtension>(type, cache, state);
   }
@@ -568,7 +587,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
   {
     extension = m_factory->createSegmentationExtension(type, cache, state);
   }
-  catch (const CoreFactory::Unknown_Type_Exception &e)
+  catch (const EspinaException &e)
   {
     extension = std::make_shared<ReadOnlySegmentationExtension>(type, cache, state);
   }
@@ -677,7 +696,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
   {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
     {
@@ -692,7 +711,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
   {
     classification = ClassificationXML::dump(analysis->classification(), handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
     {
@@ -706,7 +725,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
   {
     addFileToZip(CLASSIFICATION_FILE, classification, zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
     {
@@ -727,7 +746,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
   {
     addFileToZip(CONTENT_FILE, content.str().c_str(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
     {
@@ -748,7 +767,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
   {
     addFileToZip(RELATIONS_FILE, relations.str().c_str(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
     {
@@ -777,12 +796,13 @@ void SegFile_V5::save(AnalysisPtr analysis,
         addFileToZip(data.first, data.second, zip, handler);
       }
     }
-    catch (Invalid_Image_Bounds_Exception &e)
+    catch (const EspinaException &e)
     {
-      throw(e);
-    }
-    catch (const IO_Error_Exception &e)
-    {
+      if(handler)
+      {
+        handler->error(QObject::tr("Unable to save data to seg file."));
+      }
+
       throw(e);
     }
 
@@ -807,7 +827,7 @@ void SegFile_V5::save(AnalysisPtr analysis,
       {
         addFileToZip(data.first, data.second, zip, handler);
       }
-      catch (const IO_Error_Exception &e)
+      catch (const EspinaException &e)
       {
         if (handler)
         {

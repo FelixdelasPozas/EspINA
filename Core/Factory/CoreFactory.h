@@ -38,10 +38,6 @@ namespace ESPINA
   class EspinaCore_EXPORT CoreFactory
   {
   public:
-    struct Factory_Already_Registered_Exception{};
-    struct Unknown_Type_Exception{};
-
-  public:
     /** \brief CoreFactory class constructor.
      * \param[in] scheduler scheduler smart pointer.
      *

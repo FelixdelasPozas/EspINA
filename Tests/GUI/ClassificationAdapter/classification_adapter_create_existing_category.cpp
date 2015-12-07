@@ -32,25 +32,28 @@
 using namespace std;
 using namespace ESPINA;
 
-int classification_adapter_create_existing_category( int argc, char** argv )
+int classification_adapter_create_existing_category(int argc, char** argv)
 {
   bool error = false;
 
   ClassificationAdapter classification;
 
   QString name = "Apples";
-  CategoryAdapterSPtr category1 = classification.createCategory(name);
+  auto category1 = classification.createCategory(name);
 
-  try {
-    CategoryAdapterSPtr category2 = classification.createCategory(name);
+  try
+  {
+    auto category2 = classification.createCategory(name);
     cerr << "AlreadyDefinedCategoryException expected" << endl;
     error = true;
-  } catch (Already_Defined_Node_Exception &e) {
-
+  }
+  catch (...)
+  {
   }
 
-  if (classification.categories().size() != 1) {
-    cerr << "Unexpected number of categories"<< endl;
+  if (classification.categories().size() != 1)
+  {
+    cerr << "Unexpected number of categories" << endl;
     error = true;
   }
 

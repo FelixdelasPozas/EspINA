@@ -138,8 +138,6 @@ namespace ESPINA
 
   using VolumeBoundsList = QList<VolumeBounds>;
 
-  struct Incompatible_Volume_Bounds_Exception {};
-
   /** \brief Returns true if the point = n * spacing.
    *
    */
@@ -169,20 +167,17 @@ namespace ESPINA
   /** \brief Return the maximal bounds which belongs both to b1 and b2.
    *
    */
-  VolumeBounds EspinaCore_EXPORT intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
-  throw (Incompatible_Volume_Bounds_Exception);
+  VolumeBounds EspinaCore_EXPORT intersection(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /** \brief Return the minimum bounds containing b1 and b2.
    *
    *  If bounds are not compatible an exception will be thrown.
    */
-  VolumeBounds EspinaCore_EXPORT boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs)
-  throw (Incompatible_Volume_Bounds_Exception);
+  VolumeBounds EspinaCore_EXPORT boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs);
 
   /** \brief Return true if b1 contains b2.
    *
-   *  Boundaires are inside if and only if both boundaries
-   *  are equally included.
+   *  Boundaries are inside if and only if both boundaries are equally included.
    */
   bool EspinaCore_EXPORT contains(const VolumeBounds& b1, const VolumeBounds& b2);
 
@@ -221,7 +216,7 @@ namespace ESPINA
   /** \brief Resize bounds according to spacing
    *
    */
-  VolumeBounds changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing);
+  VolumeBounds EspinaCore_EXPORT changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing);
 
   /** \brief Returns a binary serialization of the volume bounds
    *

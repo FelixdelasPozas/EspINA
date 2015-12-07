@@ -61,7 +61,7 @@ set (Support_SOURCES
   ${METADONA_SOURCES}
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
-  Factory/FilterRefinerRegister.cpp
+  Factory/FilterRefinerFactory.cpp
   Readers/ChannelReader.cpp
   Representations/BasicRepresentationSwitch.cpp
   Representations/RepresentationSwitch.cpp

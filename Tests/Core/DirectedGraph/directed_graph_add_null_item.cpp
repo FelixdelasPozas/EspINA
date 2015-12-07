@@ -34,16 +34,19 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_null_item( int argc, char** argv )
+int directed_graph_add_null_item(int argc, char** argv)
 {
   DirectedGraph graph;
   
   DummyItemSPtr item;
   
-  try {
+  try
+  {
     graph.add(item);
     cerr << "Invalid NULL item added to graph" << endl;
-  } catch (DirectedGraph::Null_Item_Exception &e) {
+  }
+  catch (...)
+  {
     return 0;
   }
   

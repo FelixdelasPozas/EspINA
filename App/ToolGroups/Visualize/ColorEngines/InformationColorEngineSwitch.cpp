@@ -17,8 +17,8 @@
  *
  */
 
+// ESPINA
 #include "InformationColorEngineSwitch.h"
-
 #include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Widgets/ColorBar.h>
 #include <GUI/Widgets/InformationSelector.h>
@@ -26,6 +26,9 @@
 #include <GUI/Utils/Format.h>
 #include <GUI/Utils/ColorRange.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Utils/EspinaException.h>
+
+// Qt
 #include <QComboBox>
 #include <QLabel>
 #include <QLayout>
@@ -93,9 +96,12 @@ private:
           }
         }
       }
-      catch(Extension_Not_Found &e)
+      catch(const EspinaException &e)
       {
-        qWarning() << "Information not available";
+        auto what = QObject::tr("Information not available: %1, segmentation: %2").arg(m_key.extension()).arg(segmentation->data().toString());
+        auto details = QObject::tr("InformationColorEngineSwitch::run() -> Information not available: %1, segmentation: %2").arg(m_key.extension()).arg(segmentation->data().toString());
+
+        throw EspinaException(what, details);
       }
 
       reportProgress(i++/total*100);

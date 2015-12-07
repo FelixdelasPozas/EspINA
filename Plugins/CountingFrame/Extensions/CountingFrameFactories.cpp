@@ -23,7 +23,11 @@
 #include "CountingFrameFactories.h"
 #include "CountingFrameExtension.h"
 
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
@@ -40,7 +44,10 @@ ChannelExtensionSPtr ChannelExtensionFactoryCF::createChannelExtension(const Cha
 {
   if (type != CountingFrameExtension::TYPE)
   {
-    throw Extension_Not_Provided_Exception();
+    auto what    = QObject::tr("Unable to create stack extension, extension type:  %1").arg(type);
+    auto details = QObject::tr("ChannelExtensionFactoryCF::createChannelExtension() -> Unable to create stack extension, extension type:  %1").arg(type);
+
+    throw EspinaException(what, details);
   }
 
   return m_manager->createExtension(m_scheduler, state);
@@ -69,7 +76,10 @@ SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExte
 {
   if (type != StereologicalInclusion::TYPE)
   {
-    throw Extension_Not_Provided_Exception();
+    auto what    = QObject::tr("Unable to create segmentation extension, extension type:  %1").arg(type);
+    auto details = QObject::tr("ChannelExtensionFactoryCF::createSegmentationExtension() -> Unable to create segmentation extension, extension type:  %1").arg(type);
+
+    throw EspinaException(what, details);
   }
 
   return std::make_shared<StereologicalInclusion>(cache);

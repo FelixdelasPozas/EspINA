@@ -83,7 +83,8 @@ int pipeline_single_read_only_filter_raw_fetch_behaviour( int argc, char** argv 
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

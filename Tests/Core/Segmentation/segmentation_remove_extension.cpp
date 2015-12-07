@@ -23,6 +23,7 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "Core/Utils/EspinaException.h"
 
 #include "SegmentationExtensionSupport.h"
 #include "segmentation_testing_support.h"
@@ -30,6 +31,7 @@
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Core::Analysis;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Testing;
 
 int segmentation_remove_extension(int argc, char** argv)
@@ -43,7 +45,7 @@ int segmentation_remove_extension(int argc, char** argv)
   auto extensions = segmentation->extensions();
   extensions->add(extension);
 
-  error |= (!extensions->hasExtension(extension->TYPE));
+  error |= (!extensions->hasExtension(extension->type()));
   error |= (extensions->hasExtension("NoExistingSegmentation"));
 
   auto sameExtension = extensions["DummySegmentationExtension"];
@@ -61,7 +63,7 @@ int segmentation_remove_extension(int argc, char** argv)
     extensions->remove(nonIncludedExtension);
     error |= true;
   }
-  catch(Extension_Not_Found &e)
+  catch(const EspinaException &e)
   {
     error |= false;
   }

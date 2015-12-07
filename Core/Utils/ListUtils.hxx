@@ -34,6 +34,7 @@ namespace ESPINA
   {
     namespace Utils
     {
+      //-----------------------------------------------------------------------------
       template <typename T>
       QList<T *> createRawList(const T *item)
       {
@@ -44,12 +45,14 @@ namespace ESPINA
         return result;
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T>
       QList<T *> createRawList(const std::shared_ptr<T> &item)
       {
         return createRawList<T>(item.get());
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T>
       QList<T *> rawList(const QList<std::shared_ptr<T>> &list)
       {
@@ -63,6 +66,7 @@ namespace ESPINA
         return result;
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T, typename F>
       QList<T *> toRawList(const F &list)
       {
@@ -76,6 +80,7 @@ namespace ESPINA
         return result;
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T, typename F>
       QList<std::shared_ptr<T>> toList(const F &list)
       {
@@ -89,6 +94,7 @@ namespace ESPINA
         return result;
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T, typename F>
       QList<T *> toList(const QList<F *> &list)
       {
@@ -102,6 +108,7 @@ namespace ESPINA
         return result;
       }
 
+      //-----------------------------------------------------------------------------
       template <typename T>
       QSet<T *> toRawSet(const QList<std::shared_ptr<T>> &list)
       {

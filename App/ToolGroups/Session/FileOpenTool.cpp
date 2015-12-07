@@ -25,6 +25,7 @@
 #include "RecentDocuments.h"
 #include <Core/IO/ProgressReporter.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <Core/Utils/EspinaException.h>
 #include <EspinaErrorHandler.h>
 #include <EspinaMainWindow.h>
 #include <GUI/Widgets/Styles.h>
@@ -32,6 +33,7 @@
 #include <QElapsedTimer>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
@@ -143,8 +145,18 @@ void FileOpenTool::load(const QStringList &files)
 
       reporter.nextChunk();
     }
-    catch (...)
+    catch (const EspinaException &e)
     {
+      qWarning() << QString("EXCEPTION: error loading file: %1").arg(file);
+      qWarning() << e.what();
+      qWarning() << e.details();
+
+      failedFiles << file;
+    }
+    catch(...)
+    {
+      qWarning() << QString("EXCEPTION: unspecified error loading file: %1").arg(file);
+
       failedFiles << file;
     }
   }

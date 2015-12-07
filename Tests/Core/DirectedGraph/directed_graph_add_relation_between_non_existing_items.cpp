@@ -34,37 +34,45 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_relation_between_non_existing_items( int argc, char** argv )
+int directed_graph_add_relation_between_non_existing_items(int argc, char** argv)
 {
   bool error1 = true;
   bool error2 = true;
 
   DirectedGraph graph;
 
-  DummyItemSPtr item1{new DummyItem()};
-  DummyItemSPtr item2{new DummyItem()};
-  DummyItemSPtr unexistingItem{new DummyItem()};
-  QString       relation{"link"};
+  auto item1          = std::make_shared<DummyItem>();
+  auto item2          = std::make_shared<DummyItem>();
+  auto unexistingItem = std::make_shared<DummyItem>();
+  QString relation
+  { "link" };
 
   graph.add(item1);
 
   graph.add(item2);
 
-  try {
+  try
+  {
     graph.addRelation(item1, unexistingItem, relation);
     cerr << "Added relation to unexisting item" << endl;
-  } catch (DirectedGraph::Item_Not_Found_Exception &e) {
+  }
+  catch (...)
+  {
     error1 = false;
   }
 
-  try {
+  try
+  {
     graph.addRelation(unexistingItem, item2, relation);
     cerr << "Added relation to unexisting item" << endl;
-  } catch (DirectedGraph::Item_Not_Found_Exception &e) {
+  }
+  catch (...)
+  {
     error2 = false;
   }
 
-  if (!graph.edges().isEmpty()) {
+  if (!graph.edges().isEmpty())
+  {
     cerr << "Unexpected number of edges" << endl;
     error1 = true;
   }

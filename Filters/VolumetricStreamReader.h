@@ -42,40 +42,37 @@ namespace ESPINA
   class EspinaFilters_EXPORT VolumetricStreamReader
   : public Filter
   {
-  public:
-    struct File_Not_Found_Exception{};
+    public:
+      /** \brief VolumetricStreamReader class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type VolumetricStreamReader type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-  public:
-    /** \brief VolumetricStreamReader class constructor.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type VolumetricStreamReader type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
+      virtual void restoreState(const State& state) override;
 
-    virtual void restoreState(const State& state) override;
+      virtual State state() const override;
 
-    virtual State state() const override;
+      /** \brief Sets the name of the image on disk to stream.
+       * \param[in] filename QFileInfo object.
+       */
+      void setFileName(const QFileInfo& fileName);
 
-    /** \brief Sets the name of the image on disk to stream.
-     * \param[in] filename QFileInfo object.
-     */
-    void setFileName(const QFileInfo& fileName);
+    protected:
+      virtual Snapshot saveFilterSnapshot() const override
+      { return Snapshot(); }
 
-  protected:
-    virtual Snapshot saveFilterSnapshot() const override
-    { return Snapshot(); }
+      virtual bool needUpdate() const override;
 
-    virtual bool needUpdate() const override;
+      virtual void execute() override;
 
-    virtual void execute() override;
+      virtual bool ignoreStorageContent() const override
+      { return false; }
 
-    virtual bool ignoreStorageContent() const override
-    {return false;}
-
-  private:
-    QFileInfo m_fileName;
+    private:
+      QFileInfo m_fileName; /** image file filename. */
   };
 
 }// namespace ESPINA

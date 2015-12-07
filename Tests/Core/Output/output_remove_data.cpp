@@ -31,25 +31,28 @@ using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-int output_remove_data( int argc, char** argv )
+int output_remove_data(int argc, char** argv)
 {
   bool error = false;
 
   DummyFilter filter;
 
-  Output output(&filter, 0, NmVector3{1,1,1});
+  Output output(&filter, 0, NmVector3
+  { 1, 1, 1 });
 
-  DataSPtr data{new DummyData()};
+  auto data = std::make_shared<DummyData>();
   output.setData(data);
 
   output.removeData(data->type());
 
-  if (output.isValid()) {
+  if (output.isValid())
+  {
     cerr << "Output has no data" << endl;
     error = true;
   }
 
-  if (output.hasData(data->type())) {
+  if (output.hasData(data->type()))
+  {
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
   }
@@ -60,7 +63,7 @@ int output_remove_data( int argc, char** argv )
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
   }
-  catch (Unavailable_Output_Data_Exception &e)
+  catch (...)
   {
   }
 

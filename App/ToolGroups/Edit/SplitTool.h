@@ -57,10 +57,10 @@ namespace ESPINA
 
       virtual FilterTypeList providedFilters() const;
 
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
     private:
-      mutable DataFactorySPtr m_dataFactory;
+      mutable DataFactorySPtr m_dataFactory; /** data factory for split filters. */
   };
 
   /** \class SplitTool

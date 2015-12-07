@@ -41,6 +41,14 @@ AutoSave::AutoSave()
 //------------------------------------------------------------------------
 AutoSave::~AutoSave()
 {
+  disconnect(&m_timer, SIGNAL(timeout()),
+             this,     SLOT(autoSave()));
+
+  if(m_timer.isActive())
+  {
+    m_timer.stop();
+  }
+
   clear();
 }
 

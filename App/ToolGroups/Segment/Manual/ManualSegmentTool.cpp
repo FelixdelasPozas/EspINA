@@ -25,9 +25,11 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/Utils/EspinaException.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
 #include <GUI/Widgets/Styles.h>
@@ -35,7 +37,6 @@
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
-#include <GUI/Model/SegmentationAdapter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
@@ -45,6 +46,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
@@ -71,7 +73,12 @@ FilterSPtr ManualFilterFactory::createFilter(InputSList          inputs,
                                              const Filter::Type& filter,
                                              SchedulerSPtr       scheduler) const
 {
-  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
+  if (!providedFilters().contains(filter))
+  {
+    auto what    = QObject::tr("Unable to create filter: %1").arg(filter);
+    auto details = QObject::tr("ManualFilterFactory::createFilter() -> Unknown filter: %1").arg(filter);
+    throw EspinaException(what, details);
+  }
 
   auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
 

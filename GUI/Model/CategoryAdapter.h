@@ -45,170 +45,167 @@ namespace ESPINA
   class EspinaGUI_EXPORT CategoryAdapter
   : public ItemAdapter
   {
-  public:
-    struct AlreadyDefinedCategoryException {};
+    public:
+      /** \brief CategoryAdapter class destructor.
+       *
+       */
+      ~CategoryAdapter();
 
-  public:
-    /** \brief CategoryAdapter class destructor.
-     *
-     */
-    ~CategoryAdapter();
+      /** \brief Implements ItemAdapter::data() const.
+       *
+       */
+      virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** \brief Implements ItemAdapter::data() const.
-     *
-     */
-    virtual QVariant data(int role = Qt::DisplayRole) const;
+      /** \brief Implements ItemAdapter::setData().
+       *
+       */
+      virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /** \brief Implements ItemAdapter::setData().
-     *
-     */
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+      /** \brief Implements ItemAdapter::type() const.
+       *
+       */
+      virtual Type type() const
+      { return Type::CATEGORY; }
 
-    /** \brief Implements ItemAdapter::type() const.
-     *
-     */
-    virtual Type type() const
-    { return Type::CATEGORY; }
+      /** \brief Specify the name of the category.
+       * \param[in] name, name of the category.
+       *
+       */
+      void setName(const QString &name);
 
-    /** \brief Specify the name of the category.
-     * \param[in] name, name of the category.
-     *
-     */
-    void setName(const QString &name);
+      /** \brief Return the name of the category.
+       *
+       */
+      QString name() const;
 
-    /** \brief Return the name of the category.
-     *
-     */
-    QString name() const;
+      /** \brief Return the name of the category inside a classification.
+       *
+       *  One classification may use different categories with the same name
+       *  while they are not defined at the same level of the classification.
+       *  These categories will have the same name but different classification
+       *  names.\n
+       *
+       *  A classification name is the concatenation of the names of all the
+       *  categories from the root of the classification to the category itself
+       */
+      QString classificationName() const;
 
-    /** \brief Return the name of the category inside a classification.
-     *
-     *  One classification may use different categories with the same name
-     *  while they are not defined at the same level of the classification.
-     *  These categories will have the same name but different classification
-     *  names.\n
-     *
-     *  A classification name is the concatenation of the names of all the
-     *  categories from the root of the classification to the category itself
-     */
-    QString classificationName() const;
+      /** \brief Sets the color of the category.
+       * \param[in] color.
+       *
+       */
+      void setColor(const QColor &color);
 
-    /** \brief Sets the color of the category.
-     * \param[in] color.
-     *
-     */
-    void setColor(const QColor &color);
+      /** \brief Returns the color of the category.
+       *
+       */
+      QColor color() const;
 
-    /** \brief Returns the color of the category.
-     *
-     */
-    QColor color() const;
+      /** \brief Adds a property and a value to the category.
+       * \param[in] prop, property key.
+       * \param[in] value, property value.
+       *
+       */
+      void addProperty   (const QString &prop, const QVariant &value);
 
-    /** \brief Adds a property and a value to the category.
-     * \param[in] prop, property key.
-     * \param[in] value, property value.
-     *
-     */
-    void addProperty   (const QString &prop, const QVariant &value);
+      /** \brief Removes a property from the category.
+       * \param[in] prop, property key.
+       *
+       */
+      void deleteProperty(const QString &prop);
 
-    /** \brief Removes a property from the category.
-     * \param[in] prop, property key.
-     *
-     */
-    void deleteProperty(const QString &prop);
+      /** \brief Returns the value of the specified property.
+       * \param[in] prop, property key.
+       *
+       */
+      QVariant property(const QString &prop) const;
 
-    /** \brief Returns the value of the specified property.
-     * \param[in] prop, property key.
-     *
-     */
-    QVariant property(const QString &prop) const;
+      /** \brief Returns a list of the properties the category has.
+       *
+       */
+      QStringList properties() const;
 
-    /** \brief Returns a list of the properties the category has.
-     *
-     */
-    QStringList properties() const;
+      /** \brief Create a new sub category with the given name.
+       * \param[in] name, sub-category name.
+       *
+       */
+      CategoryAdapterSPtr createSubCategory(const QString &name);
 
-    /** \brief Create a new sub category with the given name.
-     * \param[in] name, sub-category name.
-     *
-     */
-    CategoryAdapterSPtr createSubCategory(const QString &name);
+      /** \brief Make sub-category a sub category of this one.
+       * \param[in] sub-category, category adapter smart pointer.
+       *
+       *  If the sub-category belonged to another category, it won't belong
+       *  anymore.
+       */
+      void addSubCategory(CategoryAdapterSPtr subCategory);
 
-    /** \brief Make sub-category a sub category of this one.
-     * \param[in] sub-category, category adapter smart pointer.
-     *
-     *  If the sub-category belonged to another category, it won't belong
-     *  anymore.
-     */
-    void addSubCategory(CategoryAdapterSPtr subCategory);
+      /** \brief Remove sub-category from this category.
+       * \param[in] subCategory, raw pointer of the sub-category to remove.
+       *
+       *  If the sub-category doesn't belong to this category
+       *  nothing will happen.
+       */
+      void removeSubCategory(CategoryAdapterPtr  subCategory);
 
-    /** \brief Remove sub-category from this category.
-     * \param[in] subCategory, raw pointer of the sub-category to remove.
-     *
-     *  If the sub-category doesn't belong to this category
-     *  nothing will happen.
-     */
-    void removeSubCategory(CategoryAdapterPtr  subCategory);
+      /** \brief Remove sub-category from this category.
+       * \param[in] subCategory, smart pointer of the sub-category to remove.
+       *
+       *  If the sub-category doesn't belong to this category
+       *  nothing will happen.
+       */
+      void removeSubCategory(CategoryAdapterSPtr subCategory)
+      { removeSubCategory(subCategory.get()); }
 
-    /** \brief Remove sub-category from this category.
-     * \param[in] subCategory, smart pointer of the sub-category to remove.
-     *
-     *  If the sub-category doesn't belong to this category
-     *  nothing will happen.
-     */
-    void removeSubCategory(CategoryAdapterSPtr subCategory)
-    { removeSubCategory(subCategory.get()); }
+      /** \brief Return the sub-category with the given name.
+       * \param[in] name, name of the sub-category to return the smart pointer.
+       *
+       *  If no sub-category has the requested name, nullptr will be returned
+       */
+      CategoryAdapterSPtr subCategory(const QString &name) const;
 
-    /** \brief Return the sub-category with the given name.
-     * \param[in] name, name of the sub-category to return the smart pointer.
-     *
-     *  If no sub-category has the requested name, nullptr will be returned
-     */
-    CategoryAdapterSPtr subCategory(const QString &name) const;
+      /** \brief Return a list with all the sub-categories of this category.
+       *
+       */
+      CategoryAdapterSList subCategories()
+      {return m_subCategories;}
 
-    /** \brief Return a list with all the sub-categories of this category.
-     *
-     */
-    CategoryAdapterSList subCategories()
-    {return m_subCategories;}
+      /** \brief Return a list with all the sub-categories of this category.
+       *
+       */
+      const CategoryAdapterSList subCategories() const
+      {return m_subCategories;}
 
-    /** \brief Return a list with all the sub-categories of this category.
-     *
-     */
-    const CategoryAdapterSList subCategories() const
-    {return m_subCategories;}
+      /** \brief Return the category from which this is a sub-category, if any.
+       *
+       * WARNING: Shadows QObject::parent().
+       *
+       */
+      CategoryAdapterPtr parent()
+      {return m_parent;}
 
-    /** \brief Return the category from which this is a sub-category, if any.
-     *
-     * WARNING: Shadows QObject::parent().
-     *
-     */
-    CategoryAdapterPtr parent()
-    {return m_parent;}
+    private:
+      /** \brief CategoryAdapter class constructor.
+       * \param[in] category, smart pointer of the category to adapt.
+       *
+       */
+      explicit CategoryAdapter(CategorySPtr category);
 
-  private:
-    /** \brief CategoryAdapter class constructor.
-     * \param[in] category, smart pointer of the category to adapt.
-     *
-     */
-    explicit CategoryAdapter(CategorySPtr category);
+      /** \brief CategoryAdapter class constructor.
+       * \param[in] parent of the adapted category to create.
+       * \param[in] name, name of the category to create.
+       *
+       */
+      explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name);
 
-    /** \brief CategoryAdapter class constructor.
-     * \param[in] parent of the adapted category to create.
-     * \param[in] name, name of the category to create.
-     *
-     */
-    explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name);
+    private:
+      CategorySPtr         m_category;
+      CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
+      CategoryAdapterSList m_subCategories;
 
-  private:
-    CategorySPtr         m_category;
-    CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
-    CategoryAdapterSList m_subCategories;
-
-    friend class ClassificationAdapter;
-    friend class SegmentationAdapter;
-    template<typename T> friend class Tree;
-    friend QString print(CategoryAdapterSPtr category, int level);
+      friend class ClassificationAdapter;
+      friend class SegmentationAdapter;
+      template<typename T> friend class Tree;
+      friend QString print(CategoryAdapterSPtr category, int level);
   };
 
   /** \brief Returns the raw pointer of the category specified by the model index.

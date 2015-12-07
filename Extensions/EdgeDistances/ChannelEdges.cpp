@@ -28,7 +28,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Analysis/Data/SkeletonData.h>
+//#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK

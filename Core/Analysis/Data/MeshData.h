@@ -90,23 +90,19 @@ namespace ESPINA
    * \param[in] output Output object smart pointer.
    * 
    *  This function ensures the output is up to date by callig mesh data update first
-   *  If the output doesn't contain the requested data type an expection will be thrownn
+   *  If the output doesn't contain the requested data type an expection will be thrown
    */
   Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(OutputSPtr       output,
-                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                throw (Unavailable_Output_Data_Exception);
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(Output          *output,
-                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                throw (Unavailable_Output_Data_Exception);
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(Output          *output,
-                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                  throw (Unavailable_Output_Data_Exception);
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(OutputSPtr       output,
-                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request)
-                                                                  throw (Unavailable_Output_Data_Exception);
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   /** \brief Returns whether output has any mesh data or not
    *

@@ -23,9 +23,7 @@
 
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 #include <AppositionSurfacePlugin.h>
-
-// ESPINA
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 

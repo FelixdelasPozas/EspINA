@@ -29,6 +29,7 @@
 #include <itkBinaryFillholeImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
 
@@ -71,7 +72,13 @@ bool FillHolesFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate(Output::Id id) const
 {
-  if (id != 0) throw Undefined_Output_Exception();
+  if (id != 0)
+  {
+    auto what    = QObject::tr("Invalid output id, id: %1").arg(id);
+    auto details = QObject::tr("FillHolesFilter::needUpdate(id) -> Invalid output id, id: %1").arg(id);
+
+    throw EspinaException(what, details);
+  }
 
   return m_outputs.isEmpty() || !validOutput(id);
 }
@@ -82,11 +89,23 @@ void FillHolesFilter::execute(Output::Id id)
   Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
 
   auto input       = m_inputs[0];
   auto inputVolume = readLockVolume(input->output());
-  if (!inputVolume->isValid()) throw Invalid_Input_Data_Exception();
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid input volume");
+
+    throw EspinaException(what, details);
+  }
 
   reportProgress(0);
   if (!canExecute()) return;

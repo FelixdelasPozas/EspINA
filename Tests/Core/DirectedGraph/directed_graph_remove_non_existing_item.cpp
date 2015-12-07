@@ -34,16 +34,19 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_remove_non_existing_item( int argc, char** argv )
+int directed_graph_remove_non_existing_item(int argc, char** argv)
 {
   DirectedGraph graph;
   
-  DummyItemSPtr item{new DummyItem()};
+  auto item = std::make_shared<DummyItem>();
   
-  try {
+  try
+  {
     graph.remove(item);
     cerr << "Remove non added item" << endl;
-  } catch (DirectedGraph::Item_Not_Found_Exception &e) {
+  }
+  catch (...)
+  {
     return 0;
   }
 

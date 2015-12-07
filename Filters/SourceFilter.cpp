@@ -23,11 +23,18 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 {
-  if (output->filter() != this) throw Unexpected_Filter_Exception();
+  if (output->filter() != this)
+  {
+    auto what = QObject::tr("Assigned unexpected filter output.");
+    auto details = QObject::tr("SourceFilter::addOutput() -> Assigned unexpected filter output.");
+
+    throw EspinaException(what, details);
+  }
 
   m_outputs[id] = output;
 }
@@ -52,7 +59,13 @@ void SourceFilter::setInput(InputSPtr input)
 //----------------------------------------------------------------------------
 bool SourceFilter::needUpdate(Output::Id id) const
 {
-  if (!m_outputs.contains(id)) throw Undefined_Output_Exception();
+  if (!m_outputs.contains(id))
+  {
+    auto what = QObject::tr("Unknown output id, id: %1.").arg(id);
+    auto details = QObject::tr("SourceFilter::needUpdate() -> Unknown output id, id: %1.").arg(id);
+
+    throw EspinaException(what, details);
+  }
 
   return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
 }
@@ -62,7 +75,21 @@ void SourceFilter::execute(Output::Id id)
 {
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (!m_outputs.contains(id)) throw Undefined_Output_Exception();
+  if (!m_outputs.contains(id))
+  {
+    auto what = QObject::tr("Unknown output id, id: %1.").arg(id);
+    auto details = QObject::tr("SourceFilter::execute(id) -> Unknown output id, id: %1.").arg(id);
 
-  if (m_inputs.size() != 0) throw Invalid_Number_Of_Inputs_Exception();
+    throw EspinaException(what, details);
+  }
+
+  if (m_inputs.size() != 0)
+  {
+    auto what = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("SourceFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
+
+  // do nothing
 }

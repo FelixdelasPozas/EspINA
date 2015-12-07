@@ -43,7 +43,7 @@ int iterator(int argc, char** argv)
     --it;
     error |= true;
   }
-  catch(BMask::Underflow_Exception const &e)
+  catch(...)
   {
     error |= false;
   }
@@ -54,7 +54,7 @@ int iterator(int argc, char** argv)
     cerr << it.Get();
     error |= true;
   }
-  catch(BMask::Out_Of_Bounds_Exception const &e)
+  catch(...)
   {
     error |= false;
   }
@@ -64,7 +64,7 @@ int iterator(int argc, char** argv)
     ++it;
     error |= true;
   }
-  catch (BMask::Overflow_Exception const &e)
+  catch (...)
   {
     error |= false;
   }

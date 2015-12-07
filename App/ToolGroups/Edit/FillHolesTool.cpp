@@ -19,10 +19,12 @@
 
 #include "FillHolesTool.h"
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/EspinaException.h>
 #include <Filters/FillHolesFilter.h>
 #include <Undo/ReplaceOutputCommand.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 const Filter::Type FILL_HOLES_FILTER  = "FillSegmentationHoles";
 
@@ -96,7 +98,12 @@ void FillHolesTool::onTaskFinished()
 
   if (!filter->isAborted())
   {
-    if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+    if (filter->numberOfOutputs() != 1)
+    {
+      auto what    = QObject::tr("Unable to process filter result.");
+      auto details = QObject::tr("FillHolesTool::onTaskFinished() -> Invalid number of outputs: %1").arg(filter->numberOfOutputs());
+      throw EspinaException(what, details);
+    }
 
     auto undoStack = getUndoStack();
 

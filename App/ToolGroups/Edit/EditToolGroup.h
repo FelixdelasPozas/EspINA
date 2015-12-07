@@ -22,9 +22,9 @@
 #define ESPINA_SUPPORT_REFINE_TOOL_H
 
 // ESPINA
+#include <Support/Factory/FilterRefinerFactory.h>
 #include <ToolGroups/ToolGroup.h>
 
-#include <Support/Factory/FilterRefinerRegister.h>
 
 class QUndoStack;
 
@@ -80,8 +80,7 @@ namespace ESPINA
     private:
       virtual FilterTypeList providedFilters() const;
 
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
-      throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
     private:
       /** \brief Returns true if the given filter type corresponds to a close filter and false otherwise.
@@ -141,7 +140,7 @@ namespace ESPINA
      * \param[in] context application context
      *
      */
-    explicit EditToolGroup(Support::FilterRefinerRegister &filterRefiners,
+    explicit EditToolGroup(Support::FilterRefinerFactory &filterRefiners,
                            Support::Context               &context);
 
     /** \brief EditionToolGroup class virtual destructor.
@@ -154,7 +153,7 @@ namespace ESPINA
      * \param[in] filterRefiner filter refiner object.
      *
      */
-    void registerFilterRefiners(Support::FilterRefinerRegister& filterRefiner);
+    void registerFilterRefiners(Support::FilterRefinerFactory& filterRefiner);
 
     /** \brief Modifies the gui and tool paramenters when the manual edition is activated.
      *

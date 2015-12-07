@@ -93,7 +93,7 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
-                                     Support::FilterRefinerRegister &filterRefiners,
+                                     Support::FilterRefinerFactory &filterRefiners,
                                      Support::Context               &context)
 : WithContext      (context)
 , m_delegateFactory(filterRefiners)

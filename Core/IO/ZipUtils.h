@@ -27,11 +27,14 @@
 // QuaZip
 #include <quazip/quazip.h>
 
-namespace ESPINA {
-  namespace IO {
-
-    struct IO_Zip_Exception{};
-
+namespace ESPINA
+{
+  namespace IO
+  {
+    /** \class ZipUtils
+     * \brief Zip file handling utilities.
+     *
+     */
     class EspinaCore_EXPORT ZipUtils
     {
     public:
@@ -43,7 +46,7 @@ namespace ESPINA {
     	 */
       static void AddFileToZip(const QString&    fileName,
                                const QByteArray& content,
-                               QuaZip&           zip) throw (IO_Zip_Exception);
+                               QuaZip&           zip);
 
     	/** \brief Reads a file from a QuaZip file and returns its content as a byte array.
     	 * \param[in] fileName, file name.

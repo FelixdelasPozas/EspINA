@@ -35,6 +35,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Utils/EspinaException.h>
 
 #include "testing.h"
 #include <Filters/DilateFilter.h>
@@ -42,6 +43,7 @@
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
+using namespace ESPINA::Core::Utils;
 
 int planar_split_change_spacing_restore_pipeline( int argc, char** argv )
 {
@@ -90,7 +92,7 @@ int planar_split_change_spacing_restore_pipeline( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

@@ -24,6 +24,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Extensions/ExtensionFactory.h>
 #include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
+#include <Core/Utils/EspinaException.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Filter/AppositionSurfaceFilter.h>
 #include <GUI/Analysis/SASReportDialog.h>
@@ -57,6 +58,7 @@ const QString SAS = QObject::tr("SAS");
 const QString SAS_PREFIX = QObject::tr("SAS ");
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Settings;
@@ -74,13 +76,18 @@ FilterTypeList ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr ASFilterFactory::createFilter(InputSList    inputs,
+FilterSPtr ASFilterFactory::createFilter(InputSList          inputs,
                                          const Filter::Type& type,
                                          SchedulerSPtr       scheduler) const
-throw (Unknown_Filter_Exception)
 {
 
-  if (type != AS_FILTER) throw Unknown_Filter_Exception();
+  if (type != AS_FILTER)
+  {
+    auto what    = QObject::tr("Unable to create filter: %1").arg(type);
+    auto details = QObject::tr("ASFilterFactory::createFilter() -> Unknown filter type: %1").arg(type);
+
+    throw EspinaException(what, details);
+  }
 
   auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
 

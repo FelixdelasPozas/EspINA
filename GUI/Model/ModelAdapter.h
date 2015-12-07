@@ -74,12 +74,6 @@ namespace ESPINA
   : public QAbstractItemModel
   {
     Q_OBJECT
-  public:
-    struct Existing_Item_Exception{};
-    struct Existing_Relation_Exception{};
-    struct Item_Not_Found_Exception {};
-    struct Relation_Not_Found_Exception {};
-
   private:
     class BatchCommand;
     using BatchCommandSPtr = std::shared_ptr<BatchCommand>;
@@ -592,19 +586,19 @@ namespace ESPINA
      * \param[in] sample to be added to the model
      *
      */
-    BatchCommandSPtr addSampleCommand(SampleAdapterSPtr sample) throw(Existing_Item_Exception);
+    BatchCommandSPtr addSampleCommand(SampleAdapterSPtr sample);
 
     /** \brief Creates a command to add channel to the model
      * \param[in] channel to be added to the model
      *
      */
-    BatchCommandSPtr addChannelCommand(ChannelAdapterSPtr channel) throw(Existing_Item_Exception);
+    BatchCommandSPtr addChannelCommand(ChannelAdapterSPtr channel);
 
    /** \brief Creates a command to add segmentation to the model
      * \param[in] segmentation to be added to the model
      *
      */
-    BatchCommandSPtr addSegmentationCommand(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception);
+    BatchCommandSPtr addSegmentationCommand(SegmentationAdapterSPtr segmentation);
 
    /** \brief Creates a command to add the relation to the model
      * \param[in] ancestor of the relation

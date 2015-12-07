@@ -25,7 +25,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/Analysis/Extension.h"
+#include <Core/Analysis/Extensions.h>
 
 namespace ESPINA {
 

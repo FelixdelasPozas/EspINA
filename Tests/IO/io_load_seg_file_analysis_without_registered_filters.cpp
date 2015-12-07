@@ -76,10 +76,12 @@ int io_load_seg_file_analysis_without_registered_filters( int argc, char** argv 
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

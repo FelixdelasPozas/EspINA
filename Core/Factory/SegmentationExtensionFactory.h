@@ -24,36 +24,37 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
 
 namespace ESPINA
 {
+  /** \class SegmentationExtensionFactory
+   * \brief Extension factory for segmentation objects.
+   *
+   */
   class EspinaCore_EXPORT SegmentationExtensionFactory
   {
-  public:
-    struct Extension_Not_Provided_Exception {};
+    public:
+      /** \brief SegmentationExtensionFactory class constructor.
+       *
+       */
+      virtual ~SegmentationExtensionFactory()
+      {}
 
-  public:
-    /** \brief SegmentationExtensionFactory class constructor.
-     *
-     */
-    virtual ~SegmentationExtensionFactory()
-    {}
+      /** \brief Creates a segmentation extension of the given type with the given state and cache object.
+       * \param[in] type, segmentation extension type.
+       * \param[in] cache, information cache object.
+       * \param[in] state, state object.
+       *
+       */
+      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                                    const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache() ,
+                                                                    const State                            &state = State()) const = 0;
 
-    /** \brief Creates a segmentation extension of the given type with the given state and cache object.
-     * \param[in] type, segmentation extension type.
-     * \param[in] cache, information cache object.
-     * \param[in] state, state object.
-     *
-     */
-    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                                  const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache() ,
-                                                                  const State                            &state = State()) const = 0;
-
-    /** \brief Returns the list of types of segmentation extensions this filter can create.
-     *
-     */
-    virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;
+      /** \brief Returns the list of types of segmentation extensions this filter can create.
+       *
+       */
+      virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;
   };
 
   using SegmentationExtensionFactoryPtr   = SegmentationExtensionFactory *;

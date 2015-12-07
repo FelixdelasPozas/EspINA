@@ -62,7 +62,7 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
@@ -152,7 +152,7 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
   {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e)
+  catch (...)
   {
     cerr << "Couldn't save seg file" << endl;
     error = true;

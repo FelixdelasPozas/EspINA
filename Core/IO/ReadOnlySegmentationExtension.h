@@ -25,13 +25,13 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/Analysis/Extension.h"
+#include <Core/Analysis/Extensions.h>
 
-// BOOST
+// Boost
 #include <boost/graph/graph_concepts.hpp>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   // TODO 2015-04-20: Implement this class
   class EspinaCore_EXPORT ReadOnlySegmentationExtension
   : public SegmentationExtension

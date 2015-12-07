@@ -18,9 +18,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ESPINA
+// Plugin
 #include "ExtensionFactory.h"
 #include "AppositionSurfaceExtension.h"
+
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 SegmentationExtensionSPtr ASExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
@@ -28,9 +33,14 @@ SegmentationExtensionSPtr ASExtensionFactory::createSegmentationExtension(const 
                                                                           const State& state) const
 {
   if (type != AppositionSurfaceExtension::TYPE)
-    throw Extension_Not_Provided_Exception();
+  {
+    auto what    = QObject::tr("Unable to create extension: %1").arg(type);
+    auto details = QObject::tr("ASExtensionFactory::createSegmentationExtension() -> Unknown extension type: %1").arg(type);
 
-  return SegmentationExtensionSPtr{new AppositionSurfaceExtension(cache)};
+    throw EspinaException(what, details);
+  }
+
+  return std::make_shared<AppositionSurfaceExtension>(cache);
 }
 
 //-----------------------------------------------------------------------------

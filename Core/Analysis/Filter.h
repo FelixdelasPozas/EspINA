@@ -47,11 +47,6 @@ namespace ESPINA
   public:
     using Type = QString;
 
-    struct Invalid_Number_Of_Inputs_Exception{};
-    struct Invalid_Input_Data_Exception{};
-    struct Invalid_Output_Data_Exception{};
-    struct Undefined_Output_Exception{};
-
   private:
     using OutputSMap = QMap<Output::Id, OutputSPtr>;
 
@@ -80,7 +75,7 @@ namespace ESPINA
     /** \brief Returns the type of the filter.
      *
      */
-    Type type()
+    Type type() const
     { return m_type; }
 
     /** \brief Sets the inputs of the filter.

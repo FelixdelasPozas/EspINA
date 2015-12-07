@@ -42,7 +42,7 @@ int const_iterator(int argc, char** argv)
     cit.Set();
     error |= true;
   }
-  catch (BMask::Const_Violation_Exception const &e)
+  catch (...)
   {
     error |= false;
   }
@@ -52,7 +52,7 @@ int const_iterator(int argc, char** argv)
     cit.Unset();
     error |= true;
   }
-  catch (BMask::Const_Violation_Exception const &e)
+  catch (...)
   {
     error |= false;
   }

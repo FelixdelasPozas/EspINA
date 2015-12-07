@@ -23,8 +23,9 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/Analysis/Extension.h>
+// ESPINA
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Core/Analysis/Extensions.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 #include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
 
@@ -35,6 +36,10 @@ namespace ESPINA
     class CountingFrameManager;
     class StereologicalInclusion;
 
+    /** \class CountingFrameExtension
+     * \brief Adds CF information to a channel.
+     *
+     */
     class CountingFramePlugin_EXPORT CountingFrameExtension
     : public ChannelExtension
     {

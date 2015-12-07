@@ -35,12 +35,14 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Utils/EspinaException.h>
 
 #include "testing.h"
 #include <Filters/DilateFilter.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 int planar_split_restore_pipeline( int argc, char** argv )
@@ -84,10 +86,12 @@ int planar_split_restore_pipeline( int argc, char** argv )
   analysis.add(segmentation3);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (const EspinaException &e)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

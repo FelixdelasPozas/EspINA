@@ -32,7 +32,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/RawDataFactory.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -62,27 +62,27 @@ int pipeline_update_request_edited_input( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
       if (type == "DummyChannelReader") {
-        filter = FilterSPtr{new DummyChannelReader()};
+        filter = std::make_shared<DummyChannelReader>();
       }
       else
       {
         if (type == "SGS")
         {
-          filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+          filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
         }
         else if (type == "Dilate")
         {
-          filter = FilterSPtr{new DilateFilter(inputs, type, scheduler)};
+          filter = std::make_shared<DilateFilter>(inputs, type, scheduler);
         } else
         {
           Q_ASSERT(false);
         }
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new RawDataFactory()});
+        filter->setFetchBehaviour(std::make_shared<RawDataFactory>());
       }
 
       return filter;
@@ -91,19 +91,19 @@ int pipeline_update_request_edited_input( int argc, char** argv )
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(channelInput()));
+  auto channel = std::make_shared<Channel>(channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -115,7 +115,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
 
   SchedulerSPtr scheduler;
 
-  FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
+  auto sgs = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", scheduler);
   sgs->update();
 
   auto sgsVolume = readLockVolume(sgs->output(0));
@@ -136,19 +136,21 @@ int pipeline_update_request_edited_input( int argc, char** argv )
     error = true;
   }
 
-  FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
+  auto dilate = std::make_shared<DilateFilter>(getInputs(sgs), "Dilate", scheduler);
   dilate->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(dilate, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(dilate, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -156,8 +158,9 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   AnalysisSPtr analysis2;
   try
   {
-   analysis2 = SegFile::load(file, factory);
-  } catch (...)
+    analysis2 = SegFile::load(file, factory);
+  }
+  catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
@@ -173,7 +176,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
     error = true;
   }
 
-  TemporalStorageSPtr tmpStorage(new TemporalStorage());
+  auto tmpStorage = std::make_shared<TemporalStorage>();
   for (auto snapshot : loadedDilateVolume->snapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))

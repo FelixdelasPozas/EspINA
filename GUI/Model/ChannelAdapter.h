@@ -24,8 +24,8 @@
 
 // ESPINA
 #include "GUI/Model/ViewItemAdapter.h"
-#include <Core/Analysis/Extension.h>
 #include <Core/Analysis/Extensible.hxx>
+#include <Core/Analysis/Extensions.h>
 
 namespace ESPINA
 {

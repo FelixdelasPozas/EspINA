@@ -35,29 +35,36 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_existing_item( int argc, char** argv )
+int directed_graph_add_existing_item(int argc, char** argv)
 {
   bool error = false;
   DirectedGraph graph;
 
-  DummyItemSPtr item{new DummyItem()};
+  auto item = std::make_shared<DummyItem>();
 
   graph.add(item);
 
-  try {
+  try
+  {
     graph.add(item);
     cerr << "Expected existing item exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Item_Exception &e) {
+  }
+  catch (...)
+  {
   }
 
-  DummyItemSPtr ref{item};
+  DummyItemSPtr ref
+  { item };
 
-  try {
+  try
+  {
     graph.add(ref);
     cerr << "Expected existing item exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Item_Exception &e) {
+  }
+  catch (...)
+  {
   }
 
   return error;

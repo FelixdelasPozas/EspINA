@@ -20,13 +20,15 @@
 
 // ESPINA
 #include "Analysis.h"
-#include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Segmentation.h"
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()
@@ -75,7 +77,13 @@ void Analysis::setClassification(ClassificationSPtr classification)
 //------------------------------------------------------------------------
 void Analysis::add(SampleSPtr sample)
 {
-  if (m_samples.contains(sample)) throw (Existing_Item_Exception());
+  if (m_samples.contains(sample))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing sample, sample: %1").arg(sample->name());
+    auto details = QObject::tr("Analysis::add(sample) -> Attempt to add an already existing sample, sample: %1").arg(sample->name());
+
+    throw EspinaException(what, details);
+  }
 
   m_samples << sample;
 
@@ -97,7 +105,13 @@ void Analysis::add(SampleSList samples)
 //------------------------------------------------------------------------
 void Analysis::add(ChannelSPtr channel)
 {
-  if (m_channels.contains(channel)) throw (Existing_Item_Exception());
+  if (m_channels.contains(channel))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing channel, channel: %1").arg(channel->name());
+    auto details = QObject::tr("Analysis::add(channel) -> Attempt to add an already existing channel, channel: %1").arg(channel->name());
+
+    throw EspinaException(what, details);
+  }
 
   m_channels << channel;
 
@@ -128,7 +142,13 @@ void Analysis::add(ChannelSList channels)
 //------------------------------------------------------------------------
 void Analysis::add(SegmentationSPtr segmentation)
 {
-  if (m_segmentations.contains(segmentation)) throw (Existing_Item_Exception());
+  if (m_segmentations.contains(segmentation))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::add(segmentation) -> Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
+
+    throw EspinaException(what, details);
+  }
 
   m_segmentations << segmentation;
 
@@ -157,7 +177,13 @@ void Analysis::add(SegmentationSList segmentations)
 //------------------------------------------------------------------------
 void Analysis::remove(SampleSPtr sample)
 {
-  if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
+  if (!m_samples.contains(sample))
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown sample, sample: %1").arg(sample->name());
+    auto details = QObject::tr("Analysis::remove(sample) -> Attempt to delete an unknown sample, sample: %1").arg(sample->name());
+
+    throw EspinaException(what, details);
+  }
 
   sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);
@@ -179,7 +205,13 @@ void Analysis::remove(SampleSList samples)
 //------------------------------------------------------------------------
 void Analysis::remove(ChannelSPtr channel)
 {
-  if (!m_channels.contains(channel)) throw (Item_Not_Found_Exception());
+  if (!m_channels.contains(channel))
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown channel, channel: %1").arg(channel->name());
+    auto details = QObject::tr("Analysis::remove(channel) -> Attempt to delete an unknown channel, channel: %1").arg(channel->name());
+
+    throw EspinaException(what, details);
+  }
 
   channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
@@ -202,7 +234,13 @@ void Analysis::remove(ChannelSList channels)
 //------------------------------------------------------------------------
 void Analysis::remove(SegmentationSPtr segmentation)
 {
-  if (!m_segmentations.contains(segmentation)) throw (Item_Not_Found_Exception());
+  if (!m_segmentations.contains(segmentation))
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::remove(segmentation) -> Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
+
+    throw EspinaException(what, details);
+  }
 
   segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
@@ -234,24 +272,50 @@ void Analysis::changeSpacing(ChannelSPtr channel, const NmVector3 &spacing)
 
 //------------------------------------------------------------------------
 void Analysis::addRelation(PersistentSPtr    ancestor,
-                           PersistentSPtr    succesor,
+                           PersistentSPtr    successor,
                            const RelationName& relation)
 {
-  if (!m_relations->contains(ancestor)) throw (Item_Not_Found_Exception());
-  if (!m_relations->contains(succesor)) throw (Item_Not_Found_Exception());
-  if (findRelation(ancestor, succesor, relation)) throw (Existing_Relation_Exception());
+  if (!m_relations->contains(ancestor))
+  {
+    auto what    = QObject::tr("Attempt to add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
 
-  m_relations->addRelation(ancestor, succesor, relation);
+    throw EspinaException(what, details);
+  }
+
+  if (!m_relations->contains(successor))
+  {
+    auto what    = QObject::tr("Attempt to add a relation to an unknown successor, item: %1").arg(successor->name());
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown successor, item: %1").arg(successor->name());
+
+    throw EspinaException(what, details);
+  }
+
+  if (findRelation(ancestor, successor, relation))
+  {
+    auto what    = QObject::tr("Attempt to add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+
+    throw EspinaException(what, details);
+  }
+
+  m_relations->addRelation(ancestor, successor, relation);
 }
 
 //------------------------------------------------------------------------
 void Analysis::deleteRelation(PersistentSPtr    ancestor,
-                              PersistentSPtr    succesor,
+                              PersistentSPtr    successor,
                               const RelationName& relation)
 {
-  if (!findRelation(ancestor, succesor, relation)) throw (Relation_Not_Found_Exception());
+  if (!findRelation(ancestor, successor, relation))
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+    auto details = QObject::tr("Analysis::deleteRelation() -> Attempt to remove an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
 
-  m_relations->removeRelation(ancestor, succesor, relation);
+    throw EspinaException(what, details);
+  }
+
+  m_relations->removeRelation(ancestor, successor, relation);
 }
 
 //------------------------------------------------------------------------

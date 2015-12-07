@@ -163,14 +163,22 @@ void ModelAdapter::add(SampleAdapterSList samples)
 }
 
 //------------------------------------------------------------------------
-ModelAdapter::BatchCommandSPtr ModelAdapter::addChannelCommand(ChannelAdapterSPtr channel) throw(Existing_Item_Exception)
+ModelAdapter::BatchCommandSPtr ModelAdapter::addChannelCommand(ChannelAdapterSPtr channel)
 {
-  auto command = [this, channel]() { if (m_channels.contains(channel)) throw Existing_Item_Exception();
-                                     m_analysis->add(channel->m_channel);
-                                     m_channels << channel;
+  auto command = [this, channel]()
+  { if (m_channels.contains(channel))
+    {
+      auto name = (channel ? channel->data().toString() : QString("Unknown stack"));
+      auto what = QObject::tr("Item already in the model: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::addStackCommand() -> Exiting stack: %1").arg(name);
 
-                                     channel->setModel(this);
-                                   };
+      throw EspinaException(what, details);
+    }
+    m_analysis->add(channel->m_channel);
+    m_channels << channel;
+
+    channel->setModel(this);
+  };
 
   return std::make_shared<Command<decltype(command)>>(command);
 }
@@ -458,14 +466,7 @@ QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 //------------------------------------------------------------------------
 void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const RelationName& relation)
 {
-  try
-  {
-    m_analysis->deleteRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
-  }
-  catch (const Analysis::Relation_Not_Found_Exception &e)
-  {
-    throw Relation_Not_Found_Exception();
-  }
+  m_analysis->deleteRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
 }
 
 //------------------------------------------------------------------------
@@ -479,14 +480,7 @@ void ModelAdapter::deleteRelations(const RelationList& relations)
 {
   for(auto relation: relations)
   {
-    try
-    {
-      m_analysis->deleteRelation(relation.ancestor->m_analysisItem, relation.successor->m_analysisItem, relation.relation);
-    }
-    catch (const Analysis::Relation_Not_Found_Exception &e)
-    {
-      throw Relation_Not_Found_Exception();
-    }
+    m_analysis->deleteRelation(relation.ancestor->m_analysisItem, relation.successor->m_analysisItem, relation.relation);
   }
 }
 
@@ -588,7 +582,13 @@ QModelIndex ModelAdapter::index(ItemAdapterPtr item) const
       res = segmentationIndex(segmentationPtr(item));
       break;
     default:
-      throw Item_Not_Found_Exception();
+    {
+      auto name = (item ? item->data().toString() : QString("Unknown item"));
+      auto what = QObject::tr("Item not found: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::index() -> Item not found: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
   }
   return res;
 }
@@ -643,7 +643,12 @@ QModelIndex ModelAdapter::parent(const QModelIndex& child) const
     case ItemAdapter::Type::SEGMENTATION:
       return segmentationRoot();
     default:
-      throw -1;
+    {
+      auto what    = QObject::tr("Unknown or invalid item type for child, item type value: %1").arg(static_cast<int>(childItem->type()));
+      auto details = QObject::tr("ModelAdapter::parent() -> Unknown or invalid item type for child, item type value: %1").arg(static_cast<int>(childItem->type()));
+
+      throw EspinaException(what, details);
+    }
   };
 
   return QModelIndex();
@@ -1230,7 +1235,11 @@ void ModelAdapter::queueAddCommand(ItemAdapterSPtr item,
   {
     if (contains(item, m_addCommands) || contains(item, m_updateCommands))
     {
-      throw Existing_Item_Exception();
+      auto name = (item ? item->data().toString() : QString("Unknown item"));
+      auto what = QObject::tr("Existing command for item: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::queueAddCommand() -> Existing command for item: %1").arg(name);
+
+      throw EspinaException(what, details);
     }
     else
     {
@@ -1250,7 +1259,11 @@ void ModelAdapter::queueUpdateCommand(ItemAdapterSPtr  item,
 {
   if (contains(item, m_removeCommands))
   {
-    throw Item_Not_Found_Exception();
+    auto name = (item ? item->data().toString() : QString("Unknown item"));
+    auto what = QObject::tr("Attempt to update a non existing command for item: %1").arg(name);
+    auto details = QObject::tr("ModelAdapter::queueUpdateCommand() -> Attempt to update a non existing command for item: %1").arg(name);
+
+    throw EspinaException(what, details);
   }
 
   int i = find(item, m_addCommands);
@@ -1295,7 +1308,14 @@ void ModelAdapter::queueRemoveCommand(ItemAdapterSPtr  item,
       m_updateCommands.removeAt(i);
     }
 
-    if (contains(item, m_removeCommands)) throw Item_Not_Found_Exception();
+    if (contains(item, m_removeCommands))
+    {
+      auto name = (item ? item->data().toString() : QString("Unknown item"));
+      auto what = QObject::tr("Attempt to add an existing remove command for item: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::queueRemoveCommand() -> Attempt to add an existing remove command for item: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
 
     ItemCommands itemCommands;
     itemCommands.Item     =  item;
@@ -1480,7 +1500,10 @@ void ModelAdapter::executeRemoveQueues(QModelIndex parent, ItemCommandsList &que
   {
     if (!commandQueues.StartIndex.isValid() || !commandQueues.EndIndex.isValid())
     {
-      throw Item_Not_Found_Exception();
+      auto what = QObject::tr("Invalid commands queue");
+      auto details = QObject::tr("ModelAdapter::executeRemoveQueues() -> Invalid commands queue.");
+
+      throw EspinaException(what, details);
     }
 
     Q_ASSERT(commandQueues.StartIndex.parent() == parent);
@@ -1581,10 +1604,18 @@ ModelAdapter::ConsecutiveQueuesList ModelAdapter::groupConsecutiveQueues(ItemCom
 }
 
 //------------------------------------------------------------------------
-ModelAdapter::BatchCommandSPtr ModelAdapter::addSampleCommand(SampleAdapterSPtr sample) throw(Existing_Item_Exception)
+ModelAdapter::BatchCommandSPtr ModelAdapter::addSampleCommand(SampleAdapterSPtr sample)
 {
-  auto command = [this, sample]() {
-    if (m_samples.contains(sample)) throw Existing_Item_Exception();
+  auto command = [this, sample]()
+  {
+    if (m_samples.contains(sample))
+    {
+      auto name    = (sample ? sample->data().toString() : QString("Unknown sample"));
+      auto what    = QObject::tr("Attempt to add an existing sample, sample: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::addSampleCommand() -> Attempt to add an existing sample, sample: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
 
     m_analysis->add(sample->m_sample);
     m_samples << sample;
@@ -1597,10 +1628,18 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addSampleCommand(SampleAdapterSPtr 
 
 
 //------------------------------------------------------------------------
-ModelAdapter::BatchCommandSPtr ModelAdapter::addSegmentationCommand(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception)
+ModelAdapter::BatchCommandSPtr ModelAdapter::addSegmentationCommand(SegmentationAdapterSPtr segmentation)
 {
-  auto command = [this, segmentation]() {
-    if (m_segmentations.contains(segmentation)) throw Existing_Item_Exception();
+  auto command = [this, segmentation]()
+  {
+    if (m_segmentations.contains(segmentation))
+    {
+      auto name    = (segmentation ? segmentation->data().toString() : QString("Unknown segmentation"));
+      auto what    = QObject::tr("Attempt to add an existing segmentation, segmentation: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::addSegmentationCommand() -> Attempt to add an existing segmentation, segmentation: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
 
     m_analysis->add(segmentation->m_segmentation);
     m_segmentations << segmentation;
@@ -1617,14 +1656,7 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addRelationCommand(ItemAdapterSPtr 
                                                                 const RelationName &relation)
 {
   auto command = [this, ancestor, successor, relation]() {
-    try
-    {
-      m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
-    }
-    catch (const Analysis::Existing_Relation_Exception &e)
-    {
-      throw Existing_Relation_Exception();
-    }
+    m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
   };
 
   return std::make_shared<Command<decltype(command)>>(command);
@@ -1633,8 +1665,16 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addRelationCommand(ItemAdapterSPtr 
 //------------------------------------------------------------------------
 ModelAdapter::BatchCommandSPtr ModelAdapter::removeSampleCommand(SampleAdapterSPtr sample)
 {
-  auto command = [this, sample]() {
-    if (!m_samples.contains(sample)) throw Item_Not_Found_Exception();
+  auto command = [this, sample]()
+  {
+    if (!m_samples.contains(sample))
+    {
+      auto name    = (sample ? sample->data().toString() : QString("Unknown sample"));
+      auto what    = QObject::tr("Attempt to remove an unknown sample, sample: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::removeSampleCommand() -> Attempt to remove an unknown sample, sample: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
 
     m_analysis->remove(sample->m_sample);
     m_samples.removeOne(sample);
@@ -1648,17 +1688,25 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::removeSampleCommand(SampleAdapterSP
 }
 
 //------------------------------------------------------------------------
-ModelAdapter::BatchCommandSPtr ModelAdapter::removeChannelCommand(ChannelAdapterSPtr channel)
+ModelAdapter::BatchCommandSPtr ModelAdapter::removeChannelCommand(ChannelAdapterSPtr stack)
 {
-  auto command = [this, channel]() {
-    if (!m_channels.contains(channel)) throw Item_Not_Found_Exception();
+  auto command = [this, stack]()
+  {
+    if (!m_channels.contains(stack))
+    {
+      auto name    = (stack ? stack->data().toString() : QString("Unknown stack"));
+      auto what    = QObject::tr("Attempt to remove an unknown stack, stack: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::removeChannelCommand() -> Attempt to remove an unknown stack, stack: %1").arg(name);
 
-    m_analysis->remove(channel->m_channel);
-    m_channels.removeOne(channel);
+      throw EspinaException(what, details);
+    }
 
-    channel->setModel(nullptr);
+    m_analysis->remove(stack->m_channel);
+    m_channels.removeOne(stack);
 
-    Q_ASSERT (!m_channels.contains(channel));
+    stack->setModel(nullptr);
+
+    Q_ASSERT (!m_channels.contains(stack));
   };
 
   return std::make_shared<Command<decltype(command)>>(command);
@@ -1667,8 +1715,16 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::removeChannelCommand(ChannelAdapter
 //------------------------------------------------------------------------
 ModelAdapter::BatchCommandSPtr ModelAdapter::removeSegmentationCommand(SegmentationAdapterSPtr segmentation)
 {
-  auto command = [this, segmentation]() {
-    if (!m_segmentations.contains(segmentation)) throw Item_Not_Found_Exception();
+  auto command = [this, segmentation]()
+  {
+    if (!m_segmentations.contains(segmentation))
+    {
+      auto name    = (segmentation ? segmentation->data().toString() : QString("Unknown segmentation"));
+      auto what    = QObject::tr("Attempt to remove an unknown segmentation, segmentation: %1").arg(name);
+      auto details = QObject::tr("ModelAdapter::removeSegmentationCommand() -> Attempt to remove an unknown segmentation, segmentation: %1").arg(name);
+
+      throw EspinaException(what, details);
+    }
 
     m_analysis->remove(segmentation->m_segmentation);
     m_segmentations.removeOne(segmentation);

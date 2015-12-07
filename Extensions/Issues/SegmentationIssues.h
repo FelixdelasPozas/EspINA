@@ -31,7 +31,7 @@
 #include "Extensions/EspinaExtensions_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
 #include "Issues.h"
 
 namespace ESPINA

@@ -57,16 +57,17 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
       if (type == "DummyChannelReader") {
-        filter = FilterSPtr{new DummyChannelReader()};
+        filter = std::make_shared<DummyChannelReader>();
       }
-      else if (type == "SGS") {
-        filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
+      else if (type == "SGS")
+      {
+        filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
+        filter->setDataFactory(std::make_shared<RawDataFactory>());
       }
 
       return filter;
@@ -75,19 +76,19 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  auto channel = std::make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -97,19 +98,21 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
   InputSList inputs;
   inputs << channel->asInput();
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
+  auto segFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   segFilter->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -155,7 +158,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
       error = true;
     }
 
-    TemporalStorageSPtr tmpStorage(new TemporalStorage());
+    auto tmpStorage = std::make_shared<TemporalStorage>();
     for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
     {
       if (snapshot.first.contains("EditedRegion"))

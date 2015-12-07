@@ -69,7 +69,6 @@ qt4_wrap_cpp (ESPINA_MOC
 #   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
-  ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h

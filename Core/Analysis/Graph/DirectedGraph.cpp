@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "DirectedGraph.h"
+#include <Core/Utils/EspinaException.h>
 
 // C++
 #include <iostream>
@@ -35,6 +36,7 @@
 
 using namespace boost;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 DirectedGraph::DirectedGraph()
@@ -45,9 +47,21 @@ DirectedGraph::DirectedGraph()
 //-----------------------------------------------------------------------------
 void DirectedGraph::add(Vertex vertex)
 {
-  if (vertex == nullptr) throw (Null_Item_Exception());
+  if (vertex == nullptr)
+  {
+    auto what    = QObject::tr("Attempt to add null item");
+    auto details = QObject::tr("DirectedGraph::add() -> Attempt to add null item");
 
-  if (contains(vertex)) throw (Existing_Item_Exception());
+    throw EspinaException(what, details);
+  }
+
+  if (contains(vertex))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing item");
+    auto details = QObject::tr("DirectedGraph::add() -> Attempt to add an already existing item");
+
+    throw EspinaException(what, details);
+  }
 
   VertexDescriptor vd = add_vertex(m_graph);
 
@@ -68,22 +82,44 @@ void DirectedGraph::addRelation(Vertex ancestor,
                                 Vertex successor,
                                 const QString&   description)
 {
-  if (ancestor == nullptr || successor == nullptr) throw (Null_Item_Exception());
+  if (ancestor == nullptr || successor == nullptr)
+  {
+    auto what    = QObject::tr("Invalid relation vertex: %1").arg((ancestor == nullptr ? "ancestor" : "successor"));
+    auto details = QObject::tr("DirectedGraph::addRelation() -> Invalid relation vertex: %1").arg((ancestor == nullptr ? "ancestor" : "successor"));
+
+    throw EspinaException(what, details);
+  }
 
   EdgeProperty p;
   p.relationship = description.toStdString();
 
-  if (ancestor == nullptr || successor == nullptr) throw (Item_Not_Found_Exception());
-
   VertexDescriptor avd = descriptor(ancestor);
   VertexDescriptor svd = descriptor(successor);
 
+  OutEdgeIterator oei;
+
+  bool alreadyInGraph = false;
+
   try
   {
-   findRelation(avd, svd, description);
-   throw (Existing_Relation_Exception());
-  } catch (const Relation_Not_Found_Exception &e) {
-   add_edge(avd, svd, p, m_graph);
+    findRelation(avd, svd, description);
+    alreadyInGraph = true;
+  }
+  catch (const EspinaException &e)
+  {
+    // adding edge on catch.
+    add_edge(avd, svd, p, m_graph);
+  }
+
+  // TODO: don't use exception types to implement program logic, redo the former try-catch with something else.
+  //       this is just a "temporal workaround".
+  if(alreadyInGraph)
+  {
+
+    auto what    = QObject::tr("Attempt to add and existing relation, ancestor: %1, successor: %2, relation: %3").arg(ancestor->name()).arg(successor->name()).arg(description);
+    auto details = QObject::tr("DirectedGraph::addRelation() -> Attempt to add and existing relation, ancestor: %1, successor: %2, relation: %3").arg(ancestor->name()).arg(successor->name()).arg(description);
+
+    throw EspinaException(what, details);
   }
 }
 
@@ -319,7 +355,12 @@ DirectedGraph::VertexDescriptor DirectedGraph::descriptor(VertexPtr vertex) cons
     if (m_graph[*vi].get() == vertex) return *vi;
   }
 
-  throw (Item_Not_Found_Exception());
+  auto what    = QObject::tr("Descriptor not found, vertex: %1").arg(vertex->name());
+  auto details = QObject::tr("DirectedGraph::descriptor() -> Descriptor not found, vertex: %1").arg(vertex->name());
+
+  throw EspinaException(what, details);
+
+  return DirectedGraph::VertexDescriptor();
 }
 
 
@@ -333,11 +374,19 @@ DirectedGraph::OutEdgeIterator DirectedGraph::findRelation(const VertexDescripto
   for(tie(ei, oei_end) = out_edges(source, m_graph); ei != oei_end; ++ei)
   {
     if (target(*ei, m_graph) == destination)
+    {
       if(m_graph[*ei].relationship == relation.toStdString())
+      {
         return ei;
+      }
+    }
   }
 
-  throw (Relation_Not_Found_Exception());
+  auto what    = QObject::tr("Relation not found, relation: %1").arg(relation);
+  auto details = QObject::tr("DirectedGraph::findRelation() -> Relation not found, relation: %1").arg(relation);
+
+  throw EspinaException(what, details);
+
   return oei_end;
 }
 

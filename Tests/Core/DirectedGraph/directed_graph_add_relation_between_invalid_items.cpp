@@ -34,37 +34,43 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_relation_between_invalid_items( int argc, char** argv )
+int directed_graph_add_relation_between_invalid_items(int argc, char** argv)
 {
   bool error1 = true;
   bool error2 = true;
 
   DirectedGraph graph;
 
-  DummyItemSPtr item1{new DummyItem()};
-  DummyItemSPtr item2{new DummyItem()};
+  auto item1 = std::make_shared<DummyItem>();
+  auto item2 = std::make_shared<DummyItem>();
   DummyItemSPtr invalidItem;
-  QString       relation{"link"};
+  QString relation{ "link" };
 
   graph.add(item1);
-
   graph.add(item2);
 
-  try {
+  try
+  {
     graph.addRelation(item1, invalidItem, relation);
     cerr << "Added relation to invalid item" << endl;
-  } catch (DirectedGraph::Null_Item_Exception &e) {
+  }
+  catch (...)
+  {
     error1 = false;
   }
 
-  try {
+  try
+  {
     graph.addRelation(invalidItem, item2, relation);
     cerr << "Added relation to invalid item" << endl;
-  } catch (DirectedGraph::Null_Item_Exception &e) {
+  }
+  catch (...)
+  {
     error2 = false;
   }
 
-  if (!graph.edges().isEmpty()) {
+  if (!graph.edges().isEmpty())
+  {
     cerr << "Unexpected number of edges" << endl;
     error1 = true;
   }

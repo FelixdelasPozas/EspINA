@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "ZipUtils.h"
+#include <Core/Utils/EspinaException.h>
 
 // QuaZip
 #include <quazip/quazipfile.h>
@@ -30,11 +31,12 @@
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 void ZipUtils::AddFileToZip(const QString&    fileName,
                             const QByteArray& content,
-                            QuaZip&           zip) throw (IO_Zip_Exception)
+                            QuaZip&           zip)
 {
   QuaZipFile zFile(&zip);
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
@@ -42,26 +44,25 @@ void ZipUtils::AddFileToZip(const QString&    fileName,
   zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
   if (!zFile.open(QIODevice::WriteOnly, zFileInfo))
   {
-    qWarning() << "ZipUtils::AddFileToZip(): Could not open" << fileName << "in zip file"
-               << "- Code error:" << zFile.getZipError();
-    throw (IO_Zip_Exception());
+    auto what    = QObject::tr("Couldn't create a file inside ZIP container, file: %1, cause: %2").arg(fileName).arg(zFile.errorString());
+    auto details = QObject::tr("ZipUtils::AddFileToZip() -> Can't create file inside ZIP container, file: %1, cause: %2").arg(fileName).arg(zFile.errorString());
+    throw EspinaException(what, details);
   }
 
   zFile.write(content);
   if (zFile.getZipError() != UNZ_OK)
   {
-    qWarning() << "ZipUtils::AddFileToZip(): Could not write" << fileName << "constent in zip file"
-               << "- Code error:" << zFile.getZipError();
-    throw (IO_Zip_Exception());
+    auto what    = QObject::tr("Couldn't write a file inside ZIP container, file: %1, cause: %2").arg(fileName).arg(zFile.errorString());
+    auto details = QObject::tr("ZipUtils::AddFileToZip() -> Can't write file inside ZIP container, file: %1, cause: %2").arg(fileName).arg(zFile.errorString());
+    throw EspinaException(what, details);
   }
 
   zFile.close();
-
   if (zFile.getZipError() != UNZ_OK)
   {
-    qWarning() << "ZipUtils::AddFileToZip(): Could not close" << fileName << "in zip file"
-               << "- Code error:" << zFile.getZipError();
-    throw (IO_Zip_Exception());
+    auto what    = QObject::tr("Couldn't close a ZIP container, cause: %1").arg(zFile.errorString());
+    auto details = QObject::tr("ZipUtils::AddFileToZip() -> Can't close ZIP container, cause: %1").arg(zFile.errorString());
+    throw EspinaException(what, details);
   }
 }
 
@@ -70,7 +71,9 @@ QByteArray ZipUtils::readFileFromZip(const QString& fileName, QuaZip& zip)
 {
   if (!zip.setCurrentFile(fileName))
   {
-    throw (IO_Zip_Exception());
+    auto what    = QObject::tr("Couldn't find a file inside a ZIP container, file: %1, error code: %2").arg(fileName).arg(zip.getZipError());
+    auto details = QObject::tr("ZipUtils::AddFileToZip() -> Can't find a file inside ZIP container, file: %1, error code: %2").arg(fileName).arg(zip.getZipError());
+    throw EspinaException(what, details);
   }
 
   return readCurrentFileFromZip(zip);
@@ -82,7 +85,9 @@ QByteArray ZipUtils::readCurrentFileFromZip(QuaZip& zip)
   QuaZipFile zFile(&zip);
   if (!zFile.open(QIODevice::ReadOnly))
   {
-    throw (IO_Zip_Exception());
+    auto what    = QObject::tr("Couldn't open a file inside ZIP container, file: %1, cause: %2").arg(zip.getCurrentFileName()).arg(zFile.errorString());
+    auto details = QObject::tr("ZipUtils::AddFileToZip() -> Can't open a file inside ZIP container, file: %1, cause: %2").arg(zip.getCurrentFileName()).arg(zFile.errorString());
+    throw EspinaException(what, details);
   }
 
   return zFile.readAll();

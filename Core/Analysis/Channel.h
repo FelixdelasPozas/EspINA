@@ -25,11 +25,11 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/Analysis/Data.h"
-#include "Core/Analysis/ViewItem.h"
-#include "Core/Analysis/Extension.h"
-#include "Core/Analysis/Output.h"
-#include "Extensible.hxx"
+#include <Core/Analysis/Data.h>
+#include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/ViewItem.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Extensible.hxx>
 
 namespace ESPINA
 {

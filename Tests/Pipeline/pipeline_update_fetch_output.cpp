@@ -54,11 +54,11 @@ int pipeline_update_fetch_output( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
     {
       if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new RawDataFactory()});
+        auto filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
+        filter->setFetchBehaviour(std::make_shared<RawDataFactory>());
         return filter;
       }
     }
@@ -66,19 +66,19 @@ int pipeline_update_fetch_output( int argc, char** argv )
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = std::make_shared<CoreFactory>();
+  factory->registerFilterFactory(std::make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = std::make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = std::make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  auto channel = std::make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
@@ -88,19 +88,21 @@ int pipeline_update_fetch_output( int argc, char** argv )
   InputSList inputs;
   inputs << channel->asInput();
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
+  auto segFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, "SGS", SchedulerSPtr());
   segFilter->update();
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  auto segmentation = std::make_shared<Segmentation>(getInput(segFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -108,16 +110,17 @@ int pipeline_update_fetch_output( int argc, char** argv )
   AnalysisSPtr analysis2;
   try
   {
-   analysis2 = SegFile::load(file, factory);
-  } catch (...)
+    analysis2 = SegFile::load(file, factory);
+  }
+  catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
   }
 
   auto loadedSegmentation = analysis2->segmentations().first();
-  auto loadedOuptut       = loadedSegmentation->output();
-  auto volume             = readLockVolume(loadedOuptut);
+  auto loadedOuptut = loadedSegmentation->output();
+  auto volume = readLockVolume(loadedOuptut);
 
   if (volume->editedRegions().size() != 0)
   {

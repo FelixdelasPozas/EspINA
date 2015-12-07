@@ -47,15 +47,16 @@ bool Test_Bounds_Are_Inside(const Bounds& contained, const Bounds& container, bo
   return pass;
 }
 
-bool Test_Bounds_Are_Inside(const Bounds& internalBounds, const Bounds& bounds, int offset, bool same_boundary_type) {
+bool Test_Bounds_Are_Inside(const Bounds& internalBounds, const Bounds& bounds, int offset, bool same_boundary_type)
+{
   bool pass = true;
 
   for (bool edgeInclussion : {true, false})
   {
     int i = 0;
     Bounds edgeBounds;
-    for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-
+    for (auto dir : {Axis::X, Axis::Y, Axis::Z})
+    {
       edgeBounds = internalBounds;
       edgeBounds[i] = bounds[i] - offset;
       pass &= Test_Bounds_Are_Inside(edgeBounds, bounds, same_boundary_type && offset == 0);

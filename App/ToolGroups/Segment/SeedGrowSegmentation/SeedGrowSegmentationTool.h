@@ -29,9 +29,9 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <Support/Factory/FilterRefinerRegister.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
+#include <Support/Factory/FilterRefinerFactory.h>
 
 class QCheckBox;
 class QUndoStack;
@@ -52,7 +52,7 @@ namespace ESPINA
 
       virtual FilterTypeList providedFilters() const;
 
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
     private:
       mutable DataFactorySPtr m_dataFactory; /** data factory of this provider. */
@@ -73,7 +73,7 @@ namespace ESPINA
      * \param[in] context of current session
      */
     explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings   *settings,
-                                      Support::FilterRefinerRegister &filterRefiners,
+                                      Support::FilterRefinerFactory &filterRefiners,
                                       Support::Context               &context);
 
     /** \brief SeedGrowSegmentation class virtual destructor.

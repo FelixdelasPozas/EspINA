@@ -32,7 +32,8 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/Utils/Spatial.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/EspinaException.h>
 
 // C++
 #include <iostream>
@@ -51,69 +52,65 @@ namespace ESPINA
   template<typename T>
   class EspinaCore_EXPORT Vector3
   {
-  public:
-    struct Wrong_Format_Exception {};
-    struct Wrong_number_initial_values {};
+    public:
+      /** \brief Vector3 class constructor.
+       *
+       */
+      Vector3();
 
-  public:
-    /** \brief Vector3 class constructor.
-     *
-     */
-    Vector3();
+      /** \brief Vector3 class constructor.
+       * \param[in] value initial list of values.
+       *
+       */
+      Vector3(std::initializer_list<T> values);
 
-    /** \brief Vector3 class constructor.
-     * \param[in] value initial list of values.
-     *
-     */
-    Vector3(std::initializer_list<T> values);
+      /** \brief Vector3 class constructor.
+       * \param[in] string string in the format {%1,%2,%3}.
+       *
+       */
+      explicit Vector3(const QString& string);
 
-    /** \brief Vector3 class constructor.
-     * \param[in] string string in the format {%1,%2,%3}.
-     *
-     */
-    explicit Vector3(const QString& string);
+      /** \brief Vector3 class constructor.
+       * \param[in] point coordinates given by a dim 3 array.
+       *
+       */
+      explicit Vector3(T *point);
 
-    /** \brief Vector3 class constructor.
-     * \param[in] point coordinates given by a dim 3 array.
-     *
-     */
-    explicit Vector3(T *point);
+      /** \brief Vector3 operator[int]
+       *
+       */
+      T& operator[](int idx)
+      { return m_values[idx]; }
 
-    /** \brief Vector3 operator[int]
-     *
-     */
-    T& operator[](int idx)
-    { return m_values[idx]; }
+      /** \brief Vector3 operator[int] const
+       *
+       */
+      const T& operator[](int idx) const
+      { return m_values[idx]; }
 
-    /** \brief Vector3 operator[int] const
-     *
-     */
-    const T& operator[](int idx) const
-    { return m_values[idx]; }
+      /** \brief Vector3 operator[axis]
+       *
+       */
+      T& operator[](const Axis dir)
+      { return m_values[idx(dir)]; }
 
-    /** \brief Vector3 operator[axis]
-     *
-     */
-    T& operator[](const Axis dir)
-    { return m_values[idx(dir)]; }
+      /** \brief Vector3 operator[axis] const
+       *
+       */
+      const T& operator[](const Axis dir) const
+      { return m_values[idx(dir)]; }
 
-    /** \brief Vector3 operator[axis] const
-     *
-     */
-    const T& operator[](const Axis dir) const
-    { return m_values[idx(dir)]; }
+      /** \brief Returns the modulus of the vector (vector magnitude).
+       *
+       */
+      double modulus() const;
 
-    /** \brief Returns the modulus of the vector (vector magnitude).
-     *
-     */
-    double modulus() const;
-
-    /** \brief Dumps the contents of the vector formatted to a string.
-     *
-     */
-    QString toString() const;
-  private:
-    T m_values[3];
+      /** \brief Dumps the contents of the vector formatted to a string.
+       *
+       */
+      QString toString() const;
+    private:
+      T m_values[3];
   };
 
   //-----------------------------------------------------------------------------
@@ -128,12 +125,31 @@ namespace ESPINA
   Vector3<T>::Vector3(const QString& string)
   : m_values{0, 0, 0}
   {
-    if (string.left(1)  != "{") throw Wrong_Format_Exception();
-    if (string.right(1) != "}") throw Wrong_Format_Exception();
+    if (string.left(1)  != "{")
+    {
+      auto what = QObject::tr("Invalid initial string token, token: %1").arg(string.left(1));
+      auto details = QObject::tr("Vector3::constructor(QString) -> Invalid initial string token, token: %1").arg(string.left(1));
+
+      throw Core::Utils::EspinaException(what, details);
+    }
+
+    if (string.right(1) != "}")
+    {
+      auto what = QObject::tr("Invalid final string token, token: %1").arg(string.right(1));
+      auto details = QObject::tr("Vector3::constructor(QString) -> Invalid final string token, token: %1").arg(string.right(1));
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     auto values = string.mid(1,string.length()-2).split(",");
 
-    if (values.size() != 3) throw Wrong_Format_Exception();
+    if (values.size() != 3)
+    {
+      auto what = QObject::tr("Invalid string items size, size: %1").arg(values.size());
+      auto details = QObject::tr("Vector3::constructor(QString) -> Invalid string items size, size: %1").arg(values.size());
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     for (int i = 0; i < 3; ++i)
     {
@@ -146,7 +162,13 @@ namespace ESPINA
   Vector3<T>::Vector3(std::initializer_list<T> values)
   {
     int i = 0;
-    if (values.size() != 3) throw Wrong_number_initial_values();
+    if (values.size() != 3)
+    {
+      auto what = QObject::tr("Invalid initializer list size, size: %1").arg(values.size());
+      auto details = QObject::tr("Vector3::constructor(initializer list) -> Invalid initializer list size, size: %1").arg(values.size());
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     for (auto v=values.begin(); v!=values.end(); ++v, ++i)
     {

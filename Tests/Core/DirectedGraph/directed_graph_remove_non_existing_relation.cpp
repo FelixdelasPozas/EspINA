@@ -34,21 +34,24 @@ using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_remove_non_existing_relation( int argc, char** argv )
+int directed_graph_remove_non_existing_relation(int argc, char** argv)
 {
   DirectedGraph graph;
   
-  DummyItemSPtr item1{new DummyItem()};
-  DummyItemSPtr item2{new DummyItem()};
-  QString       relation{"link"};
+  auto item1 = std::make_shared<DummyItem>();
+  auto item2 = std::make_shared<DummyItem>();
+  QString relation{ "link" };
   
   graph.add(item1);
   graph.add(item2);
   
-  try {
+  try
+  {
     graph.removeRelation(item1, item2, relation);
     cerr << "Remove non added relation" << endl;
-  } catch (DirectedGraph::Relation_Not_Found_Exception &e) {
+  }
+  catch (...)
+  {
     return 0;
   }
 

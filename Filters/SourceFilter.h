@@ -31,77 +31,74 @@ namespace ESPINA
   class EspinaFilters_EXPORT SourceFilter
   : public Filter
   {
-  public:
-    struct Unexpected_Filter_Exception{};
+    public:
+      /** \brief SourceFilter class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type SourceFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit SourceFilter(InputSList    inputs,
+                            Filter::Type  type,
+                            SchedulerSPtr scheduler)
+      : Filter(inputs, type, scheduler)
+      {};
 
-  public:
-    /** \brief SourceFilter class constructor.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type SourceFilter type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit SourceFilter(InputSList    inputs,
-                          Filter::Type  type,
-                          SchedulerSPtr scheduler)
-    : Filter(inputs, type, scheduler)
-    {};
+      /** \brief SourceFilter class virtual destructor.
+       *
+       */
+      virtual ~SourceFilter()
+      {};
 
-    /** \brief SourceFilter class virtual destructor.
-     *
-     */
-    virtual ~SourceFilter()
-    {};
+      virtual void restoreState(const State &state)
+      {};
 
-    virtual void restoreState(const State &state)
-    {};
+      virtual State state() const
+      { return State(); }
 
-    virtual State state() const
-    { return State(); }
+      /** \brief Adds an output to the filter.
+       * \param[in] id id of the output.
+       * \param[in] output Output object smart pointer.
+       *
+       */
+      void addOutput(Output::Id id, OutputSPtr output);
 
-    /** \brief Adds an output to the filter.
-     * \param[in] id id of the output.
-     * \param[in] output Output object smart pointer.
-     *
-     */
-    void addOutput(Output::Id id, OutputSPtr output);
+      /** \brief Adds an output data to the filter.
+       * \param[in] id id of the output.
+       * \param[in] output Output object smart pointer.
+       *
+       *  If the no output exits, it creates a new output.
+       *  If any data already exists for the output, it is replaced with the new one
+       */
+      void addOutputData(Output::Id id, DataSPtr data);
 
-    /** \brief Adds an output data to the filter.
-     * \param[in] id id of the output.
-     * \param[in] output Output object smart pointer.
-     *
-     *  If the no output exits, it creates a new output.
-     *  If any data already exists for the output, it is replaced with the new one
-     */
-    void addOutputData(Output::Id id, DataSPtr data);
-
-    /** \brief Assigns input to source filter
-     *
-     * This method is needed to fix older seg file whose
-     * source filters may not have any valid input
-     */
-    void setInput(InputSPtr input);
+      /** \brief Assigns input to source filter
+       *
+       * This method is needed to fix older seg file whose
+       * source filters may not have any valid input
+       */
+      void setInput(InputSPtr input);
 
 
-  protected:
-    virtual Snapshot saveFilterSnapshot() const
-    { return Snapshot(); }
+    protected:
+      virtual Snapshot saveFilterSnapshot() const
+      { return Snapshot(); }
 
-    virtual bool needUpdate() const
-    { return false; }
+      virtual bool needUpdate() const
+      { return false; }
 
-    virtual bool needUpdate(Output::Id oId) const;
+      virtual bool needUpdate(Output::Id oId) const;
 
-    virtual void execute()
-    { execute(0); }
+      virtual void execute()
+      { execute(0); }
 
-    virtual void execute(Output::Id oId);
+      virtual void execute(Output::Id oId);
 
-    virtual bool ignoreStorageContent() const
-    { return false; }
+      virtual bool ignoreStorageContent() const
+      { return false; }
 
-    virtual bool areEditedRegionsInvalidated()
-    { return false; }
+      virtual bool areEditedRegionsInvalidated()
+      { return false; }
   };
 
   using SourceFilterSPtr = std::shared_ptr<SourceFilter>;

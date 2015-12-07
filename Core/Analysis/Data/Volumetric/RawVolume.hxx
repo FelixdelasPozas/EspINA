@@ -36,6 +36,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.hxx>
+#include <Core/Utils/EspinaException.h>
 
 // ITK
 #include <itkImageRegionIterator.h>
@@ -48,9 +49,7 @@
 
 namespace ESPINA
 {
-  struct Invalid_Image_Bounds_Exception{};
-
-  /*! \brief Volume representation intended to save memory and speed up
+  /** \brief Volume representation intended to save memory and speed up
    *  edition operations
    *
    *  Those voxel which don't belong to any block are assigned the value
@@ -247,7 +246,10 @@ namespace ESPINA
   {
     if (!bounds.areValid())
     {
-      throw Invalid_Image_Bounds_Exception();
+      auto what    = QObject::tr("Invalid bounds");
+      auto details = QObject::tr("RawVolume::ItkImage(bounds) -> Invalid input bounds.");
+
+      throw Core::Utils::EspinaException(what, details);
     }
 
     auto origin  = this->m_bounds.origin();
@@ -256,9 +258,10 @@ namespace ESPINA
 
     if (!contains(this->m_bounds, expectedBounds))
     {
-      qDebug() << this->m_bounds;
-      qDebug() << expectedBounds;
-      throw Invalid_Image_Bounds_Exception();
+      auto what    = QObject::tr("Invalid bounds");
+      auto details = QObject::tr("RawVolume::ItkImage(bounds) -> Bounds not contained in volume bounds, requested: %1, have: %2").arg(bounds.toString()).arg(this->m_bounds.toString());
+
+      throw Core::Utils::EspinaException(what, details);
     }
 
     auto region = equivalentRegion<T>(m_image, expectedBounds.bounds());

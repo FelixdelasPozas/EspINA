@@ -24,9 +24,9 @@
 #include "AppositionSurfacePlugin_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
 #include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
+#include <Core/Analysis/Extensions.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
 // VTK

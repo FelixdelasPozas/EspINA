@@ -23,9 +23,9 @@
 #define ESPINA_SEGMENTATION_ADAPTER_H
 
 // ESPINA
-#include "GUI/Model/ViewItemAdapter.h"
-#include <Core/Analysis/Extension.h>
+#include <GUI/Model/ViewItemAdapter.h>
 #include <Core/Analysis/Extensible.hxx>
+#include <Core/Analysis/Extensions.h>
 
 class QPixmap;
 class QIcon;

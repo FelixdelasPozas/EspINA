@@ -113,7 +113,9 @@ namespace ESPINA
          // Check for the file
          QStringList entries = subdir.entryList(QStringList() << fileName, QDir::Files);
          if (!entries.empty())
+         {
            return storage->m_storageDir.absoluteFilePath(fileName);
+         }
 
          QFileInfoList infoEntries = subdir.entryInfoList(QStringList(),
                                                           QDir::AllDirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);

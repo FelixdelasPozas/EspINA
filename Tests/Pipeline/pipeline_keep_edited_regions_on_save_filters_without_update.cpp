@@ -62,7 +62,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
@@ -154,7 +154,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e)
+  catch (...)
   {
     cerr << "Couldn't save seg file" << endl;
     error = true;
@@ -175,7 +175,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   {
     SegFile::save(loadedAnalysis.get(), file2);
   }
-  catch (SegFile::IO_Error_Exception &e)
+  catch (...)
   {
     cerr << "Couldn't save seg file" << endl;
     error = true;

@@ -26,8 +26,8 @@
 #include "CountingFrames/CountingFrame.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Extensions.h>
 
 class vtkPoints;
 class vtkPolyData;
@@ -36,6 +36,10 @@ namespace ESPINA
 {
   namespace CF
   {
+    /** \brief StereologicalInclusion
+     * \brief Segmentation extension with the information of inclusion/exclusion from a counting frame.
+     *
+     */
     class CountingFramePlugin_EXPORT StereologicalInclusion
     : public SegmentationExtension
     {

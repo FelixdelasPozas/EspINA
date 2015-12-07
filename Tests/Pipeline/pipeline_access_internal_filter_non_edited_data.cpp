@@ -56,27 +56,27 @@ int pipeline_access_internal_filter_non_edited_data( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
       if (type == "DummyChannelReader") {
-        filter = FilterSPtr{new DummyChannelReader()};
+        filter = std::make_shared<DummyChannelReader>();
       }
       else
       {
         if (type == "SGS")
         {
-          filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+          filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
         }
         else if (type == "Dilate")
         {
-          filter = FilterSPtr{new DilateFilter(inputs, type, scheduler)};
+          filter = std::make_shared<DilateFilter>(inputs, type, scheduler);
         } else
         {
           Q_ASSERT(false);
         }
-        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
+        filter->setDataFactory(std::make_shared<RawDataFactory>());
       }
 
       return filter;
@@ -121,10 +121,12 @@ int pipeline_access_internal_filter_non_edited_data( int argc, char** argv )
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

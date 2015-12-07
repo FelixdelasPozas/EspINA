@@ -86,15 +86,15 @@ int io_save_merged_analysis( int argc, char** argv )
       list << "DummyFilter";
       return list;
     }
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
     {
-      return FilterSPtr{new DummyFilter()};
+      return std::make_shared<DummyFilter>();
     }
   } dummyFactory;
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
+  auto factory = std::make_shared<CoreFactory>();
 
   auto analysis1 = createSimplePipeline(1);
   auto analysis2 = createSimplePipeline(2);
@@ -127,10 +127,12 @@ int io_save_merged_analysis( int argc, char** argv )
 
 
   QFileInfo file("merged.seg");
-  try {
+  try
+  {
     SegFile::save(mergedAnalysis.get(), file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

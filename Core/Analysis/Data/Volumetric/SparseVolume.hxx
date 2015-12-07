@@ -34,10 +34,11 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.hxx>
-#include <Core/Utils/Vector3.hxx>
+#include <Core/Utils/EspinaException.h>
 #include <Core/Utils/SpatialUtils.hxx>
+#include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/Vector3.hxx>
 
 // ITK
 #include <itkImageRegionIterator.h>
@@ -55,9 +56,6 @@
 
 namespace ESPINA
 {
-  struct Invalid_Image_Bounds_Exception{};
-  struct Invalid_Image_Output_Value_Exception{};
-
   /*! \brief Volume representation intended to save memory and speed up
    *  edition operations
    *
@@ -307,7 +305,10 @@ namespace ESPINA
   {
     if (!bounds.areValid())
     {
-      throw Invalid_Image_Bounds_Exception();
+      auto what = QObject::tr("Invalid input bounds");
+      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds.");
+
+      throw Core::Utils::EspinaException(what, details);
     }
 
     auto origin  = this->m_bounds.origin();
@@ -317,9 +318,10 @@ namespace ESPINA
 
     if (!contains(this->m_bounds, expectedBounds))
     {
-      qDebug() << this->m_bounds;
-      qDebug() << expectedBounds;
-      throw Invalid_Image_Bounds_Exception();
+      auto what = QObject::tr("Invalid input bounds");
+      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
+
+      throw Core::Utils::EspinaException(what, details);
     }
 
     m_blockMutex.lockForRead();

@@ -61,7 +61,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerRegister &filterRefiners,
+SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
                                            Support::Context &context)
 : Panel(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())

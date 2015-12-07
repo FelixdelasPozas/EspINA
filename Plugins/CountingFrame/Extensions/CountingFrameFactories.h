@@ -29,37 +29,40 @@
 #include <Core/Factory/ChannelExtensionFactory.h>
 #include <Core/Factory/SegmentationExtensionFactory.h>
 
-namespace ESPINA {
-  namespace CF {
-
+namespace ESPINA
+{
+  namespace CF
+  {
+    //-----------------------------------------------------------------------------
     class ChannelExtensionFactoryCF
     : public ChannelExtensionFactory
     {
-    public:
-      explicit ChannelExtensionFactoryCF(CountingFrameManager *manager, SchedulerSPtr scheduler);
+      public:
+        explicit ChannelExtensionFactoryCF(CountingFrameManager *manager, SchedulerSPtr scheduler);
 
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
-                                                          const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
-                                                          const State& state = State()) const;
+        virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
+                                                            const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
+                                                            const State& state = State()) const;
 
-      virtual ChannelExtensionTypeList providedExtensions() const;
+        virtual ChannelExtensionTypeList providedExtensions() const;
 
-    private:
-      CountingFrameManager *m_manager;
-      SchedulerSPtr         m_scheduler;
+      private:
+        CountingFrameManager *m_manager;
+        SchedulerSPtr         m_scheduler;
     };
 
+    //-----------------------------------------------------------------------------
     class SegmentationExtensionFactoryCF
     : public SegmentationExtensionFactory
     {
-    public:
-      explicit SegmentationExtensionFactoryCF();
+      public:
+        explicit SegmentationExtensionFactoryCF();
 
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                          const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
-                                                          const State& state = State()) const;
+        virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                            const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
+                                                            const State& state = State()) const;
 
-      virtual SegmentationExtensionTypeList providedExtensions() const;
+        virtual SegmentationExtensionTypeList providedExtensions() const;
     };
 
   } // namespace CF

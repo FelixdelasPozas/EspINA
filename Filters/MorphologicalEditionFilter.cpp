@@ -28,6 +28,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList          inputs,
@@ -98,7 +99,13 @@ bool MorphologicalEditionFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
 {
-  if (id != 0) throw Undefined_Output_Exception();
+  if (id != 0)
+  {
+    auto what    = QObject::tr("Invalid output id, id: %1").arg(id);
+    auto details = QObject::tr("MorphologicalEditionFilter::needUpdate() -> Invalid output id, id: %1").arg(id);
+
+    throw EspinaException(what, details);
+  }
 
   return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
 }

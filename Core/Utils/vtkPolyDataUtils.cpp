@@ -18,6 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
 // VTK
 #include "vtkPolyDataUtils.h"
 #include <vtkGenericDataObjectReader.h>
@@ -38,10 +41,10 @@
 #include <vtkPoints.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------------------
 QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData)
-throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
   polyWriter->SetInputData(polyData);
@@ -50,14 +53,18 @@ throw (IO_Error_Exception)
   polyWriter->Write();
 
   if (polyWriter->GetErrorCode() != 0)
-    throw IO_Error_Exception();
+  {
+    auto what    = QObject::tr("Couldn't dump a vtkPolyData data to a buffer, error code: %1.").arg(polyWriter->GetErrorCode());
+    auto details = QObject::tr("savePolyDataToBuffer() -> Couldn't dump a vtkPolyData data to a buffer, error code: %1.").arg(polyWriter->GetErrorCode());
+
+    throw EspinaException(what, details);
+  }
 
   return QByteArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
 }
 
 //------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName)
-throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
   reader->SetFileName(fileName.toUtf8());
@@ -65,7 +72,12 @@ throw (IO_Error_Exception)
   reader->Update();
 
   if (reader->GetErrorCode() != 0)
-    throw IO_Error_Exception();
+  {
+    auto what    = QObject::tr("Couldn't read a vtkPolyData from file, file: %1, error code: %2.").arg(fileName).arg(reader->GetErrorCode());
+    auto details = QObject::tr("readPolyDataFromFile() -> Couldn't read a vtkPolyData from file, file: %1, error code: %2.").arg(fileName).arg(reader->GetErrorCode());
+
+    throw EspinaException(what, details);
+  }
 
   vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
   mesh->DeepCopy(reader->GetPolyDataOutput());

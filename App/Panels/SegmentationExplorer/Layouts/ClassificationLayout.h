@@ -81,7 +81,7 @@ namespace ESPINA
      *
      */
     explicit ClassificationLayout(CheckableTreeView              *view,
-                                  Support::FilterRefinerRegister &filterRefiners,
+                                  Support::FilterRefinerFactory &filterRefiners,
                                   Support::Context               &context);
 
     virtual ~ClassificationLayout();

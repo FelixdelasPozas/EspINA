@@ -43,10 +43,6 @@
 
 namespace ESPINA
 {
-  struct Wrong_Number_Initial_Values {};
-  struct Invalid_Bounds_Token {};
-  struct Invalid_Bounds_Exception{};
-
   /** \class Bounds
    * \brief Set of values defining a region in the 3D space.
    *

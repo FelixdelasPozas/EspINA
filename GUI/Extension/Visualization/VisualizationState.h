@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/Types.h>
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>

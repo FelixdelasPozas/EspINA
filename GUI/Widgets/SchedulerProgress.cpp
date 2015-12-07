@@ -24,6 +24,7 @@
 #include "TaskProgress.h"
 #include <Core/MultiTasking/Task.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QLayout>
@@ -32,6 +33,7 @@
 #include <QScrollBar>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
@@ -86,10 +88,15 @@ SchedulerProgress::~SchedulerProgress()
 
 //------------------------------------------------------------------------
 void SchedulerProgress::onTaskAdded(TaskSPtr task)
-throw (Duplicated_Task_Exception)
 {
   m_mutex.lock();
-  if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
+  if (m_tasks.contains(task))
+  {
+    auto what    = QObject::tr("Attempt to add an existing task, task: %1").arg(task->description());
+    auto details = QObject::tr("SchedulerProgress::onTaskAdded() -> Attempt to add an existing task, task: %1").arg(task->description());
+
+    throw EspinaException(what, details);
+  }
 
   ++m_taskTotal;
 

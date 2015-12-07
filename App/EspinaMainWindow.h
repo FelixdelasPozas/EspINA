@@ -302,7 +302,7 @@ namespace ESPINA
     bool m_minimizedStatus;
 
     Support::Context               m_context;
-    Support::FilterRefinerRegister m_filterRefiners;
+    Support::FilterRefinerFactory m_filterRefiners;
     AnalysisSPtr                   m_analysis;
 
     AutoSave m_autoSave;

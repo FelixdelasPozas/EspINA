@@ -56,11 +56,12 @@ int pipeline_single_filter( int argc, char** argv )
       return list;
     }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const
     {
       FilterSPtr filter;
 
-      if (type == "SGS") {
+      if (type == "SGS")
+      {
         filter = make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
         filter->setDataFactory(make_shared<MarchingCubesFromFetchedVolumetricData>());
       }
@@ -109,10 +110,12 @@ int pipeline_single_filter( int argc, char** argv )
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (...)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -121,7 +124,8 @@ int pipeline_single_filter( int argc, char** argv )
   try
   {
    analysis2 = SegFile::load(file, factory);
-  } catch (...)
+  }
+  catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;

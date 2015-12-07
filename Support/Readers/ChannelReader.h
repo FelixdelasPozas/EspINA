@@ -34,20 +34,23 @@ namespace ESPINA {
   : public FilterFactory
   , public IO::AnalysisReader
   {
-  public:
-    virtual QString type() const
-    { return "ChannelReader"; }
+    public:
+      static const Filter::Type VOLUMETRIC_STREAM_READER;    /** channel reader signature. */
+      static const Filter::Type ESPINA_1_3_2_CHANNEL_READER; /** channel reader old signature. */
 
-    virtual FilterTypeList providedFilters() const;
+      virtual QString type() const
+      { return "ChannelReader"; }
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterTypeList providedFilters() const;
 
-    virtual ExtensionList supportedFileExtensions() const;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
-    virtual AnalysisSPtr read(const QFileInfo& file,
-                              CoreFactorySPtr  factory,
-                              IO::ProgressReporter *reporter = nullptr,
-                              ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+      virtual ExtensionList supportedFileExtensions() const;
+
+      virtual AnalysisSPtr read(const QFileInfo& file,
+                                CoreFactorySPtr  factory,
+                                IO::ProgressReporter *reporter = nullptr,
+                                ErrorHandlerSPtr handler = ErrorHandlerSPtr());
   };
 
   using ChannelReaderSPtr = std::shared_ptr<ChannelReader>;

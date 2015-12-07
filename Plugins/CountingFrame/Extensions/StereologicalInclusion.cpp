@@ -427,7 +427,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
           ++it;
         }
       }
-      catch (Invalid_Image_Bounds_Exception &e)
+      catch (...)
       {
         return false;
       }

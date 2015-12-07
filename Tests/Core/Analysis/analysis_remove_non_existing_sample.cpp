@@ -38,51 +38,62 @@ int analysis_remove_non_existing_sample(int argc, char** argv)
 
   Analysis analysis;
 
-  SampleSPtr sample(new Sample());
+  auto sample = std::make_shared<Sample>();
 
-  try {
+  try
+  {
     analysis.remove(sample);
     cerr << "Non existing sample removed" << endl;
-  } catch (Analysis::Item_Not_Found_Exception &e) {
+  }
+  catch (...)
+  {
     error = false;
   }
 
-  if (analysis.classification().get() != nullptr) {
+  if (analysis.classification().get() != nullptr)
+  {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.samples().isEmpty()) {
+  if (!analysis.samples().isEmpty())
+  {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
   
-  if (!analysis.channels().isEmpty()) {
+  if (!analysis.channels().isEmpty())
+  {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
   
-  if (!analysis.segmentations().isEmpty()) {
+  if (!analysis.segmentations().isEmpty())
+  {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.content()->vertices().isEmpty()) {
+  if (!analysis.content()->vertices().isEmpty())
+  {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
   
-  if (!analysis.content()->edges().isEmpty()) {
+  if (!analysis.content()->edges().isEmpty())
+  {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
   
-  if (!analysis.relationships()->vertices().isEmpty()) {
+  if (!analysis.relationships()->vertices().isEmpty())
+  {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
   
-  if (!analysis.relationships()->edges().isEmpty()) {
+  if (!analysis.relationships()->edges().isEmpty())
+  {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }

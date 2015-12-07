@@ -24,18 +24,19 @@
 // ESPINA
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/IO/ReadOnlyFilter.h>
+#include <Core/Utils/EspinaException.h>
 #include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 const Filter::Type SegmhaFilterFactory::SEGMHA_FILTER_V4 = "Segmha Importer";
 const Filter::Type SegmhaFilterFactory::SEGMHA_FILTER    = "SegmhaReader";
 
 //-----------------------------------------------------------------------------
-FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs,
-                                                                   const Filter::Type &type,
-                                                                   SchedulerSPtr scheduler) const
-throw (Unknown_Filter_Exception)
+FilterSPtr SegmhaFilterFactory::createFilter(InputSList          inputs,
+                                             const Filter::Type &type,
+                                             SchedulerSPtr       scheduler) const
 {
   FilterSPtr filter;
 
@@ -49,7 +50,9 @@ throw (Unknown_Filter_Exception)
   }
   else
   {
-    throw Unknown_Filter_Exception();
+    auto what    = QObject::tr("Unable to create filter: %1").arg(type);
+    auto details = QObject::tr("SeedGrowSegmentationFilterFactory::createFilter() -> Unknown filter: %1").arg(type);
+    throw EspinaException(what, details);
   }
 
   if(!m_dataFactory)

@@ -30,7 +30,6 @@ int region_iterator(int argc, char** argv)
   bool error = false;
 
   BMask mask(Bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 });
-
   Bounds badRegionBounds{ -1,18,-1,18,-1,18 };
 
   try
@@ -38,7 +37,7 @@ int region_iterator(int argc, char** argv)
     BMask::region_iterator badIt(&mask, badRegionBounds);
     error |= true;
   }
-  catch(BMask::Region_Not_Contained_In_Mask_Exception const &e)
+  catch(...)
   {
     error |= false;
   }
@@ -53,7 +52,7 @@ int region_iterator(int argc, char** argv)
     error |= true;
     cerr << "Invalid end position access" << endl;
   }
-  catch(BMask::Out_Of_Bounds_Exception const &e)
+  catch(...)
   {
   }
 
@@ -62,7 +61,7 @@ int region_iterator(int argc, char** argv)
     ++rit;
     error |= true;
   }
-  catch (BMask::Overflow_Exception const &e)
+  catch (...)
   {
   }
 
@@ -72,7 +71,7 @@ int region_iterator(int argc, char** argv)
     --rit;
     error |= true;
   }
-  catch(BMask::Underflow_Exception const &e)
+  catch(...)
   {
   }
 

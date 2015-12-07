@@ -47,6 +47,12 @@ CategorySelector::CategorySelector(ModelAdapterSPtr model, QWidget* parent)
 }
 
 //------------------------------------------------------------------------
+CategorySelector::~CategorySelector()
+{
+  setModel(nullptr);
+}
+
+//------------------------------------------------------------------------
 void CategorySelector::categorySelected(const QModelIndex& index)
 {
   if (!index.isValid()) return;

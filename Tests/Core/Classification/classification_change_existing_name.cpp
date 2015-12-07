@@ -27,8 +27,10 @@
  */
 
 #include <Category.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace std;
 
 int classification_change_existing_name( int argc, char** argv )
@@ -43,11 +45,14 @@ int classification_change_existing_name( int argc, char** argv )
   CategorySPtr level1 = classification.createNode(name1);
   CategorySPtr level2 = classification.createNode(name2);
 
-  try {
-    level2->setName(name1);    
-    std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
+  try
+  {
+    level2->setName(name1);
+    std::cerr << "EspinaException expected" << std::endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException &e) {
+  }
+  catch (const EspinaException &e)
+  {
     
   }
   

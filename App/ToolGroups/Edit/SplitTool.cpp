@@ -22,6 +22,7 @@
 #include "SplitTool.h"
 
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/Utils/EspinaException.h>
 #include <Filters/SplitFilter.h>
 #include <Filters/Utils/Stencil.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -50,6 +51,7 @@
 using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Filters::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI;
@@ -75,9 +77,14 @@ FilterTypeList SplitFilterFactory::providedFilters() const
 //-----------------------------------------------------------------------------
 FilterSPtr SplitFilterFactory::createFilter(InputSList          inputs,
                                             const Filter::Type& type,
-                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                            SchedulerSPtr       scheduler) const
 {
-  if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
+  if (!providedFilters().contains(type))
+  {
+    auto what    = QObject::tr("Unable to create filter: %1").arg(type);
+    auto details = QObject::tr("SplitFilterFactory::createFilter() -> Unknown filter type: %1").arg(type);
+    throw EspinaException(what, details);
+  }
 
   auto filter = std::make_shared<SplitFilter>(inputs, type, scheduler);
 

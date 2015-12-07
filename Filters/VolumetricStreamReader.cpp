@@ -22,14 +22,14 @@
 #include "VolumetricStreamReader.h"
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
-
-// Qt
+#include <Core/Utils/EspinaException.h>
 
 // ITK
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
@@ -84,7 +84,10 @@ void VolumetricStreamReader::execute()
 
     if (!m_fileName.exists())
     {
-      throw File_Not_Found_Exception();
+      auto what    = QObject::tr("Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
+      auto details = QObject::tr("VolumetricStreamReader::execute() -> Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
+
+      throw EspinaException(what, details);
     }
   }
 
@@ -92,44 +95,18 @@ void VolumetricStreamReader::execute()
   using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
 
   QFileInfo mhdFile   = m_fileName;
-  QString mhdFileName = m_fileName.baseName() + QString(".mhd");
-
-//   QString fileInAnotherStorage = storage()->findFile(mhdFileName);
-//   if(fileInAnotherStorage != QString())
-//   {
-//     mhdFile = QFileInfo(fileInAnotherStorage);
-//   }
-//   else
-//   {
-//     if (mhdFile.fileName().endsWith(".tif"))
-//     {
-//
-//       VolumeReader::Pointer reader = VolumeReader::New();
-//       reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-//       reader->Update();
-//
-//       mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
-//
-//       VolumeWriter::Pointer writer = VolumeWriter::New();
-//       writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-//       writer->SetInput(reader->GetOutput());
-//       writer->Write();
-//     }
-//   }
-
   VolumeReader::Pointer reader = VolumeReader::New();
   reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
   try
   {
     reader->Update();
   }
-  catch(...)
+  catch(itk::ExceptionObject &e)
   {
-    QString warning = (mhdFile.absoluteFilePath().endsWith("mhd", Qt::CaseInsensitive) ? " Check if raw file inside mhd file exists." : "");
+    auto what    = QObject::tr("Error in itk, exception message: %1").arg(QString(e.what()));
+    auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
 
-    qWarning() << "exception in itk file reader. File:" << mhdFile.absoluteFilePath() << warning;
-
-    throw File_Not_Found_Exception();
+    throw EspinaException(what, details);
   }
 
   auto volume  = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());

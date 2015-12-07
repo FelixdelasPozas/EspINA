@@ -24,8 +24,10 @@
 
 #include <Core/Factory/FilterFactory.h>
 
-namespace ESPINA {
-  namespace Testing {
+namespace ESPINA
+{
+  namespace Testing
+  {
     class DummyFilter
     : public Filter
     {
@@ -57,8 +59,8 @@ namespace ESPINA {
       virtual FilterTypeList providedFilters() const
       { FilterTypeList list; list << dummyType(); return list; }
 
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
-      { return FilterSPtr(new DummyFilter(inputs, filter, scheduler));}
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+      { return std::make_shared<DummyFilter>(inputs, filter, scheduler);}
     };
 // 
 //     class DummyProvider
