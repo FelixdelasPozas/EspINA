@@ -33,6 +33,7 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Factory/CoreFactory.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -41,8 +42,7 @@ using namespace ESPINA::Core::Utils;
 ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
   auto mergedAnalysis = std::make_shared<Analysis>();
-
-  mergedAnalysis->setStorage(std::make_shared<TemporalStorage>());
+  mergedAnalysis->setStorage(lhs->storage());
 
   QMap<CategorySPtr, CategorySPtr> mergedCategory;
 

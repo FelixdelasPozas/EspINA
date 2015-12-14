@@ -33,6 +33,7 @@ qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
+  Settings/GeneralSettings/GeneralSettingsPanel.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
@@ -137,7 +138,6 @@ set (ESPINA_SOURCES
   Panels/SegmentationProperties/SegmentationProperties.cpp
   Panels/StackExplorer/StackExplorer.cpp
   RecentDocuments.cpp
-  Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
   Settings/ROI/ROISettings.cpp
   Settings/ROI/ROISettingsPanel.cpp

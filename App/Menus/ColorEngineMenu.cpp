@@ -18,9 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <Support/Settings/Settings.h>
 #include "ColorEngineMenu.h"
-#include <Support/Settings/EspinaSettings.h>
-
 #include <QActionGroup>
 #include <QSettings>
 

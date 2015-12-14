@@ -23,7 +23,6 @@
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
@@ -31,11 +30,11 @@ using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
-: m_scheduler{scheduler}
+: m_scheduler         {scheduler}
+, m_defaultStorage    {nullptr}
+, m_temporalStorageDir{nullptr}
 {
-  m_defaultStorage = std::make_shared<TemporalStorage>();
 }
-
 
 //-----------------------------------------------------------------------------
 CoreFactory::~CoreFactory()
@@ -94,7 +93,6 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
   auto input = getInput(filter, id);
 
   auto channel = std::make_shared<Channel>(input);
-
   channel->setStorage(m_defaultStorage);
 
   return channel;
@@ -152,7 +150,7 @@ SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id i
 
   auto segmentation = std::make_shared<Segmentation>(input);
 
-  segmentation->setStorage(m_defaultStorage);
+  segmentation->setStorage(defaultStorage());
 
   return segmentation;
 }
@@ -200,4 +198,49 @@ SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(const Segment
   }
 
   return extension;
+}
+
+//-----------------------------------------------------------------------------
+TemporalStorageSPtr CoreFactory::createTemporalStorage() const
+{
+  return std::make_shared<TemporalStorage>(m_temporalStorageDir);
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::setTemporalDirectory(const QDir &directory)
+{
+  auto newDirectory = directory.exists() ? directory : QDir::temp();
+
+  if(!m_temporalStorageDir || (newDirectory.absolutePath() != m_temporalStorageDir->absolutePath()))
+  {
+    for(auto storage: TemporalStorage::s_Storages)
+    {
+      auto baseDirectory = storage->baseDirectory();
+      if((baseDirectory.absolutePath() != newDirectory.absolutePath()) && !storage->move(newDirectory.absolutePath(), false))
+      {
+        auto what = QObject::tr("Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());
+        auto details = QObject::tr("CoreFactory::setTemporalDirectory() -> Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());
+
+        throw EspinaException(what, details);
+      }
+    }
+
+    if(m_temporalStorageDir)
+    {
+      delete m_temporalStorageDir;
+    }
+
+    m_temporalStorageDir = new QDir(newDirectory);
+  }
+}
+
+//-----------------------------------------------------------------------------
+TemporalStorageSPtr CoreFactory::defaultStorage() const
+{
+  if(!m_defaultStorage)
+  {
+    m_defaultStorage = createTemporalStorage();
+  }
+
+  return m_defaultStorage;
 }

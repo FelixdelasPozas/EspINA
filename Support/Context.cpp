@@ -20,6 +20,7 @@
 #include "Widgets/Panel.h"
 #include <Core/MultiTasking/Scheduler.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
+#include <Support/Settings/Settings.h>
 #include <QUndoStack>
 #include <QMainWindow>
 
@@ -33,20 +34,30 @@ using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
 Context::Context(QMainWindow *mainWindow, bool *minimizedStatus)
-: m_viewState()
-, m_model(new ModelAdapter())
-, m_activeROI(new ROIAccumulator())
-, m_scheduler(new Scheduler(PERIOD_uSEC))
-, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
-, m_colorEngine(std::make_shared<MultiColorEngine>())
-, m_minimizedStatus(minimizedStatus)
-, m_mainWindow(mainWindow)
+: m_viewState      {}
+, m_model          {std::make_shared<ModelAdapter>()}
+, m_activeROI      {std::make_shared<ROIAccumulator>()}
+, m_scheduler      {std::make_shared<Scheduler>(PERIOD_uSEC)}
+, m_factory        {std::make_shared<ModelFactory>(espinaCoreFactory(m_scheduler), m_scheduler)}
+, m_colorEngine    {std::make_shared<MultiColorEngine>()}
+, m_minimizedStatus{minimizedStatus}
+, m_mainWindow     {mainWindow}
 {
    QObject::connect(m_model.get(), SIGNAL(channelsRemoved(ViewItemAdapterSList)),
                    &m_viewState,   SLOT(updateSelection(ViewItemAdapterSList)));
 
    QObject::connect(m_model.get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                    &m_viewState,   SLOT(updateSelection(ViewItemAdapterSList)));
+
+   ApplicationSettings settings;
+   try
+   {
+     m_factory->setTemporalDirectory(QDir{settings.temporalPath()});
+   }
+   catch(...)
+   {
+     // nothing, automatically changed to Qdir::temp().
+   }
 }
 
 //------------------------------------------------------------------------
@@ -142,7 +153,6 @@ SegmentationAdapterList Support::getSelectedSegmentations(Context &context)
 WithContext::WithContext(Context &context)
 : m_context(context)
 {
-
 }
 
 //------------------------------------------------------------------------

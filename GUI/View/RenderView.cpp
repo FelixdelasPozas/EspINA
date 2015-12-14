@@ -339,7 +339,6 @@ void RenderView::resetCamera()
 void RenderView::refresh()
 {
   m_view->update();
-  //onRenderRequest();
 }
 
 //-----------------------------------------------------------------------------
@@ -465,7 +464,6 @@ void RenderView::onRenderRequest()
   }
 
   m_view->update();
-
 //   qDebug() << "------------------------------------------";
 }
 

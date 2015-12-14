@@ -21,8 +21,8 @@
 // ESPINA
 #include "SeedGrowSegmentationSettingsPanel.h"
 
-#include <Support/Settings/EspinaSettings.h>
 #include <GUI/Widgets/PixelValueSelector.h>
+#include <Support/Settings/Settings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 
 // Qt

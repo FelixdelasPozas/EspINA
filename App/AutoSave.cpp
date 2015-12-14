@@ -17,9 +17,9 @@
  *
  */
 
+#include <Support/Settings/Settings.h>
 #include "AutoSave.h"
 
-#include <Support/Settings/EspinaSettings.h>
 
 using namespace ESPINA;
 

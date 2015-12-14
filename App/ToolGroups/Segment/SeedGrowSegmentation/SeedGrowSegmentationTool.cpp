@@ -37,9 +37,9 @@
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
 #include <App/Settings/ROI/ROISettings.h>
+#include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 
 // Qt

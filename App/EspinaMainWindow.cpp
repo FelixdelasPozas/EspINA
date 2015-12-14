@@ -39,7 +39,6 @@
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
-#include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
@@ -66,11 +65,10 @@
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/ModelFactory.h>
 #include <GUI/Widgets/Styles.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <Support/Widgets/PanelSwitch.h>
 
@@ -102,7 +100,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_errorHandler(new EspinaErrorHandler(this))
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
-, m_settings     {new GeneralSettings()}
+, m_settings     {new ApplicationSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
 , m_cancelShortcut{Qt::Key_Escape, this, SLOT(cancelOperation()), SLOT(cancelOperation()), Qt::ApplicationShortcut}
@@ -306,6 +304,14 @@ void EspinaMainWindow::enableWidgets(bool value)
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
 {
+  static int key = 0;
+  QList<Qt::Key> keys{ Qt::Key_1, Qt::Key_2, Qt::Key_3, Qt::Key_4, Qt::Key_5, Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9 };
+
+  if(key < 9)
+  {
+    toolGroup->setShortcut(Qt::ALT+keys[key++]);
+  }
+
   m_mainBarGroup.addAction(toolGroup);
   m_mainBar->addAction(toolGroup);
 
@@ -369,7 +375,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 
   m_view.reset();
 
-  removeTemporalDirectory();
+  removeTemporalDirectory(m_settings->temporalPath());
 }
 
 //------------------------------------------------------------------------
@@ -585,7 +591,6 @@ void EspinaMainWindow::updateTooltip(QAction* action)
 void EspinaMainWindow::showPreferencesDialog()
 {
   GeneralSettingsDialog dialog;
-
   dialog.registerPanel(std::make_shared<GeneralSettingsPanel>(m_autoSave, m_settings));
   dialog.resize(800, 600);
 
@@ -594,7 +599,23 @@ void EspinaMainWindow::showPreferencesDialog()
     dialog.registerPanel(panel);
   }
 
+  auto temporalDirPath = m_settings->temporalPath();
+
   dialog.exec();
+
+  if(temporalDirPath != m_settings->temporalPath())
+  {
+    auto dir = QDir{m_settings->temporalPath()};
+    try
+    {
+      m_context.factory()->setTemporalDirectory(dir);
+      removeTemporalDirectory(temporalDirPath);
+    }
+    catch(const EspinaException &e)
+    {
+      DefaultDialogs::InformationMessage(tr("Unable to change the temporal directory to '%1'.\n\nError: %2").arg(dir.absolutePath()).arg(QString(e.what())), "Error changing temporal directory");
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -631,32 +652,20 @@ void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
 
     if (toolGroup)
     {
-//       auto key = Qt::Key_1;
       for(auto tools : toolGroup->groupedTools())
       {
         for (auto tool : tools)
         {
           tool->onToolGroupActivated();
 
-//           bool first = true;
           for(auto action : tool->actions())
           {
-//             if (key <= Qt::Key_9 && first)
-//             {
-//               action->setShortcut(Qt::ALT+key);
-//               key  = key + 1;
-//               first = false;
-//             }
             m_contextualBar->addAction(action);
           }
         }
 
         if (tools != toolGroup->groupedTools().last())
         {
-
-//         auto separator = new QWidget();
-//         separator->setMinimumWidth(8);
-//         m_contextualBar->addWidget(separator);
           m_contextualBar->addSeparator();
         }
       }

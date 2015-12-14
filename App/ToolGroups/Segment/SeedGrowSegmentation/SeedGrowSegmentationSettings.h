@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <Core/Types.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <Support/Settings/Settings.h>
 
 namespace ESPINA
 {

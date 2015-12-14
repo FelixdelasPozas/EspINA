@@ -79,7 +79,7 @@ AnalysisSPtr SegFile_V4::Loader::load()
 {
   reportProgress(0);
 
-  m_storage = std::make_shared<TemporalStorage>();
+  m_storage = m_factory->createTemporalStorage();
   m_analysis->setStorage(m_storage);
 
   m_vertexUuids.clear();

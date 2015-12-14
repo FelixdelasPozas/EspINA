@@ -47,10 +47,22 @@ namespace ESPINA
 
     if (!isEquivalent(vBounds, iBounds))
     {
+      auto region = equivalentRegion<T>(volume, inputBounds);
       auto extractor = ExtractFilter::New();
-      extractor->SetExtractionRegion(equivalentRegion<T>(volume, inputBounds));
+      extractor->SetExtractionRegion(region);
       extractor->SetInput(volume);
-      extractor->Update();
+
+      try
+      {
+        extractor->Update();
+      }
+      catch(const itk::ExceptionObject &e)
+      {
+        qDebug() << "vtkImage(volume,bounds) -> exception catched: " << QString(e.what());
+        qDebug() << "input bounds" << inputBounds << "volume bounds" << vBounds;
+        region.Print(std::cerr);
+        std::abort();
+      }
 
       itkImage = extractor->GetOutput();
     }

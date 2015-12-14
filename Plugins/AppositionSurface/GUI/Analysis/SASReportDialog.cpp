@@ -27,9 +27,9 @@
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Widgets/InformationSelector.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Widgets/TabularReport.h>
 
 // Qt

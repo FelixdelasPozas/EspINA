@@ -24,7 +24,6 @@
 // ESPINA
 #include "EspinaConfig.h"
 #include "EspinaErrorHandler.h"
-#include "Settings/GeneralSettings/GeneralSettings.h"
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
@@ -40,6 +39,7 @@
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/Panel.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
@@ -312,7 +312,7 @@ namespace ESPINA
     ChannelReaderSPtr  m_channelReader;
     AnalysisReaderSPtr m_segFileReader;
 
-    GeneralSettingsSPtr           m_settings;
+    Support::GeneralSettingsSPtr  m_settings;
     ROISettings*                  m_roiSettings;
     SeedGrowSegmentationSettings *m_sgsSettings;
 

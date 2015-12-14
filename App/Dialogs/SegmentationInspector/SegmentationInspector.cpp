@@ -28,9 +28,9 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterRefiner.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <Support/Settings/Settings.h>
 
 // Qt
 #include <QSettings>

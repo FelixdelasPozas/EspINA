@@ -19,10 +19,8 @@
 */
 
 // ESPINA
+#include <Support/Settings/Settings.h>
 #include "SeedThreshold.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>

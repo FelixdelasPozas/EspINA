@@ -19,10 +19,8 @@
 */
 
 // ESPINA
+#include <Support/Settings/Settings.h>
 #include "ROISettings.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QSettings>
 
 using namespace ESPINA;

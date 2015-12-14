@@ -35,8 +35,8 @@
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <GUI/View/RenderView.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
+#include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/DrawUndoCommand.h>

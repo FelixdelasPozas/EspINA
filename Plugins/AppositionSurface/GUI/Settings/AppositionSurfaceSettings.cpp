@@ -20,10 +20,8 @@
 
 
 // ESPINA
+#include <Support/Settings/Settings.h>
 #include "AppositionSurfaceSettings.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QSettings>
 #include <QColorDialog>
 

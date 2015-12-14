@@ -28,9 +28,10 @@ using namespace ESPINA;
 
 ESPINA::CoreFactorySPtr ESPINA::espinaCoreFactory(SchedulerSPtr scheduler)
 {
-  CoreFactorySPtr factory{new CoreFactory(scheduler)};
+  auto factory = std::make_shared<CoreFactory>(scheduler);
+  auto stackExtensionFactory = std::make_shared<DefaultChannelExtensionFactory>(scheduler);
 
-  factory->registerExtensionFactory(ChannelExtensionFactorySPtr{new DefaultChannelExtensionFactory(scheduler)});
+  factory->registerExtensionFactory(stackExtensionFactory);
 
   return factory;
 }

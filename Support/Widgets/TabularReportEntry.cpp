@@ -29,7 +29,6 @@
 #include "TabularReportEntry.h"
 
 #include <Support/Utils/xlsUtils.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>

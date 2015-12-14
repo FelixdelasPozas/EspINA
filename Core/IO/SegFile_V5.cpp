@@ -112,7 +112,7 @@ AnalysisSPtr SegFile_V5::Loader::load()
 {
   reportProgress(0);
 
-  m_storage = std::make_shared<TemporalStorage>();
+  m_storage = m_factory->createTemporalStorage();
 
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
   {

@@ -27,10 +27,12 @@
 #include "Core/Factory/FilterFactory.h"
 #include "Core/Factory/ChannelExtensionFactory.h"
 #include "Core/Factory/SegmentationExtensionFactory.h"
+#include <Core/Utils/TemporalStorage.h>
 
 // Qt
 #include <QStringList>
 #include <QMap>
+#include <QDir>
 
 namespace ESPINA
 {
@@ -163,9 +165,26 @@ namespace ESPINA
     void setPersistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }
 
+    /** \brief Returns a temporal storage object.
+     *
+     */
+    TemporalStorageSPtr createTemporalStorage() const;
+
+    /** \brief Sets the directory for the created TemporalStorage objects.
+     * \param[in] directory temporal directory.
+     *
+     */
+    void setTemporalDirectory(const QDir &directory);
+
   private:
-    SchedulerSPtr       m_scheduler;
-    TemporalStorageSPtr m_defaultStorage;
+    /** \brief Returns the default temporal storage for the factory.
+     *
+     */
+    TemporalStorageSPtr defaultStorage() const;
+
+    SchedulerSPtr               m_scheduler;           /** task scheduler.                   */
+    mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */
+    QDir                       *m_temporalStorageDir;  /** dir for temporal storage.         */
 
     QMap<Filter::Type, FilterFactorySPtr>                               m_filterFactories;
     QMap<ChannelExtension::Type, ChannelExtensionFactorySPtr>           m_channelExtensionFactories;

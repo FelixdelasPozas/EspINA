@@ -228,8 +228,6 @@ namespace ESPINA
 
     mutable OutputSMap m_outputs;
 
-    //    bool m_invalidateSortoredOutputs;
-
     DataFactorySPtr    m_dataFactory;
     ErrorHandlerSPtr   m_handler;
 

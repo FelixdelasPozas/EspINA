@@ -45,6 +45,8 @@ namespace ESPINA
     enum class Mode: char { RECURSIVE = 1, NORECURSIVE = 2 };
 
   public:
+    static QList<TemporalStorage *> s_Storages; /** temporal storage objects list for finding files in other storages. */
+
     /** \brief TemporalStorage class constructor.
      * \param[in] parent, parent dir of the storage.
      *
@@ -107,6 +109,13 @@ namespace ESPINA
      */
     bool rename(const QString &oldName, const QString &newName) const;
 
+    /** \brief Moves the contents of the temporal dir to the new location, returns true on success and false otherwise.
+     * \param[in] path absolute path.
+     * \param[in] createDir true to create destination dir if not exists and false otherwise.
+     *
+     */
+    bool move(const QString &path, bool createDir);
+
     /** \brief Returns the session settings for this storage.
      *
      */
@@ -117,11 +126,17 @@ namespace ESPINA
      */
     void syncSessionSettings();
 
+    /** \brief Returns the root directory of the storage.
+     *
+     */
+    const QDir baseDirectory() const
+    { return m_baseStorageDir; }
+
   private:
-    QUuid m_uuid;
-    QDir  m_storageDir;
-    static QList<TemporalStorage *> s_Storages;
-    QSettings *m_settings;
+    QUuid        m_uuid;           /** unique id for persistent object. */
+    QDir         m_storageDir;     /** writable directory.              */
+    QDir         m_baseStorageDir; /** storage root dir. */
+    QSettings   *m_settings;       /** session settings object.         */
   };
 
   using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;
@@ -129,7 +144,7 @@ namespace ESPINA
   /** \brief Removes all files inside the "espina" folder in the OS temporal directory.
    *
    */
-  bool EspinaCore_EXPORT removeTemporalDirectory();
+  bool EspinaCore_EXPORT removeTemporalDirectory(const QDir &path);
 }
 
 #endif // ESPINA_TEMPORAL_STORAGE_H

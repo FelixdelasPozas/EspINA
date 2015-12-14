@@ -36,9 +36,9 @@
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <Support/Settings/Settings.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Support/Utils/SelectionUtils.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
 

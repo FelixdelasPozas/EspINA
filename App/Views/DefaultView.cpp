@@ -23,11 +23,11 @@
 #include <App/EspinaMainWindow.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/Dialog3D/Dialog3D.h>
-#include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <Support/Settings/Settings.h>
 #include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt

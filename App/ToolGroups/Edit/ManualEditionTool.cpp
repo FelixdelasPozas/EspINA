@@ -32,7 +32,7 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 

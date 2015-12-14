@@ -86,6 +86,7 @@ namespace ESPINA {
     {
       if (!m_storage)
       {
+        // NOTE: last resort & for tests, temporal storage should be set on factory creation.
         m_storage = std::make_shared<TemporalStorage>();
       }
       return m_storage;

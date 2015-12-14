@@ -21,11 +21,9 @@
 // ESPINA
 #include "RawInformationDialog.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Utils/SelectionUtils.h>
 #include <Support/Widgets/TabularReport.h>
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QSettings>
 #include <QDialogButtonBox>
 #include <QLayout>

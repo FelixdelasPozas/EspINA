@@ -21,10 +21,10 @@
 // ESPINA
 #include "ROISettingsPanel.h"
 #include "ROISettings.h"
-#include <Support/Settings/EspinaSettings.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <App/Views/DefaultView.h>
+#include <Support/Settings/Settings.h>
 
 // VTK
 #include <vtkMath.h>

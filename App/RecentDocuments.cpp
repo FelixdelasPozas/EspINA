@@ -19,10 +19,8 @@
 */
 
 // ESPINA
+#include <Support/Settings/Settings.h>
 #include "RecentDocuments.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QAction>
 #include <QSettings>
 #include <QStringList>

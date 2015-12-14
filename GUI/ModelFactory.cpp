@@ -34,14 +34,13 @@ using namespace ESPINA::GUI;
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(CoreFactorySPtr factory,
                            SchedulerSPtr scheduler)
-: m_factory(factory)
-, m_scheduler(scheduler)
+: m_factory  {factory}
+, m_scheduler{scheduler}
 {
   if (!m_factory)
   {
     m_factory = make_shared<CoreFactory>();
   }
-
 }
 
 //------------------------------------------------------------------------
@@ -179,4 +178,16 @@ ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
   return SegmentationAdapterSPtr{new SegmentationAdapter(segmentation)};
+}
+
+//------------------------------------------------------------------------
+void ModelFactory::setTemporalDirectory(const QDir &directory)
+{
+  m_factory->setTemporalDirectory(directory);
+}
+
+//------------------------------------------------------------------------
+TemporalStorageSPtr ModelFactory::createTemporalStorage()
+{
+  return m_factory->createTemporalStorage();
 }

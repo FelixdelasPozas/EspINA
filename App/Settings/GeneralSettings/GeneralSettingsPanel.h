@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Support/Settings/SettingsPanel.h>
-#include "GeneralSettings.h"
+#include <Support/Settings/Settings.h>
 
 // Qt
 #include <ui_GeneralSettingsPanel.h>
@@ -33,42 +33,59 @@ namespace ESPINA
 {
   class AutoSave;
 
+  /** \class GeneralSettingsPanel
+   * \brief Settings panel for the application general settings.
+   *
+   */
   class GeneralSettingsPanel
   : public Support::Settings::SettingsPanel
   , Ui::GeneralSettingsPanel
   {
-  public:
-    /** \brief GeneralSettinsPanel class constructor.
-     * \param[in] settings, GeneralSettings object smart pointer.
-     *
-     */
-    explicit GeneralSettingsPanel(AutoSave &autoSave, GeneralSettingsSPtr settings);
+      Q_OBJECT
+    public:
+      /** \brief GeneralSettinsPanel class constructor.
+       * \param[in] settings, GeneralSettings object smart pointer.
+       *
+       */
+      explicit GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralSettingsSPtr settings);
 
-    /** \brief GeneralSettingsPanel class virtual destructor.
-     *
-     */
-    virtual ~GeneralSettingsPanel();
+      /** \brief GeneralSettingsPanel class virtual destructor.
+       *
+       */
+      virtual ~GeneralSettingsPanel();
 
-    virtual const QString shortDescription() override
-    {return "Session";}
+      virtual const QString shortDescription() override
+      {return "Session";}
 
-    virtual const QString longDescription() override
-    {return "Session";}
+      virtual const QString longDescription() override
+      {return "Session";}
 
-    virtual const QIcon icon() override
-    {return QIcon(":/espina/editor.ico");}
+      virtual const QIcon icon() override
+      {return QIcon(":/espina/editor.ico");}
 
-    virtual void acceptChanges() override;
+      virtual void acceptChanges() override;
 
-    virtual void rejectChanges() override;
+      virtual void rejectChanges() override;
 
-    virtual bool modified() const override;
+      virtual bool modified() const override;
 
-    virtual Support::Settings::SettingsPanelPtr clone() override;
+      virtual Support::Settings::SettingsPanelPtr clone() override;
 
-  private:
-    AutoSave &m_autoSave;
-    GeneralSettingsSPtr m_settings;
+    private slots:
+      /** \brief Disaplays the directory selection dialog an updates the internal values once the dialog has been closed.
+       *
+       */
+      void onBrowseDirClicked();
+
+      /** \brief Updates the values when the "use system temporal directory" checkbox changes state.
+       * \param[in] state new checkbox state.
+       *
+       */
+      void onTempDirCheckboxChangedState(int state);
+
+    private:
+      AutoSave                    &m_autoSave;
+      Support::GeneralSettingsSPtr m_settings;
   };
 
 } // namespace ESPINA

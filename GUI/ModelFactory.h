@@ -55,8 +55,8 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      *
      */
-    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(),
-                          SchedulerSPtr scheduler = SchedulerSPtr());
+    explicit ModelFactory(CoreFactorySPtr factory      = CoreFactorySPtr(),
+                          SchedulerSPtr scheduler      = SchedulerSPtr());
 
     /** \brief ModelFactory class destructor.
      *
@@ -204,6 +204,17 @@ namespace ESPINA
      */
     SchedulerSPtr scheduler() const
     { return m_scheduler; }
+
+    /** \brief Sets the temporal directory of the CoreFactory.
+     * \param[in] directory QDir object.
+     *
+     */
+    void setTemporalDirectory(const QDir &directory);
+
+    /** \brief Returns a temporal storage object.
+     *
+     */
+    TemporalStorageSPtr createTemporalStorage();
 
   private:
     CoreFactorySPtr m_factory;

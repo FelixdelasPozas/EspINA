@@ -22,7 +22,6 @@
 
 // ESPINA
 #include <App/EspinaErrorHandler.h>
-#include <Settings/GeneralSettings/GeneralSettings.h>
 #include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA

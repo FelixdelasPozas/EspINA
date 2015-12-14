@@ -69,6 +69,7 @@ set (Support_SOURCES
   Representations/SliceManager.cpp
   Representations/RepresentationUtils.cpp
   ROIAccumulator.cpp
+  Settings/Settings.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/TagUtils.cpp

@@ -40,6 +40,7 @@
 #include <itkImageRegionIterator.h>
 #include <itkImageFileReader.h>
 #include <itkExtractImageFilter.h>
+#include <itkExceptionObject.h>
 
 namespace ESPINA {
 
@@ -263,7 +264,19 @@ namespace ESPINA {
     auto extractor = StreamExtractType<T>::New();
     extractor->SetExtractionRegion(requestedRegion);
     extractor->SetInput(reader->GetOutput());
-    extractor->Update();
+
+    try
+    {
+      extractor->Update();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      qDebug() << "catched exception from itk" << QString(e.what());
+      qDebug() << "requested region";
+      requestedRegion.Print(std::cerr);
+      qDebug() << "from bounds" << bounds << "image bounds" << this->bounds();
+      std::abort();
+    }
 
     typename T::Pointer image = extractor->GetOutput();
     image->DisconnectPipeline();

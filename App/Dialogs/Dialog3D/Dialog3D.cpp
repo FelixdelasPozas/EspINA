@@ -24,7 +24,7 @@
 #include <GUI/View/ViewState.h>
 #include <GUI/Widgets/Styles.h>
 #include <Settings/Utils.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <Support/Settings/Settings.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;

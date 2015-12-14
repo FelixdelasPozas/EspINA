@@ -56,6 +56,13 @@ void View2D::CoronalBehaviour::updateCamera(vtkCamera       *camera,
   {
     ++camPos[1];
   }
+  else
+  {
+    if(camPos[1]-center[1] < 0)
+    {
+      camPos[1] = center[1] + std::fabs(camPos[1]-center[1]);
+    }
+  }
 
   camera->SetPosition(center[0], camPos[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);

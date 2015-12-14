@@ -101,7 +101,6 @@ FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& fi
   }
 
   auto reader = std::make_shared<VolumetricStreamReader>(inputs, VOLUMETRIC_STREAM_READER, scheduler);
-
   reader->setDataFactory(dataFactory); //FIX: Temporal fix to create output during seg file load
 
   return reader;
@@ -128,7 +127,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 {
   auto analysis = std::make_shared<Analysis>();
 
-  analysis->setStorage(std::make_shared<TemporalStorage>());
+  analysis->setStorage(factory->createTemporalStorage());
 
   auto sampleName = QString("Unknown Sample");
 
@@ -166,26 +165,6 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   analysis->add(sample);
 
   auto filter = factory->createFilter<VolumetricStreamReader>(InputSList(), VOLUMETRIC_STREAM_READER);
-
-//   if (file.fileName().contains(".tif"))
-//   {
-//     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-//     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
-//
-//     VolumeReader::Pointer reader = VolumeReader::New();
-//     reader->SetFileName(file.absoluteFilePath().toUtf8().data());
-//     reader->Update();
-//
-//     TemporalStorageSPtr storage = filter->storage();
-//
-//     file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
-//
-//     VolumeWriter::Pointer writer = VolumeWriter::New();
-//     writer->SetFileName(file.absoluteFilePath().toUtf8().data());
-//     writer->SetInput(reader->GetOutput());
-//     writer->Write();
-//   }
-
   filter->setErrorHandler(handler);
   filter->setFileName(file);
   filter->update();

@@ -22,12 +22,16 @@
 // ESPINA
 #include "GeneralSettingsPanel.h"
 #include <AutoSave.h>
+#include <Core/Utils/EspinaException.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
-GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, GeneralSettingsSPtr settings)
+GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralSettingsSPtr settings)
 : m_autoSave(autoSave)
 , m_settings{settings}
 {
@@ -37,6 +41,19 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, GeneralSettingsSP
   m_autosavePath    ->setText(m_autoSave.path().absolutePath());
   m_autosaveInterval->setValue(m_autoSave.interval());
   m_loadSEGSettings ->setChecked(m_settings->loadSEGfileSettings());
+  m_temporalPath    ->setText(m_settings->temporalPath());
+
+  auto isSystemTemporalPath = (m_settings->temporalPath() == QDir::tempPath());
+  m_systemPathCheckbox->setChecked(isSystemTemporalPath);
+  m_temporalPath      ->setEnabled(!isSystemTemporalPath);
+  m_temporalPathLabel ->setEnabled(!isSystemTemporalPath);
+  m_browseDirButton   ->setEnabled(!isSystemTemporalPath);
+
+  connect(m_browseDirButton, SIGNAL(clicked(bool)),
+          this,              SLOT(onBrowseDirClicked()));
+
+  connect(m_systemPathCheckbox, SIGNAL(stateChanged(int)),
+          this,                 SLOT(onTempDirCheckboxChangedState(int)));
 }
 
 //------------------------------------------------------------------------
@@ -49,6 +66,7 @@ void GeneralSettingsPanel::acceptChanges()
 {
   m_settings->setUserName(m_userName->text());
   m_settings->setLoadSEGfileSettings(m_loadSEGSettings->isChecked());
+  m_settings->setTemporalPath(m_temporalPath->text());
   m_autoSave.setPath(m_autosavePath->text());
   m_autoSave.setInterval(m_autosaveInterval->value());
 }
@@ -64,11 +82,65 @@ bool GeneralSettingsPanel::modified() const
   return m_userName->text()             != m_settings->userName()
       || m_loadSEGSettings->isChecked() != m_settings->loadSEGfileSettings()
       || m_autosavePath->text()         != m_autoSave.path().absolutePath()
-      || m_autosaveInterval->value()    != m_autoSave.interval();
+      || m_autosaveInterval->value()    != m_autoSave.interval()
+      || m_temporalPath->text()         != m_settings->temporalPath();
 }
 
 //------------------------------------------------------------------------
 SettingsPanelPtr GeneralSettingsPanel::clone()
 {
   return new GeneralSettingsPanel(m_autoSave,m_settings);
+}
+
+//------------------------------------------------------------------------
+void GeneralSettingsPanel::onBrowseDirClicked()
+{
+  QFileDialog dialog;
+  dialog.setFileMode(QFileDialog::Directory);
+  dialog.setOption(QFileDialog::ShowDirsOnly);
+
+  if(dialog.exec() == QFileDialog::Accepted)
+  {
+    auto dir = dialog.selectedFiles().first();
+
+    QFileInfo info(dir);
+
+    if(!info.isDir())
+    {
+      DefaultDialogs::InformationMessage("%1 isn't a directory!");
+    }
+    else
+    {
+      if(!info.isWritable() || !info.isReadable())
+      {
+        DefaultDialogs::InformationMessage(QString("Invalid permissions, can't write on directory %1!").arg(dir));
+      }
+      else
+      {
+        if(!info.exists())
+        {
+          DefaultDialogs::InformationMessage(QString("The directory %1 doesn't exists!").arg(dir));
+        }
+        else
+        {
+          m_temporalPath->setText(dir);
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void GeneralSettingsPanel::onTempDirCheckboxChangedState(int state)
+{
+  auto enabled = (state == Qt::Checked);
+
+  m_temporalPath->setEnabled(!enabled);
+  m_temporalPathLabel->setEnabled(!enabled);
+  m_browseDirButton->setEnabled(!enabled);
+
+  if(enabled)
+  {
+    m_temporalPath->setText(QDir::tempPath());
+  }
 }
