@@ -93,6 +93,7 @@ namespace ESPINA
 
     signals:
       void roiDefined(ROISPtr);
+      void roiModified(ROISPtr);
 
     private slots:
       /** \brief Activates/Deactivates the tool
@@ -129,9 +130,14 @@ namespace ESPINA
        */
       void defineROI(Selector::Selection selection);
 
-
+      /** \brief Helper method to update the ROI bounds.
+       *
+       */
       void updateBounds(Bounds bounds);
 
+      /** \brief Helper method to update the ROI visual representation.
+       *
+       */
       void updateRegionRepresentation();
 
     private:

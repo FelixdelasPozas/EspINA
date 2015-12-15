@@ -1,26 +1,34 @@
 /*
- * Copyright 2015 <copyright holder> <email>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// ESPINA
 #include "Widget2D.h"
-
 #include "vtkWidget2D.h"
 #include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
+
+// VTK
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
+
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -137,6 +145,8 @@ void Widget2D::initializeImplementation(RenderView *view)
 
   m_command->setWidget(m_widget);
 
+  m_widget->setRepresentationDepth(view2D_cast(view)->widgetDepth());
+
   updateSelectionMeasure();
 
   synchronizeSelectionChanges();
@@ -196,6 +206,7 @@ void Widget2D::updateVisibility()
 {
   auto axis    = toAxis(m_index);
   auto visible = contains(m_widget->bounds(), axis, m_slice);
+  m_widget->setSlice(m_slice);
 
   if(visible != m_widget->GetEnabled())
   {

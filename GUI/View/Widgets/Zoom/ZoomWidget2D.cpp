@@ -21,6 +21,7 @@
 
 // ESPINA
 #include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget2D.h>
 #include <GUI/View/Widgets/Zoom/vtkZoomSelectionWidget.h>
 
@@ -84,8 +85,7 @@ void ZoomWidget2D::setPlane(Plane plane)
 //----------------------------------------------------------------------------
 void ZoomWidget2D::setRepresentationDepth(Nm depth)
 {
-  // don't need to check for the value, the widget will do that
-  m_widget->setRepresentationDepth(depth);
+  // intentionally empty
 }
 
 //----------------------------------------------------------------------------
@@ -131,6 +131,8 @@ void ZoomWidget2D::setCrosshair(const NmVector3& crosshair)
 void ZoomWidget2D::initializeImplementation(RenderView* view)
 {
   m_view = view;
+
+  m_widget->setRepresentationDepth(view2D_cast(view)->widgetDepth());
 }
 
 //----------------------------------------------------------------------------

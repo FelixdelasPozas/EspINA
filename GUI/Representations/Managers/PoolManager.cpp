@@ -44,11 +44,11 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
 
   if(frameActors != nullptr)
   {
-    QReadLocker lock(&frameActors->lock);
+    QMutexLocker lock(&frameActors->lock);
 
-    for (auto itemActors : frameActors->actors)
+    for (auto itemActors: frameActors->actors)
     {
-      for (auto actor : itemActors)
+      for (auto actor: itemActors)
       {
         setFlag(HAS_ACTORS, true);
         m_view->addActor(actor);

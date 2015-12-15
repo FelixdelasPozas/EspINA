@@ -25,6 +25,7 @@
 
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/Representations/Frame.h>
+#include <GUI/View/View2D.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -92,7 +93,6 @@ void OrthogonalWidget2D::setPlane(Plane plane)
 //----------------------------------------------------------------------------
 void OrthogonalWidget2D::setRepresentationDepth(Nm depth)
 {
-  m_widget->SetDepth(depth);
 }
 
 //----------------------------------------------------------------------------
@@ -149,6 +149,7 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
   connect(m_representation.get(), SIGNAL(patternChanged(int)),
           this,                   SLOT(onPatternChanged(int)));
 
+  m_widget->SetDepth(static_cast<View2D*>(view)->widgetDepth());
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 }
 

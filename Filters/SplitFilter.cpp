@@ -205,8 +205,13 @@ bool SplitFilter::fetchCacheStencil() const
     stencilReader->ReadAllFieldsOn();
     stencilReader->Update();
 
+    auto image = vtkImageData::SafeDownCast(stencilReader->GetOutput());
+    auto spacing = output(0)->spacing();
+    image->SetSpacing(spacing[0], spacing[1], spacing[2]);
+    image->Modified();
+
     auto convert = vtkSmartPointer<vtkImageToImageStencil>::New();
-    convert->SetInputData(vtkImageData::SafeDownCast(stencilReader->GetOutput()));
+    convert->SetInputData(image);
     convert->ThresholdBetween(1,1);
     convert->Update();
 
@@ -232,6 +237,14 @@ void SplitFilter::changeStencilSpacing(const NmVector3& spacing) const
   {
     double stencilSpacing[3], stencilOrigin[3];
     m_stencil->GetSpacing(stencilSpacing);
+
+    if((spacing[0] == stencilSpacing[0]) &&
+       (spacing[1] == stencilSpacing[1]) &&
+       (spacing[2] == stencilSpacing[2]))
+    {
+      return;
+    }
+
     m_stencil->GetOrigin(stencilOrigin);
 
     NmVector3 ratio{spacing[0]/stencilSpacing[0],
@@ -285,7 +298,6 @@ Snapshot SplitFilter::saveFilterSnapshot() const
 {
   Snapshot snapshot;
 
-  // next line loads the stencil file from disk (if it exists, see note)
   // NOTE: not aborting if the file is not found fixes a bug in earlier versions that didn't store
   // the vti file in the seg, this renders this filter a read-only filter, that is, cannot be executed
   // again.

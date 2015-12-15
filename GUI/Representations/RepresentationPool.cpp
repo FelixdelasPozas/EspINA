@@ -320,8 +320,8 @@ bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) co
 
   auto currentActors = m_validActors.last();
 
-  QReadLocker (&currentActors->lock);
-  QReadLocker (&actors->lock);
+  QMutexLocker (&currentActors->lock);
+  QMutexLocker (&actors->lock);
 
   return (actors->actors.values() != currentActors->actors.values());
 }

@@ -56,6 +56,8 @@ namespace ESPINA
 //----------------------------------------------------------------------------
 vtkWidget2D::vtkWidget2D()
 : m_plane  {Plane::UNDEFINED}
+, m_depth  {0}
+, m_slice  {0}
 , m_up     {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_right  {vtkSmartPointer<vtkAxisActor2D>::New()}
 {
@@ -122,6 +124,21 @@ void vtkWidget2D::SetEnabled(int enabled)
 }
 
 //----------------------------------------------------------------------------
+void vtkWidget2D::setRepresentationDepth(double depth)
+{
+  m_depth = depth;
+}
+
+//----------------------------------------------------------------------------
+void vtkWidget2D::setSlice(double slice)
+{
+  if(m_slice != slice)
+  {
+    m_slice = slice;
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkWidget2D::drawActors()
 {
   bool validActors = (m_plane != Plane::UNDEFINED) && m_bounds.areValid() && Enabled;
@@ -134,18 +151,18 @@ void vtkWidget2D::drawActors()
       case Plane::XY:
         point[0] = m_bounds[0];
         point[1] = m_bounds[3];
-        point[2] = 0;
+        point[2] = m_depth+m_slice;
         transformCoordsWorldToNormView(point);
         m_up   ->SetPosition2(point[0], point[1]);
         m_right->SetPosition (point[0], point[1]);
         point[0] = m_bounds[0];
         point[1] = m_bounds[2];
-        point[2] = 0;
+        point[2] = m_depth+m_slice;
         transformCoordsWorldToNormView(point);
         m_up->SetPosition(point[0], point[1]);
         point[0] = m_bounds[1];
         point[1] = m_bounds[3];
-        point[2] = 0;
+        point[2] = m_depth+m_slice;
         transformCoordsWorldToNormView(point);
         m_right->SetPosition2(point[0], point[1]);
         setTitle(m_up,    Axis::Y);
@@ -153,18 +170,18 @@ void vtkWidget2D::drawActors()
         break;
       case Plane::XZ:
         point[0] = m_bounds[0];
-        point[1] = 0;
+        point[1] = m_depth+m_slice;
         point[2] = m_bounds[4];
         transformCoordsWorldToNormView(point);
         m_up->SetPosition(point[0], point[1]);
         point[0] = m_bounds[0];
-        point[1] = 0;
+        point[1] = m_depth+m_slice;
         point[2] = m_bounds[5];
         transformCoordsWorldToNormView(point);
         m_up   ->SetPosition2(point[0], point[1]);
         m_right->SetPosition (point[0], point[1]);
         point[0] = m_bounds[1];
-        point[1] = 0;
+        point[1] = m_depth+m_slice;
         point[2] = m_bounds[5];
         transformCoordsWorldToNormView(point);
         m_right->SetPosition2(point[0], point[1]);
@@ -172,18 +189,18 @@ void vtkWidget2D::drawActors()
         setTitle(m_right, Axis::X);
         break;
       case Plane::YZ:
-        point[0] = 0;
+        point[0] = m_depth+m_slice;
         point[1] = m_bounds[3];
         point[2] = m_bounds[4];
         transformCoordsWorldToNormView(point);
         m_up   ->SetPosition (point[0], point[1]);
         m_right->SetPosition2(point[0], point[1]);
-        point[0] = 0;
+        point[0] = m_depth+m_slice;
         point[1] = m_bounds[3];
         point[2] = m_bounds[5];
         transformCoordsWorldToNormView(point);
         m_up->SetPosition2(point[0], point[1]);
-        point[0] = 0;
+        point[0] = m_depth+m_slice;
         point[1] = m_bounds[2];
         point[2] = m_bounds[4];
         transformCoordsWorldToNormView(point);

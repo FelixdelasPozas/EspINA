@@ -16,14 +16,15 @@
  *
  */
 
+// ESPINA
 #include "SeedGrowSegmentationRefineWidget.h"
 #include "ui_SeedGrowSegmentationRefineWidget.h"
-
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Settings/ROI/ROISettings.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 
+// Qt
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QToolBar>
@@ -191,8 +192,8 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
   auto roi = m_filter->roi();
   if(roi)
   {
+    m_roiTools->setCurrentROI(roi->clone());
     m_roiTools->setVisible(true);
-    m_roiTools->setCurrentROI(roi);
   }
 
   connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
@@ -219,6 +220,18 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 {
+  if(m_gui->apply->isEnabled())
+  {
+    auto answer = GUI::DefaultDialogs::UserQuestion(tr("The properties of the segmentation '%1' have been modified but haven't been applied, do you want to discard them?").arg(m_segmentation->data().toString()),
+                                                    QMessageBox::Apply|QMessageBox::Discard,
+                                                    dialogTitle());
+
+    if(answer == QMessageBox::Apply)
+    {
+      modifyFilter();
+    }
+  }
+
   s_mutex.lock();
   Q_ASSERT(s_exists);
   s_exists = false;
@@ -313,7 +326,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
     auto roi     = m_roiTools->currentROI();
     auto seed    = m_filter->seed();
 
-    if (!roi  || contains(roi.get(), seed, spacing))
+    if (!roi || contains(roi.get(), seed, spacing))
     {
       auto undoStack = getUndoStack();
       auto threshold = m_gui->threshold->value();

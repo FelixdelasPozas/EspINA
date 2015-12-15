@@ -95,13 +95,24 @@ namespace ESPINA
       void roiChanged(ROISPtr);
 
     private slots:
-      /** \brief Updates ROI accumulator when a new ROI is defined
+      /** \brief Updates ROI accumulator when a new ROI is defined and signals the modification.
        *
        */
       void onManualROIDefined(BinaryMaskSPtr<unsigned char> roi);
 
+      /** \brief Pushes the change to the undo stack and signals the ROI modification.
+       *
+       */
       void onOrthogonalROIDefined(ROISPtr roi);
 
+      /** \brief Signals the ROI bounds modification.
+       *
+       */
+      void onOrthogonalROIModified(ROISPtr roi);
+
+      /** \brief Pushes a new command to the undo stack depending on the previous.
+       *
+       */
       void undoStackPush(QUndoCommand *command);
 
     private:

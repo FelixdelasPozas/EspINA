@@ -59,7 +59,7 @@ void ROIWidget::setPlane(Plane plane)
 //-----------------------------------------------------------------------------
 void ROIWidget::setRepresentationDepth(Nm depth)
 {
-  m_depth = depth;
+  // intentionally empty.
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ void ROIWidget::initialize(RenderView *view)
   m_actor->SetVisibility(false);
   m_actor->SetDragable(false);
 
-  repositionActor(m_actor, m_depth, m_index);
+  repositionActor(m_actor, view2D_cast(view)->widgetDepth(), m_index);
 
   updateCurrentSlice();
 

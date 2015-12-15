@@ -48,7 +48,7 @@ using namespace ESPINA::GUI::Widgets;
 DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model, QWidget *parent)
 : QWidget(parent)
 , m_viewState           (viewState)
-, m_categorySelector    {model}
+, m_categorySelector    {model, this}
 , m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"))}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}

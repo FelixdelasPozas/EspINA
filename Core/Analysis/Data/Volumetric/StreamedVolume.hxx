@@ -257,12 +257,14 @@ namespace ESPINA {
     auto reader = StreamReaderType<T>::New();
     reader->ReleaseDataFlagOn();
     reader->SetFileName(m_fileName.toStdString());
+    reader->SetNumberOfThreads(1);
     reader->UpdateOutputInformation();
 
     auto requestedRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
 
     auto extractor = StreamExtractType<T>::New();
     extractor->SetExtractionRegion(requestedRegion);
+    extractor->SetNumberOfThreads(1);
     extractor->SetInput(reader->GetOutput());
 
     try

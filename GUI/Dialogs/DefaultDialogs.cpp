@@ -236,8 +236,16 @@ QMessageBox::StandardButton DefaultDialogs::UserQuestion(const QString          
 
   dialog.setWindowTitle(title);
   dialog.setText(message);
-  dialog.setDetailedText(details);
+
+  if(!details.isEmpty())
+  {
+    dialog.setDetailedText(details);
+  }
+
   dialog.setStandardButtons(buttons);
+
+  if(buttons.testFlag(QMessageBox::Discard)) dialog.setButtonText(QMessageBox::Discard, QObject::tr("Discard"));
+
   dialog.setModal(true);
   dialog.setIcon(QMessageBox::Question);
 

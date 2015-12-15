@@ -55,8 +55,8 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      *
      */
-    explicit ModelFactory(CoreFactorySPtr factory      = CoreFactorySPtr(),
-                          SchedulerSPtr scheduler      = SchedulerSPtr());
+    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(),
+                          SchedulerSPtr scheduler = SchedulerSPtr());
 
     /** \brief ModelFactory class destructor.
      *
@@ -118,7 +118,7 @@ namespace ESPINA
     AnalysisSPtr read(AnalysisReaderSPtr reader,
                       const QFileInfo& file,
                       IO::ProgressReporter *reporter = nullptr,
-                      ErrorHandlerSPtr handler = ErrorHandlerSPtr())
+                      ErrorHandlerSPtr handler       = ErrorHandlerSPtr())
     { return reader->read(file, m_factory, reporter, handler); }
 
     /** \brief Creates and returns a new sample adapter.

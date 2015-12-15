@@ -880,8 +880,7 @@ namespace ESPINA
     auto origin  = this->m_bounds.origin();
     auto spacing = this->m_bounds.spacing();
 
-    return bounds.areValid()?toBlockIndexes(equivalentRegion<T>(origin, spacing, bounds))
-                             :BlockIndexes();
+    return bounds.areValid() ? toBlockIndexes(equivalentRegion<T>(origin, spacing, bounds)) : BlockIndexes();
   }
 
   //-----------------------------------------------------------------------------

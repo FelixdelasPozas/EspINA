@@ -56,7 +56,7 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
   QMutexLocker lock(&m_mutex);
 
   {
-    QReadLocker actorsLock(&m_actors->lock);
+    QMutexLocker actorsLock(&m_actors->lock);
 
     if(m_actors->actors.keys().contains(item))
     {
@@ -161,7 +161,7 @@ ViewItemAdapterList RepresentationUpdater::pick(const NmVector3 &point, vtkProp 
   }
   else
   {
-    QReadLocker actorsLock(&m_actors->lock);
+    QMutexLocker actorsLock(&m_actors->lock);
 
     for (auto item : m_actors->actors.keys())
     {
@@ -180,7 +180,7 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   QMutexLocker lock(&m_mutex);
 
-  QReadLocker actorsLock(&m_actors->lock);
+  QMutexLocker actorsLock(&m_actors->lock);
 
   return m_actors;
 }
@@ -202,7 +202,7 @@ void RepresentationUpdater::run()
   int i  = 0;
 
   {
-    QWriteLocker actorsLock(&m_actors->lock);
+    QMutexLocker actorsLock(&m_actors->lock);
 
     while (canExecute() && it != updateList.end())
     {
@@ -249,7 +249,7 @@ ViewItemAdapterPtr RepresentationUpdater::findActorItem(vtkProp *actor) const
 {
   ViewItemAdapterPtr item = nullptr;
 
-  QReadLocker lock(&m_actors->lock);
+  QMutexLocker lock(&m_actors->lock);
 
   auto it = m_actors->actors.begin();
   while (it != m_actors->actors.end() && !item)

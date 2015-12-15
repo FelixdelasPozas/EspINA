@@ -128,7 +128,7 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
   {
     auto poolActors = pool->actors(time);
 
-    QReadLocker lock(&poolActors->lock);
+    QMutexLocker lock(&poolActors->lock);
     for(auto it = poolActors->actors.begin(); it != poolActors->actors.end(); ++it)
     {
       actors->actors[it.key()] << it.value();

@@ -23,6 +23,7 @@
 #include <Core/Utils/vtkPolyDataUtils.h>
 #include <GUI/EventHandlers/ContourPainter.h>
 #include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
 #include <GUI/View/Widgets/Contour/ContourWidget2D.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
@@ -73,7 +74,7 @@ void ContourWidget2D::setPlane(Plane plane)
 //----------------------------------------------------------------------------
 void ContourWidget2D::setRepresentationDepth(Nm depth)
 {
-  m_widget->setActorsShift(depth);
+  // intentionally empty
 }
 
 //----------------------------------------------------------------------------
@@ -154,6 +155,7 @@ void ContourWidget2D::display(const GUI::Representations::FrameCSPtr &frame)
 void ContourWidget2D::initializeImplementation(RenderView* view)
 {
   setCrosshair(view->crosshair());
+  m_widget->setActorsShift(view2D_cast(view)->widgetDepth());
 }
 
 //----------------------------------------------------------------------------

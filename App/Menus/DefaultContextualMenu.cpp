@@ -50,6 +50,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
@@ -275,7 +276,14 @@ void DefaultContextualMenu::exportSelectedSegmentations()
   }
   else
   {
-    exportSegmentations<unsigned short>(getActiveChannel(), m_segmentations, file);
+    if(m_segmentations.size() < 65535)
+    {
+      exportSegmentations<unsigned short>(getActiveChannel(), m_segmentations, file);
+    }
+    else // short and int are not guaranteed to be different in size, don't even check and go for the next one.
+    {
+      exportSegmentations<unsigned long>(getActiveChannel(), m_segmentations, file);
+    }
   }
 }
 

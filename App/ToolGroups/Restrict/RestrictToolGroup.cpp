@@ -219,6 +219,9 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
   connect(m_orthogonalROI.get(), SIGNAL(roiDefined(ROISPtr)),
           this,                  SLOT(onOrthogonalROIDefined(ROISPtr)));
 
+  connect(m_orthogonalROI.get(), SIGNAL(roiModified(ROISPtr)),
+          this,                  SLOT(onOrthogonalROIModified(ROISPtr)));
+
   m_deleteROI->setEnabled(false);
 }
 
@@ -340,6 +343,8 @@ void RestrictToolGroup::onManualROIDefined(BinaryMaskSPtr<unsigned char> roi)
   undoStackPush(new DefineManualROICommand{roi, this});
 
   m_context.roiProvider()->setProvider(this);
+
+  emit roiChanged(currentROI());
 }
 
 //-----------------------------------------------------------------------------
@@ -349,6 +354,12 @@ void RestrictToolGroup::onOrthogonalROIDefined(ROISPtr roi)
 
   m_context.roiProvider()->setProvider(this);
 
+  emit roiChanged(roi);
+}
+
+//-----------------------------------------------------------------------------
+void RestrictToolGroup::onOrthogonalROIModified(ROISPtr roi)
+{
   emit roiChanged(roi);
 }
 

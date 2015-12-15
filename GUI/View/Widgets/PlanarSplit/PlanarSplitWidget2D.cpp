@@ -90,7 +90,6 @@ void PlanarSplitWidget2D::setPlane(Plane plane)
 //-----------------------------------------------------------------------------
 void PlanarSplitWidget2D::setRepresentationDepth(Nm depth)
 {
-  m_widget->setRepresentationDepth(depth);
 }
 
 //-----------------------------------------------------------------------------

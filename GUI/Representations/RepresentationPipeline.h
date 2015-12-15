@@ -29,7 +29,7 @@
 // Qt
 #include <QString>
 #include <QList>
-#include <QReadWriteLock>
+#include <QMutex>
 
 // C++
 #include <memory>
@@ -55,7 +55,7 @@ namespace ESPINA
       struct ActorsData
       {
           QMap<ViewItemAdapter*, ActorList> actors; /** map of item-item's actors. */
-          QReadWriteLock                    lock;   /** access lock.               */
+          QMutex                            lock;   /** access lock.               */
       };
 
       using Actors = std::shared_ptr<ActorsData>;

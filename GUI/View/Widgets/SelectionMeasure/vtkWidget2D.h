@@ -59,6 +59,18 @@ namespace ESPINA
 
             virtual void SetEnabled(int enabled);
 
+            /** \brief Sets the position of the actors over the slice position of the scene.
+             * \param[in] depth value in Nm.
+             *
+             */
+            void setRepresentationDepth(double depth);
+
+            /** \brief Sets the depth position in the plane direction of the representation.
+             * \param[in] slice value in Nm.
+             *
+             */
+            void setSlice(double slice);
+
             /** \brief Sets actors' bounds.
              * \param[in] bounds Bounds to pass to actor.
              *
@@ -104,6 +116,8 @@ namespace ESPINA
           private:
             Plane  m_plane;
             Bounds m_bounds;
+            double m_depth;
+            double m_slice;
 
             vtkSmartPointer<vtkAxisActor2D> m_up;
             vtkSmartPointer<vtkAxisActor2D> m_right;
