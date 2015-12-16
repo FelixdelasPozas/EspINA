@@ -73,8 +73,8 @@ namespace ESPINA
    * Image origin and spacing are key values to obtain the image region
    * equivalent to a given bounds.
    *
-   * DESIGN: how to proceed when bounds doesn't intersect with largest possible image region
-   *       - we coud either return an invalid region or throw an execption
+   * DESIGN: how to proceed when bounds doesn't intersect with largest possible image region,
+   *         we could either return an invalid region or throw an exception
    */
   template<typename T>
   typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
@@ -142,7 +142,7 @@ namespace ESPINA
       }
     }
 
-      return region;
+    return region;
   }
 
   /** \brief Return the image region equivalent to the bounds.

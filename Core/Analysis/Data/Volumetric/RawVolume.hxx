@@ -268,18 +268,25 @@ namespace ESPINA
 
     if(!m_image->GetLargestPossibleRegion().IsInside(region))
     {
-      qDebug() << "avoiding itk::exception";
-      region.Print(std::cout);
-      m_image->GetLargestPossibleRegion().Print(std::cout);
-      std::cout << std::flush;
-
       region.Crop(m_image->GetLargestPossibleRegion());
+      qWarning() << "RawVolume::itkImage(bounds) -> asked for a region partially outside the image region.\n";
     }
 
     auto extractor = itk::ExtractImageFilter<T,T>::New();
     extractor->SetInput(m_image);
     extractor->SetExtractionRegion(region);
-    extractor->Update();
+
+    try
+    {
+      extractor->Update();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
+      auto details = QObject::tr("RawVolume::itkImage(bounds) ->") + what;
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     return extractor->GetOutput();
   }

@@ -333,7 +333,6 @@ namespace ESPINA
     const_this->setEditedRegions(regions);
 
     this->m_mutex.unlock();
-    //const_cast<RasterizedVolume<T> *>(this)->draw(image);
   }
 
   //----------------------------------------------------------------------------

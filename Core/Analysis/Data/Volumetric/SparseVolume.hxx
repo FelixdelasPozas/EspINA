@@ -626,6 +626,7 @@ namespace ESPINA
 
          // clear voxels outside the new bounds
          auto validRegion = equivalentRegion<T>(block, blockIntersection);
+         Q_ASSERT(blockRegion.IsInside(validRegion));
          itk::ImageRegionExclusionIteratorWithIndex<T> iit(block, blockRegion);
          iit.SetExclusionRegion(validRegion);
          iit.GoToBegin();
@@ -849,8 +850,6 @@ namespace ESPINA
 
     auto index  = region.GetIndex();
     auto size   = region.GetSize();
-//     qDebug() << "Partitioning Region";
-//     region.Print(std::cout);
 
     for(int i = 0; i < 3; ++i)
     {
@@ -868,7 +867,6 @@ namespace ESPINA
         }
       }
     }
-    //qDebug() << result;
 
     return result;
   }

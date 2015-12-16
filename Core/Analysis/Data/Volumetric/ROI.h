@@ -230,6 +230,7 @@ namespace ESPINA
     if(imageBounds != bounds())
     {
       auto region = equivalentRegion<T>(volume, intersectionBounds);
+      Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(region));
       itk::ImageRegionExclusionIteratorWithIndex<T> it(volume, volume->GetLargestPossibleRegion());
       it.SetExclusionRegion(region);
       it.GoToBegin();
@@ -253,6 +254,7 @@ namespace ESPINA
       if(roiSpacing == volumeSpacing)
       {
         auto region = equivalentRegion<T>(volume, intersectionBounds);
+        Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(region));
         itk::ImageRegionIterator<T> rit(volume, region);
         rit.GoToBegin();
 

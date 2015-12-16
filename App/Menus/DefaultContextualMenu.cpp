@@ -217,11 +217,11 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
     // NOTE: some segmentations could have voxels outside the stack bounds
     //       (a dilated segmentation in the edge of the stack for example)
     //       so a crop is needed in that case.
-    if (!region.IsInside(volume->GetLargestPossibleRegion()))
+    auto imageRegion = volume->GetLargestPossibleRegion();
+    if (!region.IsInside(imageRegion))
     {
       croppedSegmentations << segmentation->data().toString();
 
-      auto imageRegion = volume->GetLargestPossibleRegion();
       imageRegion.Crop(region);
 
       auto cropFilter = ExtractFilter::New();
@@ -342,11 +342,6 @@ void DefaultContextualMenu::deleteSelectedSementations()
   undoStack->endMacro();
 
   emit deleteSegmentations();
-}
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::setSelection(SelectionSPtr selection)
-{
 }
 
 //------------------------------------------------------------------------

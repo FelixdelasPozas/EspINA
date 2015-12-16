@@ -72,8 +72,7 @@ namespace ESPINA
      * \param[in] spacing spacing of the volume.
      *
      */
-    BinaryMaskSPtr<unsigned char> rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
-
+    BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
   }
 }
 

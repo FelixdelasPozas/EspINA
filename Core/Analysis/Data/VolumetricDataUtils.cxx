@@ -48,6 +48,7 @@ namespace ESPINA
     if (!isEquivalent(vBounds, iBounds))
     {
       auto region = equivalentRegion<T>(volume, inputBounds);
+      Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(region));
       auto extractor = ExtractFilter::New();
       extractor->SetExtractionRegion(region);
       extractor->SetInput(volume);
@@ -58,10 +59,10 @@ namespace ESPINA
       }
       catch(const itk::ExceptionObject &e)
       {
-        qDebug() << "vtkImage(volume,bounds) -> exception catched: " << QString(e.what());
-        qDebug() << "input bounds" << inputBounds << "volume bounds" << vBounds;
-        region.Print(std::cerr);
-        std::abort();
+        auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
+        auto details = QObject::tr("vtkImage(image, bounds) ->") + what;
+
+        throw Core::Utils::EspinaException(what, details);
       }
 
       itkImage = extractor->GetOutput();
@@ -236,7 +237,13 @@ namespace ESPINA
   itk::ImageRegionIterator<T> itkImageIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
-    auto it     = itk::ImageRegionIterator<T>(image, region);
+    if(!image->GetLargestPossibleRegion().IsInside(region))
+    {
+      region.Crop(image->GetLargestPossibleRegion());
+      qWarning() << "itkImageRegionIterator<T>(image,bounds) -> asked for a region partially outside the image bounds!";
+    }
+
+    auto it = itk::ImageRegionIterator<T>(image, region);
 
     it.GoToBegin();
 
@@ -248,6 +255,12 @@ namespace ESPINA
   itk::ImageRegionIteratorWithIndex<T> itkImageIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
+    if(!image->GetLargestPossibleRegion().IsInside(region))
+    {
+      region.Crop(image->GetLargestPossibleRegion());
+      qWarning() << "itkImageRegionIteratorWithIndex<T>(image,bounds) -> asked for a region partially outside the image bounds!";
+    }
+
     auto it     = itk::ImageRegionIteratorWithIndex<T>(image, region);
 
     it.GoToBegin();
@@ -260,6 +273,12 @@ namespace ESPINA
   itk::ImageRegionConstIterator<T> itkImageConstIterator(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
+    if(!image->GetLargestPossibleRegion().IsInside(region))
+    {
+      region.Crop(image->GetLargestPossibleRegion());
+      qWarning() << "itkImageRegionConstIterator<T>(image,bounds) -> asked for a region partially outside the image bounds!";
+    }
+
     auto it     = itk::ImageRegionConstIterator<T>(image, region);
 
     it.GoToBegin();
@@ -272,6 +291,12 @@ namespace ESPINA
   itk::ImageRegionConstIteratorWithIndex<T> itkImageConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
   {
     auto region = equivalentRegion<T>(image, bounds);
+    if(!image->GetLargestPossibleRegion().IsInside(region))
+    {
+      region.Crop(image->GetLargestPossibleRegion());
+      qWarning() << "itkImageRegionConstIteratorWithIndex<T>(image,bounds) -> asked for a region partially outside the image bounds!";
+    }
+
     auto it     =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
     it.GoToBegin();

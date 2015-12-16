@@ -42,8 +42,8 @@
 #include <itkExtractImageFilter.h>
 #include <itkExceptionObject.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   template class VolumetricData<itk::Image<unsigned char, 3>>;
 
   /** \class StreamedVolume
@@ -260,7 +260,14 @@ namespace ESPINA {
     reader->SetNumberOfThreads(1);
     reader->UpdateOutputInformation();
 
+    auto imageRegion = reader->GetOutput()->GetLargestPossibleRegion();
     auto requestedRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
+
+    if(!imageRegion.IsInside(requestedRegion))
+    {
+      requestedRegion.Crop(imageRegion);
+      qWarning() << "StreamedVolume::itkImage(bounds) -> asked for a region partially outside the image region.\n";
+    }
 
     auto extractor = StreamExtractType<T>::New();
     extractor->SetExtractionRegion(requestedRegion);
@@ -273,11 +280,10 @@ namespace ESPINA {
     }
     catch(const itk::ExceptionObject &e)
     {
-      qDebug() << "catched exception from itk" << QString(e.what());
-      qDebug() << "requested region";
-      requestedRegion.Print(std::cerr);
-      qDebug() << "from bounds" << bounds << "image bounds" << this->bounds();
-      std::abort();
+      auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
+      auto details = QObject::tr("StreamedVolume::itkImage(bounds) ->") + what;
+
+      throw Core::Utils::EspinaException(what, details);
     }
 
     typename T::Pointer image = extractor->GetOutput();
