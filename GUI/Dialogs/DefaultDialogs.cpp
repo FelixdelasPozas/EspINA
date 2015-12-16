@@ -210,13 +210,17 @@ QString DefaultDialogs::DefaultTitle()
 }
 
 //------------------------------------------------------------------------
-void DefaultDialogs::InformationMessage(const QString& message, const QString& title, QWidget *parent)
+void DefaultDialogs::InformationMessage(const QString& message, const QString& title, const QString &details, QWidget *parent)
 {
   QMessageBox dialog(parent);
 
   dialog.setWindowTitle(title);
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok);
+  if(!details.isEmpty())
+  {
+    dialog.setDetailedText(details);
+  }
   dialog.setModal(true);
   dialog.setIcon(QMessageBox::Information);
 

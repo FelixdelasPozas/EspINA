@@ -30,6 +30,7 @@
 #include <Undo/RemoveSegmentations.h>
 #include <Support/Utils/TagUtils.h>
 
+// ITK
 #include <itkLabelObject.h>
 #include <itkLabelMap.h>
 #include <itkBinaryImageToLabelMapFilter.h>
@@ -186,29 +187,54 @@ void DefaultContextualMenu::renameSegmentation()
   }
 }
 
+//------------------------------------------------------------------------
 template<typename T>
 void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &segmentations, const QString &file)
 {
-  using Label      = itk::LabelObject<T, 3>;
-  using LabelMap   = itk::LabelMap<Label>;
-  using LabelImage = itk::Image<T, 3>;
-
-  using MergFilter = itk::MergeLabelMapFilter<LabelMap>;
+  using Label            = itk::LabelObject<T, 3>;
+  using LabelMap         = itk::LabelMap<Label>;
+  using LabelImage       = itk::Image<T, 3>;
+  using MergFilter       = itk::MergeLabelMapFilter<LabelMap>;
+  using ExtractFilter    = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
+  using Binary2Label     = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>;
+  using Label2LabelImage = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>;
 
   auto origin  = channel->position();
   auto spacing = channel->output()->spacing();
+  auto region  = equivalentRegion<LabelMap>(origin, spacing, channel->bounds());
 
   auto labelMap = LabelMap::New();
   labelMap->SetSpacing(ItkSpacing<LabelMap>(spacing));
-  labelMap->SetRegions(equivalentRegion<LabelMap>(origin, spacing, channel->bounds()));
+  labelMap->SetRegions(region);
   labelMap->Allocate();
 
   T i = 1;
+  QStringList croppedSegmentations;
   for (auto segmentation : segmentations)
   {
     auto volume = readLockVolume(segmentation->output())->itkImage();
 
-    auto segLabelMapFilter = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>::New();
+    // NOTE: some segmentations could have voxels outside the stack bounds
+    //       (a dilated segmentation in the edge of the stack for example)
+    //       so a crop is needed in that case.
+    if (!region.IsInside(volume->GetLargestPossibleRegion()))
+    {
+      croppedSegmentations << segmentation->data().toString();
+
+      auto imageRegion = volume->GetLargestPossibleRegion();
+      imageRegion.Crop(region);
+
+      auto cropFilter = ExtractFilter::New();
+      cropFilter->SetInput(volume);
+      cropFilter->SetReleaseDataFlag(1);
+      cropFilter->SetNumberOfThreads(1);
+      cropFilter->SetExtractionRegion(imageRegion);
+      cropFilter->Update();
+
+      volume = cropFilter->GetOutput();
+    }
+
+    auto segLabelMapFilter = Binary2Label::New();
     segLabelMapFilter->SetInput(volume);
     segLabelMapFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
     segLabelMapFilter->FullyConnectedOff();
@@ -220,7 +246,7 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
 
     // BinaryImageToLabelMapFilter create different labels for non connected components:
     // Merge disconnected components into first label object
-    for (unsigned int n = 1; n <segLabelMap->GetNumberOfLabelObjects(); ++n)
+    for (unsigned int n = 1; n < segLabelMap->GetNumberOfLabelObjects(); ++n)
     {
       auto part = segLabelMap->GetNthLabelObject(n);
       for (unsigned int l = 0; l < part->GetNumberOfLines(); ++l)
@@ -231,12 +257,13 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
     label->SetLabel(i++);
     labelMap->AddLabelObject(label);
   }
-  //qDebug() << "Total labels" << labelMap->GetNumberOfLabelObjects();
 
-  auto image = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>::New();
+  auto image = Label2LabelImage::New();
 
   image->SetInput(labelMap);
   image->SetNumberOfThreads(1);
+
+  auto title = QObject::tr("Export Segmentation%1 to a Binary Stack").arg(segmentations.size() > 1 ? "s" : "");
 
   try
   {
@@ -244,17 +271,34 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
 
     exportVolume<LabelImage>(image->GetOutput(), file);
   }
-  catch(itk::MemoryAllocationError &e)
+  catch (const itk::MemoryAllocationError &e)
   {
-    auto title = QObject::tr("Export Segmentation Binarization");
-    auto msg   = QObject::tr("Insufficient memory to export selected segmentations.");
+    auto msg = QObject::tr("Insufficient memory to export selected segmentations.");
 
     if (segmentations.size() >= 256)
     {
-      msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit labelmaps instead of 16 bit ones"));
+      msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit images instead of 16 bit ones"));
     }
 
     DefaultDialogs::InformationMessage(msg, title);
+  }
+  catch (const itk::ExceptionObject &e)
+  {
+    auto msg = QObject::tr("Error exporting: %1.").arg(QString(e.GetDescription()));
+
+    DefaultDialogs::InformationMessage(msg, title);
+  }
+
+  if(!croppedSegmentations.isEmpty())
+  {
+    auto msg = QObject::tr("Several segmentations needed to be cropped to fit stack bounds.");
+    auto details = QObject::tr("The following segmentations have voxels outside of the stack bounds and were cropped to fit:\n");
+    for(auto name: croppedSegmentations)
+    {
+      details += QString("\n- %1").arg(name);
+    }
+
+    DefaultDialogs::InformationMessage(msg, title, details);
   }
 }
 

@@ -38,44 +38,44 @@ namespace ESPINA
   class CheckTask
   : public Task
   {
-    Q_OBJECT
-  public:
-    /** \brief CheckTask class constructor.
-     * \param[in] scheduler smart pointer.
-     * \param[in] model adapter smart pointer containing the item.
-     *
-     */
-    explicit CheckTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-    : Task   {scheduler}
-    , m_model{model}
-    {
-      setHidden(true);
-    }
+      Q_OBJECT
+    public:
+      /** \brief CheckTask class constructor.
+       * \param[in] scheduler smart pointer.
+       * \param[in] model adapter smart pointer containing the item.
+       *
+       */
+      explicit CheckTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
+      : Task   {scheduler}
+      , m_model{model}
+      {
+        setHidden(true);
+      }
 
-    /** \brief CheckTask class virtual destructor.
-     *
-     */
-    virtual ~CheckTask()
-    {}
+      /** \brief CheckTask class virtual destructor.
+       *
+       */
+      virtual ~CheckTask()
+      {}
 
-  protected:
-    void reportIssue(NeuroItemAdapterSPtr item,
-                     const Extensions::Issue::Severity &severity,
-                     const QString &description,
-                     const QString &suggestion) const;
+    protected:
+      void reportIssue(NeuroItemAdapterSPtr item,
+                       const Extensions::Issue::Severity &severity,
+                       const QString &description,
+                       const QString &suggestion) const;
 
-    void reportIssue(NeuroItemAdapterPtr item, Extensions::IssueSPtr issue) const;
+      void reportIssue(NeuroItemAdapterPtr item, Extensions::IssueSPtr issue) const;
 
-    QString deleteHint(NeuroItemAdapterSPtr item) const;
+      QString deleteHint(NeuroItemAdapterSPtr item) const;
 
-  signals:
-    /** \brief Signal emitted when a issue has been found with the item being checked.
-     * \param[out] issue found
-     */
-    void issueFound(Extensions::IssueSPtr issue) const;
+    signals:
+      /** \brief Signal emitted when a issue has been found with the item being checked.
+       * \param[out] issue found
+       */
+      void issueFound(Extensions::IssueSPtr issue) const;
 
-  protected:
-    ModelAdapterSPtr m_model;
+    protected:
+      ModelAdapterSPtr m_model;
   };
 
   //------------------------------------------------------------------------

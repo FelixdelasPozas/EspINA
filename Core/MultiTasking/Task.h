@@ -43,14 +43,18 @@
 // C++
 #include <cstdint>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   enum class Priority: std::int8_t { VERY_LOW = 0, LOW = 1, NORMAL = 2, HIGH = 3, VERY_HIGH = 4 };
 
   class Task;
   using TaskPtr  = Task *;
   using TaskSPtr = std::shared_ptr<Task>;
 
+  /** \class Task
+   * \brief Espina threaded task base class.
+   *
+   */
   class EspinaCore_EXPORT Task
   : public QObject
   {

@@ -134,8 +134,9 @@ namespace ESPINA {
        *
        */
       static void InformationMessage(const QString &message,
-                                     const QString &title  = DefaultDialogs::DefaultTitle(),
-                                     QWidget       *parent = defaultParentWidget());
+                                     const QString &title   = DefaultDialogs::DefaultTitle(),
+                                     const QString &details = QString(),
+                                     QWidget       *parent  = defaultParentWidget());
 
 
       /** \brief Dialog to ask an answer from the user.

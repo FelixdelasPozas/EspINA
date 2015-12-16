@@ -462,10 +462,9 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
         message += QString("\n") + filename;
       }
 
-      DefaultDialogs::InformationMessage(message, tr("Error loading files"), this);
+      DefaultDialogs::InformationMessage(message, tr("Error loading files"));
     }
   }
-
 }
 
 //------------------------------------------------------------------------

@@ -54,7 +54,8 @@ namespace ESPINA
        */
       ~DefaultContextualMenu();
 
-      virtual void setSelection(GUI::View::SelectionSPtr selection) override;
+      virtual void setSelection(GUI::View::SelectionSPtr selection) override
+      {};
 
     private slots:
       /** \brief Adds/Modifies notes to the selected segmentations.
