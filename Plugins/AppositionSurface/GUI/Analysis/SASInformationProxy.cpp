@@ -45,74 +45,75 @@ bool isSASInformation(SegmentationExtension::InformationKey& key)
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
 {
-public:
-  SASInformationFetcher(SegmentationAdapterPtr segmentation,
-                        SegmentationAdapterPtr sas,
-                        const SegmentationExtension::InformationKeyList &keys,
-                        SchedulerSPtr scheduler)
-  : InformationProxy::InformationFetcher(segmentation, keys, scheduler)
-  , m_sas{sas}
-  {
-    auto id = Segmentation->data(Qt::DisplayRole).toString();
-    setDescription(tr("%1 information").arg(id));
-    setHidden(true);
-
-    m_keys.removeOne(NameKey());
-    m_keys.removeOne(CategoryKey());
-
-    bool ready = true;
-    for (auto key : m_keys)
+  public:
+    SASInformationFetcher(SegmentationAdapterPtr segmentation,
+                          SegmentationAdapterPtr sas,
+                          const SegmentationExtension::InformationKeyList &keys,
+                          SchedulerSPtr scheduler)
+    : InformationProxy::InformationFetcher(segmentation, keys, scheduler)
+    , m_sas{sas}
     {
-      if (m_sas && isSASInformation(key))
-        ready &= m_sas->isReady(key);
+      auto id = Segmentation->data(Qt::DisplayRole).toString();
+      setDescription(tr("%1 information").arg(id));
+      setHidden(true);
 
-      if (!ready) break;
+      m_keys.removeOne(NameKey());
+      m_keys.removeOne(CategoryKey());
+
+      bool ready = true;
+      for (auto key : m_keys)
+      {
+        if (m_sas && isSASInformation(key))
+        {
+          ready &= m_sas->isReady(key);
+        }
+
+        if (!ready) break;
+      }
+
+      setFinished(ready);
     }
 
-    setFinished(ready);
-  }
-
-protected:
-  virtual void run()
-  {
-    for (int i = 0; i < m_keys.size(); ++i)
+  protected:
+    virtual void run()
     {
-      if (!canExecute()) break;
-
-      auto key = m_keys[i];
-
-      if (key != NameKey() && key != CategoryKey())
+      for (int i = 0; i < m_keys.size(); ++i)
       {
-        if (isSASInformation(key))
+        if (!canExecute()) break;
+
+        auto key = m_keys[i];
+
+        if (key != NameKey() && key != CategoryKey())
         {
-          if (m_sas)
+          if (isSASInformation(key))
           {
-            updateInformation(m_sas, key);
+            if (m_sas)
+            {
+              updateInformation(m_sas, key);
+              if (!canExecute()) break;
+            }
+          }
+          else
+          {
+            updateInformation(Segmentation, key);
             if (!canExecute()) break;
           }
         }
-        else
-        {
-          updateInformation(Segmentation, key);
-          if (!canExecute()) break;
-        }
+
+        reportProgress((100.0*i)/m_keys.size());
       }
-
-      reportProgress((100.0*i)/m_keys.size());
     }
-  }
 
-  void updateInformation(SegmentationAdapterPtr segmentation, SegmentationExtension::InformationKey &key)
-  {
-    if(!segmentation->isReady(key))
+    void updateInformation(SegmentationAdapterPtr segmentation, SegmentationExtension::InformationKey &key)
     {
-      segmentation->information(key);
+      if(!segmentation->isReady(key))
+      {
+        segmentation->information(key);
+      }
     }
-  }
 
-private:
-  SegmentationAdapterPtr m_sas;
-
+  private:
+    SegmentationAdapterPtr m_sas;
 };
 
 //----------------------------------------------------------------------------
@@ -140,7 +141,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     {
       InformationFetcherSPtr task = m_pendingInformation[segmentation];
 
-      progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
+      progress = task->hasFinished() ? HIDE_PROGRESS : task->currentProgress();
     }
 
     return progress;
@@ -169,7 +170,6 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
     if (segmentation->hasInformation(key) || isSASInformation(key))
     {
-
       auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
 
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
@@ -185,18 +185,22 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
                   this,       SLOT(onTaskFininished()));
           //qDebug() << "Launching Task";
           Task::submit(task);
-        } else // we avoid overloading the scheduler
+        }
+        else // we avoid overloading the scheduler
         {
           return information(segmentation, sas, key);
         }
       }
-      else if (m_pendingInformation[segmentation]->hasFinished())
-      {
-        return information(segmentation, sas, key);
-      }
       else
       {
-        return "";
+        if (m_pendingInformation[segmentation]->hasFinished())
+        {
+          return information(segmentation, sas, key);
+        }
+        else
+        {
+          return tr("Computing...");
+        }
       }
     }
     else
@@ -227,7 +231,8 @@ QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
     {
       return tr("Unavailable SAS");
     }
-  } else
+  }
+  else
   {
     return segmentation->information(key);
   }

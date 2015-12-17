@@ -112,8 +112,7 @@ namespace ESPINA
     /** \brief Returns the tags.
      *
      */
-    QStringList tags() const
-    { return m_tags; }
+    QStringList tags() const;
 
   protected:
     virtual void onExtendedItemSet(SegmentationPtr item) override;

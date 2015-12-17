@@ -25,9 +25,8 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "SegmentationTags.h"
-
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Segmentation.h>
 
@@ -117,11 +116,11 @@ void SegmentationTags::removeTag(const QString &tag)
   if (m_tags.contains(tag))
   {
     m_tags.removeOne(tag);
+
+    removeFromAvailableTags(tag);
+
+    updateInfoCache(TAGS, state());
   }
-
-  removeFromAvailableTags(tag);
-
-  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
@@ -148,10 +147,7 @@ void SegmentationTags::addTagImplementation(const QString &tag)
 {
   if (!tag.isEmpty())
   {
-    if (!m_tags.contains(tag))
-    {
-      m_tags << tag.trimmed();
-    }
+    m_tags << tag.trimmed();
 
     addToAvailableTags(tag.trimmed());
   }
@@ -193,4 +189,10 @@ void SegmentationTags::removeFromAvailableTags(const QString& tag)
   {
     s_availableTags.remove(tag);
   }
+}
+
+//------------------------------------------------------------------------
+QStringList SegmentationTags::tags() const
+{
+  return m_tags;
 }

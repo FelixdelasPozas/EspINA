@@ -263,8 +263,10 @@ void SegmentationProperties::showTags()
   if (extensions->hasExtension(SegmentationTags::TYPE))
   {
     auto extension = retrieveExtension<SegmentationTags>(extensions);
+    auto tags      = extension->tags();
 
-    m_gui->tags->setText(extension->tags().join(", "));
+    tags.removeDuplicates();
+    m_gui->tags->setText(tags.join(", "));
   }
   else
   {

@@ -111,6 +111,7 @@ void SASTabularReport::createCategoryEntry(const QString& category)
 
     m_tabs->insertTab(i, entry, category);
   }
+
   updateExportStatus();
 }
 

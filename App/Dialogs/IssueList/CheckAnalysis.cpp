@@ -246,9 +246,10 @@ void CheckAnalysis::removePreviousIssues(ModelAdapterSPtr model)
     if(extensions->hasExtension(SegmentationTags::TYPE))
     {
       auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+
       for(auto tag: tagExtension->tags())
       {
-        for(auto issueTag: {Issue::CRITICAL_TAG, Issue::INFORMATION_TAG, Issue::CRITICAL_TAG, DUPLICATED_TAG})
+        for(auto issueTag: {Issue::CRITICAL_TAG, Issue::INFORMATION_TAG, Issue::WARNING_TAG, DUPLICATED_TAG})
         if(tag.compare(issueTag) == 0)
         {
           tagExtension->removeTag(tag);
