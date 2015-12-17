@@ -89,7 +89,7 @@ tar xzvf VTK-6.1.0
 cd VTK-6.1.0
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DModule_vtkInfovisBoost=ON -DModule_vtkInfovisBoostGraphAlgortihms=ON -DVTK_Group_Qt=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DModule_vtkInfovisBoost=ON -DModule_vtkInfovisBoostGraphAlgorithms=ON -DVTK_Group_Qt=ON ..
 # On debian (but some ubuntu doc indicates the same)
 # had to edit /usr/include/GL/glext.h
 # to include lines:
