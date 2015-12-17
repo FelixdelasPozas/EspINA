@@ -50,7 +50,6 @@ SASReportDialog::SASReportDialog(SegmentationAdapterList segmentations,
   setWindowIcon(QIcon(":/AppSurface.svg"));
 
   auto report = new SASTabularReport(context, this);
-  report->setModel(context.model());
   report->setFilter(segmentations);
 
   setLayout(new QVBoxLayout());

@@ -199,7 +199,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
         }
         else
         {
-          return tr("Computing...");
+          return "";
         }
       }
     }

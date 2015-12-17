@@ -202,10 +202,12 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
         {
           addSegmentationExtension(segmentation, extensionType, m_factory);
         }
+        else
+        {
+          auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
+          addSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+        }
       }
-/*
-      auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
-      addSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory); */
     }
   }
 
@@ -218,7 +220,7 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
   QStringList headerLabels;
   for (auto key : keys)
   {
-    auto label = isSASExtensions(key.extension())?AppositionSurfaceExtension::addSASPrefix(key.value()):key.value();
+    auto label = isSASExtensions(key.extension()) ? AppositionSurfaceExtension::addSASPrefix(key.value()) : key.value();
     headerLabels << label;
   }
 
