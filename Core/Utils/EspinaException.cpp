@@ -19,7 +19,11 @@
  
  */
 
+// ESPINA
 #include "EspinaException.h"
+
+// C++
+#include <iostream>
 
 using namespace ESPINA::Core::Utils;
 
@@ -28,6 +32,10 @@ EspinaException::EspinaException(const QString& what, const QString& info)
 : m_what{what}
 , m_info{info}
 {
+//  std::cerr << "ESPINA EXCEPTION" << std::endl;
+//  std::cerr << what.toStdString().c_str() << std::endl;
+//  std::cerr << info.toStdString().c_str() << std::endl;
+//  std::cerr << std::flush;
 }
 
 //-----------------------------------------------------------------------------

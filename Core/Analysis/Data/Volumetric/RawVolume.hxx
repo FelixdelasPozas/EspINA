@@ -40,7 +40,6 @@
 
 // ITK
 #include <itkImageRegionIterator.h>
-#include <itkExtractImageFilter.h>
 #include <itkMetaImageIO.h>
 #include <itkImageFileReader.h>
 
@@ -266,29 +265,7 @@ namespace ESPINA
 
     auto region = equivalentRegion<T>(m_image, expectedBounds.bounds());
 
-    if(!m_image->GetLargestPossibleRegion().IsInside(region))
-    {
-      region.Crop(m_image->GetLargestPossibleRegion());
-      qWarning() << "RawVolume::itkImage(bounds) -> asked for a region partially outside the image region.\n";
-    }
-
-    auto extractor = itk::ExtractImageFilter<T,T>::New();
-    extractor->SetInput(m_image);
-    extractor->SetExtractionRegion(region);
-
-    try
-    {
-      extractor->Update();
-    }
-    catch(const itk::ExceptionObject &e)
-    {
-      auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
-      auto details = QObject::tr("RawVolume::itkImage(bounds) ->") + what;
-
-      throw Core::Utils::EspinaException(what, details);
-    }
-
-    return extractor->GetOutput();
+    return extract_image<T>(m_image, region);
   }
 
   //-----------------------------------------------------------------------------
@@ -508,8 +485,7 @@ namespace ESPINA
     it.GoToBegin();
     while (!it.IsAtEnd())
     {
-      if(it.Get() != this->backgroundValue())
-        return false;
+      if(it.Get() != this->backgroundValue()) return false;
 
       ++it;
     }

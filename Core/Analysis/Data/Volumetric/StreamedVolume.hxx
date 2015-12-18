@@ -39,7 +39,6 @@
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkImageFileReader.h>
-#include <itkExtractImageFilter.h>
 #include <itkExceptionObject.h>
 
 namespace ESPINA
@@ -161,7 +160,6 @@ namespace ESPINA
   };
 
   template<typename T> using StreamReaderType  = itk::ImageFileReader<T>;
-  template<typename T> using StreamExtractType = itk::ExtractImageFilter<T, T>;
 
   //-----------------------------------------------------------------------------
   template<typename T>
@@ -269,29 +267,7 @@ namespace ESPINA
       qWarning() << "StreamedVolume::itkImage(bounds) -> asked for a region partially outside the image region.\n";
     }
 
-    auto extractor = StreamExtractType<T>::New();
-    extractor->SetExtractionRegion(requestedRegion);
-    extractor->SetNumberOfThreads(1);
-    extractor->SetInput(reader->GetOutput());
-
-    try
-    {
-      extractor->Update();
-    }
-    catch(const itk::ExceptionObject &e)
-    {
-      auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
-      auto details = QObject::tr("StreamedVolume::itkImage(bounds) ->") + what;
-
-      throw Core::Utils::EspinaException(what, details);
-    }
-
-    typename T::Pointer image = extractor->GetOutput();
-    image->DisconnectPipeline();
-
-    image->SetSpacing(ItkSpacing<T>(m_spacing));
-
-    return image;
+    return extract_image<T>(reader->GetOutput(), requestedRegion);
   }
 }
 

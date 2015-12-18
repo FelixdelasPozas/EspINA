@@ -195,7 +195,6 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
   using LabelMap         = itk::LabelMap<Label>;
   using LabelImage       = itk::Image<T, 3>;
   using MergFilter       = itk::MergeLabelMapFilter<LabelMap>;
-  using ExtractFilter    = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
   using Binary2Label     = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>;
   using Label2LabelImage = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>;
 
@@ -224,14 +223,7 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
 
       imageRegion.Crop(region);
 
-      auto cropFilter = ExtractFilter::New();
-      cropFilter->SetInput(volume);
-      cropFilter->SetReleaseDataFlag(1);
-      cropFilter->SetNumberOfThreads(1);
-      cropFilter->SetExtractionRegion(imageRegion);
-      cropFilter->Update();
-
-      volume = cropFilter->GetOutput();
+      volume = extract_image<itkVolumeType>(volume, imageRegion);
     }
 
     auto segLabelMapFilter = Binary2Label::New();

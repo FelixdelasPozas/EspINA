@@ -28,7 +28,6 @@
 
 // ITK
 #include <itkConstantPadImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkGradientImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkSignedMaurerDistanceMapImageFilter.h>
@@ -71,7 +70,6 @@ namespace ESPINA
 
     using itkVolumeIterator = itk::ImageRegionIterator<itkVolumeType>;
     using ItkToVtkFilterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-    using ExtractFilterType = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
     using PadFilterType = itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType>;
 
     using GridTransform = vtkSmartPointer<vtkGridTransform>;

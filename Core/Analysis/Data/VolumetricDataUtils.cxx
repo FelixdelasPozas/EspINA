@@ -30,70 +30,6 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds)
-  {
-    using itk2vtkImageFilter = itk::ImageToVTKImageFilter<T>;
-    using ExtractFilter = itk::ExtractImageFilter<T,T>;
-
-    typename T::Pointer itkImage;
-
-    auto spacing = volume->GetSpacing();
-    auto origin = volume->GetOrigin();
-    VolumeBounds iBounds(inputBounds, NmVector3{spacing[0], spacing[1], spacing[2]}, NmVector3{origin[0], origin[1], origin[2]});
-
-    auto vBounds = volumeBounds<T>(volume, volume->GetLargestPossibleRegion());
-    // check if the requested bounds are inside the volume bounds, else fail miserably
-    Q_ASSERT(contains(vBounds, iBounds));
-
-    if (!isEquivalent(vBounds, iBounds))
-    {
-      auto region = equivalentRegion<T>(volume, inputBounds);
-      Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(region));
-      auto extractor = ExtractFilter::New();
-      extractor->SetExtractionRegion(region);
-      extractor->SetInput(volume);
-
-      try
-      {
-        extractor->Update();
-      }
-      catch(const itk::ExceptionObject &e)
-      {
-        auto what = QObject::tr("itk exception during image extraction: %1").arg(QString(e.GetDescription()));
-        auto details = QObject::tr("vtkImage(image, bounds) ->") + what;
-
-        throw Core::Utils::EspinaException(what, details);
-      }
-
-      itkImage = extractor->GetOutput();
-    }
-    else
-    {
-      itkImage = volume;
-    }
-
-    itkImage->DisconnectPipeline();
-
-    auto transform = itk2vtkImageFilter::New();
-    transform->SetInput(itkImage);
-    transform->Update();
-
-    auto returnImage = vtkSmartPointer<vtkImageData>::New();
-    returnImage->DeepCopy(transform->GetOutput());
-    return returnImage;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(const Output::ReadLockData<VolumetricData<T>> &volume, const Bounds &bounds)
-  {
-    typename T::Pointer image = volume->itkImage(bounds);
-
-    return vtkImage<T>(image, bounds);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
   bool isSegmentationVoxel(const Output::ReadLockData<VolumetricData<T>> &volume, const NmVector3 &point)
   {
     Bounds bounds{point};
@@ -244,7 +180,6 @@ namespace ESPINA
     }
 
     auto it = itk::ImageRegionIterator<T>(image, region);
-
     it.GoToBegin();
 
     return it;
@@ -261,8 +196,7 @@ namespace ESPINA
       qWarning() << "itkImageRegionIteratorWithIndex<T>(image,bounds) -> asked for a region partially outside the image bounds!";
     }
 
-    auto it     = itk::ImageRegionIteratorWithIndex<T>(image, region);
-
+    auto it = itk::ImageRegionIteratorWithIndex<T>(image, region);
     it.GoToBegin();
 
     return it;
@@ -279,8 +213,7 @@ namespace ESPINA
       qWarning() << "itkImageRegionConstIterator<T>(image,bounds) -> asked for a region partially outside the image bounds!";
     }
 
-    auto it     = itk::ImageRegionConstIterator<T>(image, region);
-
+    auto it = itk::ImageRegionConstIterator<T>(image, region);
     it.GoToBegin();
 
     return it;
@@ -297,8 +230,7 @@ namespace ESPINA
       qWarning() << "itkImageRegionConstIteratorWithIndex<T>(image,bounds) -> asked for a region partially outside the image bounds!";
     }
 
-    auto it     =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
-
+    auto it =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
     it.GoToBegin();
 
     return it;
@@ -336,6 +268,114 @@ namespace ESPINA
     image->Update();
     //auto postBlockBounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
     //qDebug() << "Update image bounds" << preBlockBounds << "to"<< postBlockBounds;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename T::Pointer extract_image(typename T::Pointer const sourceImage, const typename T::RegionType &region)
+  {
+    auto sourceRegion = sourceImage->GetLargestPossibleRegion();
+    auto componentsNum = sourceImage->GetNumberOfComponentsPerPixel();
+
+    if(!sourceRegion.IsInside(region))
+    {
+      auto what = QObject::tr("Attempt to extract a region outside of the source image region.");
+      auto details = QObject::tr("extract_image(image, region) ->") + what;
+
+      throw Core::Utils::EspinaException(what, details);
+    }
+
+    typename T::Pointer image = T::New();
+    image->SetSpacing(sourceImage->GetSpacing());
+    image->SetOrigin(sourceImage->GetOrigin());
+    image->SetRegions(region);
+    image->SetNumberOfComponentsPerPixel(componentsNum);
+    image->SetReleaseDataFlag(false);
+    image->Allocate();
+
+    auto thisPointer = sourceImage->GetBufferPointer();
+    auto otherPointer = image->GetBufferPointer();
+
+    auto zJump     = sourceRegion.GetSize(0)*sourceRegion.GetSize(1)*componentsNum;
+    auto yJump     = sourceRegion.GetSize(0)*componentsNum;
+    auto zStart    = region.GetIndex(2);
+    auto zEnd      = zStart+region.GetSize(2);
+    auto yStart    = region.GetIndex(1);
+    auto yEnd      = yStart+region.GetSize(1);
+    auto copySize  = region.GetSize(0)*componentsNum;
+    auto copyStart = region.GetIndex(0)*componentsNum;
+
+    for(auto z = zStart; z < zEnd; ++z)
+    {
+      for(auto y = yStart; y < yEnd; ++y)
+      {
+        auto pointer = thisPointer + z*zJump + y*yJump + copyStart;
+        std::memcpy(otherPointer, pointer, copySize);
+        otherPointer += copySize;
+      }
+    }
+
+    return image;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename T::Pointer extract_image(typename T::Pointer const sourceImage, const VolumeBounds &bounds)
+  {
+    auto region = equivalentRegion<T>(sourceImage, bounds);
+
+    return extract_image<T>(sourceImage, region);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds)
+  {
+    using itk2vtkImageFilter = itk::ImageToVTKImageFilter<T>;
+
+    typename T::Pointer itkImage;
+
+    auto spacing = volume->GetSpacing();
+    auto origin = volume->GetOrigin();
+    VolumeBounds iBounds(inputBounds, NmVector3{spacing[0], spacing[1], spacing[2]}, NmVector3{origin[0], origin[1], origin[2]});
+
+    auto vBounds = volumeBounds<T>(volume, volume->GetLargestPossibleRegion());
+
+    if(!contains(vBounds, iBounds))
+    {
+      auto what    = QObject::tr("The extraction region %1 is not completely contained in image region %2").arg(iBounds.toString()).arg(vBounds.toString());
+      auto details = QObject::tr("vtkImage(image, bounds) ->") + what;
+
+      throw Core::Utils::EspinaException(what, details);
+    }
+
+    if (!isEquivalent(vBounds, iBounds))
+    {
+      itkImage = extract_image<T>(volume, iBounds);
+    }
+    else
+    {
+      itkImage = volume;
+      itkImage->DisconnectPipeline();
+    }
+
+    auto transform = itk2vtkImageFilter::New();
+    transform->SetNumberOfThreads(1);
+    transform->SetInput(itkImage);
+    transform->Update();
+
+    auto returnImage = vtkSmartPointer<vtkImageData>::New();
+    returnImage->DeepCopy(transform->GetOutput());
+    return returnImage;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  vtkSmartPointer<vtkImageData> vtkImage(const Output::ReadLockData<VolumetricData<T>> &volume, const Bounds &bounds)
+  {
+    typename T::Pointer image = volume->itkImage(bounds);
+
+    return vtkImage<T>(image, bounds);
   }
 
 } // namespace ESPINA
