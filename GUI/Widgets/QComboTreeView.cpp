@@ -27,8 +27,8 @@
 
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
-: QComboBox(parent)
-, m_usePressedIndex(false)
+: QComboBox        {parent}
+, m_usePressedIndex{false}
 {
   setMinimumWidth(160);
   setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -64,7 +64,10 @@ void QComboTreeView::setModel(QAbstractItemModel* model)
 
     setRootModelIndex(rootModelIndex());
 
-    setView(&m_treeView); // Brutal!
+    if(!QComboBox::view())
+    {
+      QComboBox::setView(&m_treeView);
+    }
   }
   else
   {
@@ -82,7 +85,7 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 
   if (count() > 0)
   {
-    setCurrentIndex(0);
+    QComboBox::setCurrentIndex(0);
     m_currentModelIndex = index.child(0,0);
     indexActivated();
   }
@@ -92,8 +95,7 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 {
   QComboBox::setRootModelIndex(index.parent());
-
-  setCurrentIndex(index.row());
+  QComboBox::setCurrentIndex(index.row());
 
   m_currentModelIndex = index;
 }

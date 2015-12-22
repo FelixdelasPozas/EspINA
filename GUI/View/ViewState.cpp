@@ -167,7 +167,7 @@ void ViewState::setScene(const NmVector3 &crosshair, const NmVector3 &resolution
   m_coordinateSystem->setBounds(bounds);
   m_coordinateSystem->setResolution(resolution);
 
-  auto frame = createFrame(m_crosshair);
+  auto frame = createFrame(m_crosshair, Frame::Reset);
 
   emitFrameChanged(frame);
 }
@@ -363,8 +363,8 @@ void ViewState::updateSelection(ViewItemAdapterSList items)
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::GUI::View::updateSceneState(const NmVector3 &crosshair,
-                                         ViewState &state,
+void ESPINA::GUI::View::updateSceneState(const NmVector3     &crosshair,
+                                         ViewState           &state,
                                          ViewItemAdapterSList viewItems)
 {
   Bounds    bounds{0, 1, 0, 1, 0, 1};

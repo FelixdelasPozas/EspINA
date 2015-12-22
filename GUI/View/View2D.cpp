@@ -1005,7 +1005,7 @@ void View2D::moveCamera(const NmVector3 &point)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::onSceneResolutionChanged(const NmVector3 &reslotuion)
+void View2D::onSceneResolutionChanged(const NmVector3 &resolution)
 {
   int sliceIndex = voxelSlice(slicingPosition(), m_plane);
 
