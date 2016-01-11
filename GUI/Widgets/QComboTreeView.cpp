@@ -40,6 +40,8 @@ QComboTreeView::QComboTreeView(QWidget* parent)
 
   connect(this, SIGNAL(currentIndexChanged(int)),
           this, SLOT(indexActivated()));
+
+  QComboBox::setView(&m_treeView);
 }
 
 //----------------------------------------------------------------------------
@@ -51,7 +53,7 @@ QComboTreeView::~QComboTreeView()
 //----------------------------------------------------------------------------
 void QComboTreeView::mousePressEvent(QMouseEvent* e)
 {
-  QComboBox::setRootModelIndex(m_rootModelIndex);
+  setRootModelIndex(m_rootModelIndex);
   QComboBox::mousePressEvent(e);
 }
 
@@ -63,11 +65,6 @@ void QComboTreeView::setModel(QAbstractItemModel* model)
     QComboBox::setModel(model);
 
     setRootModelIndex(rootModelIndex());
-
-    if(!QComboBox::view())
-    {
-      QComboBox::setView(&m_treeView);
-    }
   }
   else
   {
@@ -85,7 +82,7 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 
   if (count() > 0)
   {
-    QComboBox::setCurrentIndex(0);
+    setCurrentIndex(0);
     m_currentModelIndex = index.child(0,0);
     indexActivated();
   }
@@ -94,8 +91,8 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 //----------------------------------------------------------------------------
 void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 {
-  QComboBox::setRootModelIndex(index.parent());
-  QComboBox::setCurrentIndex(index.row());
+  setRootModelIndex(index.parent());
+  setCurrentIndex(index.row());
 
   m_currentModelIndex = index;
 }
