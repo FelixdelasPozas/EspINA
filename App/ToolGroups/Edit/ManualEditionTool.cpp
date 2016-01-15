@@ -33,7 +33,6 @@
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
 #include <Support/Settings/Settings.h>
-#include <Undo/AddSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 
 // Qt
@@ -160,8 +159,6 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
-  painter->setStrokeVisibility(false);
-
   auto volume        = readLockVolume(m_referenceItem->output());
   auto volumeBounds  = volume->bounds();
   auto strokePainter = painter->strokePainter();
@@ -174,6 +171,8 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
   auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
   m_validStroke = intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
+
+  painter->setStrokeVisibility(!m_validStroke);
 
   if (m_validStroke)
   {

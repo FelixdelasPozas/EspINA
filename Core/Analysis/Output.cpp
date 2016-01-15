@@ -31,6 +31,7 @@
 #include "DataProxy.h"
 #include "Analysis.h"
 #include "Segmentation.h"
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkMath.h>
@@ -307,9 +308,15 @@ void Output::update(const Data::Type &type)
       }
     }
 
-    Q_ASSERT(requestedData->isValid());
-
     m_mutex.unlock();
+
+    if(!requestedData->isValid())
+    {
+      auto message = tr("Invalid %1 data updating output from filter %2 (%3)").arg(type).arg(this->filter()->name()).arg(filter()->uuid().toString());
+      auto details = tr("Output::update() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
   }
 }
 

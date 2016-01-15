@@ -29,7 +29,6 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/AddRelationCommand.h>
-#include <Undo/AddSegmentations.h>
 
 // Qt
 #include <QApplication>

@@ -162,22 +162,6 @@ namespace ESPINA
   template<typename T>
   itk::ImageRegionIteratorWithIndex<T> itkImageRegionIteratorWithIndex(typename T::Pointer image, const Bounds &bounds);
 
-  /** \brief Helper method to return an itk image iterator for a given image and region.
-   * \param[in] image itk image pointer.
-   * \param[in] bounds region to iterate.
-   *
-   */
-  template<typename T>
-  itk::ImageRegionConstIterator<T> itkImageRegionConstIterator(typename T::Pointer image, const Bounds &bounds);
-
-  /** \brief Helper method to return an itk image iterator for a given image and region.
-   * \param[in] image itk image pointer.
-   * \param[in] bounds region to iterate.
-   *
-   */
-  template<typename T>
-  itk::ImageRegionConstIteratorWithIndex<T> itkImageRegionConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds);
-
   /** \brief Changes the spacing of the block updating its origin position
    * \param[in] image index
    * \param[in] spacing to be changed
@@ -194,6 +178,22 @@ namespace ESPINA
    */
   template<typename T>
   void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing, const NmVector3 &ratio);
+
+  /** \brief Extracts a subimage from the source image.
+   * \param[in] source source image.
+   * \param[in] bounds bounds of the subimage to extract from source.
+   */
+  template<typename T>
+  typename T::Pointer extract_image(typename T::Pointer const source, const VolumeBounds &bounds);
+
+  /** \brief Copies a sub-image from the source image to the destination image.
+   * \param[in] source source image.
+   * \param[in] destination destination image.
+   * \param[in] bounds bounds contained in both source and destination to copy.
+   *
+   */
+  template<typename T>
+  void copy_image(typename T::Pointer const source, typename T::Pointer destination, const Bounds &bounds);
 }
 
 #include "Core/Analysis/Data/VolumetricDataUtils.cxx"

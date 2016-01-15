@@ -204,40 +204,6 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  itk::ImageRegionConstIterator<T> itkImageConstIterator(typename T::Pointer image, const Bounds &bounds)
-  {
-    auto region = equivalentRegion<T>(image, bounds);
-    if(!image->GetLargestPossibleRegion().IsInside(region))
-    {
-      region.Crop(image->GetLargestPossibleRegion());
-      qWarning() << "itkImageRegionConstIterator<T>(image,bounds) -> asked for a region partially outside the image bounds!";
-    }
-
-    auto it = itk::ImageRegionConstIterator<T>(image, region);
-    it.GoToBegin();
-
-    return it;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  itk::ImageRegionConstIteratorWithIndex<T> itkImageConstIteratorWithIndex(typename T::Pointer image, const Bounds &bounds)
-  {
-    auto region = equivalentRegion<T>(image, bounds);
-    if(!image->GetLargestPossibleRegion().IsInside(region))
-    {
-      region.Crop(image->GetLargestPossibleRegion());
-      qWarning() << "itkImageRegionConstIteratorWithIndex<T>(image,bounds) -> asked for a region partially outside the image bounds!";
-    }
-
-    auto it =  itk::ImageRegionConstIteratorWithIndex<T>(image, region);
-    it.GoToBegin();
-
-    return it;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
   void changeSpacing(typename T::Pointer image, typename T::SpacingType &spacing)
   {
     auto imageSpacing = image->GetSpacing();
@@ -376,6 +342,46 @@ namespace ESPINA
     typename T::Pointer image = volume->itkImage(bounds);
 
     return vtkImage<T>(image, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void copy_image(typename T::Pointer const source, typename T::Pointer destination, const Bounds &bounds)
+  {
+    const auto sourcePointer = source->GetBufferPointer();
+    const auto sourceLargest = source->GetLargestPossibleRegion();
+    const auto sourceRegion  = equivalentRegion<T>(source, bounds);
+
+    const auto componentsNum = source->GetNumberOfComponentsPerPixel();
+    const auto copySize     = sourceRegion.GetSize(0)*componentsNum;
+
+    const auto sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*componentsNum;
+    const auto sourceYJump = sourceLargest.GetSize(0)*componentsNum;
+    const auto sZStart     = sourceRegion.GetIndex(2)-sourceLargest.GetIndex(2);
+    const auto sZEnd       = sZStart+sourceRegion.GetSize(2);
+    const auto sYStart     = sourceRegion.GetIndex(1)-sourceLargest.GetIndex(1);
+    const auto sYEnd       = sYStart+sourceRegion.GetSize(1);
+    const auto sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*componentsNum;
+
+    const auto destPointer   = destination->GetBufferPointer();
+    const auto destLargest   = destination->GetLargestPossibleRegion();;
+    const auto destRegion    = equivalentRegion<T>(destination, bounds);
+
+    const auto destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*componentsNum;
+    const auto destYJump = destLargest.GetSize(0)*componentsNum;
+    const auto dZStart   = destRegion.GetIndex(2)-destLargest.GetIndex(2);
+    const auto dYStart   = destRegion.GetIndex(1)-destLargest.GetIndex(1);
+    const auto dXStart   = (destRegion.GetIndex(0)-destLargest.GetIndex(0))*componentsNum;
+
+    for(int sZ = sZStart, dZ = dZStart; sZ < sZEnd; ++sZ, ++dZ)
+    {
+      for(int sY = sYStart, dY = dYStart; sY < sYEnd; ++sY, ++dY)
+      {
+        auto sPointer = sourcePointer + sZ*sourceZJump + sY*sourceYJump + sXStart;
+        auto dPointer = destPointer + dZ*destZJump + dY*destYJump + dXStart;
+        std::memcpy(dPointer, sPointer, copySize);
+      }
+    }
   }
 
 } // namespace ESPINA

@@ -17,18 +17,22 @@
  *
  */
 
+// ESPINA
 #include "StrokePainter.h"
-
 #include <GUI/View/RenderView.h>
 #include "GUI/View/View2D.h"
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
+// VTK
 #include <vtkLookupTable.h>
 #include <vtkImplicitFunction.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
+
+// C++
 #include <chrono>
+
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
@@ -40,7 +44,7 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
 : m_view   {view}
 , m_origin {origin}
 , m_spacing{spacing}
-, m_strokeValue(DrawingMode::PAINTING==mode?1:0)
+, m_strokeValue(DrawingMode::PAINTING == mode ? 1 : 0)
 {
   m_previewBounds = view->previewBounds(false);
 
@@ -103,7 +107,7 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
   // preview actor must be above others or it will be occluded
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[normalCoordinateIndex(view2d->plane())] += 2 * view2d->segmentationDepth();
+  pos[normalCoordinateIndex(view2d->plane())] += 1.25 * view2d->segmentationDepth();
   m_actor->SetPosition(pos);
 
   connect(brush, SIGNAL(strokeUpdated(Brush::Stroke)),
@@ -141,6 +145,7 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
 
     itk::ImageRegionIteratorWithIndex<itkVolumeType> it(tempImage, region);
     it.GoToBegin();
+
     while(!it.IsAtEnd())
     {
       auto index = it.GetIndex();

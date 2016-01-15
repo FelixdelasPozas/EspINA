@@ -20,6 +20,8 @@
 // ESPINA
 #include "BrushPainter.h"
 #include <GUI/View/View2D.h>
+
+// VTK
 #include <vtkImplicitFunction.h>
 
 using namespace ESPINA;
@@ -84,6 +86,7 @@ void BrushPainter::onStrokeStarted(RenderView *view)
   if (m_showStroke)
   {
     view->addActor(m_strokePainter->strokeActor());
+    view->refresh();
   }
 }
 

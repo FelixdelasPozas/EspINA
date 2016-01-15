@@ -385,7 +385,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
     auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
-    auto userResponse = DefaultDialogs::UserQuestion(message, buttons, windowTitle());
+    auto title   = windowTitle().split(QDir::separator()).last();
+    auto userResponse = DefaultDialogs::UserQuestion(message, buttons, title);
 
     switch(userResponse)
     {

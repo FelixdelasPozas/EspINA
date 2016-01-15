@@ -333,19 +333,10 @@ namespace ESPINA
     {
       if(!m_blocks.contains(index)) continue;
 
-      auto block       = m_blocks[index];
-      auto blockBounds = blockIntersection(block, expectedBounds);
+      auto block        = m_blocks[index];
+      auto commonBounds = blockIntersection(block, expectedBounds);
 
-      auto iit = itkImageIterator<T>(image, blockBounds);
-      auto bit = itkImageConstIterator<T>(block, blockBounds);
-
-      while(!iit.IsAtEnd())
-      {
-        iit.Set(bit.Value());
-
-        ++iit;
-        ++bit;
-      }
+      copy_image<itkVolumeType>(block, image, commonBounds);
     }
 
     m_blockMutex.unlock();
@@ -477,19 +468,10 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block       = m_blocks[index];
-      auto blockBounds = blockIntersection(block, editedBounds);
+      auto block        = m_blocks[index];
+      auto commonBounds = blockIntersection(block, editedBounds);
 
-      auto iit = itkImageConstIterator<T>(image, blockBounds);
-      auto bit = itkImageIterator<T>(block, blockBounds);
-
-      while(!iit.IsAtEnd())
-      {
-        bit.Set(iit.Value());
-
-        ++iit;
-        ++bit;
-      }
+      copy_image<itkVolumeType>(image, block, commonBounds);
 
       if(isEmpty(index))
       {
@@ -518,19 +500,10 @@ namespace ESPINA
         createBlock(index);
       }
 
-      auto block       = m_blocks[index];
-      auto blockBounds = blockIntersection(block, editedBounds);
+      auto block        = m_blocks[index];
+      auto commonBounds = blockIntersection(block, editedBounds);
 
-      auto iit = itkImageConstIterator<T>(image, blockBounds);
-      auto bit = itkImageIterator<T>(block, blockBounds);
-
-      while(!iit.IsAtEnd())
-      {
-        bit.Set(iit.Value());
-
-        ++iit;
-        ++bit;
-      }
+      copy_image<itkVolumeType>(image, block, commonBounds);
 
       if(isEmpty(index))
       {
