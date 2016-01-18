@@ -38,7 +38,7 @@ void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable
   }
   else
   {
-    m_flags &= !tag;
+    m_flags &= ~tag;
   }
 }
 

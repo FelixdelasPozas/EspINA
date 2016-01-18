@@ -303,7 +303,7 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
   }
   else
   {
-    m_flags &= !flag;
+    m_flags &= ~flag;
   }
 }
 
