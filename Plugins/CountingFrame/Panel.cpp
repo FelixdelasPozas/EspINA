@@ -269,8 +269,7 @@ Qt::ItemFlags CF::Panel::CFModel::flags(const QModelIndex& index) const
 const QString CF::Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
-CF::Panel::Panel(CountingFrameManager *manager,
-             Support::Context &context)
+CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
 : ESPINA::Panel(tr("Counting Frame Dock"), context)
 , m_manager  {manager}
 , m_context  (context)
@@ -942,7 +941,6 @@ void CF::Panel::exportCountingFrameDescriptionAsText(const QString &filename)
 //------------------------------------------------------------------------
 void CF::Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
 {
-
 }
 
 //------------------------------------------------------------------------

@@ -57,11 +57,12 @@ namespace ESPINA
                    Support::Context &context);
     virtual ~Panel();
 
-    virtual void reset(); // slot
-
     void deleteCountingFrame(CountingFrame *cf);
 
     void deleteCountingFrames();
+
+  public slots:
+    virtual void reset(); // slot
 
   private slots:
     void applyCategoryConstraint();

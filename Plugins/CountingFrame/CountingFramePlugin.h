@@ -61,12 +61,12 @@ class Panel;
       virtual void onAnalysisClosed();
 
     private:
-      CountingFrameManager         m_manager;
-      ModelAdapterSPtr             m_model;
-      SchedulerSPtr                m_scheduler;
-      QUndoStack                  *m_undoStack;
-      Panel                  *m_dockWidget;
-      Support::Context            *m_context;
+      CountingFrameManager m_manager;
+      ModelAdapterSPtr     m_model;
+      SchedulerSPtr        m_scheduler;
+      QUndoStack          *m_undoStack;
+      Panel               *m_dockWidget;
+      Support::Context    *m_context;
 
       CountingFrameColorEngineSPtr  m_colorEngine;
 

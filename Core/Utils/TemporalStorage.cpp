@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "TemporalStorage.h"
+#include "EspinaException.h"
 
 // C++
 #include <iostream>
@@ -30,6 +31,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 QList<TemporalStorage *> TemporalStorage::s_Storages;
 const QString SETTINGS_FILE = "Settings/SessionSettings.ini";
@@ -46,7 +48,7 @@ bool moveRecursively(const QString &sourceDir, const QString &destinationDir, bo
     return false;
   }
 
-  if(!destination.exists() && createDestination)
+  if(!destination.exists())
   {
     if(createDestination)
     {
@@ -70,8 +72,10 @@ bool moveRecursively(const QString &sourceDir, const QString &destinationDir, bo
       if (info.isDir())
       {
         auto subDir = to;
-        subDir.mkdir(info.baseName());
-        subDir.cd(info.baseName());
+        if (!subDir.mkdir(info.baseName()) || !subDir.cd(info.baseName()))
+        {
+          return false;
+        }
 
         result |= moveRecursively(info.absoluteFilePath(), subDir.absolutePath());
       }
@@ -138,12 +142,17 @@ TemporalStorage::TemporalStorage(const QDir* parent)
 
   auto tmpDir = m_baseStorageDir;
 
-  tmpDir.mkpath("espina");
-  tmpDir.cd("espina");
+  if(!tmpDir.mkpath("espina") || !tmpDir.cd("espina"))
+  {
+    qWarning() << "TemporalStorage(): can't create 'espina' path in:" << tmpDir.absolutePath();
+  }
 
   QString path = m_uuid.toString();
 
-  tmpDir.mkdir(path);
+  if (!tmpDir.mkdir(path))
+  {
+    qWarning() << "TemporalStorage(): can't create main storage path:" << path;
+  }
 
   m_storageDir = QDir{tmpDir.absoluteFilePath(path)};
 
@@ -194,17 +203,23 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
 {
   QFileInfo fileName(m_storageDir.absoluteFilePath(data.first));
 
-  m_storageDir.mkpath(fileName.absolutePath());
+  if(!m_storageDir.mkpath(fileName.absolutePath()))
+  {
+    qWarning() << "TemporalStorage::saveSnapshot() -> can't create path:" << fileName.absolutePath();
+  }
 
   QFile file(fileName.absoluteFilePath());
   if (!file.open(QIODevice::WriteOnly))
   {
-    qWarning() << "TemporalStorage: can't create file:" << fileName.absoluteFilePath();
+    qWarning() << "TemporalStorage::saveSnapshot() -> can't create file:" << fileName.absoluteFilePath();
     qWarning() << "Cause:" << file.errorString();
   }
   else
   {
-    file.write(data.second);
+    if(-1 == file.write(data.second))
+    {
+      qWarning() << "TemporalStorage::saveSnapshot() -> can't write data to file: " << file.fileName();
+    }
     file.flush();
     file.close();
   }
@@ -225,8 +240,8 @@ QByteArray TemporalStorage::snapshot(const QString& descriptor) const
   }
   else
   {
-    qWarning() << "TemporalStorage can't open:" << fileName;
-    qWarning() << "Cause:" << file.errorString();
+    qWarning() << "TemporalStorage::snapshot() -> can't open:" << fileName;
+    qWarning() << "TemporalStorage::snapshot() -> Cause:" << file.errorString();
   }
 
   return data;
@@ -282,38 +297,24 @@ bool TemporalStorage::move(const QString &path, bool createDir)
     return true;
   }
 
-  QDir newDir(path);
-  newDir.mkdir("espina");
-  newDir.cd("espina");
-  newDir.mkdir(m_uuid.toString());
-  newDir.cd(m_uuid.toString());
+  bool result = false;
 
-  auto result = moveRecursively(m_storageDir.absolutePath(), newDir.absolutePath(), createDir);
-  if(result)
+  QDir newDir(path);
+  if(!newDir.mkdir("espina") || !newDir.cd("espina") || !newDir.mkdir(m_uuid.toString()) || !newDir.cd(m_uuid.toString()))
   {
-    m_baseStorageDir = QDir(path);
-    m_storageDir = QDir(newDir.absolutePath());
+    qWarning() << "TemporalStorage::move() -> can't create 'espina' path in:" << newDir.absolutePath();
+  }
+  else
+  {
+    result = moveRecursively(m_storageDir.absolutePath(), newDir.absolutePath(), createDir);
+    if(result)
+    {
+      m_baseStorageDir = QDir(path);
+      m_storageDir = QDir(newDir.absolutePath());
+    }
   }
 
   return result;
-}
-
-//----------------------------------------------------------------------------
-bool ESPINA::removeTemporalDirectory(const QDir &path)
-{
-  QFileInfo info{path.absolutePath()};
-  if(!info.isDir() || !info.isWritable())
-  {
-    return false;
-  }
-
-  auto directory = path;
-  if (!directory.cd("espina"))
-  {
-    return false;
-  }
-
-  return removeRecursively(directory.absolutePath());
 }
 
 //----------------------------------------------------------------------------
@@ -323,8 +324,34 @@ std::shared_ptr<QSettings> TemporalStorage::sessionSettings()
 }
 
 //----------------------------------------------------------------------------
+void TemporalStorage::makePath(const QString& path)
+{
+  if(!m_storageDir.mkpath(path))
+  {
+    auto message = QObject::tr("Couldn't create path '%1'.").arg(path);
+    auto details = QObject::tr("TemporalStorage::makePath() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+}
+
+//----------------------------------------------------------------------------
 void TemporalStorage::syncSessionSettings()
 {
   auto settings = sessionSettings();
   settings->sync();
+}
+
+//----------------------------------------------------------------------------
+bool ESPINA::removeTemporalDirectory(const QDir &path)
+{
+  QFileInfo info{path.absolutePath()};
+  auto directory = path;
+
+  if(!info.isDir() || !info.isWritable() || !directory.cd("espina"))
+  {
+    return false;
+  }
+
+  return removeRecursively(directory.absolutePath());
 }

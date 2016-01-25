@@ -29,7 +29,6 @@
 #include <vtkImageData.h>
 
 // Qt
-#include <QDebug>
 #include <QPainter>
 #include <QTextStream>
 #include <QUuid>

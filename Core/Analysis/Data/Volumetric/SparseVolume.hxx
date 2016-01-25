@@ -67,159 +67,155 @@ namespace ESPINA
   class EspinaCore_EXPORT SparseVolume
   : public VolumetricData<T>
   {
-    using BlockMask     = BinaryMask<unsigned char>;
-    using BlockMaskPtr  = BlockMask*;
-    using BlockMaskSPtr = std::shared_ptr<BlockMask>;
+    public:
+      /** \brief SparseVolume class constructor
+       * \param[in] bounds bounds of the empty volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
+       *
+       */
+      explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
-  public:
-    /** \brief SparseVolume class constructor
-     * \param[in] bounds bounds of the empty volume.
-     * \param[in] spacing spacing of the volume.
-     * \param[in] origin origin of the volume.
-     *
-     */
-    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
+      explicit SparseVolume(const VolumeBounds& bounds);
 
-    explicit SparseVolume(const VolumeBounds& bounds);
+      /** \brief SparseVolume class constructor
+       * \param[in] volume initial content of the sparse volume.
+       * \param[in] bounds bounds of the empty volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
+       *
+       */
+      explicit SparseVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
-    /** \brief SparseVolume class constructor
-     * \param[in] volume initial content of the sparse volume.
-     * \param[in] bounds bounds of the empty volume.
-     * \param[in] spacing spacing of the volume.
-     * \param[in] origin origin of the volume.
-     *
-     */
-    explicit SparseVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
+      /** \brief SparseVolume class virtual destructor.
+       *
+       */
+      virtual ~SparseVolume()
+      {}
 
-    /** \brief SparseVolume class virtual destructor.
-     *
-     */
-    virtual ~SparseVolume()
-    {}
+      /** \brief Returns the memory usage in bytes of the volume.
+       *
+       */
+      virtual size_t memoryUsage() const override;
 
-    /** \brief Returns the memory usage in bytes of the volume.
-     *
-     */
-    virtual size_t memoryUsage() const override;
+      virtual void setOrigin(const NmVector3& origin) override;
 
-    virtual void setOrigin(const NmVector3& origin) override;
+      virtual void setSpacing(const NmVector3& spacing) override;
 
-    virtual void setSpacing(const NmVector3& spacing) override;
+      virtual const typename T::Pointer itkImage() const override;
 
-    virtual const typename T::Pointer itkImage() const override;
+      virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
+      virtual void draw(vtkImplicitFunction        *brush,
+                        const Bounds&               bounds,
+                        const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    virtual void draw(vtkImplicitFunction        *brush,
-                      const Bounds&               bounds,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+      virtual void draw(const typename T::Pointer image)                    override;
 
-    virtual void draw(const typename T::Pointer image)                    override;
+      virtual void draw(const typename T::Pointer image,
+                        const Bounds&             bounds)                    override;
 
-    virtual void draw(const typename T::Pointer image,
-                      const Bounds&             bounds)                    override;
+      virtual void draw(const typename T::IndexType &index,
+                        const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    virtual void draw(const typename T::IndexType &index,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+      virtual void draw(const Bounds               &bounds,
+                        const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    virtual void draw(const Bounds               &bounds,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
-
-    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+      virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                        const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
 
-    virtual void resize(const Bounds &bounds) override;
+      virtual void resize(const Bounds &bounds) override;
 
-    virtual bool isValid() const override;
+      virtual bool isValid() const override;
 
-    virtual bool isEmpty() const override;
+      virtual bool isEmpty() const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
-  protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
-  private:
-    using BlockIndexes = QList<liVector3>;
+    private:
+      using BlockIndexes = QList<liVector3>;
 
-    QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
-    { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
+      QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
+      { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
 
-    /** \brief Returns the list of block indexes that comprises (total or partially)
-     * the region passed as the argument.
-     * \param[in] bounds bounds.
-     *
-     */
-    BlockIndexes toBlockIndexes(const itk::ImageRegion<3> &region) const;
+      /** \brief Returns the list of block indexes that comprises (total or partially)
+       * the region passed as the argument.
+       * \param[in] bounds bounds.
+       *
+       */
+      BlockIndexes toBlockIndexes(const itk::ImageRegion<3> &region) const;
 
-    /** \brief Returns the list of block indexes that comprises (total or partially)
-     * the bounds passed as the argument.
-     * \param[in] bounds bounds.
-     *
-     */
-    BlockIndexes toBlockIndexes(const Bounds &bounds) const;
+      /** \brief Returns the list of block indexes that comprises (total or partially)
+       * the bounds passed as the argument.
+       * \param[in] bounds bounds.
+       *
+       */
+      BlockIndexes toBlockIndexes(const Bounds &bounds) const;
 
-    /** \brief Update the sparse volume time stamp and edited regions and return the affected block indexes
-     *
-     */
-    Bounds editRegion(const ESPINA::VolumeBounds &bounds);
+      /** \brief Update the sparse volume time stamp and edited regions and return the affected block indexes
+       *
+       */
+      Bounds editRegion(const ESPINA::VolumeBounds &bounds);
 
-    /** \brief Creates a block for the given index
-     * \param[in] index block index.
-     *
-     */
-    void createBlock(const liVector3 &index);
+      /** \brief Creates a block for the given index
+       * \param[in] index block index.
+       *
+       */
+      void createBlock(const liVector3 &index);
 
-    /** \brief Returns true if the block associated with the given index is empty.
-     * \param[in] index block index.
-     *
-     */
-    bool isEmpty(const liVector3 &index) const;
+      /** \brief Returns true if the block associated with the given index is empty.
+       * \param[in] index block index.
+       *
+       */
+      bool isEmpty(const liVector3 &index) const;
 
-    /** \brief Returns an iterator to iterate all pixels of block containted in bounds
-     * \param[in] block index
-     * \param[in] bounds to iterate its voxels
-     *
-     */
-    Bounds blockIntersection(typename T::Pointer block, const Bounds &bounds) const;
+      /** \brief Returns an iterator to iterate all pixels of block containted in bounds
+       * \param[in] block index
+       * \param[in] bounds to iterate its voxels
+       *
+       */
+      Bounds blockIntersection(typename T::Pointer block, const Bounds &bounds) const;
 
-    /** \brief Helper method to assist fetching data from disk.
-     *
-     */
-    QString singleBlockPath(const QString &id) const
-    { return QString("%1_%2.mhd").arg(id).arg(this->type()); }
+      /** \brief Helper method to assist fetching data from disk.
+       *
+       */
+      QString singleBlockPath(const QString &id) const
+      { return QString("%1_%2.mhd").arg(id).arg(this->type()); }
 
-    /** \brief Helper method to assist fetching data from disk.
-     *
-     */
-    QString multiBlockPath(const QString &id, int part) const
-    { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
+      /** \brief Helper method to assist fetching data from disk.
+       *
+       */
+      QString multiBlockPath(const QString &id, int part) const
+      { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
 
-    /** \brief Helper method to assist fetching data from disk.
-     *
-     */
-    QString oldSingleBlockPath(const QString &id) const
-    { return QString("%1_%2.mhd").arg(this->type()).arg(id); }
+      /** \brief Helper method to assist fetching data from disk.
+       *
+       */
+      QString oldSingleBlockPath(const QString &id) const
+      { return QString("%1_%2.mhd").arg(this->type()).arg(id); }
 
-    /** \brief Helper method to assist fetching data from disk.
-     *
-     */
-    QString oldMultiBlockPath(const QString &id, int part) const
-    { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
+      /** \brief Helper method to assist fetching data from disk.
+       *
+       */
+      QString oldMultiBlockPath(const QString &id, int part) const
+      { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
 
-    virtual QList<Data::Type> updateDependencies() const override
-    { return QList<Data::Type>(); }
+      virtual QList<Data::Type> updateDependencies() const override
+      { return QList<Data::Type>(); }
 
-  protected:
-    const unsigned int s_blockSize = 25;
-    QMap<liVector3, typename T::Pointer> m_blocks;
+    protected:
+      const unsigned int s_blockSize = 25;
+      QMap<liVector3, typename T::Pointer> m_blocks;
 
-    mutable QReadWriteLock m_blockMutex;
+      mutable QReadWriteLock m_blockMutex;
   };
 
   //-----------------------------------------------------------------------------
@@ -627,6 +623,8 @@ namespace ESPINA
   bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   {
     QWriteLocker lock(&m_blockMutex);
+
+    if(!m_blocks.empty()) return true; // test
 
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 

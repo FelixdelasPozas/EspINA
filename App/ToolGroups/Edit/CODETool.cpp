@@ -103,9 +103,7 @@ void CODEToolBase::onApplyClicked()
     auto filter = createFilter(inputs, m_type);
 
     filter->setRadius(m_radius->value());
-    filter->setDescription(tr("%1 %2").arg(m_name)
-    .arg(segmentation->data(Qt::DisplayRole)
-    .toString()));
+    filter->setDescription(tr("%1 %2").arg(m_name).arg(segmentation->data(Qt::DisplayRole).toString()));
 
     TaskContext task;
 

@@ -281,16 +281,18 @@ void Output::update(const Data::Type &type)
 {
   auto requestedData = data<Data>(type);
 
+  m_mutex.lock();
+
   if (!requestedData->isValid())
   {
-    m_mutex.lock();
-
     if (!requestedData->fetchData())
     {
       auto dependencies = requestedData->dependencies();
 
       if(!dependencies.empty())
       {
+        // TODO: this can make another thread to enter and request an
+        // update to the same data. FIX.
         m_mutex.unlock();
 
         for (auto dependencyType : dependencies)
@@ -308,16 +310,18 @@ void Output::update(const Data::Type &type)
       }
     }
 
-    m_mutex.unlock();
-
     if(!requestedData->isValid())
     {
+      m_mutex.unlock();
+
       auto message = tr("Invalid %1 data updating output from filter %2 (%3)").arg(type).arg(this->filter()->name()).arg(filter()->uuid().toString());
       auto details = tr("Output::update() -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
     }
   }
+
+  m_mutex.unlock();
 }
 
 //----------------------------------------------------------------------------

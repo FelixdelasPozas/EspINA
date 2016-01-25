@@ -31,7 +31,6 @@
 
 // Qt
 #include <QApplication>
-#include <QDebug>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -215,7 +214,6 @@ void MorphologicalInformation::updateInformation() const
   }
 
   vtkSmartPointer<vtkPolyData> mesh = nullptr;
-
   {
     auto data = readLockMesh(m_extendedItem->output());
     mesh = data->mesh();

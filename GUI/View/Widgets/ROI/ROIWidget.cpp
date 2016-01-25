@@ -27,7 +27,6 @@
 
 // VTK
 #include <vtkImageCanvasSource2D.h>
-#include <vtkLookupTable.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformTextureCoords.h>

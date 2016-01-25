@@ -210,6 +210,7 @@ void SplitTool::applyCurrentState()
   inputs << selectedSeg->asInput();
 
   auto filter = getFactory()->createFilter<SplitFilter>(inputs, SplitFilterFactory::SPLIT_FILTER);
+  filter->setDescription(tr("Split %1").arg(selectedSeg->data(Qt::DisplayRole).toString()));
 
   showTaskProgress(filter);
 
@@ -223,7 +224,7 @@ void SplitTool::applyCurrentState()
   m_executingTasks.insert(filter.get(), data);
 
   connect(filter.get(), SIGNAL(finished()),
-          this,        SLOT(createSegmentations()));
+          this,         SLOT(createSegmentations()));
 
   Task::submit(filter);
 }

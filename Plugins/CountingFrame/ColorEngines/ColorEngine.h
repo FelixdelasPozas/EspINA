@@ -33,7 +33,6 @@ namespace ESPINA
 {
   namespace CF
   {
-
     class CountingFramePlugin_EXPORT ColorEngine
     : public GUI::ColorEngines::ColorEngine
     {

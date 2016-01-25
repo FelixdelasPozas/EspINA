@@ -47,7 +47,7 @@ MarchingCubesMesh::~MarchingCubesMesh()
 //----------------------------------------------------------------------------
 bool MarchingCubesMesh::isValid() const
 {
-  return RawMesh::isValid() || this->m_output->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return RawMesh::isValid() || m_output->hasData(VolumetricData<itkVolumeType>::TYPE);
 }
 
 //----------------------------------------------------------------------------
@@ -83,7 +83,10 @@ void MarchingCubesMesh::updateMesh()
     return;
   }
 
-  if(m_lastVolumeModification == volume->lastModified()) return;
+  if(m_lastVolumeModification == volume->lastModified())
+  {
+    return;
+  }
 
   auto image = vtkImage(volume, volume->bounds());
 

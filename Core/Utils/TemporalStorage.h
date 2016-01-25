@@ -87,8 +87,7 @@ namespace ESPINA
      *
      *  It is safe to call this method even if the path already exits
      */
-    void makePath(const QString& path)
-    { m_storageDir.mkpath(path); }
+    void makePath(const QString& path);
 
     /** \brief Returns the absolute file path of the specified path in the storage.
      * \param[in] path, path relative to storage parent directory.

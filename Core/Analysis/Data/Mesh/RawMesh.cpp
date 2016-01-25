@@ -79,9 +79,9 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
     BoundsList editedRegions;
     editedRegions << bounds();
     setEditedRegions(editedRegions);
-  }
 
-  updateModificationTime();
+    updateModificationTime();
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -39,9 +39,7 @@ namespace ESPINA
 
   public slots:
     virtual void invalidate()
-    {
-      Extension<Channel>::invalidate();
-    }
+    { Extension<Channel>::invalidate(); }
 
   protected:
     /** \brief ChannelExtension class constructor.
@@ -73,9 +71,7 @@ namespace ESPINA
 
   public slots:
     virtual void invalidate()
-    {
-      Extension<Segmentation>::invalidate();
-    }
+    { Extension<Segmentation>::invalidate(); }
 
   protected:
   /** \brief SegmentationExtension class constructor.
