@@ -54,11 +54,22 @@ namespace ESPINA
     virtual ~Panel()
     {}
 
+    /** \brief Helper method to create a button with the specified icon and tooltip with
+     * the characteristics of a dock button.
+     * \param[in] icon button icon.
+     * \param[in] tooltip button tooltip.
+     *
+     */
     static QPushButton *createDockButton(const QString &icon, const QString &tooltip);
 
     virtual void showEvent(QShowEvent *event);
 
     virtual void hideEvent(QHideEvent *event);
+
+    /** \brief Aborts the current operation of the panel (must reset any panel tool to initial state).
+     *
+     */
+    virtual void abortOperation() {};
 
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.

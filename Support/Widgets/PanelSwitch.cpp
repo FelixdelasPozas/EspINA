@@ -67,5 +67,5 @@ void PanelSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 //----------------------------------------------------------------------------
 void PanelSwitch::abortOperation()
 {
-  m_dock->reset();
+  m_dock->abortOperation();
 }
