@@ -28,26 +28,26 @@
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
 : QComboBox        {parent}
+, m_treeView       {new QTreeView{this}}
 , m_usePressedIndex{false}
 {
   setMinimumWidth(160);
   setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-  m_treeView.setHeaderHidden(true);
+  m_treeView->setHeaderHidden(true);
 
-  connect(&m_treeView, SIGNAL(entered(QModelIndex)),
-          this, SLOT(indexEntered(QModelIndex)));
+  connect(m_treeView, SIGNAL(entered(QModelIndex)),
+          this,       SLOT(indexEntered(QModelIndex)));
 
   connect(this, SIGNAL(currentIndexChanged(int)),
           this, SLOT(indexActivated()));
 
-  QComboBox::setView(&m_treeView);
+  QComboBox::setView(m_treeView);
 }
 
 //----------------------------------------------------------------------------
 QComboTreeView::~QComboTreeView()
 {
-  clear();
 }
 
 //----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 //----------------------------------------------------------------------------
 void QComboTreeView::showPopup()
 {
-  m_treeView.expandAll();
+  m_treeView->expandAll();
   adjustSize();
   QComboBox::showPopup();
 }
@@ -126,5 +126,4 @@ void QComboTreeView::indexActivated()
   {
     emit activated(m_currentModelIndex);
   }
-
 }

@@ -30,7 +30,7 @@
 class QTreeView;
 
 /** \class QComboTreeView
- * \brief Combobox showwing the nodes of a tree.
+ * \brief Combobox showing the nodes of a tree.
  *
  */
 class EspinaGUI_EXPORT QComboTreeView
@@ -88,7 +88,7 @@ class EspinaGUI_EXPORT QComboTreeView
   private:
     QModelIndex m_rootModelIndex;
     QModelIndex m_currentModelIndex;
-    QTreeView   m_treeView;
+    QTreeView  *m_treeView;
 
     bool m_usePressedIndex;
 };
