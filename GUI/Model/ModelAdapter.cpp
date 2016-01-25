@@ -1741,7 +1741,12 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::removeSegmentationCommand(Segmentat
 //------------------------------------------------------------------------
 ItemAdapterPtr ESPINA::itemAdapter(const QModelIndex& index)
 {
-  return static_cast<ItemAdapterPtr>(index.internalPointer());
+  if(index.internalPointer() != nullptr)
+  {
+    return static_cast<ItemAdapterPtr>(index.internalPointer());
+  }
+
+  return nullptr;
 }
 
 //------------------------------------------------------------------------

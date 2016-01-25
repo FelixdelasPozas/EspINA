@@ -518,7 +518,10 @@ void StackExplorer::updateChannelRepresentations(QModelIndex index)
 {
   auto item = itemAdapter(m_sort->mapToSource(index));
 
-  getViewState().invalidateRepresentations(toViewItemList(item));
+  if(item)
+  {
+    getViewState().invalidateRepresentations(toViewItemList(item));
+  }
 }
 
 //------------------------------------------------------------------------
