@@ -26,15 +26,6 @@ sudo apt-get -y install cmake
 ```sh
 sudo apt-get -y install cmake-curses-gui
 ```
-### Or download latest version of cmake
-```sh
-sudo apt-get -y install software-properties-common
-read
-sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
-sudo apt-get -y update
-sudo apt-get -y install cmake
-#sudo apt-get -y upgrade
-```
 ### rest of dependencies (bundle)
 ```sh
 sudo apt-get -y install g++ gcc autoconf automake cmake-curses-gui libqt4-dev zlib1g-dev freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev libboost-regex-dev #g++-4.4
@@ -59,7 +50,7 @@ cd ../..
 ```
 
 #-> Compile quazip
-#Ubuntu dependencies: libqt4-dev / zlib1g-dev
+#Ubuntu dependencies (included in bundle): libqt4-dev / zlib1g-dev
 ```sh
 sudo apt-get -y install libqt4-dev zlib1g-dev
 ```
@@ -78,7 +69,7 @@ cd ../..
 ```
 
 #-> Compile VTK 6
-###Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
+###Ubuntu dependencies (included in bundle): freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
 ```sh
 sudo apt-get -y install freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev
 ```
@@ -102,7 +93,7 @@ cd ../..
 ```
 
 #-> Compile ITK 4.4.2
-###Ubuntu dependencies: freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
+###Ubuntu dependencies (included in bundle): freeglut3-dev / libxt-dev / libqtwebkit-dev / libqt4-opengl-dev / libboost-graph-dev
 ```sh
 sudo apt-get -y install freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev
 ```
@@ -114,8 +105,8 @@ tar xzvf InsightToolkit-4.4.2.tar.gz
 cd InsightToolkit-4.4.2
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DModule_ITKVtkGlue=ON -Wno-dev -DVTK_DIR=<path to vtk build directory>  ..
-make -j8
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DModule_ITKVtkGlue=ON -Wno-dev -DModule_ITKReview=ON -DVTK_DIR=<path to vtk build directory> ..
+make -jN
 cd ../..
 ```
 
@@ -129,7 +120,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
 ```
 
 #-> Compile ESPINA
-###Ubuntu dependencies: libboost-regex-dev
+###Ubuntu dependencies (included in bundle): libboost-regex-dev
 ```sh
 sudo apt-get -y install libboost-regex-dev
 ```
@@ -140,27 +131,8 @@ tar xzvf espina-2.0.0.tar.gz
 cd espina
 mkdir build
 cd build
-ccmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
-# EMPTY cache
-#
-# Press c to configure
-# It will fail if it doens't find the previous build directories
-# press e
-# To give quazip link
-#	select line with arrows
-#	press enter to edit option
-#	modify line
-#	press c
-#Repeat for other libraries
-# VTK_DIR=~/espinaDK/VTK-6.1.0/build   (if "espinaDK" is in user directory)
-# ITK_DIR=~/espinaDK/InsightToolkit-4.4.2/build
-#Turn autoversion OFF
-# XLSLIB_INCLUDE_DIR=~/espinaDK/xlslib/xlslib/src
-# XLSLIB_LIBRARY=~/espinaDK/xlslib/xlslib/src/.libs/libxls.so
-#press g to generate
-
-# N = n+1 cores to compile
-make -jN
+cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../../xlslib/xlslib/src -DCMAKE_CXX_FLAGS=-std=c++11 -DXLSLIB_LIBRARY=$PWD/../../xlslib/xlslib/src/.libs/libxls.so.3 #-G"Eclipse CDT4 - Unix Makefiles"
+make -jN   # where N = n+1 cores to compile
 ```
 
 
@@ -173,16 +145,11 @@ cd ~
 mkdir espinaDK
 cd espinaDK
 
-#-> Download cmake (latest)
-sudo apt-get -y install software-properties-common
-read
-sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
-sudo apt-get -y update
+#-> Download cmake
 sudo apt-get -y install cmake
-#sudo apt-get -y upgrade
 
 #-> Ubuntu dependencies:
-sudo apt-get -y install g++ gcc autoconf automake cmake-curses-gui libqt4-dev zlib1g-dev freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev libboost-regex-dev #g++-4.4
+sudo apt-get -y install g++ gcc autoconf automake cmake-curses-gui libqt4-dev zlib1g-dev freeglut3-dev libxt-dev libqtwebkit-dev libqt4-opengl-dev libboost-graph-dev libboost-regex-dev
 
 #-> Compile XLSLIB
 wget http://sourceforge.net/projects/xlslib/files/xlslib-package-2.5.0.zip/download
@@ -192,7 +159,6 @@ cd xlslib/xlslib
 #export CC=gcc-4.4 CXX=g++-4.4
 ./configure
 make
-#make check
 cd ../..
 
 
@@ -205,7 +171,6 @@ tar xvzf quazip-0.7.tar.gz
 cd quazip-0.7
 mkdir build
 cd build
-#export CC=gcc-4.4 CXX=g++-4.4
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_QT4=ON ..
 sudo make install
 sudo make clean
@@ -220,8 +185,8 @@ tar xzvf VTK-6.1.0.tar.gz
 cd VTK-6.1.0
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DModule_vtkInfovisBoost=ON -DModule_vtkInfovisBoostGraphAlgortihms=ON -DVTK_Group_Qt=ON ..
-make -j8
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DModule_vtkInfovisBoost=ON -DModule_vtkInfovisBoostGraphAlgorithms=ON -DVTK_Group_Qt=ON ..
+make -j3
 cd ../..
 
 
@@ -234,9 +199,8 @@ tar xzvf InsightToolkit-4.4.2.tar.gz
 cd InsightToolkit-4.4.2
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DModule_ITKVtkGlue=ON -Wno-dev -DVTK_DIR=$PWD/../../VTK-6.1.0/build ..
-make -j8
-#make check
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DModule_ITKVtkGlue=ON -Wno-dev -DModule_ITKReview=ON -DVTK_DIR=$PWD/../../VTK-6.1.0/build ..
+make -j3
 cd ../..
 
 
@@ -256,39 +220,7 @@ tar xzvf espina-2.0.0.tar.gz
 cd espina-developers*
 mkdir build
 cd build
-ccmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
-# EMPTY cache
-# Press Enter
-# Press c to configure
-# It will fail if it doens't find the previous build directories
-# press e
-# To give quazip (if ask for it) link
-#   select line with arrows
-#   press enter to edit option
-#   modify line
-#   press c
-#Repeat for other libraries
-# ("espinaDK" is in user directory by default)
-# VTK_DIR=~/espinaDK/VTK-6.1.0/build
-# ITK_DIR=~/espinaDK/InsightToolkit-4.4.2/build
-# Turn autoversion off
-# XLSLIB_INCLUDE_DIR=~/espinaDK/xlslib/xlslib/src
-# XLSLIB_LIBRARY=~/espinaDK/xlslib/xlslib/src/.libs/libxls.so
-#press c untill all * have dissapeared
-#press g to generate
-
-# N = n+1 cores to compile
+cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../../xlslib/xlslib/src -DCMAKE_CXX_FLAGS=-std=c++11 -DXLSLIB_LIBRARY=$PWD/../../xlslib/xlslib/src/.libs/libxls.so.3
 make -j3
 cd ../..
-
-#-> Usefull to change gcc
-#sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-#sudo apt-get update
-#sudo apt-get install gcc-4.9 g++-4.9
-#sudo apt-get install gcc-4.8 g++-4.8
-#sudo apt-get install gcc-4.4 g++-4.4
-#sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
-#sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
-#sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.4
-#sudo update-alternatives --config gcc
 ```
