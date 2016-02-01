@@ -194,6 +194,16 @@ namespace ESPINA
    */
   template<typename T>
   void copy_image(typename T::Pointer const source, typename T::Pointer destination, const Bounds &bounds);
+
+  /** \brief Compares a region in two images and returns the ratio of identical voxels with some given value.
+   * \param[in] image1 first image.
+   * \param[in] image2 second image.
+   * \param[in] bounds bounds contained in both images that define the block to compare.
+   * \param[in] value scalar value to compare.
+   *
+   */
+  template<typename T>
+  unsigned long long compare_images(typename T::Pointer const image1, typename T::Pointer image2, const Bounds &bounds, typename T::ValueType value = SEG_VOXEL_VALUE);
 }
 
 #include "Core/Analysis/Data/VolumetricDataUtils.cxx"

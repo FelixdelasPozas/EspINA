@@ -384,4 +384,33 @@ namespace ESPINA
     }
   }
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  unsigned long long compare_images(typename T::Pointer const image1, typename T::Pointer image2, const Bounds &bounds, typename T::ValueType value = SEG_VOXEL_VALUE)
+  {
+    if(!contains(equivalentBounds<T>(image1), bounds) || !contains(equivalentBounds<T>(image2),bounds))
+    {
+      qWarning() << "compare_images<T>() -> one or both images don't contain comparison bounds!";
+      return 0;
+    }
+
+    auto iter1 = itkImageIterator<T>(image1, bounds);
+    auto iter2 = itkImageIterator<T>(image2, bounds);
+
+    unsigned long long identical = 0;
+
+    while(!iter1.IsAtEnd())
+    {
+      if((iter1.Value() == value) && (iter2.Value() == value))
+      {
+        ++identical;
+      }
+
+      ++iter1;
+      ++iter2;
+    }
+
+    return identical;
+  }
+
 } // namespace ESPINA
