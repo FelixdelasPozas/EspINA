@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.1"
+   width="150.66939"
+   height="145.03523"
+   id="svg3834">
+  <defs
+     id="defs3836">
+    <radialGradient
+       cx="400.16425"
+       cy="372.58212"
+       r="75.333374"
+       fx="400.16425"
+       fy="372.58212"
+       id="radialGradient3030"
+       xlink:href="#linearGradient3793"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.6842177,0.23264005,-0.10373618,-0.75100688,1016.7717,244.55352)" />
+    <linearGradient
+       id="linearGradient3793">
+      <stop
+         id="stop3795"
+         style="stop-color:#007bbf;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3797"
+         style="stop-color:#003c5f;stop-opacity:1"
+         offset="1" />
+    </linearGradient>
+    <radialGradient
+       cx="400.16425"
+       cy="372.58212"
+       r="75.333374"
+       fx="400.16425"
+       fy="372.58212"
+       id="radialGradient3832"
+       xlink:href="#linearGradient3793"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.6842177,0.23264005,-0.10373618,-0.75100688,868.39974,515.15113)" />
+  </defs>
+  <metadata
+     id="metadata3839">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-118.95568,-288.42008)"
+     id="layer1">
+    <path
+       d="m 125.11908,288.93361 c -10.1297,63.19456 -4.46826,102.70239 0,144 -4.22413,-80.35431 128.86214,-105.7953 144.00001,-76.05706 -2.31836,-53.97203 -135.05204,-18.68489 -144.00001,-67.94294 z"
+       id="path3028"
+       style="fill:url(#radialGradient3832);fill-opacity:1;stroke:#00466e;stroke-linecap:butt;stroke-linejoin:round" />
+  </g>
+</svg>

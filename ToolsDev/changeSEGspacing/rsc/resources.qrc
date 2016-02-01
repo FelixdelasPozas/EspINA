@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="Tools">
+    <file>espina.svg</file>
+  </qresource>
+</RCC>

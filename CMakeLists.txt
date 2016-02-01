@@ -184,6 +184,7 @@ add_subdirectory( Support    )
 add_subdirectory( Undo       )
 add_subdirectory( App        )
 add_subdirectory( Plugins    )
+add_subdirectory( ToolsDev   )
 
 if (BUILD_TESTING)
   include (CTest)
