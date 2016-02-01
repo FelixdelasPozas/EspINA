@@ -116,14 +116,18 @@ namespace ESPINA
     /** \brief Exports all the model values to a file in disk in a comma separated values format.
      * \param[in] fileName QFileInfo object.
      *
+     * NOTE: throws EspinaException on error.
+     *
      */
-    bool exportToCSV(const QFileInfo &filename);
+    void exportToCSV(const QFileInfo &filename);
 
     /** \brief Exports all the model values to a file in disk in Microsoft Excel format.
      * \param[in] fileName file name.
      *
+     * NOTE: throws EspinaException on error.
+     *
      */
-    bool exportToXLS(const QString &filename);
+    void exportToXLS(const QString &filename);
 
   public slots:
     /** \brief Updates the selection in the widget.

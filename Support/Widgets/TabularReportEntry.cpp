@@ -232,30 +232,39 @@ void TabularReport::Entry::extractInformation()
   auto title      = tr("Export %1 Data").arg(m_category);
   auto suggestion = QString("%1.xls").arg(m_category.replace("/","-"));
   auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
 
-  if (fileName.isEmpty())
-    return;
+  if (fileName.isEmpty()) return;
 
   // some users are used to not enter an extension, and expect a default xls output.
-  if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
+  if(!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
     fileName += tr(".xls");
-
-  bool exported = false;
-
-  if (fileName.toLower().endsWith(".csv"))
-  {
-    exported = exportToCSV(fileName);
-  }
-  else if (fileName.toLower().endsWith(".xls"))
-  {
-    exported = exportToXLS(fileName);
   }
 
-  if (!exported)
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
   {
-    auto message = tr("Couldn't export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(message, title);
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Couldn't export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details());
+    }
+  }
+  else if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    try
+    {
+      exportToXLS(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Couldn't export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details());
+    }
   }
 }
 
@@ -301,11 +310,17 @@ void TabularReport::Entry::refreshGUI()
 }
 
 //------------------------------------------------------------------------
-bool TabularReport::Entry::exportToCSV(const QString &filename)
+void TabularReport::Entry::exportToCSV(const QString &filename)
 {
   QFile file(filename);
 
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOther|QFile::WriteOther))
+  {
+    auto what    = tr("exportToCSV: can't save file '%1'.").arg(filename);
+    auto details = tr("Cause of failure: %1").arg(file.errorString());
+
+    throw EspinaException(what, details);
+  }
 
   QTextStream out(&file);
 
@@ -320,12 +335,10 @@ bool TabularReport::Entry::exportToCSV(const QString &filename)
     out << "\n";
   }
   file.close();
-
-  return true;
 }
 
 //------------------------------------------------------------------------
-bool TabularReport::Entry::exportToXLS(const QString &filename)
+void TabularReport::Entry::exportToXLS(const QString &filename)
 {
   workbook wb;
 
@@ -339,9 +352,15 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
     }
   }
 
-  wb.Dump(filename.toStdString());
+  auto result = wb.Dump(filename.toStdString());
 
-  return true;
+  if(result != NO_ERRORS)
+  {
+    auto what    = tr("exportToXLS: can't save file '%1'.").arg(filename);
+    auto details = tr("Cause of failure: %1").arg(result == FILE_ERROR ? "file error" : "general error");
+
+    throw EspinaException(what, details);
+  }
 }
 
 //------------------------------------------------------------------------

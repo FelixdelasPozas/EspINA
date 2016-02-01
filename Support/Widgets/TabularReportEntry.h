@@ -72,9 +72,9 @@ namespace ESPINA
 
     virtual GUI::InformationSelector::GroupedInfo availableInformation();
 
-    bool exportToCSV(const QString &filename);
+    void exportToCSV(const QString &filename);
 
-    bool exportToXLS(const QString &filename);
+    void exportToXLS(const QString &filename);
 
   private slots:
     void changeDisplayedInformation();

@@ -24,6 +24,7 @@
 #include <AppositionSurfacePlugin.h>
 
 // ESPINA
+#include <Core/Utils/EspinaException.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -39,6 +40,7 @@ const QString SEGMENTATION_GROUP = "Segmentation";
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 class DataSortFiler
@@ -164,26 +166,41 @@ void SASTabularReport::exportInformation()
   auto formats    = SupportedFormats().addExcelFormat()
                                       .addCSVFormat();
 
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
 
-  bool exported = false;
+  if (fileName.isEmpty()) return;
 
-  if (!fileName.isEmpty())
+  if (!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
   {
-    if (fileName.toLower().endsWith(".csv"))
-    {
-      exported = exportToCSV(fileName);
-    }
-    else if (fileName.toLower().endsWith(".xls"))
-    {
-      exported = exportToXLS(fileName);
-    }
+    fileName += tr(".xls");
   }
 
-  if (!exported)
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
   {
-    auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(message, title);
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch (const EspinaException &e)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details());
+    }
+  }
+  else
+  {
+    if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+    {
+      try
+      {
+        exportToXLS(fileName);
+      }
+      catch (const EspinaException &e)
+      {
+        auto message = tr("Unable to export %1").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, e.details());
+      }
+    }
   }
 }
 
@@ -254,25 +271,40 @@ void SASTabularReport::Entry::extractInformation()
   auto title      = tr("Export %1 Data").arg(m_category);
   auto suggestion = QString("%1 SAS information.xls").arg(m_category.replace("/","-"));
   auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
 
-  bool exported = false;
+  if (fileName.isEmpty()) return;
 
-  if (!fileName.isEmpty())
+  if(!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
   {
-    if (fileName.toLower().endsWith(".csv"))
-    {
-      exported = exportToCSV(fileName);
-    }
-    else if (fileName.toLower().endsWith(".xls"))
-    {
-      exported = exportToXLS(fileName);
-    }
+    fileName += tr(".xls");
   }
 
-  if (!exported)
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
   {
-    auto message = tr("Unable to export %1").arg(fileName);
-    DefaultDialogs::InformationMessage(message, title);
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details());
+    }
+  }
+  else
+  {
+    if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+    {
+      try
+      {
+        exportToXLS(fileName);
+      }
+      catch(const EspinaException &e)
+      {
+        auto message = tr("Unable to export %1").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, e.details());
+      }
+    }
   }
 }
