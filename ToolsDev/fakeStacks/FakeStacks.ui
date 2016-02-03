@@ -75,6 +75,13 @@
     <widget class="QTextEdit" name="m_log"/>
    </item>
    <item>
+    <widget class="QCheckBox" name="m_displaced">
+     <property name="text">
+      <string>Make displaced stacks</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QProgressBar" name="m_progress">
      <property name="value">
       <number>24</number>

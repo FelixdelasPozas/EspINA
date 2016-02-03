@@ -20,6 +20,7 @@
  */
 
 // Project
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/IO/ZipUtils.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/SpatialUtils.hxx>
@@ -165,13 +166,8 @@ void FakeStacks::startGeneration()
       continue;
     }
 
-    for(auto file: m_stacks.keys())
-    {
-      writeInfo(tr("Stack name: %1").arg(file));
-      writeInfo(tr("Stack id: %1").arg(m_ids[file]));
-      writeInfo(tr("Stack spacing: %1").arg(m_spacing[file].toString()));
-      writeInfo(tr("Stack bounds: %1").arg(m_stacks[file].toString()));
-    }
+    writeInfo(tr("Generate stacks for file '%1'").arg(file.fileName()));
+
     QApplication::processEvents();
 
     generateStacks(m_dirs[file.fileName()]);
@@ -245,7 +241,6 @@ void FakeStacks::parseBounds(QuaZip& zip)
       if(end != -1)
       {
         spacing = parseSpacing(content.mid(begin+10, end-begin-10));
-        writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
       }
       else
       {
@@ -283,6 +278,9 @@ void FakeStacks::parseBounds(QuaZip& zip)
       writeError(tr("ERROR: parsing spacing (%1) or bounds (%2)").arg(spacing.toString()).arg(bounds.toString()));
       continue;
     }
+
+    writeInfo(tr("Parsed spacing of stack '%1': %2").arg(file).arg(spacing.toString()));
+    writeInfo(tr("Parsed bounds of stack '%1': %2").arg(file).arg(bounds.toString()));
 
     m_stacks.insert(file, bounds);
     m_spacing.insert(file, spacing);
@@ -382,25 +380,75 @@ ESPINA::NmVector3 FakeStacks::parseSpacing(const QByteArray& data, const QChar s
 //----------------------------------------------------------------------
 void FakeStacks::generateStacks(const QString &path)
 {
+  Bounds displacedBounds;
+
+  if(m_displaced->isChecked())
+  {
+    auto bounds = m_stacks.begin().value();
+    auto spacing = m_spacing.begin().value();
+
+    displacedBounds = bounds;
+
+    int size1 = (bounds[1]-bounds[0]) * 0.25;
+    int size2 = (bounds[3]-bounds[2]) * 0.25;
+
+    displacedBounds[0] += rand() % size1;
+    displacedBounds[1] -= rand() % size1;
+    displacedBounds[2] += rand() % size2;
+    displacedBounds[3] -= rand() % size2;
+
+    VolumeBounds corrected{displacedBounds, spacing, NmVector3()};
+    displacedBounds = corrected.bounds();
+
+    Q_ASSERT(contains(bounds, displacedBounds, spacing));
+    Q_ASSERT(displacedBounds.areValid());
+  }
+
   for(auto file: m_stacks.keys())
   {
+    writeInfo(tr("Stack name: %1").arg(file));
+    writeInfo(tr("Stack id: %1").arg(m_ids[file]));
+    writeInfo(tr("Stack spacing: %1").arg(m_spacing[file].toString()));
+    writeInfo(tr("Stack bounds: %1").arg(m_stacks[file].toString()));
+    writeInfo(tr("Generating stack..."));
+
+    QApplication::processEvents();
+
     auto spacing = m_spacing[file];
+    auto bounds  = m_stacks[file];
 
-    auto fileName = path + QDir::separator() + file;
-    fileName = fileName.remove(' ');
+    auto fileName = path + QDir::separator() + file.remove(' ');
 
-    auto region = equivalentRegion<ESPINA::itkVolumeType>(NmVector3{}, m_spacing[file], m_stacks[file]);
+    auto region = equivalentRegion<ESPINA::itkVolumeType>(NmVector3{}, spacing, bounds);
 
     NmVector3 origin{region.GetIndex(0)*spacing[0], region.GetIndex(1)*spacing[1], region.GetIndex(2)*spacing[2]};
 
     itkVolumeType::Pointer image = itkVolumeType::New();
-    image->SetRegions(region);
-    image->SetOrigin(ItkPoint<itkVolumeType>(origin));
     image->SetSpacing(ItkSpacing<itkVolumeType>(spacing));
+    image->SetOrigin(ItkPoint<itkVolumeType>(origin));
+    image->SetRegions(region);
     image->Allocate();
     image->Update();
 
-    qDebug() << "file:" << fileName;
+    std::memset(image->GetBufferPointer(), 0, region.GetSize(0)*region.GetSize(1)*region.GetSize(2));
+
+    if(!displacedBounds.areValid())
+    {
+      displacedBounds = bounds;
+    }
+
+    auto iterator = itkImageIteratorWithIndex<itkVolumeType>(image, displacedBounds);
+    itkVolumeType::IndexType index;
+
+    while(!iterator.IsAtEnd())
+    {
+      auto index = iterator.GetIndex();
+      int value = static_cast<int>(255 * noise(index.GetElement(0),index.GetElement(1),index.GetElement(2))) % 255;
+      iterator.Set(value);
+
+      ++iterator;
+    }
+
     auto writer = itk::ImageFileWriter<itkVolumeType>::New();
     writer->SetFileName(fileName.toStdString());
     writer->SetInput(image);
@@ -408,4 +456,14 @@ void FakeStacks::generateStacks(const QString &path)
     writer->SetUseCompression(false);
     writer->Write();
   }
+}
+
+//----------------------------------------------------------------------
+double FakeStacks::noise(unsigned int x, unsigned int y, unsigned int z)
+{
+   int n = (x + (31337 * y) + (263 * z)  + 10130) & 0x7fffffff;
+   n = (n >> 13) ^ n;
+   n = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+
+   return 1.0 - (n / 1073741824.0);
 }

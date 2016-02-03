@@ -31,27 +31,10 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  // allow only one instance
-//  QSharedMemory guard;
-//  guard.setKey("EspINA_ChangeSpacing");
-//
-//  if (!guard.create(1))
-//  {
-//    QMessageBox msgBox;
-//    msgBox.setWindowIcon(QIcon(":/Tools/application.ico"));
-//    msgBox.setIcon(QMessageBox::Warning);
-//    msgBox.setText("EspINA Spacing Changer is already running!");
-//    msgBox.setStandardButtons(QMessageBox::Ok);
-//    msgBox.exec();
-//    guard.detach();
-//    exit(0);
-//  }
-
   SpacingChanger mainDialog;
   mainDialog.show();
 
   auto result = app.exec();
-//  guard.detach();
 
   return result;
 }

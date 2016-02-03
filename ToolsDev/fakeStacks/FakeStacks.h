@@ -66,7 +66,7 @@ class FakeStacks
     { m_log->setTextColor(Qt::black); m_log->append(information); }
 
     void writeError(const QString &error)
-    { m_log->setTextColor(Qt::red); m_log->append(error);  }
+    { m_log->setTextColor(Qt::red); m_log->append(error); }
 
     void writeImportant(const QString &important)
     { m_log->setTextColor(Qt::blue); m_log->append(important); }
@@ -90,6 +90,8 @@ class FakeStacks
     ESPINA::Bounds parseBounds(const QByteArray &data);
 
     void generateStacks(const QString &path);
+
+    double noise(unsigned int x, unsigned int y, unsigned int z);
 
     QList<QFileInfo>                 m_files;   /** SEG files to generate stacks.  */
     QMap<QString, ESPINA::Bounds>    m_stacks;  /** stacks bounds in the SEG file. */
