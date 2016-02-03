@@ -31,6 +31,7 @@
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 
 // VTK
 #include <vtkMath.h>
@@ -54,6 +55,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
@@ -184,8 +186,8 @@ void RenderView::takeSnapshot()
   auto title      = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
   auto formats    = SupportedFormats(tr("PNG Image"),  "png")
-                        .addFormat(tr("JPEG Image"), "jpg");
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".png", suggestion);
+                          .addFormat(tr("JPEG Image"), "jpg");
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".png", suggestion, this);
 
   if (!fileName.isEmpty())
   {
@@ -201,7 +203,7 @@ void RenderView::takeSnapshot()
       int offScreenRender = renderWindow()->GetOffScreenRendering();
       renderWindow()->SetOffScreenRendering(true);
 
-      vtkSmartPointer<vtkWindowToImageFilter> image = vtkSmartPointer<vtkWindowToImageFilter>::New();
+      auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
       image->SetInput(renderWindow());
       image->SetMagnification(4096.0/renderWindow()->GetSize()[0]+0.5);
       image->Update();
@@ -210,34 +212,43 @@ void RenderView::takeSnapshot()
 
       if (QString("PNG") == extension)
       {
-        vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+        auto writer = vtkSmartPointer<vtkPNGWriter>::New();
         writer->SetFileDimensionality(2);
         writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        writer->Write();
-        QApplication::restoreOverrideCursor();
+        {
+          WaitingCursor cursor;
+          writer->Write();
+        }
       }
 
       if (QString("JPG") == extension)
       {
-        vtkSmartPointer<vtkJPEGWriter> writer = vtkSmartPointer<vtkJPEGWriter>::New();
+        auto writer = vtkSmartPointer<vtkJPEGWriter>::New();
         writer->SetQuality(100);
         writer->ProgressiveOff();
         writer->WriteToMemoryOff();
         writer->SetFileDimensionality(2);
         writer->SetFileName(fileName.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        writer->Write();
-        QApplication::restoreOverrideCursor();
+        {
+          WaitingCursor cursor;
+          writer->Write();
+        }
+      }
+
+      // check for successful file write. vtk classes don't throw exceptions as a general rule.
+      QFileInfo fileInfo{fileName};
+      if(!fileInfo.exists() || fileInfo.size() == 0)
+      {
+        auto message = tr("Couln't save snapshot file '%1'. Problem writing format '%2'.").arg(fileInfo.fileName()).arg(extension);
+        DefaultDialogs::InformationMessage(message, title, "", this);
       }
     }
     else
     {
-      auto message = tr("Snapshot not exported. Unrecognized extension ");
-
-      DefaultDialogs::InformationMessage(message, title);
+      auto message = tr("Couln't save snapshot file '%1'. Unrecognized extension.").arg(fileName.split('/').last());
+      DefaultDialogs::InformationMessage(message, title, "", this);
     }
   }
 }

@@ -107,19 +107,19 @@ void GeneralSettingsPanel::onBrowseDirClicked()
 
     if(!info.isDir())
     {
-      DefaultDialogs::InformationMessage("%1 isn't a directory!");
+      DefaultDialogs::InformationMessage(tr("%1 isn't a directory!").arg(dir), shortDescription(), "", this);
     }
     else
     {
       if(!info.isWritable() || !info.isReadable())
       {
-        DefaultDialogs::InformationMessage(QString("Invalid permissions, can't write on directory %1!").arg(dir));
+        DefaultDialogs::InformationMessage(QString("Invalid permissions, can't write on directory %1!").arg(dir), shortDescription(), "", this);
       }
       else
       {
         if(!info.exists())
         {
-          DefaultDialogs::InformationMessage(QString("The directory %1 doesn't exists!").arg(dir));
+          DefaultDialogs::InformationMessage(QString("The directory %1 doesn't exists!").arg(dir), shortDescription(), "", this);
         }
         else
         {

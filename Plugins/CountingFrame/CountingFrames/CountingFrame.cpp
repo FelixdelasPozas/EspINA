@@ -152,43 +152,45 @@ QString CountingFrame::description() const
 //-----------------------------------------------------------------------------
 void CountingFrame::setVisible(bool visible)
 {
-  if(m_visible == visible) return;
-
-  QWriteLocker lockState(&m_stateMutex);
-
-  m_visible = visible;
-
-  QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D)
+  if(m_visible != visible)
   {
-    wa->SetEnabled(m_visible && m_enable);
-    wa->setVisible(m_visible);
-  }
+    QWriteLocker lockState(&m_stateMutex);
 
-  for(auto wa: m_widgets3D)
-  {
-    wa->SetEnabled(m_visible && m_enable);
-    wa->setVisible(m_visible);
-  }
+    m_visible = visible;
 
-  emit changedVisibility();
+    QMutexLocker lock(&m_widgetMutex);
+    for (auto wa : m_widgets2D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+      wa->setVisible(m_visible);
+    }
+
+    for(auto wa: m_widgets3D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+      wa->setVisible(m_visible);
+    }
+
+    emit changedVisibility();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::setEnabled(bool enable)
 {
-  if(m_enable == enable) return;
-
-  QWriteLocker lockState(&m_stateMutex);
-  m_enable = enable;
-
-  QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D)
+  if(m_enable != enable)
   {
-    wa->SetEnabled(m_visible && m_enable);
-  }
+    QWriteLocker lockState(&m_stateMutex);
+    m_enable = enable;
 
-  emit changedVisibility();
+    QMutexLocker lock(&m_widgetMutex);
+    for (auto wa : m_widgets2D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+    }
+
+    emit changedVisibility();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -207,9 +209,12 @@ void CountingFrame::setHighlighted(bool highlight)
 //-----------------------------------------------------------------------------
 void CountingFrame::setCategoryConstraint(const QString& category)
 {
-  m_categoryConstraint = category;
+  if(m_categoryConstraint != category)
+  {
+    m_categoryConstraint = category;
 
-  emit modified(this);
+    emit modified(this);
+  }
 }
 
 //-----------------------------------------------------------------------------

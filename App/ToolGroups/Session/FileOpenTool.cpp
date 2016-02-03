@@ -63,8 +63,6 @@ void FileOpenTool::setCloseCallback(EspinaMainWindow *callback)
 //----------------------------------------------------------------------------
 void FileOpenTool::onTriggered()
 {
-  if (m_closeCallaback && !m_closeCallaback->closeCurrentAnalysis()) return;
-
   auto title  = tr("Open Analysis");
   auto filter = getFactory()->supportedFileExtensions();
 
@@ -74,6 +72,11 @@ void FileOpenTool::onTriggered()
 
   if (!files.isEmpty())
   {
+    if (m_closeCallaback && !m_closeCallaback->closeCurrentAnalysis())
+    {
+      return;
+    }
+
     auto fileInfo = QFileInfo(files.first());
     m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
 

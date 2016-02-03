@@ -141,11 +141,6 @@ void SegFile::save(AnalysisPtr analysis,
 
   if (!zip.open(QuaZip::mdCreate))
   {
-    if (handler)
-    {
-      handler->error("Failed to create " + tmpFile.File.fileName() + " file");
-    }
-
     auto what    = QObject::tr("Can't create file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
     auto details = QObject::tr("SegFile::save() -> Can't create file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
 
@@ -160,11 +155,6 @@ void SegFile::save(AnalysisPtr analysis,
 
   if (zip.getZipError() != UNZ_OK)
   {
-    if (handler)
-    {
-      handler->error("Unable to create " + tmpFile.File.fileName());
-    }
-
     auto what    = QObject::tr("Can't close file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
     auto details = QObject::tr("SegFile::save() -> Can't close file inside ZIP container, file: %1, error code: %2").arg(tmpFile.File.fileName()).arg(zip.getZipError());
 
@@ -178,11 +168,6 @@ void SegFile::save(AnalysisPtr analysis,
 
   if (!tmpFile.File.copy(file.absoluteFilePath()))
   {
-    if (handler)
-    {
-      handler->error("Couldn't save file on " + file.absoluteFilePath());
-    }
-
     auto what    = QObject::tr("Can't copy file to path, file: %1, path: %2").arg(tmpFile.File.fileName()).arg(file.absoluteFilePath());
     auto details = QObject::tr("SegFile::save() -> Can't copy file to path, file: %1, path: %2").arg(tmpFile.File.fileName()).arg(file.absoluteFilePath());
 

@@ -177,7 +177,9 @@ void ChannelInspector::onOpacityCheckChanged(int value)
     m_channel->setOpacity(opacity);
   }
   else
+  {
     m_channel->setOpacity(opacityBox->value()/100.);
+  }
 
   applyModifications();
 }

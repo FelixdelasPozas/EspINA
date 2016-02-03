@@ -130,6 +130,7 @@ namespace ESPINA {
       /** \brief Dialog to inform the user.
        * \param[in] title title of the dialog.
        * \param[in] message message to show.
+       * \param[in] details message details.
        * \param[in] parent parent widget.
        *
        */
@@ -137,6 +138,18 @@ namespace ESPINA {
                                      const QString &title   = DefaultDialogs::DefaultTitle(),
                                      const QString &details = QString(),
                                      QWidget       *parent  = defaultParentWidget());
+
+      /** \brief Dialog to inform the user of an error.
+       * \param[in] title title of the dialog.
+       * \param[in] message message to show.
+       * \param[in] details message details.
+       * \param[in] parent parent widget.
+       *
+       */
+      static void ErrorMessage(const QString &message,
+                               const QString &title   = DefaultDialogs::DefaultTitle(),
+                               const QString &details = QString(),
+                               QWidget       *parent  = defaultParentWidget());
 
 
       /** \brief Dialog to ask an answer from the user.

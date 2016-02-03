@@ -102,7 +102,6 @@ void CF::Panel::GUI::setOffsetRanges(int min, int max)
 }
 
 //------------------------------------------------------------------------
-//------------------------------------------------------------------------
 class CF::Panel::CFModel
 : public QAbstractTableModel
 {
@@ -126,7 +125,7 @@ public:
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
   CountingFrame *countingFrame(const QModelIndex &index) const
-  { return m_manager->countingFrames()[index.row()]; }
+  { return m_manager->countingFrames().at(index.row()); }
 
 private:
   bool changeId(CountingFrame *editedCF, QString requestedId)
@@ -408,7 +407,9 @@ void CF::Panel::deleteCountingFrame(CountingFrame *cf)
 //------------------------------------------------------------------------
 void CF::Panel::applyCategoryConstraint()
 {
-  if (m_activeCF && m_gui->useCategoryConstraint->isChecked())
+  if(!m_activeCF) return;
+
+  if (m_gui->useCategoryConstraint->isChecked())
   {
     auto categoryIndex = m_gui->categorySelector->currentModelIndex();
     if (categoryIndex.isValid())
@@ -420,6 +421,10 @@ void CF::Panel::applyCategoryConstraint()
 
       m_activeCF->setCategoryConstraint(category->classificationName());
     }
+  }
+  else
+  {
+    m_activeCF->setCategoryConstraint("");
   }
 }
 
@@ -647,10 +652,17 @@ void CF::Panel::showInfo(CountingFrame* activeCF)
   m_gui->backMargin  ->blockSignals(false);
 
   auto applyCaregoryConstraint = !activeCF->categoryConstraint().isEmpty();
+  m_gui->categorySelector->blockSignals(true);
   if (applyCaregoryConstraint)
   {
     m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(activeCF->categoryConstraint()));
   }
+  else
+  {
+    m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(m_context.model()->classification()->categories().first()->name()));
+  }
+  m_gui->categorySelector->blockSignals(false);
+
   m_gui->useCategoryConstraint->blockSignals(true);
   m_gui->useCategoryConstraint->setChecked(applyCaregoryConstraint);
   m_gui->useCategoryConstraint->blockSignals(false);
@@ -702,20 +714,19 @@ void CF::Panel::updateSegmentationExtensions()
 //------------------------------------------------------------------------
 void CF::Panel::saveActiveCountingFrameDescription()
 {
-  auto title    = tr("Save Counting Frame Description");
-  auto formats  = SupportedFormats(tr("Text File"), "txt");
-  auto fileName = DefaultDialogs::SaveFile(title, formats);
+  auto category = m_activeCF->categoryConstraint();
+  auto name     = m_activeCF->channel()->name().split('.').first();
+  name += "_" + (category.isEmpty() ? "Global" : category.replace('/', '-'));
+  name += tr("_CF");
+
+  auto title      = tr("Save Counting Frame Description");
+  auto suggestion = tr("%1.txt").arg(name);
+  auto formats    = SupportedFormats(tr("Text File"), "txt");
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".txt", suggestion);
 
   if (!fileName.isEmpty())
   {
-    if (fileName.endsWith(".txt"))
-    {
-      exportCountingFrameDescriptionAsText(fileName);
-    }
-    else if (fileName.endsWith(".xls"))
-    {
-      exportCountingFrameDescriptionAsExcel(fileName);
-    }
+    exportCountingFrameDescriptionAsText(fileName);
   }
 }
 
@@ -930,17 +941,21 @@ void CF::Panel::updateTable()
 void CF::Panel::exportCountingFrameDescriptionAsText(const QString &filename)
 {
   QFile file(filename);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+  file.open(QIODevice::WriteOnly|QIODevice::Text);
 
   QTextStream out(&file);
   out << m_gui->countingFrameDescription->toPlainText();
+  out.flush();
 
   file.close();
-}
 
-//------------------------------------------------------------------------
-void CF::Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
-{
+  if(file.error() != QFile::NoError)
+  {
+    auto message = tr("Couldn't save file '%1'. Cause: %2").arg(filename.split('/').last()).arg(file.errorString());
+    auto title   = tr("EspINA");
+
+    DefaultDialogs::InformationMessage(message, title);
+  }
 }
 
 //------------------------------------------------------------------------

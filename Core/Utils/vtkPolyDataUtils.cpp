@@ -46,7 +46,7 @@ using namespace ESPINA::Core::Utils;
 //------------------------------------------------------------------------------------
 QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData)
 {
-  vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+  auto polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
   polyWriter->SetInputData(polyData);
   polyWriter->SetFileTypeToBinary();
   polyWriter->SetWriteToOutputString(true);
@@ -66,7 +66,7 @@ QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
 //------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName)
 {
-  vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+  auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
   reader->SetFileName(fileName.toUtf8());
   reader->SetReadAllFields(true);
   reader->Update();
@@ -79,7 +79,7 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString
     throw EspinaException(what, details);
   }
 
-  vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
+  auto mesh = vtkSmartPointer<vtkPolyData>::New();
   mesh->DeepCopy(reader->GetPolyDataOutput());
 
   return mesh;
@@ -117,9 +117,9 @@ vtkSmartPointer<vtkImageData> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterize
 
   // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane.
   int count = contour->GetPoints()->GetNumberOfPoints();
-  vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
-  vtkPoints *points = vtkPoints::New();
-  vtkCellArray *lines = vtkCellArray::New();
+  auto rotatedContour = vtkSmartPointer<vtkPolyData>::New();
+  auto points = vtkPoints::New();
+  auto lines = vtkCellArray::New();
   vtkIdType index = 0;
 
   points->SetNumberOfPoints(count);
@@ -128,7 +128,7 @@ vtkSmartPointer<vtkImageData> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterize
   if (numLines > 0)
   {
     double pos[3];
-    vtkIdType *lineIndices = new vtkIdType[numLines];
+    auto lineIndices = new vtkIdType[numLines];
     for (int i = 0; i < count; i++)
     {
       contour->GetPoint(i, pos);
@@ -215,7 +215,7 @@ vtkSmartPointer<vtkImageData> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterize
   extent[4] = contourRegionIndex[idx];
   extent[5] = contourRegionIndex[idx] + contourRegionSize[idx] -1;
 
-  vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  auto polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputData(rotatedContour);
   polyDataToStencil->SetOutputOrigin(0,0,0);
   polyDataToStencil->SetOutputSpacing(spacingNm[0], spacingNm[1], spacingNm[2]);
@@ -223,7 +223,7 @@ vtkSmartPointer<vtkImageData> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterize
   polyDataToStencil->SetTolerance(0);
   polyDataToStencil->Update();
 
-  vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
+  auto stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
   stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
   stencilToImage->SetOutputScalarTypeToUnsignedChar();
   stencilToImage->SetInsideValue(1);

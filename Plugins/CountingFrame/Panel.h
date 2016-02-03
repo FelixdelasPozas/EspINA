@@ -125,8 +125,6 @@ namespace ESPINA
 
     void exportCountingFrameDescriptionAsText(const QString& filename);
 
-    void exportCountingFrameDescriptionAsExcel(const QString& filename);
-
     void applyCountingFrames(SegmentationAdapterSList segmentations);
 
   private:

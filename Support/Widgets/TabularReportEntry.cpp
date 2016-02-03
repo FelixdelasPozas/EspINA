@@ -232,7 +232,7 @@ void TabularReport::Entry::extractInformation()
   auto title      = tr("Export %1 Data").arg(m_category);
   auto suggestion = QString("%1.xls").arg(m_category.replace("/","-"));
   auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this->parentWidget());
 
   if (fileName.isEmpty()) return;
 
@@ -251,7 +251,7 @@ void TabularReport::Entry::extractInformation()
     catch(const EspinaException &e)
     {
       auto message = tr("Couldn't export %1").arg(fileName);
-      DefaultDialogs::InformationMessage(message, title, e.details());
+      DefaultDialogs::InformationMessage(message, title, e.details(), this->parentWidget());
     }
   }
   else if (fileName.endsWith(".xls", Qt::CaseInsensitive))
@@ -263,7 +263,7 @@ void TabularReport::Entry::extractInformation()
     catch(const EspinaException &e)
     {
       auto message = tr("Couldn't export %1").arg(fileName);
-      DefaultDialogs::InformationMessage(message, title, e.details());
+      DefaultDialogs::InformationMessage(message, title, e.details(), this->parentWidget());
     }
   }
 }
@@ -462,7 +462,7 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
     headerLabels << key.value();
   }
 
-  auto header = new QStandardItemModel(1, keys.size(), this);
+  auto header = new QStandardItemModel(1, keys.size(), this->parentWidget());
   header->setHorizontalHeaderLabels(headerLabels);
   tableView->horizontalHeader()->setModel(header);
   tableView->adjustSize();

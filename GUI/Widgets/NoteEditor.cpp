@@ -87,15 +87,24 @@ void NoteEditor::exportNote()
   auto title      = tr("Export %1").arg(windowTitle());
   auto suggestion = QString("%1.txt").arg(windowTitle());
   auto formats    = SupportedFormats().addTxtFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".txt", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".txt", suggestion);
 
   if (!fileName.isEmpty())
   {
     QFile file(fileName);
-    file.open(QIODevice::WriteOnly |  QIODevice::Text);
+    file.open(QIODevice::WriteOnly|QIODevice::Text);
     QTextStream out(&file);
 
     out << m_gui->textEdit->toPlainText();
     file.close();
+
+    if(file.error() != QFile::NoError)
+    {
+      auto message = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
+      auto title   = tr("EspINA");
+
+      DefaultDialogs::InformationMessage(message, title);
+    }
+
   }
 }

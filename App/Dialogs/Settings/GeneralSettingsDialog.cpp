@@ -58,7 +58,12 @@ void GeneralSettingsDialog::accept()
   }
   catch(const EspinaException &e)
   {
-    DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\n\nError: %2").arg(m_activePanel->shortDescription()).arg(QString(e.what())));
+    DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\n\nError: %2")
+                                       .arg(m_activePanel->shortDescription())
+                                       .arg(QString(e.what())),
+                                       tr("EspINA"),
+                                       "",
+                                       this);
     return;
   }
 
@@ -121,7 +126,12 @@ void GeneralSettingsDialog::changePreferencePanel(int panel)
       }
       catch(const EspinaException &e)
       {
-        DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\nError: %2").arg(m_activePanel->shortDescription()).arg(QString(e.what())));
+        DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\nError: %2")
+                                           .arg(m_activePanel->shortDescription())
+                                           .arg(QString(e.what())),
+                                           tr("EspINA"),
+                                           "",
+                                           this);
         return;
       }
     }

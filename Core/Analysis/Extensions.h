@@ -35,20 +35,20 @@ namespace ESPINA
   class EspinaCore_EXPORT ChannelExtension
   : public Extension<Channel>
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public slots:
-    virtual void invalidate()
-    { Extension<Channel>::invalidate(); }
+    public slots:
+      virtual void invalidate()
+      { Extension<Channel>::invalidate(); }
 
-  protected:
-    /** \brief ChannelExtension class constructor.
-     * \param[in] infoCache cache object.
-     *
-     */
-    ChannelExtension(const InfoCache &infoCache)
-    : Extension<Channel>(infoCache)
-    {}
+    protected:
+      /** \brief ChannelExtension class constructor.
+       * \param[in] infoCache cache object.
+       *
+       */
+      ChannelExtension(const InfoCache &infoCache)
+      : Extension<Channel>(infoCache)
+      {}
   };
 
   using ChannelExtensionPtr      = ChannelExtension *;
@@ -61,26 +61,26 @@ namespace ESPINA
   class EspinaCore_EXPORT SegmentationExtension
   : public Extension<Segmentation>
   {
-    Q_OBJECT
-  public:
-    /** \brief Returns true if the extension is applicable to given category.
-     * \param[in] classification name.
+      Q_OBJECT
+    public:
+      /** \brief Returns true if the extension is applicable to given category.
+       * \param[in] classification name.
+       *
+       */
+      virtual bool validCategory(const QString &classification) const = 0;
+
+    public slots:
+      virtual void invalidate()
+      { Extension<Segmentation>::invalidate(); }
+
+    protected:
+    /** \brief SegmentationExtension class constructor.
+     * \param[in] infoCache cache object.
      *
      */
-    virtual bool validCategory(const QString &classification) const = 0;
-
-  public slots:
-    virtual void invalidate()
-    { Extension<Segmentation>::invalidate(); }
-
-  protected:
-  /** \brief SegmentationExtension class constructor.
-   * \param[in] infoCache cache object.
-   *
-   */
-    SegmentationExtension(const InfoCache &infoCache)
-    : Extension<Segmentation>(infoCache)
-    {}
+      SegmentationExtension(const InfoCache &infoCache)
+      : Extension<Segmentation>(infoCache)
+      {}
   };
 
   using SegmentationExtensionPtr      = SegmentationExtension *;

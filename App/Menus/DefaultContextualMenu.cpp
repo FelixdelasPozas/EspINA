@@ -297,10 +297,11 @@ void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &seg
 //------------------------------------------------------------------------
 void DefaultContextualMenu::exportSelectedSegmentations()
 {
-  auto title  = tr("Export selected segmentations");
-  auto format = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
+  auto title      = tr("Export selected segmentations");
+  auto suggestion = tr("segmentation_images.tif");
+  auto format     = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
 
-  auto file = DefaultDialogs::SaveFile(title, format);
+  auto file = DefaultDialogs::SaveFile(title, format, QDir::homePath(), ".tif", suggestion);
 
   if (file.isEmpty()) return;
 

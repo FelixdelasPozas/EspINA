@@ -36,47 +36,48 @@ namespace ESPINA
   class EspinaGUI_EXPORT VisualizationState
   : public SegmentationExtension
   {
-  public:
-    static const Type TYPE;
+    public:
+      static const Type TYPE;
 
-  public:
-    /** \brief VisualizationState class constructor.
-     *
-     */
-    explicit VisualizationState();
+    public:
+      /** \brief VisualizationState class constructor.
+       * \param[in] infoCache data cache of the extension.
+       *
+       */
+      explicit VisualizationState();
 
-    /** \brief VisualizationState class virtual destructor.
-     *
-     */
-    virtual ~VisualizationState();
+      /** \brief VisualizationState class virtual destructor.
+       *
+       */
+      virtual ~VisualizationState();
 
-    virtual Type type() const
-    { return TYPE; }
+      virtual Type type() const
+      { return TYPE; }
 
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+      virtual TypeList dependencies() const
+      { return TypeList(); }
 
-    virtual bool validCategory(const QString& classificationName) const
-    { return true; }
+      virtual bool validCategory(const QString& classificationName) const
+      { return true; }
 
-    virtual InformationKeyList availableInformation() const;
+      virtual InformationKeyList availableInformation() const;
 
-    virtual QVariant information(const Key &tag) const;
+      virtual QVariant information(const Key &tag) const;
 
-    /** \brief Sets the state of a representation.
-     * \param[in] representation representation name.
-     * \param[in] state string with the state of the representation.
-     *
-     */
-    void setState(const QString& representation, const QString& state);
+      /** \brief Sets the state of a representation.
+       * \param[in] representation representation name.
+       * \param[in] state string with the state of the representation.
+       *
+       */
+      void setState(const QString& representation, const QString& state);
 
-    /** \brief Returns the state of the representation as a string.
-     *
-     */
-    QString representationState(const QString& representation);
+      /** \brief Returns the state of the representation as a string.
+       *
+       */
+      QString representationState(const QString& representation);
 
-  private:
-    QMap<QString, QString> m_state;
+    private:
+      QMap<QString, QString> m_state;
   };
 
   using VisualizationStateSPtr = std::shared_ptr<VisualizationState>;

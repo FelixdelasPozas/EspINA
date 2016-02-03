@@ -419,7 +419,7 @@ void TabularReport::exportInformation()
   auto title      = tr("Export Raw Data");
   auto suggestion = tr("raw information.xls");
   auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
   if (fileName.isEmpty()) return;
 
@@ -436,7 +436,7 @@ void TabularReport::exportInformation()
     }
     catch(const EspinaException &e)
     {
-      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details());
+      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details(), this);
     }
   }
   else if (fileName.endsWith(".xls", Qt::CaseInsensitive))
@@ -447,7 +447,7 @@ void TabularReport::exportInformation()
     }
     catch(const EspinaException &e)
     {
-      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details());
+      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details(), this);
     }
   }
 }

@@ -172,7 +172,7 @@ QStringList DefaultDialogs::SaveFiles(const QString&          title,
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile(suggestion);
   fileDialog.setFilter(filters);
-  fileDialog.setDirectory(path);
+  fileDialog.setDirectory((path.isEmpty() ? QDir::homePath() : path));
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   fileDialog.resize(800, 480);
@@ -257,3 +257,24 @@ QMessageBox::StandardButton DefaultDialogs::UserQuestion(const QString          
 
   return static_cast<QMessageBox::StandardButton>(dialog.exec());
 }
+
+//------------------------------------------------------------------------
+void DefaultDialogs::ErrorMessage(const QString& message, const QString& title, const QString &details, QWidget *parent)
+{
+  QMessageBox dialog(parent);
+
+  dialog.setWindowTitle(title);
+  dialog.setText(message);
+  dialog.setStandardButtons(QMessageBox::Ok);
+  if(!details.isEmpty())
+  {
+    dialog.setDetailedText(details);
+  }
+  dialog.setModal(true);
+  dialog.setIcon(QMessageBox::Warning);
+
+  DefaultCursor cursor;
+
+  dialog.exec();
+}
+

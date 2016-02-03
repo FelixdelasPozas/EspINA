@@ -166,7 +166,7 @@ void SASTabularReport::exportInformation()
   auto formats    = SupportedFormats().addExcelFormat()
                                       .addCSVFormat();
 
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
   if (fileName.isEmpty()) return;
 
@@ -184,7 +184,7 @@ void SASTabularReport::exportInformation()
     catch (const EspinaException &e)
     {
       auto message = tr("Unable to export %1").arg(fileName);
-      DefaultDialogs::InformationMessage(message, title, e.details());
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
     }
   }
   else
@@ -198,7 +198,7 @@ void SASTabularReport::exportInformation()
       catch (const EspinaException &e)
       {
         auto message = tr("Unable to export %1").arg(fileName);
-        DefaultDialogs::InformationMessage(message, title, e.details());
+        DefaultDialogs::InformationMessage(message, title, e.details(), this);
       }
     }
   }
@@ -271,7 +271,7 @@ void SASTabularReport::Entry::extractInformation()
   auto title      = tr("Export %1 Data").arg(m_category);
   auto suggestion = QString("%1 SAS information.xls").arg(m_category.replace("/","-"));
   auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion);
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
   if (fileName.isEmpty()) return;
 
@@ -289,7 +289,7 @@ void SASTabularReport::Entry::extractInformation()
     catch(const EspinaException &e)
     {
       auto message = tr("Unable to export %1").arg(fileName);
-      DefaultDialogs::InformationMessage(message, title, e.details());
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
     }
   }
   else
@@ -303,7 +303,7 @@ void SASTabularReport::Entry::extractInformation()
       catch(const EspinaException &e)
       {
         auto message = tr("Unable to export %1").arg(fileName);
-        DefaultDialogs::InformationMessage(message, title, e.details());
+        DefaultDialogs::InformationMessage(message, title, e.details(), this);
       }
     }
   }

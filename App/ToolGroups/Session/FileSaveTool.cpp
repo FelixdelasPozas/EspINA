@@ -24,6 +24,7 @@
 #include "ChunkReporter.h"
 
 #include <Core/IO/SegFile.h>
+#include <Core/Utils/EspinaException.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/SupportedFormats.h>
 #include <GUI/Widgets/Styles.h>
@@ -35,6 +36,7 @@ using ESPINA::IO::SegFile::save;
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
+using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 FileSaveTool::FileSaveTool(const QString &id,
@@ -113,11 +115,20 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 
     ChunkReporter reporter(1, this);
 
-    IO::SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
+    try
+    {
+      IO::SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
+
+      emit sessionSaved(filename);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Couldn't save file: '%1").arg(filename.split('/').last());
+      auto title   = tr("Error saving file");
+      DefaultDialogs::ErrorMessage(message, title);
+    }
 
     setIcon(current);
-
-    emit sessionSaved(filename);
   }
 }
 

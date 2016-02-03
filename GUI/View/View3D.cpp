@@ -463,12 +463,12 @@ void View3D::exportScene()
                           .addFormat(tr("Wavefront format"),        "obj")
                           .addFormat(tr("Geomview format"),         "oogl");
 
-  auto fileName = DefaultDialogs::SaveFile(title, formats, "", ".wrl", suggestion);
+  auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".wrl", suggestion, this);
 
   if (!fileName.isEmpty())
   {
     QStringList splittedName = fileName.split(".");
-    QString extension = splittedName[((splittedName.size())-1)].toUpper();
+    QString extension = splittedName[((splittedName.size())-1)].toUpper().remove(' ');
 
     QStringList validFileExtensions;
     validFileExtensions << "POV" << "X3D" << "WRL" << "IV" << "OBJ" << "OOGL";
@@ -564,11 +564,19 @@ void View3D::exportScene()
       {
         std::setlocale(LC_NUMERIC, "");
       }
+
+      // check if write was successful, vt classes don't throw exceptions as a general rule.
+      QFileInfo fileInfo{fileName};
+      if(!fileInfo.exists() || fileInfo.size() == 0)
+      {
+        auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, "", this);
+      }
     }
     else
     {
       auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
-      DefaultDialogs::InformationMessage(message, title);
+      DefaultDialogs::InformationMessage(message, title, "", this);
     }
   }
 }

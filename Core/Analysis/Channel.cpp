@@ -171,8 +171,7 @@ Snapshot Channel::snapshot() const
 
       for(auto data: extension->snapshot())
       {
-        QString file = extensionDataPath(extension, data.first);
-        snapshot << SnapshotData(file, data.second);
+        snapshot << data;
       }
     }
     stream.writeEndElement();
