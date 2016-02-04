@@ -35,13 +35,10 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 
-const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
-  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
-const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE
-  = QObject::tr("Delete %1's segmentations. "
-                "If you want to delete recursively select: Yes To All");
-const QString SegmentationExplorer::Layout::MIXED_MESSAGE
-  = QObject::tr("Delete recursively %1's segmentations");
+const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
+const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE     = QObject::tr("Delete %1's segmentations. "
+                                                                                "If you want to delete recursively select: Yes To All");
+const QString SegmentationExplorer::Layout::MIXED_MESSAGE         = QObject::tr("Delete recursively %1's segmentations");
 
 //------------------------------------------------------------------------
 SegmentationFilterProxyModel::SegmentationFilterProxyModel(QObject *parent)

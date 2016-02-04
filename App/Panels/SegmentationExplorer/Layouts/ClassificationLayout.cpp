@@ -237,7 +237,6 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
   bool segmentationsSelected     = !m_selectedSegmentations.isEmpty();
   bool categoriesSelected        = !m_selectedCategories.isEmpty();
-  bool enableSegmentationActions = !categoriesSelected && segmentationsSelected;
 
   QMenu *contextMenu = nullptr;
 
@@ -245,12 +244,9 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   {
     contextMenu = new DefaultContextualMenu(m_selectedSegmentations, getContext());
 
-    for (auto action : contextMenu->actions())
-    {
-      action->setEnabled(enableSegmentationActions);
-    }
-
     contextMenu->addSeparator();
+
+    connect(contextMenu, SIGNAL(renamedSegmentations()), m_view, SLOT(update()));
   }
 
   if (categoriesSelected)
