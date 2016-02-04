@@ -67,6 +67,7 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
   createNoteEntry();
   createTagsEntry();
   createRenameEntry();
+  createGroupRenameEntry();
   createExportEntry();
   createDeleteEntry();
 }
@@ -156,8 +157,11 @@ void DefaultContextualMenu::renameSegmentation()
 
   for (auto segmentation : m_segmentations)
   {
+    bool result = false;
     QString oldName = segmentation->data().toString();
-    QString alias = QInputDialog::getText(this, oldName, renameTitle, QLineEdit::Normal, oldName);
+    QString alias = QInputDialog::getText(this, oldName, renameTitle, QLineEdit::Normal, oldName, &result);
+
+    if(!result) continue;
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
@@ -175,6 +179,62 @@ void DefaultContextualMenu::renameSegmentation()
     else
     {
       renames[segmentation] = alias;
+    }
+  }
+
+  if (renames.size() != 0)
+  {
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro(renameTitle);
+    undoStack->push(new RenameSegmentationsCommand(renames));
+    undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::renameSegmentationGroup()
+{
+  auto renameTitle = tr("Rename Segmentations Group");
+
+  QMap<SegmentationAdapterPtr, QString> renames;
+  auto hint = m_segmentations.first()->data().toString();
+
+  QRegExp regExpr{"[0-9]"};
+
+  auto index = regExpr.indexIn(hint);
+
+  if(index > 1)
+  {
+   hint = hint.mid(0, (hint[index-1] == ' ' ? index-1 : index));
+  }
+
+  bool result = false;
+  QString name = QInputDialog::getText(this, tr("Rename Group"), tr("Segmentations prefix"), QLineEdit::Normal, hint, &result);
+
+  if(!result) return;
+
+  for (auto segmentation : m_segmentations)
+  {
+    QString oldName = segmentation->data().toString();
+    auto numIndex = regExpr.indexIn(oldName);
+    auto newName = name + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+
+    bool exists = false;
+    for (auto existinSegmentation : getModel()->segmentations())
+    {
+      exists |= (existinSegmentation->data().toString() == newName && segmentation != existinSegmentation.get());
+    }
+
+    if (exists)
+    {
+      auto title = tr("Alias duplicated");
+      auto msg   = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+
+      DefaultDialogs::InformationMessage(msg, title);
+    }
+    else
+    {
+      renames.insert(segmentation, newName);
     }
   }
 
@@ -340,7 +400,7 @@ void DefaultContextualMenu::deleteSelectedSementations()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createNoteEntry()
 {
-  auto action = addAction(tr("Notes"));
+  auto action = addAction(tr("&Notes"));
 
   action->setIcon(QIcon(":/espina/note.svg"));
   connect(action, SIGNAL(triggered(bool)),
@@ -350,7 +410,7 @@ void DefaultContextualMenu::createNoteEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createChangeCategoryMenu()
 {
-   auto changeCategoryMenu = new QMenu(tr("Change Category"));
+   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
    auto categoryListAction = new QWidgetAction(changeCategoryMenu);
 
    auto model = getModel();
@@ -375,7 +435,7 @@ void DefaultContextualMenu::createChangeCategoryMenu()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  auto action = addAction(tr("Tags"));
+  auto action = addAction(tr("&Tags"));
   action->setIcon(QIcon(":/espina/tag.svg"));
 
   connect(action, SIGNAL(triggered(bool)),
@@ -391,11 +451,20 @@ void DefaultContextualMenu::createRenameEntry()
           this,   SLOT(renameSegmentation()));
 }
 
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createGroupRenameEntry()
+{
+  auto action = addAction(tr("Rename &All"));
+  action->setEnabled(m_segmentations.size() > 1);
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(renameSegmentationGroup()));
+}
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createExportEntry()
 {
-  auto action = addAction(tr("Export"));
+  auto action = addAction(tr("&Export"));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(exportSelectedSegmentations()));
@@ -404,7 +473,7 @@ void DefaultContextualMenu::createExportEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  auto action = addAction(tr("Delete"));
+  auto action = addAction(tr("&Delete"));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(deleteSelectedSementations()));

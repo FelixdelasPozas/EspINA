@@ -93,8 +93,14 @@ namespace ESPINA
        */
       void renameSegmentation();
 
+      /** \brief Renames a group of segmentations with the user given prefix.
+       *
+       */
+      void renameSegmentationGroup();
+
     signals:
       void changeCategory(CategoryAdapterPtr);
+      void renamedSegmentations();
       void deleteSegmentations();
 
     private:
@@ -117,6 +123,11 @@ namespace ESPINA
        *
        */
       void createRenameEntry();
+
+      /** \brief Creates a "rename group" entry for the contextual menu.
+       *
+       */
+      void createGroupRenameEntry();
 
       /** \brief Export segmentations to external format
        *
