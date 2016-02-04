@@ -129,12 +129,14 @@ QString CountingFrame::description() const
   int  totalVoxelVolume     = totalVolume()     / voxelVol;
   int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
   int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  auto constraint = categoryConstraint().isEmpty() ? "All (Global)" : categoryConstraint();
 
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";
   QString desc;
   desc += tr("CF:   %1"            ).arg(m_id)                             + br;
   desc += tr("Type: %1"            ).arg(typeName())                       + br;
+  desc += tr("Applies to: %1"      ).arg(constraint)                       + br;
   desc += tr("Volume information:" )                                       + br;
   desc += tr("  Total Volume:"     )                                       + br;
   desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
@@ -411,3 +413,13 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
   }
 }
 
+//-----------------------------------------------------------------------------
+void ESPINA::CF::CountingFrame::setId(Id id)
+{
+  if(m_id != id)
+  {
+    m_id = id;
+
+    emit modified(this);
+  }
+}

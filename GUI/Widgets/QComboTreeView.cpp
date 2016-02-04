@@ -100,8 +100,15 @@ void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 //----------------------------------------------------------------------------
 void QComboTreeView::showPopup()
 {
+  auto current = currentModelIndex();
+  while(current.parent() != QModelIndex())
+  {
+    current = current.parent();
+  }
+  setRootModelIndex(current);
+
   m_treeView->expandAll();
-  adjustSize();
+
   QComboBox::showPopup();
 }
 

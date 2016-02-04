@@ -134,8 +134,7 @@ namespace ESPINA
       /** \brief Sets the id of the counting frame.
        *
        */
-      void setId(Id id)
-      { m_id = id; }
+      void setId(Id id);
 
       /** \brief Shows/hides the counting frame.
        * \param[in] visible true to show and false otherwise.

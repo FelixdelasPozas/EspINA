@@ -657,10 +657,6 @@ void CF::Panel::showInfo(CountingFrame* activeCF)
   {
     m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(activeCF->categoryConstraint()));
   }
-  else
-  {
-    m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(m_context.model()->classification()->categories().first()->name()));
-  }
   m_gui->categorySelector->blockSignals(false);
 
   m_gui->useCategoryConstraint->blockSignals(true);
