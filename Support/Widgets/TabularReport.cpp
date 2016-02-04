@@ -492,7 +492,7 @@ void TabularReport::createCategoryEntry(const QString &category)
 
   if (m_tabs->tabText(i) != category)
   {
-    auto entry = new Entry(category, m_model, factory(), this);
+    auto entry = new Entry(category, m_model, factory(), m_tabs);
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));

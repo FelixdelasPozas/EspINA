@@ -72,8 +72,6 @@ class InformationDelegate
         progressBarOption.progress      = progress;
         progressBarOption.text          = QString("%1%").arg(progressBarOption.progress);
 
-//         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
-//                                                     .arg(progressBarOption.progress);
         // Draw the progress bar onto the view.
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
 
@@ -101,7 +99,6 @@ TabularReport::Entry::Entry(const QString   &category,
   tableView->setItemDelegate(new InformationDelegate());
   tableView->horizontalHeader()->setMovable(true);
   tableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-  //tableView->horizontalHeader()->setStretchLastSection(true);
   tableView->adjustSize();
   tableView->sortByColumn(0, Qt::AscendingOrder);
   tableView->horizontalHeader()->setSortIndicatorShown(true);
@@ -109,7 +106,7 @@ TabularReport::Entry::Entry(const QString   &category,
   connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
           this, SLOT(saveSelectedInformation()));
 
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+//  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   exportInformation->setIcon(iconSave);
@@ -221,7 +218,6 @@ void TabularReport::Entry::saveSelectedInformation()
     informationOrder << m_proxy->headerData(logicalIdx, Qt::Horizontal, Qt::DisplayRole).toString();
   }
 
-  //qDebug() << "New order: " << informationOrder;
   QByteArray selectedInformation = informationOrder.join("\n").toUtf8();
   m_model->storage()->saveSnapshot(SnapshotData(selectedInformationFile(), selectedInformation));
 }
@@ -462,37 +458,17 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
     headerLabels << key.value();
   }
 
-  auto header = new QStandardItemModel(1, keys.size(), this->parentWidget());
+  auto header = new QStandardItemModel(1, keys.size(), this);
   header->setHorizontalHeaderLabels(headerLabels);
   tableView->horizontalHeader()->setModel(header);
+
   tableView->adjustSize();
 }
-
 
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
 {
-  auto oldInformationList     = lastInformationOrder();
-  auto orderedInformationList = oldInformationList;
-  auto newInformationList     = information(extensionInformation);
-//
-//   for (auto oldInformation : oldInformationList)
-//   {
-//     if (!newInformationList.contains(oldInformation))
-//     {
-//       orderedInformationList.removeAll(oldInformation);
-//     }
-//   }
-//
-//   for (auto newInformation : newInformationList)
-//   {
-//     if (!orderedInformationList.contains(newInformation))
-//     {
-//       orderedInformationList << newInformation;
-//     }
-//   }
-//
-  return newInformationList;
+  return information(extensionInformation);;
 }
 
 //------------------------------------------------------------------------
