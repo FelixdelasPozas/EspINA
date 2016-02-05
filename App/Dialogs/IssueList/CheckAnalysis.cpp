@@ -24,12 +24,15 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/EspinaException.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Extensions/Issues/SegmentationIssues.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -92,21 +95,23 @@ class DuplicatedIssue
 : public SegmentationIssue
 {
   public:
-    explicit DuplicatedIssue(SegmentationAdapterPtr segmentation, SegmentationAdapterPtr duplicated)
-    : SegmentationIssue(duplicated, Severity::WARNING, description(segmentation), suggestion())
+    explicit DuplicatedIssue(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels)
+    : SegmentationIssue(original, Severity::WARNING, description(duplicated, duplicatedVoxels), suggestion())
     {
-      addIssueTag(duplicated, { DUPLICATED_TAG });
+      addIssueTag(original, { DUPLICATED_TAG });
     }
 
   private:
-    static QString description(const SegmentationAdapterPtr original)
+    static QString description(const SegmentationAdapterPtr segmentation, const unsigned long long duplicatedVoxels)
     {
-      return QObject::tr("Possible duplicated segmentation of %1").arg(original->data(Qt::DisplayRole).toString());
+      return QObject::tr("Possible duplicated segmentation of %1. Both have %2 voxel%3 in common.").arg(segmentation->data(Qt::DisplayRole).toString())
+                                                                                                   .arg(duplicatedVoxels)
+                                                                                                   .arg((duplicatedVoxels > 1) ? "s" : "");
     }
 
     static QString suggestion()
     {
-      return QObject::tr("Delete unnecessary segmentation");
+      return QObject::tr("Delete one or edit both segmentations to avoid common voxels.");
     }
 
 };
@@ -136,14 +141,12 @@ void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
 //------------------------------------------------------------------------
 void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 {
-  if (isSegmentation(item))
+  if (item && isSegmentation(item))
   {
     auto segmentation   = segmentationPtr(item);
     auto issueExtension = retrieveOrCreateExtension<SegmentationIssues>(segmentation->extensions());
-
     issueExtension->addIssue(issue);
   }
-  qWarning() << "ViewItem" << issue->displayName() << issue->description() << ">>" << issue->suggestion();
 
   emit issueFound(issue);
 }
@@ -151,7 +154,7 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 //------------------------------------------------------------------------
 QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
 {
-  return tr("Delete %1").arg(isSegmentation(item.get())?"segmentation":"channel");
+  return tr("Delete %1").arg(isSegmentation(item.get()) ? "segmentation" : "channel");
 }
 
 //------------------------------------------------------------------------
@@ -270,7 +273,7 @@ void CheckAnalysis::removePreviousIssues(ModelAdapterSPtr model)
 
   for(auto sample: model->samples())
   {
-    // EMPTY
+    // EMPTY intentionally empty
   }
 }
 
@@ -344,9 +347,16 @@ CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler,
 //------------------------------------------------------------------------
 void CheckSegmentationTask::run()
 {
-  checkViewItemOutputs(m_segmentation);
-  checkHasChannel();
-  checkRelations();
+  try
+  {
+    checkViewItemOutputs(m_segmentation);
+    checkHasChannel();
+    checkRelations();
+  }
+  catch(const EspinaException &e)
+  {
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Check crashed during testing."), e.details());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -437,7 +447,7 @@ void CheckSegmentationTask::checkHasChannel() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) const
 {
-  if (!contains(channel->output()->bounds(), m_segmentation->output()->bounds()))
+  if (!contains(channel->output()->bounds(), m_segmentation->output()->bounds(), channel->output()->spacing()))
   {
     auto description = tr("Segmentation is partially outside its stack");
 
@@ -484,8 +494,15 @@ void CheckChannelTask::checkRelations() const
 //------------------------------------------------------------------------
 void CheckChannelTask::run()
 {
-  checkViewItemOutputs(m_channel);
-  checkRelations();
+  try
+  {
+    checkViewItemOutputs(m_channel);
+    checkRelations();
+  }
+  catch(const EspinaException &e)
+  {
+    reportIssue(m_channel, Issue::Severity::CRITICAL, tr("Check crashed during testing."), e.details());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -503,34 +520,44 @@ void CheckSampleTask::run()
 
 //------------------------------------------------------------------------
 CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-: CheckTask(scheduler, model)
+: CheckTask      {scheduler, model}
 {
+  for(auto seg: model->segmentations())
+  {
+    m_segmentations << seg.get();
+  }
 }
 
 //------------------------------------------------------------------------
 void CheckDuplicatedSegmentationsTask::run()
 {
-  auto segmentations = m_model->segmentations();
-
-  for (int i = 0; i < segmentations.size(); ++i)
+  for (int i = 0; i < m_segmentations.size(); ++i)
   {
-    auto seg_i    = segmentations[i].get();
-    auto bounds_i = seg_i->bounds();
+    auto seg_i    = m_segmentations[i];
+    auto bounds_i = readLockVolume(seg_i->output())->bounds();
 
-    for (int j = i + 1; j < segmentations.size(); ++j)
+    for (int j = i + 1; j < m_segmentations.size(); ++j)
     {
-      auto seg_j    = segmentations[j].get();
-      auto bounds_j = seg_j->bounds();
+      auto seg_j    = m_segmentations[j];
+      auto bounds_j = readLockVolume(seg_j->output())->bounds();
 
       if (seg_i->category() == seg_j->category())
       {
-        if (contains(bounds_i, bounds_j))
+        if(intersect(bounds_i, bounds_j))
         {
-          reportIssue(seg_j, possibleDuplication(seg_i, seg_j));
-        }
-        else if (contains(bounds_j, bounds_i))
-        {
-          reportIssue(seg_i, possibleDuplication(seg_j, seg_i));
+          auto commonBounds = intersection(bounds_i, bounds_j);
+          if(commonBounds.areValid())
+          {
+            auto image1     = readLockVolume(seg_i->output())->itkImage(commonBounds);
+            auto image2     = readLockVolume(seg_j->output())->itkImage(commonBounds);
+            auto duplicated = compare_images<itkVolumeType>(image1, image2, commonBounds);
+
+            if(duplicated > 0)
+            {
+              reportIssue(seg_i, possibleDuplication(seg_i, seg_j, duplicated));
+              reportIssue(seg_j, possibleDuplication(seg_j, seg_i, duplicated));
+            }
+          }
         }
       }
     }
@@ -539,9 +566,10 @@ void CheckDuplicatedSegmentationsTask::run()
 
 //------------------------------------------------------------------------
 IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdapterPtr original,
-                                                                SegmentationAdapterPtr duplicated) const
+                                                                SegmentationAdapterPtr duplicated,
+                                                                const unsigned long long duplicatedVoxes) const
 {
-  return std::make_shared<DuplicatedIssue>(original, duplicated);
+  return std::make_shared<DuplicatedIssue>(original, duplicated, duplicatedVoxes);
 }
 
 //------------------------------------------------------------------------
