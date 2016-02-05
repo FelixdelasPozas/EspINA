@@ -64,7 +64,17 @@ void SliceManager::setPlane(Plane plane)
 //----------------------------------------------------------------------------
 void SliceManager::setRepresentationDepth(Nm depth)
 {
-  m_depth = depth;
+  if(m_depth != depth)
+  {
+    m_depth = depth;
+
+    if(validPlane())
+    {
+      auto pool = planePool();
+
+      RepresentationUtils::setSegmentationDepth(pool, m_depth);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

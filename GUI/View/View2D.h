@@ -232,6 +232,8 @@ namespace ESPINA
 
     void updateSpinBoxLimits(int min, int max);
 
+    void updateManagersDepth(const NmVector3 &resolution);
+
     void updateScrollBarLimits(int min, int max);
 
     inline bool fitToSlices() const;

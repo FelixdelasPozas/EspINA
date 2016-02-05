@@ -56,9 +56,13 @@ SegmentationSlicePipeline::SegmentationSlicePipeline(const Plane plane,
 RepresentationState SegmentationSlicePipeline::representationState(const ViewItemAdapter *item,
                                                                    const RepresentationState &settings)
 {
+  RepresentationState state;
+
+  if(!item) return state;
+
   auto segmentation = segmentationPtr(item);
 
-  RepresentationState state;
+  if(!segmentation) return state;
 
   state.apply(segmentationPipelineSettings(segmentation));
   state.apply(settings);
@@ -85,7 +89,6 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {
-      sliceBounds.setLowerInclusion(true);
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 

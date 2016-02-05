@@ -254,17 +254,12 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
   if (!isValid(frame) || frame->time <= m_lastFrameChanged) return;
 
 //   qDebug() << debugName() << "received frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << "last time" << m_frames.lastTime();
-   QString path;
-
   if (isActive())
   {
-    path.append("active|");
     if (needsRepresentationUpdate(frame))
     {
-      path.append("needsrep|");
       if(hasRepresentations())
       {
-        path.append("hasreps|");
         waitForDisplay(frame);
       }
 
@@ -276,7 +271,6 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
     {
       if(acceptInvalidationFrame(frame) && hasRepresentations())
       {
-        path.append("acceptinv&hasreps|");
         waitForDisplay(frame);
 //         qDebug() << debugName() << "processed frame" << frame->time << "status" << ((m_status == Status::IDLE) ? "Idle" : QString("Waiting %1").arg(m_lastFrameChanged)) << path;
         return;
@@ -286,7 +280,6 @@ void RepresentationManager::onFrameChanged(const FrameCSPtr frame)
 
   if (!isIdle())
   {
-    path.append("notidle|");
     reuseTimeValue(frame->time);
   }
 

@@ -448,16 +448,14 @@ void View2D::setupUI()
 //-----------------------------------------------------------------------------
 double View2D::segmentationDepth() const
 {
-  auto segmentationShift = 0.05;
+  auto segmentationShift = 0.05 * this->sceneResolution()[normalCoordinateIndex(m_plane)];
   return Plane::XY == m_plane ? -segmentationShift : segmentationShift;
 }
 
 //-----------------------------------------------------------------------------
 double View2D::widgetDepth() const
 {
-  auto depthSpacing = this->sceneResolution()[normalCoordinateIndex(m_plane)];
-  auto widgetShift = 0.15 + depthSpacing;
-
+  auto widgetShift = 0.15 * this->sceneResolution()[normalCoordinateIndex(m_plane)];
   return Plane::XY == m_plane ? -widgetShift : widgetShift;
 }
 
@@ -823,6 +821,20 @@ void View2D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
+void View2D::updateManagersDepth(const NmVector3& resolution)
+{
+  for(auto manager: m_managers)
+  {
+    auto manager2D = dynamic_cast<RepresentationManager2D *>(manager.get());
+
+    if (manager2D)
+    {
+      manager2D->setRepresentationDepth(segmentationDepth());
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 const QString View2D::viewName() const
 {
   if (m_plane == Plane::XY) return "XY";
@@ -1012,6 +1024,8 @@ void View2D::onSceneResolutionChanged(const NmVector3 &resolution)
   updateThumbnailBounds(sceneBounds());
 
   updateWidgetLimits(sceneBounds());
+
+  updateManagersDepth(resolution);
 
   m_scrollBar->setValue(sliceIndex);
 

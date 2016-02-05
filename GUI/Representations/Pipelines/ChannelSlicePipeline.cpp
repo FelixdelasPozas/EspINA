@@ -82,7 +82,6 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {
-      sliceBounds.setLowerInclusion(true);
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
