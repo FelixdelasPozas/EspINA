@@ -384,7 +384,7 @@ void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
     }
     else
     {
-      fitToContents(volume, SEG_BG_VALUE);
+      fitToContents<itkVolumeType>(volume, SEG_BG_VALUE);
     }
   }
 

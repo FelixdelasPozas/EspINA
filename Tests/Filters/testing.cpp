@@ -280,7 +280,7 @@ bool ESPINA::checkSpacing(const NmVector3& lhs, const NmVector3& rhs)
 
   if (error)
   {
-    cerr << "Unexpeceted spacing " << lhs << rhs << endl;
+    cerr << "Unexpected spacing " << lhs << rhs << endl;
   }
   return error;
 }

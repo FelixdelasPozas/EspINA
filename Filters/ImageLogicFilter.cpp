@@ -21,7 +21,6 @@
 // ESPINA
 #include "ImageLogicFilter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Utils/Bounds.h>
@@ -194,6 +193,9 @@ void ImageLogicFilter::subtraction()
   {
     m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
+
+  auto bounds = minimalBounds<itkVolumeType>(outputVolume->itkImage(), SEG_BG_VALUE);
+  outputVolume->resize(bounds);
 
   m_outputs[0]->setData(outputVolume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
