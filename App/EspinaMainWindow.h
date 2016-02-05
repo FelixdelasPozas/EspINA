@@ -61,7 +61,6 @@ class QShortcut;
 
 namespace ESPINA
 {
-
   class SeedGrowSegmentationSettings;
   class ROISettings;
   class FileSaveTool;

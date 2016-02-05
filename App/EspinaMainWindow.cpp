@@ -93,22 +93,22 @@ using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
-: QMainWindow()
-, m_minimizedStatus(false)
-, m_context(this, &m_minimizedStatus)
-, m_analysis(new Analysis())
-, m_errorHandler(new EspinaErrorHandler(this))
-, m_channelReader{new ChannelReader()}
-, m_segFileReader{new SegFileReader()}
-, m_settings     {new ApplicationSettings()}
-, m_roiSettings  {new ROISettings()}
-, m_sgsSettings  {new SeedGrowSegmentationSettings()}
-, m_cancelShortcut{Qt::Key_Escape, this, SLOT(cancelOperation()), SLOT(cancelOperation()), Qt::ApplicationShortcut}
-, m_mainBarGroup {this}
-, m_activeToolGroup{nullptr}
-, m_view(new DefaultView(m_context, this))
+: QMainWindow        {nullptr, 0}
+, m_minimizedStatus  {false}
+, m_context          {this, &m_minimizedStatus}
+, m_analysis         {new Analysis()}
+, m_errorHandler     {new EspinaErrorHandler(this)}
+, m_channelReader    {new ChannelReader()}
+, m_segFileReader    {new SegFileReader()}
+, m_settings         {new ApplicationSettings()}
+, m_roiSettings      {new ROISettings()}
+, m_sgsSettings      {new SeedGrowSegmentationSettings()}
+, m_cancelShortcut   {Qt::Key_Escape, this, SLOT(cancelOperation()), SLOT(cancelOperation()), Qt::ApplicationShortcut}
+, m_mainBarGroup     {this}
+, m_activeToolGroup  {nullptr}
+, m_view             {new DefaultView(m_context, this)}
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
-, m_busy{false}
+, m_busy             {false}
 {
   updateUndoStackIndex();
 
@@ -152,6 +152,15 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->clearMessage();
 
   m_sessionToolGroup->setChecked(true);
+
+  try
+  {
+    checkAutoSavedAnalysis();
+  }
+  catch(...)
+  {
+    // nothing
+  }
 }
 
 //------------------------------------------------------------------------
@@ -332,11 +341,6 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   m_minimizedStatus = false;
-
-  if (!m_analysis)
-  {
-    checkAutoSavedAnalysis();
-  }
 }
 
 //------------------------------------------------------------------------
@@ -1166,7 +1170,7 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
 {
   if (m_autoSave.canRestore())
   {
-    auto msg = tr("ESPINA closed unexpectedly. Do you want to load autosaved analysis?");
+    auto msg = tr("ESPINA closed unexpectedly. Do you want to load the auto-saved analysis?");
 
     if (QMessageBox::Yes == DefaultDialogs::UserQuestion(msg))
     {
