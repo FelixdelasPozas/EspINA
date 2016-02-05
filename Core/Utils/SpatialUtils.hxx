@@ -45,8 +45,8 @@ namespace ESPINA
    *
    */
   template<typename T>
-  typename T::Pointer define_itkImage(const NmVector3             &origin,
-                                      const NmVector3             &spacing)
+  typename T::Pointer define_itkImage(const NmVector3 &origin,
+                                      const NmVector3 &spacing)
   {
     typename T::PointType   itkOrigin;
     typename T::SpacingType itkSpacing;
@@ -79,56 +79,35 @@ namespace ESPINA
   template<typename T>
   typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   {
-    typename T::PointType   o = image->GetOrigin();
     typename T::SpacingType s = image->GetSpacing();
+
+    NmVector3 hSpacing{s[0]/2.0, s[1]/2.0, s[2]/2.0};
 
     typename T::PointType p0, p1;
     for (int i = 0; i < 3; ++i)
     {
-      Axis dir = toAxis(i);
+      p0[i] = bounds[2 * i]     + hSpacing[i];
+      p1[i] = bounds[2 * i + 1] - hSpacing[i];
 
-      p0[i] = bounds[2 * i];
-      p1[i] = bounds[2 * i + 1];
-
-      if (areEqual(p0[i], p1[i]) && !bounds.areUpperIncluded(dir) && !bounds.areLowerIncluded(dir))
+      if(!areEqual(std::remainder(p0[i],s[i]), 0, s[i]))
       {
-        auto what    = QObject::tr("Invalid bounds, bounds: %1").arg(bounds.toString());
-        auto details = QObject::tr("equivalentRegion() -> Invalid bounds, bounds: %1").arg(bounds.toString());
-
-        throw Core::Utils::EspinaException(what, details);
+        p0[i] -= hSpacing[i];
       }
 
-      if (isAligned(p0[i], o[i], s[i]))
+      if(!areEqual(std::remainder(p1[i],s[i]), 0, s[i]))
       {
-        p0[i] += s[i] / 2.0;
+        p1[i] += hSpacing[i];
       }
 
-      if (isAligned(p1[i], o[i], s[i]))
+      if(p0[i] > p1[i])
       {
-        if (bounds.areUpperIncluded(dir))
-        {
-          p1[i] += s[i] / 2.0;
-        }
-        else
-        {
-          p1[i] -= s[i] / 2.0;
-        }
+        std::swap(p0[i], p1[i]);
       }
     }
 
     typename T::IndexType i0, i1;
     image->TransformPhysicalPointToIndex(p0, i0);
     image->TransformPhysicalPointToIndex(p1, i1);
-
-    // TODO: as stupid as it sounds this happens on some coordinates when
-    // using the brush and painting outside the view. Investigate and fix.
-    for(auto i: {0,1,2})
-    {
-      if(i0[i] > i1[i])
-      {
-        std::swap(i0[i], i1[i]);
-      }
-    }
 
     typename T::RegionType region;
     region.SetIndex(i0);
@@ -378,6 +357,23 @@ namespace ESPINA
     return count;
   }
 
+  /** \brief Transform from SpacingType to NmVector3.
+   * \param[in] itkSpacing itk SpacingType object to translate.
+   *
+   */
+  template<typename T>
+  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
+  {
+    NmVector3 vector;
+
+    for(int i = 0; i < 3; ++i)
+    {
+      vector[i] = itkSpacing[i];
+    }
+
+    return vector;
+  }
+
   /** \brief Return the minimal bounds of image which contains voxels with values different from @value.
    * \param[in] image itk image smart pointer.
    * \param[in] value value to take into consideration.
@@ -389,8 +385,9 @@ namespace ESPINA
     Bounds bounds;
 
     itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
-    auto origin  = image->GetOrigin();
-    auto spacing = image->GetSpacing();
+    auto origin   = image->GetOrigin();
+    auto spacing  = image->GetSpacing();
+    auto vSpacing = ToNmVector3<T>(spacing);
 
     it.GoToBegin();
     while (!it.IsAtEnd())
@@ -408,7 +405,7 @@ namespace ESPINA
         if (!bounds.areValid())
           bounds = voxelBounds;
         else
-          bounds = boundingBox(bounds, voxelBounds);
+          bounds = boundingBox(bounds, voxelBounds, vSpacing);
       }
       ++it;
     }
@@ -448,24 +445,6 @@ namespace ESPINA
     }
 
     return itkSpacing;
-  }
-
-
-  /** \brief Transform from SpacingType to NmVector3.
-   * \param[in] itkSpacing itk SpacingType object to translate.
-   *
-   */
-  template<typename T>
-  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
-  {
-    NmVector3 vector;
-
-    for(int i = 0; i < 3; ++i)
-    {
-      vector[i] = itkSpacing[i];
-    }
-
-    return vector;
   }
 
   /** \brief Transform from PointType to NmVector3.
