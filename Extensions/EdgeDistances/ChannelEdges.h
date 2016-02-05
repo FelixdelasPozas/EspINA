@@ -83,6 +83,8 @@ namespace ESPINA
     virtual InformationKeyList availableInformation() const
     { return InformationKeyList(); }
 
+    QString snapshotName(const QString &file) const;
+
     /** \brief Sets the "use distance to bounds" flag.
      * \param[in] value true to use the distance to bounds, false otherwise.
      *

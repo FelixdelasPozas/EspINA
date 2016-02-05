@@ -63,6 +63,10 @@ const QString ChannelEdges::FACES_FILE = "ChannelFaces_%1.vtp";
 
 const std::string FILE_VERSION = ChannelEdges::TYPE.toStdString() + " 2.0\n";
 
+using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
+using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
+using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
+
 //-----------------------------------------------------------------------------
 ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
                            const ChannelExtension::InfoCache &cache,
@@ -91,11 +95,31 @@ ChannelEdges::~ChannelEdges()
   {
     m_edgesAnalyzer->abort();
 
-    if (!m_edgesAnalyzer->thread()->wait(500))
+    if ((m_edgesAnalyzer->thread() != this->thread()) && !m_edgesAnalyzer->thread()->wait(500))
+    {
       m_edgesAnalyzer->thread()->terminate();
+    }
   }
 
   m_edgesAnalyzer = nullptr;
+
+  if(!m_edgesCreator->hasFinished())
+  {
+    m_edgesCreator->abort();
+
+    if ((m_edgesCreator->thread() != this->thread()) && !m_edgesCreator->thread()->wait(500))
+    {
+      m_edgesCreator->thread()->terminate();
+    }
+  }
+
+  m_edgesCreator = nullptr;
+
+  m_edges = nullptr;
+  for(int i = 0; i < 6; ++i)
+  {
+    m_faces[i] = nullptr;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -124,12 +148,16 @@ void ChannelEdges::initializeEdges()
 //-----------------------------------------------------------------------------
 void ChannelEdges::analyzeChannel()
 {
-  qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
   QWriteLocker lock(&m_edgesResultMutex);
+  qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
+
   m_analysisResultMutex.lockForWrite();
+
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
+
   connect(m_edgesAnalyzer.get(), SIGNAL(finished()),
           this,                  SLOT(onChannelAnalyzed()));
+
   Task::submit(m_edgesAnalyzer);
 }
 
@@ -151,12 +179,11 @@ void ChannelEdges::computeAdaptiveEdges()
   Task::submit(m_edgesCreator);
 }
 
-using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
-
 //-----------------------------------------------------------------------------
 void ChannelEdges::loadEdgesCache()
 {
   QWriteLocker lock(&m_edgesMutex);
+
   if (!m_edges.GetPointer() && !m_extendedItem->isOutputModified())
   {
     QString   snapshot  = snapshotName(EDGES_FILE);
@@ -173,9 +200,9 @@ void ChannelEdges::loadEdgesCache()
 void ChannelEdges::loadFacesCache()
 {
   QWriteLocker lock(&m_facesMutex);
+
   if (!m_faces[0].GetPointer() && !m_extendedItem->isOutputModified())
   {
-
     for (int i = 0; i < 6; ++i)
     {
       QString   snapshot  = snapshotName(FACES_FILE.arg(i));
@@ -188,10 +215,6 @@ void ChannelEdges::loadFacesCache()
     }
   }
 }
-
-using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
-
-using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
 
 //-----------------------------------------------------------------------------
 State ChannelEdges::state() const
@@ -206,26 +229,32 @@ Snapshot ChannelEdges::snapshot() const
 {
   Snapshot snapshot;
 
-  m_edgesMutex.lockForRead();
-  if (m_edges)
   {
-    auto name = snapshotName(EDGES_FILE);
-    auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
-    snapshot << SnapshotData(name, data);
-  }
-  m_edgesMutex.unlock();
+    QReadLocker lock(&m_edgesMutex);
 
-  m_facesMutex.lockForRead();
-  for (int i = 0; i < 6; ++i)
-  {
-    if (m_faces[i])
+    if (m_edges)
     {
-      auto name = snapshotName(FACES_FILE.arg(i));
-      auto data = PolyDataUtils::savePolyDataToBuffer(m_faces[i]);
+      auto name = snapshotName(EDGES_FILE);
+      auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
+
       snapshot << SnapshotData(name, data);
     }
   }
-  m_facesMutex.unlock();
+
+  {
+    QReadLocker lock(&m_facesMutex);
+
+    for (int i = 0; i < 6; ++i)
+    {
+      if (m_faces[i])
+      {
+        auto name = snapshotName(FACES_FILE.arg(i));
+        auto data = PolyDataUtils::savePolyDataToBuffer(m_faces[i]);
+
+        snapshot << SnapshotData(name, data);
+      }
+    }
+  }
 
   return snapshot;
 }
@@ -301,12 +330,13 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
 {
   loadFacesCache();
 
-  m_facesMutex.lockForWrite();
-  if (!m_faces[0])
   {
-    computeSurfaces();
+    QReadLocker lock(&m_facesMutex);
+    if (!m_faces[0])
+    {
+      computeSurfaces();
+    }
   }
-  m_facesMutex.unlock();
 
   auto output = segmentation->output();
 
@@ -517,3 +547,14 @@ void ChannelEdges::computeSurfaces()
     m_faces[face] = poly;
  }
 }
+
+//-----------------------------------------------------------------------------
+QString ChannelEdges::snapshotName(const QString& file) const
+{
+  auto channelName = m_extendedItem->name();
+
+  return QString("%1/%2/%3_%4").arg(Path())
+                               .arg(type())
+                               .arg(channelName.remove(' ').replace('.','_'))
+                               .arg(file);
+};
