@@ -274,28 +274,66 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 
     bool li = false;
     if (areEqual(b1[lo], b2[lo], spacing[i]))
+    {
       li = b1.areLowerIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[up], b2[lo], spacing[i]))
-      li = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[lo], b2[up], spacing[i]))
-      li = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
-    else if (b1[lo] < b2[lo])
-      li = b2.areLowerIncluded(dir);
+    }
     else
-      li = b1.areLowerIncluded(dir);
+    {
+      if (areEqual(b1[up], b2[lo], spacing[i]))
+      {
+        li = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
+      }
+      else
+      {
+        if (areEqual(b1[lo], b2[up], spacing[i]))
+        {
+          li = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
+        }
+        else
+        {
+          if (b1[lo] < b2[lo])
+          {
+            li = b2.areLowerIncluded(dir);
+          }
+          else
+          {
+            li = b1.areLowerIncluded(dir);
+          }
+        }
+      }
+    }
     res.setLowerInclusion(dir, li);
 
     bool ui = false;
     if (areEqual(b1[up], b2[up], spacing[i]))
+    {
       ui = b1.areUpperIncluded(dir) && b2.areUpperIncluded(dir);
-    else if (areEqual(b1[up], b2[lo], spacing[i]))
-      ui = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[lo], b2[up], spacing[i]))
-      ui = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
-    else if (b1[up] < b2[up])
-      ui = b1.areUpperIncluded(dir);
+    }
     else
-      ui = b2.areUpperIncluded(dir);
+    {
+      if (areEqual(b1[up], b2[lo], spacing[i]))
+      {
+        ui = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
+      }
+      else
+      {
+        if (areEqual(b1[lo], b2[up], spacing[i]))
+        {
+          ui = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
+        }
+        else
+        {
+          if (b1[up] < b2[up])
+          {
+            ui = b1.areUpperIncluded(dir);
+          }
+          else
+          {
+            ui = b2.areUpperIncluded(dir);
+          }
+        }
+      }
+    }
     res.setUpperInclusion(dir, ui);
 
     ++i;
@@ -324,8 +362,8 @@ Bounds ESPINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
     bb[min] = std::min(b1[min], b2[min]);
     bb[max] = std::max(b1[max], b2[max]);
 
-    bb.setLowerInclusion(dir, areEqual(b1[min], bb[min], spacing[i])?b1.areLowerIncluded(dir):b2.areLowerIncluded(dir));
-    bb.setUpperInclusion(dir, areEqual(b1[max], bb[max], spacing[i])?b1.areUpperIncluded(dir):b2.areUpperIncluded(dir));
+    bb.setLowerInclusion(dir, areEqual(b1[min], bb[min], spacing[i]) ? b1.areLowerIncluded(dir) : b2.areLowerIncluded(dir));
+    bb.setUpperInclusion(dir, areEqual(b1[max], bb[max], spacing[i]) ? b1.areUpperIncluded(dir) : b2.areUpperIncluded(dir));
 
     ++i;
     min += 2;

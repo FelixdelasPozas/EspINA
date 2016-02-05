@@ -56,7 +56,7 @@ Context::Context(QMainWindow *mainWindow, bool *minimizedStatus)
    }
    catch(...)
    {
-     // nothing, automatically changed to Qdir::temp().
+     // nothing, automatically changed to QDir::temp().
    }
 }
 

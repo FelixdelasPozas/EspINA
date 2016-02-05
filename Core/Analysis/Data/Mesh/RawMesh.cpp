@@ -35,7 +35,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh()
-: m_mesh(nullptr)
+: m_mesh{nullptr}
 {
 }
 
@@ -53,7 +53,7 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 void RawMesh::setSpacing(const NmVector3 &spacing)
 {
   auto prevSpacing = m_bounds.spacing();
-  if(m_mesh)
+  if(m_mesh != nullptr)
   {
     Q_ASSERT(spacing[0] != 0 && spacing[1] != 0 && spacing[2] != 0);
     auto ratio = spacing / prevSpacing;
@@ -70,7 +70,12 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   bool existsMesh = (m_mesh != nullptr);
 
-  m_mesh   = mesh;
+  if(!existsMesh)
+  {
+    m_mesh = vtkSmartPointer<vtkPolyData>::New();
+  }
+
+  m_mesh->DeepCopy(mesh);
   m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
 
   // only add as an edited region if there was a previous mesh.
@@ -100,5 +105,5 @@ bool RawMesh::isEmpty() const
 size_t RawMesh::memoryUsage() const
 {
   const int BYTES = 1024;
-  return m_mesh?m_mesh->GetActualMemorySize()*BYTES:0;
+  return m_mesh ? m_mesh->GetActualMemorySize() * BYTES : 0;
 }

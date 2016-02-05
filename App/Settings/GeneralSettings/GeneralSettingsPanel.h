@@ -61,7 +61,7 @@ namespace ESPINA
       {return "Session";}
 
       virtual const QIcon icon() override
-      {return QIcon(":/espina/editor.ico");}
+      {return QIcon(":/espina/espina.svg");}
 
       virtual void acceptChanges() override;
 

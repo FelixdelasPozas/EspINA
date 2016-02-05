@@ -45,45 +45,45 @@ using namespace ESPINA::GUI::ColorEngines;
 class RenameCategoryCommand
 : public QUndoCommand
 {
-public:
-  /** \brief RenameCategoryCommand class constructor.
-   * \param[in] categoryItem category adapter raw pointer of the element to rename.
-   * \param[in] name string reference to the new name.
-   * \param[in] model model adapter smart pointer of the model containing the category.
-   * \param[in] parent parent QUndoCommand raw pointer.
-   *
-   */
-  explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
-                                 const QString      &name,
-                                 ModelAdapterSPtr   model,
-                                 QUndoCommand      *parent = 0)
-  : QUndoCommand  {parent}
-  , m_model       {model}
-  , m_categoryItem{categoryItem}
-  , m_name        {name}
-  {}
+  public:
+    /** \brief RenameCategoryCommand class constructor.
+     * \param[in] categoryItem category adapter raw pointer of the element to rename.
+     * \param[in] name string reference to the new name.
+     * \param[in] model model adapter smart pointer of the model containing the category.
+     * \param[in] parent parent QUndoCommand raw pointer.
+     *
+     */
+    explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
+                                   const QString      &name,
+                                   ModelAdapterSPtr   model,
+                                   QUndoCommand      *parent = 0)
+    : QUndoCommand  {parent}
+    , m_model       {model}
+    , m_categoryItem{categoryItem}
+    , m_name        {name}
+    {}
 
-  virtual void redo() override
-  { swapName(); }
+    virtual void redo() override
+    { swapName(); }
 
-  virtual void undo() override
-  { swapName(); }
+    virtual void undo() override
+    { swapName(); }
 
-private:
-  void swapName()
-  {
-    QString     tmp   = m_categoryItem->name();
-    QModelIndex index = m_model->categoryIndex(m_categoryItem);
+  private:
+    void swapName()
+    {
+      QString     tmp   = m_categoryItem->name();
+      QModelIndex index = m_model->categoryIndex(m_categoryItem);
 
-    m_model->setData(index, m_name, Qt::EditRole);
+      m_model->setData(index, m_name, Qt::EditRole);
 
-    m_name = tmp;
-  }
+      m_name = tmp;
+    }
 
-private:
-  ModelAdapterSPtr   m_model;
-  CategoryAdapterPtr m_categoryItem;
-  QString            m_name;
+  private:
+    ModelAdapterSPtr   m_model;
+    CategoryAdapterPtr m_categoryItem;
+    QString            m_name;
 };
 
 
@@ -95,7 +95,7 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
   auto proxy = static_cast<QSortFilterProxyModel *>(model);
   auto item = itemAdapter(proxy->mapToSource(index));
 
-  if (isCategory(item))
+  if (item && isCategory(item))
   {
     auto textEditor = static_cast<QLineEdit *>(editor);
     auto name = textEditor->text();
@@ -115,6 +115,8 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 {
   auto leftItem  = itemAdapter(left);
   auto rightItem = itemAdapter(right);
+
+  if(!leftItem || !rightItem) return false;
 
   if (leftItem->type() == rightItem->type())
   {
@@ -190,11 +192,11 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
           this,          SLOT  (categoriesDropped(CategoryAdapterList,CategoryAdapterPtr)));
 
   connect(model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this,  SLOT(updateSelection()));
+          this,        SLOT(updateSelection()));
   connect(model.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this,  SLOT(updateSelection()));
+          this,        SLOT(updateSelection()));
   connect(model.get(), SIGNAL(modelReset()),
-          this,  SLOT(updateSelection()));
+          this,        SLOT(updateSelection()));
 
   m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
 }
@@ -692,11 +694,11 @@ bool ClassificationLayout::hasInformationToShow()
   for(auto index : selectedIndexes)
   {
     auto item = ClassificationLayout::item(index);
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       return true;
     }
-    else if (isCategory(item))
+    else if (item && isCategory(item))
     {
       for(auto subIndex : indices(index, true))
       {
@@ -718,11 +720,11 @@ bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, Segmen
   {
     auto item = ClassificationLayout::item(index);
 
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       segmentations << segmentationPtr(item);
     }
-    else if (isCategory(item))
+    else if (item && isCategory(item))
     {
       categories << toCategoryAdapterPtr(item);
     }
@@ -745,17 +747,13 @@ void ClassificationLayout::updateSelectedItems()
   {
     auto selectedItem = item(index);
 
-    if (isSegmentation(selectedItem))
+    if (selectedItem && isSegmentation(selectedItem))
     {
       m_selectedSegmentations << segmentationPtr(selectedItem);
     }
-    else if (isCategory(selectedItem))
+    else if (selectedItem && isCategory(selectedItem))
     {
       m_selectedCategories << toCategoryAdapterPtr(selectedItem);
-    }
-    else
-    {
-      Q_ASSERT(false);
     }
   }
 }

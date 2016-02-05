@@ -204,7 +204,7 @@ void FileOpenTool::load(const QStringList &files)
     secs = secs % 60;
   }
 
-  qDebug() << QString("File Loaded in %1:%2 seconds").arg(mins).arg(secs);
+  qDebug() << QString("File Loaded in %1:%2 seconds").arg(mins).arg(secs, 2, 10, QChar('0'));
 
   reporter.setProgress(100);
 

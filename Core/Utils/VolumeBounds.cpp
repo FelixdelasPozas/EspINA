@@ -66,17 +66,25 @@ void VolumeBounds::exclude(int idx, Nm value)
     {
       m_bounds[idx] += m_spacing[i];
 
-      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      if (areEqual(m_bounds[2 * i], m_bounds[2 * i + 1]))
       {
         qWarning() << "WARNING: Empty bounds";
       }
-    } else if (m_bounds[idx] < value)
-    {
-      m_bounds[idx] = voxelBounds[idx] + m_spacing[i];
     }
-  } else if (value < m_bounds[idx])
+    else
+    {
+      if (m_bounds[idx] < value)
+      {
+        m_bounds[idx] = voxelBounds[idx] + m_spacing[i];
+      }
+    }
+  }
+  else
   {
-    m_bounds[idx] = voxelBounds[idx] - m_spacing[i];
+    if (value < m_bounds[idx])
+    {
+      m_bounds[idx] = voxelBounds[idx] - m_spacing[i];
+    }
   }
 }
 
@@ -95,17 +103,25 @@ void VolumeBounds::include(int idx, Nm value)
     {
       m_bounds[idx] += m_spacing[i];
 
-      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      if (areEqual(m_bounds[2 * i], m_bounds[2 * i + 1]))
       {
         qWarning() << "WARNING: Empty bounds";
       }
-    } else if (m_bounds[idx] < value)
+    }
+    else
+    {
+      if (m_bounds[idx] < value)
+      {
+        m_bounds[idx] = voxelBounds[idx];
+      }
+    }
+  }
+  else
+  {
+    if (value < m_bounds[idx])
     {
       m_bounds[idx] = voxelBounds[idx];
     }
-  } else if (value < m_bounds[idx])
-  {
-    m_bounds[idx] = voxelBounds[idx];
   }
 }
 

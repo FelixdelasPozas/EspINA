@@ -103,6 +103,7 @@ void MarchingCubesMesh::updateMesh()
   // segmentation image need to be padded to avoid segmentation voxels from touching
   // the edges of the image (and create morphologically correct actors)
   auto padding = vtkSmartPointer<vtkImageConstantPad>::New();
+  padding->ReleaseDataFlagOn();
   padding->SetInputData(image);
   padding->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
   padding->SetConstant(0);
