@@ -70,13 +70,21 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   bool existsMesh = (m_mesh != nullptr);
 
-  if(!existsMesh)
+  if(!existsMesh && mesh)
   {
     m_mesh = vtkSmartPointer<vtkPolyData>::New();
   }
 
-  m_mesh->DeepCopy(mesh);
-  m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
+  if (mesh)
+  {
+    m_mesh->DeepCopy(mesh);
+    m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
+  }
+  else
+  {
+    m_mesh = nullptr;
+    m_bounds = VolumeBounds();
+  }
 
   // only add as an edited region if there was a previous mesh.
   if (existsMesh)

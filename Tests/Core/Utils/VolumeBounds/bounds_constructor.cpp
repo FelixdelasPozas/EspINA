@@ -66,7 +66,7 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
   Bounds ideal{o0-s0/2, o0+s0/2, o1-s1/2, o1+s1/2, o2-s2/2, o2+s2/2};
   VolumeBounds reference(ideal, spacing, origin);
 
-  if (reference != ideal) // Uses equal comparisson defined in TestSupport
+  if (reference != ideal) // Uses equal comparison defined in TestSupport
   {
     cerr << "Wrong reference bounds initialization: " << reference << endl;
     error = true;
@@ -81,7 +81,6 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
     cerr << "Unexpected volume bounds: " << copy << ". Expected value: " << volume << endl;
     error = true;
   }
-
 
   if (volume != reference)
   {
@@ -99,7 +98,7 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
   Bounds expected{o0-3*s0/2, o0+3*s0/2, o1+-3*s1/2, o1+3*s1/2, o2-3*s2/2, o2+3*s2/2};
   VolumeBounds biggerVolume(bigger, spacing, origin);
 
-  if (biggerVolume != expected) // Uses equal comparisson defined in TestSupport
+  if (biggerVolume != expected) // Uses equal comparison defined in TestSupport
   {
     cerr << "Unexpected volume bounds: " << biggerVolume << ". Expected value: " << expected << endl;
     error = true;

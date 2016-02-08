@@ -55,7 +55,11 @@ int raw_mesh_save_edited_regions(int argc, char** argv)
 
   rawMesh.setMesh(mesh);
 
-  if (rawMesh.mesh() != mesh)
+  if ((rawMesh.mesh()->GetNumberOfCells() != mesh->GetNumberOfCells()) ||
+      (rawMesh.mesh()->GetNumberOfLines() != mesh->GetNumberOfLines()) ||
+      (rawMesh.mesh()->GetNumberOfPoints() != mesh->GetNumberOfPoints()) ||
+      (rawMesh.mesh()->GetNumberOfPolys() != mesh->GetNumberOfPolys()) ||
+      (rawMesh.mesh()->GetNumberOfVerts() != mesh->GetNumberOfVerts()))
   {
     cerr << "Unexpected mesh polydata" << endl;
     error = true;
