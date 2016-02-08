@@ -99,6 +99,11 @@ namespace ESPINA
         p1[i] += hSpacing[i];
       }
 
+      if(bounds[2*i] == bounds[2*i+1])
+      {
+        p1[i] = p0[i];
+      }
+
       if(p0[i] > p1[i])
       {
         std::swap(p0[i], p1[i]);
@@ -115,7 +120,7 @@ namespace ESPINA
 
     for (auto i: {0,1,2})
     {
-      if (region.GetSize(i) == 0)
+      if (bounds[2*i] == bounds[2*i+1])
       {
         region.SetSize(i,1);
       }
