@@ -80,14 +80,15 @@ namespace ESPINA
   typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   {
     typename T::SpacingType s = image->GetSpacing();
+    typename T::PointType   o = image->GetOrigin();
 
     NmVector3 hSpacing{s[0]/2.0, s[1]/2.0, s[2]/2.0};
 
     typename T::PointType p0, p1;
     for (int i = 0; i < 3; ++i)
     {
-      p0[i] = bounds[2 * i]     + hSpacing[i];
-      p1[i] = bounds[2 * i + 1] - hSpacing[i];
+      p0[i] = bounds[2 * i]     + hSpacing[i] - o[i];
+      p1[i] = bounds[2 * i + 1] - hSpacing[i] - o[i];
 
       if(!areEqual(std::remainder(p0[i],s[i]), 0, s[i]))
       {
@@ -98,6 +99,9 @@ namespace ESPINA
       {
         p1[i] += hSpacing[i];
       }
+
+      p0[i] += o[i];
+      p1[i] += o[i];
 
       if(bounds[2*i] == bounds[2*i+1])
       {
