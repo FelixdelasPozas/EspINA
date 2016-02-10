@@ -128,12 +128,13 @@ sudo apt-get -y install libboost-regex-dev
 ```sh
 wget http://cajalbbp.cesvima.upm.es/SW/espina-2.0.0.tar.gz
 tar xzvf espina-2.0.0.tar.gz
-cd espina
+mv espina-developers* source
 mkdir build
 cd build
-cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../../xlslib/xlslib/src -DCMAKE_CXX_FLAGS=-std=c++11 -DXLSLIB_LIBRARY=$PWD/../../xlslib/xlslib/src/.libs/libxls.so.3 #-G"Eclipse CDT4 - Unix Makefiles"
+cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../xlslib/xlslib/src -DXLSLIB_LIBRARY=$PWD/../xlslib/xlslib/src/.libs/libxls.so.3 -DCMAKE_CXX_FLAGS=-std=c++11
 make -jN   # where N = n+1 cores to compile
 ```
+
 
 
 #-> Script for Ubuntu (tested in Ubuntu-14.04.3)
@@ -217,10 +218,10 @@ cd ../..
 
 wget http://cajalbbp.cesvima.upm.es/SW/espina-2.0.0.tar.gz
 tar xzvf espina-2.0.0.tar.gz
-cd espina-developers*
+mv espina-developers* source
 mkdir build
 cd build
-cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../../xlslib/xlslib/src -DCMAKE_CXX_FLAGS=-std=c++11 -DXLSLIB_LIBRARY=$PWD/../../xlslib/xlslib/src/.libs/libxls.so.3
+cmake ../source -DCMAKE_BUILD_TYPE=Debug -DAUTOMATIC_VERSION=OFF -DBUILD_TESTING=OFF -DBUILD_UNIT_TESTS=OFF -DITK_DIR=$PWD/../InsightToolkit-4.4.2/build -DVTK_DIR=$PWD/../VTK-6.1.0/build -DXLSLIB_INCLUDE_DIR=$PWD/../xlslib/xlslib/src -DXLSLIB_LIBRARY=$PWD/../xlslib/xlslib/src/.libs/libxls.so.3 -DCMAKE_CXX_FLAGS=-std=c++11
 make -j3
 cd ../..
 ```
