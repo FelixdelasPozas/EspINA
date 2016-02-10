@@ -462,7 +462,7 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
   header->setHorizontalHeaderLabels(headerLabels);
   tableView->horizontalHeader()->setModel(header);
 
-  tableView->adjustSize();
+  tableView->updateGeometry();
 }
 
 //------------------------------------------------------------------------
