@@ -150,9 +150,9 @@ namespace ESPINA
 
         void onSegmentationsModified(SegmentationAdapterList segmentations);
 
-        ChannelAdapterList         m_channels;
-        SegmentationAdapterList    m_segmentations;
-        ChannelAdapterPtr          m_activeChannel;
+        ChannelAdapterList      m_channels;
+        SegmentationAdapterList m_segmentations;
+        ChannelAdapterPtr       m_activeChannel;
       };
 
       using SelectionSPtr = std::shared_ptr<Selection>;

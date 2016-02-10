@@ -313,7 +313,7 @@ void ModelAdapter::changeSpacing(ChannelAdapterSPtr channel, const NmVector3 &sp
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
 {
   // We avoid setting the classification root as the parent of an index
-  if ( !m_classification || m_classification->root().get() == category) return classificationRoot();
+  if (!m_classification || m_classification->root().get() == category) return classificationRoot();
 
   CategoryAdapterPtr parentCategory = category->parent();
   Q_ASSERT(parentCategory);
@@ -414,7 +414,7 @@ CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAd
 
   CategoryAdapterSPtr requestedCategory;
 
-  QModelIndex parentItem = categoryIndex(parentCategory);
+  auto parentItem = categoryIndex(parentCategory);
 
   int newTaxRow = rowCount(parentItem);
   beginInsertRows(parentItem, newTaxRow, newTaxRow);
@@ -430,7 +430,9 @@ CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAd
 QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 {
   if (!index.isValid())
+  {
     return QVariant();
+  }
 
   if (index == classificationRoot())
   {
@@ -508,15 +510,11 @@ QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) 
 
   if (!parent.isValid())
   {
-    Q_ASSERT (row < 4);
-    if (row == 0)
-      return classificationRoot();
-    if (row == 1)
-      return sampleRoot();
-    if (row == 2)
-      return channelRoot();
-    if (row == 3)
-      return segmentationRoot();
+    Q_ASSERT(row < 4);
+    if (row == 0) return classificationRoot();
+    if (row == 1) return sampleRoot();
+    if (row == 2) return channelRoot();
+    if (row == 3) return segmentationRoot();
   }
 
   ItemAdapterPtr internalPtr;
@@ -701,6 +699,17 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
       relation.successor = find(edge.target);
       relation.relation = edge.relationship.c_str();
       relations << relation;
+    }
+  }
+
+  for(auto relation: relations)
+  {
+    if(!relation.ancestor || !relation.successor)
+    {
+      auto what    = tr("Wrong relation in relationships graph, null ancestor or successor.");
+      auto details = tr("ModelAdapter::relations() -> ancestor: %1 - successor: %2 - relation: %3").arg((!relation.ancestor ? "null" : "valid")).arg((!relation.successor ? "null" : "valid")).arg(relation.relation);
+
+      throw EspinaException(what, details);
     }
   }
 
@@ -957,20 +966,23 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
   if (index.isValid() && index.parent().isValid())// Root indexes cannot be modified
   {
     // Other elements can set their own data
-    auto indexItem = itemAdapter(index);
-    result = indexItem->setData(value, role);
-    if (result)
+    auto item = itemAdapter(index);
+    if(item)
     {
-      emit dataChanged(index,index);
-      if (isCategory(indexItem))
+      result = item->setData(value, role);
+      if (result)
       {
-        auto category = toCategoryAdapterPtr(indexItem);
-        for(auto segmentation: m_segmentations)
+        emit dataChanged(index,index);
+        if (item && isCategory(item))
         {
-          if (segmentation->category().get() == category)
+          auto category = toCategoryAdapterPtr(item);
+          for(auto segmentation: m_segmentations)
           {
-            auto index = segmentationIndex(segmentation);
-            emit dataChanged(index, index);
+            if (segmentation->category().get() == category)
+            {
+              auto index = segmentationIndex(segmentation);
+              emit dataChanged(index, index);
+            }
           }
         }
       }
@@ -1500,8 +1512,8 @@ void ModelAdapter::executeRemoveQueues(QModelIndex parent, ItemCommandsList &que
   {
     if (!commandQueues.StartIndex.isValid() || !commandQueues.EndIndex.isValid())
     {
-      auto what = QObject::tr("Invalid commands queue");
-      auto details = QObject::tr("ModelAdapter::executeRemoveQueues() -> Invalid commands queue.");
+      auto what    = tr("Invalid commands queue");
+      auto details = tr("ModelAdapter::executeRemoveQueues() -> ") + what;
 
       throw EspinaException(what, details);
     }

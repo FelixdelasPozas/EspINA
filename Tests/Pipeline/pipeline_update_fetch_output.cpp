@@ -56,11 +56,14 @@ int pipeline_update_fetch_output( int argc, char** argv )
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
     {
-      if (type == "SGS") {
+      if (type == "SGS")
+      {
         auto filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
         filter->setFetchBehaviour(std::make_shared<RawDataFactory>());
         return filter;
       }
+
+      return FilterSPtr();
     }
   };
 

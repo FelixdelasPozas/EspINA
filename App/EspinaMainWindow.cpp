@@ -850,13 +850,13 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(undo);
   m_sessionToolGroup->addTool(redo);
 
-  auto checkAnalysis = std::make_shared<ProgressTool>("CheckAnalysis", ":/espina/checklist.svg", tr("Check session for issues"), m_context);
-  checkAnalysis->setOrder("3-0", "3-Settings");
+  m_checkTool = std::make_shared<ProgressTool>("CheckAnalysis", ":/espina/checklist.svg", tr("Check session for issues"), m_context);
+  m_checkTool->setOrder("3-0", "3-Settings");
 
-  connect(checkAnalysis.get(), SIGNAL(triggered(bool)),
-          this,                SLOT(checkAnalysisConsistency()));
+  connect(m_checkTool.get(), SIGNAL(triggered(bool)),
+          this,              SLOT(checkAnalysisConsistency()));
 
-  m_sessionToolGroup->addTool(checkAnalysis);
+  m_sessionToolGroup->addTool(m_checkTool);
 
   auto settings = std::make_shared<ProgressTool>("Settings", ":/espina/settings.svg", tr("Settings"), m_context);
   settings->setOrder("4-0", "3-Settings");
@@ -1197,12 +1197,8 @@ void EspinaMainWindow::checkAnalysisConsistency()
   connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
-  if(sender())
-  {
-    auto tool = dynamic_cast<ProgressTool *>(sender());
-    connect(checkerTask.get(), SIGNAL(progress(int)),
-            tool,              SLOT(setProgress(int)));
-  }
+  connect(checkerTask.get(), SIGNAL(progress(int)),
+          m_checkTool.get(), SLOT(setProgress(int)));
 
   checkerTask->submit(checkerTask);
 }

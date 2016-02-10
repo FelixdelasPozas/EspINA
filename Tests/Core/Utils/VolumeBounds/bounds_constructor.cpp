@@ -33,24 +33,6 @@
 using namespace ESPINA;
 using namespace std;
 
-// bool Test_Bounds(const Bounds& bounds) {
-//   bool pass = true;
-//
-//   if (!bounds.areValid()) {
-//     cerr << "List constructed bounds: " << bounds << ". Expected valid bounds" << endl;
-//     pass = false;
-//   }
-//
-//   for (int i = 0; i < 6; ++i) {
-//     if (bounds[i] != i + 0.5) {
-//       cerr << "Wrong value initialization at " << i << " bounds: " << bounds << endl;
-//       pass = false;
-//     }
-//   }
-//
-//   return pass;
-// }
-
 bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
 {
   bool error = false;

@@ -336,6 +336,8 @@ namespace ESPINA
     std::shared_ptr<FileSaveTool> m_saveTool;
     std::shared_ptr<FileSaveTool> m_saveAsTool;
 
+    std::shared_ptr<Support::Widgets::ProgressTool> m_checkTool;
+
     ExtensionFactorySList m_extensionFactories;
     Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 

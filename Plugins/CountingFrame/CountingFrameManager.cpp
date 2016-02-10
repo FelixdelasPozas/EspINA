@@ -120,6 +120,8 @@ vtkSmartPointer<vtkPolyData> CountingFrameManager::edges(ChannelPtr channel)
 
   if (!m_edges.keys().contains(channel))
   {
+    // TODO: rework this so this extension has access to ChannelEdges extension information on load
+    // right now it's a deadlock.
     ChannelEdges edgesExtension;
     edgesExtension.setExtendedItem(channel);
 

@@ -78,20 +78,20 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
   changeLayout(0);
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(changeLayout(int)));
+          this,             SLOT(changeLayout(int)));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
-          this, SLOT(focusOnSegmentation(QModelIndex)));
+          this,        SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
-          this, SLOT(showSelectedItemsInformation()));
+          this,                         SLOT(showSelectedItemsInformation()));
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
-          this, SLOT(deleteSelectedItems()));
+          this,                SLOT(deleteSelectedItems()));
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
-          this, SLOT(updateSearchFilter()));
+          this,              SLOT(updateSearchFilter()));
   connect(m_gui->selectedTags, SIGNAL(linkActivated(QString)),
           this,                SLOT(onTagSelected(QString)));
 
-  connect(getSelection().get(), SIGNAL(selectionStateChanged()),
-          this,                 SLOT(onSelectionChanged()));
+  connect(currentSelection().get(), SIGNAL(selectionStateChanged()),
+          this,                     SLOT(onSelectionChanged()));
 
   setWidget(m_gui);
 
@@ -180,21 +180,25 @@ void SegmentationExplorer::changeLayout(int index)
 
   m_layout = m_layouts[index];
 
-  m_gui->view->setModel(m_layout->model());
+  if(m_layout)
+  {
+    m_gui->view->setModel(m_layout->model());
 
-  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this,                          SLOT(onModelSelectionChanged(QItemSelection,QItemSelection)));
+    connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+            this,                          SLOT(onModelSelectionChanged(QItemSelection,QItemSelection)));
 
-  connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this,              SLOT(onSelectionChanged()));
-  connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this,              SLOT(onSelectionChanged()));
-  connect(m_layout->model(), SIGNAL(modelReset()),
-          this,              SLOT(onSelectionChanged()));
+    connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+            this,              SLOT(onSelectionChanged()));
+    connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+            this,              SLOT(onSelectionChanged()));
+    connect(m_layout->model(), SIGNAL(modelReset()),
+            this,              SLOT(onSelectionChanged()));
 
-  m_layout->createSpecificControls(m_gui->specificControlLayout);
+    m_layout->createSpecificControls(m_gui->specificControlLayout);
 
-  m_gui->view->setItemDelegate(m_layout->itemDelegate());
+    m_gui->view->setItemDelegate(m_layout->itemDelegate());
+  }
+
   m_gui->showInformationButton->setEnabled(false);
 
   onSelectionChanged();
@@ -221,9 +225,14 @@ void SegmentationExplorer::showSelectedItemsInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  auto item = m_layout->item(index);
+  ItemAdapterPtr item;
 
-  if (isSegmentation(item))
+  if(m_layout)
+  {
+    item = m_layout->item(index);
+  }
+
+  if (item && isSegmentation(item))
   {
     auto segmentation       = segmentationPtr(item);
     auto segmentationCenter = centroid(segmentation->bounds());
@@ -235,7 +244,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QItemSelection deselected)
 {
-  ViewItemAdapterList currentSelection;
+  ViewItemAdapterList selection;
 
   auto indexes = selectedIndexes();
 
@@ -244,7 +253,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
     auto item = m_layout->item(index);
     if (isSegmentation(item))
     {
-      currentSelection << viewItemAdapter(item);
+      selection << viewItemAdapter(item);
     }
   }
 
@@ -253,7 +262,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indexes,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  getSelection()->set(currentSelection);
+  currentSelection()->set(selection);
   this->blockSignals(false);
 }
 
@@ -269,7 +278,9 @@ void SegmentationExplorer::updateSearchFilter()
 void SegmentationExplorer::onSelectionChanged()
 {
   if (!isVisible() || signalsBlocked())
+  {
     return;
+  }
 
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
@@ -345,7 +356,11 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
     {
       tagLinks += createLink(tag);
     }
-  }
 
-  m_gui->selectedTags->setText(tagLinks);
+    m_gui->selectedTags->setText(tagLinks);
+  }
+  else
+  {
+    m_gui->selectedTags->clear();
+  }
 }

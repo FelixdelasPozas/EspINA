@@ -320,7 +320,7 @@ namespace ESPINA
 
       Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels) const;
 
-      SegmentationAdapterList m_segmentations;
+      SegmentationAdapterSList m_segmentations;
   };
 
 } // namespace ESPINA

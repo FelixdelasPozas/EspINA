@@ -32,7 +32,7 @@
 
 // Qt
 #include <QTextStream>
-#include <QDebug>
+#include <QMutex>
 
 namespace ESPINA
 {
@@ -102,8 +102,7 @@ namespace ESPINA
       /** \brief Remove all vertices and edges from the graph;
        *
        */
-      void clear()
-      { m_graph.clear(); }
+      void clear();
 
       /** \brief Add a vertex to the graph.
        * \param[in] vertex, vertex to add.
@@ -254,7 +253,8 @@ namespace ESPINA
                                                   const QString         &relation) const;
 
     private:
-      mutable Graph m_graph;
+      mutable Graph  m_graph;
+      mutable QMutex m_mutex;
 
      friend void IO::Graph::read(std::istream& stream, DirectedGraphSPtr graph, IO::Graph::PrintFormat format);
      friend void IO::Graph::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::Graph::PrintFormat format);

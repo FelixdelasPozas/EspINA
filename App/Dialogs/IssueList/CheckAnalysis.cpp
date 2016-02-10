@@ -166,6 +166,7 @@ CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
   setPriority(Priority::LOW);
 
   qRegisterMetaType<Extensions::IssueList>("Extensions::IssueList");
+  qRegisterMetaType<Extensions::IssueSPtr>("Extensions::IssueSPtr");
 
   removePreviousIssues(model);
 
@@ -192,6 +193,7 @@ void CheckAnalysis::run()
 {
   for(auto task: m_checkList)
   {
+    // needs to be direct connection because the mutexes.
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(finishedTask()), Qt::DirectConnection);
 
@@ -521,11 +523,10 @@ void CheckSampleTask::run()
 //------------------------------------------------------------------------
 CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 : CheckTask      {scheduler, model}
+, m_segmentations{model->segmentations()}
 {
-  for(auto seg: model->segmentations())
-  {
-    m_segmentations << seg.get();
-  }
+  // detach from implicit sharing
+  m_segmentations.detach();
 }
 
 //------------------------------------------------------------------------
@@ -533,12 +534,12 @@ void CheckDuplicatedSegmentationsTask::run()
 {
   for (int i = 0; i < m_segmentations.size(); ++i)
   {
-    auto seg_i    = m_segmentations[i];
+    auto seg_i    = m_segmentations[i].get();
     auto bounds_i = readLockVolume(seg_i->output())->bounds();
 
     for (int j = i + 1; j < m_segmentations.size(); ++j)
     {
-      auto seg_j    = m_segmentations[j];
+      auto seg_j    = m_segmentations[j].get();
       auto bounds_j = readLockVolume(seg_j->output())->bounds();
 
       if (seg_i->category() == seg_j->category())

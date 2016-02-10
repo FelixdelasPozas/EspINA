@@ -126,6 +126,7 @@ void SegmentationExplorer::Layout::showSegmentationProperties(SegmentationAdapte
 
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
             this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
+
     m_inspectors.insert(toKey(segmentations), inspector);
   }
   inspector->show();
@@ -204,11 +205,19 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
 //------------------------------------------------------------------------
 QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
 {
+  QStringList pointers;
   QString result;
 
   for(auto seg : segmentations)
   {
-    result += QString().number(reinterpret_cast<unsigned long long>(seg)) + QString("|");
+    pointers += QString().number(reinterpret_cast<unsigned long long>(seg));
+  }
+
+  pointers.sort(); // O(n log n).
+
+  for(auto pointer: pointers)
+  {
+    result += pointer + QString("|");
   }
 
   return result;
@@ -233,8 +242,14 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 //------------------------------------------------------------------------
 bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 {
+  if(!left) return true;
+  if(!right) return false;
+
   auto leftSeg  = segmentationPtr(left);
   auto rightSeg = segmentationPtr(right);
+
+  if(!leftSeg) return true;
+  if(!rightSeg) return false;
 
   if (leftSeg->category()->name() == rightSeg->category()->name())
   {
