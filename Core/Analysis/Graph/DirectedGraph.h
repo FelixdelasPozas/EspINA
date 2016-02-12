@@ -140,27 +140,27 @@ namespace ESPINA
        * \param[in] vertex, vertex to check.
        *
        */
-      bool contains(Vertex vertex);
+      bool contains(Vertex vertex) const;
 
       /** \brief Returns all graph's edges that match the filter.
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges edges(const QString &filter = "");
+      Edges edges(const QString &filter = "") const;
 
       /** \brief Return a list of edges whose destination vertex is v.
        * \param[in] vertex, vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges inEdges(Vertex vertex, const QString &filter = "");
+      Edges inEdges(Vertex vertex, const QString &filter = QString()) const;
 
       /** \brief Return a list of edges whose destination vertex is v.
        * \param[in] vertex, raw pointer to a vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges inEdges(VertexPtr vertex, const QString &filter = "");
+      Edges inEdges(VertexPtr vertex, const QString &filter = QString()) const;
 
       ///
       /** \brief Return a list of edges whose source vertex is v.
@@ -168,21 +168,21 @@ namespace ESPINA
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges outEdges(Vertex vertex, const QString &filter = "");
+      Edges outEdges(Vertex vertex, const QString &filter = QString()) const;
 
       /** \brief Return a list of edges whose source vertex is v.
        * \param[in] vertex, raw pointer to a vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges outEdges(VertexPtr vertex, const QString &filter = "");
+      Edges outEdges(VertexPtr vertex, const QString &filter = QString()) const;
 
       /** \brief Return a list of edges whose source or destination vertex is v.
        * \param[in] vertex, vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Edges edges   (Vertex vertex, const QString &filter = "");
+      Edges edges(Vertex vertex, const QString &filter = QString()) const;
 
       /** \brief Remove all edges whose source or destination vertex is v.
        * \param[in] vertex, vertex to check.
@@ -200,28 +200,42 @@ namespace ESPINA
        * \param[in] filter, discrimination filter.
        *
        */
-      Vertices ancestors(Vertex vertex, const QString &filter = "") const;
+      Vertices ancestors(Vertex vertex, const QString &filter = QString()) const;
 
       /** \brief Return all vertices whose outgoing edges end on v.
        * \param[in] vertex, raw pointer to a vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
+      Vertices ancestors(VertexPtr vertex, const QString &filter = QString()) const;
 
       /** \brief Return all vertices whose incoming edges start on v.
        * \param[in] vertex, vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Vertices successors(Vertex vertex, const QString &filter = "") const;
+      Vertices successors(Vertex vertex, const QString &filter = QString()) const;
 
       /** \brief Return all vertices whose incoming edges start on v.
        * \param[in] vertex, raw pointer to a vertex to check.
        * \param[in] filter, discrimination filter.
        *
        */
-      Vertices successors(VertexPtr vertex, const QString &filter = "") const;
+      Vertices successors(VertexPtr vertex, const QString &filter = QString()) const;
+
+      /** \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
+       * \param[in] vertex, vertex object to check.
+       * \param[in] graph, directed graph smart pointer.
+       *
+       */
+      DirectedGraph::Vertices rootAncestors(Vertex vertex) const;
+
+      /** \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
+       * \param[in] vertex, raw pointer of the vertex to check.
+       * \param[in] graph, directed graph smart pointer.
+       *
+       */
+      DirectedGraph::Vertices rootAncestors(VertexPtr vertex) const;
 
     private:
       /** \brief Returns a vertex associated to a given descriptor.
@@ -252,6 +266,33 @@ namespace ESPINA
                                                   const VertexDescriptor destination,
                                                   const QString         &relation) const;
 
+      /** \brief Returns true if the graph contains the given vertex.
+       * \param[in] vertex vertex to check for inclusion.
+       *
+       */
+      bool contains_implementation(Vertex vertex) const;
+
+      /** \brief Helper method to return a list of edges whose destination vertex is v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges inEdges_implementation(VertexPtr vertex, const QString& filter) const;
+
+      /** \brief Helper method that return a list of edges whose origin vertex is v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Edges outEdges_implementation(VertexPtr vertex, const QString& filter = QString()) const;
+
+      /** \brief Helper method to return all vertices whose outgoing edges end on v.
+       * \param[in] vertex, raw pointer to a vertex to check.
+       * \param[in] filter, discrimination filter.
+       *
+       */
+      Vertices ancestors_implementation(VertexPtr vertex, const QString& filter = QString()) const;
+
     private:
       mutable Graph  m_graph;
       mutable QMutex m_mutex;
@@ -261,21 +302,6 @@ namespace ESPINA
   };
 
   using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
-
-  /** \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
-   * \param[in] vertex, vertex object to check.
-   * \param[in] graph, directed graph smart pointer.
-   *
-   */
-  DirectedGraph::Vertices rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph);
-
-  /** \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
-   * \param[in] vertex, raw pointer of the vertex to check.
-   * \param[in] graph, directed graph smart pointer.
-   *
-   */
-  DirectedGraph::Vertices rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph);
-
 } // namespace ESPINA
 
 #endif // ESPINA_DIRECTED_GRAPH_H
