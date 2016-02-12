@@ -47,75 +47,72 @@ using namespace ESPINA::Support;
 const QString EXTENSION_KEY   = "Extension";
 const QString INFORMATION_KEY = "Key";
 
-class UpdateColorEngineTask
-: public Task
+//-----------------------------------------------------------------------------
+UpdateColorEngineTask::UpdateColorEngineTask(const SegmentationExtension::InformationKey key,
+                                             InformationColorEngine                     *colorEngine,
+                                             SegmentationAdapterList                     segmentations,
+                                             ModelFactorySPtr                            factory,
+                                             SchedulerSPtr                               scheduler)
+: Task           {scheduler}
+, m_key          {key}
+, m_colorEngine  {colorEngine}
+, m_segmentations{segmentations}
+, m_factory      {factory}
+, m_error        {"No error"}
+, m_failed       {false}
 {
-public:
-    explicit UpdateColorEngineTask(const SegmentationExtension::InformationKey &key,
-                                   InformationColorEngine *colorEngine,
-                                   SegmentationAdapterList segmentations,
-                                   ModelFactorySPtr        factory,
-                                   SchedulerSPtr           scheduler)
-    : Task(scheduler)
-    , m_key(key)
-    , m_colorEngine(colorEngine)
-    , m_segmentations(segmentations)
-    , m_factory(factory)
-    {
-    }
+  setDescription(tr("Coloring by %1").arg(m_key.value()));
+}
 
-private:
-  virtual void run()
+//-----------------------------------------------------------------------------
+void UpdateColorEngineTask::run()
+{
+  double min = 0;
+  double max = 0;
+
+  double i     = 0;
+  double total = m_segmentations.size();
+
+  for(auto segmentation : m_segmentations)
   {
-    double min = 0;
-    double max = 0;
+    if (!canExecute() || m_failed) return;
 
-    double i     = 0;
-    double total = m_segmentations.size();
-    for(auto segmentation : m_segmentations)
+    try
     {
-      if (!canExecute()) return;
+      auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
 
-      try
+      auto info = extension->information(m_key);
+
+      if (info.isValid() && info.canConvert<double>())
       {
-        auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
-
-        auto info = extension->information(m_key);
-
-        if (info.isValid() && info.canConvert<double>())
+        auto value = info.toDouble();
+        if (i > 0)
         {
-          auto value = info.toDouble();
-          if (i > 0)
-          {
-            min = qMin(min, value);
-            max = qMax(max, value);
-          }
-          else
-          {
-            min = max = value;
-          }
+          min = qMin(min, value);
+          max = qMax(max, value);
         }
-      }
-      catch(const EspinaException &e)
-      {
-        auto what = QObject::tr("Information not available: %1, segmentation: %2").arg(m_key.extension()).arg(segmentation->data().toString());
-        auto details = QObject::tr("InformationColorEngineSwitch::run() -> Information not available: %1, segmentation: %2").arg(m_key.extension()).arg(segmentation->data().toString());
-
-        throw EspinaException(what, details);
+        else
+        {
+          min = max = value;
+        }
       }
 
       reportProgress(i++/total*100);
     }
+    catch(const EspinaException &e)
+    {
+      m_failed = true;
+      m_error = e.details();
 
-    m_colorEngine->setInformation(m_key, min, max);
+      reportProgress(100);
+    }
   }
 
-private:
-  const SegmentationExtension::InformationKey &m_key;
-  InformationColorEngine *m_colorEngine;
-  SegmentationAdapterList m_segmentations;
-  ModelFactorySPtr m_factory;
-};
+  if(!m_failed)
+  {
+    m_colorEngine->setInformation(m_key, min, max);
+  }
+}
 
 //-----------------------------------------------------------------------------
 InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
@@ -242,7 +239,27 @@ void InformationColorEngineSwitch::updateRange()
                                                    getScheduler());
   showTaskProgress(m_task);
 
+  connect(m_task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()));
+
   Task::submit(m_task);
+}
+
+//-----------------------------------------------------------------------------
+void InformationColorEngineSwitch::onTaskFinished()
+{
+  auto task = qobject_cast<UpdateColorEngineTask *>(sender());
+
+  if(task && (task == m_task.get()) && task->hasFailed() && !task->isAborted())
+  {
+    auto message = tr("Couldn't color segmentations by %1").arg(task->key());
+    auto details = task->error();
+    DefaultDialogs::ErrorMessage(message, tr("Coloring by %1").arg(task->key()), details);
+  }
+
+  if(m_task.get() == task)
+  {
+    m_task = nullptr;
+  }
 }
 
 //-----------------------------------------------------------------------------

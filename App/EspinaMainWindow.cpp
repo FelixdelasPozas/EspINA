@@ -704,7 +704,6 @@ void EspinaMainWindow::initColorEngines()
   createColorEngine(categoryColorEngine, "category");
 
   registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
-  //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
 }
 
 
