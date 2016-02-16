@@ -456,9 +456,9 @@ void View3D::exportScene()
 {
   auto title      = tr("Export 3D scene");
   auto suggestion = tr("scene.wrl");
-  auto formats    = SupportedFormats(tr("POV-Ray format"),          "pov")
+  auto formats    = SupportedFormats(tr("VRML 2.0 format"),         "wrl")
                           .addFormat(tr("Blender X3D format"),      "x3d")
-                          .addFormat(tr("VRML 2.0 format"),         "wrl")
+                          .addFormat(tr("POV-Ray format"),          "pov")
                           .addFormat(tr("OpenInventor 2.0 format"), "iv")
                           .addFormat(tr("Wavefront format"),        "obj")
                           .addFormat(tr("Geomview format"),         "oogl");
@@ -565,11 +565,11 @@ void View3D::exportScene()
         std::setlocale(LC_NUMERIC, "");
       }
 
-      // check if write was successful, vt classes don't throw exceptions as a general rule.
+      // check if write was successful, vtk classes don't throw exceptions as a general rule.
       QFileInfo fileInfo{fileName};
       if(!fileInfo.exists() || fileInfo.size() == 0)
       {
-        auto message = tr("Couldn't export %1. Format not supported.").arg(fileName);
+        auto message = tr("Couldn't export %1. Couldn't save file.").arg(fileName);
         DefaultDialogs::InformationMessage(message, title, "", this);
       }
     }
