@@ -128,10 +128,13 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
   {
     auto poolActors = pool->actors(time);
 
-    QMutexLocker lock(&poolActors->lock);
-    for(auto it = poolActors->actors.begin(); it != poolActors->actors.end(); ++it)
+    if(poolActors.get() != nullptr)
     {
-      actors->actors[it.key()] << it.value();
+      QMutexLocker lock(&poolActors->lock);
+      for(auto it = poolActors->actors.begin(); it != poolActors->actors.end(); ++it)
+      {
+        actors->actors[it.key()] << it.value();
+      }
     }
   }
 

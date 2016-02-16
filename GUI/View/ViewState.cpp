@@ -148,9 +148,7 @@ FrameCSPtr ViewState::invalidateRepresentationColors(const ViewItemAdapterList& 
 //----------------------------------------------------------------------------
 void ViewState::resetCamera()
 {
-  auto frame = createFrame(m_crosshair, Frame::Reset);
-
-  emitFrameChanged(frame);
+  emit resetViewCamera();
 }
 
 //----------------------------------------------------------------------------

@@ -406,6 +406,9 @@ void RenderView::connectSignals()
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
            this,                             SLOT(onSceneBoundsChanged(Bounds)));
+
+  connect(&m_state, SIGNAL(resetViewCamera()),
+          this,     SLOT(resetCamera()));
 }
 
 //-----------------------------------------------------------------------------

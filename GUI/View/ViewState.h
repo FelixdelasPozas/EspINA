@@ -199,7 +199,7 @@ namespace ESPINA
 
         void sliceSelectorRemoved(SliceSelectorSPtr selector);
 
-        void resetCamera(const GUI::Representations::FrameCSPtr frame);
+        void resetViewCamera();
 
         void refreshRequested();
 

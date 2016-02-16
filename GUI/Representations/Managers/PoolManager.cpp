@@ -42,7 +42,7 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
 
   auto frameActors = actors(frame->time);
 
-  if(frameActors != nullptr)
+  if(frameActors.get() != nullptr)
   {
     QMutexLocker lock(&frameActors->lock);
 
