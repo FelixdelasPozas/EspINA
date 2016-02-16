@@ -71,6 +71,9 @@ namespace ESPINA {
     virtual InformationKeyList availableInformation() const
     { return InformationKeyList(); }
 
+    virtual QString toolTipText() const
+    { return tr("%1 as Read-Only").arg(m_type); }
+
   protected:
     virtual void onExtendedItemSet(Channel* item);
 

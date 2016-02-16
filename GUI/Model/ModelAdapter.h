@@ -610,7 +610,6 @@ namespace ESPINA
                                         ItemAdapterSPtr     successor,
                                         const RelationName& relation);
 
-
     /** \brief Removes a sample adapter from the model and its adapted sample from the analysis.
      * \param[in] sample sample adapter smart pointer.
      *

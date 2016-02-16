@@ -105,6 +105,10 @@ namespace ESPINA
        */
       void setActiveChannel(ChannelAdapterPtr channel);
 
+      /** \brief Emits the dataChanged for the given item. Needed by the StackExplorer to update representation.
+       */
+      void emitModified(ItemAdapterPtr item);
+
     signals:
       void channelsDragged(ChannelAdapterList sources, SampleAdapterPtr destination);
 

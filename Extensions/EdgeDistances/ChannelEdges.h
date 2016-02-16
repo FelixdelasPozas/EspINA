@@ -120,6 +120,9 @@ namespace ESPINA
      */
     vtkSmartPointer<vtkPolyData> channelEdges();
 
+    virtual QString toolTipText() const
+    { return tr("Channel Edges"); }
+
     /** \brief Return the volume un Nm^3.
      *
      */

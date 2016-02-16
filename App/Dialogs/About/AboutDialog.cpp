@@ -22,6 +22,7 @@
 #include "EspinaConfig.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI;
 
 //-----------------------------------------------------------------------------

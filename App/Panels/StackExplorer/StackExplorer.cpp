@@ -431,7 +431,10 @@ void StackExplorer::showInformation()
        auto channel = channelPtr(currentItem);
        ChannelInspector dialog(getModel()->smartPointer(channel), getContext());
 
-       dialog.exec();
+       if(QDialog::Accepted == dialog.exec())
+       {
+         m_channelProxy->emitModified(channel);
+       }
      }
    }
 }
@@ -457,15 +460,32 @@ void StackExplorer::activateChannel()
 //------------------------------------------------------------------------
 void StackExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapterPtr sample)
 {
-  auto smartSample = getModel()->smartPointer(sample);
+  SampleAdapterSList samples;
+
+  auto newSample = getModel()->smartPointer(sample);
 
   for (auto channel : channels)
   {
     auto prevSample   = QueryAdapter::sample(channel);
-    auto smartChannel = getModel()->smartPointer(channel);
 
-    getModel()->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
-    getModel()->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
+    // don't do anything if it's the same sample
+    if(sample != prevSample.get())
+    {
+      auto sChannel = getModel()->smartPointer(channel);
+
+      getModel()->deleteRelation(prevSample, sChannel, Channel::STAIN_LINK);
+      getModel()->addRelation   (newSample , sChannel, Channel::STAIN_LINK);
+
+      if(!samples.contains(newSample)) samples << newSample;
+      if(!samples.contains(prevSample)) samples << prevSample;
+
+      m_channelProxy->emitModified(sChannel.get());
+    }
+  }
+
+  for(auto item: samples)
+  {
+    m_channelProxy->emitModified(item.get());
   }
 }
 

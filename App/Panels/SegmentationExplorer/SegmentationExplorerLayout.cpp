@@ -283,5 +283,4 @@ bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
   {
     return leftSeg->category()->name() < rightSeg->category()->name();
   }
-
 }

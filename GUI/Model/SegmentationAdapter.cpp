@@ -121,9 +121,7 @@ QVariant SegmentationAdapter::data(int role) const
     }
     case Qt::DecorationRole:
     {
-      const unsigned char WIDTH = 3;
-
-      QPixmap icon(WIDTH, 16);
+      QPixmap icon(3, 16);
 
       // Category icon
       icon.fill(m_category->color());
@@ -299,7 +297,6 @@ bool ESPINA::operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 {
   return lhs == rhs->m_segmentation;
 }
-
 
 //------------------------------------------------------------------------
 bool ESPINA::operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)

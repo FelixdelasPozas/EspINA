@@ -23,6 +23,10 @@
 #include "ChannelAdapter.h"
 #include <Core/Analysis/Channel.h>
 
+// Qt
+#include <QPixmap>
+#include <QColor>
+
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
@@ -46,6 +50,65 @@ QVariant ChannelAdapter::data(int role) const
       return m_channel->name();
     case Qt::CheckStateRole:
       return isVisible()?Qt::Checked:Qt::Unchecked;
+    case Qt::DecorationRole:
+    {
+      if(hue() != -1)
+      {
+        QPixmap channelIcon(16, 16);
+        auto color = QColor::fromHsv(hue()*359,255,255,255);
+        channelIcon.fill(color);
+
+        return channelIcon;
+      }
+      else
+      {
+        return QVariant();
+      }
+    }
+    case Qt::ToolTipRole:
+    {
+      QString tooltip;
+      tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
+
+      const QString WS  = "&nbsp;"; // White space
+      const QString TAB = WS+WS+WS;
+      QString boundsInfo;
+
+      if (output()->isValid())
+      {
+        Bounds bounds = output()->bounds();
+        boundsInfo = tr("<b>Bounds:</b><br>");
+        boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)<br>").arg(bounds[4]).arg(bounds[5]);
+      }
+      tooltip = tooltip.append(boundsInfo);
+      bool addBreakLine = false;
+
+      QString extensionsInfo = tr("<b>Extensions:</b><br>");
+      QString extensionsData;
+      for(auto extension : m_channel->readOnlyExtensions())
+      {
+        QString extToolTip = extension->toolTipText();
+        if (!extToolTip.isEmpty())
+        {
+          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+
+          extensionsData = extensionsData.append(extToolTip);
+
+          addBreakLine = true;
+        }
+      }
+
+      if(extensionsData.isEmpty())
+      {
+        extensionsData += tr("None present.<br>");
+      }
+
+      tooltip += extensionsInfo + extensionsData;
+
+      return tooltip;
+    }
     default:
       return QVariant();
   }
@@ -221,7 +284,7 @@ ConstChannelAdapterPtr ESPINA::channelPtr(ConstItemAdapterPtr item)
 //------------------------------------------------------------------------
 bool ESPINA::isChannel(ItemAdapterPtr item)
 {
-  return ItemAdapter::Type::CHANNEL == item->type();
+  return item && (ItemAdapter::Type::CHANNEL == item->type());
 }
 
 //------------------------------------------------------------------------

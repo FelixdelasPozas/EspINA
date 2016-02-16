@@ -82,6 +82,9 @@ namespace ESPINA
           return deps;
         }
 
+        virtual QString toolTipText() const
+        { return tr("Counting Frames: %1").arg(countingFrames().size()); }
+
         virtual InformationKeyList availableInformation() const
         { return InformationKeyList(); }
 

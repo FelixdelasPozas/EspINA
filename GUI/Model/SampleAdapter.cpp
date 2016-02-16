@@ -132,5 +132,5 @@ SampleAdapterPtr ESPINA::samplePtr(ItemAdapterPtr item)
 //------------------------------------------------------------------------
 bool ESPINA::isSample(ItemAdapterPtr item)
 {
-  return ItemAdapter::Type::SAMPLE == item->type();
+  return item && (ItemAdapter::Type::SAMPLE == item->type());
 }

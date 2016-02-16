@@ -25,15 +25,21 @@
 #include <QDialog>
 #include "ui_AboutDialog.h"
 
-class AboutDialog
-: public QDialog
-, public Ui::AboutDialog
+namespace ESPINA
 {
-	public:
-		/** \brief AboutDialog class constructor.
-		 *
-		 */
-		explicit AboutDialog();
-};
-
+  /** \class AboutDialog
+   * \brief Application about... dialog.
+   *
+   */
+  class AboutDialog
+  : public QDialog
+  , public Ui::AboutDialog
+  {
+    public:
+      /** \brief AboutDialog class constructor.
+       *
+       */
+      explicit AboutDialog();
+  };
+}
 #endif // ABOUTDIALOG_H
