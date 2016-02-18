@@ -26,6 +26,7 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
@@ -35,7 +36,6 @@
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <GUI/View/RenderView.h>
-#include <Filters/SourceFilter.h>
 #include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
@@ -46,6 +46,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;

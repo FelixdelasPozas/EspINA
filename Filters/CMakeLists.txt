@@ -27,7 +27,6 @@ set (FILTERS_SOURCES
   OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp
   SplitFilter.cpp
-  SourceFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp
   VolumetricStreamReader.cpp

@@ -22,12 +22,13 @@
 #include "SegmhaImporterPlugin.h"
 
 // ESPINA
+#include <Core/Analysis/Filters/ReadOnlyFilter.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
-#include <Core/IO/ReadOnlyFilter.h>
 #include <Core/Utils/EspinaException.h>
-#include <Filters/SourceFilter.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 const Filter::Type SegmhaFilterFactory::SEGMHA_FILTER_V4 = "Segmha Importer";
@@ -46,7 +47,7 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList          inputs,
   }
   else if(type == SEGMHA_FILTER_V4)
   {
-    filter = std::make_shared<IO::SegFile::ReadOnlyFilter>(inputs, type);
+    filter = std::make_shared<ReadOnlyFilter>(inputs, type);
   }
   else
   {

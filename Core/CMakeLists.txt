@@ -47,14 +47,13 @@ set (CORE_SOURCES
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
   Analysis/ViewItem.cpp
+  Analysis/Filters/SourceFilter.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
   IO/DataFactory/RawDataFactory.cpp
   IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp
-  IO/ReadOnlyChannelExtension.cpp
-  IO/ReadOnlySegmentationExtension.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp

@@ -19,10 +19,11 @@
 */
 
 // ESPINA
-#include "SourceFilter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Filters/SourceFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------

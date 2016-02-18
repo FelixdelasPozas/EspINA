@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Output.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
+#include <Filters/SourceFilter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 //#include <GUI/Representations/SkeletonRepresentation.h>
@@ -31,7 +32,6 @@
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>

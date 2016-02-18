@@ -24,7 +24,7 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
-#include <Filters/SourceFilter.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -42,6 +42,7 @@
 using ESPINA::Filter;
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------

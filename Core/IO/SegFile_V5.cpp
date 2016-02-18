@@ -23,9 +23,6 @@
 #include "SegFile_V5.h"
 #include "SegFile.h"
 #include "ClassificationXML.h"
-#include "ReadOnlyFilter.h"
-#include "ReadOnlyChannelExtension.h"
-#include "ReadOnlySegmentationExtension.h"
 #include "ProgressReporter.h"
 #include <EspinaConfig.h>
 #include <Core/Analysis/Channel.h>
@@ -35,13 +32,17 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Extensions/ReadOnlyChannelExtension.h>
+#include <Core/Analysis/Extensions/ReadOnlySegmentationExtension.h>
+#include <Core/Analysis/Filters/ReadOnlyFilter.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/EspinaException.h>
-#include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;

@@ -37,7 +37,7 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
-#include <Core/IO/ReadOnlyFilter.h>
+#include <Core/Analysis/Filters/ReadOnlyFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 using namespace std;

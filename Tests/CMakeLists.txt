@@ -60,6 +60,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
 #   ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
+  ${CORE_DIR}/Analysis/Filters/SourceFilter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
@@ -73,8 +74,6 @@ set (CORE_SOURCES
   ${CORE_DIR}/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   ${CORE_DIR}/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
-  ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
-  ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
   ${CORE_DIR}/IO/SegFile.cpp
   ${CORE_DIR}/IO/SegFileInterface.cpp
   ${CORE_DIR}/IO/SegFile_V4.cpp
@@ -104,7 +103,6 @@ set (FILTERS_SOURCES
   ${FILTERS_DIR}/ImageLogicFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
-  ${FILTERS_DIR}/SourceFilter.cpp
   ${FILTERS_DIR}/SplitFilter.cpp
   ${FILTERS_DIR}/Utils/Stencil.cpp
   ${FILTERS_DIR}/VolumetricStreamReader.cpp

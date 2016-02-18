@@ -24,11 +24,11 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Filters/SourceFilter.h>
 #include <Support/Readers/ChannelReader.h>
 
 // ESPINA
@@ -51,6 +51,7 @@
 #include <itkVTKImageToImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::IO;
 
 using SegmentationLabelMap  = itk::Image<unsigned short , 3>;

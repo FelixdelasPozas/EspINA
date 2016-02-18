@@ -27,15 +27,18 @@
 // ESPINA
 #include <Core/Analysis/Filter.h>
 
-namespace ESPINA {
-
-  namespace IO {
-
-    namespace SegFile {
-
-      class EspinaCore_EXPORT ReadOnlyFilter
-      : public Filter
-      {
+namespace ESPINA
+{
+  namespace Core
+  {
+    /** \class ReadOnlyFilter
+     * \brief Filter to use when an unknown filter is found. All data of the unknown filter
+     *  is saved on disk, and only the datas are really used, as the rest of the filter info
+     *  can't be interpreted.
+     */
+    class EspinaCore_EXPORT ReadOnlyFilter
+    : public Filter
+    {
       public:
         /** \brief ReadOnlyFilter class constructor.
          * \param[in] inputs list of input smart pointers.
@@ -54,10 +57,10 @@ namespace ESPINA {
 
       protected:
         virtual Snapshot saveFilterSnapshot() const
-        {return Snapshot(); }
+        {  return Snapshot(); }
 
         virtual bool needUpdate() const
-        { return m_outputs.isEmpty();}
+        { return m_outputs.isEmpty(); }
 
         virtual bool needUpdate(Output::Id id) const
         { return !m_outputs.contains(id) || !m_outputs[id]->isValid(); }
@@ -71,15 +74,10 @@ namespace ESPINA {
         virtual bool ignoreStorageContent() const
         { return false; }
 
-        virtual bool areEditedRegionsInvalidated()
-        {return false;}
-
       private:
-        State m_state;
-      };
-    }
-  }
-
-}
+        State m_state; /** Unknown filter state. */
+    };
+  } // namespace Core
+} // namespace ESPINA
 
 #endif // ESPINA_READONLYFILTER_H

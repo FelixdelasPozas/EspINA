@@ -33,13 +33,14 @@
 #include "Core/IO/SegFile.h"
 #include "Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h"
 #include "Core/IO/ClassificationXML.h"
-#include "Core/IO/ReadOnlyFilter.h"
+#include "Core/Analysis/Filters/ReadOnlyFilter.h"
 #include "Core/Utils/TemporalStorage.h"
 #include "Core/Utils/EspinaException.h"
 
 #include "ProgressReporter.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
