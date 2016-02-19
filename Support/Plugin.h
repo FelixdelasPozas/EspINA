@@ -36,6 +36,7 @@
 #include <QStringList>
 
 class QUndoStack;
+class QAction;
 
 namespace ESPINA
 {

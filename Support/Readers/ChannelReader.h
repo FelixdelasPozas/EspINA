@@ -28,8 +28,8 @@
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   class EspinaSupport_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader

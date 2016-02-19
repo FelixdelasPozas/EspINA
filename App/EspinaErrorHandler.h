@@ -59,10 +59,10 @@ namespace ESPINA
 
     void error(const QString &msg);
 
-    QFileInfo fileNotFound(const QFileInfo &file,
-                           QDir dir = QDir(),
-                           const GUI::SupportedFormats &filters = GUI::SupportedFormats().addAllFormat(),
-                           const QString &hint = QString());
+    QFileInfo fileNotFound(const QFileInfo                     &file,
+                           QDir                                 dir     = QDir(),
+                           const Core::Utils::SupportedFormats &filters = Core::Utils::SupportedFormats().addAllFormat(),
+                           const QString                       &hint    = QString());
 
   private:
     QWidget *m_parent;

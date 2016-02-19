@@ -184,7 +184,7 @@ namespace ESPINA
 
     SchedulerSPtr               m_scheduler;           /** task scheduler.                   */
     mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */
-    QDir                       *m_temporalStorageDir;  /** dir for temporal storage.         */
+    QDir                       *m_temporalStorageDir;  /** directory for temporal storage.   */
 
     QMap<Filter::Type, FilterFactorySPtr>                               m_filterFactories;
     QMap<ChannelExtension::Type, ChannelExtensionFactorySPtr>           m_channelExtensionFactories;

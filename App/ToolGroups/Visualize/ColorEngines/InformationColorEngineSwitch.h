@@ -23,6 +23,8 @@
 #include <GUI/ColorEngines/InformationColorEngine.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
 
+class QLabel;
+
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------

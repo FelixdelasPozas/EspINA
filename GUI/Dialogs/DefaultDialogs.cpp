@@ -30,6 +30,7 @@
 #include <QMainWindow>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 

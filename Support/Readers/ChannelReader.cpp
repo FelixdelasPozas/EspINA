@@ -22,11 +22,11 @@
 // ESPINA
 #include "ChannelReader.h"
 #include <EspinaConfig.h>
-#include <Filters/VolumetricStreamReader.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Output.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
@@ -42,6 +42,7 @@
 #endif
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 

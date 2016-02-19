@@ -28,6 +28,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <EspinaErrorHandler.h>
 #include <EspinaMainWindow.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 
 #include <QElapsedTimer>

@@ -17,9 +17,10 @@
  *
  */
 
-#include "SupportedFormats.h"
+// ESPINA
+#include <Core/Utils/SupportedFormats.h>
 
-using namespace ESPINA::GUI;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SupportedFormats::SupportedFormats()

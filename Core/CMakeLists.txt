@@ -48,6 +48,7 @@ set (CORE_SOURCES
   Analysis/Segmentation.cpp
   Analysis/ViewItem.cpp
   Analysis/Filters/SourceFilter.cpp
+  Analysis/Filters/VolumetricStreamReader.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
   IO/DataFactory/RawDataFactory.cpp
@@ -67,6 +68,7 @@ set (CORE_SOURCES
   Utils/EspinaException.cpp
   Utils/Measure.cpp
   Utils/SparseBinaryVolume.cpp
+  Utils/SupportedFormats.cpp
   Utils/TemporalStorage.cpp
   Utils/VolumeBounds.cpp
   Utils/vtkPolyDataUtils.cpp

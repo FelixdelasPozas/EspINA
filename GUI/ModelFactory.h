@@ -101,7 +101,7 @@ namespace ESPINA
     /** \brief Returns the list of file extensions the factory can read.
      *
      */
-    GUI::SupportedFormats supportedFileExtensions();
+    Core::Utils::SupportedFormats supportedFileExtensions();
 
     /** \brief Returns the list of raw pointers of the readers registered in the factory for a given file.
      * \param[in] file QFileInfo object.

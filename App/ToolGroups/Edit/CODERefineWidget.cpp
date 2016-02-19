@@ -16,11 +16,12 @@
  *
  */
 
+// ESPINA
 #include "CODERefineWidget.h"
+#include <GUI/Widgets/Styles.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 #include "ui_CODERefineWidget.h"
-#include <GUI/Widgets/Styles.h>
-
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QToolBar>

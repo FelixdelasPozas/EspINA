@@ -29,7 +29,6 @@ set (FILTERS_SOURCES
   SplitFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp
-  VolumetricStreamReader.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS

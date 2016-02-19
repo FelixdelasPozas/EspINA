@@ -35,6 +35,7 @@
 #include <QTextStream>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 
 class NoteEditor::GUI

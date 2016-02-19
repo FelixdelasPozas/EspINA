@@ -26,13 +26,14 @@
  * 
  */
 
-#include "Filters/VolumetricStreamReader.h"
 #include "Tests/Testing_Support.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <itkImageFileWriter.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Testing;
 
 int volumetric_stream_reader_simple_execution(int argc, char** argv)

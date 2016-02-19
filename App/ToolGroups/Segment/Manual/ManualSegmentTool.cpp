@@ -27,6 +27,7 @@
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>

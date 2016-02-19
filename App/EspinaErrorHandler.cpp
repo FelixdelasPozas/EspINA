@@ -22,6 +22,7 @@
 // ESPINA
 #include "EspinaErrorHandler.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <Core/Utils/SupportedFormats.h>
 
 // Qt
 #include <QUrl>
@@ -30,13 +31,14 @@
 #include <QMessageBox>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
-QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo &file,
-                                           QDir dir,
-                                           const SupportedFormats &filters,
-                                           const QString &hint)
+QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo                     &file,
+                                           QDir                                 dir,
+                                           const Core::Utils::SupportedFormats &filters,
+                                           const QString                       &hint)
 {
   QString key = file.absoluteFilePath();
 

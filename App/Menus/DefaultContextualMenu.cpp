@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "DefaultContextualMenu.h"
+#include <Core/Utils/SupportedFormats.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
@@ -50,6 +51,7 @@
 #include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Widgets::Styles;

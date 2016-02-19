@@ -19,9 +19,9 @@
 */
 
 // ESPINA
-#include "VolumetricStreamReader.h"
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/EspinaException.h>
 
 // ITK
@@ -29,6 +29,7 @@
 #include <itkImageFileWriter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------

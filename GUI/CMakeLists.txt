@@ -123,7 +123,6 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
-  SupportedFormats.cpp
   Representations/Pipelines/ChannelSlicePipeline.cpp
   Representations/Pipelines/SegmentationSlicePipeline.cpp
   Representations/Pipelines/SegmentationMeshPipeline.cpp

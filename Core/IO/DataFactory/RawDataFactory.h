@@ -24,9 +24,8 @@
 #include <Core/Analysis/DataFactory.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 
-namespace ESPINA {
-
-  /// This Fetch DataFactory only fetch existing data from temporal storage
+namespace ESPINA
+{
   class EspinaCore_EXPORT RawDataFactory
   : public DataFactory
   {

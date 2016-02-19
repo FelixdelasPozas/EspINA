@@ -25,15 +25,13 @@
 
 #include <Core/IO/SegFile.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/SupportedFormats.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <GUI/SupportedFormats.h>
 #include <GUI/Widgets/Styles.h>
 
-using ESPINA::GUI::DefaultDialogs;
-using ESPINA::GUI::SupportedFormats;
-using ESPINA::IO::SegFile::save;
-
 using namespace ESPINA;
+using namespace ESPINA::IO;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
 using namespace ESPINA::Core::Utils;
@@ -117,7 +115,7 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 
     try
     {
-      IO::SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
+      SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
 
       emit sessionSaved(filename);
     }

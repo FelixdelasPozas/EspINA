@@ -61,6 +61,7 @@ set (CORE_SOURCES
 #   ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Filters/SourceFilter.cpp
+  ${CORE_DIR}/Analysis/Filters/VolumetricStreamReader.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
@@ -87,6 +88,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
+  ${CORE_DIR}/Utils/SupportedFormats.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
 target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
@@ -105,7 +107,6 @@ set (FILTERS_SOURCES
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
   ${FILTERS_DIR}/SplitFilter.cpp
   ${FILTERS_DIR}/Utils/Stencil.cpp
-  ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )
 add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
 target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
@@ -153,7 +154,6 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/Frame.cpp
-  ${GUI_DIR}/SupportedFormats.cpp
   ${GUI_DIR}/Utils/Timer.cpp
   ${GUI_DIR}/View/CoordinateSystem.cpp
   ${GUI_DIR}/View/EventHandler.cpp

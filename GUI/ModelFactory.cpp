@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
