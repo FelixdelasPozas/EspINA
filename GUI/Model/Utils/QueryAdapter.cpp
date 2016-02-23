@@ -109,6 +109,34 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapt
 }
 
 //------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::segmentationsOnChannel(ChannelAdapterPtr channel)
+{
+  SegmentationAdapterSList result;
+
+  auto segmentations = channel->model()->segmentations();
+  for(auto segmentation: segmentations)
+  {
+    auto channels = QueryAdapter::channels(segmentation);
+
+    for(auto item: channels)
+    {
+      if(item.get() == channel)
+      {
+        result << segmentation;
+      }
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::segmentationsOnChannel(ChannelAdapterSPtr channel)
+{
+  return segmentationsOnChannel(channel.get());
+}
+
+//------------------------------------------------------------------------
 SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample)
 {
   for (auto sample : model->samples())

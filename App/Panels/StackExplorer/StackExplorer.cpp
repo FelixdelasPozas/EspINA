@@ -393,7 +393,7 @@ void StackExplorer::unloadChannel()
   if (!isChannel(item)) return;
 
   auto channel      = channelPtr(item);
-  auto relatedItems = QueryAdapter::segmentationsOnChannelSample(channel);
+  auto relatedItems = QueryAdapter::segmentationsOnChannel(channel);
 
   if (!relatedItems.isEmpty())
   {
