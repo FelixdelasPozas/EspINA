@@ -280,6 +280,12 @@ void SpacingChanger::startConversion()
 //----------------------------------------------------------------------
 void SpacingChanger::addFiles()
 {
+  if(!m_files.isEmpty())
+  {
+    writeInfo(tr("Cleared %1 files").arg(m_files.size()));
+    m_files.clear();
+  }
+
   auto files = QFileDialog::getOpenFileNames(this, tr("Open SEG files"), QDir::currentPath(), tr("*.seg"));
 
   if(!files.empty())

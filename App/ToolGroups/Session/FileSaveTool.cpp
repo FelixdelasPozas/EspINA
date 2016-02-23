@@ -123,7 +123,8 @@ void FileSaveTool::saveAnalysis(const QString &filename)
     {
       auto message = tr("Couldn't save file: '%1").arg(filename.split('/').last());
       auto title   = tr("Error saving file");
-      DefaultDialogs::ErrorMessage(message, title);
+
+      DefaultDialogs::ErrorMessage(message, title, e.details());
     }
 
     setIcon(current);
