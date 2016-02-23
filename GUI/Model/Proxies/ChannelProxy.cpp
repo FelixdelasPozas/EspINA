@@ -543,6 +543,11 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
 
         QModelIndex parent = index(sampleRow, 0);
 
+        if(m_activeChannel == channel)
+        {
+          m_activeChannel = nullptr;
+        }
+
         beginRemoveRows(parent, channelRow, channelRow);
         m_channels[parentSample].removeOne(channel);
         endRemoveRows();
