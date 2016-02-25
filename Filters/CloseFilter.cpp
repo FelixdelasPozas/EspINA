@@ -87,6 +87,8 @@ void CloseFilter::execute(Output::Id id)
   filter->SetInput(inputVolume->itkImage());
   filter->SetKernel(ball);
   filter->SetForegroundValue(SEG_VOXEL_VALUE);
+  filter->ReleaseDataFlagOn();
+  filter->SetNumberOfThreads(1);
 
   ITKProgressReporter<BinaryClosingFilter> reporter(this, filter, 0, 100);
 

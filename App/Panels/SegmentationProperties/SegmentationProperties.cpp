@@ -48,7 +48,7 @@ public:
 
 //----------------------------------------------------------------------------
 SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners,
-                                                 Context               &context)
+                                               Context              &context)
 : Panel(tr("Segmentation Properties"), context)
 , m_register(filterRefiners)
 , m_segmentation(nullptr)

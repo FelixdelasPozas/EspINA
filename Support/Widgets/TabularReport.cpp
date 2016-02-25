@@ -539,7 +539,7 @@ void TabularReport::exportToCSV(const QFileInfo &filename)
 
     QFile file(csvFile);
 
-    if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOther|QFile::WriteOther))
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
     {
       auto what    = tr("exportToCSV: can't save file '%1'.").arg(filename.absoluteFilePath());
       auto details = tr("Cause of failure: %1").arg(file.errorString());

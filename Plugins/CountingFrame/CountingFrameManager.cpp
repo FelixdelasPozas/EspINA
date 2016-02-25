@@ -85,7 +85,7 @@ CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) 
     {
       int cardinalityIndex = cf->id().lastIndexOf(cardinalityRegExp);
 
-      if (cardinalityIndex == -1)
+      if ((cardinalityIndex == -1) && (count == 0))
       {
         ++count;
       }

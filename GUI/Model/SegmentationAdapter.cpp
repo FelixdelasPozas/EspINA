@@ -21,6 +21,7 @@
 // // ESPINA
 #include "SegmentationAdapter.h"
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Issues/Issues.h>
@@ -155,7 +156,16 @@ QVariant SegmentationAdapter::data(int role) const
       //if (m_filter && output()->isValid())
       if (output()->isValid()) // It shouldn't exist a segmentation without filter as it was checked before, but maybe there is some weird condition in which we should check it
       {
-        Bounds bounds = output()->bounds();
+        Bounds bounds;
+        if(hasVolumetricData(output()))
+        {
+          // voxel bounds are the preferred ones to show.
+          bounds = readLockVolume(output())->bounds();
+        }
+        else
+        {
+          bounds = output()->bounds();
+        }
         boundsInfo = tr("<b>Bounds:</b><br>");
         boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);

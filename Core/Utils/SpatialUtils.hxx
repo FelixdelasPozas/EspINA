@@ -391,12 +391,10 @@ namespace ESPINA
   template<typename T>
   Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType bgValue)
   {
-    Bounds bounds;
-
     itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
-    auto origin   = image->GetOrigin();
-    auto spacing  = image->GetSpacing();
-    auto vSpacing = ToNmVector3<T>(spacing);
+    int minIndex[3];
+    int maxIndex[3];
+    bool empty = true;
 
     it.GoToBegin();
     while (!it.IsAtEnd())
@@ -404,22 +402,46 @@ namespace ESPINA
       if (it.Get() != bgValue)
       {
         auto index   = it.GetIndex();
-        Bounds voxelBounds;
-        for (int i = 0; i < 3; ++i)
+        if(empty)
         {
-          voxelBounds[2*i]   = ( index[i]    * spacing[i]) - origin[i] - spacing[i]/2;
-          voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - origin[i] - spacing[i]/2;
+          minIndex[0] = index[0];
+          minIndex[1] = index[1];
+          minIndex[2] = index[2];
+          maxIndex[0] = index[0];
+          maxIndex[1] = index[1];
+          maxIndex[2] = index[2];
+          empty = false;
         }
-
-        if (!bounds.areValid())
-          bounds = voxelBounds;
         else
-          bounds = boundingBox(bounds, voxelBounds, vSpacing);
+        {
+          if(minIndex[0] > index[0]) minIndex[0] = index[0];
+          if(minIndex[1] > index[1]) minIndex[1] = index[1];
+          if(minIndex[2] > index[2]) minIndex[2] = index[2];
+          if(maxIndex[0] < index[0]) maxIndex[0] = index[0];
+          if(maxIndex[1] < index[1]) maxIndex[1] = index[1];
+          if(maxIndex[2] < index[2]) maxIndex[2] = index[2];
+        }
       }
       ++it;
     }
 
-    return bounds;
+    // empty volume
+    if(empty) return Bounds();
+
+    auto origin   = image->GetOrigin();
+    auto spacing  = image->GetSpacing();
+    auto vSpacing = ToNmVector3<T>(spacing);
+
+    Bounds minBounds, maxBounds;
+    for (int i = 0; i < 3; ++i)
+    {
+      minBounds[2*i]   = ( minIndex[i]    * spacing[i]) - origin[i] - spacing[i]/2;
+      minBounds[2*i+1] = ((minIndex[i]+1) * spacing[i]) - origin[i] - spacing[i]/2;
+      maxBounds[2*i]   = ( maxIndex[i]    * spacing[i]) - origin[i] - spacing[i]/2;
+      maxBounds[2*i+1] = ((maxIndex[i]+1) * spacing[i]) - origin[i] - spacing[i]/2;
+    }
+
+    return boundingBox(minBounds, maxBounds, vSpacing);
   }
 
   /** \brief Transform NmVector to ItkPointType

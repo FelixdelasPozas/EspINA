@@ -48,7 +48,6 @@ using namespace ESPINA::CF;
 
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
 const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
-//const SegmentationExtension::Key StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
 
@@ -129,7 +128,6 @@ QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 //------------------------------------------------------------------------
 void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -139,7 +137,7 @@ QString StereologicalInclusion::toolTipText() const
 
   if (isReady(TOUCH_EDGES) && isOnEdge())
   {
-    QString description = "<font color=\"red\">"   + tr("Touches Stack Edge") + "</font>";
+    QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
   }
 

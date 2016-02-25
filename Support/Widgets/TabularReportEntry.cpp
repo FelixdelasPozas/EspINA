@@ -106,8 +106,6 @@ TabularReport::Entry::Entry(const QString   &category,
   connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
           this, SLOT(saveSelectedInformation()));
 
-//  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   exportInformation->setIcon(iconSave);
 
@@ -170,13 +168,15 @@ QVariant TabularReport::Entry::value(int row, int column) const
 
   if (row < rowCount() && column < columnCount())
   {
+    int logicalIdx = tableView->horizontalHeader()->logicalIndex(column);
+
     if (row == 0)
     {
-      result = m_proxy->availableInformation()[column].value();
+      result = m_proxy->availableInformation()[logicalIdx].value();
     }
     else
     {
-      result = tableView->model()->index(row - 1, column, tableView->rootIndex()).data();
+      result = m_proxy->index(row - 1, logicalIdx, tableView->rootIndex()).data();
     }
   }
 
@@ -310,7 +310,7 @@ void TabularReport::Entry::exportToCSV(const QString &filename)
 {
   QFile file(filename);
 
-  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOther|QFile::WriteOther))
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
   {
     auto what    = tr("exportToCSV: can't save file '%1'.").arg(filename);
     auto details = tr("Cause of failure: %1").arg(file.errorString());

@@ -397,19 +397,20 @@ void SeedGrowSegmentationFilter::execute()
 
   if(m_radius > 0)
   {
-    auto closingFilter = ClosingFilterType::New();
-
-    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
-
      // qDebug() << "Closing Segmentation";
     StructuringElementType ball;
     ball.SetRadius(m_radius);
     ball.CreateStructuringElement();
 
+    auto closingFilter = ClosingFilterType::New();
     closingFilter->SetInput(output);
+    closingFilter->SetNumberOfThreads(1);
     closingFilter->SetKernel(ball);
     closingFilter->SetForegroundValue(SEG_VOXEL_VALUE);
     closingFilter->ReleaseDataFlagOn();
+
+    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
+
     closingFilter->Update();
 
     output = closingFilter->GetOutput();
