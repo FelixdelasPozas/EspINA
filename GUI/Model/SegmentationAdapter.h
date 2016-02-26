@@ -33,7 +33,7 @@ namespace ESPINA
 {
   static const int NumberRole = TypeRole + 1;
 
-  /** ass SegmentationAdapter.
+  /** class SegmentationAdapter.
    * \brief Model biological structures which have been extracted from one or more channels.
    */
   class EspinaGUI_EXPORT SegmentationAdapter

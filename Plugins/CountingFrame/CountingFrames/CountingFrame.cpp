@@ -129,24 +129,34 @@ QString CountingFrame::description() const
   int  totalVoxelVolume     = totalVolume()     / voxelVol;
   int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
   int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
-  auto constraint = categoryConstraint().isEmpty() ? "All (Global)" : categoryConstraint();
+  int  frontSl              = int(front()/spacing[2]);
+  int  backSl               = int(back()/spacing[2]);
+  auto constraint           = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
 
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";
   QString desc;
-  desc += tr("CF:   %1"            ).arg(m_id)                             + br;
-  desc += tr("Type: %1"            ).arg(typeName())                       + br;
-  desc += tr("Applies to: %1"      ).arg(constraint)                       + br;
-  desc += tr("Volume information:" )                                       + br;
-  desc += tr("  Total Volume:"     )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
-  desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + cube + br;
-  desc += tr("  Inclusion Volume:" )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(inclusionVoxelVolume)             + br;
-  desc += tr("    %1 nm"           ).arg(inclusionVolume(),0,'f',2) + cube + br;
-  desc += tr("  Exclusion Volume:" )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(exclusionVoxelVolume)             + br;
-  desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("CF id : %1"               ).arg(m_id)                             + br;
+  desc += tr("Type: %1"                 ).arg(typeName())                       + br;
+  desc += tr("Constraint: %1"           ).arg(constraint)                       + br;
+  desc += tr("Stack: %1"                ).arg(channel->name())                  + br;
+  desc += tr("Volume information:"      )                                       + br;
+  desc += tr("  Total Volume:"          )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(totalVoxelVolume)                 + br;
+  desc += tr("    %1 nm"                ).arg(totalVolume(),0,'f',2)     + cube + br;
+  desc += tr("  Inclusion Volume:"      )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(inclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"                ).arg(inclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("  Exclusion Volume:"      )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(exclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"                ).arg(exclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("Margins:"                 )                                       + br;
+  desc += tr("  Left %1 nm"             ).arg(left())                           + br;
+  desc += tr("  Top %1 nm"              ).arg(top())                            + br;
+  desc += tr("  Right %1 nm"            ).arg(right())                          + br;
+  desc += tr("  Bottom %1 nm"           ).arg(bottom())                         + br;
+  desc += tr("  Front %1 nm (%2 slices)").arg(front()).arg(frontSl)             + br;
+  desc += tr("  Back %1 nm (%2 slices)" ).arg(back()).arg(backSl)               + br;
 
   return desc;
 }

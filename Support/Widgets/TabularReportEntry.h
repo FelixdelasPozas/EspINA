@@ -88,6 +88,8 @@ namespace ESPINA
     void refreshGUI();
 
   private:
+    void refreshGUIImplementation();
+
     QString selectedInformationFile() const
     {
       QString path = m_category;

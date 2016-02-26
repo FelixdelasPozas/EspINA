@@ -37,6 +37,7 @@
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Support/Utils/xlsUtils.h>
 
 // Qt
 #include <QInputDialog>
@@ -48,6 +49,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
+using namespace xlslib_core;
 
 //------------------------------------------------------------------------
 class CF::Panel::GUI
@@ -180,7 +182,7 @@ QVariant CF::Panel::CFModel::headerData(int section, Qt::Orientation orientation
       case 1:
         return tr("Type"); break;
       case 2:
-        return tr("Channel");
+        return tr("Stack");
     }
   }
 
@@ -262,8 +264,6 @@ Qt::ItemFlags CF::Panel::CFModel::flags(const QModelIndex& index) const
   return flags;
 }
 
-
-//------------------------------------------------------------------------
 //------------------------------------------------------------------------
 const QString CF::Panel::ID = "CountingFrameExtension";
 
@@ -290,7 +290,7 @@ CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
   m_gui->exportCF->setIcon(iconSave);
 
   connect(m_gui->exportCF, SIGNAL(clicked(bool)),
-          this,            SLOT(saveActiveCountingFrameDescription()));
+          this,            SLOT(exportCountingFramesData()));
 
   connect(m_gui->createCF, SIGNAL(clicked()),
           this,            SLOT(createCountingFrame()));
@@ -708,25 +708,6 @@ void CF::Panel::updateSegmentationExtensions()
 }
 
 //------------------------------------------------------------------------
-void CF::Panel::saveActiveCountingFrameDescription()
-{
-  auto category = m_activeCF->categoryConstraint();
-  auto name     = m_activeCF->channel()->name().split('.').first();
-  name += "_" + (category.isEmpty() ? "Global" : category.replace('/', '-'));
-  name += tr("_CF");
-
-  auto title      = tr("Save Counting Frame Description");
-  auto suggestion = tr("%1.txt").arg(name);
-  auto formats    = SupportedFormats(tr("Text File"), "txt");
-  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".txt", suggestion);
-
-  if (!fileName.isEmpty())
-  {
-    exportCountingFrameDescriptionAsText(fileName);
-  }
-}
-
-//------------------------------------------------------------------------
 void CF::Panel::changeUnitMode(bool useSlices)
 {
   m_useSlices = useSlices;
@@ -934,23 +915,224 @@ void CF::Panel::updateTable()
 }
 
 //------------------------------------------------------------------------
-void CF::Panel::exportCountingFrameDescriptionAsText(const QString &filename)
+void ESPINA::CF::Panel::exportCountingFramesData()
 {
-  QFile file(filename);
-  file.open(QIODevice::WriteOnly|QIODevice::Text);
+  auto title      = tr("Export Counting Frames data");
+  auto suggestion = tr("CF_Data_%1.txt").arg(getContext().viewState().selection()->activeChannel()->data().toString());
+  auto formats    = SupportedFormats().addTxtFormat().addCSVFormat().addExcelFormat();
+
+  auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".txt", suggestion, this);
+
+  if(!fileName.isEmpty())
+  {
+    QStringList splittedName = fileName.split(".");
+    QString extension = splittedName.last().toUpper().remove(' ');
+
+    QStringList validFileExtensions;
+    validFileExtensions << "TXT" << "CSV" << "XLS";
+
+    if(validFileExtensions.contains(extension))
+    {
+      try
+      {
+        if(QString("TXT") == extension)
+        {
+          exportAsText(fileName);
+        }
+
+        if(QString("CSV") == extension)
+        {
+          exportAsCSV(fileName);
+        }
+
+        if(QString("XLS") == extension)
+        {
+          exportAsXLS(fileName);
+        }
+      }
+      catch(const EspinaException &e)
+      {
+        auto message = tr("Couldn't export data to %1. ").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, e.what(), this);
+      }
+    }
+    else
+    {
+      auto message = tr("Couldn't export data to %1. Format not supported.").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, "", this);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::CF::Panel::exportAsText(const QString& fileName) const
+{
+  QFile file{fileName};
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
+  {
+    auto message = tr("Couldn't create file %1, check file permissions.").arg(fileName);
+    auto details = tr("CF::Panel::exportAsText() ->") + message;
+
+    throw EspinaException(message, details);
+  }
 
   QTextStream out(&file);
-  out << m_gui->countingFrameDescription->toPlainText();
-  out.flush();
+  for(auto cf: m_countingFrames)
+  {
+    out << cf->description();
+    out << '\n';
+  }
 
+  out.flush();
   file.close();
 
   if(file.error() != QFile::NoError)
   {
-    auto message = tr("Couldn't save file '%1'. Cause: %2").arg(filename.split('/').last()).arg(file.errorString());
-    auto title   = tr("EspINA");
+    auto message = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
+    auto details = tr("CF::Panel::exportAsText() ->") + message;
 
-    DefaultDialogs::InformationMessage(message, title);
+    throw EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::CF::Panel::exportAsCSV(const QString& fileName) const
+{
+  QFile file{fileName};
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
+  {
+    auto message = tr("Couldn't create file %1, check file permissions.").arg(fileName);
+    auto details = tr("CF::Panel::exportAsCSV() ->") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  QTextStream out(&file);
+
+  QStringList columnLabels;
+  columnLabels << "CF id" << "Type" << "Constraint" << "Stack"
+               << "Total Volume (voxels)" << "Total Volume (nm^3)"
+               << "Inclusion Volume (voxels)" << "Inclusion Volume (nm^3)"
+               << "Exclusion Volume (voxels)" << "Exclusion Volume (nm^3)"
+               << "Left Margin (nm)" << "Top Margin (nm)" << "Right Margin (nm)" << "Bottom Margin (nm)"
+               << "Front Margin (nm)" << "Front Margin (slices)" << "Back Margin (nm)" << "Back Margin (slices)";
+
+  for(int pos = 0; pos < columnLabels.size(); ++pos)
+  {
+    if(pos)
+    {
+      out << ",";
+    }
+    out << columnLabels.at(pos);
+  }
+  out << "\n";
+
+  for(auto cf: m_countingFrames)
+  {
+    auto channel              = cf->extension()->extendedItem();
+    auto spacing              = channel->output()->spacing();
+    Nm   voxelVol             = spacing[0]*spacing[1]*spacing[2];
+    int  totalVoxelVolume     = cf->totalVolume()     / voxelVol;
+    int  inclusionVoxelVolume = cf->inclusionVolume() / voxelVol;
+    int  exclusionVoxelVolume = cf->exclusionVolume() / voxelVol;
+    int  frontSl              = int(cf->front()/spacing[2]);
+    int  backSl               = int(cf->back()/spacing[2]);
+    auto constraint           = cf->categoryConstraint().isEmpty() ? "None (Global)" : cf->categoryConstraint();
+
+    out << cf->id()                                          << ",";
+    out << cf->typeName()                                    << ",";
+    out << constraint                                        << ",";
+    out << channel->name()                                   << ",";
+    out << QString("%1").arg(totalVoxelVolume)               << ",";
+    out << QString("%1").arg(cf->totalVolume(), 0,'f',2)     << ",";
+    out << QString("%1").arg(inclusionVoxelVolume)           << ",";
+    out << QString("%1").arg(cf->inclusionVolume(), 0,'f',2) << ",";
+    out << QString("%1").arg(exclusionVoxelVolume)           << ",";
+    out << QString("%1").arg(cf->exclusionVolume(), 0,'f',2) << ",";
+    out << QString("%1").arg(cf->left())                     << ",";
+    out << QString("%1").arg(cf->top())                      << ",";
+    out << QString("%1").arg(cf->right())                    << ",";
+    out << QString("%1").arg(cf->bottom())                   << ",";
+    out << QString("%1").arg(cf->front())                    << ",";
+    out << QString("%1").arg(frontSl)                        << ",";
+    out << QString("%1").arg(cf->back())                     << ",";
+    out << QString("%1").arg(backSl)                         << "\n";
+  }
+  file.close();
+
+  if(file.error() != QFile::NoError)
+  {
+    auto message = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
+    auto details = tr("CF::Panel::exportAsCSV() ->") + message;
+
+    throw EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::CF::Panel::exportAsXLS(const QString& fileName) const
+{
+  workbook wb;
+
+  worksheet *ws = wb.sheet("Counting Frames");
+
+  QStringList columnLabels;
+  columnLabels << "CF id" << "Type" << "Constraint" << "Stack"
+               << "Total Volume (voxels)" << "Total Volume (nm^3)"
+               << "Inclusion Volume (voxels)" << "Inclusion Volume (nm^3)"
+               << "Exclusion Volume (voxels)" << "Exclusion Volume (nm^3)"
+               << "Left Margin (nm)" << "Top Margin (nm)" << "Right Margin (nm)" << "Bottom Margin (nm)"
+               << "Front Margin (nm)" << "Front Margin (slices)" << "Back Margin (nm)" << "Back Margin (slices)";
+
+  for(int pos = 0; pos < columnLabels.size(); ++pos)
+  {
+    createCell(ws, 0, pos, columnLabels.at(pos));
+  }
+
+  int row = 0;
+  for(auto cf: m_countingFrames)
+  {
+    ++row;
+    int column = 0;
+
+    auto channel              = cf->extension()->extendedItem();
+    auto spacing              = channel->output()->spacing();
+    Nm   voxelVol             = spacing[0]*spacing[1]*spacing[2];
+    int  totalVoxelVolume     = cf->totalVolume()     / voxelVol;
+    int  inclusionVoxelVolume = cf->inclusionVolume() / voxelVol;
+    int  exclusionVoxelVolume = cf->exclusionVolume() / voxelVol;
+    int  frontSl              = int(cf->front()/spacing[2]);
+    int  backSl               = int(cf->back()/spacing[2]);
+    auto constraint           = cf->categoryConstraint().isEmpty() ? "None (Global)" : cf->categoryConstraint();
+
+    createCell(ws, row, column++, cf->id());
+    createCell(ws, row, column++, cf->typeName());
+    createCell(ws, row, column++, constraint);
+    createCell(ws, row, column++, channel->name());
+    createCell(ws, row, column++, totalVoxelVolume);
+    createCell(ws, row, column++, cf->totalVolume());
+    createCell(ws, row, column++, inclusionVoxelVolume);
+    createCell(ws, row, column++, cf->inclusionVolume());
+    createCell(ws, row, column++, exclusionVoxelVolume);
+    createCell(ws, row, column++, cf->exclusionVolume());
+    createCell(ws, row, column++, cf->left());
+    createCell(ws, row, column++, cf->top());
+    createCell(ws, row, column++, cf->right());
+    createCell(ws, row, column++, cf->bottom());
+    createCell(ws, row, column++, cf->front());
+    createCell(ws, row, column++, frontSl);
+    createCell(ws, row, column++, cf->back());
+    createCell(ws, row, column++, backSl);
+  }
+
+  auto result = wb.Dump(fileName.toStdString());
+
+  if(result != NO_ERRORS)
+  {
+    auto what    = tr("exportToXLS: can't save file '%1'.").arg(fileName);
+    auto details = tr("Cause of failure: %1").arg(result == FILE_ERROR ? "file error" : "general error");
+
+    throw EspinaException(what, details);
   }
 }
 

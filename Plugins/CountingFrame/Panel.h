@@ -65,6 +65,12 @@ namespace ESPINA
     virtual void reset(); // slot
 
   private slots:
+    /** \brief Saves the properties and description of all the CFs on the panel
+     * to text, CSV and XLS.
+     *
+     */
+    void exportCountingFramesData();
+
     void applyCategoryConstraint();
 
     void enableCategoryConstraints(bool enable);
@@ -90,8 +96,6 @@ namespace ESPINA
 
     void deleteActiveCountingFrame();
 
-    void saveActiveCountingFrameDescription();
-
     void onChannelChanged(ChannelAdapterPtr channel);
 
     void changeUnitMode(bool useSlices);
@@ -99,6 +103,27 @@ namespace ESPINA
     void reportProgess(int progress);
 
   private:
+    /** \brief Exports the properties and descriptions of the CFs in the panel
+     * to a text file.
+     * \param[in] fileName file name.
+     *
+     */
+    void exportAsText(const QString &fileName) const;
+
+    /** \brief Exports the properties and descriptions of the CFs in the panel
+     * to a comma separated values text file.
+     * \param[in] fileName file name.
+     *
+     */
+    void exportAsCSV(const QString &fileName) const;
+
+    /** \brief Exports the properties and descriptions of the CFs in the panel
+     * to a Microsoft Excel 97 file.
+     * \param[in] fileName file name.
+     *
+     */
+    void exportAsXLS(const QString &fileName) const;
+
     QModelIndex findCategoryIndex(const QString &classificationName);
 
     void updateSegmentationRepresentations();
@@ -122,8 +147,6 @@ namespace ESPINA
     void exclusionMargins(double values[3]);
 
     void updateTable();
-
-    void exportCountingFrameDescriptionAsText(const QString& filename);
 
     void applyCountingFrames(SegmentationAdapterSList segmentations);
 

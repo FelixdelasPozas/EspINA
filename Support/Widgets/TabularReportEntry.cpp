@@ -187,7 +187,7 @@ QVariant TabularReport::Entry::value(int row, int column) const
 //------------------------------------------------------------------------
 void TabularReport::Entry::paintEvent(QPaintEvent* event)
 {
-  refreshGUI();
+  refreshGUIImplementation();
   QWidget::paintEvent(event);
 }
 
@@ -282,6 +282,13 @@ void TabularReport::Entry::refreshAllInformation()
 //------------------------------------------------------------------------
 void TabularReport::Entry::refreshGUI()
 {
+  refreshGUIImplementation();
+  tableView->viewport()->update();
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::refreshGUIImplementation()
+{
   int  progress   = m_proxy->progress();
   bool inProgress = (progress < 100);
 
@@ -301,8 +308,6 @@ void TabularReport::Entry::refreshGUI()
 
     emit informationReadyChanged();
   }
-
-  tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------
@@ -325,7 +330,9 @@ void TabularReport::Entry::exportToCSV(const QString &filename)
     for (int c = 0; c < columnCount(); c++)
     {
       if (c)
+      {
         out << ",";
+      }
       out << value(r, c).toString();
     }
     out << "\n";
@@ -468,7 +475,7 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
 {
-  return information(extensionInformation);;
+  return information(extensionInformation);
 }
 
 //------------------------------------------------------------------------

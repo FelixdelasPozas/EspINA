@@ -9,6 +9,8 @@ include (GenerateExportHeader)
 
 cmake_minimum_required (VERSION 2.6)
 
+find_package(XLSLIB REQUIRED)
+
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
@@ -26,6 +28,7 @@ ENDIF (NOT COMPILING_ESPINA)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
+  ${XLSLIB_INCLUDE_DIRS}
   )
 
 qt4_add_resources (RCC_BUILT_SOURCES
