@@ -29,6 +29,7 @@
 #include <GUI/View/PlanarBehaviour.h>
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <GUI/Representations/Frame.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Debug
 #include <QDebug>
@@ -82,6 +83,7 @@
 #include <vtkRendererCollection.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -196,6 +198,8 @@ View2D::~View2D()
   m_renderer->RemoveViewProp(m_scale);
 
   m_state2D.reset();
+
+  m_shortCuts.clear(); // shortcuts are delete by owner QWidget
 }
 
 //-----------------------------------------------------------------------------
@@ -1035,6 +1039,8 @@ void View2D::onSceneResolutionChanged(const NmVector3 &resolution)
 //-----------------------------------------------------------------------------
 void View2D::onSceneBoundsChanged(const Bounds &bounds)
 {
+  createShortcuts();
+
   if(m_scaleVisibility)
   {
     m_scale->SetVisibility(bounds.areValid());
@@ -1223,4 +1229,58 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   sceneActors->Modified();
 
   return finalSelection;
+}
+
+//-----------------------------------------------------------------------------
+void View2D::createShortcuts()
+{
+  if(!m_shortCuts.isEmpty()) return;
+
+  QKeySequence incrementSequence, decrementSequence;
+
+  switch(m_plane)
+  {
+    case Plane::XY:
+      {
+        incrementSequence = Qt::KeypadModifier + Qt::Key_9;
+        decrementSequence = Qt::KeypadModifier + Qt::Key_7;
+      }
+      break;
+    case Plane::XZ:
+      {
+        incrementSequence = Qt::KeypadModifier + Qt::Key_6;
+        decrementSequence = Qt::KeypadModifier + Qt::Key_4;
+      }
+      break;
+    case Plane::YZ:
+      {
+        incrementSequence = Qt::KeypadModifier + Qt::Key_3;
+        decrementSequence = Qt::KeypadModifier + Qt::Key_1;
+      }
+      break;
+    default:
+      Q_ASSERT(false);
+  }
+
+  auto increment = new QShortcut(incrementSequence, DefaultDialogs::defaultParentWidget(), 0, 0, Qt::ApplicationShortcut);
+  connect(increment,   SIGNAL(activated()),
+          this, SLOT(incrementSlice()));
+
+  auto decrement = new QShortcut(decrementSequence, DefaultDialogs::defaultParentWidget(), 0, 0, Qt::ApplicationShortcut);
+  connect(decrement,   SIGNAL(activated()),
+          this, SLOT(decrementSlice()));
+
+  m_shortCuts << increment << decrement;
+}
+
+//-----------------------------------------------------------------------------
+void View2D::incrementSlice()
+{
+  m_scrollBar->triggerAction(QScrollBar::SliderSingleStepAdd);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::decrementSlice()
+{
+  m_scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
 }
