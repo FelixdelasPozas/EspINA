@@ -148,6 +148,16 @@ namespace ESPINA
      */
     void setScaleVisibility(bool visible);
 
+    /** \brief Increments the scrollbar value in one step if not at maximum.
+     *
+     */
+    void incrementSlice();
+
+    /** \brief Decrements the scrollbar value in one step if not at minimum.
+     *
+     */
+    void decrementSlice();
+
   signals:
     void channelSelected(ChannelAdapterPtr);
 
@@ -247,23 +257,7 @@ namespace ESPINA
 
     inline int voxelSlice(const Nm position, const Plane plane) const;
 
-    /** \brief Creates and assigns keyboard shortcuts to increment/decrement scrollbar
-     * value depending on plane configuration.
-     *
-     */
-    void createShortcuts();
-
   private slots:
-    /** \brief Increments the scrollbar value in one step if not at maximum.
-     *
-     */
-    void incrementSlice();
-
-    /** \brief Decrements the scrollbar value in one step if not at minimum.
-     *
-     */
-    void decrementSlice();
-
     virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) override;
 
     /** \brief Centers view camera on the given point.
@@ -336,8 +330,6 @@ namespace ESPINA
 
     bool  m_invertWheel;
     bool  m_invertSliceOrder;
-
-    QList<QShortcut*> m_shortCuts;
   };
 
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.

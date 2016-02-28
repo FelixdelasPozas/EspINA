@@ -114,6 +114,12 @@ namespace ESPINA
   private:
     void initView(RenderView *view, QMainWindow *parent);
 
+    /** \brief Creates keyboard shortcuts for slice navigation for the given view.
+     * \param[in] view planar view pointer.
+     *
+     */
+    void createView2DShortcuts(View2D* view);
+
     void initDialog3D(Dialog3D *dialog, QMainWindow *parent);
 
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);

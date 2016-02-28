@@ -85,6 +85,10 @@ DefaultView::DefaultView(Support::Context &context,
   initView(m_viewYZ, parent);
   initDialog3D(m_dialog3D, parent);
 
+  createView2DShortcuts(m_viewXY);
+  createView2DShortcuts(m_viewXZ);
+  createView2DShortcuts(m_viewYZ);
+
   parent->setCentralWidget(this);
 
   //auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
@@ -233,6 +237,44 @@ void DefaultView::initView(RenderView* view, QMainWindow *parent)
 
   connect(parent, SIGNAL(analysisClosed()),
           view,   SLOT(reset()));
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::createView2DShortcuts(View2D* view)
+{
+  QKeySequence incrementSequence, decrementSequence;
+  switch(view->plane())
+  {
+    case Plane::XY:
+    {
+      incrementSequence = Qt::KeypadModifier + Qt::Key_9;
+      decrementSequence = Qt::KeypadModifier + Qt::Key_7;
+    }
+      break;
+    case Plane::XZ:
+    {
+      incrementSequence = Qt::KeypadModifier + Qt::Key_6;
+      decrementSequence = Qt::KeypadModifier + Qt::Key_4;
+    }
+      break;
+    case Plane::YZ:
+    {
+      incrementSequence = Qt::KeypadModifier + Qt::Key_3;
+      decrementSequence = Qt::KeypadModifier + Qt::Key_1;
+    }
+      break;
+    default:
+      Q_ASSERT(false);
+
+  }
+
+  auto increment = new QShortcut(incrementSequence, this, 0, 0, Qt::ApplicationShortcut);
+  connect(increment, SIGNAL(activated()),
+          view, SLOT(incrementSlice()));
+
+  auto decrement = new QShortcut(decrementSequence, this, 0, 0, Qt::ApplicationShortcut);
+  connect(decrement, SIGNAL(activated()),
+          view, SLOT(decrementSlice()));
 }
 
 //-----------------------------------------------------------------------------
