@@ -26,6 +26,7 @@
 #include "CountingFrames/OrthogonalCountingFrame.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
+#include <Core/Utils/AnalysisUtils.h>
 
 // Qt
 #include <QMutex>
@@ -67,44 +68,7 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
     id = tr("Global");
   }
 
-  return suggestedId(id);
-}
-
-//-----------------------------------------------------------------------------
-CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
-{
-  QRegExp cardinalityRegExp("\\([0-9]+\\)");
-  QString cardinalityStrippedId = QString(id).replace(cardinalityRegExp, "").trimmed();
-
-  QString suggestedId = cardinalityStrippedId;
-
-  int count = 0;
-  for (auto cf : m_countingFrames.keys())
-  {
-    if (cf->id().startsWith(cardinalityStrippedId))
-    {
-      int cardinalityIndex = cf->id().lastIndexOf(cardinalityRegExp);
-
-      if ((cardinalityIndex == -1) && (count == 0))
-      {
-        ++count;
-      }
-      else
-      {
-        auto cardinality = cf->id().mid(cardinalityIndex + 1);
-        cardinality = cardinality.left(cardinality.length()-1);
-
-        count = std::max(count, cardinality.toInt() + 1);
-      }
-    }
-  }
-
-  if (count > 0)
-  {
-    suggestedId.append(QString(" (%1)").arg(count));
-  }
-
-  return suggestedId;
+  return SuggestId(id, m_countingFrames.keys());
 }
 
 //-----------------------------------------------------------------------------

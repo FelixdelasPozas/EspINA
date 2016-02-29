@@ -95,7 +95,7 @@ namespace ESPINA
       {
         int cardinalityIndex = item->id().lastIndexOf(cardinalityRegExp);
 
-        if (cardinalityIndex == -1)
+        if ((cardinalityIndex == -1) && (count == 0))
         {
           ++count;
         }

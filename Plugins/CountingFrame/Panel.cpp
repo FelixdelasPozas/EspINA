@@ -82,7 +82,7 @@ CF::Panel::GUI::GUI()
   frontMargin ->setToolTip(tooltip.arg("Front"));
   backMargin  ->setToolTip(tooltip.arg("Back"));
 
-  countingFrames->setSortingEnabled(true);
+  countingFrames->setSortingEnabled(false);
 }
 
 //------------------------------------------------------------------------
@@ -107,67 +107,67 @@ void CF::Panel::GUI::setOffsetRanges(int min, int max)
 class CF::Panel::CFModel
 : public QAbstractTableModel
 {
-public:
-  CFModel(CountingFrameManager *manager)
-  : m_manager(manager)
-  {}
+  public:
+    CFModel(CountingFrameManager *manager)
+    : m_manager(manager)
+    {}
 
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const
-  { return m_manager->countingFrames().size(); }
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const
+    { return m_manager->countingFrames().size(); }
 
-  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
-  { return 3; }
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
+    { return 3; }
 
-  virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 
-  virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
 
-  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
-  CountingFrame *countingFrame(const QModelIndex &index) const
-  { return m_manager->countingFrames().at(index.row()); }
+    CountingFrame *countingFrame(const QModelIndex &index) const
+    { return m_manager->countingFrames().at(index.row()); }
 
-private:
-  bool changeId(CountingFrame *editedCF, QString requestedId)
-  {
-    bool alreadyUsed = false;
-    bool accepted    = true;
-
-    for (auto cf : m_manager->countingFrames())
+  private:
+    bool changeId(CountingFrame *editedCF, QString requestedId)
     {
-      if (cf != editedCF)
+      bool alreadyUsed = false;
+      bool accepted    = true;
+
+      for (auto cf : m_manager->countingFrames())
       {
-        alreadyUsed |= cf->id() == requestedId;
+        if (cf != editedCF)
+        {
+          alreadyUsed |= cf->id() == requestedId;
+        }
       }
-    }
 
-    if (alreadyUsed)
-    {
-      QString suggestedId = m_manager->suggestedId(requestedId);
-      while (accepted && suggestedId != requestedId)
+      if (alreadyUsed)
       {
-        requestedId = QInputDialog::getText(nullptr,
-                                            tr("Id already used"),
-                                            tr("Introduce new id (or accept suggested one)"),
-                                            QLineEdit::Normal,
-                                            suggestedId,
-                                            &accepted);
-        suggestedId = m_manager->suggestedId(requestedId);
+        QString suggestedId = m_manager->suggestedId(requestedId);
+        while (accepted && suggestedId != requestedId)
+        {
+          requestedId = QInputDialog::getText(nullptr,
+                                              tr("Id already used"),
+                                              tr("Introduce new id (or accept suggested one)"),
+                                              QLineEdit::Normal,
+                                              suggestedId,
+                                              &accepted);
+          suggestedId = m_manager->suggestedId(requestedId);
+        }
       }
+
+      if (accepted)
+      {
+        editedCF->setId(requestedId);
+      }
+
+      return accepted;
     }
 
-    if (accepted)
-    {
-      editedCF->setId(requestedId);
-    }
-
-    return accepted;
-  }
-
-private:
-  CountingFrameManager *m_manager;
+  private:
+    CountingFrameManager *m_manager;
 };
 
 //------------------------------------------------------------------------
@@ -580,7 +580,9 @@ void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
 
     double lenght[3];
     for (int i=0; i < 3; i++)
+    {
       lenght[i] = bounds[2*i+1]-bounds[2*i];
+    }
 
     m_gui->leftMargin  ->setMaximum(lenght[0]);
     m_gui->topMargin   ->setMaximum(lenght[1]);
@@ -602,7 +604,7 @@ void CF::Panel::showInfo(CountingFrame* activeCF)
 
   m_activeCF = activeCF;
 
-  int row = m_countingFrames.indexOf(activeCF);
+  int row = m_manager->countingFrames().indexOf(activeCF);
 
   auto selectionModel = m_gui->countingFrames->selectionModel();
   auto index = m_cfModel->index(row, 0);
