@@ -59,8 +59,8 @@ SelectionSPtr ViewState::selection() const
 //----------------------------------------------------------------------------
 void ViewState::setFitToSlices(bool value)
 {
-  m_fitToSlices = value;
   //TODO REVIEW
+  m_fitToSlices = value;
 }
 
 //----------------------------------------------------------------------------

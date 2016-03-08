@@ -181,9 +181,7 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
   for (auto cursor : m_updateWindow.moveCurrent(shift))
   {
     auto updateTask = cursor.first;
-
     auto crosshair = representationCrosshair(point, cursor.second);
-    auto old       = updateTask->description();
 
     updateTask->invalidate();
     updateTask->setCrosshair(crosshair);

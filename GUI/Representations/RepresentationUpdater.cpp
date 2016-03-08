@@ -191,7 +191,7 @@ void RepresentationUpdater::run()
   QMutexLocker lock(&m_mutex);
 
   // Local copy needed to prevent condition race on same frame
-  // (usually due to invalidation view item representations
+  // (usually due to invalidation view item representations)
   auto updateList = *m_updateList;
   m_updateList    = &m_sources;
   m_requestedSources.clear();

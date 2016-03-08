@@ -32,6 +32,11 @@ RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, 
 : RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
 , m_manager(manager)
 {
+  for(auto cf: m_manager.countingFrames())
+  {
+    m_pendingCFs << cf;
+  }
+
   connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this,       SLOT(onCountingFrameCreated(CountingFrame*)));
 
@@ -105,7 +110,9 @@ void RepresentationManager3D::onShow(const FrameCSPtr frame)
 {
   for (auto cf : m_pendingCFs)
   {
-    m_widgets[cf] = createWidget(cf);
+    auto widget = createWidget(cf);
+
+    m_widgets.insert(cf, widget);
   }
 
   m_pendingCFs.clear();

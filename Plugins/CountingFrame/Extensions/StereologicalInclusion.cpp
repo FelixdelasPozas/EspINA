@@ -252,7 +252,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto segmentationCategory = m_extendedItem->category()->classificationName();
 
   if (!segmentationCategory.startsWith(cf->categoryConstraint()))
+  {
     return true;
+  }
 
   auto output  = m_extendedItem->output();
   auto inputBB = output->bounds();
@@ -283,7 +285,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
   // If there is no intersection (nor is inside), then it is excluded
   if (!intersect(inputBB, regionBB, spacing))
+  {
     return true;
+  }
 
   bool collisionDected = false;
   // Otherwise, we have to test all faces collisions
@@ -315,7 +319,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     if (intersect(inputBB, faceBB, spacing) && isRealCollision(intersection(inputBB, faceBB, spacing)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == cf->EXCLUSION_FACE)
+      {
         return true;
+      }
       collisionDected = true;
     }
   }

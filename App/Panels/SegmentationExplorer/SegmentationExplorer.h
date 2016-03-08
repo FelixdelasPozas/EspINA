@@ -116,7 +116,16 @@ namespace ESPINA
 
     void onTagSelected(const QString &tag);
 
+    void incrementSelection();
+
+    void decrementSelection();
+
   private:
+    /** \brief Creates shortcuts to go forwards/backwards on segmentation selection.
+     *
+     */
+    void createShortcuts();
+
     QModelIndexList selectedIndexes() const;
 
     void updateTags(const QModelIndexList &selectedIndexes);

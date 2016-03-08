@@ -32,6 +32,7 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QCompleter>
+#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QUndoStack>
@@ -97,6 +98,8 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
 
   m_gui->view->installEventFilter(this);
   m_gui->selectedTags->setOpenExternalLinks(false);
+
+  createShortcuts();
 }
 
 //------------------------------------------------------------------------
@@ -362,5 +365,77 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
   else
   {
     m_gui->selectedTags->clear();
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::createShortcuts()
+{
+  QKeySequence incrementSequence, decrementSequence;
+  incrementSequence = Qt::Key_PageDown;
+  decrementSequence = Qt::Key_PageUp;
+
+  auto increment = new QShortcut(incrementSequence, this, 0, 0, Qt::ApplicationShortcut);
+  connect(increment, SIGNAL(activated()),
+          this, SLOT(incrementSelection()));
+
+  auto decrement = new QShortcut(decrementSequence, this, 0, 0, Qt::ApplicationShortcut);
+  connect(decrement, SIGNAL(activated()),
+          this, SLOT(decrementSelection()));
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::incrementSelection()
+{
+  auto selection = getSelection();
+
+  if(selection->segmentations().size() == 1)
+  {
+    auto segmentations = getModel()->segmentations();
+
+    auto selectedSeg = getModel()->smartPointer(selection->segmentations().first());
+    auto position    = segmentations.indexOf(selectedSeg);
+
+    if(position < segmentations.size() - 1)
+    {
+      auto nextSeg = segmentations.at(position +1);
+
+      SegmentationAdapterList newSelection;
+      newSelection << nextSeg.get();
+      getSelection()->set(newSelection);
+
+      getViewState().refresh();
+
+      auto index = m_layout->index(nextSeg.get());
+      focusOnSegmentation(index);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::decrementSelection()
+{
+  auto selection = currentSelection()->segmentations();
+
+  if(selection.size() == 1)
+  {
+    auto segmentations = getModel()->segmentations();
+
+    auto selectedSeg = getModel()->smartPointer(selection.first());
+    auto position    = segmentations.indexOf(selectedSeg);
+
+    if(position > 0)
+    {
+      auto nextSeg = segmentations.at(position - 1);
+
+      SegmentationAdapterList newSelection;
+      newSelection << nextSeg.get();
+      getSelection()->set(newSelection);
+
+      getViewState().refresh();
+
+      auto index = m_layout->index(nextSeg.get());
+      focusOnSegmentation(index);
+    }
   }
 }

@@ -29,6 +29,7 @@ using namespace ESPINA::RepresentationUtils;
 //------------------------------------------------------------------------
 SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
 : RepresentationPipeline("")
+, m_plane{Plane::XY}
 , m_slicePipeline(Plane::XY, colorEngine)
 {
   setType(m_slicePipeline.type());
