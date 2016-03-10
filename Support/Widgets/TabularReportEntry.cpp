@@ -176,7 +176,7 @@ QVariant TabularReport::Entry::value(int row, int column) const
     }
     else
     {
-      result = m_proxy->index(row - 1, logicalIdx, tableView->rootIndex()).data();
+      result = tableView->model()->index(row-1, logicalIdx, tableView->rootIndex()).data();
     }
   }
 
@@ -274,7 +274,8 @@ void TabularReport::Entry::refreshAllInformation()
     --c; // Category tag doesn't spawn task
   }
 
-  for (int r = 1; r <= m_proxy->rowCount(); ++r) {
+  for (int r = 1; r <= m_proxy->rowCount(); ++r)
+  {
     auto data = value(r, c);
   }
 }

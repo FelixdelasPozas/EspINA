@@ -44,11 +44,11 @@ using namespace ESPINA::Core::Utils;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
-class DataSortFiler
+class DataSortFilter
 : public QSortFilterProxyModel
 {
 public:
-  DataSortFiler(QObject *parent = 0)
+  DataSortFilter(QObject *parent = 0)
   : QSortFilterProxyModel(parent) {}
 
 protected:
@@ -58,17 +58,54 @@ protected:
     auto ldata = left.data(role);
     auto rdata = right.data(role);
 
-    if(left.column() != 0)
+    if(left.column() == 0)
     {
-      bool ok1, ok2;
+      auto lstring = ldata.toString();
+      auto rstring = rdata.toString();
 
-      double lv = ldata.toDouble(&ok1);
-      double rv = rdata.toDouble(&ok2);
+      QRegExp numExtractor("(\\d+)");
+      numExtractor.setMinimal(false);
 
-      if (ok1 && ok2)
+      if ((numExtractor.indexIn(lstring) == -1) || (numExtractor.indexIn(rstring) == -1))
       {
-        return lv < rv;
+        return lstring < rstring;
       }
+
+      // use the last number, we can't be sure that there is only one
+      int pos = 0;
+      int numLeft, numRight;
+
+      while ((pos = numExtractor.indexIn(lstring, pos)) != -1)
+      {
+          numLeft = numExtractor.cap(1).toInt();
+          pos += numExtractor.matchedLength();
+      }
+
+      pos = 0;
+      while ((pos = numExtractor.indexIn(rstring, pos)) != -1)
+      {
+          numRight = numExtractor.cap(1).toInt();
+          pos += numExtractor.matchedLength();
+      }
+
+      if (numLeft == numRight)
+      {
+        return lstring < rstring;
+      }
+
+      // else not equal
+      return numLeft < numRight;
+    }
+
+    // else not column 0
+    bool ok1, ok2;
+
+    double lv = ldata.toDouble(&ok1);
+    double rv = rdata.toDouble(&ok2);
+
+    if (ok1 && ok2)
+    {
+      return lv < rv;
     }
 
     // default for strings and data non convertible to numerical values.
@@ -379,7 +416,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
       }
     }
 
-    DataSortFiler *sortFilter = dynamic_cast<DataSortFiler *>(tableView->model());
+    DataSortFilter *sortFilter = dynamic_cast<DataSortFilter *>(tableView->model());
     for(auto index : tableView->selectionModel()->selectedRows())
     {
       auto sItem = itemAdapter(sortFilter->mapToSource(index));
@@ -505,7 +542,7 @@ void TabularReport::createCategoryEntry(const QString &category)
              this,      SLOT(rowsRemoved(const QModelIndex &, int, int)));
     entry->setProxy(infoProxy);
 
-    DataSortFiler *sortFilter = new DataSortFiler();
+    DataSortFilter *sortFilter = new DataSortFilter();
     sortFilter->setSourceModel(infoProxy);
     sortFilter->setDynamicSortFilter(true);
 
