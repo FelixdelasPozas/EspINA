@@ -114,20 +114,49 @@ namespace ESPINA
      */
     void onSelectionChanged();
 
+    /** \brief Updates the search box with the selected tag.
+     *
+     */
     void onTagSelected(const QString &tag);
 
+    /** \brief Selects the next segmentation in the tree view and focuses the views on it's centroid.
+     *
+     */
     void incrementSelection();
 
+    /** \brief Selects the previous segmentation in the tree view and focuses the views on it's centroid.
+     *
+     */
     void decrementSelection();
 
   private:
+
+    /** \brief Enum class to specify the movement direction in the nextIndex() private method.
+     *
+     */
+    enum class direction: char { FORWARD = 0, BACKWARD };
+
+    /** \brief Returns the next QModelIndex belonging to a segmentation in regard to the given one in the given direction in the tree view model.
+     * \param[in] index previous QModelIndex object.
+     * \param[in] dir   movement direction.
+     *
+     */
+    QModelIndex nextIndex(const QModelIndex &index, direction dir);
+
     /** \brief Creates shortcuts to go forwards/backwards on segmentation selection.
      *
      */
     void createShortcuts();
 
+    /** \brief Returns the list of selected indexes in the selection model of the tree view.
+     *
+     */
     QModelIndexList selectedIndexes() const;
 
+    /** \brief Updates the tags in the GUI with the ones of the selected indexes.
+     * \param[in] selectedIndexes QModelIndex list.
+     *
+     */
     void updateTags(const QModelIndexList &selectedIndexes);
 
   protected:

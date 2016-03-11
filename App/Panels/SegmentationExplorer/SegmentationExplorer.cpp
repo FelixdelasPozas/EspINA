@@ -385,29 +385,67 @@ void SegmentationExplorer::createShortcuts()
 }
 
 //------------------------------------------------------------------------
+QModelIndex SegmentationExplorer::nextIndex(const QModelIndex &index, direction dir)
+{
+  QModelIndex result;
+  bool found = false;
+  auto begin = index;
+
+  while(!found)
+  {
+    if(dir == direction::FORWARD)
+    {
+      result = m_gui->view->indexBelow(begin);
+    }
+    else
+    {
+      result = m_gui->view->indexAbove(begin);
+    }
+
+    if(!result.isValid() || (result == begin))
+    {
+      result = QModelIndex();
+      found = true;
+    }
+    else
+    {
+      if(result.model()->hasChildren(result))
+      {
+        m_gui->view->expand(result);
+        begin = result;
+      }
+      else
+      {
+        if(isSegmentation(m_layout->item(result)))
+        {
+          found = true;
+        }
+        else
+        {
+          begin = result;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
 void SegmentationExplorer::incrementSelection()
 {
-  auto selection = getSelection();
+  auto selection = selectedIndexes();
 
-  if(selection->segmentations().size() == 1)
+  if(selection.size() == 1)
   {
-    auto segmentations = getModel()->segmentations();
+    auto index = selection.first();
+    auto next  = nextIndex(index, direction::FORWARD);
 
-    auto selectedSeg = getModel()->smartPointer(selection->segmentations().first());
-    auto position    = segmentations.indexOf(selectedSeg);
-
-    if(position < segmentations.size() - 1)
+    if(next != QModelIndex())
     {
-      auto nextSeg = segmentations.at(position +1);
-
-      SegmentationAdapterList newSelection;
-      newSelection << nextSeg.get();
-      getSelection()->set(newSelection);
-
-      getViewState().refresh();
-
-      auto index = m_layout->index(nextSeg.get());
-      focusOnSegmentation(index);
+      m_gui->view->selectionModel()->select(next, QItemSelectionModel::ClearAndSelect);
+      focusOnSegmentation(next);
+      return;
     }
   }
 }
@@ -415,27 +453,18 @@ void SegmentationExplorer::incrementSelection()
 //------------------------------------------------------------------------
 void SegmentationExplorer::decrementSelection()
 {
-  auto selection = currentSelection()->segmentations();
+  auto selection = selectedIndexes();
 
   if(selection.size() == 1)
   {
-    auto segmentations = getModel()->segmentations();
+    auto index = selection.first();
+    auto next  = nextIndex(index, direction::BACKWARD);
 
-    auto selectedSeg = getModel()->smartPointer(selection.first());
-    auto position    = segmentations.indexOf(selectedSeg);
-
-    if(position > 0)
+    if(next != QModelIndex())
     {
-      auto nextSeg = segmentations.at(position - 1);
-
-      SegmentationAdapterList newSelection;
-      newSelection << nextSeg.get();
-      getSelection()->set(newSelection);
-
-      getViewState().refresh();
-
-      auto index = m_layout->index(nextSeg.get());
-      focusOnSegmentation(index);
+      m_gui->view->selectionModel()->select(next, QItemSelectionModel::ClearAndSelect);
+      focusOnSegmentation(next);
+      return;
     }
   }
 }
