@@ -37,6 +37,9 @@ namespace ESPINA
   : public MeshData
   {
   public:
+    /** \brief RawMesh class constructor.
+     *
+     */
     explicit RawMesh();
 
     /** \brief RawMesh class constructor.
@@ -61,7 +64,7 @@ namespace ESPINA
 
     virtual bool isEmpty() const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
     { return MeshData::snapshot(storage, path, id); }
 
     // Because meshes store the whole mesh polydata when their edited regions
@@ -75,7 +78,7 @@ namespace ESPINA
     { fetchDataImplementation(storage, path, id, m_bounds); }
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const override
-    { return m_mesh; }
+    { QMutexLocker lock(&m_lock); return m_mesh; }
 
     void setSpacing(const NmVector3 &spacing) override;
 
@@ -101,6 +104,7 @@ namespace ESPINA
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
+    mutable QMutex m_lock;
   };
 }
 

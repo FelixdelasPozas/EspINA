@@ -38,6 +38,9 @@
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 
+// Qt
+#include <QMutex>
+
 namespace ESPINA
 {
 
@@ -76,6 +79,7 @@ namespace ESPINA
   private:
     Output   *m_output;
     TimeStamp m_lastVolumeModification;
+    mutable QMutex m_lock;
   };
 
 } // namespace ESPINA

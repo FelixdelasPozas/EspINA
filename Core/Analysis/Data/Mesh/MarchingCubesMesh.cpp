@@ -83,6 +83,8 @@ void MarchingCubesMesh::updateMesh()
     return;
   }
 
+  QMutexLocker lock(&m_lock);
+
   if(m_lastVolumeModification == volume->lastModified())
   {
     return;

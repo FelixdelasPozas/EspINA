@@ -30,6 +30,8 @@
 
 // Qt
 #include <QDir>
+#include <QMutex>
+#include <QMutexLocker>
 
 using namespace ESPINA;
 
@@ -52,8 +54,12 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 //----------------------------------------------------------------------------
 void RawMesh::setSpacing(const NmVector3 &spacing)
 {
+  QMutexLocker lock(&m_lock);
+
   auto prevSpacing = m_bounds.spacing();
-  if(m_mesh != nullptr)
+  bool existsMesh = (m_mesh != nullptr);
+
+  if(existsMesh)
   {
     Q_ASSERT(spacing[0] != 0 && spacing[1] != 0 && spacing[2] != 0);
     auto ratio = spacing / prevSpacing;
@@ -68,6 +74,8 @@ void RawMesh::setSpacing(const NmVector3 &spacing)
 //----------------------------------------------------------------------------
 void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
+  QMutexLocker lock(&m_lock);
+
   bool existsMesh = (m_mesh != nullptr);
 
   if(!existsMesh && mesh)
@@ -100,18 +108,24 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 //----------------------------------------------------------------------------
 bool RawMesh::isValid() const
 {
+  QMutexLocker lock(&m_lock);
+
   return m_bounds.areValid() && !needFetch();
 }
 
 //----------------------------------------------------------------------------
 bool RawMesh::isEmpty() const
 {
+  QMutexLocker lock(&m_lock);
+
   return !m_mesh || m_mesh->GetNumberOfCells() == 0;
 }
 
 //----------------------------------------------------------------------------
 size_t RawMesh::memoryUsage() const
 {
+  QMutexLocker lock(&m_lock);
+
   const int BYTES = 1024;
   return m_mesh ? m_mesh->GetActualMemorySize() * BYTES : 0;
 }
