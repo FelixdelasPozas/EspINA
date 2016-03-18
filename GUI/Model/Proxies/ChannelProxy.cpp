@@ -87,6 +87,10 @@ void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 
     QAbstractProxyModel::setSourceModel(sourceModel.get());
 
+    m_activeChannel = nullptr;
+    m_channels.clear();
+    m_samples.clear();
+
     sourceRowsInserted(m_model->sampleRoot() , 0, m_model->rowCount(m_model->sampleRoot())  - 1);
     sourceRowsInserted(m_model->channelRoot(), 0, m_model->rowCount(m_model->channelRoot()) - 1);
   }
@@ -713,6 +717,7 @@ void ChannelProxy::sourceModelReset()
 {
   beginResetModel();
   {
+    m_activeChannel = nullptr;
     m_samples.clear();
     m_channels.clear();
   }
@@ -737,7 +742,16 @@ void ChannelProxy::setActiveChannel(ChannelAdapterPtr channel)
   if (m_activeChannel != channel)
   {
     QList<ChannelAdapterPtr> channels;
-    channels << m_activeChannel << channel;
+
+    if(m_activeChannel != nullptr)
+    {
+      channels << m_activeChannel;
+    }
+
+    if(channel != nullptr)
+    {
+      channels << channel;
+    }
 
     m_activeChannel = channel;
 
