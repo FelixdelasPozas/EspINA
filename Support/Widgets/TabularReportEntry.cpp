@@ -172,7 +172,7 @@ QVariant TabularReport::Entry::value(int row, int column) const
 
     if (row == 0)
     {
-      result = m_proxy->availableInformation()[logicalIdx].value();
+      result = tableView->horizontalHeader()->model()->headerData(logicalIdx, Qt::Horizontal).toString();
     }
     else
     {
@@ -449,9 +449,13 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
   {
     if (extensionType != SEGMENTATION_GROUP)
     {
-      for (auto segmentation : m_model->segmentations())
+      for (auto item : m_proxy->displayedItems())
       {
-        addSegmentationExtension(segmentation, extensionType, m_factory);
+        auto segmentation = segmentationPtr(item);
+        if(segmentation != nullptr)
+        {
+          addSegmentationExtension(segmentation, extensionType, m_factory);
+        }
       }
     }
   }

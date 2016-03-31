@@ -203,7 +203,7 @@ namespace ESPINA
     QString category() const
     { return m_category; }
 
-    /** \brief Sets the segmaentations to show.
+    /** \brief Sets the segmentations to show.
      * \param[in] filter, list of segmentation adapter raw pointers.
      *
      */

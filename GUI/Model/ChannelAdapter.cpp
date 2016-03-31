@@ -83,7 +83,6 @@ QVariant ChannelAdapter::data(int role) const
         boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)<br>").arg(bounds[4]).arg(bounds[5]);
       }
       tooltip = tooltip.append(boundsInfo);
-      bool addBreakLine = false;
 
       QString extensionsInfo = tr("<b>Extensions:</b><br>");
       QString extensionsData;
@@ -92,11 +91,8 @@ QVariant ChannelAdapter::data(int role) const
         QString extToolTip = extension->toolTipText();
         if (!extToolTip.isEmpty())
         {
-          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
-
+          tooltip = tooltip.append("<br>");
           extensionsData = extensionsData.append(extToolTip);
-
-          addBreakLine = true;
         }
       }
 

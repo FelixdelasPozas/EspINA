@@ -44,85 +44,6 @@ using namespace ESPINA::Core::Utils;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
-class DataSortFilter
-: public QSortFilterProxyModel
-{
-public:
-  DataSortFilter(QObject *parent = 0)
-  : QSortFilterProxyModel(parent) {}
-
-protected:
-  virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
-  {
-    int role = Qt::DisplayRole;
-    auto ldata = left.data(role);
-    auto rdata = right.data(role);
-
-    if(left.column() == 0)
-    {
-      auto lstring = ldata.toString();
-      auto rstring = rdata.toString();
-
-      QRegExp numExtractor("(\\d+)");
-      numExtractor.setMinimal(false);
-
-      if ((numExtractor.indexIn(lstring) == -1) || (numExtractor.indexIn(rstring) == -1))
-      {
-        return lstring < rstring;
-      }
-
-      // use the last number, we can't be sure that there is only one
-      int pos = 0;
-      int numLeft, numRight;
-
-      while ((pos = numExtractor.indexIn(lstring, pos)) != -1)
-      {
-          numLeft = numExtractor.cap(1).toInt();
-          pos += numExtractor.matchedLength();
-      }
-
-      pos = 0;
-      while ((pos = numExtractor.indexIn(rstring, pos)) != -1)
-      {
-          numRight = numExtractor.cap(1).toInt();
-          pos += numExtractor.matchedLength();
-      }
-
-      if (numLeft == numRight)
-      {
-        return lstring < rstring;
-      }
-
-      // else not equal
-      return numLeft < numRight;
-    }
-
-    // else not column 0
-    bool ok1, ok2;
-
-    double lv = ldata.toDouble(&ok1);
-    double rv = rdata.toDouble(&ok2);
-
-    if (ok1 && ok2)
-    {
-      return lv < rv;
-    }
-
-    // default for strings and data non convertible to numerical values.
-    auto lstring = ldata.toString();
-    auto rstring = rdata.toString();
-
-    if(lstring.length() != rstring.length())
-    {
-      return lstring.length() < rstring.length();
-    }
-
-    return lstring < rstring;
-  }
-};
-
-
-//------------------------------------------------------------------------
 TabularReport::TabularReport(Support::Context &context,
                              QWidget          *parent,
                              Qt::WindowFlags   flags)
@@ -403,27 +324,32 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     }
   } else
   {
-    QItemSelectionModel *selectionModel = dynamic_cast<QItemSelectionModel *>(sender());
+    auto selectionModel = dynamic_cast<QItemSelectionModel *>(sender());
 
     QTableView *tableView = nullptr;
     for (int i = 0; i < m_tabs->count(); ++i)
     {
-      Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-      if (entry->tableView->selectionModel() == selectionModel)
+      auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+      if (entry && (entry->tableView->selectionModel() == selectionModel))
       {
         tableView = entry->tableView;
         break;
       }
     }
 
-    DataSortFilter *sortFilter = dynamic_cast<DataSortFilter *>(tableView->model());
-    for(auto index : tableView->selectionModel()->selectedRows())
+    if(tableView && selectionModel)
     {
-      auto sItem = itemAdapter(sortFilter->mapToSource(index));
-
-      if (isSegmentation(sItem))
+      auto sortFilter = dynamic_cast<DataSortFilter *>(tableView->model());
+      if(sortFilter)
       {
-        selectedItems << segmentationPtr(sItem);
+        for(auto index : selectionModel->selectedRows())
+        {
+          auto sItem = itemAdapter(sortFilter->mapToSource(index));
+          if (sItem && isSegmentation(sItem))
+          {
+            selectedItems << segmentationPtr(sItem);
+          }
+        }
       }
     }
   }
@@ -550,8 +476,7 @@ void TabularReport::createCategoryEntry(const QString &category)
     tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     tableView->setModel(sortFilter);
     tableView->setSortingEnabled(true);
-    //
-    //       tableView->horizontalHeader()->setModel(header);
+
     connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
             this, SLOT(updateSelection(QItemSelection,QItemSelection)));
     connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),

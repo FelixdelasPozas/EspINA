@@ -75,8 +75,7 @@ namespace ESPINA
       /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
        * other way to inject that information to the SAS extension.
        */
-      void setOriginSegmentation(SegmentationAdapterSPtr segmentation)
-      { m_originSegmentation = segmentation; }
+      void setOriginSegmentation(SegmentationAdapterSPtr segmentation);
 
       static SegmentationExtension::Key addSASPrefix(const Key& value);
 
@@ -138,10 +137,6 @@ namespace ESPINA
       bool computeInformation() const;
 
       static const QString SAS_PREFIX;
-
-  private:
-      SegmentationAdapterSPtr m_originSegmentation;
-
   };
 
   using AppositionSurfaceExtensionPtr  = AppositionSurfaceExtension *;

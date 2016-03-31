@@ -238,9 +238,15 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
 
   for (auto segmentation : segmentations)
   {
-    for (auto key : segmentation->readOnlyExtensions()->availableInformation())
+    for(auto extension: segmentation->readOnlyExtensions())
     {
-      info[key.extension()] << key;
+      if(!info.keys().contains(extension->type()))
+      {
+        for (auto key : extension->availableInformation())
+        {
+          info[key.extension()] << key;
+        }
+      }
     }
   }
 
@@ -248,9 +254,6 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
   {
     info[tag].removeDuplicates();
   }
-
-
-  //qsort(info[tag]);
 
   return info;
 }

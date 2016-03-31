@@ -1,6 +1,6 @@
 /*
  *    
- *    Copyright (C) 2014  Juan Morales del Olmo <juan.morales@upm.es>
+o *    Copyright (C) 2014  Juan Morales del Olmo <juan.morales@upm.es>
  *
  *    This file is part of ESPINA.
 
@@ -83,7 +83,6 @@ const double UNDEFINED = -1.;
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache)
 : SegmentationExtension{cache}
-, m_originSegmentation {nullptr}
 {
 }
 
@@ -161,7 +160,9 @@ Nm AppositionSurfaceExtension::computeArea(const vtkSmartPointer<vtkPolyData> &a
   Nm totalArea = nc ? 0.0 : UNDEFINED;
 
   for (int i = 0; i < nc; i++)
+  {
     totalArea += vtkMeshQuality::TriangleArea(asMesh->GetCell(i));
+  }
 
   return totalArea;
 }
@@ -431,7 +432,6 @@ bool AppositionSurfaceExtension::computeInformation() const
     updateInfoCache(AREA, area);
     updateInfoCache(PERIMETER, computePerimeter (asMesh));
     updateInfoCache(TORTUOSITY, computeTortuosity(asMesh, area));
-    updateInfoCache(SYNAPSE, m_extendedItem->name());
 
     auto meanGaussCurvature = mean(gaussCurvature);
     updateInfoCache(MEAN_GAUSS_CURVATURE, meanGaussCurvature);
@@ -449,17 +449,49 @@ bool AppositionSurfaceExtension::computeInformation() const
     updateInfoCache(MEAN_MAX_CURVATURE, meanMaxCurvature);
     updateInfoCache(STD_DEV_MAX_CURVATURE, stdDev(maxCurvature, meanMaxCurvature));
 
-    if(m_originSegmentation != nullptr)
+    auto origin = cachedInfo(createKey(SYNAPSE)).toString();
+
+    if(origin.isEmpty())
     {
-      updateInfoCache(SYNAPSE, m_originSegmentation->data().toString());
-    }
-    else
-    {
-      updateInfoCache(SYNAPSE, tr("Unknown"));
+      bool found = false;
+      auto ancestors = m_extendedItem->analysis()->relationships()->ancestors(m_extendedItem, tr("SAS"));
+
+      if(!ancestors.isEmpty())
+      {
+        auto segmentation = std::dynamic_pointer_cast<Segmentation>(ancestors.first());
+        if(segmentation)
+        {
+          auto name = segmentation->name().isEmpty() ? segmentation->alias() : segmentation->name();
+
+          if(!name.isEmpty())
+          {
+            updateInfoCache(SYNAPSE, name);
+            found = true;
+          }
+        }
+      }
+
+      if(!found)
+      {
+        updateInfoCache(SYNAPSE, tr("Unknown"));
+      }
     }
 
     validInformation = true;
   }
 
   return validInformation;
+}
+
+//------------------------------------------------------------------------
+void AppositionSurfaceExtension::setOriginSegmentation(SegmentationAdapterSPtr segmentation)
+{
+  if(segmentation != nullptr)
+  {
+    updateInfoCache(SYNAPSE, segmentation->data().toString());
+  }
+  else
+  {
+    updateInfoCache(SYNAPSE, tr("Unknown"));
+  }
 }

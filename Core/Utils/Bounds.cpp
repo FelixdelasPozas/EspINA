@@ -517,7 +517,8 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
     if (bounds[i] < point[j])
     {
       return false;
-    } else
+    }
+    else
     {
       if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areUpperIncluded(dir))
       {

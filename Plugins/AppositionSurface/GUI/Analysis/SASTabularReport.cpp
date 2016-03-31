@@ -42,29 +42,6 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Core::Utils;
 
-//------------------------------------------------------------------------
-class DataSortFiler
-: public QSortFilterProxyModel
-{
-public:
-  DataSortFiler(QObject *parent = 0)
-  : QSortFilterProxyModel(parent) {}
-
-protected:
-  virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
-  {
-    int role = left.column() > 0 ? Qt::DisplayRole : ESPINA::TypeRole + 1;
-    bool ok1, ok2;
-    double lv = left.data(role).toDouble(&ok1);
-    double rv = right.data(role).toDouble(&ok2);
-
-    if (ok1 && ok2)
-      return lv < rv;
-    else
-      return left.data(role).toString() < right.data(role).toString();
-  }
-};
-
 //----------------------------------------------------------------------------
 void SASTabularReport::createCategoryEntry(const QString& category)
 {
@@ -82,7 +59,7 @@ void SASTabularReport::createCategoryEntry(const QString& category)
 
   if (m_tabs->tabText(i) != category)
   {
-    auto entry = new Entry(category, m_model, factory, this);
+    auto entry = new Entry(category, m_model, factory, m_tabs);
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));
@@ -95,7 +72,7 @@ void SASTabularReport::createCategoryEntry(const QString& category)
              this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
     entry->setProxy(infoProxy);
 
-    auto sortFilter = new DataSortFiler();
+    auto sortFilter = new DataSortFilter();
     sortFilter->setSourceModel(infoProxy);
     sortFilter->setDynamicSortFilter(true);
 
@@ -137,7 +114,7 @@ InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
 
   info[AppositionSurfaceExtension::TYPE] << keyValues(sasExtensionPrototype->availableInformation());
 
-  // in case we have extensions not registered in the factory add them too. Will be read-only extensions.
+  // in case we have extensions not registered in the factory add them too.
   for (auto item : m_proxy->displayedItems())
   {
     Q_ASSERT(isSegmentation(item));
@@ -146,7 +123,10 @@ InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
 
     for (auto extension : segmentation->readOnlyExtensions())
     {
-      info[extension->type()] << keyValues(extension->availableInformation());
+      if(!info.keys().contains(extension->type()))
+      {
+        info[extension->type()] << keyValues(extension->availableInformation());
+      }
     }
   }
 
@@ -222,7 +202,10 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
         else
         {
           auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
-          addSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+          if(sas)
+          {
+            addSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+          }
         }
       }
     }

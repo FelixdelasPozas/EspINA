@@ -187,7 +187,9 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
   auto proxyItem = itemAdapter(proxyIndex);
   if (!isSegmentation(proxyItem))
+  {
     return QVariant();
+  }
 
   auto segmentation = segmentationPtr(proxyItem);
 

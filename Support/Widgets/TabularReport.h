@@ -226,6 +226,84 @@ namespace ESPINA
     bool m_multiSelection;
   };
 
+  //------------------------------------------------------------------------
+  class DataSortFilter
+  : public QSortFilterProxyModel
+  {
+  public:
+    DataSortFilter(QObject *parent = 0)
+    : QSortFilterProxyModel(parent) {}
+
+  protected:
+    virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
+    {
+      int role = Qt::DisplayRole;
+      auto ldata = left.data(role);
+      auto rdata = right.data(role);
+
+      if(left.column() == 0)
+      {
+        auto lstring = ldata.toString();
+        auto rstring = rdata.toString();
+
+        QRegExp numExtractor("(\\d+)");
+        numExtractor.setMinimal(false);
+
+        if ((numExtractor.indexIn(lstring) == -1) || (numExtractor.indexIn(rstring) == -1))
+        {
+          return lstring < rstring;
+        }
+
+        // use the last number, we can't be sure that there is only one
+        int pos = 0;
+        int numLeft, numRight;
+
+        while ((pos = numExtractor.indexIn(lstring, pos)) != -1)
+        {
+            numLeft = numExtractor.cap(1).toInt();
+            pos += numExtractor.matchedLength();
+        }
+
+        pos = 0;
+        while ((pos = numExtractor.indexIn(rstring, pos)) != -1)
+        {
+            numRight = numExtractor.cap(1).toInt();
+            pos += numExtractor.matchedLength();
+        }
+
+        if (numLeft == numRight)
+        {
+          return lstring < rstring;
+        }
+
+        // else not equal
+        return numLeft < numRight;
+      }
+
+      // else not column 0
+      bool ok1, ok2;
+
+      double lv = ldata.toDouble(&ok1);
+      double rv = rdata.toDouble(&ok2);
+
+      if (ok1 && ok2)
+      {
+        return lv < rv;
+      }
+
+      // default for strings and data non convertible to numerical values.
+      auto lstring = ldata.toString();
+      auto rstring = rdata.toString();
+
+      if(lstring.length() != rstring.length())
+      {
+        return lstring.length() < rstring.length();
+      }
+
+      return lstring < rstring;
+    }
+  };
+
 } // namespace ESPINA
 
 #endif // DATAVIEW_H

@@ -266,8 +266,7 @@ void AppositionSurfacePlugin::finishedTask()
 
   m_executingTasks.remove(filter);
 
-  if (!m_executingTasks.empty())
-    return;
+  if (!m_executingTasks.empty()) return;
 
   // maybe all tasks have been aborted.
   if(m_finishedTasks.empty()) return;
@@ -284,7 +283,7 @@ void AppositionSurfacePlugin::finishedTask()
     model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
   }
 
-  CategoryAdapterSPtr category = classification->category(SAS);
+  auto category = classification->category(SAS);
 
   // we don't have an operator< for SampleAdapterSList so can't use a QMap and must use two lists to avoid
   // adding the segmentations one by one. Each segmentation can have a different sample list.
@@ -312,8 +311,12 @@ void AppositionSurfacePlugin::finishedTask()
     Q_ASSERT(!samples.empty());
 
     for(index = 0; index < usedSamples.size(); ++index)
+    {
       if(samples == usedSamples[index])
+      {
         break;
+      }
+    }
 
     if(index == usedSamples.size())
     {
@@ -384,7 +387,6 @@ SegmentationAdapterPtr AppositionSurfacePlugin::segmentationSAS(SegmentationAdap
 
   return sas;
 }
-
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)
 

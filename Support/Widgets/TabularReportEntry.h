@@ -62,7 +62,7 @@ namespace ESPINA
 
     int columnCount() const;
 
-    QVariant value(int row, int column) const;
+    virtual QVariant value(int row, int column) const;
 
   signals:
     void informationReadyChanged();
