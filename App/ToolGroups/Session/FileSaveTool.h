@@ -88,7 +88,7 @@ namespace ESPINA
   signals:
     void aboutToSaveSession();
 
-    void sessionSaved(const QString &filename);
+    void sessionSaved(const QString &filename, bool success);
 
   protected:
     QString m_filename;

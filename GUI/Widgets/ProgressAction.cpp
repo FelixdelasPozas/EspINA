@@ -94,7 +94,6 @@ void ProgressAction::setProgress(int progress)
   }
 }
 
-
 //------------------------------------------------------------------------
 void ProgressAction::setActionEnabled(bool enabled)
 {

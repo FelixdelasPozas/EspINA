@@ -128,9 +128,10 @@ namespace ESPINA
 
     /** \brief Updates the application after a session has been saved.
      * \param[in] filename name of the saved session file.
+     * \param[in] success true if the save was successful and false otherwise.
      *
      */
-    void onSessionSaved(const QString &filename);
+    void onSessionSaved(const QString &filename, bool success);
 
 
     /** \brief Change context bar to display tools of the selected group

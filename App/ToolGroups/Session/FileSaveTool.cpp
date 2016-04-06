@@ -117,14 +117,18 @@ void FileSaveTool::saveAnalysis(const QString &filename)
     {
       SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
 
-      emit sessionSaved(filename);
+      emit sessionSaved(filename, true);
     }
     catch(const EspinaException &e)
     {
-      auto message = tr("Couldn't save file: '%1").arg(filename.split('/').last());
+      auto message = tr("Couldn't save file: '%1'").arg(filename.split('/').last());
       auto title   = tr("Error saving file");
 
       DefaultDialogs::ErrorMessage(message, title, e.details());
+
+      setProgress(100);
+
+      emit sessionSaved(filename, false);
     }
 
     setIcon(current);

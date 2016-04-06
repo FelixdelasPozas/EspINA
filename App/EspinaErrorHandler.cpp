@@ -70,7 +70,7 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo                     &
 //------------------------------------------------------------------------
 void EspinaErrorHandler::error(const QString& msg)
 {
-  QMessageBox::warning(m_parent, "ESPINA", msg);
+  // Empty, use exceptions to catch errors.
 }
 
 //------------------------------------------------------------------------

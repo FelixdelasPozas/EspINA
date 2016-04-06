@@ -816,8 +816,8 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(m_saveTool.get(), SIGNAL(aboutToSaveSession()),
           this,             SLOT(onAboutToSaveSession()));
 
-  connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &)),
-          this,             SLOT(onSessionSaved(const QString &)));
+  connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &, bool)),
+          this,             SLOT(onSessionSaved(const QString &, bool)));
 
   m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save File As"), m_context, m_analysis, m_errorHandler);
   m_saveAsTool->setOrder("1-1", "1_FileGroup");
@@ -826,8 +826,8 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(m_saveAsTool.get(), SIGNAL(aboutToSaveSession()),
           this,               SLOT(onAboutToSaveSession()));
 
-  connect(m_saveAsTool.get(), SIGNAL(sessionSaved(const QString &)),
-          this,               SLOT(onSessionSaved(const QString &)));
+  connect(m_saveAsTool.get(), SIGNAL(sessionSaved(const QString &, bool)),
+          this,               SLOT(onSessionSaved(const QString &, bool)));
 
   m_sessionToolGroup->addTool(m_openFileTool);
   m_sessionToolGroup->addTool(importTool);
@@ -1259,9 +1259,9 @@ void EspinaMainWindow::onAboutToSaveSession()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::onSessionSaved(const QString &filename)
+void EspinaMainWindow::onSessionSaved(const QString &filename, bool success)
 {
-  if (!m_autoSave.isAutoSaveFile(filename))
+  if (success && !m_autoSave.isAutoSaveFile(filename))
   {
     updateStatus(tr("File saved successfully as %1").arg(filename));
 

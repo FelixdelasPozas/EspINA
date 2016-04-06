@@ -55,14 +55,14 @@ namespace ESPINA
     void setDefaultDir(const QDir &dir)
     { m_defaultDir = dir; }
 
-    void warning(const QString &msg);
+    virtual void warning(const QString &msg);
 
-    void error(const QString &msg);
+    virtual void error(const QString &msg);
 
-    QFileInfo fileNotFound(const QFileInfo                     &file,
-                           QDir                                 dir     = QDir(),
-                           const Core::Utils::SupportedFormats &filters = Core::Utils::SupportedFormats().addAllFormat(),
-                           const QString                       &hint    = QString());
+    virtual QFileInfo fileNotFound(const QFileInfo                     &file,
+                                   QDir                                 dir     = QDir(),
+                                   const Core::Utils::SupportedFormats &filters = Core::Utils::SupportedFormats().addAllFormat(),
+                                   const QString                       &hint    = QString());
 
   private:
     QWidget *m_parent;
