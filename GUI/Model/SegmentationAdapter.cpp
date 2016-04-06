@@ -151,7 +151,7 @@ QVariant SegmentationAdapter::data(int role) const
       const QString TAB = WS+WS+WS;
       QString boundsInfo;
       QString filterInfo;
-      //if (m_filter && output()->isValid())
+
       if (output()->isValid()) // It shouldn't exist a segmentation without filter as it was checked before, but maybe there is some weird condition in which we should check it
       {
         Bounds bounds;
@@ -168,9 +168,6 @@ QVariant SegmentationAdapter::data(int role) const
         boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
         boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)").arg(bounds[4]).arg(bounds[5]);
-
-//         //filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
-//         filterInfo = m_filter->data(Qt::ToolTipRole).toString();
       }
 
       QString categoryInfo;
@@ -182,7 +179,6 @@ QVariant SegmentationAdapter::data(int role) const
       QString tooltip;
       tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
       tooltip = tooltip.append(categoryInfo);
-      //tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
       bool addBreakLine = false;
 
@@ -194,7 +190,7 @@ QVariant SegmentationAdapter::data(int role) const
 
       for(auto extension : m_segmentation->readOnlyExtensions())
       {
-        QString extToolTip = extension->toolTipText();
+        auto extToolTip = extension->toolTipText();
         if (!extToolTip.isEmpty())
         {
           if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
@@ -211,8 +207,6 @@ QVariant SegmentationAdapter::data(int role) const
       return isVisible() ? Qt::Checked : Qt::Unchecked;
     case TypeRole:
       return typeId(Type::SEGMENTATION);
-    case NumberRole:
-      return number();
     default:
       return QVariant();
   }
@@ -259,10 +253,6 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
       return true;
     case Qt::CheckStateRole:
       setVisible(value.toBool());
-      return true;
-    case TypeRole: // Before it had the same value but it was SelectionRole
-      Q_ASSERT(false);
-      //setSelected(value.toBool());
       return true;
     default:
       return false;

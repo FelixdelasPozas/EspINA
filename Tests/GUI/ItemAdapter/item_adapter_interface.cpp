@@ -39,7 +39,7 @@ int item_adapter_interface(int argc, char** argv)
   public:
     virtual QVariant data(int role = Qt::DisplayRole) const{}
     virtual PersistentSPtr item() const{}
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1){}
+    virtual bool setData(const QVariant& value, int role){}
     virtual Type type() const {}
   };
 

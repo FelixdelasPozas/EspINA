@@ -49,7 +49,7 @@ ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model,
                                          GUI::View::ViewState &viewState,
                                          QObject* parent)
 : QAbstractProxyModel{parent}
-, m_viewState(viewState)
+, m_viewState        (viewState)
 , m_classification   {new ClassificationAdapter()}
 {
   setSourceModel(model);
@@ -115,8 +115,7 @@ void ClassificationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 //------------------------------------------------------------------------
 QVariant ClassificationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
-  if (!proxyIndex.isValid())
-    return QVariant();
+  if (!proxyIndex.isValid()) return QVariant();
 
   auto item = itemAdapter(proxyIndex);
 
@@ -141,7 +140,6 @@ QVariant ClassificationProxy::data(const QModelIndex& proxyIndex, int role) cons
       return item->data(role);
     }
   }
-
 
   return QAbstractProxyModel::data(proxyIndex, role);
 }
@@ -179,7 +177,6 @@ bool ClassificationProxy::hasChildren(const QModelIndex& parent) const
 {
   return hasValidIndexes() && rowCount(parent) > 0 && columnCount(parent) > 0;
 }
-
 
 //------------------------------------------------------------------------
 int ClassificationProxy::rowCount(const QModelIndex& parent) const
@@ -1117,7 +1114,6 @@ CategoryAdapterPtr ClassificationProxy::createProxyCategory(CategoryAdapterPtr s
   auto proxyCategory  = m_classification->createCategory(sourceCategory->classificationName()).get();
 
   proxyCategory->setColor(sourceCategory->color());
-  //proxyCategory->setData(sourceCategory->data(Qt::CheckStateRole), Qt::CheckStateRole);
   m_sourceCategory[proxyCategory] = sourceCategory;
 
   return proxyCategory;

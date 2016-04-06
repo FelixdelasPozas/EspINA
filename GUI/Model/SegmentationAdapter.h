@@ -31,8 +31,6 @@ class QPixmap;
 class QIcon;
 namespace ESPINA
 {
-  static const int NumberRole = TypeRole + 1;
-
   /** class SegmentationAdapter.
    * \brief Model biological structures which have been extracted from one or more channels.
    */
@@ -51,7 +49,7 @@ namespace ESPINA
 
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
     virtual ItemAdapter::Type type() const
     { return Type::SEGMENTATION; }

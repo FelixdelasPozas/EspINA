@@ -36,6 +36,8 @@ namespace ESPINA
   : public Extension<Channel>
   {
       Q_OBJECT
+    signals:
+      void invalidated();
 
     public slots:
       virtual void invalidate()
@@ -68,6 +70,9 @@ namespace ESPINA
        *
        */
       virtual bool validCategory(const QString &classification) const = 0;
+
+    signals:
+      void invalidated();
 
     public slots:
       virtual void invalidate()

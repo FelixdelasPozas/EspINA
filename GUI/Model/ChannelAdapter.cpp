@@ -84,21 +84,20 @@ QVariant ChannelAdapter::data(int role) const
       }
       tooltip = tooltip.append(boundsInfo);
 
-      QString extensionsInfo = tr("<b>Extensions:</b><br>");
+      QString extensionsInfo = tr("<b>Extensions:</b>");
       QString extensionsData;
       for(auto extension : m_channel->readOnlyExtensions())
       {
         QString extToolTip = extension->toolTipText();
         if (!extToolTip.isEmpty())
         {
-          tooltip = tooltip.append("<br>");
-          extensionsData = extensionsData.append(extToolTip);
+          extensionsData += "<br>" + extToolTip;
         }
       }
 
       if(extensionsData.isEmpty())
       {
-        extensionsData += tr("None present.<br>");
+        extensionsData += tr("<br>None present.");
       }
 
       tooltip += extensionsInfo + extensionsData;

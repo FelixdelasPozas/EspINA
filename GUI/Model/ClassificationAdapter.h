@@ -66,7 +66,7 @@ namespace ESPINA
      */
     ~ClassificationAdapter();
 
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
     virtual QVariant data(int role = Qt::DisplayRole) const;
 

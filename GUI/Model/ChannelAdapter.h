@@ -44,7 +44,7 @@ namespace ESPINA
 
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }

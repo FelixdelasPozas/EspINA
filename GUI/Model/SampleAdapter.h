@@ -54,7 +54,7 @@ namespace ESPINA
     /** \brief Implements ItemAdapter::setData().
      *
      */
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
     /** \brief Implements ItemAdapter::type().
      *

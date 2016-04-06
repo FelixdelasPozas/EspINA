@@ -142,7 +142,7 @@ namespace ESPINA
        * \param[in] role Qt::ItemDataRole type.
        *
        */
-      virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
+      virtual bool setData(const QVariant& value, int role) = 0;
 
       /** \brief Returns the type of the item adapter.
        *

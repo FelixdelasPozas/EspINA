@@ -988,6 +988,7 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
       }
     }
   }
+
   return result;
 }
 
