@@ -151,6 +151,11 @@ namespace ESPINA
      */
     void changeEdgeDetectorThreshold(int value);
 
+    /** \brief Updates the GUI when the optimal checkbox state changed.
+     * \param[in] unused unused value.
+     */
+    void onOptimalStateChanged(int unused);
+
   private:
     /** \brief Helper method to update views after changes to the channel.
      *

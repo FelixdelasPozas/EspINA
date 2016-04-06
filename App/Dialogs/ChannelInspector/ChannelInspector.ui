@@ -696,6 +696,13 @@
              </layout>
             </item>
             <item>
+             <widget class="QCheckBox" name="computeOptimal">
+              <property name="text">
+               <string>Compute optimal values</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_4">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -726,7 +733,7 @@
        <item>
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;In case there is no outer frame, select the option to compute edges including outer frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Notes: &lt;/span&gt;&lt;br/&gt;- In case there is no outer frame, select the option to compute edges including outer frame.&lt;br/&gt;- Computation of optimal values can result in orthogonal margins being selected if no frame is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>

@@ -116,6 +116,9 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   m_pixelSelector->setEnabled(m_useDistanceToEdges);
   thresholdBox->setEnabled(m_useDistanceToEdges);
   thresholdLabel->setEnabled(m_useDistanceToEdges);
+  computeOptimal->setChecked(false);
+
+  connect(computeOptimal, SIGNAL(stateChanged(int)), this, SLOT(onOptimalStateChanged(int)));
 
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
@@ -412,16 +415,20 @@ void ChannelInspector::radioEdgesChanged(bool value)
     radioStackEdges->setChecked(!value);
   }
 
-  colorLabel->setEnabled(radioImageEdges->isChecked());
-  m_pixelSelector->setEnabled(radioImageEdges->isChecked());
-  thresholdLabel->setEnabled(radioImageEdges->isChecked());
-  thresholdBox->setEnabled(radioImageEdges->isChecked());
+  auto enabled = radioImageEdges->isChecked() && !computeOptimal->isChecked();
+
+  colorLabel->setEnabled(enabled);
+  m_pixelSelector->setEnabled(enabled);
+  thresholdLabel->setEnabled(enabled);
+  thresholdBox->setEnabled(enabled);
+  computeOptimal->setEnabled(radioImageEdges->isChecked());
 
   changeEdgeDetectorBgColor(m_backgroundColor);
 
   m_edgesModified = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
                     (radioImageEdges->isChecked() && (m_backgroundColor != m_pixelSelector->value())) ||
-                    (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
+                    (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value())) ||
+                    (radioImageEdges->isChecked() && computeOptimal->isChecked());
 }
 
 //------------------------------------------------------------------------
@@ -484,15 +491,25 @@ void ChannelInspector::applyEdgesChanges()
   if (radioImageEdges->isChecked())
   {
     m_useDistanceToEdges = true;
-    m_backgroundColor = m_pixelSelector->value();
-    m_threshold = thresholdBox->value();
+
+    if(computeOptimal->isChecked())
+    {
+      m_backgroundColor    = -1;
+      m_threshold          = -1;
+    }
+    else
+    {
+      m_backgroundColor    = m_pixelSelector->value();
+      m_threshold          = thresholdBox->value();
+    }
   }
   else
   {
     m_useDistanceToEdges = false;
   }
 
-  edgesExtension->setUseDistanceToBounds(!m_useDistanceToEdges);
+  edgesExtension->invalidate();
+  edgesExtension->setAnalisysValues(!m_useDistanceToEdges, m_backgroundColor, m_threshold);
 
   m_edgesModified = false;
 }
@@ -679,4 +696,17 @@ NmVector3 ChannelInspector::currentSpacing() const
   spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
 
   return spacing;
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::onOptimalStateChanged(int unused)
+{
+  auto state = !computeOptimal->isChecked();
+
+  colorLabel->setEnabled(state);
+  m_pixelSelector->setEnabled(state);
+  thresholdBox->setEnabled(state);
+  thresholdLabel->setEnabled(state);
+
+  m_edgesModified |= !state;
 }

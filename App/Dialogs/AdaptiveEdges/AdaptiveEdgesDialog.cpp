@@ -64,28 +64,35 @@ AdaptiveEdgesDialog::AdaptiveEdgesDialog(QWidget *parent)
   connect(thresholdBox, SIGNAL(valueChanged(int)),
           this,         SLOT(thresholdChanged(int)));
   connect(blackButton, SIGNAL(clicked(bool)),
-          this, SLOT(setBlackBgColor()));
+          this,        SLOT(setBlackBgColor()));
   connect(whiteButton, SIGNAL(clicked(bool)),
-          this, SLOT(setWhiteBgColor()));
-
+          this,        SLOT(setWhiteBgColor()));
+  connect(computeOptimal, SLOT(stateChanged(int)),
+          this,           SLOT(onOptimalStateChanged(int)));
 }
 
 //------------------------------------------------------------------------
 void AdaptiveEdgesDialog::radioChanged(bool value)
 {
   if (sender() == radioStackEdges)
+  {
     radioImageEdges->setChecked(!value);
+  }
   else
+  {
     radioStackEdges->setChecked(!value);
+  }
 
   m_adaptiveEdgesEnabled = radioImageEdges->isChecked();
+  auto enabled = m_adaptiveEdgesEnabled && !computeOptimal->isChecked();
 
-  blackButton->setEnabled(m_adaptiveEdgesEnabled);
-  colorBox  ->setEnabled(m_adaptiveEdgesEnabled);
-  whiteButton->setEnabled(m_adaptiveEdgesEnabled);
+  blackButton->setEnabled(enabled);
+  colorBox  ->setEnabled(enabled);
+  whiteButton->setEnabled(enabled);
 
-  thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
-  thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
+  thresholdLabel->setEnabled(enabled);
+  thresholdBox->setEnabled(enabled);
+  computeOptimal->setEnabled(m_adaptiveEdgesEnabled);
 }
 
 //------------------------------------------------------------------------
@@ -119,4 +126,17 @@ void AdaptiveEdgesDialog::setBlackBgColor()
 void AdaptiveEdgesDialog::setWhiteBgColor()
 {
   colorBox->setValue(255);
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::onOptimalStateChanged(int value)
+{
+  auto check = !computeOptimal->isChecked();
+
+  blackButton->setEnabled(check);
+  colorBox  ->setEnabled(check);
+  whiteButton->setEnabled(check);
+
+  thresholdLabel->setEnabled(check);
+  thresholdBox->setEnabled(check);
 }

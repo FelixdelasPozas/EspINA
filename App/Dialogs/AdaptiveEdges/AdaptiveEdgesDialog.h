@@ -70,6 +70,7 @@ namespace ESPINA
       void thresholdChanged(int value);
       void setBlackBgColor();
       void setWhiteBgColor();
+      void onOptimalStateChanged(int value);
 
     private:
       bool m_adaptiveEdgesEnabled;
