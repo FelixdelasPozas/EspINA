@@ -155,6 +155,13 @@ void ImageLogicTool::onTaskFinished()
     auto selection = getSelection();
     selection->set(segmentationList);
   }
+  else
+  {
+    for(auto item: m_executingTasks[filter].Segmentations)
+    {
+      item->setBeingModified(false);
+    }
+  }
 
   m_executingTasks.remove(filter);
 }
