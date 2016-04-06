@@ -161,26 +161,33 @@ void DefaultContextualMenu::renameSegmentation()
   {
     bool result = false;
     QString oldName = segmentation->data().toString();
-    QString alias = QInputDialog::getText(this, oldName, renameTitle, QLineEdit::Normal, oldName, &result);
+    QString newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, renameTitle, QLineEdit::Normal, oldName, &result);
 
     if(!result) continue;
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
     {
-      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
+      exists |= (existinSegmentation->data().toString() == newName);
     }
 
     if (exists)
     {
-      auto title = tr("Alias duplicated");
-      auto msg   = tr("Segmentation alias is already used by another segmentation.");
+      auto title   = tr("Alias duplicated");
+      auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+      auto buttons = QMessageBox::Abort|QMessageBox::Discard;
 
-      DefaultDialogs::InformationMessage(msg, title);
+      if(QMessageBox::Abort == DefaultDialogs::UserQuestion(msg, buttons, title))
+      {
+        break;
+      }
     }
     else
     {
-      renames[segmentation] = alias;
+      if(oldName != newName)
+      {
+        renames[segmentation] = newName;
+      }
     }
   }
 
@@ -211,7 +218,7 @@ void DefaultContextualMenu::renameSegmentationGroup()
   }
 
   bool result = false;
-  QString name = QInputDialog::getText(this, tr("Rename Group"), tr("Segmentations prefix"), QLineEdit::Normal, hint, &result);
+  QString prefix = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), tr("Rename Group"), tr("Segmentations prefix"), QLineEdit::Normal, hint, &result);
 
   if(!result) return;
 
@@ -219,20 +226,24 @@ void DefaultContextualMenu::renameSegmentationGroup()
   {
     QString oldName = segmentation->data().toString();
     auto numIndex = regExpr.indexIn(oldName);
-    auto newName = name + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    auto newName = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
     {
-      exists |= (existinSegmentation->data().toString() == newName && segmentation != existinSegmentation.get());
+      exists |= (existinSegmentation->data().toString() == newName);
     }
 
     if (exists)
     {
-      auto title = tr("Alias duplicated");
-      auto msg   = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+      auto title   = tr("Alias duplicated");
+      auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+      auto buttons = QMessageBox::Abort|QMessageBox::Discard;
 
-      DefaultDialogs::InformationMessage(msg, title);
+      if(QMessageBox::Abort == DefaultDialogs::UserQuestion(msg, buttons, title))
+      {
+        break;
+      }
     }
     else
     {
