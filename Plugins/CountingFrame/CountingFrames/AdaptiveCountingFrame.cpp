@@ -46,8 +46,8 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
                                              Nm exclusion[3],
                                              SchedulerSPtr scheduler)
-: CountingFrame(channelExt, inclusion, exclusion, scheduler)
-, m_channel(channelExt->extendedItem())
+: CountingFrame{channelExt, inclusion, exclusion, scheduler}
+, m_channel    {channelExt->extendedItem()}
 {
   updateCountingFrame();
 }
@@ -61,9 +61,12 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
   //qDebug() << "Updating CountingFrame Implementation";
-  auto volume  = readLockVolume(m_channel->output());
-  auto origin  = volume->bounds().origin();
-  auto spacing = volume->bounds().spacing();
+  NmVector3 origin, spacing;
+  {
+    auto volume  = readLockVolume(m_channel->output());
+    origin  = volume->bounds().origin();
+    spacing = volume->bounds().spacing();
+  }
 
   m_inclusionVolume = 0;
   m_totalVolume = 0;
@@ -72,7 +75,8 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   int backSliceOffset  = backOffset()  / spacing[2];
 
   double bounds[6];
-  m_channelEdges->GetBounds(bounds);
+  auto stackEdges = channelEdgesPolyData();
+  stackEdges->GetBounds(bounds);
 
   int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
   int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
@@ -97,10 +101,10 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
     double LB[3], LT[3], RT[3], RB[3];
-    m_channelEdges->GetPoint(4*slice+0, LB);
-    m_channelEdges->GetPoint(4*slice+1, LT);
-    m_channelEdges->GetPoint(4*slice+2, RT);
-    m_channelEdges->GetPoint(4*slice+3, RB);
+    stackEdges->GetPoint(4*slice+0, LB);
+    stackEdges->GetPoint(4*slice+1, LT);
+    stackEdges->GetPoint(4*slice+2, RT);
+    stackEdges->GetPoint(4*slice+3, RB);
 
     Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
     m_totalVolume += equivalentVolume(sliceBounds);
@@ -134,25 +138,25 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
       }
     }
 
-    m_channelEdges->GetPoint(4*slice+0, LB);
+    stackEdges->GetPoint(4*slice+0, LB);
     LB[0] += leftOffset();
     LB[1] -= bottomOffset();
     LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
-    m_channelEdges->GetPoint(4*slice+1, LT);
+    stackEdges->GetPoint(4*slice+1, LT);
     LT[0] += leftOffset();
     LT[1] += topOffset();
     LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
-    m_channelEdges->GetPoint(4*slice+2, RT);
+    stackEdges->GetPoint(4*slice+2, RT);
     RT[0] -= rightOffset();
     RT[1] += topOffset();
     RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
-    m_channelEdges->GetPoint(4*slice+3, RB);
+    stackEdges->GetPoint(4*slice+3, RB);
     RB[0] -= rightOffset();
     RB[1] -= bottomOffset();
     RB[2] += zOffset;

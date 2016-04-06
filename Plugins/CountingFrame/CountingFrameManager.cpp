@@ -36,7 +36,7 @@ using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
-                                                                 const State& state) const
+                                                                 const State  &state) const
 {
   return std::make_shared<CountingFrameExtension>(const_cast<CountingFrameManager *>(this), scheduler, state);
 }
@@ -69,28 +69,4 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
   }
 
   return SuggestId(id, m_countingFrames.keys());
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameManager::clearEdges()
-{
-  m_edges.clear();
-}
-
-//-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> CountingFrameManager::edges(ChannelPtr channel)
-{
-  QMutexLocker lock(&m_edgesMutex);
-
-  if (!m_edges.keys().contains(channel))
-  {
-    // TODO: rework this so this extension has access to ChannelEdges extension information on load
-    // right now it's a deadlock.
-    ChannelEdges edgesExtension;
-    edgesExtension.setExtendedItem(channel);
-
-    m_edges.insert(channel, edgesExtension.channelEdges());
-  }
-
-  return m_edges[channel];
 }

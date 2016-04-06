@@ -45,7 +45,6 @@ namespace ESPINA
 
   namespace CF
   {
-
     enum CFType
     {
       ADAPTIVE,

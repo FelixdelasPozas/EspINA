@@ -50,7 +50,7 @@ namespace ESPINA
        *
        */
       CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
-                                                 const State& state = State()) const;
+                                                 const State  &state = State()) const;
 
       /** \brief Returns the list of created counting frames.
        *
@@ -80,25 +80,12 @@ namespace ESPINA
        */
       CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
 
-      /** \brief Returns the edges data of the given channel.
-       * \param[in] channel channel object pointer.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> edges(ChannelPtr channel);
-
-      /** \brief Clears the edges map.
-       *
-       */
-      void clearEdges();
-
     signals:
       void countingFrameCreated(CountingFrame *cf);
       void countingFrameDeleted(CountingFrame *cf);
 
     private:
       QMap<CountingFrame *, ChannelPtr> m_countingFrames;      /** maps counting frame with its channel. */
-      QMap<ChannelPtr, vtkSmartPointer<vtkPolyData>> m_edges;  /** maps channels with the edges data. */
-      QMutex m_edgesMutex;
     };
   }
 }

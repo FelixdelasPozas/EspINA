@@ -105,7 +105,8 @@ namespace ESPINA
         void createCountingFrame(CFType type,
                                  Nm inclusion[3],
                                  Nm exclusion[3],
-                                 const QString &constraint = QString());
+                                 const QString &constraint = QString(),
+                                 const CountingFrame::Id &id = CountingFrame::Id());
 
         /** \brief Removes a counting frame from the counting frame manager.
          *
@@ -117,11 +118,6 @@ namespace ESPINA
          */
         CountingFrameList countingFrames() const
         { return m_countingFrames; }
-
-        /** \brief Returns the limits data for the channel.
-         *
-         */
-        vtkSmartPointer<vtkPolyData> channelEdges();
 
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const
@@ -136,26 +132,19 @@ namespace ESPINA
          */
         void onCountingFrameUpdated(CountingFrame *countingFrame);
 
-      private:
-        /** \brief Creates a counting frame with the given parameters.
-         * \param[in] type counting frame type.
-         * \param[in] inclusion inclusion margins.
-         * \param[in] exclusion exclusion margins.
-         * \param[in] contraint name of the segmentations' category the counting frame will apply.
+        /** \brief Sets the id and constraint and adds it to the manager.
          *
          */
-        void createCountingFrame(CFType type,
-                                 CountingFrame::Id id,
-                                 Nm inclusion[3],
-                                 Nm exclusion[3],
-                                 const QString &constraint = QString());
+        void onCountingFrameCreated();
+
       private:
-        CountingFrameManager *m_manager;   /** counting frame manager. */
-        SchedulerSPtr         m_scheduler; /** task scheduler. */
+        CountingFrameManager *m_manager;         /** counting frame manager.             */
+        SchedulerSPtr         m_scheduler;       /** task scheduler.                     */
 
-        State m_prevState;  /** previous state of the extension. */
+        State m_prevState;                       /** previous state of the extension.    */
 
-        CountingFrameList m_countingFrames; /** list of created counting frames. */
+        CountingFrameList      m_countingFrames; /** list of created counting frames.    */
+        mutable QReadWriteLock m_CFmutex;        /** protects CF list.                   */
     };
 
     using CountingFrameExtensionPtr  = CountingFrameExtension *;

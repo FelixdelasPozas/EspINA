@@ -65,7 +65,6 @@ QColor ColorEngine::color(ConstSegmentationAdapterPtr segmentation)
   {
     auto extension = extensions->get<StereologicalInclusion>();
 
-
     if (extension->isExcluded())
     {
       r  = 255;

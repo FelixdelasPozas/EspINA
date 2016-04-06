@@ -90,7 +90,7 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 {
   TypeList dependencies;
 
-  //dependencies << EdgeDistance::TYPE;
+  dependencies << ChannelEdges::TYPE;
 
   return dependencies;
 }
@@ -415,25 +415,29 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
   if (hasVolumetricData(output))
   {
     auto volume = readLockVolume(output);
-    auto bounds = intersection(volume->bounds(), collisionBounds, volume->bounds().spacing());
 
-    if (bounds.areValid())
+    if(intersect(volume->bounds(), collisionBounds, volume->bounds().spacing()))
     {
-      try
-      {
-        auto image  = volume->itkImage(bounds);
+      auto bounds = intersection(volume->bounds(), collisionBounds, volume->bounds().spacing());
 
-        auto it = ImageIterator(image, image->GetLargestPossibleRegion());
-        it.GoToBegin();
-        while (!it.IsAtEnd())
-        {
-          if (it.Get() != volume->backgroundValue()) return true;
-          ++it;
-        }
-      }
-      catch (...)
+      if (bounds.areValid())
       {
-        return false;
+        try
+        {
+          auto image  = volume->itkImage(bounds);
+
+          auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+          it.GoToBegin();
+          while (!it.IsAtEnd())
+          {
+            if (it.Get() != volume->backgroundValue()) return true;
+            ++it;
+          }
+        }
+        catch (...)
+        {
+          return false;
+        }
       }
     }
   }
@@ -441,8 +445,9 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
   {
     // TODO: Detect collision using other techniques
     //       (possibly collision detection should be part of the data API)
-    // @felix: use mesh to mesh collision detection by vtk instead a slice by slice collision
-    //         using the CF polydata.
+    // @felix: vtkDistancePolyDataFilter computes signed distances between polydatas
+    //         but only VERTEX to VERTEX distances so we can't use that. We'll need to
+    //         implement our own face to face intersection/distance solution.
   }
 
   return false;

@@ -69,8 +69,12 @@ void OrthogonalCountingFrame::updateCountingFrameImplementation()
   m_countingFrame = createRectangularRegion(Left, Top, Front,
                                             Right, Bottom, Back);
 
-  m_channelEdges = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
-                                           m_bounds[1], m_bounds[3], m_bounds[5]);
+  {
+    QWriteLocker lock(&m_channelEdgesMutex);
+
+    m_channelEdges = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
+                                             m_bounds[1], m_bounds[3], m_bounds[5]);
+  }
 
   auto channel = m_extension->extendedItem();
   auto spacing = channel->output()->spacing();

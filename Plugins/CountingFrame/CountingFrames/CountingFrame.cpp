@@ -61,16 +61,16 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 
   m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
 
-  /* TODO: use the extension in the application, right now the manager computes the
-   * channel edges and the CFs get the information via the extension. Not a pretty
-   * thing to do but avoids the computation of the same edges for every extension.
-   * Also, StereologicalInclusion extension still gets the data from the channel
-   * extensions.
-   */
-  m_channelEdges = extension->channelEdges();
-
   connect(m_applyCountingFrame.get(), SIGNAL(finished()),
           this,                       SLOT(onCountingFrameApplied()));
+
+  auto itemExtensions = extension->extendedItem()->extensions();
+  Q_ASSERT(itemExtensions->hasExtension(ChannelEdges::TYPE));
+
+  // TODO: the channel edges extension is accessed every time, even if the Counting Frame
+  //       is orthogonal, triggering computation that may be unneeded.
+  auto edgesExtension = itemExtensions[ChannelEdges::TYPE];
+  m_channelEdges = std::dynamic_pointer_cast<ChannelEdges>(edgesExtension)->channelEdges();
 }
 
 //-----------------------------------------------------------------------------
@@ -424,7 +424,7 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::CF::CountingFrame::setId(Id id)
+void CountingFrame::setId(Id id)
 {
   if(m_id != id)
   {

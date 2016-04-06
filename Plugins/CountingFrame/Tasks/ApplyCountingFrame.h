@@ -22,8 +22,6 @@
 #ifndef ESPINA_APPLY_COUNTING_FRAME_H
 #define ESPINA_APPLY_COUNTING_FRAME_H
 
-#include "Extensions/EspinaExtensions_Export.h"
-
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>

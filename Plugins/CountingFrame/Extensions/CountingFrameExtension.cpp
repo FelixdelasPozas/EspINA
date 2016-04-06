@@ -18,18 +18,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "CountingFrameExtension.h"
-
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrames/OrthogonalCountingFrame.h"
 #include <CountingFrames/AdaptiveCountingFrame.h>
 #include <CountingFrameManager.h>
+
+// ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Tasks/CountingFrameCreator.h>
 
+// Qt
 #include <QDebug>
 #include <QApplication>
 
@@ -48,17 +51,18 @@ const char SEP = ';';
 CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager,
                                                SchedulerSPtr         scheduler,
                                                const State          &state)
-: ChannelExtension(InfoCache())
-, m_manager(manager)
-, m_scheduler(scheduler)
-, m_prevState(state)
+: ChannelExtension{InfoCache()}
+, m_manager       {manager}
+, m_scheduler     {scheduler}
+, m_prevState     {state}
 {
 }
 
 //-----------------------------------------------------------------------------
 CountingFrameExtension::~CountingFrameExtension()
 {
-  //qDebug() << "Deleting Counting Frame Channel Extension";
+  QWriteLocker lock(&m_CFmutex);
+
   for (auto cf : m_countingFrames)
   {
     m_manager->unregisterCountingFrame(cf);
@@ -69,6 +73,8 @@ CountingFrameExtension::~CountingFrameExtension()
 State CountingFrameExtension::state() const
 {
   State state;
+
+  QReadLocker lock(&m_CFmutex);
 
   QString br =  "";
   for(auto cf : m_countingFrames)
@@ -99,21 +105,10 @@ Snapshot CountingFrameExtension::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameExtension::createCountingFrame(CFType type,
-                                                 Nm inclusion[3],
-                                                 Nm exclusion[3],
-                                                 const QString& constraint)
-{
-  createCountingFrame(type,
-                      m_manager->defaultCountingFrameId(constraint),
-                      inclusion,
-                      exclusion,
-                      constraint);
-}
-
-//-----------------------------------------------------------------------------
 void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 {
+  QWriteLocker lock(&m_CFmutex);
+
   Q_ASSERT(m_countingFrames.contains(countingFrame));
   for (auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
@@ -131,12 +126,6 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
   }
 
   delete countingFrame;
-}
-
-//-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> CountingFrameExtension::channelEdges()
-{
-  return m_manager->edges(m_extendedItem);
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +162,7 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
           exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
         }
 
-        createCountingFrame(type, params[ID_POS], inclusion, exclusion, params[CONSTRAINT_POS]);
+        createCountingFrame(type, inclusion, exclusion, params[CONSTRAINT_POS], params[ID_POS]);
       }
     }
   }
@@ -191,32 +180,52 @@ void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame
 
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::createCountingFrame(CFType type,
-                                                 CountingFrame::Id id,
                                                  Nm inclusion[3],
                                                  Nm exclusion[3],
-                                                 const QString& constraint)
+                                                 const QString &constraint,
+                                                 const CountingFrame::Id &id)
 {
-  CountingFrame *cf = nullptr;
+  CountingFrameCreator::Data data;
+  data.type       = type;
+  data.inclusion  = NmVector3{inclusion[0], inclusion[1], inclusion[2]};
+  data.exclusion  = NmVector3{exclusion[0], exclusion[1], exclusion[2]};
+  data.extension  = this;
+  data.id         = id;
+  data.constraint = constraint;
 
-  if (CFType::ORTOGONAL == type)
+  auto task = std::make_shared<CountingFrameCreator>(data, m_scheduler);
+  task->setDescription(tr("Creating CF %1: %2").arg(id.isEmpty() ? "" : id).arg(m_extendedItem->name()));
+
+  connect(task.get(), SIGNAL(finished()),
+          this,       SLOT(onCountingFrameCreated()));
+
+  Task::submit(task);
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::onCountingFrameCreated()
+{
+  auto task = qobject_cast<CountingFrameCreator *>(sender());
+
+  if(task)
   {
-    cf = OrthogonalCountingFrame::New(this, inclusion, exclusion, m_scheduler);
-  }
-  else if (CFType::ADAPTIVE == type)
-  {
-    cf = AdaptiveCountingFrame::New(this, inclusion, exclusion, m_scheduler);
-  }
-  else
-  {
-    Q_ASSERT(false);
-  }
+    QWriteLocker lock(&m_CFmutex);
 
-  cf->setId(id);
-  cf->setCategoryConstraint(constraint);
+    auto cf = task->getCountingFrame();
+    auto data = task->getCountingFrameData();
 
-  m_countingFrames << cf;
+    if(data.id.isEmpty())
+    {
+      data.id = m_manager->defaultCountingFrameId(data.constraint);
+    }
 
-  m_manager->registerCountingFrame(cf);
+    cf->setId(data.id);
+    cf->setCategoryConstraint(data.constraint);
+
+    m_countingFrames << cf;
+
+    m_manager->registerCountingFrame(cf);
+  }
 }
 
 //-----------------------------------------------------------------------------
