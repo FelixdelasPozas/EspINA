@@ -85,16 +85,7 @@ namespace ESPINA
 
     QString snapshotName(const QString &file) const;
 
-    /** \brief Sets the "use distance to bounds" flag.
-     * \param[in] value true to use the distance to bounds, false otherwise.
-     *
-     */
-    void setUseDistanceToBounds(bool value);
-
-    /** \brief Returns the "use distance to bounds" flag.
-     *
-     */
-    bool useDistanceToBounds() const;
+    virtual void invalidate() override;
 
     /** \brief Return the image region that excludes slice margin voxels.
      *
@@ -128,25 +119,30 @@ namespace ESPINA
      */
     Nm computedVolume();
 
-    /** \brief Sets the channel background color.
+    /** \brief Sets the values of the stack edges.
+     * \param[in] useBounds true to use stack bounds and false otherwise.
+     * \param[in] value color intensity value.
+     * \param[in] threshold threshold value.
+     *
+     * NOTE: if (useBounds == false) and (color == -1) it forces a re-evaluation of the values.
      *
      */
-    void setBackgroundColor(int value);
+    void setAnalisysValues(bool useBounds, int color, int threshold);
 
     /** \brief Returns the channel background color.
      *
      */
     int backgroundColor() const;
 
-    /** \brief Sets the threshold value.
-     *
-     */
-    void setThreshold(int value);
-
     /** \brief Returns the threshold value.
      *
      */
     int threshold() const;
+
+    /** \brief Returns the "use distance to bounds" flag.
+     *
+     */
+    bool useDistanceToBounds() const;
 
   protected:
     virtual void onExtendedItemSet(Channel* item);
@@ -180,31 +176,33 @@ namespace ESPINA
      */
     void loadFacesCache();
 
-  private slots:
-    /** \brief Perform operations after finishing the edges computation.
+    /** \brief Internal implementation of invalidate() without sending a signal.
      *
      */
-    void onChannelAnalyzed();
+    void invalidateResults();
 
   private:
-    mutable QReadWriteLock m_analysisResultMutex;
+    mutable QReadWriteLock m_analysisResultMutex; /** protects use distances, background and threshold values.                                  */
+    mutable QReadWriteLock m_edgesMutex;          /** protects edges polydata                                                                   */
+    mutable QReadWriteLock m_facesMutex;          /** protects faces polydata.                                                                  */
+    mutable QReadWriteLock m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
 
-    mutable QReadWriteLock m_edgesMutex;
-    mutable QReadWriteLock m_facesMutex;
-    mutable QReadWriteLock m_edgesResultMutex;
+    bool   m_useDistanceToBounds;                 /** true to use the distance to the stack bounds, false otherwise.                            */
+    int    m_backgroundColor;                     /** background color intensity value.                                                         */
+    int    m_threshold;                           /** background color threshold value.                                                         */
+    Nm     m_computedVolume;                      /** measure in nm^3 of the volume enclosed in the computed edges.                             */
 
-    bool   m_useDistanceToBounds;
-    int    m_backgroundColor;
-    Nm     m_computedVolume;
-    int    m_threshold;
+    bool   m_invalidated;                         /** true if the values have been invalidated and needs to be computed again, false otherwise. */
 
-    AdaptiveEdgesCreatorSPtr m_edgesCreator;
-    EdgesAnalyzerSPtr        m_edgesAnalyzer;
+    AdaptiveEdgesCreatorSPtr m_edgesCreator;      /** task that creates the edges polydata.                                                     */
+    EdgesAnalyzerSPtr        m_edgesAnalyzer;     /** task that analyzes border values and threshold.                                           */
 
-    vtkSmartPointer<vtkPolyData> m_edges;
-    vtkSmartPointer<vtkPolyData> m_faces[6];
+    vtkSmartPointer<vtkPolyData> m_edges;         /** stack edges polydata.                                                                     */
+    vtkSmartPointer<vtkPolyData> m_faces[6];      /** edges faces polydatas.                                                                    */
 
-    /** \brief Build a surface for each face the first time they're needed.
+    SchedulerSPtr m_scheduler;                    /** application task scheduler.                                                               */
+
+    /** \brief Builds the surfaces of the faces the first time they're needed.
      *
      */
     void computeSurfaces();

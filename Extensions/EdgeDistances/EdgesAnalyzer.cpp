@@ -24,20 +24,27 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+
+// ITK
 #include <itkImageRegionIterator.h>
 
 // Qt
 #include <QDebug>
+
+// C++
+#include <algorithm>
+#include <cstdlib>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 EdgesAnalyzer::EdgesAnalyzer(ChannelEdges *extension,
                              SchedulerSPtr  scheduler)
-: Task(scheduler)
-, m_useDistanceToBounds(true)
-, m_bgIntensity(0)
-, m_extension(extension)
+: Task                 {scheduler}
+, m_useDistanceToBounds{0}
+, m_bgIntensity        {0}
+, m_bgThreshold        {0}
+, m_extension          {extension}
 {
 }
 
@@ -53,6 +60,8 @@ void EdgesAnalyzer::run()
   auto volume = readLockVolume(m_extension->m_extendedItem->output());
 
   m_useDistanceToBounds = 0;
+  m_bgIntensity         = 0;
+  m_bgThreshold         = 0;
 
   analyzeEdge(volume, leftSliceBounds(volume));
   reportProgress(25);
@@ -68,17 +77,16 @@ void EdgesAnalyzer::run()
     reportProgress(100);
 
     const int NUM_EDGES = 4;
-    m_extension->m_useDistanceToBounds = m_useDistanceToBounds == NUM_EDGES;
+    m_extension->m_useDistanceToBounds = (m_useDistanceToBounds == NUM_EDGES);
 
     if (!m_extension->m_useDistanceToBounds)
     {
       m_extension->m_backgroundColor = m_bgIntensity / (NUM_EDGES - m_useDistanceToBounds);
-      m_extension->m_threshold       = 10;
+      m_extension->m_threshold       = (m_bgThreshold < 10 ? 10 : m_bgThreshold);
     }
-
-    m_extension->m_analysisResultMutex.unlock();
   }
 
+  m_extension->m_analysisResultMutex.unlock();
   //qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
 }
 
@@ -90,7 +98,7 @@ void EdgesAnalyzer::analyzeEdge(const Output::ReadLockData<DefaultVolumetricData
 
   auto image  = volume->itkImage(edgeBounds);
 
-  auto it = itk::ImageRegionIterator<itkVolumeType>(image, image->GetLargestPossibleRegion());
+  auto it = itk::ImageRegionConstIterator<itkVolumeType>(image, image->GetLargestPossibleRegion());
   it.GoToBegin();
 
   QMap<Intensity, Frequency> borderIntensityFrequency;
@@ -98,21 +106,21 @@ void EdgesAnalyzer::analyzeEdge(const Output::ReadLockData<DefaultVolumetricData
   Frequency numVoxels = 0;
   while(canExecute() && !it.IsAtEnd())
   {
-    borderIntensityFrequency[it.Value()]++;
-    numVoxels++;
+    ++borderIntensityFrequency[it.Value()];
 
+    ++numVoxels;
     ++it;
   }
 
-  int       bgIntensity = 0;
-  Frequency halfVoxels  = numVoxels/2;
+  int       bgIntensity   = 0;
+  Frequency quarterVoxels = numVoxels/4;
 
   QList<Intensity> frequentIntensities;
   for (auto intensity : borderIntensityFrequency.keys())
   {
     if (!canExecute()) break;
 
-    if (borderIntensityFrequency[intensity] > halfVoxels)
+    if (borderIntensityFrequency[intensity] > quarterVoxels)
     {
       bgIntensity += intensity;
       frequentIntensities << intensity;
@@ -121,8 +129,14 @@ void EdgesAnalyzer::analyzeEdge(const Output::ReadLockData<DefaultVolumetricData
 
   if (!frequentIntensities.isEmpty())
   {
-    m_bgIntensity = bgIntensity / frequentIntensities.size();
-  } else
+    for(auto intensity: frequentIntensities)
+    {
+      m_bgThreshold = std::max(m_bgThreshold, std::abs(intensity - frequentIntensities.first()));
+    }
+
+    m_bgIntensity += (bgIntensity / frequentIntensities.size());
+  }
+  else
   {
     ++m_useDistanceToBounds;
   }

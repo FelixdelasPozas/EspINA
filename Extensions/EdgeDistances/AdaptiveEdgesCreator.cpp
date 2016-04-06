@@ -79,8 +79,8 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 //------------------------------------------------------------------------
 AdaptiveEdgesCreator::AdaptiveEdgesCreator(ChannelEdges *extension,
                                            SchedulerSPtr  scheduler)
-: Task(scheduler)
-, m_extension(extension)
+: Task       {scheduler}
+, m_extension{extension}
 {
 }
 
@@ -93,7 +93,6 @@ AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 void AdaptiveEdgesCreator::run()
 {
   //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
-
   auto channel = m_extension->extendedItem();
   auto volume  = readLockVolume(channel->output());
   auto bounds  = volume->bounds();
@@ -370,6 +369,5 @@ void AdaptiveEdgesCreator::run()
   }
 
   m_extension->m_edgesResultMutex.unlock();
-
   //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

@@ -34,39 +34,40 @@ namespace ESPINA
   class EspinaExtensions_EXPORT EdgesAnalyzer
   : public Task
   {
-  public:
-    /** \brief EdgesAnalyzer class constructor.
-     * \param[in] extension ChannelEdges raw pointer.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit EdgesAnalyzer(ChannelEdges *extension,
-                           SchedulerSPtr scheduler = SchedulerSPtr());
+    public:
+      /** \brief EdgesAnalyzer class constructor.
+       * \param[in] extension ChannelEdges raw pointer.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit EdgesAnalyzer(ChannelEdges *extension,
+                             SchedulerSPtr scheduler = SchedulerSPtr());
 
-    /** \brief EdgesAnalyzer class destructor.
-     *
-     */
-    virtual ~EdgesAnalyzer();
+      /** \brief EdgesAnalyzer class destructor.
+       *
+       */
+      virtual ~EdgesAnalyzer();
 
-  protected:
-    /** \brief Computes the edges of a channel.
-     *
-     */
-    virtual void run();
+    protected:
+      /** \brief Computes the edges of a channel.
+       *
+       */
+      virtual void run();
 
-  private:
-    /** \brief Analizes the edge of a volume.
-     * \param[in] volume volumetric volume smart pointer to analyze.
-     * \param[in] edgeBounds bounds of the edge of the volume.
-     *
-     */
-    void analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds &edgeBounds);
+    private:
+      /** \brief Analizes the edge of a volume.
+       * \param[in] volume volumetric volume smart pointer to analyze.
+       * \param[in] edgeBounds bounds of the edge of the volume.
+       *
+       */
+      void analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds &edgeBounds);
 
-  private:
-    int m_useDistanceToBounds;
-    int m_bgIntensity;
+    private:
+      int m_useDistanceToBounds; /** number of faces that habe been analyzed and can measure just with the distance to the stack bounds. */
+      int m_bgIntensity;         /** computed background intensity value. */
+      int m_bgThreshold;         /** computed background intensity values threshold. */
 
-    ChannelEdges *m_extension;
+      ChannelEdges *m_extension; /** extension owner of the task. */
 };
 
   using EdgesAnalyzerPtr  = EdgesAnalyzer *;
