@@ -247,6 +247,17 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
           info[key.extension()] << key;
         }
       }
+      else
+      {
+        // fix for extensions with variable keys like stereological inclusion.
+        for(auto key: extension->availableInformation())
+        {
+          if(!info[key.extension()].contains(key))
+          {
+            info[key.extension()] << key;
+          }
+        }
+      }
     }
   }
 

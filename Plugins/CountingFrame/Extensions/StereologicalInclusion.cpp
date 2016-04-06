@@ -501,9 +501,8 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 {
   if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()))
   {
-
     auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
-    auto newIdKey   = tr("Inc. %1 CF").arg(cf->id());
+    auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
     m_cfIds[cf] = cf->id();
 
     if(m_infoCache.keys().contains(oldIdKey))
