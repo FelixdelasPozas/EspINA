@@ -159,9 +159,12 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 
   if (!m_exclusionCFs.contains(cf))
   {
-    m_excludedByCF[cf->id()] = false; // Everybody is innocent until proven guilty
     m_exclusionCFs[cf] = false;
+    m_cfIds[cf] = cf->id();
     m_isUpdated = false;
+
+    connect(cf,   SIGNAL(modified(CountingFrame *)),
+            this, SLOT(onCountingFrameModified(CountingFrame *)), Qt::DirectConnection);
   }
 }
 
@@ -173,8 +176,11 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
   if (m_exclusionCFs.contains(cf))
   {
     m_exclusionCFs.remove(cf);
-    m_excludedByCF.remove(cf->id());
+    m_cfIds.remove(cf);
     m_isUpdated = false;
+
+    disconnect(cf,   SIGNAL(modified(CountingFrame *)),
+               this, SLOT(onCountingFrameModified(CountingFrame *)));
   }
 }
 
@@ -227,8 +233,6 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
     updateInfoCache(key.value(), info);
 
     m_exclusionCFs[cf] = excluded;
-
-    m_excludedByCF[cf->id()] = excluded;
 
     // Update segmentation's exclusion value
     excluded = true;
@@ -488,6 +492,24 @@ void StereologicalInclusion::checkSampleCountingFrames()
           }
         }
       }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
+{
+  if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()))
+  {
+
+    auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
+    auto newIdKey   = tr("Inc. %1 CF").arg(cf->id());
+    m_cfIds[cf] = cf->id();
+
+    if(m_infoCache.keys().contains(oldIdKey))
+    {
+      m_infoCache.insert(newIdKey, m_infoCache[oldIdKey]);
+      m_infoCache.remove(oldIdKey);
     }
   }
 }

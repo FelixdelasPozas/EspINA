@@ -145,14 +145,22 @@ namespace ESPINA
          */
         void checkSampleCountingFrames();
 
-      private:
-        bool m_isInitialized;                          /** true if the extension has been initialized.              */
-        bool m_isUpdated;                              /** true if the extension data is up to date.                */
+      private slots:
+        /** \brief Updates the info cache if a Counting Frame id changes.
+         *
+         * NOTE: doesn't invalidate cache and carries old value (if exists) to new id.
+         *
+         */
+        void onCountingFrameModified(CountingFrame *cf);
 
-        QMutex m_mutex;                                /** lock for extension data computation.                     */
-        bool   m_isExcluded;                           /** true if the segmentation is excluded by at least one CF. */
-        QMap<CountingFrame *, bool>   m_exclusionCFs;  /** maps CF pointer - exclusion information.                 */
-        QMap<CountingFrame::Id, bool> m_excludedByCF;  /** maps CF::id - exclusion information.                     */
+      private:
+        bool m_isInitialized;                              /** true if the extension has been initialized.              */
+        bool m_isUpdated;                                  /** true if the extension data is up to date.                */
+
+        QMutex m_mutex;                                    /** lock for extension data computation.                     */
+        bool   m_isExcluded;                               /** true if the segmentation is excluded by at least one CF. */
+        QMap<CountingFrame *, bool> m_exclusionCFs;        /** maps CF pointer - exclusion information.                 */
+        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;  /** maps CF with CF::id for key invalidation.                */
     };
 
     using StereologicalInclusionPtr  = StereologicalInclusion *;

@@ -136,7 +136,7 @@ QString CountingFrame::description() const
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";
   QString desc;
-  desc += tr("CF id : %1"               ).arg(m_id)                             + br;
+  desc += tr("CF id : %1"               ).arg(id())                             + br;
   desc += tr("Type: %1"                 ).arg(typeName())                       + br;
   desc += tr("Constraint: %1"           ).arg(constraint)                       + br;
   desc += tr("Stack: %1"                ).arg(channel->name())                  + br;
@@ -390,6 +390,17 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 }
 
 //-----------------------------------------------------------------------------
+void CountingFrame::setId(Id id)
+{
+  if(m_id != id)
+  {
+    m_id = id;
+
+    emit modified(this);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
   auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
@@ -420,16 +431,5 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
 
     m_cf->updateCountingFrame();
     m_cf->apply();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrame::setId(Id id)
-{
-  if(m_id != id)
-  {
-    m_id = id;
-
-    emit modified(this);
   }
 }

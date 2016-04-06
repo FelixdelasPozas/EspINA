@@ -139,14 +139,14 @@ class CF::Panel::CFModel
       {
         if (cf != editedCF)
         {
-          alreadyUsed |= cf->id() == requestedId;
+          alreadyUsed |= (cf->id() == requestedId);
         }
       }
 
       if (alreadyUsed)
       {
         QString suggestedId = m_manager->suggestedId(requestedId);
-        while (accepted && suggestedId != requestedId)
+        while (accepted && (suggestedId != requestedId))
         {
           requestedId = QInputDialog::getText(nullptr,
                                               tr("Id already used"),
