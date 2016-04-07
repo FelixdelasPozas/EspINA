@@ -20,6 +20,9 @@
 #ifndef ESPINA_FILTERS_UTILS_STENCIL_H
 #define ESPINA_FILTERS_UTILS_STENCIL_H
 
+#include "Filters/EspinaFilters_Export.h"
+
+// VTK
 #include <vtkSmartPointer.h>
 
 class vtkPlane;
@@ -35,7 +38,12 @@ namespace ESPINA
     {
       namespace Stencil
       {
-        vtkSmartPointer<vtkImageStencilData> fromPlane(vtkSmartPointer<vtkPlane> plane, const VolumeBounds &bounds);
+        /** \brief Creates a stencil data image with the given bounds from a given plane definition.
+         * \param[in] plane plane definition.
+         * \param[in] bounds output image bounds.
+         *
+         */
+        vtkSmartPointer<vtkImageStencilData> EspinaFilters_EXPORT fromPlane(vtkSmartPointer<vtkPlane> plane, const VolumeBounds &bounds);
       };
     }
   }

@@ -20,6 +20,9 @@
 #ifndef ESPINA_CORE_SUPPORTED_FORMATS_H
 #define ESPINA_CORE_SUPPORTED_FORMATS_H
 
+#include "Core/EspinaCore_Export.h"
+
+// Qt
 #include <QStringList>
 
 namespace ESPINA
@@ -31,7 +34,7 @@ namespace ESPINA
       /** \class SupportedFormats
        * \brief Helper class to define various filters for EspINA session generated files.
        */
-      class SupportedFormats
+      class EspinaCore_EXPORT SupportedFormats
       {
         public:
           /** \brief SupportedFormats class constructor.

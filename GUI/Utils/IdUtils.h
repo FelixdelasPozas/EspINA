@@ -29,6 +29,8 @@
 #ifndef ESPINA_ID_UTILS_H
 #define ESPINA_ID_UTILS_H
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Analysis.h>
 #include <Core/Utils/AnalysisUtils.h>
@@ -45,7 +47,7 @@ namespace ESPINA
    *
    */
   template<typename I, typename L>
-  void SetUniqueIdWithUserConfirmation(I& item, QString id, const L& list)
+  void EspinaGUI_EXPORT SetUniqueIdWithUserConfirmation(I& item, QString id, const L& list)
   {
     bool alreadyUsed = false;
     bool accepted    = true;

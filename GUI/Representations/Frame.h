@@ -20,6 +20,8 @@
 #ifndef ESPINA_GUI_REPRESENTATIONS_FRAME_H
 #define ESPINA_GUI_REPRESENTATIONS_FRAME_H
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include "GUI/Types.h"
 #include "GUI/Utils/Timer.h"
@@ -32,7 +34,7 @@ namespace ESPINA
   {
     namespace Representations
     {
-      struct EspinaCore_EXPORT Frame
+      struct EspinaGUI_EXPORT Frame
       {
         public:
           /** \brief Frame struct constructor.
@@ -63,37 +65,37 @@ namespace ESPINA
       /** \brief QDebug stream operator<< for a Frame (for debug purposes).
        *
        */
-      QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameSPtr frame);
+      QDebug EspinaGUI_EXPORT operator<<(QDebug d, const FrameSPtr frame);
 
       /** \brief QDebug stream operator<< for a const Frame (for debug purposes).
        *
        */
-      QDebug EspinaCore_EXPORT operator<<(QDebug d, const FrameCSPtr frame);
+      QDebug EspinaGUI_EXPORT operator<<(QDebug d, const FrameCSPtr frame);
 
       /** \brief Returns true if the frame is valid (timestamp is valid).
       *
       */
-      bool isValid(const FrameCSPtr frame);
+      bool EspinaGUI_EXPORT isValid(const FrameCSPtr frame);
 
       /** \brief Returns true if the frame requires a camera reset.
        *
        */
-      bool requiresReset(const FrameCSPtr frame);
+      bool EspinaGUI_EXPORT requiresReset(const FrameCSPtr frame);
 
       /** \brief Returns true if the frame requires a focus on the frame crosshair.
        *
        */
-      bool requiresFocus(const FrameCSPtr frame);
+      bool EspinaGUI_EXPORT requiresFocus(const FrameCSPtr frame);
 
       /** \brief Returns true if the frame invalidates segmentation representations.
        *
        */
-      bool invalidatesSegmentations(const FrameCSPtr frame);
+      bool EspinaGUI_EXPORT invalidatesSegmentations(const FrameCSPtr frame);
 
       /** \brief Returns true if the frame invalidates channels representations.
        *
        */
-      bool invalidatesChannels(const FrameCSPtr frame);
+      bool EspinaGUI_EXPORT invalidatesChannels(const FrameCSPtr frame);
     }
   }
 }

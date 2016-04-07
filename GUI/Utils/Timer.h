@@ -20,6 +20,8 @@
 #ifndef ESPINA_TIMER_H_
 #define ESPINA_TIMER_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include <Core/Types.h>
 
@@ -29,63 +31,69 @@
 
 namespace ESPINA
 {
-  class Timer
+  class EspinaGUI_EXPORT Timer
   : public QObject
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    static const TimeStamp INVALID_TIME_STAMP;
-    static const TimeStamp INITIAL_TIME_STAMP;
+    public:
+      static const TimeStamp INVALID_TIME_STAMP; /** value for invalid time. */
+      static const TimeStamp INITIAL_TIME_STAMP; /** timer initial value.    */
 
-  public:
-    /** \brief Timer class constructor.
-     *
-     */
-    Timer(TimeStamp time = INITIAL_TIME_STAMP);
+    public:
+      /** \brief Timer class constructor.
+       *
+       */
+      Timer(TimeStamp time = INITIAL_TIME_STAMP);
 
-    /** \brief Timer class virtual destructor.
-     *
-     */
-    virtual ~Timer()
-    {};
+      /** \brief Timer class virtual destructor.
+       *
+       */
+      virtual ~Timer()
+      {};
 
-    /** \brief Returns the current TimeStamp of the timer.
-     *
-     */
-    TimeStamp timeStamp() const
-    { return m_timeStamp; }
+      /** \brief Returns the current TimeStamp of the timer.
+       *
+       */
+      TimeStamp timeStamp() const
+      { return m_timeStamp; }
 
-    /** \brief Resets the timer to the initial TimeStamp.
-     *
-     */
-    TimeStamp reset();
+      /** \brief Resets the timer to the initial TimeStamp.
+       *
+       */
+      TimeStamp reset();
 
-    /** \brief Check if timestamp t is valid or not
-     *
-     */
-    static bool isValid(TimeStamp t);
+      /** \brief Check if timestamp t is valid or not
+       *
+       */
+      static bool isValid(TimeStamp t);
 
-  public slots:
-    /** \brief Increments the timer and handles the overflow.
-     *
-     */
-    TimeStamp increment();
+    public slots:
+      /** \brief Increments the timer and handles the overflow.
+       *
+       */
+      TimeStamp increment();
 
-  signals:
-    void reset(TimeStamp time);
-    void tic(TimeStamp time);
+    signals:
+      void reset(TimeStamp time);
+      void tic(TimeStamp time);
 
-  private:
-    void resetImplemenation();
+    private:
+      /** \brief Resets the timer.
+       *
+       */
+      void resetImplemenation();
 
-    bool willOverflow() const;
+      /** \brief Returns true if the next increment of the timer will overflow it.
+       *
+       */
+      bool willOverflow() const;
 
-    static const TimeStamp MAXIMUM_TIME_STAMP;
+      static const TimeStamp MAXIMUM_TIME_STAMP;
 
-  private:
-    TimeStamp m_timeStamp;
-    QMutex    m_mutex;
+    private:
+      TimeStamp m_timeStamp;
+      QMutex    m_mutex;
   };
 
   using TimerSPtr = std::shared_ptr<Timer>;

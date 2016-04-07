@@ -22,6 +22,8 @@
 #ifndef CORE_UTILS_LOCKER_H_
 #define CORE_UTILS_LOCKER_H_
 
+#include "Core/EspinaCore_Export.h"
+
 // Qt
 #include <QReadWriteLock>
 
@@ -34,7 +36,7 @@ namespace ESPINA
       /** \class Locker
        * \brief Auxiliary class to lock objects for read or read-write access.
        */
-      class Locker
+      class EspinaCore_EXPORT Locker
       {
         public:
           /** \brief Locker class constructor.
@@ -57,7 +59,7 @@ namespace ESPINA
       /** \class ReadLocker
        * \brief Implements a read-only Output::Locker.
        */
-      class ReadLocker
+      class EspinaCore_EXPORT ReadLocker
       : public Locker
       {
         public:
@@ -74,7 +76,7 @@ namespace ESPINA
        * \brief Implements a read-write Output::Locker
        *
        */
-      class WriteLocker
+      class EspinaCore_EXPORT WriteLocker
       : public Locker
       {
         public:

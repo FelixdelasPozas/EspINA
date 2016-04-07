@@ -38,7 +38,7 @@ void Utils::addPadding(vtkSmartPointer< vtkImageData > image, int normal)
 
   for(auto i: {0,1,2})
   {
-    if(i != normal && extent[2*i] == extent[2*i+1])
+    if(i != normal && (extent[2*i] == extent[2*i+1]))
     {
       needsPadding = true;
       ++extent[2*i+1];
@@ -59,16 +59,3 @@ void Utils::addPadding(vtkSmartPointer< vtkImageData > image, int normal)
     image = pad->GetOutput();
   }
 }
-
-// //-----------------------------------------------------------------------------
-// void Utils::repositionActor(vtkImageActor *actor, Nm depth, int normal)
-// {
-//   double pos[3];
-//
-//   actor->GetPosition(pos);
-//
-//   pos[normal] += depth;
-//
-//   actor->SetPosition(pos);
-//   actor->Modified();
-// }

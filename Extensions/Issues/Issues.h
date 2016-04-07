@@ -20,19 +20,23 @@
 #ifndef ESPINA_EXTENSIONS_ISSUES_H
 #define ESPINA_EXTENSIONS_ISSUES_H
 
+#include "Extensions/EspinaExtensions_Export.h"
+
+// Qt
 #include <QString>
 #include <QList>
 
+// C++
 #include <memory>
 
-namespace ESPINA {
-
-  namespace Extensions {
-
+namespace ESPINA
+{
+  namespace Extensions
+  {
     /** \brief Struct that contains issue description
      *
      */
-    class Issue
+    class EspinaExtensions_EXPORT Issue
     {
     public:
       /** \brief Enumeration of issue severity.

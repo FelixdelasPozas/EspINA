@@ -20,7 +20,12 @@
 #ifndef ESPINA_VIEW_UTILS_H
 #define ESPINA_VIEW_UTILS_H
 
+#include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <Core/Utils/Spatial.h>
+
+// VTK
 #include <vtkSmartPointer.h>
 
 class vtkImageData;
@@ -33,10 +38,21 @@ namespace ESPINA
     {
       namespace Utils
       {
-        void addPadding(vtkSmartPointer<vtkImageData> image, int normal);
+        /** \brief Adds a padding border to the given image except on the given dimension.
+         * \param[in] image image data.
+         * \param[in] normal normal of the axis that won't be needing padding.
+         *
+         */
+        void EspinaGUI_EXPORT addPadding(vtkSmartPointer<vtkImageData> image, int normal);
 
+        /** \brief Repositions the given actor depth units in the normal direction.
+         * \param[in] actor actor object.
+         * \param[in] depth distance to reposition.
+         * \param[in] normal normal of the axis of movement.
+         *
+         */
         template<typename T>
-        void repositionActor(T actor, Nm depth, int normal)
+        void EspinaGUI_EXPORT repositionActor(T actor, Nm depth, int normal)
         {
           double pos[3];
 

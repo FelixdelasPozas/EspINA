@@ -21,6 +21,8 @@
 #ifndef ESPINA_VIEW_2D_STATE_H
 #define ESPINA_VIEW_2D_STATE_H
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include "GUI/View/View2D.h"
 
@@ -30,62 +32,78 @@ class vtkProp3D;
 
 namespace ESPINA
 {
-  class View2D::PlanarBehaviour
+  /** \class PlanarBehaviour
+   * \brief Defines the common methods for planar views.
+   *
+   */
+  class EspinaGUI_EXPORT View2D::PlanarBehaviour
   {
-  public:
-    /** \brief State class constructor.
-     *
-     */
-    virtual ~PlanarBehaviour()
-    {}
+    public:
+      /** \brief PlanarBehaviour class constructor.
+       *
+       */
+      virtual ~PlanarBehaviour()
+      {}
 
-    /** \brief Updates the camera of the view.
-     *
-     */
-    virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center) const = 0;
+      /** \brief Updates the camera of the view.
+       *
+       */
+      virtual void updateCamera(vtkCamera       *camera,
+                                const NmVector3 &center) const = 0;
   };
 
-  class View2D::AxialBehaviour
+  /** \class AxialBehaviour
+   * \brief Implements the common methods for axial planar views.
+   *
+   */
+  class EspinaGUI_EXPORT View2D::AxialBehaviour
   : public View2D::PlanarBehaviour
   {
-  public:
-    /** \brief AxialState class constructor.
-     *
-     */
-    explicit AxialBehaviour()
-    {}
+    public:
+      /** \brief AxialBehaviour class constructor.
+       *
+       */
+      explicit AxialBehaviour()
+      {}
 
-    virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center) const;
+      virtual void updateCamera(vtkCamera       *camera,
+                                const NmVector3 &center) const;
   };
 
-  class View2D::SagittalBehaviour
+  /** \class SagittalBehaviour
+   * \brief Implements the common methods for sagittal planar views.
+   *
+   */
+  class EspinaGUI_EXPORT View2D::SagittalBehaviour
   : public View2D::PlanarBehaviour
   {
-  public:
-    /** \brief SagittalState class constructor.
-     *
-     */
-    explicit SagittalBehaviour()
-    {}
+    public:
+      /** \brief SagittalState class constructor.
+       *
+       */
+      explicit SagittalBehaviour()
+      {}
 
-    virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center) const;
+      virtual void updateCamera(vtkCamera       *camera,
+                                const NmVector3 &center) const;
   };
 
-  class View2D::CoronalBehaviour
+  /** \class CoronalBehaviour
+   * \brief Implements the common methods for coronal planar views.
+   *
+   */
+  class EspinaGUI_EXPORT View2D::CoronalBehaviour
   : public View2D::PlanarBehaviour
   {
-  public:
-    /** \brief CoronalState class constructor.
-     *
-     */
-    explicit CoronalBehaviour()
-    {}
+    public:
+      /** \brief CoronalState class constructor.
+       *
+       */
+      explicit CoronalBehaviour()
+      {}
 
-    virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center) const;
+      virtual void updateCamera(vtkCamera       *camera,
+                                const NmVector3 &center) const;
   };
 } // namespace ESPINA
 

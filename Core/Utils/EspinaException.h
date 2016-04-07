@@ -22,6 +22,8 @@
 #ifndef CORE_UTILS_ESPINAEXCEPTION_H_
 #define CORE_UTILS_ESPINAEXCEPTION_H_
 
+#include "Core/EspinaCore_Export.h"
+
 // Qt
 #include <QString>
 
@@ -38,7 +40,7 @@ namespace ESPINA
        * \brief Class for debugging purposes.
        *
        */
-      class EspinaException
+      class EspinaCore_EXPORT EspinaException
       : public std::exception
       {
         public:
