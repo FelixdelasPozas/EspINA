@@ -50,6 +50,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 
+#include "GUI/Model/ViewItemAdapter.h"
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
@@ -425,6 +426,9 @@ void SeedGrowSegmentationTool::createSegmentation()
 
       GUI::DefaultDialogs::InformationMessage(message, title);
     }
+
+    getSelection()->clear();
+    getSelection()->set(toViewItemList(segmentation.get()));
   }
 
   m_executingFilters.remove(filter);

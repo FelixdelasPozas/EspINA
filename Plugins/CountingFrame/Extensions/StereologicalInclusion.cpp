@@ -238,7 +238,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
     excluded = true;
 
     int i = 0;
-    CountingFrameList countingFrames = m_exclusionCFs.keys();
+    auto countingFrames = m_exclusionCFs.keys();
     while (excluded && i < countingFrames.size())
     {
       excluded = excluded && m_exclusionCFs[countingFrames[i]];
@@ -412,7 +412,7 @@ bool StereologicalInclusion::isOnEdge() const
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 {
-  using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
+  using ImageIterator = itk::ImageRegionConstIterator<itkVolumeType>;
 
   auto output = m_extendedItem->output();
 

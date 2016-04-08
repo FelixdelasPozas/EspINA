@@ -346,13 +346,16 @@ void AppositionSurfacePlugin::finishedTask()
     undoStack->push(new AddSegmentations(createdSegmentations[index], usedSamples[index], model));
   }
 
+  m_finishedTasks.clear();
+
   // add relations
   undoStack->push(new AddRelationsCommand(createdRelations, model));
   undoStack->endMacro();
 
   m_context->viewState().invalidateRepresentations(segmentationsToUpdate);
 
-  m_finishedTasks.clear();
+  m_context->viewState().selection()->clear();
+  m_context->viewState().selection()->set(segmentationsToUpdate);
 }
 
 //-----------------------------------------------------------------------------

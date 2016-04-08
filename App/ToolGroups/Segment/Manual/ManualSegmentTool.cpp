@@ -268,12 +268,8 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   undoStack->push(new AddSegmentations(segmentation, samples, m_model));
   undoStack->endMacro();
 
-  SegmentationAdapterList list;
-  list << segmentation.get();
-
-  // TODO: should set clear previous selection?
   getSelection()->clear();
-  getSelection()->set(list);
+  getSelection()->set(toViewItemList(segmentation.get()));
 
   m_referenceItem = segmentation.get();
 }

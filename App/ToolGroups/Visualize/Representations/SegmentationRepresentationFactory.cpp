@@ -69,8 +69,9 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
-    createContourRepresentation   (representation, context);
+    createContourRepresentation(representation, context);
   }
+
   if (supportedViews.testFlag(ESPINA::VIEW_3D))
   {
     createMeshRepresentation(representation, context);

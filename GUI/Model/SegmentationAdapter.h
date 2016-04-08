@@ -27,8 +27,11 @@
 #include <Core/Analysis/Extensible.hxx>
 #include <Core/Analysis/Extensions.h>
 
-class QPixmap;
+// Qt
+#include <QPixmap>
+
 class QIcon;
+
 namespace ESPINA
 {
   /** class SegmentationAdapter.

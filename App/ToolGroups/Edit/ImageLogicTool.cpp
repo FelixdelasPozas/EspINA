@@ -149,11 +149,8 @@ void ImageLogicTool::onTaskFinished()
     undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
     undoStack->endMacro();
 
-    segmentationList.clear();
-    segmentationList << segmentation.get();
-
-    auto selection = getSelection();
-    selection->set(segmentationList);
+    getSelection()->clear();
+    getSelection()->set(toViewItemList(segmentation.get()));
   }
   else
   {

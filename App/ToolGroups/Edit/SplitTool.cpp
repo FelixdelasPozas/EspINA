@@ -305,6 +305,7 @@ void SplitTool::createSegmentations()
 
       deactivateEventHandler();
 
+      getSelection()->clear();
       getSelection()->set(toViewItemList(segmentations[1]));
     }
     else
