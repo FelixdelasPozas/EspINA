@@ -127,6 +127,17 @@ InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
       {
         info[extension->type()] << keyValues(extension->availableInformation());
       }
+      else
+      {
+        // fix for extensions with variable keys like stereological inclusion.
+        for(auto key: extension->availableInformation())
+        {
+          if(!info[extension->type()].contains(key.value()))
+          {
+            info[extension->type()] << key.value();
+          }
+        }
+      }
     }
   }
 
