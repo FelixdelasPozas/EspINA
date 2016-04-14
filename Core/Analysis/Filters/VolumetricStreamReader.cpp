@@ -92,17 +92,14 @@ void VolumetricStreamReader::execute()
     }
   }
 
-  using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-  using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
-
-  QFileInfo mhdFile   = m_fileName;
-  VolumeReader::Pointer reader = VolumeReader::New();
+  auto mhdFile = QFileInfo{m_fileName};
+  auto reader  = itk::ImageFileReader<itkVolumeType>::New();
   reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
   try
   {
     reader->Update();
   }
-  catch(itk::ExceptionObject &e)
+  catch(const itk::ExceptionObject &e)
   {
     auto what    = QObject::tr("Error in itk, exception message: %1").arg(QString(e.what()));
     auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));

@@ -30,8 +30,6 @@
 
 namespace ESPINA
 {
-  template class StreamedVolume<itkVolumeType>;
-
   namespace Core
   {
     /** \class VolumetricStreamReader

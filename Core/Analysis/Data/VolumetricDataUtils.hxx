@@ -404,18 +404,17 @@ namespace ESPINA
       origin[i] *= ratio[i];
     }
 
-    //auto preBlockBounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
     image->SetOrigin(origin);
     image->SetSpacing(spacing);
     image->Update();
-    //auto postBlockBounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
-    //qDebug() << "Update image bounds" << preBlockBounds << "to"<< postBlockBounds;
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   typename T::Pointer extract_image(typename T::Pointer const sourceImage, const typename T::RegionType &region)
   {
+    Q_ASSERT(3 == T::GetImageDimension());
+
     auto sourceRegion = sourceImage->GetLargestPossibleRegion();
     auto componentsNum = sourceImage->GetNumberOfComponentsPerPixel();
 
@@ -524,6 +523,8 @@ namespace ESPINA
   template<typename T>
   void copy_image(typename T::Pointer const source, typename T::Pointer destination, const Bounds &bounds)
   {
+    Q_ASSERT(3 == T::GetImageDimension());
+
     const auto sourcePointer = source->GetBufferPointer();
     const auto sourceLargest = source->GetLargestPossibleRegion();
     const auto sourceRegion  = equivalentRegion<T>(source, bounds);

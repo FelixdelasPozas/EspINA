@@ -36,239 +36,513 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/EspinaException.h>
 
+// VTK
+#include <vtkMath.h>
+
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkImageFileReader.h>
 #include <itkExceptionObject.h>
+#include <itkNumericTraitsVectorPixel.h>
+#include <itkMetaImageIO.h>
+
+// Qt
+#include <QMutex>
 
 namespace ESPINA
 {
-  template class VolumetricData<itk::Image<unsigned char, 3>>;
-
-  /** \class StreamedVolume
-   * \brief Class to stream a volume from disk.
-   *
-   */
-  template<typename T>
-  class StreamedVolume
-  : public VolumetricData<T>
+  namespace Core
   {
-    public:
-      /** \brief StreamedVolume class constructor.
-       *
-       */
-      explicit StreamedVolume();
-
-      /** \brief StreamedVolume class constructor.
-       * \param[in] fileName name of the image file used for streaming.
-       *
-       */
-      explicit StreamedVolume(const QFileInfo& fileName);
-
-      /** \brief StreamedVolume class virtual destructor.
-       *
-       */
-      virtual ~StreamedVolume()
-      {};
-
-      /** \brief Sets the file name of the image file used for streaming.
-       *
-       */
-      void setFileName(const QFileInfo& fileName);
-
-      /** \brief Returns the file name of the image file used for streaming.
-       *
-       */
-      QFileInfo fileName() const
-      { return m_fileName; }
-
-      virtual size_t memoryUsage() const override
-      { return 0; }
-
-      virtual VolumeBounds bounds() const override;
-
-      virtual void setOrigin(const NmVector3& origin) override
-      { m_origin = origin; }
-
-      virtual void setSpacing(const NmVector3& spacing) override
-      { m_spacing = spacing; }
-
-      virtual const typename T::Pointer itkImage() const override;
-
-      virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
-
-      virtual void draw(vtkImplicitFunction*        brush,
-                        const Bounds&               bounds,
-                        const typename T::ValueType value)                   override
-      {}
-
-      virtual void draw(const typename T::Pointer volume)                    override
-      {}
-
-      virtual void draw(const typename T::Pointer volume,
-                        const Bounds&             bounds)                    override
-      {}
-
-      virtual void draw(const typename T::IndexType &index,
-                        const typename T::PixelType  value = SEG_VOXEL_VALUE) override
-      {}
-
-      virtual void draw(const Bounds               &bounds,
-                        const typename T::PixelType value = SEG_VOXEL_VALUE) override
-      {}
-
-      virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                        const typename T::ValueType value = SEG_VOXEL_VALUE) override
-      {}
-
-
-      virtual void resize(const Bounds &bounds) override
-      {}
-
-      virtual bool isValid() const override
-      { return QFileInfo(m_fileName).exists(); }
-
-      virtual bool isEmpty() const override
-      { return !isValid(); }
-
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
-      { return Snapshot(); }
-
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
-      { return Snapshot(); }
-
-      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
-      {}
-
-    protected:
-      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
-      { return false; }
-
-    private:
-      typedef itk::ImageRegionIterator<T> ImageIterator;
-
-      virtual QList<Data::Type> updateDependencies() const override
-      { return QList<Data::Type>(); }
-
-    private:
-      NmVector3 m_origin;
-      NmVector3 m_spacing;
-
-      Bounds  m_bounds;
-      QString m_fileName;
-      QString m_storageFileName;
-  };
-
-  template<typename T> using StreamReaderType  = itk::ImageFileReader<T>;
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  StreamedVolume<T>::StreamedVolume()
-  : m_origin {0, 0, 0}
-  , m_spacing{1, 1, 1}
-  {
-    this->setBackgroundValue(0);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
-  : m_fileName{fileName.absoluteFilePath()}
-  {
-    auto reader = StreamReaderType<T>::New();
-    reader->ReleaseDataFlagOn();
-    reader->SetFileName(m_fileName.toStdString());
-    reader->UpdateOutputInformation();
-
-    typename T::Pointer image = reader->GetOutput();
-
-    for(int i = 0; i < 3; ++i)
+    /** \class StreamedVolume
+     * \brief Wrapper class around itk::Image for read-only data files.
+     *        Components per pixel different from 1 are supported on
+     *        construction with the VLength template parameter.
+     *        Default vector size is 1, equivalent to regular images.
+     *
+     */
+    template<typename T, unsigned int VLength = 1>
+    class StreamedVolume
+    : public VolumetricData<T>
     {
-      m_origin[i]  = image->GetOrigin()[i];
-      m_spacing[i] = image->GetSpacing()[i];
+      public:
+        /** \brief StreamedVolume class constructor.
+         * \param[in] fileName name of the image file used for streaming.
+         *
+         */
+        explicit StreamedVolume(const QFileInfo &fileName);
+
+        /** \brief StreamedVolume class virtual destructor.
+         *
+         */
+        virtual ~StreamedVolume()
+        {};
+
+        /** \brief Returns the file name of the image file used for streaming.
+         *
+         */
+        QFileInfo fileName() const
+        { return m_fileName; }
+
+        virtual size_t memoryUsage() const override
+        { return 0; }
+
+        /** \brief Returns the pixel value vector size.
+         *
+         * NOTE: for itk::VectorImage the PixelType is just VariableLengthVector<type> and
+         *       somehow the vector size is not in the T template parameter.
+         *
+         */
+        unsigned int vectorLength() const
+        { return VLength; }
+
+        virtual VolumeBounds bounds() const override;
+
+        virtual void setOrigin(const NmVector3& origin) override;
+
+        virtual void setSpacing(const NmVector3& spacing) override;
+
+        virtual const typename T::Pointer itkImage() const override;
+
+        virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
+
+        virtual void draw(vtkImplicitFunction*        brush,
+                          const Bounds&               bounds,
+                          const typename T::ValueType value) override;
+
+        virtual void draw(const typename T::Pointer volume) override;
+
+        virtual void draw(const typename T::Pointer volume,
+                          const Bounds&             bounds) override;
+
+        virtual void draw(const typename T::IndexType &index,
+                          const typename T::PixelType  value = SEG_VOXEL_VALUE) override;
+
+        virtual void draw(const Bounds               &bounds,
+                          const typename T::PixelType value = SEG_VOXEL_VALUE) override;
+
+        virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                          const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+        virtual void resize(const Bounds &bounds) override;
+
+        virtual bool isValid() const override
+        { return QFileInfo(m_fileName).exists(); }
+
+        virtual bool isEmpty() const override
+        { return !isValid(); }
+
+        virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+        { return Snapshot(); }
+
+        virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+        { return Snapshot(); }
+
+        virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+        {}
+
+        /** \brief Returns the image corresponding to the given region.
+         * \param[in] region itk region type.
+         *
+         * NOTE: this method is made available specially to operate with images with dimensions != 3.
+         *
+         */
+        virtual const typename T::Pointer read(const typename T::RegionType &region) const;
+
+        /** \brief Writes an image.
+         * \param[in] image itk image smart pointer.
+         *
+         * NOTE: this method is made available specially to operate with images with dimensions != 3.
+         *
+         */
+        virtual void write(const typename T::Pointer &image);
+
+        /** \brief Returns the itk region of the image.
+         *
+         */
+        const typename T::RegionType itkRegion() const;
+
+        /** \brief Returns the itk spacing of the image.
+         *
+         */
+        const typename T::SpacingType itkSpacing() const;
+
+        /** \brief Returns the itk origin of the image.
+         *
+         */
+        const typename T::PointType itkOrigin() const;
+
+      protected:
+        virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
+        { return false; }
+
+      private:
+        virtual QList<Data::Type> updateDependencies() const override
+        { return QList<Data::Type>(); }
+
+      protected:
+        StreamedVolume()
+        {};
+
+        typename T::PointType   m_origin;  /** origin of the image on disk file. Should be {0,0,0} for images created with EspINA. */
+        typename T::SpacingType m_spacing; /** spacing of the image.                                                               */
+        typename T::RegionType  m_region;  /** region index and size. Index can be different from {0,0,0} in EspINA files.         */
+
+        QString        m_fileName; /** file name of the MHD header file on disk. */
+        mutable QMutex m_lock;     /** lock for read/write ordered access.       */
+    };
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    StreamedVolume<T, VLength>::StreamedVolume(const QFileInfo &fileName)
+    : m_fileName{fileName.absoluteFilePath()}
+    {
+      if(!fileName.exists())
+      {
+        auto message = QObject::tr("Invalid file name, doesn't exist.");
+        auto details = QObject::tr("StreamedVolume::constructor() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      auto reader = itk::ImageFileReader<T>::New();
+      reader->ReleaseDataFlagOn();
+      reader->SetFileName(m_fileName.toStdString());
+      reader->UpdateOutputInformation();
+
+      typename T::Pointer image = reader->GetOutput();
+
+      if(image->GetNumberOfComponentsPerPixel() != VLength)
+      {
+        auto message = QObject::tr("Invalid number of components per pixel (vector size).");
+        auto details = QObject::tr("StreamedVolume::constructor() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
+      {
+        // fix ITK rounding error when reading doubles from file(i.e 1.1 will be read as 1.100000024).
+        // and makes comparing spacings wrong, as internally operator== for vector does strict memcmp
+        // comparing, like it should.
+        m_origin.SetElement(i, QString::number(image->GetOrigin().GetElement(i)).toDouble());
+        m_spacing.SetElement(i, QString::number(image->GetSpacing().GetElement(i)).toDouble());
+      }
+      m_region  = image->GetLargestPossibleRegion();
+
+      // region must be updated because all regions in EspINA have an implicit origin of {0,0,0}
+      for(int i = 0; i < T::GetImageDimension(); ++i)
+      {
+        m_region.SetIndex(i, vtkMath::Round(m_origin.GetElement(i)/m_spacing.GetElement(i)));
+      }
+
+      typename T::PixelType pixelType;
+      this->setBackgroundValue(itk::NumericTraits<typename T::PixelType>::ZeroValue(pixelType));
     }
 
-    this->setBackgroundValue(0);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  VolumeBounds StreamedVolume<T>::bounds() const
-  {
-    if (!isValid())
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    inline void StreamedVolume<T, VLength>::resize(const Bounds &bounds)
     {
-      auto what = QObject::tr("Uninitialized StreamedVolume.");
-      auto details = QObject::tr("StreamedVolume::bounds() -> Uninitialized file.");
+      auto message = QObject::tr("Attempt to resize an static volume.");
+      auto details = QObject::tr("StreamedVolume::resize() -> ") + message;
 
-      throw Core::Utils::EspinaException(what, details);
+      throw Core::Utils::EspinaException(message, details);
     }
 
-    auto reader = StreamReaderType<T>::New();
-    reader->ReleaseDataFlagOn();
-    reader->SetFileName(m_fileName.toStdString());
-    reader->UpdateOutputInformation();
-
-    typename T::Pointer image = reader->GetOutput();
-
-    auto bounds = equivalentBounds<T>(m_origin, m_spacing, image->GetLargestPossibleRegion());
-
-    return VolumeBounds(bounds, m_spacing, m_origin);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  const typename T::Pointer StreamedVolume<T>::itkImage() const
-  {
-    if (!isValid())
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T,VLength>::setOrigin(const NmVector3& origin)
     {
-      auto what = QObject::tr("Uninitialized StreamedVolume.");
-      auto details = QObject::tr("StreamedVolume::itkImage() -> Uninitialized file.");
+      auto message = QObject::tr("Attempt to change origin of an static volume.");
+      auto details = QObject::tr("StreamedVolume::setOrigin() -> ") + message;
 
-      throw Core::Utils::EspinaException(what, details);
+      throw Core::Utils::EspinaException(message, details);
     }
 
-    auto reader = StreamReaderType<T>::New();
-    reader->ReleaseDataFlagOn();
-    reader->SetFileName(m_fileName.toStdString());
-    reader->Update();
-
-    typename T::Pointer image = reader->GetOutput();
-    image->DisconnectPipeline();
-
-    image->SetSpacing(ItkSpacing<T>(m_spacing));
-
-    return image;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) const
-  {
-    if (!isValid())
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::setSpacing(const NmVector3& spacing)
     {
-      auto what = QObject::tr("Uninitialized StreamedVolume.");
-      auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> Uninitialized file.");
+      auto message = QObject::tr("Attempt to change spacing of an static volume.");
+      auto details = QObject::tr("StreamedVolume::setSpacing() -> ") + message;
 
-      throw Core::Utils::EspinaException(what, details);
+      throw Core::Utils::EspinaException(message, details);
     }
 
-    auto reader = StreamReaderType<T>::New();
-    reader->ReleaseDataFlagOn();
-    reader->SetFileName(m_fileName.toStdString());
-    reader->SetNumberOfThreads(1);
-    reader->UpdateOutputInformation();
-
-    auto imageRegion = reader->GetOutput()->GetLargestPossibleRegion();
-    auto requestedRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
-
-    if(!imageRegion.IsInside(requestedRegion))
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    VolumeBounds StreamedVolume<T, VLength>::bounds() const
     {
-      requestedRegion.Crop(imageRegion);
-      qWarning() << "StreamedVolume::itkImage(bounds) -> asked for a region partially outside the image region.\n";
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::bounds() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      if(T::GetImageDimension() != 3)
+      {
+        auto message = QObject::tr("Image dimension is not 3.");
+        auto details = QObject::tr("StreamedVolume::bounds() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      NmVector3 origin{m_origin[0], m_origin[1], m_origin[2]};
+      NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
+
+      auto bounds = equivalentBounds<T>(origin, spacing, m_region);
+
+      return VolumeBounds(bounds, spacing, origin);
     }
 
-    return extract_image<T>(reader->GetOutput(), requestedRegion);
-  }
-}
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    const typename T::Pointer StreamedVolume<T, VLength>::itkImage() const
+    {
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::itkImage() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      auto reader = itk::ImageFileReader<T>::New();
+      reader->ReleaseDataFlagOn();
+      reader->SetFileName(m_fileName.toStdString());
+      reader->Update();
+
+      typename T::Pointer image = reader->GetOutput();
+      image->DisconnectPipeline();
+      if(VLength != 1)
+      {
+        image->SetNumberOfComponentsPerPixel(VLength);
+      }
+      image->SetSpacing(m_spacing);
+
+      auto origin = image->GetOrigin();
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
+      {
+        origin.SetElement(i,0);
+      }
+
+      image->SetOrigin(origin);
+      image->SetRegions(m_region);
+
+      return image;
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    const typename T::Pointer StreamedVolume<T, VLength>::itkImage(const Bounds& bounds) const
+    {
+      if(T::GetImageDimension() != 3)
+      {
+        auto message = QObject::tr("Image dimension is not 3.");
+        auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      return read(equivalentRegion<T>(this->bounds().origin(), this->bounds().spacing(), bounds));
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(vtkImplicitFunction*        brush,
+                                          const Bounds&               bounds,
+                                          const typename T::ValueType value)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(brush, bounds, value) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(const typename T::Pointer volume)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(volume) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(const typename T::Pointer volume,
+                                          const Bounds&             bounds)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(volume, bounds) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(const typename T::IndexType &index,
+                                          const typename T::PixelType  value)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(index, value) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(const Bounds               &bounds,
+                                          const typename T::PixelType value)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(bounds, value) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    void StreamedVolume<T, VLength>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                                          const typename T::ValueType value)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::draw(mask, value) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    const typename T::Pointer StreamedVolume<T, VLength>::read(const typename T::RegionType &region) const
+    {
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      if(!m_region.IsInside(region))
+      {
+        //requestedRegion.Crop(m_region);
+        auto message = QObject::tr("Requested region is totally/partially outside the image region.");
+        auto details = QObject::tr("StreamedVolume::read(region) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      // need to correct the region with the equivalent one on disk, just a displacement of origin length.
+      typename T::RegionType requestedRegion = region;
+      for(int i = 0; i < T::GetImageDimension(); ++i)
+      {
+        requestedRegion.SetIndex(i, requestedRegion.GetIndex(i)-m_region.GetIndex(i));
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      auto reader = itk::ImageFileReader<T>::New();
+      reader->ReleaseDataFlagOn();
+      reader->SetFileName(m_fileName.toStdString());
+      reader->SetNumberOfThreads(1);
+      reader->UpdateOutputInformation();
+
+      auto extractor = itk::ExtractImageFilter<T,T>::New();
+      extractor->SetInput(reader->GetOutput());
+      extractor->SetExtractionRegion(requestedRegion);
+      extractor->Update();
+
+      typename T::Pointer image = extractor->GetOutput();
+      image->DisconnectPipeline();
+      if(VLength != 1)
+      {
+        image->SetNumberOfComponentsPerPixel(VLength);
+      }
+      image->SetSpacing(m_spacing);
+
+      auto origin = image->GetOrigin();
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
+      {
+        origin.SetElement(i,0);
+      }
+
+      image->SetOrigin(origin);
+      image->SetRegions(region);
+      image->UpdateOutputInformation();
+
+      return image;
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    inline void StreamedVolume<T, VLength>::write(const typename T::Pointer &image)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume.");
+      auto details = QObject::tr("StreamedVolume<>::write(image) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    inline const typename T::RegionType StreamedVolume<T, VLength>::itkRegion() const
+    {
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::itkRegion() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      return m_region;
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    inline const typename T::SpacingType StreamedVolume<T, VLength>::itkSpacing() const
+    {
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::itkSpacing() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      return m_spacing;
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T, unsigned int VLength>
+    inline const typename T::PointType StreamedVolume<T, VLength>::itkOrigin() const
+    {
+      if (!isValid())
+      {
+        auto message = QObject::tr("Uninitialized StreamedVolume.");
+        auto details = QObject::tr("StreamedVolume::itkOrigin() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      QMutexLocker lock(&m_lock);
+
+      return m_origin;
+    }
+
+  } // namespace Core
+} // namespace ESPINA
 
 #endif // ESPINA_STREAMED_VOLUME_H

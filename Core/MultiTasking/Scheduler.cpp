@@ -426,6 +426,3 @@ void Scheduler::printState(TaskSPtr task) const
   //std::cout << (task->isHidden() ? "hidden " : "");
   std::cout << std::endl;
 }
-
-
-

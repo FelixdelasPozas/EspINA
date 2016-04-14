@@ -37,10 +37,13 @@ int item_adapter_interface(int argc, char** argv)
   : public ViewItemAdapter
   {
   public:
-    virtual QVariant data(int role = Qt::DisplayRole) const{}
-    virtual PersistentSPtr item() const{}
-    virtual bool setData(const QVariant& value, int role){}
-    virtual Type type() const {}
+    virtual QVariant data(int role = Qt::DisplayRole) const{ return QVariant(); }
+    virtual PersistentSPtr item() const{ return PersistentSPtr(); }
+    virtual bool setData(const QVariant& value, int role) { return false; }
+    virtual Type type() const { return Type::SEGMENTATION; }
+    virtual InputSPtr asInput() const { return InputSPtr(); }
+    virtual void changeOutputImplementation(InputSPtr input) {};
+  private:
   };
 
   bool error = false;

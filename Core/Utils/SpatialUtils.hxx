@@ -204,6 +204,23 @@ namespace ESPINA
     return equivalentBounds<T>(image, region);
   }
 
+  /** \brief Return the image region equivalent to the bounds.
+   * \param[in] bounds VolumeBounds object.
+   *
+   * Different images may produce different regions for the same bounds.
+   * Image origin and spacing are key values to obtain the image region
+   * equivalent to a given bounds.
+   *
+   */
+  template<typename T>
+  typename T::RegionType equivalentRegion(const VolumeBounds& bounds)
+  {
+    typename T::Pointer image = define_itkImage<T>(bounds.origin(), bounds.spacing());
+
+    return equivalentRegion<T>(image, bounds);
+  }
+
+
   /** \brief Return the minimum complete bounds for any image of given origin and spacing.
    * \param[in] image itk image smart pointer.
    * \param[in] bounds bounds to translate.
