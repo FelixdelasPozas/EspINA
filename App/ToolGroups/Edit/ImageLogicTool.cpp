@@ -57,7 +57,7 @@ bool ImageLogicTool::acceptsNInputs(int n) const
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmenations(segmentations);
+  return EditTool::acceptsVolumetricSegmentations(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -84,7 +84,7 @@ void ImageLogicTool::applyFilter()
   InputSList inputs;
   for(auto segmentation: segmentations)
   {
-    segmentation->setBeingModified(true);
+    markAsBeingModified(segmentation, true);
     inputs << segmentation->asInput();
   }
 
@@ -156,7 +156,7 @@ void ImageLogicTool::onTaskFinished()
   {
     for(auto item: m_executingTasks[filter].Segmentations)
     {
-      item->setBeingModified(false);
+      markAsBeingModified(item, false);
     }
   }
 

@@ -48,7 +48,7 @@ namespace ESPINA
         virtual void onToolGroupActivated() override;
 
       protected:
-        bool acceptsVolumetricSegmenations(SegmentationAdapterList segmentations);
+        bool acceptsVolumetricSegmentations(SegmentationAdapterList segmentations);
 
         void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
 

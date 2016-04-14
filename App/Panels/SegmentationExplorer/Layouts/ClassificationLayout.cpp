@@ -23,6 +23,7 @@
 #include "ClassificationLayout.h"
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
@@ -356,6 +357,8 @@ void ClassificationLayout::deleteSelectedItems()
       }
     }
 
+    categories << additionalCategories;
+
     if (!segmentations.isEmpty())
     {
       QMessageBox msg;
@@ -367,7 +370,6 @@ void ClassificationLayout::deleteSelectedItems()
 
       msg.exec();
 
-
       if(msg.clickedButton() == onlySeg)
       {
         deleteSegmentations(segmentations.toList());
@@ -378,14 +380,42 @@ void ClassificationLayout::deleteSelectedItems()
         return;
       }
     }
+    else
+    {
+      auto message  = QObject::tr("Do you really want to delete the selected categories?");
+      auto title    = QObject::tr("Delete Selected Items");
+      auto details  = QObject::tr("Selected to be deleted:");
+
+      for(int i = 0; i < categories.size(); ++i)
+      {
+        details.append(QString("\n - %1").arg(categories.at(i)->classificationName()));
+      }
+
+      if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
+      {
+        auto undoStack = getUndoStack();
+        undoStack->beginMacro(tr("Remove Categories"));
+        for(auto category : categories)
+        {
+          auto model = getModel();
+          if (model->classification()->category(category->classificationName()))
+          {
+            undoStack->push(new RemoveCategoryCommand(category, model));
+          }
+        }
+        undoStack->endMacro();
+      }
+      return;
+    }
 
     auto undoStack = getUndoStack();
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
     undoStack->beginMacro(tr("Remove Categories and Segmentations"));
-    deleteSegmentations(segmentations.toList());
-
-    categories << additionalCategories;
+    if(!segmentations.empty())
+    {
+      deleteSegmentations(segmentations.toList());
+    }
 
     for(auto category : categories)
     {
@@ -397,9 +427,25 @@ void ClassificationLayout::deleteSelectedItems()
     }
     undoStack->endMacro();
   }
-  else if (!segmentations.isEmpty())
+  else
   {
-    deleteSegmentations(segmentations.toList());
+    if (!segmentations.isEmpty())
+    {
+      auto toDelete = segmentations.toList();
+      auto message  = QObject::tr("Do you really want to delete the selected segmentations?");
+      auto title    = QObject::tr("Delete Selected Items");
+      auto details  = QObject::tr("Selected to be deleted:");
+
+      for(int i = 0; i < toDelete.size(); ++i)
+      {
+        details.append(QString("\n - %1").arg(toDelete.at(i)->data().toString()));
+      }
+
+      if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
+      {
+        deleteSegmentations(toDelete);
+      }
+    }
   }
 }
 
@@ -409,8 +455,7 @@ void ClassificationLayout::showSelectedItemsInformation()
   CategoryAdapterList    categories;
   SegmentationAdapterSet segmentations;
 
-  if (!selectedItems(categories, segmentations))
-    return;
+  if (!selectedItems(categories, segmentations)) return;
 
   if (!categories.empty())
   {
@@ -526,11 +571,14 @@ void ClassificationLayout::createSubCategory()
 void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmentations,
                                                 CategoryAdapterPtr        category)
 {
-  auto undoStack = getUndoStack();
+  if(!segmentations.empty() && category != nullptr)
+  {
+    auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Change Segmentation's Category"));
-  undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
-  undoStack->endMacro();
+    undoStack->beginMacro(tr("Change Segmentation's Category"));
+    undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
+    undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------

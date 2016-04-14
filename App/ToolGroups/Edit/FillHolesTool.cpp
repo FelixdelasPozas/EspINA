@@ -50,15 +50,13 @@ bool FillHolesTool::acceptsNInputs(int n) const
 //------------------------------------------------------------------------
 bool FillHolesTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return acceptsVolumetricSegmenations(segmentations);
+  return acceptsVolumetricSegmentations(segmentations);
 }
 
 //------------------------------------------------------------------------
 void FillHolesTool::fillHoles()
 {
   auto segmentations = getSelectedSegmentations();
-
-  Q_ASSERT(segmentations.size() > 0);
 
   for (auto segmentation : segmentations)
   {
@@ -112,6 +110,7 @@ void FillHolesTool::onTaskFinished()
     undoStack->endMacro();
 
   }
+
   markAsBeingModified(taskContext.Segmentation, false);
 
   m_executingTasks.remove(filter);

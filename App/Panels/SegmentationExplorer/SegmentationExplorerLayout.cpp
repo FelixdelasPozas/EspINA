@@ -18,18 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "SegmentationExplorerLayout.h"
-#include <Undo/RemoveSegmentations.h>
-
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <Undo/RemoveSegmentations.h>
 
-// #include <Core/Model/Segmentation.h>
-// #include <Core/Extensions/Tags/TagExtension.h>
-// #include <Undo/RemoveSegmentation.h>
+// Qt
 #include <QUndoStack>
 
 using namespace ESPINA;
@@ -109,28 +106,34 @@ SegmentationExplorer::Layout::~Layout()
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
-  auto undoStack = getUndoStack();
+  if(!segmentations.empty())
+  {
+    auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Delete Segmentations"));
-  undoStack->push(new RemoveSegmentations(segmentations, getModel()));
-  undoStack->endMacro();
+    undoStack->beginMacro(tr("Delete Segmentations"));
+    undoStack->push(new RemoveSegmentations(segmentations, getModel()));
+    undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::showSegmentationProperties(SegmentationAdapterList segmentations)
 {
-  auto inspector = m_inspectors.value(toKey(segmentations));
-  if (!inspector)
+  if(!segmentations.empty())
   {
-    inspector = new SegmentationInspector(segmentations, m_delegateFactory, getContext());
+    auto inspector = m_inspectors.value(toKey(segmentations));
+    if (!inspector)
+    {
+      inspector = new SegmentationInspector(segmentations, m_delegateFactory, getContext());
 
-    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-            this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
+      connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+              this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
 
-    m_inspectors.insert(toKey(segmentations), inspector);
+      m_inspectors.insert(toKey(segmentations), inspector);
+    }
+    inspector->show();
+    inspector->raise();
   }
-  inspector->show();
-  inspector->raise();
 }
 
 //------------------------------------------------------------------------

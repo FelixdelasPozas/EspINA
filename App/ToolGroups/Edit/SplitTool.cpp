@@ -330,5 +330,5 @@ bool SplitTool::acceptsNInputs(int n) const
 //------------------------------------------------------------------------
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmenations(segmentations);
+  return EditTool::acceptsVolumetricSegmentations(segmentations);
 }

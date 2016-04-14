@@ -126,10 +126,10 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 
       DefaultDialogs::ErrorMessage(message, title, e.details());
 
-      setProgress(100);
-
       emit sessionSaved(filename, false);
     }
+
+    setProgress(100);
 
     setIcon(current);
   }

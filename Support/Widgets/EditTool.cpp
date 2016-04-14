@@ -50,7 +50,7 @@ EditTool::~EditTool()
 }
 
 //------------------------------------------------------------------------
-bool EditTool::acceptsVolumetricSegmenations(SegmentationAdapterList segmentations)
+bool EditTool::acceptsVolumetricSegmentations(SegmentationAdapterList segmentations)
 {
   bool hasRequiredData = true;
 

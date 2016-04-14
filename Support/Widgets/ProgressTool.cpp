@@ -309,13 +309,16 @@ const QString ProgressTool::id() const
 //----------------------------------------------------------------------------
 void ProgressTool::setShortcut(QKeySequence keySequence)
 {
-  m_shortcutSequence = keySequence;
+  if(!m_shortcutSequences.contains(keySequence))
+  {
+    m_shortcutSequences << keySequence;
+  }
 }
 
 //----------------------------------------------------------------------------
-QKeySequence ProgressTool::shortcut() const
+QList<QKeySequence> ProgressTool::shortcuts() const
 {
-  return m_shortcutSequence;
+  return m_shortcutSequences;
 }
 
 //----------------------------------------------------------------------------

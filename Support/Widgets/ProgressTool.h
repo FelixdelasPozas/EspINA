@@ -143,15 +143,15 @@ namespace ESPINA
 
         virtual void abortOperation() {}
 
-        /** \brief Sets the key sequence used for the activation of this tool.
+        /** \brief Adds the key sequence to the list used for the activation of this tool.
          * \param[in] keySequence QKeySequence object.
          */
         void setShortcut(QKeySequence keySequence);
 
-        /** \brief Returns the key sequence used for the activation of this tool.
+        /** \brief Returns list of the key sequences used for the activation of this tool.
          *
          */
-        QKeySequence shortcut() const;
+        QList<QKeySequence> shortcuts() const;
 
         void onExclusiveToolInUse(ProgressTool *tool);
 
@@ -225,7 +225,7 @@ namespace ESPINA
         QString m_groupName;
 
         const QString m_id;
-        QKeySequence m_shortcutSequence;
+        QList<QKeySequence> m_shortcutSequences;
 
         EventHandlerSPtr m_handler;
 

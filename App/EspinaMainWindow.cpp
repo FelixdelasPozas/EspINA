@@ -566,9 +566,13 @@ void EspinaMainWindow::onAutoSave(const QString& file)
 
   m_sessionToolGroup->setChecked(true);
 
+  QApplication::processEvents();
+
   m_saveAsTool->saveAnalysis(file);
 
   currentToolGroup->setChecked(true);
+
+  QApplication::processEvents();
 }
 
 //------------------------------------------------------------------------
@@ -1084,21 +1088,24 @@ void EspinaMainWindow::createToolShortcuts()
 
   for (auto tool : availableTools())
   {
-    auto sequence = tool->shortcut();
-    if(!sequence.isEmpty())
+    auto list = tool->shortcuts();
+    for(auto sequence: list)
     {
-      if(!alreadyUsed.contains(sequence))
+      if(!sequence.isEmpty())
       {
-        auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
+        if(!alreadyUsed.contains(sequence))
+        {
+          auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
 
-        m_toolShortcuts << shortcut;
+          m_toolShortcuts << shortcut;
 
-        connect(shortcut,   SIGNAL(activated()),
-                tool.get(), SLOT(trigger()));
-      }
-      else
-      {
-        qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
+          connect(shortcut,   SIGNAL(activated()),
+                  tool.get(), SLOT(trigger()));
+        }
+        else
+        {
+          qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
+        }
       }
     }
   }
