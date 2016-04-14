@@ -85,18 +85,12 @@ namespace ESPINA
         /** \brief Returns the list of selected channels.
          *
          */
-        ChannelAdapterList channels() const
-        {
-          return m_channels;
-        }
+        ChannelAdapterList channels() const;
 
         /** \brief Returns the list of selected segmentations.
          *
          */
-        SegmentationAdapterList segmentations() const
-        {
-          return m_segmentations;
-        }
+        SegmentationAdapterList segmentations() const;
 
         /** \brief Returns the list of selected items.
          *
@@ -146,13 +140,35 @@ namespace ESPINA
          */
         SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 
+        /** \brief Helper method to set the given list of items as selected.
+         * \param[in] list list of view items raw pointers.
+         *
+         */
+        void setItems(ViewItemAdapterList items);
+
+        /** \brief Helper method to signal the selection state change when the selected
+         * channels list is modified.
+         * \param[in] channels list of channels or empty.
+         *
+         */
         void onChannelsModified(ChannelAdapterList channels);
 
+        /** \brief Helper method to signal the selection state change when the selected
+         * segmentations list is modified.
+         * \param[in] segmentations list of segmentations or empty.
+         *
+         */
         void onSegmentationsModified(SegmentationAdapterList segmentations);
+
+        /** \brief Helper method that implements items() method without mutex.
+         *
+         */
+        ViewItemAdapterList items_implementation() const;
 
         ChannelAdapterList      m_channels;
         SegmentationAdapterList m_segmentations;
         ChannelAdapterPtr       m_activeChannel;
+        mutable QMutex          m_mutex;
       };
 
       using SelectionSPtr = std::shared_ptr<Selection>;
