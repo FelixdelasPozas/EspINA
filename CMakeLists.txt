@@ -9,6 +9,7 @@ project (ESPINA)
 add_definitions(
   -std=c++11
   -fpermissive
+  -rdynamic
   )
 
 find_package(QuaZip REQUIRED)

@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "EspinaMainWindow.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QApplication>
@@ -28,6 +29,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 int main(int argc, char **argv)
 {
@@ -49,6 +51,9 @@ int main(int argc, char **argv)
       pluginsDir.cdUp();
     }
   #endif
+
+  installExceptionHandler();
+  installSignalHandler();
 
   pluginsDir.cd("plugins");
 

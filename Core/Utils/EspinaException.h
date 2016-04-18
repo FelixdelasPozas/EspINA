@@ -29,6 +29,9 @@
 
 // C++
 #include <exception>
+#include <signal.h>
+
+class QTextStream;
 
 namespace ESPINA
 {
@@ -56,18 +59,38 @@ namespace ESPINA
            */
           virtual ~EspinaException();
 
-          virtual const char *what() const noexcept override final;
+          virtual const char* what() const noexcept override final;
 
           /** \brief Returns the additional information about the exception context, if any.
            *
            */
-          const QString& details() const;
+          virtual const char* details() const;
 
         private:
-          const QString m_what; /** standard 'what' message. */
-          const QString m_info; /** more detailed information about the exception context for debug purposes */
+          std::string m_what; /** standard 'what' message. */
+          std::string m_info; /** more detailed information about the exception context for debug purposes */
       };
-    
+
+      /** \brief Installs the signal handler and reserves the memory for an
+       *         alternate stack for tracing.
+       *
+       */
+      void EspinaCore_EXPORT installSignalHandler();
+
+      /** \brief Installs the handler for unmanaged exceptions.
+       *
+       */
+      void EspinaCore_EXPORT installExceptionHandler();
+
+      /** \brief Helper function to trace the stack and print method names.
+       * \param[in] stream text stream where the stack info will be written.
+       *
+       */
+      void EspinaCore_EXPORT backtrace_stack_print(QTextStream &stream);
+
+      extern const int STACK_SIZE;
+      extern uint8_t alternate_stack[];
+
     } // namespace Utils
   } // namespace Core
 } // namespace ESPINA
