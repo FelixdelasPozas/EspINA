@@ -32,6 +32,7 @@
 #include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Dialogs/ImageResolutionDialog.h>
 
 // VTK
 #include <vtkMath.h>
@@ -184,6 +185,14 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 //-----------------------------------------------------------------------------
 void RenderView::takeSnapshot()
 {
+  ImageResolutionDialog imgResDialog(this,renderWindow()->GetSize()[0],renderWindow()->GetSize()[1]);
+
+  if(imgResDialog.exec() == QDialog::Rejected)
+  {
+    return;
+  }
+  int magnification = imgResDialog.getMagnifcation();
+
   auto title      = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
   auto formats    = SupportedFormats(tr("PNG Image"),  "png")
@@ -206,7 +215,7 @@ void RenderView::takeSnapshot()
 
       auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
       image->SetInput(renderWindow());
-      image->SetMagnification(4096.0/renderWindow()->GetSize()[0]+0.5);
+      image->SetMagnification(magnification);
       image->Update();
 
       renderWindow()->SetOffScreenRendering(offScreenRender);
