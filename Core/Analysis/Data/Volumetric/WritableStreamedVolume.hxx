@@ -170,7 +170,7 @@ namespace ESPINA
         typename T::PixelType value = it.Get();
         if(!file.seek(position))
         {
-          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. Filename: %3").arg(position).arg(file.size()).arg(fileName);
+          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(fileName);
           auto details = QObject::tr("FileWriter<T,N>::write(fileName, image) -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -178,7 +178,7 @@ namespace ESPINA
 
         if(dataSize != file.write(reinterpret_cast<const char *>(value.GetDataPointer()), dataSize))
         {
-          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. Filename: %3").arg(position).arg(file.size()).arg(fileName);
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(fileName);
           auto details = QObject::tr("FileWriter<T,N>::write(fileName, image) -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -244,7 +244,7 @@ namespace ESPINA
         auto value = it.Get();
         if(!file.seek(position))
         {
-          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. Filename: %3").arg(position).arg(file.size()).arg(fileName);
+          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(fileName);
           auto details = QObject::tr("FileWriter<T,1>::write(fileName, image) -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -252,7 +252,7 @@ namespace ESPINA
 
         if(dataSize != file.write(reinterpret_cast<const char *>(&value), dataSize))
         {
-          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. Filename: %3").arg(position).arg(file.size()).arg(fileName);
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(fileName);
           auto details = QObject::tr("FileWriter<T,1>::write(fileName, image) -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -303,7 +303,7 @@ namespace ESPINA
 
         if(image->GetNumberOfComponentsPerPixel() != VLength)
         {
-          auto message = QObject::tr("Invalid number of components per pixel (vector size).");
+          auto message = QObject::tr("Invalid number of components per pixel (vector size). File: %1").arg(this->m_fileName);
           auto details = QObject::tr("WritableStreamedVolume::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -320,7 +320,7 @@ namespace ESPINA
 
         if(this->m_spacing == typename T::SpacingType())
         {
-          auto message = QObject::tr("Invalid parameters: emtpy spacing.");
+          auto message = QObject::tr("Invalid parameters: emtpy spacing. File: %1").arg(this->m_fileName);
           auto details = QObject::tr("WritableStreamingVolume<> -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -328,7 +328,7 @@ namespace ESPINA
 
         if(this->m_region == typename T::RegionType())
         {
-          auto message = QObject::tr("Invalid parameters: empty region.");
+          auto message = QObject::tr("Invalid parameters: empty region. File: %1").arg(this->m_fileName);
           auto details = QObject::tr("WritableStreamingVolume<> -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -439,7 +439,7 @@ namespace ESPINA
       // use of NmVector3 limits to 3 dimensions.
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3.");
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
         auto details = QObject::tr("WritableStreamedVolume::setOrigin() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -492,7 +492,7 @@ namespace ESPINA
       // use of NmVector3 limits to 3 dimensions.
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3.");
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
         auto details = QObject::tr("WritableStreamedVolume::setSpacing() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -545,7 +545,7 @@ namespace ESPINA
 
       if(!this->m_region.IsInside(volumeRegion))
       {
-        auto message = QObject::tr("Image region partially or completely outside of the large image region.");
+        auto message = QObject::tr("Image region partially or completely outside of the large image region. File: %1").arg(this->m_fileName);
         auto details = QObject::tr("StreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -584,7 +584,7 @@ namespace ESPINA
       if(!this->m_region.IsInside(volumeRegion))
       {
         volumeRegion.Crop(this->m_region);
-        qWarning() << "StreamedVolume::draw(volume) -> asked for a region partially outside the image region.\n";
+        qWarning() << "StreamedVolume::draw(volume) -> Region partially outside the image region.\n";
 
         drawVolume = extract_image<T>(volume, volumeRegion);
       }
@@ -605,7 +605,7 @@ namespace ESPINA
       if(!this->m_region.IsInside(volumeRegion))
       {
         volumeRegion.Crop(this->m_region);
-        qWarning() << "StreamedVolume::draw(volume, bounds) -> asked for a region partially outside the image region.\n";
+        qWarning() << "StreamedVolume::draw(volume, bounds) -> Region partially outside the image region.\n";
 
         drawVolume = extract_image<T>(volume, volumeRegion);
       }
@@ -625,7 +625,7 @@ namespace ESPINA
       if(!this->m_region.IsInside(volumeRegion))
       {
         volumeRegion.Crop(this->m_region);
-        qWarning() << "StreamedVolume::draw(bounds, pixelValue) -> asked for a region partially outside the image region.\n";
+        qWarning() << "StreamedVolume::draw(bounds, pixelValue) -> Region partially outside the image region.\n";
       }
 
       auto volume  = T::New();
@@ -674,7 +674,7 @@ namespace ESPINA
       // use of bounds limited to 3 dimensions
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3.");
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
         auto details = QObject::tr("WritableStreamedVolume::draw(implicit, bounds, value) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -708,7 +708,7 @@ namespace ESPINA
       // use of bounds and binary mask limited to 3 dimensions
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3.");
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
         auto details = QObject::tr("WritableStreamedVolume::draw(mask, value) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);

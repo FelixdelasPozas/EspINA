@@ -30,6 +30,7 @@
 #include <thread>
 #include <iostream>
 #include <vector>
+#include <atomic>
 
 using namespace std;
 using namespace ESPINA;
@@ -37,7 +38,7 @@ using namespace ESPINA::Testing;
 
 int output_concurrent_write_data( int argc, char** argv )
 {
-  bool error = false;
+  std::atomic<bool> error{false};
 
   DummyFilter filter;
 
@@ -47,7 +48,8 @@ int output_concurrent_write_data( int argc, char** argv )
 
   output.setData(data);
 
-  if (!output.isValid()) {
+  if (!output.isValid())
+  {
     cerr << "Output is not initialized with a valid filter and a valid output" << endl;
     error = true;
   }
@@ -55,16 +57,16 @@ int output_concurrent_write_data( int argc, char** argv )
   vector<thread> threads;
 
   threads.push_back(thread([&error, &output, data](){
+    cout << "Write task started and asks for data..." << endl;
     auto writeData = output.writeLockData<Data>(data->type());
 
-    cout << "Write Task started" << endl;
-
+    cout << "Write task holds data, reads and waits..." << endl;
     if (writeData->bounds().spacing() != data->spacing()) {
       cerr << "Unxpected output data spacing" << endl;
       error = true;
     }
 
-    usleep(1000);
+    usleep(10000);
 
     writeData->setSpacing({2, 2, 2});
 
@@ -72,28 +74,35 @@ int output_concurrent_write_data( int argc, char** argv )
       cerr << "Unxpected output data spacing " << writeData->bounds().spacing() << endl;
       error = true;
     }
+
+    cout << "Write task finishes and releases data" << endl;
   }));
 
-  usleep(100);
+  usleep(100); // give time to write task to hold data.
 
-  threads.push_back(thread([&error, &output, data](){
+  for(int i = 0; i < 5; ++i)
+  {
+  threads.push_back(thread([&error, &output, data, i](){
+    cout << "Read thread " << i << " started and waits..." << endl;
+    usleep(i * 1000);
+    cout << "Read thread " << i << " asks for data..." << endl;
     auto readData = output.readLockData<Data>(data->type());
 
-    cout << "Read Task started" << endl;
+    cout << "Read task " << i << " has data and reads..." << endl;
 
     if (readData->bounds().spacing() != NmVector3{2, 2, 2}) {
       cerr << "Unxpected output data spacing " << readData->bounds().spacing() << endl;
       error = true;
     }
 
-    cout << "Read Task finished" << endl;
+    cout << "Read task " << i << " finishes" << endl;
   }));
-
-
-  for(auto& thread : threads){
-    thread.join();
   }
 
+  for(auto& thread : threads)
+  {
+    thread.join();
+  }
 
   return error;
 }

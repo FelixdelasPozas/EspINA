@@ -30,6 +30,7 @@
 #include <thread>
 #include <iostream>
 #include <vector>
+#include <atomic>
 
 using namespace std;
 using namespace ESPINA;
@@ -37,7 +38,7 @@ using namespace ESPINA::Testing;
 
 int output_concurrent_read_data( int argc, char** argv )
 {
-  bool error = false;
+  std::atomic<bool> error{false};
 
   DummyFilter filter;
 
@@ -47,44 +48,47 @@ int output_concurrent_read_data( int argc, char** argv )
 
   output.setData(data);
 
-  if (!output.isValid()) {
+  if (!output.isValid())
+  {
     cerr << "Output is not initialized with a valid filter and a valid output" << endl;
     error = true;
   }
 
   vector<thread> threads;
-  int numTasks         = 2;
-  int numFinishedTasks = 0;
+  int numTasks = 5;
+  std::atomic<int> numFinishedTasks{0};
 
   for(int i = 0; i < numTasks; ++i)
   {
-    threads.push_back(thread([&error, &output, &numFinishedTasks, data, i](){
+    threads.push_back(thread([&error, &output, &numFinishedTasks, data, i]()
+    {
+      cerr << "task " << i << " asks for data..." << endl;
       auto readData = output.readLockData<Data>(data->type());
+      cerr << "task " << i << " has data and waits..." << endl;
+      usleep(i*1000);
 
-      if (readData->bounds() != data->bounds()) {
+      cerr << "task " << i << " reads data..." << endl;
+      if (readData->bounds() != data->bounds())
+      {
         cerr << "Unxpected output data bounds" << endl;
         error = true;
       }
 
-      if (i == 0)
-      {
-        usleep(1000);
-        numFinishedTasks++;
-      }
-      else if (numFinishedTasks == 1)
-      {
-        cerr << "Unxpected finalization order" << endl;
-        error = true;
-      }
-
-      cout << "Task " << i << " finished" << endl;
+      cout << "task " << i << " finishes" << endl;
+      numFinishedTasks += 1;
     }));
   }
 
-  for(auto& thread : threads){
+  for(auto& thread : threads)
+  {
     thread.join();
   }
 
+  if(numFinishedTasks != 5)
+  {
+    cerr << "unfinished tasks...";
+    error = true;
+  }
 
   return error;
 }
