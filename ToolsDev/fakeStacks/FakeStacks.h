@@ -75,7 +75,7 @@ class FakeStacks
      * \param[in] fileInfo formatInfo.ini contents.
      *
      */
-    bool isVersion6file(const QByteArray &fileInfo);
+    bool isVersion5or6file(const QByteArray &fileInfo);
 
     /** \brief Parses and returns the spacing on the data.
      * \param[in] data spacing numbers separated by commas.

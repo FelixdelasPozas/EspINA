@@ -138,7 +138,7 @@ void FakeStacks::startGeneration()
 
     try
     {
-      if(!isVersion6file(ZipUtils::readFileFromZip(VERSION_FILE, sourceZip)))
+      if(!isVersion5or6file(ZipUtils::readFileFromZip(VERSION_FILE, sourceZip)))
       {
         writeError(tr("ERROR: file '%1' is not SEG file version 6.").arg(file.fileName()));
         continue;
@@ -187,9 +187,9 @@ void FakeStacks::startGeneration()
 }
 
 //----------------------------------------------------------------------
-bool FakeStacks::isVersion6file(const QByteArray &fileInfo)
+bool FakeStacks::isVersion5or6file(const QByteArray &fileInfo)
 {
-  return fileInfo.contains("SegFile Version=6");
+  return fileInfo.contains("SegFile Version=5") || fileInfo.contains("SegFile Version=6");
 }
 
 //----------------------------------------------------------------------
