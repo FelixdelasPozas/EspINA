@@ -54,13 +54,10 @@ namespace ESPINA
   namespace Core
   {
     /** \class StreamedVolume
-     * \brief Wrapper class around itk::Image for read-only data files.
-     *        Components per pixel different from 1 are supported on
-     *        construction with the VLength template parameter.
-     *        Default vector size is 1, equivalent to regular images.
+     * \brief Wrapper class around itk::Image for read-only large data files.
      *
      */
-    template<typename T, unsigned int VLength = 1>
+    template<typename T>
     class StreamedVolume
     : public VolumetricData<T>
     {
@@ -93,7 +90,7 @@ namespace ESPINA
          *
          */
         unsigned int vectorLength() const
-        { return VLength; }
+        { return m_vectorLength; }
 
         virtual VolumeBounds bounds() const override;
 
@@ -126,7 +123,7 @@ namespace ESPINA
         virtual void resize(const Bounds &bounds) override;
 
         virtual bool isValid() const override
-        { return QFileInfo(m_fileName).exists(); }
+        { return QFileInfo(m_fileName).exists() && (m_vectorLength != 0); }
 
         virtual bool isEmpty() const override
         { return !isValid(); }
@@ -181,19 +178,21 @@ namespace ESPINA
 
       protected:
         StreamedVolume()
+        : m_vectorLength{0}
         {};
 
-        typename T::PointType   m_origin;  /** origin of the image on disk file. Should be {0,0,0} for images created with EspINA. */
-        typename T::SpacingType m_spacing; /** spacing of the image.                                                               */
-        typename T::RegionType  m_region;  /** region index and size. Index can be different from {0,0,0} in EspINA files.         */
+        typename T::PointType   m_origin;       /** origin of the image on disk file. Should be {0,0,0} for images created with EspINA. */
+        typename T::SpacingType m_spacing;      /** spacing of the image.                                                               */
+        typename T::RegionType  m_region;       /** region index and size. Index can be different from {0,0,0} in EspINA files.         */
+        unsigned int            m_vectorLength; /** length (or number of components per pixel) of the pixel value vector.               */
 
         QString        m_fileName; /** file name of the MHD header file on disk. */
         mutable QMutex m_lock;     /** lock for read/write ordered access.       */
     };
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    StreamedVolume<T, VLength>::StreamedVolume(const QFileInfo &fileName)
+    template<typename T>
+    StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
     : m_fileName{fileName.absoluteFilePath()}
     {
       if(!fileName.exists())
@@ -211,9 +210,10 @@ namespace ESPINA
 
       typename T::Pointer image = reader->GetOutput();
 
-      if(image->GetNumberOfComponentsPerPixel() != VLength)
+      m_vectorLength = image->GetNumberOfComponentsPerPixel();
+      if(m_vectorLength == 0)
       {
-        auto message = QObject::tr("Invalid number of components per pixel (vector size). File: %1").arg(m_fileName);
+        auto message = QObject::tr("Invalid pixel value vector size.");
         auto details = QObject::tr("StreamedVolume::constructor() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -240,8 +240,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    inline void StreamedVolume<T, VLength>::resize(const Bounds &bounds)
+    template<typename T>
+    inline void StreamedVolume<T>::resize(const Bounds &bounds)
     {
       auto message = QObject::tr("Attempt to resize an static volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume::resize() -> ") + message;
@@ -250,8 +250,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T,VLength>::setOrigin(const NmVector3& origin)
+    template<typename T>
+    void StreamedVolume<T>::setOrigin(const NmVector3& origin)
     {
       auto message = QObject::tr("Attempt to change origin of an static volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume::setOrigin() -> ") + message;
@@ -260,8 +260,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::setSpacing(const NmVector3& spacing)
+    template<typename T>
+    void StreamedVolume<T>::setSpacing(const NmVector3& spacing)
     {
       auto message = QObject::tr("Attempt to change spacing of an static volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume::setSpacing() -> ") + message;
@@ -270,8 +270,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    VolumeBounds StreamedVolume<T, VLength>::bounds() const
+    template<typename T>
+    VolumeBounds StreamedVolume<T>::bounds() const
     {
       if (!isValid())
       {
@@ -300,8 +300,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    const typename T::Pointer StreamedVolume<T, VLength>::itkImage() const
+    template<typename T>
+    const typename T::Pointer StreamedVolume<T>::itkImage() const
     {
       if (!isValid())
       {
@@ -320,10 +320,7 @@ namespace ESPINA
 
       typename T::Pointer image = reader->GetOutput();
       image->DisconnectPipeline();
-      if(VLength != 1)
-      {
-        image->SetNumberOfComponentsPerPixel(VLength);
-      }
+      image->SetNumberOfComponentsPerPixel(m_vectorLength);
       image->SetSpacing(m_spacing);
 
       auto origin = image->GetOrigin();
@@ -339,8 +336,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    const typename T::Pointer StreamedVolume<T, VLength>::itkImage(const Bounds& bounds) const
+    template<typename T>
+    const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) const
     {
       if(T::GetImageDimension() != 3)
       {
@@ -354,10 +351,10 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(vtkImplicitFunction*        brush,
-                                          const Bounds&               bounds,
-                                          const typename T::ValueType value)
+    template<typename T>
+    void StreamedVolume<T>::draw(vtkImplicitFunction*        brush,
+                                 const Bounds&               bounds,
+                                 const typename T::ValueType value)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(brush, bounds, value) -> ") + message;
@@ -366,8 +363,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(const typename T::Pointer volume)
+    template<typename T>
+    void StreamedVolume<T>::draw(const typename T::Pointer volume)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(volume) -> ") + message;
@@ -376,9 +373,9 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(const typename T::Pointer volume,
-                                          const Bounds&             bounds)
+    template<typename T>
+    void StreamedVolume<T>::draw(const typename T::Pointer volume,
+                                 const Bounds&             bounds)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(volume, bounds) -> ") + message;
@@ -387,9 +384,9 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(const typename T::IndexType &index,
-                                          const typename T::PixelType  value)
+    template<typename T>
+    void StreamedVolume<T>::draw(const typename T::IndexType &index,
+                                 const typename T::PixelType  value)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(index, value) -> ") + message;
@@ -398,9 +395,9 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(const Bounds               &bounds,
-                                          const typename T::PixelType value)
+    template<typename T>
+    void StreamedVolume<T>::draw(const Bounds               &bounds,
+                                 const typename T::PixelType value)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(bounds, value) -> ") + message;
@@ -409,9 +406,9 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    void StreamedVolume<T, VLength>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                                          const typename T::ValueType value)
+    template<typename T>
+    void StreamedVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                                 const typename T::ValueType value)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::draw(mask, value) -> ") + message;
@@ -420,8 +417,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    const typename T::Pointer StreamedVolume<T, VLength>::read(const typename T::RegionType &region) const
+    template<typename T>
+    const typename T::Pointer StreamedVolume<T>::read(const typename T::RegionType &region) const
     {
       if (!isValid())
       {
@@ -462,10 +459,7 @@ namespace ESPINA
 
       typename T::Pointer image = extractor->GetOutput();
       image->DisconnectPipeline();
-      if(VLength != 1)
-      {
-        image->SetNumberOfComponentsPerPixel(VLength);
-      }
+      image->SetNumberOfComponentsPerPixel(m_vectorLength);
       image->SetSpacing(m_spacing);
 
       auto origin = image->GetOrigin();
@@ -482,8 +476,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    inline void StreamedVolume<T, VLength>::write(const typename T::Pointer &image)
+    template<typename T>
+    inline void StreamedVolume<T>::write(const typename T::Pointer &image)
     {
       auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
       auto details = QObject::tr("StreamedVolume<>::write(image) -> ") + message;
@@ -492,8 +486,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    inline const typename T::RegionType StreamedVolume<T, VLength>::itkRegion() const
+    template<typename T>
+    inline const typename T::RegionType StreamedVolume<T>::itkRegion() const
     {
       if (!isValid())
       {
@@ -509,8 +503,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    inline const typename T::SpacingType StreamedVolume<T, VLength>::itkSpacing() const
+    template<typename T>
+    inline const typename T::SpacingType StreamedVolume<T>::itkSpacing() const
     {
       if (!isValid())
       {
@@ -526,8 +520,8 @@ namespace ESPINA
     }
 
     //-----------------------------------------------------------------------------
-    template<typename T, unsigned int VLength>
-    inline const typename T::PointType StreamedVolume<T, VLength>::itkOrigin() const
+    template<typename T>
+    inline const typename T::PointType StreamedVolume<T>::itkOrigin() const
     {
       if (!isValid())
       {

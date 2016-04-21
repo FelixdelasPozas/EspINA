@@ -67,7 +67,7 @@ int streamedVolume_writeread( int argc, char** argv )
     region.SetIndex(index);
     region.SetSize(size);
 
-    auto creator = std::make_shared<WritableStreamedVolume<RealVectorImageType, 3>>(filename, region, spacing);
+    auto creator = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(filename, region, spacing, 3);
 
     auto bounds  = creator->bounds();
     for(int i = vtkMath::Round((bounds.bounds()[4]+(spacing[2]/2))/spacing[2]); i < vtkMath::Round((bounds.bounds()[5]+(spacing[2]/2))/spacing[2]); ++i)
@@ -124,7 +124,7 @@ int streamedVolume_writeread( int argc, char** argv )
   {
     info.refresh(); // else returns false on exists(), why? catching is enabled...
 
-    auto file = std::make_shared<StreamedVolume<RealVectorImageType, 3>>(info);
+    auto file = std::make_shared<StreamedVolume<RealVectorImageType>>(info);
 
     auto bounds  = file->bounds();
     auto spacing = file->bounds().spacing();
@@ -185,6 +185,157 @@ int streamedVolume_writeread( int argc, char** argv )
 
   QFile::remove(info.absoluteFilePath());
   auto filename2 = dir.absoluteFilePath("test.raw");
+  QFile::remove(filename2);
+
+  try
+  {
+    using RealImageType = itk::Image<double, 3>;
+
+    RealImageType::SpacingType spacing;
+    spacing[0] = 1.1;
+    spacing[1] = 2.2;
+    spacing[2] = 3.3;
+
+    RealImageType::IndexType index;
+    index[0] = 0;
+    index[1] = 1;
+    index[2] = 2;
+
+    RealImageType::SizeType size;
+    size[0] = 100;
+    size[1] = 100;
+    size[2] = 100;
+
+    RealImageType::RegionType region;
+    region.SetIndex(index);
+    region.SetSize(size);
+
+    auto creator = std::make_shared<WritableStreamedVolume<RealImageType>>(filename, region, spacing);
+
+    auto bounds  = creator->bounds();
+    for(int i = vtkMath::Round((bounds.bounds()[4]+(spacing[2]/2))/spacing[2]); i < vtkMath::Round((bounds.bounds()[5]+(spacing[2]/2))/spacing[2]); ++i)
+    {
+      auto sliceBounds = bounds.bounds();
+      sliceBounds[4] = sliceBounds[5] = i*spacing[2];
+
+      auto sliceImage = creator->itkImage(sliceBounds);
+      {
+        auto region = sliceImage->GetLargestPossibleRegion();
+        auto pixel = sliceImage->GetPixel(region.GetIndex());
+        if(creator->vectorLength() != 1)
+        {
+          std::cout << "invalid image vector size " << creator->vectorLength() << ". line " << __LINE__ << std::endl;
+          error = EXIT_FAILURE;
+          break;
+        }
+
+        if(pixel != 0.0)
+        {
+          std::cout << "invalid pixel value after creation " << pixel << "should be 0. line " << __LINE__ << std::endl;
+          error = EXIT_FAILURE;
+          break;
+        }
+      }
+
+      itk::ImageRegionIterator<RealImageType> it(sliceImage, sliceImage->GetLargestPossibleRegion());
+      it.GoToBegin();
+
+      while(!it.IsAtEnd())
+      {
+        RealImageType::ValueType value = 0;
+        auto index = it.GetIndex();
+
+        for(unsigned int j = 0; j < RealImageType::GetImageDimension(); ++j)
+        {
+          value += index.GetElement(j);
+        }
+
+        it.Set(value);
+        ++it;
+      }
+
+      creator->draw(sliceImage);
+    }
+  }
+  catch(const EspinaException &excp)
+  {
+    qDebug() << "exception:" << excp.what();
+    qDebug() << "details:" << excp.details();
+    error = EXIT_FAILURE;
+  }
+  catch(const itk::ExceptionObject &excp)
+  {
+    qDebug() << "exception:" << QString(excp.what());
+    qDebug() << "details:" << QString(excp.GetDescription());
+    qDebug() << "file:" << QString(excp.GetFile());
+    qDebug() << "location:" << QString(excp.GetLocation());
+    error = EXIT_FAILURE;
+  }
+
+  try
+  {
+    info.refresh(); // else returns false on exists(), why? catching is enabled...
+
+    using RealImageType = itk::Image<double, 3>;
+
+    auto file = std::make_shared<StreamedVolume<RealImageType>>(info);
+
+    auto bounds  = file->bounds();
+    auto spacing = file->bounds().spacing();
+
+    for(int i = vtkMath::Round((bounds.bounds()[4]+(spacing[2]/2))/spacing[2]); i < vtkMath::Round((bounds.bounds()[5]+(spacing[2]/2))/spacing[2]); ++i)
+    {
+      auto sliceBounds = bounds.bounds();
+      sliceBounds[4] = sliceBounds[5] = i*spacing[2];
+
+      auto sliceImage = file->itkImage(sliceBounds);
+
+      if(file->vectorLength() != 1)
+      {
+        std::cout << "invalid image vector size " << file->vectorLength() << ". line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+        return error;
+      }
+
+      itk::ImageRegionIterator<RealImageType> it(sliceImage, sliceImage->GetLargestPossibleRegion());
+      it.GoToBegin();
+
+      while(!it.IsAtEnd())
+      {
+        RealImageType::ValueType test = 0;
+        auto index = it.GetIndex();
+        for(unsigned int j = 0; j < RealImageType::GetImageDimension(); ++j)
+        {
+          test += index.GetElement(j);
+        }
+
+        if(it.Get() != test)
+        {
+          std::cout << "invalid non vector value [" << it.Get() << "] != [" << test << "]" << std::endl;
+          error = EXIT_FAILURE;
+          return error;
+        }
+
+        ++it;
+      }
+    }
+  }
+  catch(const EspinaException &excp)
+  {
+    qDebug() << "exception:" << excp.what();
+    qDebug() << "details:" << excp.details();
+    error = EXIT_FAILURE;
+  }
+  catch(const itk::ExceptionObject &excp)
+  {
+    qDebug() << "exception:" << QString(excp.what());
+    qDebug() << "details:" << QString(excp.GetDescription());
+    qDebug() << "file:" << QString(excp.GetFile());
+    qDebug() << "location:" << QString(excp.GetLocation());
+    error = EXIT_FAILURE;
+  }
+
+  QFile::remove(info.absoluteFilePath());
   QFile::remove(filename2);
 
   std::cout << "exit value: " << error << std::endl;

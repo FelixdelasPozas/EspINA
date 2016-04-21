@@ -21,7 +21,6 @@
 
 // EspINA
 #include <Core/Utils/SpatialUtils.hxx>
-#include "Core/Analysis/Data/Volumetric/StreamedVolume.hxx"
 #include "Core/Analysis/Data/Volumetric/WritableStreamedVolume.hxx"
 
 // ITK
@@ -185,7 +184,7 @@ int streamedVolume_constructors( int argc, char** argv )
 
     try
     {
-      auto file_W = std::make_shared<WritableStreamedVolume<itkVolumeType_2, 2>>(filename, region, spacing);
+      auto file_W = std::make_shared<WritableStreamedVectorVolume<itkVolumeType_2>>(filename, region, spacing, 2);
 
       if(region != file_W->itkRegion())
       {
@@ -211,7 +210,7 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      auto file_R = std::make_shared<StreamedVolume<itkVolumeType_2, 2>>(filename);
+      auto file_R = std::make_shared<StreamedVolume<itkVolumeType_2>>(filename);
 
       if(region != file_R->itkRegion())
       {
@@ -255,6 +254,7 @@ int streamedVolume_constructors( int argc, char** argv )
     }
   }
 
+  // --- itk::image float dims=3 size=3
   using RealVectorImageType = itk::VectorImage<float, 3>;
   {
     QFile::remove(filename);
@@ -282,29 +282,55 @@ int streamedVolume_constructors( int argc, char** argv )
 
     try
     {
-      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType,3>>(filename, region, spacing);
+      auto file_W = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(filename, region, spacing, 3);
 
-      if(NmVector3{1.1,2.2,3.3} != file->bounds().spacing())
+      if(NmVector3{1.1,2.2,3.3} != file_W->bounds().spacing())
       {
         std::cout << "write constructor -> invalid spacing. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
 
-      if(region != equivalentRegion<RealVectorImageType>(file->bounds().origin(), file->bounds().spacing(), file->bounds().bounds()))
+      if(region != equivalentRegion<RealVectorImageType>(file_W->bounds().origin(), file_W->bounds().spacing(), file_W->bounds().bounds()))
       {
         std::cout << "write constructor -> invalid region. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
 
-      if(NmVector3{0,2.2, 6.6} != file->bounds().origin())
+      if(NmVector3{0,2.2, 6.6} != file_W->bounds().origin())
       {
         std::cout << "write constructor -> invalid origin. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
 
-      if(3 != file->vectorLength())
+      if(3 != file_W->vectorLength())
       {
         std::cout << "write constructor -> invalid vector size. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      auto file_R = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(filename, region, spacing, 3);
+
+      if(NmVector3{1.1,2.2,3.3} != file_R->bounds().spacing())
+      {
+        std::cout << "read constructor -> invalid spacing. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if(region != equivalentRegion<RealVectorImageType>(file_R->bounds().origin(), file_R->bounds().spacing(), file_R->bounds().bounds()))
+      {
+        std::cout << "read constructor -> invalid region. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if(NmVector3{0,2.2, 6.6} != file_R->bounds().origin())
+      {
+        std::cout << "read constructor -> invalid origin. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if(3 != file_R->vectorLength())
+      {
+        std::cout << "read constructor -> invalid vector size. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
     }
@@ -329,6 +355,44 @@ int streamedVolume_constructors( int argc, char** argv )
   {
     try
     {
+      auto file = std::make_shared<StreamedVolume<RealVectorImageType>>(QFileInfo{"idontexists.mhd"});
+      std::cout << "read constructor -> should throw exception. line " << __LINE__ << std::endl;
+      error = EXIT_FAILURE;
+    }
+    catch(...)
+    {
+      // an exception should be thrown because the file doesn't exist.
+    }
+
+    try
+    {
+      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType>>(QFileInfo{"idontexists.mhd"}, RealVectorImageType::RegionType(), RealVectorImageType::SpacingType());
+      std::cout << "Write constructor -> should throw exception. line " << __LINE__ << std::endl;
+      error = EXIT_FAILURE;
+    }
+    catch(...)
+    {
+      // an exception should be thrown because the parameters are invalid
+    }
+
+    try
+    {
+      auto file = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(QFileInfo{"idontexists.mhd"}, RealVectorImageType::RegionType(), RealVectorImageType::SpacingType());
+      std::cout << "Vector write constructor -> should throw exception. line " << __LINE__ << std::endl;
+      error = EXIT_FAILURE;
+    }
+    catch(...)
+    {
+      // an exception should be thrown because the parameters are invalid
+    }
+
+    try
+    {
+      RealVectorImageType::SpacingType spacing;
+      spacing[0] = 1.1;
+      spacing[1] = 2.2;
+      spacing[2] = 3.3;
+
       RealVectorImageType::SizeType size;
       size[0] = 1;
       size[1] = 1;
@@ -343,45 +407,17 @@ int streamedVolume_constructors( int argc, char** argv )
       region.SetIndex(index);
       region.SetSize(size);
 
-      auto file = std::make_shared<StreamedVolume<RealVectorImageType,2>>(filename);
-      std::cout << "read constructor -> should throw exception. line " << __LINE__ << std::endl;
+      auto file = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(QFileInfo{"shouldfail.mhd"}, region, spacing, 0);
+      std::cout << "Vector write constructor -> should throw exception. line " << __LINE__ << std::endl;
       error = EXIT_FAILURE;
     }
     catch(...)
     {
-      // an exception should be thrown because the file already exists but vector size is incorrect.
+      // an exception should be thrown because the parameters are invalid
     }
+  }
 
-    try
-    {
-      RealVectorImageType::SpacingType spacing;
-      spacing[0] = 1;
-      spacing[1] = 2;
-      spacing[2] = 3;
-
-      RealVectorImageType::IndexType index;
-      index[0] = 0;
-      index[1] = 1;
-      index[2] = 2;
-
-      RealVectorImageType::SizeType size;
-      size[0] = 100;
-      size[1] = 100;
-      size[2] = 10;
-
-      RealVectorImageType::RegionType region;
-      region.SetIndex(index);
-      region.SetSize(size);
-
-      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType,2>>(filename, region, spacing);
-      std::cout << "write constructor -> should throw exception. line " << __LINE__ << std::endl;
-      error = EXIT_FAILURE;
-    }
-    catch(...)
-    {
-      // an exception should be thrown because the file already exists but the vector size is incorrect.
-    }
-
+  {
     QFile::remove(filename);
     auto filename2 = dir.absoluteFilePath("test.raw");
     QFile::remove(filename2);
@@ -407,7 +443,7 @@ int streamedVolume_constructors( int argc, char** argv )
       region.SetIndex(index);
       region.SetSize(size);
 
-      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType,3>>(filename, RealVectorImageType::RegionType(), spacing);
+      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType>>(filename, RealVectorImageType::RegionType(), spacing);
       std::cout << "write constructor -> should throw exception. line " << __LINE__ << std::endl;
       error = EXIT_FAILURE;
     }
@@ -437,7 +473,7 @@ int streamedVolume_constructors( int argc, char** argv )
       region.SetIndex(index);
       region.SetSize(size);
 
-      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType,3>>(filename, region, RealVectorImageType::SpacingType());
+      auto file = std::make_shared<WritableStreamedVolume<RealVectorImageType>>(filename, region, RealVectorImageType::SpacingType());
       std::cout << "write constructor -> should throw exception. line " << __LINE__ << std::endl;
       error = EXIT_FAILURE;
     }
@@ -446,6 +482,10 @@ int streamedVolume_constructors( int argc, char** argv )
       // an exception should be thrown because invalid spacing
     }
   }
+
+  QFile::remove(filename);
+  auto filename2 = dir.absoluteFilePath("test.raw");
+  QFile::remove(filename2);
 
   std::cout << "exit value: " << error << std::endl;
 

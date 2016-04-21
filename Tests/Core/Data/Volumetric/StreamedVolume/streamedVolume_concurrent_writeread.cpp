@@ -36,7 +36,7 @@ template<typename T, unsigned int n>
 class TestThread: public QThread
 {
   public:
-    TestThread(std::shared_ptr<WritableStreamedVolume<T, n>> &data, int id, QMutex &mutex)
+    TestThread(std::shared_ptr<WritableStreamedVectorVolume<T>> &data, int id, QMutex &mutex)
     : m_data(data)
     , m_id{id}
     , m_mutex(mutex)
@@ -82,7 +82,7 @@ class TestThread: public QThread
     }
 
   private:
-    std::shared_ptr<WritableStreamedVolume<T, n>> &m_data;
+    std::shared_ptr<WritableStreamedVectorVolume<T>> &m_data;
     int m_id;
     QMutex &m_mutex;
 };
@@ -125,7 +125,7 @@ int streamedVolume_concurrent_writeread( int argc, char** argv )
     region.SetIndex(index);
     region.SetSize(size);
 
-    auto creator = std::make_shared<WritableStreamedVolume<RealVectorImageType, 3>>(filename, region, spacing);
+    auto creator = std::make_shared<WritableStreamedVectorVolume<RealVectorImageType>>(filename, region, spacing, 3);
 
     QMutex mutex1, mutex2, mutex3;
     auto thread1 = std::make_shared<TestThread<RealVectorImageType, 3>>(creator, 1, mutex1);
@@ -147,7 +147,7 @@ int streamedVolume_concurrent_writeread( int argc, char** argv )
     mutex2.unlock();
     mutex1.unlock();
 
-    auto reader = std::make_shared<StreamedVolume<RealVectorImageType, 3>>(QFileInfo{filename});
+    auto reader = std::make_shared<StreamedVolume<RealVectorImageType>>(QFileInfo{filename});
 
     auto otherRegion = reader->itkRegion();
     auto dimension = RealVectorImageType::GetImageDimension();
@@ -179,10 +179,7 @@ int streamedVolume_concurrent_writeread( int argc, char** argv )
 
         ++it;
       }
-
     }
-
-
   }
   catch(const EspinaException &excp)
   {
