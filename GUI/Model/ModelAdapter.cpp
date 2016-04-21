@@ -997,6 +997,14 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 {
   auto command = [this, segmentation, category]()
   {
+    if(segmentation->data().toString().compare(categoricalName(segmentation), Qt::CaseSensitive) == 0)
+    {
+      auto name = QString("%1 %2").arg(category ? category->name() : "Unknown Category")
+                                  .arg(segmentation->number());
+
+      segmentation->setData(name, Qt::EditRole);
+    }
+
     segmentation->setCategory(category);
   };
 

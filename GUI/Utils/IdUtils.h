@@ -55,7 +55,9 @@ namespace ESPINA
     for (auto listItem : list)
     {
       if (listItem != item)
+      {
         alreadyUsed |= item->id() == id;
+      }
     }
 
     if (alreadyUsed)

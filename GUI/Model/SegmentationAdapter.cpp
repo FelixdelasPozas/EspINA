@@ -26,6 +26,7 @@
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Issues/Issues.h>
 #include <Extensions/Issues/SegmentationIssues.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QPixmap>
@@ -33,6 +34,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
@@ -109,8 +111,7 @@ QVariant SegmentationAdapter::data(int role) const
 
       if (value.isEmpty())
       {
-        value = QString("%1 %2").arg(m_category?m_category->name():"Unknown Category")
-                                .arg(m_segmentation->number());
+        value = categoricalName(const_cast<SegmentationAdapterPtr>(this));
 
         m_segmentation->setName(value);
         m_segmentation->setAlias(value);
