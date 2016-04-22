@@ -173,7 +173,7 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
-    out << "WHEN:" << date.toString() << " " << time.toString() << "\n";
+    out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
   }
@@ -220,8 +220,8 @@ void exceptionHandler()
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
-    out << "WHEN:" << date.toString() << " " << time.toString() << "\n";
-    out << "EXCEPTION MESSAGE" << message << "\n";
+    out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
+    out << "EXCEPTION MESSAGE: " << message << "\n";
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
   }
