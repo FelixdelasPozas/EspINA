@@ -191,15 +191,33 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 void RenderView::takeSnapshot()
 {
   auto render_window = renderWindow();
-//  auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
-//  image->SetInput(render_window);
-//  image->SetMagnification(1);
-//  image->Update();
-//
-//  QPixmap pix = new QPixmap();
+  auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  imageFilter->SetInput(render_window);
+  imageFilter->SetMagnification(1);
+  imageFilter->Update();
+  auto vtkImageData = imageFilter->GetOutput();
 
+  // Image conversion: vtkImageData => QImage
+  int widthVID = vtkImageData->GetDimensions()[0];
+  int heightVID = vtkImageData->GetDimensions()[1];
+  QImage qImage(widthVID, heightVID, QImage::Format_RGB32);
+  QRgb* rgbPtr = reinterpret_cast<QRgb*>(qImage.bits())
+      + widthVID * (heightVID - 1);
+  unsigned char* colorsPtr =
+      reinterpret_cast<unsigned char*>(vtkImageData->GetScalarPointer());
+  for (int row = 0; row < heightVID; ++row)
+  {
+    for (int col = 0; col < widthVID; ++col)
+    {
+      *(rgbPtr++) = QColor(colorsPtr[0], colorsPtr[1], colorsPtr[2]).rgb();
+      colorsPtr += 3;
+    }
+    rgbPtr -= widthVID * 2;
+  }
+
+  // Dialog open
   ImageResolutionDialog imgResDialog(this, render_window->GetSize()[0],
-      render_window->GetSize()[1]);
+      render_window->GetSize()[1], qImage);
 
   if (imgResDialog.exec() == QDialog::Rejected)
     return;

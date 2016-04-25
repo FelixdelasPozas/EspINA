@@ -50,20 +50,13 @@ ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
 
 //-----------------------------------------------------------------------------
 ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
-    int height, QPixmap& image)
-    : ImageResolutionDialog
-    { parent, width, height }
-{
-  m_image_label->setPixmap(image);
-}
-
-//-----------------------------------------------------------------------------
-ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
     int height, QImage& image)
     : ImageResolutionDialog
     { parent, width, height }
 {
-  m_image_label->setPixmap(QPixmap::fromImage(image));
+  auto thumb = image.scaled(m_image_label->maximumSize(), Qt::KeepAspectRatio,
+      Qt::SmoothTransformation);
+  m_image_label->setPixmap(QPixmap::fromImage(thumb));
 }
 
 //-----------------------------------------------------------------------------
