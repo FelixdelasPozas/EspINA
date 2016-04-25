@@ -32,28 +32,40 @@
 namespace ESPINA
 {
 
-class EspinaGUI_EXPORT ImageResolutionDialog: public QDialog,
-		private Ui::ImageResolutionDialog
-{
-Q_OBJECT
+  class EspinaGUI_EXPORT ImageResolutionDialog: public QDialog,
+      private Ui::ImageResolutionDialog
+  {
+    Q_OBJECT
 
-public:
-	ImageResolutionDialog(QWidget *parent, int width, int height);
-	virtual ~ImageResolutionDialog(){};
-	int getMagnifcation();
+    public:
 
-private slots:
-	void heightChanged(int value);
-	void widthChanged(int value);
+      /** \brief ImageResolutionDialog class constructor.
+       * \param[in] parent, Parent widget.
+       * \param[in] width, image width.
+       * \param[in] height, image height.
+       */
+      ImageResolutionDialog(QWidget *parent, int width, int height);
 
-private:
-	double m_ratio;
-	int m_height, m_width;
-	void updateHeight();
-	void updateWidth();
-	void connectSignals();
-	void disconnectSignals();
-};
+      /** \brief ImageResolutionDialog class destructor.
+       */
+      virtual ~ImageResolutionDialog()
+      {
+      }
+      ;
+
+      /** \brief Return magnification based on expected size.
+       */
+      int getMagnifcation();
+
+    private slots:
+      void onHeightChanged(int value);
+      void onWidthChanged(int value);
+
+    private:
+      double m_ratio;
+      int m_initialHeight, m_initialWidth;
+      int m_height, m_width;
+  };
 }
 
 #endif // ESPINA_CATEGORY_SELECTOR_DIALOG_H

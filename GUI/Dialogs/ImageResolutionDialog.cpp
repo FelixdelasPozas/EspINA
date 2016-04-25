@@ -26,64 +26,48 @@
 #include <QSpinBox>
 #include <QDebug>
 
-ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent,
-		int width, int height)
+//-----------------------------------------------------------------------------
+ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
+    int height)
 {
-	setupUi(this);
+  setupUi(this);
 
-	m_width = width;
-	m_height = height;
-	m_ratio = float(width)/height;
-	width_spinBox->setValue(width);
-	height_spinBox->setValue(height);
-	connectSignals();
+  m_width = width;
+  m_height = height;
+  m_initialWidth = width;
+  m_initialHeight = height;
+  m_ratio = float(width) / height;
+  m_width_spinBox->setValue(width);
+  m_height_spinBox->setValue(height);
+
+  connect(m_width_spinBox, SIGNAL(valueChanged(int)), this,
+      SLOT(onWidthChanged(int)));
+  connect(m_height_spinBox, SIGNAL(valueChanged(int)), this,
+      SLOT(onHeightChanged(int)));
 }
 
+//-----------------------------------------------------------------------------
 int ESPINA::ImageResolutionDialog::getMagnifcation()
 {
-	return 4096.0/m_width+0.5;
+  return 4096.0 / m_width + 0.5;
 }
 
-void ESPINA::ImageResolutionDialog::heightChanged(int value)
+//-----------------------------------------------------------------------------
+void ESPINA::ImageResolutionDialog::onHeightChanged(int value)
 {
-	disconnectSignals();
-	m_height = value; //height_spinBox->value();
-	updateWidth();
-	connectSignals();
+  m_height = value; //m_height_spinBox->value();
+  m_width = m_height * m_ratio;
+  m_width_spinBox->blockSignals(true);
+  m_width_spinBox->setValue(m_width);
+  m_width_spinBox->blockSignals(false);
 }
 
-void ESPINA::ImageResolutionDialog::widthChanged(int value)
+//-----------------------------------------------------------------------------
+void ESPINA::ImageResolutionDialog::onWidthChanged(int value)
 {
-	disconnectSignals();
-	m_width = value; //weight_spinBox->value();
-	updateHeight();
-	connectSignals();
-}
-
-void ESPINA::ImageResolutionDialog::updateHeight()
-{
-	m_height = m_width / m_ratio;
-	height_spinBox->setValue(m_height);
-}
-
-void ESPINA::ImageResolutionDialog::updateWidth()
-{
-	m_width = m_height * m_ratio;
-	width_spinBox->setValue(m_width);
-}
-
-void ESPINA::ImageResolutionDialog::connectSignals()
-{
-	connect(width_spinBox, SIGNAL(valueChanged(int)), this,
-			SLOT(widthChanged(int)));
-	connect(height_spinBox, SIGNAL(valueChanged(int)), this,
-			SLOT(heightChanged(int)));
-}
-
-void ESPINA::ImageResolutionDialog::disconnectSignals()
-{
-	disconnect(width_spinBox, SIGNAL(valueChanged(int)), this,
-			SLOT(widthChanged(int)));
-	disconnect(height_spinBox, SIGNAL(valueChanged(int)), this,
-			SLOT(heightChanged(int)));
+  m_width = value; //m_weight_spinBox->value();
+  m_height = m_width / m_ratio;
+  m_height_spinBox->blockSignals(true);
+  m_height_spinBox->setValue(m_height);
+  m_height_spinBox->blockSignals(false);
 }

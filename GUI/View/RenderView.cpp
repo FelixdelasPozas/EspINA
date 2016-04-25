@@ -191,7 +191,7 @@ void RenderView::takeSnapshot()
   {
     return;
   }
-  int magnification = imgResDialog.getMagnifcation();
+  auto magnification = imgResDialog.getMagnifcation();
 
   auto title      = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
