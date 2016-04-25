@@ -53,18 +53,42 @@ namespace ESPINA
       }
       ;
 
+      /** \brief Return the ratio of the image.
+       */
+      const double getRatio() const;
+
+      /** \brief Return the initial height of the image.
+       */
+      const int getInitialHeight() const;
+
+      /** \brief Return the initial width of the image.
+       */
+      const int getInitialWidth() const;
+
+      /** \brief Return the height of the image.
+       */
+      int getHeight() const;
+
+      /** \brief Return the width of the image.
+       */
+      int getWidth() const;
+
       /** \brief Return magnification based on expected size.
        */
-      int getMagnifcation();
+      int getMagnifcation() const;
 
     private slots:
+
       void onHeightChanged(int value);
       void onWidthChanged(int value);
 
     private:
-      double m_ratio;
-      int m_initialHeight, m_initialWidth;
-      int m_height, m_width;
+
+      const double m_ratio; /** height/width ratio */
+      const int m_initialHeight; /** initial height */
+      const int m_initialWidth; /** initial width */
+      int m_height; /** height */
+      int m_width; /** width */
   };
 }
 

@@ -29,14 +29,16 @@
 //-----------------------------------------------------------------------------
 ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
     int height)
+    : QDialog
+    { parent }, m_ratio
+    { float(width) / height }, m_initialHeight
+    { height }, m_initialWidth
+    { width }, m_height
+    { height }, m_width
+    { width }
 {
   setupUi(this);
 
-  m_width = width;
-  m_height = height;
-  m_initialWidth = width;
-  m_initialHeight = height;
-  m_ratio = float(width) / height;
   m_width_spinBox->setValue(width);
   m_height_spinBox->setValue(height);
 
@@ -47,15 +49,15 @@ ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
 }
 
 //-----------------------------------------------------------------------------
-int ESPINA::ImageResolutionDialog::getMagnifcation()
+int ESPINA::ImageResolutionDialog::getMagnifcation() const
 {
-  return 4096.0 / m_width + 0.5;
+  return m_width / m_initialWidth + 0.5;
 }
 
 //-----------------------------------------------------------------------------
 void ESPINA::ImageResolutionDialog::onHeightChanged(int value)
 {
-  m_height = value; //m_height_spinBox->value();
+  m_height = value;
   m_width = m_height * m_ratio;
   m_width_spinBox->blockSignals(true);
   m_width_spinBox->setValue(m_width);
@@ -65,9 +67,39 @@ void ESPINA::ImageResolutionDialog::onHeightChanged(int value)
 //-----------------------------------------------------------------------------
 void ESPINA::ImageResolutionDialog::onWidthChanged(int value)
 {
-  m_width = value; //m_weight_spinBox->value();
+  m_width = value;
   m_height = m_width / m_ratio;
   m_height_spinBox->blockSignals(true);
   m_height_spinBox->setValue(m_height);
   m_height_spinBox->blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+const double ESPINA::ImageResolutionDialog::getRatio() const
+{
+  return m_ratio;
+}
+
+//-----------------------------------------------------------------------------
+const int ESPINA::ImageResolutionDialog::getInitialHeight() const
+{
+  return m_initialHeight;
+}
+
+//-----------------------------------------------------------------------------
+const int ESPINA::ImageResolutionDialog::getInitialWidth() const
+{
+  return m_initialWidth;
+}
+
+//-----------------------------------------------------------------------------
+int ESPINA::ImageResolutionDialog::getHeight() const
+{
+  return m_height;
+}
+
+//-----------------------------------------------------------------------------
+int ESPINA::ImageResolutionDialog::getWidth() const
+{
+  return m_width;
 }
