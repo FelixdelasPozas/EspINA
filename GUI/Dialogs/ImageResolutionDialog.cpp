@@ -49,6 +49,24 @@ ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
 }
 
 //-----------------------------------------------------------------------------
+ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
+    int height, QPixmap& image)
+    : ImageResolutionDialog
+    { parent, width, height }
+{
+  m_image_label->setPixmap(image);
+}
+
+//-----------------------------------------------------------------------------
+ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
+    int height, QImage& image)
+    : ImageResolutionDialog
+    { parent, width, height }
+{
+  m_image_label->setPixmap(QPixmap::fromImage(image));
+}
+
+//-----------------------------------------------------------------------------
 int ESPINA::ImageResolutionDialog::getMagnifcation() const
 {
   return m_width / m_initialWidth + 0.5;

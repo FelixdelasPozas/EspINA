@@ -39,12 +39,28 @@ namespace ESPINA
 
     public:
 
-      /** \brief ImageResolutionDialog class constructor.
-       * \param[in] parent, Parent widget.
-       * \param[in] width, image width.
-       * \param[in] height, image height.
-       */
-      ImageResolutionDialog(QWidget *parent, int width, int height);
+    /** \brief ImageResolutionDialog class constructor.
+     * \param[in] parent, Parent widget.
+     * \param[in] width, image width.
+     * \param[in] height, image height.
+     */
+    ImageResolutionDialog(QWidget *parent, int width, int height);
+
+    /** \brief ImageResolutionDialog class constructor.
+     * \param[in] parent, Parent widget.
+     * \param[in] width, image width.
+     * \param[in] height, image height.
+     * \param[in] image, image to show.
+     */
+    ImageResolutionDialog(QWidget *parent, int width, int height, QPixmap& image);
+
+    /** \brief ImageResolutionDialog class constructor.
+     * \param[in] parent, Parent widget.
+     * \param[in] width, image width.
+     * \param[in] height, image height.
+     * \param[in] image, image to show.
+     */
+    ImageResolutionDialog(QWidget *parent, int width, int height, QImage& image);
 
       /** \brief ImageResolutionDialog class destructor.
        */
