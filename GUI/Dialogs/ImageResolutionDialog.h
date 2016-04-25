@@ -82,6 +82,14 @@ namespace ESPINA
        */
       int getWidth() const;
 
+      /** \brief Return the initial size of the image.
+       */
+      const QSize getInitialSize() const;
+
+      /** \brief Return the size of the image.
+       */
+      QSize getSize() const;
+
       /** \brief Return magnification based on expected size.
        */
       int getMagnifcation() const;

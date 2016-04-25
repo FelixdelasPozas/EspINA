@@ -188,16 +188,8 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::takeSnapshot()
+QImage RenderView::vtkImageDataToQImage(vtkImageData* vtkImageData) const
 {
-  auto render_window = renderWindow();
-  auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
-  imageFilter->SetInput(render_window);
-  imageFilter->SetMagnification(1);
-  imageFilter->Update();
-  auto vtkImageData = imageFilter->GetOutput();
-
-  // Image conversion: vtkImageData => QImage
   int widthVID = vtkImageData->GetDimensions()[0];
   int heightVID = vtkImageData->GetDimensions()[1];
   QImage qImage(widthVID, heightVID, QImage::Format_RGB32);
@@ -214,19 +206,39 @@ void RenderView::takeSnapshot()
     }
     rgbPtr -= widthVID * 2;
   }
+  return qImage;
+}
 
-  // Dialog open
+//-----------------------------------------------------------------------------
+void RenderView::takeSnapshot()
+{
+  auto render_window = renderWindow();
+  auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  imageFilter->SetInput(render_window);
+  imageFilter->SetMagnification(1);
+  imageFilter->Update();
+  auto vtkImageData = imageFilter->GetOutput();
+  auto qImage = vtkImageDataToQImage(vtkImageData);
+
   ImageResolutionDialog imgResDialog(this, render_window->GetSize()[0],
       render_window->GetSize()[1], qImage);
 
   if (imgResDialog.exec() == QDialog::Rejected)
     return;
-  auto magnification = imgResDialog.getMagnifcation();
+
+  auto outputMagnification = imgResDialog.getMagnifcation();
+  auto outputSize = imgResDialog.getSize();
 
   auto title = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
-  auto formats = SupportedFormats(tr("PNG Image"), "png").addFormat(
-      tr("JPEG Image"), "jpg");
+  auto formats = SupportedFormats();
+  formats.addFormat(tr("BMP Image"), "bmp");
+  formats.addFormat(tr("JPG Image"), "jpg");
+  formats.addFormat(tr("JPEG Image"), "jpeg");
+  formats.addFormat(tr("PNG Image"), "png");
+  formats.addFormat(tr("PPM Image"), "ppm");
+  formats.addFormat(tr("XBM Image"), "xbm");
+  formats.addFormat(tr("XPM Image"), "xpm");
   auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(),
       ".png", suggestion, this);
 
@@ -236,7 +248,8 @@ void RenderView::takeSnapshot()
     QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
 
     QStringList validFileExtensions;
-    validFileExtensions << "JPG" << "PNG";
+    validFileExtensions << "BMP" << "JPG" << "JPEG" << "PNG" << "PPM" << "XBM"
+        << "XPM";
 
     if (validFileExtensions.contains(extension))
     {
@@ -246,42 +259,20 @@ void RenderView::takeSnapshot()
 
       auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
       image->SetInput(render_window);
-      image->SetMagnification(magnification);
+      image->SetMagnification(outputMagnification);
       image->Update();
 
       render_window->SetOffScreenRendering(offScreenRender);
 
-      if (QString("PNG") == extension)
-      {
-        auto writer = vtkSmartPointer<vtkPNGWriter>::New();
-        writer->SetFileDimensionality(2);
-        writer->SetFileName(fileName.toUtf8());
-        writer->SetInputConnection(image->GetOutputPort());
-        {
-          WaitingCursor cursor;
-          writer->Write();
-        }
-      }
+      auto outputImage = vtkImageDataToQImage(image->GetOutput()).scaled(outputSize,
+          Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-      if (QString("JPG") == extension)
-      {
-        auto writer = vtkSmartPointer<vtkJPEGWriter>::New();
-        writer->SetQuality(100);
-        writer->ProgressiveOff();
-        writer->WriteToMemoryOff();
-        writer->SetFileDimensionality(2);
-        writer->SetFileName(fileName.toUtf8());
-        writer->SetInputConnection(image->GetOutputPort());
-        {
-          WaitingCursor cursor;
-          writer->Write();
-        }
-      }
+      auto saved = outputImage.save(fileName, extension.toUtf8(), 100);
 
-      // check for successful file write. vtk classes don't throw exceptions as a general rule.
+      // check for successful file write
       QFileInfo fileInfo
       { fileName };
-      if (!fileInfo.exists() || fileInfo.size() == 0)
+      if (!saved || !fileInfo.exists() || fileInfo.size() == 0)
       {
         auto message =
             tr("Couln't save snapshot file '%1'. Problem writing format '%2'.").arg(

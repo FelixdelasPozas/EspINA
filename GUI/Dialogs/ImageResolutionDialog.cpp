@@ -62,7 +62,8 @@ ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
 //-----------------------------------------------------------------------------
 int ESPINA::ImageResolutionDialog::getMagnifcation() const
 {
-  return m_width / m_initialWidth + 0.5;
+  double re = m_width / m_initialWidth + 0.5;
+  return (re < 1) ? 1 : re;
 }
 
 //-----------------------------------------------------------------------------
@@ -113,4 +114,16 @@ int ESPINA::ImageResolutionDialog::getHeight() const
 int ESPINA::ImageResolutionDialog::getWidth() const
 {
   return m_width;
+}
+
+//-----------------------------------------------------------------------------
+const QSize ESPINA::ImageResolutionDialog::getInitialSize() const
+{
+  return QSize(m_initialWidth, m_initialHeight);
+}
+
+//-----------------------------------------------------------------------------
+QSize ESPINA::ImageResolutionDialog::getSize() const
+{
+  return QSize(m_width, m_height);
 }

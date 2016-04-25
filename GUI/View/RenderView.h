@@ -349,6 +349,8 @@ namespace ESPINA
     unsigned int m_lastFrameActiveManagers;
 
   private:
+    QImage vtkImageDataToQImage(vtkImageData* imageData) const;
+
     GUI::View::ViewState &m_state;
     SelectionSPtr         m_selection;
 
