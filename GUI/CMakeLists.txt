@@ -12,6 +12,7 @@ qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
   ColorEngines/MultiColorEngine.h
+  Dialogs/ImageResolutionDialog.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
@@ -84,6 +85,7 @@ qt4_wrap_cpp(GUI_MOC
 
 qt4_wrap_ui (GUI_UI
   Dialogs/CategorySelectorDialog.ui
+  Dialogs/ImageResolutionDialog.ui
   Representations/RepresentationEmptySettings.ui
   Representations/SliceRepresentationSettings.ui
   Representations/ContourRepresentationSettings.ui
@@ -107,6 +109,7 @@ set (GUI_SOURCES
   ColorEngines/UserColorEngine.cpp
   Dialogs/CategorySelectorDialog.cpp
   Dialogs/DefaultDialogs.cpp
+  Dialogs/ImageResolutionDialog.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp
