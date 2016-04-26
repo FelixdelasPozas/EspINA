@@ -27,18 +27,26 @@
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Utils/Format.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <Core/Utils/SupportedFormats.h>
+#include <GUI/Utils/DefaultIcons.h>
+#include <Undo/AddCategoryCommand.h>
+#include <Undo/RemoveCategoryCommand.h>
+#include <Undo/RemoveSegmentations.h>
 
 // Qt
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QCompleter>
-#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QUndoStack>
 #include <QWidgetAction>
 
+
 using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -76,30 +84,40 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
+
   changeLayout(0);
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
-          this,             SLOT(changeLayout(int)));
+          this, SLOT(changeLayout(int)));
+
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
-          this,        SLOT(focusOnSegmentation(QModelIndex)));
+          this, SLOT(focusOnSegmentation(QModelIndex)));
+
   connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
-          this,                         SLOT(showSelectedItemsInformation()));
+          this, SLOT(showSelectedItemsInformation()));
+
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
-          this,                SLOT(deleteSelectedItems()));
+          this, SLOT(deleteSelectedItems()));
+
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
-          this,              SLOT(updateSearchFilter()));
+          this, SLOT(updateSearchFilter()));
+
   connect(m_gui->selectedTags, SIGNAL(linkActivated(QString)),
           this,                SLOT(onTagSelected(QString)));
 
-  connect(currentSelection().get(), SIGNAL(selectionStateChanged()),
-          this,                     SLOT(onSelectionChanged()));
+  connect(m_gui->saveButton, SIGNAL(pressed()),
+     		  this,              SLOT(exportClassification()));
+
+  connect(m_gui->loadButton, SIGNAL(pressed()),
+		      this,              SLOT(importClassification()));
+
+  connect(getSelection().get(), SIGNAL(selectionStateChanged()),
+          this,                 SLOT(onSelectionChanged()));
 
   setWidget(m_gui);
 
   m_gui->view->installEventFilter(this);
   m_gui->selectedTags->setOpenExternalLinks(false);
-
-  createShortcuts();
 }
 
 //------------------------------------------------------------------------
@@ -183,25 +201,21 @@ void SegmentationExplorer::changeLayout(int index)
 
   m_layout = m_layouts[index];
 
-  if(m_layout)
-  {
-    m_gui->view->setModel(m_layout->model());
+  m_gui->view->setModel(m_layout->model());
 
-    connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-            this,                          SLOT(onModelSelectionChanged(QItemSelection,QItemSelection)));
+  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          this,                          SLOT(onModelSelectionChanged(QItemSelection,QItemSelection)));
 
-    connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-            this,              SLOT(onSelectionChanged()));
-    connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-            this,              SLOT(onSelectionChanged()));
-    connect(m_layout->model(), SIGNAL(modelReset()),
-            this,              SLOT(onSelectionChanged()));
+  connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this,              SLOT(onSelectionChanged()));
+  connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+          this,              SLOT(onSelectionChanged()));
+  connect(m_layout->model(), SIGNAL(modelReset()),
+          this,              SLOT(onSelectionChanged()));
 
-    m_layout->createSpecificControls(m_gui->specificControlLayout);
+  m_layout->createSpecificControls(m_gui->specificControlLayout);
 
-    m_gui->view->setItemDelegate(m_layout->itemDelegate());
-  }
-
+  m_gui->view->setItemDelegate(m_layout->itemDelegate());
   m_gui->showInformationButton->setEnabled(false);
 
   onSelectionChanged();
@@ -228,14 +242,9 @@ void SegmentationExplorer::showSelectedItemsInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ItemAdapterPtr item;
+  auto item = m_layout->item(index);
 
-  if(m_layout)
-  {
-    item = m_layout->item(index);
-  }
-
-  if (item && isSegmentation(item))
+  if (isSegmentation(item))
   {
     auto segmentation       = segmentationPtr(item);
     auto segmentationCenter = centroid(segmentation->bounds());
@@ -247,7 +256,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QItemSelection deselected)
 {
-  ViewItemAdapterList selection;
+  ViewItemAdapterList currentSelection;
 
   auto indexes = selectedIndexes();
 
@@ -256,7 +265,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
     auto item = m_layout->item(index);
     if (isSegmentation(item))
     {
-      selection << viewItemAdapter(item);
+      currentSelection << viewItemAdapter(item);
     }
   }
 
@@ -265,7 +274,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indexes,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  currentSelection()->set(selection);
+  getSelection()->set(currentSelection);
   this->blockSignals(false);
 }
 
@@ -281,9 +290,7 @@ void SegmentationExplorer::updateSearchFilter()
 void SegmentationExplorer::onSelectionChanged()
 {
   if (!isVisible() || signalsBlocked())
-  {
     return;
-  }
 
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
@@ -359,112 +366,321 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
     {
       tagLinks += createLink(tag);
     }
+  }
 
-    m_gui->selectedTags->setText(tagLinks);
-  }
-  else
-  {
-    m_gui->selectedTags->clear();
-  }
+  m_gui->selectedTags->setText(tagLinks);
+}
+
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::exportClassification()
+{
+	auto title      = QString("Save Classification");
+	auto suffix     = "xml";
+	auto filter     = SupportedFormats().addFormat("Classification files", suffix);
+	auto suggestion = tr("classification.xml");
+	auto filename   = DefaultDialogs::SaveFile(title,filter,DefaultDialogs::DefaultPath(), suffix, suggestion);
+
+	// Cancel
+	if(filename.isEmpty()) return;
+
+	QFile xml(filename);
+	if(xml.error())
+	{
+	  auto message = tr("Error creating xml filename: %1.").arg(filename);
+		DefaultDialogs::InformationMessage(message, title, xml.errorString());
+
+		return;
+	}
+
+	auto classification = getModel()->classification();
+	if(classification == nullptr)
+	{
+    auto message = tr("There is no classification to save.").arg(filename);
+    DefaultDialogs::InformationMessage(message, title, xml.errorString());
+
+    return;
+	}
+
+	if(xml.open(QIODevice::WriteOnly))
+	{
+		auto list_aux = classification;
+
+		QXmlStreamWriter writerXML(&xml);
+		writerXML.setAutoFormatting(true);
+		writerXML.writeStartDocument();
+
+		writerXML.writeStartElement("classification");
+		writerXML.writeAttribute("name",classification->name());
+
+		SegmentationExplorer::writeCategories(list_aux->categories(),&writerXML);
+
+		writerXML.writeEndElement();
+	}
+	else
+	{
+    auto message = tr("Error opening xml filename: %1.").arg(filename);
+    DefaultDialogs::InformationMessage(message, title, xml.errorString());
+    QFile::remove(filename);
+
+    return;
+	}
+
+	if(!xml.flush())
+	{
+	  auto message = tr("Error closing xml filename: %1.").arg(filename);
+		DefaultDialogs::InformationMessage(message,title, xml.errorString());
+		QFile::remove(filename);
+
+		return;
+	}
+
+	xml.close();
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::createShortcuts()
+void SegmentationExplorer::importClassification()
 {
-  QKeySequence incrementSequence, decrementSequence;
-  incrementSequence = Qt::Key_PageDown;
-  decrementSequence = Qt::Key_PageUp;
+	auto title      = tr("Load Classification");
+  auto suffix     = "xml";
+  auto filter     = SupportedFormats().addFormat("Classification files", suffix);
+	auto filename   = DefaultDialogs::OpenFile(title,filter, QDir::homePath());
 
-  auto increment = new QShortcut(incrementSequence, this, 0, 0, Qt::ApplicationShortcut);
-  connect(increment, SIGNAL(activated()),
-          this, SLOT(incrementSelection()));
+	if(filename.isEmpty()) return;
 
-  auto decrement = new QShortcut(decrementSequence, this, 0, 0, Qt::ApplicationShortcut);
-  connect(decrement, SIGNAL(activated()),
-          this, SLOT(decrementSelection()));
-}
+	QFile xml(filename);
 
-//------------------------------------------------------------------------
-QModelIndex SegmentationExplorer::nextIndex(const QModelIndex &index, direction dir)
-{
-  QModelIndex result;
-  bool found = false;
-  auto begin = index;
+	if(!xml.exists() || xml.error())
+	{
+	  auto message = tr("Couldn't open classification file: %1.").arg(filename);
+	  DefaultDialogs::InformationMessage(message, title, xml.errorString());
 
-  while(!found)
-  {
-    if(dir == direction::FORWARD)
+		return;
+	}
+
+	if(xml.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		QXmlStreamReader stream(&xml);
+		stream.readNextStartElement();
+		QStringRef name = stream.attributes().value("name");
+
+		auto classification = std::make_shared<ClassificationAdapter>(name.toString());
+
+		QStack<CategoryAdapterSPtr> stack;
+		stack.push(nullptr); // initial parent
+
+    while (!stream.atEnd())
     {
-      result = m_gui->view->indexBelow(begin);
-    }
-    else
-    {
-      result = m_gui->view->indexAbove(begin);
-    }
-
-    if(!result.isValid() || (result == begin))
-    {
-      result = QModelIndex();
-      found = true;
-    }
-    else
-    {
-      if(result.model()->hasChildren(result))
+      stream.readNextStartElement();
+      if (stream.name() == "category" || stream.name() == "node")
       {
-        m_gui->view->expand(result);
-        begin = result;
-      }
-      else
-      {
-        if(isSegmentation(m_layout->item(result)))
+        if (stream.isStartElement())
         {
-          found = true;
+          name = stream.attributes().value("name");
+          auto color = stream.attributes().value("color");
+
+          auto category = classification->createCategory(name.toString(), stack.top());
+
+          QColor categoryColor(color.toString());
+          category->setColor(categoryColor.hue());
+
+          for (auto attribute : stream.attributes())
+          {
+            if (attribute.name() == "name" || attribute.name() == "color")
+            {
+              continue;
+            }
+
+            category->addProperty(attribute.name().toString(), attribute.value().toString());
+          }
+
+          stack.push(category); // becomes new parent of the next elements, if any.
         }
         else
         {
-          begin = result;
+          if (stream.isEndElement())
+          {
+            stack.pop();
+          }
         }
       }
     }
-  }
 
-  return result;
+    auto oldClassification = getModel()->classification();
+    auto undoStack = getContext().undoStack();
+
+    undoStack->beginMacro("Import classification from disk.");
+		addCategories(classification, oldClassification);
+		removeCategories(classification, oldClassification);
+		undoStack->endMacro();
+	}
+	else
+	{
+	  auto message = tr("Couldn't open classification file: %1").arg(filename);
+	  DefaultDialogs::InformationMessage(message,title, xml.errorString());
+
+	  return;
+	}
+
+	if(!xml.flush())
+	{
+    auto message = tr("Error closing xml filename: %1.").arg(filename);
+    DefaultDialogs::InformationMessage(message,title, xml.errorString());
+
+    return;
+	}
+
+	xml.close();
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::incrementSelection()
+void SegmentationExplorer::writeCategories(CategoryAdapterSList categories, QXmlStreamWriter *writer)
 {
-  auto selection = selectedIndexes();
-
-  if(selection.size() == 1)
+  for(auto category: categories)
   {
-    auto index = selection.first();
-    auto next  = nextIndex(index, direction::FORWARD);
-
-    if(next != QModelIndex())
+    if(category)
     {
-      m_gui->view->selectionModel()->select(next, QItemSelectionModel::ClearAndSelect);
-      focusOnSegmentation(next);
-      return;
+      writer->writeStartElement("category");
+      writer->writeAttribute("name", category->name());
+
+      QColor color;
+      color.setHsv(category->color().hue(), 255, 255);
+      writer->writeAttribute("color", color.name());
+
+      for(auto propertyKey: category->properties())
+      {
+        if(!propertyKey.isEmpty())
+        {
+          writer->writeAttribute(propertyKey, category->property(propertyKey).toString());
+        }
+      }
+
+      if (category->subCategories().size() > 0)
+      {
+        writeCategories(category->subCategories(), writer);
+      }
+
+      writer->writeEndElement();
     }
   }
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::decrementSelection()
+QStringList subCategoriesNames(CategoryAdapterSPtr category)
 {
-  auto selection = selectedIndexes();
+  QStringList names;
 
-  if(selection.size() == 1)
+  names << category->classificationName();
+
+  for(auto subCategory: category->subCategories())
   {
-    auto index = selection.first();
-    auto next  = nextIndex(index, direction::BACKWARD);
+    names << subCategory->classificationName();
 
-    if(next != QModelIndex())
+    if(!subCategory->subCategories().isEmpty())
     {
-      m_gui->view->selectionModel()->select(next, QItemSelectionModel::ClearAndSelect);
-      focusOnSegmentation(next);
-      return;
+      names << subCategoriesNames(subCategory);
+    }
+  }
+
+  return names;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::addCategories(ClassificationAdapterSPtr from, ClassificationAdapterSPtr to)
+{
+  QStringList categoryNames;
+
+  for(auto category: from->categories())
+  {
+    categoryNames << subCategoriesNames(category);
+  }
+
+  for(auto name: categoryNames)
+  {
+    auto newCategory = from->category(name);
+    auto oldCategory = to->category(name);
+
+    if(oldCategory == nullptr)
+    {
+      CategoryAdapterSPtr oldParent = nullptr;
+      auto newParent = newCategory->parent();
+      if(newParent != nullptr)
+      {
+        oldParent = to->category(newParent->classificationName());
+        Q_ASSERT(oldParent != nullptr);
+      }
+
+      getContext().undoStack()->push(new AddCategoryCommand(oldParent, newCategory->name(), getModel(), newCategory->color()));
+
+      oldCategory = to->category(newCategory->classificationName());
+
+      oldCategory->setColor(newCategory->color());
+
+      for(auto propertyKey: newCategory->properties())
+      {
+        oldCategory->addProperty(propertyKey.toStdString().c_str(), newCategory->property(propertyKey));
+      }
+    }
+  }
+}
+
+//-------------------------------------------------------------------------
+void SegmentationExplorer::removeCategories(ClassificationAdapterSPtr from, ClassificationAdapterSPtr to)
+{
+  QStringList categoryNames;
+  auto segmentationList = getModel()->segmentations();
+
+  for(auto category: to->categories())
+  {
+    categoryNames << subCategoriesNames(category);
+  }
+
+  for(auto name: categoryNames)
+  {
+    auto newCategory = from->category(name);
+
+    if(!newCategory)
+    {
+      auto oldCategory = to->category(name);
+      Q_ASSERT(oldCategory != nullptr);
+
+      SegmentationAdapterList segmentations;
+      for(auto segmentation: segmentationList)
+      {
+        if(segmentation->category() == oldCategory)
+        {
+          segmentations << segmentation.get();
+        }
+      }
+
+      bool toRemove = true;
+      if(!segmentations.isEmpty())
+      {
+        auto message = tr("The category '%1' is about to be removed but has %2 segmentation%3.\nDo you want to remove the category and it's segmentation%3?")
+                       .arg(oldCategory->name())
+                       .arg(segmentations.size())
+                       .arg((segmentations.size() == 1) ? "" : "s");
+        auto title   = tr("Load Classification");
+        auto details = tr("Category %1 segmentations:").arg(oldCategory->classificationName());
+        for(auto segmentation: segmentations)
+        {
+          details.append(tr("\n - %1").arg(segmentation->data().toString()));
+        }
+
+        if(DefaultDialogs::UserQuestion(message, QMessageBox::Yes|QMessageBox::No, title, details) == QMessageBox::Yes)
+        {
+          getContext().undoStack()->push(new RemoveSegmentations(segmentations, getModel()));
+        }
+        else
+        {
+          toRemove = false;
+        }
+      }
+
+      if(toRemove)
+      {
+        getContext().undoStack()->push(new RemoveCategoryCommand(oldCategory.get(), getModel()));
+      }
     }
   }
 }

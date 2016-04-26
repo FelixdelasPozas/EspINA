@@ -132,5 +132,7 @@
     <file>zoom_cursor.png</file>
     <file>zoom_region.svg</file>
     <file>zoom_tools.png</file>
+    <file>file_open_classification.svg</file>
+    <file>file_save_classification.svg</file>
   </qresource>
 </RCC>

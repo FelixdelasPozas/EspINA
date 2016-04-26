@@ -22,13 +22,19 @@
 
 // ESPINA
 #include <Support/Widgets/Panel.h>
+#include <Support/Factory/FilterRefinerFactory.h>
 #include <Support/Context.h>
 
 // Qt
 #include <ui_SegmentationExplorer.h>
 #include <GUI/View/SelectableView.h>
-#include <Support/Factory/FilterRefinerFactory.h>
 #include <QStringListModel>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+#include <QTextStream>
+#include <QStack>
+
+
 
 class QUndoStack;
 
@@ -49,7 +55,7 @@ namespace ESPINA
     /** \brief SegmentationExplorer class constructor.
      */
     explicit SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
-                                  Support::Context               &context);
+                                  Support::Context              &context);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *
@@ -114,49 +120,42 @@ namespace ESPINA
      */
     void onSelectionChanged();
 
-    /** \brief Updates the search box with the selected tag.
-     *
-     */
     void onTagSelected(const QString &tag);
 
-    /** \brief Selects the next segmentation in the tree view and focuses the views on it's centroid.
+    /** \brief Saves the current model classification to disk.
      *
      */
-    void incrementSelection();
+    void exportClassification();
 
-    /** \brief Selects the previous segmentation in the tree view and focuses the views on it's centroid.
+    /** \brief Imports a new classification structure from disk.
      *
      */
-    void decrementSelection();
+    void importClassification();
 
   private:
-
-    /** \brief Enum class to specify the movement direction in the nextIndex() private method.
-     *
-     */
-    enum class direction: char { FORWARD = 0, BACKWARD };
-
-    /** \brief Returns the next QModelIndex belonging to a segmentation in regard to the given one in the given direction in the tree view model.
-     * \param[in] index previous QModelIndex object.
-     * \param[in] dir   movement direction.
-     *
-     */
-    QModelIndex nextIndex(const QModelIndex &index, direction dir);
-
-    /** \brief Creates shortcuts to go forwards/backwards on segmentation selection.
-     *
-     */
-    void createShortcuts();
-
-    /** \brief Returns the list of selected indexes in the selection model of the tree view.
-     *
-     */
     QModelIndexList selectedIndexes() const;
 
-    /** \brief Updates the tags in the GUI with the ones of the selected indexes.
-     * \param[in] selectedIndexes QModelIndex list.
+    /** \brief Adds the categories of 'from' classification to 'to' classification if they doesn'e exist in 'to'.
+     * \param[in] from classification to check for new categories.
+     * \param[in] to classification to add the new categories to.
      *
      */
+    void addCategories(ClassificationAdapterSPtr from, ClassificationAdapterSPtr to);
+
+    /** \brief Removes the categories of 'to' classification that doesn't exist in 'from' classification.
+     * \param[in] from classification to check for categories as reference.
+     * \param[in] to classification to delete categories that doesn't exists in 'from' classification.
+     *
+     */
+    void removeCategories(ClassificationAdapterSPtr from, ClassificationAdapterSPtr to);
+
+    /** \brief Helper method to dump the categories information to the writer stream.
+     * \param[in] categories list of categories.
+     * \param[in] writer xlm writer initialized object.
+     *
+     */
+    void writeCategories(CategoryAdapterSList categories, QXmlStreamWriter *writer);
+
     void updateTags(const QModelIndexList &selectedIndexes);
 
   protected:
