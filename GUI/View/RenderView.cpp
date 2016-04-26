@@ -55,6 +55,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Dialogs;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Widgets::Styles;
@@ -63,12 +64,13 @@ using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
 RenderView::RenderView(ViewState &state, ViewType type)
-    : SelectableView(state), m_view
-    { new QVTKWidget() }, m_lastFrameActiveManagers
-    { 0 }, m_state(state), m_selection
-    { state.selection() }, m_type
-    { type }, m_latestFrame
-    { Frame::InvalidFrame() }
+: SelectableView           (state)
+, m_view                   {new QVTKWidget()}
+, m_lastFrameActiveManagers{0}
+, m_state                  (state)
+, m_selection              {state.selection()}
+, m_type                   {type}
+, m_latestFrame            {Frame::InvalidFrame()}
 {
   connectSignals();
 }
@@ -82,14 +84,13 @@ RenderView::~RenderView()
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  if (m_managers.contains(manager))
-    return;
+  if (m_managers.contains(manager)) return;
 
-  connect(&m_state, SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
-      manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
+  connect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
+          manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
 
-  connect(manager.get(), SIGNAL(renderRequested()), this,
-      SLOT(onRenderRequest()), Qt::QueuedConnection);
+  connect(manager.get(), SIGNAL(renderRequested()),
+          this,          SLOT(onRenderRequest()), Qt::QueuedConnection);
 
   configureManager(manager);
 
@@ -103,11 +104,11 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 {
   if (m_managers.removeOne(manager))
   {
-    disconnect(&m_state, SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
-        manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
+    disconnect(&m_state,      SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
+               manager.get(), SLOT(onFrameChanged(GUI::Representations::FrameCSPtr)));
 
-    disconnect(manager.get(), SIGNAL(renderRequested()), this,
-        SLOT(onRenderRequest()));
+    disconnect(manager.get(), SIGNAL(renderRequested()),
+               this,          SLOT(onRenderRequest()));
   }
 }
 
@@ -129,9 +130,8 @@ NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y,
 //-----------------------------------------------------------------------------
 void RenderView::onSelectionSet(SelectionSPtr selection)
 {
-  connect(selection.get(),
-      SIGNAL(selectionStateChanged(SegmentationAdapterList)), this,
-      SLOT(updateSelection(SegmentationAdapterList)));
+  connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this,            SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //-----------------------------------------------------------------------------
@@ -144,8 +144,7 @@ void RenderView::selectPickedItems(int x, int y, bool append)
     selection = currentSelection()->items();
   }
 
-  auto flags = Selector::SelectionFlags(
-      Selector::CHANNEL | Selector::SEGMENTATION);
+  auto flags = Selector::SelectionFlags(Selector::CHANNEL | Selector::SEGMENTATION);
   auto pickedItems = pick(flags, x, y);
 
   ViewItemAdapterList channels;
@@ -162,10 +161,12 @@ void RenderView::selectPickedItems(int x, int y, bool append)
         segmentations << pickedItem;
       }
       else
+      {
         if (isChannel(pickedItem))
         {
           channels << pickedItem;
         }
+      }
     }
   }
 
@@ -180,8 +181,7 @@ void RenderView::selectPickedItems(int x, int y, bool append)
       selection << item;
     }
 
-    if (!append)
-      break;
+    if (!append) break;
   }
 
   currentSelection()->set(selection);
@@ -190,41 +190,42 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 //-----------------------------------------------------------------------------
 QImage RenderView::vtkImageDataToQImage(vtkImageData* vtkImageData) const
 {
-  int widthVID = vtkImageData->GetDimensions()[0];
-  int heightVID = vtkImageData->GetDimensions()[1];
-  QImage qImage(widthVID, heightVID, QImage::Format_RGB32);
-  QRgb* rgbPtr = reinterpret_cast<QRgb*>(qImage.bits())
-      + widthVID * (heightVID - 1);
-  unsigned char* colorsPtr =
-      reinterpret_cast<unsigned char*>(vtkImageData->GetScalarPointer());
-  for (int row = 0; row < heightVID; ++row)
+  auto width  = vtkImageData->GetDimensions()[0];
+  auto height = vtkImageData->GetDimensions()[1];
+  QImage qImage(width, height, QImage::Format_RGB32);
+
+  auto rgbPtr    = reinterpret_cast<QRgb*>(qImage.bits()) + width * (height - 1);
+  auto colorsPtr = reinterpret_cast<unsigned char*>(vtkImageData->GetScalarPointer());
+
+  for (int row = 0; row < height; ++row)
   {
-    for (int col = 0; col < widthVID; ++col)
+    for (int col = 0; col < width; ++col)
     {
       *(rgbPtr++) = QColor(colorsPtr[0], colorsPtr[1], colorsPtr[2]).rgb();
       colorsPtr += 3;
     }
-    rgbPtr -= widthVID * 2;
+    rgbPtr -= width * 2;
   }
+
   return qImage;
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::takeSnapshot()
 {
-  auto render_window = renderWindow();
+  auto renderwindow = renderWindow();
+
   auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
-  imageFilter->SetInput(render_window);
+  imageFilter->SetInput(renderwindow);
   imageFilter->SetMagnification(1);
   imageFilter->Update();
+
   auto vtkImageData = imageFilter->GetOutput();
   auto qImage = vtkImageDataToQImage(vtkImageData);
 
-  ImageResolutionDialog imgResDialog(this, render_window->GetSize()[0],
-      render_window->GetSize()[1], qImage);
+  ImageResolutionDialog imgResDialog(renderwindow->GetSize()[0], renderwindow->GetSize()[1], qImage, this);
 
-  if (imgResDialog.exec() == QDialog::Rejected)
-    return;
+  if (imgResDialog.exec() == QDialog::Rejected) return;
 
   auto outputMagnification = imgResDialog.getMagnifcation();
   auto outputSize = imgResDialog.getSize();
@@ -232,59 +233,53 @@ void RenderView::takeSnapshot()
   auto title = tr("Save scene as image");
   auto suggestion = tr("snapshot.png");
   auto formats = SupportedFormats();
+  formats.addFormat(tr("PNG Image"), "png");
   formats.addFormat(tr("BMP Image"), "bmp");
   formats.addFormat(tr("JPG Image"), "jpg");
   formats.addFormat(tr("JPEG Image"), "jpeg");
-  formats.addFormat(tr("PNG Image"), "png");
   formats.addFormat(tr("PPM Image"), "ppm");
   formats.addFormat(tr("XBM Image"), "xbm");
   formats.addFormat(tr("XPM Image"), "xpm");
-  auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(),
-      ".png", suggestion, this);
+
+  auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".png", suggestion, this);
 
   if (!fileName.isEmpty())
   {
-    QStringList splittedName = fileName.split(".");
-    QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
+    auto nameParts = fileName.split(".");
+    auto extension = nameParts.last().toUpper();
 
     QStringList validFileExtensions;
-    validFileExtensions << "BMP" << "JPG" << "JPEG" << "PNG" << "PPM" << "XBM"
-        << "XPM";
+    validFileExtensions << "BMP" << "JPG" << "JPEG" << "PNG" << "PPM" << "XBM" << "XPM";
 
     if (validFileExtensions.contains(extension))
     {
       // avoid artifacts when acquiring the image
-      int offScreenRender = render_window->GetOffScreenRendering();
-      render_window->SetOffScreenRendering(true);
+      int offScreenRender = renderwindow->GetOffScreenRendering();
+      renderwindow->SetOffScreenRendering(true);
 
       auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
-      image->SetInput(render_window);
+      image->SetInput(renderwindow);
       image->SetMagnification(outputMagnification);
       image->Update();
 
-      render_window->SetOffScreenRendering(offScreenRender);
+      renderwindow->SetOffScreenRendering(offScreenRender);
 
-      auto outputImage = vtkImageDataToQImage(image->GetOutput()).scaled(outputSize,
-          Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
+      auto outputImage = vtkImageDataToQImage(image->GetOutput()).scaled(outputSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
       auto saved = outputImage.save(fileName, extension.toUtf8(), 100);
 
       // check for successful file write
-      QFileInfo fileInfo
-      { fileName };
+      QFileInfo fileInfo{fileName};
       if (!saved || !fileInfo.exists() || fileInfo.size() == 0)
       {
-        auto message =
-            tr("Couln't save snapshot file '%1'. Problem writing format '%2'.").arg(
-                fileInfo.fileName()).arg(extension);
+        auto message = tr("Couln't save snapshot file '%1'. Problem writing format '%2'.").arg(fileInfo.fileName()).arg(extension);
+
         DefaultDialogs::InformationMessage(message, title, "", this);
       }
     }
     else
     {
-      auto message = tr(
-          "Couln't save snapshot file '%1'. Unrecognized extension.").arg(
-          fileName.split('/').last());
+      auto message = tr("Couln't save snapshot file '%1'. Unrecognized extension.").arg(fileName.split('/').last());
+
       DefaultDialogs::InformationMessage(message, title, "", this);
     }
   }
@@ -296,7 +291,9 @@ bool RenderView::hasVisibleRepresentations() const
   for (auto manager : m_managers)
   {
     if (manager->hasActors())
+    {
       return true;
+    }
   }
 
   return false;
@@ -340,14 +337,12 @@ NmVector3 RenderView::worldEventPosition()
   eventPosition(x, y);
 
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
-
   coords->SetCoordinateSystemToDisplay();
   coords->SetValue(x, y, 0);
 
-  double *displayCoords = coords->GetComputedWorldValue(mainRenderer());
+  auto displayCoords = coords->GetComputedWorldValue(mainRenderer());
 
-  NmVector3 position
-  { displayCoords[0], displayCoords[1], displayCoords[2] };
+  NmVector3 position{displayCoords[0], displayCoords[1], displayCoords[2]};
 
   normalizeWorldPosition(position);
 
@@ -393,7 +388,8 @@ void RenderView::refresh()
 
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
-    const NmVector3 &point, bool multiselection) const
+                                     const NmVector3               &point,
+                                     bool                           multiselection) const
 {
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
 
@@ -415,54 +411,46 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 //-----------------------------------------------------------------------------
 void RenderView::connectSignals()
 {
-  connect(this, SIGNAL(crosshairChanged(NmVector3)), &m_state,
-      SLOT(setCrosshair(NmVector3)));
+  connect(this,     SIGNAL(crosshairChanged(NmVector3)),
+          &m_state, SLOT(setCrosshair(NmVector3)));
 
-  connect(this, SIGNAL(crosshairPlaneChanged(Plane,Nm)), &m_state,
-      SLOT(setCrosshairPlane(Plane,Nm)));
+  connect(this,     SIGNAL(crosshairPlaneChanged(Plane,Nm)),
+          &m_state, SLOT(setCrosshairPlane(Plane,Nm)));
 
-  connect(this, SIGNAL(viewFocusedOn(NmVector3)), &m_state,
-      SLOT(focusViewOn(NmVector3)));
+  connect(this,     SIGNAL(viewFocusedOn(NmVector3)),
+          &m_state, SLOT(focusViewOn(NmVector3)));
 
   connect(&m_state, SIGNAL(frameChanged(GUI::Representations::FrameCSPtr)),
-      this, SLOT(onCrosshairChanged(GUI::Representations::FrameCSPtr)));
+          this,     SLOT(onCrosshairChanged(GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(refreshRequested()), this, SLOT(refresh()));
+  connect(&m_state, SIGNAL(refreshRequested()),
+          this,     SLOT(refresh()));
 
-  connect(&m_state,
-      SIGNAL(
-          widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
-      this,
-      SLOT(
-          onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
+  connect(&m_state, SIGNAL(widgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state,
-      SIGNAL(
-          widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
-      this,
-      SLOT(
-          onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
+  connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
+          this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state,
-      SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)), this,
-      SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
+  connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
+          this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
 
-  connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)), this,
-      SLOT(removeSliceSelectors(SliceSelectorSPtr)));
+  connect(&m_state, SIGNAL(resetViewCamera()),
+          this,     SLOT(resetCamera()));
 
-  connect(m_state.coordinateSystem().get(),
-      SIGNAL(resolutionChanged(NmVector3)), this,
-      SLOT(onSceneResolutionChanged(NmVector3)));
+  connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
+          this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
 
-  connect(m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)), this,
-      SLOT(onSceneBoundsChanged(Bounds)));
+  connect(m_state.coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
+          this,                             SLOT(onSceneResolutionChanged(NmVector3)));
 
-  connect(&m_state, SIGNAL(resetViewCamera()), this, SLOT(resetCamera()));
+  connect(m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
+          this,                             SLOT(onSceneBoundsChanged(Bounds)));
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes,
-    const GUI::Representations::FrameCSPtr frame)
+void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototypes,
+                                const GUI::Representations::FrameCSPtr frame)
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
@@ -484,8 +472,8 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr prototypes,
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr prototypes,
-    const GUI::Representations::FrameCSPtr frame)
+void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototypes,
+                                  const GUI::Representations::FrameCSPtr frame)
 {
   if (prototypes->supportedViews().testFlag(m_type))
   {
@@ -609,15 +597,16 @@ unsigned int RenderView::activeManagers() const
   for (auto manager : m_managers)
   {
     if (manager->isActive() && manager->hasActors() && !manager->needsActors())
+    {
       ++active;
+    }
   }
 
   return active;
 }
 
 //-----------------------------------------------------------------------------
-RepresentationManagerSList RenderView::pendingManagers(
-    RepresentationManagerSList managers) const
+RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSList managers) const
 {
   RepresentationManagerSList result;
 
@@ -633,8 +622,7 @@ RepresentationManagerSList RenderView::pendingManagers(
 }
 
 //-----------------------------------------------------------------------------
-FrameCSPtr RenderView::latestReadyFrame(
-    RepresentationManagerSList managers) const
+FrameCSPtr RenderView::latestReadyFrame(RepresentationManagerSList managers) const
 {
   TimeStamp latest = Timer::INVALID_TIME_STAMP;
 
@@ -678,8 +666,7 @@ FrameCSPtr RenderView::latestReadyFrame(
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::display(RepresentationManagerSList managers,
-    const TimeStamp time)
+void RenderView::display(RepresentationManagerSList managers, const TimeStamp time)
 {
   for (auto manager : managers)
   {
@@ -730,8 +717,7 @@ void RenderView::showSegmentationTooltip(const int x, const int y)
 
   for (auto segmentation : segmentations)
   {
-    toopTip = toopTip.append(
-        segmentation.second->data(Qt::ToolTipRole).toString());
+    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
   }
 
   m_view->setToolTip(toopTip);

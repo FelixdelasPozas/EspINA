@@ -25,88 +25,87 @@
 
 // ESPINA
 #include "ui_ImageResolutionDialog.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
+#include <QSize>
 
 namespace ESPINA
 {
-
-  class EspinaGUI_EXPORT ImageResolutionDialog: public QDialog,
-      private Ui::ImageResolutionDialog
+  namespace GUI
   {
-    Q_OBJECT
-
-    public:
-
-      /** \brief ImageResolutionDialog class constructor.
-       * \param[in] parent, Parent widget.
-       * \param[in] width, image width.
-       * \param[in] height, image height.
-       */
-      ImageResolutionDialog(QWidget *parent, int width, int height);
-
-      /** \brief ImageResolutionDialog class constructor.
-       * \param[in] parent, Parent widget.
-       * \param[in] width, image width.
-       * \param[in] height, image height.
-       * \param[in] image, image to show.
-       */
-      ImageResolutionDialog(QWidget *parent, int width, int height,
-          QImage& image);
-
-      /** \brief ImageResolutionDialog class destructor.
-       */
-      virtual ~ImageResolutionDialog()
+    namespace Dialogs
+    {
+      class EspinaGUI_EXPORT ImageResolutionDialog
+      : public QDialog
+      , private Ui::ImageResolutionDialog
       {
-      }
-      ;
+          Q_OBJECT
 
-      /** \brief Return the ratio of the image.
-       */
-      const double getRatio() const;
+        public:
 
-      /** \brief Return the initial height of the image.
-       */
-      const int getInitialHeight() const;
+          /** \brief ImageResolutionDialog class constructor.
+           * \param[in] width image width.
+           * \param[in] height image height.
+           * \param[in] image image to show.
+           * \param[in] parent pointer of the QWidget parent of this one.
+           */
+          ImageResolutionDialog(const int     width,
+                                const int     height,
+                                const QImage& image,
+                                QWidget      *parent = DefaultDialogs::defaultParentWidget());
 
-      /** \brief Return the initial width of the image.
-       */
-      const int getInitialWidth() const;
+          /** \brief ImageResolutionDialog class destructor.
+           */
+          virtual ~ImageResolutionDialog()
+          {};
 
-      /** \brief Return the height of the image.
-       */
-      int getHeight() const;
+          /** \brief Return the ratio of the image.
+           */
+          const double getRatio() const;
 
-      /** \brief Return the width of the image.
-       */
-      int getWidth() const;
+          /** \brief Return the initial height of the image.
+           */
+          const int getInitialHeight() const;
 
-      /** \brief Return the initial size of the image.
-       */
-      const QSize getInitialSize() const;
+          /** \brief Return the initial width of the image.
+           */
+          const int getInitialWidth() const;
 
-      /** \brief Return the size of the image.
-       */
-      QSize getSize() const;
+          /** \brief Return the height of the image.
+           */
+          int getHeight() const;
 
-      /** \brief Return magnification based on expected size.
-       */
-      int getMagnifcation() const;
+          /** \brief Return the width of the image.
+           */
+          int getWidth() const;
 
-    private slots:
+          /** \brief Return the initial size of the image.
+           */
+          const QSize getInitialSize() const;
 
-      void onHeightChanged(int value);
-      void onWidthChanged(int value);
+          /** \brief Return the size of the image.
+           */
+          QSize getSize() const;
 
-    private:
+          /** \brief Return magnification based on expected size.
+           */
+          int getMagnifcation() const;
 
-      const double m_ratio; /** height/width ratio */
-      const int m_initialHeight; /** initial height */
-      const int m_initialWidth; /** initial width */
-      int m_height; /** height */
-      int m_width; /** width */
-  };
-}
+        private slots:
+          void onHeightChanged(int value);
+          void onWidthChanged(int value);
+
+        private:
+
+          const double m_ratio;       /** height/width ratio. */
+          const QSize  m_initialSize; /** initial image size. */
+          QSize        m_size;        /** current image size. */
+      };
+
+    } // namespace Dialogs
+  } // namespace GUI
+} // namespace ESPINA
 
 #endif // ESPINA_CATEGORY_SELECTOR_DIALOG_H

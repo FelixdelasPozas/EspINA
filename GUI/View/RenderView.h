@@ -322,8 +322,6 @@ namespace ESPINA
     virtual void moveCamera(const NmVector3 &point) = 0;
 
   private slots:
-//     void onFocusChanged(NmVector3 point);
-
     virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) = 0;
 
     virtual void onSceneResolutionChanged(const NmVector3 &resolution) = 0;
@@ -349,7 +347,11 @@ namespace ESPINA
     unsigned int m_lastFrameActiveManagers;
 
   private:
-    QImage vtkImageDataToQImage(vtkImageData* imageData) const;
+    /** \brief vtkImageData to QImage conversion.
+     * \param[in] image vtkImageData object pointer.
+     *
+     */
+    QImage vtkImageDataToQImage(vtkImageData* image) const;
 
     GUI::View::ViewState &m_state;
     SelectionSPtr         m_selection;

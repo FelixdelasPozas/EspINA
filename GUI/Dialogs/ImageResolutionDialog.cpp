@@ -26,104 +26,112 @@
 #include <QSpinBox>
 #include <QDebug>
 
+using namespace ESPINA;
+using namespace ESPINA::GUI::Dialogs;
+
 //-----------------------------------------------------------------------------
-ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget *parent, int width,
-    int height)
-    : QDialog
-    { parent }, m_ratio
-    { float(width) / height }, m_initialHeight
-    { height }, m_initialWidth
-    { width }, m_height
-    { height }, m_width
-    { width }
+ImageResolutionDialog::ImageResolutionDialog(const int     width,
+                                             const int     height,
+                                             const QImage& image,
+                                             QWidget      *parent)
+: QDialog      {parent}
+, m_ratio      {double(width) / height}
+, m_initialSize{width, height}
+, m_size       {width, height}
 {
   setupUi(this);
 
   m_width_spinBox->setValue(width);
   m_height_spinBox->setValue(height);
 
-  connect(m_width_spinBox, SIGNAL(valueChanged(int)), this,
-      SLOT(onWidthChanged(int)));
-  connect(m_height_spinBox, SIGNAL(valueChanged(int)), this,
-      SLOT(onHeightChanged(int)));
-}
-
-//-----------------------------------------------------------------------------
-ESPINA::ImageResolutionDialog::ImageResolutionDialog(QWidget* parent, int width,
-    int height, QImage& image)
-    : ImageResolutionDialog
-    { parent, width, height }
-{
-  auto thumb = image.scaled(m_image_label->maximumSize(), Qt::KeepAspectRatio,
-      Qt::SmoothTransformation);
+  auto thumb = image.scaled(m_image_label->maximumSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  m_image_label->setFixedSize(thumb.size());
   m_image_label->setPixmap(QPixmap::fromImage(thumb));
+
+  // minimal resolution is 100, maintain ratio but do not allow values under that
+  if(width <= height)
+  {
+    m_width_spinBox->setMinimum(100);
+    m_height_spinBox->setMinimum(100/m_ratio);
+  }
+  else
+  {
+    m_width_spinBox->setMinimum(100*m_ratio);
+    m_height_spinBox->setMinimum(100);
+  }
+
+  connect(m_width_spinBox,  SIGNAL(valueChanged(int)),
+          this,             SLOT(onWidthChanged(int)));
+  connect(m_height_spinBox, SIGNAL(valueChanged(int)),
+          this,             SLOT(onHeightChanged(int)));
 }
 
 //-----------------------------------------------------------------------------
-int ESPINA::ImageResolutionDialog::getMagnifcation() const
+int ImageResolutionDialog::getMagnifcation() const
 {
-  double re = m_width / m_initialWidth + 0.5;
+  double re = m_size.width() / m_initialSize.width() + 0.5;
   return (re < 1) ? 1 : re;
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::ImageResolutionDialog::onHeightChanged(int value)
+void ImageResolutionDialog::onHeightChanged(int value)
 {
-  m_height = value;
-  m_width = m_height * m_ratio;
+  m_size.setHeight(value);
+  m_size.setWidth(value * m_ratio);
+
   m_width_spinBox->blockSignals(true);
-  m_width_spinBox->setValue(m_width);
+  m_width_spinBox->setValue(m_size.width());
   m_width_spinBox->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::ImageResolutionDialog::onWidthChanged(int value)
+void ImageResolutionDialog::onWidthChanged(int value)
 {
-  m_width = value;
-  m_height = m_width / m_ratio;
+  m_size.setWidth(value);
+  m_size.setHeight(value / m_ratio);
   m_height_spinBox->blockSignals(true);
-  m_height_spinBox->setValue(m_height);
+  m_height_spinBox->setValue(m_size.height());
   m_height_spinBox->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
-const double ESPINA::ImageResolutionDialog::getRatio() const
+const double ImageResolutionDialog::getRatio() const
 {
   return m_ratio;
 }
 
 //-----------------------------------------------------------------------------
-const int ESPINA::ImageResolutionDialog::getInitialHeight() const
+const int ImageResolutionDialog::getInitialHeight() const
 {
-  return m_initialHeight;
+  return m_initialSize.height();
 }
 
 //-----------------------------------------------------------------------------
-const int ESPINA::ImageResolutionDialog::getInitialWidth() const
+const int ImageResolutionDialog::getInitialWidth() const
 {
-  return m_initialWidth;
+  return m_initialSize.width();
 }
 
 //-----------------------------------------------------------------------------
-int ESPINA::ImageResolutionDialog::getHeight() const
+int ImageResolutionDialog::getHeight() const
 {
-  return m_height;
+  return m_size.height();
 }
 
 //-----------------------------------------------------------------------------
-int ESPINA::ImageResolutionDialog::getWidth() const
+int ImageResolutionDialog::getWidth() const
 {
-  return m_width;
+  return m_size.width();
 }
 
 //-----------------------------------------------------------------------------
-const QSize ESPINA::ImageResolutionDialog::getInitialSize() const
+const QSize ImageResolutionDialog::getInitialSize() const
 {
-  return QSize(m_initialWidth, m_initialHeight);
+  return m_initialSize;
 }
 
 //-----------------------------------------------------------------------------
-QSize ESPINA::ImageResolutionDialog::getSize() const
+QSize ImageResolutionDialog::getSize() const
 {
-  return QSize(m_width, m_height);
+  return m_size;
 }
