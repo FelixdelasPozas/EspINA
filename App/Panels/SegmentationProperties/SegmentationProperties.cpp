@@ -58,6 +58,8 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
 
   setWidget(m_gui);
 
+  m_gui->issuesGroup->hide();
+
   connect(m_gui->manageTags, SIGNAL(clicked(bool)),
           this,              SLOT(manageTags()));
 }

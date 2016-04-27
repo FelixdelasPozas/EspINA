@@ -28,6 +28,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
   Panels/SegmentationExplorer/SegmentationExplorerLayout.h
+  Panels/SegmentationProperties/IssueProperty.h
   Panels/SegmentationProperties/NoFilterRefiner.h
   Panels/SegmentationProperties/SegmentationProperties.h
   EspinaMainWindow.h
@@ -93,6 +94,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/Dialog3D/Dialog3D.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
+  Panels/SegmentationProperties/IssueProperty.ui
   Panels/SegmentationProperties/NoFilterRefiner.ui
   Panels/SegmentationProperties/SegmentationProperties.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
@@ -134,6 +136,7 @@ set (ESPINA_SOURCES
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.cpp
   Panels/SegmentationExplorer/SegmentationExplorer.cpp
   Panels/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  Panels/SegmentationProperties/IssueProperty.cpp
   Panels/SegmentationProperties/NoFilterRefiner.cpp
   Panels/SegmentationProperties/SegmentationProperties.cpp
   Panels/StackExplorer/StackExplorer.cpp
