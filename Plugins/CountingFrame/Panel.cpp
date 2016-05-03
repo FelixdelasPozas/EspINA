@@ -864,10 +864,8 @@ void CF::Panel::onMarginsComputed()
     optimalMargins->exclusion(exclusion);
 
     pendingCF.CF->setMargins(inclusion, exclusion);
-    pendingCF.CF->apply();
   }
 }
-
 
 //------------------------------------------------------------------------
 void CF::Panel::onCountingFrameCreated(CountingFrame* cf)
@@ -877,8 +875,6 @@ void CF::Panel::onCountingFrameCreated(CountingFrame* cf)
   connect(cf,   SIGNAL(applied(CountingFrame*)),
           this, SLOT(onCountingFrameApplied(CountingFrame*)));
 
-  cf->apply();
-
   m_countingFrames << cf;
 
   updateTable();
@@ -886,6 +882,8 @@ void CF::Panel::onCountingFrameCreated(CountingFrame* cf)
   m_activeCF = cf; // To make applyCategoryConstraint work
 
   updateUI(m_cfModel->index(m_cfModel->rowCount() - 1, 0));
+
+  cf->apply();
 }
 
 //------------------------------------------------------------------------
@@ -1141,6 +1139,8 @@ void ESPINA::CF::Panel::exportAsXLS(const QString& fileName) const
 //------------------------------------------------------------------------
 void CF::Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 {
+  QList<CountingFrame *> toApplyList;
+
   for (auto segmentation : segmentations)
   {
     auto segmentationExtensions = segmentation->extensions();
@@ -1159,9 +1159,20 @@ void CF::Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
         for (auto cf : cfExtension->countingFrames())
         {
           sterologicalExtension->addCountingFrame(cf);
-          cf->apply();
+          if(!toApplyList.contains(cf))
+          {
+            toApplyList << cf;
+          }
         }
       }
+    }
+  }
+
+  if(!toApplyList.empty())
+  {
+    for(auto cf: toApplyList)
+    {
+      cf->apply();
     }
   }
 }

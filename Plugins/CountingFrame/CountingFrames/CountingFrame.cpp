@@ -225,6 +225,8 @@ void CountingFrame::setCategoryConstraint(const QString& category)
   {
     m_categoryConstraint = category;
 
+    apply();
+
     emit modified(this);
   }
 }
@@ -331,6 +333,8 @@ void CountingFrame::updateCountingFrame()
   }
 
   emit modified(this);
+
+  apply();
 }
 
 //-----------------------------------------------------------------------------
@@ -367,11 +371,9 @@ Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 {
   QReadLocker lock(&m_channelEdgesMutex);
-  //qDebug() << "Locking for copying edges" << thread();
 
   auto edges = vtkSmartPointer<vtkPolyData>::New();
   edges->DeepCopy(m_channelEdges);
-  //qDebug() << "Edges copied" << thread();
 
   return edges;
 }
@@ -380,11 +382,9 @@ vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 {
   QReadLocker lock(&m_countingFrameMutex);
-  //qDebug() << "Locking for copying CF" << thread();
 
   auto cf = vtkSmartPointer<vtkPolyData>::New();
   cf->DeepCopy(m_countingFrame);
-  //qDebug() << "CF copied" << thread();
 
   return cf;
 }
@@ -430,6 +430,5 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
     }
 
     m_cf->updateCountingFrame();
-    m_cf->apply();
   }
 }

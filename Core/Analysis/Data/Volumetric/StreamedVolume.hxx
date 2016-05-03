@@ -537,6 +537,33 @@ namespace ESPINA
     }
 
   } // namespace Core
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  QStringList filenames(Core::StreamedVolume<T> *image)
+  {
+    QStringList names;
+    auto header = image->fileName().absoluteFilePath();
+    auto raw    = header.left(header.lastIndexOf('.')) + QObject::tr(".raw");
+
+    names << header << raw;
+
+    return names;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void remove(Core::StreamedVolume<T> *image)
+  {
+    for(auto filename: filenames(image))
+    {
+      if (!QFile::remove(filename))
+      {
+        qWarning() << QObject::tr("Couldn't remove file '%1'").arg(filename);
+      }
+    }
+  }
+
 } // namespace ESPINA
 
 #endif // ESPINA_STREAMED_VOLUME_H

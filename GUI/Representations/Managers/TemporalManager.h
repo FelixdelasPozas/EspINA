@@ -89,6 +89,7 @@ namespace ESPINA
 
           /** \brief Updates the representation for the given frame.
            * \param[in] frame const frame object.
+           *
            */
           virtual void display(const FrameCSPtr &frame) {};
         };
