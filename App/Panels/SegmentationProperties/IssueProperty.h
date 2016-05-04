@@ -29,31 +29,23 @@
 
 namespace ESPINA
 {
-  
   class IssueProperty: public QWidget, private Ui::IssueProperty
   {
-    Q_OBJECT
     public:
-
       /** \brief IssueProperty class constructor.
        * \param[in] warning text.
        * \param[in] suggestion text.
-       * \param[in] parent pointer of the QWidget parent of this one.
-       */
-      IssueProperty(QString warning, QString suggestion, QWidget *parent);
-
-      /** \brief IssueProperty class constructor.
        * \param[in] icon image to show.
-       * \param[in] warning text.
-       * \param[in] suggestion text.
        * \param[in] parent pointer of the QWidget parent of this one.
+       *
        */
-      IssueProperty(QPixmap icon, QString warning, QString suggestion,
-          QWidget *parent);
+      IssueProperty(const QString &warning, const QString &suggestion, QWidget *parent = nullptr, QPixmap icon = QPixmap());
 
-      /** \brief IssueProperty class destructor.
+      /** \brief IssueProperty class virtual destructor.
+       *
        */
-      virtual ~IssueProperty();
+      virtual ~IssueProperty()
+      {};
   };
 
 } /* namespace ESPINA */

@@ -26,27 +26,25 @@
 
 using namespace ESPINA;
 
-IssueProperty::IssueProperty(QString warning, QString suggestion,
-    QWidget *parent)
-    : QWidget
-    { parent }
+IssueProperty::IssueProperty(const QString &warning, const QString &suggestion, QWidget* parent, QPixmap icon)
+: QWidget{parent}
 {
   setupUi(this);
 
   m_warning_label->setText(warning);
-  m_suggestion_label->setText(suggestion);
-}
+  auto font = m_warning_label->font();
+  font.setBold(true);
+  m_warning_label->setFont(font);
 
-IssueProperty::IssueProperty(QPixmap icon, QString warning, QString suggestion,
-    QWidget *parent)
-    : QWidget
-    { parent }, IssueProperty
-    { warning, suggestion, parent }
-{
-  m_icon_label->setText(QString());
-  m_icon_label->setPixmap(icon);
-}
+  m_suggestion_label->setText("Suggestion: " + suggestion);
 
-IssueProperty::~IssueProperty()
-{
+  if (icon.isNull())
+  {
+    m_icon_label->hide();
+  }
+  else
+  {
+    QIcon i;
+    m_icon_label->setPixmap(icon);
+  }
 }

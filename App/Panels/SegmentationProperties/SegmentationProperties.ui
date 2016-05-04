@@ -151,7 +151,11 @@
          <property name="title">
           <string>Issues</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7"/>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>1</number>
+          </property>
+         </layout>
         </widget>
        </item>
       </layout>
