@@ -24,6 +24,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -54,6 +55,8 @@ namespace ESPINA
         template<typename T>
         void EspinaGUI_EXPORT repositionActor(T actor, Nm depth, int normal)
         {
+          Q_ASSERT((normal >= 0) && (normal <= 2));
+
           double pos[3];
 
           actor->GetPosition(pos);
@@ -62,6 +65,28 @@ namespace ESPINA
 
           actor->SetPosition(pos);
           actor->Modified();
+        }
+
+        /** \brief Repositions the given segmentation actor for the given view
+         * \param[in] actor segmentation actor object.
+         * \param[in] view View2D object.
+         *
+         */
+        template<typename T>
+        void EspinaGUI_EXPORT repositionActor(T actor, View2D *view)
+        {
+          repositionActor(actor, view->segmentationDepth(), normalCoordinateIndex(view->plane()));
+        }
+
+        /** \brief Repositions the given widget actor for the given view
+         * \param[in] actor widget actor object.
+         * \param[in] view View2D object.
+         *
+         */
+        template<typename T>
+        void EspinaGUI_EXPORT repositionWidget(T actor, View2D *view)
+        {
+          repositionActor(actor, view->widgetDepth(), normalCoordinateIndex(view->plane()));
         }
       }
     }

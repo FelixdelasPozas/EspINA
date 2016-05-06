@@ -35,8 +35,8 @@
 #include "Task.h"
 #include <QMap>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   struct ScheduledTask
   {
     static const unsigned MAX_CICLES = 100;
@@ -108,7 +108,10 @@ namespace ESPINA {
      */
     void changePriority(TaskSPtr task, Priority prevPriority);
 
-    unsigned int maxRunningTasks() const;
+    /** \brief Returns the maximum number of threads of the system.
+     *
+     */
+    static unsigned int maxRunningTasks();
 
   public slots:
     /** \brief Starts the scheduler.
@@ -158,7 +161,7 @@ namespace ESPINA {
 
     Task::Id m_lastId;
 
-    int            m_maxNumRunningTasks;
+    unsigned int   m_maxNumRunningTasks;
     mutable QMutex m_mutex;
     bool           m_abort;
   };

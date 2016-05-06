@@ -199,11 +199,10 @@ void RepresentationUpdater::run()
   auto it   = updateList.begin();
   auto size = updateList.size();
 
-  int i  = 0;
-
   {
     QMutexLocker actorsLock(&m_actors->lock);
 
+    int i = 0;
     while (canExecute() && it != updateList.end())
     {
       auto item     = it->first;

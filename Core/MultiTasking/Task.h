@@ -42,6 +42,7 @@
 
 // C++
 #include <cstdint>
+#include <atomic>
 
 namespace ESPINA
 {
@@ -276,13 +277,13 @@ namespace ESPINA
 
     Priority m_priority;
 
-    bool m_isRunning;
-    bool m_pendingPause;
-    bool m_pendingUserPause;
-    bool m_isAborted;
-    bool m_hasFinished;
-    bool m_isPaused;
-    bool m_needsRestart;
+    std::atomic<bool> m_isRunning;
+    std::atomic<bool> m_pendingPause;
+    std::atomic<bool> m_pendingUserPause;
+    std::atomic<bool> m_isAborted;
+    std::atomic<bool> m_hasFinished;
+    std::atomic<bool> m_isPaused;
+    std::atomic<bool> m_needsRestart;
 
     Id   m_id;
     bool m_hidden;

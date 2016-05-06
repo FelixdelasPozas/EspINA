@@ -261,7 +261,7 @@ namespace ESPINA
         if(!headerFile.open(QIODevice::ReadWrite))
         {
           auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
-          auto details = QObject::tr("WritableStreamedFileBase::constrctor() -> ") + message;
+          auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
         }
@@ -284,7 +284,7 @@ namespace ESPINA
         if(headerFile.error() != QFile::NoError)
         {
           auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
-          auto details = QObject::tr("WritableStreamedFileBase::constrcutor() -> ") + message;
+          auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
         }

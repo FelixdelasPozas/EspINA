@@ -71,7 +71,7 @@ Scheduler::Scheduler(int period, QObject* parent)
 : QObject               {parent}
 , m_period              {period}
 , m_lastId              {0}
-, m_maxNumRunningTasks{QThreadPool::globalInstance()->maxThreadCount()}
+, m_maxNumRunningTasks  {maxRunningTasks()}
 , m_abort               {false}
 {
   auto thread = new QThread();
@@ -149,9 +149,9 @@ void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 }
 
 //-----------------------------------------------------------------------------
-unsigned int Scheduler::maxRunningTasks() const
+unsigned int Scheduler::maxRunningTasks()
 {
-  return m_maxNumRunningTasks;
+  return QThreadPool::globalInstance()->maxThreadCount();
 }
 
 //-----------------------------------------------------------------------------
