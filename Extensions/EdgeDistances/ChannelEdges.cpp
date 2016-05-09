@@ -71,6 +71,8 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
                            const ChannelExtension::InfoCache &cache,
                            const State                       &state)
 : ChannelExtension     {cache}
+, m_hasAnalizedChannel {false}
+, m_hasCreatedEdges    {false}
 , m_useDistanceToBounds{true}
 , m_backgroundColor    {-1}
 , m_threshold          {-1}
@@ -78,8 +80,14 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 , m_invalidated        {false}
 , m_edgesCreator       {std::make_shared<AdaptiveEdgesCreator>(this, scheduler)}
 , m_edgesAnalyzer      {std::make_shared<EdgesAnalyzer>(this, scheduler)}
+, m_edges              {nullptr}
 , m_scheduler          {scheduler}
 {
+  for(int i = 0; i < 6; ++i)
+  {
+    m_faces[i] = nullptr;
+  }
+
   if (!state.isEmpty())
   {
     //State: UseDistanceToBounds,BackgroundColor,Threshold
@@ -94,6 +102,9 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 ChannelEdges::~ChannelEdges()
 {
   invalidateResults();
+
+  m_analisysWait.wakeAll();
+  m_edgesTask.wakeAll();
 
   m_edgesAnalyzer = nullptr;
   m_edgesCreator = nullptr;
@@ -114,25 +125,22 @@ void ChannelEdges::initializeEdges()
   if(!m_invalidated)
   {
     // NOTE: avoid loading old information if this extension has been invalidate on this session.
-    loadEdgesCache();
+    loadEdgesData();
   };
 
-  QWriteLocker lock(&m_edgesMutex);
-  if (!m_edges.GetPointer())
-  {
-    computeAdaptiveEdges();
-
-    // blocks this thread until adaptive edges computation finishes
-    QReadLocker edgesLock(&m_edgesResultMutex);
-  }
+  checkEdgesData();
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::analyzeChannel()
 {
-  QWriteLocker lock(&m_edgesResultMutex);
+  {
+    QReadLocker lock(&m_dataMutex);
 
-  m_analysisResultMutex.lockForWrite();
+    if(m_edgesAnalyzer->isRunning() || m_edgesAnalyzer->hasFinished()) return;
+  }
+
+  QWriteLocker lock(&m_dataMutex);
 
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
 
@@ -142,11 +150,15 @@ void ChannelEdges::analyzeChannel()
 //-----------------------------------------------------------------------------
 void ChannelEdges::computeAdaptiveEdges()
 {
-  QReadLocker lock(&m_analysisResultMutex);
+  checkAnalysisData();
 
-  m_edges = vtkSmartPointer<vtkPolyData>::New();
+  {
+    QReadLocker lock(&m_dataMutex);
 
-  m_edgesResultMutex.lockForWrite();
+    if(m_edgesCreator->isRunning() || m_edgesCreator->hasFinished()) return;
+  }
+
+  QWriteLocker lock(&m_dataMutex);
 
   m_edgesCreator->setDescription(QObject::tr("Computing Edges: %1").arg(m_extendedItem->name()));
 
@@ -154,9 +166,9 @@ void ChannelEdges::computeAdaptiveEdges()
 }
 
 //-----------------------------------------------------------------------------
-void ChannelEdges::loadEdgesCache()
+void ChannelEdges::loadEdgesData()
 {
-  QWriteLocker lock(&m_edgesMutex);
+  QWriteLocker lock(&m_dataMutex);
 
   if (!m_edges.GetPointer() && !m_extendedItem->isOutputModified())
   {
@@ -168,12 +180,6 @@ void ChannelEdges::loadEdgesCache()
       m_edges = PolyDataUtils::readPolyDataFromFile(edgesFile.absoluteFilePath());
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-void ChannelEdges::loadFacesCache()
-{
-  QWriteLocker lock(&m_facesMutex);
 
   if (!m_faces[0].GetPointer() && !m_extendedItem->isOutputModified())
   {
@@ -188,11 +194,21 @@ void ChannelEdges::loadFacesCache()
       }
     }
   }
+
+  m_hasCreatedEdges = m_edges.GetPointer() &&
+                      m_faces[0].GetPointer() &&
+                      m_faces[1].GetPointer() &&
+                      m_faces[2].GetPointer() &&
+                      m_faces[3].GetPointer() &&
+                      m_faces[4].GetPointer() &&
+                      m_faces[5].GetPointer();
 }
 
 //-----------------------------------------------------------------------------
 State ChannelEdges::state() const
 {
+  checkAnalysisData();
+
   return QString("%1,%2,%3").arg(m_useDistanceToBounds)
                             .arg(m_backgroundColor)
                             .arg(m_threshold);
@@ -201,32 +217,26 @@ State ChannelEdges::state() const
 //-----------------------------------------------------------------------------
 Snapshot ChannelEdges::snapshot() const
 {
+  QReadLocker lock(&m_dataMutex);
+
   Snapshot snapshot;
 
+  if (m_edges)
   {
-    QReadLocker lock(&m_edgesMutex);
+    auto name = snapshotName(EDGES_FILE);
+    auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
 
-    if (m_edges)
-    {
-      auto name = snapshotName(EDGES_FILE);
-      auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
-
-      snapshot << SnapshotData(name, data);
-    }
+    snapshot << SnapshotData(name, data);
   }
 
+  for (int i = 0; i < 6; ++i)
   {
-    QReadLocker lock(&m_facesMutex);
-
-    for (int i = 0; i < 6; ++i)
+    if (m_faces[i])
     {
-      if (m_faces[i])
-      {
-        auto name = snapshotName(FACES_FILE.arg(i));
-        auto data = PolyDataUtils::savePolyDataToBuffer(m_faces[i]);
+      auto name = snapshotName(FACES_FILE.arg(i));
+      auto data = PolyDataUtils::savePolyDataToBuffer(m_faces[i]);
 
-        snapshot << SnapshotData(name, data);
-      }
+      snapshot << SnapshotData(name, data);
     }
   }
 
@@ -284,19 +294,10 @@ void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6
 //-----------------------------------------------------------------------------
 void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6])
 {
-  loadFacesCache();
-
-  {
-    QReadLocker lock(&m_facesMutex);
-    if (!m_faces[0])
-    {
-      computeSurfaces();
-    }
-  }
+  initializeEdges();
 
   auto output = segmentation->output();
 
-  QReadLocker lock(&m_facesMutex);
 //   qDebug() << "Computing distances";
   auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
   if (hasMeshData(output))
@@ -337,7 +338,7 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 
   auto result = vtkSmartPointer<vtkPolyData>::New();
   {
-    QReadLocker lock(&m_edgesMutex);
+    QReadLocker lock(&m_dataMutex);
     result->DeepCopy(m_edges);
   }
 
@@ -350,116 +351,6 @@ Nm ChannelEdges::computedVolume()
   initializeEdges();
 
   return m_computedVolume;
-}
-
-//-----------------------------------------------------------------------------
-void ChannelEdges::computeSurfaces()
-{
-  initializeEdges();
-
-  vtkPoints *borderPoints = m_edges->GetPoints();
-  int numSlices = m_edges->GetNumberOfPoints()/4;
-
-  for (int face = 0; face < 6; face++)
-  {
-    vtkPoints    *facePoints = vtkPoints::New();
-    vtkCellArray *faceCells  = vtkCellArray::New();
-    if (face < 4)
-    {
-      for (int i = 0; i < numSlices; i++)
-      {
-        double p1[3], p2[3];
-        switch(face)
-        {
-          case 0: // LEFT
-            borderPoints->GetPoint((4*i)+0, p1);
-            borderPoints->GetPoint((4*i)+1, p2);
-
-            facePoints->InsertNextPoint(p1);
-            facePoints->InsertNextPoint(p2);
-
-            break;
-          case 1: // RIGHT
-            borderPoints->GetPoint((4*i)+2, p1);
-            borderPoints->GetPoint((4*i)+3, p2);
-
-            facePoints->InsertNextPoint(p1);
-            facePoints->InsertNextPoint(p2);
-
-            break;
-          case 2: // TOP
-            borderPoints->GetPoint((4*i)+1, p1);
-            borderPoints->GetPoint((4*i)+2, p2);
-
-            facePoints->InsertNextPoint(p1);
-            facePoints->InsertNextPoint(p2);
-
-            break;
-          case 3: // BOTTOM
-            borderPoints->GetPoint((4*i)+3, p1);
-            borderPoints->GetPoint((4*i)+0, p2);
-
-            facePoints->InsertNextPoint(p1);
-            facePoints->InsertNextPoint(p2);
-
-            break;
-          default:
-            Q_ASSERT(FALSE);
-            break;
-        }
-
-        if (i == 0)
-          continue;
-
-        vtkIdType corners[4];
-        corners[0] = (i*2)-2;
-        corners[1] = (i*2)-1;
-        corners[2] = (i*2)+1;
-        corners[3] = 2*i;
-        faceCells->InsertNextCell(4,corners);
-      }
-    }
-    else
-    {
-      vtkIdType corners[4];
-      double p[3];
-      switch(face)
-      {
-        case 4: // Front
-        {
-          for (int i = 0; i < 4; ++i)
-          {
-            borderPoints->GetPoint(i, p);
-            corners[i] = facePoints->InsertNextPoint(p);
-          }
-          break;
-        }
-        case 5: // Back
-        {
-          auto np = borderPoints->GetNumberOfPoints();
-          for (int i = 0; i < 4; ++i)
-          {
-            borderPoints->GetPoint(np - (4-i), p);
-            corners[i] = facePoints->InsertNextPoint(p);
-          }
-          break;
-        }
-        default:
-          Q_ASSERT(false);
-          break;
-      }
-      faceCells->InsertNextCell(4,corners);
-    }
-
-    vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
-    poly->SetPoints(facePoints);
-    poly->SetPolys(faceCells);
-
-    facePoints->Delete();
-    faceCells->Delete();
-
-    m_faces[face] = poly;
- }
 }
 
 //-----------------------------------------------------------------------------
@@ -485,7 +376,7 @@ void ChannelEdges::invalidate()
 //-----------------------------------------------------------------------------
 void ChannelEdges::invalidateResults()
 {
-  QWriteLocker lock(&m_edgesMutex);
+  QWriteLocker lock(&m_dataMutex);
   if(!m_edgesAnalyzer->hasFinished())
   {
     m_edgesAnalyzer->abort();
@@ -495,10 +386,6 @@ void ChannelEdges::invalidateResults()
       m_edgesAnalyzer->thread()->terminate();
       m_edgesAnalyzer = std::make_shared<EdgesAnalyzer>(this, m_scheduler);
     }
-
-    // reset result mutex
-    m_analysisResultMutex.tryLockForRead();
-    m_analysisResultMutex.unlock();
   }
 
   if(!m_edgesCreator->hasFinished())
@@ -510,10 +397,6 @@ void ChannelEdges::invalidateResults()
       m_edgesCreator->thread()->terminate();
       m_edgesCreator = std::make_shared<AdaptiveEdgesCreator>(this, m_scheduler);
     }
-
-    // reset result mutex
-    m_edgesResultMutex.tryLockForRead();
-    m_edgesResultMutex.unlock();
   }
 
   m_edges = nullptr;
@@ -523,19 +406,18 @@ void ChannelEdges::invalidateResults()
   }
 
   m_computedVolume = 0;
+  m_hasAnalizedChannel = false;
+  m_hasCreatedEdges    = false;
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::setAnalisysValues(bool useBounds, int color, int threshold)
 {
-  m_analysisResultMutex.lockForWrite();
   if((m_useDistanceToBounds != useBounds) || (m_backgroundColor != color) || (m_threshold != threshold))
   {
     m_useDistanceToBounds = useBounds;
     m_backgroundColor     = color;
     m_threshold           = threshold;
-
-    m_analysisResultMutex.unlock();
 
     invalidateResults();
 
@@ -547,16 +429,12 @@ void ChannelEdges::setAnalisysValues(bool useBounds, int color, int threshold)
 
     emit invalidated();
   }
-  else
-  {
-    m_analysisResultMutex.unlock();
-  }
 }
 
 //-----------------------------------------------------------------------------
 bool ChannelEdges::useDistanceToBounds() const
 {
-  QReadLocker lock(&m_analysisResultMutex);
+  checkAnalysisData();
 
   return m_useDistanceToBounds;
 }
@@ -564,7 +442,7 @@ bool ChannelEdges::useDistanceToBounds() const
 //-----------------------------------------------------------------------------
 int ChannelEdges::backgroundColor() const
 {
-  QReadLocker lock(&m_analysisResultMutex);
+  checkAnalysisData();
 
   return m_backgroundColor;
 }
@@ -572,7 +450,33 @@ int ChannelEdges::backgroundColor() const
 //-----------------------------------------------------------------------------
 int ChannelEdges::threshold() const
 {
-  QReadLocker lock(&m_analysisResultMutex);
+  checkAnalysisData();
 
   return m_threshold;
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::checkAnalysisData() const
+{
+  if(!m_hasAnalizedChannel)
+  {
+    const_cast<ChannelEdges *>(this)->analyzeChannel();
+
+    m_analysisResultMutex.lock();
+    m_analisysWait.wait(&m_analysisResultMutex);
+    m_analysisResultMutex.unlock();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::checkEdgesData() const
+{
+  if(!m_hasCreatedEdges)
+  {
+    const_cast<ChannelEdges *>(this)->computeAdaptiveEdges();
+
+    m_edgesResultMutex.lock();
+    m_edgesTask.wait(&m_edgesResultMutex);
+    m_edgesResultMutex.unlock();
+  }
 }

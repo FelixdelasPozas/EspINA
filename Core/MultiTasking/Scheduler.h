@@ -64,8 +64,8 @@ namespace ESPINA
   class TaskQueue
   : public QList<ScheduledTask>
   {
-  public:
-    void orderedInsert(TaskSPtr worker);
+    public:
+      void orderedInsert(TaskSPtr worker);
   };
 
   class EspinaCore_EXPORT Scheduler

@@ -64,7 +64,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
   connect(m_applyCountingFrame.get(), SIGNAL(finished()),
           this,                       SLOT(onCountingFrameApplied()));
 
-  auto itemExtensions = extension->extendedItem()->extensions();
+  auto itemExtensions = extension->extendedItem()->readOnlyExtensions();
   Q_ASSERT(itemExtensions->hasExtension(ChannelEdges::TYPE));
 
   // TODO: the channel edges extension is accessed every time, even if the Counting Frame

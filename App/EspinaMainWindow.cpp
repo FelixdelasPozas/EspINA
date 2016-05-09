@@ -1227,11 +1227,15 @@ void EspinaMainWindow::analyzeChannelEdges()
 {
   for (auto channel : m_context.model()->channels())
   {
-    auto extensions = channel->extensions();
-
-    if (!extensions->hasExtension(ChannelEdges::TYPE))
+    bool hasExtension = false;
     {
-      extensions->add(std::make_shared<ChannelEdges>(m_context.scheduler()));
+      auto readExtensions = channel->readOnlyExtensions();
+      hasExtension = readExtensions->hasExtension(ChannelEdges::TYPE);
+    }
+
+    if (!hasExtension)
+    {
+      channel->extensions()->add(std::make_shared<ChannelEdges>(m_context.scheduler()));
     }
   }
 }
