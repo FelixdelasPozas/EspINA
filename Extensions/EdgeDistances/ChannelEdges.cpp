@@ -384,7 +384,6 @@ void ChannelEdges::invalidateResults()
     if ((m_edgesAnalyzer->thread() != this->thread()) && !m_edgesAnalyzer->thread()->wait(500))
     {
       m_edgesAnalyzer->thread()->terminate();
-      m_edgesAnalyzer = std::make_shared<EdgesAnalyzer>(this, m_scheduler);
     }
   }
 
@@ -395,7 +394,6 @@ void ChannelEdges::invalidateResults()
     if ((m_edgesCreator->thread() != this->thread()) && !m_edgesCreator->thread()->wait(500))
     {
       m_edgesCreator->thread()->terminate();
-      m_edgesCreator = std::make_shared<AdaptiveEdgesCreator>(this, m_scheduler);
     }
   }
 
@@ -405,9 +403,11 @@ void ChannelEdges::invalidateResults()
     m_faces[i] = nullptr;
   }
 
-  m_computedVolume = 0;
+  m_computedVolume     = 0;
   m_hasAnalizedChannel = false;
   m_hasCreatedEdges    = false;
+  m_edgesAnalyzer      = std::make_shared<EdgesAnalyzer>(this, m_scheduler);
+  m_edgesCreator       = std::make_shared<AdaptiveEdgesCreator>(this, m_scheduler);
 }
 
 //-----------------------------------------------------------------------------
