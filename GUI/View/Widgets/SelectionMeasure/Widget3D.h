@@ -43,6 +43,8 @@ namespace ESPINA
           public:
             explicit Widget3D(SelectionSPtr selection);
 
+            virtual ~Widget3D();
+
             virtual Representations::Managers::TemporalRepresentation3DSPtr clone();
 
           protected:

@@ -15,10 +15,13 @@
  *
  */
 
+// ESPINA
 #include "Widget3D.h"
-
 #include "vtkWidget3D.h"
 #include <GUI/View/RenderView.h>
+
+// VTK
+#include <vtkRenderWindow.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -31,6 +34,11 @@ Widget3D::Widget3D(SelectionSPtr selection)
 : m_selection(selection)
 , m_widget(vtkSmartPointer<vtkWidget3D>::New())
 , m_selectedSegmentations(selection->segmentations())
+{
+}
+
+//----------------------------------------------------------------------------
+Widget3D:: ~Widget3D()
 {
 }
 
@@ -67,6 +75,9 @@ bool Widget3D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr fr
 //----------------------------------------------------------------------------
 void Widget3D::initializeImplementation(RenderView *view)
 {
+  m_widget->SetCurrentRenderer(view->mainRenderer());
+  m_widget->SetInteractor(view->renderWindow()->GetInteractor());
+
   updateSelectionMeasure();
 
   synchronizeSelectionChanges();
@@ -78,8 +89,12 @@ void Widget3D::initializeImplementation(RenderView *view)
 //----------------------------------------------------------------------------
 void Widget3D::uninitializeImplementation()
 {
+  m_widget->SetCurrentRenderer(nullptr);
+  m_widget->SetInteractor(nullptr);
+
   disconnect(m_selection.get(), SIGNAL(selectionChanged()),
              this,              SLOT(onSelectionChanged()));
+
   desynchronizeSelectionChanges();
 }
 
@@ -131,12 +146,9 @@ void Widget3D::updateSelectionMeasure()
     updateBoundingBox(selectionMeasure, segmentation->bounds());
   }
 
-  if (!selectionMeasure.areValid())
+  if (!selectionMeasure.areValid() && m_selection->activeChannel())
   {
-    for (auto channel : m_selection->channels())
-    {
-      updateBoundingBox(selectionMeasure, channel->bounds());
-    }
+    updateBoundingBox(selectionMeasure, m_selection->activeChannel()->bounds());
   }
 
   m_widget->setBounds(selectionMeasure);

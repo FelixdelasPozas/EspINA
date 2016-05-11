@@ -144,7 +144,13 @@ namespace ESPINA
           }
           else
           {
-            ancestors << content->ancestors(ancestor);
+            for(auto itemAncestor: content->ancestors(ancestor))
+            {
+              if(!ancestors.contains(itemAncestor))
+              {
+                ancestors << itemAncestor;
+              }
+            }
           }
         }
       }
@@ -217,7 +223,9 @@ namespace ESPINA
       for(auto analysisChannel: channels)
       {
         if(analysisChannel.get() == channel)
+        {
           return sample(analysisChannel);
+        }
       }
 
       return SampleSPtr();

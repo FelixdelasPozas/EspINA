@@ -21,6 +21,7 @@
 #ifndef ESPINA_GUI_VIEW_WIDGETS_SELECTIONMEASURE_WIDGET2D_H
 #define ESPINA_GUI_VIEW_WIDGETS_SELECTIONMEASURE_WIDGET2D_H
 
+#include <GUI/Types.h>
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
@@ -54,6 +55,9 @@ namespace ESPINA
             virtual void setRepresentationDepth(Nm depth);
 
             virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
+
+            virtual void display(const GUI::Representations::FrameCSPtr &frame)
+            { setCrosshair(frame->crosshair); }
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;

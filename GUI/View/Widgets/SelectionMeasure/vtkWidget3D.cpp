@@ -71,7 +71,7 @@ void vtkWidget3D::CreateDefaultRepresentation()
 //----------------------------------------------------------------------------
 void vtkWidget3D::SetEnabled(int enabled)
 {
-  if (enabled != m_enabled && CurrentRenderer)
+  if (enabled != m_enabled && CurrentRenderer && Interactor)
   {
     m_enabled = enabled;
 
@@ -79,7 +79,7 @@ void vtkWidget3D::SetEnabled(int enabled)
 
     if(enabled)
     {
-      if (m_actor->GetCamera() == NULL || CurrentRenderer->GetActiveCamera() != m_actor->GetCamera())
+      if ((m_actor->GetCamera() == nullptr) || (CurrentRenderer->GetActiveCamera() != m_actor->GetCamera()))
       {
         m_actor->SetCamera(CurrentRenderer->GetActiveCamera());
         m_actor->Modified();
