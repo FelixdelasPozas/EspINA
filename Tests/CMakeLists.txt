@@ -152,6 +152,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/Utils/ModelUtils.cpp
   ${GUI_DIR}/Model/Utils/SegmentationUtils.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
+  ${GUI_DIR}/Model/Utils/QueryAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/Frame.cpp
   ${GUI_DIR}/Utils/Timer.cpp

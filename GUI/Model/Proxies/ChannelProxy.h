@@ -31,6 +31,7 @@ namespace ESPINA
 
   /** \class ChannelProxy.
    * \brief Rearrange model items to group Channels by Samples.
+   *
    */
   class EspinaGUI_EXPORT ChannelProxy
   : public QAbstractProxyModel
@@ -49,10 +50,6 @@ namespace ESPINA
        */
       virtual ~ChannelProxy();
 
-      /** \brief sets the source model for the proxy.
-       *
-       *  NOTE: This function shadows base set source model
-       */
       virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
       virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;
@@ -205,6 +202,8 @@ namespace ESPINA
       SampleAdapterPtr sample(ChannelAdapterPtr channel) const;
 
     private:
+      void updateInternalData();
+
       ModelAdapterSPtr m_model;
 
       SampleAdapterList m_samples;

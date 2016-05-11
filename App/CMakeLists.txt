@@ -191,6 +191,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
   Undo/ChangeCategoryColorCommand.cpp
+  Undo/DragChannelsCommand.cpp
   Undo/DrawUndoCommand.cpp
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
