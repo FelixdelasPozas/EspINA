@@ -178,9 +178,15 @@ namespace ESPINA
     void invalidateResults();
 
     void checkAnalysisData() const;
-    void checkEdgesData() const;
+    void checkEdgesData();
 
   private:
+    /** \brief Helper method to create the rectangular edges vtkPolyData.
+     * \param[in] bounds limits of the rectangular region.
+     *
+     */
+    void createRectangularRegion(const Bounds &bounds);
+
     mutable std::atomic<bool> m_hasAnalizedChannel;
     mutable std::atomic<bool> m_hasCreatedEdges;
 

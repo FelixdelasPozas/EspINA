@@ -430,7 +430,6 @@ namespace ESPINA
 
       if(!m_region.IsInside(region))
       {
-        //requestedRegion.Crop(m_region);
         auto message = QObject::tr("Requested region is totally/partially outside the image region. File: %1").arg(m_fileName);
         auto details = QObject::tr("StreamedVolume::read(region) -> ") + message;
 

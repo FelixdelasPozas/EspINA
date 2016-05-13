@@ -494,6 +494,5 @@ void AdaptiveEdgesCreator::run()
 
   m_extension->m_hasCreatedEdges = !isAborted();
   m_extension->m_edgesTask.wakeAll();
-
 //  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

@@ -31,9 +31,7 @@
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
-#include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
-#include <vtkContourFilter.h>
 #include <vtkDistancePolyDataFilter.h>
 #include <vtkLine.h>
 #include <vtkPoints.h>
@@ -46,6 +44,7 @@
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkGenericDataObjectReader.h>
+#include <vtkCellArray.h>
 
 // Qt
 #include <QApplication>
@@ -426,6 +425,10 @@ void ChannelEdges::setAnalisysValues(bool useBounds, int color, int threshold)
     {
       analyzeChannel();
     }
+    else
+    {
+      m_hasAnalizedChannel = true;
+    }
 
     emit invalidated();
   }
@@ -469,14 +472,171 @@ void ChannelEdges::checkAnalysisData() const
 }
 
 //-----------------------------------------------------------------------------
-void ChannelEdges::checkEdgesData() const
+void ChannelEdges::checkEdgesData()
 {
   if(!m_hasCreatedEdges)
   {
-    const_cast<ChannelEdges *>(this)->computeAdaptiveEdges();
+    if(!useDistanceToBounds())
+    {
+      const_cast<ChannelEdges *>(this)->computeAdaptiveEdges();
 
-    m_edgesResultMutex.lock();
-    m_edgesTask.wait(&m_edgesResultMutex);
-    m_edgesResultMutex.unlock();
+      m_edgesResultMutex.lock();
+      m_edgesTask.wait(&m_edgesResultMutex);
+      m_edgesResultMutex.unlock();
+    }
+    else
+    {
+      auto volume = readLockVolume(m_extendedItem->output());
+      createRectangularRegion(volume->bounds().bounds());
+      m_hasCreatedEdges = true;
+    }
   }
 }
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::createRectangularRegion(const Bounds &bounds)
+{
+  m_edges       = vtkSmartPointer<vtkPolyData>::New();
+  auto points   = vtkSmartPointer<vtkPoints>::New();
+  auto cells    = vtkSmartPointer<vtkCellArray>::New();
+
+  auto left   = bounds[0];
+  auto top    = bounds[2];
+  auto front  = bounds[4];
+  auto right  = bounds[1];
+  auto bottom = bounds[3];
+  auto back   = bounds[5];
+
+  vtkIdType frontFace[4], leftFace[4] , topFace[4];
+  vtkIdType backFace[4] , rightFace[4], bottomFace[4];
+
+  // Front Face
+  frontFace[0] = points->InsertNextPoint(left,  bottom, front );
+  frontFace[1] = points->InsertNextPoint(left,  top,    front );
+  frontFace[2] = points->InsertNextPoint(right, top,    front );
+  frontFace[3] = points->InsertNextPoint(right, bottom, front );
+  cells->InsertNextCell(4, frontFace);
+
+  // Back Face
+  backFace[0] = points->InsertNextPoint(left,  bottom, back);
+  backFace[1] = points->InsertNextPoint(left,  top,    back);
+  backFace[2] = points->InsertNextPoint(right, top,    back);
+  backFace[3] = points->InsertNextPoint(right, bottom, back);
+  cells->InsertNextCell(4, backFace);
+
+  // Left Face
+  leftFace[0] = frontFace[0];
+  leftFace[1] = frontFace[1];
+  leftFace[2] = backFace[1];
+  leftFace[3] = backFace[0];
+  cells->InsertNextCell(4, leftFace);
+
+  // Right Face
+  rightFace[0] = frontFace[2];
+  rightFace[1] = frontFace[3];
+  rightFace[2] = backFace[3];
+  rightFace[3] = backFace[2];
+  cells->InsertNextCell(4, rightFace);
+
+  // Top Face
+  topFace[0] = frontFace[1];
+  topFace[1] = frontFace[2];
+  topFace[2] = backFace[2];
+  topFace[3] = backFace[1];
+  cells->InsertNextCell(4, topFace);
+
+  // Bottom Face
+  bottomFace[0] = frontFace[3];
+  bottomFace[1] = frontFace[0];
+  bottomFace[2] = backFace[0];
+  bottomFace[3] = backFace[3];
+  cells->InsertNextCell(4, bottomFace);
+
+  m_edges->SetPoints(points);
+  m_edges->SetPolys(cells);
+
+  // Left Face
+  m_faces[0]      = vtkSmartPointer<vtkPolyData>::New();
+  auto leftpoints = vtkSmartPointer<vtkPoints>::New();
+  auto leftcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  leftFace[0] = leftpoints->InsertNextPoint(left,  bottom, front);
+  leftFace[1] = leftpoints->InsertNextPoint(left,  top,    front);
+  leftFace[2] = leftpoints->InsertNextPoint(left,  top,    back);
+  leftFace[3] = leftpoints->InsertNextPoint(left,  bottom, back);
+  leftcells->InsertNextCell(4, leftFace);
+
+  m_faces[0]->SetPoints(leftpoints);
+  m_faces[0]->SetPolys(leftcells);
+
+  // Right face
+  m_faces[1]       = vtkSmartPointer<vtkPolyData>::New();
+  auto rightpoints = vtkSmartPointer<vtkPoints>::New();
+  auto rightcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  rightFace[0] = rightpoints->InsertNextPoint(right, top,    front);
+  rightFace[1] = rightpoints->InsertNextPoint(right, bottom, front);
+  rightFace[2] = rightpoints->InsertNextPoint(right, bottom, back);
+  rightFace[3] = rightpoints->InsertNextPoint(right, top,    back);
+  rightcells->InsertNextCell(4, rightFace);
+
+  m_faces[1]->SetPoints(rightpoints);
+  m_faces[1]->SetPolys(rightcells);
+
+  // Top Face
+  m_faces[2]     = vtkSmartPointer<vtkPolyData>::New();
+  auto toppoints = vtkSmartPointer<vtkPoints>::New();
+  auto topcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  topFace[0] = toppoints->InsertNextPoint(left,  top,    front);
+  topFace[1] = toppoints->InsertNextPoint(right, top,    front);
+  topFace[2] = toppoints->InsertNextPoint(right, top,    back);
+  topFace[3] = toppoints->InsertNextPoint(left,  top,    back);
+  topcells->InsertNextCell(4, topFace);
+
+  m_faces[2]->SetPoints(toppoints);
+  m_faces[2]->SetPolys(topcells);
+
+  // Bottom face
+  m_faces[3]        = vtkSmartPointer<vtkPolyData>::New();
+  auto bottompoints = vtkSmartPointer<vtkPoints>::New();
+  auto bottomcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  bottomFace[0] = bottompoints->InsertNextPoint(right, bottom, front );
+  bottomFace[1] = bottompoints->InsertNextPoint(left,  bottom, front );
+  bottomFace[2] = bottompoints->InsertNextPoint(left,  bottom, back);
+  bottomFace[3] = bottompoints->InsertNextPoint(right, bottom, back);
+  bottomcells->InsertNextCell(4, bottomFace);
+
+  m_faces[3]->SetPoints(bottompoints);
+  m_faces[3]->SetPolys(bottomcells);
+
+  // Front face
+  m_faces[4]       = vtkSmartPointer<vtkPolyData>::New();
+  auto frontpoints = vtkSmartPointer<vtkPoints>::New();
+  auto frontcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  frontFace[0] = frontpoints->InsertNextPoint(left,  bottom, front );
+  frontFace[1] = frontpoints->InsertNextPoint(left,  top,    front );
+  frontFace[2] = frontpoints->InsertNextPoint(right, top,    front );
+  frontFace[3] = frontpoints->InsertNextPoint(right, bottom, front );
+  frontcells->InsertNextCell(4, frontFace);
+
+  m_faces[4]->SetPoints(frontpoints);
+  m_faces[4]->SetPolys(frontcells);
+
+  // Back Face
+  m_faces[5]      = vtkSmartPointer<vtkPolyData>::New();
+  auto backpoints = vtkSmartPointer<vtkPoints>::New();
+  auto backcells  = vtkSmartPointer<vtkCellArray>::New();
+
+  backFace[0] = backpoints->InsertNextPoint(left,  bottom, back);
+  backFace[1] = backpoints->InsertNextPoint(left,  top,    back);
+  backFace[2] = backpoints->InsertNextPoint(right, top,    back);
+  backFace[3] = backpoints->InsertNextPoint(right, bottom, back);
+  backcells->InsertNextCell(4, backFace);
+
+  m_faces[5]->SetPoints(backpoints);
+  m_faces[5]->SetPolys(backcells);
+}
+
