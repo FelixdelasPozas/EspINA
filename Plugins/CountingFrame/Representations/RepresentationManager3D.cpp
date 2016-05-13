@@ -18,7 +18,8 @@
  */
 
 // Plugin
-#include "RepresentationManager3D.h"
+#include <Representations/RepresentationManager3D.h>
+#include <Representations/RepresentationSwitch.h>
 
 // ESPINA
 #include <GUI/View/RenderView.h>
@@ -31,6 +32,7 @@ using namespace ESPINA::GUI::Representations;
 RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
 : RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
 , m_manager(manager)
+, m_switch {nullptr}
 {
   for(auto cf: m_manager.countingFrames())
   {
@@ -146,7 +148,10 @@ void RepresentationManager3D::hideRepresentations(const FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 RepresentationManagerSPtr RepresentationManager3D::cloneImplementation()
 {
-  return std::make_shared<RepresentationManager3D>(m_manager, supportedViews());
+  auto clone = std::make_shared<RepresentationManager3D>(m_manager, supportedViews());
+  clone->setSwitch(m_switch);
+
+  return clone;
 }
 
 //-----------------------------------------------------------------------------
@@ -172,6 +177,27 @@ void RepresentationManager3D::hideWidget(vtkCountingFrameWidget *widget)
 }
 
 //-----------------------------------------------------------------------------
+void ESPINA::CF::RepresentationManager3D::setSwitch(CFRepresentationSwitch* cfSwitch)
+{
+  if(m_switch != cfSwitch)
+  {
+    if(m_switch)
+    {
+      disconnect(m_switch, SIGNAL(opacityChanged(float)),
+                 this,     SLOT(onOpacityChanged(float)));
+    }
+
+    m_switch = cfSwitch;
+
+    if(m_switch)
+    {
+      connect(m_switch, SIGNAL(opacityChanged(float)),
+              this,     SLOT(onOpacityChanged(float)));
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager3D::deleteWidget(CountingFrame *cf)
 {
   auto widget = m_widgets[cf];
@@ -181,4 +207,30 @@ void RepresentationManager3D::deleteWidget(CountingFrame *cf)
   cf->deleteWidget(widget);
 
   m_widgets.remove(cf);
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager3D::setOpacity(const float opacity)
+{
+  for(auto widget: m_widgets)
+  {
+    widget->SetOpacity(opacity);
+  }
+}
+
+//-----------------------------------------------------------------------------
+const float RepresentationManager3D::opacity() const
+{
+  if(m_widgets.empty())
+  {
+    return 0.7;
+  }
+
+  return m_widgets.begin().value()->GetOpacity();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager3D::onOpacityChanged(float opacity)
+{
+  setOpacity(opacity);
 }

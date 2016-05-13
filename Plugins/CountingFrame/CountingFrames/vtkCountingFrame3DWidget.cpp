@@ -87,3 +87,22 @@ void vtkCountingFrame3DWidget::setVisible(bool visible)
     this->Render();
   }
 }
+
+//----------------------------------------------------------------------------
+void vtkCountingFrame3DWidget::SetOpacity(const float opacity)
+{
+  auto rep = reinterpret_cast<vtkCountingFrame3DRepresentation*>(this->WidgetRep);
+  if(opacity != rep->opacity())
+  {
+    rep->setOpacity(opacity);
+
+    this->Render();
+  }
+}
+
+//----------------------------------------------------------------------------
+const float vtkCountingFrame3DWidget::GetOpacity() const
+{
+  auto rep = reinterpret_cast<vtkCountingFrame3DRepresentation*>(this->WidgetRep);
+  return rep->opacity();
+}

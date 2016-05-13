@@ -42,13 +42,14 @@ vtkStandardNewMacro(vtkCountingFrame3DRepresentation);
 vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
 : VolumePoints{nullptr}
 , Visible     {1}
+, m_opacity   {0.7}
 {
   // The initial state
   CountingFrame = vtkSmartPointer<vtkPolyData>::New();
 
   Property = vtkSmartPointer<vtkProperty>::New();
   Property->SetRepresentationToSurface();
-  Property->SetOpacity(0.7);
+  Property->SetOpacity(m_opacity);
   Property->SetDiffuse(1.0);
   Property->SetLineWidth(1.0);
 
@@ -191,4 +192,22 @@ void vtkCountingFrame3DRepresentation::VisibilityOn()
 void vtkCountingFrame3DRepresentation::VisibilityOff()
 {
   SetVisibility(false);
+}
+
+//----------------------------------------------------------------------------
+void vtkCountingFrame3DRepresentation::setOpacity(const float opacity)
+{
+  if(m_opacity != opacity)
+  {
+    m_opacity = opacity;
+
+    VolumeActor->GetProperty()->SetOpacity(m_opacity);
+    VolumeActor->Modified();
+  }
+}
+
+//----------------------------------------------------------------------------
+const float vtkCountingFrame3DRepresentation::opacity() const
+{
+  return m_opacity;
 }

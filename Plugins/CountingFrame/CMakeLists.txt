@@ -56,6 +56,7 @@ qt4_wrap_cpp(MOC_SRCS
   Tasks/CountingFrameCreator.h
   Representations/RepresentationManager2D.h
   Representations/RepresentationManager3D.h
+  Representations/RepresentationSwitch.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -81,6 +82,7 @@ set (LOCAL_SOURCES
   Representations/RepresentationFactory.cpp
   Representations/RepresentationManager2D.cpp
   Representations/RepresentationManager3D.cpp
+  Representations/RepresentationSwitch.cpp
   Tasks/ApplyCountingFrame.cpp
   Tasks/CountingFrameCreator.cpp
   Panel.cpp

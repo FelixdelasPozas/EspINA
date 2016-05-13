@@ -40,51 +40,62 @@ class vtkPoints;
 class CountingFramePlugin_EXPORT vtkCountingFrame3DRepresentation
 : public vtkWidgetRepresentation
 {
-  //ETX
-public:
-  // Description:
-  // Instantiate the class.
-  static vtkCountingFrame3DRepresentation *New();
+  public:
+    // Description:
+    // Instantiate the class.
+    static vtkCountingFrame3DRepresentation *New();
 
-  // Description:
-  // Standard methods for the class.
-  vtkTypeMacro(vtkCountingFrame3DRepresentation, vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+    // Description:
+    // Standard methods for the class.
+    vtkTypeMacro(vtkCountingFrame3DRepresentation, vtkWidgetRepresentation);
+    void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region);
+    virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region);
 
-  // Description:
-  // These are methods that satisfy vtkWidgetRepresentation's API.
-  virtual void BuildRepresentation();
-  virtual double *GetBounds();
+    // Description:
+    // These are methods that satisfy vtkWidgetRepresentation's API.
+    virtual void BuildRepresentation();
+    virtual double *GetBounds();
 
-  // Description:
-  // Methods supporting, and required by, the rendering process.
-  virtual void ReleaseGraphicsResources(vtkWindow*) override;
-  virtual int  RenderOpaqueGeometry(vtkViewport*) override;
-  virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*) override;
-  virtual int  HasTranslucentPolygonalGeometry() override;
-  virtual void SetVisibility(int visible) override;
-  virtual void VisibilityOn() override;
-  virtual void VisibilityOff() override;
+    // Description:
+    // Methods supporting, and required by, the rendering process.
+    virtual void ReleaseGraphicsResources(vtkWindow*) override;
+    virtual int  RenderOpaqueGeometry(vtkViewport*) override;
+    virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+    virtual int  HasTranslucentPolygonalGeometry() override;
+    virtual void SetVisibility(int visible) override;
+    virtual void VisibilityOn() override;
+    virtual void VisibilityOff() override;
 
-protected:
-  vtkCountingFrame3DRepresentation();
-  ~vtkCountingFrame3DRepresentation();
+    /** \brief Sets the opacity of the representation.
+     * \param[in] opacity opacity value in range [0,1].
+     *
+     */
+    void setOpacity(const float opacity);
 
-  // 3D Volume
-  vtkSmartPointer<vtkPolyData>       CountingFrame;
-  vtkSmartPointer<vtkPolyDataMapper> VolumeMapper;
-  vtkSmartPointer<vtkLookupTable>    InclusionLUT;
-  vtkSmartPointer<vtkActor>          VolumeActor;
-  vtkSmartPointer<vtkPoints>         VolumePoints;
-  vtkSmartPointer<vtkProperty>       Property;
+    /** \brief Returns the opacity value of the representation in range [0,1].
+     *
+     */
+    const float opacity() const;
 
-  int Visible;
+  protected:
+    vtkCountingFrame3DRepresentation();
+    ~vtkCountingFrame3DRepresentation();
 
-private:
-  vtkCountingFrame3DRepresentation(const vtkCountingFrame3DRepresentation&);  //Not implemented
-  void operator=(const vtkCountingFrame3DRepresentation&);  //Not implemented
+    // 3D Volume
+    vtkSmartPointer<vtkPolyData>       CountingFrame;
+    vtkSmartPointer<vtkPolyDataMapper> VolumeMapper;
+    vtkSmartPointer<vtkLookupTable>    InclusionLUT;
+    vtkSmartPointer<vtkActor>          VolumeActor;
+    vtkSmartPointer<vtkPoints>         VolumePoints;
+    vtkSmartPointer<vtkProperty>       Property;
+
+    int Visible;
+    float m_opacity;
+
+  private:
+    vtkCountingFrame3DRepresentation(const vtkCountingFrame3DRepresentation&);  //Not implemented
+    void operator=(const vtkCountingFrame3DRepresentation&);  //Not implemented
 };
 
 #endif

@@ -28,6 +28,8 @@ namespace ESPINA
 {
   namespace CF
   {
+    class CFRepresentationSwitch;
+
     class RepresentationManager3D
     : public GUI::Representations::RepresentationManager
     {
@@ -46,6 +48,22 @@ namespace ESPINA
         virtual ~RepresentationManager3D();
 
         virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
+
+        /** \brief Sets the opacity of the representations.
+         * \param[in] opacity opacity value in range [0,1].
+         *
+         */
+        void setOpacity(float opacity);
+
+        /** \brief Returns the opacity value of the managed representations.
+         *
+         */
+        const float opacity() const;
+
+        /** \brief Sets the switch managing the opacity options for the representations of this manager.
+         * \param[in] cfSwitch
+         */
+        void setSwitch(CFRepresentationSwitch *cfSwitch);
 
       protected:
         virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override
@@ -70,6 +88,12 @@ namespace ESPINA
          *
          */
         void onCountingFrameDeleted(CountingFrame *cf);
+
+        /** \brief Updates the representations' opacity.
+         * \param[in] opacity opacity value in range [0,1].
+         *
+         */
+        void onOpacityChanged(float opacity);
 
       private:
         virtual bool hasRepresentations() const override;
@@ -111,9 +135,10 @@ namespace ESPINA
         void deleteWidget(CountingFrame *cf);
 
       private:
-        CountingFrameManager  &m_manager;                            /** counting frame manager. */
+        CountingFrameManager  &m_manager;                            /** counting frame manager.                          */
         QList<CountingFrame *> m_pendingCFs;                         /** list of counting frames pending widget creation. */
-        QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets; /** map of created widgets - counting frames. */
+        QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets; /** map of created widgets - counting frames.        */
+        CFRepresentationSwitch* m_switch;                            /** this representation switch.                      */
     };
   }
 }
