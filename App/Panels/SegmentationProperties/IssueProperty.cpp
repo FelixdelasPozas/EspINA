@@ -36,7 +36,7 @@ IssueProperty::IssueProperty(const QString &warning, const QString &suggestion, 
   font.setBold(true);
   m_warning_label->setFont(font);
 
-  m_suggestion_label->setText("Suggestion: " + suggestion);
+  m_suggestion_label->setText("(" + suggestion + ")");
 
   if (icon.isNull())
   {

@@ -322,6 +322,7 @@ void ESPINA::SegmentationProperties::showIssues()
   {
     auto extension = retrieveExtension<SegmentationIssues>(extensions);
     auto isueList = extension->issues();
+    QString icon_path;
     QPixmap icon;
     QSize size(24, 24);
 
@@ -330,11 +331,13 @@ void ESPINA::SegmentationProperties::showIssues()
       switch (issue->severity())
       {
         case Issue::Severity::WARNING:
-          icon = QIcon(":espina/warning_slim.svg").pixmap(size);
+          icon_path = SegmentationIssues::severityIcon(Issue::Severity::WARNING, true);
+          icon = QIcon(icon_path).pixmap(size);
           issueProperty = new IssueProperty(issue->description(), issue->suggestion(), m_gui->issuesGroup, icon);
           break;
         case Issue::Severity::CRITICAL:
-          icon = QIcon(":espina/warning_critical_slim.svg").pixmap(size);
+          icon_path = SegmentationIssues::severityIcon(Issue::Severity::CRITICAL, true);
+          icon = QIcon(icon_path).pixmap(size);
           issueProperty = new IssueProperty(issue->description(), issue->suggestion(), m_gui->issuesGroup, icon);
           break;
         default:
