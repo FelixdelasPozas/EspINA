@@ -70,7 +70,7 @@ QString SegmentationIssues::toolTipText() const
 
   for (auto issue : m_issues)
   {
-    auto report = QString("<b>%1:</b><br>%2").arg(issue->description())
+    auto report = QString("<b>%1</b><br>(%2)").arg(issue->description())
                                              .arg(issue->suggestion());
 
     toolTip += condition(severityIcon(issue->severity()), report);
