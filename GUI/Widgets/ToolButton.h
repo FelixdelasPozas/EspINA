@@ -20,24 +20,47 @@
 #ifndef ESPINA_GUI_WIDGETS_TOOLBUTTON_H
 #define ESPINA_GUI_WIDGETS_TOOLBUTTON_H
 
-#include <qt4/QtGui/QPushButton>
+#include "GUI/EspinaGUI_Export.h"
 
-namespace ESPINA {
-  namespace GUI {
-    namespace Widgets {
+// Qt
+#include <QPushButton>
 
-      class ToolButton
+namespace ESPINA
+{
+  namespace GUI
+  {
+    namespace Widgets
+    {
+      class EspinaGUI_EXPORT ToolButton
       : public QPushButton
       {
-        Q_OBJECT
+          Q_OBJECT
 
-      public:
-        explicit ToolButton(QWidget* parent = 0);
+        public:
+          /** \brief ToolButton class constructor.
+           * \param[in] parent Pointer of the QWidget parent of this one.
+           *
+           */
+          explicit ToolButton(QWidget* parent = 0);
 
-      public slots:
-        void changeIcon(const QIcon &icon);
+          /** \brief ToolButton class virtual destructor.
+           *
+           */
+          virtual ~ToolButton()
+          {};
 
-        void changeTooltip(const QString &tooltip);
+        public slots:
+          /** \brief Updates the icon of the button.
+           * \param[in] icon new QIcon object to put as icon.
+           *
+           */
+          void changeIcon(const QIcon &icon);
+
+          /** \brief Updates the button tooltip.
+           * \param[in] tooltip tooltip text.
+           *
+           */
+          void changeTooltip(const QString &tooltip);
       };
     }
   }

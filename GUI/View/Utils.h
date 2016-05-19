@@ -53,7 +53,7 @@ namespace ESPINA
          *
          */
         template<typename T>
-        void EspinaGUI_EXPORT repositionActor(T actor, Nm depth, int normal)
+        void repositionActor(T actor, Nm depth, int normal)
         {
           Q_ASSERT((normal >= 0) && (normal <= 2));
 
@@ -73,7 +73,7 @@ namespace ESPINA
          *
          */
         template<typename T>
-        void EspinaGUI_EXPORT repositionActor(T actor, View2D *view)
+        void repositionActor(T actor, View2D *view)
         {
           repositionActor(actor, view->segmentationDepth(), normalCoordinateIndex(view->plane()));
         }
@@ -84,7 +84,7 @@ namespace ESPINA
          *
          */
         template<typename T>
-        void EspinaGUI_EXPORT repositionWidget(T actor, View2D *view)
+        void repositionWidget(T actor, View2D *view)
         {
           repositionActor(actor, view->widgetDepth(), normalCoordinateIndex(view->plane()));
         }

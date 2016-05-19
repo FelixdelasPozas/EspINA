@@ -347,7 +347,9 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      return read(equivalentRegion<T>(this->bounds().origin(), this->bounds().spacing(), bounds));
+      auto imageBounds = this->bounds();
+
+      return read(equivalentRegion<T>(imageBounds.origin(), imageBounds.spacing(), bounds));
     }
 
     //-----------------------------------------------------------------------------

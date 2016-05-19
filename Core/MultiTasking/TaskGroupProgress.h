@@ -20,16 +20,21 @@
 #ifndef ESPINA_CORE_MULTITASKING_TASKGROUPPROGESS_H
 #define ESPINA_CORE_MULTITASKING_TASKGROUPPROGESS_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "Task.h"
 
-namespace ESPINA {
-  namespace Core {
-    namespace MultiTasking {
-
+namespace ESPINA
+{
+  namespace Core
+  {
+    namespace MultiTasking
+    {
       /** \brief Reports the progress of a set of tasks
        *
        */
-      class TaskGroupProgress
+      class EspinaCore_EXPORT TaskGroupProgress
       : public QObject
       {
         Q_OBJECT

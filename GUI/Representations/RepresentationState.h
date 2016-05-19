@@ -20,6 +20,9 @@
 #ifndef ESPINA_REPRESENTATION_STATE_H
 #define ESPINA_REPRESENTATION_STATE_H
 
+#include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <Core/Utils/Vector3.hxx>
 
 namespace ESPINA
@@ -28,7 +31,7 @@ namespace ESPINA
    *
    * This class is not ThreadSafe
    */
-  class RepresentationState
+  class EspinaGUI_EXPORT RepresentationState
   {
     using Pair = QPair<QVariant, bool>;
 
@@ -68,32 +71,52 @@ namespace ESPINA
   private:
   };
 
+  /** \brief Returs true if the given settings has values for the crosshair point.
+   * \param[in] state RepresentationState object reference.
+   *
+   */
+  bool EspinaGUI_EXPORT hasCrosshairPoint(const RepresentationState &state);
 
-  bool hasCrosshairPoint(const RepresentationState &state);
-
-  /** \brief Sets the crosshair point position for this representation
+  /** \brief Sets the crosshair point position for the given state.
    * \param[in] point crosshair point
+   * \param[in] state RepresentationState object reference.
    *
    */
-  void setCrosshairPoint(const NmVector3 &point, RepresentationState &state);
+  void EspinaGUI_EXPORT setCrosshairPoint(const NmVector3 &point, RepresentationState &state);
 
-  /** \brief Returns the crosshair point for this representation.
+  /** \brief Returns the crosshair point for the given state.
+   * \param[in] state RepresentationState object reference.
    *
    */
-  NmVector3 crosshairPoint(const RepresentationState &state);
+  NmVector3 EspinaGUI_EXPORT crosshairPoint(const RepresentationState &state);
 
-  Nm crosshairPosition(const Plane &plane, const RepresentationState &state);
-
-  /** \brief Returns if the crosshair point has been modified
+  /** \brief Returns the value of the crosshair position for the given plane in the given state.
+   * \param[in] plane Axis plane.
+   * \param[in] state RepresentationState object reference.
    *
    */
-  bool isCrosshairPointModified(const RepresentationState &state);
+  Nm EspinaGUI_EXPORT crosshairPosition(const Plane &plane, const RepresentationState &state);
 
-  bool isCrosshairPositionModified(const Plane &plane, const RepresentationState &state);
+  /** \brief Returns if the crosshair point has been modified in the given state.
+   * \param[in] state RepresentationState object reference.
+   *
+   */
+  bool EspinaGUI_EXPORT isCrosshairPointModified(const RepresentationState &state);
 
-  bool isVisible(const RepresentationState &state);
+  /** \brief Returns true if the crosshair point have been modified for the given plane in the given state.
+   * \param[in] plane Axis plane.
+   * \param[in] state RepresentationState object reference.
+   *
+   */
+  bool EspinaGUI_EXPORT isCrosshairPositionModified(const Plane &plane, const RepresentationState &state);
 
-  QDebug operator<<(QDebug debug, const RepresentationState &state);
+  /** \brief Returns true if the representation is visible in the given state.
+   * \param[in] state RepresentationState object reference.
+   *
+   */
+  bool EspinaGUI_EXPORT isVisible(const RepresentationState &state);
+
+  QDebug EspinaGUI_EXPORT operator<<(QDebug debug, const RepresentationState &state);
 }
 
 #endif // ESPINA_REPRESENTATIONSTATE_H

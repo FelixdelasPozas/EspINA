@@ -20,33 +20,49 @@
 #ifndef ESPINA_BASIC_REPRESENTATION_SWITCH_H
 #define ESPINA_BASIC_REPRESENTATION_SWITCH_H
 
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Support/Representations/RepresentationSwitch.h>
 #include <GUI/Representations/RepresentationManager.h>
 
-namespace ESPINA {
-
-  class BasicRepresentationSwitch
+namespace ESPINA
+{
+  class EspinaSupport_EXPORT BasicRepresentationSwitch
   : public RepresentationSwitch
   {
-  public:
-    explicit BasicRepresentationSwitch(const QString &id,
-                                       GUI::Representations::RepresentationManagerSPtr manager,
-                                       ViewTypeFlags supportedViews,
-                                       Support::Context &context);
+    public:
+      /** \brief BasicRepresentationSwitch class constructor.
+       * \param[in] id Switch id.
+       * \param[in] manager manager that will be enabled/disabled & modified by the switch.
+       * \param[in] supportedViews flags of the views supported by the switch.
+       * \param[in] context application context.
+       *
+       */
+      explicit BasicRepresentationSwitch(const QString &id,
+                                         GUI::Representations::RepresentationManagerSPtr manager,
+                                         ViewTypeFlags supportedViews,
+                                         Support::Context &context);
 
-    virtual ViewTypeFlags supportedViews() override;
+      /** \brief BasicRepresentationSwitch class virtual destructor.
+       *
+       */
+      virtual ~BasicRepresentationSwitch()
+      {};
 
-    virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+      virtual ViewTypeFlags supportedViews() override;
 
-    virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
+      virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-    virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
+      virtual void hideRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
-  protected:
-    GUI::Representations::RepresentationManagerSPtr m_manager;
+      virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
 
-  private:
-    ViewTypeFlags m_flags;
+    protected:
+      GUI::Representations::RepresentationManagerSPtr m_manager;
+
+    private:
+      ViewTypeFlags m_flags;
   };
 }
 
