@@ -195,6 +195,7 @@ namespace ESPINA
     mutable QWaitCondition m_edgesTask;           /** wait condition for AdaptiveEdges task.                                                    */
     mutable QMutex         m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
     mutable QReadWriteLock m_dataMutex;           /** protects class internal data.                                                             */
+    QMutex                 m_distanceMutex;       /** protects edges polydata during distance to edges computation.                             */
 
     bool   m_useDistanceToBounds;                 /** true to use the distance to the stack bounds, false otherwise.                            */
     int    m_backgroundColor;                     /** background color intensity value.                                                         */

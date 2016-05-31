@@ -126,12 +126,12 @@ QString CountingFrame::description() const
   auto spacing  = channel->output()->spacing();
   Nm   voxelVol = spacing[0]*spacing[1]*spacing[2];
 
-  int  totalVoxelVolume     = totalVolume()     / voxelVol;
-  int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
-  int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
-  int  frontSl              = int(front()/spacing[2]);
-  int  backSl               = int(back()/spacing[2]);
-  auto constraint           = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
+  unsigned long long totalVoxelVolume     = totalVolume()     / voxelVol;
+  unsigned long long inclusionVoxelVolume = inclusionVolume() / voxelVol;
+  unsigned long long exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  long int  frontSl                       = int(front()/spacing[2]);
+  long int  backSl                        = int(back()/spacing[2]);
+  auto constraint                         = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
 
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";

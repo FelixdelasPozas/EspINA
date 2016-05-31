@@ -29,6 +29,7 @@
 // Qt
 #include <QDialog>
 #include <QRadioButton>
+#include <QStringListModel>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -39,6 +40,7 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
 , m_type(CF::ADAPTIVE)
 , m_proxy(new ChannelProxy(model))
 , m_channel(nullptr)
+, m_model{model}
 {
   setupUi(this);
 
@@ -71,20 +73,18 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   categorySelector->setModel(model.get());
   categorySelector->setRootModelIndex(model->classificationRoot());
 
-  channelSelector->setModel(m_proxy.get());
+  for(auto channel: model->channels())
+  {
+    m_stackNames << channel->data().toString();
+  }
+  auto stackModel = new QStringListModel(m_stackNames);
+  channelSelector->setModel(stackModel);
 
   connect(channelSelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(channelSelected()));
 
   connect(channelSelector, SIGNAL(activated(int)),
           this, SLOT(channelSelected()));
-
-  m_channelIndex = m_proxy->index(0, 0);
-  m_channelIndex = m_channelIndex.child(0,0);
-
-  channelSelector->setCurrentModelIndex(m_channelIndex);
-
-
 }
 
 //------------------------------------------------------------------------
@@ -128,19 +128,23 @@ void CFTypeSelectorDialog::channelSelected()
 {
   auto currentIndex = channelSelector->currentModelIndex();
 
-  auto item = itemAdapter(currentIndex);
+  auto selectedStack = m_stackNames.at(currentIndex.row());
 
-  if (!item || isSample(item))
+  ChannelAdapterPtr item;
+  for(auto channel: m_model->channels())
   {
-    currentIndex = currentIndex.child(0, 0);
-    item = itemAdapter(currentIndex);
+    if(selectedStack == channel->data().toString())
+    {
+      item = channel.get();
+      break;
+    }
   }
 
   if (item && isChannel(item))
   {
     m_channelIndex = currentIndex;
 
-    m_channel = channelPtr(item);
+    m_channel = item;
 
     auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
 
@@ -153,10 +157,6 @@ void CFTypeSelectorDialog::channelSelected()
       setType(CF::ADAPTIVE);
     }
   }
-//   else
-//   {
-//     channelSelector->setCurrentModelIndex(m_channelIndex);
-//   }
 }
 
 //------------------------------------------------------------------------

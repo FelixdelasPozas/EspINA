@@ -295,15 +295,18 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
 {
   initializeEdges();
 
+  bool computed = false;
   auto output = segmentation->output();
 
 //   qDebug() << "Computing distances";
-  auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
   if (hasMeshData(output))
   {
+    auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
     segmentationPolyData->DeepCopy(readLockMesh(output)->mesh());
-    for(int face = 0; face < 6; ++face)
+    for (int face = 0; face < 6; ++face)
     {
+      QMutexLocker lock(&m_distanceMutex);
+
       //qDebug() << "Computing distance to face"<< face;
       auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
       faceMesh->DeepCopy(m_faces[face]);
@@ -315,12 +318,11 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
       distanceFilter->Update();
       distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
     }
+
+    computed = true;
   }
-//   else if (hasSkeletonData(output))
-//   {
-//     segmentationPolyData->DeepCopy(readLockSkeleton(output)->skeleton());
-//   }
-  else
+
+  if(!computed)
   {
     qWarning() << tr("Unavailable mesh information");
     for (int i = 0; i < 6; ++i)

@@ -68,6 +68,8 @@ namespace ESPINA
 
       QModelIndex       m_channelIndex;
       ChannelAdapterPtr m_channel;
+      ModelAdapterSPtr  m_model;
+      QStringList       m_stackNames;
     };
 
   }
