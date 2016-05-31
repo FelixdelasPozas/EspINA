@@ -912,6 +912,7 @@ void CF::Panel::updateTable()
 {
   m_gui->countingFrames->setModel(nullptr);
   m_gui->countingFrames->setModel(m_cfModel);
+  m_gui->countingFrames->resizeColumnsToContents();
 }
 
 //------------------------------------------------------------------------

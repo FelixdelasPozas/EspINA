@@ -85,6 +85,10 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
 
   connect(channelSelector, SIGNAL(activated(int)),
           this, SLOT(channelSelected()));
+
+  // use first channel as default to force CF type selection using edges extension.
+  channelSelector->setCurrentIndex(0);
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
@@ -126,14 +130,15 @@ QString CFTypeSelectorDialog::categoryConstraint() const
 //------------------------------------------------------------------------
 void CFTypeSelectorDialog::channelSelected()
 {
-  auto currentIndex = channelSelector->currentModelIndex();
+  auto index = channelSelector->currentIndex();
 
-  auto selectedStack = m_stackNames.at(currentIndex.row());
+  Q_ASSERT(0 <= index && index < m_stackNames.size());
+  auto stackName = m_stackNames.at(index);
 
-  ChannelAdapterPtr item;
+  ChannelAdapterPtr item = nullptr;
   for(auto channel: m_model->channels())
   {
-    if(selectedStack == channel->data().toString())
+    if(stackName == channel->data().toString())
     {
       item = channel.get();
       break;
@@ -142,8 +147,6 @@ void CFTypeSelectorDialog::channelSelected()
 
   if (item && isChannel(item))
   {
-    m_channelIndex = currentIndex;
-
     m_channel = item;
 
     auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
