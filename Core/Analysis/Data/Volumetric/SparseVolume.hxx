@@ -668,18 +668,21 @@ namespace ESPINA
         break;
       }
 
-      auto origin  = this->m_bounds.origin();
       auto spacing = this->m_bounds.spacing();
-
-      auto image = reader->GetOutput();
+      auto image   = reader->GetOutput();
       image->SetSpacing(ItkSpacing<T>(spacing));
       image->Update();
 
-      auto bounds      = equivalentBounds<T>(image);
-      auto blockRegion = equivalentRegion<T>(origin, spacing, bounds);
+      auto region = image->GetLargestPossibleRegion();
+      auto size   = region.GetSize();
+      auto origin = image->GetOrigin();
 
-      auto size  = blockRegion.GetSize();
-      auto index = blockRegion.GetIndex();
+      itkVolumeType::IndexType index;
+      for(int i = 0; i < itkVolumeType::GetImageDimension(); ++i)
+      {
+        index.SetElement(i, region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/spacing[i]));
+      }
+
       auto key   = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
       if (!m_blocks.contains(key)
