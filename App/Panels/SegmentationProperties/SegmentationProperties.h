@@ -23,6 +23,8 @@
 
 #include <Support/Factory/FilterRefinerFactory.h>
 #include <Support/Widgets/Panel.h>
+#include "IssueProperty.h"
+
 
 class QUndoStack;
 
@@ -125,6 +127,18 @@ namespace ESPINA
        */
       void clearNotes();
 
+      /** \brief Updates the issues widget with the segmentation's issues.
+       *
+       */
+      void showIssues();
+
+      /** \brief Clears the notes widget.
+       *
+       */
+      void clearIssues();
+
+
+
     private:
       class UI;
 
@@ -135,6 +149,7 @@ namespace ESPINA
       SegmentationAdapterPtr m_segmentation;  /** segmentation to refine. */
 
       UI *m_gui; /** widget's gui, chessire cat. */
+      QList<QWidget*> map;
   };
 
 } // namespace ESPINA

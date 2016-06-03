@@ -28,7 +28,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
   Panels/SegmentationExplorer/SegmentationExplorerLayout.h
-  Panels/SegmentationProperties/IssueProperty.h
   Panels/SegmentationProperties/NoFilterRefiner.h
   Panels/SegmentationProperties/SegmentationProperties.h
   EspinaMainWindow.h

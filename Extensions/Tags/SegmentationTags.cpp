@@ -79,9 +79,11 @@ SegmentationExtension::InformationKeyList SegmentationTags::availableInformation
 QString SegmentationTags::toolTipText() const
 {
   QString toolTip;
-  if (!tags().isEmpty())
+  auto tagList = tags();
+  if (!tagList.isEmpty())
   {
-    toolTip = condition(":/espina/tag.svg", tags().join(","));
+    tagList.removeDuplicates();
+    toolTip = condition(":/espina/tag.svg", tagList.join(","));
   }
 
   return toolTip;
