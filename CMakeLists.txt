@@ -26,7 +26,7 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  graph regex)
+find_package(Boost REQUIRED COMPONENTS graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 # Notify basic plugins to avoid searching for ESPINA CMake files
