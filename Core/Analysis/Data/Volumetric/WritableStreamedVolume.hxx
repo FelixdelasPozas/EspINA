@@ -626,15 +626,14 @@ namespace ESPINA
       auto region = volumeRegion;
       for(int i = 0; i < T::GetImageDimension(); ++i)
       {
-        region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i));
-        origin.SetElement(i, this->m_region.GetIndex(i)*this->m_spacing.GetElement(i));
+        region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/this->m_spacing.GetElement(i)));
+        origin.SetElement(i, 0);
       }
 
       QMutexLocker lock(&this->m_lock);
 
       image->SetOrigin(origin);
       image->SetRegions(region);
-      image->UpdateOutputInformation();
 
       auto dataFile = this->m_fileName;
       dataFile = dataFile.replace(".mhd", ".raw");
@@ -650,7 +649,7 @@ namespace ESPINA
 
       // slow due to not knowing beforehand the dimensions of the image.
       auto dataSize = sizeof(typename T::InternalPixelType);
-      auto size     = region.GetSize();
+      auto size     = this->m_region.GetSize();
       auto it       = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
       it.GoToBegin();
@@ -699,7 +698,6 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
-      image->UpdateOutputInformation();
     }
 
     //-----------------------------------------------------------------------------
@@ -741,15 +739,14 @@ namespace ESPINA
       auto region = volumeRegion;
       for(int i = 0; i < T::GetImageDimension(); ++i)
       {
-        region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i));
-        origin.SetElement(i, this->m_region.GetIndex(i)*this->m_spacing.GetElement(i));
+        region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/this->m_spacing.GetElement(i)));
+        origin.SetElement(i, 0);
       }
 
       QMutexLocker lock(&this->m_lock);
 
       image->SetOrigin(origin);
       image->SetRegions(region);
-      image->UpdateOutputInformation();
 
       auto dataFile = this->m_fileName;
       dataFile = dataFile.replace(".mhd", ".raw");
@@ -765,10 +762,11 @@ namespace ESPINA
 
       // slow due to not knowing beforehand the dimensions of the image.
       auto dataSize = sizeof(typename T::InternalPixelType) * this->m_vectorLength;
-      auto size     = region.GetSize();
+      auto size     = this->m_region.GetSize();
       auto it       = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
       it.GoToBegin();
+
       while(!it.IsAtEnd())
       {
         long long position = 0;
@@ -814,7 +812,6 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
-      image->UpdateOutputInformation();
     }
 
   } // namespace Core

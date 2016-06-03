@@ -198,7 +198,7 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(origin != file_W->itkOrigin())
+      if(origin != file_W->itkOriginalOrigin())
       {
         std::cout << "write constructor -> invalid itkOrigin(). line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -224,7 +224,7 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(origin != file_R->itkOrigin())
+      if(origin != file_R->itkOriginalOrigin())
       {
         std::cout << "read constructor -> invalid itkOrigin(). line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;

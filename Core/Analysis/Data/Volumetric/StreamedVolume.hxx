@@ -155,6 +155,8 @@ namespace ESPINA
 
         /** \brief Returns the itk region of the image.
          *
+         * NOTE: this region can have an index != (0,0,0). All StreamedVolumes must have an origin in (0,0,0).
+         *
          */
         const typename T::RegionType itkRegion() const;
 
@@ -163,10 +165,12 @@ namespace ESPINA
          */
         const typename T::SpacingType itkSpacing() const;
 
-        /** \brief Returns the itk origin of the image.
+        /** \brief Returns the itk original origin of the image, once opened the origin of the image is (0,0,0) and the
+         * itk region is adjusted for that. So if an image has an origin not (0,0,0) the index of the region won't be (0,0,0).
+         * This means StreamedVolumes in Espina are always adjusted to spacing grid positions.
          *
          */
-        const typename T::PointType itkOrigin() const;
+        const typename T::PointType itkOriginalOrigin() const;
 
       protected:
         virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
@@ -522,7 +526,7 @@ namespace ESPINA
 
     //-----------------------------------------------------------------------------
     template<typename T>
-    inline const typename T::PointType StreamedVolume<T>::itkOrigin() const
+    inline const typename T::PointType StreamedVolume<T>::itkOriginalOrigin() const
     {
       if (!isValid())
       {

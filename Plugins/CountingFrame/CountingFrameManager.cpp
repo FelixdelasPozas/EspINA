@@ -57,7 +57,6 @@ void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
   emit countingFrameDeleted(cf);
 }
 
-
 //-----------------------------------------------------------------------------
 CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &constraint) const
 {
