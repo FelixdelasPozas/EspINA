@@ -64,7 +64,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
   connect(m_applyCountingFrame.get(), SIGNAL(finished()),
           this,                       SLOT(onCountingFrameApplied()));
 
-  auto itemExtensions = extension->extendedItem()->extensions();
+  auto itemExtensions = extension->extendedItem()->readOnlyExtensions();
   Q_ASSERT(itemExtensions->hasExtension(ChannelEdges::TYPE));
 
   // TODO: the channel edges extension is accessed every time, even if the Counting Frame
@@ -126,12 +126,12 @@ QString CountingFrame::description() const
   auto spacing  = channel->output()->spacing();
   Nm   voxelVol = spacing[0]*spacing[1]*spacing[2];
 
-  int  totalVoxelVolume     = totalVolume()     / voxelVol;
-  int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
-  int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
-  int  frontSl              = int(front()/spacing[2]);
-  int  backSl               = int(back()/spacing[2]);
-  auto constraint           = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
+  unsigned long long totalVoxelVolume     = totalVolume()     / voxelVol;
+  unsigned long long inclusionVoxelVolume = inclusionVolume() / voxelVol;
+  unsigned long long exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  long int  frontSl                       = int(front()/spacing[2]);
+  long int  backSl                        = int(back()/spacing[2]);
+  auto constraint                         = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
 
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";
@@ -224,6 +224,8 @@ void CountingFrame::setCategoryConstraint(const QString& category)
   if(m_categoryConstraint != category)
   {
     m_categoryConstraint = category;
+
+    apply();
 
     emit modified(this);
   }
@@ -331,6 +333,8 @@ void CountingFrame::updateCountingFrame()
   }
 
   emit modified(this);
+
+  apply();
 }
 
 //-----------------------------------------------------------------------------
@@ -367,11 +371,9 @@ Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 {
   QReadLocker lock(&m_channelEdgesMutex);
-  //qDebug() << "Locking for copying edges" << thread();
 
   auto edges = vtkSmartPointer<vtkPolyData>::New();
   edges->DeepCopy(m_channelEdges);
-  //qDebug() << "Edges copied" << thread();
 
   return edges;
 }
@@ -380,11 +382,9 @@ vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 {
   QReadLocker lock(&m_countingFrameMutex);
-  //qDebug() << "Locking for copying CF" << thread();
 
   auto cf = vtkSmartPointer<vtkPolyData>::New();
   cf->DeepCopy(m_countingFrame);
-  //qDebug() << "CF copied" << thread();
 
   return cf;
 }
@@ -430,6 +430,5 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
     }
 
     m_cf->updateCountingFrame();
-    m_cf->apply();
   }
 }

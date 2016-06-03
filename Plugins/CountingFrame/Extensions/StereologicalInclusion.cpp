@@ -177,7 +177,6 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
   {
     m_exclusionCFs.remove(cf);
     m_cfIds.remove(cf);
-    m_isUpdated = false;
 
     disconnect(cf,   SIGNAL(modified(CountingFrame *)),
                this, SLOT(onCountingFrameModified(CountingFrame *)));
@@ -225,7 +224,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 
   QVariant info;
 
-  info.setValue<int>(excluded?0:1);
+  info.setValue<int>(excluded ? 0 : 1);
 
   {
     QMutexLocker lock(&m_mutex);

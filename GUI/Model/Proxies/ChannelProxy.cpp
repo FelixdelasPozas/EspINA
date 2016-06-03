@@ -24,6 +24,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Utils/EspinaException.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // Qt
 #include <QPixmap>
@@ -640,16 +641,6 @@ QModelIndexList ChannelProxy::proxyIndices(const QModelIndex& parent, int start,
 }
 
 //------------------------------------------------------------------------
-void debugChannelSets(QString name, QSet<ItemAdapterPtr> set)
-{
-  qDebug() << name;
-  for(auto item : set)
-  {
-    qDebug() << item->data(Qt::DisplayRole).toString();
-  }
-}
-
-//------------------------------------------------------------------------
 void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
                                      const QModelIndex& sourceBottomRight)
 {
@@ -763,10 +754,33 @@ void ChannelProxy::setActiveChannel(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
+void ChannelProxy::updateInternalData()
+{
+  for(auto sample: m_model->samples())
+  {
+    if(!m_channels.contains(sample.get()))
+    {
+      m_samples << sample.get();
+      m_channels.insert(sample.get(), ItemAdapterList());
+    }
+
+    for(auto channel: QueryAdapter::channels(sample))
+    {
+      if(!m_channels[sample.get()].contains(channel.get()))
+      {
+        m_channels[sample.get()] << channel.get();
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void ChannelProxy::emitModified(ItemAdapterPtr item)
 {
   if(item && (isSample(item) || isChannel(item)))
   {
+    updateInternalData();
+
     auto index = mapFromSource(m_model->index(item));
     emit dataChanged(index, index);
   }

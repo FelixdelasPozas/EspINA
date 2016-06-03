@@ -75,7 +75,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Enter old and new Spacing</string>
+      <string>New Spacing</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

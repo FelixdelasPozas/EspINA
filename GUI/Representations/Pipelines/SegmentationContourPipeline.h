@@ -21,6 +21,8 @@
 #ifndef ESPINA_SEGMENTATION_CONTOUR_PIPELINE_H_
 #define ESPINA_SEGMENTATION_CONTOUR_PIPELINE_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <GUI/Types.h>
@@ -31,7 +33,7 @@ class vtkImageCanvasSource2D;
 
 namespace ESPINA
 {
-  class SegmentationContourPipeline
+  class EspinaGUI_EXPORT SegmentationContourPipeline
   : public RepresentationPipeline
   {
     public:

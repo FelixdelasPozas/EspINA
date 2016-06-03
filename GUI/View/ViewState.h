@@ -20,6 +20,8 @@
 #ifndef ESPINA_VIEW_STATE_H
 #define ESPINA_VIEW_STATE_H
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include "CoordinateSystem.h"
 #include "EventHandler.h"
@@ -41,7 +43,7 @@ namespace ESPINA
   {
     namespace View
     {
-      class ViewState
+      class EspinaGUI_EXPORT ViewState
       : public QObject
       {
         Q_OBJECT
@@ -269,10 +271,13 @@ namespace ESPINA
         EventHandlerSPtr m_eventHandler;
       };
 
-      /** \brief Compute scene bounds and minimal resolution
+      /** \brief Compute scene bounds and minimal resolution in the given state for the given items.
+       * \param[in] crosshair crosshair point.
+       * \param[inout] state view state reference to modify.
+       * \param[in] viewItems list of view items.
        *
        */
-      void updateSceneState(const NmVector3 &crosshair, ViewState & state, ViewItemAdapterSList viewItems);
+      void EspinaGUI_EXPORT updateSceneState(const NmVector3 &crosshair, ViewState & state, ViewItemAdapterSList viewItems);
     }
   }
 }

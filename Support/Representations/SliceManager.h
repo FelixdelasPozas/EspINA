@@ -20,13 +20,15 @@
 #ifndef ESPINA_SLICE_MANAGER_H
 #define ESPINA_SLICE_MANAGER_H
 
+#include "Support/EspinaSupport_Export.h"
+
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/Managers/PoolManager.h>
 
 namespace ESPINA
 {
-  class SliceManager
+  class EspinaSupport_EXPORT SliceManager
   : public GUI::Representations::Managers::PoolManager
   , public GUI::Representations::RepresentationManager2D
   {
@@ -42,6 +44,12 @@ namespace ESPINA
                             RepresentationPoolSPtr poolXZ,
                             RepresentationPoolSPtr poolYZ,
                             ManagerFlags           flags = ManagerFlags());
+
+      /** \brief SliceManager class virtual destructor.
+       *
+       */
+      virtual ~SliceManager()
+      {};
 
       virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 

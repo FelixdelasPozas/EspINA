@@ -20,15 +20,21 @@
 #ifndef ESPINA_GUI_WIDGETS_PROGRESS_ACTION_H
 #define ESPINA_GUI_WIDGETS_PROGRESS_ACTION_H
 
+#include "GUI/EspinaGUI_Export.h"
+
+// Qt
 #include <QWidgetAction>
 
 class QPushButton;
 
-namespace ESPINA {
-  namespace GUI {
-    namespace Widgets {
+namespace ESPINA
+{
+  namespace GUI
+  {
+    namespace Widgets
+    {
 
-      class ProgressAction
+      class EspinaGUI_EXPORT ProgressAction
       : public QWidgetAction
       {
         Q_OBJECT

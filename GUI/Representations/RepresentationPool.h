@@ -20,18 +20,23 @@
 #ifndef ESPINA_REPRESENTATION_POOL_H
 #define ESPINA_REPRESENTATION_POOL_H
 
+#include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Representations/RangedValue.hxx>
+#include <GUI/Model/ViewItemAdapter.h>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
 #include "ModelSources.h"
-#include <GUI/Model/ViewItemAdapter.h>
+
+// C++
 #include <memory>
 
 namespace ESPINA
 {
-  class PoolSettings
+  class EspinaGUI_EXPORT PoolSettings
   : public QObject
   {
     Q_OBJECT
@@ -85,7 +90,7 @@ namespace ESPINA
 
   using PoolSettingsSPtr = std::shared_ptr<PoolSettings>;
 
-  class RepresentationPool
+  class EspinaGUI_EXPORT RepresentationPool
   : public QObject
   {
     Q_OBJECT

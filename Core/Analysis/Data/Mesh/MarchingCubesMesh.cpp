@@ -40,11 +40,6 @@ MarchingCubesMesh::MarchingCubesMesh(Output *output)
 }
 
 //----------------------------------------------------------------------------
-MarchingCubesMesh::~MarchingCubesMesh()
-{
-}
-
-//----------------------------------------------------------------------------
 bool MarchingCubesMesh::isValid() const
 {
   return RawMesh::isValid() || m_output->hasData(VolumetricData<itkVolumeType>::TYPE);
@@ -63,7 +58,6 @@ vtkSmartPointer<vtkPolyData> MarchingCubesMesh::mesh() const
   return RawMesh::mesh();
 }
 
-
 //----------------------------------------------------------------------------
 TimeStamp MarchingCubesMesh::lastModified() const
 {
@@ -79,7 +73,6 @@ void MarchingCubesMesh::updateMesh()
 
   if(!volume->isValid())
   {
-    qWarning() << "can't update mesh, origin volume is invalid!";
     return;
   }
 

@@ -155,6 +155,8 @@ namespace ESPINA
 
         /** \brief Returns the itk region of the image.
          *
+         * NOTE: this region can have an index != (0,0,0). All StreamedVolumes must have an origin in (0,0,0).
+         *
          */
         const typename T::RegionType itkRegion() const;
 
@@ -163,10 +165,12 @@ namespace ESPINA
          */
         const typename T::SpacingType itkSpacing() const;
 
-        /** \brief Returns the itk origin of the image.
+        /** \brief Returns the itk original origin of the image, once opened the origin of the image is (0,0,0) and the
+         * itk region is adjusted for that. So if an image has an origin not (0,0,0) the index of the region won't be (0,0,0).
+         * This means StreamedVolumes in Espina are always adjusted to spacing grid positions.
          *
          */
-        const typename T::PointType itkOrigin() const;
+        const typename T::PointType itkOriginalOrigin() const;
 
       protected:
         virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
@@ -347,7 +351,9 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      return read(equivalentRegion<T>(this->bounds().origin(), this->bounds().spacing(), bounds));
+      auto imageBounds = this->bounds();
+
+      return read(equivalentRegion<T>(imageBounds.origin(), imageBounds.spacing(), bounds));
     }
 
     //-----------------------------------------------------------------------------
@@ -430,7 +436,6 @@ namespace ESPINA
 
       if(!m_region.IsInside(region))
       {
-        //requestedRegion.Crop(m_region);
         auto message = QObject::tr("Requested region is totally/partially outside the image region. File: %1").arg(m_fileName);
         auto details = QObject::tr("StreamedVolume::read(region) -> ") + message;
 
@@ -521,7 +526,7 @@ namespace ESPINA
 
     //-----------------------------------------------------------------------------
     template<typename T>
-    inline const typename T::PointType StreamedVolume<T>::itkOrigin() const
+    inline const typename T::PointType StreamedVolume<T>::itkOriginalOrigin() const
     {
       if (!isValid())
       {
@@ -537,6 +542,33 @@ namespace ESPINA
     }
 
   } // namespace Core
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  QStringList filenames(Core::StreamedVolume<T> *image)
+  {
+    QStringList names;
+    auto header = image->fileName().absoluteFilePath();
+    auto raw    = header.left(header.lastIndexOf('.')) + QObject::tr(".raw");
+
+    names << header << raw;
+
+    return names;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void remove(Core::StreamedVolume<T> *image)
+  {
+    for(auto filename: filenames(image))
+    {
+      if (!QFile::remove(filename))
+      {
+        qWarning() << QObject::tr("Couldn't remove file '%1'").arg(filename);
+      }
+    }
+  }
+
 } // namespace ESPINA
 
 #endif // ESPINA_STREAMED_VOLUME_H

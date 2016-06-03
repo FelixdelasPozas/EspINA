@@ -56,7 +56,7 @@ EdgesAnalyzer::~EdgesAnalyzer()
 //------------------------------------------------------------------------
 void EdgesAnalyzer::run()
 {
-  //qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
+//  qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
   auto volume = readLockVolume(m_extension->m_extendedItem->output());
 
   m_useDistanceToBounds = 0;
@@ -86,8 +86,9 @@ void EdgesAnalyzer::run()
     }
   }
 
-  m_extension->m_analysisResultMutex.unlock();
-  //qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
+  m_extension->m_hasAnalizedChannel = !isAborted();
+  m_extension->m_analisysWait.wakeAll();
+//  qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
 }
 
 //------------------------------------------------------------------------

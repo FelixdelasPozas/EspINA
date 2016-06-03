@@ -150,6 +150,7 @@ class SpacingChanger
     ESPINA::NmVector3 getSpacing(const QByteArray &data);
 
     QList<QFileInfo> m_files;
+    ESPINA::NmVector3 m_spacing;
 };
 
 #endif // CORE_TOOLS_CHANGESEGSPACING_SPACINGCHANGER_H_

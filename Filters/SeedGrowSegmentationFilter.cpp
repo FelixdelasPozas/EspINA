@@ -351,9 +351,26 @@ void SeedGrowSegmentationFilter::execute()
 
   auto activeROI = roi();
 
-  if(activeROI)
+  if(activeROI && activeROI->isValid())
   {
+    if(!intersect(input->bounds(), activeROI->bounds()))
+    {
+      auto message = QObject::tr("Channel bounds (%1) doesn't intersect ROI bounds (%2)").arg(input->bounds().toString()).arg(activeROI->bounds().toString());
+      auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> ") + message;
+
+      throw EspinaException(message, details);
+    }
+
     auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
+
+    if(!intersectionBounds.areValid())
+    {
+      auto message = QObject::tr("Invalid intersection between Channel bounds (%1) and ROI bounds (%2)").arg(input->bounds().toString()).arg(activeROI->bounds().toString());
+      auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> ") + message;
+
+      throw EspinaException(message, details);
+    }
+
     image = input->itkImage(intersectionBounds);
 
     int outValue = seedIntensity + m_upperTh + 1;

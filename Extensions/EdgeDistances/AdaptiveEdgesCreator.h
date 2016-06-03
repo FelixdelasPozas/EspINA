@@ -50,6 +50,16 @@ namespace ESPINA
     virtual void run();
 
   private:
+    /** \brief Computes the edges data.
+     *
+     */
+    void computeEdges();
+
+    /** \brief Computes the edges surfaces.
+     *
+     */
+    void computeFaces();
+
     ChannelEdges *m_extension;
 };
 

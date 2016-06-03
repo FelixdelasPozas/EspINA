@@ -66,8 +66,9 @@ namespace ESPINA
 
       std::shared_ptr<ChannelProxy> m_proxy;
 
-      QModelIndex       m_channelIndex;
       ChannelAdapterPtr m_channel;
+      ModelAdapterSPtr  m_model;
+      QStringList       m_stackNames;
     };
 
   }

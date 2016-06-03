@@ -92,6 +92,7 @@ void SpacingChanger::startConversion()
   m_progress->setValue(0);
 
   double progress = 0;
+  NmVector3 spacing{0,0,0};
 
   for(auto file: m_files)
   {
@@ -154,14 +155,12 @@ void SpacingChanger::startConversion()
       continue;
     }
 
-    NmVector3 spacing;
-
     try
     {
       QByteArray contents = ZipUtils::readFileFromZip(CONTENT_FILE, sourceZip);
-      spacing = getSpacing(contents);
+      m_spacing = getSpacing(contents);
 
-      writeImportant(tr("File spacing: %1").arg(spacing.toString()));
+      writeImportant(tr("File spacing: %1").arg(m_spacing.toString()));
     }
     catch(const EspinaException &e)
     {
@@ -214,7 +213,7 @@ void SpacingChanger::startConversion()
 
       if(zFileName.endsWith(".vtp", Qt::CaseInsensitive))
       {
-        contents = processMesh(contents, spacing);
+        contents = processMesh(contents, m_spacing);
       }
 
       if(zFileName.endsWith(".vti", Qt::CaseInsensitive))
@@ -241,7 +240,6 @@ void SpacingChanger::startConversion()
       {
         increaseErrors();
         writeError(tr("ERROR: unknown file '%1'").arg(zFileName));
-        qDebug() << "unknown file: " << zFileName;
       }
 
       writeInfo(tr("Compress %1").arg(zFileName));
@@ -428,6 +426,86 @@ void SpacingChanger::processXML(QByteArray& data)
         increaseErrors();
         return;
       }
+    }
+  }
+
+  // Counting frame
+  tokenBegin = QString("<Extension Type=\"CountingFrame\"").toAscii();
+
+  begin = 0;
+  while(begin != -1)
+  {
+    begin = data.indexOf(tokenBegin, begin);
+
+    if(begin != -1)
+    {
+      tokenBegin = QString("<State>").toAscii();
+      tokenEnd   = QString("</State>").toAscii();
+
+      auto cfbegin = data.indexOf(tokenBegin, begin);
+      auto cfend = data.indexOf(tokenEnd, begin);
+
+      if(cfbegin != -1 && cfend != cfbegin+tokenBegin.length())
+      {
+        auto total = data.mid(cfbegin+tokenBegin.length(), cfend-cfbegin-tokenBegin.length());
+        auto CFlist = total.split('\n');
+        QByteArray replacement;
+
+        for(auto CF: CFlist)
+        {
+          auto parts = CF.split(',');
+          if(parts.size() != 9)
+          {
+            writeError(tr("ERROR: Invalid Counting Frame parts number: %1 instead of 9.").arg(parts.size()));
+            increaseErrors();
+
+            continue;
+          }
+
+          NmVector3 inclusion, exclusion;
+          inclusion[0] = parts[3].toDouble();
+          inclusion[1] = parts[4].toDouble();
+          inclusion[2] = parts[5].toDouble();
+          exclusion[0] = parts[6].toDouble();
+          exclusion[1] = parts[7].toDouble();
+          exclusion[2] = parts[8].toDouble();
+
+          inclusion[0] = inclusion[0]/m_spacing[0] * m_xSpacing->value();
+          inclusion[1] = inclusion[1]/m_spacing[1] * m_ySpacing->value();
+          inclusion[2] = inclusion[2]/m_spacing[2] * m_zSpacing->value();
+          exclusion[0] = exclusion[0]/m_spacing[0] * m_xSpacing->value();
+          exclusion[1] = exclusion[1]/m_spacing[1] * m_ySpacing->value();
+          exclusion[2] = exclusion[2]/m_spacing[2] * m_zSpacing->value();
+
+          auto CFreplacement = QString("%1,%2,%3,%4,%5,%6,%7,%8,%9").arg(QString(parts[0]))
+                                                             .arg(QString(parts[1]))
+                                                             .arg(QString(parts[2]))
+                                                             .arg(QString::number(inclusion[0]))
+                                                             .arg(QString::number(inclusion[1]))
+                                                             .arg(QString::number(inclusion[2]))
+                                                             .arg(QString::number(exclusion[0]))
+                                                             .arg(QString::number(exclusion[1]))
+                                                             .arg(QString::number(exclusion[2]));
+
+
+          writeInfo(tr("Counting Frame: Replaced '%1' with '%2'").arg(QString::fromAscii(CF))
+                                                     .arg(CFreplacement));
+
+          replacement.append(CFreplacement.toAscii());
+          if(CF != CFlist.last()) replacement.append('\n');
+        }
+
+        data.remove(cfbegin+tokenBegin.length(), total.size());
+        data.insert(cfbegin+tokenBegin.length(), replacement);
+      }
+      else
+      {
+        writeError(tr("ERROR: Empty Counting frame extension list."));
+        increaseErrors();
+        return;
+      }
+
+      ++begin;
     }
   }
 }

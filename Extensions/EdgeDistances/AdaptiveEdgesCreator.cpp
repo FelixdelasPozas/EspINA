@@ -90,9 +90,8 @@ AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 }
 
 //------------------------------------------------------------------------
-void AdaptiveEdgesCreator::run()
+void AdaptiveEdgesCreator::computeEdges()
 {
-  //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
   auto channel = m_extension->extendedItem();
   auto volume  = readLockVolume(channel->output());
   auto bounds  = volume->bounds();
@@ -131,7 +130,7 @@ void AdaptiveEdgesCreator::run()
   {
     if (zMax - zMin != 0)
     {
-      reportProgress(double(z - zMin) / double(zMax - zMin)*100.0);
+      reportProgress(double(z - zMin) / double(zMax - zMin)*50.0);
     }
     else
     {
@@ -356,18 +355,144 @@ void AdaptiveEdgesCreator::run()
     ++z;
   }
 
+  QWriteLocker lock(&m_extension->m_dataMutex);
+
   if (isAborted())
   {
     m_extension->m_computedVolume = 0;
   }
   else
   {
+    m_extension->m_edges = vtkSmartPointer<vtkPolyData>::New();
     m_extension->m_edges->SetPoints(borderVertices);
     m_extension->m_edges->SetPolys(faces);
 
-    reportProgress(100);
+    reportProgress(50);
   }
+}
 
-  m_extension->m_edgesResultMutex.unlock();
-  //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
+//------------------------------------------------------------------------
+void AdaptiveEdgesCreator::computeFaces()
+{
+  vtkPoints *borderPoints = m_extension->m_edges->GetPoints();
+  int numSlices = m_extension->m_edges->GetNumberOfPoints()/4;
+
+  for (int face = 0; face < 6; face++)
+  {
+    vtkPoints    *facePoints = vtkPoints::New();
+    vtkCellArray *faceCells  = vtkCellArray::New();
+    if (face < 4)
+    {
+      for (int i = 0; i < numSlices; i++)
+      {
+        double p1[3], p2[3];
+        switch(face)
+        {
+          case 0: // LEFT
+            borderPoints->GetPoint((4*i)+0, p1);
+            borderPoints->GetPoint((4*i)+1, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 1: // RIGHT
+            borderPoints->GetPoint((4*i)+2, p1);
+            borderPoints->GetPoint((4*i)+3, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 2: // TOP
+            borderPoints->GetPoint((4*i)+1, p1);
+            borderPoints->GetPoint((4*i)+2, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 3: // BOTTOM
+            borderPoints->GetPoint((4*i)+3, p1);
+            borderPoints->GetPoint((4*i)+0, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          default:
+            Q_ASSERT(FALSE);
+            break;
+        }
+
+        if (i == 0)
+          continue;
+
+        vtkIdType corners[4];
+        corners[0] = (i*2)-2;
+        corners[1] = (i*2)-1;
+        corners[2] = (i*2)+1;
+        corners[3] = 2*i;
+        faceCells->InsertNextCell(4,corners);
+      }
+    }
+    else
+    {
+      vtkIdType corners[4];
+      double p[3];
+      switch(face)
+      {
+        case 4: // Front
+        {
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(i, p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
+          break;
+        }
+        case 5: // Back
+        {
+          auto np = borderPoints->GetNumberOfPoints();
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(np - (4-i), p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
+          break;
+        }
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+      faceCells->InsertNextCell(4,corners);
+    }
+
+    vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+    poly->SetPoints(facePoints);
+    poly->SetPolys(faceCells);
+
+    facePoints->Delete();
+    faceCells->Delete();
+
+    {
+      QWriteLocker lock(&m_extension->m_dataMutex);
+
+      m_extension->m_faces[face] = poly;
+    }
+
+    reportProgress(50 + static_cast<double>(face)/6.0*50.0);
+ }
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesCreator::run()
+{
+//  qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
+  computeEdges();
+  computeFaces();
+
+  m_extension->m_hasCreatedEdges = !isAborted();
+  m_extension->m_edgesTask.wakeAll();
+//  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

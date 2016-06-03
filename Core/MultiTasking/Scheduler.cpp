@@ -71,7 +71,7 @@ Scheduler::Scheduler(int period, QObject* parent)
 : QObject               {parent}
 , m_period              {period}
 , m_lastId              {0}
-, m_maxNumRunningTasks{QThreadPool::globalInstance()->maxThreadCount()}
+, m_maxNumRunningTasks  {maxRunningTasks()}
 , m_abort               {false}
 {
   auto thread = new QThread();
@@ -80,6 +80,11 @@ Scheduler::Scheduler(int period, QObject* parent)
 
   connect(thread, SIGNAL(started()),
           this,   SLOT(scheduleTasks()));
+
+  // TODO: better task scheduling when a task gets blocked, until then just set the bar high
+  //       enough to avoid starvation.
+  // NOTE: can be "task->thread()->yieldCurrentThread();" a solution with the cycle counter?
+  m_maxNumRunningTasks = 50;
 
   thread->start();
 }
@@ -149,9 +154,9 @@ void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 }
 
 //-----------------------------------------------------------------------------
-unsigned int Scheduler::maxRunningTasks() const
+unsigned int Scheduler::maxRunningTasks()
 {
-  return m_maxNumRunningTasks;
+  return QThreadPool::globalInstance()->maxThreadCount();
 }
 
 //-----------------------------------------------------------------------------
@@ -185,7 +190,7 @@ void Scheduler::scheduleTasks()
 //     }
 //     std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
 
-    int num_running_threads = 0;
+    unsigned int num_running_threads = 0;
 
     for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
     {

@@ -27,6 +27,7 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/RemoveChannel.h>
+#include <Undo/DragChannelsCommand.h>
 
 // Qt
 #include <QMessageBox>
@@ -64,38 +65,50 @@ StackExplorer::StackExplorer(Support::Context &context)
   m_sort->setSourceModel(m_channelProxy.get());
   m_gui->view->setModel(m_sort.get());
 
-  connect(m_channelProxy.get(), SIGNAL(channelsDragged(ChannelAdapterList, SampleAdapterPtr)),
-          this,                 SLOT  (channelsDragged(ChannelAdapterList,SampleAdapterPtr)));
+  connect(m_channelProxy.get(),      SIGNAL(channelsDragged(ChannelAdapterList, SampleAdapterPtr)),
+          this,                      SLOT  (channelsDragged(ChannelAdapterList,SampleAdapterPtr)));
 
+  connect(m_gui->showInformation,    SIGNAL(clicked(bool)),
+          this,                      SLOT(showInformation()));
 
-  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
-          this, SLOT(showInformation()));
-  connect(m_gui->changeActiveStack, SIGNAL(clicked(bool)),
-          this, SLOT(activateChannel()));
-  connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
-          this, SLOT(alignLeft()));
-  connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
-          this, SLOT(alignCenter()));
-  connect(m_gui->alignRight, SIGNAL(clicked(bool)),
-          this, SLOT(alignRight()));
-  connect(m_gui->moveLeft, SIGNAL(clicked(bool)),
-          this, SLOT(moveLelft()));
-  connect(m_gui->moveRight, SIGNAL(clicked(bool)),
-          this, SLOT(moveRight()));
-  connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(channelSelected()));
-  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          this, SLOT(updateChannelRepresentations(QModelIndex)));
-  connect(m_gui->xPos, SIGNAL(valueChanged(int)),
-          this, SLOT(updateChannelPosition()));
-  connect(m_gui->yPos, SIGNAL(valueChanged(int)),
-          this, SLOT(updateChannelPosition()));
-  connect(m_gui->zPos, SIGNAL(valueChanged(int)),
-          this, SLOT(updateChannelPosition()));
+  connect(m_gui->changeActiveStack,  SIGNAL(clicked(bool)),
+          this,                      SLOT(activateChannel()));
+
+  connect(m_gui->alignLeft,          SIGNAL(clicked(bool)),
+          this,                      SLOT(alignLeft()));
+
+  connect(m_gui->alignCenter,        SIGNAL(clicked(bool)),
+          this,                      SLOT(alignCenter()));
+
+  connect(m_gui->alignRight,         SIGNAL(clicked(bool)),
+          this,                      SLOT(alignRight()));
+
+  connect(m_gui->moveLeft,           SIGNAL(clicked(bool)),
+          this,                      SLOT(moveLelft()));
+
+  connect(m_gui->moveRight,          SIGNAL(clicked(bool)),
+          this,                      SLOT(moveRight()));
+
+  connect(m_gui->view,               SIGNAL(clicked(QModelIndex)),
+          this,                      SLOT(channelSelected()));
+
+  connect(m_gui->view,               SIGNAL(itemStateChanged(QModelIndex)),
+          this,                      SLOT(updateChannelRepresentations(QModelIndex)));
+
+  connect(m_gui->xPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
+  connect(m_gui->yPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
+  connect(m_gui->zPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
   connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(updateTooltips(int)));
-  connect(m_gui->unloadChannel, SIGNAL(clicked(bool)),
-          this, SLOT(unloadChannel()));
+          this,                      SLOT(updateTooltips(int)));
+
+  connect(m_gui->unloadChannel,      SIGNAL(clicked(bool)),
+          this,                      SLOT(unloadChannel()));
 
   updateTooltips(0);
 
@@ -109,6 +122,7 @@ StackExplorer::StackExplorer(Support::Context &context)
   auto model = getModel().get();
   connect(model, SIGNAL(channelsAdded(ViewItemAdapterSList)),
           this,  SLOT(onChannelsModified()));
+
   connect(model, SIGNAL(channelsRemoved(ViewItemAdapterSList)),
           this,  SLOT(onChannelsModified()));
 
@@ -460,32 +474,23 @@ void StackExplorer::activateChannel()
 //------------------------------------------------------------------------
 void StackExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapterPtr sample)
 {
-  SampleAdapterSList samples;
-
+  ChannelAdapterList filteredChannels;
   auto newSample = getModel()->smartPointer(sample);
 
-  for (auto channel : channels)
+  for(auto channel: channels)
   {
-    auto prevSample   = QueryAdapter::sample(channel);
-
-    // don't do anything if it's the same sample
-    if(sample != prevSample.get())
+    if(newSample != QueryAdapter::sample(channel))
     {
-      auto sChannel = getModel()->smartPointer(channel);
-
-      getModel()->deleteRelation(prevSample, sChannel, Channel::STAIN_LINK);
-      getModel()->addRelation   (newSample , sChannel, Channel::STAIN_LINK);
-
-      if(!samples.contains(newSample)) samples << newSample;
-      if(!samples.contains(prevSample)) samples << prevSample;
-
-      m_channelProxy->emitModified(sChannel.get());
+      filteredChannels << channel;
     }
   }
 
-  for(auto item: samples)
+  if(!filteredChannels.empty())
   {
-    m_channelProxy->emitModified(item.get());
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro("Move Channels to Sample");
+    undoStack->push(new DragChannelsCommand(getModel(), filteredChannels, newSample, m_channelProxy.get()));
+    undoStack->endMacro();
   }
 }
 

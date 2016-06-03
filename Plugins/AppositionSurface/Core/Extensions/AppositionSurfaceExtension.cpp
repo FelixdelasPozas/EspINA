@@ -186,29 +186,27 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     asMesh->BuildLinks();
 
     // std::cout << "Points: " << mesh->GetNumberOfPoints() << std::endl;
-    int num_of_cells = asMesh->GetNumberOfCells();
+    auto numCells = asMesh->GetNumberOfCells();
+    auto graph    = MutableUndirectedGraph::New();
+    auto pedigree = IdTypeArray::New();
 
-    MutableUndirectedGraph graph = MutableUndirectedGraph::New();
-
-    IdTypeArray pedigree = IdTypeArray::New();
     graph->GetVertexData()->SetPedigreeIds(pedigree);
 
-    for (vtkIdType cellId = 0; cellId < num_of_cells; cellId++)
+    for (vtkIdType cellId = 0; cellId < numCells; cellId++)
     {
-      IdList cellPointIds = IdList::New();
+      auto cellPointIds = IdList::New();
       asMesh->GetCellPoints(cellId, cellPointIds);
-      for(vtkIdType i = 0; i < cellPointIds->GetNumberOfIds(); i++)
+      auto numIds = cellPointIds->GetNumberOfIds();
+
+      for(vtkIdType idx = 0; idx < numIds; idx++)
       {
-        vtkIdType p1;
-        vtkIdType p2;
+        vtkIdType id1;
+        vtkIdType id2;
 
-        p1 = cellPointIds->GetId(i);
-        if(i+1 == cellPointIds->GetNumberOfIds())
-          p2 = cellPointIds->GetId(0);
-        else
-          p2 = cellPointIds->GetId(i+1);
+        id1 = cellPointIds->GetId(idx);
+        id2 = cellPointIds->GetId((idx+1) % numIds);
 
-        if (isPerimeter(asMesh, cellId,p1,p2))
+        if (isPerimeter(asMesh, cellId,id1, id2))
         {
           /**
            * VTK BUG: in Vtk5.10.1 without
@@ -220,8 +218,8 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
            */
           pedigree->ClearLookup();
 
-          vtkIdType i1 = graph->AddVertex(p1);
-          vtkIdType i2 = graph->AddVertex(p2);
+          vtkIdType i1 = graph->AddVertex(id1);
+          vtkIdType i2 = graph->AddVertex(id2);
 
           graph->AddEdge(i1, i2);
         }
@@ -414,11 +412,10 @@ double stdDev(const vtkSmartPointer<vtkDoubleArray> dataArray, const double mean
 bool AppositionSurfaceExtension::computeInformation() const
 {
   bool validInformation = false;
-  auto segMesh = readLockMesh(m_extendedItem->output());
+  auto segMesh = writeLockMesh(m_extendedItem->output());
 
   if (segMesh->isValid())
   {
-    // vtkPolyData *asMesh = dynamic_cast<vtkPolyData *>(segMesh->mesh()->GetProducer()->GetOutputDataObject(0));
     auto asMesh = segMesh->mesh();
 
     auto gaussCurvature = vtkSmartPointer<vtkDoubleArray>::New();

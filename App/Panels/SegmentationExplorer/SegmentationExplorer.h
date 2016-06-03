@@ -21,20 +21,18 @@
 #define ESPINA_SEGMENTATION_EXPLORER_H
 
 // ESPINA
+#include <ui_SegmentationExplorer.h>
 #include <Support/Widgets/Panel.h>
 #include <Support/Factory/FilterRefinerFactory.h>
 #include <Support/Context.h>
+#include <GUI/View/SelectableView.h>
 
 // Qt
-#include <ui_SegmentationExplorer.h>
-#include <GUI/View/SelectableView.h>
 #include <QStringListModel>
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 #include <QTextStream>
 #include <QStack>
-
-
 
 class QUndoStack;
 
@@ -120,6 +118,9 @@ namespace ESPINA
      */
     void onSelectionChanged();
 
+    /** \brief Updates the search box with the selected tag.
+     *
+     */
     void onTagSelected(const QString &tag);
 
     /** \brief Saves the current model classification to disk.
@@ -132,7 +133,38 @@ namespace ESPINA
      */
     void importClassification();
 
+    /** \brief Selects the next segmentation in the tree view and focuses the views on it's centroid.
+     *
+     */
+    void incrementSelection();
+
+    /** \brief Selectes the previous segmentation in the tree view and focuses the views on it's centroid.
+     *
+     */
+    void decrementSelection();
+
   private:
+    /** \brief Enum class to specify the movement direction in the nextIndex() private method.
+     *
+     */
+    enum class direction: char { FORWARD = 0, BACKWARD };
+
+    /** \brief Returns the next QModelIndex belonging to a segmentation in regard to the given one in
+     * the given direction in the tree view model.
+     * \param[in] index previous QModelIndex object.
+     * \param[in] dir movement direction.
+     *
+     */
+    QModelIndex nextIndex(const QModelIndex &index, direction dir);
+
+    /** \brief Creates shortcuts to go forwards/backwards on segmentation selection.
+     *
+     */
+    void createShortcuts();
+
+    /** \brief Returns the list of selected indexes in the selection model of the tree view.
+     *
+     */
     QModelIndexList selectedIndexes() const;
 
     /** \brief Adds the categories of 'from' classification to 'to' classification if they doesn'e exist in 'to'.
@@ -156,6 +188,10 @@ namespace ESPINA
      */
     void writeCategories(CategoryAdapterSList categories, QXmlStreamWriter *writer);
 
+    /** \brief Updates the tags in the GUI with the ones of the selected indexes.
+     * \param[in] selectedIndexes QModelIndex list.
+     *
+     */
     void updateTags(const QModelIndexList &selectedIndexes);
 
   protected:

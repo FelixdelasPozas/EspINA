@@ -243,7 +243,7 @@ namespace ESPINA
     template<typename T> friend class SignalBlocker;
   };
 
-  enum class DataUpdatePolicy { Request, Ignore};
+  enum class DataUpdatePolicy { Request, Ignore };
 } // namespace ESPINA
 
 #endif // ESPINA_DATA_H

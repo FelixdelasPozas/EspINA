@@ -38,7 +38,7 @@ namespace ESPINA
     {
       //-----------------------------------------------------------------------------
       template <typename T>
-      QList<T *> EspinaCore_EXPORT createRawList(const T *item)
+      QList<T *> createRawList(const T *item)
       {
         QList<T *> result;
 
@@ -49,14 +49,14 @@ namespace ESPINA
 
       //-----------------------------------------------------------------------------
       template <typename T>
-      QList<T *> EspinaCore_EXPORT createRawList(const std::shared_ptr<T> &item)
+      QList<T *> createRawList(const std::shared_ptr<T> &item)
       {
         return createRawList<T>(item.get());
       }
 
       //-----------------------------------------------------------------------------
       template <typename T>
-      QList<T *> EspinaCore_EXPORT rawList(const QList<std::shared_ptr<T>> &list)
+      QList<T *> rawList(const QList<std::shared_ptr<T>> &list)
       {
         QList<T *> result;
 
@@ -70,7 +70,7 @@ namespace ESPINA
 
       //-----------------------------------------------------------------------------
       template <typename T, typename F>
-      QList<T *> EspinaCore_EXPORT toRawList(const F &list)
+      QList<T *> toRawList(const F &list)
       {
         QList<T *> result;
 
@@ -84,7 +84,7 @@ namespace ESPINA
 
       //-----------------------------------------------------------------------------
       template <typename T, typename F>
-      QList<std::shared_ptr<T>> EspinaCore_EXPORT toList(const F &list)
+      QList<std::shared_ptr<T>> toList(const F &list)
       {
         QList<std::shared_ptr<T>> result;
 
@@ -98,7 +98,7 @@ namespace ESPINA
 
       //-----------------------------------------------------------------------------
       template <typename T, typename F>
-      QList<T *> EspinaCore_EXPORT toList(const QList<F *> &list)
+      QList<T *> toList(const QList<F *> &list)
       {
         QList<T *> result;
 
@@ -112,7 +112,7 @@ namespace ESPINA
 
       //-----------------------------------------------------------------------------
       template <typename T>
-      QSet<T *> EspinaCore_EXPORT toRawSet(const QList<std::shared_ptr<T>> &list)
+      QSet<T *> toRawSet(const QList<std::shared_ptr<T>> &list)
       {
         QSet<T> result;
 

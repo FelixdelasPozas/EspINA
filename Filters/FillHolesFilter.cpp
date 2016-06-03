@@ -87,7 +87,6 @@ bool FillHolesFilter::needUpdate(Output::Id id) const
 void FillHolesFilter::execute(Output::Id id)
 {
   Q_ASSERT(0 == id);
-  Q_ASSERT(m_inputs.size() == 1);
 
   if (m_inputs.size() != 1)
   {

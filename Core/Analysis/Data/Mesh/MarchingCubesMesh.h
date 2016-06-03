@@ -43,43 +43,43 @@
 
 namespace ESPINA
 {
-
   class EspinaCore_EXPORT MarchingCubesMesh
   : public RawMesh
   {
-  public:
-    /** \brief MarchingCubesMesh class constructor.
-     * \param[in] output to obtain the volumetric data from
-     *
-     * NOTE: this data doesn't updates the output to access its volumetric data
-     */
-    explicit MarchingCubesMesh(Output *output);
+    public:
+      /** \brief MarchingCubesMesh class constructor.
+       * \param[in] output to obtain the volumetric data from
+       *
+       * NOTE: this data doesn't update the output to access its volumetric data
+       */
+      explicit MarchingCubesMesh(Output *output);
 
-    /** \brief MarchingCubesMesh class virtual destructor.
-     *
-     */
-    virtual ~MarchingCubesMesh();
+      /** \brief MarchingCubesMesh class virtual destructor.
+       *
+       */
+      virtual ~MarchingCubesMesh()
+      {};
 
-    virtual bool isValid() const override;
+      virtual bool isValid() const override;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
+      virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
-    virtual TimeStamp lastModified() const override;
+      virtual TimeStamp lastModified() const override;
 
-    /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
-     *
-     */
-    void updateMesh();
+      /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
+       *
+       */
+      void updateMesh();
 
-    virtual VolumeBounds bounds() const override;
+      virtual VolumeBounds bounds() const override;
 
-  private:
-    virtual QList<Data::Type> updateDependencies() const override;
+    private:
+      virtual QList<Data::Type> updateDependencies() const override;
 
-  private:
-    Output   *m_output;
-    TimeStamp m_lastVolumeModification;
-    mutable QMutex m_lock;
+    private:
+      Output        *m_output;
+      TimeStamp      m_lastVolumeModification;
+      mutable QMutex m_lock;
   };
 
 } // namespace ESPINA

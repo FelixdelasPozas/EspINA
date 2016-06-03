@@ -236,12 +236,9 @@ void Widget2D::updateSelectionMeasure()
     updateBoundingBox(selectionMeasure, segmentation->bounds());
   }
 
-  if (!selectionMeasure.areValid())
+  if (!selectionMeasure.areValid() && m_selection->activeChannel())
   {
-    for (auto channel : m_selection->channels())
-    {
-      updateBoundingBox(selectionMeasure, channel->bounds());
-    }
+    updateBoundingBox(selectionMeasure, m_selection->activeChannel()->bounds());
   }
 
   m_widget->setBounds(selectionMeasure);

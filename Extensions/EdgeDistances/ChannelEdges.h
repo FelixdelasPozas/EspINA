@@ -35,6 +35,7 @@
 
 // Qt
 #include <QMutex>
+#include <QWaitCondition>
 
 namespace ESPINA
 {
@@ -166,26 +167,35 @@ namespace ESPINA
      */
     void computeAdaptiveEdges();
 
-    /** \brief Loads edge values from cache.
+    /** \brief Loads edges and faces polydatas from disk.
      *
      */
-    void loadEdgesCache();
-
-    /** \brief Loads face values from cache.
-     *
-     */
-    void loadFacesCache();
+    void loadEdgesData();
 
     /** \brief Internal implementation of invalidate() without sending a signal.
      *
      */
     void invalidateResults();
 
+    void checkAnalysisData() const;
+    void checkEdgesData();
+
   private:
-    mutable QReadWriteLock m_analysisResultMutex; /** protects use distances, background and threshold values.                                  */
-    mutable QReadWriteLock m_edgesMutex;          /** protects edges polydata                                                                   */
-    mutable QReadWriteLock m_facesMutex;          /** protects faces polydata.                                                                  */
-    mutable QReadWriteLock m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
+    /** \brief Helper method to create the rectangular edges vtkPolyData.
+     * \param[in] bounds limits of the rectangular region.
+     *
+     */
+    void createRectangularRegion(const Bounds &bounds);
+
+    mutable std::atomic<bool> m_hasAnalizedChannel;
+    mutable std::atomic<bool> m_hasCreatedEdges;
+
+    mutable QWaitCondition m_analisysWait;        /** wait condition for EdgesAnalyzer task.                                                    */
+    mutable QMutex         m_analysisResultMutex; /** protects use distances, background and threshold values.                                  */
+    mutable QWaitCondition m_edgesTask;           /** wait condition for AdaptiveEdges task.                                                    */
+    mutable QMutex         m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
+    mutable QReadWriteLock m_dataMutex;           /** protects class internal data.                                                             */
+    QMutex                 m_distanceMutex;       /** protects edges polydata during distance to edges computation.                             */
 
     bool   m_useDistanceToBounds;                 /** true to use the distance to the stack bounds, false otherwise.                            */
     int    m_backgroundColor;                     /** background color intensity value.                                                         */
@@ -201,11 +211,6 @@ namespace ESPINA
     vtkSmartPointer<vtkPolyData> m_faces[6];      /** edges faces polydatas.                                                                    */
 
     SchedulerSPtr m_scheduler;                    /** application task scheduler.                                                               */
-
-    /** \brief Builds the surfaces of the faces the first time they're needed.
-     *
-     */
-    void computeSurfaces();
 
     friend class AdaptiveEdgesCreator;
     friend class EdgesAnalyzer;

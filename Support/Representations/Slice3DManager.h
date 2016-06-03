@@ -20,13 +20,15 @@
 #ifndef ESPINA_SLICE_3D_MANAGER_H
 #define ESPINA_SLICE_3D_MANAGER_H
 
+#include "Support/EspinaSupport_Export.h"
+
 // ESPINA
 #include <GUI/Representations/Managers/PoolManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
-namespace ESPINA {
-
-  class Slice3DManager
+namespace ESPINA
+{
+  class EspinaSupport_EXPORT Slice3DManager
   : public GUI::Representations::Managers::PoolManager
   {
       Q_OBJECT
