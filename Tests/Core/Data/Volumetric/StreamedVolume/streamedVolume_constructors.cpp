@@ -80,7 +80,7 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(region != equivalentRegion<itkVolumeType>(file_W->bounds().origin(), file_W->bounds().spacing(), file_W->bounds().bounds()))
+      if(region != equivalentRegion<itkVolumeType>(NmVector3{0,0,0}, file_W->bounds().spacing(), file_W->bounds().bounds()))
       {
         std::cout << "write constructor -> invalid region. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -92,7 +92,17 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if (file_W->bounds().origin() != NmVector3{0, 2.2, 6.6})
+      itkVolumeType::PointType W_origin;
+      W_origin[0] = 0;
+      W_origin[1] = 2.2;
+      W_origin[2] = 6.6;
+      if(file_W->itkOriginalOrigin() != W_origin)
+      {
+        std::cout << "write constructor -> invalid itk origin. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if (file_W->bounds().origin() != NmVector3{0, 0, 0})
       {
         std::cout << "write constructor -> invalid origin. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -112,7 +122,7 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(region != equivalentRegion<itkVolumeType>(file_R->bounds().origin(), file_R->bounds().spacing(), file_R->bounds().bounds()))
+      if(region != equivalentRegion<itkVolumeType>(NmVector3{0,0,0}, file_R->bounds().spacing(), file_R->bounds().bounds()))
       {
         std::cout << "read constructor -> invalid region. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -124,7 +134,17 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if (file_R->bounds().origin() != NmVector3{0, 2.2, 6.6})
+      itkVolumeType::PointType R_origin;
+      R_origin[0] = 0;
+      R_origin[1] = 2.2;
+      R_origin[2] = 6.6;
+      if (file_R->itkOriginalOrigin() != R_origin)
+      {
+        std::cout << "read constructor -> invalid itk origin. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if (file_R->bounds().origin() != NmVector3{0, 0, 0})
       {
         std::cout << "read constructor -> invalid origin. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -290,13 +310,23 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(region != equivalentRegion<RealVectorImageType>(file_W->bounds().origin(), file_W->bounds().spacing(), file_W->bounds().bounds()))
+      if(region != equivalentRegion<RealVectorImageType>(NmVector3{0,0,0}, file_W->bounds().spacing(), file_W->bounds().bounds()))
       {
         std::cout << "write constructor -> invalid region. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
 
-      if(NmVector3{0,2.2, 6.6} != file_W->bounds().origin())
+      RealVectorImageType::PointType W_origin;
+      W_origin[0] = 0;
+      W_origin[1] = 2.2;
+      W_origin[2] = 6.6;
+      if(W_origin != file_W->itkOriginalOrigin())
+      {
+        std::cout << "write constructor -> invalid itk origin. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if(NmVector3{0,0,0} != file_W->bounds().origin())
       {
         std::cout << "write constructor -> invalid origin. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
@@ -316,13 +346,23 @@ int streamedVolume_constructors( int argc, char** argv )
         error = EXIT_FAILURE;
       }
 
-      if(region != equivalentRegion<RealVectorImageType>(file_R->bounds().origin(), file_R->bounds().spacing(), file_R->bounds().bounds()))
+      if(region != equivalentRegion<RealVectorImageType>(NmVector3{0,0,0}, file_R->bounds().spacing(), file_R->bounds().bounds()))
       {
         std::cout << "read constructor -> invalid region. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
       }
 
-      if(NmVector3{0,2.2, 6.6} != file_R->bounds().origin())
+      RealVectorImageType::PointType R_origin;
+      R_origin[0] = 0;
+      R_origin[1] = 2.2;
+      R_origin[2] = 6.6;
+      if(R_origin != file_R->itkOriginalOrigin())
+      {
+        std::cout << "read constructor -> invalid itk origin. line " << __LINE__ << std::endl;
+        error = EXIT_FAILURE;
+      }
+
+      if(NmVector3{0,0,0} != file_R->bounds().origin())
       {
         std::cout << "read constructor -> invalid origin. line " << __LINE__ << std::endl;
         error = EXIT_FAILURE;
