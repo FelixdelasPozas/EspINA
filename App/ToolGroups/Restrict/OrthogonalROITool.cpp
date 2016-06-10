@@ -93,7 +93,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 
   connect(&getViewState(), SIGNAL(eventHandlerChanged()),
           this,            SLOT(onEventHandlerChanged()));
-
 }
 
 //-----------------------------------------------------------------------------

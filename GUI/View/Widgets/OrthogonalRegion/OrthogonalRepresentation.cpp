@@ -36,7 +36,6 @@ OrthogonalRepresentation::OrthogonalRepresentation(const NmVector3 &resolution, 
 , m_color(Qt::yellow)
 , m_pattern(0xFFFF)
 {
-
 }
 
 //----------------------------------------------------------------------------

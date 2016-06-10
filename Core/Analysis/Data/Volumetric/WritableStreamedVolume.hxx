@@ -178,6 +178,7 @@ namespace ESPINA
         auto reader = itk::ImageFileReader<T>::New();
         reader->ReleaseDataFlagOn();
         reader->SetFileName(this->m_fileName.toStdString());
+        reader->SetNumberOfThreads(1);
         reader->UpdateOutputInformation();
 
         typename T::Pointer image = reader->GetOutput();

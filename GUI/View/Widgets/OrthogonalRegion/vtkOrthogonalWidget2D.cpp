@@ -284,9 +284,9 @@ void vtkOrthogonalWidget2D::EndSelectAction(vtkAbstractWidget *w)
 {
   vtkOrthogonalWidget2D *self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
   if ( self->WidgetState == vtkOrthogonalWidget2D::Start )
-    {
+  {
     return;
-    }
+  }
 
   // Return state to not active
   self->WidgetState = vtkOrthogonalWidget2D::Start;
@@ -328,8 +328,8 @@ void vtkOrthogonalWidget2D::SetBounds(Bounds bounds)
 
   double dBounds[6]{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
   auto rep = reinterpret_cast<vtkOrthogonalRepresentation2D*>(this->WidgetRep);
-
   rep->SetOrthogonalBounds(dBounds);
+
   m_bounds = bounds;
 }
 

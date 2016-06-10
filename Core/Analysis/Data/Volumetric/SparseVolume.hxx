@@ -656,6 +656,8 @@ namespace ESPINA
     {
       auto reader = VolumeReader::New();
       reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
+      reader->SetUseStreaming(false);
+      reader->SetNumberOfThreads(1);
 
       try
       {

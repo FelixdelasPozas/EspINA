@@ -43,7 +43,6 @@
 
 // ITK
 #include <itkImageFileReader.h>
-#include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkMetaImageIO.h>
@@ -159,6 +158,8 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
   labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
+  labelMapReader->SetUseStreaming(false);
+  labelMapReader->SetNumberOfThreads(1);
   labelMapReader->SetImageIO(itk::MetaImageIO::New());
   labelMapReader->Update();
 

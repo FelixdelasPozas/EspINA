@@ -141,7 +141,7 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
           this,                   SLOT(onResolutionChanged(NmVector3)));
 
   connect(m_representation.get(), SIGNAL(boundsChanged(Bounds)),
-          this,      SLOT(onBoundsChanged(Bounds)));
+          this,                   SLOT(onBoundsChanged(Bounds)));
 
   connect(m_representation.get(), SIGNAL(colorChanged(QColor)),
           this,                   SLOT(onColorChanged(QColor)));

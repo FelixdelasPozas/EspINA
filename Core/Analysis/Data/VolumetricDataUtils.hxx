@@ -337,6 +337,7 @@ namespace ESPINA
 
     typename VolumeReader::Pointer reader = VolumeReader::New();
     reader->SetFileName(filename.toUtf8().data());
+    reader->SetNumberOfThreads(1);
     reader->Update();
 
     auto image = reader->GetOutput();

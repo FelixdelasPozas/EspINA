@@ -95,6 +95,8 @@ void VolumetricStreamReader::execute()
   auto mhdFile = QFileInfo{m_fileName};
   auto reader  = itk::ImageFileReader<itkVolumeType>::New();
   reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+  reader->SetUseStreaming(false);
+  reader->SetNumberOfThreads(1);
   try
   {
     reader->Update();

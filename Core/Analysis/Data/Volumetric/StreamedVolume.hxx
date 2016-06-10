@@ -210,6 +210,7 @@ namespace ESPINA
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
       reader->SetFileName(m_fileName.toStdString());
+      reader->SetNumberOfThreads(1);
       reader->UpdateOutputInformation();
 
       typename T::Pointer image = reader->GetOutput();
@@ -295,7 +296,7 @@ namespace ESPINA
 
       QMutexLocker lock(&m_lock);
 
-      NmVector3 origin{m_origin[0], m_origin[1], m_origin[2]};
+      NmVector3 origin{0, 0, 0};
       NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
 
       auto bounds = equivalentBounds<T>(origin, spacing, m_region);
@@ -320,6 +321,8 @@ namespace ESPINA
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
       reader->SetFileName(m_fileName.toStdString());
+      reader->SetUseStreaming(false);
+      reader->SetNumberOfThreads(1);
       reader->Update();
 
       typename T::Pointer image = reader->GetOutput();

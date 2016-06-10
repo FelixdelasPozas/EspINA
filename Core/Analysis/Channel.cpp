@@ -22,11 +22,6 @@
 // ESPINA
 #include "Channel.h"
 
-// ITK
-#include <itkImageFileReader.h>
-#include <itkMetaImageIO.h>
-#include <itkTIFFImageIO.h>
-
 // VTK
 #include <vtkImageAlgorithm.h>
 #include <vtkDataObject.h>
@@ -82,27 +77,47 @@ void Channel::restoreState(const State& state)
     if ("Brightness" == tokens[0])
     {
       setBrightness(tokens[1].toDouble());
-    } else if ("Contrast" == tokens[0])
+    }
+    else
     {
-      setContrast(tokens[1].toDouble());
-    } else if ("Hue" == tokens[0])
-    {
-      setHue(tokens[1].toDouble());
-    } else if ("Saturation" == tokens[0])
-    {
-      setSaturation(tokens[1].toDouble());
-    } else if ("Opacity" == tokens[0])
-    {
-      setOpacity(tokens[1].toDouble());
-    } else if ("Spacing" == tokens[0])
-    {
-      NmVector3 spacing;
-      auto values = tokens[1].split(",");
-      for(int i = 0; i < 3; ++i)
+      if ("Contrast" == tokens[0])
       {
-        spacing[i] = values[i].toDouble();
+        setContrast(tokens[1].toDouble());
       }
-      output()->setSpacing(spacing);
+      else
+      {
+        if ("Hue" == tokens[0])
+        {
+          setHue(tokens[1].toDouble());
+        }
+        else
+        {
+          if ("Saturation" == tokens[0])
+          {
+            setSaturation(tokens[1].toDouble());
+          }
+          else
+          {
+            if ("Opacity" == tokens[0])
+            {
+              setOpacity(tokens[1].toDouble());
+            }
+            else
+            {
+              if ("Spacing" == tokens[0])
+              {
+                NmVector3 spacing;
+                auto values = tokens[1].split(",");
+                for (int i = 0; i < 3; ++i)
+                {
+                  spacing[i] = values[i].toDouble();
+                }
+                output()->setSpacing(spacing);
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -211,29 +226,40 @@ void Channel::setHue(double hue)
   if (hue < MIN_HUE && hue != NO_HUE)
   {
     m_hue = MIN_HUE;
-  } else if (hue > MAX_HUE)
+  }
+  else
   {
-    m_hue = MAX_HUE;
-  } else
-  {
-    m_hue = hue;
+    if (hue > MAX_HUE)
+    {
+      m_hue = MAX_HUE;
+    }
+    else
+    {
+      m_hue = hue;
+    }
   }
 }
 
 //------------------------------------------------------------------------
 void Channel::setOpacity(double opacity)
 {
-  if(opacity == -1.0) opacity = 1.0; // Fix for older espina seg files.
+  if (opacity == -1.0)
+    opacity = 1.0; // Fix for older espina seg files.
 
   if (opacity < MIN_OPACITY)
   {
     m_opacity = MIN_OPACITY;
-  } else if (opacity > MAX_OPACITY)
+  }
+  else
   {
-    m_opacity = MAX_OPACITY;
-  } else
-  {
-    m_opacity = opacity;
+    if (opacity > MAX_OPACITY)
+    {
+      m_opacity = MAX_OPACITY;
+    }
+    else
+    {
+      m_opacity = opacity;
+    }
   }
 }
 
@@ -243,12 +269,17 @@ void Channel::setSaturation(double saturation)
   if (saturation < MIN_SATURATION)
   {
     m_saturation = MIN_SATURATION;
-  } else if (saturation > MAX_SATURATION)
+  }
+  else
   {
-    m_saturation = MAX_SATURATION;
-  } else
-  {
-    m_saturation = saturation;
+    if (saturation > MAX_SATURATION)
+    {
+      m_saturation = MAX_SATURATION;
+    }
+    else
+    {
+      m_saturation = saturation;
+    }
   }
 }
 
@@ -258,12 +289,17 @@ void Channel::setContrast(double contrast)
   if (contrast < MIN_CONTRAST)
   {
     m_contrast = MIN_CONTRAST;
-  } else if (contrast > MAX_CONTRAST)
+  }
+  else
   {
-    m_contrast = MAX_CONTRAST;
-  } else
-  {
-    m_contrast = contrast;
+    if (contrast > MAX_CONTRAST)
+    {
+      m_contrast = MAX_CONTRAST;
+    }
+    else
+    {
+      m_contrast = contrast;
+    }
   }
 }
 
@@ -273,12 +309,17 @@ void Channel::setBrightness(double brightness)
   if (brightness < MIN_BRIGHTNESS)
   {
     m_brightness = MIN_BRIGHTNESS;
-  } else if (brightness > MAX_BRIGHTNESS)
+  }
+  else
   {
-    m_brightness = MAX_BRIGHTNESS;
-  } else
-  {
-    m_brightness = brightness;
+    if (brightness > MAX_BRIGHTNESS)
+    {
+      m_brightness = MAX_BRIGHTNESS;
+    }
+    else
+    {
+      m_brightness = brightness;
+    }
   }
 }
 
@@ -291,7 +332,8 @@ void Channel::setMetadata(const QString& metadata)
 //------------------------------------------------------------------------
 QString Channel::metadata() const
 {
-  if (m_metadata.isEmpty() && storage()->exists(metadataFile())) {
+  if (m_metadata.isEmpty() && storage()->exists(metadataFile()))
+  {
     m_metadata = storage()->snapshot(metadataFile());
   }
 
