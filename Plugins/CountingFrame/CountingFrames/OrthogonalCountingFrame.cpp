@@ -41,9 +41,9 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 OrthogonalCountingFrame::OrthogonalCountingFrame(CountingFrameExtension *channelExt,
-                                               Nm inclusion[3],
-                                               Nm exclusion[3],
-                                               SchedulerSPtr scheduler)
+                                                 Nm inclusion[3],
+                                                 Nm exclusion[3],
+                                                 SchedulerSPtr scheduler)
 : CountingFrame(channelExt, inclusion, exclusion, scheduler)
 , m_bounds(channelExt->extendedItem()->bounds())
 {
@@ -66,8 +66,9 @@ void OrthogonalCountingFrame::updateCountingFrameImplementation()
   Nm Bottom = m_bounds[3] - m_exclusion[1];
   Nm Back   = m_bounds[5] - m_exclusion[2];
 
-  m_countingFrame = createRectangularRegion(Left, Top, Front,
-                                            Right, Bottom, Back);
+  m_innerFrame = createRectangularRegion(Left, Top, Front, Right, Bottom, Back);
+
+  m_countingFrame = createCountingFramePolyData();
 
   {
     QWriteLocker lock(&m_channelEdgesMutex);
@@ -88,7 +89,7 @@ void OrthogonalCountingFrame::updateCountingFrameImplementation()
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
-                                                                               Nm right, Nm bottom, Nm back)
+                                                                              Nm right, Nm bottom, Nm back)
 {
   auto region   = vtkSmartPointer<vtkPolyData>::New();
   auto vertex   = vtkSmartPointer<vtkPoints>::New();
@@ -98,7 +99,7 @@ vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createRectangularRegion(Nm
   vtkIdType frontFace[4], leftFace[4] , topFace[4];
   vtkIdType backFace[4] , rightFace[4], bottomFace[4];
 
-    // Front Inclusion Face
+  // Front Inclusion Face
   frontFace[0] = vertex->InsertNextPoint(left,  bottom, front );
   frontFace[1] = vertex->InsertNextPoint(left,  top,    front );
   frontFace[2] = vertex->InsertNextPoint(right, top,    front );
@@ -154,4 +155,84 @@ vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createRectangularRegion(Nm
   data->GetScalars()->SetName("Type");
 
   return region;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> OrthogonalCountingFrame::createCountingFramePolyData()
+{
+  auto vertex   = vtkSmartPointer<vtkPoints>::New();
+  auto faces    = vtkSmartPointer<vtkCellArray>::New();
+  auto faceData = vtkSmartPointer<vtkIntArray>::New();
+
+  Nm left   = m_bounds[0] + m_inclusion[0];
+  Nm top    = m_bounds[2] + m_inclusion[1];
+  Nm front  = m_bounds[4] + m_inclusion[2];
+  Nm right  = m_bounds[1] - m_exclusion[0];
+  Nm bottom = m_bounds[3] - m_exclusion[1];
+  Nm back   = m_bounds[5] - m_exclusion[2];
+
+  vtkIdType frontFace[4], backFace[4], leftFace[4], topFace[4], cell[4];
+
+  frontFace[0] = vertex->InsertNextPoint(left,  bottom, front);
+  frontFace[1] = vertex->InsertNextPoint(left,  top,    front);
+  frontFace[2] = vertex->InsertNextPoint(right, top,    front);
+  frontFace[3] = vertex->InsertNextPoint(right, bottom, front);
+  backFace[0]  = vertex->InsertNextPoint(left,  bottom, back);
+  backFace[1]  = vertex->InsertNextPoint(left,  top,    back);
+  backFace[2]  = vertex->InsertNextPoint(right, top,    back);
+  backFace[3]  = vertex->InsertNextPoint(right, bottom, back);
+
+  // Front Inclusion Face
+  faces->InsertNextCell(4, frontFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Left Inclusion Face
+  leftFace[0] = frontFace[0];
+  leftFace[1] = frontFace[1];
+  leftFace[2] = backFace[1];
+  leftFace[3] = backFace[0];
+  faces->InsertNextCell(4, leftFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Top Inclusion Face
+  topFace[0] = frontFace[1];
+  topFace[1] = frontFace[2];
+  topFace[2] = backFace[2];
+  topFace[3] = backFace[1];
+  faces->InsertNextCell(4, topFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Back Exclusion Face
+  cell[0] = vertex->InsertNextPoint(m_bounds[0], bottom,      back);
+  cell[1] = vertex->InsertNextPoint(m_bounds[0], m_bounds[2], back);
+  cell[2] = vertex->InsertNextPoint(right,       m_bounds[2], back);
+  cell[3] = vertex->InsertNextPoint(right,       bottom,      back);
+  faces->InsertNextCell(4, cell);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  // Right Exclusion Face
+  cell[0] = vertex->InsertNextPoint(right, m_bounds[2], m_bounds[0]);
+  cell[1] = vertex->InsertNextPoint(right, bottom,      m_bounds[0]);
+  cell[2] = vertex->InsertNextPoint(right, bottom,      back);
+  cell[3] = vertex->InsertNextPoint(right, m_bounds[2], back);
+  faces->InsertNextCell(4, cell);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  // Bottom Exclusion Face
+  cell[0] = vertex->InsertNextPoint(right,        bottom, m_bounds[4]);
+  cell[1] = vertex->InsertNextPoint(m_bounds[0],  bottom, m_bounds[4]);
+  cell[2] = vertex->InsertNextPoint(m_bounds[0],  bottom, back);
+  cell[3] = vertex->InsertNextPoint(right,        bottom, back);
+  faces->InsertNextCell(4, cell);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  auto countingFrame = vtkSmartPointer<vtkPolyData>::New();
+  countingFrame->SetPoints(vertex);
+  countingFrame->SetPolys(faces);
+
+  auto data = countingFrame->GetCellData();
+  data->SetScalars(faceData);
+  data->GetScalars()->SetName("Type");
+
+  return countingFrame;
 }

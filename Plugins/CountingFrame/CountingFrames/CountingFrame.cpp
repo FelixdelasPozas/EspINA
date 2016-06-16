@@ -45,6 +45,8 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
 , m_scheduler      {scheduler}
+, m_countingFrame  {nullptr}
+, m_innerFrame     {nullptr}
 , m_inclusionVolume{0}
 , m_totalVolume    {0}
 , m_extension      {extension}
@@ -383,10 +385,21 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 {
   QReadLocker lock(&m_countingFrameMutex);
 
-  auto cf = vtkSmartPointer<vtkPolyData>::New();
-  cf->DeepCopy(m_countingFrame);
+  auto polydata = vtkSmartPointer<vtkPolyData>::New();
+  polydata->DeepCopy(m_countingFrame);
 
-  return cf;
+  return polydata;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
+{
+  QReadLocker lock(&m_countingFrameMutex);
+
+  auto polydata = vtkSmartPointer<vtkPolyData>::New();
+  polydata->DeepCopy(m_innerFrame);
+
+  return polydata;
 }
 
 //-----------------------------------------------------------------------------

@@ -83,8 +83,8 @@ protected:
   explicit vtkCountingFrameRepresentationXZ(){}
 
 private:
-  vtkCountingFrameRepresentationXZ(const vtkCountingFrameRepresentationXZ&);  //Not implemented
-  void operator=(const vtkCountingFrameRepresentationXZ&);  //Not implemented
+  vtkCountingFrameRepresentationXZ(const vtkCountingFrameRepresentationXZ&) = delete;
+  void operator=(const vtkCountingFrameRepresentationXZ&) = delete;
 };
 
 #endif // VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H

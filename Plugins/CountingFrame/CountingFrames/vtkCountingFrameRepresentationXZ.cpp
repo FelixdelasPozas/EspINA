@@ -119,57 +119,61 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   // Even indexed points belong to the left edge
   // Odd indexed points belong to the right edge
   /*
-   *   0---------1
-   *    \       /
-   *     2     3
-   *    /       \
-   *   4         5
-   *   |         |
-   *   6---------7
+   *                   TOP   1'
+   *                         |
+   *               0---------1
+   *                \       /
+   *                 2     3
+   *      LEFT      /       \     RIGHT
+   *               4         5
+   *               |         |
+   *          6'---6---------7
+   *
+   *                  BOTTOM
    */
-  this->Vertex->SetNumberOfPoints(numVertex);
+  this->Vertex->SetNumberOfPoints(numVertex + 2);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Reset();
   }
 
-  this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
+  // TOP
+  double RT[3];
+  Region->GetPoint(FrontSlice*4+0,LT);
+  Region->GetPoint(FrontSlice*4+3,RT);
+  LT[0] += InclusionOffset[0];
+  LT[2] += FrontSlice == 0 ? InclusionOffset[2] : SlicingStep[2]/2;
+  RT[0] -= ExclusionOffset[0];
+  RT[2] += FrontSlice == 0 ? InclusionOffset[2] : SlicingStep[2]/2;
+  LT[1] = RT[1] = Slice + Depth;
 
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(2*interval);
-    this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(2*interval+2);
-  }
-
-  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
+  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[TOP]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(0);
-  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(1);
+  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
+  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(RT));
 
-  this->EdgePolyData[RIGHT]->GetLines()->Allocate(this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(numIntervals,2));
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(2*interval+1);
-    this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(2*interval+3);
-  }
+  // BOTTOM
+  Region->GetPoint(BackSlice*4+0,LT);
+  Region->GetPoint(BackSlice*4+3,RT);
+  LT[2] += (BackSlice == NumSlices -1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  RT[0] -= ExclusionOffset[0];
+  RT[2] += (BackSlice == NumSlices -1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  LT[1] = RT[1] = Slice + Depth;
 
   this->EdgePolyData[BOTTOM]->GetLines()->Allocate(this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-2);
-  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-1);
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(RT));
 
-  double point[3];
-
-  /// Loop over slices and create Top/Bottom Edges
-  for(int slice=FrontSlice; slice <= BackSlice; slice++)
+  // LEFT
+  this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
+  for(int slice = FrontSlice; slice <= BackSlice; ++slice)
   {
-    int interval = slice - FrontSlice;
+    double point[3];
+    vtkIdType previous_id;
 
-    // LEFT
-    Region->GetPoint(slice*4+0,point);
+    Region->GetPoint(slice*4+0, point);
     point[0] += InclusionOffset[0];
     point[1] = Slice + Depth;
 
@@ -189,10 +193,37 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
       }
     }
 
-    this->Vertex->SetPoint(2*interval+0, point);
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != FrontSlice)
+    {
+      this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(id);
+    }
 
-    //RIGHT
-    Region->GetPoint(slice*4+3,point);
+    previous_id = id;
+  }
+
+  // RIGHT
+  this->EdgePolyData[RIGHT]->GetLines()->Allocate(this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(numIntervals+1,2));
+  double p1[3], p2[3];
+  Region->GetPoint(             3, p1);
+  Region->GetPoint(FrontSlice*4+3, p2);
+  p2[0] -= ExclusionOffset[0];
+  p2[2] += (FrontSlice == 0) ? InclusionOffset[2] : SlicingStep[2]/2;
+  p1[0] = p2[0];
+  p2[1] = p1[1] = Slice + Depth;
+
+  this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p1));
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p2));
+
+  for(int slice = FrontSlice; slice <= BackSlice; ++slice)
+  {
+    double point[3];
+    vtkIdType previous_id;
+
+    Region->GetPoint(slice*4+3, point);
     point[0] -= ExclusionOffset[0];
     point[1] = Slice + Depth;
 
@@ -212,11 +243,22 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
       }
     }
 
-    this->Vertex->SetPoint(2*interval+1, point);
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != FrontSlice)
+    {
+      this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(id);
+    }
+
+    previous_id = id;
   }
+
+  this->Vertex->Modified();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
+    this->EdgePolyData[i]->GetLines()->Modified();
     this->EdgePolyData[i]->Modified();
   }
 }

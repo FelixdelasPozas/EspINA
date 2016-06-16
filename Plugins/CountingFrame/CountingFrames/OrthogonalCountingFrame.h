@@ -92,6 +92,11 @@ namespace ESPINA
                                                              Nm bottom,
                                                              Nm back);
 
+        /** \brief Helper method to create the vtkPolyData object of the counting frame.
+         *
+         */
+        vtkSmartPointer<vtkPolyData> createCountingFramePolyData();
+
       private:
         Bounds m_bounds; /** bounds of the extension's extended item. */
 

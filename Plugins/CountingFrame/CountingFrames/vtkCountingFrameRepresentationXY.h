@@ -83,7 +83,8 @@ class CountingFramePlugin_EXPORT vtkCountingFrameRepresentationXY
     /** \brief vtkCountingFrameRepresentationXY class constructor.
      *
      */
-    explicit vtkCountingFrameRepresentationXY(){}
+    explicit vtkCountingFrameRepresentationXY()
+    {}
 
     /** \brief Returns the slice position in Nm of the front slice.
      *
@@ -96,8 +97,8 @@ class CountingFramePlugin_EXPORT vtkCountingFrameRepresentationXY
     ESPINA::Nm backSlice() const;
   
   private:
-    vtkCountingFrameRepresentationXY(const vtkCountingFrameRepresentationXY&);  //Not implemented
-    void operator=(const vtkCountingFrameRepresentationXY&);  //Not implemented
+    vtkCountingFrameRepresentationXY(const vtkCountingFrameRepresentationXY&) = delete;
+    void operator=(const vtkCountingFrameRepresentationXY&) = delete;
 };
 
 #endif // VTK_COUNTING_FRAME_REPRESENTATION_XY_H

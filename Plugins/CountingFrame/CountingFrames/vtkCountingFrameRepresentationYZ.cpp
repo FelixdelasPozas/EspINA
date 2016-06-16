@@ -109,7 +109,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   if (numRepSlices == 0) return;
 
   unsigned int numIntervals = numRepSlices - 1;
-  unsigned int numVertex    = numRepSlices * 2;
+  unsigned int numVertex    = (numRepSlices * 2) + 2;
 
   // Set of point pairs. Each pair belong to the same slice .
   // First pair belongs to the left edge
@@ -117,11 +117,16 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   // Odd indexed points belong to the top edge
   // Even indexed points belong to the bottom edge
   /*
-   *   1\ /5-7\ /11
-   *   | 3     9 |
-   *   |         |
-   *   | 2-4     |
-   *   0/   \6-8-10
+   *                  TOP   11'
+   *                         |
+   *              1\ /5-7\ /11
+   *               | 3     9 |
+   *       LEFT    |         |    RIGHT
+   *               | 2-4     |
+   *        0'-----0/   \6-8-10
+   *
+   *                 BOTTOM
+   *
    */
   this->Vertex->SetNumberOfPoints(numVertex);
 
@@ -130,40 +135,54 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
     this->EdgePolyData[i]->GetLines()->Reset();
   }
 
+  // LEFT
+  double LT[3];
+  Region->GetPoint(UpperSlice*4+0, LB);
+  Region->GetPoint(UpperSlice*4+1, LT);
+  LB[1] -= ExclusionOffset[1];
+  LB[2] += (UpperSlice == 0) ? InclusionOffset[2] : SlicingStep[2]/2;
+  LT[1] += InclusionOffset[1];
+  LT[2] += (UpperSlice == 0) ? InclusionOffset[2] : SlicingStep[2]/2;
+  LB[0] = LT[0] = Slice + Depth;
+
   this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(0);
-  this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(1);
+  this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LB));
+  this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
 
-  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[TOP]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(2*interval+1);
-    this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(2*interval+3);
-  }
+  // RIGHT
+  Region->GetPoint(LowerSlice*4+0, LB);
+  Region->GetPoint(LowerSlice*4+1, LT);
+  LB[1] -= ExclusionOffset[1];
+  LB[2] += (LowerSlice == NumSlices - 1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  LT[2] += (LowerSlice == NumSlices - 1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  LB[0] = LT[0] = Slice + Depth;
 
   this->EdgePolyData[RIGHT]->GetLines()->Allocate(this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(numVertex-2);
-  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(numVertex-1);
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LB));
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
 
-  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(numIntervals,2));
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(2*interval);
-    this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(2*interval+2);
-  }
+  // BOTTOM
+  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(numIntervals + 1,2));
+  Region->GetPoint(             0, LB);
+  Region->GetPoint(UpperSlice*4+0, LT);
+  LT[1] -= ExclusionOffset[1];
+  LB[1] = LT[1];
+  LT[2] += (UpperSlice == 0) ? InclusionOffset[2] : SlicingStep[2]/2;
+  LB[0] = LT[0] = Slice + Depth;
 
-  double point[3];
-  /// Loop over slices and create Top/Bottom Edges
-  for (int slice=UpperSlice; slice <= LowerSlice; slice++)
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LB));
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
+
+  for(int slice = UpperSlice; slice <= LowerSlice; ++slice)
   {
-    int interval = slice - UpperSlice;
-    // Bottom
+    double point[3];
+    vtkIdType previous_id;
+
     Region->GetPoint(slice*4+0,point);
-    point[0]  = Slice + Depth;
+    point[0] = Slice + Depth;
     point[1] -= ExclusionOffset[1];
     if (slice == 0)
     {
@@ -181,8 +200,24 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
       }
     }
 
-    this->Vertex->SetPoint(2*interval, point);
-    // Top
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != UpperSlice)
+    {
+      this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(id);
+    }
+
+    previous_id = id;
+  }
+
+  // TOP
+  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
+  for(int slice = UpperSlice; slice <= LowerSlice; ++slice)
+  {
+    double point[3];
+    vtkIdType previous_id;
+
     Region->GetPoint(slice*4+1,point);
     point[0]  = Slice + Depth;
     point[1] += InclusionOffset[1];
@@ -202,11 +237,22 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
       }
     }
 
-    this->Vertex->SetPoint(2*interval+1, point);
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != UpperSlice)
+    {
+      this->EdgePolyData[TOP]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(id);
+    }
+
+    previous_id = id;
   }
+
+  this->Vertex->Modified();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
+    this->EdgePolyData[i]->GetLines()->Modified();
     this->EdgePolyData[i]->Modified();
   }
 }

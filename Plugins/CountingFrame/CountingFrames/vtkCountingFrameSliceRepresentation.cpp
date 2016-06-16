@@ -42,7 +42,6 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 , Init                     {false}
 , NumPoints                {0}
 , NumSlices                {0}
-, NumVertex                {0}
 {
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
@@ -293,7 +292,6 @@ void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPo
 
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
-  this->NumVertex = this->NumSlices * 2;
 
   CreateRegion();
 }
@@ -358,37 +356,39 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
     return this->InteractionState;
   }
 
-  vtkAssemblyPath *path;
   // Try and pick a handle first
   this->LastPicker = nullptr;
   this->CurrentEdge = nullptr;
   this->EdgePicker->Pick(X,Y,0.0,this->Renderer);
-  path = this->EdgePicker->GetPath();
-  if ( path != nullptr )
+  auto path = this->EdgePicker->GetPath();
+  if (path != nullptr)
   {
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
 
     this->CurrentEdge = reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
-    if (this->CurrentEdge == this->EdgeActor[LEFT])
+    if(this->CurrentEdge)
     {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveLeft;
-    }
-    else if (this->CurrentEdge == this->EdgeActor[RIGHT])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveRight;
-    } 
-    else if (this->CurrentEdge == this->EdgeActor[TOP])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveTop;
-    } 
-    else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveBottom;
-    }
-    else
-    {
-      assert(false);
+      if (this->CurrentEdge == this->EdgeActor[LEFT])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveLeft;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[RIGHT])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveRight;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[TOP])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveTop;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveBottom;
+      }
+      else
+      {
+        assert(false);
+      }
     }
   }
   else

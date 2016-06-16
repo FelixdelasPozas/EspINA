@@ -270,11 +270,10 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
 
     int NumPoints; /** number of points. */
     int NumSlices; /** number of slices */
-    int NumVertex; /** number of vertices. */
 
   private:
-    vtkCountingFrameSliceRepresentation(const vtkCountingFrameSliceRepresentation&);  //Not implemented
-    void operator=(const vtkCountingFrameSliceRepresentation&);  //Not implemented
+    vtkCountingFrameSliceRepresentation(const vtkCountingFrameSliceRepresentation&) = delete;
+    void operator=(const vtkCountingFrameSliceRepresentation&) = delete;
 };
 
 #endif

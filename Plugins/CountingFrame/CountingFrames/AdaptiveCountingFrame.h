@@ -109,6 +109,16 @@ namespace ESPINA
          */
         Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
 
+        /** \brief Helper method to create the counting frame polydata.
+         *
+         */
+        void updateCountingFramePolyData();
+
+        /** \brief Helper method to update the volumes values and create the polydata of the inner frame.
+         *
+         */
+        void updateVolumesAndInnerFramePolyData();
+
       private:
         Channel *m_channel; /** extension's extended item. */
 

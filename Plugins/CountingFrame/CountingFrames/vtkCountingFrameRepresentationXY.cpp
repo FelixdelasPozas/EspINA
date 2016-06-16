@@ -38,12 +38,6 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
 
-  double firstSliceBounds[6];
-  double lastSliceBounds[6];
-
-  regionBounds(0, firstSliceBounds);
-  regionBounds(NumSlices-1, lastSliceBounds); // there is one more extra for the cover
-
   double fs = frontSlice();
   double bs = backSlice();
 
@@ -85,49 +79,68 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   if (Region.GetPointer() == nullptr) return;
 
   // Corners of the rectangular region
-  this->Vertex->SetNumberOfPoints(4);
+  this->Vertex->SetNumberOfPoints(8);
 
   for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Reset();
     this->EdgePolyData[i]->GetLines()->Allocate(this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
     this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
-    this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
+    this->EdgePolyData[i]->GetLines()->InsertCellPoint(2*i);
+    this->EdgePolyData[i]->GetLines()->InsertCellPoint(2*i+1);
   }
 
   double LB[3], LT[3], RT[3], RB[3];
 
   int slice = sliceNumber(Slice);
-  // Get original Region Points
+
+  // LEFT
   Region->GetPoint(slice*4+0, LB);
   Region->GetPoint(slice*4+1, LT);
-  Region->GetPoint(slice*4+2, RT);
-  Region->GetPoint(slice*4+3, RB);
-
-  // Change its depth to be always on top of the XY plane according to Espina's Camera
-  LB[2] = LT[2] = RT[2] = RB[2] = Depth;
-
-  // Shift edges' points
   LB[0] += InclusionOffset[0];
-  LT[0] += InclusionOffset[0];
-
-  LT[1] += InclusionOffset[1];
-  RT[1] += InclusionOffset[1];
-
-  RB[0] -= ExclusionOffset[0];
-  RT[0] -= ExclusionOffset[0];
-
-  RB[1] -= ExclusionOffset[1];
   LB[1] -= ExclusionOffset[1];
-
+  LT[0] += InclusionOffset[0];
+  LT[1] += InclusionOffset[1];
+  LB[2] = LT[2] = Depth;
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
-  this->Vertex->SetPoint(2, RT);
-  this->Vertex->SetPoint(3, RB);
+
+  // TOP
+  Region->GetPoint(slice*4+1, LT);
+  Region->GetPoint(slice*4+2, RT);
+  LT[0] += InclusionOffset[0];
+  LT[1] += InclusionOffset[1];
+  RT[0] -= ExclusionOffset[0];
+  RT[1] += InclusionOffset[1];
+  RT[2] = LT[2] = Depth;
+  this->Vertex->SetPoint(2, LT);
+  this->Vertex->SetPoint(3, RT);
+
+  // RIGHT
+  Region->GetPoint(slice*4+2, RT);
+  Region->GetPoint(slice*4+3, RB);
+  RT[0] -= ExclusionOffset[0];
+  RB[0] -= ExclusionOffset[0];
+  RB[1] -= ExclusionOffset[1];
+  RT[2] = RB[2] = Depth;
+  this->Vertex->SetPoint(4, RT);
+  this->Vertex->SetPoint(5, RB);
+
+  // BOTTOM
+  Region->GetPoint(slice*4+3, RB);
+  Region->GetPoint(slice*4+0, LB);
+  RB[0] -= ExclusionOffset[0];
+  RB[1] -= ExclusionOffset[1];
+  LB[1] -= ExclusionOffset[1];
+  RB[2] = LB[2] = Depth;
+  this->Vertex->SetPoint(6, RB);
+  this->Vertex->SetPoint(7, LB);
+
+  this->Vertex->Modified();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
+    this->EdgePolyData[i]->GetLines()->Modified();
     this->EdgePolyData[i]->Modified();
   }
 }

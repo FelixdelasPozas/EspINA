@@ -324,7 +324,7 @@ namespace ESPINA
         m_inclusionVolume = volume;
       }
 
-      /** \brief Returns the vtkPolyData object that defines the margins of the counting frame's channel.
+      /** \brief Returns the vtkPolyData object that defines the edges of the counting frame's channel.
        *
        */
       vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
@@ -333,6 +333,11 @@ namespace ESPINA
        *
        */
       vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
+
+      /** \brief Returns the vtkPolyData object that defines the margins of the inner frame of the counting frame.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
 
     protected slots:
       /** \brief Helper method to emit the applied signal after a counting frame has been completely applied to the constrained segmentations.
@@ -343,25 +348,25 @@ namespace ESPINA
     protected:
       SchedulerSPtr m_scheduler; /** task scheduler. */
 
-      mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame. */
-      vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits .   */
+      mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame.                       */
+      vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits.                          */
+      vtkSmartPointer<vtkPolyData> m_innerFrame;          /** inner frame of the counting frame.              */
 
-      mutable QReadWriteLock       m_channelEdgesMutex;   /** lock for m_channelEdges. */
-      vtkSmartPointer<vtkPolyData> m_channelEdges;        /** channel's margins.       */
+      mutable QReadWriteLock       m_channelEdgesMutex;   /** lock for m_channelEdges.                        */
+      vtkSmartPointer<vtkPolyData> m_channelEdges;        /** channel's margins.                              */
 
-      mutable QReadWriteLock m_volumeMutex;               /** lock for total and inclusion volumes.   */
-      Nm                     m_inclusionVolume;           /** total volume of the counting frame.     */
-      Nm                     m_totalVolume;               /** inclusion volume of the counting frame. */
+      mutable QReadWriteLock       m_volumeMutex;         /** lock for total and inclusion volumes.           */
+      Nm                           m_inclusionVolume;     /** total volume of the counting frame.             */
+      Nm                           m_totalVolume;         /** inclusion volume of the counting frame.         */
 
-      CountingFrameExtension *m_extension;                /** extension corresponding to this counting frame. */
+      CountingFrameExtension      *m_extension;           /** extension corresponding to this counting frame. */
+      Id                           m_id;                  /** counting frame id.                              */
 
-      Id m_id;                                            /** counting frame id. */
+      mutable QReadWriteLock       m_marginsMutex;        /** lock for inclusion/exclusion margins.           */
+      Nm                           m_inclusion[3];        /** inclusion margins.                              */
+      Nm                           m_exclusion[3];        /** exclusion margins.                              */
 
-      mutable QReadWriteLock m_marginsMutex;              /** lock for inclusion/exclusion margins. */
-      Nm                     m_inclusion[3];              /** inclusion margins.                    */
-      Nm                     m_exclusion[3];              /** exclusion margins.                    */
-
-      QString m_categoryConstraint;                       /** name of the category of the segmentation this counting frame will apply. */
+      QString                      m_categoryConstraint;  /** name of the category of the segmentation this counting frame will apply. */
 
       // TODO: Change to private (may need some changes in the API)
       mutable QMutex m_widgetMutex;                       /** lock for widget interacion. */
