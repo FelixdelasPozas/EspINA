@@ -29,21 +29,21 @@ using namespace ESPINA::CF;
 using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
-RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
+RepresentationManager3D::RepresentationManager3D(CountingFrameManager *manager, ViewTypeFlags supportedViews)
 : RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
-, m_manager(manager)
+, m_manager{manager}
 , m_switch {nullptr}
 {
-  for(auto cf: m_manager.countingFrames())
+  for(auto cf: m_manager->countingFrames())
   {
     m_pendingCFs << cf;
   }
 
-  connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
-          this,       SLOT(onCountingFrameCreated(CountingFrame*)));
+  connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
+          this,      SLOT(onCountingFrameCreated(CountingFrame*)));
 
-  connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
-          this,       SLOT(onCountingFrameDeleted(CountingFrame*)));
+  connect(m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
+          this,      SLOT(onCountingFrameDeleted(CountingFrame*)));
 }
 
 //-----------------------------------------------------------------------------

@@ -22,13 +22,12 @@
 #include "ApplyCountingFrame.h"
 
 #include <Core/Analysis/Query.h>
+#include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
 #include <CountingFrames/CountingFrame.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/StereologicalInclusion.h>
 #include <GUI/Model/SegmentationAdapter.h>
-
-#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -54,24 +53,28 @@ void ApplyCountingFrame::run()
   auto channel       = m_countingFrame->channel();
   auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
-  if (segmentations.isEmpty())
+  if (!segmentations.isEmpty())
   {
-    return;
+    double taskProgress = 0;
+    double inc = 100.0 / segmentations.size();
+    auto constraint = m_countingFrame->categoryConstraint();
+
+    for (auto segmentation: segmentations)
+    {
+      if (!canExecute()) break;
+
+      if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+      {
+        auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
+        extension->addCountingFrame(m_countingFrame);
+        extension->evaluateCountingFrame(m_countingFrame);
+      }
+
+      taskProgress += inc;
+
+      reportProgress(taskProgress);
+    }
   }
 
-  double taskProgress = 0;
-  double inc = 100.0 / segmentations.size();
-
-  for (auto segmentation : segmentations)
-  {
-    if (!canExecute()) break;
-
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
-    extension->addCountingFrame(m_countingFrame);
-    extension->evaluateCountingFrame(m_countingFrame);
-
-    taskProgress += inc;
-
-    reportProgress(taskProgress);
-  }
+  setFinished(canExecute());
 }

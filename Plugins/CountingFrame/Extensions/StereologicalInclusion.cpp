@@ -128,6 +128,8 @@ QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 //------------------------------------------------------------------------
 void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 {
+  connect(segmentation, SIGNAL(outputModified()),
+          this,         SLOT(evaluateCountingFrames()));
 }
 
 //------------------------------------------------------------------------
@@ -262,14 +264,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto output  = m_extendedItem->output();
   auto inputBB = output->bounds();
   auto spacing = output->spacing();
-  //qDebug() << "InputBB:" << inputBB;
 
-  auto region       = cf->polyData();
+  auto region       = cf->innerFramePolyData();
   auto regionPoints = region->GetPoints();
-  auto regionFaces  = region->GetPolys();
-  auto faceData     = region->GetCellData();
-
-  //qDebug() << "Checking Counting Frame Exclusion: CF Read";
 
   auto pointBounds = [] (vtkPoints *points)
   {
@@ -284,7 +281,6 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   };
 
   Bounds regionBB = pointBounds(regionPoints);
-  //qDebug() << "Region:" << regionBB.toString();
 
   // If there is no intersection (nor is inside), then it is excluded
   if (!intersect(inputBB, regionBB, spacing))
@@ -292,9 +288,61 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     return true;
   }
 
+  // Fast check of outside sides
+  for(auto i: {1,3,5})
+  {
+    if(inputBB[i] > regionBB[i]) return true;
+  }
+
+  // If no collision was detected we have to check for exclusion slice by slice
+  Bounds sliceBounds;
+  for (vtkIdType i = 0; i < regionPoints->GetNumberOfPoints(); i += 4)
+  {
+    auto slicePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int j = 0; j < 4; j++)
+    {
+      double point[3];
+      regionPoints->GetPoint(i + j, point);
+      slicePoints->InsertNextPoint(point);
+    }
+
+    auto pointsBB = pointBounds(slicePoints);
+    if(sliceBounds.areValid())
+    {
+      auto sliceBB = boundingBox(pointsBB, sliceBounds);
+      sliceBB.setLowerInclusion(true);
+      sliceBB.setUpperInclusion(true);
+
+      if (intersect(inputBB, sliceBB, spacing))
+      {
+        for(auto i: {1,3})
+        {
+          // segmentation can have several "parts" and if one is outside then is out (by minimal seg bounds assertion)
+          if(inputBB[i] > sliceBB[i])
+          {
+            return true;
+          }
+        }
+
+        // then is completely or partly inside, but we must check real collision with voxel values.
+        if(isRealCollision(intersection(inputBB, sliceBB, spacing)))
+        {
+          return false;
+        }
+      }
+    }
+
+    sliceBounds = pointsBB;
+  }
+
+  // included or colliding with side, we have to test all faces collisions
+  region            = cf->countingFramePolyData();
+  regionPoints      = region->GetPoints();
+  auto regionFaces  = region->GetPolys();
+  auto faceData     = region->GetCellData();
+
   bool collisionDected = false;
-  // Otherwise, we have to test all faces collisions
-  vtkIdType numOfCells   = regionFaces->GetNumberOfCells();
+  auto numOfCells   = regionFaces->GetNumberOfCells();
   vtkIdType cellLocation = 0;
   for(vtkIdType f = 0; f < numOfCells; ++f)
   {
@@ -303,57 +351,32 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     cellLocation += 1 + numPoints;
 
     auto facePoints = vtkSmartPointer<vtkPoints>::New();
-    for (vtkIdType p=0; p < numPoints; ++p)
+    for (vtkIdType i = 0; i < numPoints; ++i)
     {
       double point[3];
-      regionPoints->GetPoint(pointIds[p], point);
+      regionPoints->GetPoint(pointIds[i], point);
       facePoints->InsertNextPoint(point);
     }
 
-    Bounds faceBB = VolumeBounds(pointBounds(facePoints), spacing);
-//     if (f == 0 || f == numOfCells -1)
-//     {
-//       qDebug() << "Face:"  << faceBB;
-//       qDebug() << " - intersect:" << intersect(inputBB, faceBB, spacing);
-//       qDebug() << " - interscetion:" << intersection(inputBB, faceBB, spacing);
-//       qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
-//     }
-
+    auto faceBB = VolumeBounds(pointBounds(facePoints), spacing);
     if (intersect(inputBB, faceBB, spacing) && isRealCollision(intersection(inputBB, faceBB, spacing)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == cf->EXCLUSION_FACE)
       {
         return true;
       }
+
       collisionDected = true;
     }
   }
 
   if (collisionDected)
   {
+    // touches a green face and no red faces
     return false;
   }
 
-  // If no collision was detected we have to check for inclusion
-  for (vtkIdType p = 0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
-  {
-    auto slicePoints = vtkSmartPointer<vtkPoints>::New();
-    for (int i=0; i < 8; i++)
-    {
-      double point[3];
-      regionPoints->GetPoint(p+i, point);
-      slicePoints->InsertNextPoint(point);
-    }
-
-    Bounds sliceBB = pointBounds(slicePoints);
-    if (intersect(inputBB, sliceBB, spacing) && isRealCollision(intersection(inputBB, sliceBB, spacing)))
-    {
-      return false;
-    }
-  }
-
-  // If no internal collision was detected, then the input was indeed outside our
-  // bounding region
+  // If no internal collision was detected, then the input was indeed outside our bounding region
   return true;
 }
 

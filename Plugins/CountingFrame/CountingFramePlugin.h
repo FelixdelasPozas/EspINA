@@ -42,7 +42,14 @@ class Panel;
       Q_INTERFACES(ESPINA::Support::Plugin)
 
     public:
+      /** \brief CountingFramePlugin class constructor.
+       *
+       */
       explicit CountingFramePlugin();
+
+      /** \brief CountingFramePlugin class virtual destructor.
+       *
+       */
       virtual ~CountingFramePlugin();
 
       virtual void init(Support::Context &context);
@@ -61,18 +68,16 @@ class Panel;
       virtual void onAnalysisClosed();
 
     private:
-      CountingFrameManager m_manager;
-      ModelAdapterSPtr     m_model;
-      SchedulerSPtr        m_scheduler;
-      QUndoStack          *m_undoStack;
-      Panel               *m_dockWidget;
-      Support::Context    *m_context;
+      SchedulerSPtr                         m_scheduler;                      /** application task scheduler.                    */
+      QUndoStack                           *m_undoStack;                      /** application undo stack.                        */
+      Support::Context                     *m_context;                        /** application context.                           */
 
-      CountingFrameColorEngineSPtr  m_colorEngine;
-
-      RepresentationFactorySPtr        m_representationFactory;
-      ChannelExtensionFactorySPtr      m_channelExtensionFactory;
-      SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;
+      std::shared_ptr<CountingFrameManager> m_manager;                        /** counting frame manager object.                 */
+      Panel                                *m_dockWidget;                     /** counting frame panel.                          */
+      CountingFrameColorEngineSPtr          m_colorEngine;                    /** counting frame color engine.                   */
+      RepresentationFactorySPtr             m_representationFactory;          /** counting frame representation factory.         */
+      ChannelExtensionFactorySPtr           m_channelExtensionFactory;        /** counting frame channel extension factory.      */
+      SegmentationExtensionFactorySPtr      m_segmentationExtensionFactory;   /** counting frame segmentation extension factory. */
     };
   }
 } // namespace ESPINA

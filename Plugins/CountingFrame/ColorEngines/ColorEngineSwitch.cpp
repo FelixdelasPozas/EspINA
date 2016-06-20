@@ -17,7 +17,11 @@
  *
  */
 
+// Plugin
 #include "ColorEngineSwitch.h"
+#include "CountingFrameManager.h"
+
+// Espina
 #include <GUI/Widgets/NumericalInput.h>
 #include <Core/Utils/ListUtils.hxx>
 
@@ -26,11 +30,16 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-ColorEngineSwitch::ColorEngineSwitch(CountingFrameColorEngineSPtr engine, Support::Context& context)
+ColorEngineSwitch::ColorEngineSwitch(CountingFrameManager *manager, CountingFrameColorEngineSPtr engine, Support::Context& context)
 : Support::Widgets::ColorEngineSwitch(engine, ":color_by_cf.svg", context)
-, m_engine(engine)
+, m_engine {engine}
+, m_manager{manager}
 {
   initWidgets();
+  onCountingFrameNumberModified();
+
+  connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame *)), this, SLOT(onCountingFrameNumberModified()));
+  connect(m_manager, SIGNAL(countingFrameDeleted(CountingFrame *)), this, SLOT(onCountingFrameNumberModified()));
 }
 
 //-----------------------------------------------------------------------------
@@ -57,4 +66,16 @@ void ColorEngineSwitch::onOpacityChanged(int value)
 
   auto segmentations = toRawList<ViewItemAdapter>(getModel()->segmentations());
   getViewState().invalidateRepresentationColors(segmentations);
+}
+
+//-----------------------------------------------------------------------------
+void ColorEngineSwitch::onCountingFrameNumberModified()
+{
+  auto enabled = m_manager->countingFrames().size() != 0;
+  setEnabled(enabled);
+
+  if(isChecked() && !enabled)
+  {
+    setChecked(false);
+  }
 }

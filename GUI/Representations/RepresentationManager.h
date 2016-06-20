@@ -189,7 +189,7 @@ namespace ESPINA
 
         /** \brief Resets the manager's state to the initial state.
          *
-         * TODO: implement for next release 2.1.1
+         * TODO: 17-06-2016 implement!!!
          */
         virtual void reset() {};
 

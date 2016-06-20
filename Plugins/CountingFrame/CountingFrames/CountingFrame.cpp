@@ -54,17 +54,13 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_visible        {true}
 , m_enable         {true}
 , m_highlight      {false}
+, m_applyTask      {nullptr}
 {
   QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
   m_command->setCountingFrame(this);
-
-  m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
-
-  connect(m_applyCountingFrame.get(), SIGNAL(finished()),
-          this,                       SLOT(onCountingFrameApplied()));
 
   auto itemExtensions = extension->extendedItem()->readOnlyExtensions();
   Q_ASSERT(itemExtensions->hasExtension(ChannelEdges::TYPE));
@@ -227,8 +223,6 @@ void CountingFrame::setCategoryConstraint(const QString& category)
   {
     m_categoryConstraint = category;
 
-    apply();
-
     emit modified(this);
   }
 }
@@ -342,18 +336,39 @@ void CountingFrame::updateCountingFrame()
 //-----------------------------------------------------------------------------
 void CountingFrame::apply()
 {
-  Task::submit(m_applyCountingFrame);
+  QMutexLocker lock(&m_taskMutex);
+
+  if(m_applyTask)
+  {
+    disconnect(m_applyTask.get(), SIGNAL(finished()),
+               this,              SLOT(onCountingFrameApplied()));
+
+    m_applyTask->abort();
+    m_applyTask = nullptr;
+  }
+
+  m_applyTask = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
+
+  connect(m_applyTask.get(), SIGNAL(finished()),
+          this,              SLOT(onCountingFrameApplied()), Qt::DirectConnection);
+
+  Task::submit(m_applyTask);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::onCountingFrameApplied()
 {
-  auto task = qobject_cast<ApplyCountingFrame *>(sender());
+  QMutexLocker lock(&m_taskMutex);
 
-  if(!task->isAborted())
+  if(!m_applyTask->isAborted())
   {
     emit applied(this);
   }
+
+  disconnect(m_applyTask.get(), SIGNAL(finished()),
+             this,              SLOT(onCountingFrameApplied()));
+
+  m_applyTask = nullptr;
 }
 
 //-----------------------------------------------------------------------------

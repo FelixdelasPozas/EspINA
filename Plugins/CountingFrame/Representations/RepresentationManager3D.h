@@ -40,7 +40,7 @@ namespace ESPINA
          * \param[in] supportedViews types of views supported by this manager.
          *
          */
-        explicit RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+        explicit RepresentationManager3D(CountingFrameManager *manager, ViewTypeFlags supportedViews);
 
         /** \brief RepresentationManager3D class constructor.
          *
@@ -135,7 +135,7 @@ namespace ESPINA
         void deleteWidget(CountingFrame *cf);
 
       private:
-        CountingFrameManager  &m_manager;                            /** counting frame manager.                          */
+        CountingFrameManager  *m_manager;                            /** counting frame manager.                          */
         QList<CountingFrame *> m_pendingCFs;                         /** list of counting frames pending widget creation. */
         QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets; /** map of created widgets - counting frames.        */
         CFRepresentationSwitch* m_switch;                            /** this representation switch.                      */

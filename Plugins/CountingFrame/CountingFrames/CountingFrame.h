@@ -192,14 +192,6 @@ namespace ESPINA
         return totalVolume() - inclusionVolume();
       }
 
-      /** \brief Return the vtkPolyData obejct defining the counting frame limits.
-       *
-       */
-      virtual vtkSmartPointer<vtkPolyData> polyData() const
-      {
-        return countingFramePolyData();
-      }
-
       /** \brief Returns the left counting frame margin.
        *
        */
@@ -271,6 +263,16 @@ namespace ESPINA
        */
       void apply();
 
+      /** \brief Returns the vtkPolyData object that defines the margins of the counting frame.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
+
+      /** \brief Returns the vtkPolyData object that defines the margins of the inner frame of the counting frame.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
+
     signals:
       void modified(CountingFrame *);
 
@@ -329,16 +331,6 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
 
-      /** \brief Returns the vtkPolyData object that defines the margins of the counting frame.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
-
-      /** \brief Returns the vtkPolyData object that defines the margins of the inner frame of the counting frame.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
-
     protected slots:
       /** \brief Helper method to emit the applied signal after a counting frame has been completely applied to the constrained segmentations.
        *
@@ -380,7 +372,8 @@ namespace ESPINA
       bool m_enable;                                      /** true if counting frame is enabled and false otherwise. */
       bool m_highlight;                                   /** true if the widgets are highlighted and false otherwise. */
 
-      ApplyCountingFrameSPtr m_applyCountingFrame;        /** task to apply the counting frame to the constrained segmentations. */
+      ApplyCountingFrameSPtr m_applyTask;                 /** task to apply the counting frame to the constrained segmentations. */
+      QMutex                 m_taskMutex;                 /** mutex to protect task variable.                                    */
 
       QList<vtkCountingFrameSliceWidget *> m_widgets2D;   /** list of 2D widgets of this counting frame. */
       QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */

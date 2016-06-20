@@ -126,12 +126,6 @@ namespace ESPINA
         virtual void onExtendedItemSet(Channel *channel);
 
       protected slots:
-        /** \brief Updates the segmentation's extensions when a counting frame is modified.
-         * \param[in] countingFrame counting frame object pointer.
-         *
-         */
-        void onCountingFrameUpdated(CountingFrame *countingFrame);
-
         /** \brief Sets the id and constraint and adds it to the manager.
          *
          */

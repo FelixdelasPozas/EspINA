@@ -40,7 +40,7 @@ namespace ESPINA
          * \param[in] supportedViews views supported by this manager.
          *
          */
-        explicit RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+        explicit RepresentationManager2D(CountingFrameManager *manager, ViewTypeFlags supportedViews);
 
         /** \brief RepresentationManager2D class virtual destructor.
          *
@@ -67,11 +67,13 @@ namespace ESPINA
 
       private slots:
         /** \brief Helper method to update internal data when a CF is created.
+         * \param[in] cf Pointer of the created counting frame.
          *
          */
         void onCountingFrameCreated(CountingFrame *cf);
 
         /** \brief Helper method to update internal data when a CF is removed.
+         * \param[in] cf Pointer of the deleted counting frame.
          *
          */
         void onCountingFrameDeleted(CountingFrame *cf);
@@ -135,7 +137,7 @@ namespace ESPINA
         Plane  m_plane;  /** plane of the representations. */
         Nm     m_depth;  /** distance in Nm from the current crosshair where the representations will be shown. */
 
-        CountingFrameManager  &m_manager;                                 /** counting frame manager. */
+        CountingFrameManager  *m_manager;                                 /** counting frame manager. */
         QList<CountingFrame *> m_pendingCFs;                              /** list of counting frames pending widget creation. */
         QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_widgets;   /** map of counting frame - corresponding widget. */
     };

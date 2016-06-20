@@ -28,8 +28,8 @@ using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CF::RepresentationFactory::RepresentationFactory(CountingFrameManager &manager)
-: m_manager(manager)
+CF::RepresentationFactory::RepresentationFactory(CountingFrameManager *manager)
+: m_manager{manager}
 {
 }
 

@@ -27,12 +27,20 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <GUI/View/ViewState.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // Qt
 #include <QMutex>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
+
+//------------------------------------------------------------------------
+CountingFrameManager::CountingFrameManager(Support::Context& context)
+: m_context(context)
+{
+}
 
 //------------------------------------------------------------------------
 CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
@@ -46,6 +54,8 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 {
   m_countingFrames[cf] = cf->extension()->extendedItem();
 
+  connect(cf, SIGNAL(applied(CountingFrame *)), this, SLOT(onCountingFrameApplied(CountingFrame *)));
+
   emit countingFrameCreated(cf);
 }
 
@@ -53,6 +63,8 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
 {
   m_countingFrames.remove(cf);
+
+  disconnect(cf, SIGNAL(applied(CountingFrame *)), this, SLOT(onCountingFrameApplied(CountingFrame *)));
 
   emit countingFrameDeleted(cf);
 }
@@ -68,4 +80,23 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
   }
 
   return SuggestId(id, m_countingFrames.keys());
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
+{
+  auto segmentations = m_context.model()->segmentations();
+
+  ViewItemAdapterList updated;
+  auto constraint = cf->categoryConstraint();
+
+  for(auto segmentation: segmentations)
+  {
+    if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+    {
+      updated << segmentation.get();
+    }
+  }
+
+  m_context.viewState().invalidateRepresentationColors(updated);
 }

@@ -426,6 +426,8 @@ void CF::Panel::applyCategoryConstraint()
   {
     m_activeCF->setCategoryConstraint("");
   }
+
+  m_activeCF->apply();
 }
 
 //------------------------------------------------------------------------

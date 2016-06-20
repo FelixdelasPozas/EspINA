@@ -169,16 +169,6 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
-{
-  for(auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
-  {
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
-    extension->evaluateCountingFrame(countingFrame);
-  }
-}
-
-//-----------------------------------------------------------------------------
 void CountingFrameExtension::createCountingFrame(CFType type,
                                                  Nm inclusion[3],
                                                  Nm exclusion[3],

@@ -31,12 +31,12 @@ namespace ESPINA
     : public ESPINA::RepresentationFactory
     {
     public:
-      explicit RepresentationFactory(CountingFrameManager &manager);
+      explicit RepresentationFactory(CountingFrameManager *manager);
 
     private:
       virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const;
 
-      CountingFrameManager &m_manager;
+      CountingFrameManager *m_manager;
     };
   }
 }

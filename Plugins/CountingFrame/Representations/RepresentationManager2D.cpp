@@ -29,16 +29,16 @@ using namespace ESPINA::CF;
 using ESPINA::GUI::Representations::RepresentationManagerSPtr;
 
 //-----------------------------------------------------------------------------
-RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
+RepresentationManager2D::RepresentationManager2D(CountingFrameManager *manager, ViewTypeFlags supportedViews)
 : RepresentationManager{supportedViews, ManagerFlags()}
 , m_plane  {ESPINA::Plane::UNDEFINED}
 , m_depth  {0}
-, m_manager(manager)
+, m_manager{manager}
 {
-  connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
-          this,       SLOT(onCountingFrameCreated(CountingFrame*)));
-  connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
-          this,       SLOT(onCountingFrameDeleted(CountingFrame*)));
+  connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
+          this,      SLOT(onCountingFrameCreated(CountingFrame*)));
+  connect(m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
+          this,      SLOT(onCountingFrameDeleted(CountingFrame*)));
 }
 
 //-----------------------------------------------------------------------------

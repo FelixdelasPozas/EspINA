@@ -26,6 +26,7 @@
 #include <CountingFrames/CountingFrame.h>
 #include "Extensions/CountingFrameExtension.h"
 #include <GUI/Types.h>
+#include <Support/Context.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -44,6 +45,12 @@ namespace ESPINA
       Q_OBJECT
 
     public:
+      /** \brief CountingFrame class constructor.
+       * \param[in] context application context reference.
+       *
+       */
+      CountingFrameManager(Support::Context &context);
+
       /** \brief Creates and returns a counting frame extension.
        * \param[in] scheduler task scheduler.
        * \param[in] state extension state.
@@ -84,8 +91,16 @@ namespace ESPINA
       void countingFrameCreated(CountingFrame *cf);
       void countingFrameDeleted(CountingFrame *cf);
 
+    private slots:
+      /** \brief Helper method to invalidate segmentation representations.
+       * \param[in] cf pointer of the Counting Frame finished applying.
+       *
+       */
+      void onCountingFrameApplied(CountingFrame *cf);
+
     private:
-      QMap<CountingFrame *, ChannelPtr> m_countingFrames;      /** maps counting frame with its channel. */
+      Support::Context                 &m_context;        /** application context.                  */
+      QMap<CountingFrame *, ChannelPtr> m_countingFrames; /** maps counting frame with its channel. */
     };
   }
 }

@@ -24,24 +24,45 @@
 
 #include "ColorEngine.h"
 
-namespace ESPINA {
-  namespace CF {
+namespace ESPINA
+{
+  namespace CF
+  {
+    class CountingFrameManager;
 
     class ColorEngineSwitch
     : public Support::Widgets::ColorEngineSwitch
     {
       Q_OBJECT
     public:
-      explicit ColorEngineSwitch(CountingFrameColorEngineSPtr engine, Support::Context& context);
+      /** \brief ColorEngineSwitch class constructor.
+       * \param[in] manager plugin's counting frame manager.
+       * \param[in] engine color engine.
+       * \param[in] context application context.
+       *
+       */
+      explicit ColorEngineSwitch(CountingFrameManager *manager, CountingFrameColorEngineSPtr engine, Support::Context& context);
 
     private:
+      /** \brief Helper method to initialize the widgets
+       *
+       */
       void initWidgets();
 
     private slots:
+      /** \brief Updates the opacity of the representations.
+       *
+       */
       void onOpacityChanged(int value);
 
+      /** \brief Enables/disables the tool depending on the number of counting frames.
+       *
+       */
+      void onCountingFrameNumberModified();
+
     private:
-      CountingFrameColorEngineSPtr m_engine;
+      CountingFrameColorEngineSPtr m_engine;  /** counting frame color engine.     */
+      CountingFrameManager        *m_manager; /** plugin's counting frame manager. */
     };
   }
 }
