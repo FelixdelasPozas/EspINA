@@ -521,7 +521,7 @@ void CF::Panel::createCountingFrame()
     auto extension = retrieveExtension<CountingFrameExtension>(extensions);
 
     WaitingCursor cursor;
-    extension->createCountingFrame(type, inclusion, exclusion, constraint);
+    extension->createCountingFrame(type, inclusion, exclusion, constraint, m_manager->defaultCountingFrameId(constraint));
   }
 }
 

@@ -50,6 +50,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_inclusionVolume{0}
 , m_totalVolume    {0}
 , m_extension      {extension}
+, m_id             {"Global"}
 , m_command        {vtkSmartPointer<vtkCountingFrameCommand>::New()}
 , m_visible        {true}
 , m_enable         {true}

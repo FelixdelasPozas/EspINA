@@ -180,7 +180,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
   data.inclusion  = NmVector3{inclusion[0], inclusion[1], inclusion[2]};
   data.exclusion  = NmVector3{exclusion[0], exclusion[1], exclusion[2]};
   data.extension  = this;
-  data.id         = id;
+  data.id         = (id.isEmpty() ? m_manager->defaultCountingFrameId(constraint) : id);
   data.constraint = constraint;
 
   auto task = std::make_shared<CountingFrameCreator>(data, m_scheduler);

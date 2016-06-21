@@ -46,7 +46,7 @@
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
-const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
+const SegmentationExtension::Type StereologicalInclusion::TYPE = "StereologicalInclusion";
 const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
@@ -296,6 +296,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
   // If no collision was detected we have to check for exclusion slice by slice
   Bounds sliceBounds;
+  bool collisionDetected = false;
   for (vtkIdType i = 0; i < regionPoints->GetNumberOfPoints(); i += 4)
   {
     auto slicePoints = vtkSmartPointer<vtkPoints>::New();
@@ -318,16 +319,16 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
         for(auto i: {1,3})
         {
           // segmentation can have several "parts" and if one is outside then is out (by minimal seg bounds assertion)
-          if(inputBB[i] > sliceBB[i])
+          if(inputBB[i] >= sliceBB[i])
           {
             return true;
           }
         }
 
         // then is completely or partly inside, but we must check real collision with voxel values.
-        if(isRealCollision(intersection(inputBB, sliceBB, spacing)))
+        if(!collisionDetected && isRealCollision(intersection(inputBB, sliceBB, spacing)))
         {
-          return false;
+          collisionDetected = true;
         }
       }
     }
@@ -335,13 +336,14 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     sliceBounds = pointsBB;
   }
 
+  if(!collisionDetected) return true;
+
   // included or colliding with side, we have to test all faces collisions
   region            = cf->countingFramePolyData();
   regionPoints      = region->GetPoints();
   auto regionFaces  = region->GetPolys();
   auto faceData     = region->GetCellData();
 
-  bool collisionDected = false;
   auto numOfCells   = regionFaces->GetNumberOfCells();
   vtkIdType cellLocation = 0;
   for(vtkIdType f = 0; f < numOfCells; ++f)
@@ -365,19 +367,11 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       {
         return true;
       }
-
-      collisionDected = true;
     }
   }
 
-  if (collisionDected)
-  {
-    // touches a green face and no red faces
-    return false;
-  }
-
-  // If no internal collision was detected, then the input was indeed outside our bounding region
-  return true;
+  // If no internal collision was detected, then the input was indeed inside our bounding region or touches a green face
+  return false;
 }
 
 //------------------------------------------------------------------------
