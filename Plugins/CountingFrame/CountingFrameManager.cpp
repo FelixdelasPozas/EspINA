@@ -42,13 +42,6 @@ CountingFrameManager::CountingFrameManager(Support::Context& context)
 {
 }
 
-//------------------------------------------------------------------------
-CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
-                                                                 const State  &state) const
-{
-  return std::make_shared<CountingFrameExtension>(const_cast<CountingFrameManager *>(this), scheduler, state);
-}
-
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 {

@@ -70,6 +70,7 @@
 #include <itkStatisticsImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
@@ -104,7 +105,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   initPropertiesTab();
 
   /// EDGES TAB
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel->extensions());
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, context.factory());
 
   initPixelValueSelector();
 
@@ -139,7 +140,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
   tabWidget->setCurrentIndex(0);
 
 #if USE_METADONA
-  tabWidget->addTab(new MetadataViewer(channel, getScheduler(), this), tr("Metadata"));
+  tabWidget->addTab(new MetadataViewer(channel.get(), getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
 }
 
@@ -474,11 +475,11 @@ void ChannelInspector::changeEdgeDetectorThreshold(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyEdgesChanges()
 {
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
+  auto edgesExtension = retrieveExtension<ChannelEdges>(m_channel->extensions());
 
   for (auto segmentation: getModel()->segmentations())
   {
-    auto extensions = segmentation->readOnlyExtensions();
+    auto extensions = segmentation->extensions();
 
     if (extensions->hasExtension(EdgeDistance::TYPE))
     {

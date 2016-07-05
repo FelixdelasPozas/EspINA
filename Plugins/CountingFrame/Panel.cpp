@@ -44,6 +44,7 @@
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
@@ -178,9 +179,9 @@ QVariant CF::Panel::CFModel::headerData(int section, Qt::Orientation orientation
     switch (section)
     {
       case 0:
-        return tr("Id"); break;
+        return tr("Id");
       case 1:
-        return tr("Type"); break;
+        return tr("Type");
       case 2:
         return tr("Stack");
     }
@@ -271,7 +272,6 @@ const QString CF::Panel::ID = "CountingFrameExtension";
 CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
 : ESPINA::Panel(tr("Counting Frame Dock"), context)
 , m_manager  {manager}
-, m_context  (context)
 , m_gui      {new GUI()}
 , m_cfModel  {new CFModel(m_manager)}
 , m_useSlices{true}
@@ -323,8 +323,8 @@ CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this,      SLOT(onCountingFrameCreated(CountingFrame*)));
 
-  connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-          this,                    SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
+  connect(getContext().model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+          this,                       SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
   connect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this,                 SLOT(onChannelChanged(ChannelAdapterPtr)));
@@ -493,21 +493,16 @@ void CF::Panel::createCountingFrame()
 {
   if (!m_pendingCFs.isEmpty()) return;
 
-  CFTypeSelectorDialog cfSelector(m_context.model(), this);
+  CFTypeSelectorDialog cfSelector(getContext(), this);
 
   if (cfSelector.exec())
   {
     CFType type        = cfSelector.type();
     QString constraint = cfSelector.categoryConstraint();
 
-    auto channel = cfSelector.channel();
+    auto channel = cfSelector.stack();
     Q_ASSERT(channel);
 
-    auto extensions = channel->extensions();
-    if (!extensions->hasExtension(CountingFrameExtension::TYPE))
-    {
-      extensions->add(m_manager->createExtension(m_context.scheduler()));
-    }
 
     auto spacing = channel->output()->spacing();
 
@@ -518,10 +513,9 @@ void CF::Panel::createCountingFrame()
       inclusion[i] = exclusion[i] = spacing[i]/2;
     }
 
-    auto extension = retrieveExtension<CountingFrameExtension>(extensions);
-
     WaitingCursor cursor;
-    extension->createCountingFrame(type, inclusion, exclusion, constraint, m_manager->defaultCountingFrameId(constraint));
+    auto CFextension = retrieveOrCreateStackExtension<CountingFrameExtension>(channel, getContext().factory());
+    CFextension->createCountingFrame(type, inclusion, exclusion, constraint, m_manager->defaultCountingFrameId(constraint));
   }
 }
 
@@ -533,7 +527,7 @@ void CF::Panel::resetActiveCountingFrame()
     auto channel       = m_activeCF->channel();
     auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
-    ComputeOptimalMarginsSPtr task(new ComputeOptimalMarginsTask(channel, segmentations, m_context.scheduler()));
+    auto task = std::make_shared<ComputeOptimalMarginsTask>(channel, segmentations, getContext().factory().get(), getContext().scheduler());
 
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(onMarginsComputed()));
@@ -569,7 +563,7 @@ void CF::Panel::deleteActiveCountingFrame()
 //------------------------------------------------------------------------
 void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
 {
-  auto model = m_context.model().get();
+  auto model = getContext().model().get();
 
   m_gui->categorySelector->setModel(model);
   m_gui->categorySelector->setRootModelIndex(model->classificationRoot());
@@ -678,7 +672,7 @@ void CF::Panel::showInfo(CountingFrame* activeCF)
 //------------------------------------------------------------------------
 QModelIndex CF::Panel::findCategoryIndex(const QString& classificationName)
 {
-  auto model    = m_context.model();
+  auto model    = getContext().model();
   auto category = model->classification()->category(classificationName);
 
   return model->categoryIndex(category);
@@ -687,7 +681,7 @@ QModelIndex CF::Panel::findCategoryIndex(const QString& classificationName)
 //------------------------------------------------------------------------
 void CF::Panel::updateSegmentationRepresentations()
 {
-  auto model         = m_context.model();
+  auto model         = getContext().model();
   auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
 
   getViewState().invalidateRepresentationColors(segmentations);
@@ -696,7 +690,7 @@ void CF::Panel::updateSegmentationRepresentations()
 //------------------------------------------------------------------------
 void CF::Panel::updateSegmentationExtensions()
 {
-  for (auto seg: m_context.model()->segmentations())
+  for (auto seg: getContext().model()->segmentations())
   {
     auto extensions = seg->extensions();
 
@@ -763,46 +757,6 @@ void CF::Panel::reportProgess(int progress)
   original = original.fromImage(originalImage);
 
   m_gui->createCF->setIcon(original);
-}
-
-//------------------------------------------------------------------------
-// WARNING: if further changes are needed unify implementation
-void CF::Panel::computeOptimalMargins(ChannelAdapterPtr channel,
-                                  Nm inclusion[3],
-                                  Nm exclusion[3])
-{
-  auto spacing = channel->output()->spacing();
-
-  memset(inclusion, 0, 3*sizeof(Nm));
-  memset(exclusion, 0, 3*sizeof(Nm));
-
-  const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
-  {
-    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation->extensions());
-
-    Nm dist2Margin[6];
-    extension->edgeDistance(dist2Margin);
-
-    auto bounds  = segmentation->output()->bounds();
-    auto spacing = segmentation->output()->spacing();
-
-    for (int i=0; i < 3; i++)
-    {
-      Nm shift  = i < 2? 0.5:-0.5;
-      Nm length = bounds.lenght(toAxis(i));
-
-      if (dist2Margin[2*i] < delta[i])
-        inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
-      //         if (dist2Margin[2*i+1] < delta[i])
-      //           exclusion[i] = std::max(length, exclusion[i]);
-    }
-  }
-  QApplication::restoreOverrideCursor();
-//   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
-//   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
 //------------------------------------------------------------------------
@@ -1146,8 +1100,7 @@ void CF::Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 
   for (auto segmentation : segmentations)
   {
-    auto segmentationExtensions = segmentation->extensions();
-    auto sterologicalExtension  = retrieveOrCreateExtension<StereologicalInclusion>(segmentationExtensions);
+    auto sterologicalExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, getContext().factory());
 
     auto samples = QueryAdapter::samples(segmentation);
     Q_ASSERT(samples.size() == 1);
@@ -1173,10 +1126,12 @@ void CF::Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 
   if(!toApplyList.empty())
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     for(auto cf: toApplyList)
     {
       cf->apply();
     }
+    QApplication::restoreOverrideCursor();
   }
 }
 

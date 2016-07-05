@@ -26,8 +26,7 @@
 // ESPINA
 #include <GUI/Types.h>
 #include <Support/Types.h>
-#include <Core/Factory/SegmentationExtensionFactory.h>
-#include <Core/Factory/ChannelExtensionFactory.h>
+#include <Core/Factory/ExtensionFactory.h>
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
@@ -81,8 +80,8 @@ namespace ESPINA
        *  a factory to obtain such extensions, otherwise read only information will
        *  be available after loading them.
        */
-      virtual ChannelExtensionFactorySList channelExtensionFactories() const
-      { return ChannelExtensionFactorySList(); }
+      virtual Core::StackExtensionFactorySList channelExtensionFactories() const
+      { return Core::StackExtensionFactorySList(); }
 
       /** \brief Returns a list of segmentation extension factories.
        *
@@ -90,8 +89,8 @@ namespace ESPINA
        *  a factory to obtain such extensions, otherwise read only information will
        *  be available after loading them.
        */
-      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const
-      { return SegmentationExtensionFactorySList(); }
+      virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const
+      { return Core::SegmentationExtensionFactorySList(); }
 
       /** \brief Returns a list of filter factories provided by the plugin.
        *

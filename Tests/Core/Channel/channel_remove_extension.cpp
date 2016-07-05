@@ -36,7 +36,7 @@ using namespace std;
 int channel_remove_extension(int argc, char** argv )
 {
   class DummyExtension
-  : public ChannelExtension
+  : public Core::StackExtension
   {
   public:
     bool Initialized;
@@ -44,7 +44,7 @@ int channel_remove_extension(int argc, char** argv )
     bool Invalidated;
   public:
     explicit DummyExtension() 
-    : ChannelExtension(InfoCache()), Initialized{false}, ValidChannel{false}, Invalidated{false} {}
+    : Core::StackExtension(InfoCache()), Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
     virtual InformationKeyList availableInformation() const { return InformationKeyList(); }
     virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }

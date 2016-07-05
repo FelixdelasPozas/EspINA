@@ -22,10 +22,12 @@
 #include "CoreFactory.h"
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
+#include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
@@ -99,11 +101,11 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
 }
 
 //-----------------------------------------------------------------------------
-void CoreFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
+void CoreFactory::registerExtensionFactory(StackExtensionFactorySPtr factory)
 {
   for(auto extension : factory->providedExtensions())
   {
-    if (m_channelExtensionFactories.contains(extension))
+    if (availableStackExtensions().contains(extension))
     {
       auto what    = QObject::tr("Attempt to register an already registered stack extension: %1").arg(extension);
       auto details = QObject::tr("CoreFactory::registerExtensionFactory(stack extension) -> Stack extension type already registered: %1").arg(extension);
@@ -111,26 +113,26 @@ void CoreFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
       throw EspinaException(what, details);
     }
 
-    m_channelExtensionFactories[extension] = factory;
+    m_stackExtensionFactories[extension] = factory;
   }
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionTypeList CoreFactory::availableChannelExtensions() const
+StackExtension::TypeList CoreFactory::availableStackExtensions() const
 {
-  return m_channelExtensionFactories.keys();
+  return m_stackExtensionFactories.keys();
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr CoreFactory::createChannelExtension(const ChannelExtension::Type      &type,
-                                                         const ChannelExtension::InfoCache &cache,
-                                                         const State &state)
+Core::StackExtensionSPtr CoreFactory::createStackExtension(const StackExtension::Type      &type,
+                                                           const StackExtension::InfoCache &cache,
+                                                           const State &state)
 {
-  ChannelExtensionSPtr extension;
+  StackExtensionSPtr extension = nullptr;
 
-  if (m_channelExtensionFactories.contains(type))
+  if (availableStackExtensions().contains(type))
   {
-    extension = m_channelExtensionFactories[type]->createChannelExtension(type, cache, state);
+    extension = m_stackExtensionFactories[type]->createExtension(type, cache, state);
   }
   else
   {
@@ -173,7 +175,7 @@ void CoreFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr fact
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionTypeList CoreFactory::availableSegmentationExtensions() const
+SegmentationExtension::TypeList CoreFactory::availableSegmentationExtensions() const
 {
   return m_segmentationExtensionFactories.keys();
 }
@@ -183,11 +185,11 @@ SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(const Segment
                                                                    const SegmentationExtension::InfoCache &cache,
                                                                    const State &state)
 {
-  SegmentationExtensionSPtr extension;
+  SegmentationExtensionSPtr extension = nullptr;
 
-  if (m_segmentationExtensionFactories.contains(type))
+  if (availableSegmentationExtensions().contains(type))
   {
-    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type, cache, state);
+    extension = m_segmentationExtensionFactories[type]->createExtension(type, cache, state);
   }
   else
   {

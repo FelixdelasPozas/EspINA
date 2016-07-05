@@ -59,8 +59,6 @@ set (Support_SOURCES
   ${METADONA_MOC}
   ${METADONA_UI}
   ${METADONA_SOURCES}
-  Factory/DefaultChannelExtensionFactory.cpp
-  Factory/DefaultSegmentationExtensionFactory.cpp
   Factory/FilterRefinerFactory.cpp
   Readers/ChannelReader.cpp
   Representations/BasicRepresentationSwitch.cpp

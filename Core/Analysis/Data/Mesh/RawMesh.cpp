@@ -129,3 +129,11 @@ size_t RawMesh::memoryUsage() const
   const int BYTES = 1024;
   return m_mesh ? m_mesh->GetActualMemorySize() * BYTES : 0;
 }
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
+{
+  QMutexLocker lock(&m_lock);
+
+  return m_mesh;
+}

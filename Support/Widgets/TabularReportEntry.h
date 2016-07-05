@@ -97,15 +97,15 @@ namespace ESPINA
       return TabularReport::extraPath(path.replace("/",">") + ".txt");
     }
 
-    SegmentationExtension::InformationKeyList lastInformationOrder();
+    Core::SegmentationExtension::InformationKeyList lastInformationOrder();
 
     GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
 
-    virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformation, SegmentationExtension::InformationKeyList informationOrder);
+    virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformation, Core::SegmentationExtension::InformationKeyList informationOrder);
 
-    SegmentationExtension::InformationKeyList information(GUI::InformationSelector::GroupedInfo extensionInformation);
+    Core::SegmentationExtension::InformationKeyList information(GUI::InformationSelector::GroupedInfo extensionInformation);
 
-    SegmentationExtension::InformationKeyList updateInformationOrder(GUI::InformationSelector::GroupedInfo extensionInformation);
+    Core::SegmentationExtension::InformationKeyList updateInformationOrder(GUI::InformationSelector::GroupedInfo extensionInformation);
 
   protected:
     QString           m_category;

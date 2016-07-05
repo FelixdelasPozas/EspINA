@@ -22,15 +22,17 @@
 #include "VisualizationState.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 const SegmentationExtension::Type VisualizationState::TYPE = "VisualizationState";
 
 const std::string EXTENSION_VERSION = "1.0\n";
 
 //------------------------------------------------------------------------
-VisualizationState::VisualizationState()
+VisualizationState::VisualizationState(const State &state)
 : SegmentationExtension(InfoCache())
 {
+  // TODO
 }
 
 //------------------------------------------------------------------------
@@ -52,7 +54,7 @@ QVariant VisualizationState::information(const Key &tag) const
 }
 
 //------------------------------------------------------------------------
-void VisualizationState::setState(const QString& representation, const QString& state)
+void VisualizationState::setState(const QString& representation, const State& state)
 {
   m_state[representation] = state;
 }

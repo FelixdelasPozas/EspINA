@@ -21,16 +21,37 @@
 
 #ifndef ESPINA_METADATA_STORAGE_FACTORY_H
 #define ESPINA_METADATA_STORAGE_FACTORY_H
-#include <Storage.h>
 
 #include "Support/EspinaSupport_Export.h"
+
+// Metadona
+#include <Storage.h>
+
+// Qt
+#include <QList>
 
 namespace ESPINA
 {
   class EspinaSupport_EXPORT StorageFactory
   {
-  public:
-    static Metadona::StorageSPtr newStorage();
+    public:
+      enum class Type: char { IRODS = 0 };
+      /** \brief Creates and returns a new storage.
+       * \param[in] type type of storage
+       *
+       */
+      static Metadona::StorageSPtr newStorage(Type type);
+
+      /** \brief Returns true if the storage is correctly configured and can be used and false otherwise.
+       * \param[in] type type of storage to test for support.
+       *
+       */
+      static bool supported(Type type);
+
+      /** \brief Returns a list of supported storages.
+       *
+       */
+      static QList<Type> supportedStorages();
   };
 } // namespace ESPINA
 

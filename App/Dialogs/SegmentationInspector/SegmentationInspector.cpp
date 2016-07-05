@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
-
 #include <Panels/SegmentationProperties/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
@@ -42,6 +41,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Support;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support::Representations::Utils;

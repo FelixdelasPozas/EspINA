@@ -28,44 +28,48 @@
 
 namespace ESPINA
 {
-  class ChannelEdges;
-
-  class EspinaExtensions_EXPORT AdaptiveEdgesCreator
-  : public Task
+  namespace Extensions
   {
-  public:
-    /** \brief AdaptiveEdgesCreator class constructor.
-     * \param[in] extension ChannelEdges raw pointer.
-     * \param[in] scheduler scheduler smart pointer.
-     */
-    explicit AdaptiveEdgesCreator(ChannelEdges *extension,
-                                  SchedulerSPtr scheduler = SchedulerSPtr());
+    class ChannelEdges;
 
-    /** \brief AdaptiveEdgesCreator class destructor.
-     *
-     */
-    virtual ~AdaptiveEdgesCreator();
+    class EspinaExtensions_EXPORT AdaptiveEdgesCreator
+    : public Task
+    {
+      public:
+        /** \brief AdaptiveEdgesCreator class constructor.
+         * \param[in] extension ChannelEdges raw pointer.
+         * \param[in] scheduler scheduler smart pointer.
+         *
+         */
+        explicit AdaptiveEdgesCreator(ChannelEdges *extension,
+                                      SchedulerSPtr scheduler = SchedulerSPtr());
 
-  protected:
-    virtual void run();
+        /** \brief AdaptiveEdgesCreator class destructor.
+         *
+         */
+        virtual ~AdaptiveEdgesCreator();
 
-  private:
-    /** \brief Computes the edges data.
-     *
-     */
-    void computeEdges();
+      protected:
+        virtual void run();
 
-    /** \brief Computes the edges surfaces.
-     *
-     */
-    void computeFaces();
+      private:
+        /** \brief Computes the edges data.
+         *
+         */
+        void computeEdges();
 
-    ChannelEdges *m_extension;
-};
+        /** \brief Computes the edges surfaces.
+         *
+         */
+        void computeFaces();
 
-  using AdaptiveEdgesCreatorPtr  = AdaptiveEdgesCreator *;
-  using AdaptiveEdgesCreatorSPtr = std::shared_ptr<AdaptiveEdgesCreator>;
+        ChannelEdges *m_extension; /** channel edges extension. */
+    };
 
+    using AdaptiveEdgesCreatorPtr  = AdaptiveEdgesCreator *;
+    using AdaptiveEdgesCreatorSPtr = std::shared_ptr<AdaptiveEdgesCreator>;
+
+  } // namespace Extensions
 }// namespace ESPINA
 
 #endif // ESPINA_ADAPTIVE_EDGE_CREATOR_H

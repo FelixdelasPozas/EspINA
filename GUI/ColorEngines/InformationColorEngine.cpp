@@ -23,6 +23,7 @@
 #include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;

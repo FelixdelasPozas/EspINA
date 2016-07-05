@@ -25,6 +25,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QDialog>
@@ -32,17 +33,21 @@
 #include <QStringListModel>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent)
-: QDialog(parent)
-, m_type(CF::ADAPTIVE)
-, m_proxy(new ChannelProxy(model))
-, m_channel(nullptr)
-, m_model{model}
+CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *parent)
+: QDialog  {parent}
+, m_type   {CF::ADAPTIVE}
+, m_proxy  {new ChannelProxy(context.model())}
+, m_stack  {nullptr}
+, m_model  {context.model()}
+, m_factory{context.factory()}
 {
   setupUi(this);
+
+  auto model = context.model();
 
   adaptiveRadio->setChecked(true);
   orthogonalRadio->setChecked(false);
@@ -81,10 +86,10 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   channelSelector->setModel(stackModel);
 
   connect(channelSelector, SIGNAL(activated(QModelIndex)),
-          this, SLOT(channelSelected()));
+          this,            SLOT(channelSelected()));
 
   connect(channelSelector, SIGNAL(activated(int)),
-          this, SLOT(channelSelected()));
+          this,            SLOT(channelSelected()));
 
   // use first channel as default to force CF type selection using edges extension.
   channelSelector->setCurrentIndex(0);
@@ -147,10 +152,9 @@ void CFTypeSelectorDialog::channelSelected()
 
   if (item && isChannel(item))
   {
-    m_channel = item;
+    m_stack = item;
 
-    auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel->extensions());
-
+    auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
     if (edgesExtension->useDistanceToBounds())
     {
       setType(CF::ORTOGONAL);

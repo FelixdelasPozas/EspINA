@@ -36,7 +36,7 @@ namespace ESPINA
    */
   class EspinaCore_EXPORT Segmentation
   : public ViewItem
-  , public Core::Analysis::Extensible<SegmentationExtension, Segmentation>
+  , public Core::Analysis::Extensible<Core::SegmentationExtension, Segmentation>
   {
   public:
     /** \brief Segmentation class constructor.
@@ -120,7 +120,7 @@ namespace ESPINA
      * \param[in] extension, segmentation extension object smart pointer.
      *
      */
-    QString extensionPath(const SegmentationExtensionSPtr extension) const
+    QString extensionPath(const Core::SegmentationExtensionSPtr extension) const
     { return extensionsPath() + extension->type() + "/"; }
 
     /** \brief Returns the path to save/load data files of a given extension and path.
@@ -128,7 +128,7 @@ namespace ESPINA
      * \param[in] path, file path.
      *
      */
-    QString extensionDataPath(const SegmentationExtensionSPtr extension, QString path) const
+    QString extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
     { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
 
   private:

@@ -25,11 +25,14 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
+#include <Core/Factory/CoreFactory.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
 
 const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
 
@@ -41,9 +44,11 @@ const SegmentationExtension::Key EdgeDistance::BOTTOM_DISTANCE = "Bottom Distanc
 const SegmentationExtension::Key EdgeDistance::BACK_DISTANCE   = "Back Distance";
 
 //-----------------------------------------------------------------------------
-EdgeDistance::EdgeDistance(const SegmentationExtension::InfoCache& cache, const State& state)
-: SegmentationExtension(cache)
+EdgeDistance::EdgeDistance(CoreFactory *factory, const SegmentationExtension::InfoCache& cache, const State& state)
+: SegmentationExtension{cache}
+, m_factory            {factory}
 {
+  Q_ASSERT(factory);
 }
 
 //-----------------------------------------------------------------------------
@@ -94,19 +99,29 @@ QVariant EdgeDistance::cacheFail(const InformationKey& key) const
 //-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
-  distances[0] = information(createKey(LEFT_DISTANCE)).toDouble();
-  distances[1] = information(createKey(RIGHT_DISTANCE)).toDouble();
-  distances[2] = information(createKey(TOP_DISTANCE)).toDouble();
-  distances[3] = information(createKey(BOTTOM_DISTANCE)).toDouble();
-  distances[4] = information(createKey(FRONT_DISTANCE)).toDouble();
-  distances[5] = information(createKey(BACK_DISTANCE)).toDouble();
+  QStringList labels{LEFT_DISTANCE, RIGHT_DISTANCE, TOP_DISTANCE, BOTTOM_DISTANCE, FRONT_DISTANCE, BACK_DISTANCE};
+  for(auto label: labels)
+  {
+    auto info = information(createKey(label));
+    bool ok = false;
+    auto conversion = info.toDouble(&ok);
+    auto position = labels.indexOf(label);
+
+    if(!ok || (info.canConvert(QVariant::String) && info.toString() == "Unavailable"))
+    {
+      distances[position] = -1;
+    }
+    else
+    {
+      distances[position] = conversion;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
-  //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  // Preven updating if all available information is already computed
+  // Prevent updating if all available information is already computed
   if (readyInformation().size() < 6)
   {
     QMutexLocker lock(&m_mutex);
@@ -118,8 +133,7 @@ void EdgeDistance::updateDistances() const
       Nm distances[6];
       auto channel = channels.first();
 
-      auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel->extensions());
-
+      auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, m_factory);
       if (edgesExtension->useDistanceToBounds())
       {
         edgesExtension->distanceToBounds(m_extendedItem, distances);
@@ -136,11 +150,15 @@ void EdgeDistance::updateDistances() const
       updateInfoCache(FRONT_DISTANCE , distances[4]);
       updateInfoCache(BACK_DISTANCE  , distances[5]);
     }
+    else
+    {
+      auto text = tr("Unavailable");
+      updateInfoCache(LEFT_DISTANCE  , text);
+      updateInfoCache(RIGHT_DISTANCE , text);
+      updateInfoCache(TOP_DISTANCE   , text);
+      updateInfoCache(BOTTOM_DISTANCE, text);
+      updateInfoCache(FRONT_DISTANCE , text);
+      updateInfoCache(BACK_DISTANCE  , text);
+    }
   }
-}
-
-//-----------------------------------------------------------------------------
-EdgeDistancePtr ESPINA::edgeDistance(SegmentationExtensionPtr extension)
-{
-  return dynamic_cast<EdgeDistancePtr>(extension);
 }

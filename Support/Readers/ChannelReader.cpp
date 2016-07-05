@@ -135,9 +135,11 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   QString channelMetadata;
 
 #if USE_METADONA
+  if(!StorageFactory::supportedStorages().isEmpty())
+  {
     Coordinator coordinator;
 
-    auto storage = StorageFactory::newStorage();
+    auto storage = StorageFactory::newStorage(StorageFactory::Type::IRODS);
 
     Metadona::Producer producer(storage);
 
@@ -156,9 +158,12 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
       channelMetadata = Metadona::dump(metadata).c_str();
 
       sampleName = metadata.at(0).id().c_str();
-    } catch (...)
-    {
     }
+    catch(...)
+    {
+
+    }
+  }
 #endif
 
   auto sample = factory->createSample(sampleName);

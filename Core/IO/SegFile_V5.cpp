@@ -32,8 +32,8 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Extensions/ReadOnlyChannelExtension.h>
 #include <Core/Analysis/Extensions/ReadOnlySegmentationExtension.h>
+#include <Core/Analysis/Extensions/ReadOnlyStackExtension.h>
 #include <Core/Analysis/Filters/ReadOnlyFilter.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Factory/CoreFactory.h>
@@ -499,19 +499,20 @@ void SegFile_V5::Loader::loadRelations()
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
-                                                const ChannelExtension::Type &type,
-                                                const ChannelExtension::InfoCache &cache,
-                                                const State &state)
+void SegFile_V5::Loader::createStackExtension(ChannelSPtr channel,
+                                              const StackExtension::Type &type,
+                                              const StackExtension::InfoCache &cache,
+                                              const State &state)
 {
-  ChannelExtensionSPtr extension;
+  StackExtensionSPtr extension = nullptr;
+
   try
   {
-    extension = m_factory->createChannelExtension(type, cache, state);
+    extension = m_factory->createStackExtension(type, cache, state);
   }
   catch (const EspinaException &e)
   {
-    extension = std::make_shared<ReadOnlyChannelExtension>(type, cache, state);
+    extension = std::make_shared<ReadOnlyStackExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
 
@@ -522,7 +523,7 @@ void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
 {
-  QString xmlFile = ChannelExtension::ExtensionFilePath(channel.get());
+  QString xmlFile = StackExtension::ExtensionFilePath(channel.get());
 
   if (!channel->storage()->exists(xmlFile)) return;
 
@@ -531,7 +532,7 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
   QXmlStreamReader xml(extensions);
 
   auto type  = QString();
-  auto cache = ChannelExtension::InfoCache();
+  auto cache = StackExtension::InfoCache();
   auto state = State();
 
   while (!xml.atEnd())
@@ -541,7 +542,7 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
       if (xml.name() == "Extension")
       {
         type = xml.attributes().value("Type").toString();
-        cache = ChannelExtension::InfoCache();
+        cache = StackExtension::InfoCache();
         state = State();
       }
       else
@@ -564,7 +565,7 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
     {
       if (xml.isEndElement() && xml.name() == "Extension")
       {
-        createChannelExtension(channel, type, cache, state);
+        createStackExtension(channel, type, cache, state);
       }
     }
 

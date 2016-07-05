@@ -28,7 +28,7 @@
 
 namespace ESPINA
 {
-  /** \brief Creates an returns a new core factory.
+  /** \brief Creates an returns a new core factory with the default extension factories already registered.
    * \param[in] scheduler scheduler smart pointer.
    *
    */

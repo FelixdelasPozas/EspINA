@@ -47,14 +47,13 @@
 #include <vtkCellArray.h>
 
 // Qt
-#include <QApplication>
-#include <QDebug>
-#include <QMessageBox>
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
 
-const ChannelExtension::Type ChannelEdges::TYPE = "AdaptiveEdges";
+const StackExtension::Type ChannelEdges::TYPE = "AdaptiveEdges";
 
 const QString ChannelEdges::EDGES_FILE = "ChannelEdges.vtp";
 const QString ChannelEdges::FACES_FILE = "ChannelFaces_%1.vtp";
@@ -67,9 +66,9 @@ using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
 
 //-----------------------------------------------------------------------------
 ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
-                           const ChannelExtension::InfoCache &cache,
+                           const StackExtension::InfoCache &cache,
                            const State                       &state)
-: ChannelExtension     {cache}
+: StackExtension       {cache}
 , m_hasAnalizedChannel {false}
 , m_hasCreatedEdges    {false}
 , m_useDistanceToBounds{true}
@@ -298,7 +297,6 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   bool computed = false;
   auto output = segmentation->output();
 
-//   qDebug() << "Computing distances";
   if (hasMeshData(output))
   {
     auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -307,7 +305,6 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
     {
       QMutexLocker lock(&m_distanceMutex);
 
-      //qDebug() << "Computing distance to face"<< face;
       auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
       faceMesh->DeepCopy(m_faces[face]);
 

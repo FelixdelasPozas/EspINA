@@ -25,12 +25,14 @@
 // ESPINA
 #include <Core/Utils/EspinaException.h>
 
+using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr ASExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                                          const SegmentationExtension::InfoCache &cache,
-                                                                          const State& state) const
+SegmentationExtensionSPtr ASExtensionFactory::createExtension(const SegmentationExtension::Type      &type,
+                                                              const SegmentationExtension::InfoCache &cache,
+                                                              const State& state) const
 {
   if (type != AppositionSurfaceExtension::TYPE)
   {
@@ -40,13 +42,13 @@ SegmentationExtensionSPtr ASExtensionFactory::createSegmentationExtension(const 
     throw EspinaException(what, details);
   }
 
-  return std::make_shared<AppositionSurfaceExtension>(cache);
+  return SegmentationExtensionSPtr{new AppositionSurfaceExtension(cache)};
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionTypeList ASExtensionFactory::providedExtensions() const
+SegmentationExtension::TypeList ASExtensionFactory::providedExtensions() const
 {
-  SegmentationExtensionTypeList extensions;
+  SegmentationExtension::TypeList extensions;
 
   extensions << AppositionSurfaceExtension::TYPE;
 

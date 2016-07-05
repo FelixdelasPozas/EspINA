@@ -29,7 +29,6 @@
 using namespace ESPINA;
 using namespace Metadona;
 
-
 //------------------------------------------------------------------------
 EntryEditorDialog::EntryEditorDialog(Metadona::Entry& entry,
                                      QWidget*         parent,
@@ -99,31 +98,55 @@ void EntryEditorDialog::createFieldInputs(std::vector<Metadona::FieldSPtr> entri
   {
     auto fieldPtr = field.get();
 
-    switch (field->type())
+    if (field->type() == FieldTypes::STRING)
     {
-      case FieldType::STRING:
-        createStringInput(dynamic_cast<StringField*>(fieldPtr), layout);
-        break;
-      case FieldType::INTEGER:
+      createStringInput(dynamic_cast<StringField*>(fieldPtr), layout);
+    }
+    else
+    {
+      if (field->type() == FieldTypes::INTEGER)
+      {
         createIntegerInput(dynamic_cast<IntegerField*>(fieldPtr), layout);
-        break;
-      case FieldType::DECIMAL:
-        createDecimalInput(dynamic_cast<DecimalField*>(fieldPtr), layout);
-        break;
-      case FieldType::ENUM:
-        createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, false);
-        break;
-      case FieldType::SUGGESTION:
-        createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, true);
-        break;
-      case FieldType::GROUP:
-        createGroupInput(dynamic_cast<GroupField*>(fieldPtr), layout);
-        break;
-      case FieldType::LIST:
-        createListInput(dynamic_cast<ListField*>(fieldPtr), layout);
-        break;
-      default:
-        throw Scheme_Validation_Exception();
+      }
+      else
+      {
+        if (field->type() == FieldTypes::DECIMAL)
+        {
+          createDecimalInput(dynamic_cast<DecimalField*>(fieldPtr), layout);
+        }
+        else
+        {
+          if (field->type() == FieldTypes::ENUM)
+          {
+            createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, false);
+          }
+          else
+          {
+            if (field->type() == FieldTypes::SUGGESTION)
+            {
+              createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, true);
+            }
+            else
+            {
+              if (field->type() == FieldTypes::GROUP)
+              {
+                createGroupInput(dynamic_cast<GroupField*>(fieldPtr), layout);
+              }
+              else
+              {
+                if (field->type() == FieldTypes::LIST)
+                {
+                  createListInput(dynamic_cast<ListField*>(fieldPtr), layout);
+                }
+                else
+                {
+                  throw Scheme_Validation_Exception();
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

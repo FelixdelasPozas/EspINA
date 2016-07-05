@@ -58,6 +58,7 @@ const QString SAS = QObject::tr("SAS");
 const QString SAS_PREFIX = QObject::tr("SAS ");
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
@@ -104,9 +105,9 @@ FilterSPtr ASFilterFactory::createFilter(InputSList          inputs,
 //-----------------------------------------------------------------------------
 AppositionSurfacePlugin::AppositionSurfacePlugin()
 : m_context         {nullptr}
-, m_settings        {new AppositionSurfaceSettings()}
-, m_extensionFactory{new ASExtensionFactory()}
-, m_filterFactory   {new ASFilterFactory()}
+, m_settings        {nullptr}
+, m_extensionFactory{nullptr}
+, m_filterFactory   {nullptr}
 {
 }
 
@@ -127,7 +128,10 @@ void AppositionSurfacePlugin::init(Context &context)
     Q_ASSERT(false);
   }
 
-  m_context = &context;
+  m_context          = &context;
+  m_settings         = std::make_shared<AppositionSurfaceSettings>();
+  m_extensionFactory = std::make_shared<ASExtensionFactory>();
+  m_filterFactory    = std::make_shared<ASFilterFactory>();
 
   // for automatic computation of SAS
   connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
@@ -137,6 +141,14 @@ void AppositionSurfacePlugin::init(Context &context)
 //-----------------------------------------------------------------------------
 SegmentationExtensionFactorySList AppositionSurfacePlugin::segmentationExtensionFactories() const
 {
+  if(!m_context)
+  {
+    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
+    auto details = QObject::tr("AppositionSurfacePlugin::segmentationExtensionFactories() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   SegmentationExtensionFactorySList extensionFactories;
 
   extensionFactories << m_extensionFactory;
@@ -147,6 +159,14 @@ SegmentationExtensionFactorySList AppositionSurfacePlugin::segmentationExtension
 //-----------------------------------------------------------------------------
 FilterFactorySList AppositionSurfacePlugin::filterFactories() const
 {
+  if(!m_context)
+  {
+    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
+    auto details = QObject::tr("AppositionSurfacePlugin::filterFactories() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   FilterFactorySList factories;
 
   factories << m_filterFactory;
@@ -157,6 +177,14 @@ FilterFactorySList AppositionSurfacePlugin::filterFactories() const
 //-----------------------------------------------------------------------------
 QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 {
+  if(!m_context)
+  {
+    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
+    auto details = QObject::tr("AppositionSurfacePlugin::tools() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   QList<CategorizedTool> tools;
 
   auto plugin = const_cast<AppositionSurfacePlugin *>(this);
@@ -169,6 +197,14 @@ QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 //-----------------------------------------------------------------------------
 ReportSList AppositionSurfacePlugin::reports() const
 {
+  if(!m_context)
+  {
+    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
+    auto details = QObject::tr("AppositionSurfacePlugin::reports() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   ReportSList reports;
 
   reports << std::make_shared<SASReport>(*m_context);
@@ -179,6 +215,14 @@ ReportSList AppositionSurfacePlugin::reports() const
 //-----------------------------------------------------------------------------
 SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 {
+  if(!m_context)
+  {
+    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
+    auto details = QObject::tr("AppositionSurfacePlugin::settingsPanels() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   SettingsPanelSList settingsPanels;
 
   settingsPanels << m_settings;
@@ -303,7 +347,7 @@ void AppositionSurfacePlugin::finishedTask()
     auto extensions   = segmentation->extensions();
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
     auto sasExtension = std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
-    
+
     sasExtension->setOriginSegmentation(m_finishedTasks[filter].segmentation);
     extensions->add(sasExtension);
 

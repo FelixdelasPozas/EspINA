@@ -19,11 +19,14 @@
 */
 
 // ESPINA
+#include <Support/Metadona/StorageFactory.h>
 #include "MetaDataSettingsPanel.h"
 
 // Qt
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QProcess>
+#include <QFont>
 
 #if USE_METADONA
   #include <Producer.h>
@@ -39,12 +42,46 @@ namespace ESPINA
   //------------------------------------------------------------------------
   MetaDataSettingsPanel::MetaDataSettingsPanel()
   {
-    auto label = new QLabel();
-    label->setText(tr("MetaData Storage hasn't been configured for this build of ESPINA."));
-    if(layout() == nullptr)
-      setLayout(new QVBoxLayout());
+    QString text;
 
-    layout()->setAlignment(Qt::AlignCenter);
+    auto supportedStorages = StorageFactory::supportedStorages();
+
+    if(supportedStorages.isEmpty())
+    {
+      text = tr("No metadata storage provider has been detected.");
+    }
+    else
+    {
+      if(supportedStorages.contains(StorageFactory::Type::IRODS))
+      {
+        text = tr("<u><b>IRODS Enviroment information</b></u><br>");
+
+        QProcess process{this};
+        process.start("ienv");
+
+        if(!process.waitForFinished(1500))
+        {
+          // Enough time, assume failure
+          process.kill();
+          text = tr("IRODS metadata storage hasn't been correctly configured.");
+        }
+        else
+        {
+          text += process.readAll();
+        }
+      }
+    }
+
+    auto label = new QLabel();
+    label->setText(text);
+    label->setTextFormat(Qt::RichText);
+
+    if(layout() == nullptr)
+    {
+      setLayout(new QVBoxLayout());
+    }
+
+    layout()->setAlignment(Qt::AlignTop|Qt::AlignLeft);
     layout()->addWidget(label);
   }
 
@@ -65,7 +102,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  SettingsPanelPtr MetaDataSettingsPanel::clone()
+  ESPINA::Support::Settings::SettingsPanelPtr MetaDataSettingsPanel::clone()
   {
     return new MetaDataSettingsPanel();
   }

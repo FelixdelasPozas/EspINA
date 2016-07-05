@@ -44,6 +44,8 @@
 #include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 const SegmentationExtension::Type StereologicalInclusion::TYPE = "StereologicalInclusion";
@@ -527,10 +529,4 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
       m_infoCache.remove(oldIdKey);
     }
   }
-}
-
-//------------------------------------------------------------------------
-StereologicalInclusionSPtr ESPINA::CF::stereologicalInclusion(SegmentationExtensionSPtr extension)
-{
-  return std::dynamic_pointer_cast<StereologicalInclusion>(extension);
 }

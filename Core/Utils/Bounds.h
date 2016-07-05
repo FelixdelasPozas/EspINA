@@ -114,7 +114,7 @@ namespace ESPINA
           auto lb = m_bounds[2*i];
           auto ub = m_bounds[2*i+1];
 
-          valid = lb <= ub && !(lb == ub && !m_lowerInclusion[i] && !m_upperInclusion[i]);
+          valid = (lb <= ub) && !(lb == ub && !m_lowerInclusion[i] && !m_upperInclusion[i]);
 
           ++i;
         }

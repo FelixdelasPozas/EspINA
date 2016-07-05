@@ -31,9 +31,11 @@
 #include <Core/Analysis/Segmentation.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
 
-const QString                        SegmentationTags::TYPE = "SegmentationTags";
-const SegmentationExtension::Key SegmentationTags::TAGS = "Tags";
+const SegmentationExtension::Type SegmentationTags::TYPE = "SegmentationTags";
+const SegmentationExtension::Key  SegmentationTags::TAGS = "Tags";
 
 QMap<QString, unsigned int> SegmentationTags::s_availableTags;
 QReadWriteLock              SegmentationTags::s_mutex;

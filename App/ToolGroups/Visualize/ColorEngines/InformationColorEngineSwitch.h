@@ -44,7 +44,7 @@ namespace ESPINA
      */
     explicit InformationColorEngineSwitch(Support::Context& context);
 
-    using InformationKey = SegmentationExtension::InformationKey;
+    using InformationKey = Core::SegmentationExtension::InformationKey;
 
     virtual void restoreSettings(std::shared_ptr<QSettings> settings);
 
@@ -122,7 +122,7 @@ namespace ESPINA
        * \param[in] scheduler application task scheduler.
        *
        */
-        explicit UpdateColorEngineTask(const SegmentationExtension::InformationKey        key,
+        explicit UpdateColorEngineTask(const Core::SegmentationExtension::InformationKey  key,
                                        ESPINA::GUI::ColorEngines::InformationColorEngine *colorEngine,
                                        SegmentationAdapterList                            segmentations,
                                        ModelFactorySPtr                                   factory,
@@ -150,7 +150,7 @@ namespace ESPINA
       virtual void run() override final;
 
     private:
-      const SegmentationExtension::InformationKey        m_key;           /** property key.                                               */
+      const Core::SegmentationExtension::InformationKey  m_key;           /** property key.                                               */
       ESPINA::GUI::ColorEngines::InformationColorEngine *m_colorEngine;   /** color engine                                                */
       SegmentationAdapterList                            m_segmentations; /** segmentation to color.                                      */
       ModelFactorySPtr                                   m_factory;       /** factory to create segmentation extensions.                  */

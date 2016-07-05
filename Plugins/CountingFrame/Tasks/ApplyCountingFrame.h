@@ -29,24 +29,42 @@
 
 namespace ESPINA
 {
+  class CoreFactory;
+
   namespace CF
   {
     class CountingFrame;
 
+    /** \class ApplyCountingFrame
+     * \brief Computes the inclusion of all segmentations in the counting frame.
+     *
+     */
     class ApplyCountingFrame
     : public Task
     {
-      Q_OBJECT
-    public:
-      explicit ApplyCountingFrame(CountingFrame *countingFrame,
-                                  SchedulerSPtr scheduler = SchedulerSPtr());
-      virtual ~ApplyCountingFrame();
+        Q_OBJECT
+      public:
+        /** \brief ApplyCountingFrame class constructor.
+         * \param[in] countingFrame counting frame pointer.
+         * \param[in] factory model factory pointer.
+         * \param[in] sheduler application task scheduler.
+         *
+         */
+        explicit ApplyCountingFrame(CountingFrame   *countingFrame,
+                                    CoreFactory     *factory,
+                                    SchedulerSPtr    scheduler);
 
-    protected:
-      virtual void run();
+        /** \brief ApplyCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~ApplyCountingFrame();
 
-    private:
-      CountingFrame *m_countingFrame;
+      protected:
+        virtual void run();
+
+      private:
+        CountingFrame   *m_countingFrame;
+        CoreFactory     *m_factory;
     };
 
     using ApplyCountingFramePtr  = ApplyCountingFrame *;

@@ -39,7 +39,7 @@ namespace ESPINA
   namespace Extensions
   {
     class EspinaExtensions_EXPORT SegmentationIssues
-    : public SegmentationExtension
+    : public Core::SegmentationExtension
     {
       public:
         static const Type TYPE;
@@ -54,12 +54,6 @@ namespace ESPINA
         static const InformationKey CRITICAL;
 
       public:
-        /** \brief SegmentationIssues class constructor.
-         * \param[in] infoCache cache object.
-         *
-         */
-        explicit SegmentationIssues(const InfoCache& infoCache = InfoCache());
-
         /** \brief SegmentationIssues class virtual destructor.
          *
          */
@@ -118,7 +112,15 @@ namespace ESPINA
         virtual QVariant cacheFail(const InformationKey& key) const override;
 
       private:
+        /** \brief SegmentationIssues class constructor.
+         * \param[in] infoCache cache object.
+         *
+         */
+        explicit SegmentationIssues(const InfoCache& infoCache = InfoCache());
+
         IssueList m_issues; /** list of found issues for the segmentation. */
+
+        friend class SegmentationIssuesFactory;
     };
   } // namespace Extensions
 } // namespace ESPINA

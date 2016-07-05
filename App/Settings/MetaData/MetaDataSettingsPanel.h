@@ -28,7 +28,7 @@ namespace ESPINA
 {
 
   class MetaDataSettingsPanel
-  : public SettingsPanel
+  : public ESPINA::Support::Settings::SettingsPanel
   {
     public:
       /** \brief MetaDataSettingsPanel class constructor.
@@ -84,7 +84,7 @@ namespace ESPINA
       /** \brief Overrides SettingsPanel::clone().
        *
        */
-      virtual SettingsPanelPtr clone() override;
+      virtual ESPINA::Support::Settings::SettingsPanelPtr clone() override;
   };
 
 } // namespace ESPINA

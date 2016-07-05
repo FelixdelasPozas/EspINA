@@ -24,19 +24,24 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Factory/CoreFactory.h>
 #include <CountingFrames/CountingFrame.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/StereologicalInclusion.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/ModelFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,
-                                       SchedulerSPtr scheduler)
-: Task(scheduler)
-, m_countingFrame(countingFrame)
+                                       CoreFactory   *factory,
+                                       SchedulerSPtr  scheduler)
+: Task           {scheduler}
+, m_countingFrame{countingFrame}
+, m_factory      {factory}
 {
 }
 
@@ -65,9 +70,9 @@ void ApplyCountingFrame::run()
 
       if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
       {
-        auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
-        extension->addCountingFrame(m_countingFrame);
-        extension->evaluateCountingFrame(m_countingFrame);
+        auto inclusionExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, m_factory);
+        inclusionExtension->addCountingFrame(m_countingFrame);
+        inclusionExtension->evaluateCountingFrame(m_countingFrame);
       }
 
       taskProgress += inc;

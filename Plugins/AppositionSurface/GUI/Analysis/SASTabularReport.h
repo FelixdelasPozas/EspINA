@@ -30,11 +30,12 @@
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Widgets/TabularReportEntry.h>
 
-// Qt
-#include <QDebug>
-
 namespace ESPINA
 {
+  /** \class SASTabularReport
+   * \brief Implements a tabular report specially for crossing the data of a segmentation and it's SAS.
+   *
+   */
   class SASTabularReport
   : public TabularReport
   {
@@ -66,7 +67,7 @@ namespace ESPINA
       }
 
     private:
-      SegmentationExtension::InformationKeyList m_sasTags;
+      Core::SegmentationExtension::InformationKeyList m_sasTags;
   };
 
   class SASTabularReport::Entry
@@ -85,12 +86,12 @@ namespace ESPINA
 
       virtual GUI::InformationSelector::GroupedInfo availableInformation() override;
 
-      virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder) override;
+      virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, Core::SegmentationExtension::InformationKeyList informationOrder) override;
 
     private:
-      SegmentationExtension::KeyList keyValues(const SegmentationExtension::InformationKeyList &keys) const;
+      Core::SegmentationExtension::KeyList keyValues(const Core::SegmentationExtension::InformationKeyList &keys) const;
 
-      bool isSASExtensions(const SegmentationExtension::Type &type) const;
+      bool isSASExtensions(const Core::SegmentationExtension::Type &type) const;
 
     private slots:
       void extractInformation();

@@ -27,6 +27,7 @@
 #include <ui_InformationSelector.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 
 class InformationSelector::UI

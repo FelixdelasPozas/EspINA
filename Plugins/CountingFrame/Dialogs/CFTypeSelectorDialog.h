@@ -34,44 +34,68 @@
 
 namespace ESPINA
 {
+  namespace Support
+  {
+    class Context;
+  }
+
   namespace CF
   {
     class CFTypeSelectorDialog
     : public QDialog
     , private Ui::CFTypeSelectorDialog
     {
-      Q_OBJECT
+        Q_OBJECT
+      public:
+        /** \brief CFTypeSelectorDialog class constructor.
+         * \param[in] context application context.
+         * \param[in] parent pointer of the widget parent of this one.
+         *
+         */
+        CFTypeSelectorDialog(Support::Context &context, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
-    public:
-      CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
+        /** \brief CFTypeSelectorDialog class virtual destructor.
+         *
+         */
+        virtual ~CFTypeSelectorDialog()
+        {};
 
-      virtual ~CFTypeSelectorDialog() {};
+        /** \brief Sets the type of counting frame to select.
+         *
+         */
+        void setType(CFType type);
 
-      void setType(CFType type);
+        /** \brief Returns the selected counting frame type.
+         *
+         */
+        CFType type() const
+        { return m_type; }
 
-      CFType type() const { return m_type; }
+        /** \brief Returns the stack of the counting frame.
+         *
+         */
+        ChannelAdapterPtr stack()
+        { return m_stack; }
 
-      ChannelAdapterPtr channel()
-      { return m_channel; }
+        /** \brief Returns the category constrint of the counting frame.
+         *
+         */
+        QString categoryConstraint() const;
 
-      QString categoryConstraint() const;
+      public slots:
+        void channelSelected();
+        void radioChanged(bool);
 
-    public slots:
-      void channelSelected();
+      private:
+        CFType                        m_type;   /** type of counting frame selected. */
+        std::shared_ptr<ChannelProxy> m_proxy;  /** channel model proxy.             */
 
-      void radioChanged(bool);
-
-    private:
-      CFType m_type;
-
-      std::shared_ptr<ChannelProxy> m_proxy;
-
-      ChannelAdapterPtr m_channel;
-      ModelAdapterSPtr  m_model;
-      QStringList       m_stackNames;
+        ChannelAdapterPtr m_stack;      /** selected stack.                           */
+        ModelAdapterSPtr  m_model;      /** qt model.                                 */
+        QStringList       m_stackNames; /** list of names of the stacks in the model. */
+        ModelFactorySPtr  m_factory;    /** factory for extension creation.           */
     };
-
-  }
-} /* namespace ESPINA */
+  } // namespace CF
+} // namespace ESPINA
 
 #endif // ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H

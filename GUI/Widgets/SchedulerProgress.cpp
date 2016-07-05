@@ -149,7 +149,7 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 //------------------------------------------------------------------------
 void SchedulerProgress::showTaskProgress(bool visible)
 {
-  if (visible)
+  if (visible && !m_tasks.isEmpty())
   {
     m_notificationArea->show();
     updateNotificationWidget();
@@ -184,7 +184,7 @@ void SchedulerProgress::updateProgress()
 
   m_progressBar->setValue(total);
 
-  setVisible(0 != total || m_tasks.size() != 0);
+  setVisible(0 != total || !m_tasks.isEmpty());
 }
 
 //------------------------------------------------------------------------

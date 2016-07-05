@@ -26,10 +26,10 @@
 using namespace ESPINA;
 
 class DummySegmentationExtension
-: public SegmentationExtension
+: public Core::SegmentationExtension
 {
   public:
-    const SegmentationExtension::Type TYPE = "DummySegmentationExtension";
+    const Core::SegmentationExtension::Type TYPE = "DummySegmentationExtension";
   public:
     DummySegmentationExtension() : SegmentationExtension(InfoCache()) {};
     virtual ~DummySegmentationExtension() {};

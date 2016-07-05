@@ -26,43 +26,57 @@
 #include <CountingFrameManager.h>
 
 // ESPINA
-#include <Core/Factory/ChannelExtensionFactory.h>
-#include <Core/Factory/SegmentationExtensionFactory.h>
+#include <Core/Factory/ExtensionFactory.h>
 
 namespace ESPINA
 {
   namespace CF
   {
-    //-----------------------------------------------------------------------------
-    class ChannelExtensionFactoryCF
-    : public ChannelExtensionFactory
+    /** \class CFStackExtensionFactory
+     * \brief Factory for counting frame extensions.
+     *
+     */
+    class CFStackExtensionFactory
+    : public Core::StackExtensionFactory
     {
       public:
-        explicit ChannelExtensionFactoryCF(CountingFrameManager *manager, SchedulerSPtr scheduler);
+        /** \brief CFStackExtensionFactory class constructor.
+         * \param[in] manager plugin's counting frame manager.
+         * \param[in] scheduler application task scheduler.
+         * \param[in] factory model factory.
+         *
+         */
+        explicit CFStackExtensionFactory(CoreFactory *factory, CountingFrameManager *manager, SchedulerSPtr scheduler);
 
-        virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
-                                                            const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
-                                                            const State& state = State()) const;
+        virtual Core::StackExtensionSPtr createExtension(const Core::StackExtension::Type      &type,
+                                                         const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
+                                                         const State                           &state = State()) const;
 
-        virtual ChannelExtensionTypeList providedExtensions() const;
+        virtual Core::StackExtension::TypeList providedExtensions() const;
 
       private:
-        CountingFrameManager *m_manager;
-        SchedulerSPtr         m_scheduler;
+        CountingFrameManager *m_manager;   /** plugin's counting frame manager. */
+        SchedulerSPtr         m_scheduler; /** application's task scheduler.    */
     };
 
-    //-----------------------------------------------------------------------------
-    class SegmentationExtensionFactoryCF
-    : public SegmentationExtensionFactory
+    /** \class CFSegmentationExtensionFactory
+     * \brief Factory for stereological inclusion extensions.
+     *
+     */
+    class CFSegmentationExtensionFactory
+    : public Core::SegmentationExtensionFactory
     {
       public:
-        explicit SegmentationExtensionFactoryCF();
+        /** \brief CFSegmentationExtensionFactory class constructor.
+         *
+         */
+        explicit CFSegmentationExtensionFactory(CoreFactory *factory);
 
-        virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                            const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
-                                                            const State& state = State()) const;
+        virtual Core::SegmentationExtensionSPtr createExtension(const Core::SegmentationExtension::Type      &type,
+                                                                const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
+                                                                const State                                  &state = State()) const;
 
-        virtual SegmentationExtensionTypeList providedExtensions() const;
+        virtual Core::SegmentationExtension::TypeList providedExtensions() const;
     };
 
   } // namespace CF

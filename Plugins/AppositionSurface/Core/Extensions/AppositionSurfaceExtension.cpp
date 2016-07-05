@@ -50,6 +50,7 @@ using EdgeListIterator = vtkSmartPointer<vtkEdgeListIterator>;
 using PolyDataNormals = vtkSmartPointer<vtkPolyDataNormals>;
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
 ///-----------------------------------------------------------------------
@@ -128,6 +129,7 @@ bool AppositionSurfaceExtension::validCategory(const QString &classificationName
   return classificationName.contains(tr("SAS"));
 }
 
+//------------------------------------------------------------------------
 SegmentationExtension::Key AppositionSurfaceExtension::addSASPrefix(const Key& value)
 {
   return SAS_PREFIX + value;

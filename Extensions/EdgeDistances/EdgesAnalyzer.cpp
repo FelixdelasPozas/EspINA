@@ -28,14 +28,12 @@
 // ITK
 #include <itkImageRegionIterator.h>
 
-// Qt
-#include <QDebug>
-
 // C++
 #include <algorithm>
 #include <cstdlib>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 EdgesAnalyzer::EdgesAnalyzer(ChannelEdges *extension,
@@ -56,7 +54,6 @@ EdgesAnalyzer::~EdgesAnalyzer()
 //------------------------------------------------------------------------
 void EdgesAnalyzer::run()
 {
-//  qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
   auto volume = readLockVolume(m_extension->m_extendedItem->output());
 
   m_useDistanceToBounds = 0;
@@ -88,7 +85,6 @@ void EdgesAnalyzer::run()
 
   m_extension->m_hasAnalizedChannel = !isAborted();
   m_extension->m_analisysWait.wakeAll();
-//  qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
 }
 
 //------------------------------------------------------------------------

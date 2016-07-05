@@ -35,6 +35,7 @@
 #include <QPixmap>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Support;
 using namespace ESPINA::Extensions;
 
@@ -138,7 +139,7 @@ void SegmentationProperties::manageTags()
 
   segmentations << m_segmentation;
 
-  Support::Utils::Tags::manageTags(segmentations, getUndoStack());
+  Support::Utils::Tags::manageTags(segmentations, getUndoStack(), getContext().factory().get());
 
   showTags();
 }
@@ -156,9 +157,8 @@ void SegmentationProperties::onNotesModified()
     }
     else
     {
-      auto extension = retrieveOrCreateExtension<SegmentationNotes>(
-          m_segmentation->extensions());
-      extension->setNotes(note);
+      auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, getContext().factory());
+      notesExtension->setNotes(note);
     }
   }
 }

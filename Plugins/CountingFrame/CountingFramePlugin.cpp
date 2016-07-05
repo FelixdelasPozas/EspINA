@@ -9,6 +9,7 @@
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
@@ -46,12 +47,12 @@ void CountingFramePlugin::init(Support::Context &context)
   m_colorEngine = std::make_shared<CF::ColorEngine>();
 
   m_representationFactory        = std::make_shared<RepresentationFactory>(m_manager.get());
-  m_channelExtensionFactory      = std::make_shared<ChannelExtensionFactoryCF>(m_manager.get(), m_scheduler);
-  m_segmentationExtensionFactory = std::make_shared<SegmentationExtensionFactoryCF>();
+  m_channelExtensionFactory      = createStackExtensionFactory<CFStackExtensionFactory>(context.factory(), m_manager.get(), m_scheduler);
+  m_segmentationExtensionFactory = createSegmentationExtensionFactory<CFSegmentationExtensionFactory>(context.factory());
 }
 
 //------------------------------------------------------------------------
-ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() const
+StackExtensionFactorySList CountingFramePlugin::channelExtensionFactories() const
 {
   if(m_channelExtensionFactory == nullptr)
   {
@@ -61,7 +62,7 @@ ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() co
     throw EspinaException(message, details);
   }
 
-  ChannelExtensionFactorySList factories;
+  StackExtensionFactorySList factories;
 
   factories << m_channelExtensionFactory;
 

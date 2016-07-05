@@ -55,12 +55,12 @@ namespace ESPINA
            * \param[in] max maximum value.
            *
            */
-          void setInformation(const SegmentationExtension::InformationKey &key, double min, double max);
+          void setInformation(const Core::SegmentationExtension::InformationKey &key, double min, double max);
 
           /** \brief Returns the used information key,.
            *
            */
-          SegmentationExtension::InformationKey information() const
+          Core::SegmentationExtension::InformationKey information() const
           { return m_key; }
 
           virtual QColor color(ConstSegmentationAdapterPtr segmentation);
@@ -77,9 +77,9 @@ namespace ESPINA
           { return m_colorRange; }
 
         private:
-          SegmentationExtension::InformationKey m_key;        /** used key to get segmentation information. */
-          Utils::RangeHSV                      *m_colorRange; /** used color range.                         */
-          QMap<QColor, LUTSPtr>                 m_luts;       /** color-lookuptable map.                    */
+          Core::SegmentationExtension::InformationKey m_key;        /** used key to get segmentation information. */
+          Utils::RangeHSV                            *m_colorRange; /** used color range.                         */
+          QMap<QColor, LUTSPtr>                       m_luts;       /** color-lookuptable map.                    */
       };
     }
   }

@@ -36,12 +36,14 @@ namespace ESPINA
 {
   namespace CF
   {
+    class CFSegmentationExtensionFactory;
+
     /** \brief StereologicalInclusion
      * \brief Segmentation extension with the information of inclusion/exclusion from a counting frame.
      *
      */
     class CountingFramePlugin_EXPORT StereologicalInclusion
-    : public SegmentationExtension
+    : public Core::SegmentationExtension
     {
         Q_OBJECT
 
@@ -54,12 +56,6 @@ namespace ESPINA
         InformationKey cfKey(CountingFrame *cf) const;
 
       public:
-        /** \brief StereologicalInclusion class constructor.
-         * \param[in] infoCache information cache object.
-         *
-         */
-        explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
-
         /** \brief StereologicalInclusion class virtual destructor.
          *
          */
@@ -154,6 +150,12 @@ namespace ESPINA
         void onCountingFrameModified(CountingFrame *cf);
 
       private:
+        /** \brief StereologicalInclusion class constructor.
+         * \param[in] infoCache information cache object.
+         *
+         */
+        explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
+
         bool m_isInitialized;                              /** true if the extension has been initialized.              */
         bool m_isUpdated;                                  /** true if the extension data is up to date.                */
 
@@ -161,12 +163,12 @@ namespace ESPINA
         bool   m_isExcluded;                               /** true if the segmentation is excluded by at least one CF. */
         QMap<CountingFrame *, bool> m_exclusionCFs;        /** maps CF pointer - exclusion information.                 */
         QMap<CountingFrame *, CountingFrame::Id> m_cfIds;  /** maps CF with CF::id for key invalidation.                */
+
+        friend class CFSegmentationExtensionFactory;
     };
 
     using StereologicalInclusionPtr  = StereologicalInclusion *;
     using StereologicalInclusionSPtr = std::shared_ptr<StereologicalInclusion>;
-
-    StereologicalInclusionSPtr stereologicalInclusion(SegmentationExtensionSPtr extension);
 
   } // namespace CF
 } // namespace ESPINA

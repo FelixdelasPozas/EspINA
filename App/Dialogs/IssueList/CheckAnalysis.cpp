@@ -26,10 +26,10 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/EspinaException.h>
+#include <Extensions/Issues/SegmentationIssues.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
-#include <Extensions/Issues/SegmentationIssues.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -62,7 +62,7 @@ class SegmentationIssue
   protected:
     void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
     {
-      auto tagExtensions = retrieveOrCreateExtension<SegmentationTags>(segmentation->extensions());
+      auto tagExtensions = retrieveExtension<SegmentationTags>(segmentation->extensions());
 
       for (auto tag : tags)
       {
@@ -128,6 +128,9 @@ void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
   {
     auto segmentation = segmentationPtr(item.get());
 
+    // we'll need it later so we create the tags extension now if not present.
+    retrieveOrCreateSegmentationExtension(segmentation, SegmentationTags::TYPE, m_context.factory());
+
     issue = std::make_shared<SegmentationIssue>(segmentation, severity, description, suggestion);
   }
   else
@@ -144,7 +147,8 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
   if (item && isSegmentation(item))
   {
     auto segmentation   = segmentationPtr(item);
-    auto issueExtension = retrieveOrCreateExtension<SegmentationIssues>(segmentation->extensions());
+
+    auto issueExtension = retrieveOrCreateSegmentationExtension<SegmentationIssues>(segmentation, m_context.factory());
     issueExtension->addIssue(issue);
   }
 
@@ -154,14 +158,16 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 //------------------------------------------------------------------------
 QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
 {
-  return tr("Delete %1").arg(isSegmentation(item.get()) ? "segmentation" : "channel");
+  return tr("Delete %1").arg(isSegmentation(item.get()) ? "segmentation" : "stack");
 }
 
 //------------------------------------------------------------------------
-CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-: Task{scheduler}
+CheckAnalysis::CheckAnalysis(Support::Context &context)
+: Task{context.scheduler()}
 , m_finishedTasks{0}
 {
+  auto model = context.model();
+
   setDescription(tr("Issues checker"));
   setPriority(Priority::LOW);
 
@@ -172,20 +178,20 @@ CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
 
   for(auto seg: model->segmentations())
   {
-    m_checkList << std::make_shared<CheckSegmentationTask>(scheduler, seg, model);
+    m_checkList << std::make_shared<CheckSegmentationTask>(context, seg);
   }
 
   for(auto channel: model->channels())
   {
-    m_checkList << std::make_shared<CheckChannelTask>(scheduler, channel, model);
+    m_checkList << std::make_shared<CheckStackTask>(context, channel);
   }
 
   for(auto sample: model->samples())
   {
-    m_checkList << std::make_shared<CheckSampleTask>(scheduler, sample, model);
+    m_checkList << std::make_shared<CheckSampleTask>(context, sample);
   }
 
-  m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(scheduler, model);
+  m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(context);
 }
 
 //------------------------------------------------------------------------
@@ -338,10 +344,9 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 }
 
 //------------------------------------------------------------------------
-CheckSegmentationTask::CheckSegmentationTask(SchedulerSPtr scheduler,
-                                             NeuroItemAdapterSPtr item,
-                                             ModelAdapterSPtr model)
-: CheckDataTask{scheduler, item, model}
+CheckSegmentationTask::CheckSegmentationTask(Support::Context &context,
+                                             NeuroItemAdapterSPtr item)
+: CheckDataTask {context, item}
 , m_segmentation{std::dynamic_pointer_cast<SegmentationAdapter>(item)}
 {
 }
@@ -410,7 +415,7 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkRelations() const
 {
-  auto relations = m_model->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
+  auto relations = m_context.model()->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
 
   if(relations.empty())
   {
@@ -458,59 +463,59 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
 }
 
 //------------------------------------------------------------------------
-CheckChannelTask::CheckChannelTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-: CheckDataTask{scheduler, item, model}
-, m_channel   {std::dynamic_pointer_cast<ChannelAdapter>(item)}
+CheckStackTask::CheckStackTask(Support::Context &context, NeuroItemAdapterSPtr item)
+: CheckDataTask{context, item}
+, m_stack      {std::dynamic_pointer_cast<ChannelAdapter>(item)}
 {
 }
 
 //------------------------------------------------------------------------
-void CheckChannelTask::checkVolumeIsEmpty() const
+void CheckStackTask::checkVolumeIsEmpty() const
 {
-  if(hasVolumetricData(m_channel->output()))
+  if(hasVolumetricData(m_stack->output()))
   {
-    auto volume = readLockVolume(m_channel->output());
+    auto volume = readLockVolume(m_stack->output());
     if(volume->isEmpty())
     {
       auto description = tr("Stack has a volume associated but it's empty");
 
-      reportIssue(m_channel, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+      reportIssue(m_stack, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
   }
 }
 
 //------------------------------------------------------------------------
-void CheckChannelTask::checkRelations() const
+void CheckStackTask::checkRelations() const
 {
-  auto relations = m_model->relations(m_channel.get(), RelationType::RELATION_INOUT, Channel::STAIN_LINK);
+  auto relations = m_context.model()->relations(m_stack.get(), RelationType::RELATION_INOUT, Channel::STAIN_LINK);
 
   if(relations.empty())
   {
     auto description = tr("Stack is not related to any sample");
     auto hint        = tr("Change relations in the \"Stack Explorer\" panel");
 
-    reportIssue(m_channel, Issue::Severity::CRITICAL, description, hint);
+    reportIssue(m_stack, Issue::Severity::CRITICAL, description, hint);
   }
 }
 
 //------------------------------------------------------------------------
-void CheckChannelTask::run()
+void CheckStackTask::run()
 {
   try
   {
-    checkViewItemOutputs(m_channel);
+    checkViewItemOutputs(m_stack);
     checkRelations();
   }
   catch(const EspinaException &e)
   {
-    reportIssue(m_channel, Issue::Severity::CRITICAL, tr("Check crashed during testing."), e.details());
+    reportIssue(m_stack, Issue::Severity::CRITICAL, tr("Check crashed during testing."), e.details());
   }
 }
 
 //------------------------------------------------------------------------
-CheckSampleTask::CheckSampleTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-: CheckDataTask{scheduler, item, model}
-, m_sample   {std::dynamic_pointer_cast<SampleAdapter>(item)}
+CheckSampleTask::CheckSampleTask(Support::Context &context, NeuroItemAdapterSPtr item)
+: CheckDataTask{context, item}
+, m_sample     {std::dynamic_pointer_cast<SampleAdapter>(item)}
 {
 }
 
@@ -521,9 +526,9 @@ void CheckSampleTask::run()
 }
 
 //------------------------------------------------------------------------
-CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(SchedulerSPtr scheduler, ModelAdapterSPtr model)
-: CheckTask      {scheduler, model}
-, m_segmentations{model->segmentations()}
+CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(Support::Context &context)
+: CheckTask      {context}
+, m_segmentations{context.model()->segmentations()}
 {
   // detach from implicit sharing
   m_segmentations.detach();
@@ -574,9 +579,9 @@ IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdap
 }
 
 //------------------------------------------------------------------------
-CheckDataTask::CheckDataTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
-: CheckTask{scheduler, model}
-, m_item(item)
+CheckDataTask::CheckDataTask(Support::Context &context, NeuroItemAdapterSPtr item)
+: CheckTask{context}
+, m_item   {item}
 {
   setDescription(tr("Checking %1").arg(item->data().toString())); // for debugging, the user will never see this
 }

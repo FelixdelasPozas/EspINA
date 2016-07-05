@@ -34,6 +34,7 @@
 // ESPINA
 #include <Tasks/ApplyCountingFrame.h>
 #include <Core/Utils/Bounds.h>
+#include <GUI/ModelFactory.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -41,6 +42,7 @@
 
 namespace ESPINA
 {
+  class CoreFactory;
   class RenderView;
 
   namespace CF
@@ -286,12 +288,14 @@ namespace ESPINA
        * \param[in] inclusion inclusion margins in each of the axis.
        * \param[in] exclusion exclusion margins in each of the axis.
        * \param[in] scheduler application task scheduler.
+       * \param[in] factory   model factory
        *
        */
       explicit CountingFrame(CountingFrameExtension *extension,
-                             Nm inclusion[3],
-                             Nm exclusion[3],
-                             SchedulerSPtr scheduler);
+                             Nm                      inclusion[3],
+                             Nm                      exclusion[3],
+                             SchedulerSPtr           scheduler,
+                             CoreFactory            *factory);
 
       /** \brief Updates the counting frame inclusion/exclusion values of all the constrained segmentations and
        * recomputes the widgets geometry.
@@ -338,7 +342,8 @@ namespace ESPINA
       void onCountingFrameApplied();
 
     protected:
-      SchedulerSPtr m_scheduler; /** task scheduler. */
+      SchedulerSPtr                m_scheduler;           /** task scheduler.                                 */
+      CoreFactory                 *m_factory;             /** Model factory for extension creation.           */
 
       mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame.                       */
       vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits.                          */

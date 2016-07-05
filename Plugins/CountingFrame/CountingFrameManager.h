@@ -23,8 +23,10 @@
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
 // Plugin
-#include <CountingFrames/CountingFrame.h>
 #include "Extensions/CountingFrameExtension.h"
+#include <CountingFrames/CountingFrame.h>
+
+// ESPINA
 #include <GUI/Types.h>
 #include <Support/Context.h>
 
@@ -50,14 +52,6 @@ namespace ESPINA
        *
        */
       CountingFrameManager(Support::Context &context);
-
-      /** \brief Creates and returns a counting frame extension.
-       * \param[in] scheduler task scheduler.
-       * \param[in] state extension state.
-       *
-       */
-      CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
-                                                 const State  &state = State()) const;
 
       /** \brief Returns the list of created counting frames.
        *

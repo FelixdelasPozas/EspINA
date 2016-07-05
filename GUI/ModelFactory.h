@@ -47,6 +47,9 @@ namespace ESPINA
   class ChannelAdapter;
   using ChannelAdapterSPtr = std::shared_ptr<ChannelAdapter>;
 
+  class ModelFactory;
+  using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
+
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
@@ -80,23 +83,23 @@ namespace ESPINA
      * \param[in] factory channel extension factory smart pointer.
      *
      */
-    void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
+    void registerExtensionFactory(Core::StackExtensionFactorySPtr factory);
 
     /** \brief Registers a segmentation extension factory in the factory.
      * \param[in] factory segmentation extension factory smart pointer.
      *
      */
-    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
+    void registerExtensionFactory(Core::SegmentationExtensionFactorySPtr factory);
 
     /** \brief Returns the list of channel extension types the factory can create.
      *
      */
-    ChannelExtensionTypeList availableChannelExtensions() const;
+    Core::StackExtension::TypeList availableStackExtensions() const;
 
     /** \brief Returns the list of segmentation extension types the factory can create.
      *
      */
-    SegmentationExtensionTypeList availableSegmentationExtensions() const;
+    Core::SegmentationExtension::TypeList availableSegmentationExtensions() const;
 
     /** \brief Returns the list of file extensions the factory can read.
      *
@@ -164,7 +167,7 @@ namespace ESPINA
      * \param[in] type channel extension type.
      *
      */
-    ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type &type);
+    Core::StackExtensionSPtr createStackExtension(const Core::StackExtension::Type &type);
 
     /** \brief Creates and returns a segmentation adapter from a given filter and an output id.
      * \param[in] filter filter adapter smart pointer.
@@ -177,7 +180,7 @@ namespace ESPINA
      * \param[in] type segmentation extension type.
      *
      */
-    SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type &type);
+    Core::SegmentationExtensionSPtr createSegmentationExtension(const Core::SegmentationExtension::Type &type);
 
     /** \brief Returns the adapter for the given sample.
      * \param[in] sample sample smart pointer to adapt.
@@ -217,6 +220,12 @@ namespace ESPINA
     TemporalStorageSPtr createTemporalStorage();
 
   private:
+    template<typename Factory, typename ... Args>
+    friend Core::StackExtensionFactorySPtr createStackExtensionFactory(ModelFactorySPtr factory, Args ... args);
+
+    template<typename Factory, typename ... Args>
+    friend Core::SegmentationExtensionFactorySPtr createSegmentationExtensionFactory(ModelFactorySPtr factory, Args ... args);
+
     CoreFactorySPtr m_factory;
     SchedulerSPtr   m_scheduler;
 
@@ -224,41 +233,26 @@ namespace ESPINA
     QMap<QString, AnalysisReaderSList> m_readerExtensions;
   };
 
-  using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
-
-  template<typename Extensible>
-  void addSegmentationExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
+  /** \brief Creation of StackExtensionFactory objects.
+   * \param[in] factory model factory.
+   * \param[in] args rest of arguments for the extension factory.
+   *
+   */
+  template<typename Factory, typename ... Args>
+  Core::StackExtensionFactorySPtr createStackExtensionFactory(ModelFactorySPtr factory, Args ... args)
   {
-    auto extensions = segmentation->extensions();
-
-    if (!extensions->hasExtension(type))
-    {
-      if (factory->availableSegmentationExtensions().contains(type))
-      {
-        auto extension = factory->createSegmentationExtension(type);
-
-        if(extension->validCategory(segmentation->category()->classificationName()))
-        {
-          extensions->add(extension);
-        }
-        else
-        {
-          qWarning() << segmentation->data().toString() << "doesn't support"<< type << "extensions";
-        }
-      }
-      else
-      {
-        qWarning() << type << " extension is not available";
-      }
-    }
+    return std::make_shared<Factory>(factory->m_factory.get(), args ...);
   }
 
-  template<typename Extensible>
-  SegmentationExtensionSPtr retrieveOrCreateExtension(Extensible segmentation, const QString &type, ModelFactorySPtr factory)
+  /** \brief Creation of SegmentationExtensionFactory objects.
+   * \param[in] factory model factory.
+   * \param[in] args rest of arguments for the extension factory.
+   *
+   */
+  template<typename Factory, typename ... Args>
+  Core::SegmentationExtensionFactorySPtr createSegmentationExtensionFactory(ModelFactorySPtr factory, Args ... args)
   {
-    addSegmentationExtension(segmentation, type, factory);
-
-    return segmentation->readOnlyExtensions()[type];
+    return std::make_shared<Factory>(factory->m_factory.get(), args ...);
   }
 
 }// namespace ESPINA

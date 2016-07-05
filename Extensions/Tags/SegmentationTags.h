@@ -39,114 +39,124 @@
 
 namespace ESPINA
 {
-  class EspinaExtensions_EXPORT SegmentationTags
-  : public SegmentationExtension
+  namespace Extensions
   {
-  public:
-    static const Key TAGS;
-    static const Type TYPE;
+    class SegmentationTagsFactory;
 
-    /** \brief returns the list of available tags.
+    /** \class SegmentationTags
+     * \brief Extends the Segmentation class with tagging information.
      *
      */
-    static QStringList availableTags();
+    class EspinaExtensions_EXPORT SegmentationTags
+    : public Core::SegmentationExtension
+    {
+      public:
+        static const Key TAGS;
+        static const Type TYPE;
 
-  public:
-    /** \brief SegmentationTags class constructor.
-     * \param[in] infoCache, cache object.
-     *
-     */
-    explicit SegmentationTags(const InfoCache& infoCache = InfoCache());
+        /** \brief returns the list of available tags.
+         *
+         */
+        static QStringList availableTags();
 
-    /** \brief SegmentationTags class virtual destructor.
-     *
-     */
-    virtual ~SegmentationTags();
+      public:
+        /** \brief SegmentationTags class virtual destructor.
+         *
+         */
+        virtual ~SegmentationTags();
 
-    virtual Type type() const override
-    { return TYPE; }
+        virtual Type type() const override
+        { return TYPE; }
 
-    virtual bool invalidateOnChange() const override
-    { return false; }
+        virtual bool invalidateOnChange() const override
+        { return false; }
 
-    virtual State state() const override
-    { return m_tags.join(";"); }
+        virtual State state() const override
+        { return m_tags.join(";"); }
 
-    virtual Snapshot snapshot() const override
-    { return Snapshot(); }
+        virtual Snapshot snapshot() const override
+        { return Snapshot(); }
 
-    virtual TypeList dependencies() const override
-    { return TypeList(); }
+        virtual TypeList dependencies() const override
+        { return TypeList(); }
 
-    virtual bool validCategory(const QString& classificationName) const override
-    { return true; }
+        virtual bool validCategory(const QString& classificationName) const override
+        { return true; }
 
-    virtual InformationKeyList availableInformation() const override;
+        virtual InformationKeyList availableInformation() const override;
 
-    virtual QString toolTipText() const override;
+        virtual QString toolTipText() const override;
 
-    /** \brief Adds a tag.
-     * \param[in] tag text string.
-     *
-     */
-    void addTag(const QString &tag);
+        /** \brief Adds a tag.
+         * \param[in] tag text string.
+         *
+         */
+        void addTag(const QString &tag);
 
-    /** \brief Adds multiple tags.
-     * \param[in] tags text string list.
-     *
-     */
-    void addTags(const QStringList &tags);
+        /** \brief Adds multiple tags.
+         * \param[in] tags text string list.
+         *
+         */
+        void addTags(const QStringList &tags);
 
-    /** \brief Removes a tag.
-     * \param[in] tag text string.
-     *
-     */
-    void removeTag(const QString &tag);
+        /** \brief Removes a tag.
+         * \param[in] tag text string.
+         *
+         */
+        void removeTag(const QString &tag);
 
-    /** \brief Sets the tags.
-     * \param[in] tags text string list.
-     *
-     */
-    void setTags(const QStringList &tags);
+        /** \brief Sets the tags.
+         * \param[in] tags text string list.
+         *
+         */
+        void setTags(const QStringList &tags);
 
-    /** \brief Returns the tags.
-     *
-     */
-    QStringList tags() const;
+        /** \brief Returns the tags.
+         *
+         */
+        QStringList tags() const;
 
-  protected:
-    virtual void onExtendedItemSet(SegmentationPtr item) override;
+      protected:
+        virtual void onExtendedItemSet(SegmentationPtr item) override;
 
-    virtual QVariant cacheFail(const InformationKey& tag) const override;
+        virtual QVariant cacheFail(const InformationKey& tag) const override;
 
-  private:
-    /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).
-     * \param[in] tag text string.
-     *
-     */
-    void addTagImplementation(const QString &tag);
+      private:
+        /** \brief SegmentationTags class constructor.
+         * \param[in] infoCache, cache object.
+         *
+         */
+        explicit SegmentationTags(const InfoCache& infoCache = InfoCache());
 
-    /** \brief Adds the tags to the available tags counter.
-     * \param[in] tag text string.
-     *
-     */
-    void addToAvailableTags(const QString &tag);
+        /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).
+         * \param[in] tag text string.
+         *
+         */
+        void addTagImplementation(const QString &tag);
 
-    /** \brief Removes the tag from the available tags counter.
-     * \param[in] tag text string.
-     *
-     */
-    void removeFromAvailableTags(const QString &tag);
+        /** \brief Adds the tags to the available tags counter.
+         * \param[in] tag text string.
+         *
+         */
+        void addToAvailableTags(const QString &tag);
 
-    QStringList m_tags;
+        /** \brief Removes the tag from the available tags counter.
+         * \param[in] tag text string.
+         *
+         */
+        void removeFromAvailableTags(const QString &tag);
 
-    static QReadWriteLock s_mutex;
-    static QMap<QString, unsigned int> s_availableTags;
-  };
+        QStringList m_tags;
 
-  using SegmentationTagsPtr  = SegmentationTags *;
-  using SegmentationTagsSPtr = std::shared_ptr<SegmentationTags>;
+        static QReadWriteLock s_mutex;
+        static QMap<QString, unsigned int> s_availableTags;
 
+        friend class SegmentationTagsFactory;
+    };
+
+    using SegmentationTagsPtr  = SegmentationTags *;
+    using SegmentationTagsSPtr = std::shared_ptr<SegmentationTags>;
+  } // namespace Extensions
 } // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_TAGS

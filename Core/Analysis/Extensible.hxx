@@ -51,7 +51,7 @@ namespace ESPINA
              *
              */
             Iterator(const Extensions<E, T> *container, unsigned index)
-            : m_containter(container)
+            : m_container(container)
             , m_index(index)
             {}
 
@@ -76,13 +76,13 @@ namespace ESPINA
              */
             ExtensionSPtr &operator*() const
             {
-              auto extensions = m_containter->m_extensions;
+              auto extensions = m_container->m_extensions;
               return extensions[extensions.keys()[m_index]];
             }
 
           private:
-            const Extensions<E, T> *m_containter; /** extensions container map. */
-            unsigned m_index;                     /** current iterator index.   */
+            const Extensions<E, T> *m_container; /** extensions container map. */
+            unsigned m_index;                    /** current iterator index.   */
         };
 
       public:

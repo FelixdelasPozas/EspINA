@@ -32,65 +32,73 @@
 
 namespace ESPINA
 {
-  class EspinaExtensions_EXPORT MorphologicalInformation
-  : public SegmentationExtension
+  namespace Extensions
   {
-    using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
-    using LabelMapType    = itk::LabelMap<LabelObjectType>;
-    using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
+    class EspinaExtensions_EXPORT MorphologicalInformation
+    : public Core::SegmentationExtension
+    {
+        using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
+        using LabelMapType    = itk::LabelMap<LabelObjectType>;
+        using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 
-  public:
-    static const Type TYPE;
+      public:
+        static const Type TYPE;
 
-  public:
-    /** \brief MorphologicalInformation class constructor.
-     * \param[in] cache, cache object for the extension.
-     * \param[in] state, state object of the extension.
-     */
-    explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
-                                      const State     &state = State());
+      public:
+        /** \brief MorphologicalInformation class virtual destructor.
+         *
+         */
+        virtual ~MorphologicalInformation();
 
-    /** \brief MorphologicalInformation class virtual destructor.
-     *
-     */
-    virtual ~MorphologicalInformation();
+        virtual QString type() const
+        { return TYPE; }
 
-    virtual QString type() const
-    { return TYPE; }
+        virtual State state() const;
 
-    virtual State state() const;
+        virtual Snapshot snapshot() const;
 
-    virtual Snapshot snapshot() const;
+        virtual TypeList dependencies() const
+        { return TypeList(); }
 
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+        virtual bool invalidateOnChange() const
+        { return true; }
 
-    virtual bool invalidateOnChange() const
-    { return true; }
+        virtual InformationKeyList availableInformation() const;
 
-    virtual InformationKeyList availableInformation() const;
+        virtual bool validCategory(const QString& classificationName) const
+        { return true;}
 
-    virtual bool validCategory(const QString& classificationName) const
-    { return true;}
+      protected:
+        virtual QVariant cacheFail(const InformationKey& tag) const;
 
-  protected:
-    virtual QVariant cacheFail(const InformationKey& tag) const;
+        virtual void onExtendedItemSet(Segmentation* item);
 
-    virtual void onExtendedItemSet(Segmentation* item);
+      private:
+        /** \brief Computes information values.
+         *
+         */
+        void updateInformation() const;
 
-  private:
-    /** \brief Computes information values.
-     *
-     */
-    void updateInformation() const;
+      private:
+        /** \brief MorphologicalInformation class constructor.
+         * \param[in] cache, cache object for the extension.
+         * \param[in] state, state object of the extension.
+         */
+        explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
+                                          const State     &state = State());
 
-  private:
-    mutable QReadWriteLock m_mutex;
+        mutable QReadWriteLock m_mutex;
 
-    Image2LabelFilterType::Pointer m_labelMap;
-    mutable LabelObjectType       *m_statistic;
-  };
+        Image2LabelFilterType::Pointer m_labelMap;
+        mutable LabelObjectType       *m_statistic;
 
+        friend class MorphologicalInformationFactory;
+    };
+
+    using MorphologicalExtensionPtr  = MorphologicalInformation *;
+    using MorphologicalExtensionSPtr = std::shared_ptr<MorphologicalInformation>;
+
+  }// namespace Extensions
 }// namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_INFORMATION_H

@@ -28,9 +28,10 @@
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler)
-: Task  {scheduler}
-, m_cf  {nullptr}
+CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, CoreFactory *factory)
+: Task     {scheduler}
+, m_cf     {nullptr}
+, m_factory{factory}
 {
   m_data = data;
 }
@@ -56,10 +57,10 @@ void CountingFrameCreator::run()
   switch(m_data.type)
   {
     case CFType::ORTOGONAL:
-      m_cf = OrthogonalCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler);
+      m_cf = OrthogonalCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler, m_factory);
       break;
     case CFType::ADAPTIVE:
-      m_cf = AdaptiveCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler);
+      m_cf = AdaptiveCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler, m_factory);
       break;
     default:
       Q_ASSERT(false);

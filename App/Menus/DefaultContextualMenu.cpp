@@ -51,6 +51,7 @@
 #include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
@@ -102,7 +103,7 @@ void DefaultContextualMenu::addNote()
 
     if (editor.exec())
     {
-      commands << new ChangeSegmentationNotes(segmentation, editor.text());
+      commands << new ChangeSegmentationNotes(segmentation, editor.text(), getContext().factory().get());
     }
   }
 
@@ -141,7 +142,7 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
 //------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
-  Support::Utils::Tags::manageTags(m_segmentations, getUndoStack());
+  Support::Utils::Tags::manageTags(m_segmentations, getUndoStack(), getContext().factory().get());
 }
 
 //------------------------------------------------------------------------

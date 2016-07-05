@@ -34,14 +34,17 @@
 #include <Extensions/Notes/SegmentationNotes.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
                                                  const QString&         note,
+                                                 ModelFactory          *factory,
                                                  QUndoCommand*          parent)
 : QUndoCommand  {parent}
 , m_segmentation{segmentation}
 , m_formerNote  {note}
+, m_factory     {factory}
 {
 }
 
@@ -71,8 +74,11 @@ void ChangeSegmentationNotes::swapNotes()
 
   if (currentNote.isEmpty() && !m_formerNote.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationNotes>(extensions);
-    extension->setNotes(m_formerNote);
+    auto extension = m_factory->createSegmentationExtension(SegmentationNotes::TYPE);
+    extensions->add(extension);
+
+    auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+    notesExtension->setNotes(m_formerNote);
     m_formerNote = "";
   }
   else if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
@@ -86,5 +92,6 @@ void ChangeSegmentationNotes::swapNotes()
     extensions->remove(SegmentationNotes::TYPE);
     m_formerNote = currentNote;
   }
+
   m_segmentation->notifyModification();
 }

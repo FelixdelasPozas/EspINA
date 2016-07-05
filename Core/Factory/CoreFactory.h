@@ -24,9 +24,10 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
+#include <Core/Analysis/Extensible.hxx>
 #include "Core/Factory/FilterFactory.h"
-#include "Core/Factory/ChannelExtensionFactory.h"
-#include "Core/Factory/SegmentationExtensionFactory.h"
+#include "Core/Factory/ExtensionFactory.h"
+#include "Core/Analysis/Extensions.h"
 #include <Core/Utils/TemporalStorage.h>
 
 // Qt
@@ -34,9 +35,10 @@
 #include <QMap>
 #include <QDir>
 
+using ESPINA::Core::Analysis::Extensible;
+
 namespace ESPINA
 {
-
   class EspinaCore_EXPORT CoreFactory
   {
   public:
@@ -111,13 +113,13 @@ namespace ESPINA
      *  From now on, CoreFactory can create all the channel extensions provided by
      *  the registered factory
      */
-    void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
+    void registerExtensionFactory(Core::StackExtensionFactorySPtr factory);
 
     /** \brief Returns the list of channel extensions types this factory can create.
      *
      *  Extension state is restored using cache and state data.
      */
-    ChannelExtensionTypeList availableChannelExtensions() const;
+    Core::StackExtension::TypeList availableStackExtensions() const;
 
     /** \brief Create a channel extension.
      * \param[in] type channel extension type.
@@ -126,9 +128,9 @@ namespace ESPINA
      *
      *  Extension state is restored using cache and state data.
      */
-    ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
-                                                const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
-                                                const State &state = State());
+    Core::StackExtensionSPtr createStackExtension(const Core::StackExtension::Type      &type,
+                                                  const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
+                                                  const State &state = State());
 
     /** \brief Creates a segmentation.
      * \param[in] filte, filter smart pointer.
@@ -143,20 +145,20 @@ namespace ESPINA
      *  From now on, CoreFactory can create all the segmentation extensions provided by
      *  the registered factory.
      */
-    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
+    void registerExtensionFactory(Core::SegmentationExtensionFactorySPtr factory);
 
     /** \brief Returns a list of segmentation extension types that this factory can create.
      *
      */
-    SegmentationExtensionTypeList availableSegmentationExtensions() const;
+    Core::SegmentationExtension::TypeList availableSegmentationExtensions() const;
 
     /** \brief Create an extension instance of the given type.
      *
      *  Extension state is restored using cache and state data.
      */
-    SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                          const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
-                                                          const State &state = State());
+    Core::SegmentationExtensionSPtr createSegmentationExtension(const Core::SegmentationExtension::Type      &type,
+                                                                const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
+                                                                const State &state = State());
 
     /** \brief Sets temporal storage for the factory.
      * \param[in] storage temporal storage smart pointer.
@@ -176,6 +178,12 @@ namespace ESPINA
      */
     void setTemporalDirectory(const QDir &directory);
 
+    /** \brief Returns the factory thread scheduler.
+     *
+     */
+    SchedulerSPtr scheduler() const
+    { return m_scheduler; }
+
   private:
     /** \brief Returns the default temporal storage for the factory.
      *
@@ -186,10 +194,61 @@ namespace ESPINA
     mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */
     QDir                       *m_temporalStorageDir;  /** directory for temporal storage.   */
 
-    QMap<Filter::Type, FilterFactorySPtr>                               m_filterFactories;
-    QMap<ChannelExtension::Type, ChannelExtensionFactorySPtr>           m_channelExtensionFactories;
-    QMap<SegmentationExtension::Type, SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
+    QMap<Filter::Type, FilterFactorySPtr>                                           m_filterFactories;
+    QMap<Core::StackExtension::Type, Core::StackExtensionFactorySPtr>               m_stackExtensionFactories;
+    QMap<Core::SegmentationExtension::Type, Core::SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
   };
+
+  //--------------------------------------------------------------------
+  template<typename Extensible, typename Factory>
+  Core::SegmentationExtensionSPtr retrieveOrCreateSegmentationExtension(Extensible item, const Core::SegmentationExtension::Type &type, Factory factory)
+  {
+    if(!item->readOnlyExtensions()->hasExtension(type))
+    {
+      auto extension = factory->createSegmentationExtension(type);
+
+      if(extension->validCategory(item->category()->classificationName()))
+      {
+        item->extensions()->add(extension);
+      }
+      else
+      {
+        qWarning() << "Segmentation number" << item->number() << "doesn't support"<< type << "extensions";
+        Q_ASSERT(false);
+      }
+    }
+
+    return item->readOnlyExtensions()[type];
+  }
+
+  //--------------------------------------------------------------------
+  template<typename Extension, typename Extensible, typename Factory>
+  std::shared_ptr<Extension> retrieveOrCreateSegmentationExtension(Extensible item, Factory factory)
+  {
+    auto extension = retrieveOrCreateSegmentationExtension(item, Extension::TYPE, factory);
+    return std::dynamic_pointer_cast<Extension>(extension);
+  }
+
+  //--------------------------------------------------------------------
+  template<typename Extensible, typename Factory>
+  Core::StackExtensionSPtr retrieveOrCreateStackExtension(Extensible item, const Core::StackExtension::Type &type, Factory factory)
+  {
+    if(!item->readOnlyExtensions()->hasExtension(type))
+    {
+      auto extension = factory->createStackExtension(type);
+      item->extensions()->add(extension);
+    }
+
+    return item->readOnlyExtensions()[type];
+  }
+
+  //--------------------------------------------------------------------
+  template<typename Extension, typename Extensible, typename Factory>
+  std::shared_ptr<Extension> retrieveOrCreateStackExtension(Extensible item, Factory factory)
+  {
+    auto extension = retrieveOrCreateStackExtension(item, Extension::TYPE, factory);
+    return std::dynamic_pointer_cast<Extension>(extension);
+  }
 
 }// namespace ESPINA
 

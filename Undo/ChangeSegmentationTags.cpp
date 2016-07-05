@@ -31,16 +31,20 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Tags/SegmentationTags.h>
+#include <GUI/ModelFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
                                                const QStringList&     tags,
+                                               ModelFactory          *factory,
                                                QUndoCommand*          parent)
 : QUndoCommand  {parent}
 , m_segmentation{segmentation}
 , m_tags        {tags}
+, m_factory     {factory}
 {
 }
 
@@ -65,19 +69,27 @@ void ChangeSegmentationTags::swapTags()
 
   if (extensions->hasExtension(SegmentationTags::TYPE))
   {
-    currentTags = extensions->get<SegmentationTags>()->tags();
+    currentTags = retrieveExtension<SegmentationTags>(extensions)->tags();
   }
 
   if(!m_tags.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationTags>(extensions);
-    extension->setTags(m_tags);
+    SegmentationTagsSPtr tagsExtension = nullptr;
+
+    if (!extensions->hasExtension(SegmentationTags::TYPE))
+    {
+      auto extension = m_factory->createSegmentationExtension(SegmentationTags::TYPE);
+      extensions->add(extension);
+    }
+
+    tagsExtension = retrieveExtension<SegmentationTags>(extensions);
+    tagsExtension->setTags(m_tags);
   }
   else
   {
     if(!currentTags.isEmpty())
     {
-      extensions->remove(SegmentationTags::TYPE);
+      safeDeleteExtension<SegmentationTags>(m_segmentation);
     }
   }
 

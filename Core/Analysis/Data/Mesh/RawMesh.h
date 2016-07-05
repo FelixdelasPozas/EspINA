@@ -77,8 +77,7 @@ namespace ESPINA
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
     { fetchDataImplementation(storage, path, id, m_bounds); }
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const override
-    { QMutexLocker lock(&m_lock); return m_mesh; }
+    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
     void setSpacing(const NmVector3 &spacing) override;
 

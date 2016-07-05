@@ -35,7 +35,7 @@ namespace ESPINA
     /** \brief SASInformationProxy class constructor.
      *
      */
-    explicit SASInformationProxy(ModelAdapterSPtr model, SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
+    explicit SASInformationProxy(ModelAdapterSPtr model, Core::SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
     : InformationProxy{scheduler}
     , m_model         {model}
     , m_sasTags       {sasTags}
@@ -52,11 +52,11 @@ namespace ESPINA
   private:
     QVariant information(SegmentationAdapterPtr segmentation,
                          SegmentationAdapterPtr sas,
-                         SegmentationExtension::InformationKey& key) const;
+                         Core::SegmentationExtension::InformationKey& key) const;
 
   protected:
     ModelAdapterSPtr m_model;
-    SegmentationExtension::InformationKeyList m_sasTags;
+    Core::SegmentationExtension::InformationKeyList m_sasTags;
   };
 
 } // namespace ESPINA

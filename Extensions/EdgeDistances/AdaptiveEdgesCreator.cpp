@@ -41,6 +41,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> plane(const double corner[3],

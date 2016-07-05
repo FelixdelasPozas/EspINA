@@ -30,6 +30,7 @@
 #include <GUI/Utils/Conditions.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
 
 const QString SegmentationIssues::TYPE   = "SegmentationIssues";

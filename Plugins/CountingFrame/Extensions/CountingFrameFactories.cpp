@@ -27,20 +27,22 @@
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-ChannelExtensionFactoryCF::ChannelExtensionFactoryCF(CountingFrameManager* manager, SchedulerSPtr scheduler)
-: m_manager(manager)
-, m_scheduler(scheduler)
+CFStackExtensionFactory::CFStackExtensionFactory(CoreFactory *factory, CountingFrameManager* manager, SchedulerSPtr scheduler)
+: StackExtensionFactory{factory}
+, m_manager            {manager}
+, m_scheduler          {scheduler}
 {
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr ChannelExtensionFactoryCF::createChannelExtension(const ChannelExtension::Type      &type,
-                                                                       const ChannelExtension::InfoCache &cache,
-                                                                       const State& state) const
+StackExtensionSPtr CFStackExtensionFactory::createExtension(const StackExtension::Type      &type,
+                                                            const StackExtension::InfoCache &cache,
+                                                            const State                     &state) const
 {
   if (type != CountingFrameExtension::TYPE)
   {
@@ -50,13 +52,13 @@ ChannelExtensionSPtr ChannelExtensionFactoryCF::createChannelExtension(const Cha
     throw EspinaException(what, details);
   }
 
-  return m_manager->createExtension(m_scheduler, state);
+  return StackExtensionSPtr{new CountingFrameExtension(m_manager, m_scheduler, m_factory, state)};
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionTypeList ChannelExtensionFactoryCF::providedExtensions() const
+StackExtension::TypeList CFStackExtensionFactory::providedExtensions() const
 {
-  ChannelExtensionTypeList extensions;
+  StackExtension::TypeList extensions;
 
   extensions << CountingFrameExtension::TYPE;
 
@@ -64,15 +66,15 @@ ChannelExtensionTypeList ChannelExtensionFactoryCF::providedExtensions() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionFactoryCF::SegmentationExtensionFactoryCF()
+CFSegmentationExtensionFactory::CFSegmentationExtensionFactory(CoreFactory *factory)
+: SegmentationExtensionFactory{factory}
 {
-
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                                                      const SegmentationExtension::InfoCache &cache,
-                                                                                      const State& state) const
+SegmentationExtensionSPtr CFSegmentationExtensionFactory::createExtension(const SegmentationExtension::Type      &type,
+                                                                          const SegmentationExtension::InfoCache &cache,
+                                                                          const State& state) const
 {
   if (type != StereologicalInclusion::TYPE)
   {
@@ -82,13 +84,13 @@ SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExte
     throw EspinaException(what, details);
   }
 
-  return std::make_shared<StereologicalInclusion>(cache);
+  return SegmentationExtensionSPtr{new StereologicalInclusion(cache)};
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionTypeList SegmentationExtensionFactoryCF::providedExtensions() const
+SegmentationExtension::TypeList CFSegmentationExtensionFactory::providedExtensions() const
 {
-  SegmentationExtensionTypeList extensions;
+  SegmentationExtension::TypeList extensions;
 
   extensions << StereologicalInclusion::TYPE;
 

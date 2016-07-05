@@ -33,7 +33,8 @@ namespace ESPINA
 {
   namespace Extensions
   {
-    /** \brief Struct that contains issue description
+    /** \class Issue
+     * \brief Contains issue information.
      *
      */
     class EspinaExtensions_EXPORT Issue
@@ -54,11 +55,18 @@ namespace ESPINA
       static QString WARNING_TAG;
       static QString CRITICAL_TAG;
 
-      // required by qRegisterMetaType
+      /** \brief Issue class empty constructor.
+       *
+       * NOTE: Required by qRegisterMetatype.
+       *
+       */
       explicit Issue()
       : m_severity(Severity::CRITICAL)
       {};
 
+      /** \brief Issue class constructor.
+       *
+       */
       explicit Issue(const QString &itemName, const Severity severity, const QString &description, const QString &suggestion = QString())
       : m_itemName(itemName)
       , m_severity(severity)
@@ -66,21 +74,31 @@ namespace ESPINA
       , m_suggestion(suggestion)
       {};
 
-      virtual ~Issue() {}
-
+      /** \brief Returns the name of the item that has the problem.
+       *
+       */
       QString displayName() const;
 
+      /** \brief Returns the severity level of the problem.
+       *
+       */
       Severity severity() const;
 
+      /** \brief Returns a textual description of the problem.
+       *
+       */
       QString description() const;
 
+      /** \brief Returns a suggestion on how to fix the problem.
+       *
+       */
       QString suggestion() const;
 
     private:
-      QString m_itemName; // Element that has the issue.
-      Severity m_severity;   // Severity of the issue.
-      QString m_description;     // Description of the issue.
-      QString m_suggestion;  // Suggestion of a solution to the issue.
+      QString m_itemName;    /** Element that has the issue.            */
+      Severity m_severity;   /** Severity of the issue.                 */
+      QString m_description; /** Description of the issue.              */
+      QString m_suggestion;  /** Suggestion of a solution to the issue. */
 
     };
 

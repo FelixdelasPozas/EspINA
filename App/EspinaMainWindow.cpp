@@ -66,7 +66,6 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/Styles.h>
-#include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
@@ -117,9 +116,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   factory->registerAnalysisReader(m_segFileReader);
   factory->registerFilterFactory (m_channelReader);
 
-  auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
-  factory->registerExtensionFactory(defaultExtensions);
-
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_context);
 #if USE_METADONA
@@ -139,8 +135,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   initColorEngines();
 
   loadPlugins(plugins);
-
-  //m_colorEngineMenu->restoreUserSettings();
 
   createToolShortcuts();
 
@@ -1190,7 +1184,7 @@ void EspinaMainWindow::updateUndoStackIndex()
 //------------------------------------------------------------------------
 void EspinaMainWindow::checkAnalysisConsistency()
 {
-  auto checkerTask = std::make_shared<CheckAnalysis>(m_context.scheduler(), m_context.model());
+  auto checkerTask = std::make_shared<CheckAnalysis>(m_context);
 
   connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
@@ -1219,16 +1213,7 @@ void EspinaMainWindow::analyzeChannelEdges()
 {
   for (auto channel : m_context.model()->channels())
   {
-    bool hasExtension = false;
-    {
-      auto readExtensions = channel->readOnlyExtensions();
-      hasExtension = readExtensions->hasExtension(ChannelEdges::TYPE);
-    }
-
-    if (!hasExtension)
-    {
-      channel->extensions()->add(std::make_shared<ChannelEdges>(m_context.scheduler()));
-    }
+    retrieveOrCreateStackExtension(channel, ChannelEdges::TYPE, m_context.factory());
   }
 }
 

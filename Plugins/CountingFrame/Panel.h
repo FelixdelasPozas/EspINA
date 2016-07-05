@@ -25,11 +25,10 @@
 
 #include <Support/Widgets/Panel.h>
 #include <Support/Context.h>
+#include <Tasks/ComputeOptimalMargins.hxx>
 
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
-#include "Tasks/ComputeOptimalMargins.h"
-
 #include <QStandardItemModel>
 
 namespace ESPINA
@@ -130,20 +129,16 @@ namespace ESPINA
 
     void updateSegmentationExtensions();
 
-    /// Find margin values which discard all segmentations that
-    /// touch the channel margins
-    void computeOptimalMargins(ChannelAdapterPtr channel,
-                               Nm inclusion[3],
-                               Nm exclusion[3]);
-
-//     void computeOptimalMargins(ChannelPtr channel,
-//                                Nm inclusion[3],
-//                                Nm exclusion[3]);
-
-    /// Return inclusion margins definded by the UI
+    /** \brief Returns inclusion margins defined by the UI
+     * \param[out] values inclusion margins values.
+     *
+     */
     void inclusionMargins(double values[3]);
 
-    /// Return exclusion margins definded by the UI
+    /** Returns exclusion margins defined by the UI.
+     * \param[out] values exclusion margins values.
+     *
+     */
     void exclusionMargins(double values[3]);
 
     void updateTable();
@@ -152,7 +147,6 @@ namespace ESPINA
 
   private:
     CountingFrameManager   *m_manager;
-    Support::Context &m_context;
 
     GUI     *m_gui;
     CFModel *m_cfModel;

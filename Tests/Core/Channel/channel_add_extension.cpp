@@ -36,14 +36,14 @@ using namespace std;
 int channel_add_extension(int argc, char** argv )
 {
   class DummyExtension
-  : public ChannelExtension
+  : public Core::StackExtension
   {
   public:
     bool Initialized;
     bool ValidChannel;
   public:
     explicit DummyExtension() 
-    : ChannelExtension(InfoCache()), Initialized{false}, ValidChannel{false} {}
+    : Core::StackExtension(InfoCache()), Initialized{false}, ValidChannel{false} {}
 
     virtual InformationKeyList availableInformation() const { return InformationKeyList(); }
     virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }

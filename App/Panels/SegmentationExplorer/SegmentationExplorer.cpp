@@ -44,8 +44,8 @@
 #include <QUndoStack>
 #include <QWidgetAction>
 
-
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Utils::Format;

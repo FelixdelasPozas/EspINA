@@ -37,9 +37,11 @@
 #include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::Core;
 using namespace ESPINA::CF;
 
-ChannelExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
+StackExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
 
 const QString CountingFrameExtension::FILE = CountingFrameExtension::TYPE + "/CountingFrame.ext";
 
@@ -48,13 +50,15 @@ const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager,
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager *manager,
                                                SchedulerSPtr         scheduler,
+                                               CoreFactory          *factory,
                                                const State          &state)
-: ChannelExtension{InfoCache()}
-, m_manager       {manager}
-, m_scheduler     {scheduler}
-, m_prevState     {state}
+: StackExtension{InfoCache()}
+, m_manager     {manager}
+, m_scheduler   {scheduler}
+, m_factory     {factory}
+, m_prevState   {state}
 {
 }
 
@@ -112,8 +116,11 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
   Q_ASSERT(m_countingFrames.contains(countingFrame));
   for (auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
-    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation->extensions());
-    extension->removeCountingFrame(countingFrame);
+    if(segmentation->extensions()->hasExtension(StereologicalInclusion::TYPE))
+    {
+      auto extension = retrieveExtension<StereologicalInclusion>(segmentation->extensions());
+      extension->removeCountingFrame(countingFrame);
+    }
   }
 
   m_countingFrames.removeOne(countingFrame);
@@ -142,7 +149,6 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
   {
     for (auto cfEntry : m_prevState.split("\n"))
     {
-
       auto params = cfEntry.split(",");
 
       if (params.size() % NUM_FIELDS != 0)
@@ -183,7 +189,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
   data.id         = (id.isEmpty() ? m_manager->defaultCountingFrameId(constraint) : id);
   data.constraint = constraint;
 
-  auto task = std::make_shared<CountingFrameCreator>(data, m_scheduler);
+  auto task = std::make_shared<CountingFrameCreator>(data, m_scheduler, m_factory);
   task->setDescription(tr("Creating CF %1: %2").arg(id.isEmpty() ? "" : id).arg(m_extendedItem->name()));
 
   connect(task.get(), SIGNAL(finished()),
@@ -216,10 +222,4 @@ void CountingFrameExtension::onCountingFrameCreated()
 
     m_manager->registerCountingFrame(cf);
   }
-}
-
-//-----------------------------------------------------------------------------
-CountingFrameExtensionSPtr ESPINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
-{
-  return std::dynamic_pointer_cast<CountingFrameExtension>(extension);
 }

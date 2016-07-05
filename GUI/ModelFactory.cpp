@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 
@@ -56,7 +57,7 @@ void ModelFactory::registerFilterFactory(FilterFactorySPtr factory)
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
+void ModelFactory::registerExtensionFactory(StackExtensionFactorySPtr factory)
 {
   m_factory->registerExtensionFactory(factory);
 }
@@ -84,13 +85,13 @@ void ModelFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
 }
 
 //------------------------------------------------------------------------
-ChannelExtensionTypeList ModelFactory::availableChannelExtensions() const
+StackExtension::TypeList ModelFactory::availableStackExtensions() const
 {
-  return m_factory->availableChannelExtensions();
+  return m_factory->availableStackExtensions();
 }
 
 //------------------------------------------------------------------------
-SegmentationExtensionTypeList ModelFactory::availableSegmentationExtensions() const
+SegmentationExtension::TypeList ModelFactory::availableSegmentationExtensions() const
 {
   return m_factory->availableSegmentationExtensions();
 }
@@ -144,9 +145,9 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterSPtr filter, Output::Id out
 }
 
 //------------------------------------------------------------------------
-ChannelExtensionSPtr ModelFactory::createChannelExtension(const ChannelExtension::Type &type)
+StackExtensionSPtr ModelFactory::createStackExtension(const StackExtension::Type &type)
 {
-  return m_factory->createChannelExtension(type);
+  return m_factory->createStackExtension(type);
 }
 
 //------------------------------------------------------------------------

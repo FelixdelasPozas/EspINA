@@ -20,14 +20,15 @@
 
 // Plugin
 #include "CountingFrames/CountingFrame.h"
-#include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
+#include "vtkCountingFrameSliceWidget.h"
 
 // ESPINA
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -35,16 +36,19 @@
 #include <vtkRenderWindow.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      inclusion[3],
                              Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler)
+                             SchedulerSPtr           scheduler,
+                             CoreFactory            *factory)
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
 , m_scheduler      {scheduler}
+, m_factory        {factory}
 , m_countingFrame  {nullptr}
 , m_innerFrame     {nullptr}
 , m_inclusionVolume{0}
@@ -68,8 +72,8 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 
   // TODO: the channel edges extension is accessed every time, even if the Counting Frame
   //       is orthogonal, triggering computation that may be unneeded.
-  auto edgesExtension = itemExtensions[ChannelEdges::TYPE];
-  m_channelEdges = std::dynamic_pointer_cast<ChannelEdges>(edgesExtension)->channelEdges();
+  auto edgesExtension = retrieveExtension<ChannelEdges>(itemExtensions);
+  m_channelEdges = edgesExtension->channelEdges();
 }
 
 //-----------------------------------------------------------------------------
@@ -348,7 +352,7 @@ void CountingFrame::apply()
     m_applyTask = nullptr;
   }
 
-  m_applyTask = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
+  m_applyTask = std::make_shared<ApplyCountingFrame>(this, m_factory, m_scheduler);
 
   connect(m_applyTask.get(), SIGNAL(finished()),
           this,              SLOT(onCountingFrameApplied()), Qt::DirectConnection);

@@ -39,186 +39,190 @@
 
 namespace ESPINA
 {
-  class AdaptiveEdgesCreator;
-  class EdgesAnalyzer;
-
-  class EspinaExtensions_EXPORT ChannelEdges
-  : public ChannelExtension
+  namespace Extensions
   {
-    static const QString EDGES_FILE;
-    static const QString FACES_FILE;
+    class ChannelEdgesFactory;
+    class AdaptiveEdgesCreator;
+    class EdgesAnalyzer;
 
-    Q_OBJECT
-  public:
-    static const Type TYPE;
+    class EspinaExtensions_EXPORT ChannelEdges
+    : public Core::StackExtension
+    {
+      static const QString EDGES_FILE;
+      static const QString FACES_FILE;
 
-  public:
-    /** \brief ChannelEdges class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
-     * \parma[in] cache, cache object.
-     * \param[in] state, state object.
-     *
-     */
-    explicit ChannelEdges(SchedulerSPtr   scheduler = SchedulerSPtr(),
-                          const InfoCache &cache    = InfoCache(),
-                          const State     &state    = State());
+      Q_OBJECT
+    public:
+      static const Type TYPE;
 
-    /** \brief ChannelEdges class destructor.
-     *
-     */
-    virtual ~ChannelEdges();
+    public:
+      /** \brief ChannelEdges class destructor.
+       *
+       */
+      virtual ~ChannelEdges();
 
-    virtual Type type() const
-    { return TYPE; }
+      virtual Type type() const
+      { return TYPE; }
 
-    virtual bool invalidateOnChange() const
-    { return true; }
+      virtual bool invalidateOnChange() const
+      { return true; }
 
-    virtual State state() const;
+      virtual State state() const;
 
-    virtual Snapshot snapshot() const;
+      virtual Snapshot snapshot() const;
 
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+      virtual TypeList dependencies() const
+      { return TypeList(); }
 
-    virtual InformationKeyList availableInformation() const
-    { return InformationKeyList(); }
+      virtual InformationKeyList availableInformation() const
+      { return InformationKeyList(); }
 
-    QString snapshotName(const QString &file) const;
+      QString snapshotName(const QString &file) const;
 
-    virtual void invalidate() override;
+      virtual void invalidate() override;
 
-    /** \brief Return the image region that excludes slice margin voxels.
-     *
-     */
-    itkVolumeType::RegionType sliceRegion(unsigned int slice) const;
+      /** \brief Return the image region that excludes slice margin voxels.
+       *
+       */
+      itkVolumeType::RegionType sliceRegion(unsigned int slice) const;
 
-    /** \brief Returns the distances in Nm from the segmentations to the bounds of the channel.
-     * \param[in] segmentation, segmentation raw pointer.
-     * \param[out] distances, distances in each direction.
-     *
-     */
-    void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
+      /** \brief Returns the distances in Nm from the segmentations to the bounds of the channel.
+       * \param[in] segmentation, segmentation raw pointer.
+       * \param[out] distances, distances in each direction.
+       *
+       */
+      void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
-    /** \brief Returns the distances in Nm from the segmentations to the edges of the channel.
-     * \param[in] segmentation to measure distances
-     * \param[out] distances in each direction.
-     *
-     */
-    void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
+      /** \brief Returns the distances in Nm from the segmentations to the edges of the channel.
+       * \param[in] segmentation to measure distances
+       * \param[out] distances in each direction.
+       *
+       */
+      void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
 
-    /** \brief Returns the vtkPolyData that define the edges of the channel.
-     *
-     */
-    vtkSmartPointer<vtkPolyData> channelEdges();
+      /** \brief Returns the vtkPolyData that define the edges of the channel.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> channelEdges();
 
-    virtual QString toolTipText() const
-    { return tr("Channel Edges"); }
+      virtual QString toolTipText() const
+      { return tr("Channel Edges"); }
 
-    /** \brief Return the volume un Nm^3.
-     *
-     */
-    Nm computedVolume();
+      /** \brief Return the volume un Nm^3.
+       *
+       */
+      Nm computedVolume();
 
-    /** \brief Sets the values of the stack edges.
-     * \param[in] useBounds true to use stack bounds and false otherwise.
-     * \param[in] value color intensity value.
-     * \param[in] threshold threshold value.
-     *
-     * NOTE: if (useBounds == false) and (color == -1) it forces a re-evaluation of the values.
-     *
-     */
-    void setAnalisysValues(bool useBounds, int color, int threshold);
+      /** \brief Sets the values of the stack edges.
+       * \param[in] useBounds true to use stack bounds and false otherwise.
+       * \param[in] value color intensity value.
+       * \param[in] threshold threshold value.
+       *
+       * NOTE: if (useBounds == false) and (color == -1) it forces a re-evaluation of the values.
+       *
+       */
+      void setAnalisysValues(bool useBounds, int color, int threshold);
 
-    /** \brief Returns the channel background color.
-     *
-     */
-    int backgroundColor() const;
+      /** \brief Returns the channel background color.
+       *
+       */
+      int backgroundColor() const;
 
-    /** \brief Returns the threshold value.
-     *
-     */
-    int threshold() const;
+      /** \brief Returns the threshold value.
+       *
+       */
+      int threshold() const;
 
-    /** \brief Returns the "use distance to bounds" flag.
-     *
-     */
-    bool useDistanceToBounds() const;
+      /** \brief Returns the "use distance to bounds" flag.
+       *
+       */
+      bool useDistanceToBounds() const;
 
-  protected:
-    virtual void onExtendedItemSet(Channel* item);
+    protected:
+      virtual void onExtendedItemSet(Channel* item);
 
-    virtual QVariant cacheFail(const InformationKey& tag) const
-    { return QVariant(); }
+      virtual QVariant cacheFail(const InformationKey& tag) const
+      { return QVariant(); }
 
-  private:
-    /** \brief Loads the edges from the cache and computes the adaptive edges.
-     *
-     */
-    void initializeEdges();
+    private:
+      /** \brief ChannelEdges class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \parma[in] cache, cache object.
+       * \param[in] state, state object.
+       *
+       */
+      explicit ChannelEdges(SchedulerSPtr   scheduler = SchedulerSPtr(),
+                            const InfoCache &cache    = InfoCache(),
+                            const State     &state    = State());
 
-    /** \brief Launches the edges analizer task.
-     *
-     */
-    void analyzeChannel();
+      /** \brief Loads the edges from the cache and computes the adaptive edges.
+       *
+       */
+      void initializeEdges();
 
-    /** \brief Computes the channel's adaptive edges.
-     *
-     */
-    void computeAdaptiveEdges();
+      /** \brief Launches the edges analizer task.
+       *
+       */
+      void analyzeChannel();
 
-    /** \brief Loads edges and faces polydatas from disk.
-     *
-     */
-    void loadEdgesData();
+      /** \brief Computes the channel's adaptive edges.
+       *
+       */
+      void computeAdaptiveEdges();
 
-    /** \brief Internal implementation of invalidate() without sending a signal.
-     *
-     */
-    void invalidateResults();
+      /** \brief Loads edges and faces polydatas from disk.
+       *
+       */
+      void loadEdgesData();
 
-    void checkAnalysisData() const;
-    void checkEdgesData();
+      /** \brief Internal implementation of invalidate() without sending a signal.
+       *
+       */
+      void invalidateResults();
 
-  private:
-    /** \brief Helper method to create the rectangular edges vtkPolyData.
-     * \param[in] bounds limits of the rectangular region.
-     *
-     */
-    void createRectangularRegion(const Bounds &bounds);
+      void checkAnalysisData() const;
+      void checkEdgesData();
 
-    mutable std::atomic<bool> m_hasAnalizedChannel;
-    mutable std::atomic<bool> m_hasCreatedEdges;
+    private:
+      /** \brief Helper method to create the rectangular edges vtkPolyData.
+       * \param[in] bounds limits of the rectangular region.
+       *
+       */
+      void createRectangularRegion(const Bounds &bounds);
 
-    mutable QWaitCondition m_analisysWait;        /** wait condition for EdgesAnalyzer task.                                                    */
-    mutable QMutex         m_analysisResultMutex; /** protects use distances, background and threshold values.                                  */
-    mutable QWaitCondition m_edgesTask;           /** wait condition for AdaptiveEdges task.                                                    */
-    mutable QMutex         m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
-    mutable QReadWriteLock m_dataMutex;           /** protects class internal data.                                                             */
-    QMutex                 m_distanceMutex;       /** protects edges polydata during distance to edges computation.                             */
+      mutable std::atomic<bool> m_hasAnalizedChannel;
+      mutable std::atomic<bool> m_hasCreatedEdges;
 
-    bool   m_useDistanceToBounds;                 /** true to use the distance to the stack bounds, false otherwise.                            */
-    int    m_backgroundColor;                     /** background color intensity value.                                                         */
-    int    m_threshold;                           /** background color threshold value.                                                         */
-    Nm     m_computedVolume;                      /** measure in nm^3 of the volume enclosed in the computed edges.                             */
+      mutable QWaitCondition m_analisysWait;        /** wait condition for EdgesAnalyzer task.                                                    */
+      mutable QMutex         m_analysisResultMutex; /** protects use distances, background and threshold values.                                  */
+      mutable QWaitCondition m_edgesTask;           /** wait condition for AdaptiveEdges task.                                                    */
+      mutable QMutex         m_edgesResultMutex;    /** barrier signaling end of edges computation.                                               */
+      mutable QReadWriteLock m_dataMutex;           /** protects class internal data.                                                             */
+      QMutex                 m_distanceMutex;       /** protects edges polydata during distance to edges computation.                             */
 
-    bool   m_invalidated;                         /** true if the values have been invalidated and needs to be computed again, false otherwise. */
+      bool   m_useDistanceToBounds;                 /** true to use the distance to the stack bounds, false otherwise.                            */
+      int    m_backgroundColor;                     /** background color intensity value.                                                         */
+      int    m_threshold;                           /** background color threshold value.                                                         */
+      Nm     m_computedVolume;                      /** measure in nm^3 of the volume enclosed in the computed edges.                             */
 
-    AdaptiveEdgesCreatorSPtr m_edgesCreator;      /** task that creates the edges polydata.                                                     */
-    EdgesAnalyzerSPtr        m_edgesAnalyzer;     /** task that analyzes border values and threshold.                                           */
+      bool   m_invalidated;                         /** true if the values have been invalidated and needs to be computed again, false otherwise. */
 
-    vtkSmartPointer<vtkPolyData> m_edges;         /** stack edges polydata.                                                                     */
-    vtkSmartPointer<vtkPolyData> m_faces[6];      /** edges faces polydatas.                                                                    */
+      AdaptiveEdgesCreatorSPtr m_edgesCreator;      /** task that creates the edges polydata.                                                     */
+      EdgesAnalyzerSPtr        m_edgesAnalyzer;     /** task that analyzes border values and threshold.                                           */
 
-    SchedulerSPtr m_scheduler;                    /** application task scheduler.                                                               */
+      vtkSmartPointer<vtkPolyData> m_edges;         /** stack edges polydata.                                                                     */
+      vtkSmartPointer<vtkPolyData> m_faces[6];      /** edges faces polydatas.                                                                    */
 
-    friend class AdaptiveEdgesCreator;
-    friend class EdgesAnalyzer;
-  };
+      SchedulerSPtr m_scheduler;                    /** application task scheduler.                                                               */
 
-  using ChannelEdgesPtr  = ChannelEdges *;
-  using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
+      friend class AdaptiveEdgesCreator;
+      friend class EdgesAnalyzer;
+      friend class ChannelEdgesFactory;
+    };
 
+    using ChannelEdgesPtr  = ChannelEdges *;
+    using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
+  } // namespace Extensions
 }// namespace ESPINA
 
 #endif // ESPINA_CHANNEL_EDGES_H

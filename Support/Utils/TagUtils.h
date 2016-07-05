@@ -24,12 +24,23 @@
 
 class QUndoStack;
 
-namespace ESPINA {
-  namespace Support {
-    namespace Utils {
+namespace ESPINA
+{
+  class ModelFactory;
+
+  namespace Support
+  {
+    namespace Utils
+    {
       namespace Tags
       {
-        void manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack);
+        /** \brief Helper method to show a dialog to manage the tags of a group of segmentations
+         * \param[in] segmentations list of segmentations to manage.
+         * \param[in] undoStack application QUndoStack object.
+         * \param[in] factory model factory to create tags extesnions.
+         *
+         */
+        void manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory);
       }
     }
   }

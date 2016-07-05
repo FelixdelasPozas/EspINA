@@ -71,7 +71,7 @@ namespace ESPINA
 
     virtual void init(Support::Context &context);
 
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
+    virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
     virtual QList<Support::CategorizedTool> tools() const;
 
@@ -140,10 +140,10 @@ namespace ESPINA
 
 
   private:
-    Support::Context                    *m_context;          /** application context. */
-    Support::Settings::SettingsPanelSPtr m_settings;         /** SAS execution settings. */
-    SegmentationExtensionFactorySPtr     m_extensionFactory; /** segmentation extensions factory. */
-    FilterFactorySPtr                    m_filterFactory;    /** filters factory. */
+    Support::Context                      *m_context;          /** application context.             */
+    Support::Settings::SettingsPanelSPtr   m_settings;         /** SAS execution settings.          */
+    Core::SegmentationExtensionFactorySPtr m_extensionFactory; /** segmentation extensions factory. */
+    FilterFactorySPtr                      m_filterFactory;    /** filters factory.                 */
 
     QMap<FilterPtr, struct Data> m_executingTasks; /** task currenty in execution, maps filter-data. */
     QMap<FilterPtr, struct Data> m_finishedTasks;  /** finished tasks, maps filter-data. */

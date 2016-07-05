@@ -21,58 +21,65 @@
 #ifndef ESPINA_EDGES_ANALYZER_H
 #define ESPINA_EDGES_ANALYZER_H
 
-// ESPINA
 #include "Extensions/EspinaExtensions_Export.h"
+
+// ESPINA
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
-#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
-  class ChannelEdges;
-
-  class EspinaExtensions_EXPORT EdgesAnalyzer
-  : public Task
+  namespace Extensions
   {
-    public:
-      /** \brief EdgesAnalyzer class constructor.
-       * \param[in] extension ChannelEdges raw pointer.
-       * \param[in] scheduler scheduler smart pointer.
-       *
-       */
-      explicit EdgesAnalyzer(ChannelEdges *extension,
-                             SchedulerSPtr scheduler = SchedulerSPtr());
+    class ChannelEdges;
 
-      /** \brief EdgesAnalyzer class destructor.
-       *
-       */
-      virtual ~EdgesAnalyzer();
+    /** \class EdgesAnalyzer
+     * \brief Analizes the values of the stack "surface" slices to determine if it's a electron
+     *        microscopy stack or a optic one.
+     */
+    class EspinaExtensions_EXPORT EdgesAnalyzer
+    : public Task
+    {
+      public:
+        /** \brief EdgesAnalyzer class constructor.
+         * \param[in] extension ChannelEdges raw pointer.
+         * \param[in] scheduler scheduler smart pointer.
+         *
+         */
+        explicit EdgesAnalyzer(ChannelEdges *extension,
+                               SchedulerSPtr scheduler = SchedulerSPtr());
 
-    protected:
-      /** \brief Computes the edges of a channel.
-       *
-       */
-      virtual void run();
+        /** \brief EdgesAnalyzer class destructor.
+         *
+         */
+        virtual ~EdgesAnalyzer();
 
-    private:
-      /** \brief Analizes the edge of a volume.
-       * \param[in] volume volumetric volume smart pointer to analyze.
-       * \param[in] edgeBounds bounds of the edge of the volume.
-       *
-       */
-      void analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds &edgeBounds);
+      protected:
+        /** \brief Computes the edges of a channel.
+         *
+         */
+        virtual void run();
 
-    private:
-      int m_useDistanceToBounds; /** number of faces that habe been analyzed and can measure just with the distance to the stack bounds. */
-      int m_bgIntensity;         /** computed background intensity value. */
-      int m_bgThreshold;         /** computed background intensity values threshold. */
+      private:
+        /** \brief Analizes the edge of a volume.
+         * \param[in] volume volumetric volume smart pointer to analyze.
+         * \param[in] edgeBounds bounds of the edge of the volume.
+         *
+         */
+        void analyzeEdge(const Output::ReadLockData<DefaultVolumetricData> &volume, const Bounds &edgeBounds);
 
-      ChannelEdges *m_extension; /** extension owner of the task. */
-};
+      private:
+        int m_useDistanceToBounds; /** number of faces that habe been analyzed and can measure just with the distance to the stack bounds. */
+        int m_bgIntensity;         /** computed background intensity value. */
+        int m_bgThreshold;         /** computed background intensity values threshold. */
 
-  using EdgesAnalyzerPtr  = EdgesAnalyzer *;
-  using EdgesAnalyzerSPtr = std::shared_ptr<EdgesAnalyzer>;
+        ChannelEdges *m_extension; /** extension owner of the task. */
+    };
 
-}// namespace ESPINA
+    using EdgesAnalyzerPtr  = EdgesAnalyzer *;
+    using EdgesAnalyzerSPtr = std::shared_ptr<EdgesAnalyzer>;
+  } // namespace Extensions
+} // namespace ESPINA
 
 #endif // ESPINA_EDGES_ANALYZER_H

@@ -41,8 +41,8 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
-    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<SegmentationExtension, Segmentation>;
-    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<SegmentationExtension, Segmentation>;
+    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
 
   public:
     /** \brief SegmentationAdapter class virtual destructor.
@@ -96,24 +96,24 @@ namespace ESPINA
 
     WriteLockExtensions extensions();
 
-     /** \brief Returns the list of tags provided by the segmnetation extensions of the segmentation.
+     /** \brief Returns the list of tags provided by the segmentation extensions of the segmentation.
       *
       */
-    virtual SegmentationExtension::InformationKeyList availableInformation() const;
+    virtual Core::SegmentationExtension::InformationKeyList availableInformation() const;
 
-    bool hasInformation(const SegmentationExtension::InformationKey &key) const
+    bool hasInformation(const Core::SegmentationExtension::InformationKey &key) const
     { return availableInformation().contains(key); }
 
     /** \brief Returns the information specified by the tag.
      * \param[in] key segmentation extension information tag.
      *
      */
-    virtual QVariant information(const SegmentationExtension::InformationKey &key) const;
+    virtual QVariant information(const Core::SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns true if the information is available.
      *
      */
-    bool isReady(const SegmentationExtension::InformationKey &key) const;
+    bool isReady(const Core::SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns a bounds that contain the segmentation.
      *

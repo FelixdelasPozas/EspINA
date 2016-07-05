@@ -25,6 +25,7 @@
 #include <Undo/ChangeSegmentationTags.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Support::Utils;
 
 //------------------------------------------------------------------------
@@ -45,10 +46,12 @@ QString dialogTitle(SegmentationAdapterList segmentations)
   return title;
 }
 //------------------------------------------------------------------------
-void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack)
+void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory)
 {
   if (!segmentations.isEmpty())
   {
+    Q_ASSERT(undoStack);
+
     QStandardItemModel tags;
 
     QMap<QString, int> tagOcurrence;
@@ -136,11 +139,10 @@ void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoSta
 
         if (previousTags.toSet() != currentTags.toSet())
         {
-          commands << new ChangeSegmentationTags(segmentation, currentTags);
+          commands << new ChangeSegmentationTags(segmentation, currentTags, factory);
         }
       }
     }
-
 
     if (!commands.isEmpty())
     {

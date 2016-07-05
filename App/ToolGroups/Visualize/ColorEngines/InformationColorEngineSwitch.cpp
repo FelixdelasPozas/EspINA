@@ -34,6 +34,7 @@
 #include <QLayout>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Analysis;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
@@ -79,7 +80,7 @@ void UpdateColorEngineTask::run()
 
     try
     {
-      auto extension = retrieveOrCreateExtension(segmentation, m_key.extension(), m_factory);
+      auto extension = retrieveOrCreateSegmentationExtension(segmentation, m_key.extension(), m_factory);
 
       auto info = extension->information(m_key);
 

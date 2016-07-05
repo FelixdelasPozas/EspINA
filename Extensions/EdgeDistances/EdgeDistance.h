@@ -32,81 +32,90 @@
 
 namespace ESPINA
 {
+  class CoreFactory;
 
-  class EspinaExtensions_EXPORT EdgeDistance
-  : public SegmentationExtension
+  namespace Extensions
   {
-  public:
-    static const Type TYPE;
+    class ChannelEdges;
+    class EdgeDistanceFactory;
 
-    static const Key LEFT_DISTANCE;
-    static const Key TOP_DISTANCE;
-    static const Key FRONT_DISTANCE;
-    static const Key RIGHT_DISTANCE;
-    static const Key BOTTOM_DISTANCE;
-    static const Key BACK_DISTANCE;
-
-    /** \brief EdgeDistance class constructor.
+    /** \class EdgeDistance
+     * \brief Segmentation extension that provides the distance to the edges of the channel of the segmentation.
      *
      */
-    explicit EdgeDistance(const InfoCache &cache = InfoCache(),
-                          const State     &state = State());
+    class EspinaExtensions_EXPORT EdgeDistance
+    : public Core::SegmentationExtension
+    {
+    public:
+      static const Type TYPE;
 
-    /** \brief EdgeDistance class destructor.
-     *
-     */
-    virtual ~EdgeDistance();
+      static const Key LEFT_DISTANCE;
+      static const Key TOP_DISTANCE;
+      static const Key FRONT_DISTANCE;
+      static const Key RIGHT_DISTANCE;
+      static const Key BOTTOM_DISTANCE;
+      static const Key BACK_DISTANCE;
 
-    virtual Type type() const
-    { return TYPE; }
+      /** \brief EdgeDistance class destructor.
+       *
+       */
+      virtual ~EdgeDistance();
 
-    virtual State state() const;
+      virtual Type type() const
+      { return TYPE; }
 
-    virtual Snapshot snapshot() const;
+      virtual State state() const;
 
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+      virtual Snapshot snapshot() const;
 
-    virtual bool invalidateOnChange() const
-    { return true; }
+      virtual TypeList dependencies() const
+      { return TypeList(); }
 
-    virtual InformationKeyList availableInformation() const;
+      virtual bool invalidateOnChange() const
+      { return true; }
 
-    virtual bool validCategory(const QString& classificationName) const
-    { return true; }
+      virtual InformationKeyList availableInformation() const;
 
-    /** \brief Returns the distances as numerical values in the parameter.
-     * \param[out] distances.
-     *
-     */
-    void edgeDistance(Nm distances[6]) const;
+      virtual bool validCategory(const QString& classificationName) const
+      { return true; }
 
-  protected:
-    virtual QVariant cacheFail(const InformationKey& key) const;
+      /** \brief Returns the distances as numerical values in the parameter.
+       * \param[out] distances.
+       *
+       */
+      void edgeDistance(Nm distances[6]) const;
 
-    virtual void onExtendedItemSet(Segmentation* segmentation);
+    protected:
+      virtual QVariant cacheFail(const InformationKey& key) const;
 
-  private:
-    /** \brief Updated the distances of the extended item to the edges of its channel.
-     *
-     */
-    void updateDistances() const;
+      virtual void onExtendedItemSet(Segmentation* segmentation);
 
-  private:
-    mutable QMutex m_mutex;
+    private:
+      /** \brief EdgeDistance class constructor.
+       * \param[in] cache InfoCache object.
+       * \param[in] state extension's state.
+       *
+       */
+      explicit EdgeDistance(CoreFactory     *factory,
+                            const InfoCache &cache = InfoCache(),
+                            const State     &state = State());
 
-    friend class ChannelEdges;
-  };
+      /** \brief Updated the distances of the extended item to the edges of its channel.
+       *
+       */
+      void updateDistances() const;
 
-  using EdgeDistancePtr  = EdgeDistance *;
-  using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
+    private:
+      mutable QMutex m_mutex;
+      CoreFactory   *m_factory;
 
-  /** \brief Returns the extension as an EdgeDistance raw pointer.
-   * \param[in] extension, segmentation extension raw pointer.
-   *
-   */
-  EdgeDistancePtr edgeDistance(SegmentationExtensionPtr extension);
+      friend class ChannelEdges;
+      friend class EdgeDistanceFactory;
+    };
 
-}// namespace ESPINA
+    using EdgeDistancePtr  = EdgeDistance *;
+    using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
+  } // namespace Extensions
+} // namespace ESPINA
 
 #endif // ESPINA_EDGE_DISTANCE_H

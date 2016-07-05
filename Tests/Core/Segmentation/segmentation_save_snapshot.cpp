@@ -35,7 +35,7 @@ int segmentation_save_snapshot(int argc, char** argv)
 {
   bool error = false;
 
-  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
+  Core::SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
 
   FilterSPtr filter{new Testing::DummyFilter()};

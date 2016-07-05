@@ -30,6 +30,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");

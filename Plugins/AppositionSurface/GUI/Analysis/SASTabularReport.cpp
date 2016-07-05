@@ -38,6 +38,7 @@
 const QString SEGMENTATION_GROUP = "Segmentation";
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Core::Utils;
@@ -208,14 +209,14 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
       {
         if(!isSASExtensions(extensionType) && extensionType != SEGMENTATION_GROUP)
         {
-          addSegmentationExtension(segmentation, extensionType, m_factory);
+          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
         }
         else
         {
           auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
           if(sas)
           {
-            addSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+            retrieveOrCreateSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
           }
         }
       }

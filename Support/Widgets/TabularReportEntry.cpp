@@ -40,6 +40,7 @@
 #include <qvarlengtharray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
@@ -47,6 +48,7 @@ using namespace xlslib_core;
 
 const QString SEGMENTATION_GROUP = "Segmentation";
 
+//------------------------------------------------------------------------
 class InformationDelegate
 : public QItemDelegate
 {
@@ -103,8 +105,8 @@ TabularReport::Entry::Entry(const QString   &category,
   tableView->sortByColumn(0, Qt::AscendingOrder);
   tableView->horizontalHeader()->setSortIndicatorShown(true);
 
-  connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
-          this, SLOT(saveSelectedInformation()));
+  connect(tableView->horizontalHeader(), SIGNAL(sectionMoved(int,int,int)),
+          this,                          SLOT(saveSelectedInformation()));
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   exportInformation->setIcon(iconSave);
@@ -112,7 +114,7 @@ TabularReport::Entry::Entry(const QString   &category,
   connect(refreshInformation, SIGNAL(clicked(bool)),
           this,               SLOT(refreshAllInformation()));
 
-  connect(exportInformation,    SIGNAL(clicked(bool)),
+  connect(exportInformation,  SIGNAL(clicked(bool)),
           this,               SLOT(extractInformation()));
 
   connect(selectInformation,  SIGNAL(clicked(bool)),
@@ -454,7 +456,7 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
         auto segmentation = segmentationPtr(item);
         if(segmentation != nullptr)
         {
-          addSegmentationExtension(segmentation, extensionType, m_factory);
+          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
         }
       }
     }

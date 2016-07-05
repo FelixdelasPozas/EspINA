@@ -145,8 +145,8 @@ namespace ESPINA
       QString dialogTitle() const;
 
     private:
-      QTreeView *m_classification;
-      SegmentationAdapterList m_segmentations;
+      QTreeView              *m_classification; /** classification qt model.    */
+      SegmentationAdapterList m_segmentations;  /** selected segmentation list. */
   };
 } // namespace ESPINA
 

@@ -28,12 +28,12 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/IssueList/IssueListDialog.h>
+#include <Extensions/LibraryExtensionFactory.h>
 #include "ToolGroups/Visualize/VisualizeToolGroup.h"
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
 #include "ToolGroups/Edit/EditToolGroup.h"
 #include "ToolGroups/Analyze/AnalyzeToolGroup.h"
 #include "AutoSave.h"
-#include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
@@ -339,7 +339,6 @@ namespace ESPINA
 
     std::shared_ptr<Support::Widgets::ProgressTool> m_checkTool;
 
-    ExtensionFactorySList m_extensionFactories;
     Support::Settings::SettingsPanelSList m_availableSettingsPanels;
 
     DefaultViewSPtr       m_view;

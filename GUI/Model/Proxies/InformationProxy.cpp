@@ -24,6 +24,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------

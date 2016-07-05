@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef ESPINA_READ_ONLY_CHANNEL_EXTENSION_H
-#define ESPINA_READ_ONLY_CHANNEL_EXTENSION_H
+#ifndef ESPINA_READ_ONLY_STACK_EXTENSION_H
+#define ESPINA_READ_ONLY_STACK_EXTENSION_H
 
 #include "Core/EspinaCore_Export.h"
 
@@ -36,8 +36,8 @@ namespace ESPINA
      * All the info is saved on disk except if invalidate is true and the segmentation changed.
      *
      */
-    class EspinaCore_EXPORT ReadOnlyChannelExtension
-    : public ChannelExtension
+    class EspinaCore_EXPORT ReadOnlyStackExtension
+    : public StackExtension
     {
       public:
         /** \brief ReadOnlyChannelExtension class constructor.
@@ -45,16 +45,16 @@ namespace ESPINA
          * \param[in] cache cache object.
          * \param[in] state state of the extension.
          */
-        explicit ReadOnlyChannelExtension(const ChannelExtension::Type      &type,
-                                          const ChannelExtension::InfoCache &cache,
-                                          const State                       &state)
-        : ChannelExtension    {cache}
+        explicit ReadOnlyStackExtension(const StackExtension::Type      &type,
+                                        const StackExtension::InfoCache &cache,
+                                        const State                       &state)
+        : StackExtension      {cache}
         , m_type              {type}
         , m_state             {state}
         , m_invalidateOnChange{false}
         {}
 
-        virtual ChannelExtension::Type type() const
+        virtual StackExtension::Type type() const
         { return m_type; }
 
         /** \brief Sets if the extension data is invalidated when the extended item changes.
@@ -92,7 +92,7 @@ namespace ESPINA
         { return QVariant(); }
 
       private:
-        ChannelExtension::Type m_type;
+        StackExtension::Type m_type;
         State m_state;
         bool m_invalidateOnChange;
     };
@@ -100,4 +100,4 @@ namespace ESPINA
   } // namespace Core
 } // namespace ESPINA
 
-#endif // ESPINA_READ_ONLY_CHANNEL_EXTENSION_H
+#endif // ESPINA_READ_ONLY_STACK_EXTENSION_H

@@ -135,10 +135,10 @@ namespace ESPINA
            * \param[in] state, state of the extension.
            *
            */
-          void createChannelExtension(ChannelSPtr channel,
-                                      const ChannelExtension::Type &type,
-                                      const ChannelExtension::InfoCache &cache,
-                                      const State &state);
+          void createStackExtension(ChannelSPtr channel,
+                                    const Core::StackExtension::Type &type,
+                                    const Core::StackExtension::InfoCache &cache,
+                                    const State &state);
 
           /** \brief Loads and creates the extensions of a given channel.
            * \param[in] channel, channel smart pointer.
@@ -154,8 +154,8 @@ namespace ESPINA
            *
            */
           void createSegmentationExtension(SegmentationSPtr segmentation,
-                                           const SegmentationExtension::Type &type,
-                                           const SegmentationExtension::InfoCache &cache,
+                                           const Core::SegmentationExtension::Type &type,
+                                           const Core::SegmentationExtension::InfoCache &cache,
                                            const State &state);
 
           /** \brief Loads and creates the extensions of a given segmentation.

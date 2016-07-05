@@ -35,18 +35,19 @@
 
 namespace ESPINA
 {
+  class ASExtensionFactory;
+
+  /** \class AppositionSurfaceExtension
+   * \brief Extends the SAS segmentations with information.
+   *
+   */
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceExtension
-  : public SegmentationExtension
+  : public Core::SegmentationExtension
   {
     public:
       static const Type TYPE;
 
     public:
-      /** \brief AppositionSurfaceExtension class constructor.
-       * \param[in] infocache InfoCache object reference.
-       */
-      explicit AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache);
-
       /** \brief AppositionSurfaceExtension class virtual destructor.
        *
        */
@@ -77,9 +78,17 @@ namespace ESPINA
        */
       void setOriginSegmentation(SegmentationAdapterSPtr segmentation);
 
-      static SegmentationExtension::Key addSASPrefix(const Key& value);
+      /** \brief Helper method that adds the SAS prefix to the given key.
+       * \param[in] value segmentation extension key.
+       *
+       */
+      static Core::SegmentationExtension::Key addSASPrefix(const Key& value);
 
-      static SegmentationExtension::Key removeSASPrefix(const Key &value);
+      /** \brief Helper method that removes the SAS prefix from the given key.
+       * \param[in] value segmentation extension key.
+       *
+       */
+      static Core::SegmentationExtension::Key removeSASPrefix(const Key &value);
 
     protected:
       virtual QVariant cacheFail(const InformationKey &tag) const;
@@ -87,6 +96,11 @@ namespace ESPINA
       virtual void onExtendedItemSet(Segmentation* item);
 
   private:
+      /** \brief AppositionSurfaceExtension class constructor.
+       * \param[in] infocache InfoCache object reference.
+       */
+      explicit AppositionSurfaceExtension(const Core::SegmentationExtension::InfoCache &cache);
+
       /** \brief Computes SAS area.
        * \param[in] asMesh SAS polydata smart pointer.
        */
@@ -137,6 +151,8 @@ namespace ESPINA
       bool computeInformation() const;
 
       static const QString SAS_PREFIX;
+
+      friend class ASExtensionFactory;
   };
 
   using AppositionSurfaceExtensionPtr  = AppositionSurfaceExtension *;

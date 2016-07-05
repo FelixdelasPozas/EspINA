@@ -35,7 +35,7 @@ namespace ESPINA
 {
   class EspinaCore_EXPORT Channel
   : public ViewItem
-  , public Core::Analysis::Extensible<ChannelExtension, Channel>
+  , public Core::Analysis::Extensible<Core::StackExtension, Channel>
   {
     public:
       static const RelationName STAIN_LINK;
@@ -169,13 +169,13 @@ namespace ESPINA
        * \param[in] extension, channel extension smart pointer.
        *
        */
-      QString extensionPath(const ChannelExtensionSPtr extension) const
+      QString extensionPath(const Core::StackExtensionSPtr extension) const
       { return extensionsPath() + extension->type() + "/"; }
 
       /** \brief Returns the path of the data files for a extension for this channel.
        *
        */
-      QString extensionDataPath(const ChannelExtensionSPtr extension, QString fileName) const
+      QString extensionDataPath(const Core::StackExtensionSPtr extension, QString fileName) const
       { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(fileName); }
 
     private:

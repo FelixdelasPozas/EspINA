@@ -34,18 +34,12 @@
 namespace ESPINA
 {
   class EspinaGUI_EXPORT VisualizationState
-  : public SegmentationExtension
+  : public Core::SegmentationExtension
   {
     public:
       static const Type TYPE;
 
     public:
-      /** \brief VisualizationState class constructor.
-       * \param[in] infoCache data cache of the extension.
-       *
-       */
-      explicit VisualizationState();
-
       /** \brief VisualizationState class virtual destructor.
        *
        */
@@ -69,7 +63,7 @@ namespace ESPINA
        * \param[in] state string with the state of the representation.
        *
        */
-      void setState(const QString& representation, const QString& state);
+      void setState(const QString& representation, const State& state);
 
       /** \brief Returns the state of the representation as a string.
        *
@@ -77,6 +71,12 @@ namespace ESPINA
       QString representationState(const QString& representation);
 
     private:
+      /** \brief VisualizationState class constructor.
+       * \param[in] infoCache data cache of the extension.
+       *
+       */
+      explicit VisualizationState(const State &state);
+
       QMap<QString, QString> m_state;
   };
 

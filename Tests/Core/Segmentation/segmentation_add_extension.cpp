@@ -46,7 +46,7 @@ int segmentation_add_extension(int argc, char** argv)
   error |= (!extensions->hasExtension(extension->TYPE));
   error |= (extensions->hasExtension("NoExistingSegmentation"));
 
-  SegmentationExtension::InformationKeyList expectedKeys;
+  Core::SegmentationExtension::InformationKeyList expectedKeys;
   expectedKeys << createKey(extension, "Tag1") << createKey(extension, "Tag2");
 
   error |= (extensions["DummySegmentationExtension"] != extension);

@@ -38,10 +38,11 @@
 #include <vtkMeshQuality.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::Core;
 
 const SegmentationExtension::Type EspinaExtensions_EXPORT MorphologicalInformation::TYPE = "MorphologicalInformation";
 
-// NOTE: Should it be public?
 const SegmentationExtension::Key MORPHOLOGICAL_SIZE  = "Size";
 const SegmentationExtension::Key MORPHOLOGICAL_PS    = "Physical Size";
 const SegmentationExtension::Key MORPHOLOGICAL_Cx    = "Centroid X";
@@ -68,7 +69,7 @@ const SegmentationExtension::Key MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Dia
 const SegmentationExtension::Key MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
 const SegmentationExtension::Key MORPHOLOGICAL_AREA  = "Surface Area";
 
-//TODO: Review values to be used from new ITK version
+//TODO: Review values to be used from new ITK version (Elongation & Flatness, Perimeter & Perimeter on border?)
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
                                                    const State &state)
@@ -151,7 +152,6 @@ QVariant MorphologicalInformation::cacheFail(const InformationKey& key) const
 void MorphologicalInformation::updateInformation() const
 {
   QWriteLocker lock(&m_mutex);
-//   qDebug() << "Updating" << m_seg->data().toString() << ID;
   Q_ASSERT(hasVolumetricData(m_extendedItem->output()) && hasMeshData(m_extendedItem->output()));
 
   itkVolumeType::Pointer segVolume = nullptr;

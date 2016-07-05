@@ -44,13 +44,15 @@ namespace ESPINA
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
          * \param[in] scheduler task scheduler.
+         * \param[in] factory application object factory.
          *
          */
         static OrthogonalCountingFrame *New(CountingFrameExtension *extension,
                                             Nm inclusion[3],
                                             Nm exclusion[3],
-                                            SchedulerSPtr scheduler)
-        { return new OrthogonalCountingFrame(extension, inclusion, exclusion, scheduler);}
+                                            SchedulerSPtr scheduler,
+                                            CoreFactory *factory)
+        { return new OrthogonalCountingFrame(extension, inclusion, exclusion, scheduler, factory);}
 
         /** \brief OrthogonalCountingFrame class virtual destructor.
          *
@@ -70,12 +72,14 @@ namespace ESPINA
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
          * \param[in] scheduler task scheduler.
+         * \param[in] factory object factory.
          *
          */
         explicit OrthogonalCountingFrame(CountingFrameExtension *extension,
                                         Nm inclusion[3],
                                         Nm exclusion[3],
-                                        SchedulerSPtr scheduler);
+                                        SchedulerSPtr scheduler,
+                                        CoreFactory *factory);
 
         /** \brief Returns a vtkPolyData prism with the given limits.
          * \param[in] left left side limit in Nm.

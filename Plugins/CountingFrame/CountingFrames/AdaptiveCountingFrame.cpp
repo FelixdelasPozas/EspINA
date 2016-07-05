@@ -28,8 +28,6 @@
 #include <Core/Analysis/Channel.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Extensions/EdgeDistances/ChannelEdges.h>
-#include <Extensions/ExtensionUtils.h>
 
 // VTK
 #include <vtkPolyData.h>
@@ -45,8 +43,9 @@ using namespace ESPINA::CF;
 AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
                                              Nm exclusion[3],
-                                             SchedulerSPtr scheduler)
-: CountingFrame{channelExt, inclusion, exclusion, scheduler}
+                                             SchedulerSPtr scheduler,
+                                             CoreFactory *factory)
+: CountingFrame{channelExt, inclusion, exclusion, scheduler, factory}
 , m_channel    {channelExt->extendedItem()}
 {
   updateCountingFrame();

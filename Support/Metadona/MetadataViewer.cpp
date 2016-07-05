@@ -21,6 +21,7 @@
 #include "MetadataViewer.h"
 
 #include <Utils.h>
+#include <Core/MultiTasking/Task.h>
 #include "EntryWidget.h"
 #include "StorageFactory.h"
 
@@ -44,7 +45,7 @@ namespace ESPINA
   private:
     virtual void run()
     {
-      auto storage  = StorageFactory::newStorage();
+      auto storage = StorageFactory::newStorage(StorageFactory::Type::IRODS);
       Metadata = Metadona::Utils::parse(m_channel->metadata().toStdString(), storage);
     }
 
@@ -73,7 +74,7 @@ MetadataViewer::MetadataViewer(const ChannelAdapterPtr channel,
 
   m_animationTimer.setInterval(500);
   connect(&m_animationTimer, SIGNAL(timeout()),
-          this,              SLOT(upadteMessage()));
+          this,              SLOT(updateMessage()));
 }
 
 //------------------------------------------------------------------------
@@ -81,20 +82,21 @@ void MetadataViewer::showEvent(QShowEvent* event)
 {
   QWidget::showEvent(event);
 
-  if (!m_task)
+  if (!m_retrieverTask)
   {
-    m_task = MetadataLoaderSPtr{new MetadataLoader(m_channel, m_scheduler)};
-    connect(m_task.get(), SIGNAL(finished()),
-            this, SLOT(metadataReady()));
+    m_retrieverTask = MetadataLoaderSPtr{new MetadataLoader(m_channel, m_scheduler)};
 
-    Task::submit(m_task);
+    connect(m_retrieverTask.get(), SIGNAL(finished()),
+            this,                  SLOT(metadataReady()));
+
+    Task::submit(m_retrieverTask);
 
     m_animationTimer.start();
   }
 }
 
 //------------------------------------------------------------------------
-void MetadataViewer::upadteMessage()
+void MetadataViewer::updateMessage()
 {
   QString message = tr("Retrieving Metadata from servers");
 
@@ -111,7 +113,13 @@ void MetadataViewer::upadteMessage()
 //------------------------------------------------------------------------
 void MetadataViewer::metadataReady()
 {
+  m_animationTimer.stop();
+  disconnect(&m_animationTimer, SIGNAL(timeout()),
+             this,              SLOT(updateMessage()));
+
   auto metadataLoader = dynamic_cast<MetadataLoader *>(sender());
+  disconnect(metadataLoader, SIGNAL(finished()),
+             this,           SLOT(metadataReady()));
 
   auto layout = scrollAreaWidgetContents->layout();
 

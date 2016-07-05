@@ -35,13 +35,14 @@ namespace ESPINA
   {
     class CountingFrameManager;
     class StereologicalInclusion;
+    class CFStackExtensionFactory;
 
     /** \class CountingFrameExtension
      * \brief Adds CF information to a channel.
      *
      */
     class CountingFramePlugin_EXPORT CountingFrameExtension
-    : public ChannelExtension
+    : public Core::StackExtension
     {
         Q_OBJECT
         static const QString FILE;
@@ -50,16 +51,6 @@ namespace ESPINA
         static Type TYPE;
 
       public:
-        /** \brief CountingFrameExtension class constructor.
-         * \param[in] manager counting frame manager object pointer.
-         * \param[in] scheduler task scheduler.
-         * \param[in] state extension initial state.
-         *
-         */
-        explicit CountingFrameExtension(CountingFrameManager *manager,
-                                        SchedulerSPtr         scheduler,
-                                        const State          &state = State());
-
         /** \brief CountingFrameExtension class virtual destructor.
          *
          */
@@ -78,7 +69,7 @@ namespace ESPINA
         virtual TypeList dependencies() const
         {
           Extension::TypeList deps;
-          deps << ChannelEdges::TYPE;
+          deps << Extensions::ChannelEdges::TYPE;
           return deps;
         }
 
@@ -99,7 +90,7 @@ namespace ESPINA
          * \param[in] type counting frame type.
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
-         * \param[in] contraint name of the segmentations' category the counting frame will apply.
+         * \param[in] constraint name of the segmentations' category the counting frame will apply.
          *
          */
         void createCountingFrame(CFType type,
@@ -132,20 +123,32 @@ namespace ESPINA
         void onCountingFrameCreated();
 
       private:
+        /** \brief CountingFrameExtension class constructor.
+         * \param[in] manager counting frame manager object pointer.
+         * \param[in] scheduler task scheduler.
+         * \param[in] factory model factory.
+         * \param[in] state extension initial state.
+         *
+         */
+        explicit CountingFrameExtension(CountingFrameManager *manager,
+                                        SchedulerSPtr         scheduler,
+                                        CoreFactory          *factory,
+                                        const State          &state = State());
+
         CountingFrameManager *m_manager;         /** counting frame manager.             */
         SchedulerSPtr         m_scheduler;       /** task scheduler.                     */
+        CoreFactory          *m_factory;         /** model factory.                      */
 
         State m_prevState;                       /** previous state of the extension.    */
 
         CountingFrameList      m_countingFrames; /** list of created counting frames.    */
         mutable QReadWriteLock m_CFmutex;        /** protects CF list.                   */
+
+        friend class CFStackExtensionFactory;
     };
 
     using CountingFrameExtensionPtr  = CountingFrameExtension *;
     using CountingFrameExtensionSPtr = std::shared_ptr<CountingFrameExtension>;
-
-    CountingFrameExtensionSPtr countingFrameExtensionPtr(ChannelExtensionSPtr extension);
-
   } // namespace CF
 } // namespace ESPINA
 

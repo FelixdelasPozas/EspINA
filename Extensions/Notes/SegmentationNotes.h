@@ -35,67 +35,82 @@
 
 namespace ESPINA
 {
-
-  class EspinaExtensions_EXPORT SegmentationNotes
-  : public SegmentationExtension
+  namespace Extensions
   {
-  public:
-    static const Type TYPE;
+    class SegmentationNotesFactory;
 
-    // Stores the notes of a segmentation
-    static const InformationKey NOTES;
-
-  public:
-    /** \brief SegmentationNotes class constructor.
-     * \param[in] infoCache cache object.
+    /** \class SegmentationNotes
+     * \brief Implements a extension to add textual notes to a segmentation.
      *
      */
-    explicit SegmentationNotes(const InfoCache& infoCache = InfoCache());
+    class EspinaExtensions_EXPORT SegmentationNotes
+    : public Core::SegmentationExtension
+    {
+    public:
+      static const Type TYPE;
 
-    /** \brief SegmentationNotes class virtual destructor.
-     *
-     */
-    virtual ~SegmentationNotes();
+      // Stores the notes of a segmentation
+      static const InformationKey NOTES;
 
-    virtual Type type() const override
-    { return TYPE; }
+    public:
+      /** \brief SegmentationNotes class virtual destructor.
+       *
+       */
+      virtual ~SegmentationNotes();
 
-    virtual bool invalidateOnChange() const override
-    { return false; }
+      virtual Type type() const override
+      { return TYPE; }
 
-    virtual State state() const override
-    { return State(); }
+      virtual bool invalidateOnChange() const override
+      { return false; }
 
-    virtual Snapshot snapshot() const override
-    { return Snapshot(); }
+      virtual State state() const override
+      { return State(); }
 
-    virtual TypeList dependencies() const override
-    { return TypeList(); }
+      virtual Snapshot snapshot() const override
+      { return Snapshot(); }
 
-    virtual bool validCategory(const QString& classification) const override
-    { return true; }
+      virtual TypeList dependencies() const override
+      { return TypeList(); }
 
-    virtual InformationKeyList availableInformation() const override;
+      virtual bool validCategory(const QString& classification) const override
+      { return true; }
 
-    virtual QString toolTipText() const override;
+      virtual InformationKeyList availableInformation() const override;
 
-    /** \brief Sets the notes.
-     *
-     */
-    void setNotes(const QString &note);
+      virtual QString toolTipText() const override;
 
-    /** \brief Returns the notes.
-     *
-     */
-    QString notes() const
-    { return cachedInfo(createKey(NOTES)).toString(); }
+      /** \brief Sets the notes.
+       *
+       */
+      void setNotes(const QString &note);
 
-  protected:
-    virtual void onExtendedItemSet(SegmentationPtr item) override
-    {}
+      /** \brief Returns the notes.
+       *
+       */
+      QString notes() const
+      { return cachedInfo(createKey(NOTES)).toString(); }
 
-    virtual QVariant cacheFail(const InformationKey& key) const override;
-  };
+    protected:
+      virtual void onExtendedItemSet(SegmentationPtr item) override
+      {}
+
+      virtual QVariant cacheFail(const InformationKey& key) const override;
+
+    private:
+      /** \brief SegmentationNotes class constructor.
+       * \param[in] infoCache cache object.
+       *
+       */
+      explicit SegmentationNotes(const InfoCache& infoCache = InfoCache());
+
+      friend class SegmentationNotesFactory;
+    };
+
+    using NotesExtensionPtr  = SegmentationNotes *;
+    using NotesExtensionSPtr = std::shared_ptr<SegmentationNotes>;
+
+  } // namespace Extensions
 } // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_NOTES_H

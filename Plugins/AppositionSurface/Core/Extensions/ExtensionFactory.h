@@ -22,31 +22,39 @@
 #define APPOSITION_SURFACE_EXTENSION_FACTORY_H_
 
 // ESPINA
-#include <Core/Factory/SegmentationExtensionFactory.h>
+#include <Core/Factory/ExtensionFactory.h>
 
-using namespace ESPINA;
-
-class ASExtensionFactory
-: public SegmentationExtensionFactory
+namespace ESPINA
 {
-  public:
-    /** \brief ASExtensionFactory class constructor.
-     *
-     */
-    explicit ASExtensionFactory()
-    {}
+  class CoreFactory;
 
-    /** \brief ASExtensionFactory class virtual destructor.
-     *
-     */
-    virtual ~ASExtensionFactory()
-    {}
+  /** \class ASExtensionFactory
+   * \brief Factory for the creation of SAS Extensions.
+   *
+   */
+  class ASExtensionFactory
+  : public Core::SegmentationExtensionFactory
+  {
+    public:
+      /** \brief ASExtensionFactory class constructor.
+       *
+       */
+      explicit ASExtensionFactory()
+      : Core::SegmentationExtensionFactory{nullptr}
+      {}
 
-    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                                  const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
-                                                                  const State& state = State()) const;
+      /** \brief ASExtensionFactory class virtual destructor.
+       *
+       */
+      virtual ~ASExtensionFactory()
+      {}
 
-    virtual SegmentationExtensionTypeList providedExtensions() const;
-};
+      virtual Core::SegmentationExtensionSPtr createExtension(const Core::SegmentationExtension::Type      &type,
+                                                              const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
+                                                              const State& state = State()) const;
+
+      virtual Core::SegmentationExtension::TypeList providedExtensions() const;
+  };
+} // namespace ESPINA
 
 #endif // APPOSITION_SURFACE_EXTENSION_FACTORY_H_
