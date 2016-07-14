@@ -50,6 +50,7 @@
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
+//#include <ToolGroups/Segment/Skeleton/SkeletonTool.h>
 #include <ToolGroups/Explore/ResetViewTool.h>
 #include <ToolGroups/Explore/ZoomRegionTool.h>
 #include <ToolGroups/Explore/PositionMarksTool.h>
@@ -949,9 +950,11 @@ void EspinaMainWindow::createSegmentToolGroup()
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
+//  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
+//  m_segmentToolGroup->addTool(skeleton);
 
   registerToolGroup(m_segmentToolGroup);
 }
@@ -1163,6 +1166,12 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
   if (m_autoSave.canRestore())
   {
     auto msg = tr("ESPINA closed unexpectedly. Do you want to load the auto-saved analysis?");
+    auto dateString = m_autoSave.autoSaveDate();
+    auto timeString = m_autoSave.autoSaveTime();
+    if(!dateString.isEmpty() && !timeString.isEmpty())
+    {
+      msg += tr("\nThe last auto-save was made the day %1 at the time %2.").arg(dateString).arg(timeString);
+    }
 
     if (QMessageBox::Yes == DefaultDialogs::UserQuestion(msg))
     {

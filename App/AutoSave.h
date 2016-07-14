@@ -74,7 +74,7 @@ namespace ESPINA
     /** \brief Returns if it is possible to restore from currently auto saved analysis
      *
      */
-    bool canRestore();
+    bool canRestore() const;
 
     /** \brief Restore currently auto saved analysis
      *
@@ -90,6 +90,16 @@ namespace ESPINA
      *
      */
     bool isAutoSaveFile(const QString &filename);
+
+    /** \brief Returns the date of the auto-save file or an empty string if it doesn't exist.
+     *
+     */
+    QString autoSaveDate() const;
+
+    /** \brief Returns the time of the auto-save file or an empty string if it doesn't exists.
+     *
+     */
+    QString autoSaveTime() const;
 
   signals:
     void restoreFromFile(const QString);

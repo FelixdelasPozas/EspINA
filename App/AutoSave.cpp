@@ -17,9 +17,12 @@
  *
  */
 
-#include <Support/Settings/Settings.h>
+// ESPINA
 #include "AutoSave.h"
+#include <Support/Settings/Settings.h>
 
+// Qt
+#include <QDateTime>
 
 using namespace ESPINA;
 
@@ -88,7 +91,7 @@ void AutoSave::resetCountDown()
 }
 
 //------------------------------------------------------------------------
-bool AutoSave::canRestore()
+bool AutoSave::canRestore() const
 {
   return m_path.exists(autosaveFile());
 }
@@ -125,4 +128,36 @@ QString AutoSave::autosaveFile() const
 bool AutoSave::isAutoSaveFile(const QString& filename)
 {
   return filename == autosaveFile();
+}
+
+//------------------------------------------------------------------------
+QString AutoSave::autoSaveDate() const
+{
+  QString dateString;
+
+  if(canRestore())
+  {
+    QFileInfo info{autosaveFile()};
+    auto dateTime = info.lastModified();
+
+    dateString = dateTime.date().toString("dddd MMMM d yyyy");
+  }
+
+  return dateString;
+}
+
+//------------------------------------------------------------------------
+QString AutoSave::autoSaveTime() const
+{
+  QString timeString;
+
+  if(canRestore())
+  {
+    QFileInfo info{autosaveFile()};
+    auto dateTime = info.lastModified();
+
+    timeString = dateTime.time().toString("H:mm:ss");
+  }
+
+  return timeString;
 }

@@ -60,16 +60,31 @@ void EdgesAnalyzer::run()
   m_bgIntensity         = 0;
   m_bgThreshold         = 0;
 
-  analyzeEdge(volume, leftSliceBounds(volume));
-  reportProgress(25);
-  analyzeEdge(volume, rightSliceBounds(volume));
-  reportProgress(50);
-  analyzeEdge(volume, topSliceBounds(volume));
-  reportProgress(75);
-  analyzeEdge(volume, bottomSliceBounds(volume));
-  reportProgress(99);
+  if(canExecute())
+  {
+    analyzeEdge(volume, leftSliceBounds(volume));
+    reportProgress(25);
+  }
 
-  if (!isAborted())
+  if(canExecute())
+  {
+    analyzeEdge(volume, rightSliceBounds(volume));
+    reportProgress(50);
+  }
+
+  if(canExecute())
+  {
+    analyzeEdge(volume, topSliceBounds(volume));
+    reportProgress(75);
+  }
+
+  if(canExecute())
+  {
+    analyzeEdge(volume, bottomSliceBounds(volume));
+    reportProgress(99);
+  }
+
+  if (canExecute())
   {
     reportProgress(100);
 
@@ -80,6 +95,11 @@ void EdgesAnalyzer::run()
     {
       m_extension->m_backgroundColor = m_bgIntensity / (NUM_EDGES - m_useDistanceToBounds);
       m_extension->m_threshold       = (m_bgThreshold < 10 ? 10 : m_bgThreshold);
+    }
+    else
+    {
+      m_extension->m_backgroundColor = -1;
+      m_extension->m_threshold       = -1;
     }
   }
 

@@ -300,23 +300,23 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
   else
   {
     int numberOfDatas = 0;
-    if (hasMeshData(output))
-    {
-      checkMeshIsEmpty();
-      ++numberOfDatas;
-    }
-
     if (hasVolumetricData(output))
     {
       checkVolumeIsEmpty();
       ++numberOfDatas;
     }
 
-//     if (hasSkeletonData(output))
-//     {
-//       checkSkeletonIsEmpty();
-//       ++numberOfDatas;
-//     }
+    if (hasMeshData(output))
+    {
+      checkMeshIsEmpty();
+      ++numberOfDatas;
+    }
+
+//    if (hasSkeletonData(output))
+//    {
+//      checkSkeletonIsEmpty();
+//      ++numberOfDatas;
+//    }
 
     if (numberOfDatas == 0)
     {
@@ -402,14 +402,14 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkSkeletonIsEmpty() const
 {
-//   auto skeleton = readLockSkeleton(m_segmentation->output());
+//  auto skeleton = readLockSkeleton(m_segmentation->output());
 //
-//   if (skeleton.isNull() || skeleton->skeleton() == nullptr || skeleton->skeleton()->GetNumberOfPoints() == 0)
-//   {
-//     auto description = tr("Segmentation has a skeleton associated but is empty");
+//  if (!skeleton->isValid())
+//  {
+//    auto description = tr("Segmentation has a skeleton associated but is empty");
 //
-//     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
-//   }
+//    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+//  }
 }
 
 //------------------------------------------------------------------------
@@ -575,6 +575,8 @@ IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdap
                                                                 SegmentationAdapterPtr duplicated,
                                                                 const unsigned long long duplicatedVoxes) const
 {
+  // we'll need it later so we create the tags extension now if not present.
+  retrieveOrCreateSegmentationExtension<SegmentationTags>(original, m_context.factory());
   return std::make_shared<DuplicatedIssue>(original, duplicated, duplicatedVoxes);
 }
 

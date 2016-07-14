@@ -65,9 +65,9 @@ using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
 using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
 
 //-----------------------------------------------------------------------------
-ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
+ChannelEdges::ChannelEdges(SchedulerSPtr                    scheduler,
                            const StackExtension::InfoCache &cache,
-                           const State                       &state)
+                           const State                     &state)
 : StackExtension       {cache}
 , m_hasAnalizedChannel {false}
 , m_hasCreatedEdges    {false}
@@ -90,9 +90,24 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
   {
     //State: UseDistanceToBounds,BackgroundColor,Threshold
     auto values = state.split(",");
-    m_useDistanceToBounds = values[0].toInt();
-    m_backgroundColor     = values[1].toInt();
-    m_threshold           = values[2].toInt();
+    bool ok{false}, result;
+    m_useDistanceToBounds = values[0].toInt(&ok);
+    result = ok;
+    m_backgroundColor     = values[1].toInt(&ok);
+    result |= ok;
+    m_threshold           = values[2].toInt(&ok);
+    result |= ok;
+
+    if(result)
+    {
+      m_hasAnalizedChannel  = true;
+    }
+    else
+    {
+      m_useDistanceToBounds = true;
+      m_backgroundColor     = -1;
+      m_threshold           = -1;
+    }
   }
 }
 
