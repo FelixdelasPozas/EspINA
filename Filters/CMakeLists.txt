@@ -21,6 +21,7 @@ set (FILTERS_SOURCES
   CloseFilter.cpp
   DilateFilter.cpp
   ErodeFilter.cpp
+  FillHoles2DFilter.cpp
   FillHolesFilter.cpp
   ImageLogicFilter.cpp
   MorphologicalEditionFilter.cpp
