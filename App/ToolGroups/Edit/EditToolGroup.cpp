@@ -25,6 +25,7 @@
 #include "SplitTool.h"
 #include "CODETool.h"
 #include "FillHolesTool.h"
+#include "FillHoles2DTool.h"
 #include "ImageLogicTool.h"
 
 #include <App/ToolGroups/Edit/CODERefiner.h>
@@ -35,6 +36,7 @@
 #include <Filters/DilateFilter.h>
 #include <Filters/ErodeFilter.h>
 #include <Filters/FillHolesFilter.h>
+#include <Filters/FillHoles2DFilter.h>
 #include <Filters/ImageLogicFilter.h>
 #include <Filters/OpenFilter.h>
 #include <Filters/OpenFilter.h>
@@ -262,6 +264,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initSplitTool();
   initCODETools();
   initFillHolesTool();
+  initFillHoles2DTool();
   initImageLogicTools();
 }
 
@@ -342,6 +345,16 @@ void EditToolGroup::initFillHolesTool()
   fillHoles->setOrder("2-4");
 
   addTool(fillHoles);
+}
+
+//-----------------------------------------------------------------------------
+void EditToolGroup::initFillHoles2DTool()
+{
+  auto fillHoles2D = std::make_shared<FillHoles2DTool>(getContext());
+
+  fillHoles2D->setOrder("2-5");
+
+  addTool(fillHoles2D);
 }
 
 //-----------------------------------------------------------------------------

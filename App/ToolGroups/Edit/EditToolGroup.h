@@ -175,6 +175,11 @@ namespace ESPINA
      */
     void initFillHolesTool();
 
+    /** \brief Modifies the gui and tool parameters when the fill holes 2D tool is activated.
+     *
+     */
+    void initFillHoles2DTool();
+
     /** \brief Modifies the gui and tool parameters when a logic operation tool is activated.
      *
      */
