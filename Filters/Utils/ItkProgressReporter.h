@@ -47,10 +47,10 @@ namespace ESPINA
   	 *
   	 */
     ITKProgressReporter(Task* reporter, typename T::Pointer filter, int fromValue=0, int toValue = 100)
-    : m_task(reporter)
-    , m_filter(filter)
-    , m_initialProgress(fromValue)
-    , m_delta(toValue - fromValue)
+    : m_task           {reporter}
+    , m_filter         {filter}
+    , m_initialProgress{fromValue}
+    , m_delta          {toValue - fromValue}
     {
       auto progressCommand = itk::SimpleMemberCommand<ITKProgressReporter<T>>::New();
       progressCommand->SetCallbackFunction(this, &ITKProgressReporter<T>::reportProgress);
@@ -68,10 +68,10 @@ namespace ESPINA
     }
 
   private:
-    Task*               m_task;
-    typename T::Pointer m_filter;
-    int                 m_initialProgress;
-    int                 m_delta;
+    Task*               m_task;            /** task to report progress. */
+    typename T::Pointer m_filter;          /** itk filter to observe.   */
+    int                 m_initialProgress; /** initial progress.        */
+    int                 m_delta;           /** progress increment.      */
   };
 } // namespace ESPINA
 

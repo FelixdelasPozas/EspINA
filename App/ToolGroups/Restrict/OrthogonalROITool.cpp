@@ -110,10 +110,11 @@ void OrthogonalROITool::setROI(ROISPtr roi)
     destroyOrthogonalWidget();
   }
 
-  bool validRectangularROI = roi && roi->isOrthogonal();
+  m_roi = roi;
+
+  bool validRectangularROI = m_roi && m_roi.get() && m_roi->isOrthogonal();
   if (validRectangularROI)
   {
-    m_roi = roi;
     if(m_visible)
     {
       createOrthogonalWidget();

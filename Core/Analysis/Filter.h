@@ -40,6 +40,11 @@ namespace ESPINA
   class Analysis;
   using AnalysisPtr = Analysis *;
 
+  /** \class Filter
+   * \brief The Filter class implements a generic task object to transform/generate an output or a list
+   *        of outputs from an input or a list of inputs given a series of parameters. Both the inputs
+   *        and the outputs are Persistent objects and the Filter itself is also a Persistent object.
+   */
   class EspinaCore_EXPORT Filter
   : public Persistent
   , public Task

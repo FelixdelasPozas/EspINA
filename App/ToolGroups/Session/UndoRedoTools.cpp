@@ -22,6 +22,9 @@
 // ESPINA
 #include <ToolGroups/Session/UndoRedoTools.h>
 
+// QT
+#include <QApplication>
+
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
@@ -65,7 +68,9 @@ void UndoTool::doAction()
 {
   emit executed();
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   m_undoStack->undo();
+  QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -85,5 +90,7 @@ void RedoTool::doAction()
 {
   emit executed();
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   m_undoStack->redo();
+  QApplication::restoreOverrideCursor();
 }

@@ -228,6 +228,7 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
 //-----------------------------------------------------------------------------
 RestrictToolGroup::~RestrictToolGroup()
 {
+  blockSignals(true);
   setCurrentROI(nullptr);
 }
 

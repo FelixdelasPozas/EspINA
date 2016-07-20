@@ -39,7 +39,7 @@ PointTracker::PointTracker()
 //------------------------------------------------------------------------
 bool PointTracker::filterEvent(QEvent *e, RenderView *view)
 {
-  QMouseEvent *me = static_cast<QMouseEvent *>(e);
+  auto me = dynamic_cast<QMouseEvent *>(e);
 
   switch(e->type())
   {
@@ -47,7 +47,7 @@ bool PointTracker::filterEvent(QEvent *e, RenderView *view)
     case QEvent::MouseButtonPress:
       if(!m_tracking && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
       {
-        if (me->button() == Qt::LeftButton)
+        if (me && (me->button() == Qt::LeftButton))
         {
           m_tracking = true;
           startTrack(me->pos(), view);
@@ -56,7 +56,7 @@ bool PointTracker::filterEvent(QEvent *e, RenderView *view)
       }
       break;
     case QEvent::MouseMove:
-      if (m_tracking)
+      if (me && m_tracking)
       {
         updateTrack(me->pos());
         return true;
@@ -64,7 +64,7 @@ bool PointTracker::filterEvent(QEvent *e, RenderView *view)
       break;
     case QEvent::MouseButtonRelease:
     case QEvent::Leave:
-      if (m_tracking)
+      if (me && m_tracking)
       {
         m_tracking = false;
         stopTrack(me->pos());

@@ -85,16 +85,33 @@ void VolumetricStreamReader::execute()
 
     if (!m_fileName.exists())
     {
-      auto what    = QObject::tr("Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
-      auto details = QObject::tr("VolumetricStreamReader::execute() -> Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
+      auto message = QObject::tr("Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
+      auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
 
-      throw EspinaException(what, details);
+      throw EspinaException(message, details);
     }
   }
-
   auto mhdFile = QFileInfo{m_fileName};
+  auto fileName = mhdFile.absoluteFilePath().toUtf8();
+  fileName.detach();
+  auto mhdName = fileName.constData();
+
+  auto imageIO = itk::ImageIOFactory::CreateImageIO(mhdName, itk::ImageIOFactory::ReadMode);
+  imageIO->SetGlobalWarningDisplay(false);
+  imageIO->SetFileName(mhdName);
+  imageIO->ReadImageInformation();
+
+  if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
+  {
+    auto message = QObject::tr("Can't read image file, file name: %1. Pixel type is not 8-bits.").arg(m_fileName.absoluteFilePath());
+    auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   auto reader  = itk::ImageFileReader<itkVolumeType>::New();
-  reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+  reader->SetGlobalWarningDisplay(false);
+  reader->SetFileName(mhdName);
   reader->SetUseStreaming(false);
   reader->SetNumberOfThreads(1);
   try

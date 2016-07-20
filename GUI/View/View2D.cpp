@@ -184,7 +184,6 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
 
   this->setAutoFillBackground(true);
   this->setLayout(m_mainLayout);
-
   this->setFocusPolicy(Qt::WheelFocus);
 }
 

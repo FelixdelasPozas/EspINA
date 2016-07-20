@@ -94,6 +94,9 @@ namespace ESPINA
          */
         explicit ProgressTool(const QString &id, const QString &icon, const QString &tooltip, Context &context);
 
+        /** \brief ProgressTool class virtual destructor.
+         *
+         */
         virtual ~ProgressTool();
 
         /** \brief Enables/Disables the tool

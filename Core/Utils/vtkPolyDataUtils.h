@@ -73,6 +73,14 @@ namespace ESPINA
      *
      */
     BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
+
+    /** \brief Returns he VolumeBounds for the given polydata, spacing and origin.
+     * \param[in] data vtkPolyData smart pointer.
+     * \param[in] spacing spacing vector.
+     * \param[in] origin origin vector.
+     *
+     */
+    VolumeBounds EspinaCore_EXPORT polyDataVolumeBounds(vtkSmartPointer<vtkPolyData> data, const NmVector3 &spacing, const NmVector3 &origin);
   }
 }
 

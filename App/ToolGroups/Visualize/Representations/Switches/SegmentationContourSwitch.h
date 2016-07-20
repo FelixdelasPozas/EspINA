@@ -44,7 +44,6 @@ namespace ESPINA
        * \param[in] manager manager to be handled by this switch.
        * \param[in] settings settings of the representation of the manager.
        * \param[in] supportedViews flags of the supported views of the manager.
-       * \param[in] timer view states' timer.
        * \param[in] context session context.
        *
        */

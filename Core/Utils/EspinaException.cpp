@@ -46,8 +46,8 @@ uint8_t ESPINA::Core::Utils::alternate_stack[ESPINA::Core::Utils::STACK_SIZE];
 
 //-----------------------------------------------------------------------------
 EspinaException::EspinaException(const QString& what, const QString& info)
-: m_what{what.toStdString().c_str()}
-, m_info{info.toStdString().c_str()}
+: m_what{what.toUtf8().constData()}
+, m_info{info.toUtf8().constData()}
 {
 //  std::cerr << "ESPINA EXCEPTION" << std::endl;
 //  std::cerr << what.toStdString().c_str() << std::endl;
