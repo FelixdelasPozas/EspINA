@@ -33,17 +33,17 @@ ESPINA::LUTSPtr SelectionHighlighter::lut(const QColor& original, bool highlight
   auto segColor = color(original, highlight);
   auto key = colorKey(segColor);
 
+  QMutexLocker lock(&m_mutex);
+
   if (!m_LUT.contains(key))
   {
-    //     qDebug() << "Generating LUT for:" << key;
-    double rgba[4] = { segColor.redF(), segColor.greenF(), segColor.blueF(), segColor.alphaF() };
-
+    // qDebug() << "Generating LUT for:" << key;
     auto segLUT = LUTSPtr::New();
     segLUT->Allocate();
     segLUT->SetNumberOfTableValues(2);
     segLUT->Build();
     segLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-    segLUT->SetTableValue(1, rgba);
+    segLUT->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), segColor.alphaF());
     segLUT->Modified();
     
     m_LUT.insert(key, segLUT);

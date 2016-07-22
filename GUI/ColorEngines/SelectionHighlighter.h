@@ -27,6 +27,7 @@
 
 // Qt
 #include <QMap>
+#include <QMutex>
 
 namespace ESPINA
 {
@@ -64,6 +65,7 @@ namespace ESPINA
           QString colorKey(const QColor &color) const;
 
         private:
+          QMutex m_mutex;
           static ColorEngine::LUTMap m_LUT;
       };
     } // namespace ColorEngines

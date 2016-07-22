@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "EditToolGroup.h"
-
 #include "ManualEditionTool.h"
 #include "SplitTool.h"
 #include "CODETool.h"
@@ -31,6 +30,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/Utils/SignalBlocker.h>
 #include <Filters/CloseFilter.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/ErodeFilter.h>
@@ -376,11 +376,14 @@ void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
   auto segmentation = segmentationPtr(item);
 
   {
-    auto volume = writeLockVolume(segmentation->output());
+    auto output = segmentation->output();
+    SignalBlocker<OutputSPtr> blocker(output);
+    auto volume = writeLockVolume(output);
 
     if (volume->isEmpty())
     {
       removeSegmentation = true;
+      blocker.setLaunch(false);
     }
     else
     {

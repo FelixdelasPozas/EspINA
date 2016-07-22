@@ -24,9 +24,11 @@
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Dialogs/DefaultDialogs.h>
 
-using ESPINA::GUI::DefaultDialogs;
+// Qt
+#include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
@@ -80,14 +82,10 @@ void ReportSelectorDialog::previewReport(int i)
 
     m_preview->setPixmap(report->preview());
 
-    if (isValidReport(i))
-    {
-      m_description->setText(report->description());
-    }
-    else
-    {
-      m_description->setText(report->requiredInputDescription());
-    }
+    auto validReport = isValidReport(i);
+
+    m_buttons->button(QDialogButtonBox::Ok)->setEnabled(validReport);
+    m_description->setText((validReport ? report->description() : report->requiredInputDescription()));
   }
 }
 

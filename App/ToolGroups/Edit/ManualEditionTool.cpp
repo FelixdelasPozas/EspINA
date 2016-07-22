@@ -66,7 +66,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
-          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
+          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)), Qt::DirectConnection);
 
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
@@ -197,8 +197,8 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     }
 
     m_temporalPipeline = std::make_shared<SliceEditionPipeline>(getContext().colorEngine());
-
     m_temporalPipeline->setTemporalActor(actor, view);
+
     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
     m_referenceItem->invalidateRepresentations();
   }

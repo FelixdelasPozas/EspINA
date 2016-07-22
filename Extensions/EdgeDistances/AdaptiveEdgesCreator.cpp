@@ -375,13 +375,15 @@ void AdaptiveEdgesCreator::computeEdges()
 //------------------------------------------------------------------------
 void AdaptiveEdgesCreator::computeFaces()
 {
-  vtkPoints *borderPoints = m_extension->m_edges->GetPoints();
-  int numSlices = m_extension->m_edges->GetNumberOfPoints()/4;
+  if(isAborted()) return; // no edges if user cancelled the task.
 
-  for (int face = 0; face < 6; face++)
+  auto borderPoints = m_extension->m_edges->GetPoints();
+  auto numSlices = m_extension->m_edges->GetNumberOfPoints()/4;
+
+  for (int face = 0; face < 6 && canExecute(); face++)
   {
-    vtkPoints    *facePoints = vtkPoints::New();
-    vtkCellArray *faceCells  = vtkCellArray::New();
+    auto facePoints = vtkPoints::New();
+    auto faceCells  = vtkCellArray::New();
     if (face < 4)
     {
       for (int i = 0; i < numSlices; i++)

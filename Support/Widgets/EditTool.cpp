@@ -37,9 +37,6 @@ EditTool::EditTool(const QString &id, const QString& icon, const QString& toolti
 {
   auto selection = getSelection().get();
 
-//   connect(selection, SIGNAL(selectionChanged()),
-//           this,      SLOT(updateStatus()));
-
   connect(selection, SIGNAL(selectionStateChanged()),
           this,      SLOT(updateStatus()));
 }

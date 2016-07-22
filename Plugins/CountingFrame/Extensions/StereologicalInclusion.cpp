@@ -131,7 +131,7 @@ QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 {
   connect(segmentation, SIGNAL(outputModified()),
-          this,         SLOT(evaluateCountingFrames()));
+          this,         SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------
@@ -194,6 +194,7 @@ bool StereologicalInclusion::isExcluded()
   {
     evaluateCountingFrames();
   }
+
   return m_isExcluded;
 }
 
@@ -529,4 +530,11 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
       m_infoCache.remove(oldIdKey);
     }
   }
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::onOutputModified()
+{
+  m_isUpdated = false;
+  evaluateCountingFrames();
 }

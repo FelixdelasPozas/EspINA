@@ -315,7 +315,7 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   if (hasMeshData(output))
   {
     auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
-    segmentationPolyData->DeepCopy(readLockMesh(output)->mesh());
+    segmentationPolyData->DeepCopy(writeLockMesh(output)->mesh());
     for (int face = 0; face < 6; ++face)
     {
       QMutexLocker lock(&m_distanceMutex);

@@ -51,199 +51,205 @@ namespace ESPINA
   class EspinaCore_EXPORT Data
   : public QObject
   {
-    Q_OBJECT
+      Q_OBJECT
 
-    static TimeStamp s_tick;
+      static TimeStamp s_tick;
 
-  public:
-    using Type = QString;
+    public:
+      using Type = QString;
 
-    enum class Access { READ, WRITE };
+      enum class Access { READ, WRITE };
 
-  public:
-    /** \brief Data class constructor.
-     *
-     */
-    virtual ~Data()
-    {}
+    public:
+      /** \brief Data class constructor.
+       *
+       */
+      virtual ~Data()
+      {}
 
-    /** \brief Returns the type of data.
-     *
-     */
-    virtual Data::Type type() const = 0;
+      /** \brief Returns the type of data.
+       *
+       */
+      virtual Data::Type type() const = 0;
 
-    /** \brief Creates a proxy for the data type.
-     *
-     */
-    virtual DataSPtr createProxy() const = 0;
+      /** \brief Creates a proxy for the data type.
+       *
+       */
+      virtual DataSPtr createProxy() const = 0;
 
-    /** \brief Returns the list of data types on which this
-     *         data type relies on
-     *
-     */
-    QList<Data::Type> dependencies() const;
+      /** \brief Returns the list of data types on which this
+       *         data type relies on
+       *
+       */
+      QList<Data::Type> dependencies() const;
 
-    /** \brief Returns the time stamp of the last modification to the data.
-     *
-     */
-    virtual TimeStamp lastModified() const
-    { return m_timeStamp; }
+      /** \brief Returns the time stamp of the last modification to the data.
+       *
+       */
+      virtual TimeStamp lastModified() const
+      { return m_timeStamp; }
 
-    /** \brief Returns the list of bounds of the edited regions of the data.
-     *
-     */
-    virtual BoundsList editedRegions() const
-    { return m_editedRegions; }
+      /** \brief Returns the list of bounds of the edited regions of the data.
+       *
+       */
+      virtual BoundsList editedRegions() const
+      { return m_editedRegions; }
 
-    /** \brief Set current data edited regions
-     *
-     */
-    virtual void setEditedRegions(const BoundsList &regions)
-    { m_editedRegions = regions; }
+      /** \brief Set current data edited regions
+       *
+       */
+      virtual void setEditedRegions(const BoundsList &regions)
+      { m_editedRegions = regions; }
 
-    /** \brief Set context to look for data on fetch request
-     * \param[in] storage temporal storage where data snasphots can be loaded from.
-     * \param[in] path storage path where data snapshosts will be loaded from
-     * \param[in] id identifier of stored data snapshosts
-     *
-     */
-    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
+      /** \brief Set context to look for data on fetch request
+       * \param[in] storage temporal storage where data snasphots can be loaded from.
+       * \param[in] path storage path where data snapshosts will be loaded from
+       * \param[in] id identifier of stored data snapshosts
+       *
+       */
+      virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds);
 
-    void copyFetchContext(DataSPtr data);
+      /** \brief Copies the fetch context from the given data.
+       * \param[in] data
+       *
+       */
+      void copyFetchContext(DataSPtr data);
 
-    /** \brief Recover data from Persistent Storage.
-     *
-     */
-    bool fetchData();
+      /** \brief Recover data from Persistent Storage.
+       *
+       */
+      bool fetchData();
 
-    virtual bool needFetch() const
-    { return m_needFetch; }
+      /** \brief Returns true if the data needs to be fetched from disk.
+       *
+       */
+      virtual bool needFetch() const
+      { return m_needFetch; }
 
-    /** \brief Clears the edited regions list.
-     *
-     */
-    virtual void clearEditedRegions()
-    { m_editedRegions.clear(); }
+      /** \brief Clears the edited regions list.
+       *
+       */
+      virtual void clearEditedRegions()
+      { m_editedRegions.clear(); }
 
-    /** \brief Return the byte arrays needed to save this object between sessions.
-     * \param[in] storage temporal storage where data snasphots can be loaded from
-     * \param[in] path storage path where data snapshosts will be saved to
-     * \param[in] id identifier to store data snapshosts
-     *
-     *  Temporal storage may be also used to store temporal files where snapshot generation
-     */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
+      /** \brief Return the byte arrays needed to save this object between sessions.
+       * \param[in] storage temporal storage where data snasphots can be loaded from
+       * \param[in] path storage path where data snapshosts will be saved to
+       * \param[in] id identifier to store data snapshosts
+       *
+       *  Temporal storage may be also used to store temporal files where snapshot generation
+       */
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
-    /** \brief Returns a snapshot object of the edited regions of the data.
-     * \param[in] storage temporal storage where edited regions snasphots can be loaded from
-     * \param[in] path storage path where edited regions snapshosts will be saved to
-     * \param[in] id identifier to store edited regions snapshosts
-     *
-     *  Temporal storage may be also used to store temporal files where snapshot generation
-     */
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
+      /** \brief Returns a snapshot object of the edited regions of the data.
+       * \param[in] storage temporal storage where edited regions snasphots can be loaded from
+       * \param[in] path storage path where edited regions snapshosts will be saved to
+       * \param[in] id identifier to store edited regions snapshosts
+       *
+       *  Temporal storage may be also used to store temporal files where snapshot generation
+       */
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
-    /** \brief Restore data edited regions from its snapshots.
-     * \param[in] storage temporal storage where edited regions snasphots can be loaded from
-     * \param[in] path storage path where edited regions snapshosts will be loaded from
-     * \param[in] id identifier to store edited regions snapshosts
-     *
-     * PRE: Previously edited regions bounds have been restored
-     */
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
+      /** \brief Restore data edited regions from its snapshots.
+       * \param[in] storage temporal storage where edited regions snasphots can be loaded from
+       * \param[in] path storage path where edited regions snapshosts will be loaded from
+       * \param[in] id identifier to store edited regions snapshosts
+       *
+       * PRE: Previously edited regions bounds have been restored
+       */
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
-    /** \brief Returns true if the object has been correctly initialized and contains data.
-     *
-     */
-    virtual bool isValid() const = 0;
+      /** \brief Returns true if the object has been correctly initialized and contains data.
+       *
+       */
+      virtual bool isValid() const = 0;
 
-    /** \brief Returns true if the object is empty.
-     *
-     */
-    virtual bool isEmpty() const = 0;
+      /** \brief Returns true if the object is empty.
+       *
+       */
+      virtual bool isEmpty() const = 0;
 
-    /** \brief Returns the bounds of the contained data.
-     *
-     */
-    virtual VolumeBounds bounds() const
-    { return m_bounds; }
+      /** \brief Returns the bounds of the contained data.
+       *
+       */
+      virtual VolumeBounds bounds() const
+      { return m_bounds; }
 
-    /** \brief Sets the spacing of the data.
-     *
-     */
-    virtual void setSpacing(const NmVector3& spacing) = 0;
+      /** \brief Sets the spacing of the data.
+       *
+       */
+      virtual void setSpacing(const NmVector3& spacing) = 0;
 
-    /** \brief Returns true if the object has been edited.
-     *
-     */
-    bool isEdited() const
-    { return !editedRegions().isEmpty(); }
+      /** \brief Returns true if the object has been edited.
+       *
+       */
+      bool isEdited() const
+      { return !editedRegions().isEmpty(); }
 
-    /** \brief Return memory usage in bytes.
-     *
-     * Returns the amount of memory allocated by the object
-     */
-    virtual size_t memoryUsage() const = 0;
+      /** \brief Return memory usage in bytes, the amount of memory allocated by the object.
+       *
+       */
+      virtual size_t memoryUsage() const = 0;
 
-  signals:
-    void dataChanged(); //former representationChanged
+    signals:
+      void dataChanged(); //former representationChanged
 
-  protected:
-    /** \brief Data class constructor.
-     *
-     */
-    explicit Data()
-    : m_needFetch(false)
-    , m_timeStamp{s_tick++}
-    , m_mutex(QMutex::Recursive)
-    {}
+    protected:
+      /** \brief Data class constructor.
+       *
+       */
+      explicit Data()
+      : m_needFetch(false)
+      , m_timeStamp{s_tick++}
+      , m_mutex(QMutex::Recursive)
+      {}
 
-    /** \brief Increments the modification time and signals the modification of the data.
-     *
-     */
-    void updateModificationTime()
-    {
-      m_timeStamp = s_tick++;
-      emit dataChanged();
-    }
+      /** \brief Increments the modification time and signals the modification of the data.
+       *
+       */
+      void updateModificationTime()
+      {
+        m_timeStamp = s_tick++;
+        emit dataChanged();
+      }
 
-    void addEditedRegion(const Bounds &bounds)
-    { m_editedRegions << bounds; }
+      void addEditedRegion(const Bounds &bounds)
+      { m_editedRegions << bounds; }
 
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage,
-                                         const QString      &path,
-                                         const QString      &id,
-                                         const VolumeBounds &bounds) = 0;
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage,
+                                           const QString      &path,
+                                           const QString      &id,
+                                           const VolumeBounds &bounds) = 0;
 
+    private:
+      /** \brief Returns the list of data types on which this
+       *         data type relies on
+       *
+       */
+      virtual QList<Data::Type> updateDependencies() const = 0;
 
-  private:
-    /** \brief Returns the list of data types on which this
-     *         data type relies on
-     *
-     */
-    virtual QList<Data::Type> updateDependencies() const = 0;
+      /** \brief Auxiliary virtual method in case a data type needs to fix something wrong from
+       * previous versions.
+       */
+      virtual void applyFixes() {};
 
-    /** \brief Auxiliary virtual method in case a data type needs to fix something wrong from
-     * previous versions.
-     */
-    virtual void applyFixes() {};
+    protected:
+      QString             m_path;
+      QString             m_id;
+      TemporalStorageSPtr m_storage;
+      VolumeBounds        m_bounds;
 
-  protected:
-    QString             m_path;
-    QString             m_id;
-    TemporalStorageSPtr m_storage;
-    VolumeBounds        m_bounds;
+    private:
+      bool         m_needFetch;
+      TimeStamp    m_timeStamp;
+      BoundsList   m_editedRegions;
 
-  private:
-    bool         m_needFetch;
-    TimeStamp    m_timeStamp;
-    BoundsList   m_editedRegions;
-
-    QMutex m_mutex;
-    template<typename T> friend class SignalBlocker;
+      QMutex m_mutex;
+      template<typename T> friend class SignalBlocker;
   };
 
   enum class DataUpdatePolicy { Request, Ignore };
+
 } // namespace ESPINA
 
 #endif // ESPINA_DATA_H

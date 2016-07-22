@@ -54,7 +54,7 @@ namespace ESPINA
      *
      */
     explicit VolumetricData()
-    : m_bgValue(SEG_BG_VALUE)
+    : m_bgValue{SEG_BG_VALUE}
     {}
 
     /** \brief VolumetricData class destructor.

@@ -68,10 +68,7 @@ namespace ESPINA
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
 
   protected:
-    // Default implementation
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override = 0;
-
-    VolumeBounds meshBounds(vtkSmartPointer<vtkPolyData> mesh, const NmVector3 &spacing, const NmVector3 &origin) const;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const
@@ -84,6 +81,7 @@ namespace ESPINA
     { return snapshotFilename(path, id); }
   };
 
+  using MeshDataPtr  = MeshData *;
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
   /** \brief Obtains and returns the MeshData smart pointer of the spacified Output.

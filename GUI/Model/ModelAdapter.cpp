@@ -1018,19 +1018,19 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
 {
   for(auto sample : m_samples)
   {
-    PersistentSPtr base = sample->m_sample;
+    auto base = std::dynamic_pointer_cast<Persistent>(sample->m_sample);
     if (base == item) return sample;
   }
 
   for(auto channel : m_channels)
   {
-    PersistentSPtr base = channel->m_channel;
+    auto base = std::dynamic_pointer_cast<Persistent>(channel->m_channel);
     if (base == item) return channel;
   }
 
   for(auto segmentation : m_segmentations)
   {
-    PersistentSPtr base = segmentation->m_segmentation;
+    auto base = std::dynamic_pointer_cast<Persistent>(segmentation->m_segmentation);
     if (base == item) return segmentation;
   }
 

@@ -49,6 +49,8 @@ private:
     auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
     output->setData(mesh);
 
+    mesh->mesh();
+
     m_segmentation->invalidateRepresentations();
   }
 
@@ -88,11 +90,11 @@ DrawUndoCommand::DrawUndoCommand(Support::Context &context,
 void DrawUndoCommand::redo()
 {
   auto output = m_segmentation->output();
+  SignalBlocker<OutputSPtr> blocker(output);
 
   if (m_hasVolume)
   {
     auto volume = writeLockVolume(output);
-    SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
     expandAndDraw(volume, m_mask);
   }
   else
@@ -110,10 +112,12 @@ void DrawUndoCommand::redo()
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
+  auto output = m_segmentation->output();
+  SignalBlocker<OutputSPtr> blocker(output);
+
   if (m_hasVolume)
   {
-    auto volume = writeLockVolume(m_segmentation->output());
-    SignalBlocker<Output::WriteLockData<DefaultVolumetricData>> blockSignals(volume);
+    auto volume = writeLockVolume(output);
     volume->resize(m_bounds);
     if(m_image != nullptr)
     {
@@ -122,7 +126,7 @@ void DrawUndoCommand::undo()
   }
   else
   {
-    m_segmentation->output()->removeData(VolumetricData<itkVolumeType>::TYPE);
+    output->removeData(VolumetricData<itkVolumeType>::TYPE);
   }
 
   Task::submit(m_updateMesh);

@@ -40,6 +40,7 @@ namespace ESPINA
        */
       explicit SignalBlocker(T &data)
       : m_object(data)
+      , m_launch{true}
       {
         m_object->blockSignals(true);
       }
@@ -50,11 +51,23 @@ namespace ESPINA
       ~SignalBlocker()
       {
         m_object->blockSignals(false);
-        m_object->updateModificationTime();
+
+        if(m_launch)
+        {
+          m_object->updateModificationTime();
+        }
       }
 
+      /** \brief Sets the launch of the signal on destruction.
+       * \param[in] value true to launch the signal (default) and false otherwise.
+       *
+       */
+      void setLaunch(bool value)
+      { m_launch = value; };
+
     private:
-      T &m_object;
+      T   &m_object; /** object.                                        */
+      bool m_launch; /** true to launch the signal and false otherwise. */
   };
 
 } /* namespace ESPINA */

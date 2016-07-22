@@ -44,7 +44,7 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
   {
     QFileInfo meshFile(storage->absoluteFilePath(filename));
 
-    if(meshFile.exists())
+    if(meshFile.exists() && meshFile.isReadable())
     {
       setMesh(PolyDataUtils::readPolyDataFromFile(meshFile.absoluteFilePath()));
       dataFetched = true;
@@ -52,29 +52,11 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
     }
   }
 
-  Q_ASSERT((!m_bounds.areValid() && !bounds.areValid()) ||  m_bounds == bounds);
+  Q_ASSERT((!m_bounds.areValid() && !bounds.areValid()) || m_bounds == bounds);
   m_bounds = bounds;
 
   return dataFetched;
 }
-
-//----------------------------------------------------------------------------
-VolumeBounds MeshData::meshBounds(vtkSmartPointer<vtkPolyData> mesh, const NmVector3 &spacing, const NmVector3 &origin) const
-{
-  Bounds result;
-
-  if (mesh && mesh->GetNumberOfCells() > 0)
-  {
-    Nm bounds[6];
-
-    mesh->GetBounds(bounds);
-
-    result = Bounds(bounds);
-  }
-
-  return VolumeBounds(result, spacing, origin);
-}
-
 
 //----------------------------------------------------------------------------
 Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
