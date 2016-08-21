@@ -13,14 +13,14 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 
 // ITK
-#include <itkLabelStatisticsImageFilter.h>
 #include <itkBinaryFillholeImageFilter.h>//TODO
+#include <itkPasteImageFilter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
-using LabelStatisticsImageFilter = itk::LabelStatisticsImageFilter<itkVolumeType,itkVolumeType>;
-using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;//TODO
+using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
+using PasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>;
 
 //-----------------------------------------------------------------------------
 FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
@@ -94,24 +94,59 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 	reportProgress(0);
 	if (!canExecute()) return;
 
-	//inputVolume->bounds().bounds();
-	//labelImageFilter  (ITK)
+	const auto bounds = inputVolume->bounds().bounds();
+	auto spacing = inputVolume->bounds().spacing();
+	auto volume = sparseCopy<itkVolumeType>(inputVolume->itkImage());
+	auto sliceBounds = bounds;
 
-	//TODO
-	BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();
+	//Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
+	auto maskRegion = inputVolume->itkImage()->GetLargestPossibleRegion();
+	maskRegion.SetSize(2,3);
+	itkVolumeType::Pointer maskImage = itkVolumeType::New();
+	maskImage->SetRegions(maskRegion);
+	maskImage->Allocate();
+	maskImage->FillBuffer(SEG_VOXEL_VALUE);
 
-	ITKProgressReporter<BinaryFillholeFilter> reporter(this, filter);
+	PasteImageFilter::Pointer pasteFilter;
+	BinaryFillholeFilter::Pointer fillholeFilter;
+	for(auto i = bounds[4]; i < bounds[5] && canExecute();i += spacing[2])
+	{
+		sliceBounds[4] = sliceBounds[5] = i;
 
-	filter->SetInput(inputVolume->itkImage());
-	filter->Update();
+		auto slice = inputVolume->itkImage(sliceBounds);
 
-	reportProgress(100);
+		//Copy the current slice over the mask middle slice (like a cheese sandwich)
+		pasteFilter = PasteImageFilter::New();
+		pasteFilter->SetSourceImage(slice);
+		pasteFilter->SetSourceRegion(slice->GetLargestPossibleRegion());
+		pasteFilter->SetDestinationImage(maskImage);
+		auto maskIndex = maskRegion.GetIndex();
+		maskIndex.SetElement(2,maskIndex.GetElement(2)+1);
+		pasteFilter->SetDestinationIndex(maskIndex);
+		pasteFilter->Update();
+
+		//Fill the holes of the middle slice (like filling the cheese holes)
+		fillholeFilter = BinaryFillholeFilter::New();
+		fillholeFilter->SetInput(pasteFilter->GetOutput());
+		fillholeFilter->Update();
+		auto fhfOutput = fillholeFilter->GetOutput();
+
+		//Copy back the middle slice to its original place (like taking the cheese out)
+		pasteFilter = PasteImageFilter::New();
+		pasteFilter->SetSourceImage(fhfOutput);
+		auto secondSliceFhfOutputRegion = fhfOutput->GetLargestPossibleRegion();
+		secondSliceFhfOutputRegion.SetIndex(2,1); //Second slice from the mask
+		secondSliceFhfOutputRegion.SetSize(2,1); //1 slice of the 3 contained by the mask
+		pasteFilter->SetSourceRegion(secondSliceFhfOutputRegion);
+		pasteFilter->SetDestinationImage(slice);
+		pasteFilter->SetDestinationIndex(slice->GetLargestPossibleRegion().GetIndex());
+		pasteFilter->Update();
+
+		volume->draw(pasteFilter->GetOutput());
+	}
+
 	if (!canExecute()) return;
-
-	auto output  = filter->GetOutput();
-	auto spacing = input->output()->spacing();
-
-	auto volume = sparseCopy<itkVolumeType>(output);
+	reportProgress(100);
 
 	if (!m_outputs.contains(0))
 	{
