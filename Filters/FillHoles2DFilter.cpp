@@ -1,9 +1,22 @@
 /*
- * FillHoles2DFilter.cpp
- *
- *  Created on: 12 de jul. de 2016
- *      Author: heavy
- */
+* Copyright (C) 2016, Rafael Juan Vicente Garcia <rafaelj.vicente@gmail.com>
+*
+* This file is part of ESPINA.
+*
+* ESPINA is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
 // ESPINA
 #include "FillHoles2DFilter.h"
@@ -13,7 +26,7 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 
 // ITK
-#include <itkBinaryFillholeImageFilter.h>//TODO
+#include <itkBinaryFillholeImageFilter.h>
 #include <itkPasteImageFilter.h>
 
 using namespace ESPINA;
@@ -101,15 +114,23 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 
 	//Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
 	auto maskRegion = inputVolume->itkImage()->GetLargestPossibleRegion();
+	const auto numSlices = maskRegion.GetSize(2);
 	maskRegion.SetSize(2,3);
 	itkVolumeType::Pointer maskImage = itkVolumeType::New();
 	maskImage->SetRegions(maskRegion);
 	maskImage->Allocate();
 	maskImage->FillBuffer(SEG_VOXEL_VALUE);
+	auto maskIndex = maskRegion.GetIndex();
+	maskIndex.SetElement(2,maskIndex.GetElement(2)+1);
+
+	//Variables for progress reporter
+	const unsigned int numFilters = 3;
+	const auto progressPerFilter = (double)100/(numFilters*numSlices);
+	double progress = 0;
 
 	PasteImageFilter::Pointer pasteFilter;
 	BinaryFillholeFilter::Pointer fillholeFilter;
-	for(auto i = bounds[4]; i < bounds[5] && canExecute();i += spacing[2])
+	for(auto i = bounds[4]; i < bounds[5] && canExecute(); i += spacing[2])
 	{
 		sliceBounds[4] = sliceBounds[5] = i;
 
@@ -120,15 +141,17 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 		pasteFilter->SetSourceImage(slice);
 		pasteFilter->SetSourceRegion(slice->GetLargestPossibleRegion());
 		pasteFilter->SetDestinationImage(maskImage);
-		auto maskIndex = maskRegion.GetIndex();
-		maskIndex.SetElement(2,maskIndex.GetElement(2)+1);
 		pasteFilter->SetDestinationIndex(maskIndex);
+		ITKProgressReporter<PasteImageFilter> pfReporter(this, pasteFilter, progress, progress + progressPerFilter);
 		pasteFilter->Update();
+		progress += progressPerFilter;
 
 		//Fill the holes of the middle slice (like filling the cheese holes)
 		fillholeFilter = BinaryFillholeFilter::New();
 		fillholeFilter->SetInput(pasteFilter->GetOutput());
+		ITKProgressReporter<BinaryFillholeFilter> fhReporter(this, fillholeFilter, progress, progress + progressPerFilter);
 		fillholeFilter->Update();
+		progress += progressPerFilter;
 		auto fhfOutput = fillholeFilter->GetOutput();
 
 		//Copy back the middle slice to its original place (like taking the cheese out)
@@ -140,7 +163,9 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 		pasteFilter->SetSourceRegion(secondSliceFhfOutputRegion);
 		pasteFilter->SetDestinationImage(slice);
 		pasteFilter->SetDestinationIndex(slice->GetLargestPossibleRegion().GetIndex());
+		ITKProgressReporter<PasteImageFilter> pfReporter2(this, pasteFilter, progress, progress + progressPerFilter);
 		pasteFilter->Update();
+		progress += progressPerFilter;
 
 		volume->draw(pasteFilter->GetOutput());
 	}
