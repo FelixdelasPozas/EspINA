@@ -29,7 +29,7 @@ const Filter::Type FILL_HOLES_2D_FILTER  = "FillSegmentationHoles2D";
 
 //------------------------------------------------------------------------
 FillHoles2DTool::FillHoles2DTool(Support::Context &context)
-: EditTool("FillHoles2D", ":/espina/fill_holes_2D.svg", tr("Fill Internal Holes in z direction"),context)
+: EditTool("FillHoles2D", ":/espina/fill_holes_2D.svg", tr("Fill Internal Holes in z direction (fill holes of each slice individually)"),context)
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles2D()));
@@ -53,7 +53,7 @@ bool FillHoles2DTool::acceptsSelection(SegmentationAdapterList segmentations)
 }
 
 //------------------------------------------------------------------------
-void FillHoles2DTool::fillHoles2D()
+void FillHoles2DTool::applyFilter()
 {
   auto segmentations = getSelectedSegmentations();
 

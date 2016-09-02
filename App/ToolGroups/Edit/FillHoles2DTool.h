@@ -30,6 +30,10 @@ namespace ESPINA
 	{
 		Q_OBJECT
 		public:
+		/** \brief FillHoles2DTool class constructor.
+		 * \param[in] context application context.
+		 *
+		 */
 		FillHoles2DTool(Support::Context &context);
 
 		virtual ~FillHoles2DTool(){};
@@ -42,8 +46,14 @@ namespace ESPINA
 		virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
 		private slots:
-		void fillHoles2D();
+		/** \brief Launches the operation task.
+		 *
+		 */
+		void applyFilter();
 
+		/** \brief Performs post operations after the task has finished.
+		 *
+		 */
 		void onTaskFinished();
 
 		private:
