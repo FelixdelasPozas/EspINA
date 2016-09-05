@@ -20,6 +20,8 @@
 #ifndef ESPINA_MASK_PAINTER_H
 #define ESPINA_MASK_PAINTER_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/PointTracker.h>
 #include <Core/Utils/BinaryMask.hxx>
@@ -27,7 +29,7 @@
 
 namespace ESPINA
 {
-  class MaskPainter
+  class EspinaGUI_EXPORT MaskPainter
   : public EventHandler
   {
     Q_OBJECT
@@ -122,6 +124,9 @@ namespace ESPINA
     void clear() const;
 
   private:
+    /** \brief Helper method to update brush when drawing mode changes.
+     *
+     */
     void updateDrawingMode();
 
     /** \brief Returns true when the shift key is down in the keyboard.
@@ -129,21 +134,28 @@ namespace ESPINA
      */
     inline bool ShiftKeyIsDown() const;
 
+    /** \brief Helper method to update the brush cursor when the drawing mode changes.
+     * \param[in] mode drawing mode.
+     *
+     */
     virtual void updateCursor(DrawingMode mode) = 0;
 
+    /** \brief Helper method to update mask properties.
+     * \param[in] spacing spacing of the mask.
+     * \param[in] origin origin point of the mask.
+     *
+     */
     virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3()) = 0;
 
   protected:
-    NmVector3 m_origin;
-    NmVector3 m_spacing;
-
-    QColor    m_color;
+    NmVector3        m_origin;   /** origin of the mask.                     */
+    NmVector3        m_spacing;  /** spacing of the mask.                    */
+    QColor           m_color;    /** painting color.                         */
 
   private:
-    PointTrackerSPtr m_tracker;
-
-    bool        m_canErase;
-    DrawingMode m_mode;
+    PointTrackerSPtr m_tracker;  /** point tracker.                          */
+    bool             m_canErase; /** true if the brush can enter erase mode. */
+    DrawingMode      m_mode;     /** current drawing mode.                   */
   };
 
   using MaskPainterSPtr = std::shared_ptr<MaskPainter>;

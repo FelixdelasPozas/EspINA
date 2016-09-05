@@ -21,6 +21,8 @@
 #ifndef ESPINA_SEGMENTATION_SMOOTHED_MESH_PIPELINE_H_
 #define ESPINA_SEGMENTATION_SMOOTHED_MESH_PIPELINE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Types.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
@@ -28,7 +30,11 @@
 
 namespace ESPINA
 {
-  class SegmentationSmoothedMeshPipeline
+  /** \class SegmentationSmoothedMeshPipeline
+   * \brief Pipeline for the creation of smoothed meshes representations of segmentations.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationSmoothedMeshPipeline
   : public RepresentationPipeline
   {
     public:
@@ -57,9 +63,9 @@ namespace ESPINA
       virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
 
     private:
-      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** representation's color engine. */
 
-      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter; /** intensity color engine. */
   };
 
 } // namespace ESPINA

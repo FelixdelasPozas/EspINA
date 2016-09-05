@@ -21,12 +21,14 @@
 #ifndef SAS_INFORMATION_PROXY_H_
 #define SAS_INFORMATION_PROXY_H_
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // ESPINA
 #include <GUI/Model/Proxies/InformationProxy.h>
 
 namespace ESPINA
 {
-  class SASInformationProxy
+  class AppositionSurfacePlugin_EXPORT SASInformationProxy
   : public InformationProxy
   {
     class SASInformationFetcher;

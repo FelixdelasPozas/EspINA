@@ -65,12 +65,10 @@ set (Support_SOURCES
   Representations/RepresentationSwitch.cpp
   Representations/Slice3DManager.cpp
   Representations/SliceManager.cpp
-  Representations/RepresentationUtils.cpp
   ROIAccumulator.cpp
   Settings/Settings.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
-  Utils/TagUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
   ContextFactories.cpp

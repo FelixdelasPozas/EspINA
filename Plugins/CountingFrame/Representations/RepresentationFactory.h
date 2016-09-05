@@ -20,14 +20,19 @@
 #ifndef ESPINA_CF_REPRESENTATION_FACTORY_H
 #define ESPINA_CF_REPRESENTATION_FACTORY_H
 
+#include "CountingFramePlugin_Export.h"
+
+// ESPINA
 #include <Support/Representations/RepresentationFactory.h>
+
+// Plugin
 #include "CountingFrameManager.h"
 
 namespace ESPINA
 {
   namespace CF
   {
-    class RepresentationFactory
+    class CountingFramePlugin_EXPORT RepresentationFactory
     : public ESPINA::RepresentationFactory
     {
     public:

@@ -51,7 +51,7 @@ void printTask(TaskSPtr task, const QString& message)
 }
 
 //-----------------------------------------------------------------------------
-void TaskQueue::orderedInsert(TaskSPtr worker)
+void Scheduler::TaskQueue::orderedInsert(TaskSPtr worker)
 {
   int w = 0;
   bool found = false;
@@ -84,7 +84,7 @@ Scheduler::Scheduler(int period, QObject* parent)
   // TODO: better task scheduling when a task gets blocked, until then just set the bar high
   //       enough to avoid starvation.
   // NOTE: can be "task->thread()->yieldCurrentThread();" a solution with the cycle counter?
-  m_maxNumRunningTasks = 50;
+  m_maxNumRunningTasks = 15;
 
   thread->start();
 }

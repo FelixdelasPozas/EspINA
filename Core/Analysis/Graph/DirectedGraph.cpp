@@ -92,7 +92,7 @@ void DirectedGraph::remove(Vertex vertex)
 //-----------------------------------------------------------------------------
 void DirectedGraph::addRelation(Vertex ancestor,
                                 Vertex successor,
-                                const QString&   description)
+                                const QString& description)
 {
   if (ancestor == nullptr || successor == nullptr)
   {
@@ -139,9 +139,9 @@ void DirectedGraph::addRelation(Vertex ancestor,
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::removeRelation(Vertex   ancestor,
-                                       Vertex   successor,
-                                       const QString &description)
+void DirectedGraph::removeRelation(Vertex         ancestor,
+                                   Vertex         successor,
+                                   const QString &description)
 {
   QMutexLocker lock(&m_mutex);
 

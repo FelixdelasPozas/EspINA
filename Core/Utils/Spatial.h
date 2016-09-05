@@ -36,8 +36,8 @@
 // Qt
 #include <QList>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   enum class Axis: std::int8_t { X=0, Y=1, Z=2 };
 
   /** \brief Returns the numerical index equivalent of the specified axis.

@@ -22,6 +22,8 @@
 #ifndef SUPPORT_SETTINGS_SETTINGS_H_
 #define SUPPORT_SETTINGS_SETTINGS_H_
 
+#include <Support/EspinaSupport_Export.h>
+
 // Qt
 #include <QSettings>
 #include <QString>
@@ -40,7 +42,7 @@ namespace ESPINA
      * \brief Application settings.
      *
      */
-    class ApplicationSettings
+    class EspinaSupport_EXPORT ApplicationSettings
     {
       public:
         /** \brief Settings class constructor.

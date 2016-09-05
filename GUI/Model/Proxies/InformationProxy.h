@@ -33,7 +33,10 @@
 
 namespace ESPINA
 {
-
+  /** \class InformationProxy
+   * \brief Information model proxy (segmentation <-> information model).
+   *
+   */
   class EspinaGUI_EXPORT InformationProxy
   : public QAbstractProxyModel
   {
@@ -53,80 +56,84 @@ namespace ESPINA
       { return Core::SegmentationExtension::InformationKey("Segmentation", "Category"); }
 
     protected:
+      /** \class InformationFetcher
+       * \brief Task to compute segmentation information.
+       *
+       */
       class InformationFetcher
       : public Task
       {
-      public:
-        /** \brief InformationFetcher class constructor.
-         * \param[in] segmentation adapter smart pointer of the segmentation to get information from.
-         * \param[in] keys information keys to fetch.
-         * \param[in] scheduler scheduler smart pointer.
-         *
-         */
-        InformationFetcher(SegmentationAdapterPtr segmentation,
-                           const Core::SegmentationExtension::InformationKeyList &keys,
-                           SchedulerSPtr scheduler)
-        : Task        {scheduler}
-        , Segmentation{segmentation}
-        , m_keys      {keys}
-        , m_progress  {0}
-        {
-          auto id = Segmentation->data(Qt::DisplayRole).toString();
-          setDescription(tr("%1 information").arg(id));
-          setHidden(true);
-          setPriority(Priority::LOW);
-
-          m_keys.removeOne(NameKey());
-          m_keys.removeOne(CategoryKey());
-
-          bool ready = true;
-
-          for (auto key : m_keys)
+        public:
+          /** \brief InformationFetcher class constructor.
+           * \param[in] segmentation adapter smart pointer of the segmentation to get information from.
+           * \param[in] keys information keys to fetch.
+           * \param[in] scheduler scheduler smart pointer.
+           *
+           */
+          InformationFetcher(SegmentationAdapterPtr segmentation,
+                             const Core::SegmentationExtension::InformationKeyList &keys,
+                             SchedulerSPtr scheduler)
+          : Task        {scheduler}
+          , Segmentation{segmentation}
+          , m_keys      {keys}
+          , m_progress  {0}
           {
-            ready &= Segmentation->isReady(key);
+            auto id = Segmentation->data(Qt::DisplayRole).toString();
+            setDescription(tr("%1 information").arg(id));
+            setHidden(true);
+            setPriority(Priority::LOW);
 
-            if (!ready) break;
-          }
+            m_keys.removeOne(NameKey());
+            m_keys.removeOne(CategoryKey());
 
-          setFinished(ready);
-        }
+            bool ready = true;
 
-      public:
-        /** \brief Returns current progress.
-         *
-         */
-        int currentProgress() const
-        { return m_progress; }
-
-      protected:
-        virtual void run()
-        {
-          for (int i = 0; i < m_keys.size(); ++i)
-          {
-            if (!canExecute()) break;
-
-            auto key = m_keys[i];
-
-            if (key != NameKey() && key != CategoryKey())
+            for (auto key : m_keys)
             {
-              if (!Segmentation->isReady(key))
-              {
-                Segmentation->information(key);
+              ready &= Segmentation->isReady(key);
 
-                if (!canExecute()) break;
-              }
+              if (!ready) break;
             }
 
-            m_progress = (100.0*i)/m_keys.size();
-            reportProgress(m_progress);
+            setFinished(ready);
           }
-        }
 
-      protected:
-        SegmentationAdapterPtr Segmentation;
-        Core::SegmentationExtension::InformationKeyList m_keys;
+        public:
+          /** \brief Returns current progress.
+           *
+           */
+          int currentProgress() const
+          { return m_progress; }
 
-        int   m_progress;
+        protected:
+          virtual void run()
+          {
+            for (int i = 0; i < m_keys.size(); ++i)
+            {
+              if (!canExecute()) break;
+
+              auto key = m_keys[i];
+
+              if (key != NameKey() && key != CategoryKey())
+              {
+                if (!Segmentation->isReady(key))
+                {
+                  Segmentation->information(key);
+
+                  if (!canExecute()) break;
+                }
+              }
+
+              m_progress = (100.0*i)/m_keys.size();
+              reportProgress(m_progress);
+            }
+          }
+
+        protected:
+          SegmentationAdapterPtr Segmentation;
+          Core::SegmentationExtension::InformationKeyList m_keys;
+
+          int   m_progress;
       };
 
       using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
@@ -296,7 +303,7 @@ namespace ESPINA
       ModelAdapterSPtr m_model;
       QString          m_category;
 
-      const SegmentationAdapterList     *m_filter;
+      const SegmentationAdapterList *m_filter;
 
       ItemAdapterList m_elements;
   };

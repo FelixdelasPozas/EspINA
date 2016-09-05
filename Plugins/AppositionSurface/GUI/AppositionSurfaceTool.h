@@ -21,13 +21,13 @@
 #ifndef APPOSITION_SURFACE_TOOL_H
 #define APPOSITION_SURFACE_TOOL_H
 
-#include <Support/Widgets/ProgressTool.h>
+#include "AppositionSurfacePlugin_Export.h"
 
 // Plugin
-#include "AppositionSurfacePlugin_Export.h"
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Core/Extensions/AppositionSurfaceExtension.h>
+#include <Support/Widgets/ProgressTool.h>
 
 // ESPINA
 #include <Support/Context.h>

@@ -22,7 +22,7 @@
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/View/Utils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
-#include <Support/Representations/RepresentationUtils.h>
+#include <GUI/Utils/RepresentationUtils.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -33,10 +33,8 @@
 #include <vtkImageData.h>
 #include <vtkAlgorithmOutput.h>
 
-// Qt
-
 using namespace ESPINA;
-using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View::Utils;
@@ -44,16 +42,15 @@ using namespace ESPINA::GUI::View::Utils;
 IntensitySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 
 //----------------------------------------------------------------------------
-SegmentationSlicePipeline::SegmentationSlicePipeline(const Plane plane,
-                                                     ColorEngineSPtr colorEngine)
-: RepresentationPipeline("SegmentationSliceRepresentation")
-, m_plane{plane}
-, m_colorEngine{colorEngine}
+SegmentationSlicePipeline::SegmentationSlicePipeline(const Plane plane, ColorEngineSPtr colorEngine)
+: RepresentationPipeline{"SegmentationSliceRepresentation"}
+, m_plane               {plane}
+, m_colorEngine         {colorEngine}
 {
 }
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationSlicePipeline::representationState(const ViewItemAdapter *item,
+RepresentationState SegmentationSlicePipeline::representationState(const ViewItemAdapter     *item,
                                                                    const RepresentationState &settings)
 {
   RepresentationState state;
@@ -132,8 +129,8 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSlicePipeline::updateColors(ActorList                &actors,
-                                             const ViewItemAdapter    *item,
+void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
+                                             const ViewItemAdapter     *item,
                                              const RepresentationState &state)
 {
   if (actors.size() == 1)

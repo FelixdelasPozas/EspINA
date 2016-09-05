@@ -3,8 +3,8 @@
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -22,6 +22,8 @@
 #define ESPINA_GUI_WIDGET_H
 
 #include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/Representations/Managers/TemporalManager.h>
@@ -43,71 +45,100 @@ namespace ESPINA
     {
       namespace Widgets
       {
+        /** \class EspinaWidget
+         * \brief Super class for Espina interactive widgets.
+         *
+         */
         class EspinaGUI_EXPORT EspinaWidget
         {
-        public:
-          /** \brief Default constructor.
-           *
-           */
-          explicit EspinaWidget();
+          public:
+            /** \brief Default constructor.
+             *
+             */
+            explicit EspinaWidget();
 
-          /** \brief Virtual destructor.
-           *
-           */
-          virtual ~EspinaWidget();
+            /** \brief Virtual destructor.
+             *
+             */
+            virtual ~EspinaWidget();
 
-          void initializeWidget(RenderView *view);
+            /** \brief Initializes the widget for the given view.
+             * \param[in] view Espina view.
+             *
+             */
+            void initializeWidget(RenderView *view);
 
-          void uninitializeWidget();
+            /** \brief De-initializes the widget.
+             *
+             */
+            void uninitializeWidget();
 
-          void showWidget();
+            /** \brief Shows the widget on the configured view.
+             *
+             */
+            void showWidget();
 
-          void hideWidget();
+            /** \brief Hides the widget from the configured view.
+             *
+             */
+            void hideWidget();
 
-          bool isWidgetEnabled();
+            /** \brief Returns true if the widget is shown on the configured view and false otherwise.
+             *
+             */
+            bool isWidgetEnabled();
 
-        private:
-          virtual void initializeImplementation(RenderView *view) = 0;
+          private:
+            /** \brief Private implementation of initialization for the widget subclass.
+             *
+             */
+            virtual void initializeImplementation(RenderView *view) = 0;
 
-          virtual void uninitializeImplementation() = 0;
+            /** \brief Private implementation of de-initialization for the widget subclass.
+             *
+             */
+            virtual void uninitializeImplementation() = 0;
 
-          virtual vtkAbstractWidget *vtkWidget() = 0;
+            /** \brief Returns the vtkWidget of the EspinaWidget.
+             *
+             */
+            virtual vtkAbstractWidget *vtkWidget() = 0;
         };
 
-        class EspinaWidget2D
+        class EspinaGUI_EXPORT EspinaWidget2D
         : public Representations::Managers::TemporalRepresentation2D
         , public EspinaWidget
         {
-        public:
-          virtual void initialize(RenderView *view) override
-          { initializeWidget(view); }
+          public:
+            virtual void initialize(RenderView *view) override
+            { initializeWidget(view); }
 
-          virtual void uninitialize() override
-          { uninitializeWidget(); }
+            virtual void uninitialize() override
+            { uninitializeWidget(); }
 
-          virtual void show() override
-          { showWidget(); }
+            virtual void show() override
+            { showWidget(); }
 
-          virtual void hide() override
-          { hideWidget(); }
+            virtual void hide() override
+            { hideWidget(); }
         };
 
-        class EspinaWidget3D
+        class EspinaGUI_EXPORT EspinaWidget3D
         : public Representations::Managers::TemporalRepresentation3D
         , public EspinaWidget
         {
-        public:
-          virtual void initialize(RenderView *view) override
-          { initializeWidget(view); }
+          public:
+            virtual void initialize(RenderView *view) override
+            { initializeWidget(view); }
 
-          virtual void uninitialize() override
-          { uninitializeWidget(); }
+            virtual void uninitialize() override
+            { uninitializeWidget(); }
 
-          virtual void show() override
-          { showWidget(); }
+            virtual void show() override
+            { showWidget(); }
 
-          virtual void hide() override
-          { hideWidget(); }
+            virtual void hide() override
+            { hideWidget(); }
         };
 
       } // namespace Widgets

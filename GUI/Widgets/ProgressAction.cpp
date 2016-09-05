@@ -35,8 +35,8 @@ ProgressAction::ProgressAction(const QString &icon, const QString &tooltip, QObj
 
 //------------------------------------------------------------------------
 ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent)
-: QWidgetAction(parent)
-, m_progress(100)
+: QWidgetAction{parent}
+, m_progress   {100}
 {
   setIcon(icon);
   setToolTip(tooltip);

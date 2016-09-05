@@ -21,6 +21,8 @@
 #ifndef ESPINA_DOUBLE_SPINBOX_ACTION_H_
 #define ESPINA_DOUBLE_SPINBOX_ACTION_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // Qt
 #include <QWidgetAction>
 #include <QLabel>
@@ -28,8 +30,11 @@
 
 namespace ESPINA
 {
-  
-  class DoubleSpinBoxAction
+  /** \class DoubleSpinBoxAction
+   * \brief Provides a Qwidget action of a spinbox for double values.
+   *
+   */
+  class EspinaGUI_EXPORT DoubleSpinBoxAction
   : public QWidgetAction
   {
     Q_OBJECT

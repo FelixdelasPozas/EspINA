@@ -37,41 +37,46 @@
 
 namespace ESPINA
 {
-  struct ScheduledTask
-  {
-    static const unsigned MAX_CICLES = 100;
-
-    ScheduledTask(TaskSPtr task)
-    : Task(task)
-    , Cicles(MAX_CICLES)
-    {}
-
-    TaskSPtr Task;
-    unsigned Cicles;
-
-    bool consumeCicle()
-    {
-      return --Cicles > 0;
-    }
-
-    void restoreCicles()
-    { Cicles = MAX_CICLES; }
-
-    bool operator==(const ScheduledTask &rhs)
-    { return Task == rhs.Task; }
-  };
-
-  class TaskQueue
-  : public QList<ScheduledTask>
-  {
-    public:
-      void orderedInsert(TaskSPtr worker);
-  };
-
+  /** \class Scheduler
+   * \brief Task scheduler.
+   */
   class EspinaCore_EXPORT Scheduler
   : public QObject
   {
     Q_OBJECT
+
+    struct ScheduledTask
+    {
+      static const unsigned MAX_CICLES = 100;
+
+      ScheduledTask(TaskSPtr task)
+      : Task(task)
+      , Cicles(MAX_CICLES)
+      {}
+
+      TaskSPtr Task;
+      unsigned Cicles;
+
+      bool consumeCicle()
+      {
+        return --Cicles > 0;
+      }
+
+      void restoreCicles()
+      { Cicles = MAX_CICLES; }
+
+      bool operator==(const ScheduledTask &rhs)
+      { return Task == rhs.Task; }
+    };
+
+    class TaskQueue
+    : public QList<ScheduledTask>
+    {
+      public:
+        void orderedInsert(TaskSPtr worker);
+    };
+
+
   public:
     /** \brief Scheduler class constructor.
      * \param[in] period interval for scheduling tasks.

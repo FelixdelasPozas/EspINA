@@ -21,7 +21,8 @@
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
-#include <ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
+//#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
@@ -42,13 +43,13 @@
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <GUI/Representations/RepresentationManager.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Support::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Representations::Utils;
-
-using ESPINA::GUI::Representations::Managers::PassiveActorManager;
-using ESPINA::GUI::Representations::RepresentationManager;
 
 const unsigned SegmentationRepresentationFactory::WINDOW_SIZE = 5;
 
@@ -65,7 +66,7 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
   representation.Group = SEGMENTATIONS_GROUP;
 
   createSliceRepresentation(representation, context, supportedViews);
-  //createSkeletonRepresentation(representation, context, supportedViews);
+  createSkeletonRepresentation(representation, context, supportedViews);
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -167,46 +168,58 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation &representation, Support::Context &context) const
+void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const
 {
 //   auto scheduler   = context.scheduler();
 //   auto colorEngine = context.colorEngine();
-//   auto &timer      = context.timer();
 //
-//   auto skeletonSettings     = std::make_shared<SegmentationSlicePoolSettings>(); // TODO: create SkeletonPoolSettings
-//   auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
-//   auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
-//   auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);
-//   auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipeline2DSkeletonXY, scheduler, WINDOW_SIZE);
-//   auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipeline2DSkeletonXZ, scheduler, WINDOW_SIZE);
-//   auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipeline2DSkeletonYZ, scheduler, WINDOW_SIZE);
-//   auto skeletonManager2D    = std::make_shared<SliceManager>(poolSkeleton2DXY, poolSkeleton2DXZ, poolSkeleton2DYZ);
+//   if (supportedViews.testFlag(ESPINA::VIEW_2D))
+//   {
+//     auto skeletonSettings2D   = std::make_shared<SegmentationSkeletonPoolSettings>();
+//     auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
+//     auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
+//     auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);
+//     auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XY, pipeline2DSkeletonXY, scheduler, WINDOW_SIZE);
+//     auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::XZ, pipeline2DSkeletonXZ, scheduler, WINDOW_SIZE);
+//     auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(ItemAdapter::Type::SEGMENTATION, Plane::YZ, pipeline2DSkeletonYZ, scheduler, WINDOW_SIZE);
+//     auto skeletonManager2D    = std::make_shared<SliceManager>(poolSkeleton2DXY, poolSkeleton2DXZ, poolSkeleton2DYZ);
 //
-//   auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
-//   auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineSkeleton3D);
-//   auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
+//     poolSkeleton2DXY->setSettings(skeletonSettings2D);
+//     poolSkeleton2DXZ->setSettings(skeletonSettings2D);
+//     poolSkeleton2DYZ->setSettings(skeletonSettings2D);
 //
-//   poolSkeleton2DXY->setSettings(skeletonSettings);
-//   poolSkeleton2DXZ->setSettings(skeletonSettings);
-//   poolSkeleton2DYZ->setSettings(skeletonSettings);
+//     skeletonManager2D->setName(QObject::tr("Skeleton 2D Representation"));
+//     skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
+//     skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
 //
-//   skeletonManager2D->setName(QObject::tr("Skeleton 2D Representation"));
-//   skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
-//   skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
+//     auto skeletonSwitch2D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton2DSwitch", skeletonManager2D, skeletonSettings2D, ViewType::VIEW_2D, context);
+//     groupSwitch("1-2", skeletonSwitch2D);
 //
-//   auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>("SkeletonSwitch", skeletonManager2D, ViewType::VIEW_2D, timer, context);
+//     representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ;
+//     representation.Managers << skeletonManager2D;
+//     representation.Switches << skeletonSwitch2D;
+//   }
 //
-//   poolSkeleton3D->setSettings(skeletonSettings);
+//   if (supportedViews.testFlag(ESPINA::VIEW_3D))
+//   {
+//     auto skeletonSettings3D   = std::make_shared<SegmentationSkeletonPoolSettings>();
+//     auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
+//     auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineSkeleton3D);
+//     auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
 //
-//   skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
-//   skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
-//   skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
+//     poolSkeleton3D->setSettings(skeletonSettings3D);
 //
-//   auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>("Skeleton3DSwitch", skeletonManager3D, ViewType::VIEW_3D, timer, context);
+//     skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
+//     skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
+//     skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
 //
-//   representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ << poolSkeleton3D;
-//   representation.Managers << skeletonManager2D << skeletonManager3D;
-//   representation.Switches << skeletonSwitch2D << skeletonSwitch3D;
+//     auto skeletonSwitch3D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton3DSwitch", skeletonManager3D, skeletonSettings3D, ViewType::VIEW_3D, context);
+//     groupSwitch("1-1", skeletonSwitch3D);
+//
+//     representation.Pools    << poolSkeleton3D;
+//     representation.Managers << skeletonManager3D;
+//     representation.Switches << skeletonSwitch3D;
+//   }
 }
 
 //----------------------------------------------------------------------------

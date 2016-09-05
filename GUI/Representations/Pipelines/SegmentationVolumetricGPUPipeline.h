@@ -21,6 +21,8 @@
 #ifndef ESPINA_SEGMENTATION_VOLUMETRIC_GPU_PIPELINE_H_
 #define ESPINA_SEGMENTATION_VOLUMETRIC_GPU_PIPELINE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Types.h>
 #include <GUI/Representations/RepresentationPipeline.h>
@@ -28,7 +30,11 @@
 
 namespace ESPINA
 {
-  class SegmentationVolumetricGPUPipeline
+  /** \class SegmentationVolumetricGPUPipeline
+   * \brief Pipeline for the creation of volumetric representations of segmentations using the GPU.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationVolumetricGPUPipeline
   : public RepresentationPipeline
   {
     public:
@@ -57,9 +63,9 @@ namespace ESPINA
       virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
     private:
-      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** representation's color engine. */
 
-      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter; /** selection color engine. */
   };
 
 } // namespace ESPINA

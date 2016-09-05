@@ -1,22 +1,27 @@
 /*
- * Copyright 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+
+ Copyright 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+ ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_SUPPORT_CONTEXT_H
 #define ESPINA_SUPPORT_CONTEXT_H
+
+#include <Support/EspinaSupport_Export.h>
 
 // ESPINA
 #include <GUI/Types.h>
@@ -39,80 +44,172 @@ namespace ESPINA
     /** \class Context
      * \brief Class for grouping several connected classes that are usually passed as parameters.
      */
-    class Context
+    class EspinaSupport_EXPORT Context
     {
       public:
         /** \brief Context class constructor.
          * \param[in] mainWindow application main window.
+         *
          */
         explicit Context(QMainWindow *mainWindow, bool *minimizedStatus);
 
-        Context(Context &context) = delete;
-
+        /** \brief Context class destructor.
+         *
+         */
         ~Context();
 
-        SchedulerSPtr              scheduler() const;
-        ModelAdapterSPtr           model() const;
-        ROIAccumulatorSPtr         roiProvider();
-        GUI::View::ViewState      &viewState();
-        GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
-        QUndoStack *               undoStack();
-        RepresentationFactorySList &availableRepresentations();
-        ModelFactorySPtr           factory() const;
+        /** \brief Returns the application's task scheduler.
+         *
+         */
+        SchedulerSPtr scheduler() const;
 
+        /** \brief Returns the current model adapter.
+         *
+         */
+        ModelAdapterSPtr model() const;
+
+        /** \brief Returns the current ROI accumulator.
+         *
+         */
+        ROIAccumulatorSPtr roiProvider() const;
+
+        /** \brief Returns the application's view state.
+         *
+         */
+        GUI::View::ViewState &viewState();
+
+        /** \brief Returns the application's multi color engine.
+         *
+         */
+        GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
+
+        /** \brief Returns the application's undo/redo stack.
+         *
+         */
+        QUndoStack *undoStack();
+
+        /** \brief Returns the list of available representations for the view items.
+         *
+         */
+        RepresentationFactorySList &availableRepresentations();
+
+        /** \brief Returns the current model's factory.
+         *
+         */
+        ModelFactorySPtr factory() const;
+
+        /** \brief Adds a new color engine to the multi-color engine.
+         * \param[in] engine color engine object.
+         *
+         */
         void addColorEngine(GUI::ColorEngines::ColorEngineSPtr engine);
 
+        /** \brief Adds a new panel to the application.
+         *
+         */
         void addPanel(Panel *panel);
 
+        /** \brief Returns true if the application is currently minimized and false otherwise.
+         *
+         */
         bool isMinimized() const;
 
       private:
+        Context(Context &context) = delete;
+
         using ViewState   = GUI::View::ViewState;
 
-        ViewState            m_viewState;
-        ModelAdapterSPtr     m_model;
-        ROIAccumulatorSPtr   m_activeROI;
-        SchedulerSPtr        m_scheduler;
-        QUndoStack           m_undoStack;
-        RepresentationFactorySList m_availableRepresentations;
-        ModelFactorySPtr     m_factory;
-        GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;
+        ViewState                               m_viewState;                /** application's view state.                      */
+        ModelAdapterSPtr                        m_model;                    /** application's model adapter.                   */
+        ROIAccumulatorSPtr                      m_activeROI;                /** application's ROI accumulator.                 */
+        SchedulerSPtr                           m_scheduler;                /** application's task scheduler.                  */
+        QUndoStack                              m_undoStack;                /** application's undo/redo stack.                 */
+        RepresentationFactorySList              m_availableRepresentations; /** list of view item's representations factories. */
+        ModelFactorySPtr                        m_factory;                  /** application's model adapter factory.           */
+        GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;              /** application's multi color engine.              */
 
-        bool *m_minimizedStatus;
-        QMainWindow *m_mainWindow;
+        bool                                   *m_minimizedStatus;          /** pointer to minimize status boolean value.      */
+        QMainWindow                            *m_mainWindow;               /** pointer to application's main window.          */
     };
 
-    GUI::View::SelectionSPtr getSelection(Context &context);
+    /** \brief Returns the current selection of the application for the given context.
+     * \param[in] context application context.
+     *
+     */
+    GUI::View::SelectionSPtr EspinaSupport_EXPORT getSelection(Context &context);
 
-    ChannelAdapterPtr getActiveChannel(Context &context);
+    /** \brief Returns the active channel of the application for the given context.
+     * \param[in] context application context.
+     *
+     */
+    ChannelAdapterPtr EspinaSupport_EXPORT getActiveChannel(Context &context);
 
-    SegmentationAdapterList getSelectedSegmentations(Context &context);
+    /** \brief Returns the list of currently selected segmentations of the application for the given context.
+     * \param[in] context application context.
+     *
+     */
+    SegmentationAdapterList EspinaSupport_EXPORT getSelectedSegmentations(Context &context);
 
-    class WithContext
+    /** \class WithContext
+     * \brief Super class for objects with heavy use of context methods.
+     *
+     */
+    class EspinaSupport_EXPORT WithContext
     {
-    public:
-      explicit WithContext(Context &context);
+      public:
+        /** \brief WithContext class constructor.
+         * \param[in] context context object.
+         *
+         */
+        explicit WithContext(Context &context);
 
-      Context &getContext() const;
+        /** \brief Returns the application context.
+         *
+         */
+        Context &getContext() const;
 
-      ChannelAdapterPtr getActiveChannel() const;
+        /** \brief Returns the active channel of the application.
+         *
+         */
+        ChannelAdapterPtr getActiveChannel() const;
 
-      GUI::View::SelectionSPtr getSelection() const;
+        /** \brief Returns the current selection of the application.
+         *
+         */
+        GUI::View::SelectionSPtr getSelection() const;
 
-      SegmentationAdapterList getSelectedSegmentations() const;
+        /** \brief Returns the list of currently selected segmentations of the application.
+         *
+         */
+        SegmentationAdapterList getSelectedSegmentations() const;
 
-      GUI::View::ViewState &getViewState() const;
+        /** \brief Returns the view state of the application.
+         *
+         */
+        GUI::View::ViewState &getViewState() const;
 
-      ModelFactorySPtr getFactory() const;
+        /** \brief Returns the model factory of the application.
+         *
+         */
+        ModelFactorySPtr getFactory() const;
 
-      SchedulerSPtr getScheduler() const;
+        /** \brief Returns the task sheduler of the application.
+         *
+         */
+        SchedulerSPtr getScheduler() const;
 
-      ModelAdapterSPtr getModel() const;
+        /** \brief Returns the model adapter of the application.
+         *
+         */
+        ModelAdapterSPtr getModel() const;
 
-      QUndoStack *getUndoStack() const;
+        /** \brief Returns the undo/redo stack of the application.
+         *
+         */
+        QUndoStack *getUndoStack() const;
 
-    private:
-      Context &m_context;
+      private:
+        Context &m_context; /** context object reference. */
     };
   }
 }

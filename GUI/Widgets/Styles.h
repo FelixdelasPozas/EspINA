@@ -1,24 +1,26 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ *    Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *    This file is part of ESPINA.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    ESPINA is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
  *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_GUI_WIDGETS_STYLES_H
 #define ESPINA_GUI_WIDGETS_STYLES_H
+
+#include <GUI/EspinaGUI_Export.h>
 
 class QAction;
 class QIcon;
@@ -37,50 +39,105 @@ namespace ESPINA
 
       namespace Styles
       {
-        /** \brief Set the default cursor during the scope of its instances
+        /** \class DefaultCursor
+         * \brief Set the default cursor during the scope of its instances
          *
          */
-        class DefaultCursor
+        class EspinaGUI_EXPORT DefaultCursor
         {
-        public:
-          DefaultCursor();
+          public:
+            /** \brief DefaultCursor class constructor.
+             *
+             */
+            DefaultCursor();
 
-          ~DefaultCursor();
+            /** \brief DefaultCursor class destructor.
+             *
+             */
+            ~DefaultCursor();
         };
 
-        /** \brief Set the waiting cursor during the scope of its instances
+        /** \class WaitingCursor
+         * \brief Set the waiting cursor during the scope of its instances
          *
          */
-        class WaitingCursor
+        class EspinaGUI_EXPORT WaitingCursor
         {
-        public:
-          WaitingCursor();
+          public:
+            /** \brief WaitingCursor class constructor.
+             *
+             */
+            WaitingCursor();
 
-          ~WaitingCursor();
+            /** \brief WaitingCursor class destructor.
+             *
+             */
+            ~WaitingCursor();
         };
 
         const int CONTEXTUAL_BAR_HEIGHT = 50;
 
-        void setNestedStyle(QWidget *widget);
+        /** \brief Configures the given widget with the visual properties of a nested widget.
+         * \param[in] widget QWidget object pointer.
+         *
+         */
+        void EspinaGUI_EXPORT setNestedStyle(QWidget *widget);
 
-        QAction *createToolAction( const QString &icon, const QString &tooltip, QObject *parent );
+        /** \brief Creates and returns a QAction object configured with the given parameters.
+         * \param[in] icon action icon (needs to be present in application resources file).
+         * \param[in] tooltip action tooltip.
+         * \param[in] parent pointer of the widget parent of this one.
+         *
+         */
+        EspinaGUI_EXPORT QAction* createToolAction(const QString &icon, const QString &tooltip, QObject *parent = nullptr);
 
-        QAction *createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent);
+        /** \brief Creates and returns a QAction object configured with the given parameters.
+         * \param[in] icon action icon.
+         * \param[in] tooltip action tooltip.
+         * \param[in] parent pointer of the widget parent of this one.
+         *
+         */
+        EspinaGUI_EXPORT QAction* createToolAction(const QIcon &icon, const QString &tooltip, QObject *parent = nullptr);
 
-        ToolButton *createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = 0);
+        /** \brief Creates and returns a ToolButton object configured with the given parameters.
+         * \param[in] icon action icon (needs to be present in application resources file).
+         * \param[in] tooltip action tooltip.
+         * \param[in] parent pointer of the widget parent of this one.
+         *
+         */
+        EspinaGUI_EXPORT ToolButton* createToolButton(const QString &icon, const QString &tooltip, QWidget *parent = nullptr);
 
-        ToolButton *createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = 0);
+        /** \brief Creates and returns a ToolButton object configured with the given parameters.
+         * \param[in] icon action icon.
+         * \param[in] tooltip action tooltip.
+         * \param[in] parent pointer of the widget parent of this one.
+         *
+         */
+        EspinaGUI_EXPORT ToolButton* createToolButton(const QIcon &icon, const QString &tooltip, QWidget *parent = nullptr);
 
-        constexpr int buttonSize()
+        /** \brief Returns the application default button size.
+         *
+         */
+        constexpr int EspinaGUI_EXPORT buttonSize()
         { return 36; }
 
-        constexpr int iconSize()
+        /** \brief Returns the application default icon size.
+         *
+         */
+        constexpr int EspinaGUI_EXPORT iconSize()
         { return 0.74*buttonSize(); }
 
-        constexpr int MediumBarWidth()
+        /** \brief Returns the application default bar width.
+         *
+         */
+        constexpr int EspinaGUI_EXPORT MediumBarWidth()
         { return 80; }
 
-        void setBarStyle(QWidget *bar);
+        /** \brief Configures the given bar with the default properties of an application bar.
+         * \param[in] bar QWidget object pointer.
+         *
+         */
+        void EspinaGUI_EXPORT setBarStyle(QWidget *bar);
       };
     }
   }

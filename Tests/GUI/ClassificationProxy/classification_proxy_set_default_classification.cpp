@@ -67,7 +67,8 @@ int classification_proxy_set_default_classification( int argc, char** argv )
 
   modelAdapter->setAnalysis(analysis, factory);
 
-  if (proxy.rowCount() != 4) {
+  if (proxy.rowCount() != 5)
+  {
     cerr << "Unexpected number of root categories" << endl;
     error = true;
   }

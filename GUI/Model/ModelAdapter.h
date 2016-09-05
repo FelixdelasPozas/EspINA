@@ -512,6 +512,15 @@ namespace ESPINA
      */
     SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);
 
+    /** \brief Helper method to move segmentations that are in the wrong channel to the
+     *  designated primary channel. Needs to reassign the segmentations inputs and relations
+     *  with the sample (Sample::CONTAINS). Normally this method shouldn't be called at all
+     *  in production code and it's here just to solve momentary SEG file problems where users
+     *  have segmented in several channels and find problems with the counting frame plugin later on.
+     *
+     */
+    void fixChannels(ChannelAdapterPtr primary);
+
   signals:
     void classificationAdded  (ClassificationAdapterSPtr classification);
     void classificationRemoved(ClassificationAdapterSPtr classification);

@@ -227,7 +227,7 @@ namespace ESPINA
   };
 
   //------------------------------------------------------------------------
-  class DataSortFilter
+  class EspinaSupport_EXPORT DataSortFilter
   : public QSortFilterProxyModel
   {
   public:

@@ -21,7 +21,7 @@
 #ifndef QTMODELUTILS_H
 #define QTMODELUTILS_H
 
-#include "Core/EspinaCore_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // Qt
 #include <QModelIndex>
@@ -34,26 +34,26 @@ namespace QtModelUtils
    * \param[in] role.
    *
    */
-  QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
+  QModelIndex EspinaGUI_EXPORT findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
   /** \brief Return a list of all QModelIndex between @topLeft index and @bottomRight index.
    * \param[in] topLeft, model index.
    * \param[in] bottomRight, model index.
    *
    */
-  QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+  QModelIndexList EspinaGUI_EXPORT indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
   /** \brief Return whether a node has leaf nodes.
    * \param[in] index, model index ot check.
    *
    */
-  bool isInnerNode(const QModelIndex &index);
+  bool EspinaGUI_EXPORT isInnerNode(const QModelIndex &index);
 
   /** \brief Return whether a node is leaf.
    * \param[in] index, model index to check.
    *
    */
-  bool isLeafNode(const QModelIndex &index);
+  bool EspinaGUI_EXPORT isLeafNode(const QModelIndex &index);
 } // namespace QtModelUtils
 
 #endif // QTMODELUTILS_H

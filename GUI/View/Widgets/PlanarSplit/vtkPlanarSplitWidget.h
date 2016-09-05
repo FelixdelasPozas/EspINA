@@ -205,7 +205,7 @@ namespace ESPINA
          *         observes it's two handles. Here we create the command/observer classes
          *         to respond to the handle widgets.
          */
-        class vtkPlanarSplitWidgetCallback
+        class EspinaGUI_EXPORT vtkPlanarSplitWidgetCallback
         : public vtkCommand
         {
           public:

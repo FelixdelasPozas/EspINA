@@ -103,7 +103,6 @@ QColor ColorRange::maximumColor() const
 RangeHSV::RangeHSV(const double min, const double max)
 : ColorRange(min, max)
 {
-
 }
 
 //------------------------------------------------------------------------

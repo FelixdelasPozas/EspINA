@@ -21,13 +21,19 @@
 #ifndef ESPINA_SEGMENTATION_CONTOUR_POOL_SETTINGS_H_
 #define ESPINA_SEGMENTATION_CONTOUR_POOL_SETTINGS_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA
 {
-  class SegmentationContourPoolSettings
+  /** \class SegmentationContourPoolSettings
+   * \brief Settings for contour representations pool.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationContourPoolSettings
   : public PoolSettings
   {
     public:

@@ -25,7 +25,7 @@
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/View/Utils.h>
-#include <Support/Representations/RepresentationUtils.h>
+#include <GUI/Utils/RepresentationUtils.h>
 
 // VTK
 #include <vtkImageCanvasSource2D.h>
@@ -37,7 +37,7 @@
 #include <vtkTubeFilter.h>
 
 using namespace ESPINA;
-using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View::Utils;

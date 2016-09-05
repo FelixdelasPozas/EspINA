@@ -20,14 +20,15 @@
 // ESPINA
 #include "SliceEditionPipeline.h"
 #include <GUI/View/View2D.h>
-#include "Support/Representations/RepresentationUtils.h"
+#include <GUI/Utils/RepresentationUtils.h>
+#include <Support/Representations/RepresentationUtils.h>
 
 // VTK
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;
-using namespace ESPINA::RepresentationUtils;
 
 //------------------------------------------------------------------------
 SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
@@ -50,7 +51,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
   ActorList actors;
   //qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
 
-  if (m_actor.GetPointer() && (crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane))
+  if (m_actor.GetPointer() && (crosshairPoint(state) == m_crosshair) && (RepresentationUtils::plane(state) == m_plane))
   {
     actors << m_actor;
   }
@@ -65,7 +66,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
 //------------------------------------------------------------------------
 void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
-  if((crosshairPoint(state) != m_crosshair) || (plane(state) != m_plane))
+  if((crosshairPoint(state) != m_crosshair) || (RepresentationUtils::plane(state) != m_plane))
   {
     m_slicePipeline.updateColors(actors, item, state);
   }

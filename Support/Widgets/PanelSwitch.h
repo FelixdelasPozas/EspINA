@@ -20,6 +20,9 @@
 #ifndef ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
 #define ESPINA_SUPPORT_WIDGETS_PANEL_SWITCH_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA
@@ -28,26 +31,42 @@ namespace ESPINA
   {
     namespace Widgets
     {
-      class PanelSwitch
+      /** \class PanelSwitch
+       * \brief Implements a button to hide/show a panel in the Espina toolbar.
+       *
+       */
+      class EspinaSupport_EXPORT PanelSwitch
       : public ProgressTool
       {
-        Q_OBJECT
+          Q_OBJECT
 
-      public:
-        explicit PanelSwitch(const QString &id, Panel *dock, const QString &icon, const QString &tooltip, Context &context);
+        public:
+          /** \brief PanelSwitch class constructor.
+           * \param[in] id switch id
+           * \param[in] dock panel to hide/show
+           * \param[in] icon button icon.
+           * \param[in] tooltip button tooltip.
+           * \param[in] context application context.
+           *
+           */
+          explicit PanelSwitch(const QString &id, Panel *dock, const QString &icon, const QString &tooltip, Context &context);
 
-        virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+          virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-        virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+          virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-      private slots:
-        void showPanel(bool visible);
+        private slots:
+          /** \brief Shows/Hides the panel.
+           * \param[in] visible true to show the panel and false to hide it.
+           *
+           */
+          void showPanel(bool visible);
 
-      private:
-        virtual void abortOperation() override;
+        private:
+          virtual void abortOperation() override;
 
-      private:
-        Panel *m_dock;
+        private:
+          Panel *m_dock;
       };
     }
   }

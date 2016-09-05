@@ -22,6 +22,8 @@
 #ifndef GUI_VIEW_WIDGETS_CONTOUR_CONTOURWIDGET2D_H_
 #define GUI_VIEW_WIDGETS_CONTOUR_CONTOURWIDGET2D_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/MaskPainter.h>
 #include <GUI/EventHandlers/ContourPainter.h>
@@ -41,11 +43,14 @@ namespace ESPINA
         {
           class vtkPlaneContourWidget;
 
-          class ContourWidget2D
+          /** \class ContourWidget2D
+           * \brief EspinaWidget2D for contour tool.
+           *
+           */
+          class EspinaGUI_EXPORT ContourWidget2D
           : public EspinaWidget2D
           {
               Q_OBJECT
-
             public:
               struct ContourData
               {
@@ -69,7 +74,7 @@ namespace ESPINA
 
               virtual void setRepresentationDepth(Nm depth);
 
-              virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
+              virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr clone();
 
               /** \brief Resets all contours in all planes without rasterizing and uses the given contour list as initial data.
                * \param[in] contour initial contour.

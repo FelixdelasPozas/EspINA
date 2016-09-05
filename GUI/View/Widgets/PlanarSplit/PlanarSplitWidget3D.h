@@ -22,6 +22,8 @@
 #ifndef ESPINA_PLANAR_SPLIT_WIDGET3D_H_
 #define ESPINA_PLANAR_SPLIT_WIDGET3D_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
@@ -46,7 +48,11 @@ namespace ESPINA
       {
         class PlanarSplitEventHandler;
 
-        class PlanarSplitWidget3D
+        /** \class PlanarSplitWidget3D
+         * \brief Implements 3d segmentation planar split widget
+         *
+         */
+        class EspinaGUI_EXPORT PlanarSplitWidget3D
         : public PlanarSplitWidget
         , public EspinaWidget3D
         {

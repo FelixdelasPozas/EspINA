@@ -22,6 +22,8 @@
 #ifndef ESPINA_SAS_ANALYSIS_DIALOG_H
 #define ESPINA_SAS_ANALYSIS_DIALOG_H
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // ESPINA
 #include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -33,7 +35,7 @@
 
 namespace ESPINA
 {
-  class SASReportDialog
+  class AppositionSurfacePlugin_EXPORT SASReportDialog
   : public QDialog
   {
   public:

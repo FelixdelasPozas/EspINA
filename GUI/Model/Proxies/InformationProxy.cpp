@@ -170,7 +170,9 @@ QModelIndex InformationProxy::index(int row, int column, const QModelIndex& pare
 QVariant InformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (m_keys.isEmpty())
+  {
     return QAbstractProxyModel::headerData(section, orientation, role);
+  }
 
   if (Qt::DisplayRole == role && section < m_keys.size())
   {
@@ -183,21 +185,14 @@ QVariant InformationProxy::headerData(int section, Qt::Orientation orientation, 
 //------------------------------------------------------------------------
 QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
-  if (!proxyIndex.isValid())
-    return QVariant();
+  if (!proxyIndex.isValid()) return QVariant();
 
   auto proxyItem = itemAdapter(proxyIndex);
-  if (!isSegmentation(proxyItem))
-  {
-    return QVariant();
-  }
+  if (!isSegmentation(proxyItem)) return QVariant();
 
   auto segmentation = segmentationPtr(proxyItem);
 
-  if (role == Qt::TextAlignmentRole)
-  {
-    return Qt::AlignRight;
-  }
+  if (role == Qt::TextAlignmentRole) return Qt::AlignRight;
 
   if (role == Qt::UserRole && proxyIndex.column() == 0)
   {
@@ -221,7 +216,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       ||!m_pendingInformation[segmentation]->hasFinished())
     {
       return Qt::lightGray;
-    } else
+    }
+    else
     {
       return QAbstractProxyModel::data(proxyIndex, role);
     }
@@ -259,7 +255,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
                   this,       SLOT(onTaskFininished()));
           //qDebug() << "Launching Task";
           Task::submit(task);
-        } else // we avoid overloading the scheduler
+        }
+        else // we avoid overloading the scheduler
         {
           return extensions->information(key);
         }
@@ -276,7 +273,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
       return "";
 
-    } else
+    }
+    else
     {
       return tr("Unavailable");
     }

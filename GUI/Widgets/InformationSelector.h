@@ -37,6 +37,10 @@ namespace ESPINA
 {
   namespace GUI
   {
+    /** \class InformationSelector
+     * \brief Dialog to select a group of information tags from the available group of tags.
+     *
+     */
     class EspinaGUI_EXPORT InformationSelector
     : public QDialog
     {
@@ -85,24 +89,23 @@ namespace ESPINA
        */
       void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
+      /** \brief De-selects all the items.
+       *
+       */
       void unselectItems();
 
     private:
       class UI;
 
     private:
-      UI *m_gui;
-
-      bool m_exclusive;
-
-      ModelFactorySPtr m_factory;
-
-      GroupedInfo &m_selection;
+      UI          *m_gui;       /** chessire cat GUI implementation.                              */
+      bool         m_exclusive; /** true if the selection is exclusive (only one item selection). */
+      GroupedInfo &m_selection; /** selected tag group.                                           */
     };
 
-    InformationSelector::GroupedInfo availableInformation(ModelFactorySPtr factory);
+    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(ModelFactorySPtr factory);
 
-    InformationSelector::GroupedInfo availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory);
+    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory);
   }
 }
 

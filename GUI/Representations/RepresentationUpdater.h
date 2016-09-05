@@ -20,15 +20,21 @@
 #ifndef ESPINA_REPRESENTATION_UPDATER_H
 #define ESPINA_REPRESENTATION_UPDATER_H
 
-#include <Core/MultiTasking/Task.h>
+#include <GUI/EspinaGUI_Export.h>
 
-#include <GUI/Model/ViewItemAdapter.h>
+// ESPINA
 #include "RepresentationState.h"
+#include <Core/MultiTasking/Task.h>
+#include <GUI/Model/ViewItemAdapter.h>
 #include <GUI/Types.h>
 
 namespace ESPINA
 {
-  class RepresentationUpdater
+  /** \class RepresentationUpdater
+   * \brief Task to create or modificate representations.
+   *
+   */
+  class EspinaGUI_EXPORT RepresentationUpdater
   : public Task
   {
       Q_OBJECT

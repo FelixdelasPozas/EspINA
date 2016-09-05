@@ -20,8 +20,12 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_3D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_3D_H
 
+#include "CountingFramePlugin_Export.h"
+
+// ESPINA
 #include <GUI/Representations/RepresentationManager.h>
 
+// Plugin
 #include "CountingFrameManager.h"
 
 namespace ESPINA
@@ -30,7 +34,7 @@ namespace ESPINA
   {
     class CFRepresentationSwitch;
 
-    class RepresentationManager3D
+    class CountingFramePlugin_EXPORT RepresentationManager3D
     : public GUI::Representations::RepresentationManager
     {
         Q_OBJECT

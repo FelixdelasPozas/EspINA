@@ -37,7 +37,7 @@ namespace ESPINA
      * \brief Factory for SegmentationTags extensions.
      *
      */
-    class SegmentationTagsFactory
+    class EspinaExtensions_EXPORT SegmentationTagsFactory
     : public Core::SegmentationExtensionFactory
     {
       public:

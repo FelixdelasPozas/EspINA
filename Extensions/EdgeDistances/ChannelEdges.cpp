@@ -318,10 +318,12 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
     segmentationPolyData->DeepCopy(writeLockMesh(output)->mesh());
     for (int face = 0; face < 6; ++face)
     {
-      QMutexLocker lock(&m_distanceMutex);
-
       auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
-      faceMesh->DeepCopy(m_faces[face]);
+
+      {
+        QMutexLocker lock(&m_distanceMutex);
+        faceMesh->DeepCopy(m_faces[face]);
+      }
 
       auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
       distanceFilter->SignedDistanceOff();

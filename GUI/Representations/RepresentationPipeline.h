@@ -20,6 +20,8 @@
 #ifndef ESPINA_REPRESENTATION_PIPELINE_H
 #define ESPINA_REPRESENTATION_PIPELINE_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <Core/Types.h>
 #include <Core/Utils/Vector3.hxx>
@@ -45,7 +47,7 @@ namespace ESPINA
    *
    * This representation pipeline settings are ThreadSafe
    */
-  class RepresentationPipeline
+  class EspinaGUI_EXPORT RepresentationPipeline
   {
     public:
       using Type      = QString;

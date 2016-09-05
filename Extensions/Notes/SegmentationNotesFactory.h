@@ -37,7 +37,7 @@ namespace ESPINA
      * \brief Factory for SegmentationNotes extensions.
      *
      */
-    class SegmentationNotesFactory
+    class EspinaExtensions_EXPORT SegmentationNotesFactory
     : public Core::SegmentationExtensionFactory
     {
       public:

@@ -20,6 +20,8 @@
 #ifndef ESPINA_DRAWING_WIDGET_H
 #define ESPINA_DRAWING_WIDGET_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/BrushPainter.h>
 #include <GUI/EventHandlers/ContourPainter.h>
@@ -47,7 +49,7 @@ namespace ESPINA
       class CategorySelector;
       class NumericalInput;
 
-      class DrawingWidget
+      class EspinaGUI_EXPORT DrawingWidget
       : public QWidget
       {
         Q_OBJECT

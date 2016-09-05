@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "DefaultContextualMenu.h"
+#include <App/Utils/TagUtils.h>
 #include <Core/Utils/SupportedFormats.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
@@ -29,7 +30,6 @@
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include <Support/Utils/TagUtils.h>
 
 // ITK
 #include <itkLabelObject.h>
@@ -142,7 +142,7 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
 //------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
-  Support::Utils::Tags::manageTags(m_segmentations, getUndoStack(), getContext().factory().get());
+  manageTagsDialog(m_segmentations, getUndoStack(), getContext().factory().get());
 }
 
 //------------------------------------------------------------------------

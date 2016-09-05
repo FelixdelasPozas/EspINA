@@ -17,16 +17,14 @@
  *
  */
 
-#include "TagUtils.h"
-
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Widgets/TagSelector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Undo/ChangeSegmentationTags.h>
+#include <Utils/TagUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
-using namespace ESPINA::Support::Utils;
 
 //------------------------------------------------------------------------
 QString dialogTitle(SegmentationAdapterList segmentations)
@@ -46,7 +44,7 @@ QString dialogTitle(SegmentationAdapterList segmentations)
   return title;
 }
 //------------------------------------------------------------------------
-void Tags::manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory)
+void ESPINA::manageTagsDialog(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory)
 {
   if (!segmentations.isEmpty())
   {

@@ -33,27 +33,62 @@ namespace ESPINA
   {
     namespace Widgets
     {
-
+      /** \class ProgressAction
+       * \brief QWidgetAction that reports a progress in it's icon with a small progress bar.
+       *
+       */
       class EspinaGUI_EXPORT ProgressAction
       : public QWidgetAction
       {
         Q_OBJECT
       public:
-        explicit ProgressAction(const QString &icon, const QString &tooltip, QObject* parent);
+        /** \brief ProgressAction class constructor.
+         * \param[in] icon action icon (needs to be present in the application's resources file).
+         * \param[in] tooltip action tooltip text.
+         * \param[in] parent pointer to the object parent of this one.
+         *
+         */
+        explicit ProgressAction(const QString &icon, const QString &tooltip, QObject* parent = nullptr);
 
-        explicit ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent);
+        /** \brief ProgressAction class constructor.
+         * \param[in] icon action icon.
+         * \param[in] tooltip action tooltip text.
+         * \param[in] parent pointer to the object parent of this one.
+         *
+         */
+        explicit ProgressAction(const QIcon &icon, const QString &tooltip, QObject* parent = nullptr);
 
         virtual QWidget* createWidget(QWidget* parent);
 
+        /** \brief Sets the action icon.
+         * \param[in] icon action's new icon.
+         *
+         */
         void setActionIcon(const QIcon &icon);
 
+        /** \brief Sets the action tooltip text.
+         * \param[in] tooltip action's new tooltip text.
+         *
+         */
         void setActionToolTip(const QString &tooltip);
 
       public slots:
+        /** \brief Sets the progress of the action.
+         * \param[in] progress progress value in [0-100].
+         *
+         */
         void setProgress(int progress);
 
+        /** \brief Enables/Disables the action.
+         * \param[in] enabled true to enable the action and false otherwise.
+         *
+         */
         void setActionEnabled(bool enabled);
 
+        /** \brief Checks/Unchecks the action.
+         * \param[in] checked true to check the action and false otherwise.
+         *
+         */
         void setActionChecked(bool checked);
 
       signals:
@@ -70,18 +105,42 @@ namespace ESPINA
         void toolChanged(const QString &tooltip);
 
       private:
-        QPushButton *createActionButton(QWidget *parent);
+        /** \brief Creates a tool button with the current action configuration.
+         * \param[in] parent pointer to the object parent of this one.
+         *
+         */
+        QPushButton *createActionButton(QWidget *parent = nullptr);
 
-        void createProgress(QWidget *parent);
+        /** \brief Creates a progress bar to show progress with the current action configuration.
+         * \param[in] parent pointer to the object parent of this one.
+         *
+         */
+        void createProgress(QWidget *parent = nullptr);
 
+        /** \brief Returns progress bar height.
+         *
+         */
         static constexpr int progressHeight();
 
+        /** \brief Returns progress bar margin.
+         *
+         */
         static constexpr int progressMargin();
 
+        /** \brief Returns progress bar width.
+         *
+         */
         static constexpr int progressWitdh();
 
+        /** \brief Returns the vertical position inside the button of the progress bar.
+         *
+         */
         static constexpr int progressVerticalPosition();
 
+        /** \brief Returns true if the progress is in (0,100) and false otherwise.
+         * \param[in] progress progress value in [0,100].
+         *
+         */
         inline bool displayProgress(int progress);
 
       private:

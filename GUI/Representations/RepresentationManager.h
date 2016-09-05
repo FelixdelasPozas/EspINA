@@ -381,7 +381,7 @@ namespace ESPINA
         RepresentationManagerSList m_childs; /** list of cloned childs. */
       };
 
-      class RepresentationManager2D
+      class EspinaGUI_EXPORT RepresentationManager2D
       {
       public:
         /** \brief Class RepresentationManager2D virtual destructor.
@@ -406,7 +406,7 @@ namespace ESPINA
       /** \brief Returns true if the frame invalidates the representations of the given item type.
        *
        */
-      bool invalidatesRepresentations(GUI::Representations::FrameCSPtr frame, ItemAdapter::Type type);
+      bool EspinaGUI_EXPORT invalidatesRepresentations(GUI::Representations::FrameCSPtr frame, ItemAdapter::Type type);
 
       Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::ManagerFlags)
 

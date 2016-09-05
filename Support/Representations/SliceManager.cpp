@@ -22,9 +22,11 @@
 #include "RepresentationUtils.h"
 #include <GUI/View/RenderView.h>
 #include <GUI/Representations/Frame.h>
+#include <GUI/Utils/RepresentationUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::RepresentationUtils;
 
 //----------------------------------------------------------------------------
 SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
@@ -72,7 +74,7 @@ void SliceManager::setRepresentationDepth(Nm depth)
     {
       auto pool = planePool();
 
-      RepresentationUtils::setSegmentationDepth(pool, m_depth);
+      GUI::RepresentationUtils::setSegmentationDepth(pool, m_depth);
     }
   }
 }
@@ -145,8 +147,8 @@ void SliceManager::onShow(const FrameCSPtr frame)
 
   auto pool = planePool();
 
-  RepresentationUtils::setPlane(pool, m_plane);
-  RepresentationUtils::setSegmentationDepth(pool, m_depth);
+  GUI::RepresentationUtils::setPlane(pool, m_plane);
+  GUI::RepresentationUtils::setSegmentationDepth(pool, m_depth);
 }
 
 //----------------------------------------------------------------------------

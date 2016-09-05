@@ -70,7 +70,7 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      void createSkeletonRepresentation  (Representation &representation, Support::Context &context) const;
+      void createSkeletonRepresentation  (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the mesh representation and adds it to the Representation object.
        * \param[out] representation Representation object.
