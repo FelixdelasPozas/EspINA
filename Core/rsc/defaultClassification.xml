@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <Taxonomy>
+  <node name="Axon" color="#009040" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   <node name="Dendrite" color="#FF9E43" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   <node name="Mitochondrion" color="#F7B7FF" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   <node name="Synapse" color="#FF7F7F" Dim_X="500" Dim_Y="500" Dim_Z="500">

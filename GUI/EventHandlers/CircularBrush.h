@@ -20,12 +20,18 @@
 #ifndef ESPINA_CIRCULAR_BRUSH_H
 #define ESPINA_CIRCULAR_BRUSH_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/Brush.h>
 
 namespace ESPINA
 {
-  class CircularBrush
+  /** \class CircularBrush
+   * \brief Circular 2D brush.
+   *
+   */
+  class EspinaGUI_EXPORT CircularBrush
   : public Brush
   {
   private:
@@ -34,9 +40,9 @@ namespace ESPINA
     virtual void configureBrush(RenderView* view);
 
   private:
-    Nm        m_strokeRadius;
-    Plane     m_plane;
-    NmVector3 m_resolution;
+    Nm        m_strokeRadius; /** radius of the stroke points.   */
+    Plane     m_plane;        /** orthogonal plane of the brush. */
+    NmVector3 m_resolution;   /** resolution of the plane.       */
   };
 }
 

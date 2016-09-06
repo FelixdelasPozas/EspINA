@@ -31,7 +31,8 @@ namespace ESPINA
   {
     namespace MultiTasking
     {
-      /** \brief Reports the progress of a set of tasks
+      /** \class TaskGroupProgress
+       * \brief Reports the progress of a set of tasks
        *
        */
       class EspinaCore_EXPORT TaskGroupProgress
@@ -39,19 +40,29 @@ namespace ESPINA
       {
         Q_OBJECT
       public:
+        /** \brief Adds a task to the group of monitorized tasks.
+         * \param[in] task task object.
+         *
+         */
         void showTaskProgress(TaskSPtr task);
 
       signals:
         void progress(int value);
 
       private slots:
+        /** \brief Updates the progress value and emits the progress signal.
+         *
+         */
         void updateProgress();
 
+        /** \brief Updates the group of monitorized tasks once a task has finished.
+         *
+         */
         void onTaskFinished();
 
       private:
-        QMutex m_mutex;
-        QList<TaskSPtr> m_tasks;
+        QList<TaskSPtr> m_tasks; /** group of tasks whose progress is being monitorized. */
+        QMutex          m_mutex; /** protects task group.                                */
       };
     }
   }

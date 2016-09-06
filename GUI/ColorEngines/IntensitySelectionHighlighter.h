@@ -34,7 +34,9 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
-
+      /** \class IntensitySelectionHighlighter
+       *
+       */
       class EspinaGUI_EXPORT IntensitySelectionHighlighter
       : public SelectionHighlighter
       {
@@ -45,9 +47,9 @@ namespace ESPINA
           virtual QColor color(const QColor &original, bool highlight = false);
       };
 
-      QColor defaultColor(const Hue color);
+      QColor EspinaGUI_EXPORT defaultColor(const Hue color);
 
-      QColor selectedColor(const Hue color);
+      QColor EspinaGUI_EXPORT selectedColor(const Hue color);
 
     } // namespace ColorEngines
   } // namespace GUI

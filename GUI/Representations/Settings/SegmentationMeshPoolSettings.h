@@ -22,12 +22,18 @@
 #ifndef GUI_REPRESENTATIONS_SETTINGS_SEGMENTATIONMESHPOOLSETTINGS_H_
 #define GUI_REPRESENTATIONS_SETTINGS_SEGMENTATIONMESHPOOLSETTINGS_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA
 {
-  
-  class SegmentationMeshPoolSettings
+  /** \class SegmentationMeshPoolSettins
+   * \brief Settings for the pool of mesh representations.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationMeshPoolSettings
   : public PoolSettings
   {
     public:

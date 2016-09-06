@@ -386,7 +386,7 @@ namespace ESPINA
 
     using CountingFrameList = QList<CountingFrame *>;
 
-    class vtkCountingFrameCommand
+    class CountingFramePlugin_EXPORT vtkCountingFrameCommand
     : public vtkCommand
     {
     public:

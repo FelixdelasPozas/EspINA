@@ -31,7 +31,10 @@
 
 namespace ESPINA
 {
-
+  /** \class RawInformationDialog
+   * \brief Shows the report dialog.
+   *
+   */
   class RawInformationDialog
   : public QDialog
   {

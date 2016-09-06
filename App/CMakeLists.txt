@@ -66,14 +66,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-#   ToolGroups/Segment/Skeleton/SkeletonTool.h
-#   ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
-#   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
+#  ToolGroups/Segment/Skeleton/SkeletonTool.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
+#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
@@ -177,9 +176,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-#   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
-#   ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
-#   ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
+#  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp
@@ -193,6 +190,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
+#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DragChannelsCommand.cpp
@@ -201,6 +199,7 @@ set (ESPINA_SOURCES
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
   Undo/RemoveChannel.cpp
+  Utils/TagUtils.cpp
   Views/DefaultView.cpp
   main.cpp
   )

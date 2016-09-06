@@ -20,6 +20,8 @@
 #ifndef ESPINA_CHANNEL_SLICE_PIPELINE_H
 #define ESPINA_CHANNEL_SLICE_PIPELINE_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
@@ -29,29 +31,41 @@
 
 namespace ESPINA
 {
-  class ChannelSlicePipeline
+  /** \class ChannelSlicePipeline
+   * \brief Representation pipeline to generate actors for stack items.
+   *
+   */
+  class EspinaGUI_EXPORT ChannelSlicePipeline
   : public RepresentationPipeline
   {
-  public:
-    explicit ChannelSlicePipeline(const Plane plane);
+    public:
+      /** \brief ChannelSlicePipeline class constructor.
+       * \param[in] plane orthogonal plane for the actors.
+       *
+       */
+      explicit ChannelSlicePipeline(const Plane plane);
 
-    virtual RepresentationState representationState(ConstViewItemAdapterPtr  item,
-                                                    const RepresentationState &settings) override;
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
+                                                      const RepresentationState &settings) override;
 
 
-    virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr   item,
-                                                           const RepresentationState &state) override;
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr   item,
+                                                             const RepresentationState &state) override;
 
-    virtual void updateColors(ActorList                 &actors,
-                              ConstViewItemAdapterPtr   item,
-                              const RepresentationState &state) override;
+      virtual void updateColors(ActorList                 &actors,
+                                ConstViewItemAdapterPtr   item,
+                                const RepresentationState &state) override;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
-    void setPlane(const Plane plane);
+      /** \brief Sets the plane of the pipeline actors.
+       * \param[in] plane orthogonal plane.
+       *
+       */
+      void setPlane(const Plane plane);
 
-  private:
-    Plane m_plane;
+    private:
+      Plane m_plane; /** orthogonal plane. */
   };
 }
 

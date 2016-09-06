@@ -172,7 +172,7 @@ Nm AppositionSurfaceExtension::computeArea(const vtkSmartPointer<vtkPolyData> &a
 //----------------------------------------------------------------------------
 bool AppositionSurfaceExtension::isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
 {
-  IdList neighborCellIds = IdList::New();
+  auto neighborCellIds = IdList::New();
   asMesh->GetCellEdgeNeighbors(cellId, p1, p2, neighborCellIds);
 
   return (neighborCellIds->GetNumberOfIds() == 0);

@@ -22,6 +22,8 @@
 #ifndef CORE_UTILS_BLOCKTIMER_H_
 #define CORE_UTILS_BLOCKTIMER_H_
 
+#include <Core/EspinaCore_Export.h>
+
 // Qt
 #include <QString>
 
@@ -34,16 +36,26 @@ namespace ESPINA
   {
     namespace Utils
     {
-      
-      class BlockTimer
+      /** \class BlockTimer
+       * \brief Timer for the execution of source code blocks. Counts milliseconds from object creation to
+       * destruction.
+       */
+      class EspinaCore_EXPORT BlockTimer
       {
         public:
-          BlockTimer(const QString &name);
-          virtual ~BlockTimer();
+          /** \brief BlockTimer class constructor.
+           * \param[in] id timer id.
+           */
+          BlockTimer(const QString &id);
+
+          /** \brief BlockTimer class destructor.
+           *
+           */
+          ~BlockTimer();
 
         private:
-          QString m_name;
-          std::chrono::high_resolution_clock::time_point m_startTime;
+          QString m_id; /** timer id. */
+          std::chrono::high_resolution_clock::time_point m_startTime; /** timer creation time. */
       };
     
     } // namespace Utils

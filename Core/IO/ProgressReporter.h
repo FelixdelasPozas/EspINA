@@ -20,15 +20,17 @@
 #ifndef ESPINA_IO_PROGRESS_REPORTER_H
 #define ESPINA_IO_PROGRESS_REPORTER_H
 
+#include <Core/EspinaCore_Export.h>
 
 namespace ESPINA
 {
   namespace IO
   {
-    class ProgressReporter
+    class EspinaCore_EXPORT ProgressReporter
     {
     public:
-      virtual ~ProgressReporter() {}
+      virtual ~ProgressReporter()
+      {};
 
       virtual void setProgress(unsigned int progress) = 0;
     };

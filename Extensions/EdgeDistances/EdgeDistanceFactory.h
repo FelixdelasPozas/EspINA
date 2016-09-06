@@ -37,7 +37,7 @@ namespace ESPINA
      * \brief Factory for EdgeDistance extensions.
      *
      */
-    class EdgeDistanceFactory
+    class EspinaExtensions_EXPORT EdgeDistanceFactory
     : public Core::SegmentationExtensionFactory
     {
       public:

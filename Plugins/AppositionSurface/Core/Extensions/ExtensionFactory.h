@@ -21,6 +21,8 @@
 #ifndef APPOSITION_SURFACE_EXTENSION_FACTORY_H_
 #define APPOSITION_SURFACE_EXTENSION_FACTORY_H_
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // ESPINA
 #include <Core/Factory/ExtensionFactory.h>
 
@@ -32,7 +34,7 @@ namespace ESPINA
    * \brief Factory for the creation of SAS Extensions.
    *
    */
-  class ASExtensionFactory
+  class AppositionSurfacePlugin_EXPORT ASExtensionFactory
   : public Core::SegmentationExtensionFactory
   {
     public:

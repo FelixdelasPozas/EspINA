@@ -22,6 +22,8 @@
 #ifndef PLUGINS_COUNTINGFRAME_REPRESENTATIONS_REPRESENTATIONSWITCH_H_
 #define PLUGINS_COUNTINGFRAME_REPRESENTATIONS_REPRESENTATIONSWITCH_H_
 
+#include "CountingFramePlugin_Export.h"
+
 // ESPINA
 #include <GUI/Widgets/NumericalInput.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -39,7 +41,7 @@ namespace ESPINA
      * \brief Representation switch for 3D counting frame representation.
      *
      */
-    class CFRepresentationSwitch
+    class CountingFramePlugin_EXPORT CFRepresentationSwitch
     : public BasicRepresentationSwitch
     {
         Q_OBJECT

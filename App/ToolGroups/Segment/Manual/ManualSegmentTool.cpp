@@ -97,15 +97,15 @@ FilterSPtr ManualFilterFactory::createFilter(InputSList          inputs,
 //------------------------------------------------------------------------
 ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 : ProgressTool("0-FreehandSegmentationTool", ":espina/manual_segmentation.svg", tr("Freehand Segmentation"), context)
-, m_model        {context.model()}
-, m_factory      {context.factory()}
-, m_colorEngine  {context.colorEngine()}
-, m_filterFactory{new ManualFilterFactory()}
-, m_drawingWidget(context.viewState(), context.model())
-, m_mode         {Mode::SINGLE_STROKE}
+, m_model             {context.model()}
+, m_factory           {context.factory()}
+, m_colorEngine       {context.colorEngine()}
+, m_filterFactory     {new ManualFilterFactory()}
+, m_drawingWidget     {context.viewState(), context.model()}
+, m_mode              {Mode::SINGLE_STROKE}
 , m_createSegmentation{true}
-, m_referenceItem{nullptr}
-, m_validStroke  {true}
+, m_referenceItem     {nullptr}
+, m_validStroke       {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 

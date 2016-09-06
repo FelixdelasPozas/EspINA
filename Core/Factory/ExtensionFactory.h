@@ -22,6 +22,9 @@
 #ifndef CORE_FACTORY_EXTENSIONFACTORY_H_
 #define CORE_FACTORY_EXTENSIONFACTORY_H_
 
+#include <Core/EspinaCore_Export.h>
+
+// ESPINA
 #include <Core/Analysis/Extensions.h>
 
 namespace ESPINA
@@ -32,7 +35,7 @@ namespace ESPINA
      * \brief Factory for extension objects.
      *
      */
-    class StackExtensionFactory
+    class EspinaCore_EXPORT StackExtensionFactory
     {
       public:
         StackExtensionFactory(CoreFactory *factory)
@@ -73,7 +76,7 @@ namespace ESPINA
      * \brief Factory for extension objects.
      *
      */
-    class SegmentationExtensionFactory
+    class EspinaCore_EXPORT SegmentationExtensionFactory
     {
       public:
         SegmentationExtensionFactory(CoreFactory *factory)

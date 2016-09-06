@@ -17,20 +17,24 @@
  *
  */
 
+// ESPINA
 #include "SliceEditionPipeline.h"
-
 #include <GUI/View/View2D.h>
-#include "Support/Representations/RepresentationUtils.h"
+#include <GUI/Utils/RepresentationUtils.h>
+#include <Support/Representations/RepresentationUtils.h>
+
+// VTK
+#include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::ColorEngines;
-using namespace ESPINA::RepresentationUtils;
 
 //------------------------------------------------------------------------
 SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
-: RepresentationPipeline("")
-, m_plane{Plane::XY}
-, m_slicePipeline(Plane::XY, colorEngine)
+: RepresentationPipeline{"TemporalSlicePipeline"}
+, m_plane               {Plane::XY}
+, m_slicePipeline       {Plane::XY, colorEngine}
 {
   setType(m_slicePipeline.type());
 }
@@ -47,7 +51,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
   ActorList actors;
   //qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
 
-  if ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane))
+  if (m_actor.GetPointer() && (crosshairPoint(state) == m_crosshair) && (RepresentationUtils::plane(state) == m_plane))
   {
     actors << m_actor;
   }
@@ -62,7 +66,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
 //------------------------------------------------------------------------
 void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
-  if (!(crosshairPoint(state) == m_crosshair) || !(plane(state) == m_plane))
+  if((crosshairPoint(state) != m_crosshair) || (RepresentationUtils::plane(state) != m_plane))
   {
     m_slicePipeline.updateColors(actors, item, state);
   }
@@ -78,8 +82,13 @@ bool SliceEditionPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &p
 void SliceEditionPipeline::setTemporalActor(RepresentationPipeline::VTKActor actor, RenderView *view)
 {
   auto view2D = view2D_cast(view);
-  m_plane     = view2D->plane();
-  m_crosshair = view2D->crosshair();
 
-  m_actor = actor;
+  if(view2D)
+  {
+    m_plane     = view2D->plane();
+    m_crosshair = view2D->crosshair();
+    m_actor     = actor;
+
+    m_slicePipeline.setPlane(m_plane);
+  }
 }

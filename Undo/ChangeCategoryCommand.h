@@ -51,7 +51,7 @@ namespace ESPINA
      */
     explicit ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                    CategoryAdapterPtr      category,
-                                   Support::Context &context,
+                                   Support::Context       &context,
                                    QUndoCommand*           parent = nullptr);
 
     /** \brief ChangeCategoryCommand class virtual destructor.
@@ -64,11 +64,15 @@ namespace ESPINA
     virtual void undo() override;
 
   private:
+    /** \brief Helper method to update the application selection after a change.
+     * \param[in] segmentatios list of segmentations to select.
+     *
+     */
     void updateSelection(ViewItemAdapterList segmentations);
 
   private:
-    CategoryAdapterSPtr     m_category;
-    QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories;
+    CategoryAdapterSPtr                                m_category;      /** new category.                     */
+    QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories; /** map of segmentation-oldcategories */
   };
 
 } // namespace ESPINA

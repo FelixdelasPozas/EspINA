@@ -127,7 +127,6 @@ namespace ESPINA
         while (!ancestors.isEmpty())
         {
           auto ancestor = ancestors.takeFirst();
-
           auto successors = content->successors(ancestor);
 
           ChannelSPtr channel;

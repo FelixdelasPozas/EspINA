@@ -25,29 +25,42 @@
 
 namespace ESPINA
 {
+  class RenderView;
 
-class RenderView;
+  /** \class SliceEditionPipeline
+   * \brief Temporal representation pipeline for edition tools.
+   *
+   */
   class SliceEditionPipeline
   : public RepresentationPipeline
   {
   public:
-    explicit SliceEditionPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
+      /** \brief SliceEditionPipeline class constructor.
+       * \param[in] colorEngine application color engine.
+       *
+       */
+      explicit SliceEditionPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
-    virtual RepresentationState representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings) override;
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings) override;
 
-    virtual ActorList createActors(ConstViewItemAdapterPtr item, const RepresentationState &state) override;
+      virtual ActorList createActors(ConstViewItemAdapterPtr item, const RepresentationState &state) override;
 
-    virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state) override;
+      virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state) override;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
-    void setTemporalActor(VTKActor actor, RenderView *view);
+      /** \brief Set the temporal actor to show in the given view in the current crosshair point.
+       * \param[in] actor vtk actor.
+       * \param[in] view view to show the actor.
+       *
+       */
+      void setTemporalActor(VTKActor actor, RenderView *view);
 
-  private:
-    Plane     m_plane;
-    NmVector3 m_crosshair;
-    VTKActor  m_actor;
-    SegmentationSlicePipeline m_slicePipeline;
+    private:
+      Plane                     m_plane;         /** orthogonal plane.   */
+      NmVector3                 m_crosshair;     /** crosshair position. */
+      VTKActor                  m_actor;         /** actor.              */
+      SegmentationSlicePipeline m_slicePipeline; /** slice pipeline.     */
   };
 
   using SliceEditionPipelineSPtr = std::shared_ptr<SliceEditionPipeline>;

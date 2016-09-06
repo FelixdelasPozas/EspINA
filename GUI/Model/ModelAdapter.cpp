@@ -26,6 +26,9 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Analysis/Query.h>
+#include <Core/Analysis/Graph/DirectedGraph.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 #include "Utils/SegmentationUtils.h"
 
@@ -656,14 +659,16 @@ QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter)
 {
   ItemAdapterSList items;
-  if (type == RELATION_IN || type == RELATION_INOUT) {
+  if (type == RELATION_IN || type == RELATION_INOUT)
+  {
     for(auto ancestor : m_analysis->relationships()->ancestors(item->m_analysisItem, filter))
     {
       items << find(ancestor);
     }
   }
 
-  if (type == RELATION_OUT || type == RELATION_INOUT) {
+  if (type == RELATION_OUT || type == RELATION_INOUT)
+  {
     for(auto successor : m_analysis->relationships()->successors(item->m_analysisItem, filter))
     {
       items << find(successor);
@@ -1018,19 +1023,19 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
 {
   for(auto sample : m_samples)
   {
-    PersistentSPtr base = sample->m_sample;
+    auto base = std::dynamic_pointer_cast<Persistent>(sample->m_sample);
     if (base == item) return sample;
   }
 
   for(auto channel : m_channels)
   {
-    PersistentSPtr base = channel->m_channel;
+    auto base = std::dynamic_pointer_cast<Persistent>(channel->m_channel);
     if (base == item) return channel;
   }
 
   for(auto segmentation : m_segmentations)
   {
-    PersistentSPtr base = segmentation->m_segmentation;
+    auto base = std::dynamic_pointer_cast<Persistent>(segmentation->m_segmentation);
     if (base == item) return segmentation;
   }
 
@@ -1780,4 +1785,90 @@ bool ESPINA::isClassification(ItemAdapterPtr item)
 bool ESPINA::isCategory(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CATEGORY == item->type();
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
+{
+  FilterSPtr active = nullptr;
+  for(auto channel: m_channels)
+  {
+    qDebug() << "found" << channel->data().toString();
+    if(channel->data().toString().compare(primary->data().toString()) == 0)
+    {
+      active = channel->filter();
+      break;
+    }
+  }
+
+  Q_ASSERT(active != nullptr);
+
+  for(auto channel: m_channels)
+  {
+    if(channel->data().toString().compare(primary->data().toString()) == 0) continue;
+
+    auto filter = channel->filter();
+
+    DirectedGraph::Edges toChange;
+
+    for(auto edge: m_analysis->content()->outEdges(filter))
+    {
+      if(std::dynamic_pointer_cast<Channel>(edge.target)) continue;
+
+      toChange << edge;
+    }
+
+    if(!toChange.isEmpty())
+    {
+      int changed = 0;
+      for(auto element: toChange)
+      {
+        ++changed;
+        m_analysis->content()->removeRelation(element.source,
+                                              element.target,
+                                              QString(element.relationship.c_str()));
+
+        m_analysis->content()->addRelation(active,
+                                           element.target,
+                                           QString(element.relationship.c_str()));
+      }
+      qDebug() << "changed" << changed << "relations to channel" << primary->data().toString() << "from channel" << channel->data().toString();
+    }
+  }
+
+  if (m_samples.size() != 1)
+  {
+    qDebug() << "several samples";
+    // segmentations can be associated to wrong sample with relation Sample::CONTAINS.
+    SampleSPtr mainSample = nullptr;
+    for(auto channel: m_analysis->channels())
+    {
+      if(channel->filter() == active)
+      {
+        mainSample = QueryContents::sample(channel);
+        qDebug() << "Sample of primary channel: " << mainSample->name();
+        break;
+      }
+    }
+
+    Q_ASSERT(mainSample != nullptr);
+
+    int changed = 0;
+    for(auto sample: m_analysis->samples())
+    {
+      qDebug() << "inspecting sample " << sample->name();
+      if(sample == mainSample) continue;
+
+
+      auto segs = QueryRelations::segmentations(sample);
+      for(auto seg: segs)
+      {
+        ++changed;
+        m_analysis->deleteRelation(sample, seg, Sample::CONTAINS);
+        m_analysis->addRelation(mainSample, seg, Sample::CONTAINS);
+      }
+    }
+
+    qDebug() << "moved " << changed << "Sample::CONTAINS relations to sample " << mainSample->name();
+  }
 }

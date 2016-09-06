@@ -20,6 +20,9 @@
 #ifndef ESPINA_STROKE_PAINTER_H
 #define ESPINA_STROKE_PAINTER_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
 #include <vtkSmartPointer.h>
 #include <vtkProp.h>
 #include <GUI/Model/ViewItemAdapter.h>
@@ -41,7 +44,7 @@ namespace ESPINA
     ERASING
   };
 
-  class StrokePainter
+  class EspinaGUI_EXPORT StrokePainter
   : public QObject
   {
     Q_OBJECT

@@ -21,7 +21,7 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
-#include <Core/Analysis/Data/SkeletonData.h>
+//#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>

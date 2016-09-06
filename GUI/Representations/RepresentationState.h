@@ -25,50 +25,124 @@
 // ESPINA
 #include <Core/Utils/Vector3.hxx>
 
+// Qt
+#include <QMutex>
+#include <QMutexLocker>
+
 namespace ESPINA
 {
   /** \class RepresentationState
+   * \brief Contains the configuration of a representation.
    *
-   * This class is not ThreadSafe
    */
   class EspinaGUI_EXPORT RepresentationState
   {
-    using Pair = QPair<QVariant, bool>;
+      using Pair = QPair<QVariant, bool>;
+    public:
+      /** \brief RepresentationState constructor.
+       *
+       */
+      RepresentationState()
+      {};
 
-  public:
-    template<typename T>
-    void setValue(const QString &tag, T value)
-    {
-      Pair pair = m_properties.value(tag, Pair(QVariant(), true));
+      /** \brief RepresentationState move constructor.
+       *
+       */
+      RepresentationState(RepresentationState &&state)
+      : m_properties{state.m_properties}
+      {};
 
-      pair.second |= pair.first != value;
+      /** \brief RepresentationState copy constructor.
+       *
+       */
+      RepresentationState(const RepresentationState &state)
+      : m_properties{state.m_properties}
+      {};
 
-      if (pair.second)
+      /** \brief RepresentationState operator=
+       * \param[in] state reprentation state object.
+       *
+       */
+      RepresentationState & operator=(const RepresentationState &state)
       {
-        pair.first = value;
-        m_properties[tag] = pair;
+        QMutexLocker lock(&m_mutex);
+
+        m_properties = state.m_properties;
+
+        return *this;
       }
-    }
 
-    template<typename T>
-    T getValue(const QString &tag) const
-    { return m_properties[tag].first.value<T>(); }
+      /** \brief Sets a property value.
+       * \param[in] tag property key.
+       * \param[in] value property value.
+       *
+       */
+      template<typename T>
+      void setValue(const QString &tag, T value)
+      {
+        QMutexLocker lock(&m_mutex);
 
-    bool isModified(const QString &tag) const
-    { return m_properties.value(tag, Pair(QVariant(), false)).second; }
+        Pair pair = m_properties.value(tag, Pair(QVariant(), true));
 
-    bool hasValue(const QString &tag) const;
+        pair.second |= pair.first != value;
 
-    bool hasPendingChanges() const;
+        if (pair.second)
+        {
+          pair.first = value;
+          m_properties[tag] = pair;
+        }
+      }
 
-    void apply(const RepresentationState &state);
+      /** \brief Returns the value of the given property.
+       * \param[in] tag property key.
+       *
+       */
+      template<typename T>
+      T getValue(const QString &tag) const
+      {
+        QMutexLocker lock(&m_mutex);
 
-    void commit();
+        return m_properties[tag].first.value<T>();
+      }
 
-    void clear();
+      /** \brief Returns true if the given property has been modified and false otherwise.
+       * \param[in] tag property key.
+       *
+       */
+      bool isModified(const QString &tag) const;
 
-    QMap<QString, Pair> m_properties;
-  private:
+      /** \brief Returns true if the state has the given property.
+       * \param[in] tag property key.
+       *
+       */
+      bool hasValue(const QString &tag) const;
+
+      /** \brief Returns true if the state has uncommited changes.
+       *
+       */
+      bool hasPendingChanges() const;
+
+      /** \brief Applies the property values to the given representation state.
+       * \param[inout] state representation state object.
+       *
+       */
+      void apply(const RepresentationState &state);
+
+      /** \brief Commits the changes (sets all modified boolean values to false).
+       *
+       */
+      void commit();
+
+      /** \brief Empties the properties map.
+       *
+       */
+      void clear();
+
+    private:
+      friend QDebug operator<<(QDebug debug, const RepresentationState &state);
+
+      QMap<QString, Pair> m_properties; /** key-pair map. The pair is value-modified. */
+      mutable QMutex      m_mutex;      /** protects the properties on thread access. */
   };
 
   /** \brief Returs true if the given settings has values for the crosshair point.
@@ -116,6 +190,10 @@ namespace ESPINA
    */
   bool EspinaGUI_EXPORT isVisible(const RepresentationState &state);
 
+  /** \brief Prints the contents of the representation state to a QDebug stream.
+   * \param[in] debug QDebug stream.
+   * \param[in] state representation state.
+   */
   QDebug EspinaGUI_EXPORT operator<<(QDebug debug, const RepresentationState &state);
 }
 

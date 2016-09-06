@@ -21,12 +21,18 @@
 #ifndef ESPINA_SPHERICAL_BRUSH_H_
 #define ESPINA_SPHERICAL_BRUSH_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/Brush.h>
 
 namespace ESPINA
 {
-  class SphericalBrush
+  /** \class SphericalBrush
+   * \brief Implements a spherical 3D brush.
+   *
+   */
+  class EspinaGUI_EXPORT SphericalBrush
   : public Brush
   {
     private:
@@ -35,9 +41,9 @@ namespace ESPINA
       virtual void configureBrush(RenderView* view);
 
     private:
-      Nm m_strokeRadius;
-      Plane m_plane;
-      NmVector3 m_resolution;
+      Nm        m_strokeRadius; /** radius of the brush.     */
+      Plane     m_plane;        /** plane of the cursor.     */
+      NmVector3 m_resolution;   /** resolution of the image. */
   };
 
 } // namespace ESPINA

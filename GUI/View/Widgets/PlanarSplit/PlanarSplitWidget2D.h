@@ -22,6 +22,8 @@
 #ifndef ESPINA_PLANAR_SPLIT_WIDGET2D_H_
 #define ESPINA_PLANAR_SPLIT_WIDGET2D_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 

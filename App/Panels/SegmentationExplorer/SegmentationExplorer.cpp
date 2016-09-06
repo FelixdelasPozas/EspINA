@@ -43,6 +43,7 @@
 #include <QStringListModel>
 #include <QUndoStack>
 #include <QWidgetAction>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -582,12 +583,12 @@ void SegmentationExplorer::importClassification()
 		auto classification = std::make_shared<ClassificationAdapter>(name.toString());
 
 		QStack<CategoryAdapterSPtr> stack;
-		stack.push(nullptr); // initial parent
+		stack.push(classification->root()); // initial parent
 
     while (!stream.atEnd())
     {
       stream.readNextStartElement();
-      if (stream.name() == "category" || stream.name() == "node")
+      if (stream.name() == "category")
       {
         if (stream.isStartElement())
         {
@@ -595,9 +596,7 @@ void SegmentationExplorer::importClassification()
           auto color = stream.attributes().value("color");
 
           auto category = classification->createCategory(name.toString(), stack.top());
-
-          QColor categoryColor(color.toString());
-          category->setColor(categoryColor.hue());
+          category->setColor(QColor{color.toString()});
 
           for (auto attribute : stream.attributes())
           {
@@ -657,10 +656,7 @@ void SegmentationExplorer::writeCategories(CategoryAdapterSList categories, QXml
     {
       writer->writeStartElement("category");
       writer->writeAttribute("name", category->name());
-
-      QColor color;
-      color.setHsv(category->color().hue(), 255, 255);
-      writer->writeAttribute("color", color.name());
+      writer->writeAttribute("color", category->color().name());
 
       for(auto propertyKey: category->properties())
       {
@@ -719,10 +715,10 @@ void SegmentationExplorer::addCategories(ClassificationAdapterSPtr from, Classif
     {
       CategoryAdapterSPtr oldParent = nullptr;
       auto newParent = newCategory->parent();
-      if(newParent != nullptr)
+      if(newParent != nullptr && newParent != from->root().get())
       {
         oldParent = to->category(newParent->classificationName());
-        Q_ASSERT(oldParent != nullptr);
+        if(oldParent == nullptr) oldParent = to->root();
       }
 
       getContext().undoStack()->push(new AddCategoryCommand(oldParent, newCategory->name(), getModel(), newCategory->color()));

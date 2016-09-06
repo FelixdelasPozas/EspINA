@@ -52,14 +52,14 @@ namespace ESPINA
          * \param[in] items items to classify.
          *
          */
-        Items classifyViewItems(const ViewItemAdapterList &items);
+        Items EspinaGUI_EXPORT classifyViewItems(const ViewItemAdapterList &items);
 
         /** \brief Classifies items belonging to the subgroup into segmentations and channels.
          * \param[in] items items to classify.
          * \param[in] group group of items.
          *
          */
-        Items classifyViewItems(const ViewItemAdapterList &items, const Items &group);
+        Items EspinaGUI_EXPORT classifyViewItems(const ViewItemAdapterList &items, const Items &group);
 
       } // namespace Util
     } // namespace Model

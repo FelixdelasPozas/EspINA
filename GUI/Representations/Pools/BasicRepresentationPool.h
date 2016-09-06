@@ -20,13 +20,21 @@
 #ifndef ESPINA_BASIC_REPRESENTATION_POOL_H
 #define ESPINA_BASIC_REPRESENTATION_POOL_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationUpdater.h>
 
 namespace ESPINA
 {
-  class BasicRepresentationPool
+  /** \class BasicRepresentationPool
+   * \brief Basic representation pool without a cache. Updates all the items in a single thread and
+   * it's intended to use with those views that don't update it's actors when the crosshair changes,
+   * like the 3D views.
+   *
+   */
+  class EspinaGUI_EXPORT BasicRepresentationPool
   : public RepresentationPool
   {
     public:

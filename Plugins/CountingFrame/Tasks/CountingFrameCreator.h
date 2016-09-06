@@ -22,6 +22,8 @@
 #ifndef PLUGINS_COUNTINGFRAME_TASKS_COUNTINGFRAMECREATOR_H_
 #define PLUGINS_COUNTINGFRAME_TASKS_COUNTINGFRAMECREATOR_H_
 
+#include "CountingFramePlugin_Export.h"
+
 // Plugin
 #include <CountingFrames/CountingFrame.h>
 
@@ -42,7 +44,7 @@ namespace ESPINA
      * \brief Task to create a counting frame in a separate thread from the main one.
      *
      */
-    class CountingFrameCreator
+    class CountingFramePlugin_EXPORT CountingFrameCreator
     : public Task
     {
         Q_OBJECT

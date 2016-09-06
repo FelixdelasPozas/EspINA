@@ -20,6 +20,8 @@
 #ifndef ESPINA_PASSIVE_ACTOR_MANAGER_H_
 #define ESPINA_PASSIVE_ACTOR_MANAGER_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <Core/Types.h>
 #include <GUI/Representations/RepresentationPool.h>
@@ -35,7 +37,11 @@ namespace ESPINA
     {
       namespace Managers
       {
-        class PassiveActorManager
+        /** \class PassiveActorManager
+         * \brief Manager for representations that doesn't update representations on crosshair change, but on item modification.
+         *
+         */
+        class EspinaGUI_EXPORT PassiveActorManager
         : public PoolManager
         {
           Q_OBJECT

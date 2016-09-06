@@ -21,19 +21,35 @@
 #ifndef ESPINA_SEGMENTATION_SLICE_POOL_SETTINGS_H_
 #define ESPINA_SEGMENTATION_SLICE_POOL_SETTINGS_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA
 {
-  class SegmentationSlicePoolSettings
+  /** \class SegmentationSlicePoolSettings
+   * \brief Settings for the pool of slice representations.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationSlicePoolSettings
   : public PoolSettings
   {
     public:
+      /** \brief SegmentationPoolSettins class constructor.
+       *
+       */
       SegmentationSlicePoolSettings();
 
+      /** \brief Sets the opacity setting value.
+       * \param[in] value numerical value in [0,1].
+       *
+       */
       void setOpacity(double value);
 
+      /** \brief Returns the value of the opacity setting.
+       *
+       */
       double opacity() const;
   };
 

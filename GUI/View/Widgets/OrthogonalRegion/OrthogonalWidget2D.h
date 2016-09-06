@@ -22,6 +22,9 @@
 #ifndef ESPINA_ORTHOGONAL_WIDGET_2D_H
 #define ESPINA_ORTHOGONAL_WIDGET_2D_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include "OrthogonalRepresentation.h"
@@ -44,7 +47,10 @@ namespace ESPINA
         {
           class vtkOrthogonalWidget2D;
 
-          class OrthogonalWidget2D
+          /** \class OrthogonalWidget2D
+           * \brief
+           */
+          class EspinaGUI_EXPORT OrthogonalWidget2D
           : public EspinaWidget2D
           {
             Q_OBJECT

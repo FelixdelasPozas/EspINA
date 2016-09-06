@@ -20,79 +20,159 @@
 #ifndef ESPINA_GUI_UTILS_COLOR_RANGE_H
 #define ESPINA_GUI_UTILS_COLOR_RANGE_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// Qt
 #include <QColor>
 
-namespace ESPINA {
-  namespace GUI {
-    namespace Utils {
-
-      class ColorRange
+namespace ESPINA
+{
+  namespace GUI
+  {
+    namespace Utils
+    {
+      /** \class ColorRange
+       * \brief Base class that defines a gradient between two given colors.
+       *
+       */
+      class EspinaGUI_EXPORT ColorRange
       : public QObject
       {
-        Q_OBJECT
-      public:
-        explicit ColorRange(const double min, const double max);
+          Q_OBJECT
+        public:
+          /** \brief ColorRange class constructor.
+           * \param[in] min min numerical value of the gradient.
+           * \param[in] max max numerical value of the gradient.
+           *
+           */
+          explicit ColorRange(const double min, const double max);
 
-        virtual ~ColorRange() {}
+          /** \brief ColorRange class virtual destructor.
+           *
+           */
+          virtual ~ColorRange()
+          {}
 
-        QColor color(const double value) const;
+          /** \brief Returns the color that corresponds to the given value.
+           * \param[in] value numerical value.
+           *
+           */
+          QColor color(const double value) const;
 
-        QColor color(const double value, const double min, const double max) const;
 
-        void setMinimumValue(const double value);
+          QColor color(const double value, const double min, const double max) const;
 
-        double minimumValue() const;
+          /** \brief Sets the minimum value of the color range.
+           * \param[in] value numerical value.
+           *
+           */
+          void setMinimumValue(const double value);
 
-        void setMaximumValue(const double value);
+          /** \brief Returns the minimum value of the color range.
+           *
+           */
+          double minimumValue() const;
 
-        double maximumValue() const;
+          /** \brief Sets the maximum value of the color range.
+           * \param[in] value numerical value.
+           *
+           */
+          void setMaximumValue(const double value);
 
-        void setMinimumColor(const QColor &color);
+          /** \brief Returns the maximum value of the color range.
+           *
+           */
+          double maximumValue() const;
 
-        QColor minimumColor() const;
+          /** \brief Sets the minimum color of the range.
+           * \param[in] color QColor object.
+           *
+           */
+          void setMinimumColor(const QColor &color);
 
-        void setMaximumColor(const QColor &color);
+          /** \brief Returns the minimum color of the range.
+           *
+           */
+          QColor minimumColor() const;
 
-        QColor maximumColor() const;
+          /** \brief Sets the maximum color of the color range.
+           * \param[in] color QColor object.
+           *
+           */
+          void setMaximumColor(const QColor &color);
 
-      signals:
-        void valueRangeChanged();
-        void colorRangeChanged();
+          /** \brief Returns the maximum color of the range.
+           *
+           */
+          QColor maximumColor() const;
 
-      private:
-        virtual QColor computeColor(const double  value,
-                                    const double  minValue,
-                                    const double  maxValue,
-                                    const QColor &minColor,
-                                    const QColor &maxColor) const = 0;
+        signals:
+          void valueRangeChanged();
+          void colorRangeChanged();
 
-      private:
-        QColor m_minColor;
-        QColor m_maxColor;
-        double m_minValue;
-        double m_maxValue;
+        private:
+          /** \brief Helper method that computes the color of the given value in the range.
+           * \param[in] value numerical value.
+           * \param[in] minValue numerical range minimum value.
+           * \param[in] maxValue numerical range maximum value.
+           * \param[in] minColor color of the minimum range value.
+           * \param[in] maxColor color of the maxumum range value.
+           *
+           */
+          virtual QColor computeColor(const double  value,
+                                      const double  minValue,
+                                      const double  maxValue,
+                                      const QColor &minColor,
+                                      const QColor &maxColor) const = 0;
+
+        private:
+          QColor m_minColor; /** color of the minimum range value. */
+          QColor m_maxColor; /** color of the maximum range value. */
+          double m_minValue; /** minimum value of the color range. */
+          double m_maxValue; /** maximum value of the color range. */
       };
 
-      class RangeHSV
+      /** \class RangeHSV
+       * \brief ColorRange in HSV color parameters.
+       *
+       */
+      class EspinaGUI_EXPORT RangeHSV
       : public ColorRange
       {
-      public:
-        explicit RangeHSV(const double min, const double max);
+        public:
+          /** \brief RangeHSV class constructor.
+           * \param[in] min color range minimum numerical value.
+           * \param[in] max color range maximum numerical value.
+           *
+           */
+          explicit RangeHSV(const double min, const double max);
 
-      private:
-        virtual QColor computeColor(const double  value,
-                                    const double  minValue,
-                                    const double  maxValue,
-                                    const QColor& minColor,
-                                    const QColor& maxColor) const;
+        private:
+          virtual QColor computeColor(const double  value,
+                                      const double  minValue,
+                                      const double  maxValue,
+                                      const QColor& minColor,
+                                      const QColor& maxColor) const;
 
-        double adjustRange(const double value,
-                           const double minValue,
-                           const double maxValue) const;
+          /** \brief Adjusts the value in the numerical range of the color range.
+           * \param[in] value numerical value.
+           * \param[in] minValue minimum numerical value of the color range.
+           * \param[in] maxValue maximum numerical value of the color range.
+           *
+           */
+          double adjustRange(const double value,
+                             const double minValue,
+                             const double maxValue) const;
 
-        double interpolateFactor(const double value,
-                                 const double minValue,
-                                 const double maxValue) const;
+          /** \brief Returns the interpolated value inside the color range numerical value.
+           * \param[in] value numerical value.
+           * \param[in] minValue minimum numerical value of the color range.
+           * \param[in] maxValue maximum numerical value of the color range.
+           *
+           */
+          double interpolateFactor(const double value,
+                                   const double minValue,
+                                   const double maxValue) const;
       };
     }
   }

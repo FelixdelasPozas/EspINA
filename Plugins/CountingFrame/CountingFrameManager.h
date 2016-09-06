@@ -22,6 +22,8 @@
 #ifndef ESPINA_CF_EXTENSION_FACTORY_H
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
+#include "CountingFramePlugin_Export.h"
+
 // Plugin
 #include "Extensions/CountingFrameExtension.h"
 #include <CountingFrames/CountingFrame.h>
@@ -41,7 +43,7 @@ namespace ESPINA
 {
   namespace CF
   {
-    class CountingFrameManager
+    class CountingFramePlugin_EXPORT CountingFrameManager
     : public QObject
     {
       Q_OBJECT

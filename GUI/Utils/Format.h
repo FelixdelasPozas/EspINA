@@ -20,16 +20,31 @@
 #ifndef ESPINA_GUI_UTILS_FORMAT_H
 #define ESPINA_GUI_UTILS_FORMAT_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// Qt
 #include <QString>
 
-namespace ESPINA {
-  namespace GUI {
-    namespace Utils {
+namespace ESPINA
+{
+  namespace GUI
+  {
+    namespace Utils
+    {
       namespace Format
       {
-        QString createLink(const QString &label);
+        /** \brief Returns a link for the given label.
+         * \param[in] label text.
+         *
+         */
+        QString EspinaGUI_EXPORT createLink(const QString &label);
 
-        QString createLink(const QString &label, const QString &reference);
+        /** \brief Returns a link to the given reference for the given label.
+         * \param[in] label text.
+         * \param[in] reference destination of the link.
+         *
+         */
+        QString EspinaGUI_EXPORT createLink(const QString &label, const QString &reference);
       };
     }
   }

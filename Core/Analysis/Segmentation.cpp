@@ -106,14 +106,14 @@ Snapshot Segmentation::snapshot() const
 
       for(auto data: extension->snapshot())
       {
-        QString file = extensionDataPath(extension, data.first);
+        auto file = extensionDataPath(extension, data.first);
         snapshot << SnapshotData(file, data.second);
       }
     }
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
+    auto file = extensionsPath() + QString("%1.xml").arg(uuid());
     snapshot << SnapshotData(file, xml);
   }
 
@@ -155,18 +155,25 @@ void Segmentation::restoreState(const State& state)
   for (auto token : state.split(';'))
   {
     QStringList tokens = token.split('=');
-    if (tokens.size() != 2)
-      continue;
+    if (tokens.size() != 2) continue;
 
     if (STATE_NUMBER == tokens[0])
     {
       m_number = tokens[1].toUInt();
-    } else if (STATE_USERS == tokens[0])
+    }
+    else
     {
-      m_users = tokens[1].split(',').toSet();
-    } else if (STATE_ALIAS == tokens[0])
-    {
-      m_alias = tokens[1];
+      if (STATE_USERS == tokens[0])
+      {
+        m_users = tokens[1].split(',').toSet();
+      }
+      else
+      {
+        if (STATE_ALIAS == tokens[0])
+        {
+          m_alias = tokens[1];
+        }
+      }
     }
   }
 }
@@ -174,7 +181,7 @@ void Segmentation::restoreState(const State& state)
 //------------------------------------------------------------------------
 void Segmentation::unload()
 {
-  // NOTE: Further versions
+  // NOTE: Future versions?
 }
 
 //------------------------------------------------------------------------

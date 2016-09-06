@@ -20,6 +20,8 @@
 #ifndef ESPINA_BUFFERED_REPRESENTATION_POOL_H
 #define ESPINA_BUFFERED_REPRESENTATION_POOL_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationUpdater.h>
@@ -30,7 +32,11 @@
 
 namespace ESPINA
 {
-  class BufferedRepresentationPool
+  /** \class BufferedRepresentationPool
+   * \brief Buffered representation pool for 2D representations.
+   *
+   */
+  class EspinaGUI_EXPORT BufferedRepresentationPool
   : public RepresentationPool
   {
     public:

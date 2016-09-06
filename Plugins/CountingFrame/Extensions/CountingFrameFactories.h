@@ -22,6 +22,8 @@
 #ifndef ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 #define ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 
+#include "CountingFramePlugin_Export.h"
+
 //Plugin
 #include <CountingFrameManager.h>
 
@@ -36,7 +38,7 @@ namespace ESPINA
      * \brief Factory for counting frame extensions.
      *
      */
-    class CFStackExtensionFactory
+    class CountingFramePlugin_EXPORT CFStackExtensionFactory
     : public Core::StackExtensionFactory
     {
       public:
@@ -63,7 +65,7 @@ namespace ESPINA
      * \brief Factory for stereological inclusion extensions.
      *
      */
-    class CFSegmentationExtensionFactory
+    class CountingFramePlugin_EXPORT CFSegmentationExtensionFactory
     : public Core::SegmentationExtensionFactory
     {
       public:

@@ -21,6 +21,8 @@
 #ifndef ESPINA_CROSSHAIR_MANAGER_H_
 #define ESPINA_CROSSHAIR_MANAGER_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/RepresentationManager.h>
 
@@ -41,7 +43,11 @@ namespace ESPINA
     {
       namespace Managers
       {
-        class CrosshairManager
+        /** \class CrosshairManager
+         * \brief Representation manager for the crosshair representations.
+         *
+         */
+        class EspinaGUI_EXPORT CrosshairManager
         : public RepresentationManager
         {
         public:

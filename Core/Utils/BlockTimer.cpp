@@ -25,26 +25,20 @@
 // Qt
 #include <QDebug>
 
-namespace ESPINA
-{
-  namespace Core
-  {
-    namespace Utils
-    {
-      
-      BlockTimer::BlockTimer(const QString &name)
-      : m_name{name}
-      , m_startTime{std::chrono::high_resolution_clock::now()}
-      {
-      }
-      
-      BlockTimer::~BlockTimer()
-      {
-        auto endTime = std::chrono::high_resolution_clock::now();
+using namespace ESPINA::Core::Utils;
 
-        qDebug() << m_name << "execution time" <<  std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count() << "milliseconds.";
-      }
-    
-    } // namespace Utils
-  } // namespace Core
-} // namespace ESPINA
+//--------------------------------------------------------------------
+BlockTimer::BlockTimer(const QString &name)
+: m_id       {name}
+, m_startTime{std::chrono::high_resolution_clock::now()}
+{
+}
+
+//--------------------------------------------------------------------
+BlockTimer::~BlockTimer()
+{
+  auto endTime = std::chrono::high_resolution_clock::now();
+
+  qDebug() << m_id << "execution time" << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count() << "milliseconds.";
+}
+

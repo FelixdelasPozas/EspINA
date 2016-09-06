@@ -21,6 +21,8 @@
 #ifndef ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_
 #define ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_
 
+#include <Support/EspinaSupport_Export.h>
+
 // ESPINA
 #include <Support/Widgets/ProgressTool.h>
 
@@ -33,37 +35,68 @@ namespace ESPINA
   {
     namespace Widgets
     {
-      class EditTool
+      /** \class EditTool
+       * \brief Super class for tools that edit segmentations.
+       *
+       */
+      class EspinaSupport_EXPORT EditTool
       : public ProgressTool
       {
-        Q_OBJECT
-      public:
-        explicit EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context);
+          Q_OBJECT
+        public:
+          /** \brief EditTool class constructor.
+           * \param[in] id tool id.
+           * \param[in] icon tool icon.
+           * \param[in] tooltip tool tooltip text.
+           * \param[in] context application context.
+           *
+           */
+          explicit EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context);
 
-        /** \brief EditTools class destructor.
-         *
-         */
-        virtual ~EditTool();
+          /** \brief EditTools class destructor.
+           *
+           */
+          virtual ~EditTool();
 
-        virtual void onToolGroupActivated() override;
+          virtual void onToolGroupActivated() override;
 
-      protected:
-        bool acceptsVolumetricSegmentations(SegmentationAdapterList segmentations);
+        protected:
+          /** \brief Returns true if the list of given segmentations have all volumetric data and false otherwise.
+           * \param[in] segmentations list of segmentations.
+           *
+           */
+          bool acceptsVolumetricSegmentations(SegmentationAdapterList segmentations);
 
-        void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
+          /** \brief Marks the given segmentation as being currently modified.
+           * \param[in] segmentation segmentation to mark.
+           * \param[in] value true to mark as being modified and false otherwise.
+           *
+           */
+          void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
 
-      private slots:
-        /** \brief
-         *
-         */
-        void updateStatus();
+        private slots:
+          /** \brief Enables/Disables the tool depending on the current segmentation selection.
+           *
+           */
+          void updateStatus();
 
-      private:
-        virtual bool acceptsNInputs(int n) const = 0;
+        private:
+          /** \brief Returns true if the tool accepts the given number of inputs and false otherwise.
+           * \param[in] n numerical value > 0;
+           */
+          virtual bool acceptsNInputs(int n) const = 0;
 
-        virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+          /** \brief Returns true if the tool can operate with the given segmentation list.
+           * \param[in] segmentations list of segmentations.
+           *
+           */
+          virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
-        bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
+          /** \brief Returns true if none of the segmentations in the given groups is being modified and false otherwise.
+           * \param[in] segmentations list of segmentations.
+           *
+           */
+          bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
      };
     }
   }

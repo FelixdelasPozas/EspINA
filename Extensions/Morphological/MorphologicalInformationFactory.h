@@ -37,7 +37,7 @@ namespace ESPINA
      * \brief Factory for MorphologicalInformation extensions.
      *
      */
-    class MorphologicalInformationFactory
+    class EspinaExtensions_EXPORT MorphologicalInformationFactory
     : public Core::SegmentationExtensionFactory
     {
       public:

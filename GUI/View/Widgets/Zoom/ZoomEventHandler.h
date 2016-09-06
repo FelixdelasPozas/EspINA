@@ -22,6 +22,8 @@
 #ifndef ESPINA_ZOOM_EVENT_HANDLER_H_
 #define ESPINA_ZOOM_EVENT_HANDLER_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/View/EventHandler.h>
 
@@ -32,7 +34,11 @@ namespace ESPINA
 {
   class RenderView;
   
-  class ZoomEventHandler
+  /** \class ZoomEventHandler
+   *  \brief Event handler for Zoom tool.
+   *
+   */
+  class EspinaGUI_EXPORT ZoomEventHandler
   : public EventHandler
   {
       Q_OBJECT

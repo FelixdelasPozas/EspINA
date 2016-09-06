@@ -129,45 +129,54 @@ namespace ESPINA
             friend class vtkSplitCommand;
         };
 
-          class vtkSplitCommand
-          : public vtkCommand
-          {
-            public:
-              vtkTypeMacro(vtkSplitCommand, vtkCommand);
+        /** \class vtkSplitCommand
+         * \brief Handles VTK events regarding the VTK widgets.
+         *
+         */
+        class EspinaGUI_EXPORT vtkSplitCommand
+        : public vtkCommand
+        {
+          public:
+            vtkTypeMacro(vtkSplitCommand, vtkCommand)
+            ;
 
-              /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-               *
-               */
-              static vtkSplitCommand *New()
-              { return new vtkSplitCommand(); }
+            /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+             *
+             */
+            static vtkSplitCommand *New()
+            {
+              return new vtkSplitCommand();
+            }
 
-              /** \brief Implements vtkEspinaCommand::Execute().
-               *
-               */
-              virtual void Execute (vtkObject *caller, unsigned long eventId, void *callData);
+            /** \brief Implements vtkEspinaCommand::Execute().
+             *
+             */
+            virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData);
 
-              /** \brief Implements vtkEspinaCommand::setWidget()
-               *
-               */
-              virtual void setWidget(PlanarSplitWidgetPtr widget)
-              { m_widget = widget; }
+            /** \brief Implements vtkEspinaCommand::setWidget()
+             *
+             */
+            virtual void setWidget(PlanarSplitWidgetPtr widget)
+            {
+              m_widget = widget;
+            }
 
-            private:
-              /** \brief vtkSplitCommand private class constructor.
-               *
-               */
-              vtkSplitCommand()
-              : m_widget{nullptr}
-              {};
+          private:
+            /** \brief vtkSplitCommand private class constructor.
+             *
+             */
+            vtkSplitCommand()
+            : m_widget{nullptr}
+            {};
 
-              /** \brief vtkSplitCommand class private destructor.
-               *
-               */
-              virtual ~vtkSplitCommand()
-              {};
+            /** \brief vtkSplitCommand class private destructor.
+             *
+             */
+            virtual ~vtkSplitCommand()
+            {};
 
-              PlanarSplitWidgetPtr m_widget;
-          };
+            PlanarSplitWidgetPtr m_widget;
+        };
       } // namespace Widgets
     } // namespace View
   } // namespace GUI

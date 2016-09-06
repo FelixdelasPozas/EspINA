@@ -21,10 +21,13 @@
 #ifndef ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
 #define ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
 
-// ESPINA
-#include "ui_CFTypeSelectorDialog.h"
+#include "CountingFramePlugin_Export.h"
 
+// Plugin
+#include "ui_CFTypeSelectorDialog.h"
 #include <CountingFrames/CountingFrame.h>
+
+// ESPINA
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
@@ -41,7 +44,7 @@ namespace ESPINA
 
   namespace CF
   {
-    class CFTypeSelectorDialog
+    class CountingFramePlugin_EXPORT CFTypeSelectorDialog
     : public QDialog
     , private Ui::CFTypeSelectorDialog
     {

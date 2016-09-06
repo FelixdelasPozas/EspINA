@@ -20,12 +20,15 @@
 #ifndef ESPINA_SAS_REPORT_H
 #define ESPINA_SAS_REPORT_H
 
+#include "AppositionSurfacePlugin_Export.h"
+
+// ESPINA
 #include <Support/Context.h>
 #include <Support/Report.h>
 
 namespace ESPINA
 {
-  class SASReport
+  class AppositionSurfacePlugin_EXPORT SASReport
   : public Support::Report
   , private Support::WithContext
   {

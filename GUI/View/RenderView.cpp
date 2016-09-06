@@ -475,7 +475,7 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
 void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototypes,
                                   const GUI::Representations::FrameCSPtr frame)
 {
-  if (prototypes->supportedViews().testFlag(m_type))
+  if (prototypes && prototypes->supportedViews().testFlag(m_type))
   {
     if (m_temporalManagers.contains(prototypes))
     {

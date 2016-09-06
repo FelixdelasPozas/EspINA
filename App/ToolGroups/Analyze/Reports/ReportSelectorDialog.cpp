@@ -1,20 +1,20 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *    This file is part of ESPINA.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *    ESPINA is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
  *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // ESPINA
@@ -24,9 +24,11 @@
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Dialogs/DefaultDialogs.h>
 
-using ESPINA::GUI::DefaultDialogs;
+// Qt
+#include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
@@ -80,14 +82,10 @@ void ReportSelectorDialog::previewReport(int i)
 
     m_preview->setPixmap(report->preview());
 
-    if (isValidReport(i))
-    {
-      m_description->setText(report->description());
-    }
-    else
-    {
-      m_description->setText(report->requiredInputDescription());
-    }
+    auto validReport = isValidReport(i);
+
+    m_buttons->button(QDialogButtonBox::Ok)->setEnabled(validReport);
+    m_description->setText((validReport ? report->description() : report->requiredInputDescription()));
   }
 }
 

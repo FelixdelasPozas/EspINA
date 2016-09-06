@@ -20,6 +20,9 @@
 #ifndef ESPINA_REPRESENTATION_SWITCH_H
 #define ESPINA_REPRESENTATION_SWITCH_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Utils/Timer.h>
 #include <Support/Widgets/ProgressTool.h>
@@ -28,7 +31,7 @@
 
 namespace ESPINA
 {
-  class RepresentationSwitch
+  class EspinaSupport_EXPORT RepresentationSwitch
   : public Support::Widgets::ProgressTool
   {
     Q_OBJECT

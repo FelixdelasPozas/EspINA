@@ -203,11 +203,11 @@ void CountingFrameExtension::onCountingFrameCreated()
 {
   auto task = qobject_cast<CountingFrameCreator *>(sender());
 
-  if(task)
+  if(task && !task->isAborted())
   {
     QWriteLocker lock(&m_CFmutex);
 
-    auto cf = task->getCountingFrame();
+    auto cf   = task->getCountingFrame();
     auto data = task->getCountingFrameData();
 
     if(data.id.isEmpty())

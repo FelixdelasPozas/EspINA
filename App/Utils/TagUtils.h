@@ -20,6 +20,7 @@
 #ifndef ESPINA_SUPPORT_UTILS_TAG_UTILS_H
 #define ESPINA_SUPPORT_UTILS_TAG_UTILS_H
 
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
 class QUndoStack;
@@ -28,22 +29,13 @@ namespace ESPINA
 {
   class ModelFactory;
 
-  namespace Support
-  {
-    namespace Utils
-    {
-      namespace Tags
-      {
-        /** \brief Helper method to show a dialog to manage the tags of a group of segmentations
-         * \param[in] segmentations list of segmentations to manage.
-         * \param[in] undoStack application QUndoStack object.
-         * \param[in] factory model factory to create tags extesnions.
-         *
-         */
-        void manageTags(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory);
-      }
-    }
-  }
+  /** \brief Helper method to show a dialog to manage the tags of a group of segmentations
+   * \param[in] segmentations list of segmentations to manage.
+   * \param[in] undoStack application QUndoStack object.
+   * \param[in] factory model factory to create tags extesnions.
+   *
+   */
+  void manageTagsDialog(SegmentationAdapterList segmentations, QUndoStack *undoStack, ModelFactory *factory);
 }
 
 #endif // ESPINA_SUPPORT_UTILS_TAGUTILS_H

@@ -20,11 +20,14 @@
 #ifndef ESPINA_ROI_PROVIDER_H
 #define ESPINA_ROI_PROVIDER_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 
-namespace ESPINA {
-
-  class ROIProvider
+namespace ESPINA
+{
+  class EspinaSupport_EXPORT ROIProvider
   {
   public:
     virtual ~ROIProvider() {}

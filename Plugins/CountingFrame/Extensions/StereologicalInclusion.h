@@ -149,6 +149,12 @@ namespace ESPINA
          */
         void onCountingFrameModified(CountingFrame *cf);
 
+        /** \brief Updates the counting frame when the output has been modified as
+         * the exclusion could have changed value.
+         *
+         */
+        void onOutputModified();
+
       private:
         /** \brief StereologicalInclusion class constructor.
          * \param[in] infoCache information cache object.

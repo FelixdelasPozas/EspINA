@@ -41,10 +41,10 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
                              RenderView      *view,
                              DrawingMode      mode,
                              Brush           *brush)
-: m_view   {view}
-, m_origin {origin}
-, m_spacing{spacing}
-, m_strokeValue(DrawingMode::PAINTING == mode ? 1 : 0)
+: m_view       {view}
+, m_origin     {origin}
+, m_spacing    {spacing}
+, m_strokeValue{DrawingMode::PAINTING == mode ? static_cast<unsigned char>(1) : static_cast<unsigned char>(0)}
 {
   m_previewBounds = view->previewBounds(false);
 

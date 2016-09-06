@@ -20,6 +20,9 @@
 #ifndef ESPINA_SEGMENTATION_SLICE_PIPELINE_H
 #define ESPINA_SEGMENTATION_SLICE_PIPELINE_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Types.h>
@@ -28,31 +31,44 @@
 
 namespace ESPINA
 {
-  class SegmentationSlicePipeline
+  /** \class SegmentationSlicePipeline
+   * \brief Pipeline for the creation of slice actors for segmentations.
+   *
+   */
+  class EspinaGUI_EXPORT SegmentationSlicePipeline
   : public RepresentationPipeline
   {
-  public:
-    explicit SegmentationSlicePipeline(const Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
+    public:
+      /** \brief SegmentationSlicePipeline class constructor.
+       * \param[in] plane orthogonal plane of the representation.
+       * \param[in] colorEngine application color engine.
+       *
+       */
+      explicit SegmentationSlicePipeline(const Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
-    virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
-                                                    const RepresentationState &settings) override;
+      virtual RepresentationState representationState(ConstViewItemAdapterPtr   item,
+                                                      const RepresentationState &settings) override;
 
-    virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr   item,
-                                                           const RepresentationState &state) override;
+      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr   item,
+                                                             const RepresentationState &state) override;
 
-    virtual void updateColors(ActorList                 &actors,
-                              ConstViewItemAdapterPtr   item,
-                              const RepresentationState &state) override;
+      virtual void updateColors(ActorList                 &actors,
+                                ConstViewItemAdapterPtr   item,
+                                const RepresentationState &state) override;
 
-    virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
+      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
-    void setPlane(const Plane plane);
+      /** \brief Sets the orthogonal plane of the representation.
+       * \param[in] plane orthogonal plane.
+       *
+       */
+      void setPlane(const Plane plane);
 
-  private:
-    Plane m_plane;
-    GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
+    private:
+      Plane                              m_plane;       /** orthogonal plane of the representation. */
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** application's color engine.             */
 
-    static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
+      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter; /** selection highlighter for this class. */
   };
 }
 

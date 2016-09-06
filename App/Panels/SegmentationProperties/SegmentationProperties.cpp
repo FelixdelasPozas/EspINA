@@ -16,19 +16,20 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "SegmentationProperties.h"
 
+// ESPINA
+#include "SegmentationProperties.h"
+#include <App/Utils/TagUtils.h>
 #include <Core/Analysis/Segmentation.h>
 #include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
-#include <Support/Utils/TagUtils.h>
-
 #include "ui_SegmentationProperties.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Issues/SegmentationIssues.h>
 
+// Qt
 #include <QDebug>
 #include <QLayout>
 #include <QLabel>
@@ -139,7 +140,7 @@ void SegmentationProperties::manageTags()
 
   segmentations << m_segmentation;
 
-  Support::Utils::Tags::manageTags(segmentations, getUndoStack(), getContext().factory().get());
+  manageTagsDialog(segmentations, getUndoStack(), getContext().factory().get());
 
   showTags();
 }

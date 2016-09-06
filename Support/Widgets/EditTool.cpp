@@ -37,9 +37,6 @@ EditTool::EditTool(const QString &id, const QString& icon, const QString& toolti
 {
   auto selection = getSelection().get();
 
-//   connect(selection, SIGNAL(selectionChanged()),
-//           this,      SLOT(updateStatus()));
-
   connect(selection, SIGNAL(selectionStateChanged()),
           this,      SLOT(updateStatus()));
 }
@@ -94,15 +91,10 @@ bool EditTool::acceptsSelection(SegmentationAdapterList segmentations)
 //------------------------------------------------------------------------
 bool EditTool::selectionIsNotBeingModified(SegmentationAdapterList segmentations)
 {
-  bool beingModified = false;
-
-  int i = 0;
-
-  while (!beingModified && i < segmentations.size())
+  for(auto segmentation: segmentations)
   {
-    beingModified = segmentations[i]->isBeingModified();
-    ++i;
+    if(segmentation->isBeingModified()) return false;
   }
 
-  return !beingModified;
+  return true;
 }

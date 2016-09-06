@@ -20,6 +20,8 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 
+#include "CountingFramePlugin_Export.h"
+
 // ESPINA
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Types.h>
@@ -29,7 +31,7 @@ namespace ESPINA
 {
   namespace CF
   {
-    class RepresentationManager2D
+    class CountingFramePlugin_EXPORT RepresentationManager2D
     : public GUI::Representations::RepresentationManager
     , public GUI::Representations::RepresentationManager2D
     {

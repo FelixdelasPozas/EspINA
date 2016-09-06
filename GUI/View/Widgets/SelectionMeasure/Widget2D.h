@@ -41,7 +41,11 @@ namespace ESPINA
         {
           class vtkWidget2D;
 
-          class Widget2D
+          /** \class Widget2D
+           * \brief Implements 2D segmentation measure widget.
+           *
+           */
+          class EspinaGUI_EXPORT Widget2D
           : public EspinaWidget2D
           {
             Q_OBJECT

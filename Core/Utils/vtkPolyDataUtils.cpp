@@ -295,3 +295,19 @@ ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::r
 
   return mask;
 }
+
+//------------------------------------------------------------------------------------
+VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSmartPointer<vtkPolyData> data, const NmVector3& spacing, const NmVector3& origin)
+{
+  Bounds result;
+
+  if (data && data->GetNumberOfCells() > 0)
+  {
+    Nm bounds[6];
+    data->GetBounds(bounds);
+
+    result = Bounds(bounds);
+  }
+
+  return VolumeBounds(result, spacing, origin);
+}

@@ -21,16 +21,25 @@
 #ifndef ESPINA_CONTOUR_PAINTER_H_
 #define ESPINA_CONTOUR_PAINTER_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/EventHandlers/MaskPainter.h>
 
 namespace ESPINA
 {
-  class ContourPainter
+  /** \class ContourPainter
+   * \brief Event handler for contour tool.
+   *
+   */
+  class EspinaGUI_EXPORT ContourPainter
   : public MaskPainter
   {
       Q_OBJECT
     public:
+      /** \brief ContourPainter class constructor.
+       *
+       */
       ContourPainter();
 
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
@@ -57,14 +66,21 @@ namespace ESPINA
       void rasterize() const;
 
     private:
+      /** \brief Updates the cursor when the drawing mode changes.
+       * \param[in] mode drawing mode.
+       *
+       */
       virtual void updateCursor(DrawingMode mode) override;
 
+      /** \brief Updates the spacing and origin of the generated mask.
+       *
+       */
       virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3()) override;
 
     private:
-      Nm             m_minDistance;
-      bool           m_tracking;
-      NmVector3      m_maskSpacing;
+      Nm             m_minDistance; /** point minimum distance.                      */
+      bool           m_tracking;    /** true if tracking points and false otherwise. */
+      NmVector3      m_maskSpacing; /** spacing of the mask.                         */
   };
 
   using ContourPainterSPtr = std::shared_ptr<ContourPainter>;

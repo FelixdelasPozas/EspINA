@@ -20,13 +20,16 @@
 #ifndef ESPINA_FILTER_REFINER_H
 #define ESPINA_FILTER_REFINER_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include "Context.h"
 
 class QWidget;
 
-namespace ESPINA {
-
-  class FilterRefiner
+namespace ESPINA
+{
+  class EspinaSupport_EXPORT FilterRefiner
   : public QObject
   {
   public:

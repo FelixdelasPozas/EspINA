@@ -28,12 +28,16 @@ using namespace ESPINA::Representations;
 //----------------------------------------------------------------------------
 bool RepresentationState::hasValue(const QString &tag) const
 {
+  QMutexLocker lock(&m_mutex);
+
   return m_properties.contains(tag);
 }
 
 //----------------------------------------------------------------------------
 bool RepresentationState::hasPendingChanges() const
 {
+  QMutexLocker lock(&m_mutex);
+
   for (auto pair : m_properties)
   {
     if (pair.second) return true;
@@ -45,6 +49,8 @@ bool RepresentationState::hasPendingChanges() const
 //----------------------------------------------------------------------------
 void RepresentationState::apply(const RepresentationState &state)
 {
+  QMutexLocker lock(&m_mutex);
+
   for (auto key : state.m_properties.keys())
   {
     auto pair    = state.m_properties[key];
@@ -63,6 +69,8 @@ void RepresentationState::apply(const RepresentationState &state)
 //----------------------------------------------------------------------------
 void RepresentationState::commit()
 {
+  QMutexLocker lock(&m_mutex);
+
   for (auto &pair : m_properties)
   {
     pair.second = false;
@@ -70,8 +78,18 @@ void RepresentationState::commit()
 }
 
 //----------------------------------------------------------------------------
+bool RepresentationState::isModified(const QString& tag) const
+{
+  QMutexLocker lock(&m_mutex);
+
+  return m_properties.value(tag, Pair(QVariant(), false)).second;
+}
+
+//----------------------------------------------------------------------------
 void RepresentationState::clear()
 {
+  QMutexLocker lock(&m_mutex);
+
   m_properties.clear();
 }
 

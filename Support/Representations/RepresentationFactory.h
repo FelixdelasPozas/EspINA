@@ -20,6 +20,9 @@
 #ifndef ESPINA_REPRESENTATION_FACTORY_H
 #define ESPINA_REPRESENTATION_FACTORY_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
 #include <Support/Context.h>
@@ -46,7 +49,7 @@ namespace ESPINA
   /** \brief Create specific representation drivers
    *
    */
-  class RepresentationFactory
+  class EspinaSupport_EXPORT RepresentationFactory
   {
   public:
     virtual ~RepresentationFactory() {}

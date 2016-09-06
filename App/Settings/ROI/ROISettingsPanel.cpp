@@ -57,7 +57,7 @@ ROISettingsPanel::ROISettingsPanel(ROISettings      *settings,
   m_categorySelector->setModel(model);
 
   // disable category selector if there isn't a category to choose.
-  if (model->classification() == nullptr)
+  if (!model || model->classification() == nullptr)
   {
     m_categorySelectorGroup->setEnabled(false);
   }
@@ -138,7 +138,7 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
   if (!index.isValid()) return;
 
   auto itemPtr = itemAdapter(index);
-  if (isCategory(itemPtr)) return;
+  if (!isCategory(itemPtr)) return;
 
   auto category = toCategoryAdapterPtr(itemPtr);
   if (m_activeCategory && m_activeCategory.get() != category)

@@ -20,34 +20,56 @@
 #ifndef ESPINA_PIPELINE_SOURCES_FILTER_H
 #define ESPINA_PIPELINE_SOURCES_FILTER_H
 
-#include "PipelineSources.h"
+#include <GUI/EspinaGUI_Export.h>
 
+// ESPINA
+#include "PipelineSources.h"
 #include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
 {
 
-  /** \class PipelineSourcesFilter contains all view items used as source
-   *         of pipeline representations
+  /** \class ModelSources
+   * \brief Contains all view items used as source of pipeline representations.
    *
    */
-  class ModelSources
+  class EspinaGUI_EXPORT ModelSources
   : public PipelineSources
   {
-    Q_OBJECT
+      Q_OBJECT
+    public:
+      /** \brief ModelSources class constructor.
+       * \param[in] model model adapter.
+       * \param[in] viewState application view state.
+       *
+       */
+      explicit ModelSources(ModelAdapterSPtr model, GUI::View::ViewState &viewState);
 
-  public:
-    explicit ModelSources(ModelAdapterSPtr model, GUI::View::ViewState &viewState);
+      /** \brief ModelSources class virtual destructor.
+       *
+       */
+      virtual ~ModelSources();
 
-    virtual ~ModelSources();
+    private slots:
+      /** \brief Inserts the sources into the list when added to the model.
+       * \param[in] sources view item list.
+       *
+       */
+      void onSourcesAdded  (ViewItemAdapterSList sources);
 
-  private slots:
-    void onSourcesAdded  (ViewItemAdapterSList sources);
-    void onSourcesRemoved(ViewItemAdapterSList sources);
-    void onReset();
+      /** \brief Removes the sources from the list when removed from the model.
+       * \param[in] sources view item list.
+       *
+       */
+      void onSourcesRemoved(ViewItemAdapterSList sources);
 
-  private:
-    ModelAdapterSPtr m_model;
+      /** \brief Clears the list of sources when the model is resetted.
+       *
+       */
+      void onReset();
+
+    private:
+      ModelAdapterSPtr m_model; /** model adapter to monitor. */
   };
 }
 

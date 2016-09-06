@@ -22,6 +22,9 @@
 #ifndef ESPINA_APPLY_COUNTING_FRAME_H
 #define ESPINA_APPLY_COUNTING_FRAME_H
 
+#include "CountingFramePlugin_Export.h"
+
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
@@ -39,7 +42,7 @@ namespace ESPINA
      * \brief Computes the inclusion of all segmentations in the counting frame.
      *
      */
-    class ApplyCountingFrame
+    class CountingFramePlugin_EXPORT ApplyCountingFrame
     : public Task
     {
         Q_OBJECT

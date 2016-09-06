@@ -101,10 +101,11 @@ void FileOpenTool::load(const QStringList &files)
 
   WaitingCursor cursor;
 
-  AnalysisSPtr analysis;
+  AnalysisSPtr analysis = nullptr;
 
   QList<AnalysisSPtr> analyses;
   QStringList failedFiles;
+  QString failDetails;
 
   auto factory = getContext().factory();
 
@@ -156,6 +157,17 @@ void FileOpenTool::load(const QStringList &files)
       qWarning() << e.details();
 
       failedFiles << file;
+      failDetails.append(QObject::tr("File %1 error: %2").arg(file.split(QDir::separator()).last()).arg(QString(e.what())));
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      qWarning() << QString("EXCEPTION: error loading file: %1").arg(file);
+      qWarning() << e.what();
+      qWarning() << "File:" << e.GetFile() << "Line: " << e.GetLine();
+      qWarning() << "Location:" << e.GetLocation();
+
+      failedFiles << file;
+      failDetails.append(QObject::tr("File %1 error: %2").arg(file.split(QDir::separator()).last()).arg(QString(e.what())));
     }
     catch(...)
     {
@@ -169,16 +181,17 @@ void FileOpenTool::load(const QStringList &files)
   {
     auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
     auto message = tr("The following files couldn't be loaded:\n");
+    auto title   = tr("EspINA");
 
     for(auto file: failedFiles)
     {
-      message.append(QString("%1\n").arg(file));
+      message.append(QString("%1\n").arg(file.split(QDir::separator()).last()));
     }
 
     auto number = (failedFiles.size() > 1) ? QString("them") : QString("it");
     message.append(tr("Do you want to remove %1 from the recent folders list?").arg(number));
 
-    if (DefaultDialogs::UserQuestion(message, buttons) == QMessageBox::Yes)
+    if (DefaultDialogs::UserQuestion(message, buttons, title, failDetails) == QMessageBox::Yes)
     {
       for (auto file : failedFiles)
       {
@@ -209,7 +222,7 @@ void FileOpenTool::load(const QStringList &files)
 
   reporter.setProgress(100);
 
-  if(analysis)
+  if(analysis.get() != nullptr)
   {
     emit analysisLoaded(analysis);
   }

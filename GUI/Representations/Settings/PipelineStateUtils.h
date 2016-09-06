@@ -21,6 +21,8 @@
 #ifndef ESPINA_PIPELINE_STATE_UTILS_H_
 #define ESPINA_PIPELINE_STATE_UTILS_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Types.h>
 #include <GUI/Representations/RepresentationState.h>
@@ -36,29 +38,29 @@ namespace ESPINA
     const QString CROSSHAIR_Y = "CHY";
     const QString CROSSHAIR_Z = "CHZ";
 
-    const QString VISIBLE = "Visible";
+    const QString VISIBLE     = "Visible";
 
-    const QString OPACITY      = "Opacity";
-    const QString CONTRAST     = "Contrast";
-    const QString BRIGHTNESS   = "Brightness";
-    const QString STAIN        = "Stain";
-    const QString COLOR        = "Color";
-    const QString DEPTH        = "Depth";
+    const QString OPACITY     = "Opacity";
+    const QString CONTRAST    = "Contrast";
+    const QString BRIGHTNESS  = "Brightness";
+    const QString STAIN       = "Stain";
+    const QString COLOR       = "Color";
+    const QString DEPTH       = "Depth";
 
-    const QString TIME_STAMP   = "TimeStamp";
+    const QString TIME_STAMP  = "TimeStamp";
   }
 
-  RepresentationState channelPipelineSettings(ConstChannelAdapterPtr channel);
+  RepresentationState EspinaGUI_EXPORT channelPipelineSettings(ConstChannelAdapterPtr channel);
 
-  RepresentationState segmentationPipelineSettings(ConstSegmentationAdapterPtr segmentation);
+  RepresentationState EspinaGUI_EXPORT segmentationPipelineSettings(ConstSegmentationAdapterPtr segmentation);
 
-  double brightness(const RepresentationState &state);
+  double EspinaGUI_EXPORT brightness(const RepresentationState &state);
 
-  double contrast(const RepresentationState &state);
+  double EspinaGUI_EXPORT contrast(const RepresentationState &state);
 
-  double opacity(const RepresentationState &state);
+  double EspinaGUI_EXPORT opacity(const RepresentationState &state);
 
-  QColor stain(const RepresentationState &state);
+  QColor EspinaGUI_EXPORT stain(const RepresentationState &state);
 }
 
 #endif // ESPINA_PIPELINE_STATE_UTILS_H_

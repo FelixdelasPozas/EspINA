@@ -22,6 +22,8 @@
 #ifndef ESPINA_PLANAR_SPLIT_EVENTHANDLER_H_
 #define ESPINA_PLANAR_SPLIT_EVENTHANDLER_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
@@ -38,8 +40,11 @@ namespace ESPINA
     {
       namespace Widgets
       {
-        
-        class PlanarSplitEventHandler
+        /** \class PlanarSplitEventHandler
+         * \brief Handle events for planar split widgets.
+         *
+         */
+        class EspinaGUI_EXPORT PlanarSplitEventHandler
         : public EventHandler
         {
             Q_OBJECT

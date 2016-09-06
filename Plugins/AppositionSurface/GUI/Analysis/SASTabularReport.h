@@ -21,6 +21,8 @@
 #ifndef SAS_TABULAR_REPORT_H_
 #define SAS_TABULAR_REPORT_H_
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // Plugin
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
@@ -36,7 +38,7 @@ namespace ESPINA
    * \brief Implements a tabular report specially for crossing the data of a segmentation and it's SAS.
    *
    */
-  class SASTabularReport
+  class AppositionSurfacePlugin_EXPORT SASTabularReport
   : public TabularReport
   {
     protected:
@@ -70,7 +72,7 @@ namespace ESPINA
       Core::SegmentationExtension::InformationKeyList m_sasTags;
   };
 
-  class SASTabularReport::Entry
+  class AppositionSurfacePlugin_EXPORT SASTabularReport::Entry
   : public TabularReport::Entry
   {
     public:

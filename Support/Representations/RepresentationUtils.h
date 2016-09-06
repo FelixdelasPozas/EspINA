@@ -20,27 +20,15 @@
 #ifndef ESPINA_REPRESENTATION_UTILS_H
 #define ESPINA_REPRESENTATION_UTILS_H
 
+#include <Support/EspinaSupport_Export.h>
+
+// ESPINA
 #include <GUI/Representations/RepresentationState.h>
 #include <GUI/Representations/RepresentationPool.h>
 #include <Support/Representations/RepresentationFactory.h>
 
 namespace ESPINA
 {
-  namespace RepresentationUtils
-  {
-    Plane plane(const RepresentationState &state);
-
-    void setPlane(RepresentationState &state, const Plane plane);
-
-    void setPlane(RepresentationPoolSPtr pool, const Plane plane);
-
-    Nm segmentationDepth(const RepresentationState &state);
-
-    void setSegmentationDepth(RepresentationState &state, const Nm depth);
-
-    void setSegmentationDepth(RepresentationPoolSPtr pool, const Nm depth);
-  }
-
   namespace Support
   {
     namespace Representations
@@ -57,7 +45,7 @@ namespace ESPINA
         { return SEGMENTATIONS_GROUP == representation.Group; }
       }
     }
-  } // namespace Support
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_UTILS_H

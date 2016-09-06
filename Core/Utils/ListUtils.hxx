@@ -22,8 +22,6 @@
 #ifndef ESPINA_LIST_UTILS_H
 #define ESPINA_LIST_UTILS_H
 
-#include "Core/EspinaCore_Export.h"
-
 // ESPINA
 #include <QList>
 

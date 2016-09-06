@@ -34,6 +34,7 @@
 #include <QMutexLocker>
 
 using namespace ESPINA;
+using namespace ESPINA::PolyDataUtils;
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh()
@@ -45,9 +46,12 @@ RawMesh::RawMesh()
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  const NmVector3             &spacing,
                  const NmVector3             &origin)
-: m_mesh(mesh)
+: m_mesh{mesh}
 {
-  m_bounds = meshBounds(mesh, spacing, origin);
+  if(mesh && mesh.Get())
+  {
+    m_bounds = polyDataVolumeBounds(mesh, spacing, origin);
+  }
 }
 
 
@@ -86,7 +90,7 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
   if (mesh)
   {
     m_mesh->DeepCopy(mesh);
-    m_bounds = meshBounds(mesh, m_bounds.spacing(), m_bounds.origin());
+    m_bounds = polyDataVolumeBounds(mesh, m_bounds.spacing(), m_bounds.origin());
   }
   else
   {
