@@ -36,59 +36,22 @@ using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
 using PasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>;
 
 //-----------------------------------------------------------------------------
-FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 {
 }
 
 //-----------------------------------------------------------------------------
-FillHoles2DFilter::~FillHoles2DFilter()
-{
-}
-
-//-----------------------------------------------------------------------------
-void FillHoles2DFilter::restoreState(const State& state)
-{
-}
-
-//-----------------------------------------------------------------------------
-State FillHoles2DFilter::state() const
-{
-  return State();
-}
-
-//-----------------------------------------------------------------------------
-Snapshot FillHoles2DFilter::saveFilterSnapshot() const
-{
-  return Snapshot();
-}
-
-//-----------------------------------------------------------------------------
 bool FillHoles2DFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return m_outputs.isEmpty() || !validOutput(0);
 }
 
 //-----------------------------------------------------------------------------
-bool FillHoles2DFilter::needUpdate(Output::Id id) const
+void ESPINA::FillHoles2DFilter::execute()
 {
-  if (id != 0)
-  {
-    auto what    = QObject::tr("Invalid output id, id: %1").arg(id);
-    auto details = QObject::tr("FillHolesFilter::needUpdate(id) -> Invalid output id, id: %1").arg(id);
-
-    throw EspinaException(what, details);
-  }
-
-  return m_outputs.isEmpty() || !validOutput(id);
-}
-
-//-----------------------------------------------------------------------------
-void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
-
-	Q_ASSERT(0 == id);
-
-	if (m_inputs.size() != 1) {
+	if (m_inputs.size() != 1)
+	{
 		auto what = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
 		auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
 
@@ -97,7 +60,8 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 
 	auto input = m_inputs[0];
 	auto inputVolume = readLockVolume(input->output());
-	if (!inputVolume->isValid()) {
+	if (!inputVolume->isValid())
+	{
 		auto what = QObject::tr("Invalid input volume");
 		auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid input volume");
 
@@ -108,12 +72,12 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 	if (!canExecute()) return;
 
 	const auto bounds = inputVolume->bounds().bounds();
-	auto spacing = inputVolume->bounds().spacing();
-	auto volume = sparseCopy<itkVolumeType>(inputVolume->itkImage());
-	auto sliceBounds = bounds;
+	auto spacing      = inputVolume->bounds().spacing();
+	auto volume       = sparseCopy<itkVolumeType>(inputVolume->itkImage());
+	auto sliceBounds  = bounds;
 
 	//Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
-	auto maskRegion = inputVolume->itkImage()->GetLargestPossibleRegion();
+	auto maskRegion      = inputVolume->itkImage()->GetLargestPossibleRegion();
 	const auto numSlices = maskRegion.GetSize(2);
 	maskRegion.SetSize(2,3);
 	itkVolumeType::Pointer maskImage = itkVolumeType::New();
@@ -125,11 +89,11 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 
 	//Variables for progress reporter
 	const unsigned int numFilters = 3;
-	const auto progressPerFilter = (double)100/(numFilters*numSlices);
-	double progress = 0;
+	const auto progressPerFilter  = (double)100/(numFilters*numSlices);
+	double progress               = 0;
 
-	PasteImageFilter::Pointer pasteFilter;
-	BinaryFillholeFilter::Pointer fillholeFilter;
+	PasteImageFilter::Pointer pasteFilter        = nullptr;
+	BinaryFillholeFilter::Pointer fillholeFilter = nullptr;
 	for(auto i = bounds[4]; i < bounds[5] && canExecute(); i += spacing[2])
 	{
 		sliceBounds[4] = sliceBounds[5] = i;
@@ -181,11 +145,4 @@ void ESPINA::FillHoles2DFilter::execute(Output::Id id) {
 	m_outputs[0]->setData(volume);
 	m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
 	m_outputs[0]->setSpacing(spacing);
-}
-
-//-----------------------------------------------------------------------------
-bool FillHoles2DFilter::areEditedRegionsInvalidated()
-{
-  // TODO
-  return false;
 }

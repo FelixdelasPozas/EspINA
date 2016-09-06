@@ -1,25 +1,29 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
+
+ Copyright (C) 2013 Jorge Peña Pastor <jpenas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+ ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 #ifndef ESPINA_FILL_HOLES_TOOL_H
 #define ESPINA_FILL_HOLES_TOOL_H
 
+// ESPINA
+#include <Filters/FillHolesFilter.h>
 #include <Support/Widgets/EditTool.h>
 
 namespace ESPINA
@@ -27,30 +31,45 @@ namespace ESPINA
   class FillHolesTool
   : public Support::Widgets::EditTool
   {
-    Q_OBJECT
-  public:
-    explicit FillHolesTool(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief FillHolesTool class constructor.
+       * \param[in] context application context.
+       *
+       */
+      explicit FillHolesTool(Support::Context &context);
 
-    virtual void abortOperation();
+      /** \brief FillHolesTool class virtual destructor.
+       *
+       */
+      virtual ~FillHolesTool()
+      {};
 
-  private:
-    virtual bool acceptsNInputs(int n) const;
+      virtual void abortOperation() override;
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+    private:
+      virtual bool acceptsNInputs(int n) const;
 
-  private slots:
-    void fillHoles();
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
-    void onTaskFinished();
+    private slots:
+      /** \brief Lauches task execution.
+       *
+       */
+      void applyFilter();
 
-  private:
-    struct TaskContext
-    {
-      FilterSPtr             Task;
-      SegmentationAdapterPtr Segmentation;
-      QString                Operation;
-    };
-    QMap<TaskPtr, TaskContext> m_executingTasks;
+      /** \brief Processes execution results.
+       *
+       */
+      void onTaskFinished();
+
+    private:
+      struct TaskContext
+      {
+        FillHolesFilterSPtr    Filter;       /** filter in execution. */
+        SegmentationAdapterPtr Segmentation; /** segmentation.        */
+      };
+      QMap<TaskPtr, TaskContext> m_executingTasks; /** map filter<->context of currently executing filters. */
   };
 }
 

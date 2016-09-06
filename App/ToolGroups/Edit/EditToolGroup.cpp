@@ -76,6 +76,7 @@ const Filter::Type MorphologicalFilterFactory::ERODE_FILTER         = "ErodeSegm
 const Filter::Type MorphologicalFilterFactory::ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
 const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER    = "FillSegmentationHoles";
 const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
+const Filter::Type MorphologicalFilterFactory::FILL_HOLES2D_FILTER  = "FillSegmentationHoles2D";
 const Filter::Type MorphologicalFilterFactory::IMAGE_LOGIC_FILTER   = "ImageLogicFilter";
 const Filter::Type MorphologicalFilterFactory::ADDITION_FILTER      = "AdditionFilter";
 const Filter::Type MorphologicalFilterFactory::SUBTRACTION_FILTER   = "SubstractionFilter";
@@ -138,6 +139,18 @@ FilterTypeList MorphologicalFilterFactory::ImageLogicFilters()
 }
 
 //------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::FillHolesFilters()
+{
+  FilterTypeList filters;
+
+  filters << FILL_HOLES_FILTER;
+  filters << FILL_HOLES_FILTER_V4;
+  filters << FILL_HOLES2D_FILTER;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
@@ -146,6 +159,7 @@ FilterTypeList MorphologicalFilterFactory::providedFilters() const
   filters << OpenFilters();
   filters << DilateFilters();
   filters << ErodeFilters();
+  filters << FillHolesFilters();
   filters << ImageLogicFilters();
 
   return filters;
@@ -182,6 +196,10 @@ FilterSPtr MorphologicalFilterFactory::createFilter(InputSList          inputs,
   else if (isFillHolesFilter(filter))
   {
     morphologicalFilter = std::make_shared<FillHolesFilter>(inputs, FILL_HOLES_FILTER, scheduler);
+  }
+  else if (isFillHoles2DFilter(filter))
+  {
+    morphologicalFilter = std::make_shared<FillHoles2DFilter>(inputs, FILL_HOLES2D_FILTER, scheduler);
   }
   else if (isAdditionFilter(filter) || isSubstractionFilter(filter))
   {
@@ -235,6 +253,12 @@ bool MorphologicalFilterFactory::isFillHolesFilter(const Filter::Type &type) con
 }
 
 //------------------------------------------------------------------------
+bool MorphologicalFilterFactory::isFillHoles2DFilter(const Filter::Type &type) const
+{
+  return FILL_HOLES2D_FILTER == type;
+}
+
+//------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isAdditionFilter(const Filter::Type &type) const
 {
   return ADDITION_FILTER == type;
@@ -263,8 +287,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initManualEditionTool();
   initSplitTool();
   initCODETools();
-  initFillHolesTool();
-  initFillHoles2DTool();
+  initFillHolesTools();
   initImageLogicTools();
 }
 
@@ -338,22 +361,15 @@ void EditToolGroup::initCODETools()
 }
 
 //-----------------------------------------------------------------------------
-void EditToolGroup::initFillHolesTool()
+void EditToolGroup::initFillHolesTools()
 {
-  auto fillHoles = std::make_shared<FillHolesTool>(getContext());
-
-  fillHoles->setOrder("2-4");
-
-  addTool(fillHoles);
-}
-
-//-----------------------------------------------------------------------------
-void EditToolGroup::initFillHoles2DTool()
-{
+  auto fillHoles   = std::make_shared<FillHolesTool>(getContext());
   auto fillHoles2D = std::make_shared<FillHoles2DTool>(getContext());
 
+  fillHoles  ->setOrder("2-4");
   fillHoles2D->setOrder("2-5");
 
+  addTool(fillHoles);
   addTool(fillHoles2D);
 }
 

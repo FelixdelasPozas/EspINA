@@ -29,67 +29,39 @@
 namespace ESPINA
 {
 	class EspinaFilters_EXPORT FillHoles2DFilter
-	: public Filter {
-	public:
-		/** \brief FillHoles2DFilter class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, FillHolesFilter type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
-		 */
-		FillHoles2DFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
+	: public Filter
+	{
+    public:
+      /** \brief FillHoles2DFilter class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type FillHolesFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      FillHoles2DFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
-		/** \brief FillHoles2DFilter class virtual destructor.
-		 */
-		virtual ~FillHoles2DFilter();
+      /** \brief FillHoles2DFilter class virtual destructor.
+       *
+       */
+      virtual ~FillHoles2DFilter()
+      {};
 
-		/** \brief Implements Persistent::restoreState().
-		 *
-		 */
-		virtual void restoreState(const State& state);
+      virtual void restoreState(const State& state)
+      {};
 
-		/** \brief Implements Persistent::state().
-		 *
-		 */
-		virtual State state() const;
+      virtual State state() const
+      { return State(); };
 
-	protected:
-		/** \brief Implements Filter::saveFilterSnapshot().
-		 *
-		 */
-		virtual Snapshot saveFilterSnapshot() const;
+    protected:
+      virtual Snapshot saveFilterSnapshot() const
+      { return Snapshot(); };
 
-		/** \brief Implements Filter::needUpdate().
-		 *
-		 */
-		virtual bool needUpdate() const;
+      virtual bool needUpdate() const;
 
-		/** \brief Implements Filter::needUpdate(id).
-		 *
-		 */
-		virtual bool needUpdate(Output::Id id) const;
+      virtual void execute();
 
-		/** \brief Implements Filter::execute().
-		 *
-		 */
-		virtual void execute()
-		{	execute(0);	}
-
-		/** \brief Implements Filter::execute(id).
-		 *
-		 */
-		virtual void execute(Output::Id id);
-
-		/** \brief
-		 *
-		 */
-		virtual bool ignoreStorageContent() const
-		{	return false;	}
-
-		/** \brief Implements Filter::invalidateEditedRegions().
-		 *
-		 */
-		virtual bool areEditedRegionsInvalidated();
+      virtual bool ignoreStorageContent() const
+      {	return false;	}
 	};
 
 	using FillHoles2DFilterPtr = FillHoles2DFilter *;

@@ -21,6 +21,8 @@
 #ifndef APP_TOOLGROUPS_EDIT_FILLHOLES2DTOOL_H_
 #define APP_TOOLGROUPS_EDIT_FILLHOLES2DTOOL_H_
 
+// ESPINA
+#include <Filters/FillHoles2DFilter.h>
 #include <Support/Widgets/EditTool.h>
 
 namespace ESPINA
@@ -30,40 +32,43 @@ namespace ESPINA
 	{
 		Q_OBJECT
 		public:
-		/** \brief FillHoles2DTool class constructor.
-		 * \param[in] context application context.
-		 *
-		 */
-		FillHoles2DTool(Support::Context &context);
+      /** \brief FillHoles2DTool class constructor.
+       * \param[in] context application context.
+       *
+       */
+      FillHoles2DTool(Support::Context &context);
 
-		virtual ~FillHoles2DTool(){};
+      /** \brief FillHoles2DTool class virtual destructor.
+       *
+       */
+      virtual ~FillHoles2DTool()
+      {};
 
-		virtual void abortOperation();
+      virtual void abortOperation() override;
 
 		private:
-		virtual bool acceptsNInputs(int n) const;
+      virtual bool acceptsNInputs(int n) const;
 
-		virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
 		private slots:
-		/** \brief Launches the operation task.
-		 *
-		 */
-		void applyFilter();
+      /** \brief Launches the operation task.
+       *
+       */
+      void applyFilter();
 
-		/** \brief Performs post operations after the task has finished.
-		 *
-		 */
-		void onTaskFinished();
+      /** \brief Performs post operations after the task has finished.
+       *
+       */
+      void onTaskFinished();
 
 		private:
-		struct TaskContext
-		{
-		FilterSPtr             Task;
-		SegmentationAdapterPtr Segmentation;
-		QString                Operation;
-		};
-		QMap<TaskPtr, TaskContext> m_executingTasks;
+      struct TaskContext
+      {
+        FillHoles2DFilterSPtr  Filter;       /** filter being executed. */
+        SegmentationAdapterPtr Segmentation; /** segmentation           */
+      };
+      QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
 	};
 }
 
