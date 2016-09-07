@@ -89,6 +89,12 @@ namespace ESPINA
        */
       QString deleteHint(NeuroItemAdapterSPtr item) const;
 
+      /** \brief Helper method to create a suggestion depending on the item with the issue.
+       * \param[in] item item with the issue.
+       *
+       */
+      QString editOrDeleteHint(NeuroItemAdapterSPtr item) const;
+
     signals:
       /** \brief Signal emitted when a issue has been found with the item being checked.
        * \param[out] issue found

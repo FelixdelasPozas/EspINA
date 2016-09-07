@@ -162,6 +162,12 @@ QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
 }
 
 //------------------------------------------------------------------------
+QString CheckTask::editOrDeleteHint(NeuroItemAdapterSPtr item) const
+{
+  return tr("Edit %1 to meet the requirements or delete it.").arg(isSegmentation(item.get()) ? "segmentation" : "stack");
+}
+
+//------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(Support::Context &context)
 : Task{context.scheduler()}
 , m_finishedTasks{0}
@@ -320,7 +326,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
-      auto description = tr("Item does not have any data at all");
+      auto description = tr("Item does not have any data at all.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -329,7 +335,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
     auto spacing = output->spacing();
     if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
     {
-      auto description = tr("Invalid output spacing");
+      auto description = tr("Invalid output spacing.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -337,7 +343,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (filter == nullptr)
   {
-    auto description = tr("Can't find the origin of the item");
+    auto description = tr("Can't find the origin of the item.");
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
@@ -458,7 +464,7 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
   {
     auto description = tr("Segmentation is partially outside its stack");
 
-    reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
   }
 }
 
