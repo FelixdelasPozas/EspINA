@@ -27,11 +27,11 @@
 
 namespace ESPINA
 {
-	class FillHoles2DTool
-	: public Support::Widgets::EditTool
-	{
-		Q_OBJECT
-		public:
+  class FillHoles2DTool
+      : public Support::Widgets::EditTool
+  {
+    Q_OBJECT
+    public:
       /** \brief FillHoles2DTool class constructor.
        * \param[in] context application context.
        *
@@ -42,16 +42,18 @@ namespace ESPINA
        *
        */
       virtual ~FillHoles2DTool()
-      {};
+      {
+      }
+      ;
 
       virtual void abortOperation() override;
 
-		private:
+    private:
       virtual bool acceptsNInputs(int n) const;
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
-		private slots:
+    private slots:
       /** \brief Launches the operation task.
        *
        */
@@ -62,14 +64,15 @@ namespace ESPINA
        */
       void onTaskFinished();
 
-		private:
+    private:
       struct TaskContext
       {
-        FillHoles2DFilterSPtr  Filter;       /** filter being executed. */
-        SegmentationAdapterPtr Segmentation; /** segmentation           */
+          FillHoles2DFilterSPtr Filter; /** filter being executed. */
+          SegmentationAdapterPtr Segmentation; /** segmentation           */
       };
+
       QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
-	};
+  };
 }
 
 #endif /* APP_TOOLGROUPS_EDIT_FILLHOLES2DTOOL_H_ */
