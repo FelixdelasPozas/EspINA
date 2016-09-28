@@ -72,7 +72,7 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
     id = tr("Global");
   }
 
-  return SuggestId(id, m_countingFrames.keys());
+  return suggestedId(id);
 }
 
 //-----------------------------------------------------------------------------
@@ -92,4 +92,10 @@ void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
   }
 
   m_context.viewState().invalidateRepresentationColors(updated);
+}
+
+//-----------------------------------------------------------------------------
+CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
+{
+  return SuggestId(id, m_countingFrames.keys());
 }
