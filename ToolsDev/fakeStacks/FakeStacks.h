@@ -63,13 +63,13 @@ class FakeStacks
     void parseBounds(QuaZip &zip);
 
     void writeInfo(const QString &information)
-    { m_log->setTextColor(Qt::black); m_log->append(information); }
+    { m_log->setTextColor(Qt::black); m_log->append(information); m_log->update(); }
 
     void writeError(const QString &error)
-    { m_log->setTextColor(Qt::red); m_log->append(error); }
+    { m_log->setTextColor(Qt::red); m_log->append(error); m_log->update(); }
 
     void writeImportant(const QString &important)
-    { m_log->setTextColor(Qt::blue); m_log->append(important); }
+    { m_log->setTextColor(Qt::blue); m_log->append(important); m_log->update(); }
 
     /** \brief Returns true if the file is a SEG version 6 and false otherwise.
      * \param[in] fileInfo formatInfo.ini contents.
