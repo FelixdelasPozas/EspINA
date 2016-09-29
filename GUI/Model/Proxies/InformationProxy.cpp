@@ -201,7 +201,6 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
     if (m_pendingInformation.contains(segmentation))
     {
-
       auto task = m_pendingInformation[segmentation];
 
       progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
@@ -271,7 +270,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         return info;
       }
 
-      return "";
+      return QString();
 
     }
     else

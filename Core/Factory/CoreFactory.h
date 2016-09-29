@@ -25,17 +25,16 @@
 
 // ESPINA
 #include <Core/Analysis/Extensible.hxx>
-#include "Core/Factory/FilterFactory.h"
-#include "Core/Factory/ExtensionFactory.h"
-#include "Core/Analysis/Extensions.h"
+#include <Core/Factory/FilterFactory.h>
+#include <Core/Factory/ExtensionFactory.h>
+#include <Core/Analysis/Extensions.h>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QStringList>
 #include <QMap>
 #include <QDir>
-
-using ESPINA::Core::Analysis::Extensible;
 
 namespace ESPINA
 {
@@ -205,6 +204,14 @@ namespace ESPINA
   {
     if(!item->readOnlyExtensions()->hasExtension(type))
     {
+      if(!factory->availableSegmentationExtensions().contains(type))
+      {
+        auto message = QObject::tr("Unknown or read-only segmentation extension type %1").arg(type);
+        auto details = QObject::tr("CoreFactory::retrieveOrCreateSegmentationExtension() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
       auto extension = factory->createSegmentationExtension(type);
 
       if(extension->validCategory(item->category()->classificationName()))
@@ -213,8 +220,10 @@ namespace ESPINA
       }
       else
       {
-        qWarning() << "Segmentation number" << item->number() << "doesn't support"<< type << "extensions";
-        Q_ASSERT(false);
+        auto message = QObject::tr("Segmentation %1 doesn't support %2 extensions.").arg(item->number()).arg(type);
+        auto details = QObject::tr("CoreFactory::retrieveOrCreateSegmentationExtension() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
       }
     }
 
@@ -235,6 +244,14 @@ namespace ESPINA
   {
     if(!item->readOnlyExtensions()->hasExtension(type))
     {
+      if(!factory->availableStackExtensions().contains(type))
+      {
+        auto message = QObject::tr("Unknown or read-only stack extension type %1").arg(type);
+        auto details = QObject::tr("CoreFactory::retrieveOrCreateSegmentationExtension() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
       auto extension = factory->createStackExtension(type);
       item->extensions()->add(extension);
     }

@@ -456,7 +456,14 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
         auto segmentation = segmentationPtr(item);
         if(segmentation != nullptr)
         {
-          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+          try
+          {
+            retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+          }
+          catch(...)
+          {
+            // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
+          }
         }
       }
     }

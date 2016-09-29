@@ -419,6 +419,34 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 }
 
 //------------------------------------------------------------------------
+void CheckSegmentationTask::checkExtensionsValidity() const
+{
+  auto availableExtensions = m_context.factory()->availableSegmentationExtensions();
+  QStringList unavailableExtensions;
+
+  for(auto extension: m_segmentation->readOnlyExtensions())
+  {
+    if(!availableExtensions.contains(extension->type()))
+    {
+      unavailableExtensions << extension->type();
+    }
+  }
+
+  if(!unavailableExtensions.isEmpty())
+  {
+    QString types;
+    for(auto type: unavailableExtensions)
+    {
+      types += type + (type == unavailableExtensions.last() ? "" : ", ");
+    }
+    auto description = tr("Segmentation has read-only extensions: %1").arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
+  }
+}
+
+//------------------------------------------------------------------------
 void CheckSegmentationTask::checkRelations() const
 {
   auto relations = m_context.model()->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
@@ -487,6 +515,34 @@ void CheckStackTask::checkVolumeIsEmpty() const
 
       reportIssue(m_stack, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
+  }
+}
+
+//------------------------------------------------------------------------
+void CheckStackTask::checkExtensionsValidity() const
+{
+  auto availableExtensions = m_context.factory()->availableStackExtensions();
+  QStringList unavailableExtensions;
+
+  for(auto extension: m_stack->readOnlyExtensions())
+  {
+    if(!availableExtensions.contains(extension->type()))
+    {
+      unavailableExtensions << extension->type();
+    }
+  }
+
+  if(!unavailableExtensions.isEmpty())
+  {
+    QString types;
+    for(auto type: unavailableExtensions)
+    {
+      types += type + (type == unavailableExtensions.last() ? "" : ", ");
+    }
+    auto description = tr("Stack has read-only extensions: %1").arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+
+    reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }
 }
 

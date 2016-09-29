@@ -202,6 +202,11 @@ namespace ESPINA
        */
       virtual void checkSkeletonIsEmpty() const = 0;
 
+      /** \brief Checks the validity of the extensions of the item.
+       *
+       */
+      virtual void checkExtensionsValidity() const = 0;
+
       /** \brief Checks ViewItem output for existence and emits issue(Issue) for each problem found.
        * Returns true if no problem are found, and false otherwise.
        *
@@ -241,6 +246,8 @@ namespace ESPINA
       virtual void checkMeshIsEmpty() const override final;
 
       virtual void checkSkeletonIsEmpty() const override final;
+
+      virtual void checkExtensionsValidity() const override final;
 
       /** \brief Checks the segmentation's relationships.
        *
@@ -295,6 +302,8 @@ namespace ESPINA
       virtual void checkSkeletonIsEmpty() const override final
       {};
 
+      virtual void checkExtensionsValidity() const override final;
+
       /** \brief Checks the stack's relations.
        *
        */
@@ -336,6 +345,9 @@ namespace ESPINA
       {};
 
       virtual void checkSkeletonIsEmpty() const override final
+      {};
+
+      virtual void checkExtensionsValidity() const override final
       {};
 
     private:
