@@ -33,6 +33,8 @@
 // Qt
 #include <QMutex>
 
+#include <algorithm>
+
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
@@ -98,4 +100,13 @@ void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
 CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
 {
   return SuggestId(id, m_countingFrames.keys());
+}
+
+//-----------------------------------------------------------------------------
+CountingFrameList CountingFrameManager::countingFrames() const
+{
+  auto cFrames = m_countingFrames.keys();
+  std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
+
+  return cFrames;
 }
