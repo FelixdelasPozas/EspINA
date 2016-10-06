@@ -147,6 +147,12 @@ namespace ESPINA
          */
         void setExtendedItem(T *item)
         {
+          if(m_extendedItem && invalidateOnChange())
+          {
+            disconnect(m_extendedItem, SIGNAL(outputModified()),
+                       this,           SLOT(invalidate()));
+          }
+
           m_extendedItem = item;
 
           if (invalidateOnChange())
@@ -260,6 +266,9 @@ namespace ESPINA
         };
 
         /** \brief Performs custom operations when the extended item is set in derived classes.
+         * \param[in] item extensible item.
+         *
+         * NOTE: this method requires the possibility of changing the extended item if an analysis merge occurs.
          *
          */
         virtual void onExtendedItemSet(T *item) = 0;
