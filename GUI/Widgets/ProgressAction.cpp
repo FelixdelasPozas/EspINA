@@ -164,6 +164,7 @@ void ProgressAction::createProgress(QWidget* parent)
                         progressVerticalPosition(),
                         progressWitdh(),
                         progressHeight());
+  progress->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
 
   connect(this,     SIGNAL(progressVisibilityChanged(bool)),
           progress, SLOT(setVisible(bool)));

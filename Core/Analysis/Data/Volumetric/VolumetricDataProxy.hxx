@@ -36,7 +36,7 @@ namespace ESPINA
   template <class T> class VolumetricData;
 
   template<typename T>
-  class EspinaCore_EXPORT VolumetricDataProxy
+  class VolumetricDataProxy
   : public VolumetricData<T>
   , public DataProxy
   {
