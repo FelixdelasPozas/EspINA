@@ -274,6 +274,7 @@ bool Filter::restorePreviousOutputs() const
           }
           else if (isDataSection(xml) && output)
           {
+            // TODO: 07-10-2016 - @felix - Take into account data dependencies, requires data factory refactorization.
             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
             if (!data)
             {

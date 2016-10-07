@@ -26,6 +26,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Extensions/Issues/SegmentationIssues.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -316,6 +317,33 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
     {
       checkMeshIsEmpty();
       ++numberOfDatas;
+    }
+
+    // TODO: 06-10-2016 - @felix - Future SEG versions should store the data dependencies and not
+    // assume the mesh->volumetric dependency, and also not assume mesh is in sync with volume.
+    if(hasVolumetricData(output) && hasMeshData(output) && isSegmentation(viewItem.get()))
+    {
+      auto segmentation = segmentationPtr(viewItem.get());
+      auto category     = segmentation->category()->classificationName();
+      auto isSAS        = category.startsWith("SAS/") || category.compare("SAS") == 0;
+
+      if(!isSAS)
+      {
+        auto segMesh = readLockMesh(output)->mesh();
+        auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
+        auto newMesh = mMesh->mesh();
+
+        // current mesh & new mesh should be identical.
+        if((segMesh->GetNumberOfCells()  != newMesh->GetNumberOfCells()) ||
+           (segMesh->GetNumberOfPoints() != newMesh->GetNumberOfPoints()) ||
+           (segMesh->GetNumberOfPolys()  != newMesh->GetNumberOfPolys()))
+        {
+          output->setData(mMesh);
+
+          // auto description = tr("Volume and mesh are not in sync.");
+          // reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
+        }
+      }
     }
 
 //    if (hasSkeletonData(output))

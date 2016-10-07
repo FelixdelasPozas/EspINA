@@ -29,6 +29,9 @@
 // VTK
 #include <vtkMath.h>
 
+// Qt
+#include <QString>
+
 using namespace ESPINA;
 
 const int ESPINA::Output::INVALID_OUTPUT_ID = -1;
@@ -86,10 +89,12 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
   for(auto data : m_data)
   {
     auto bounds = data->bounds();
+    auto dependencies = QStringList{data->dependencies()};
 
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
     xml.writeAttribute("bounds",  bounds.bounds().toString());
+    xml.writeAttribute("depends", dependencies.join(";"));
 
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
