@@ -21,6 +21,7 @@
 
 #include "ReportSelectorDialog.h"
 #include "RawInformationReport.h"
+#include "DistanceInformationReport.h"
 
 using namespace ESPINA;
 
@@ -32,6 +33,7 @@ ReportsTool::ReportsTool(Support::Context &context)
           this, SLOT(onTriggered(bool)));
 
   registerReport(std::make_shared<RawInformationReport>(context));
+  registerReport(std::make_shared<DistanceInformationReport>(context));
 }
 
 //----------------------------------------------------------------------------

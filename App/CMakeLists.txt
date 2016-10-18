@@ -19,11 +19,12 @@ qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
+  Dialogs/Dialog3D/Dialog3D.h
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
-  Dialogs/Dialog3D/Dialog3D.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -85,11 +86,12 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
+  Dialogs/Dialog3D/Dialog3D.ui
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Dialogs/Dialog3D/Dialog3D.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/IssueProperty.ui
@@ -122,6 +124,8 @@ set (ESPINA_SOURCES
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
   Dialogs/RawInformation/RawInformationDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
@@ -147,6 +151,7 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DSettingsPanel.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
+  ToolGroups/Analyze/Reports/DistanceInformationReport.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
