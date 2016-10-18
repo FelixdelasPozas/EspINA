@@ -78,7 +78,7 @@ namespace ESPINA
       static const Filter::Type ERODE_FILTER_V4;        /** erode filter old signature.        */
       static const Filter::Type FILL_HOLES_FILTER;      /** fill holes filter signature.       */
       static const Filter::Type FILL_HOLES_FILTER_V4;   /** fill holes filter old signature.   */
-      static const Filter::Type FILL_HOLES2D_FILTER;    /** fill holes filter signature.       */
+      static const Filter::Type FILL_HOLES2D_FILTER;    /** fill holes filter 2D signature.    */
       static const Filter::Type IMAGE_LOGIC_FILTER;     /** image logic filters old signature. */
       static const Filter::Type ADDITION_FILTER;        /** addition filter signature.         */
       static const Filter::Type SUBTRACTION_FILTER;     /** subtraction filter signature.      */

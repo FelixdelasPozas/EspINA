@@ -37,7 +37,7 @@ using PasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>;
 
 //-----------------------------------------------------------------------------
 FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
+: Filter(inputs, type, scheduler), m_xyzDir(-1)
 {
 }
 
@@ -48,8 +48,17 @@ bool FillHoles2DFilter::needUpdate() const
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::FillHoles2DFilter::execute()
+void FillHoles2DFilter::execute()
 {
+	auto dir = m_xyzDir;
+	if (dir == -1)
+	{
+		auto what = QObject::tr("Filter direction not set");
+		auto details = QObject::tr("Use setFilterDirection() to specify the application direction");
+
+		throw EspinaException(what, details);
+	}
+
 	if (m_inputs.size() != 1)
 	{
 		auto what = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
@@ -57,6 +66,7 @@ void ESPINA::FillHoles2DFilter::execute()
 
 		throw EspinaException(what, details);
 	}
+
 
 	auto input = m_inputs[0];
 	auto inputVolume = readLockVolume(input->output());
@@ -78,14 +88,14 @@ void ESPINA::FillHoles2DFilter::execute()
 
 	//Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
 	auto maskRegion      = inputVolume->itkImage()->GetLargestPossibleRegion();
-	const auto numSlices = maskRegion.GetSize(2);
-	maskRegion.SetSize(2,3);
+	const auto numSlices = maskRegion.GetSize(dir);
+	maskRegion.SetSize(dir,3);
 	itkVolumeType::Pointer maskImage = itkVolumeType::New();
 	maskImage->SetRegions(maskRegion);
 	maskImage->Allocate();
 	maskImage->FillBuffer(SEG_VOXEL_VALUE);
 	auto maskIndex = maskRegion.GetIndex();
-	maskIndex.SetElement(2,maskIndex.GetElement(2)+1);
+	maskIndex.SetElement(dir,maskIndex.GetElement(dir)+1);
 
 	//Variables for progress reporter
 	const unsigned int numFilters = 3;
@@ -94,9 +104,12 @@ void ESPINA::FillHoles2DFilter::execute()
 
 	PasteImageFilter::Pointer pasteFilter        = nullptr;
 	BinaryFillholeFilter::Pointer fillholeFilter = nullptr;
-	for(auto i = bounds[4]; i < bounds[5] && canExecute(); i += spacing[2])
+	auto bi0 = dir * 2;
+	auto bi1 = bi0 + 1;
+
+	for(auto i = bounds[bi0]; i < bounds[bi1] && canExecute(); i += spacing[dir])
 	{
-		sliceBounds[4] = sliceBounds[5] = i;
+		sliceBounds[bi0] = sliceBounds[bi1] = i;
 
 		auto slice = inputVolume->itkImage(sliceBounds);
 
@@ -122,8 +135,8 @@ void ESPINA::FillHoles2DFilter::execute()
 		pasteFilter = PasteImageFilter::New();
 		pasteFilter->SetSourceImage(fhfOutput);
 		auto secondSliceFhfOutputRegion = fhfOutput->GetLargestPossibleRegion();
-		secondSliceFhfOutputRegion.SetIndex(2,1); //Second slice from the mask
-		secondSliceFhfOutputRegion.SetSize(2,1); //1 slice of the 3 contained by the mask
+		secondSliceFhfOutputRegion.SetIndex(dir, 1); //Second slice from the mask
+		secondSliceFhfOutputRegion.SetSize(dir, 1); //1 slice of the 3 contained by the mask
 		pasteFilter->SetSourceRegion(secondSliceFhfOutputRegion);
 		pasteFilter->SetDestinationImage(slice);
 		pasteFilter->SetDestinationIndex(slice->GetLargestPossibleRegion().GetIndex());
@@ -145,4 +158,16 @@ void ESPINA::FillHoles2DFilter::execute()
 	m_outputs[0]->setData(volume);
 	m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
 	m_outputs[0]->setSpacing(spacing);
+}
+
+//-----------------------------------------------------------------------------
+void FillHoles2DFilter::setDirection(signed char xyzDirection){
+	if (xyzDirection > 2 || xyzDirection < 0)
+	{
+		auto what = QObject::tr("Bad direction");
+		auto details = QObject::tr("Use 0 for X, 1 for Y and 2 for Z direction");
+
+		throw EspinaException(what, details);
+	}
+	m_xyzDir = xyzDirection;
 }

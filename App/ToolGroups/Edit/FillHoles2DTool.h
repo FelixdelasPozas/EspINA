@@ -25,6 +25,9 @@
 #include <Filters/FillHoles2DFilter.h>
 #include <Support/Widgets/EditTool.h>
 
+#include <QComboBox>
+#include <QPushButton>
+
 namespace ESPINA
 {
   class FillHoles2DTool
@@ -53,6 +56,11 @@ namespace ESPINA
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
+      /** \brief Initializes the split option widgets.
+       *
+	   */
+      void initOptionWidgets();
+
     private slots:
       /** \brief Launches the operation task.
        *
@@ -72,6 +80,9 @@ namespace ESPINA
       };
 
       QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
+
+      QPushButton *m_applyButton; /** apply cutting button. */
+      QComboBox *m_comboBox; /** apply cutting button. */
   };
 }
 

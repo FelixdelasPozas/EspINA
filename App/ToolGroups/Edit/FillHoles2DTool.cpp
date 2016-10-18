@@ -19,19 +19,25 @@
 */
 
 #include "FillHoles2DTool.h"
-#include <Filters/FillHoles2DFilter.h>
-#include <Undo/ReplaceOutputCommand.h>
+
 #include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <Filters/FillHoles2DFilter.h>
+#include <GUI/Widgets/Styles.h>
+#include <GUI/Widgets/ToolButton.h>
+#include <Undo/ReplaceOutputCommand.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 FillHoles2DTool::FillHoles2DTool(Support::Context &context)
 : EditTool("FillHoles2D", ":/espina/fill_holes_2D.svg", tr("Fill Internal Holes in Z direction (fill holes of each slice individually)"),context)
 {
-  connect(this, SIGNAL(triggered(bool)),
-          this, SLOT(applyFilter()));
+  setCheckable(true);
+
+  initOptionWidgets();
 }
 
 //------------------------------------------------------------------------
@@ -59,6 +65,7 @@ bool FillHoles2DTool::acceptsSelection(SegmentationAdapterList segmentations)
 void FillHoles2DTool::applyFilter()
 {
   auto segmentations = getSelectedSegmentations();
+  int xyzDirection = m_comboBox->currentIndex();
 
   for (auto segmentation : segmentations)
   {
@@ -69,9 +76,10 @@ void FillHoles2DTool::applyFilter()
     auto filter = getFactory()->createFilter<FillHoles2DFilter>(inputs, MorphologicalFilterFactory::FILL_HOLES2D_FILTER);
 
     filter->setDescription(tr("Fill %1 Holes 2D").arg(segmentation->data().toString()));
+    filter->setDirection(xyzDirection);
 
     TaskContext taskContext;
-    taskContext.Filter       = filter;
+    taskContext.Filter = filter;
     taskContext.Segmentation = segmentation;
 
     markAsBeingModified(segmentation, true);
@@ -88,6 +96,21 @@ void FillHoles2DTool::applyFilter()
 }
 
 //------------------------------------------------------------------------
+void FillHoles2DTool::initOptionWidgets() {
+	m_comboBox = new QComboBox();
+	m_comboBox->addItem("X");
+	m_comboBox->addItem("Y");
+	m_comboBox->addItem("z");
+	m_applyButton = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
+
+	addSettingsWidget(m_comboBox);
+	addSettingsWidget(m_applyButton);
+
+	connect(m_applyButton, SIGNAL(clicked(bool)),
+			this,  SLOT(applyFilter()));
+}
+
+//------------------------------------------------------------------------
 void FillHoles2DTool::onTaskFinished()
 {
   auto filter = dynamic_cast<FillHoles2DFilterPtr>(sender());
@@ -100,7 +123,7 @@ void FillHoles2DTool::onTaskFinished()
     {
       if (filter->numberOfOutputs() != 1)
       {
-        auto what    = QObject::tr("Unable to process filter result.");
+        auto what = QObject::tr("Unable to process filter result.");
         auto details = QObject::tr("FillHoles2DTool::onTaskFinished() -> Invalid number of outputs: %1").arg(filter->numberOfOutputs());
         throw EspinaException(what, details);
       }
@@ -118,7 +141,7 @@ void FillHoles2DTool::onTaskFinished()
   }
   else
   {
-    auto what    = QObject::tr("Unable to identify signal sender object as filter.");
+    auto what = QObject::tr("Unable to identify signal sender object as filter.");
     auto details = QObject::tr("FillHoles2DTool::onTaskFinished() -> ") + what;
     throw EspinaException(what, details);
   }

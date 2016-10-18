@@ -52,6 +52,11 @@ namespace ESPINA
       virtual State state() const
       { return State(); };
 
+      /** \brief Set filter direction 0:x, 1:y, z:2;
+       *
+       */
+      void setDirection(signed char xyzDirection);
+
     protected:
       virtual Snapshot saveFilterSnapshot() const
       { return Snapshot(); };
@@ -62,6 +67,9 @@ namespace ESPINA
 
       virtual bool ignoreStorageContent() const
       {	return false;	}
+
+    private:
+      signed char m_xyzDir; /** Direction to apply filter 0:x, 1:y, z:2 */
 	};
 
 	using FillHoles2DFilterPtr = FillHoles2DFilter *;
