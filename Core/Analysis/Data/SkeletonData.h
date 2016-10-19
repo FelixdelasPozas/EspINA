@@ -52,7 +52,7 @@ namespace ESPINA
 
       virtual DataSPtr createProxy() const override final;
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
 
       /** \brief Returns the vtkPolyData smart pointer object.
        *

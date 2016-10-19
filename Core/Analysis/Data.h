@@ -137,9 +137,13 @@ namespace ESPINA
        * \param[in] path storage path where data snapshosts will be saved to
        * \param[in] id identifier to store data snapshosts
        *
-       *  Temporal storage may be also used to store temporal files where snapshot generation
+       *  Temporal storage may be also used to store temporal files where snapshot generation.
+       *
+       *  NOTE: if data is dependent from another data it should be updated before saving as its
+       *  assumed to be in sync when loading from disk. Thus this method is not const and cycled
+       *  dependencies should be avoided.
        */
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
       /** \brief Returns a snapshot object of the edited regions of the data.
        * \param[in] storage temporal storage where edited regions snasphots can be loaded from
@@ -148,7 +152,7 @@ namespace ESPINA
        *
        *  Temporal storage may be also used to store temporal files where snapshot generation
        */
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
       /** \brief Restore data edited regions from its snapshots.
        * \param[in] storage temporal storage where edited regions snasphots can be loaded from

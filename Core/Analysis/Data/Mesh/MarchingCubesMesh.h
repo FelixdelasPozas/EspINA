@@ -62,6 +62,8 @@ namespace ESPINA
 
       virtual bool isValid() const override;
 
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
       virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
       virtual TimeStamp lastModified() const override;

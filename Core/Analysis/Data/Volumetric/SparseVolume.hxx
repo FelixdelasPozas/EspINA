@@ -131,11 +131,11 @@ namespace ESPINA
 
       virtual bool isEmpty() const override;
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override;
 
-      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override;
 
     protected:
       virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
@@ -721,7 +721,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+  Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
     Snapshot snapshot;
 
@@ -741,7 +741,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Snapshot SparseVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  Snapshot SparseVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
     Snapshot regionsSnapshot;
 

@@ -128,10 +128,10 @@ namespace ESPINA
         virtual bool isEmpty() const override
         { return !isValid(); }
 
-        virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+        virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
         { return Snapshot(); }
 
-        virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+        virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
         { return Snapshot(); }
 
         virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override

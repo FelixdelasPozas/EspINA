@@ -319,8 +319,6 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
       ++numberOfDatas;
     }
 
-    // TODO: 06-10-2016 - @felix - Future SEG versions should store the data dependencies and not
-    // assume the mesh->volumetric dependency, and also not assume mesh is in sync with volume.
     if(hasVolumetricData(output) && hasMeshData(output) && isSegmentation(viewItem.get()))
     {
       auto segmentation = segmentationPtr(viewItem.get());
@@ -338,10 +336,8 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
            (segMesh->GetNumberOfPoints() != newMesh->GetNumberOfPoints()) ||
            (segMesh->GetNumberOfPolys()  != newMesh->GetNumberOfPolys()))
         {
+          // silent fix.
           output->setData(mMesh);
-
-          // auto description = tr("Volume and mesh are not in sync.");
-          // reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
         }
       }
     }

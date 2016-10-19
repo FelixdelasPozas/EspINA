@@ -95,10 +95,10 @@ namespace ESPINA
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
-                              const QString      &id) const override
+                              const QString      &id) override
     { return m_data->snapshot(storage, path, id); }
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
    { return m_data->editedRegionsSnapshot(storage, path, id); }
 
    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override

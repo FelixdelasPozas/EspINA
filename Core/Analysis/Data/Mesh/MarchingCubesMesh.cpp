@@ -147,3 +147,13 @@ VolumeBounds MarchingCubesMesh::bounds() const
 
   return RawMesh::bounds();
 }
+
+//----------------------------------------------------------------------------
+Snapshot MarchingCubesMesh::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  // NOTE: mesh should be up to date with volume data when saving, as its assumed to be in sync with it when loading
+  // (it will be loaded as a simple RawMesh).
+  updateMesh();
+
+  return RawMesh::snapshot(storage, path, id);
+}
