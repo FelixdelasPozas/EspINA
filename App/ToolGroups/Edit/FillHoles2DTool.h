@@ -57,7 +57,7 @@ namespace ESPINA
 
       /** \brief Initializes the split option widgets.
        *
-	   */
+       */
       void initOptionWidgets();
 
     private slots:
@@ -74,15 +74,15 @@ namespace ESPINA
     private:
       struct TaskContext
       {
-          FillHoles2DFilterSPtr Filter; /** filter being executed. */
-          SegmentationAdapterPtr Segmentation; /** segmentation. */
+          FillHoles2DFilterSPtr Filter;        /** filter being executed. */
+          SegmentationAdapterPtr Segmentation; /** segmentation.          */
       };
 
       QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
 
-      QLabel *m_directionLabel; /** label containing "Orthogonal Direction" text. */
-      QComboBox *m_directionComboBox; /** comboBox selector with direction options. */
-      QPushButton *m_applyButton; /** apply filter button. */
+      QLabel      *m_directionLabel;    /** label containing "Orthogonal Direction" text. */
+      QComboBox   *m_directionComboBox; /** comboBox selector with direction options.     */
+      QPushButton *m_applyButton;       /** apply filter button.                          */
   };
 }
 

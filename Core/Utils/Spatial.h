@@ -35,6 +35,8 @@
 
 // Qt
 #include <QList>
+#include <QString>
+#include <QObject>
 
 namespace ESPINA
 {
@@ -56,6 +58,21 @@ namespace ESPINA
   constexpr Axis toAxis(int idx)
   {
     return idx == 0?Axis::X:(idx == 1?Axis::Y:Axis::Z);
+  }
+
+  /** \brief Returns the text of the given direction
+   * \param[in] direction axis direction).
+   *
+   */
+  inline const QString toText(const Axis direction)
+  {
+    switch(direction)
+    {
+      case Axis::X: return QObject::tr("X");
+      case Axis::Y: return QObject::tr("Y");
+      case Axis::Z: return QObject::tr("Z");
+      default: return QObject::tr("Undefined");
+    }
   }
 
   enum class Plane: std::int8_t
@@ -91,6 +108,21 @@ namespace ESPINA
     return idx == 0?Plane::YZ:(idx == 1?Plane::XZ:( idx == 2?Plane::XY:Plane::UNDEFINED));
   }
 
+  /** \brief Returns the text of the given orthogonal plane
+   * \param[in] direction axis direction).
+   *
+   */
+  inline const QString toText(const Plane plane)
+  {
+    switch(plane)
+    {
+      case Plane::XY: return QObject::tr("Axial");
+      case Plane::XZ: return QObject::tr("Coronal");
+      case Plane::YZ: return QObject::tr("Sagittal");
+      default: return QObject::tr("Undefined");
+    }
+  }
+
   using Nm = double;
 
   /** \brief Returns true if both values are equal to some degree given by the delta and the spacing.
@@ -109,7 +141,7 @@ namespace ESPINA
     return fabs(lhs - rhs) < DELTA;
   }
 
-  /** \brief Returns true if the value is between the limits.
+  /** \brief Returns true if the value is outside the given limits.
    * \param[in] value
    * \param[in] limitA
    * \param[in] limitB

@@ -18,8 +18,8 @@
 *
 */
 
+// ESPINA
 #include "FillHoles2DTool.h"
-
 #include <App/ToolGroups/Edit/EditToolGroup.h>
 #include <Core/Utils/Spatial.h>
 #include <Filters/FillHoles2DFilter.h>
@@ -34,7 +34,7 @@ using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 FillHoles2DTool::FillHoles2DTool(Support::Context &context)
-: EditTool("FillHoles2D", ":/espina/fill_holes_2D.svg", tr("Fill Internal Holes in Z direction (fill holes of each slice individually)"),context)
+: EditTool("FillHoles2D", ":/espina/fill_holes_2D.svg", tr("Fill internal holes of each 2D slice individually in an axis direction."),context)
 {
   setCheckable(true);
 
@@ -42,10 +42,11 @@ FillHoles2DTool::FillHoles2DTool(Support::Context &context)
 }
 
 //------------------------------------------------------------------------
-ESPINA::FillHoles2DTool::~FillHoles2DTool() {
-	delete(m_directionLabel);
-	delete(m_directionComboBox);
-	delete(m_applyButton);
+ESPINA::FillHoles2DTool::~FillHoles2DTool()
+{
+	delete m_directionLabel;
+	delete m_directionComboBox;
+	delete m_applyButton;
 }
 
 //------------------------------------------------------------------------
@@ -73,7 +74,7 @@ bool FillHoles2DTool::acceptsSelection(SegmentationAdapterList segmentations)
 void FillHoles2DTool::applyFilter()
 {
   auto segmentations = getSelectedSegmentations();
-  auto xyzDirection = toAxis(m_directionComboBox->currentIndex());
+  auto direction     = toAxis(m_directionComboBox->currentIndex());
 
   for (auto segmentation : segmentations)
   {
@@ -83,11 +84,11 @@ void FillHoles2DTool::applyFilter()
 
     auto filter = getFactory()->createFilter<FillHoles2DFilter>(inputs, MorphologicalFilterFactory::FILL_HOLES2D_FILTER);
 
-    filter->setDescription(tr("Fill %1 Holes 2D").arg(segmentation->data().toString()));
-    filter->setDirection(xyzDirection);
+    filter->setDescription(tr("Fill %1 Holes in %2 direction").arg(segmentation->data().toString()).arg(toText(direction)));
+    filter->setDirection(direction);
 
     TaskContext taskContext;
-    taskContext.Filter = filter;
+    taskContext.Filter       = filter;
     taskContext.Segmentation = segmentation;
 
     markAsBeingModified(segmentation, true);
@@ -104,14 +105,17 @@ void FillHoles2DTool::applyFilter()
 }
 
 //------------------------------------------------------------------------
-void FillHoles2DTool::initOptionWidgets() {
+void FillHoles2DTool::initOptionWidgets()
+{
 	m_directionLabel = new QLabel();
 	m_directionLabel->setText(tr("Orthogonal Direction"));
+
 	m_directionComboBox = new QComboBox();
 	m_directionComboBox->addItem("X");
 	m_directionComboBox->addItem("Y");
 	m_directionComboBox->addItem("Z");
 	m_directionComboBox->setCurrentIndex(2);
+
 	m_applyButton = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
 
 	addSettingsWidget(m_directionLabel);
@@ -119,7 +123,7 @@ void FillHoles2DTool::initOptionWidgets() {
 	addSettingsWidget(m_applyButton);
 
 	connect(m_applyButton, SIGNAL(clicked(bool)),
-			this,  SLOT(applyFilter()));
+			    this,          SLOT(applyFilter()));
 }
 //------------------------------------------------------------------------
 void FillHoles2DTool::onTaskFinished()
@@ -141,7 +145,7 @@ void FillHoles2DTool::onTaskFinished()
 
       auto undoStack = getUndoStack();
 
-      undoStack->beginMacro(QString("Fill " + taskContext.Segmentation->data().toString() + " Holes 2D"));
+      undoStack->beginMacro(taskContext.Filter->description());
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Filter, 0)));
       undoStack->endMacro();
     }

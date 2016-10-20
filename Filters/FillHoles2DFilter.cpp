@@ -50,8 +50,6 @@ bool FillHoles2DFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 void FillHoles2DFilter::execute()
 {
-	auto dir = idx(m_direction);
-
 	if (m_inputs.size() != 1)
 	{
 		auto what = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
@@ -59,7 +57,6 @@ void FillHoles2DFilter::execute()
 
 		throw EspinaException(what, details);
 	}
-
 
 	auto input = m_inputs[0];
 	auto inputVolume = readLockVolume(input->output());
@@ -78,36 +75,50 @@ void FillHoles2DFilter::execute()
 	auto spacing      = inputVolume->bounds().spacing();
 	auto volume       = sparseCopy<itkVolumeType>(inputVolume->itkImage());
 	auto sliceBounds  = bounds;
+  auto dir          = idx(m_direction);
 
-	//Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
+	// Create mask for the filter containing a 3 slices size image filled with SEG_VOXEL_VALUE (255)
 	auto maskRegion      = inputVolume->itkImage()->GetLargestPossibleRegion();
 	const auto numSlices = maskRegion.GetSize(dir);
 	maskRegion.SetSize(dir,3);
-	itkVolumeType::Pointer maskImage = itkVolumeType::New();
+
+  // Check other directions size
+  for(auto i: {1,2})
+  {
+    auto otherDir = (dir + i) % 3;
+    if(maskRegion.GetSize(otherDir) < 3)
+    {
+      // nothing to do, direction too thin.
+      return;
+    }
+  }
+
+	auto maskImage = itkVolumeType::New();
 	maskImage->SetRegions(maskRegion);
 	maskImage->Allocate();
 	maskImage->FillBuffer(SEG_VOXEL_VALUE);
 	auto maskIndex = maskRegion.GetIndex();
 	maskIndex.SetElement(dir,maskIndex.GetElement(dir)+1);
 
-	//Variables for progress reporter
+	// Variables for progress reporter
 	const unsigned int numFilters = 3;
 	const auto progressPerFilter  = (double)100/(numFilters*numSlices);
 	double progress               = 0;
 
 	PasteImageFilter::Pointer pasteFilter        = nullptr;
 	BinaryFillholeFilter::Pointer fillholeFilter = nullptr;
-	auto bi0 = dir * 2;
-	auto bi1 = bi0 + 1;
 
-	for(auto i = bounds[bi0]; i < bounds[bi1] && canExecute(); i += spacing[dir])
+	for(auto i = bounds[2*dir]; !areEqual(i, bounds[(2*dir)+1], spacing[dir]) && canExecute(); i += spacing[dir])
 	{
-		sliceBounds[bi0] = sliceBounds[bi1] = i;
+		sliceBounds[2*dir] = sliceBounds[(2*dir)+1] = i;
 
-		auto slice = inputVolume->itkImage(sliceBounds);
+		auto slice = volume->itkImage(sliceBounds);
 
-		//Copy the current slice over the mask middle slice (like a cheese sandwich)
+		// Copy the current slice over the mask middle slice (like a cheese sandwich)
 		pasteFilter = PasteImageFilter::New();
+		pasteFilter->SetInPlace(false);
+		pasteFilter->ReleaseDataFlagOn();
+		pasteFilter->SetNumberOfThreads(1);
 		pasteFilter->SetSourceImage(slice);
 		pasteFilter->SetSourceRegion(slice->GetLargestPossibleRegion());
 		pasteFilter->SetDestinationImage(maskImage);
@@ -116,23 +127,30 @@ void FillHoles2DFilter::execute()
 		pasteFilter->Update();
 		progress += progressPerFilter;
 
-		//Fill the holes of the middle slice (like filling the cheese holes)
+		// Fill the holes of the middle slice (like filling the cheese holes)
 		fillholeFilter = BinaryFillholeFilter::New();
 		fillholeFilter->SetInput(pasteFilter->GetOutput());
+		fillholeFilter->SetNumberOfThreads(1);
+		fillholeFilter->ReleaseDataFlagOn();
 		ITKProgressReporter<BinaryFillholeFilter> fhReporter(this, fillholeFilter, progress, progress + progressPerFilter);
 		fillholeFilter->Update();
 		progress += progressPerFilter;
 		auto fhfOutput = fillholeFilter->GetOutput();
 
-		//Copy back the middle slice to its original place (like taking the cheese out)
+		// Copy back the middle slice to its original place (like taking the cheese out)
 		pasteFilter = PasteImageFilter::New();
+    pasteFilter->SetInPlace(false);
+    pasteFilter->ReleaseDataFlagOn();
+    pasteFilter->SetNumberOfThreads(1);
 		pasteFilter->SetSourceImage(fhfOutput);
 		auto secondSliceFhfOutputRegion = fhfOutput->GetLargestPossibleRegion();
-		secondSliceFhfOutputRegion.SetIndex(dir, 1); //Second slice from the mask
-		secondSliceFhfOutputRegion.SetSize(dir, 1); //1 slice of the 3 contained by the mask
+		secondSliceFhfOutputRegion.SetIndex(dir, secondSliceFhfOutputRegion.GetIndex(dir)+1); // Second slice from the mask
+		secondSliceFhfOutputRegion.SetSize(dir, 1); // 1 slice of the 3 contained by the mask
 		pasteFilter->SetSourceRegion(secondSliceFhfOutputRegion);
 		pasteFilter->SetDestinationImage(slice);
 		pasteFilter->SetDestinationIndex(slice->GetLargestPossibleRegion().GetIndex());
+		pasteFilter->SetNumberOfThreads(1);
+		pasteFilter->ReleaseDataFlagOn();
 		ITKProgressReporter<PasteImageFilter> pfReporter2(this, pasteFilter, progress, progress + progressPerFilter);
 		pasteFilter->Update();
 		progress += progressPerFilter;
