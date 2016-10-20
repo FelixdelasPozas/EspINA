@@ -75,9 +75,6 @@ namespace ESPINA
       virtual void setSpacing(const NmVector3& spacing) override
       { m_data->setSpacing(spacing); }
 
-      virtual NmVector3 spacing() const override
-      { return m_data->spacing(); }
-
       virtual TimeStamp lastModified() const override
       { return m_data->lastModified(); }
 
@@ -93,10 +90,10 @@ namespace ESPINA
       virtual bool isEmpty() const override
       { return m_data->isEmpty(); }
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { return m_data->snapshot(storage, path, id); }
 
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { return m_data->editedRegionsSnapshot(storage, path, id); }
 
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override

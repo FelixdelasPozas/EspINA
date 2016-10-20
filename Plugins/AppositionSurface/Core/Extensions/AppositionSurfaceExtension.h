@@ -46,6 +46,7 @@ namespace ESPINA
   {
     public:
       static const Type TYPE;
+      static const Type OLD_TYPE;
 
     public:
       /** \brief AppositionSurfaceExtension class virtual destructor.

@@ -43,7 +43,7 @@ class vtkImplicitFunction;
 namespace ESPINA
 {
   template<typename T>
-  class EspinaCore_EXPORT VolumetricData
+  class VolumetricData
   : public Data
   {
   public:

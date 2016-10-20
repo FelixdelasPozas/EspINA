@@ -136,7 +136,7 @@ bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &pa
 }
 
 //-----------------------------------------------------------------------------
-Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
 {
   Snapshot snapshot;
 

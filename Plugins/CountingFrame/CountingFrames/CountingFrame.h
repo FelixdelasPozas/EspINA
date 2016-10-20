@@ -384,6 +384,13 @@ namespace ESPINA
       QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */
     };
 
+    /** operator< for counting frames to use with std::sort
+     * \param[in] lhs
+     * \param[in] rhs
+     *
+     */
+    bool CountingFramePlugin_EXPORT lessThan(const CountingFrame *lhs, const CountingFrame *rhs);
+
     using CountingFrameList = QList<CountingFrame *>;
 
     class CountingFramePlugin_EXPORT vtkCountingFrameCommand

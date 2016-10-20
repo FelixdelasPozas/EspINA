@@ -207,9 +207,13 @@ void FakeStacks::parseStacks(const QByteArray& data)
     if(idStart != -1 && idEnd != -1)
     {
       auto file = QString::fromAscii(data.mid(begin, end-begin)).split('/').last();
-      auto id   = QString::fromAscii(data.mid(idStart, idEnd-idStart+1));
-      m_ids.insert(file, id);
-      writeInfo(tr("Found file '%1' with id '%2'").arg(file).arg(id));
+
+      if(!file.contains("segmha", Qt::CaseInsensitive))
+      {
+        auto id   = QString::fromAscii(data.mid(idStart, idEnd-idStart+1));
+        m_ids.insert(file, id);
+        writeInfo(tr("Found file '%1' with id '%2'").arg(file).arg(id));
+      }
     }
 
     begin = data.indexOf(fileToken, begin+1);

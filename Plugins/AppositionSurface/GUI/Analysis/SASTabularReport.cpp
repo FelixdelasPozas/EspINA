@@ -207,17 +207,24 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
     {
       for(auto extensionType : extensionInformations.keys())
       {
-        if(!isSASExtensions(extensionType) && extensionType != SEGMENTATION_GROUP)
+        try
         {
-          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
-        }
-        else
-        {
-          auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
-          if(sas)
+          if(!isSASExtensions(extensionType) && extensionType != SEGMENTATION_GROUP)
           {
-            retrieveOrCreateSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+            retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
           }
+          else
+          {
+            auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
+            if(sas)
+            {
+              retrieveOrCreateSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+            }
+          }
+        }
+        catch(...)
+        {
+          // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
         }
       }
     }

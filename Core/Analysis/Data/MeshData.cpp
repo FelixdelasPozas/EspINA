@@ -59,7 +59,7 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
 }
 
 //----------------------------------------------------------------------------
-Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
 {
   Snapshot snapshot;
 

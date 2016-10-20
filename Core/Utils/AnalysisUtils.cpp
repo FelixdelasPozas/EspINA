@@ -28,6 +28,7 @@
 
 // ESPINA
 #include "AnalysisUtils.h"
+#include <Core/Analysis/Category.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Sample.h>
@@ -68,17 +69,25 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
   if (!classificationName1.isEmpty() && classificationName2.isEmpty())
   {
     classificationName = classificationName1;
-  } else if (classificationName1.isEmpty() && !classificationName2.isEmpty())
+  }
+  else
   {
-    classificationName = classificationName2;
-  } else if (!classificationName1.isEmpty())
-  {
-    classificationName = QObject::tr("%1 %2 merge").arg(classificationName1).arg(classificationName2);
+    if (classificationName1.isEmpty() && !classificationName2.isEmpty())
+    {
+      classificationName = classificationName2;
+    }
+    else
+    {
+      if (!classificationName1.isEmpty())
+      {
+        classificationName = QObject::tr("%1 %2 merge").arg(classificationName1).arg(classificationName2);
+      }
+    }
   }
 
   if (!roots.isEmpty())
   {
-    ClassificationSPtr classification{new Classification(classificationName)};
+    auto classification = std::make_shared<Classification>(classificationName);
     for(auto root : roots)
     {
       CategorySList categories;
@@ -154,6 +163,23 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
             succesor->setInputs(updatedInputs);
           }
         }
+
+        // NOTE: Merges channel extensions. It wont merge different extensions' data (like different counting frames),
+        // just adds missing extensions to the merged item.
+        QStringList mergedItemExtensionsTypes;
+        auto mergedItemExtensions = mergedChannel->extensions();
+        for(auto mergedExtension: mergedItemExtensions)
+        {
+          mergedItemExtensionsTypes << mergedExtension->type();
+        }
+
+        for(auto channelExtension: channel->extensions())
+        {
+          if(!mergedItemExtensionsTypes.contains(channelExtension->type()))
+          {
+            mergedItemExtensions->add(channelExtension);
+          }
+        }
       }
       mergedItems[channel] = mergedChannel;
     }
@@ -179,7 +205,8 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       try
       {
         mergedAnalysis->addRelation(source, target, relationship);
-      } catch (const EspinaException &e)
+      }
+      catch (const EspinaException &e)
       {
         // do nothing
       }

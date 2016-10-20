@@ -160,13 +160,14 @@ AnalysisSPtr SegFile_V5::Loader::load()
       {
         m_fixSourceInputs = true;
       }
-   }
-    else if (file != CLASSIFICATION_FILE
-          && file != CONTENT_FILE
-          && file != RELATIONS_FILE)
+    }
+    else
     {
-      auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-      m_storage->saveSnapshot(SnapshotData(file, currentFile));
+      if (file != CLASSIFICATION_FILE && file != CONTENT_FILE && file != RELATIONS_FILE)
+      {
+        auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+        m_storage->saveSnapshot(SnapshotData(file, currentFile));
+      }
     }
 
     hasFile = m_zip.goToNextFile();
@@ -619,6 +620,9 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
       if (xml.name() == "Extension")
       {
         type = xml.attributes().value("Type").toString();
+
+        fixVersion2_1_8(type);
+
         cache = SegmentationExtension::InfoCache();
         state = State();
       }
@@ -852,3 +856,12 @@ void SegFile_V5::save(AnalysisPtr analysis,
   }
 }
 
+//--------------------------------------------------------------------
+void SegFile_V5::Loader::fixVersion2_1_8(Core::SegmentationExtension::Type& type)
+{
+  // NOTE: hard-coded signatures to avoid having a dependency with SAS plugin. Damn... I hate these things.
+  if(type == "AppositionSurfaceExtensionInformation")
+  {
+    type = "AppositionSurface";
+  }
+}

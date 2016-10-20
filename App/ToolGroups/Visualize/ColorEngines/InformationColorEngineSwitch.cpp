@@ -137,6 +137,13 @@ void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > 
   auto extension = settings->value(EXTENSION_KEY,   "MorphologicalInformation").toString();
   auto key       = settings->value(INFORMATION_KEY, "Size").toString();
 
+  // Check if extension key is valid, could be that the extension is from a plugin not loaded/present right now.
+  if(!getContext().factory()->availableSegmentationExtensions().contains(extension))
+  {
+    extension = "MorphologicalInformation";
+    key       = "Size";
+  }
+
   m_key = InformationKey(extension, key);
 }
 

@@ -26,6 +26,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Extensions/Issues/SegmentationIssues.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -159,6 +160,12 @@ void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 QString CheckTask::deleteHint(NeuroItemAdapterSPtr item) const
 {
   return tr("Delete %1").arg(isSegmentation(item.get()) ? "segmentation" : "stack");
+}
+
+//------------------------------------------------------------------------
+QString CheckTask::editOrDeleteHint(NeuroItemAdapterSPtr item) const
+{
+  return tr("Edit %1 to meet the requirements or delete it.").arg(isSegmentation(item.get()) ? "segmentation" : "stack");
 }
 
 //------------------------------------------------------------------------
@@ -312,6 +319,29 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
       ++numberOfDatas;
     }
 
+    if(hasVolumetricData(output) && hasMeshData(output) && isSegmentation(viewItem.get()))
+    {
+      auto segmentation = segmentationPtr(viewItem.get());
+      auto category     = segmentation->category()->classificationName();
+      auto isSAS        = category.startsWith("SAS/") || category.compare("SAS") == 0;
+
+      if(!isSAS)
+      {
+        auto segMesh = readLockMesh(output)->mesh();
+        auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
+        auto newMesh = mMesh->mesh();
+
+        // current mesh & new mesh should be identical.
+        if((segMesh->GetNumberOfCells()  != newMesh->GetNumberOfCells()) ||
+           (segMesh->GetNumberOfPoints() != newMesh->GetNumberOfPoints()) ||
+           (segMesh->GetNumberOfPolys()  != newMesh->GetNumberOfPolys()))
+        {
+          // silent fix.
+          output->setData(mMesh);
+        }
+      }
+    }
+
 //    if (hasSkeletonData(output))
 //    {
 //      checkSkeletonIsEmpty();
@@ -320,7 +350,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
-      auto description = tr("Item does not have any data at all");
+      auto description = tr("Item does not have any data at all.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -329,7 +359,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
     auto spacing = output->spacing();
     if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
     {
-      auto description = tr("Invalid output spacing");
+      auto description = tr("Invalid output spacing.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -337,7 +367,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (filter == nullptr)
   {
-    auto description = tr("Can't find the origin of the item");
+    auto description = tr("Can't find the origin of the item.");
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
@@ -413,6 +443,34 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 }
 
 //------------------------------------------------------------------------
+void CheckSegmentationTask::checkExtensionsValidity() const
+{
+  auto availableExtensions = m_context.factory()->availableSegmentationExtensions();
+  QStringList unavailableExtensions;
+
+  for(auto extension: m_segmentation->readOnlyExtensions())
+  {
+    if(!availableExtensions.contains(extension->type()))
+    {
+      unavailableExtensions << extension->type();
+    }
+  }
+
+  if(!unavailableExtensions.isEmpty())
+  {
+    QString types;
+    for(auto type: unavailableExtensions)
+    {
+      types += type + (type == unavailableExtensions.last() ? "" : ", ");
+    }
+    auto description = tr("Segmentation has read-only extensions: %1").arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
+  }
+}
+
+//------------------------------------------------------------------------
 void CheckSegmentationTask::checkRelations() const
 {
   auto relations = m_context.model()->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
@@ -458,7 +516,7 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
   {
     auto description = tr("Segmentation is partially outside its stack");
 
-    reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
+    reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
   }
 }
 
@@ -481,6 +539,34 @@ void CheckStackTask::checkVolumeIsEmpty() const
 
       reportIssue(m_stack, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
+  }
+}
+
+//------------------------------------------------------------------------
+void CheckStackTask::checkExtensionsValidity() const
+{
+  auto availableExtensions = m_context.factory()->availableStackExtensions();
+  QStringList unavailableExtensions;
+
+  for(auto extension: m_stack->readOnlyExtensions())
+  {
+    if(!availableExtensions.contains(extension->type()))
+    {
+      unavailableExtensions << extension->type();
+    }
+  }
+
+  if(!unavailableExtensions.isEmpty())
+  {
+    QString types;
+    for(auto type: unavailableExtensions)
+    {
+      types += type + (type == unavailableExtensions.last() ? "" : ", ");
+    }
+    auto description = tr("Stack has read-only extensions: %1").arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+
+    reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }
 }
 

@@ -78,6 +78,8 @@ void VolumetricStreamReader::execute()
 {
   if (!m_fileName.exists())
   {
+    auto stackFilename = m_fileName;
+
     if (handler())
     {
       m_fileName = m_handler->fileNotFound(m_fileName, QDir(), IO::ErrorHandler::SameFormat(m_fileName));
@@ -85,12 +87,13 @@ void VolumetricStreamReader::execute()
 
     if (!m_fileName.exists())
     {
-      auto message = QObject::tr("Can't find image file, file name: %1").arg(m_fileName.absoluteFilePath());
+      auto message = QObject::tr("Can't find image file, file name: %1").arg(stackFilename.fileName());
       auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
 
       throw EspinaException(message, details);
     }
   }
+
   auto mhdFile = QFileInfo{m_fileName};
   auto fileName = mhdFile.absoluteFilePath().toUtf8();
   fileName.detach();
