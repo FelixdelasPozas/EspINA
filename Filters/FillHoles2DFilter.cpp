@@ -37,7 +37,7 @@ using PasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>;
 
 //-----------------------------------------------------------------------------
 FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler), m_xyzDir(-1)
+: Filter(inputs, type, scheduler), m_direction(Axis::Z)
 {
 }
 
@@ -50,14 +50,7 @@ bool FillHoles2DFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 void FillHoles2DFilter::execute()
 {
-	auto dir = m_xyzDir;
-	if (dir == -1)
-	{
-		auto what = QObject::tr("Filter direction not set");
-		auto details = QObject::tr("Use setFilterDirection() to specify the application direction");
-
-		throw EspinaException(what, details);
-	}
+	auto dir = idx(m_direction);
 
 	if (m_inputs.size() != 1)
 	{
@@ -161,13 +154,7 @@ void FillHoles2DFilter::execute()
 }
 
 //-----------------------------------------------------------------------------
-void FillHoles2DFilter::setDirection(signed char xyzDirection){
-	if (xyzDirection > 2 || xyzDirection < 0)
-	{
-		auto what = QObject::tr("Bad direction");
-		auto details = QObject::tr("Use 0 for X, 1 for Y and 2 for Z direction");
-
-		throw EspinaException(what, details);
-	}
-	m_xyzDir = xyzDirection;
+void FillHoles2DFilter::setDirection(Axis axis)
+{
+	 m_direction = axis;
 }

@@ -21,6 +21,7 @@
 #include "FillHoles2DTool.h"
 
 #include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <Core/Utils/Spatial.h>
 #include <Filters/FillHoles2DFilter.h>
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/ToolButton.h>
@@ -38,6 +39,13 @@ FillHoles2DTool::FillHoles2DTool(Support::Context &context)
   setCheckable(true);
 
   initOptionWidgets();
+}
+
+//------------------------------------------------------------------------
+ESPINA::FillHoles2DTool::~FillHoles2DTool() {
+	delete(m_directionLabel);
+	delete(m_directionComboBox);
+	delete(m_applyButton);
 }
 
 //------------------------------------------------------------------------
@@ -65,7 +73,7 @@ bool FillHoles2DTool::acceptsSelection(SegmentationAdapterList segmentations)
 void FillHoles2DTool::applyFilter()
 {
   auto segmentations = getSelectedSegmentations();
-  int xyzDirection = m_comboBox->currentIndex();
+  auto xyzDirection = toAxis(m_directionComboBox->currentIndex());
 
   for (auto segmentation : segmentations)
   {
@@ -97,19 +105,22 @@ void FillHoles2DTool::applyFilter()
 
 //------------------------------------------------------------------------
 void FillHoles2DTool::initOptionWidgets() {
-	m_comboBox = new QComboBox();
-	m_comboBox->addItem("X");
-	m_comboBox->addItem("Y");
-	m_comboBox->addItem("z");
+	m_directionLabel = new QLabel();
+	m_directionLabel->setText(tr("Orthogonal Direction"));
+	m_directionComboBox = new QComboBox();
+	m_directionComboBox->addItem("X");
+	m_directionComboBox->addItem("Y");
+	m_directionComboBox->addItem("Z");
+	m_directionComboBox->setCurrentIndex(2);
 	m_applyButton = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
 
-	addSettingsWidget(m_comboBox);
+	addSettingsWidget(m_directionLabel);
+	addSettingsWidget(m_directionComboBox);
 	addSettingsWidget(m_applyButton);
 
 	connect(m_applyButton, SIGNAL(clicked(bool)),
 			this,  SLOT(applyFilter()));
 }
-
 //------------------------------------------------------------------------
 void FillHoles2DTool::onTaskFinished()
 {

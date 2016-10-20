@@ -25,6 +25,7 @@
 
 // ESPINA
 #include <Core/Analysis/Filter.h>
+#include <Core/Utils/Spatial.h>
 
 namespace ESPINA
 {
@@ -52,10 +53,11 @@ namespace ESPINA
       virtual State state() const
       { return State(); };
 
-      /** \brief Set filter direction 0:x, 1:y, z:2;
+      /** \brief Set filter direction.
+       * \param[in] axis direction.
        *
        */
-      void setDirection(signed char xyzDirection);
+      void setDirection(Axis axis);
 
     protected:
       virtual Snapshot saveFilterSnapshot() const
@@ -69,7 +71,7 @@ namespace ESPINA
       {	return false;	}
 
     private:
-      signed char m_xyzDir; /** Direction to apply filter 0:x, 1:y, z:2 */
+      Axis m_direction; /** direction to apply filter. */
 	};
 
 	using FillHoles2DFilterPtr = FillHoles2DFilter *;

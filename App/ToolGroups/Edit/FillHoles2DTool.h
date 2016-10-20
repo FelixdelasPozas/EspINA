@@ -25,7 +25,9 @@
 #include <Filters/FillHoles2DFilter.h>
 #include <Support/Widgets/EditTool.h>
 
+// QT
 #include <QComboBox>
+#include <QLabel>
 #include <QPushButton>
 
 namespace ESPINA
@@ -44,10 +46,7 @@ namespace ESPINA
       /** \brief FillHoles2DTool class virtual destructor.
        *
        */
-      virtual ~FillHoles2DTool()
-      {
-      }
-      ;
+      virtual ~FillHoles2DTool();
 
       virtual void abortOperation() override;
 
@@ -76,13 +75,14 @@ namespace ESPINA
       struct TaskContext
       {
           FillHoles2DFilterSPtr Filter; /** filter being executed. */
-          SegmentationAdapterPtr Segmentation; /** segmentation           */
+          SegmentationAdapterPtr Segmentation; /** segmentation. */
       };
 
       QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
 
-      QPushButton *m_applyButton; /** apply cutting button. */
-      QComboBox *m_comboBox; /** apply cutting button. */
+      QLabel *m_directionLabel; /** label containing "Orthogonal Direction" text. */
+      QComboBox *m_directionComboBox; /** comboBox selector with direction options. */
+      QPushButton *m_applyButton; /** apply filter button. */
   };
 }
 
