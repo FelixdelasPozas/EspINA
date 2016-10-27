@@ -26,9 +26,12 @@
 // ESPINA
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+#include <vtkCommand.h>
+#include <vtkCamera.h>
 
 // Qt
 #include <QPushButton>
+#include <QDoubleSpinBox>
 
 class vtkAbstractWidget;
 class QVTKWidget;
@@ -39,6 +42,7 @@ class QPushButton;
 class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
+class QLabel;
 
 namespace ESPINA
 {
@@ -89,6 +93,12 @@ namespace ESPINA
      */
     void onTakeSnapshot();
 
+    /** \brief Updates the camera if the user changes the focal distance.
+     * \param[in] distance new distance value.
+     *
+     */
+    void onFocalDistanceChanged(double distance);
+
   private:
     virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) override;
 
@@ -131,7 +141,51 @@ namespace ESPINA
 
     virtual const QString viewName() const override;
 
+    /** \brief Connects the camera signal to this object.
+     *
+     */
+    void connectCamera();
+
   private:
+    /** \class vtkCameraCommand
+     * \brief Callback for camera modification event.
+     *
+     */
+    class vtkCameraCommand
+    : public vtkCommand
+    {
+      public:
+        /** \brief vtkCameraCommand class vtk-style new() operator.
+         *
+         */
+        static vtkCameraCommand *New()
+        { return new vtkCameraCommand; }
+
+        virtual void Execute(vtkObject *caller, unsigned long, void*)
+        {
+          auto camera = vtkCamera::SafeDownCast(caller);
+
+          if(camera)
+          {
+            if(std::abs(camera->GetDistance() - m_view->m_zoomFactor->value()) < 0.01) return;
+
+            m_view->m_zoomFactor->setValue(camera->GetDistance());
+          }
+        }
+
+        /** \brief Sets the view the command with interact with.
+         * \param[in] view view pointer.
+         *
+         */
+        void SetView(View3D *view)
+        { m_view = view; }
+
+      private:
+        View3D* m_view; /** Qt view with the camera. */
+    };
+
+    friend class vtkCameraCommand;
+
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
@@ -139,6 +193,9 @@ namespace ESPINA
     QPushButton *m_export;
     QPushButton *m_cameraReset;
     QPushButton *m_renderConfig;
+
+    QDoubleSpinBox                   *m_zoomFactor;
+    vtkSmartPointer<vtkCameraCommand> m_cameraCommand;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;

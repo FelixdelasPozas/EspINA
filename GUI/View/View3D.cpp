@@ -35,6 +35,7 @@
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QLabel>
 #include <QScrollBar>
 #include <QDebug>
 
@@ -44,7 +45,6 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <QVTKWidget.h>
-#include <vtkCamera.h>
 #include <vtkPOVExporter.h>
 #include <vtkIVExporter.h>
 #include <vtkOBJExporter.h>
@@ -75,9 +75,12 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
 : RenderView                   {state, ViewType::VIEW_3D}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
+, m_cameraCommand              {vtkSmartPointer<vtkCameraCommand>::New()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
 {
   setupUI();
+
+  connectCamera();
 
   onCrosshairChanged(state.createFrame());
 }
@@ -110,10 +113,26 @@ void View3D::buildViewActionsButtons()
 
   auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
+  const auto tooltip = tr("Distance from the camera to the focal point.");
+  auto label = new QLabel("Focal distance:");
+  label->setToolTip(tooltip);
+
+  m_zoomFactor = new QDoubleSpinBox();
+  m_zoomFactor->setToolTip(tooltip);
+  m_zoomFactor->setSuffix(tr(" nm"));
+  m_zoomFactor->setDecimals(2);
+  m_zoomFactor->setMinimum(1);
+  m_zoomFactor->setMaximum(VTK_DOUBLE_MAX);
+  m_zoomFactor->setCorrectionMode(QDoubleSpinBox::CorrectToNearestValue);
+
+  connect(m_zoomFactor, SIGNAL(valueChanged(double)), this, SLOT(onFocalDistanceChanged(double)));
+
   m_controlLayout->addWidget(m_cameraReset);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
+  m_controlLayout->addWidget(label);
+  m_controlLayout->addWidget(m_zoomFactor);
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -719,4 +738,32 @@ void View3D::resetImplementation()
 const QString View3D::viewName() const
 {
   return "3D";
+}
+
+//-----------------------------------------------------------------------------
+void View3D::connectCamera()
+{
+  m_cameraCommand->SetView(this);
+  auto camera = mainRenderer()->GetActiveCamera();
+
+  camera->Zoom(1.0);
+  camera->AddObserver(vtkCommand::ModifiedEvent, m_cameraCommand.Get());
+}
+
+//-----------------------------------------------------------------------------
+void View3D::onFocalDistanceChanged(double distance)
+{
+  double fp[3], position[3];
+
+  auto camera = mainRenderer()->GetActiveCamera();
+  const auto currentDistance = camera->GetDistance();
+  camera->GetPosition(position);
+  camera->GetFocalPoint(fp);
+  const double vec[3]{position[0]-fp[0], position[1]-fp[1], position[2]-fp[2]};
+  const auto factor = distance/currentDistance;
+
+  camera->SetPosition(fp[0] + factor*vec[0], fp[1] + factor*vec[1], fp[2] + factor*vec[2]);
+  m_renderer->ResetCameraClippingRange();
+
+  refresh();
 }
