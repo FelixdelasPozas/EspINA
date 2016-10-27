@@ -34,10 +34,13 @@ using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
 //----------------------------------------------------------------------------
 Widget3D::Widget3D(SelectionSPtr selection)
-: m_selection(selection)
-, m_widget(vtkSmartPointer<vtkWidget3D>::New())
-, m_selectedSegmentations(selection->segmentations())
+: m_selection{selection}
+, m_widget   {vtkSmartPointer<vtkWidget3D>::New()}
 {
+  if(selection)
+  {
+    m_selectedSegmentations = selection->segmentations();
+  }
 }
 
 //----------------------------------------------------------------------------

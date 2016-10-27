@@ -89,8 +89,11 @@ Widget2D::Widget2D(SelectionSPtr selection)
 , m_command              {vtkSmartPointer<Command>::New()}
 , m_camera               {nullptr}
 , m_slice                {0}
-, m_selectedSegmentations{selection->segmentations()}
 {
+  if(selection)
+  {
+    m_selectedSegmentations = selection->segmentations();
+  }
 }
 
 //----------------------------------------------------------------------------

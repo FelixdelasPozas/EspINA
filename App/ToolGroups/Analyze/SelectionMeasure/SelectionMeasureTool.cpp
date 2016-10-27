@@ -68,7 +68,8 @@ void SelectionMeasureTool::onToolActivated(bool value)
 {
   if (value)
   {
-    if(m_viewState.selection()->items().isEmpty())
+    auto selection = m_viewState.selection();
+    if(selection && selection->items().isEmpty() && selection->activeChannel())
     {
       m_viewState.selection()->set(toViewItemList(m_viewState.selection()->activeChannel()));
     }
