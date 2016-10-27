@@ -38,61 +38,30 @@ namespace ESPINA
 			 * \param[in] scheduler, scheduler smart pointer.
 			 *
 			 */
-			explicit FillHolesFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
+			explicit FillHolesFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
 			/** \brief FillHolesFilter class virtual destructor.
 			 *
 			 */
-			virtual ~FillHolesFilter();
+			virtual ~FillHolesFilter()
+			{};
 
-			/** \brief Implements Persistent::restoreState().
-			 *
-			 */
-			virtual void restoreState(const State& state);
+			virtual void restoreState(const State& state)
+			{};
 
-			/** \brief Implements Persistent::state().
-			 *
-			 */
-			virtual State state() const;
+			virtual State state() const
+			{ return State(); };
 
 		protected:
-			/** \brief Implements Filter::saveFilterSnapshot().
-			 *
-			 */
-			virtual Snapshot saveFilterSnapshot() const;
+			virtual Snapshot saveFilterSnapshot() const
+			{ return Snapshot(); };
 
-			/** \brief Implements Filter::needUpdate().
-			 *
-			 */
 			virtual bool needUpdate() const;
 
-			/** \brief Implements Filter::needUpdate(id).
-			 *
-			 */
-			virtual bool needUpdate(Output::Id id) const;
+			virtual void execute();
 
-			/** \brief Implements Filter::execute().
-			 *
-			 */
-			virtual void execute()
-			{	execute(0);	}
-
-			/** \brief Implements Filter::execute(id).
-			 *
-			 */
-			virtual void execute(Output::Id id);
-
-			/** \brief
-			 *
-			 */
 			virtual bool ignoreStorageContent() const
 			{	return false;	}
-
-			/** \brief Implements Filter::invalidateEditedRegions().
-			 *
-			 */
-			virtual bool areEditedRegionsInvalidated();
-
 	};
 
 	using FillHolesFilterPtr = FillHolesFilter *;

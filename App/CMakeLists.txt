@@ -46,6 +46,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/CODERefineWidget.h
   ToolGroups/Edit/CODERefiner.h
   ToolGroups/Edit/CODETool.h
+  ToolGroups/Edit/FillHoles2DTool.h
   ToolGroups/Edit/FillHolesTool.h
   ToolGroups/Edit/ImageLogicTool.h
   ToolGroups/Edit/ManualEditionTool.h
@@ -155,6 +156,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/CODERefiner.cpp
   ToolGroups/Edit/CODETool.cpp
   ToolGroups/Edit/EditToolGroup.cpp
+  ToolGroups/Edit/FillHoles2DTool.cpp
   ToolGroups/Edit/FillHolesTool.cpp
   ToolGroups/Edit/ImageLogicTool.cpp
   ToolGroups/Edit/ManualEditionTool.cpp
