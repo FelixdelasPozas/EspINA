@@ -20,6 +20,8 @@
 #ifndef ESPINA_FILL_HOLES_TOOL_H
 #define ESPINA_FILL_HOLES_TOOL_H
 
+// ESPINA
+#include <Filters/FillHolesFilter.h>
 #include <Support/Widgets/EditTool.h>
 
 namespace ESPINA
@@ -27,30 +29,45 @@ namespace ESPINA
   class FillHolesTool
   : public Support::Widgets::EditTool
   {
-    Q_OBJECT
-  public:
-    explicit FillHolesTool(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief FillHolesTool class constructor.
+       * \param[in] context application context.
+       *
+       */
+      explicit FillHolesTool(Support::Context &context);
 
-    virtual void abortOperation();
+      /** \brief FillHolesTool class virtual destructor.
+       *
+       */
+      virtual ~FillHolesTool()
+      {};
 
-  private:
-    virtual bool acceptsNInputs(int n) const;
+      virtual void abortOperation() override;
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations);
+    private:
+      virtual bool acceptsNInputs(int n) const;
 
-  private slots:
-    void fillHoles();
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
-    void onTaskFinished();
+    private slots:
+      /** \brief Lauches task execution.
+       *
+       */
+      void applyFilter();
 
-  private:
-    struct TaskContext
-    {
-      FilterSPtr             Task;
-      SegmentationAdapterPtr Segmentation;
-      QString                Operation;
-    };
-    QMap<TaskPtr, TaskContext> m_executingTasks;
+      /** \brief Processes execution results.
+       *
+       */
+      void onTaskFinished();
+
+    private:
+      struct TaskContext
+      {
+        FillHolesFilterSPtr    Filter;       /** filter in execution. */
+        SegmentationAdapterPtr Segmentation; /** segmentation.        */
+      };
+      QMap<TaskPtr, TaskContext> m_executingTasks; /** map filter<->context of currently executing filters. */
   };
 }
 
