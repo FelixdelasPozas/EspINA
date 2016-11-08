@@ -70,9 +70,14 @@ namespace ESPINA
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
 
     /** \brief Replace current mesh data with mesh
+     * \param[in] mesh vtk mesh object.
+     * \param[in] notify true to notify modification and false otherwise (if the mesh is
+     *                   dependent of the other data and updated when the other data is
+     *                   modified, there is no need to signal for modification, as it's
+     *                   supposed to be in sync.
      *
      */
-    virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) = 0;
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;

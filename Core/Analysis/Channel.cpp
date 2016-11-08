@@ -154,8 +154,7 @@ Snapshot Channel::snapshot() const
 
   if (!extensions->isEmpty())
   {
-    QByteArray xml;
-
+    QByteArray xml{4*1024, Qt::Initialization::Uninitialized};
     QXmlStreamWriter stream(&xml);
 
     stream.setAutoFormatting(true);
@@ -191,6 +190,7 @@ Snapshot Channel::snapshot() const
     }
     stream.writeEndElement();
     stream.writeEndDocument();
+    xml.squeeze();
 
     QString file = extensionsPath() + QString("%1.xml").arg(uuid());
     snapshot << SnapshotData(file, xml);

@@ -58,7 +58,7 @@ namespace ESPINA
     virtual ~RawMesh()
     {};
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) override;
 
     virtual bool isValid() const override;
 

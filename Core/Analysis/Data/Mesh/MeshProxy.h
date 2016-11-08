@@ -110,8 +110,8 @@ namespace ESPINA
     virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_data->mesh(); }
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
-    { m_data->setMesh(mesh); }
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) override
+    { m_data->setMesh(mesh, notify); }
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override

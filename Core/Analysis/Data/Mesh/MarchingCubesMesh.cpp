@@ -42,7 +42,7 @@ MarchingCubesMesh::MarchingCubesMesh(Output *output)
 //----------------------------------------------------------------------------
 bool MarchingCubesMesh::isValid() const
 {
-  return RawMesh::isValid() || m_output->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return m_output->hasData(VolumetricData<itkVolumeType>::TYPE) || RawMesh::isValid();
 }
 
 //----------------------------------------------------------------------------
@@ -115,9 +115,9 @@ void MarchingCubesMesh::updateMesh()
 
   QMutexLocker lock(&m_lock);
 
-  setMesh(marchingCubes->GetOutput());
-
   m_lastVolumeModification = volumeTime;
+
+  setMesh(marchingCubes->GetOutput(), false);
 }
 
 //----------------------------------------------------------------------------
@@ -139,7 +139,7 @@ VolumeBounds MarchingCubesMesh::bounds() const
   {
     auto mesh = RawMesh::mesh();
 
-    if (!mesh)
+    if (!mesh || needsUpdate())
     {
       const_cast<MarchingCubesMesh *>(this)->updateMesh();
     }
