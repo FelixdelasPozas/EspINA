@@ -50,7 +50,7 @@ vtkSmartPointer<vtkPolyData> MarchingCubesMesh::mesh() const
 {
   auto mesh = RawMesh::mesh();
 
-  if (!mesh)
+  if (!mesh || needsUpdate())
   {
     const_cast<MarchingCubesMesh *>(this)->updateMesh();
   }
@@ -69,21 +69,19 @@ TimeStamp MarchingCubesMesh::lastModified() const
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::updateMesh()
 {
-  auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+  if(!needsUpdate()) return;
 
-  if(!volume->isValid())
+  vtkSmartPointer<vtkImageData> image = nullptr;
+  TimeStamp volumeTime{VTK_UNSIGNED_LONG_LONG_MAX};
+
   {
-    return;
+    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+
+    if(!volume->isValid()) return;
+
+    image = vtkImage(volume, volume->bounds());
+    volumeTime = volume->lastModified();
   }
-
-  QMutexLocker lock(&m_lock);
-
-  if(m_lastVolumeModification == volume->lastModified())
-  {
-    return;
-  }
-
-  auto image = vtkImage(volume, volume->bounds());
 
   int extent[6];
   image->GetExtent(extent);
@@ -115,9 +113,11 @@ void MarchingCubesMesh::updateMesh()
   marchingCubes->SetInputData(padding->GetOutput());
   marchingCubes->Update();
 
+  QMutexLocker lock(&m_lock);
+
   setMesh(marchingCubes->GetOutput());
 
-  m_lastVolumeModification = volume->lastModified();
+  m_lastVolumeModification = volumeTime;
 }
 
 //----------------------------------------------------------------------------
@@ -149,11 +149,15 @@ VolumeBounds MarchingCubesMesh::bounds() const
 }
 
 //----------------------------------------------------------------------------
-Snapshot MarchingCubesMesh::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
+const bool MarchingCubesMesh::needsUpdate() const
 {
-  // NOTE: mesh should be up to date with volume data when saving, as its assumed to be in sync with it when loading
-  // (it will be loaded as a simple RawMesh).
-  updateMesh();
+  TimeStamp time;
+  {
+    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+    time = volume->lastModified();
+  }
 
-  return RawMesh::snapshot(storage, path, id);
+  QMutexLocker lock(&m_lock);
+
+  return m_lastVolumeModification != time;
 }

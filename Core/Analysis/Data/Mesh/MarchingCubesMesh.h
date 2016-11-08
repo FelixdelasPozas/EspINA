@@ -62,26 +62,29 @@ namespace ESPINA
 
       virtual bool isValid() const override;
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
-
       virtual vtkSmartPointer<vtkPolyData> mesh() const override;
 
       virtual TimeStamp lastModified() const override;
 
-      /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
+      virtual VolumeBounds bounds() const override;
+
+    private:
+      /** \brief Applies marching cubes algorithm to the volumetric data of its output to generate a mesh.
        *
        */
       void updateMesh();
 
-      virtual VolumeBounds bounds() const override;
-
-    private:
       virtual QList<Data::Type> updateDependencies() const override;
 
+      /** \brief Returns true if the mesh need to be updated.
+       *
+       */
+      const bool needsUpdate() const;
+
     private:
-      Output        *m_output;
-      TimeStamp      m_lastVolumeModification;
-      mutable QMutex m_lock;
+      Output        *m_output;                 /** output this data belongs to.    */
+      TimeStamp      m_lastVolumeModification; /** last time the mesh was updated. */
+      mutable QMutex m_lock;                   /** protects internal data.         */
   };
 
 } // namespace ESPINA

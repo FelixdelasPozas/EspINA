@@ -55,7 +55,14 @@ namespace ESPINA
 
     virtual DataSPtr createProxy() const override final;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will cause fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+    { return snapshot(storage, path, id); };
 
     /** \brief Returns the vtkPolyData smart pointer object.
      *
@@ -68,7 +75,7 @@ namespace ESPINA
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override = 0;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const

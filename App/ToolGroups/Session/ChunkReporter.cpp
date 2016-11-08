@@ -25,9 +25,9 @@ using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
 ChunkReporter::ChunkReporter(unsigned int chunks, ProgressTool* tool)
-: m_completedChunks(0)
-, m_chunkProgress(100.0/chunks)
-, m_tool(tool)
+: m_completedChunks{0}
+, m_chunkProgress  {100.0/chunks}
+, m_tool           {tool}
 {}
 
 //----------------------------------------------------------------------------
@@ -38,7 +38,10 @@ void ChunkReporter::nextChunk()
 }
 
 //----------------------------------------------------------------------------
-void ChunkReporter::setProgress(unsigned int progress)
+void ChunkReporter::setProgress(unsigned int value)
 {
-  m_tool->setProgress((m_completedChunks + progress/100.0)*m_chunkProgress);
+  auto totalValue = (m_completedChunks + value/100.0)*m_chunkProgress;
+  m_tool->setProgress(totalValue);
+
+  emit progress(totalValue);
 }

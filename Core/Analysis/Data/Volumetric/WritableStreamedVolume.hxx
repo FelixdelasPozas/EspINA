@@ -597,8 +597,7 @@ namespace ESPINA
                                                       const typename T::RegionType  &region,
                                                       const typename T::SpacingType &spacing)
     : WritableStreamedFileBase<T>(fileName, region, spacing, 1)
-    {
-    }
+    {}
 
     //------------------------------------------------------------------------
     template<class T>
@@ -699,6 +698,8 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
+
+      this->updateModificationTime();
     }
 
     //-----------------------------------------------------------------------------
@@ -710,8 +711,7 @@ namespace ESPINA
                                                                   const typename T::SpacingType &spacing,
                                                                   const unsigned int             length)
     : WritableStreamedFileBase<T>(fileName, region, spacing, length)
-    {
-    }
+    {}
 
     //------------------------------------------------------------------------
     template<class T>
@@ -813,6 +813,8 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
+
+      this->updateModificationTime();
     }
 
   } // namespace Core

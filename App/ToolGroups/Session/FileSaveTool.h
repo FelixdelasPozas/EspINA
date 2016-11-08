@@ -26,77 +26,108 @@
 #include <Support/Widgets/ProgressTool.h>
 #include "EspinaErrorHandler.h"
 
-
 namespace ESPINA
 {
-  //----------------------------------------------------------------------------
+  namespace IO
+  {
+    namespace SegFile
+    {
+      class SaveThread;
+    }
+  }
+
+  /** \class FileSaveTool
+   * \brief Tool that handles file save.
+   *
+   */
   class FileSaveTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief FileOpenTool class constructor.
-     *
-     * \param[in] id of the tool
-     * \param[in] icon for the tool
-     * \param[in] tooltip to be display on mouse hover
-     * \param[in] context application context
-     * \param[in] handler error handler
-     *
-     */
-    explicit FileSaveTool(const QString    &id,
-                          const QString    &icon,
-                          const QString    &tooltip,
-                          Support::Context &context,
-                          AnalysisSPtr     &analysis,
-                          EspinaErrorHandlerSPtr handler);
+      Q_OBJECT
+    public:
+      /** \brief FileOpenTool class constructor.
+       *
+       * \param[in] id of the tool
+       * \param[in] icon for the tool
+       * \param[in] tooltip to be display on mouse hover
+       * \param[in] context application context
+       * \param[in] handler error handler
+       *
+       */
+      explicit FileSaveTool(const QString         &id,
+                            const QString         &icon,
+                            const QString         &tooltip,
+                            Support::Context      &context,
+                            AnalysisSPtr          &analysis,
+                            EspinaErrorHandlerSPtr handler);
 
-    virtual ~FileSaveTool();
+      /** \brief FileSaveTool class virtual destructor.
+       *
+       */
+      virtual ~FileSaveTool();
 
-    /** \brief Sets the filename to save analysis to
-     * \param[in] filename file to save current analysis
-     *
-     * If no filename is set, then a SaveDialog is displayed
-     * to select the filename
-     */
-    void setSaveFilename(const QString &filename);
+      /** \brief Sets the filename to save analysis to
+       * \param[in] filename file to save current analysis
+       *
+       * If no filename is set, then a SaveDialog is displayed
+       * to select the filename
+       */
+      void setSaveFilename(const QString &filename);
 
-    /** \brief Returns the filename to save analysis to
-     *
-     */
-    const QString saveFilename() const;
+      /** \brief Returns the filename to save analysis to
+       *
+       */
+      const QString saveFilename() const;
 
-    /** \brief Stores the current undo stack index.
-     *
-     */
-    void updateUndoStackIndex();
+      /** \brief Stores the current undo stack index.
+       *
+       */
+      void updateUndoStackIndex();
 
-    /** \brief Sets the behaviour of the tool regarding asking the user.
-     * \param[in] value true to always ask for the file name, and false otherwise.
-     *
-     */
-    void setAlwaysAskUser(bool value);
+      /** \brief Sets the behavior of the tool regarding asking the user.
+       * \param[in] value true to always ask for the file name, and false otherwise.
+       *
+       */
+      void setAlwaysAskUser(bool value);
 
-  public slots:
-    void saveAnalysis();
+    public slots:
+      void saveAnalysis();
 
-    /** \brief Saves the analysis to the given file.
-     *
-     */
-    void saveAnalysis(const QString &fileName);
+      /** \brief Saves the analysis to the given file.
+       *
+       */
+      void saveAnalysis(const QString &fileName);
 
-  signals:
-    void aboutToSaveSession();
+      /** \brief Handles the save thread result.
+       *
+       */
+      void onSaveThreadFinished();
 
-    void sessionSaved(const QString &filename, bool success);
+    signals:
+      void aboutToSaveSession();
 
-  protected:
-    QString m_filename;
+      void sessionSaved(const QString &filename, bool success);
 
-  private:
-    AnalysisSPtr          &m_analysis;
-    EspinaErrorHandlerSPtr m_errorHandler;
-    bool                   m_askAlways;
+    protected:
+      QString m_filename;
+
+    private:
+      /** \brief Returns the icon for the tool during the save process.
+       *
+       */
+      QIcon saveIcon() const;
+
+      /** \brief Returns the default tool icon.
+       *
+       */
+      QIcon defaultIcon() const;
+
+      AnalysisSPtr          &m_analysis;     /** analysis to save.                                         */
+      EspinaErrorHandlerSPtr m_errorHandler; /** application error handler.                                */
+      bool                   m_askAlways;    /** true to ask to user in case of error and false otherwise. */
+      const QIcon            m_icon;         /** tool icon.                                                */
+
+      std::shared_ptr<IO::SegFile::SaveThread> m_thread; /** saving thread. */
   };
 } // namespace ESPINA
 

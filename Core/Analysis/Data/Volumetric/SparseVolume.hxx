@@ -441,6 +441,8 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
+
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -474,6 +476,8 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
+
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -506,6 +510,8 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
+
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -564,6 +570,8 @@ namespace ESPINA
         m_blocks.remove(index);
       }
     }
+
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------

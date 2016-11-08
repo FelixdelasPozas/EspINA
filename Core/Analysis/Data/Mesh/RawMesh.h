@@ -64,16 +64,6 @@ namespace ESPINA
 
     virtual bool isEmpty() const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
-    { return MeshData::snapshot(storage, path, id); }
-
-    // Because meshes store the whole mesh polydata when their edited regions
-    // are requested, we can use the same name which will cause fetch method to
-    // succeed when restoring from edited regions (this will also will avoid
-    // executing the filter itself if no other data is required)
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
-    { return MeshData::snapshot(storage, path, id); };
-
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
     { fetchDataImplementation(storage, path, id, m_bounds); }
 
@@ -82,10 +72,6 @@ namespace ESPINA
     void setSpacing(const NmVector3 &spacing) override;
 
     size_t memoryUsage() const override;
-
-  protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
-    { return MeshData::fetchDataImplementation(storage, path, id, bounds); }
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

@@ -557,15 +557,9 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAutoSave(const QString& file)
 {
-  auto currentToolGroup = m_activeToolGroup;
-
-  m_sessionToolGroup->setChecked(true);
-
   QApplication::processEvents();
 
   m_saveAsTool->saveAnalysis(file);
-
-  currentToolGroup->setChecked(true);
 
   QApplication::processEvents();
 }
@@ -1258,24 +1252,32 @@ void EspinaMainWindow::onAboutToSaveSession()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onSessionSaved(const QString &filename, bool success)
 {
-  if (success && !m_autoSave.isAutoSaveFile(filename))
+  if(success)
   {
-    updateStatus(tr("File saved successfully as %1").arg(filename));
+    if (!m_autoSave.isAutoSaveFile(filename))
+    {
+      updateStatus(tr("File saved successfully as %1").arg(filename));
 
-    QFileInfo file = filename;
-    setWindowTitle(file.fileName());
+      auto file = QFileInfo{filename};
+      file.refresh();
+      setWindowTitle(file.fileName());
 
-    m_saveTool->setSaveFilename(filename);
-    m_saveTool->setEnabled(filename.endsWith(".seg", Qt::CaseInsensitive));
+      m_saveTool->setSaveFilename(filename);
+      m_saveTool->setEnabled(filename.endsWith(".seg", Qt::CaseInsensitive));
 
-    m_saveAsTool->setSaveFilename(filename);
+      m_saveAsTool->setSaveFilename(filename);
 
-    m_autoSave.resetCountDown();
+      m_autoSave.resetCountDown();
 
-    updateUndoStackIndex();
+      updateUndoStackIndex();
 
-    RecentDocuments recent;
-    recent.addDocument(filename);
+      RecentDocuments recent;
+      recent.addDocument(filename);
+    }
+    else
+    {
+      updateStatus(tr("Auto-save succeeded at %1").arg(QTime::currentTime().toString("HH:mm:ss")));
+    }
   }
 
   m_busy = false;

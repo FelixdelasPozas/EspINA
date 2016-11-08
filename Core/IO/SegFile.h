@@ -38,9 +38,10 @@ namespace ESPINA
     namespace SegFile
     {
       /** \brief Loads an analysis from a file in disk.
-       * \param[in] file, QFileInfo object with the file info.
-       * \param[in] factory, factory smart pointer.
-       * \param[in] handler, error handler smart pointer.
+       * \param[in] file QFileInfo object with the file info.
+       * \param[in] factory factory smart pointer.
+       * \param[in] reporter progress reporter object.
+       * \param[in] handler error handler smart pointer.
        *
        */
       AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo  &file,
@@ -49,9 +50,10 @@ namespace ESPINA
                                           ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
       /** \brief Saves an analysis to a file in disk.
-       * \param[in] analysis, analysis to save.
-       * \param[in] file, QFileInfo object with the file info.
-       * \param[in] handler, error handler smart pointer.
+       * \param[in] analysis analysis to save.
+       * \param[in] file QFileInfo object with the file info.
+       * \param[in] reporter progress reporter object.
+       * \param[in] handler error handler smart pointer.
        *
        */
       void EspinaCore_EXPORT save(AnalysisPtr       analysis,

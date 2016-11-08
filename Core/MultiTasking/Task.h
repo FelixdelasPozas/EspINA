@@ -168,16 +168,16 @@ namespace ESPINA
     bool isPaused() const
     { return m_isPaused; }
 
+    int progress() const
+    { return m_progress; }
+
+  public slots:
     /** \brief Emits progress signal.
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
      */
     void reportProgress(int value);
 
-    int progress() const
-    { return m_progress; }
-
-  public slots:
     /** \brief Sets task priority.
      * \param[in] value priority level.
      *
