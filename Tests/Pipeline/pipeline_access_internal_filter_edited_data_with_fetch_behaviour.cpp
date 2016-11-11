@@ -169,7 +169,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedDilateOuptut = loadedSegmentation->output();
-  auto loadedDilateVolume = readLockVolume(loadedDilateOuptut);
+  auto loadedDilateVolume = writeLockVolume(loadedDilateOuptut);
 
   if (loadedDilateVolume->editedRegions().size() != 0)
   {
@@ -195,7 +195,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
   }
 
   auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
-  auto loadedSGSVolume = readLockVolume(loadedSGSOutput);
+  auto loadedSGSVolume = writeLockVolume(loadedSGSOutput);
 
   if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(loadedSGSVolume->itkImage(modificationBounds), SEG_BG_VALUE))
   {

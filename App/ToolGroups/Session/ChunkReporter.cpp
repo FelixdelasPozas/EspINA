@@ -26,7 +26,7 @@ using namespace ESPINA::Support::Widgets;
 //----------------------------------------------------------------------------
 ChunkReporter::ChunkReporter(unsigned int chunks, ProgressTool* tool)
 : m_completedChunks{0}
-, m_chunkProgress  {100.0/chunks}
+, m_chunkProgress  {100.0f/chunks}
 , m_tool           {tool}
 {}
 

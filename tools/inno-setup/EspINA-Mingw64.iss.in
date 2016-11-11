@@ -8,23 +8,25 @@
 ; the directories have been fixed.
 
 [Setup]
-AppName=ESPINA
+AppName=EspINA
 AppVersion=@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
-DefaultDirName={pf}\ESPINA
-DefaultGroupName=ESPINA
+DefaultDirName={pf}\EspINA
+DefaultGroupName=EspINA
 OutputDir=@CMAKE_CURRENT_BINARY_DIR@
 AlwaysShowComponentsList=yes
-AppComments=ESPINA Interactive Neuron Analizer
+AppComments=EspINA Interactive Neuron Analizer
 AppContact=CesViMa/UPM
-AppCopyright=(c)2013 CesViMA/UPM
+AppCopyright=(c)2013-2016 CesViMA/UPM
 AppPublisher=CesViMA/UPM
 ArchitecturesAllowed=x64
 Compression=lzma2/ultra64
 UninstallDisplayIcon={app}\espina.exe
-UninstallDisplayName=ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
+UninstallDisplayName=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
 SourceDir=@CMAKE_CURRENT_BINARY_DIR@\App
 SetupIconFile=@CMAKE_CURRENT_SOURCE_DIR@\App\rsc\espina.ico
-OutputBaseFilename=ESPINA Setup (Mingw64 Distribution)
+OutputBaseFilename=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@ Setup
+WizardImageFile=@CMAKE_CURRENT_SOURCE_DIR@\tools\inno-setup\image.bmp
+WizardSmallImageFile=@CMAKE_CURRENT_SOURCE_DIR@\tools\inno-setup\smallimage.bmp
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -37,18 +39,13 @@ Name: "plugins\ASurface"; Description: "Apposition Surface Plugin"; Types: full 
 Name: "plugins\CFrame"; Description: "Counting Frame Plugin"; Types: full custom
 Name: "plugins\Segmha"; Description: "SEGMHA Importer Plugin"; Types: full custom
 ;Name: "plugins\AutoSeg"; Description: "AutoSegmenter Plugin"; Types: full custom
-Name: "dependencies"; Description: "Library Dependencies"; Types: full custom
-Name: "dependencies\VTK"; Description: "VTK v6.1.0 Libraries"; Types: full custom
-Name: "dependencies\ITK"; Description: "ITK v4.6.0 Libraries"; Types: full custom
-Name: "dependencies\Quazip"; Description: "Quazip v0.7 Libraries"; Types: full custom
-Name: "dependencies\Qt"; Description: "Qt v4.8.4 Libraries"; Types: full custom
-Name: "dependencies\Boost"; Description: "Boost v1.56.0 Libraries"; Types: full custom
 
 [Dirs]
 Name: "{app}\plugins"
 
 [Files]
-Source: "ESPINA.exe"; DestDir: "{app}"; Components: program
+; EspINA FILES
+Source: "espina.exe"; DestDir: "{app}"; Components: program
 Source: "libEspinaCore.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaExtensions.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaFilters.dll"; DestDir: "{app}"; Components: program
@@ -56,25 +53,33 @@ Source: "libEspinaGUI.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaSupport.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaUndo.dll"; DestDir: "{app}"; Components: program
 
-; Need the compiler dlls.
-Source: "c:\mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
-
+; EspINA PLUGINS
 Source: "plugins\libAppositionSurfacePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\ASurface
 Source: "plugins\libCountingFramePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\CFrame
 Source: "plugins\libSegmhaImporterPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\Segmha
 ;Source: "plugins\libAutoSegmentPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\AutoSeg
 
+; COMPILER FILES- TODO: Requires the detection of directory to fully automate the script
+Source: "D:\Desarrollo\Mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
+
+; VTK FILES
 Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: dependencies\VTK
 
+; ITK FILES
 Source: "@ITK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: dependencies\ITK
 
-Source: "@QT_BINARY_DIR@\Qt*.dll"; DestDir: "{app}"; Components: dependencies\Qt
-Source: "@QT_PLUGINS_DIR@\iconengines\*.dll"; DestDir: "{app}"; Components: dependencies\Qt
-Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}"; Components: dependencies\Qt
+; QT FILES
+Source: "@QT_BINARY_DIR@\Qt*.dll"; DestDir: "{app}"; Components: program
+Source: "@QT_PLUGINS_DIR@\iconengines\*.dll"; DestDir: "{app}\iconengines\"; Components: program
+Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}\imageformats\"; Components: program
+Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystems\"; Components: program
+Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
 
+; QUAZIP FILES
 Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: dependencies\Quazip
 
-Source: "c:\deplibs\boost_1_57_0\stage\lib\libboost_*-mt-1_56.dll"; DestDir: "{app}"; Components: dependencies\Boost
+; BOOST FILES - TODO: Requires the detection of version to fully automate the script
+Source: "@Boost_INCLUDE_DIR@\stage\lib\libboost_*-mt-1_61.dll"; DestDir: "{app}"; Components: program
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"

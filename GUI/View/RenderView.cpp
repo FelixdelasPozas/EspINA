@@ -78,6 +78,9 @@ RenderView::RenderView(ViewState &state, ViewType type)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
+  m_managers.clear();
+  m_temporalManagers.clear();
+
   delete m_view;
 }
 

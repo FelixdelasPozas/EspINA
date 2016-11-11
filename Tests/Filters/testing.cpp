@@ -29,6 +29,7 @@
 #include <Filters/Utils/Stencil.h>
 
 #include <vtkPlane.h>
+#include <QString>
 
 using namespace std;
 using namespace ESPINA;
@@ -229,22 +230,23 @@ bool ESPINA::checkValidData(SegmentationSPtr segmentation, int numVolumeEditedRe
   }
   else
   {
-    auto volume = readLockVolume(loadedOuptut);
+    auto volume = writeLockVolume(loadedOuptut);
 
     if (!volume->isValid())
     {
-      cerr << "Unexpeceted invalid volumetric data" << endl;
+      cerr << "Unexpected invalid volumetric data" << endl;
       error = true;
     }
 
     if (volume->editedRegions().size() != numVolumeEditedRegions)
     {
-      cerr << "Unexpeceted number of edited regions" << endl;
+      cerr << "Unexpected number of edited regions" << endl;
       error = true;
     }
 
-    auto tmpStorage = make_shared<TemporalStorage>();
-    for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
+    auto tmpStorage   = make_shared<TemporalStorage>();
+    auto snapshotData = volume->snapshot(tmpStorage, QString{"segmentation"}, QString{"1"});
+    for (auto snapshot : snapshotData)
     {
       if (snapshot.first.contains("EditedRegion"))
       {

@@ -84,7 +84,7 @@ Scheduler::Scheduler(int period, QObject* parent)
   // TODO: better task scheduling when a task gets blocked, until then just set the bar high
   //       enough to avoid starvation.
   // NOTE: can be "task->thread()->yieldCurrentThread();" a solution with the cycle counter?
-  m_maxNumRunningTasks = 15;
+  m_maxNumRunningTasks = MAX_TASKS;
 
   thread->start();
 }
@@ -156,7 +156,10 @@ void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 //-----------------------------------------------------------------------------
 unsigned int Scheduler::maxRunningTasks()
 {
-  return QThreadPool::globalInstance()->maxThreadCount();
+  /* NOTE: should be "QThreadPool::globalInstance()->maxThreadCount();" but produces starvation if a file has
+   * more counting frames.
+   */
+  return MAX_TASKS;
 }
 
 //-----------------------------------------------------------------------------

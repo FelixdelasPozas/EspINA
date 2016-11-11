@@ -438,18 +438,18 @@ namespace ESPINA
     auto thisPointer = sourceImage->GetBufferPointer();
     auto otherPointer = image->GetBufferPointer();
 
-    auto zJump     = sourceRegion.GetSize(0)*sourceRegion.GetSize(1)*componentsNum;
-    auto yJump     = sourceRegion.GetSize(0)*componentsNum;
-    auto zStart    = region.GetIndex(2);
-    auto zEnd      = zStart+region.GetSize(2);
-    auto yStart    = region.GetIndex(1);
-    auto yEnd      = yStart+region.GetSize(1);
-    auto copySize  = region.GetSize(0)*componentsNum;
-    auto copyStart = region.GetIndex(0)*componentsNum;
+    const unsigned long zJump     = sourceRegion.GetSize(0)*sourceRegion.GetSize(1)*componentsNum;
+    const unsigned long yJump     = sourceRegion.GetSize(0)*componentsNum;
+    const unsigned long zStart    = region.GetIndex(2);
+    const unsigned long zEnd      = zStart+region.GetSize(2);
+    const unsigned long yStart    = region.GetIndex(1);
+    const unsigned long yEnd      = yStart+region.GetSize(1);
+    const unsigned long copySize  = region.GetSize(0)*componentsNum;
+    const unsigned long copyStart = region.GetIndex(0)*componentsNum;
 
-    for(auto z = zStart; z < zEnd; ++z)
+    for(unsigned long z = zStart; z < zEnd; ++z)
     {
-      for(auto y = yStart; y < yEnd; ++y)
+      for(unsigned long y = yStart; y < yEnd; ++y)
       {
         auto pointer = thisPointer + z*zJump + y*yJump + copyStart;
         std::memcpy(otherPointer, pointer, copySize);
@@ -533,27 +533,27 @@ namespace ESPINA
     const auto componentsNum = source->GetNumberOfComponentsPerPixel();
     const auto copySize     = sourceRegion.GetSize(0)*componentsNum;
 
-    const auto sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*componentsNum;
-    const auto sourceYJump = sourceLargest.GetSize(0)*componentsNum;
-    const auto sZStart     = sourceRegion.GetIndex(2)-sourceLargest.GetIndex(2);
-    const auto sZEnd       = sZStart+sourceRegion.GetSize(2);
-    const auto sYStart     = sourceRegion.GetIndex(1)-sourceLargest.GetIndex(1);
-    const auto sYEnd       = sYStart+sourceRegion.GetSize(1);
-    const auto sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*componentsNum;
+    const unsigned long sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*componentsNum;
+    const unsigned long sourceYJump = sourceLargest.GetSize(0)*componentsNum;
+    const unsigned long sZStart     = sourceRegion.GetIndex(2)-sourceLargest.GetIndex(2);
+    const unsigned long sZEnd       = sZStart+sourceRegion.GetSize(2);
+    const unsigned long sYStart     = sourceRegion.GetIndex(1)-sourceLargest.GetIndex(1);
+    const unsigned long sYEnd       = sYStart+sourceRegion.GetSize(1);
+    const unsigned long sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*componentsNum;
 
     const auto destPointer   = destination->GetBufferPointer();
     const auto destLargest   = destination->GetLargestPossibleRegion();;
     const auto destRegion    = equivalentRegion<T>(destination, bounds);
 
-    const auto destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*componentsNum;
-    const auto destYJump = destLargest.GetSize(0)*componentsNum;
-    const auto dZStart   = destRegion.GetIndex(2)-destLargest.GetIndex(2);
-    const auto dYStart   = destRegion.GetIndex(1)-destLargest.GetIndex(1);
-    const auto dXStart   = (destRegion.GetIndex(0)-destLargest.GetIndex(0))*componentsNum;
+    const unsigned long destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*componentsNum;
+    const unsigned long destYJump = destLargest.GetSize(0)*componentsNum;
+    const unsigned long dZStart   = destRegion.GetIndex(2)-destLargest.GetIndex(2);
+    const unsigned long dYStart   = destRegion.GetIndex(1)-destLargest.GetIndex(1);
+    const unsigned long dXStart   = (destRegion.GetIndex(0)-destLargest.GetIndex(0))*componentsNum;
 
-    for(int sZ = sZStart, dZ = dZStart; sZ < sZEnd; ++sZ, ++dZ)
+    for(unsigned long sZ = sZStart, dZ = dZStart; sZ < sZEnd; ++sZ, ++dZ)
     {
-      for(int sY = sYStart, dY = dYStart; sY < sYEnd; ++sY, ++dY)
+      for(unsigned long sY = sYStart, dY = dYStart; sY < sYEnd; ++sY, ++dY)
       {
         auto sPointer = sourcePointer + sZ*sourceZJump + sY*sourceYJump + sXStart;
         auto dPointer = destPointer + dZ*destZJump + dY*destYJump + dXStart;
@@ -564,7 +564,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  unsigned long long compare_images(typename T::Pointer const image1, typename T::Pointer image2, const Bounds &bounds, typename T::ValueType value = SEG_VOXEL_VALUE)
+  unsigned long long compare_images(typename T::Pointer const image1, typename T::Pointer image2, const Bounds &bounds, typename T::ValueType value)
   {
     if(!contains(equivalentBounds<T>(image1), bounds) || !contains(equivalentBounds<T>(image2),bounds))
     {

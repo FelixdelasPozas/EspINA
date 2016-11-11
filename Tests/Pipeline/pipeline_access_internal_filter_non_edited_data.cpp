@@ -143,7 +143,7 @@ int pipeline_access_internal_filter_non_edited_data( int argc, char** argv )
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedDilateOuptut = loadedSegmentation->output();
-  auto dilateVolume       = readLockVolume(loadedDilateOuptut);
+  auto dilateVolume       = writeLockVolume(loadedDilateOuptut);
 
   if (dilateVolume->editedRegions().size() != 0)
   {
@@ -169,7 +169,7 @@ int pipeline_access_internal_filter_non_edited_data( int argc, char** argv )
   }
 
   auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
-  auto sgsVolume       = readLockVolume(loadedSGSOutput);
+  auto sgsVolume       = writeLockVolume(loadedSGSOutput);
 
   if (sgsVolume->editedRegions().size() != 0)
   {

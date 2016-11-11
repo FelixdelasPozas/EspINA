@@ -219,13 +219,15 @@ export(TARGETS
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE ESPINA)
  
+get_property(inc_directories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+ 
 # Create the ESPINAConfig.cmake and ESPINAConfigVersion files
 file(RELATIVE_PATH REL_INCLUDE_DIR   "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
 file(RELATIVE_PATH REL_LIBRARIES_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_LIB_DIR}")
 # ... for the build tree
 set(CONF_CMAKE_DIR      "${PROJECT_SOURCE_DIR}")
 set(CONF_LIBRARIES_DIRS "${LIBRARY_OUTPUT_PATH}")
-set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}" ${inc_directories})
 configure_file (
   ESPINAConfig.cmake.in
   "${PROJECT_BINARY_DIR}/ESPINAConfig.cmake"

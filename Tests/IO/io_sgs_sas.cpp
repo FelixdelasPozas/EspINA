@@ -156,7 +156,7 @@ int io_sgs_sas( int argc, char** argv )
   }
   else
   {
-    auto volume = readLockVolume(loadedOuptut);
+    auto volume = writeLockVolume(loadedOuptut);
     
     if (!volume->isValid())
     {

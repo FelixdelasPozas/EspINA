@@ -141,7 +141,7 @@ namespace ESPINA
       virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
     private:
-      using BlockIndexes = QList<liVector3>;
+      using BlockIndexes = QList<lliVector3>;
 
       QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
       { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
@@ -169,13 +169,13 @@ namespace ESPINA
        * \param[in] index block index.
        *
        */
-      void createBlock(const liVector3 &index);
+      void createBlock(const lliVector3 &index);
 
       /** \brief Returns true if the block associated with the given index is empty.
        * \param[in] index block index.
        *
        */
-      bool isEmpty(const liVector3 &index) const;
+      bool isEmpty(const lliVector3 &index) const;
 
       /** \brief Returns an iterator to iterate all pixels of block containted in bounds
        * \param[in] block index
@@ -213,7 +213,7 @@ namespace ESPINA
 
     protected:
       const unsigned int s_blockSize = 25;
-      QMap<liVector3, typename T::Pointer> m_blocks;
+      QMap<lliVector3, typename T::Pointer> m_blocks;
 
       mutable QReadWriteLock m_blockMutex;
   };
@@ -688,12 +688,12 @@ namespace ESPINA
       auto origin = image->GetOrigin();
 
       itkVolumeType::IndexType index;
-      for(int i = 0; i < itkVolumeType::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < itkVolumeType::GetImageDimension(); ++i)
       {
         index.SetElement(i, region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/spacing[i]));
       }
 
-      auto key   = liVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
+      auto key   = lliVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
       if (!m_blocks.contains(key)
         && (size[0] == s_blockSize)
@@ -733,7 +733,7 @@ namespace ESPINA
   {
     Snapshot snapshot;
 
-    QMapIterator<liVector3, typename T::Pointer> it(m_blocks);
+    QMapIterator<lliVector3, typename T::Pointer> it(m_blocks);
     int i = 0;
     while(it.hasNext())
     {
@@ -830,7 +830,7 @@ namespace ESPINA
   typename SparseVolume<T>::BlockIndexes SparseVolume<T>::toBlockIndexes(const itk::ImageRegion<3> &region) const
   {
     BlockIndexes result;
-    liVector3 minimum, maximum;
+    lliVector3 minimum, maximum;
 
     auto index  = region.GetIndex();
     auto size   = region.GetSize();
@@ -847,7 +847,7 @@ namespace ESPINA
       {
         for(int k = minimum[2]; k < maximum[2]; ++k)
         {
-          result << liVector3{i,j,k};
+          result << lliVector3{i,j,k};
         }
       }
     }
@@ -885,7 +885,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void SparseVolume<T>::createBlock(const liVector3 &index)
+  void SparseVolume<T>::createBlock(const lliVector3 &index)
   {
     itk::ImageRegion<3> region;
     region.SetIndex(0, index[0] * this->s_blockSize);
@@ -907,7 +907,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::isEmpty(const liVector3 &index) const
+  bool SparseVolume<T>::isEmpty(const lliVector3 &index) const
   {
     auto block  = m_blocks[index];
     auto region = block->GetLargestPossibleRegion();

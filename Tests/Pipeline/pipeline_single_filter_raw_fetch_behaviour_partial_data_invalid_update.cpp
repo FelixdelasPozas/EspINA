@@ -139,7 +139,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
   }
   else
   {
-    auto volume = readLockVolume(loadedOuptut);
+    auto volume = writeLockVolume(loadedOuptut);
 
     if (volume->editedRegions().size() != 0)
     {

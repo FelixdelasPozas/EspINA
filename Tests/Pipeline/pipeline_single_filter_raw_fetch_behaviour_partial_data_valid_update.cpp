@@ -144,7 +144,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
   }
   else
   {
-    auto volume = readLockVolume(loadedOuptut);
+    auto volume = writeLockVolume(loadedOuptut);
 
     if (!volume->isValid())
     {
