@@ -32,6 +32,7 @@
 // C++
 #include <iostream>
 #include <cstdint>
+#include <cmath>
 
 // Qt
 #include <QList>

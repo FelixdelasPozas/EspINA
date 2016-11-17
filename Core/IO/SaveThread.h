@@ -22,6 +22,8 @@
 #ifndef CORE_IO_SAVETHREAD_H_
 #define CORE_IO_SAVETHREAD_H_
 
+#include "Core/EspinaCore_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Analysis.h>
 #include <Core/IO/ErrorHandler.h>
@@ -42,7 +44,7 @@ namespace ESPINA
        * \brief Saves an analysis to a file in disk using a separate thread.
        *
        */
-      class SaveThread
+      class EspinaCore_EXPORT SaveThread
       : public Task
       {
           Q_OBJECT

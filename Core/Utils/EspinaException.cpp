@@ -75,10 +75,10 @@ const char* EspinaException::details() const
   return m_info.c_str();
 }
 
+#ifdef __linux__
 //-----------------------------------------------------------------------------
 void signalHandler(int signal, siginfo_t *siginfo, void *context)
 {
-#ifdef __linux__
   const char *signal_text = nullptr;
 
   switch(signal)
@@ -181,10 +181,10 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
     out << "SIGNAL: " << signal_text << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
   }
-#endif
 
   std::_Exit(1);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 void exceptionHandler()
