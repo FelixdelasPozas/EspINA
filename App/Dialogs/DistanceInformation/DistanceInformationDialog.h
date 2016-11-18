@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef APP_DIALOGS_DISTANCEINFORMATION_DISTANCEINFORMATIONDIALOG_H_
-#define APP_DIALOGS_DISTANCEINFORMATION_DISTANCEINFORMATIONDIALOG_H_
+#ifndef DISTANCEINFORMATIONDIALOG_H_
+#define DISTANCEINFORMATIONDIALOG_H_
 
 // Qt
 #include <QDebug>
@@ -31,7 +31,9 @@
 #include <Support/Context.h>
 #include "DistanceInformationOptionsDialog.h"
 
-using DistOpts = ESPINA::DistanceInformationOptionsDialog::DistanceInformationOptions;
+// VTK
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
 
 namespace ESPINA
 {
@@ -47,7 +49,9 @@ namespace ESPINA
        * \param[in] parent widget.
        * \param[in] parent widget.
        */
-      explicit DistanceInformationDialog(SegmentationAdapterList input, DistOpts options, Support::Context &context);
+      explicit DistanceInformationDialog(SegmentationAdapterList selectedSegmentations,
+                                         DistanceInformationOptionsDialog::Options options,
+                                         Support::Context &context);
 
       /** \brief DistanceInformationDialog class destructor.
        *
@@ -56,9 +60,41 @@ namespace ESPINA
       {};
 
     private:
-      SegmentationAdapterList input;
-      Support::Context &context;
-      DistOpts options;
+      /** \brief Calculate distance between the two given segmentations.
+       * \param[in] first segmentation.
+       * \param[in] second segmentation.
+       *///TODO
+      const Nm centroidDistance(SegmentationAdapterPtr first,
+                                SegmentationAdapterPtr second);
+
+      /** \brief Calculate distance between the two given segmentations.
+       * \param[in] first segmentation.
+       * \param[in] second segmentation.
+       * \param[out] cached distance
+       *///TODO
+      const bool isDistanceCached(SegmentationAdapterPtr first,
+                                 SegmentationAdapterPtr second,
+                                 Nm *distance = nullptr);
+
+      /** \brief Calculate distance between the two given segmentations.
+       * \param[in] first segmentation.
+       * \param[in] second segmentation.
+       *///TODO
+      const NmVector3 getCentroid(SegmentationAdapterPtr seg);
+
+      /** \brief Calculate distance between the two given segmentations.
+       * \param[in] first segmentation.
+       * \param[in] second segmentation.
+       *///TODO
+      const Nm meshDistance(SegmentationAdapterPtr first,
+                            SegmentationAdapterPtr second);
+
+
+      QHash<SegmentationAdapterPtr, QHash<SegmentationAdapterPtr, Nm>> m_cachedDistances;
+      SegmentationAdapterList m_selectedSegmentations;
+      Support::Context &m_context;
+      DistanceInformationOptionsDialog::Options m_options;
+      const double m_ERROR_VAL;
   };
 
 } // namespace ESPINA

@@ -21,6 +21,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
@@ -126,6 +127,7 @@ set (ESPINA_SOURCES
   Dialogs/IssueList/IssueListDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
   Dialogs/RawInformation/RawInformationDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp

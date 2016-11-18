@@ -41,13 +41,13 @@ namespace ESPINA
       /** \brief Enum class containing the distance type
        *
        */
-      enum class DistanceInformationType: char { CENTROID = 0, SURFACE };
+      enum class Type: char { CENTROID = 0, SURFACE };
 
       /** \brief Struct containing the distance information options
         *
         */
-      struct DistanceInformationOptions {
-          DistanceInformationType distanceInformationType;
+      struct Options {
+          Type distanceInformationType;
           bool maximumDistanceEnabled;
           double maximumDistance;
       };
@@ -87,12 +87,12 @@ namespace ESPINA
       /** \brief Returns the enum type selected in the dialog.
        *
        */
-      DistanceInformationType getDistanceType() const;
+      Type getDistanceType() const;
 
       /** \brief Returns the options selected in the dialog.
        *
        */
-      DistanceInformationOptions getDistanceInformationOptions() const;
+      Options getOptions() const;
 
     private slots:
       /** \brief DistanceInformationOptionsDialog class virtual destructor.

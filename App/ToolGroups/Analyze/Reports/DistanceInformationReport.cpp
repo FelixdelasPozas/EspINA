@@ -70,7 +70,7 @@ void DistanceInformationReport::show(SegmentationAdapterList input) const
   if (optionsDialog->exec() == QDialog::Rejected)
       return;
 
-  auto options = optionsDialog->getDistanceInformationOptions();
+  auto options = optionsDialog->getOptions();
 
   auto dialog = std::make_shared<DistanceInformationDialog>(input, options, getContext());
   dialog->show();

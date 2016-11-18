@@ -22,13 +22,10 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 
 using namespace ESPINA;
-using ESPINA::GUI::DefaultDialogs;
-using DistType = ESPINA::DistanceInformationOptionsDialog::DistanceInformationType;
-using DistOpts = ESPINA::DistanceInformationOptionsDialog::DistanceInformationOptions;
 
 //----------------------------------------------------------------------------
 DistanceInformationOptionsDialog::DistanceInformationOptionsDialog()
-: QDialog {DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
+: QDialog {GUI::DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
 {
   setupUi(this);
 
@@ -39,15 +36,15 @@ DistanceInformationOptionsDialog::DistanceInformationOptionsDialog()
 }
 
 //----------------------------------------------------------------------------
-DistOpts DistanceInformationOptionsDialog::getDistanceInformationOptions() const
+DistanceInformationOptionsDialog::Options DistanceInformationOptionsDialog::getOptions() const
 {
-  return DistOpts() = {getDistanceType(),isMaximumDistanceEnabled(),getMaximumDistance()};
+  return Options{getDistanceType(),isMaximumDistanceEnabled(),getMaximumDistance()};
 }
 
 //----------------------------------------------------------------------------
-DistType DistanceInformationOptionsDialog::getDistanceType() const
+DistanceInformationOptionsDialog::Type DistanceInformationOptionsDialog::getDistanceType() const
 {
-  return (m_radioButton_surface->isChecked()) ? DistType::CENTROID : DistType::SURFACE;
+  return (m_radioButton_surface->isChecked()) ? Type::CENTROID : Type::SURFACE;
 }
 
 //----------------------------------------------------------------------------
@@ -67,7 +64,6 @@ bool DistanceInformationOptionsDialog::isMaximumDistanceEnabled() const
 {
   return m_checkBox_maxDistance->isChecked();
 }
-
 
 //----------------------------------------------------------------------------
 bool DistanceInformationOptionsDialog::isSurfaceOptionSelected() const
