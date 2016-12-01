@@ -50,6 +50,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QPushButton>
+#include <QTimer>
 #include <QDebug>
 
 using namespace ESPINA;
@@ -73,6 +74,12 @@ RenderView::RenderView(ViewState &state, ViewType type)
 , m_latestFrame            {Frame::InvalidFrame()}
 {
   connectSignals();
+
+  if(!state.activeWidgets().isEmpty())
+  {
+    // needs the object to be fully constructed, so well put the action on the event queue.
+    QTimer::singleShot(10, this, SLOT(delayedWidgetsShow()));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -116,8 +123,7 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y,
-    int z) const
+NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const
 {
   Q_ASSERT(renderer);
 
@@ -524,8 +530,7 @@ void RenderView::onRenderRequest()
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame,
-    GUI::Representations::RepresentationManagerSList managers)
+void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
 {
 //   qDebug() << "display" << frame->time;
   display(managers, frame->time);
@@ -562,8 +567,7 @@ const Bounds RenderView::sceneBounds() const
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* RenderView::createButton(const QString& icon,
-    const QString& tooltip)
+QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
 {
   const int BUTTON_SIZE = 22;
   const int ICON_SIZE = 20;
@@ -736,4 +740,13 @@ EventHandlerSPtr RenderView::eventHandler() const
 bool RenderView::eventHandlerFilterEvent(QEvent *event)
 {
   return eventHandler() && eventHandler()->filterEvent(event, this);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::delayedWidgetsShow()
+{
+  for(auto factory: m_state.activeWidgets())
+  {
+    onWidgetsAdded(factory, m_state.createFrame());
+  }
 }

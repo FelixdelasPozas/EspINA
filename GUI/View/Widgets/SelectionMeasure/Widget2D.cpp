@@ -110,7 +110,7 @@ void Widget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr Widget2D::clone()
+TemporalRepresentation2DSPtr Widget2D::cloneImplementation()
 {
   return std::make_shared<Widget2D>(m_selection);
 }

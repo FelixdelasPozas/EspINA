@@ -62,7 +62,7 @@ void ROIWidget::setRepresentationDepth(Nm depth)
 }
 
 //-----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr ROIWidget::clone()
+TemporalRepresentation2DSPtr ROIWidget::cloneImplementation()
 {
   auto representation = std::make_shared<ROIWidget>(m_ROI);
 

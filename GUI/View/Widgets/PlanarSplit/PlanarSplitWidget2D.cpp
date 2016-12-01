@@ -43,6 +43,7 @@ PlanarSplitWidget2D::PlanarSplitWidget2D(PlanarSplitEventHandler *handler)
 , m_view           {nullptr}
 {
   m_command->setWidget(this);
+  m_command->setHandler(handler);
 }
 
 //-----------------------------------------------------------------------------
@@ -93,7 +94,7 @@ void PlanarSplitWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //-----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr PlanarSplitWidget2D::clone()
+TemporalRepresentation2DSPtr PlanarSplitWidget2D::cloneImplementation()
 {
   return std::make_shared<PlanarSplitWidget2D>(m_handler);
 }

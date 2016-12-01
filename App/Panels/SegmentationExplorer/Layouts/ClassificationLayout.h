@@ -76,12 +76,10 @@ namespace ESPINA
   public:
     /** \brief ClassificationLayout class constructor.
      * \param[in] view QTreeView raw pointer.
-     * \param[in] delegateFactory
      * \param[in] context ESPINA context
      *
      */
     explicit ClassificationLayout(CheckableTreeView              *view,
-                                  Support::FilterRefinerFactory &filterRefiners,
                                   Support::Context               &context);
 
     virtual ~ClassificationLayout();

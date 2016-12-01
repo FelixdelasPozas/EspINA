@@ -62,9 +62,8 @@ namespace ESPINA
 
             virtual void setPlane(Plane plane);
 
-            virtual void setRepresentationDepth(Nm depth);
-
-            virtual TemporalRepresentation2DSPtr clone();
+            virtual void setRepresentationDepth(Nm depth)
+            {};
 
           private slots:
             /** \brief Handle mouse movements.
@@ -97,13 +96,14 @@ namespace ESPINA
 
             virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
 
-            virtual void setCrosshair(const NmVector3 &crosshair);
-
             virtual void initializeImplementation(RenderView *view);
 
             virtual void uninitializeImplementation();
 
             virtual vtkAbstractWidget *vtkWidget();
+
+          private:
+            virtual TemporalRepresentation2DSPtr cloneImplementation();
 
           private:
             ZoomEventHandler                       *m_eventHandler;

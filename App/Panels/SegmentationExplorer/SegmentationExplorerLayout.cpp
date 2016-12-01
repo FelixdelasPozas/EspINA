@@ -88,10 +88,8 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
-                                     Support::FilterRefinerFactory &filterRefiners,
                                      Support::Context               &context)
 : WithContext      (context)
-, m_delegateFactory(filterRefiners)
 , m_view           (view)
 {
   connect(context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
@@ -125,7 +123,7 @@ void SegmentationExplorer::Layout::showSegmentationProperties(SegmentationAdapte
     auto inspector = m_inspectors.value(toKey(segmentations));
     if (!inspector)
     {
-      inspector = new SegmentationInspector(segmentations, m_delegateFactory, getContext());
+      inspector = new SegmentationInspector(segmentations, getContext());
 
       connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
               this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);

@@ -118,6 +118,12 @@ namespace ESPINA
          */
         void removeSliceSelectors(SliceSelectorSPtr selector);
 
+        /** \brief Returns the list of active widgets in the scene actually.
+         *
+         */
+        const QList<GUI::Representations::Managers::TemporalPrototypesSPtr> activeWidgets() const
+        { return m_activeWidgets; };
+
         CoordinateSystemSPtr coordinateSystem() const;
 
         /** \brief Invalidates item representations and returns the invalidation frame.
@@ -265,6 +271,8 @@ namespace ESPINA
         NmVector3            m_crosshair;
         CoordinateSystemSPtr m_coordinateSystem;
         SelectionSPtr        m_selection;
+
+        QList<GUI::Representations::Managers::TemporalPrototypesSPtr> m_activeWidgets; /** currently active widgets on the views. */
 
         QList<GUI::Representations::FrameCSPtr> m_frames;
 

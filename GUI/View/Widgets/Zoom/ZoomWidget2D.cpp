@@ -83,13 +83,7 @@ void ZoomWidget2D::setPlane(Plane plane)
 }
 
 //----------------------------------------------------------------------------
-void ZoomWidget2D::setRepresentationDepth(Nm depth)
-{
-  // intentionally empty
-}
-
-//----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr ZoomWidget2D::clone()
+TemporalRepresentation2DSPtr ZoomWidget2D::cloneImplementation()
 {
   return std::make_shared<ZoomWidget2D>(m_eventHandler);
 }
@@ -119,20 +113,9 @@ bool ZoomWidget2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPt
 }
 
 //----------------------------------------------------------------------------
-void ZoomWidget2D::setCrosshair(const NmVector3& crosshair)
-{
-  if(m_view && m_plane != Plane::UNDEFINED)
-  {
-    m_widget->SetSlice(crosshair[normalCoordinateIndex(m_plane)]);
-  }
-}
-
-//----------------------------------------------------------------------------
 void ZoomWidget2D::initializeImplementation(RenderView* view)
 {
   m_view = view;
-
-  m_widget->setRepresentationDepth(view2D_cast(view)->widgetDepth());
 }
 
 //----------------------------------------------------------------------------

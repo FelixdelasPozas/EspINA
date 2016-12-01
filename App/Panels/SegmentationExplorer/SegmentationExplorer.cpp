@@ -82,7 +82,7 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
   setObjectName("SegmentationExplorer");
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout(tr("Category"), new ClassificationLayout(m_gui->view, filterRefiners, context));
+  addLayout(tr("Category"), new ClassificationLayout(m_gui->view, context));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);

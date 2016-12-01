@@ -30,7 +30,6 @@
 #include <Support/Representations/RepresentationFactory.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Representations/ManualPipelineSources.h>
-#include <Support/Factory/FilterRefinerFactory.h>
 
 // Qt
 #include <QScrollArea>
@@ -52,17 +51,16 @@ namespace ESPINA
   public:
     /** \brief SegmentationInspector class constructor.
      * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] delegateFactory
      * \param[in] context ESPINA context
      */
     SegmentationInspector(SegmentationAdapterList         segmentations,
-                          Support::FilterRefinerFactory &filterRefiners,
                           Support::Context               &context);
 
     /** \brief SegmentationInspector class destructor.
      *
      */
-    virtual ~SegmentationInspector();
+    virtual ~SegmentationInspector()
+    {};
 
     /** \brief Adds a segmentation to the dialog and connects signals.
      * \param[in] segmentation segmentation adapter raw pointer.
@@ -114,13 +112,12 @@ namespace ESPINA
 
     virtual void closeEvent(QCloseEvent *e) override;
 
-  private slots:
-    /** \brief Updates which information is displayed according to current selection
-     *
-     */
-    void updateSelection();
+  protected slots:
+    void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
 
   private:
+    void connectSignals();
+
     void updateWindowTitle();
 
     void initView3D(RepresentationFactorySList representations);
@@ -140,7 +137,6 @@ namespace ESPINA
   private:
     static const QString GEOMETRY_SETTINGS_KEY;
     static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
-    Support::FilterRefinerFactory &m_register;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;

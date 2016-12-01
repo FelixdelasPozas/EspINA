@@ -34,26 +34,6 @@ using namespace ESPINA::GUI::View::Widgets;
 PlanarSplitWidget::PlanarSplitWidget(PlanarSplitEventHandler * handler)
 : m_handler{handler}
 {
-  connect(this,    SIGNAL(created(PlanarSplitWidgetPtr)),
-          handler, SIGNAL(widgetCreated(PlanarSplitWidgetPtr)));
-  connect(this,    SIGNAL(destroyed(PlanarSplitWidgetPtr)),
-          handler, SIGNAL(widgetDestroyed(PlanarSplitWidgetPtr)));
-  connect(this,    SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
-          handler, SIGNAL(planeDefined(PlanarSplitWidgetPtr)));
-
-  emit created(this);
-}
-
-//-----------------------------------------------------------------------------
-PlanarSplitWidget::~PlanarSplitWidget()
-{
-  emit destroyed(this);
-}
-
-//-----------------------------------------------------------------------------
-void PlanarSplitWidget::emitSetSignal()
-{
-  emit planeDefined(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -63,6 +43,6 @@ void vtkSplitCommand::Execute(vtkObject *caller, unsigned long eventId, void *ca
   auto widget3d = static_cast<vtkImplicitPlaneWidget2 *>(caller);
   if(widget2d != nullptr || widget3d != nullptr)
   {
-    m_widget->emitSetSignal();
+    m_handler->emitPlaneDefined(m_widget);
   }
 }

@@ -65,8 +65,6 @@ namespace ESPINA
 
               virtual void hide() override;
 
-              virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
-
               virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
               virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;
@@ -92,6 +90,8 @@ namespace ESPINA
                *
                */
               vtkSmartPointer<vtkImageData> currentSlice() const;
+
+              virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
               /** \brief Updates the representation for the current slice.
                *

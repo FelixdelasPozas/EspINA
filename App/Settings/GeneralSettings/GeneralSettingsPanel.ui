@@ -92,13 +92,16 @@
          <string> min</string>
         </property>
         <property name="minimum">
-         <number>1</number>
+         <number>5</number>
         </property>
         <property name="maximum">
-         <number>60</number>
+         <number>90</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
         </property>
         <property name="value">
-         <number>10</number>
+         <number>15</number>
         </property>
        </widget>
       </item>

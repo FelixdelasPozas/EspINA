@@ -83,17 +83,6 @@ namespace ESPINA
              */
             virtual void SetWidgetType(WidgetType type);
 
-            /** \brief Sets the slice where the representation should be.
-             * \param[in] slice slice position in Nm.
-             *
-             */
-            void SetSlice(Nm slice);
-
-            /** \brief Sets the depth of the representation.
-             *
-             */
-            void setRepresentationDepth(ESPINA::Nm depth);
-
           protected:
             // Callback interface to capture events
             static void SelectAction(vtkAbstractWidget*);

@@ -58,7 +58,7 @@ ZoomWidget3D::~ZoomWidget3D()
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation3DSPtr ZoomWidget3D::clone()
+TemporalRepresentation3DSPtr ZoomWidget3D::cloneImplementation()
 {
   return std::make_shared<ZoomWidget3D>(m_eventHandler);
 }
@@ -66,6 +66,11 @@ TemporalRepresentation3DSPtr ZoomWidget3D::clone()
 //----------------------------------------------------------------------------
 void ZoomWidget3D::onMouseMovement(QPoint point, RenderView* view)
 {
+  if(m_view == view)
+  {
+    m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
+    m_view->renderWindow()->GetInteractor()->MouseMoveEvent();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -85,6 +90,8 @@ void ZoomWidget3D::onLeftMouseRelease(QPoint point, RenderView* view)
   {
     m_view->renderWindow()->GetInteractor()->SetEventInformationFlipY(point.x(), point.y());
     m_view->renderWindow()->GetInteractor()->LeftButtonReleaseEvent();
+
+    m_view->refresh();
   }
 }
 

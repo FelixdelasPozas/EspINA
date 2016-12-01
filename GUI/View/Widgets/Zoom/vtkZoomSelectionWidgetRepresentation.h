@@ -32,7 +32,8 @@
 #include <vtkSmartPointer.h>
 
 class vtkPoints;
-class vtkActor;
+class vtkActor2D;
+
 namespace ESPINA
 {
   namespace GUI
@@ -51,13 +52,6 @@ namespace ESPINA
             static vtkZoomSelectionWidgetRepresentation *New();
 
             void SetWidgetType(vtkZoomSelectionWidget::WidgetType type);
-            void SetRepresentationDepth(Nm depth);
-
-            /** \brief Sets the slice where the representation should be.
-             * \param[in] slice slice position in Nm.
-             *
-             */
-            void SetSlice(Nm slice);
 
             // Description:
             // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -79,16 +73,10 @@ namespace ESPINA
 
             // attributes
             vtkZoomSelectionWidget::WidgetType m_type;
-            vtkSmartPointer<vtkPoints>         m_displayPoints;
             vtkSmartPointer<vtkPoints>         m_worldPoints;
-            vtkSmartPointer<vtkActor>          m_lineActor;
-            Nm                                 m_depth;
-            Nm                                 m_slice;
+            vtkSmartPointer<vtkActor2D>        m_lineActor;
 
           private:
-            // helper methods
-            void DisplayPointsToWorldPoints();
-
             vtkZoomSelectionWidgetRepresentation(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
             void operator=(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
         };

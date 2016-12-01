@@ -34,67 +34,67 @@ namespace ESPINA
         class EspinaGUI_EXPORT TemporalRepresentation
         : public QObject
         {
-        public:
-          /** \brief Class constructor.
-           *
-           */
-          explicit TemporalRepresentation() {}
+          public:
+            /** \brief Class constructor.
+             *
+             */
+            explicit TemporalRepresentation() {}
 
-          /** \brief Class virtual destructor.
-           *
-           */
-          virtual ~TemporalRepresentation() {}
+            /** \brief Class virtual destructor.
+             *
+             */
+            virtual ~TemporalRepresentation() {}
 
-          /** \brief Initializes temporal representation for the given view
-           * \param[in] view view to show the temporal representations.
-           *
-           */
-          virtual void initialize(RenderView *view) = 0;
+            /** \brief Initializes temporal representation for the given view
+             * \param[in] view view to show the temporal representations.
+             *
+             */
+            virtual void initialize(RenderView *view) = 0;
 
-          /** \brief De-initializes the temporal representation.
-           *
-           */
-          virtual void uninitialize() = 0;
+            /** \brief De-initializes the temporal representation.
+             *
+             */
+            virtual void uninitialize() = 0;
 
-          /** \brief Displays temporal representation
-           *
-           */
-          virtual void show() = 0;
+            /** \brief Displays temporal representation
+             *
+             */
+            virtual void show() = 0;
 
-          /** \brief Hides temporal representation
-           *
-           */
-          virtual void hide() = 0;
+            /** \brief Hides temporal representation
+             *
+             */
+            virtual void hide() = 0;
 
-          /** \brief Returns true if the representation needs to be updated after a crosshair change.
-           * \param[in] crosshair scene's new crosshair.
-           *
-           */
-          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
+            /** \brief Returns true if the representation needs to be updated after a crosshair change.
+             * \param[in] crosshair scene's new crosshair.
+             *
+             */
+            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
-          /** \brief Returns true if the representation needs to be updated after a resolution change.
-           * \param[in] resolution scene's new resolution.
-           *
-           */
-          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
+            /** \brief Returns true if the representation needs to be updated after a resolution change.
+             * \param[in] resolution scene's new resolution.
+             *
+             */
+            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
 
-          /** \brief Returns true if the representation needs to be updated after a bounds change.
-           * \param[in] bounds scene's new bounds.
-           *
-           */
-          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
+            /** \brief Returns true if the representation needs to be updated after a bounds change.
+             * \param[in] bounds scene's new bounds.
+             *
+             */
+            virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
 
-          /** \brief Returns true if the representation needs to be updated after an invalidation frame.
-           * \param[in] frame const invalidation frame.
-           *
-           */
-          virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const = 0;
+            /** \brief Returns true if the representation needs to be updated after an invalidation frame.
+             * \param[in] frame const invalidation frame.
+             *
+             */
+            virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const = 0;
 
-          /** \brief Updates the representation for the given frame.
-           * \param[in] frame const frame object.
-           *
-           */
-          virtual void display(const FrameCSPtr &frame) {};
+            /** \brief Updates the representation for the given frame.
+             * \param[in] frame const frame object.
+             *
+             */
+            virtual void display(const FrameCSPtr &frame) {};
         };
 
         using TemporalRepresentationSPtr = std::shared_ptr<TemporalRepresentation>;
@@ -108,6 +108,7 @@ namespace ESPINA
         class EspinaGUI_EXPORT TemporalRepresentation2D
         : public TemporalRepresentation
         {
+            Q_OBJECT
           public:
             /** \brief Sets the orientation of the 2D representations.
              * \param[in] plane plane enum value.
@@ -124,17 +125,44 @@ namespace ESPINA
             /** \brief Clones the representation.
              *
              */
-            virtual TemporalRepresentation2DSPtr clone() = 0;
+            TemporalRepresentation2DSPtr clone()
+            {
+              auto clone = cloneImplementation();
+              emit cloned(clone);
+
+              return clone;
+            }
+          signals:
+            void cloned(TemporalRepresentation2DSPtr);
+
+          private:
+            /** \brief Implementation of the object cloning.
+             *
+             */
+            virtual TemporalRepresentation2DSPtr cloneImplementation() = 0;
+
         };
 
         class EspinaGUI_EXPORT TemporalRepresentation3D
         : public TemporalRepresentation
         {
+            Q_OBJECT
           public:
             /** \brief Clones the representation.
              *
              */
-            virtual TemporalRepresentation3DSPtr clone() = 0;
+            TemporalRepresentation3DSPtr clone()
+            {
+              auto clone = cloneImplementation();
+              emit cloned(clone);
+
+              return clone;
+            }
+          signals:
+            void cloned(TemporalRepresentation3DSPtr);
+
+          private:
+            virtual TemporalRepresentation3DSPtr cloneImplementation() = 0;
         };
 
         class EspinaGUI_EXPORT TemporalPrototypes
@@ -174,7 +202,8 @@ namespace ESPINA
             QString                      m_name;        /** name of the object.         */
         };
 
-        using TemporalPrototypesSPtr = std::shared_ptr<TemporalPrototypes>;
+        using TemporalPrototypesSPtr  = std::shared_ptr<TemporalPrototypes>;
+//        using TemporalPrototypesSList = QList<TemporalPrototypesSPtr>;
 
         class EspinaGUI_EXPORT TemporalManager
         : public RepresentationManager

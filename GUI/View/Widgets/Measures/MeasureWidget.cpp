@@ -210,7 +210,7 @@ void MeasureWidget::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr MeasureWidget::clone()
+TemporalRepresentation2DSPtr MeasureWidget::cloneImplementation()
 {
   return std::make_shared<MeasureWidget>(m_eventHandler);
 }
