@@ -32,13 +32,14 @@
 
 namespace ESPINA
 {
-  /** \class TemporalSettings allocates a empty QSettings object.
+  /** \class SettingsContainer
+   * \brief Allocates a empty QSettings object for later use.
    *
    */
   class SettingsContainer
   {
     public:
-      /** \brief TemporalSettings class constructor.
+      /** \brief SettingsContainer class constructor.
        *
        */
       SettingsContainer();

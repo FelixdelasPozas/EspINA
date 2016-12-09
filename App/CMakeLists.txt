@@ -36,7 +36,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/GeneralSettings/GeneralSettingsPanel.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
-  Settings/View2D/View2DSettingsPanel.h
   ToolGroups/Analyze/Reports/ReportSelectorDialog.h
   ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
@@ -99,7 +98,6 @@ qt4_wrap_ui (ESPINA_UI
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
-  Settings/View2D/View2DSettingsPanel.ui
   ToolGroups/Analyze/Reports/ReportSelectorDialog.ui
   ToolGroups/Edit/CODERefineWidget.ui
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
@@ -145,7 +143,6 @@ set (ESPINA_SOURCES
   Settings/ROI/ROISettingsPanel.cpp
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
   Settings/Utils.cpp
-  Settings/View2D/View2DSettingsPanel.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
