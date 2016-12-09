@@ -46,10 +46,7 @@
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Widgets/EditTool.h>
-#include <Undo/DrawUndoCommand.h>
-#include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include <Undo/ReplaceOutputCommand.h>
 
 // Qt
 #include <QApplication>
