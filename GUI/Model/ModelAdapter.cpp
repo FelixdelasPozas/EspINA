@@ -1859,7 +1859,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
       qDebug() << "inspecting sample " << sample->name();
       if(sample == mainSample) continue;
 
-
       auto segs = QueryRelations::segmentations(sample);
       for(auto seg: segs)
       {

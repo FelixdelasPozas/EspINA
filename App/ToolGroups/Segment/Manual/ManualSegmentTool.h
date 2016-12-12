@@ -87,9 +87,6 @@ namespace ESPINA
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-    signals:
-      void voxelsDeleted(ViewItemAdapterPtr item);
-
     public slots:
       /** \brief Updates GUI and the tool when the current selection changes.
        *

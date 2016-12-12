@@ -63,9 +63,6 @@ namespace ESPINA
 
     void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
 
-  signals:
-    void voxelsDeleted(ViewItemAdapterPtr item);
-
   private:
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
@@ -89,6 +86,8 @@ namespace ESPINA
     void onEventHandlerActivated(bool inUse);
 
   private:
+    void onVoxelDeletion(ViewItemAdapterPtr item);
+
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     // mutable needed by updateReferenceItem() const

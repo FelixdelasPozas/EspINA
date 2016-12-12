@@ -190,13 +190,6 @@ namespace ESPINA
      *
      */
     void initImageLogicTools();
-
-  private slots:
-    /** \brief Deletes a segmentation from the model if all its voxels have been erased.
-     * \param[in] item view item to check for complete erase.
-     *
-     */
-    void onVoxelDeletion(ViewItemAdapterPtr item);
   };
 
 } // namespace ESPINA

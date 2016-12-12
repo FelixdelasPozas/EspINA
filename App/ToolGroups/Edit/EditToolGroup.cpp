@@ -324,9 +324,6 @@ void EditToolGroup::initManualEditionTool()
 
   manualEdition->setOrder("1");
 
-  connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-          this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
-
   addTool(manualEdition);
 }
 
@@ -390,51 +387,4 @@ void EditToolGroup::initImageLogicTools()
   addTool(addition);
   addTool(subtract);
   addTool(subtractAndErase);
-}
-
-//-----------------------------------------------------------------------------
-void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
-{
-  Q_ASSERT(item && isSegmentation(item) && hasVolumetricData(item->output()));
-
-  bool removeSegmentation = false;
-
-  auto segmentation = segmentationPtr(item);
-
-  {
-    auto output = segmentation->output();
-    SignalBlocker<OutputSPtr> blocker(output);
-    auto volume = writeLockVolume(output);
-
-    if (volume->isEmpty())
-    {
-      removeSegmentation = true;
-      blocker.setLaunch(false);
-    }
-    else
-    {
-      fitToContents<itkVolumeType>(volume, SEG_BG_VALUE);
-    }
-  }
-
-  if (removeSegmentation)
-  {
-    getViewState().setEventHandler(EventHandlerSPtr());
-
-    auto name  = segmentation->data(Qt::DisplayRole).toString();
-    auto title = tr("Deleting segmentation");
-    auto msg   = tr("%1 will be deleted because all its voxels were erased.").arg(name);
-
-    DefaultDialogs::InformationMessage(msg, title);
-
-    auto undoStack = getUndoStack();
-
-    undoStack->blockSignals(true);
-    undoStack->undo();
-    undoStack->blockSignals(false);
-
-    undoStack->beginMacro(tr("Remove Segmentation"));
-    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
-    undoStack->endMacro();
-  }
 }

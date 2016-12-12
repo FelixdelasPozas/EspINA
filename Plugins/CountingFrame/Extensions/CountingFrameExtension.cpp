@@ -21,8 +21,8 @@
 // Plugin
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
-#include "CountingFrames/OrthogonalCountingFrame.h"
-#include <CountingFrames/AdaptiveCountingFrame.h>
+//#include "CountingFrames/OrthogonalCountingFrame.h"
+//#include <CountingFrames/AdaptiveCountingFrame.h>
 #include <CountingFrameManager.h>
 
 // ESPINA
@@ -87,15 +87,15 @@ State CountingFrameExtension::state() const
     cf->margins(inclusion, exclusion);
     // Id,Type,Constraint,Left, Top, Front, Right, Bottom, Back
     state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9,%10").arg(br)
-                                                 .arg(cf->id())
-                                                 .arg(cf->cfType())
-                                                 .arg(cf->categoryConstraint())
-                                                 .arg(inclusion[0])
-                                                 .arg(inclusion[1])
-                                                 .arg(inclusion[2])
-                                                 .arg(exclusion[0])
-                                                 .arg(exclusion[1])
-                                                 .arg(exclusion[2]);
+                                                     .arg(cf->id())
+                                                     .arg(cf->cfType())
+                                                     .arg(cf->categoryConstraint())
+                                                     .arg(inclusion[0])
+                                                     .arg(inclusion[1])
+                                                     .arg(inclusion[2])
+                                                     .arg(exclusion[0])
+                                                     .arg(exclusion[1])
+                                                     .arg(exclusion[2]);
     br = '\n';
   }
 
