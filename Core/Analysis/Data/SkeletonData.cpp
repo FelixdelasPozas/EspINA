@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "SkeletonData.h"
-#include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Skeleton/SkeletonProxy.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 #include <Core/Utils/VolumeBounds.h>
@@ -28,104 +27,82 @@
 // VTK
 #include <vtkPolyData.h>
 
-namespace ESPINA
-{
-  const Data::Type SkeletonData::TYPE = "SkeletonData";
+using namespace ESPINA;
 
-  //----------------------------------------------------------------------------
-  SkeletonData::SkeletonData()
+const Data::Type SkeletonData::TYPE = "SkeletonData";
+
+//----------------------------------------------------------------------------
+SkeletonData::SkeletonData()
+{
+}
+
+//----------------------------------------------------------------------------
+bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)
+{
+  bool dataFetched = false;
+
+  QFileInfo skeletonFile(storage->absoluteFilePath(snapshotFilename(path, id)));
+
+  if (skeletonFile.exists())
   {
+    setSkeleton(PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath()));
+    dataFetched = true;
   }
   
-//   //----------------------------------------------------------------------------
-//   Bounds SkeletonData::bounds() const
-//   {
-//     Bounds result;
-//
-//     auto skeletonData = this->skeleton();
-//
-//     if(skeletonData != nullptr)
-//     {
-//       Nm bounds[6];
-//
-//       skeletonData->GetBounds(bounds);
-//
-//       Bounds polyDataBounds{bounds[0], bounds[1], bounds[2],
-//                             bounds[3], bounds[4], bounds[5]};
-//
-//       result = VolumeBounds{polyDataBounds, spacing(), NmVector3{0,0,0}}.bounds();
-//     }
-//
-//     return result;
-//   }
+  return dataFetched;
+}
 
-  //----------------------------------------------------------------------------
-  bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)
+//----------------------------------------------------------------------------
+Snapshot SkeletonData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+{
+  Snapshot snapshot;
+
+  auto currentSkeleton = skeleton();
+
+  if (currentSkeleton)
   {
-    bool dataFetched = false;
+    QString fileName = snapshotFilename(path, id);
+    storage->makePath(path);
 
-    QFileInfo skeletonFile(storage->absoluteFilePath(snapshotFilename(path, id)));
-
-    if(skeletonFile.exists())
-    {
-      setSkeleton(PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath()));
-      dataFetched = true;
-    }
-
-    return dataFetched;
+    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(currentSkeleton));
   }
 
-  //----------------------------------------------------------------------------
-  Snapshot SkeletonData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
-  {
-    Snapshot snapshot;
+  return snapshot;
+}
 
-    auto currentSkeleton = skeleton();
-    if (currentSkeleton != nullptr)
-    {
-      QString fileName = snapshotFilename(path, id);
-      storage->makePath(path);
+//----------------------------------------------------------------------------
+DataSPtr SkeletonData::createProxy() const
+{
+  return std::make_shared<SkeletonProxy>();
+}
 
-      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(currentSkeleton));
-    }
+//----------------------------------------------------------------------------
+bool ESPINA::hasSkeletonData(OutputSPtr output)
+{
+  return output->hasData(SkeletonData::TYPE);
+}
 
-    return snapshot;
-  }
+//----------------------------------------------------------------------------
+Output::ReadLockData<SkeletonData> ESPINA::readLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
+{
+  return outputReadLockData<SkeletonData>(output.get(), policy);
+}
 
-  //----------------------------------------------------------------------------
-  DataSPtr SkeletonData::createProxy() const
-  {
-    return std::make_shared<SkeletonProxy>();
-  }
+//----------------------------------------------------------------------------
+Output::ReadLockData<SkeletonData> ESPINA::readLockSkeleton(Output *output, DataUpdatePolicy policy)
+{
+  return outputReadLockData<SkeletonData>(output, policy);
+}
 
-  //----------------------------------------------------------------------------
-  bool hasSkeletonData(OutputSPtr output)
-  {
-    return output->hasData(SkeletonData::TYPE);
-  }
+//----------------------------------------------------------------------------
+Output::WriteLockData<SkeletonData> ESPINA::writeLockSkeleton(Output *output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<SkeletonData>(output, policy);
+}
 
-  //----------------------------------------------------------------------------
-  Output::ReadLockData<SkeletonData> readLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
-  {
-    return outputReadLockData<SkeletonData>(output.get(), policy);
-  }
+//----------------------------------------------------------------------------
+Output::WriteLockData<SkeletonData> ESPINA::writeLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<SkeletonData>(output.get(), policy);
+}
 
-  //----------------------------------------------------------------------------
-  Output::ReadLockData<SkeletonData> readLockSkeleton(Output *output, DataUpdatePolicy policy)
-  {
-    return outputReadLockData<SkeletonData>(output, policy);
-  }
-
-  //----------------------------------------------------------------------------
-  Output::WriteLockData<SkeletonData> writeLockSkeleton(Output *output, DataUpdatePolicy policy)
-  {
-    return outputWriteLockData<SkeletonData>(output, policy);
-  }
-
-  //----------------------------------------------------------------------------
-  Output::WriteLockData<SkeletonData> writeLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
-  {
-    return outputWriteLockData<SkeletonData>(output.get(), policy);
-  }
-
-} // namespace EspINA

@@ -136,5 +136,7 @@
     <file>file_open_classification.svg</file>
     <file>file_save_classification.svg</file>
     <file>fullscreen.svg</file>
+    <file>next_tubular.svg</file>
+    <file>tubular_id.svg</file>
   </qresource>
 </RCC>

@@ -58,13 +58,13 @@ int main(int argc, char **argv)
   app.installTranslator(&translator);
 
   QDir pluginsDir = QDir(app.applicationDirPath());
+  pluginsDir.cd("plugins");
+
   qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
   installExceptionHandler();
   installSignalHandler();
   installVTKErrorLogger();
-
-  pluginsDir.cd("plugins");
 
   QList<QPluginLoader *> loaders;
   QList<QObject *>       plugins;

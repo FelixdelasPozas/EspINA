@@ -70,7 +70,7 @@ namespace ESPINA
 
     private:
       QString snapshotFilename(const QString &path, const QString &id) const
-      { return path + QString("%2_%3.vtp").arg(id).arg(type()); }
+      { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
 
       QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
       { return snapshotFilename(path, id); }

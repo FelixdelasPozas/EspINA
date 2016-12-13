@@ -23,6 +23,7 @@
 #include <GUI/Representations/Pipelines/SegmentationSkeleton2DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 // VTK
@@ -39,6 +40,7 @@
 
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::RepresentationUtils;
 
 namespace ESPINA
 {
@@ -88,7 +90,7 @@ namespace ESPINA
         auto newLines = vtkSmartPointer<vtkCellArray>::New();
 
         auto skeleton = data->skeleton();
-        auto planeSpacing = data->spacing()[planeIndex];
+        auto planeSpacing = data->bounds().spacing()[planeIndex];
 
         QMap<vtkIdType, NmVector3> pointIds;
         QMap<vtkIdType, vtkIdType> newPointIds;
@@ -99,7 +101,7 @@ namespace ESPINA
 
         lines->InitTraversal();
         vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-        auto sliceDepth = reslicePoint + RepresentationUtils::segmentationDepth(state);
+        auto sliceDepth = reslicePoint + segmentationDepth(state);
         while(lines->GetNextCell(idList))
         {
           if(idList->GetNumberOfIds() != 2)

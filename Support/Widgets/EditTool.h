@@ -75,11 +75,11 @@ namespace ESPINA
            */
           void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
 
-        private slots:
+        protected slots:
           /** \brief Enables/Disables the tool depending on the current segmentation selection.
            *
            */
-          void updateStatus();
+          virtual void updateStatus() override;
 
         private:
           /** \brief Returns true if the tool accepts the given number of inputs and false otherwise.

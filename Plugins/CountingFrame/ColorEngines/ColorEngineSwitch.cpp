@@ -54,6 +54,7 @@ void ColorEngineSwitch::initWidgets()
   opacity->setSliderTracking(false);
   opacity->setValue(m_engine->exlcusionOpacity()*100);
   opacity->setSpinBoxVisibility(false);
+  opacity->setToolTip(tr("Colored representation's opacity."));
 
   addSettingsWidget(opacity);
 

@@ -124,6 +124,7 @@ void SegmentationContourSwitch::initWidgets()
   m_opacityWidget->setSliderTracking(false);
   m_opacityWidget->setValue(m_settings->opacity()*100);
   m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setToolTip(tr("Contour representation opacity."));
 
   addSettingsWidget(m_opacityWidget);
 
@@ -131,11 +132,13 @@ void SegmentationContourSwitch::initWidgets()
           this,            SLOT(onOpacityChanged()));
 
   auto widthLabel = new QLabel("Width");
+  widthLabel->setToolTip(tr("Contour representation width."));
   addSettingsWidget(widthLabel);
 
   m_width = new QComboBox();
   m_width->insertItems(0, QStringList{ "Tiny", "Small", "Medium", "Large", "Big" });
   m_width->setCurrentIndex(0);
+  m_width->setToolTip(tr("Contour representation width."));
 
   connect(m_width, SIGNAL(currentIndexChanged(int)),
           this,    SLOT(onWidthChanged()));
@@ -143,11 +146,13 @@ void SegmentationContourSwitch::initWidgets()
   addSettingsWidget(m_width);
 
   auto patternLabel = new QLabel("Pattern");
+  patternLabel->setToolTip(tr("Contour represnetation line pattern."));
   addSettingsWidget(patternLabel);
 
   m_pattern = new QComboBox();
   m_pattern->insertItems(0, QStringList{ "Normal", "Dotted", "Dashed" });
   m_pattern->setCurrentIndex(0);
+  m_pattern->setToolTip(tr("Contour represnetation line pattern."));
 
   connect(m_pattern, SIGNAL(currentIndexChanged(int)),
           this,    SLOT(onPatternChanged()));

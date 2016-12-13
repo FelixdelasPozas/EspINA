@@ -99,6 +99,7 @@ void DrawUndoCommand::undo()
     {
       auto volume = writeLockVolume(output);
       volume->resize(m_bounds);
+
       if(m_image != nullptr)
       {
         volume->draw(m_image);
@@ -109,6 +110,10 @@ void DrawUndoCommand::undo()
       auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
       output->setData(mesh);
     }
+
+    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
+    output->setData(mesh);
+    mesh->mesh();
   }
   else
   {
