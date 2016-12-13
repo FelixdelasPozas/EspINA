@@ -22,8 +22,11 @@
 #ifndef GUI_UTILS_REPRESENTATIONUTILS_H_
 #define GUI_UTILS_REPRESENTATIONUTILS_H_
 
-#include <Core/Utils/Spatial.h>
 #include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
+#include <Core/Utils/Spatial.h>
+#include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationState.h>
 
 namespace ESPINA

@@ -51,7 +51,7 @@ set (CORE_SOURCES
   ${CORE_RCCS}
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
-#   ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
@@ -61,7 +61,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Data/Mesh/MarchingCubesMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
-#   ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Filters/SourceFilter.cpp
   ${CORE_DIR}/Analysis/Filters/VolumetricStreamReader.cpp
@@ -193,7 +193,7 @@ set (TESTING_SOURCES
   ModelProfiler.cpp
   ModelTest.cpp
   ModelTestUtils.cpp
-#   SkeletonTestingUtils.cpp
+  SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})

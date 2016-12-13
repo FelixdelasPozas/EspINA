@@ -28,73 +28,101 @@
 // C++
 #include <memory>
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::PolyDataUtils;
+
+//----------------------------------------------------------------------------
+RawSkeleton::RawSkeleton()
+: m_skeleton{nullptr}
 {
-  //----------------------------------------------------------------------------
-  RawSkeleton::RawSkeleton(const NmVector3             &spacing,
-                           const NmVector3             &origin)
-  : m_skeleton{nullptr}
-  , m_spacing{spacing}
-  , m_origin{origin}
+}
+
+//----------------------------------------------------------------------------
+RawSkeleton::RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton, const NmVector3 &spacing, const NmVector3 &origin)
+: m_skeleton{skeleton}
+{
+  if(m_skeleton)
   {
+    m_bounds = PolyDataUtils::polyDataVolumeBounds(skeleton, spacing, origin);
   }
+}
 
-  //----------------------------------------------------------------------------
-  RawSkeleton::RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton,
-                           const NmVector3             &spacing,
-                           const NmVector3             &origin)
-  : m_skeleton{skeleton}
-  , m_spacing{spacing}
-  , m_origin{origin}
+//----------------------------------------------------------------------------
+RawSkeleton::RawSkeleton(const NmVector3 &spacing, const NmVector3 &origin)
+: m_skeleton{nullptr}
+{
+  m_bounds = VolumeBounds{Bounds(), spacing, origin};
+}
+
+//----------------------------------------------------------------------------
+size_t RawSkeleton::memoryUsage() const
+{
+  QMutexLocker lock(&m_lock);
+
+  return (m_skeleton ? m_skeleton->GetActualMemorySize() * 1024 : 0);
+}
+
+//----------------------------------------------------------------------------
+void RawSkeleton::setSpacing(const NmVector3 &newSpacing)
+{
+  QMutexLocker lock(&m_lock);
+
+  auto oldSpacing = m_bounds.spacing();
+
+  if (m_skeleton != nullptr && oldSpacing != newSpacing)
   {
+    Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
+
+    auto oldOrigin  = m_bounds.origin();
+
+    NmVector3 ratio{newSpacing[0] / oldSpacing[0], newSpacing[1] / oldSpacing[1], newSpacing[2] / oldSpacing[2] };
+
+    PolyDataUtils::scalePolyData(m_skeleton, ratio);
+
+    m_bounds = polyDataVolumeBounds(m_skeleton, newSpacing, oldOrigin * ratio);
+    updateModificationTime();
   }
+}
 
-  //----------------------------------------------------------------------------
-  size_t RawSkeleton::memoryUsage() const
+//----------------------------------------------------------------------------
+void RawSkeleton::setSkeleton(vtkSmartPointer<vtkPolyData> skeleton)
+{
+  QMutexLocker lock(&m_lock);
+
+  m_skeleton = skeleton;
+
+  BoundsList editedRegions;
+  if (m_skeleton)
   {
-    if (m_skeleton)
-    {
-      return m_skeleton->GetActualMemorySize();
-    }
+    editedRegions << bounds();
 
-    return 0;
-  }
-
-  //----------------------------------------------------------------------------
-  void RawSkeleton::setSpacing(const NmVector3 &newSpacing)
-  {
-    if(m_skeleton != nullptr && m_spacing != newSpacing)
-    {
-      Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
-      NmVector3 ratio{newSpacing[0]/m_spacing[0],
-                      newSpacing[1]/m_spacing[1],
-                      newSpacing[2]/m_spacing[2]};
-
-      PolyDataUtils::scalePolyData(m_skeleton, ratio);
-      updateModificationTime();
-    }
-
-    m_spacing = newSpacing;
-  }
-
-  //----------------------------------------------------------------------------
-  void RawSkeleton::setSkeleton(vtkSmartPointer<vtkPolyData> skeleton)
-  {
-    m_skeleton = skeleton;
-
-    BoundsList editedRegions;
-    if (m_skeleton)
-    {
-      editedRegions << bounds();
-    }
+    m_bounds = polyDataVolumeBounds(m_skeleton, m_bounds.spacing(), m_bounds.origin());
 
     setEditedRegions(editedRegions);
     updateModificationTime();
   }
+}
 
-  //----------------------------------------------------------------------------
-  NmVector3 RawSkeleton::spacing() const
-  {
-    return m_spacing;
-  }
-} // namespace EspINA
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
+{
+  QMutexLocker lock(&m_lock);
+
+  return m_skeleton;
+}
+
+//----------------------------------------------------------------------------
+bool RawSkeleton::isValid() const
+{
+  QMutexLocker lock(&m_lock);
+
+  return m_bounds.areValid() && !needFetch();
+}
+
+//----------------------------------------------------------------------------
+bool RawSkeleton::isEmpty() const
+{
+  QMutexLocker lock(&m_lock);
+
+  return !m_skeleton || m_skeleton->GetNumberOfCells() == 0;
+}

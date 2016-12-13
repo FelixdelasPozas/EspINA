@@ -52,128 +52,132 @@ namespace ESPINA
   class DoubleSpinBoxAction;
   class SkeletonToolStatusAction;
 
-  class SourceFilterFactory
+  /** \class ManualFilterFactory
+   * \brief Factory for SourceFilter filters.
+   */
+  class SkeletonFilterFactory
   : public FilterFactory
   {
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-    virtual FilterTypeList providedFilters() const;
+    public:
+      static const Filter::Type SKELETON_FILTER;
 
-  private:
-    mutable DataFactorySPtr m_fetchBehaviour;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const override;
+
+      virtual FilterTypeList providedFilters() const override;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this provider. */
   };
 
   class EspinaGUI_EXPORT SkeletonTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief SkeletonTool class constructor.
-     * \param[in] context ESPINA context
-     *
-     */
-    SkeletonTool(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief SkeletonTool class constructor.
+       * \param[in] context ESPINA context
+       *
+       */
+      SkeletonTool(Support::Context &context);
 
-    /** \brief SkeletonTool class virtual destructor.
-     *
-     */
-    virtual ~SkeletonTool();
+      /** \brief SkeletonTool class virtual destructor.
+       *
+       */
+      virtual ~SkeletonTool();
 
-    virtual QList<QAction *> actions() const;
+      /** \brief Returns the category of the category selector of the tool.
+       *
+       */
+      CategoryAdapterSPtr getSelectedCategory()
+      { return m_itemCategory; }
 
-    /** \brief Returns the category of the category selector of the tool.
-     *
-     */
-    CategoryAdapterSPtr getSelectedCategory()
-    { return m_itemCategory; }
+      /** \brief Returns the item the skeleton has been created for or a nullptr
+       *  if there is no item (created a new one).
+       */
+      SegmentationAdapterPtr getSelectedItem()
+      { return m_item; }
 
-    /** \brief Returns the item the skeleton has been created for or a nullptr
-     *  if there is no item (created a new one).
-     */
-    SegmentationAdapterPtr getSelectedItem()
-    { return m_item; }
+      /** \brief Aborts the current operation.
+       *
+       */
+      void abortOperation()
+      { initTool(false); };
 
-    /** \brief Aborts the current operation.
-     *
-     */
-    void abortOperation()
-    { initTool(false); };
+    public slots:
+      /** \brief Helper method to modify an existing skeleton of a segmentation.
+       * \param[in] polyData smart pointer of the new vtkPolyData.
+       *
+       */
+      void skeletonModification(vtkSmartPointer<vtkPolyData> polyData);
 
-  public slots:
-    /** \brief Helper method to modify an existing skeleton of a segmentation.
-     * \param[in] polyData smart pointer of the new vtkPolyData.
-     *
-     */
-    void skeletonModification(vtkSmartPointer<vtkPolyData> polyData);
+      /** \brief Helper method to update the representation in the widget if the data
+       *  being edited changes (by undo/redo).
+       *
+       */
+      void updateWidgetRepresentation();
 
-    /** \brief Helper method to update the representation in the widget if the data
-     *  being edited changes (by undo/redo).
-     *
-     */
-    void updateWidgetRepresentation();
+    private slots:
+      /** \brief Performs tool initialization/de-initialization.
+       * \param[in] value, true to initialize and false otherwise.
+       *
+       */
+      void initTool(bool value);
 
-  private slots:
-    /** \brief Performs tool initialization/de-initialization.
-     * \param[in] value, true to initialize and false otherwise.
-     *
-     */
-    void initTool(bool value);
+      /** \brief Updates the state of the tool depending on the current selection.
+       *
+       */
+      void updateState();
 
-    /** \brief Updates the state of the tool depending on the current selection.
-     *
-     */
-    void updateState();
+      /** \brief Updates the widget with the new category properties.
+       * \param[in] category CategoryAdapter smart pointer.
+       *
+       */
+      void categoryChanged(CategoryAdapterSPtr category);
 
-    /** \brief Updates the widget with the new category properties.
-     * \param[in] category CategoryAdapter smart pointer.
-     *
-     */
-    void categoryChanged(CategoryAdapterSPtr category);
+      /** \brief Removes the widget when the event handler is turned off
+       * by another event handler.
+       *
+       */
+      void eventHandlerToogled(bool toggled);
 
-    /** \brief Removes the widget when the event handler is turned off
-     * by another event handler.
-     *
-     */
-    void eventHandlerToogled(bool toggled);
+      /** \brief Updates the tolerance value in the widgets when the value in the spinbox changes.
+       * \param[in] value new tolerance value.
+       *
+       */
+      void toleranceValueChanged(double value);
 
-    /** \brief Updates the tolerance value in the widgets when the value in the spinbox changes.
-     * \param[in] value new tolerance value.
-     *
-     */
-    void toleranceValueChanged(double value);
+      /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
+       * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
+       *
+       */
+      void checkItemRemoval(SegmentationAdapterSList segmentations);
 
-    /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
-     * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
-     *
-     */
-    void checkItemRemoval(SegmentationAdapterSList segmentations);
+    private:
+      virtual void onToolGroupActivated();
 
-  private:
-    virtual void onToolGroupActivated();
+      /** \brief Helper method to manage the visibility of widgets.
+       * \param[in] value true to set visible false otherwise.
+       *
+       */
+      void setControlsVisibility(bool value);
 
-    /** \brief Helper method to manage the visibility of widgets.
-     * \param[in] value true to set visible false otherwise.
-     *
-     */
-    void setControlsVisibility(bool value);
+      /** \brief Updates the ViewItem selected to use the spacing and set the tolerance.
+       *
+       */
+      void updateReferenceItem();
 
-    /** \brief Updates the ViewItem selected to use the spacing and set the tolerance.
-     *
-     */
-    void updateReferenceItem();
+    private:
+      GUI::Widgets::CategorySelector *m_categorySelector;
+      DoubleSpinBoxAction      *m_toleranceWidget;
+      EventHandlerSPtr          m_handler;
+      QAction                  *m_action;
 
-  private:
-    GUI::Widgets::CategorySelector *m_categorySelector;
-    DoubleSpinBoxAction      *m_toleranceWidget;
-    SkeletonToolStatusAction *m_toolStatus;
-    EventHandlerSPtr          m_handler;
-    QAction                  *m_action;
+      // TODO: 27-05-2015 SkeletonTool/Widget refactorization
+      //EspinaWidgetSPtr          m_widget;
 
-    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-    //EspinaWidgetSPtr          m_widget;
-
-    // widget's return values
-    SegmentationAdapterPtr       m_item;
-    CategoryAdapterSPtr          m_itemCategory;
+      // widget's return values
+      SegmentationAdapterPtr       m_item;
+      CategoryAdapterSPtr          m_itemCategory;
   };
 
   using SkeletonToolPtr  = SkeletonTool *;

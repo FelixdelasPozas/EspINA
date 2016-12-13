@@ -102,6 +102,10 @@ namespace ESPINA
 
       virtual TemporalRepresentation2DSPtr clone() { return std::make_shared<SkeletonWidget>();};
 
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override { /* TODO */ return false; };
+
+      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const { /* TODO */ return false; };
+
     protected:
       virtual bool isEnabled() {return true;};
 

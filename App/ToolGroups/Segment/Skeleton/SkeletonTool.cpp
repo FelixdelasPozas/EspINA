@@ -22,12 +22,13 @@
 #include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Analysis/Output.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
-#include <Filters/SourceFilter.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
-//#include <GUI/Representations/SkeletonRepresentation.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
@@ -36,7 +37,6 @@
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include "SkeletonToolStatusAction.h"
 
 // VTK
 #include <vtkIdList.h>
@@ -48,36 +48,41 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
 
-const Filter::Type SOURCE_FILTER = "SourceFilter";
+const Filter::Type SkeletonFilterFactory::SKELETON_FILTER    = "SkeletonSource";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SourceFilterFactory::providedFilters() const
+FilterTypeList SkeletonFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << SOURCE_FILTER;
+  filters << SKELETON_FILTER;
 
   return filters;
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
-                                             const Filter::Type& filter,
-                                             SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
+FilterSPtr SkeletonFilterFactory::createFilter(InputSList          inputs,
+                                               const Filter::Type& filter,
+                                               SchedulerSPtr       scheduler) const
 {
-  if (SOURCE_FILTER != filter)
+  if (SKELETON_FILTER != filter)
   {
-    throw Unknown_Filter_Exception();
+    auto message = QObject::tr("Unknown filter type: %1.").arg(filter);
+    auto details = QObject::tr("SkeletonFilterFactory::createFilter() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
-  auto sFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
-  if (!m_fetchBehaviour)
+  auto sFilter = std::make_shared<SourceFilter>(inputs, SKELETON_FILTER, scheduler);
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = DataFactorySPtr{new RawDataFactory()};
+    m_dataFactory = std::make_shared<RawDataFactory>();
   }
-  sFilter->setDataFactory(m_fetchBehaviour);
+  sFilter->setDataFactory(m_dataFactory);
 
   return sFilter;
 }
@@ -87,11 +92,11 @@ SkeletonTool::SkeletonTool(Support::Context &context)
 : ProgressTool("SkeletonTool", ":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
-, m_toolStatus      {new SkeletonToolStatusAction(this)}
 {
-  this->getFactory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
+  this->getFactory()->registerFilterFactory(std::make_shared<SkeletonFilterFactory>());
 
   setCheckable(true);
+  setExclusive(true);
 
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(initTool(bool)));
@@ -102,17 +107,14 @@ SkeletonTool::SkeletonTool(Support::Context &context)
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
 
-  m_categorySelector->setVisible(false);
-
   m_toleranceWidget->setLabelText(tr("Points Tolerance"));
   m_toleranceWidget->setSuffix(tr(" nm"));
-  m_toleranceWidget->setVisible(false);
 
   connect(m_toleranceWidget, SIGNAL(valueChanged(double)),
           this,              SLOT(toleranceValueChanged(double)));
 
-  m_toolStatus->reset();
-  m_toolStatus->setVisible(false);
+  addSettingsWidget(m_categorySelector);
+  addSettingsWidget(m_toleranceWidget->createWidget(nullptr));
 }
 
 //-----------------------------------------------------------------------------
@@ -172,19 +174,6 @@ void SkeletonTool::updateState()
 
   m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
   m_categorySelector->selectCategory(m_itemCategory);
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction*> SkeletonTool::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_action;
- // TODO actions << m_categorySelector;
-  actions << m_toleranceWidget;
-  actions << m_toolStatus;
-
-  return actions;
 }
 
 //-----------------------------------------------------------------------------
@@ -262,9 +251,6 @@ void SkeletonTool::initTool(bool value)
     connect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
             this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
 
-    connect(widget,       SIGNAL(status(SkeletonWidget::Status)),
-            m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
-
     m_toleranceWidget->setSpinBoxMinimum(minimumDistance);
     m_toleranceWidget->setStepping(minimumDistance);
     widget->setTolerance(minimumDistance);
@@ -329,7 +315,6 @@ void SkeletonTool::initTool(bool value)
 //
 //    disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
 //               m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
-    m_toolStatus->reset();
 
     getViewState().unsetEventHandler(m_handler);
     m_handler.reset();
@@ -377,7 +362,6 @@ void SkeletonTool::onToolGroupActivated()
   m_action->setEnabled(enabled);
   m_categorySelector->setEnabled(enabled);
   m_toleranceWidget->setEnabled(enabled);
-  m_toolStatus->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -385,7 +369,6 @@ void SkeletonTool::setControlsVisibility(bool value)
 {
   m_categorySelector->setVisible(value);
   m_toleranceWidget->setVisible(value);
-  m_toolStatus->setVisible(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -457,7 +440,6 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
   {
     if(hasSkeletonData(m_item->output()))
     {
-
       if(polyData->GetNumberOfLines() == 0)
       {
         if(m_item->output()->numberOfDatas() == 1)
@@ -503,9 +485,11 @@ void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
     if(polyData->GetNumberOfLines() == 0) return;
 
     auto activeChannel = getActiveChannel();
+    InputSList inputList;
+    inputList << activeChannel->asInput();
 
     auto spacing  = activeChannel->output()->spacing();
-    auto filter   = getFactory()->createFilter<SourceFilter>(activeChannel, SOURCE_FILTER);
+    auto filter   = getFactory()->createFilter<SourceFilter>(inputList, SkeletonFilterFactory::SKELETON_FILTER);
     auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
     auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
     output->setData(skeleton);

@@ -222,6 +222,8 @@ void SeedGrowSegmentationTool::initSettingsWidgets()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initCategorySelector()
 {
+  m_categorySelector->setToolTip(tr("Segmentation category."));
+
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
 
@@ -231,6 +233,7 @@ void SeedGrowSegmentationTool::initCategorySelector()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initROISelector()
 {
+  m_roi->setToolTip(tr("Region of interest for the tool."));
   m_roi->setValue(Axis::X, m_settings->xSize());
   m_roi->setValue(Axis::Y, m_settings->ySize());
   m_roi->setValue(Axis::Z, m_settings->zSize());
@@ -248,13 +251,17 @@ void SeedGrowSegmentationTool::initBestPixelWidgets()
 
   m_useBestPixel->setCheckable(true);
   m_useBestPixel->setChecked(enabled);
+  m_useBestPixel->setToolTip(tr("Use the nearest pixel with the specified color as seed."));
 
   connect(m_useBestPixel, SIGNAL(toggled(bool)),
           this,           SLOT(useBestPixelSelector(bool)));
 
   m_colorLabel->setVisible(enabled);
+  m_colorLabel->setToolTip(tr("Seed color."));
 
   m_colorSelector->setVisible(enabled);
+  m_colorSelector->setToolTip(tr("Seed color."));
+
   Styles::setBarStyle(m_colorSelector);
 
   connect(m_colorSelector, SIGNAL(newValue(int)),
@@ -274,6 +281,7 @@ void SeedGrowSegmentationTool::initCloseWidgets()
 
   m_applyClose->setCheckable(true);
   m_applyClose->setChecked(enabled);
+  m_applyClose->setToolTip(tr("Apply a morphological close algorithm after the reconstruction."));
 
   connect(m_applyClose, SIGNAL(toggled(bool)),
           this,         SLOT(onCloseStateChanged(bool)));
@@ -283,6 +291,7 @@ void SeedGrowSegmentationTool::initCloseWidgets()
   m_close->setSliderVisibility(false);
   m_close->setMinimum(1);
   m_close->setMaximum(10);
+  m_close->setToolTip(tr("Close algorithm radius."));
 
   addSettingsWidget(m_applyClose);
   addSettingsWidget(m_close);

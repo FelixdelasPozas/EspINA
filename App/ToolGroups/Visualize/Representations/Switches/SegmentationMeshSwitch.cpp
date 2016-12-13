@@ -142,6 +142,7 @@ void SegmentationMeshSwitch::initWidgets()
   m_smooth->setSpinBoxVisibility(false);
   m_smooth->setSliderTracking(false);
   m_smooth->setValue(m_settings->smoothValue());
+  m_smooth->setToolTip(tr("Segmentation surface smoothing."));
 
   connect(m_smooth, SIGNAL(valueChanged(int)),
           this,     SLOT(onSmoothChanged(int)));

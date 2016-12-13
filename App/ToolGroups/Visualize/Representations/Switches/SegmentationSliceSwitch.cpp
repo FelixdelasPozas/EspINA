@@ -100,6 +100,7 @@ void SegmentationSliceSwitch::initWidgets()
   m_opacityWidget->setSliderTracking(false);
   m_opacityWidget->setValue(m_settings->opacity()*100);
   m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setToolTip(tr("Segmentation slice opacity."));
 
   addSettingsWidget(m_opacityWidget);
 
