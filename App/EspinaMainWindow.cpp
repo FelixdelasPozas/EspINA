@@ -518,7 +518,7 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   m_autoSave.resetCountDown();
 
-  if(!m_context.model()->isEmpty())
+  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
   {
     checkAnalysisConsistency();
   }

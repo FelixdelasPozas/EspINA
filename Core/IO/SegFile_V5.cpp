@@ -254,14 +254,24 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   {
     filter = m_factory->createFilter(inputs, roVertex->name());
 
-    if (m_fixSourceInputs)
+    // NOTE: These modify the original 'inputs' value adding a default one, but only if 'inputs' is empty.
+    //       Fixes SourceFilter inputs and ReadOnlyFilters (belonging to SegmhaImporter). Could be done in
+    //       another way but it's better not to reference or hack directly values (like using the TYPE of
+    //       SegmhaImporter plugin, not known to Core library).
+    if(m_fixSourceInputs && inputs.isEmpty() && m_sourceInput != nullptr)
     {
+      inputs << m_sourceInput->asInput();
+
       auto sourceFilter = dynamic_cast<SourceFilter *>(filter.get());
       if (sourceFilter)
       {
-        InputSList inputs;
-        inputs << m_sourceInput->asInput();
         sourceFilter->setInputs(inputs);
+      }
+
+      auto readOnlyFilter = dynamic_cast<ReadOnlyFilter *>(filter.get());
+      if(readOnlyFilter)
+      {
+        readOnlyFilter->setInputs(inputs);
       }
     }
   }

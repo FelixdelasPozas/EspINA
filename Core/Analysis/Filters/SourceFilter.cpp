@@ -52,12 +52,6 @@ void SourceFilter::addOutputData(Output::Id id, DataSPtr data)
 }
 
 //----------------------------------------------------------------------------
-void SourceFilter::setInput(InputSPtr input)
-{
-  m_inputs << input;
-}
-
-//----------------------------------------------------------------------------
 bool SourceFilter::needUpdate(Output::Id id) const
 {
   if (!m_outputs.contains(id))

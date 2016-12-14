@@ -28,6 +28,7 @@
 
 // Qt
 #include <QStack>
+#include <QObject>
 #include <QDebug>
 
 using namespace ESPINA;
@@ -144,14 +145,20 @@ TemporalStorage::TemporalStorage(const QDir* parent)
 
   if(!tmpDir.mkpath("espina") || !tmpDir.cd("espina"))
   {
-    qWarning() << "TemporalStorage(): can't create 'espina' path in:" << tmpDir.absolutePath();
+    auto message = QObject::tr("Can't create 'espina' path in: %1").arg(tmpDir.absolutePath());
+    auto details = QObject::tr("TemporalStorage::TemporalStorage() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
   QString path = m_uuid.toString();
 
   if (!tmpDir.mkdir(path))
   {
-    qWarning() << "TemporalStorage(): can't create main storage path:" << path;
+    auto message = QObject::tr("Can't create main storage path: %1").arg(path);
+    auto details = QObject::tr("TemporalStorage::TemporalStorage() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
   m_storageDir = QDir{tmpDir.absoluteFilePath(path)};
@@ -205,20 +212,28 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
 
   if(!m_storageDir.mkpath(fileName.absolutePath()))
   {
-    qWarning() << "TemporalStorage::saveSnapshot() -> can't create path:" << fileName.absolutePath();
+    auto message = QObject::tr("Can't create path: %1").arg(fileName.absolutePath());
+    auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
   QFile file(fileName.absoluteFilePath());
   if (!file.open(QIODevice::WriteOnly))
   {
-    qWarning() << "TemporalStorage::saveSnapshot() -> can't create file:" << fileName.absoluteFilePath();
-    qWarning() << "Cause:" << file.errorString();
+    auto message = QObject::tr("Can't create file: %1").arg(fileName.absoluteFilePath());
+    auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
+
+    throw EspinaException(message, details);
   }
   else
   {
     if(-1 == file.write(data.second))
     {
-      qWarning() << "TemporalStorage::saveSnapshot() -> can't write data to file: " << file.fileName();
+      auto message = QObject::tr("Can't write data to file: %1").arg(file.fileName());
+      auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
+
+      throw EspinaException(message, details);
     }
     file.flush();
     file.close();
@@ -302,7 +317,10 @@ bool TemporalStorage::move(const QString &path, bool createDir)
   QDir newDir(path);
   if(!newDir.mkdir("espina") || !newDir.cd("espina") || !newDir.mkdir(m_uuid.toString()) || !newDir.cd(m_uuid.toString()))
   {
-    qWarning() << "TemporalStorage::move() -> can't create 'espina' path in:" << newDir.absolutePath();
+    auto message = QObject::tr("Can't create 'espina' path in: %1").arg(newDir.absolutePath());
+    auto details = QObject::tr("TemporalStorage::move() -> ") + message;
+
+    throw EspinaException(message, details);
   }
   else
   {

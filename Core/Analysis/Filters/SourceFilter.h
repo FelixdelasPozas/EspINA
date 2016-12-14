@@ -74,14 +74,6 @@ namespace ESPINA
          */
         void addOutputData(Output::Id id, DataSPtr data);
 
-        /** \brief Assigns input to source filter
-         *
-         * This method is needed to fix older seg file whose
-         * source filters may not have any valid input
-         */
-        void setInput(InputSPtr input);
-
-
       protected:
         virtual Snapshot saveFilterSnapshot() const
         { return Snapshot(); }

@@ -30,14 +30,16 @@ using namespace ESPINA::Core::Utils;
 const QString ApplicationSettings::LOAD_SEG_SETTINGS_KEY     = "Load SEG settings";
 const QString ApplicationSettings::TEMPORAL_STORAGE_PATH_KEY = "Temporal Storage Path";
 const QString ApplicationSettings::USER_NAME                 = "UserName";
+const QString ApplicationSettings::PERFORM_ANALYSIS_CHECK    = "Perform analysis check on load";
 
 //-----------------------------------------------------------------------------
 ApplicationSettings::ApplicationSettings()
 {
   ESPINA_SETTINGS(settings);
-  m_userName            = settings.value(USER_NAME, "User").toString();
-  m_loadSEGSettings     = settings.value(LOAD_SEG_SETTINGS_KEY, true).toBool();
-  m_temporalStoragePath = settings.value(TEMPORAL_STORAGE_PATH_KEY, QDir::tempPath()).toString();
+  m_userName             = settings.value(USER_NAME, "User").toString();
+  m_loadSEGSettings      = settings.value(LOAD_SEG_SETTINGS_KEY, true).toBool();
+  m_temporalStoragePath  = settings.value(TEMPORAL_STORAGE_PATH_KEY, QDir::tempPath()).toString();
+  m_performAnalysisCheck = settings.value(PERFORM_ANALYSIS_CHECK, true).toBool();
 
   if(!QDir{m_temporalStoragePath}.exists())
   {
@@ -88,4 +90,13 @@ void ApplicationSettings::setTemporalPath(const QString& path)
 
   ESPINA_SETTINGS(settings);
   settings.setValue(TEMPORAL_STORAGE_PATH_KEY, path);
+}
+
+//-----------------------------------------------------------------------------
+void ApplicationSettings::setPerformAnalysisCheckOnLoad(const bool value)
+{
+  m_performAnalysisCheck = value;
+
+  ESPINA_SETTINGS(settings);
+  settings.setValue(PERFORM_ANALYSIS_CHECK, value);
 }

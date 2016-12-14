@@ -42,6 +42,7 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralS
   m_autosaveInterval->setValue(m_autoSave.interval());
   m_loadSEGSettings ->setChecked(m_settings->loadSEGfileSettings());
   m_temporalPath    ->setText(m_settings->temporalPath());
+  m_doCheck         ->setChecked(m_settings->performAnalysisCheckOnLoad());
 
   auto isSystemTemporalPath = (m_settings->temporalPath() == QDir::tempPath());
   m_systemPathCheckbox->setChecked(isSystemTemporalPath);
@@ -67,6 +68,7 @@ void GeneralSettingsPanel::acceptChanges()
   m_settings->setUserName(m_userName->text());
   m_settings->setLoadSEGfileSettings(m_loadSEGSettings->isChecked());
   m_settings->setTemporalPath(m_temporalPath->text());
+  m_settings->setPerformAnalysisCheckOnLoad(m_doCheck->isChecked());
   m_autoSave.setPath(m_autosavePath->text());
   m_autoSave.setInterval(m_autosaveInterval->value());
 }
@@ -83,7 +85,8 @@ bool GeneralSettingsPanel::modified() const
       || m_loadSEGSettings->isChecked() != m_settings->loadSEGfileSettings()
       || m_autosavePath->text()         != m_autoSave.path().absolutePath()
       || m_autosaveInterval->value()    != m_autoSave.interval()
-      || m_temporalPath->text()         != m_settings->temporalPath();
+      || m_temporalPath->text()         != m_settings->temporalPath()
+      || m_doCheck->isChecked()         != m_settings->performAnalysisCheckOnLoad();
 }
 
 //------------------------------------------------------------------------
