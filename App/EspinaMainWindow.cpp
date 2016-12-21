@@ -1286,6 +1286,8 @@ void EspinaMainWindow::onSessionSaved(const QString &filename, bool success)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveToolsSettings()
 {
+  if(!m_analysis->storage()) return;
+
   auto settings   = m_analysis->storage()->sessionSettings();
   auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
 

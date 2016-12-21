@@ -48,6 +48,18 @@ ProgressTool::NestedWidgets::NestedWidgets(QObject *parent)
 }
 
 //----------------------------------------------------------------------------
+ProgressTool::NestedWidgets::~NestedWidgets()
+{
+  for(int i = m_layout->count() - 1; i > 0; --i)
+  {
+    auto widget = m_layout->itemAt(i)->widget();
+    m_layout->removeWidget(widget);
+    delete widget;
+  }
+}
+
+
+//----------------------------------------------------------------------------
 void ProgressTool::NestedWidgets::addWidget(QWidget *widget)
 {
   m_layout->addWidget(widget);
@@ -349,4 +361,3 @@ QIcon ProgressTool::icon() const
 {
   return m_action->icon();
 }
-

@@ -236,8 +236,7 @@ void ManualSegmentTool::setMultiStroke()
 //------------------------------------------------------------------------
 void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
-  m_temporalPipeline = nullptr;
-  m_referenceItem->clearTemporalRepresentation();
+  clearTemporalPipeline();
 
   auto channel = channelPtr(m_referenceItem);
   auto output  = channel->output();
@@ -281,8 +280,7 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
-  m_temporalPipeline = nullptr;
-  m_referenceItem->clearTemporalRepresentation();
+  clearTemporalPipeline();
 
   auto undoStack = getUndoStack();
   undoStack->beginMacro(tr("Modify Segmentation"));
@@ -298,11 +296,13 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
-  if(m_temporalPipeline) return; // not finished painting?
+  if(m_temporalPipeline)
+  {
+    clearTemporalPipeline();
+  }
 
   auto showStroke = isCreationMode();
-
-  painter->setStrokeVisibility(showStroke);
+  m_drawingWidget.setManageActors(showStroke);
 
   if (!showStroke)
   {
@@ -504,5 +504,17 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
     undoStack->beginMacro(tr("Remove Segmentation"));
     undoStack->push(new RemoveSegmentations(segmentation, getModel()));
     undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::clearTemporalPipeline() const
+{
+  if(m_temporalPipeline)
+  {
+    Q_ASSERT(m_referenceItem != nullptr);
+
+    m_referenceItem->clearTemporalRepresentation();
+    m_temporalPipeline = nullptr;
   }
 }

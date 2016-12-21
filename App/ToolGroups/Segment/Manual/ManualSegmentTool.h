@@ -179,6 +179,12 @@ namespace ESPINA
        */
       void onVoxelDeletion(ViewItemAdapterPtr item);
 
+    private:
+      /** \brief Removes the temporal representation for the reference item.
+       *
+       */
+      void clearTemporalPipeline() const;
+
     protected:
       ModelAdapterSPtr                   m_model;         /** current analysis model. */
       ModelFactorySPtr                   m_factory;       /** current analysis factory. */
@@ -195,8 +201,8 @@ namespace ESPINA
 
       MaskPainterSPtr m_currentPainter; /** current painter. */
 
-      bool                      m_validStroke;      /** true if the last stroke is a valid one and false otherwise. */
-      SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
+      bool                              m_validStroke;      /** true if the last stroke is a valid one and false otherwise. */
+      mutable SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
   };
 } // namespace ESPINA
 

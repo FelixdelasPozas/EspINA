@@ -22,6 +22,7 @@
 #include <GUI/View/View2D.h>
 #include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <GUI/Utils/RepresentationUtils.h>
 
 // VTK
 #include <vtkProp.h>
@@ -33,8 +34,10 @@ using namespace ESPINA::GUI::ColorEngines;
 //------------------------------------------------------------------------
 SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
 : RepresentationPipeline{"TemporalSlicePipeline"}
-, m_plane               {Plane::XY}
-, m_slicePipeline       {Plane::XY, colorEngine}
+, m_plane               {Plane::UNDEFINED}
+, m_slice               {-VTK_DOUBLE_MAX}
+, m_colorEngine         {colorEngine}
+, m_slicePipeline       {Plane::UNDEFINED, colorEngine}
 {
   setType(m_slicePipeline.type());
 }
@@ -49,9 +52,8 @@ RepresentationState SliceEditionPipeline::representationState(ConstViewItemAdapt
 RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewItemAdapterPtr item, const RepresentationState &state)
 {
   ActorList actors;
-  //qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
 
-  if (m_actor.GetPointer() && (crosshairPoint(state) == m_crosshair) && (RepresentationUtils::plane(state) == m_plane))
+  if (m_actor.GetPointer() && (RepresentationUtils::plane(state) == m_plane) && (crosshairPoint(state)[normalCoordinateIndex(m_plane)] == m_slice))
   {
     actors << m_actor;
   }
@@ -66,7 +68,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
 //------------------------------------------------------------------------
 void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
-  if((crosshairPoint(state) != m_crosshair) || (RepresentationUtils::plane(state) != m_plane))
+  if((RepresentationUtils::plane(state) != m_plane) || (crosshairPoint(state)[normalCoordinateIndex(m_plane)] != m_slice))
   {
     m_slicePipeline.updateColors(actors, item, state);
   }
@@ -85,9 +87,10 @@ void SliceEditionPipeline::setTemporalActor(RepresentationPipeline::VTKActor act
 
   if(view2D)
   {
-    m_plane     = view2D->plane();
-    m_crosshair = view2D->crosshair();
-    m_actor     = actor;
+    m_plane         = view2D->plane();
+    m_slice         = view2D->crosshair()[normalCoordinateIndex(m_plane)];
+    m_actor         = actor;
+    m_slicePipeline = SegmentationSlicePipeline{m_plane, m_colorEngine};
 
     m_slicePipeline.setPlane(m_plane);
   }

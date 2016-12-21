@@ -30,7 +30,8 @@ using namespace ESPINA;
 BrushPainter::BrushPainter(BrushSPtr brush)
 : MaskPainter       {brush}
 , m_brush           {brush}
-, m_showStroke      {true}
+, m_strokePainter   {nullptr}
+, m_manageActors    {false}
 , m_showEraseStrokes{false}
 , m_actualStrokeMode{DrawingMode::PAINTING}
 {
@@ -48,9 +49,9 @@ BrushPainter::BrushPainter(BrushSPtr brush)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPainter::setStrokeVisibility(bool value)
+void BrushPainter::setManageStrokeActor(bool value)
 {
-  m_showStroke = value;
+  m_manageActors = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -83,7 +84,7 @@ void BrushPainter::onStrokeStarted(RenderView *view)
 
   emit strokeStarted(this, view);
 
-  if (m_showStroke)
+  if (m_manageActors)
   {
     view->addActor(m_strokePainter->strokeActor());
     view->refresh();
@@ -93,7 +94,7 @@ void BrushPainter::onStrokeStarted(RenderView *view)
 //-----------------------------------------------------------------------------
 void BrushPainter::onStrokeFinished(Brush::Stroke stroke, RenderView *view)
 {
-  if (m_showStroke)
+  if (m_manageActors)
   {
     view->removeActor(m_strokePainter->strokeActor());
   }

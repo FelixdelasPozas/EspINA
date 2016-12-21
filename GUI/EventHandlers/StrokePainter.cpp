@@ -107,7 +107,7 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
   // preview actor must be above others or it will be occluded
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[normalCoordinateIndex(view2d->plane())] += 1.25 * view2d->segmentationDepth();
+  pos[normalCoordinateIndex(view2d->plane())] += view2d->segmentationDepth();
   m_actor->SetPosition(pos);
 
   connect(brush, SIGNAL(strokeUpdated(Brush::Stroke)),
@@ -138,7 +138,7 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
   {
     if(!brush.second.areValid()) continue;
 
-    auto pointBounds = intersection(m_previewBounds, brush.second);
+    auto pointBounds = intersection(m_previewBounds, brush.second, m_spacing);
     auto region      = equivalentRegion<itkVolumeType>(m_origin, m_spacing, pointBounds);
     auto tempImage   = define_itkImage<itkVolumeType>(m_origin, m_spacing);
     tempImage->SetRegions(region);
@@ -161,7 +161,7 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
   }
 
   m_strokeCanvas->Modified();
-  m_mapToColors->Update();
+  m_mapToColors->UpdateWholeExtent();
   m_actor->Update();
   m_view->refresh();
 }
