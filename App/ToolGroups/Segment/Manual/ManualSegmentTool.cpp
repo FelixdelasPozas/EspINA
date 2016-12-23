@@ -105,7 +105,6 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 , m_mode              {Mode::SINGLE_STROKE}
 , m_createSegmentation{true}
 , m_referenceItem     {nullptr}
-, m_validStroke       {true}
 , m_temporalPipeline  {nullptr}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
@@ -314,9 +313,7 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     canvas->GetExtent(extent);
     auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-    m_validStroke = intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
-
-    if (m_validStroke)
+    if (intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing()))
     {
       auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
 

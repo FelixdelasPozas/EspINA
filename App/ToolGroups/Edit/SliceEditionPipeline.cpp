@@ -23,6 +23,7 @@
 #include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <GUI/Utils/RepresentationUtils.h>
+#include <Core/Utils/Spatial.h>
 
 // VTK
 #include <vtkProp.h>
@@ -35,7 +36,9 @@ using namespace ESPINA::GUI::ColorEngines;
 SliceEditionPipeline::SliceEditionPipeline(ColorEngineSPtr colorEngine)
 : RepresentationPipeline{"TemporalSlicePipeline"}
 , m_plane               {Plane::UNDEFINED}
+, m_index               {-1}
 , m_slice               {-VTK_DOUBLE_MAX}
+, m_sliceSpacing        {-VTK_DOUBLE_MAX}
 , m_colorEngine         {colorEngine}
 , m_slicePipeline       {Plane::UNDEFINED, colorEngine}
 {
@@ -53,7 +56,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
 {
   ActorList actors;
 
-  if (m_actor.GetPointer() && (RepresentationUtils::plane(state) == m_plane) && (crosshairPoint(state)[normalCoordinateIndex(m_plane)] == m_slice))
+  if(m_actor.GetPointer() && (RepresentationUtils::plane(state) == m_plane) && areEqual(crosshairPoint(state)[m_index], m_slice, m_sliceSpacing))
   {
     actors << m_actor;
   }
@@ -68,7 +71,7 @@ RepresentationPipeline::ActorList SliceEditionPipeline::createActors(ConstViewIt
 //------------------------------------------------------------------------
 void SliceEditionPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
-  if((RepresentationUtils::plane(state) != m_plane) || (crosshairPoint(state)[normalCoordinateIndex(m_plane)] != m_slice))
+  if((RepresentationUtils::plane(state) != m_plane) || !areEqual(crosshairPoint(state)[m_index], m_slice, m_sliceSpacing))
   {
     m_slicePipeline.updateColors(actors, item, state);
   }
@@ -88,7 +91,9 @@ void SliceEditionPipeline::setTemporalActor(RepresentationPipeline::VTKActor act
   if(view2D)
   {
     m_plane         = view2D->plane();
-    m_slice         = view2D->crosshair()[normalCoordinateIndex(m_plane)];
+    m_index         = normalCoordinateIndex(m_plane);
+    m_slice         = view2D->crosshair()[m_index];
+    m_sliceSpacing  = view2D->sceneResolution()[m_index];
     m_actor         = actor;
     m_slicePipeline = SegmentationSlicePipeline{m_plane, m_colorEngine};
 

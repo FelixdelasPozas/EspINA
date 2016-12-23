@@ -103,7 +103,6 @@ namespace ESPINA
     mutable ViewItemAdapterPtr m_referenceItem; /** current item being edited or the origin stack. */
 
     MaskPainterSPtr                  m_currentHandler;   /** current event handler.                                              */
-    bool                             m_validStroke;      /** true if the last stroke is valid, false otherwise.                  */
     mutable SliceEditionPipelineSPtr m_temporalPipeline; /** temporal pipeline to generate representations for the current item. */
   };
 

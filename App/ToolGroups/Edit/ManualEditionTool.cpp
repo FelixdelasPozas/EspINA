@@ -55,7 +55,6 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_drawingWidget   (context.viewState(), context.model())
 , m_referenceItem   {nullptr}
 , m_currentHandler  {nullptr}
-, m_validStroke     {true}
 , m_temporalPipeline{nullptr}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
@@ -183,13 +182,10 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
   canvas->GetExtent(extent);
   auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-  m_validStroke = intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
-
-  if (m_validStroke)
+  if (intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing()))
   {
     auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
-
-    auto slice = readLockVolume(m_referenceItem->output())->itkImage(bounds);
+    auto slice  = readLockVolume(m_referenceItem->output())->itkImage(bounds);
 
     itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
     it.GoToBegin();
@@ -205,13 +201,13 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
       }
       ++it;
     }
-
-    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(getContext().colorEngine());
-    m_temporalPipeline->setTemporalActor(strokePainter->strokeActor(), view);
-
-    m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
-    m_referenceItem->invalidateRepresentations();
   }
+
+  m_temporalPipeline = std::make_shared<SliceEditionPipeline>(getContext().colorEngine());
+  m_temporalPipeline->setTemporalActor(strokePainter->strokeActor(), view);
+
+  m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
+  m_referenceItem->invalidateRepresentations();
 }
 
 //------------------------------------------------------------------------

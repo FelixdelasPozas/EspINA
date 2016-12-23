@@ -200,8 +200,6 @@ namespace ESPINA
       ViewItemAdapterPtr m_referenceItem;      /** item used to take spacing reference. */
 
       MaskPainterSPtr m_currentPainter; /** current painter. */
-
-      bool                              m_validStroke;      /** true if the last stroke is a valid one and false otherwise. */
       mutable SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
   };
 } // namespace ESPINA
