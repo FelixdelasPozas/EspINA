@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef APP_DIALOGS_DISTANCEINFORMATION_DISTANCEINFORMATIONOPTIONSDIALOG_H_
-#define APP_DIALOGS_DISTANCEINFORMATION_DISTANCEINFORMATIONOPTIONSDIALOG_H_
+#ifndef DISTANCEINFORMATIONOPTIONSDIALOG_H_
+#define DISTANCEINFORMATIONOPTIONSDIALOG_H_
 
 // ESPINA
 #include "DistanceInformationOptionsDialog.h"
@@ -29,27 +29,38 @@
 #include <QDialog>
 #include <ui_DistanceInformationOptionsDialog.h>
 
+// TODO add minimum and maximum distance fields
+// TODO add category constraint.
+
 namespace ESPINA
 {
-  
+  /** \class DistanceInformationOptionsDialog
+   * \brief Options dialog for the Distance Information Report.
+   *
+   */
   class DistanceInformationOptionsDialog
-      : public QDialog
-      , private Ui::DistanceInformationOptionsDialog
+  : public QDialog
+  , private Ui::DistanceInformationOptionsDialog
   {
       Q_OBJECT
     public:
       /** \brief Enum class containing the distance type
        *
        */
-      enum class Type: char { CENTROID = 0, SURFACE };
+      enum class DistanceType: char { CENTROID = 0, SURFACE };
+
+      /** \brief Emun class for the type of table.
+       *
+       */
+      enum class TableType: char { COMBINED = 0, SINGLE };
 
       /** \brief Struct containing the distance information options
         *
         */
       struct Options {
-          Type distanceInformationType;
-          bool maximumDistanceEnabled;
-          double maximumDistance;
+          DistanceType distanceInformationType; /** type of distance (centroid or surface)      */
+          double       maximumDistance;         /** maximum distance to select or zero if none. */
+          TableType    tableType;               /** type of table to show (combined or single). */
       };
 
       /** \brief DistanceInformationOptionsDialog class constructor.
@@ -64,16 +75,6 @@ namespace ESPINA
       virtual ~DistanceInformationOptionsDialog()
       {};
 
-      /** \brief Returns true whether centroid to centroid option is selected.
-       *
-       */
-      bool isCentroidOptionSelected() const;
-
-      /** \brief Returns true whether surface to surface option is selected.
-       *
-       */
-      bool isSurfaceOptionSelected() const;
-
       /** \brief Returns true whether maximum distance option is enabled.
        *
        */
@@ -87,7 +88,12 @@ namespace ESPINA
       /** \brief Returns the enum type selected in the dialog.
        *
        */
-      Type getDistanceType() const;
+      DistanceType getDistanceType() const;
+
+      /** \brief Returns the type of table selected in the dialog.
+       *
+       */
+      TableType getTableType() const;
 
       /** \brief Returns the options selected in the dialog.
        *
@@ -96,12 +102,12 @@ namespace ESPINA
 
     private slots:
       /** \brief DistanceInformationOptionsDialog class virtual destructor.
+       * \param[in] state state of the checkbox.
        *
        */
-      void maximumDistanceStateChanged(int);
-
+      void onMaxDistanceCheckChanged(int state);
   };
 
-} /* namespace ESPINA */
+} // namespace ESPINA
 
-#endif /* APP_DIALOGS_DISTANCEINFORMATION_DISTANCEINFORMATIONOPTIONSDIALOG_H_ */
+#endif // DISTANCEINFORMATIONOPTIONSDIALOG_H_

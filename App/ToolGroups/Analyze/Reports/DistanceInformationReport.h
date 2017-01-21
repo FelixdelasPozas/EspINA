@@ -18,26 +18,38 @@
  *
  */
 
-#ifndef APP_TOOLGROUPS_ANALYZE_REPORTS_DISTANCEINFORMATIONREPORT_H_
-#define APP_TOOLGROUPS_ANALYZE_REPORTS_DISTANCEINFORMATIONREPORT_H_
+#ifndef DISTANCEINFORMATIONREPORT_H_
+#define DISTANCEINFORMATIONREPORT_H_
 
 #include <Support/Report.h>
 #include <Support/Context.h>
 
 namespace ESPINA
 {
+  /** \class DistanceInformationReport
+   * \brief Distance between segmentations report.
+   *
+   */
   class DistanceInformationReport
   : public Support::Report
   , private Support::WithContext
   {
     public:
+      /** \brief DistanceInformationReport class constructor.
+       * \param[in] context application context.
+       *
+       */
       explicit DistanceInformationReport(Support::Context &context);
+
+      /** \brief DistanceInformationReport class virtual destructor.
+       *
+       */
+      virtual ~DistanceInformationReport()
+      {};
 
       virtual QString name() const override;
 
       virtual QString description() const override;
-
-      virtual QPixmap preview() const override;
 
       virtual SegmentationAdapterList acceptedInput(SegmentationAdapterList segmentations) const override;
 
@@ -45,6 +57,6 @@ namespace ESPINA
 
       virtual void show(SegmentationAdapterList input) const override;
   };
-} /* namespace ESPINA */
+} // namespace ESPINA
 
-#endif /* APP_TOOLGROUPS_ANALYZE_REPORTS_DISTANCEINFORMATIONREPORT_H_ */
+#endif // DISTANCEINFORMATIONREPORT_H_

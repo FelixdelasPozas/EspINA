@@ -24,6 +24,7 @@
 // Qt
 #include <QDebug>
 #include <QDialog>
+#include <QThread>
 
 // ESPINA
 #include <Core/Types.h>
@@ -35,22 +36,79 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
+class QProgressBar;
+
 namespace ESPINA
 {
+  /** \class DistanceComputationThread
+   * \brief Computes the distance between the two given segmentations.
+   *
+   */
+  class DistanceComputationThread
+  : public QThread
+  {
+      Q_OBJECT
+    public:
+      /** \brief DistanceComputationThread class constructor.
+       * \param[in] first first segmentation.
+       * \param[in] second second segmentation.
+       * \param[in] type distance type.
+       * \param[in] context application context.
+       *
+       */
+      explicit DistanceComputationThread(SegmentationAdapterPtr first,
+                                         SegmentationAdapterPtr second,
+                                         const DistanceInformationOptionsDialog::DistanceType type,
+                                         Support::Context &context);
+
+      /** \brief DistanceComputationThread class virtual destructor.
+       *
+       */
+      virtual ~DistanceComputationThread()
+      {};
+
+      const SegmentationAdapterPtr first() const
+      { return m_first; }
+
+      const SegmentationAdapterPtr second() const
+      { return m_second; }
+
+      const Nm distance() const
+      { return m_distance; }
+
+    protected:
+      virtual void run() override;
+
+    private:
+      /** \brief Returns the centroid for the given segmentation.
+       * \param[in] segmentation segmentation pointer.
+       *
+       */
+      const NmVector3 getCentroid(SegmentationAdapterPtr segmentation);
+
+      Support::Context                                    &m_context;  /** application context.            */
+      Nm                                                   m_distance; /** distance between segmentations. */
+      SegmentationAdapterPtr                               m_first;    /** first segmentation.             */
+      SegmentationAdapterPtr                               m_second;   /** second segmentation.            */
+      const DistanceInformationOptionsDialog::DistanceType m_type;     /** distance type.                  */
+  };
+
   /** \class DistanceInformationDialog
     * \brief Shows the report dialog.
     *
     */
   class DistanceInformationDialog
   : public QDialog
+  , private Support::WithContext
   {
+      Q_OBJECT
     public:
       /** \brief DistanceInformationDialog class constructor.
        * \param[in] parent widget.
        * \param[in] parent widget.
        */
-      explicit DistanceInformationDialog(SegmentationAdapterList selectedSegmentations,
-                                         DistanceInformationOptionsDialog::Options options,
+      explicit DistanceInformationDialog(const SegmentationAdapterList selectedSegmentations,
+                                         const DistanceInformationOptionsDialog::Options options,
                                          Support::Context &context);
 
       /** \brief DistanceInformationDialog class destructor.
@@ -59,42 +117,44 @@ namespace ESPINA
       virtual ~DistanceInformationDialog()
       {};
 
+      using DistancesMap = QMap<SegmentationAdapterPtr, QMap<SegmentationAdapterPtr, double>>;
+
     private:
-      /** \brief Calculate distance between the two given segmentations.
+      /** \brief Starts the next computation thread or does nothing if all distances have been computed.
+       *
+       */
+      void computeNextDistance();
+
+      /** \brief Returns true if the distance has been computed already and false otherwise.
        * \param[in] first segmentation.
        * \param[in] second segmentation.
-       *///TODO
-      const Nm centroidDistance(SegmentationAdapterPtr first,
-                                SegmentationAdapterPtr second);
+       */
+      const bool isDistanceCached(SegmentationAdapterPtr first, SegmentationAdapterPtr second) const;
 
-      /** \brief Calculate distance between the two given segmentations.
-       * \param[in] first segmentation.
-       * \param[in] second segmentation.
-       * \param[out] cached distance
-       *///TODO
-      const bool isDistanceCached(SegmentationAdapterPtr first,
-                                 SegmentationAdapterPtr second,
-                                 Nm *distance = nullptr);
+    private slots:
+      /** \brief Cancels the computations and quits the dialog.
+       *
+       */
+      void cancelComputations();
 
-      /** \brief Calculate distance between the two given segmentations.
-       * \param[in] first segmentation.
-       * \param[in] second segmentation.
-       *///TODO
-      const NmVector3 getCentroid(SegmentationAdapterPtr seg);
+      /** \brief Inserts the computed value into the distances map.
+       *
+       */
+      void finishedComputation();
 
-      /** \brief Calculate distance between the two given segmentations.
-       * \param[in] first segmentation.
-       * \param[in] second segmentation.
-       *///TODO
-      const Nm meshDistance(SegmentationAdapterPtr first,
-                            SegmentationAdapterPtr second);
+    private:
+      const SegmentationAdapterList                   &m_segmentations; /** input segmentations.           */
+      const DistanceInformationOptionsDialog::Options &m_options;       /** computation options.           */
+      int                                              m_i;             /** i iterator for thread launch.  */
+      int                                              m_j;             /** j iterator for thread launch.  */
+      const int                                        m_iMax;          /** max i iterator value.          */
+      const int                                        m_jMax;          /** max j iterator value.          */
+      bool                                             m_finished;      /** true if calculations finished. */
 
-
-      QHash<SegmentationAdapterPtr, QHash<SegmentationAdapterPtr, Nm>> m_cachedDistances;
-      SegmentationAdapterList m_selectedSegmentations;
-      Support::Context &m_context;
-      DistanceInformationOptionsDialog::Options m_options;
-      const double m_ERROR_VAL;
+      mutable QReadWriteLock              m_lock;      /** lock for the distances. */
+      DistancesMap                        m_distances; /** distances map */
+      QList<DistanceComputationThread *>  m_threads;   /** computation thread. */
+      QProgressBar                       *m_progress;  /** computation progress bar. */
   };
 
 } // namespace ESPINA

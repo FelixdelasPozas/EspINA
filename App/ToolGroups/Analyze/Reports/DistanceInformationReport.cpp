@@ -18,8 +18,10 @@
  *
  */
 
+// ESPINA
 #include "DistanceInformationReport.h"
 #include <Dialogs/DistanceInformation/DistanceInformationDialog.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -39,16 +41,9 @@ QString DistanceInformationReport::name() const
 //----------------------------------------------------------------------------
 QString DistanceInformationReport::description() const
 {
-  //TODO
-  return tr("Create a table with the segmentation information.\n\n" \
-              "Different types of information can be selected in the \"Select Information\" dialog in the menu and they will be shown in separated columns.");
-}
-
-//----------------------------------------------------------------------------
-QPixmap DistanceInformationReport::preview() const
-{
-  //TODO
-  return QPixmap(":/espina/preview_raw_information.png");
+  return tr("Computes and reports the distance between segmentations in the stack.\n\n" \
+            "The distance can be computed from centroid to centroid or from surface to surface. The report can have a single table or an individual table for each segmentation." \
+            "If there aren't any selected segmentations the distances will be computed for all segmentations in the stack.");
 }
 
 //----------------------------------------------------------------------------
@@ -64,14 +59,20 @@ QString DistanceInformationReport::requiredInputDescription() const
 }
 
 //----------------------------------------------------------------------------
-void DistanceInformationReport::show(SegmentationAdapterList input) const
+void DistanceInformationReport::show(SegmentationAdapterList segmentations) const
 {
-  auto optionsDialog = std::make_shared<DistanceInformationOptionsDialog>();
-  if (optionsDialog->exec() == QDialog::Rejected)
-      return;
+  if(getModel()->segmentations().size() < 2)
+  {
+    DefaultDialogs::ErrorMessage(tr("There should be at least two segmentations to compute distances."));
+  }
+  else
+  {
+    DistanceInformationOptionsDialog optionsDialog;
 
-  auto options = optionsDialog->getOptions();
-
-  auto dialog = std::make_shared<DistanceInformationDialog>(input, options, getContext());
-  dialog->show();
+    if (optionsDialog.exec() == QDialog::Accepted)
+    {
+      DistanceInformationDialog dialog(segmentations, optionsDialog.getOptions(), getContext());
+      dialog.exec();
+    }
+  }
 }

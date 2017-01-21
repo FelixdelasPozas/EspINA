@@ -25,54 +25,46 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 DistanceInformationOptionsDialog::DistanceInformationOptionsDialog()
-: QDialog {GUI::DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
+: QDialog{GUI::DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
 {
   setupUi(this);
 
-  setWindowIconText(":/espina/Espina.svg");
+  connect(m_maxDistanceCheck, SIGNAL(stateChanged(int)),
+          this,               SLOT(onMaxDistanceCheckChanged(int)));
+}
 
-  connect(m_checkBox_maxDistance, SIGNAL(stateChanged(int)),
-          this,           SLOT(maximumDistanceStateChanged(int)));
+//----------------------------------------------------------------------------
+DistanceInformationOptionsDialog::TableType DistanceInformationOptionsDialog::getTableType() const
+{
+  return (m_combinedTable->isChecked()) ? TableType::COMBINED : TableType::SINGLE;
+}
+
+//----------------------------------------------------------------------------
+DistanceInformationOptionsDialog::DistanceType DistanceInformationOptionsDialog::getDistanceType() const
+{
+  return (m_surfaceOption->isChecked()) ? DistanceType::SURFACE : DistanceType::CENTROID;
 }
 
 //----------------------------------------------------------------------------
 DistanceInformationOptionsDialog::Options DistanceInformationOptionsDialog::getOptions() const
 {
-  return Options{getDistanceType(),isMaximumDistanceEnabled(),getMaximumDistance()};
-}
-
-//----------------------------------------------------------------------------
-DistanceInformationOptionsDialog::Type DistanceInformationOptionsDialog::getDistanceType() const
-{
-  return (m_radioButton_surface->isChecked()) ? Type::CENTROID : Type::SURFACE;
+  return Options{getDistanceType(),getMaximumDistance(), getTableType()};
 }
 
 //----------------------------------------------------------------------------
 double DistanceInformationOptionsDialog::getMaximumDistance() const
 {
-  return m_doubleSpinBox_maxDistance->value();
-}
-
-//----------------------------------------------------------------------------
-bool DistanceInformationOptionsDialog::isCentroidOptionSelected() const
-{
-  return m_radioButton_centroid->isChecked();
+  return isMaximumDistanceEnabled() ? m_maxDistance->value() : 0;
 }
 
 //----------------------------------------------------------------------------
 bool DistanceInformationOptionsDialog::isMaximumDistanceEnabled() const
 {
-  return m_checkBox_maxDistance->isChecked();
+  return m_maxDistanceCheck->isChecked();
 }
 
 //----------------------------------------------------------------------------
-bool DistanceInformationOptionsDialog::isSurfaceOptionSelected() const
+void DistanceInformationOptionsDialog::onMaxDistanceCheckChanged(int state)
 {
-  return m_radioButton_surface->isChecked();
-}
-
-//----------------------------------------------------------------------------
-void DistanceInformationOptionsDialog::maximumDistanceStateChanged(int state)
-{
-  m_doubleSpinBox_maxDistance->setEnabled(state != Qt::Unchecked);
+  m_maxDistance->setEnabled(state == Qt::Checked);
 }

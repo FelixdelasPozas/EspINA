@@ -19,173 +19,322 @@
  */
 
 // ESPINA
-#include <Core/Analysis/Data/MeshData.h>
-#include <Core/Analysis/Extensible.hxx>
-#include <Core/Analysis/Extensions.h>
-#include <Core/Analysis/ItemExtension.hxx>
 #include "DistanceInformationDialog.h"
+#include "DistanceInformationTabularReport.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Widgets/TabularReport.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/Spatial.h>
+#include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/MultiTasking/Scheduler.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
-// QT
-#include <QDebug>
+// Qt
+#include <QSpacerItem>
+#include <QProgressBar>
+#include <QApplication>
+
+// C++
+#include <cmath>
 
 // VTK
+#include <vtkSmartPointer.h>
 #include <vtkDistancePolyDataFilter.h>
 #include <vtkPointData.h>
 
-using ESPINA::Core::Analysis::Extensions;
-using ESPINA::Core::Extension;
 using ESPINA::Core::SegmentationExtension;
 using ESPINA::Extensions::MorphologicalInformation;
-using ESPINA::GUI::DefaultDialogs;
-using namespace ESPINA;
 
-const QString SETTINGS_GROUP = "Raw Information Report";
+using namespace ESPINA;
+using namespace ESPINA::GUI;
+
+const QString SETTINGS_GROUP = "Distance Information Report";
 
 //----------------------------------------------------------------------------
-DistanceInformationDialog::DistanceInformationDialog(SegmentationAdapterList selectedSegmentations,
-                                                     DistanceInformationOptionsDialog::Options options,
+DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterList selectedSegmentations,
+                                                     const DistanceInformationOptionsDialog::Options options,
                                                      Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint)
-, m_selectedSegmentations{selectedSegmentations}
-, m_context              (context)
-, m_options              (options)
-, m_ERROR_VAL            {-DBL_MAX}
+: QDialog             (DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint)
+, Support::WithContext(context)
+, m_segmentations     (selectedSegmentations)
+, m_options           (options)
+, m_i                 {0}
+, m_j                 {0}
+, m_iMax              {m_segmentations.isEmpty() ? context.model()->segmentations().size() : m_segmentations.size()}
+, m_jMax              {context.model()->segmentations().size()}
+, m_finished          {false}
 {
   setWindowTitle(tr("Distance Information Report"));
   setWindowIconText(":/espina/Espina.svg");
   setLayout(new QVBoxLayout());
 
-  if (options.maximumDistanceEnabled)
+  layout()->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
+  auto label = new QLabel("Computing distances.", this, 0);
+  label->setAlignment(Qt::AlignHCenter);
+  layout()->addWidget(label);
+
+  m_progress = new QProgressBar(this);
+  m_progress->setValue(0);
+
+  layout()->addWidget(m_progress);
+
+  layout()->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
+
+  auto cancelButton = new QDialogButtonBox(QDialogButtonBox::Cancel);
+
+  connect(cancelButton, SIGNAL(rejected()),
+          this,         SLOT(cancelComputations()));
+
+  layout()->addWidget(cancelButton);
+
+  window()->resize(layout()->sizeHint());
+  window()->adjustSize();
+
+  auto numSegs = context.model()->segmentations().size();
+
+  int numComputations;
+
+  if(m_segmentations.isEmpty())
   {
-    auto maxDistance = options.maximumDistance;
+    numComputations = (numSegs * (numSegs-1))/2;
+  }
+  else
+  {
+    auto givenSegsNum = m_segmentations.size();
+    numComputations = (givenSegsNum * (numSegs - 1)) - ((givenSegsNum * (givenSegsNum - 1))/2);
   }
 
-  auto segmentationsList = context.model()->segmentations();
+  m_progress->setMaximum(numComputations);
 
-  for (auto seg1 : selectedSegmentations)
+  for(unsigned int i = 0; i < Scheduler::maxRunningTasks(); ++i)
   {
-    for (auto seg2 : segmentationsList)
-    {
-      auto cent = centroidDistance(seg1,seg2.get());
-    }
+    computeNextDistance();
   }
-
-  auto report = new TabularReport(context, this);
-  report->setModel(context.model());
-  report->setFilter(selectedSegmentations);
-
-  layout()->addWidget(report);
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(acceptButton, SIGNAL(accepted()),
-          this,         SLOT(accept()));
-  layout()->addWidget(acceptButton);
 }
 
 //----------------------------------------------------------------------------
-const Nm DistanceInformationDialog::centroidDistance( SegmentationAdapterPtr first,
-                                                      SegmentationAdapterPtr second)
+void DistanceInformationDialog::computeNextDistance()
 {
-  Nm returnValue = m_ERROR_VAL;
-
-  if (!isDistanceCached(first, second, &returnValue))
+  auto incrementCheck = [this] ()
   {
-    auto centroid1 = getCentroid(first);
-    auto c1x = centroid1[0];
-    auto c1y = centroid1[1];
-    auto c1z = centroid1[2];
+    if(this->m_j == this->m_jMax)
+    {
+      this->m_i = this->m_i + 1;
+      this->m_j = 0;
+    }
 
-    auto centroid2 = getCentroid(second);
-    auto c2x = centroid2[0];
-    auto c2y = centroid2[1];
-    auto c2z = centroid2[2];
+    if (this->m_i == this->m_iMax)
+    {
+      this->m_finished = true;
+    }
+  };
 
-    returnValue = sqrt(pow(c1x - c2x, 2) + pow(c1y - c2y, 2) + pow(c1z - c2z, 2));
-    m_cachedDistances[first][second] = returnValue;
+  auto segmentations            = getModel()->segmentations();
+  SegmentationAdapterPtr first  = nullptr;
+  SegmentationAdapterPtr second = nullptr;
+
+  while((first == second) && !m_finished)
+  {
+    incrementCheck();
+
+    if(!m_finished)
+    {
+      first = m_segmentations.isEmpty() ? segmentations.at(m_i).get() : m_segmentations.at(m_i);
+      second = segmentations.at(m_j).get();
+
+      while((first == second) || isDistanceCached(first, second))
+      {
+        ++m_j;
+
+        incrementCheck();
+
+        if(m_finished) break;
+
+        first = m_segmentations.isEmpty() ? segmentations.at(m_i).get() : m_segmentations.at(m_i);
+        second = segmentations.at(m_j).get();
+      }
+    }
   }
 
-  return returnValue;
+  if(!m_finished)
+  {
+    m_distances[first][second] = m_distances[second][first] = VTK_DOUBLE_MAX;
+
+    auto thread = new DistanceComputationThread(first, second, m_options.distanceInformationType, getContext());
+    connect(thread, SIGNAL(finished()), this, SLOT(finishedComputation()));
+
+    m_threads << thread;
+
+    thread->start();
+  }
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationDialog::cancelComputations()
+{
+  QWriteLocker lock(&m_lock);
+
+  for(auto thread: m_threads)
+  {
+    disconnect(thread, SIGNAL(finished()), this, SLOT(finishedComputation()));
+
+    delete thread;
+  }
+
+  m_threads.clear();
+
+  close();
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationDialog::finishedComputation()
+{
+  if(m_threads.isEmpty()) return;
+
+  QApplication::processEvents();
+
+  QWriteLocker lock(&m_lock);
+
+  auto thread = qobject_cast<DistanceComputationThread *>(sender());
+
+  if(thread && m_threads.contains(thread))
+  {
+    m_distances[thread->first()][thread->second()] = thread->distance();
+    m_distances[thread->second()][thread->first()] = thread->distance();
+
+    m_threads.removeOne(thread);
+
+    delete thread;
+
+    m_progress->setValue(m_progress->value() + 1);
+
+    computeNextDistance();
+  }
+  else
+  {
+    qWarning("DistanceInformationDialog::finishedComputation() -> Unknown thread");
+  }
+
+  if(m_threads.isEmpty())
+  {
+    while(layout()->count() != 0)
+    {
+      layout()->removeItem(layout()->itemAt(0));
+    }
+
+    auto report = new DistanceInformationTabularReport(getContext(), m_segmentations, m_options, m_distances);
+
+    layout()->addWidget(report);
+
+    auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+
+    connect(acceptButton, SIGNAL(accepted()),
+            this,         SLOT(accept()));
+
+    layout()->addWidget(acceptButton);
+
+    window()->resize(layout()->sizeHint());
+    window()->adjustSize();
+  }
 }
 
 //----------------------------------------------------------------------------
 const bool DistanceInformationDialog::isDistanceCached(SegmentationAdapterPtr first,
-                                                        SegmentationAdapterPtr second,
-                                                        Nm *distance)
-{
-  bool returnValue;
+                                                       SegmentationAdapterPtr second) const
 
-  returnValue = m_cachedDistances.contains(second) && m_cachedDistances.value(second).contains(first);
-  if (returnValue){
-    if (distance != nullptr) *distance = m_cachedDistances[second][first];
+{
+  // NOTE: if m_distances[first][second] exists then m_distances[second][first] exists too. If there is a value then
+  // has been computed or is being computed.
+  if(m_distances.keys().contains(first) && m_distances[first].keys().contains(second))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+DistanceComputationThread::DistanceComputationThread(SegmentationAdapterPtr first,
+                                                     SegmentationAdapterPtr second,
+                                                     const DistanceInformationOptionsDialog::DistanceType type,
+                                                     Support::Context      &context)
+: QThread()
+, m_context           (context)
+, m_distance          {0}
+, m_first             {first}
+, m_second            {second}
+, m_type              {type}
+{
+}
+
+// TODO solve interlocking problem.
+
+//----------------------------------------------------------------------------
+void DistanceComputationThread::run()
+{
+  if(m_type == DistanceInformationOptionsDialog::DistanceType::CENTROID)
+  {
+    auto centroid1 = getCentroid(m_first);
+    auto c1x = centroid1[0];
+    auto c1y = centroid1[1];
+    auto c1z = centroid1[2];
+
+    auto centroid2 = getCentroid(m_second);
+    auto c2x = centroid2[0];
+    auto c2y = centroid2[1];
+    auto c2z = centroid2[2];
+
+    m_distance = std::sqrt(std::pow(c1x - c2x, 2) + std::pow(c1y - c2y, 2) + std::pow(c1z - c2z, 2));
   }
   else
   {
-    returnValue = m_cachedDistances.contains(first) && m_cachedDistances.value(first).contains(second);
-    if (returnValue && distance != nullptr) *distance = m_cachedDistances[first][second];
-  }
-  return returnValue;
-}
-
-//----------------------------------------------------------------------------
-const NmVector3 DistanceInformationDialog::getCentroid(SegmentationAdapterPtr seg)
-{
-  auto segExtensions = seg->extensions();
-
-  if(!segExtensions->hasExtension(MorphologicalInformation::TYPE))
-  {
-    auto extension = m_context.factory()->createSegmentationExtension(MorphologicalInformation::TYPE);
-    segExtensions->add(extension);
-  }
-
-  auto morphological = segExtensions->get<MorphologicalInformation>();
-  auto keys = morphological->availableInformation();
-
-  NmVector3 returnValue = NmVector3();
-  bool isOk;
-  Vector3<QString> tagList = {"Centroid X","Centroid Y","Centroid Z"};
-  for(int i = 0; i<3; i++)
-  {
-    auto key = SegmentationExtension::InformationKey( MorphologicalInformation::TYPE,
-                                                     tagList[i]);
-    auto value_qvariant = morphological->information(key);
-    auto value_double = value_qvariant.toDouble(&isOk);
-    if(!isOk)
-    {
-      cerr << "ESPINA::DistanceInformationDialog::getCentroid unexpected variant value";
-      exit (1);
-    }
-    returnValue[i] = value_double;
-  }
-  return returnValue;
-}
-
-//----------------------------------------------------------------------------
-const Nm DistanceInformationDialog::meshDistance( SegmentationAdapterPtr first,
-                                                  SegmentationAdapterPtr second)
-{
-  Nm returnValue = m_ERROR_VAL;
-
-  if (!isDistanceCached(first, second, &returnValue))
-  {
-    auto mesh1 = readLockMesh(first->output());
-    auto poly1 = mesh1->mesh();
-
-    auto mesh2 = readLockMesh(second->output());
-    auto poly2 = mesh2->mesh();
+    auto mesh1 = readLockMesh(m_first->output())->mesh();
+    auto mesh2 = readLockMesh(m_second->output())->mesh();
 
     auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
     distanceFilter->SignedDistanceOff();
-    distanceFilter->SetInputData(0, poly1);
-    distanceFilter->SetInputData(1, poly2);
+    distanceFilter->SetInputData(0, mesh1);
+    distanceFilter->SetInputData(1, mesh2);
     distanceFilter->Update();
 
-    returnValue = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+    m_distance = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+  }
+}
+
+//----------------------------------------------------------------------------
+const NmVector3 DistanceComputationThread::getCentroid(SegmentationAdapterPtr seg)
+{
+  auto extensions = seg->extensions();
+
+  if(!extensions->hasExtension(MorphologicalInformation::TYPE))
+  {
+    auto extension = m_context.factory()->createSegmentationExtension(MorphologicalInformation::TYPE);
+    extensions->add(extension);
   }
 
-  return returnValue;
+  auto morphologicalExtension = extensions->get<MorphologicalInformation>();
+
+  bool isOk;
+  const QStringList tagList = {"Centroid X","Centroid Y","Centroid Z"};
+
+  NmVector3 centroid;
+
+  for(int i = 0; i < 3; i++)
+  {
+    auto key    = SegmentationExtension::InformationKey(MorphologicalInformation::TYPE, tagList.at(i));
+    auto qValue = morphologicalExtension->information(key);
+    auto value  = qValue.toDouble(&isOk);
+
+    if(!isOk)
+    {
+      qWarning() << "DistanceComputationThread::getCentroid() -> Unexpected variant value.";
+    }
+
+    centroid[i] = value;
+  }
+
+  return centroid;
 }

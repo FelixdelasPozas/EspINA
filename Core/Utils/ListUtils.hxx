@@ -28,6 +28,13 @@
 // C++
 #include <memory>
 
+// Qt
+#include <QObject>
+#include <QString>
+#include <QRegExp>
+#include <QtAlgorithms>
+#include <QList>
+
 namespace ESPINA
 {
   namespace Core
@@ -120,6 +127,70 @@ namespace ESPINA
         }
 
         return result;
+      }
+
+      //-----------------------------------------------------------------------------
+      template <typename T>
+      bool lessThan(T left, T right)
+      {
+        auto lstring = left->data().toString();
+        auto rstring = right->data().toString();
+        auto lparts = lstring.split(' ');
+        auto rparts = rstring.split(' ');
+
+        // check same category
+        if(lparts[0] != rparts[0])
+        {
+          return lstring < rstring;
+        }
+
+        // same category, check numbers
+        QRegExp numExtractor("(\\d+)");
+        numExtractor.setMinimal(false);
+
+        if ((numExtractor.indexIn(lstring) == -1) || (numExtractor.indexIn(rstring) == -1))
+        {
+          return lstring < rstring;
+        }
+
+        // use the last number, we can't be sure that there is only one
+        int pos = 0;
+        int numLeft, numRight;
+
+        while ((pos = numExtractor.indexIn(lstring, pos)) != -1)
+        {
+          numLeft = numExtractor.cap(1).toInt();
+          pos += numExtractor.matchedLength();
+        }
+
+        pos = 0;
+        while ((pos = numExtractor.indexIn(rstring, pos)) != -1)
+        {
+          numRight = numExtractor.cap(1).toInt();
+          pos += numExtractor.matchedLength();
+        }
+
+        if (numLeft == numRight)
+        {
+          return lstring < rstring;
+        }
+
+        // else not equal
+        return numLeft < numRight;
+      }
+
+      //-----------------------------------------------------------------------------
+      template <typename T>
+      void sort(QList<std::shared_ptr<T>> &list)
+      {
+        qSort(list.begin(), list.end(), lessThan<std::shared_ptr<T>>);
+      }
+
+      //-----------------------------------------------------------------------------
+      template <typename T>
+      void sort(QList<T> &list)
+      {
+        qSort(list.begin(), list.end(), lessThan<T>);
       }
     }
   }

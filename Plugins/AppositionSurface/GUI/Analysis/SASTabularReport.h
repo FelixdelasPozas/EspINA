@@ -96,7 +96,7 @@ namespace ESPINA
       bool isSASExtensions(const Core::SegmentationExtension::Type &type) const;
 
     private slots:
-      void extractInformation();
+      virtual void extractInformation() override;
   };
 } // namespace ESPINA
 

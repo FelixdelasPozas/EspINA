@@ -7,21 +7,40 @@
     <x>0</x>
     <y>0</y>
     <width>316</width>
-    <height>240</height>
+    <height>298</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>316</width>
+    <height>298</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>316</width>
+    <height>298</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Distance Information Options</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../rsc/espina.qrc">
+    <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QGroupBox" name="m_groupBox_distanceType">
      <property name="title">
-      <string>Distance type:</string>
+      <string>Distance type</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QRadioButton" name="m_radioButton_centroid">
+       <widget class="QRadioButton" name="m_centroidOption">
         <property name="text">
          <string>Centroid to centroid</string>
         </property>
@@ -31,15 +50,15 @@
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="m_radioButton_surface">
+       <widget class="QRadioButton" name="m_surfaceOption">
         <property name="text">
          <string>Surface to surface</string>
         </property>
        </widget>
       </item>
      </layout>
-     <zorder>m_radioButton_surface</zorder>
-     <zorder>m_radioButton_centroid</zorder>
+     <zorder>m_surfaceOption</zorder>
+     <zorder>m_centroidOption</zorder>
     </widget>
    </item>
    <item>
@@ -49,19 +68,25 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QCheckBox" name="m_checkBox_maxDistance">
+       <widget class="QCheckBox" name="m_maxDistanceCheck">
         <property name="text">
          <string>Enable</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="m_doubleSpinBox_maxDistance">
+       <widget class="QDoubleSpinBox" name="m_maxDistance">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="suffix">
          <string> nm</string>
+        </property>
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000000000.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -71,11 +96,30 @@
    <item>
     <widget class="QGroupBox" name="m_groupBox_ordenationTable">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Ordenation table</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QRadioButton" name="m_combinedTable">
+        <property name="text">
+         <string>Combined table</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="m_singleTable">
+        <property name="text">
+         <string>Single table per segmentation</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -90,7 +134,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../rsc/espina.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
