@@ -249,6 +249,15 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
       distItem->setEditable(false);
       distItem->setDragEnabled(false);
       distItem->setDropEnabled(false);
+
+      if(distances[from][to] == -1)
+      {
+        distItem->setData(tr("Error"), Qt::DisplayRole);
+        distItem->setData(Qt::red, Qt::TextColorRole);
+        auto font = distItem->font();
+        font.setBold(true);
+        distItem->setFont(font);
+      }
       table->setItem(row, column++, distItem);
     }
 

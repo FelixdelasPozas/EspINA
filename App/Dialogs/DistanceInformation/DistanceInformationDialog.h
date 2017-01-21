@@ -27,10 +27,11 @@
 #include <QThread>
 
 // ESPINA
+#include "DistanceInformationOptionsDialog.h"
 #include <Core/Types.h>
+#include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Context.h>
-#include "DistanceInformationOptionsDialog.h"
 
 // VTK
 #include <vtkPolyData.h>
@@ -45,7 +46,7 @@ namespace ESPINA
    *
    */
   class DistanceComputationThread
-  : public QThread
+  : public Task
   {
       Q_OBJECT
     public:
@@ -135,12 +136,12 @@ namespace ESPINA
       /** \brief Cancels the computations and quits the dialog.
        *
        */
-      void cancelComputations();
+      void onComputationCancelled();
 
       /** \brief Inserts the computed value into the distances map.
        *
        */
-      void finishedComputation();
+      void onComputationFinished();
 
     private:
       const SegmentationAdapterList                   &m_segmentations; /** input segmentations.           */
@@ -151,10 +152,10 @@ namespace ESPINA
       const int                                        m_jMax;          /** max j iterator value.          */
       bool                                             m_finished;      /** true if calculations finished. */
 
-      mutable QReadWriteLock              m_lock;      /** lock for the distances. */
-      DistancesMap                        m_distances; /** distances map */
-      QList<DistanceComputationThread *>  m_threads;   /** computation thread. */
-      QProgressBar                       *m_progress;  /** computation progress bar. */
+      mutable QReadWriteLock                            m_lock;      /** lock for the distances.              */
+      DistancesMap                                      m_distances; /** distances map                        */
+      QList<std::shared_ptr<DistanceComputationThread>> m_tasks;     /** computation tasks currently running. */
+      QProgressBar                                     *m_progress;  /** computation progress bar.            */
   };
 
 } // namespace ESPINA

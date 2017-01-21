@@ -41,7 +41,8 @@
 
 // VTK
 #include <vtkSmartPointer.h>
-#include <vtkDistancePolyDataFilter.h>
+#include <vtkImplicitPolyDataDistance.h>
+#include <vtkPolyData.h>
 #include <vtkPointData.h>
 
 using ESPINA::Core::SegmentationExtension;
@@ -86,7 +87,7 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
   auto cancelButton = new QDialogButtonBox(QDialogButtonBox::Cancel);
 
   connect(cancelButton, SIGNAL(rejected()),
-          this,         SLOT(cancelComputations()));
+          this,         SLOT(onComputationCancelled()));
 
   layout()->addWidget(cancelButton);
 
@@ -163,36 +164,35 @@ void DistanceInformationDialog::computeNextDistance()
   {
     m_distances[first][second] = m_distances[second][first] = VTK_DOUBLE_MAX;
 
-    auto thread = new DistanceComputationThread(first, second, m_options.distanceInformationType, getContext());
-    connect(thread, SIGNAL(finished()), this, SLOT(finishedComputation()));
+    auto task = std::make_shared<DistanceComputationThread>(first, second, m_options.distanceInformationType, getContext());
+    connect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
 
-    m_threads << thread;
+    m_tasks << task;
 
-    thread->start();
+    Task::submit(task);
   }
 }
 
 //----------------------------------------------------------------------------
-void DistanceInformationDialog::cancelComputations()
+void DistanceInformationDialog::onComputationCancelled()
 {
   QWriteLocker lock(&m_lock);
 
-  for(auto thread: m_threads)
+  for(auto task: m_tasks)
   {
-    disconnect(thread, SIGNAL(finished()), this, SLOT(finishedComputation()));
-
-    delete thread;
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
+    task->abort();
   }
 
-  m_threads.clear();
+  m_tasks.clear();
 
   close();
 }
 
 //----------------------------------------------------------------------------
-void DistanceInformationDialog::finishedComputation()
+void DistanceInformationDialog::onComputationFinished()
 {
-  if(m_threads.isEmpty()) return;
+  if(m_tasks.isEmpty()) return;
 
   QApplication::processEvents();
 
@@ -200,25 +200,31 @@ void DistanceInformationDialog::finishedComputation()
 
   auto thread = qobject_cast<DistanceComputationThread *>(sender());
 
-  if(thread && m_threads.contains(thread))
+  if(thread)
   {
-    m_distances[thread->first()][thread->second()] = thread->distance();
-    m_distances[thread->second()][thread->first()] = thread->distance();
+    for(auto task: m_tasks)
+    {
+      if(task.get() == thread)
+      {
+        m_distances[thread->first()][thread->second()] = thread->distance();
+        m_distances[thread->second()][thread->first()] = thread->distance();
 
-    m_threads.removeOne(thread);
+        m_tasks.removeOne(task);
 
-    delete thread;
+        m_progress->setValue(m_progress->value() + 1);
 
-    m_progress->setValue(m_progress->value() + 1);
+        computeNextDistance();
 
-    computeNextDistance();
+        break;
+      }
+    }
   }
   else
   {
-    qWarning("DistanceInformationDialog::finishedComputation() -> Unknown thread");
+    qWarning("DistanceInformationDialog::onComputationFinished() -> Unknown thread");
   }
 
-  if(m_threads.isEmpty())
+  if(m_tasks.isEmpty())
   {
     while(layout()->count() != 0)
     {
@@ -261,16 +267,17 @@ DistanceComputationThread::DistanceComputationThread(SegmentationAdapterPtr firs
                                                      SegmentationAdapterPtr second,
                                                      const DistanceInformationOptionsDialog::DistanceType type,
                                                      Support::Context      &context)
-: QThread()
-, m_context           (context)
-, m_distance          {0}
-, m_first             {first}
-, m_second            {second}
-, m_type              {type}
+: Task      {context.scheduler()}
+, m_context (context)
+, m_distance{VTK_DOUBLE_MAX}
+, m_first   {first}
+, m_second  {second}
+, m_type    {type}
 {
+  Q_ASSERT(first != nullptr && second != nullptr);
+  setDescription(QObject::tr("Compute distance from %1 to %2.").arg(first->data().toString()).arg(second->data().toString()));
+  setHidden(true);
 }
-
-// TODO solve interlocking problem.
 
 //----------------------------------------------------------------------------
 void DistanceComputationThread::run()
@@ -291,16 +298,40 @@ void DistanceComputationThread::run()
   }
   else
   {
-    auto mesh1 = readLockMesh(m_first->output())->mesh();
-    auto mesh2 = readLockMesh(m_second->output())->mesh();
+    auto from = readLockMesh(m_first->output())->mesh();
+    auto to   = readLockMesh(m_second->output())->mesh();
 
-    auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
-    distanceFilter->SignedDistanceOff();
-    distanceFilter->SetInputData(0, mesh1);
-    distanceFilter->SetInputData(1, mesh2);
-    distanceFilter->Update();
+    if ((from->GetNumberOfPolys() == 0) || (from->GetNumberOfPoints() == 0) ||
+        (to->GetNumberOfPolys() == 0)   || (to->GetNumberOfPoints() == 0))
+    {
+      m_distance = -1;
+      return;
+    }
 
-    m_distance = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+    auto distanceFilter = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    distanceFilter->SetInput(to);
+
+    int numPts = from->GetNumberOfPoints();
+
+    for (vtkIdType ptId = 0; ptId < numPts; ++ptId)
+    {
+      double pt[3];
+      from->GetPoint(ptId, pt);
+      try
+      {
+        auto dist = std::fabs(distanceFilter->EvaluateFunction(pt));
+
+        if(m_distance > dist)
+        {
+          m_distance = dist;
+        }
+      }
+      catch(...)
+      {
+        m_distance = -1;
+        break;
+      }
+    }
   }
 }
 

@@ -43,11 +43,11 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 Task::Task(SchedulerSPtr scheduler)
-: m_scheduler{scheduler}
-, m_thread         {nullptr}
-, m_executingThread{nullptr}
-, m_submitted      {false}
-, m_priority{Priority::NORMAL}
+: m_scheduler       {scheduler}
+, m_thread          {nullptr}
+, m_executingThread {nullptr}
+, m_submitted       {false}
+, m_priority        {Priority::NORMAL}
 , m_isRunning       {false}
 , m_pendingPause    {false}
 , m_pendingUserPause{false}
