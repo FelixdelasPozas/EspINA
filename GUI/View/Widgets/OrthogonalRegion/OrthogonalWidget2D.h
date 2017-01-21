@@ -62,8 +62,6 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
-
             virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
             virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;
@@ -80,6 +78,8 @@ namespace ESPINA
 
           private:
             virtual void display(const Representations::FrameCSPtr& frame) override;
+
+            virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
           private slots:
             void onModeChanged(const OrthogonalRepresentation::Mode mode);

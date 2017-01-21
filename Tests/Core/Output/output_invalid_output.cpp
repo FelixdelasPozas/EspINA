@@ -42,9 +42,9 @@ public:
   virtual VolumeBounds bounds() const { return VolumeBounds(); }
   virtual void setSpacing(const NmVector3& spacing){}
   virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
-  virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
+  virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) { return Snapshot();}
   virtual bool isValid() const {return false;}
-  virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
+  virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) {return Snapshot();}
   virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {}
   virtual Type type() const { return "InvalidData";}
   virtual size_t memoryUsage() const { return 0; }

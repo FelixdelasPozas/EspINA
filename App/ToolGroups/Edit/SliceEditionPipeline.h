@@ -57,10 +57,13 @@ namespace ESPINA
       void setTemporalActor(VTKActor actor, RenderView *view);
 
     private:
-      Plane                     m_plane;         /** orthogonal plane.   */
-      NmVector3                 m_crosshair;     /** crosshair position. */
-      VTKActor                  m_actor;         /** actor.              */
-      SegmentationSlicePipeline m_slicePipeline; /** slice pipeline.     */
+      Plane                              m_plane;         /** orthogonal plane.       */
+      int                                m_index;         /** plane index.            */
+      Nm                                 m_slice;         /** plane slice position.   */
+      Nm                                 m_sliceSpacing;  /** spacing of slice plane. */
+      VTKActor                           m_actor;         /** actor.                  */
+      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;   /** slice color engine.     */
+      SegmentationSlicePipeline          m_slicePipeline; /** slice pipeline.         */
   };
 
   using SliceEditionPipelineSPtr = std::shared_ptr<SliceEditionPipeline>;

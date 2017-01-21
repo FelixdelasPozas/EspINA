@@ -8,14 +8,16 @@ project (ESPINA)
 
 add_definitions(
   -std=c++11
-  -fpermissive
-  -rdynamic
-  )
+  -fpermissive)
+  
+if(DEFINED MINGW)
+	add_definitions(-mwindows)
+else(DEFINED MINGW)
+	add_definitions(-rdynamic)
+endif(DEFINED MINGW)
 
 find_package(QuaZip REQUIRED)
-#if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
-#  include(${QUAZIP_USE_FILE})
-#endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
+include_directories(${QUAZIP_INCLUDE_DIR})
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -27,36 +29,32 @@ find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS graph regex)
-link_directories ( ${Boost_LIBRARY_DIRS} )
+link_directories (${Boost_LIBRARY_DIRS})
+include_directories(${Boost_INCLUDE_DIR})
 
 # Notify basic plugins to avoid searching for ESPINA CMake files
 set (COMPILING_ESPINA 1)
 
 set (AUTOMATIC_VERSION TRUE CACHE BOOL "Detect ESPINA version automatically from git tags")
 
+if(DEFINED MINGW)
+	set(AUTOMATIC_VERSION FALSE)
+endif(DEFINED MINGW)
+
 if (AUTOMATIC_VERSION)
- 
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f1 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_MAJOR OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f2 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_MINOR OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f3 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_PATCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 endif ()
 
-if (NOT AUTOMATIC_VERSION
-    OR  ESPINA_VERSION_MAJOR STREQUAL ""
-    OR  ESPINA_VERSION_MINOR STREQUAL ""
-    OR  ESPINA_VERSION_PATCH STREQUAL "")
-  
+if (NOT AUTOMATIC_VERSION OR  ESPINA_VERSION_MAJOR STREQUAL "" OR  ESPINA_VERSION_MINOR STREQUAL "" OR  ESPINA_VERSION_PATCH STREQUAL "")
   # Version Number
   set (ESPINA_VERSION_MAJOR ${FOUND_ESPINA_VERSION_MAJOR} CACHE INTEGER "ESPINA major version")
   set (ESPINA_VERSION_MINOR ${FOUND_ESPINA_VERSION_MINOR} CACHE INTEGER "ESPINA minor version")
   set (ESPINA_VERSION_PATCH ${FOUND_ESPINA_VERSION_PATCH} CACHE INTEGER "ESPINA patch version")
-
 endif ()
 
-set (ESPINA_VERSION
-  ${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}.${ESPINA_VERSION_PATCH}
-  )
+set (ESPINA_VERSION ${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}.${ESPINA_VERSION_PATCH})
 message(STATUS "ESPINA Version: ${ESPINA_VERSION}")
 
 # Offer the user the choice of overriding the installation directories
@@ -166,16 +164,13 @@ configure_file(
 if (NOT DEFINED MINGW)
   set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 else(NOT DEFINED MINGW)
-  if (DEFINED MINGW)
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
-  endif (DEFINED MINGW)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
 endif (NOT DEFINED MINGW)
 
 if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X, it has only been tested in Unix
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
   message(STATUS "CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 endif()
-
 
 add_subdirectory( Core       )
 add_subdirectory( Extensions )
@@ -224,13 +219,15 @@ export(TARGETS
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE ESPINA)
  
+get_property(inc_directories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+ 
 # Create the ESPINAConfig.cmake and ESPINAConfigVersion files
 file(RELATIVE_PATH REL_INCLUDE_DIR   "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
 file(RELATIVE_PATH REL_LIBRARIES_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_LIB_DIR}")
 # ... for the build tree
 set(CONF_CMAKE_DIR      "${PROJECT_SOURCE_DIR}")
 set(CONF_LIBRARIES_DIRS "${LIBRARY_OUTPUT_PATH}")
-set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}" ${inc_directories})
 configure_file (
   ESPINAConfig.cmake.in
   "${PROJECT_BINARY_DIR}/ESPINAConfig.cmake"

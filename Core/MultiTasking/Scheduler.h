@@ -78,6 +78,8 @@ namespace ESPINA
 
 
   public:
+    static const unsigned int MAX_TASKS = 15; /** max number of tasks. */
+
     /** \brief Scheduler class constructor.
      * \param[in] period interval for scheduling tasks.
      * \param[in] parent raw pointer of the parent of this object.

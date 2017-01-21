@@ -155,7 +155,6 @@ Snapshot Channel::snapshot() const
   if (!extensions->isEmpty())
   {
     QByteArray xml;
-
     QXmlStreamWriter stream(&xml);
 
     stream.setAutoFormatting(true);

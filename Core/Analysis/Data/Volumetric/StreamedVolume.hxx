@@ -128,10 +128,10 @@ namespace ESPINA
         virtual bool isEmpty() const override
         { return !isValid(); }
 
-        virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+        virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
         { return Snapshot(); }
 
-        virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+        virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
         { return Snapshot(); }
 
         virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
@@ -235,7 +235,7 @@ namespace ESPINA
       m_region  = image->GetLargestPossibleRegion();
 
       // region must be updated because all regions in EspINA have an implicit origin of {0,0,0}
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         m_region.SetIndex(i, vtkMath::Round(m_origin.GetElement(i)/m_spacing.GetElement(i)));
       }
@@ -447,7 +447,7 @@ namespace ESPINA
 
       // need to correct the region with the equivalent one on disk, just a displacement of origin length.
       typename T::RegionType requestedRegion = region;
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         requestedRegion.SetIndex(i, requestedRegion.GetIndex(i)-m_region.GetIndex(i));
       }

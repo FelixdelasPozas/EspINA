@@ -42,6 +42,7 @@ PlanarSplitWidget3D::PlanarSplitWidget3D(PlanarSplitEventHandler *handler)
 , m_view           {nullptr}
 {
   m_command->setWidget(this);
+  m_command->setHandler(handler);
 }
 
 //-----------------------------------------------------------------------------
@@ -54,7 +55,7 @@ PlanarSplitWidget3D::~PlanarSplitWidget3D()
 }
 
 //-----------------------------------------------------------------------------
-TemporalRepresentation3DSPtr PlanarSplitWidget3D::clone()
+TemporalRepresentation3DSPtr PlanarSplitWidget3D::cloneImplementation()
 {
   return std::make_shared<PlanarSplitWidget3D>(m_handler);
 }

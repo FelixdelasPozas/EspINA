@@ -58,8 +58,7 @@ namespace ESPINA
       /** \brief Returns the list of created counting frames.
        *
        */
-      CountingFrameList countingFrames() const
-      { return m_countingFrames.keys(); }
+      CountingFrameList countingFrames() const;
 
       /** \brief Adds the given counting frame to the map of counting frames.
        * \param[in] cf counting frame object pointer.

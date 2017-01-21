@@ -63,10 +63,26 @@ namespace ESPINA
           : public QWidgetAction
           {
           public:
+            /** \brief NestedWidgets class constructor.
+             * \param[in] parent pointer of the parent widget of this one.
+             *
+             */
             explicit NestedWidgets(QObject *parent);
 
+            /** \brief NestedWidgets class virtual destructor.
+             *
+             */
+            virtual ~NestedWidgets();
+
+            /** \brief Adds a given widget to the container.
+             * \param[in] widget pointer to the QWidget to add.
+             *
+             */
             void addWidget(QWidget *widget);
 
+            /** \brief Returns true if there is no widgets in the container and false otherwise.
+             *
+             */
             bool isEmpty() const;
 
           private:
@@ -102,16 +118,16 @@ namespace ESPINA
           /** \brief Enables/Disables the tool
            * \param[in] value true to enable false otherwise.
            *
-           * Disabled tools may still report progess of pending operations
+           * Disabled tools may still report progress of pending operations
            */
-          void setEnabled(bool value);
+          virtual void setEnabled(bool value);
 
           /** \brief Returns true if the tool is enabled, false otherwise.
            *
            */
           bool isEnabled() const;
 
-          /** \brief Changes tool behaviour to be checkable or not
+          /** \brief Changes tool behavior to be checkable or not
            *
            *  Checked tools will display available options
            */
@@ -119,9 +135,9 @@ namespace ESPINA
 
           bool isChecked() const;
 
-          /** \brief Changes tool behaviour to be explicit or not
+          /** \brief Changes tool behavior to be explicit or not
            *
-           *  There can only be one excluive tool toogled in EspINA
+           *  There can only be one exclusive tool toggled in EspINA
            */
           void setExclusive(bool value);
 

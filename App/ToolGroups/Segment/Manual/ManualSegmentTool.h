@@ -87,9 +87,6 @@ namespace ESPINA
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-    signals:
-      void voxelsDeleted(ViewItemAdapterPtr item);
-
     public slots:
       /** \brief Updates GUI and the tool when the current selection changes.
        *
@@ -182,6 +179,12 @@ namespace ESPINA
        */
       void onVoxelDeletion(ViewItemAdapterPtr item);
 
+    private:
+      /** \brief Removes the temporal representation for the reference item.
+       *
+       */
+      void clearTemporalPipeline() const;
+
     protected:
       ModelAdapterSPtr                   m_model;         /** current analysis model. */
       ModelFactorySPtr                   m_factory;       /** current analysis factory. */
@@ -197,9 +200,7 @@ namespace ESPINA
       ViewItemAdapterPtr m_referenceItem;      /** item used to take spacing reference. */
 
       MaskPainterSPtr m_currentPainter; /** current painter. */
-
-      bool                      m_validStroke;      /** true if the last stroke is a valid one and false otherwise. */
-      SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
+      mutable SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
   };
 } // namespace ESPINA
 

@@ -63,12 +63,10 @@ namespace ESPINA
   public:
     /** \brief Layout class constructor.
      * \param[in] view QTreeView raw pointer.
-     * \param[in] filterRefiners register of filter refiners
      * \param[in] context ESPINA context
      *
      */
     explicit Layout(CheckableTreeView              *view,
-                    Support::FilterRefinerFactory &filterRefiners,
                     Support::Context               &context);
 
     /** \brief Layout class virtual destructor.
@@ -181,8 +179,6 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    Support::FilterRefinerFactory &m_delegateFactory;
-
     CheckableTreeView *m_view;
 
     QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors;

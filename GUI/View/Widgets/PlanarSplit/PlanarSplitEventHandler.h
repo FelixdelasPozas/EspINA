@@ -26,7 +26,6 @@
 
 // ESPINA
 #include <GUI/View/EventHandler.h>
-#include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 
 class QEvent;
 
@@ -40,6 +39,9 @@ namespace ESPINA
     {
       namespace Widgets
       {
+        class PlanarSplitWidget;
+        using PlanarSplitWidgetPtr = PlanarSplitWidget *;
+
         /** \class PlanarSplitEventHandler
          * \brief Handle events for planar split widgets.
          *
@@ -61,9 +63,16 @@ namespace ESPINA
 
             virtual bool filterEvent(QEvent *e, RenderView *view);
 
+            /** \brief Helper method to emit the plane defined signal
+             * \param[in] widget widget use to define the plane.
+             *
+             */
+            void emitPlaneDefined(PlanarSplitWidgetPtr widget)
+            {
+              emit planeDefined(widget);
+            }
+
           signals:
-            void widgetCreated(PlanarSplitWidgetPtr widget);
-            void widgetDestroyed(PlanarSplitWidgetPtr widget);
             void planeDefined(PlanarSplitWidgetPtr widget);
         };
 

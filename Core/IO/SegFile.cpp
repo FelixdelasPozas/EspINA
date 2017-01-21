@@ -22,8 +22,8 @@
 // ESPINA
 #include "SegFile.h"
 #include <EspinaConfig.h>
-#include "Core/IO/SegFile_V5.h"
-#include "Core/IO/SegFile_V4.h"
+#include <Core/IO/SegFile_V5.h>
+#include <Core/IO/SegFile_V4.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/CoreFactory.h>
@@ -96,8 +96,7 @@ class TmpSegFile
 public:
   TmpSegFile(QDir& tmpDir) :
   File { tmpDir.absoluteFilePath(QUuid::createUuid().toString()) }, m_tmpDir { tmpDir }
-  {
-  }
+  {}
 
   ~TmpSegFile()
   {

@@ -58,10 +58,10 @@ namespace ESPINA
       };
 
     protected slots:
-      void exportInformation();
+      virtual void exportInformation() override;
 
     private:
-      void createCategoryEntry(const QString &category);
+      virtual void createCategoryEntry(const QString &category);
 
       static QString extraPath(const QString &file = QString())
       {
@@ -90,13 +90,13 @@ namespace ESPINA
 
       virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, Core::SegmentationExtension::InformationKeyList informationOrder) override;
 
+    protected slots:
+      virtual void extractInformation() override;
+
     private:
       Core::SegmentationExtension::KeyList keyValues(const Core::SegmentationExtension::InformationKeyList &keys) const;
 
       bool isSASExtensions(const Core::SegmentationExtension::Type &type) const;
-
-    private slots:
-      virtual void extractInformation() override;
   };
 } // namespace ESPINA
 

@@ -40,13 +40,23 @@ using namespace ESPINA::GUI::View::Utils;
 
 //-----------------------------------------------------------------------------
 ROIWidget::ROIWidget(ROISPtr roi)
-: m_ROI         {roi}
+: m_active      {false}
+, m_ROI         {roi}
 , m_color       {Qt::yellow}
 , m_depth       {0}
 , m_reslicePoint{VTK_DOUBLE_MAX}
 , m_index       {-1}
 , m_view        {nullptr}
 {
+}
+
+//-----------------------------------------------------------------------------
+ROIWidget::~ROIWidget()
+{
+  if(m_view)
+  {
+    m_view->removeActor(m_actor);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -62,7 +72,7 @@ void ROIWidget::setRepresentationDepth(Nm depth)
 }
 
 //-----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr ROIWidget::clone()
+TemporalRepresentation2DSPtr ROIWidget::cloneImplementation()
 {
   auto representation = std::make_shared<ROIWidget>(m_ROI);
 
@@ -127,6 +137,8 @@ void ROIWidget::initialize(RenderView *view)
 
   connect(m_ROI.get(), SIGNAL(dataChanged()),
           this,        SLOT(onROIChanged()), Qt::QueuedConnection);
+
+  m_view->refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -142,15 +154,27 @@ void ROIWidget::uninitialize()
 //-----------------------------------------------------------------------------
 void ROIWidget::show()
 {
-  m_actor->SetVisibility(true);
-  m_actor->Modified();
+  if(!m_view) return;
+
+  if(!m_active)
+  {
+    m_active = true;
+    m_actor->SetVisibility(true);
+    m_actor->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::hide()
 {
-  m_actor->SetVisibility(false);
-  m_actor->Modified();
+  if(!m_view) return;
+
+  if(m_active)
+  {
+    m_active = false;
+    m_actor->SetVisibility(false);
+    m_actor->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -185,6 +209,8 @@ void ROIWidget::onROIChanged()
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
 {
+  if(!m_view) return nullptr;
+
   Bounds bounds = m_ROI->bounds();
   bounds[2*m_index] = bounds[(2*m_index) + 1] = m_reslicePoint;
   bounds.setUpperInclusion(toAxis(m_index), true);
@@ -219,5 +245,6 @@ void ROIWidget::updateCurrentSlice()
     m_mapper->Update();
   }
 
+  m_actor->SetVisibility(hasSlice && m_active);
   m_actor->Modified();
 }

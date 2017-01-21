@@ -68,9 +68,17 @@ namespace ESPINA
              */
             virtual ~PlanarSplitWidget3D();
 
-            virtual TemporalRepresentation3DSPtr clone() override;
-
             virtual void disableWidget() override;
+
+            virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
+
+            virtual vtkSmartPointer<vtkPoints> getPlanePoints() const override;
+
+            virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const override;
+
+            virtual void setSegmentationBounds(const Bounds &bounds) override;
+
+            virtual bool planeIsValid() const override;
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
@@ -87,20 +95,13 @@ namespace ESPINA
 
             virtual vtkAbstractWidget *vtkWidget() override;
 
-            virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
-
-            virtual vtkSmartPointer<vtkPoints> getPlanePoints() const override;
-
-            virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const override;
-
-            virtual void setSegmentationBounds(const Bounds &bounds) override;
-
-            virtual bool planeIsValid() const override;
+          private:
+            virtual TemporalRepresentation3DSPtr cloneImplementation() override;
 
           private:
-            vtkSmartPointer<vtkImplicitPlaneWidget2> m_widget;
-            vtkSmartPointer<vtkSplitCommand>         m_command;
-            RenderView                              *m_view;
+            vtkSmartPointer<vtkImplicitPlaneWidget2> m_widget;  /** vtk widgets.                  */
+            vtkSmartPointer<vtkSplitCommand>         m_command; /** vtk command for interactions. */
+            RenderView                              *m_view;    /** the view to show the widget.  */
         };
 
         using PlanarSplitWidget3DPtr  = PlanarSplitWidget3D *;

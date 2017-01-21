@@ -220,6 +220,8 @@ void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPr
 {
   auto frame = createFrame(m_crosshair);
 
+  if(!m_activeWidgets.contains(factory)) m_activeWidgets << factory;
+
   emit widgetsAdded(factory, frame);
 
   emitFrameChanged(frame);
@@ -231,6 +233,8 @@ void ViewState::removeTemporalRepresentations(Representations::Managers::Tempora
   auto frame = createFrame(m_crosshair);
 
   emit widgetsRemoved(factory, frame);
+
+  if(m_activeWidgets.contains(factory)) m_activeWidgets.removeAll(factory);
 
   emitFrameChanged(frame);
 }

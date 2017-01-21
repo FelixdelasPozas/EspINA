@@ -259,6 +259,13 @@ void DrawingWidget::onEventHandlerInUse(bool value)
 }
 
 //------------------------------------------------------------------------
+void DrawingWidget::setManageActors(bool value)
+{
+  m_circularPainter->setManageStrokeActor(value);
+  m_sphericalPainter->setManageStrokeActor(value);
+}
+
+//------------------------------------------------------------------------
 void DrawingWidget::changePainter(MaskPainterSPtr painter)
 {
   m_currentPainter = painter;
@@ -391,6 +398,9 @@ QPushButton *DrawingWidget::registerBrush(const QString   &icon,
 
   connect(painter.get(), SIGNAL(radiusChanged(int)),
           this,          SLOT(radiusChanged(int)));
+
+  connect(painter.get(), SIGNAL(drawingModeChanged(DrawingMode)),
+          this,          SLOT(onDrawingModeChange(DrawingMode)));
 
   connect(painter.get(), SIGNAL(strokeStarted(BrushPainter *, RenderView *)),
           this,          SIGNAL(strokeStarted(BrushPainter *, RenderView *)));
@@ -568,4 +578,6 @@ void DrawingWidget::onDrawingModeChange(DrawingMode mode)
     m_eraserWidget->setChecked(!m_eraserWidget->isChecked());
     m_eraserWidget->blockSignals(false);
   }
+
+  m_viewState.refresh();
 }

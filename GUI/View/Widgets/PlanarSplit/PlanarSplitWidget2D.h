@@ -70,7 +70,15 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth) override;
 
-            virtual TemporalRepresentation2DSPtr clone() override;
+            virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
+
+            virtual vtkSmartPointer<vtkPoints> getPlanePoints() const override;
+
+            virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const override;
+
+            virtual void setSegmentationBounds(const Bounds &bounds) override;
+
+            virtual bool planeIsValid() const override;
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
@@ -89,15 +97,8 @@ namespace ESPINA
 
             virtual vtkAbstractWidget *vtkWidget() override;
 
-            virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) override;
-
-            virtual vtkSmartPointer<vtkPoints> getPlanePoints() const override;
-
-            virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const override;
-
-            virtual void setSegmentationBounds(const Bounds &bounds) override;
-
-            virtual bool planeIsValid() const override;
+          private:
+            virtual TemporalRepresentation2DSPtr cloneImplementation() override;
 
           private:
             vtkSmartPointer<vtkPlanarSplitWidget> m_widget;

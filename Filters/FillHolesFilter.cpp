@@ -34,60 +34,22 @@ using namespace ESPINA::Core::Utils;
 using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::FillHolesFilter(InputSList    inputs,
-                                 Filter::Type  type,
-                                 SchedulerSPtr scheduler)
+FillHolesFilter::FillHolesFilter(InputSList          inputs,
+                                 const Filter::Type &type,
+                                 SchedulerSPtr       scheduler)
 : Filter(inputs, type, scheduler)
 {
 }
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::~FillHolesFilter()
-{
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::restoreState(const State& state)
-{
-}
-
-//-----------------------------------------------------------------------------
-State FillHolesFilter::state() const
-{
-  return State();
-}
-
-//-----------------------------------------------------------------------------
-Snapshot FillHolesFilter::saveFilterSnapshot() const
-{
-  return Snapshot();
-}
-
-//-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return m_outputs.isEmpty() || !validOutput(0);
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::needUpdate(Output::Id id) const
+void FillHolesFilter::execute()
 {
-  if (id != 0)
-  {
-    auto what    = QObject::tr("Invalid output id, id: %1").arg(id);
-    auto details = QObject::tr("FillHolesFilter::needUpdate(id) -> Invalid output id, id: %1").arg(id);
-
-    throw EspinaException(what, details);
-  }
-
-  return m_outputs.isEmpty() || !validOutput(id);
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::execute(Output::Id id)
-{
-  Q_ASSERT(0 == id);
-
   if (m_inputs.size() != 1)
   {
     auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
@@ -132,11 +94,4 @@ void FillHolesFilter::execute(Output::Id id)
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
-}
-
-//-----------------------------------------------------------------------------
-bool FillHolesFilter::areEditedRegionsInvalidated()
-{
-  // TODO
-  return false;
 }

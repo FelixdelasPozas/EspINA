@@ -137,11 +137,11 @@ namespace ESPINA
 
     virtual bool isEmpty() const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override;
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override;
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
@@ -274,6 +274,10 @@ namespace ESPINA
                           const Bounds               &bounds,
                           const typename T::ValueType value)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(vtkImplicit) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
 
@@ -282,12 +286,20 @@ namespace ESPINA
   void RawVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                              const typename T::ValueType value)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(BinaryMask) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void RawVolume<T>::draw(const typename T::Pointer volume)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(T::Pointer) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
@@ -295,6 +307,10 @@ namespace ESPINA
   void RawVolume<T>::draw(const typename T::Pointer volume,
                           const Bounds&             bounds)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(T::Pointer, Bounds) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
@@ -302,6 +318,10 @@ namespace ESPINA
   void RawVolume<T>::draw(const typename T::IndexType &index,
                           const typename T::ValueType value)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(T::IndexType, T::ValueType) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
@@ -309,13 +329,20 @@ namespace ESPINA
   void RawVolume<T>::draw(const Bounds               &bounds,
                              const typename T::ValueType value)
   {
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::draw(Bounds, T::ValueType) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void RawVolume<T>::resize(const Bounds &bounds)
   {
-    Q_ASSERT(false);
+    auto message = QObject::tr("Modification or RawVolume not allowed.");
+    auto details = QObject::tr("RawVolume<T>::resize() -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
   //-----------------------------------------------------------------------------
@@ -329,150 +356,31 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
   {
-//     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-//
     bool dataFetched = false;
     bool error       = false;
-//
-//     int i = 0;
-//     QFileInfo blockFile;
-//
-//     auto output  = this->m_output;
-//
-//     if (nullptr == output)
-//     {
-//       qWarning() << "Raw Volume Fetch Data without output";
-//     }
-//
-//     if (!storage || path.isEmpty() || id.isEmpty()) return false;
-//
-//     for (auto filename : {multiBlockPath    (id, i),
-//                           singleBlockPath   (id)   ,
-//                           oldMultiBlockPath (id, i), // This shouldn't exist
-//                           oldSingleBlockPath(id)})
-//     {
-//       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
-//       if (blockFile.exists()) break;
-//     }
-//
-//     if (output)
-//     {
-//       m_spacing = output->spacing();
-//     }
-//
-//     while (blockFile.exists())
-//     {
-//       VolumeReader::Pointer reader = VolumeReader::New();
-//       reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
-//       reader->Update();
-//
-//       auto image = reader->GetOutput();
-//
-//       if (m_spacing == NmVector3() || output == nullptr)
-//       {
-//         for(int s=0; s < 3; ++s)
-//         {
-//           m_spacing[s] = image->GetSpacing()[s];
-//         }
-//
-//         if (output)
-//         {
-//           output->setSpacing(m_spacing);
-//         }
-//       } else
-//       {
-//         image->SetSpacing(ItkSpacing<T>(m_spacing));
-//       }
-//
-//       setBlock(image, true);
-//
-//       ++i;
-//       blockFile = storage->absoluteFilePath(path + multiBlockPath(id, i));
-//       dataFetched = true;
-//     }
-//
-//     m_bounds = m_blocksBounds;
-//
+
+
     return dataFetched && !error;
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Snapshot RawVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+  Snapshot RawVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
-    Snapshot snapshot;
-/*
-    auto compactedBounds = compactedBlocks();
-
-    for(int i = 0; i < compactedBounds.size(); ++i)
-    {
-      auto bounds = compactedBounds[i].bounds();
-
-      QString filename = path;
-
-      if (compactedBounds.size() == 1)
-      {
-        filename = singleBlockPath(id);
-      }
-      else
-      {
-        filename = multiBlockPath(id, i);
-      }
-
-      snapshot << createSnapshot<T>(itkImage(bounds), storage, path, filename);
-
-    } */
-
-    return snapshot;
+    return Snapshot();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Snapshot RawVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  Snapshot RawVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-    Snapshot regionsSnapshot;
-
-    BoundsList regions = this->editedRegions();
-    // TODO: Simplify edited regions volumes
-
-    int regionId = 0;
-    for(auto region : regions)
-    {
-      auto editedBounds = intersection(region, this->bounds());
-      if (editedBounds.areValid())
-      {
-        auto snapshotId    = editedRegionSnapshotId(id, regionId);
-        regionsSnapshot << createSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
-        ++regionId;
-      }
-    }
-
-    return regionsSnapshot;
+    return Snapshot();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void RawVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-    auto restoredEditedRegions = this->editedRegions();
-
-    for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
-    {
-      QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
-
-      if (filename.exists())
-      {
-        auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
-
-        expandAndDraw<T>(this, editedRegion);
-      }
-      else
-      {
-        qWarning() << "Unable to locate edited region file:" << filename.absoluteFilePath();
-      }
-    }
-
-    this->setEditedRegions(restoredEditedRegions);
   }
 
   //-----------------------------------------------------------------------------

@@ -221,7 +221,18 @@ void TabularReport::Entry::saveSelectedInformation()
   }
 
   QByteArray selectedInformation = informationOrder.join("\n").toUtf8();
-  m_model->storage()->saveSnapshot(SnapshotData(selectedInformationFile(), selectedInformation));
+  try
+  {
+    m_model->storage()->saveSnapshot(SnapshotData(selectedInformationFile(), selectedInformation));
+  }
+  catch(const EspinaException &e)
+  {
+    auto message = tr("Couldn't save the information to disk.");
+    auto details = QString(e.details());
+    auto title   = tr("%1 information tab").arg(m_category);
+
+    DefaultDialogs::ErrorMessage(message, title, details, this);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -395,9 +406,22 @@ SegmentationExtension::InformationKeyList TabularReport::Entry::lastInformationO
     }
   }
 
+  QString filename;
   if(m_model->storage()->exists(selectedInformationFile()))
   {
-    QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
 
     for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
     {
@@ -421,9 +445,22 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 
   available = availableInformation();
 
+  QString filename;
   if(m_model->storage()->exists(selectedInformationFile()))
   {
-    QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
     for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
     {
       for (auto extension : available.keys())
@@ -456,7 +493,14 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
         auto segmentation = segmentationPtr(item);
         if(segmentation != nullptr)
         {
-          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+          try
+          {
+            retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+          }
+          catch(...)
+          {
+            // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
+          }
         }
       }
     }

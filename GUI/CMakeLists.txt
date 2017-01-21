@@ -28,6 +28,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
   Representations/RepresentationWindow.h
+  Representations/Managers/TemporalManager.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
   Utils/ColorRange.h
@@ -47,7 +48,6 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/Measures/MeasureEventHandler.h
   View/Widgets/Measures/MeasureWidget.h
   View/Widgets/PlanarSplit/PlanarSplitEventHandler.h
-  View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalWidget2D.h
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
   View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h

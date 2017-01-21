@@ -63,6 +63,11 @@ namespace ESPINA
        */
       static FilterTypeList ImageLogicFilters();
 
+      /** \brief Returns the fill holes filters' signatures.
+       *
+       */
+      static FilterTypeList FillHolesFilters();
+
       static const Filter::Type CLOSE_FILTER;           /** close filter signature.            */
       static const Filter::Type CLOSE_FILTER_V4;        /** close filter old signature.        */
       static const Filter::Type OPEN_FILTER;            /** open filter signature.             */
@@ -73,6 +78,7 @@ namespace ESPINA
       static const Filter::Type ERODE_FILTER_V4;        /** erode filter old signature.        */
       static const Filter::Type FILL_HOLES_FILTER;      /** fill holes filter signature.       */
       static const Filter::Type FILL_HOLES_FILTER_V4;   /** fill holes filter old signature.   */
+      static const Filter::Type FILL_HOLES2D_FILTER;    /** fill holes filter 2D signature.    */
       static const Filter::Type IMAGE_LOGIC_FILTER;     /** image logic filters old signature. */
       static const Filter::Type ADDITION_FILTER;        /** addition filter signature.         */
       static const Filter::Type SUBTRACTION_FILTER;     /** subtraction filter signature.      */
@@ -112,6 +118,11 @@ namespace ESPINA
        *
        */
       bool isFillHolesFilter   (const Filter::Type &type) const;
+
+      /** \brief Returns true if the given filter type corresponds to a fill holes filter and false otherwise.
+       *
+       */
+      bool isFillHoles2DFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to an addition filter and false otherwise.
        * \param[in] type filter type.
@@ -170,22 +181,15 @@ namespace ESPINA
      */
     void initCODETools();
 
-    /** \brief Modifies the gui and tool parameters when the fill holes tool is activated.
+    /** \brief Modifies the gui and tool parameters when any of the fill holes tools is activated.
      *
      */
-    void initFillHolesTool();
+    void initFillHolesTools();
 
     /** \brief Modifies the gui and tool parameters when a logic operation tool is activated.
      *
      */
     void initImageLogicTools();
-
-  private slots:
-    /** \brief Deletes a segmentation from the model if all its voxels have been erased.
-     * \param[in] item view item to check for complete erase.
-     *
-     */
-    void onVoxelDeletion(ViewItemAdapterPtr item);
   };
 
 } // namespace ESPINA

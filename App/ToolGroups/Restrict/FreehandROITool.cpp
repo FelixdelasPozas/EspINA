@@ -146,4 +146,5 @@ void FreehandROITool::configureDrawingTools()
   m_drawingWidget.setDrawingColor(Qt::yellow);
   m_drawingWidget.showCategoryControls(false);
   m_drawingWidget.setCanErase(false);
+  m_drawingWidget.setManageActors(true);
 }

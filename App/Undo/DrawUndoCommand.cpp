@@ -28,45 +28,13 @@
 
 using namespace ESPINA;
 
-class UpdateMeshTask
-: public Task
-{
-public:
-  explicit UpdateMeshTask(SegmentationAdapterSPtr segmentation,
-                          SchedulerSPtr           scheduler)
-  : Task(scheduler)
-  , m_segmentation(segmentation)
-  {
-    setDescription(tr("Updating '%1' mesh").arg(segmentation->data(Qt::DisplayRole).toString()));
-  }
-
-
-private:
-  virtual void run()
-  {
-    auto output = m_segmentation->output();
-
-    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
-    output->setData(mesh);
-
-    mesh->mesh();
-
-    m_segmentation->invalidateRepresentations();
-  }
-
-  SegmentationAdapterSPtr m_segmentation;
-};
-
 //-----------------------------------------------------------------------------
-DrawUndoCommand::DrawUndoCommand(Support::Context &context,
-                                 SegmentationAdapterSPtr seg,
+DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg,
                                  BinaryMaskSPtr<unsigned char> mask)
-: WithContext(context)
-, m_segmentation(seg)
-, m_mask(mask)
-, m_image{nullptr}
-, m_hasVolume(hasVolumetricData(seg->output()))
-, m_updateMesh(std::make_shared<UpdateMeshTask>(seg, context.scheduler()))
+: m_segmentation{seg}
+, m_mask        {mask}
+, m_image       {nullptr}
+, m_hasVolume   {hasVolumetricData(seg->output())}
 {
   if(m_hasVolume)
   {
@@ -106,7 +74,12 @@ void DrawUndoCommand::redo()
     output->setData(volume);
   }
 
-  Task::submit(m_updateMesh);
+  {
+    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
+    output->setData(mesh);
+  }
+
+  m_segmentation->invalidateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -117,17 +90,25 @@ void DrawUndoCommand::undo()
 
   if (m_hasVolume)
   {
-    auto volume = writeLockVolume(output);
-    volume->resize(m_bounds);
-    if(m_image != nullptr)
     {
-      volume->draw(m_image);
+      auto volume = writeLockVolume(output);
+      volume->resize(m_bounds);
+      if(m_image != nullptr)
+      {
+        volume->draw(m_image);
+      }
+    }
+
+    {
+      auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
+      output->setData(mesh);
     }
   }
   else
   {
     output->removeData(VolumetricData<itkVolumeType>::TYPE);
+    output->removeData(MarchingCubesMesh::TYPE);
   }
 
-  Task::submit(m_updateMesh);
+  m_segmentation->invalidateRepresentations();
 }

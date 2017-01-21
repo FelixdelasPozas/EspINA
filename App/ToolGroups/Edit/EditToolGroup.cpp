@@ -24,6 +24,7 @@
 #include "SplitTool.h"
 #include "CODETool.h"
 #include "FillHolesTool.h"
+#include "FillHoles2DTool.h"
 #include "ImageLogicTool.h"
 
 #include <App/ToolGroups/Edit/CODERefiner.h>
@@ -35,6 +36,7 @@
 #include <Filters/DilateFilter.h>
 #include <Filters/ErodeFilter.h>
 #include <Filters/FillHolesFilter.h>
+#include <Filters/FillHoles2DFilter.h>
 #include <Filters/ImageLogicFilter.h>
 #include <Filters/OpenFilter.h>
 #include <Filters/OpenFilter.h>
@@ -44,10 +46,7 @@
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Widgets/EditTool.h>
-#include <Undo/DrawUndoCommand.h>
-#include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include <Undo/ReplaceOutputCommand.h>
 
 // Qt
 #include <QApplication>
@@ -74,6 +73,7 @@ const Filter::Type MorphologicalFilterFactory::ERODE_FILTER         = "ErodeSegm
 const Filter::Type MorphologicalFilterFactory::ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
 const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER    = "FillSegmentationHoles";
 const Filter::Type MorphologicalFilterFactory::FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
+const Filter::Type MorphologicalFilterFactory::FILL_HOLES2D_FILTER  = "FillSegmentationHoles2D";
 const Filter::Type MorphologicalFilterFactory::IMAGE_LOGIC_FILTER   = "ImageLogicFilter";
 const Filter::Type MorphologicalFilterFactory::ADDITION_FILTER      = "AdditionFilter";
 const Filter::Type MorphologicalFilterFactory::SUBTRACTION_FILTER   = "SubstractionFilter";
@@ -136,6 +136,18 @@ FilterTypeList MorphologicalFilterFactory::ImageLogicFilters()
 }
 
 //------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::FillHolesFilters()
+{
+  FilterTypeList filters;
+
+  filters << FILL_HOLES_FILTER;
+  filters << FILL_HOLES_FILTER_V4;
+  filters << FILL_HOLES2D_FILTER;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
@@ -144,6 +156,7 @@ FilterTypeList MorphologicalFilterFactory::providedFilters() const
   filters << OpenFilters();
   filters << DilateFilters();
   filters << ErodeFilters();
+  filters << FillHolesFilters();
   filters << ImageLogicFilters();
 
   return filters;
@@ -180,6 +193,10 @@ FilterSPtr MorphologicalFilterFactory::createFilter(InputSList          inputs,
   else if (isFillHolesFilter(filter))
   {
     morphologicalFilter = std::make_shared<FillHolesFilter>(inputs, FILL_HOLES_FILTER, scheduler);
+  }
+  else if (isFillHoles2DFilter(filter))
+  {
+    morphologicalFilter = std::make_shared<FillHoles2DFilter>(inputs, FILL_HOLES2D_FILTER, scheduler);
   }
   else if (isAdditionFilter(filter) || isSubstractionFilter(filter))
   {
@@ -233,6 +250,12 @@ bool MorphologicalFilterFactory::isFillHolesFilter(const Filter::Type &type) con
 }
 
 //------------------------------------------------------------------------
+bool MorphologicalFilterFactory::isFillHoles2DFilter(const Filter::Type &type) const
+{
+  return FILL_HOLES2D_FILTER == type;
+}
+
+//------------------------------------------------------------------------
 bool MorphologicalFilterFactory::isAdditionFilter(const Filter::Type &type) const
 {
   return ADDITION_FILTER == type;
@@ -261,7 +284,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initManualEditionTool();
   initSplitTool();
   initCODETools();
-  initFillHolesTool();
+  initFillHolesTools();
   initImageLogicTools();
 }
 
@@ -301,9 +324,6 @@ void EditToolGroup::initManualEditionTool()
 
   manualEdition->setOrder("1");
 
-  connect(manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-          this,                SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
-
   addTool(manualEdition);
 }
 
@@ -335,13 +355,16 @@ void EditToolGroup::initCODETools()
 }
 
 //-----------------------------------------------------------------------------
-void EditToolGroup::initFillHolesTool()
+void EditToolGroup::initFillHolesTools()
 {
-  auto fillHoles = std::make_shared<FillHolesTool>(getContext());
+  auto fillHoles   = std::make_shared<FillHolesTool>(getContext());
+  auto fillHoles2D = std::make_shared<FillHoles2DTool>(getContext());
 
-  fillHoles->setOrder("2-4");
+  fillHoles  ->setOrder("2-4");
+  fillHoles2D->setOrder("2-5");
 
   addTool(fillHoles);
+  addTool(fillHoles2D);
 }
 
 //-----------------------------------------------------------------------------
@@ -364,51 +387,4 @@ void EditToolGroup::initImageLogicTools()
   addTool(addition);
   addTool(subtract);
   addTool(subtractAndErase);
-}
-
-//-----------------------------------------------------------------------------
-void EditToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
-{
-  Q_ASSERT(item && isSegmentation(item) && hasVolumetricData(item->output()));
-
-  bool removeSegmentation = false;
-
-  auto segmentation = segmentationPtr(item);
-
-  {
-    auto output = segmentation->output();
-    SignalBlocker<OutputSPtr> blocker(output);
-    auto volume = writeLockVolume(output);
-
-    if (volume->isEmpty())
-    {
-      removeSegmentation = true;
-      blocker.setLaunch(false);
-    }
-    else
-    {
-      fitToContents<itkVolumeType>(volume, SEG_BG_VALUE);
-    }
-  }
-
-  if (removeSegmentation)
-  {
-    getViewState().setEventHandler(EventHandlerSPtr());
-
-    auto name  = segmentation->data(Qt::DisplayRole).toString();
-    auto title = tr("Deleting segmentation");
-    auto msg   = tr("%1 will be deleted because all its voxels were erased.").arg(name);
-
-    DefaultDialogs::InformationMessage(msg, title);
-
-    auto undoStack = getUndoStack();
-
-    undoStack->blockSignals(true);
-    undoStack->undo();
-    undoStack->blockSignals(false);
-
-    undoStack->beginMacro(tr("Remove Segmentation"));
-    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
-    undoStack->endMacro();
-  }
 }

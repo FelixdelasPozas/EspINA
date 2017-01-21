@@ -20,25 +20,47 @@
 #ifndef ESPINA_CHUNK_REPORTER_H
 #define ESPINA_CHUNK_REPORTER_H
 
+// ESPINA
 #include <Core/IO/ProgressReporter.h>
 #include <Support/Types.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class ChunkReporter
+   * \brief Class to report the progress of a process divided in chunks to a tool.
+   *
+   */
   class ChunkReporter
   : public IO::ProgressReporter
   {
-  public:
-    ChunkReporter(unsigned int chunks, Support::Widgets::ProgressTool *tool);
+    public:
+      /** \brief ChunkReporter class constructor.
+       * \param[in] chunks number of chunks.
+       * \param[in] tool pointer to the tool to be reported.
+       *
+       */
+      ChunkReporter(unsigned int chunks, Support::Widgets::ProgressTool *tool);
 
-    void nextChunk();
+      /** \brief ChunkReporter class virtual destructor.
+       *
+       */
+      virtual ~ChunkReporter()
+      {};
 
-    virtual void setProgress(unsigned int progress);
+      /** \brief Resets the counters on a new chunk.
+       *
+       */
+      void nextChunk();
 
-  private:
-    unsigned int  m_completedChunks;
-    float m_chunkProgress;
-    Support::Widgets::ProgressTool *m_tool;
+      /** \brief Sets the progress of the associated tool and the internal counters.
+       *
+       */
+      virtual void setProgress(unsigned int progress);
+
+    private:
+      unsigned int                    m_completedChunks; /** number of completed chunks.                 */
+      float                           m_chunkProgress;   /** percentage of progress per completed chunk. */
+      Support::Widgets::ProgressTool *m_tool;            /** pointer of the tool to report to.           */
   };
 }
 

@@ -117,7 +117,10 @@ void vtkWidget2D::SetEnabled(int enabled)
     {
       CurrentRenderer->RemoveActor2D(m_up);
       CurrentRenderer->RemoveActor2D(m_right);
+    }
 
+    if(CurrentRenderer->GetRenderWindow())
+    {
       CurrentRenderer->GetRenderWindow()->Render();
     }
   }

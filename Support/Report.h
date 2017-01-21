@@ -43,7 +43,7 @@ namespace ESPINA
     : public QObject
     {
     public:
-      virtual ~Report() {}
+      virtual ~Report();
 
       /** \brief Return the name of the report
        *
@@ -60,11 +60,17 @@ namespace ESPINA
       /** \brief Return a preview of the report
        *
        */
-      virtual QPixmap preview() const
-      { return QPixmap(":/espina/preview_not_available.png"); }
+      virtual QPixmap preview() const;
 
+      /** \brief Filters the given segmentations list returning the ones valid for the report.
+       * \param[in] segmentations input segmentations list.
+       *
+       */
       virtual SegmentationAdapterList acceptedInput(SegmentationAdapterList segmentations) const = 0;
 
+      /** \brief Returns a description of the requierements of the report (to show when the input doesn't meet them).
+       *
+       */
       virtual QString requiredInputDescription() const = 0;
 
       /** \brief Show report dialog

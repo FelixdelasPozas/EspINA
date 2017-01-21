@@ -76,7 +76,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  Snapshot SkeletonData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  Snapshot SkeletonData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
     Snapshot snapshot;
 

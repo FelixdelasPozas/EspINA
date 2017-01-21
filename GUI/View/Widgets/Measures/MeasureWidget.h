@@ -78,8 +78,6 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth);
 
-            virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
-
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
@@ -97,6 +95,9 @@ namespace ESPINA
 
           private slots:
             void onClear();
+
+          private:
+            virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
           private:
             MeasureEventHandler                *m_eventHandler;

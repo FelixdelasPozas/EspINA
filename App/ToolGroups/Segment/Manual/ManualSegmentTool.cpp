@@ -105,7 +105,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
 , m_mode              {Mode::SINGLE_STROKE}
 , m_createSegmentation{true}
 , m_referenceItem     {nullptr}
-, m_validStroke       {true}
+, m_temporalPipeline  {nullptr}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
@@ -235,6 +235,8 @@ void ManualSegmentTool::setMultiStroke()
 //------------------------------------------------------------------------
 void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
+  clearTemporalPipeline();
+
   auto channel = channelPtr(m_referenceItem);
   auto output  = channel->output();
 
@@ -277,11 +279,11 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
-  m_referenceItem->clearTemporalRepresentation();
+  clearTemporalPipeline();
 
   auto undoStack = getUndoStack();
   undoStack->beginMacro(tr("Modify Segmentation"));
-  undoStack->push(new DrawUndoCommand(getContext(), referenceSegmentation(), mask));
+  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
   undoStack->endMacro();
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
@@ -293,30 +295,29 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
-  auto showStroke = isCreationMode();
+  if(m_temporalPipeline)
+  {
+    clearTemporalPipeline();
+  }
 
-  painter->setStrokeVisibility(showStroke);
+  auto showStroke = isCreationMode();
+  m_drawingWidget.setManageActors(showStroke);
 
   if (!showStroke)
   {
-    auto volume  = readLockVolume(m_referenceItem->output());
-    auto spacing = volume->bounds().spacing();
+    auto volumeBounds  = readLockVolume(m_referenceItem->output())->bounds();
     auto strokePainter = painter->strokePainter();
-
-    auto canvas = strokePainter->strokeCanvas();
-    auto actor  = strokePainter->strokeActor();
+    auto canvas        = strokePainter->strokeCanvas();
 
     int extent[6];
     canvas->GetExtent(extent);
     auto isValid = [&extent](int x, int y, int z){ return (extent[0] <= x && extent[1] >= x && extent[2] <= y && extent[3] >= y && extent[4] <= z && extent[5] >= z); };
 
-    m_validStroke = intersect(volume->bounds(), view->previewBounds(false), spacing);
-
-    if (m_validStroke)
+    if (intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing()))
     {
-      auto bounds = intersection(volume->bounds(), view->previewBounds(false), spacing);
+      auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
 
-      auto slice = volume->itkImage(bounds);
+      auto slice = readLockVolume(m_referenceItem->output())->itkImage(bounds);
 
       itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
       it.GoToBegin();
@@ -335,8 +336,8 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     }
 
     m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_colorEngine);
+    m_temporalPipeline->setTemporalActor(strokePainter->strokeActor(), view);
 
-    m_temporalPipeline->setTemporalActor(actor, view);
     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
     m_referenceItem->invalidateRepresentations();
   }
@@ -471,15 +472,13 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
   auto segmentation = segmentationPtr(item);
 
   {
-    auto volume = writeLockVolume(segmentation->output());
-
-    if (volume->isEmpty())
+    if (readLockVolume(segmentation->output())->isEmpty())
     {
       removeSegmentation = true;
     }
     else
     {
-      fitToContents<itkVolumeType>(volume, SEG_BG_VALUE);
+      fitToContents<itkVolumeType>(writeLockVolume(segmentation->output()), SEG_BG_VALUE);
     }
   }
 
@@ -502,5 +501,17 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
     undoStack->beginMacro(tr("Remove Segmentation"));
     undoStack->push(new RemoveSegmentations(segmentation, getModel()));
     undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+void ManualSegmentTool::clearTemporalPipeline() const
+{
+  if(m_temporalPipeline)
+  {
+    Q_ASSERT(m_referenceItem != nullptr);
+
+    m_referenceItem->clearTemporalRepresentation();
+    m_temporalPipeline = nullptr;
   }
 }

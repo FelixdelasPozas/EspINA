@@ -42,7 +42,7 @@ MarchingCubesMesh::MarchingCubesMesh(Output *output)
 //----------------------------------------------------------------------------
 bool MarchingCubesMesh::isValid() const
 {
-  return RawMesh::isValid() || m_output->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return m_output->hasData(VolumetricData<itkVolumeType>::TYPE) || RawMesh::isValid();
 }
 
 //----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ vtkSmartPointer<vtkPolyData> MarchingCubesMesh::mesh() const
 {
   auto mesh = RawMesh::mesh();
 
-  if (!mesh)
+  if (!mesh || needsUpdate())
   {
     const_cast<MarchingCubesMesh *>(this)->updateMesh();
   }
@@ -69,21 +69,19 @@ TimeStamp MarchingCubesMesh::lastModified() const
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::updateMesh()
 {
-  auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+  if(!needsUpdate()) return;
 
-  if(!volume->isValid())
+  vtkSmartPointer<vtkImageData> image = nullptr;
+  TimeStamp volumeTime{VTK_UNSIGNED_LONG_LONG_MAX};
+
   {
-    return;
+    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+
+    if(!volume->isValid()) return;
+
+    image = vtkImage(volume, volume->bounds());
+    volumeTime = volume->lastModified();
   }
-
-  QMutexLocker lock(&m_lock);
-
-  if(m_lastVolumeModification == volume->lastModified())
-  {
-    return;
-  }
-
-  auto image = vtkImage(volume, volume->bounds());
 
   int extent[6];
   image->GetExtent(extent);
@@ -115,9 +113,11 @@ void MarchingCubesMesh::updateMesh()
   marchingCubes->SetInputData(padding->GetOutput());
   marchingCubes->Update();
 
-  setMesh(marchingCubes->GetOutput());
+  QMutexLocker lock(&m_lock);
 
-  m_lastVolumeModification = volume->lastModified();
+  m_lastVolumeModification = volumeTime;
+
+  setMesh(marchingCubes->GetOutput(), false);
 }
 
 //----------------------------------------------------------------------------
@@ -139,11 +139,25 @@ VolumeBounds MarchingCubesMesh::bounds() const
   {
     auto mesh = RawMesh::mesh();
 
-    if (!mesh)
+    if (!mesh || needsUpdate())
     {
       const_cast<MarchingCubesMesh *>(this)->updateMesh();
     }
   }
 
   return RawMesh::bounds();
+}
+
+//----------------------------------------------------------------------------
+const bool MarchingCubesMesh::needsUpdate() const
+{
+  TimeStamp time;
+  {
+    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
+    time = volume->lastModified();
+  }
+
+  QMutexLocker lock(&m_lock);
+
+  return m_lastVolumeModification != time;
 }

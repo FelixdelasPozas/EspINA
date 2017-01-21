@@ -29,14 +29,17 @@
 
 namespace ESPINA
 {
+  /** \class SignalBlocker
+   * \brief Blocks the updateModificationTime of the given object until destruction, delaying the emmision of dataChanged() signal.
+   *
+   */
   template<typename T>
   class EspinaCore_EXPORT SignalBlocker
   {
     public:
-      /** \brief ChangeSignalDelayer class constructor.
-       * \param[in] data Data smart pointer.
+      /** \brief SignalBlocker class constructor.
+       * \param[in] data Data/Output object smart pointer.
        *
-       * Delays the emission of the dataChanged signal of the data.
        */
       explicit SignalBlocker(T &data)
       : m_object(data)
@@ -45,7 +48,7 @@ namespace ESPINA
         m_object->blockSignals(true);
       }
 
-      /** \brief ChangeSignalDelayer class destructor.
+      /** \brief SignalBlocker class destructor.
        *
        */
       ~SignalBlocker()

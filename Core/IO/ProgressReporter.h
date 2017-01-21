@@ -22,18 +22,42 @@
 
 #include <Core/EspinaCore_Export.h>
 
+// Qt
+#include <QObject>
+
+// C++
+#include <memory>
+
 namespace ESPINA
 {
   namespace IO
   {
+    /** \class ProgressReporter
+     * \brief Helper base class to report a progress from an external process.
+     *
+     */
     class EspinaCore_EXPORT ProgressReporter
+    : public QObject
     {
-    public:
-      virtual ~ProgressReporter()
-      {};
+        Q_OBJECT
+      public:
+        /** \brief ProgressReporter class virtual destructor.
+         *
+         */
+        virtual ~ProgressReporter()
+        {};
 
-      virtual void setProgress(unsigned int progress) = 0;
+        /** \brief Sets the progress value to report.
+         *
+         */
+        virtual void setProgress(unsigned int progress) = 0;
+
+      signals:
+        void progress(int progress);
     };
+
+    using ProgressReporterPtr  = ProgressReporter *;
+    using ProgressReporterSPtr = std::shared_ptr<ProgressReporter>;
   }
 } // namespace ESPINA
 

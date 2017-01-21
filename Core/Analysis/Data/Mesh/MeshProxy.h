@@ -95,10 +95,10 @@ namespace ESPINA
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
-                              const QString      &id) const override
+                              const QString      &id) override
     { return m_data->snapshot(storage, path, id); }
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
    { return m_data->editedRegionsSnapshot(storage, path, id); }
 
    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
@@ -110,8 +110,8 @@ namespace ESPINA
     virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_data->mesh(); }
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
-    { m_data->setMesh(mesh); }
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) override
+    { m_data->setMesh(mesh, notify); }
 
   protected:
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override

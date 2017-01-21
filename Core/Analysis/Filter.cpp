@@ -176,7 +176,12 @@ void Filter::restoreEditedRegions()
 {
   if (validStoredInformation())
   {
-    QByteArray buffer = storage()->snapshot(outputFile());
+    QByteArray buffer;
+
+    if(storage()->exists(outputFile()))
+    {
+      buffer = storage()->snapshot(outputFile());
+    }
 
     if (!buffer.isEmpty())
     {
@@ -243,13 +248,14 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
-//   qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
-//     qDebug() << " - Accepted - outputfile" << outputFile();
-    QByteArray buffer = storage()->snapshot(outputFile());
+    QByteArray buffer;
 
-//     qDebug() << buffer;
+    if(storage()->exists(outputFile()))
+    {
+      buffer = storage()->snapshot(outputFile());
+    }
 
     if (!buffer.isEmpty())
     {
@@ -274,6 +280,7 @@ bool Filter::restorePreviousOutputs() const
           }
           else if (isDataSection(xml) && output)
           {
+            // TODO: 07-10-2016 - @felix - Take into account data dependencies, requires data factory refactorization.
             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
             if (!data)
             {

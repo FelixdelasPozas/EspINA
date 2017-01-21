@@ -24,6 +24,7 @@
 #include "ChunkReporter.h"
 
 #include <Core/IO/SegFile.h>
+#include <Core/IO/SaveThread.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/SupportedFormats.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -31,6 +32,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
+using namespace ESPINA::IO::SegFile;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
@@ -47,6 +49,8 @@ FileSaveTool::FileSaveTool(const QString &id,
 , m_analysis    (analysis)
 , m_errorHandler{handler}
 , m_askAlways   {false}
+, m_icon        {icon}
+, m_thread      {nullptr}
 {
   setEnabled(false);
 
@@ -100,38 +104,63 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 {
   if (!filename.isEmpty())
   {
-    WaitingCursor cursor;
+    auto isAutoSave = filename.endsWith("espina-autosave.seg");
+
+    if(m_thread != nullptr)
+    {
+      if(!isAutoSave)
+      {
+        auto message = tr("Session is currently being saved in '%1'").arg(m_thread->filename().fileName());
+        auto title   = tr("Error saving file");
+
+        DefaultDialogs::ErrorMessage(message, title);
+      }
+
+      return;
+    }
 
     emit aboutToSaveSession();
 
-    auto current = icon();
+    auto reporter = std::make_shared<ChunkReporter>(1, this);
+    auto info     = QFileInfo{filename};
+    info.refresh();
 
-    if (filename.endsWith("espina-autosave.seg"))
+    if (isAutoSave)
     {
-      setIcon(QIcon(":/espina/file_auto_save.svg"));
+      setIcon(saveIcon());
+
+      m_thread = std::make_shared<SaveThread>(getContext().scheduler(), m_analysis.get(), info, reporter, m_errorHandler);
+      m_thread->setHidden(false);
+      m_thread->setDescription(tr("Session Auto-save"));
+
+      connect(m_thread.get(), SIGNAL(finished()),
+              this,           SLOT(onSaveThreadFinished()));
+
+      Task::submit(m_thread);
     }
-
-    ChunkReporter reporter(1, this);
-
-    try
+    else
     {
-      SegFile::save(m_analysis.get(), filename, &reporter, m_errorHandler);
+      WaitingCursor cursor;
+      auto successValue = false;
 
-      emit sessionSaved(filename, true);
-    }
-    catch(const EspinaException &e)
-    {
-      auto message = tr("Couldn't save file: '%1'").arg(filename.split('/').last());
-      auto title   = tr("Error saving file");
+      try
+      {
+        SegFile::save(m_analysis.get(), info, reporter.get(), m_errorHandler);
 
-      DefaultDialogs::ErrorMessage(message, title, e.details());
+        successValue = true;
+      }
+      catch(const EspinaException &e)
+      {
+        auto message = tr("Couldn't save file: '%1'").arg(filename.split('/').last());
+        auto title   = tr("Error saving file");
 
-      emit sessionSaved(filename, false);
+        DefaultDialogs::ErrorMessage(message, title, e.details());
+      }
+
+      emit sessionSaved(filename, successValue);
     }
 
     setProgress(100);
-
-    setIcon(current);
   }
 }
 
@@ -139,4 +168,49 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 void FileSaveTool::saveAnalysis()
 {
   saveAnalysis(saveFilename());
+}
+
+//----------------------------------------------------------------------------
+void FileSaveTool::onSaveThreadFinished()
+{
+  auto thread = dynamic_cast<SaveThread *>(sender());
+
+  if(thread && !thread->isAborted() && thread->hasFinished())
+  {
+    auto filename = thread->filename().absoluteFilePath();
+
+    if(!thread->successful())
+    {
+      auto message = tr("Couldn't save file: '%1'").arg(filename.split('/').last());
+      auto title   = tr("Error saving file");
+
+      DefaultDialogs::ErrorMessage(message, title, thread->errorMessage());
+    }
+
+    emit sessionSaved(filename, thread->successful());
+  }
+
+  if(m_thread)
+  {
+    disconnect(m_thread.get(), SIGNAL(finished()),
+               this,           SLOT(onSaveThreadFinished()));
+
+    m_thread = nullptr;
+  }
+
+  setProgress(100);
+
+  setIcon(defaultIcon());
+}
+
+//----------------------------------------------------------------------------
+QIcon FileSaveTool::saveIcon() const
+{
+  return QIcon(":/espina/file_auto_save.svg");
+}
+
+//----------------------------------------------------------------------------
+QIcon FileSaveTool::defaultIcon() const
+{
+  return m_icon;
 }

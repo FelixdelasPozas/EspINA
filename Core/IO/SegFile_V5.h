@@ -164,6 +164,12 @@ namespace ESPINA
              */
             void loadExtensions(SegmentationSPtr segmentation);
 
+            /** \brief Fix introduced in EspINA version 2.1.8 to change the old apposition surface
+             *         extension signature.
+             * \param[in] type type of the segmentation extension.
+             */
+            void fixVersion2_1_8(Core::SegmentationExtension::Type &type);
+
             /** \brief Reports the progress passed as parameter.
              * \param[in] progress progress value in [0-100].
              */

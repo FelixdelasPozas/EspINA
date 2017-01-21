@@ -103,15 +103,23 @@ namespace ESPINA
       void hideCuttingPlane();
 
     public slots:
-      /** \brief Helper method called by the widgets on creation.
+      /** \brief Helper method called by the 2D widgets on creation.
+       * \param[in] widget created 2D widget.
        *
        */
-      void onWidgetCreated(PlanarSplitWidgetPtr widget);
+      void onWidgetCreated(TemporalRepresentation2DSPtr widget);
+
+      /** \brief Helper method called by the 3D widgets on creation.
+       * \param[in] widget created 3D widget.
+       *
+       */
+      void onWidgetCreated(TemporalRepresentation3DSPtr widget);
 
       /** \brief Helper method called by the widgets on destruction.
+       * \param[in] object pointer to the destroyed QObject.
        *
        */
-      void onWidgetDestroyed(PlanarSplitWidgetPtr widget);
+      void onWidgetDestroyed(QObject *object);
 
       /** \brief Helper method called by the widget that has finished defining the splitting plane.
        *
@@ -180,7 +188,7 @@ namespace ESPINA
       PlanarSplitEventHandlerSPtr  m_handler;        /** widget's event handler. */
       QMap<FilterPtr, struct Data> m_executingTasks; /** map of executing filters and it's data. */
       TemporalPrototypesSPtr       m_factory;        /** widget's factory. */
-      QList<PlanarSplitWidgetPtr>  m_splitWidgets;   /** list of present widgets. */
+      QList<QObject *>             m_splitWidgets;   /** list of present widgets. */
       vtkSmartPointer<vtkPlane>    m_splitPlane;     /** user defined splitting plane. */
   };
 

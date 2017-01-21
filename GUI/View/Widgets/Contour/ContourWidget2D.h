@@ -74,8 +74,6 @@ namespace ESPINA
 
               virtual void setRepresentationDepth(Nm depth);
 
-              virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr clone();
-
               /** \brief Resets all contours in all planes without rasterizing and uses the given contour list as initial data.
                * \param[in] contour initial contour.
                *
@@ -118,6 +116,8 @@ namespace ESPINA
               virtual void display(const GUI::Representations::FrameCSPtr &frame) override;
 
             private:
+              virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
+
               virtual void initializeImplementation(RenderView *view);
 
               virtual void uninitializeImplementation();

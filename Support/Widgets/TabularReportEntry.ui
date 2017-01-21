@@ -172,6 +172,9 @@
        <property name="value">
         <number>24</number>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
     </layout>

@@ -300,7 +300,17 @@ void ChannelInspector::applyModifications()
   if (isVisible())
   {
     auto crosshair = m_viewState.crosshair();
-    // TODO: Update crosshair with new spacing ratio
+
+    if(m_spacingModified)
+    {
+      auto oldSpacing = m_channel->output()->spacing();
+      const NmVector3 newSpacing{spacingXBox->value(), spacingYBox->value(), spacingZBox->value()};
+      for(auto i: {0,1,2})
+      {
+        crosshair[i] = crosshair[i] * (newSpacing[i]/oldSpacing[i]);
+      }
+    }
+
     updateSceneState(crosshair, m_viewState, toViewItemSList(m_channel));
     invalidateChannelRepresentation();
   }
@@ -326,8 +336,6 @@ void ChannelInspector::onChangesAccepted()
   {
     changeStackSpacing();
 
-    m_spacingModified = false;
-
     emit spacingUpdated();
   }
 
@@ -337,7 +345,17 @@ void ChannelInspector::onChangesAccepted()
   }
 
   auto crosshair = getViewState().crosshair();
-  // TODO: Update crosshair with spacing ratio
+
+  if(m_spacingModified)
+  {
+    auto oldSpacing = m_channel->output()->spacing();
+    const NmVector3 newSpacing{spacingXBox->value(), spacingYBox->value(), spacingZBox->value()};
+    for(auto i: {0,1,2})
+    {
+      crosshair[i] = crosshair[i] * (newSpacing[i]/oldSpacing[i]);
+    }
+  }
+
   updateSceneState(crosshair, getViewState(), toViewItemSList(m_channel));
   m_channel->invalidateRepresentations();
 }
@@ -560,8 +578,11 @@ void ChannelInspector::initSpacingSettings()
   // prefer dots instead of commas
   QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);
   spacingXBox->setLocale(localeUSA);
+  spacingXBox->setToolTip(QObject::tr("Spacing value for X coordinate"));
   spacingYBox->setLocale(localeUSA);
+  spacingYBox->setToolTip(QObject::tr("Spacing value for Y coordinate"));
   spacingZBox->setLocale(localeUSA);
+  spacingZBox->setToolTip(QObject::tr("Spacing value for Z coordinate"));
 
   spacingXBox->setMinimum(1);
   spacingYBox->setMinimum(1);
@@ -578,6 +599,20 @@ void ChannelInspector::initSpacingSettings()
           this,        SLOT(onSpacingChanged()));
   connect(spacingZBox, SIGNAL(valueChanged(double)),
           this,        SLOT(onSpacingChanged()));
+
+  // TODO: this is temporary, user should be able to change stack spacing even if the stack has segmentations.
+  if(!QueryAdapter::segmentationsOnChannel(m_channel).isEmpty())
+  {
+    spacingXBox->setEnabled(false);
+    spacingXBox->setToolTip(QObject::tr("Cannot change spacing for X coordinate, stack has segmentations."));
+    spacingYBox->setEnabled(false);
+    spacingYBox->setToolTip(QObject::tr("Cannot change spacing for Y coordinate, stack has segmentations."));
+    spacingZBox->setEnabled(false);
+    spacingZBox->setToolTip(QObject::tr("Cannot change spacing for Z coordinate, stack has segmentations."));
+
+    unitsBox->setEnabled(false);
+    unitsBox->setToolTip(QObject::tr("Cannot change spacing units, stack has segmentations."));
+  }
 }
 
 //------------------------------------------------------------------------

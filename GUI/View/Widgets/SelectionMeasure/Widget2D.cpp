@@ -89,8 +89,11 @@ Widget2D::Widget2D(SelectionSPtr selection)
 , m_command              {vtkSmartPointer<Command>::New()}
 , m_camera               {nullptr}
 , m_slice                {0}
-, m_selectedSegmentations{selection->segmentations()}
 {
+  if(selection)
+  {
+    m_selectedSegmentations = selection->segmentations();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -107,7 +110,7 @@ void Widget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr Widget2D::clone()
+TemporalRepresentation2DSPtr Widget2D::cloneImplementation()
 {
   return std::make_shared<Widget2D>(m_selection);
 }

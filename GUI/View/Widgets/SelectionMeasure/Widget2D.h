@@ -58,8 +58,6 @@ namespace ESPINA
 
             virtual void setRepresentationDepth(Nm depth);
 
-            virtual Representations::Managers::TemporalRepresentation2DSPtr clone();
-
             virtual void display(const GUI::Representations::FrameCSPtr &frame)
             { setCrosshair(frame->crosshair); }
 
@@ -79,6 +77,8 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget();
 
           private:
+            virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
+
             virtual void setCrosshair(const NmVector3 &crosshair);
 
             void synchronizeSelectionChanges();

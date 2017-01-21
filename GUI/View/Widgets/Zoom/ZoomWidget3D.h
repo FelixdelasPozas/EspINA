@@ -60,8 +60,6 @@ namespace ESPINA
              */
             virtual ~ZoomWidget3D();
 
-            virtual TemporalRepresentation3DSPtr clone();
-
           private slots:
             /** \brief Handle mouse movements.
              * \param[in] point global position of the event.
@@ -98,6 +96,9 @@ namespace ESPINA
             virtual void uninitializeImplementation();
 
             virtual vtkAbstractWidget *vtkWidget();
+
+          private:
+            virtual TemporalRepresentation3DSPtr cloneImplementation();
 
           private:
             ZoomEventHandler                       *m_eventHandler;

@@ -56,30 +56,30 @@ namespace ESPINA
         ~ApplicationSettings()
         {}
 
-        /** \brief Returns user name.
-         *
-         */
-        QString userName() const
-        { return m_userName; }
-
         /** \brief Sets the user name.
          * \param[in] name user name.
          *
          */
         void setUserName(const QString &name);
 
+        /** \brief Returns user name.
+         *
+         */
+        const QString userName() const
+        { return m_userName; }
+
         /** \brief Enables/disables the loading of any settings file included
          * in the SEG file.
          * \param[in] enable true to enable and false otherwise.
          *
          */
-        void setLoadSEGfileSettings(bool enable);
+        void setLoadSEGfileSettings(const bool enable);
 
         /** \brief Returns true if any settings file included in the SEG file must
          *  be loaded.
          *
          */
-        bool loadSEGfileSettings() const
+        const bool loadSEGfileSettings() const
         { return m_loadSEGSettings; }
 
         /** \brief Sets the path of the temporal storage for the application. Throws exception on error.
@@ -91,17 +91,31 @@ namespace ESPINA
         /** \brief Returns the temporal storage path.
          *
          */
-        QString temporalPath() const
+        const QString temporalPath() const
         { return m_temporalStoragePath; }
+
+        /** \brief Enables/disables the initial analysis check after loading a file.
+         * \param[in] value true to enable the analysis check and false otherwise.
+         *
+         */
+        void setPerformAnalysisCheckOnLoad(const bool value);
+
+        /** \brief Returns the value of the 'analysis check on load' setting.
+         *
+         */
+        const bool performAnalysisCheckOnLoad() const
+        { return m_performAnalysisCheck; }
 
       private:
         static const QString LOAD_SEG_SETTINGS_KEY;
         static const QString TEMPORAL_STORAGE_PATH_KEY;
         static const QString USER_NAME;
+        static const QString PERFORM_ANALYSIS_CHECK;
 
         QString m_userName;
         bool    m_loadSEGSettings;
         QString m_temporalStoragePath;
+        bool    m_performAnalysisCheck;
     };
 
     using GeneralSettingsSPtr = std::shared_ptr<ApplicationSettings>;

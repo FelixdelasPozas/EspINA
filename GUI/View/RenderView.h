@@ -336,6 +336,8 @@ namespace ESPINA
 
     void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
+    void delayedWidgetsShow();
+
   protected:
     using TemporalPrototypesSPtr     = GUI::Representations::Managers::TemporalPrototypesSPtr;
     using RepresentationManagerSPtr  = GUI::Representations::RepresentationManagerSPtr;

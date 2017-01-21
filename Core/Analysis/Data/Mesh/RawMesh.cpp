@@ -76,13 +76,13 @@ void RawMesh::setSpacing(const NmVector3 &spacing)
 }
 
 //----------------------------------------------------------------------------
-void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
+void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify)
 {
   QMutexLocker lock(&m_lock);
 
-  bool existsMesh = (m_mesh != nullptr);
+  bool hasMesh = (m_mesh != nullptr);
 
-  if(!existsMesh && mesh)
+  if(!hasMesh && mesh)
   {
     m_mesh = vtkSmartPointer<vtkPolyData>::New();
   }
@@ -99,14 +99,15 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
   }
 
   // only add as an edited region if there was a previous mesh.
-  if (existsMesh)
+  if (hasMesh)
   {
     BoundsList editedRegions;
     editedRegions << bounds();
     setEditedRegions(editedRegions);
-
-    updateModificationTime();
   }
+
+  if(notify)
+    updateModificationTime();
 }
 
 //----------------------------------------------------------------------------

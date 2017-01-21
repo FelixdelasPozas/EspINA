@@ -57,14 +57,17 @@ using namespace ESPINA::Core::Utils;
 /// APPOSITION SURFACE EXTENSION-
 ///-----------------------------------------------------------------------
 /// Information Provided:
-/// - Sinaptic Apposition Surface Area
-/// - Sinaptic Apposition Surface Perimeter
-/// - Sinaptic Apposition Surface Tortuosity (aka Area Ratio)
-/// - Synapse from which the Sinaptic Apposition Surface was obtained
+/// - Synaptic Apposition Surface Area
+/// - Synaptic Apposition Surface Perimeter
+/// - Synaptic Apposition Surface Tortuosity (aka Area Ratio)
+/// - Synapse from which the Synaptic Apposition Surface was obtained
 
 const QString AppositionSurfaceExtension::SAS_PREFIX = QObject::tr("SAS ");
 
 const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurface";
+
+// NOTE: some old files have this signature, right now there is a fix in ESPINA::Core to convert old signatures to new
+const SegmentationExtension::Type AppositionSurfaceExtension::OLD_TYPE = "AppositionSurfaceExtensionInformation";
 
 const SegmentationExtension::Key AREA                   = "Area";
 const SegmentationExtension::Key PERIMETER              = "Perimeter";

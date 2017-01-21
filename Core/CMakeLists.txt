@@ -18,6 +18,8 @@ qt4_wrap_cpp(CORE_MOC
   Analysis/Extensions.h
   Analysis/Output.h
   Analysis/ViewItem.h
+  IO/ProgressReporter.h
+  IO/SaveThread.h
   MultiTasking/Scheduler.h
   MultiTasking/Task.h
   MultiTasking/TaskGroupProgress.h
@@ -55,6 +57,7 @@ set (CORE_SOURCES
   IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp
+  IO/SaveThread.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp

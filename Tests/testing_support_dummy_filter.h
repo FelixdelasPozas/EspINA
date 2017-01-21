@@ -62,8 +62,8 @@ namespace ESPINA
       virtual VolumeBounds bounds() const { return VolumeBounds(Bounds{0,1,0,1,0,1}, m_spacing);}
       virtual void setSpacing(const NmVector3& spacing){ m_spacing = spacing; }
       virtual NmVector3 spacing() const {return m_spacing;}
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) {return Snapshot();}
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) { return Snapshot();}
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
       virtual DataSPtr createProxy() const;
       virtual size_t memoryUsage() const {return 0;}

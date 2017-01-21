@@ -195,6 +195,8 @@ void TabularReport::reset()
     if (!m_filter.isEmpty())
     {
       QString tabText = m_filter.last()->category()->classificationName();
+      tabText.detach();
+
       for (int i = 0; i < m_tabs->count(); ++i)
       {
         if (m_tabs->tabText(i) == tabText)

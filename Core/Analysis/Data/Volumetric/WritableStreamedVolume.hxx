@@ -189,7 +189,7 @@ namespace ESPINA
         this->m_vectorLength = image->GetNumberOfComponentsPerPixel();
 
         // region must be updated because all regions in EspINA have an implicit origin of {0,0,0}
-        for(int i = 0; i < T::GetImageDimension(); ++i)
+        for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
         {
           this->m_region.SetIndex(i, vtkMath::Round(this->m_origin.GetElement(i)/this->m_spacing.GetElement(i)));
         }
@@ -204,7 +204,7 @@ namespace ESPINA
       }
       else
       {
-        for(int i = 0; i < T::GetImageDimension(); ++i)
+        for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
         {
           this->m_origin.SetElement(i, region.GetIndex(i)*spacing.GetElement(i));
         }
@@ -241,7 +241,7 @@ namespace ESPINA
         // We're just avoiding the allocation of the whole image on RAM.
         typename T::RegionType fakeRegion;
         fakeRegion.SetIndex(region.GetIndex());
-        for(int i = 0; i < T::GetImageDimension(); ++i)
+        for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
         {
           fakeRegion.SetSize(i, 1);
         }
@@ -269,7 +269,7 @@ namespace ESPINA
 
         auto contents = headerFile.readAll();
         auto replacement = QString("DimSize =");
-        for(int i = 0; i < T::GetImageDimension(); ++i)
+        for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
         {
           replacement.append(QObject::tr(" %1").arg(region.GetSize(i)));
         }
@@ -302,7 +302,7 @@ namespace ESPINA
         }
 
         long long totalsize = 1;
-        for(int i = 0; i < T::GetImageDimension(); ++i)
+        for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
         {
           totalsize *= region.GetSize(i);
         }
@@ -343,7 +343,7 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         this->m_origin.SetElement(i, origin[i]);
         this->m_region.SetIndex(i, vtkMath::Round(origin[i]/this->m_spacing.GetElement(i)));
@@ -360,7 +360,7 @@ namespace ESPINA
 
       auto contents = headerFile.readAll();
       auto replacement = QString("Offset =");
-      for (int i = 0; i < T::GetImageDimension(); ++i)
+      for (unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         replacement.append(' ');
         replacement.append(QObject::tr("%1").arg(this->m_origin.GetElement(i)));
@@ -411,7 +411,7 @@ namespace ESPINA
 
       auto contents = headerFile.readAll();
       auto replacement = QString("ElementSpacing =");
-      for (int i = 0; i < T::GetImageDimension(); ++i)
+      for (unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         replacement.append(' ');
         replacement.append(QObject::tr("%1").arg(this->m_spacing.GetElement(i)));
@@ -505,7 +505,7 @@ namespace ESPINA
     {
       typename T::RegionType pixelRegion;
       pixelRegion.SetIndex(index);
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         pixelRegion.SetSize(i, 1);
       }
@@ -597,8 +597,7 @@ namespace ESPINA
                                                       const typename T::RegionType  &region,
                                                       const typename T::SpacingType &spacing)
     : WritableStreamedFileBase<T>(fileName, region, spacing, 1)
-    {
-    }
+    {}
 
     //------------------------------------------------------------------------
     template<class T>
@@ -625,7 +624,7 @@ namespace ESPINA
 
       auto origin = volumeOrigin;
       auto region = volumeRegion;
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/this->m_spacing.GetElement(i)));
         origin.SetElement(i, 0);
@@ -649,9 +648,9 @@ namespace ESPINA
       }
 
       // slow due to not knowing beforehand the dimensions of the image.
-      auto dataSize = sizeof(typename T::InternalPixelType);
-      auto size     = this->m_region.GetSize();
-      auto it       = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+      unsigned long dataSize = sizeof(typename T::InternalPixelType);
+      auto size              = this->m_region.GetSize();
+      auto it                = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
       it.GoToBegin();
       while(!it.IsAtEnd())
@@ -699,6 +698,8 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
+
+      this->updateModificationTime();
     }
 
     //-----------------------------------------------------------------------------
@@ -710,8 +711,7 @@ namespace ESPINA
                                                                   const typename T::SpacingType &spacing,
                                                                   const unsigned int             length)
     : WritableStreamedFileBase<T>(fileName, region, spacing, length)
-    {
-    }
+    {}
 
     //------------------------------------------------------------------------
     template<class T>
@@ -738,7 +738,7 @@ namespace ESPINA
 
       auto origin = volumeOrigin;
       auto region = volumeRegion;
-      for(int i = 0; i < T::GetImageDimension(); ++i)
+      for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
         region.SetIndex(i, region.GetIndex(i)-this->m_region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/this->m_spacing.GetElement(i)));
         origin.SetElement(i, 0);
@@ -762,9 +762,9 @@ namespace ESPINA
       }
 
       // slow due to not knowing beforehand the dimensions of the image.
-      auto dataSize = sizeof(typename T::InternalPixelType) * this->m_vectorLength;
-      auto size     = this->m_region.GetSize();
-      auto it       = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+      unsigned long dataSize = sizeof(typename T::InternalPixelType) * this->m_vectorLength;
+      auto size          = this->m_region.GetSize();
+      auto it            = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
       it.GoToBegin();
 
@@ -813,6 +813,8 @@ namespace ESPINA
       // image may be needed later, reset the original values.
       image->SetOrigin(volumeOrigin);
       image->SetRegions(volumeRegion);
+
+      this->updateModificationTime();
     }
 
   } // namespace Core

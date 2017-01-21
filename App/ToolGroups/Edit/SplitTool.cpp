@@ -40,6 +40,7 @@
 
 // VTK
 #include <vtkImageStencilData.h>
+#include <vtkPlane.h>
 
 // Qt
 #include <QAction>
@@ -102,7 +103,9 @@ FilterSPtr SplitFilterFactory::createFilter(InputSList          inputs,
 SplitTool::SplitTool(Support::Context &context)
 : EditTool("Split", ":/espina/planar_split.svg", tr("Split Segmentation"), context)
 , m_handler{std::make_shared<PlanarSplitEventHandler>()}
+, m_splitPlane{nullptr}
 {
+
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
   setCheckable(true);
@@ -113,18 +116,19 @@ SplitTool::SplitTool(Support::Context &context)
 
   initSplitWidgets();
 
-  connect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
-          this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
-
-  connect(m_handler.get(), SIGNAL(widgetDestroyed(PlanarSplitWidgetPtr)),
-          this,            SLOT(onWidgetDestroyed(PlanarSplitWidgetPtr)));
-
   connect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
           this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
-  m_factory = std::make_shared<TemporalPrototypes>(std::make_shared<PlanarSplitWidget2D>(m_handler.get()),
-                                                   std::make_shared<PlanarSplitWidget3D>(m_handler.get()),
-                                                   id());
+  auto factory2D = std::make_shared<PlanarSplitWidget2D>(m_handler.get());
+  auto factory3D = std::make_shared<PlanarSplitWidget3D>(m_handler.get());
+
+  connect(factory2D.get(), SIGNAL(cloned(TemporalRepresentation2DSPtr)),
+          this,            SLOT(onWidgetCreated(TemporalRepresentation2DSPtr)));
+
+  connect(factory3D.get(), SIGNAL(cloned(TemporalRepresentation3DSPtr)),
+          this,            SLOT(onWidgetCreated(TemporalRepresentation3DSPtr)));
+
+  m_factory = std::make_shared<TemporalPrototypes>(factory2D, factory3D, id());
 
   setEventHandler(m_handler);
 }
@@ -132,12 +136,6 @@ SplitTool::SplitTool(Support::Context &context)
 //------------------------------------------------------------------------
 SplitTool::~SplitTool()
 {
-  disconnect(m_handler.get(), SIGNAL(widgetCreated(PlanarSplitWidgetPtr)),
-             this,            SLOT(onWidgetCreated(PlanarSplitWidgetPtr)));
-
-  disconnect(m_handler.get(), SIGNAL(widgetDestroyed(PlanarSplitWidgetPtr)),
-             this,            SLOT(onWidgetDestroyed(PlanarSplitWidgetPtr)));
-
   disconnect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
              this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
@@ -168,12 +166,12 @@ void SplitTool::showCuttingPlane()
 
   auto segmentation = getSelectedSegmentations().first();
 
-  for(auto widget: m_splitWidgets)
+  for(auto obj: m_splitWidgets)
   {
+    auto widget = dynamic_cast<PlanarSplitWidgetPtr>(obj);
     widget->setSegmentationBounds(segmentation->bounds());
   }
 }
-
 
 //------------------------------------------------------------------------
 void SplitTool::hideCuttingPlane()
@@ -196,6 +194,8 @@ void SplitTool::toggleWidgetsVisibility(bool visible)
   else
   {
     hideCuttingPlane();
+
+    m_splitPlane = nullptr;
 
     emit splittingStopped();
   }
@@ -230,17 +230,59 @@ void SplitTool::applyCurrentState()
 }
 
 //------------------------------------------------------------------------
-void SplitTool::onWidgetCreated(PlanarSplitWidgetPtr widget)
+void SplitTool::onWidgetCreated(TemporalRepresentation2DSPtr widget)
 {
-  Q_ASSERT(!m_splitWidgets.contains(widget));
-  m_splitWidgets << widget;
+  auto splitWidget2D = std::dynamic_pointer_cast<PlanarSplitWidget2D>(widget);
+
+  auto obj = dynamic_cast<QObject *>(splitWidget2D.get());
+  Q_ASSERT(!m_splitWidgets.contains(obj));
+  connect(obj,  SIGNAL(destroyed(QObject *)),
+          this, SLOT(onWidgetDestroyed(QObject *)), Qt::DirectConnection);
+
+  m_splitWidgets << obj;
+
+  if(m_splitPlane != nullptr)
+  {
+    splitWidget2D->disableWidget();
+  }
+  else
+  {
+    auto segmentation = getSelectedSegmentations().first();
+    splitWidget2D->setSegmentationBounds(segmentation->bounds());
+  }
 }
 
 //------------------------------------------------------------------------
-void SplitTool::onWidgetDestroyed(PlanarSplitWidgetPtr widget)
+void SplitTool::onWidgetCreated(TemporalRepresentation3DSPtr widget)
 {
-  Q_ASSERT(m_splitWidgets.contains(widget));
-  m_splitWidgets.removeOne(widget);
+  auto splitWidget3D = std::dynamic_pointer_cast<PlanarSplitWidget3D>(widget);
+
+  auto obj = dynamic_cast<QObject *>(splitWidget3D.get());
+  Q_ASSERT(!m_splitWidgets.contains(obj));
+  connect(obj,  SIGNAL(destroyed(QObject *)),
+          this, SLOT(onWidgetDestroyed(QObject *)), Qt::DirectConnection);
+
+  m_splitWidgets << obj;
+
+  if(m_splitPlane != nullptr)
+  {
+    splitWidget3D->disableWidget();
+  }
+  else
+  {
+    auto segmentation = getSelectedSegmentations().first();
+    splitWidget3D->setSegmentationBounds(segmentation->bounds());
+  }
+}
+
+//------------------------------------------------------------------------
+void SplitTool::onWidgetDestroyed(QObject *widget)
+{
+  if(widget)
+  {
+    Q_ASSERT(m_splitWidgets.contains(widget));
+    m_splitWidgets.removeOne(widget);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -252,8 +294,9 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
 
   if(valid)
   {
-    for(auto splitWidget: m_splitWidgets)
+    for(auto obj: m_splitWidgets)
     {
+      auto splitWidget = dynamic_cast<PlanarSplitWidgetPtr>(obj);
       if(splitWidget == widget) continue;
 
       splitWidget->disableWidget();
@@ -324,11 +367,11 @@ void SplitTool::createSegmentations()
 //------------------------------------------------------------------------
 bool SplitTool::acceptsNInputs(int n) const
 {
-  return n > 0;
+  return n == 1;
 }
 
 //------------------------------------------------------------------------
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmentations(segmentations);
+  return EditTool::acceptsVolumetricSegmentations(segmentations) && segmentations.size() == 1;
 }

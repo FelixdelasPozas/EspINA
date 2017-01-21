@@ -140,7 +140,7 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_renderer->GetActiveCamera()->SetThickness(2000);
-  m_renderer->SetNearClippingPlaneTolerance(0.001);
+  m_renderer->SetNearClippingPlaneTolerance(0.01);
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
@@ -576,13 +576,13 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   memcpy(UR, coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
 
   int H = (Plane::YZ == m_plane)?2:0;
-  int V = (Plane::XZ  == m_plane)?2:1;
+  int V = (Plane::XZ == m_plane)?2:1;
 
   Bounds bounds;
-  bounds[2*H]   = LL[H];
-  bounds[2*H+1] = UR[H];
-  bounds[2*V]   = UR[V];
-  bounds[2*V+1] = LL[V];
+  bounds[2*H]   = std::min(LL[H], UR[H]);
+  bounds[2*H+1] = std::max(LL[H], UR[H]);
+  bounds[2*V]   = std::min(UR[V], LL[V]);
+  bounds[2*V+1] = std::max(UR[V], LL[V]);
 
   bounds[2*m_normalCoord+1] = bounds[2*m_normalCoord] = slicingPosition();
 
@@ -590,10 +590,10 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   {
     auto sBounds = sceneBounds();
 
-    bounds[2*H]   = std::max(LL[H], sBounds[2*H]);
-    bounds[2*H+1] = std::min(UR[H], sBounds[2*H+1]);
-    bounds[2*V]   = std::max(UR[V], sBounds[2*V]);
-    bounds[2*V+1] = std::min(LL[V], sBounds[2*V+1]);
+    bounds[2*H]   = std::max(bounds[2*H]  , sBounds[2*H]);
+    bounds[2*H+1] = std::min(bounds[2*H+1], sBounds[2*H+1]);
+    bounds[2*V]   = std::max(bounds[2*V]  , sBounds[2*V]);
+    bounds[2*V+1] = std::min(bounds[2*V+1], sBounds[2*V+1]);
   }
   bounds.setUpperInclusion(true);
 

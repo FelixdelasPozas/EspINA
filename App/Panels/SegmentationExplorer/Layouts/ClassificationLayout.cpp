@@ -174,9 +174,8 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
-                                           Support::FilterRefinerFactory &filterRefiners,
                                            Support::Context               &context)
-: Layout               {view, filterRefiners, context}
+: Layout               {view, context}
 , m_proxy              {new ClassificationProxy(context.model(), context.viewState())}
 , m_sort               {new SortFilter()}
 , m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}

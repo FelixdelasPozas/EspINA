@@ -78,7 +78,7 @@ void ContourWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr ContourWidget2D::clone()
+TemporalRepresentation2DSPtr ContourWidget2D::cloneImplementation()
 {
   return std::make_shared<ContourWidget2D>(m_handler);
 }

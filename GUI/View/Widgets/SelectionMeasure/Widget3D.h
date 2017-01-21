@@ -52,8 +52,6 @@ namespace ESPINA
 
             virtual ~Widget3D();
 
-            virtual Representations::Managers::TemporalRepresentation3DSPtr clone();
-
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
@@ -70,6 +68,8 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget();
 
           private:
+            virtual Representations::Managers::TemporalRepresentation3DSPtr cloneImplementation();
+
             void synchronizeSelectionChanges();
 
             void desynchronizeSelectionChanges();

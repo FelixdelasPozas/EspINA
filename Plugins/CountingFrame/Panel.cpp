@@ -934,7 +934,12 @@ void ESPINA::CF::Panel::exportAsText(const QString& fileName) const
   }
 
   QTextStream out(&file);
-  for(auto cf: m_countingFrames)
+  auto cFrames = m_countingFrames;
+  cFrames.detach();
+
+  std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
+
+  for(auto cf: cFrames)
   {
     out << cf->description();
     out << '\n';
@@ -984,7 +989,12 @@ void ESPINA::CF::Panel::exportAsCSV(const QString& fileName) const
   }
   out << "\n";
 
-  for(auto cf: m_countingFrames)
+  auto cFrames = m_countingFrames;
+  cFrames.detach();
+
+  std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
+
+  for(auto cf: cFrames)
   {
     auto channel              = cf->extension()->extendedItem();
     auto spacing              = channel->output()->spacing();
@@ -1047,7 +1057,13 @@ void ESPINA::CF::Panel::exportAsXLS(const QString& fileName) const
   }
 
   int row = 0;
-  for(auto cf: m_countingFrames)
+
+  auto cFrames = m_countingFrames;
+  cFrames.detach();
+
+  std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
+
+  for(auto cf: cFrames)
   {
     ++row;
     int column = 0;

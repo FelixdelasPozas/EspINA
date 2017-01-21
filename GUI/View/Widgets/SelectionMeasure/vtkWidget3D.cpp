@@ -91,7 +91,10 @@ void vtkWidget3D::SetEnabled(int enabled)
       CurrentRenderer->RemoveViewProp(m_actor);
     }
 
-    CurrentRenderer->GetRenderWindow()->Render();
+    if(CurrentRenderer->GetRenderWindow())
+    {
+      CurrentRenderer->GetRenderWindow()->Render();
+    }
   }
 }
 

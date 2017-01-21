@@ -58,6 +58,8 @@ namespace ESPINA
       namespace Widgets
       {
         class PlanarSplitEventHandler;
+        using PlanarSplitEventHandlerPtr = PlanarSplitEventHandler *;
+
         class vtkSplitCommand;
 
         class PlanarSplitWidget;
@@ -65,9 +67,7 @@ namespace ESPINA
         using PlanarSplitWidgetSPtr = std::shared_ptr<PlanarSplitWidget>;
 
         class EspinaGUI_EXPORT PlanarSplitWidget
-        : public QObject
         {
-            Q_OBJECT
           public:
             /** \brief PlanarSplitWidget class constructor.
              * \param[in] handler PlanarSplitEventHandler raw pointer.
@@ -78,7 +78,8 @@ namespace ESPINA
             /** \brief PlanarSplitWidget class virtual destructor.
              *
              */
-            virtual ~PlanarSplitWidget();
+            virtual ~PlanarSplitWidget()
+            {};
 
             /** \brief Disables the widget permanently.
              *
@@ -111,17 +112,6 @@ namespace ESPINA
              *
              */
             virtual bool planeIsValid() const = 0;
-
-          signals:
-            void created(PlanarSplitWidgetPtr widget);
-            void destroyed(PlanarSplitWidgetPtr widget);
-            void planeDefined(PlanarSplitWidgetPtr widget);
-
-          protected:
-            /** \brief Emits the planeSet signal.
-             *
-             */
-            void emitSetSignal();
 
           protected:
             PlanarSplitEventHandler *m_handler;
@@ -161,12 +151,18 @@ namespace ESPINA
               m_widget = widget;
             }
 
+            virtual void setHandler(PlanarSplitEventHandlerPtr handler)
+            {
+              m_handler = handler;
+            }
+
           private:
             /** \brief vtkSplitCommand private class constructor.
              *
              */
             vtkSplitCommand()
-            : m_widget{nullptr}
+            : m_widget {nullptr}
+            , m_handler{nullptr}
             {};
 
             /** \brief vtkSplitCommand class private destructor.
@@ -176,6 +172,7 @@ namespace ESPINA
             {};
 
             PlanarSplitWidgetPtr m_widget;
+            PlanarSplitEventHandlerPtr m_handler;
         };
       } // namespace Widgets
     } // namespace View

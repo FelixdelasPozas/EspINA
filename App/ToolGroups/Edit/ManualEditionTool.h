@@ -55,6 +55,8 @@ namespace ESPINA
      */
     virtual ~ManualEditionTool();
 
+    virtual void setEnabled(bool value) override;
+
     virtual void abortOperation() override;
 
     virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
@@ -62,9 +64,6 @@ namespace ESPINA
     virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
     void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
-
-  signals:
-    void voxelsDeleted(ViewItemAdapterPtr item);
 
   private:
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
@@ -83,21 +82,28 @@ namespace ESPINA
 
     void onPainterChanged(MaskPainterSPtr painter);
 
-    /** \brief Updates the signal connection and manages selected item.
+    /** \brief Updates the item being edited or disables the tool on invalid selection.
+     * \param[in] segmentations current selection's segmentations.
      *
      */
-    void onEventHandlerActivated(bool inUse);
+    void onSelectionChanged(SegmentationAdapterList segmentations);
 
   private:
+    void onVoxelDeletion(ViewItemAdapterPtr item);
+
+    /** \brief Removes the temporal representation for the reference item.
+     *
+     */
+    void clearTemporalPipeline() const;
+
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
     // mutable needed by updateReferenceItem() const
-    mutable DrawingTool        m_drawingWidget;
-    mutable ViewItemAdapterPtr m_referenceItem;
+    mutable DrawingTool        m_drawingWidget; /** drawing widget.                                */
+    mutable ViewItemAdapterPtr m_referenceItem; /** current item being edited or the origin stack. */
 
-    MaskPainterSPtr m_currentHandler;
-    bool                      m_validStroke;
-    SliceEditionPipelineSPtr  m_temporalPipeline;
+    MaskPainterSPtr                  m_currentHandler;   /** current event handler.                                              */
+    mutable SliceEditionPipelineSPtr m_temporalPipeline; /** temporal pipeline to generate representations for the current item. */
   };
 
   using ManualEditionToolPtr  = ManualEditionTool *;

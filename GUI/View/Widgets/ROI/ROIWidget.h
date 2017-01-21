@@ -57,6 +57,11 @@ namespace ESPINA
                */
               explicit ROIWidget(ROISPtr roi);
 
+              /** \brief ROIWidget class virtual destructor.
+               *
+               */
+              virtual ~ROIWidget();
+
               virtual void initialize(RenderView *view) override;
 
               virtual void uninitialize() override;
@@ -64,8 +69,6 @@ namespace ESPINA
               virtual void show() override;
 
               virtual void hide() override;
-
-              virtual Representations::Managers::TemporalRepresentation2DSPtr clone() override;
 
               virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
 
@@ -93,6 +96,8 @@ namespace ESPINA
                */
               vtkSmartPointer<vtkImageData> currentSlice() const;
 
+              virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
+
               /** \brief Updates the representation for the current slice.
                *
                */
@@ -105,12 +110,13 @@ namespace ESPINA
               void onROIChanged();
 
             private:
-              ROISPtr m_ROI;    /** ROI object to represent. */
-              QColor  m_color;  /** color of the representation. */
+              bool    m_active; /** true if visible and false otherwise. */
+              ROISPtr m_ROI;    /** ROI object to represent.             */
+              QColor  m_color;  /** color of the representation.         */
 
               Nm        m_depth;        /** distance from the current slice where the representations must be shown. */
-              Nm        m_reslicePoint; /** current representation's reslicing position. */
-              int       m_index;        /** represenation's plane index. */
+              Nm        m_reslicePoint; /** current representation's reslicing position.                             */
+              int       m_index;        /** represenation's plane index.                                             */
 
               vtkSmartPointer<vtkVoxelContour2D> m_contour; /** voxel contour filter.    */
               vtkSmartPointer<vtkPolyDataMapper> m_mapper;  /** representation's mapper. */

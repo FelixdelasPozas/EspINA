@@ -95,7 +95,7 @@ namespace ESPINA
 
     virtual bool isValid() const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
     /** \brief Private method to rasterize a mesh to create an T volume.
      *
@@ -344,7 +344,7 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  Snapshot RasterizedVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+  Snapshot RasterizedVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
     if(this->m_blocks.empty())
     {

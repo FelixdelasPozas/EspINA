@@ -118,19 +118,19 @@ namespace ESPINA
         /** \brief Returns the application default button size.
          *
          */
-        constexpr int EspinaGUI_EXPORT buttonSize()
+        constexpr int buttonSize()
         { return 36; }
 
         /** \brief Returns the application default icon size.
          *
          */
-        constexpr int EspinaGUI_EXPORT iconSize()
+        constexpr int iconSize()
         { return 0.74*buttonSize(); }
 
         /** \brief Returns the application default bar width.
          *
          */
-        constexpr int EspinaGUI_EXPORT MediumBarWidth()
+        constexpr int mediumBarWidth()
         { return 80; }
 
         /** \brief Configures the given bar with the default properties of an application bar.

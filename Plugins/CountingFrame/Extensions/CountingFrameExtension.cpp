@@ -21,8 +21,8 @@
 // Plugin
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
-#include "CountingFrames/OrthogonalCountingFrame.h"
-#include <CountingFrames/AdaptiveCountingFrame.h>
+//#include "CountingFrames/OrthogonalCountingFrame.h"
+//#include <CountingFrames/AdaptiveCountingFrame.h>
 #include <CountingFrameManager.h>
 
 // ESPINA
@@ -87,15 +87,15 @@ State CountingFrameExtension::state() const
     cf->margins(inclusion, exclusion);
     // Id,Type,Constraint,Left, Top, Front, Right, Bottom, Back
     state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9,%10").arg(br)
-                                                 .arg(cf->id())
-                                                 .arg(cf->cfType())
-                                                 .arg(cf->categoryConstraint())
-                                                 .arg(inclusion[0])
-                                                 .arg(inclusion[1])
-                                                 .arg(inclusion[2])
-                                                 .arg(exclusion[0])
-                                                 .arg(exclusion[1])
-                                                 .arg(exclusion[2]);
+                                                     .arg(cf->id())
+                                                     .arg(cf->cfType())
+                                                     .arg(cf->categoryConstraint())
+                                                     .arg(inclusion[0])
+                                                     .arg(inclusion[1])
+                                                     .arg(inclusion[2])
+                                                     .arg(exclusion[0])
+                                                     .arg(exclusion[1])
+                                                     .arg(exclusion[2]);
     br = '\n';
   }
 
@@ -138,37 +138,41 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onExtendedItemSet(Channel *channel)
 {
-  const int ID_POS              = 0;
-  const int TYPE_POS            = 1;
-  const int CONSTRAINT_POS      = 2;
-  const int INCLUSION_START_POS = 3;
-  const int EXCLUSION_START_POS = 6;
-  const int NUM_FIELDS          = 9;
-
-  if (!m_prevState.isEmpty())
+  // only redo if no counting frames to allow changing the extended item.
+  if(m_countingFrames.empty())
   {
-    for (auto cfEntry : m_prevState.split("\n"))
+    const int ID_POS              = 0;
+    const int TYPE_POS            = 1;
+    const int CONSTRAINT_POS      = 2;
+    const int INCLUSION_START_POS = 3;
+    const int EXCLUSION_START_POS = 6;
+    const int NUM_FIELDS          = 9;
+
+    if (!m_prevState.isEmpty())
     {
-      auto params = cfEntry.split(",");
-
-      if (params.size() % NUM_FIELDS != 0)
+      for (auto cfEntry : m_prevState.split("\n"))
       {
-        qWarning() << "Invalid CF Extension state:\n" << m_prevState;
-      }
-      else
-      {
-        CFType type = static_cast<CFType>(params[TYPE_POS].toInt());
+        auto params = cfEntry.split(",");
 
-        Nm inclusion[3];
-        Nm exclusion[3];
-
-        for (int i = 0; i < 3; ++i)
+        if (params.size() % NUM_FIELDS != 0)
         {
-          inclusion[i] = params[INCLUSION_START_POS + i].toDouble();
-          exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
+          qWarning() << "Invalid CF Extension state:\n" << m_prevState;
         }
+        else
+        {
+          CFType type = static_cast<CFType>(params[TYPE_POS].toInt());
 
-        createCountingFrame(type, inclusion, exclusion, params[CONSTRAINT_POS], params[ID_POS]);
+          Nm inclusion[3];
+          Nm exclusion[3];
+
+          for (int i = 0; i < 3; ++i)
+          {
+            inclusion[i] = params[INCLUSION_START_POS + i].toDouble();
+            exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
+          }
+
+          createCountingFrame(type, inclusion, exclusion, params[CONSTRAINT_POS], params[ID_POS]);
+        }
       }
     }
   }

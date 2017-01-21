@@ -21,11 +21,13 @@
 
 // ESPINA
 #include "Utils.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QStringList>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 void ESPINA::copySettings(std::shared_ptr<QSettings> from, std::shared_ptr<QSettings> to)
@@ -67,7 +69,13 @@ QDebug ESPINA::operator<< (QDebug debug, std::shared_ptr<QSettings> settings)
 //-----------------------------------------------------------------------------
 SettingsContainer::SettingsContainer()
 {
-  m_file.open();
+  if(!m_file.open())
+  {
+    auto message = QObject::tr("Unable to open temporary file.");
+    auto details = QObject::tr("SettingsContainer::constructor() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
   m_file.close();
 
   m_settings = std::make_shared<QSettings>(m_file.fileName(), QSettings::IniFormat);

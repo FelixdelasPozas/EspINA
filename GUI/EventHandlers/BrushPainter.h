@@ -43,11 +43,11 @@ namespace ESPINA
        */
       explicit BrushPainter(BrushSPtr brush);
 
-      /** \brief Sets the visibility on-screen of the stroke.
-       * \param[in] value true to set the stroke to visible and false otherwise.
+      /** \brief Sets if the painter must introduce and remove stroke actor from the view.
+       * \param[in] value true to let the painter manage the actor and false otherwise.
        *
        */
-      void setStrokeVisibility(bool value);
+      void setManageStrokeActor(bool value);
 
       /** \brief Returns the painter of this BrushPainter.
        *
@@ -120,7 +120,7 @@ namespace ESPINA
     private:
       BrushSPtr         m_brush;
       StrokePainterSPtr m_strokePainter;
-      bool              m_showStroke;
+      bool              m_manageActors;
       bool              m_showEraseStrokes;
       DrawingMode       m_actualStrokeMode;
   };

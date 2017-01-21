@@ -149,6 +149,12 @@ namespace ESPINA
          */
         void saveSettings(std::shared_ptr<QSettings> settings);
 
+        /** \brief Sets if the widget must manage the brushes actors.
+         * \param[in] value true to let the widget manage the actors and false otherwise.
+         *
+         */
+        void setManageActors(bool value);
+
       signals:
         void strokeStarted(BrushPainter *painter, RenderView *view);
 

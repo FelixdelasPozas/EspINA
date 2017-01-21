@@ -274,7 +274,7 @@ namespace ESPINA
 
   using Nm         = double;
   using NmVector3  = Vector3<Nm>;
-  using liVector3  = Vector3<long int>;
+  using lliVector3 = Vector3<long long int>;
 }
 
 #endif // ESPINA_VECTOR_3_H

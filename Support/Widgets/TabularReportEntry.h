@@ -159,6 +159,18 @@ namespace ESPINA
     {
       QString path = m_category;
 
+      return TabularReport::extraPath(path.replace("/","_") + ".txt");
+    }
+
+    /** \brief Returns the old versions' filename for this entry.
+     *
+     * NOTE: not compatible with windows OS
+     *
+     */
+    const QString oldSelectedInformationFile() const
+    {
+      QString path = m_category;
+
       return TabularReport::extraPath(path.replace("/",">") + ".txt");
     }
 

@@ -67,10 +67,12 @@ set (Support_SOURCES
   Representations/SliceManager.cpp
   ROIAccumulator.cpp
   Settings/Settings.cpp
+  Settings/SettingsPanel.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
+  Report.cpp
   ContextFactories.cpp
   Widgets/ActionGroupWidget.cpp
   Widgets/Panel.cpp

@@ -434,6 +434,36 @@ void CountingFrame::setId(Id id)
 }
 
 //-----------------------------------------------------------------------------
+bool CF::lessThan(const CountingFrame *lhs, const CountingFrame *rhs)
+{
+  auto lhsParts = lhs->id().split(' ');
+  auto rhsParts = rhs->id().split(' ');
+
+  // identify id's with parts, assuming the last part could be a number (i.e. layer N)
+  if((lhsParts == rhsParts) && (lhsParts.size() > 1))
+  {
+    int pos = 0;
+
+    // at least one part is different, as they are unique ids.
+    while((lhsParts[pos] == rhsParts[pos]) && (pos < lhsParts.size())) ++pos;
+
+    Q_ASSERT(pos < lhsParts.size());
+    bool isOk = false;
+    auto lhsNum = lhsParts[pos].replace("[^\\d]","").toDouble(&isOk);
+
+    if(!isOk) return (lhsParts[pos] < rhsParts[pos]);
+
+    auto rhsNum = rhsParts[pos].replace("[^\\d]", "").toDouble(&isOk);
+
+    if(!isOk) return (lhsParts[pos] < rhsParts[pos]);
+
+    return (lhsNum < rhsNum);
+  }
+
+  return (lhs->id() < rhs->id());
+}
+
+//-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
   auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);

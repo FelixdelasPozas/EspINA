@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>351</width>
-    <height>418</height>
+    <height>453</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -92,13 +92,16 @@
          <string> min</string>
         </property>
         <property name="minimum">
-         <number>1</number>
+         <number>5</number>
         </property>
         <property name="maximum">
-         <number>60</number>
+         <number>90</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
         </property>
         <property name="value">
-         <number>10</number>
+         <number>15</number>
         </property>
        </widget>
       </item>
@@ -161,6 +164,22 @@
        <widget class="QCheckBox" name="m_loadSEGSettings">
         <property name="text">
          <string>Load settings stored inside the file.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Analysis Checks</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QCheckBox" name="m_doCheck">
+        <property name="text">
+         <string>Perform a check after loading a file.</string>
         </property>
        </widget>
       </item>

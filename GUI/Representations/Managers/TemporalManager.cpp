@@ -138,35 +138,40 @@ void TemporalManager::updateFrameRepresentations(const FrameCSPtr frame)
 //------------------------------------------------------------------------
 void TemporalManager::onShow(const FrameCSPtr frame)
 {
-  // if already initialized return
-  if(m_representation) return;
-
-  connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-          this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
-
-  if (m_plane != Plane::UNDEFINED)
+  if(!m_representation)
   {
-    auto representation2D = m_prototypes->createRepresentation2D();
+    connect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+            this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
 
-    representation2D->setPlane(m_plane);
-    representation2D->setRepresentationDepth(m_depth);
+    if (m_plane != Plane::UNDEFINED)
+    {
+      auto representation2D = m_prototypes->createRepresentation2D();
 
-    m_representation = representation2D;
+      representation2D->setPlane(m_plane);
+      representation2D->setRepresentationDepth(m_depth);
+
+      m_representation = representation2D;
+    }
+    else
+    {
+      m_representation = m_prototypes->createRepresentation3D();
+    }
+
+    m_representation->initialize(m_view);
   }
-  else
-  {
-    m_representation = m_prototypes->createRepresentation3D();
-  }
 
-  m_representation->initialize(m_view);
-
+  m_representation->show();
   emitRenderRequest(frame);
 }
 
 //------------------------------------------------------------------------
 void TemporalManager::onHide(const FrameCSPtr frame)
 {
-  // intentionally empty.
+  if(m_representation)
+  {
+    m_representation->hide();
+    emitRenderRequest(frame);
+  }
 }
 
 //------------------------------------------------------------------------

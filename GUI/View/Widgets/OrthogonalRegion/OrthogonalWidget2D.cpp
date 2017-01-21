@@ -96,7 +96,7 @@ void OrthogonalWidget2D::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-TemporalRepresentation2DSPtr OrthogonalWidget2D::clone()
+TemporalRepresentation2DSPtr OrthogonalWidget2D::cloneImplementation()
 {
   return std::make_shared<OrthogonalWidget2D>(m_representation);
 }

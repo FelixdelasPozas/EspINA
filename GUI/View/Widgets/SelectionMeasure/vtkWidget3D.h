@@ -43,7 +43,6 @@ namespace ESPINA
       {
         namespace SelectionMeasure
         {
-          class vtkWidget2D;
           class EspinaGUI_EXPORT vtkWidget3D
           : public vtkAbstractWidget
           {

@@ -31,11 +31,14 @@
 
 // C++
 #include <iostream>
-#include <execinfo.h>
 #include <cxxabi.h>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+
+#ifdef __linux__
+  #include <execinfo.h>
+#endif
 
 using namespace ESPINA::Core::Utils;
 
@@ -72,6 +75,7 @@ const char* EspinaException::details() const
   return m_info.c_str();
 }
 
+#ifdef __linux__
 //-----------------------------------------------------------------------------
 void signalHandler(int signal, siginfo_t *siginfo, void *context)
 {
@@ -180,10 +184,12 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
 
   std::_Exit(1);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 void exceptionHandler()
 {
+#ifdef __linux__
   auto exptr = std::current_exception();
 
   const char *message = nullptr;
@@ -225,6 +231,7 @@ void exceptionHandler()
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
   }
+#endif
 
   std::_Exit(1);
 }
@@ -232,6 +239,7 @@ void exceptionHandler()
 //-----------------------------------------------------------------------------
 void ESPINA::Core::Utils::installSignalHandler()
 {
+#ifdef __linux__
   /* setup alternate stack */
   stack_t ss;
   ss.ss_sp = (void*) alternate_stack;
@@ -265,17 +273,21 @@ void ESPINA::Core::Utils::installSignalHandler()
 
     throw EspinaException(message, details);
   }
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void ESPINA::Core::Utils::installExceptionHandler()
 {
+#ifdef __linux__
   std::set_terminate(exceptionHandler);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
 {
+#ifdef __linux__
   stream << "-- STACK TRACE -------------------------------------------\n";
 
   void *stack_traces[STACK_FRAMES];
@@ -345,4 +357,5 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
   }
 
   if (messages) free(messages);
+#endif
 }

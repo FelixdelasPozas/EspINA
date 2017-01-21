@@ -30,6 +30,7 @@
 #include <vtkWidgetEventTranslator.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <QDebug>
 
 using namespace ESPINA::GUI::View::Widgets;
 
@@ -86,7 +87,6 @@ void vtkZoomSelectionWidget::CreateDefaultRepresentation()
 
   auto rep = reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep);
   rep->SetWidgetType(m_type);
-  rep->SetRepresentationDepth(m_depth);
 }
 
 //----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
     }
 
     this->WidgetRep->BuildRepresentation();
-    this->CurrentRenderer->AddViewProp(this->WidgetRep);
+    this->CurrentRenderer->AddActor2D(this->WidgetRep);
 
     if (this->WidgetState == vtkZoomSelectionWidget::Start)
     {
@@ -155,7 +155,7 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
       this->Parent->RemoveObserver(this->EventCallbackCommand);
     }
 
-    this->CurrentRenderer->RemoveViewProp(this->WidgetRep);
+    this->CurrentRenderer->RemoveActor2D(this->WidgetRep);
     this->InvokeEvent(vtkCommand::DisableEvent, nullptr);
     this->SetCurrentRenderer(nullptr);
   }
@@ -229,27 +229,4 @@ void vtkZoomSelectionWidget::EndSelectAction(vtkAbstractWidget *widget)
   self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Render();
-}
-
-//----------------------------------------------------------------------------
-void vtkZoomSelectionWidget::setRepresentationDepth(ESPINA::Nm depth)
-{
-  if(m_depth != depth)
-  {
-    m_depth = depth;
-
-    if(WidgetRep)
-    {
-      reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetRepresentationDepth(depth);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void ESPINA::GUI::View::Widgets::vtkZoomSelectionWidget::SetSlice(Nm slice)
-{
-  if(WidgetRep)
-  {
-    reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetSlice(slice);
-  }
 }

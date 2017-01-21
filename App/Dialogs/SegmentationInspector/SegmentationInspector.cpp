@@ -20,14 +20,13 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
-#include <Panels/SegmentationProperties/NoFilterRefiner.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
-#include <Support/FilterRefiner.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Settings/Settings.h>
 
@@ -44,18 +43,17 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Support;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Representations::Utils;
 
 const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
 const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList         segmentations,
-                                             Support::FilterRefinerFactory &filterRefiners,
-                                             Support::Context               &context)
-: QWidget               (nullptr, Qt::WindowStaysOnTopHint)
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segmentations,
+                                             Support::Context              &context)
+: QWidget               (nullptr)
 , WithContext           (context)
-, m_register            (filterRefiners)
 , m_selectedSegmentation(nullptr)
 , m_channelSources      (getViewState())
 , m_segmentationSources (getViewState())
@@ -66,7 +64,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
 
   setAttribute(Qt::WA_DeleteOnClose, true);
   setAcceptDrops(true);
-  setWindowModality(Qt::WindowModality::ApplicationModal);
+
+  connectSignals();
 
   for(auto segmentation : segmentations)
   {
@@ -79,12 +78,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList         seg
 
   configureLayout();
 
-  connect(getSelection().get(), SIGNAL(selectionChanged()),
-          this,                 SLOT(updateSelection()));
-
   updateWindowTitle();
-
-  updateSelection();
 
   restoreGeometryState();
 }
@@ -100,18 +94,13 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 }
 
 //------------------------------------------------------------------------
-SegmentationInspector::~SegmentationInspector()
-{
-}
-
-//------------------------------------------------------------------------
 void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 {
   if (!m_segmentations.contains(segmentation))
   {
     m_segmentations << segmentation;
     
-    auto frame = getViewState().createFrame();//FIXME: Should use its own viewstate...
+    auto frame = getViewState().createFrame();
     m_segmentationSources.addSource(toViewItemList(segmentation), frame);
 
     auto channels = QueryAdapter::channels(segmentation);
@@ -137,6 +126,9 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
 {
   if (!m_segmentations.contains(segmentation)) return;
 
+  auto frame = getViewState().createFrame();
+  m_segmentationSources.removeSource(toViewItemList(segmentation), frame);
+
   m_segmentations.removeOne(segmentation);
 
   if (m_segmentations.size() == 0)
@@ -145,12 +137,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     return;
   }
 
-  //TODO use sources and pools m_view->remove(segmentation);
-
-  ChannelAdapterSPtr channelToBeRemoved;
   auto channels = QueryAdapter::channels(segmentation);
-
-  Q_ASSERT(!channels.isEmpty());
 
   if (channels.size() > 1)
   {
@@ -158,30 +145,31 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
   }
   else
   {
-    // if there aren't any other segmentations that uses
-    // this channel. we must remove it
-    channelToBeRemoved = channels.first();
-
-    bool stillUsed = false;
-    for(auto remainingSegmenation : m_segmentations)
+    if(!channels.isEmpty())
     {
-      auto remainingChannels = QueryAdapter::channels(remainingSegmenation);
-      for (auto remainingChannel : remainingChannels)
+      // if there aren't any other segmentations that uses
+      // this channel. we must remove it
+      auto channelToBeChecked = channels.first();
+
+      bool stillUsed = false;
+      for(auto remainingSegmenation : m_segmentations)
       {
-        if (remainingChannel == channelToBeRemoved)
+        auto remainingChannels = QueryAdapter::channels(remainingSegmenation);
+        for (auto remainingChannel : remainingChannels)
         {
-          stillUsed = true;
+          if (remainingChannel == channelToBeChecked)
+          {
+            stillUsed = true;
+          }
         }
       }
-    }
 
-    if (!stillUsed)
-    {
-      removeChannel(channelToBeRemoved.get());
+      if (!stillUsed)
+      {
+        removeChannel(channelToBeChecked.get());
+      }
     }
   }
-
-  updateSelection();
 
   m_view.refresh();
 
@@ -221,26 +209,40 @@ void SegmentationInspector::updateWindowTitle()
 {
   auto title = tr("Segmentation Inspector - ");
 
-  for(auto segmentation : m_segmentations)
+  if(m_segmentations.isEmpty())
   {
-    title += segmentation->data().toString();
-    if(segmentation != m_segmentations.last())
+    title += tr("No segmentations");
+  }
+  else
+  {
+    for(auto segmentation : m_segmentations)
     {
-      title += " + ";
+      title += segmentation->data().toString();
+      if(segmentation != m_segmentations.last())
+      {
+        title += tr(" + ");
+      }
     }
   }
 
-  title += " [";
+  title += tr(" [");
 
-  for(auto channel : m_channels)
+  if(m_channels.empty())
   {
-    title += channel->data().toString();
-    if (channel != m_channels.last())
+    title += tr("No channel");
+  }
+  else
+  {
+    for(auto channel : m_channels)
     {
-      title += " + ";
+      title += channel->data().toString();
+      if (channel != m_channels.last())
+      {
+        title += tr(" + ");
+      }
     }
   }
-  title += "]";
+  title += tr("]");
 
   setWindowTitle(title);
 }
@@ -358,67 +360,11 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 }
 
 //------------------------------------------------------------------------
-void SegmentationInspector::updateSelection()
-{
-//   auto activeHistory = m_historyScrollArea->widget();
-//
-//   if (activeHistory)
-//   {
-//     delete activeHistory;
-//
-//     activeHistory = nullptr;
-//   }
-//
-//   auto selectedSegmentations = selection()->segmentations();
-//
-//   if (selectedSegmentations.size() == 1)
-//   {
-//     auto segmentation = selectedSegmentations.first();
-//
-//     if (m_segmentations.contains(segmentation))
-//     {
-//       if (m_selectedSegmentation != segmentation)
-//       {
-//         if(m_selectedSegmentation)
-//         {
-//           disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
-//                      this, SLOT(updateSelection()));
-//         }
-//
-//         m_selectedSegmentation = segmentation;
-//
-//         if(m_selectedSegmentation)
-//         {
-//           connect(m_selectedSegmentation, SIGNAL(outputModified()),
-//                   this, SLOT(updateSelection()));
-//         }
-//       }
-//
-//       try
-//       {
-//         activeHistory = m_register.createRefineWidget(segmentation, m_context);
-//       }
-//       catch (...)
-//       {
-//         activeHistory = new NoFilterRefiner();
-//       }
-//     }
-//   }
-//   if (!activeHistory)
-//   {
-//     activeHistory = new EmptyHistory();
-//   }
-//
-//   m_historyScrollArea->setWidget(activeHistory);
-}
-
-//------------------------------------------------------------------------
 void SegmentationInspector::configureLayout()
 {
   layout()->setMenuBar(&m_toolbar);
 
   m_viewport   ->setLayout(createViewLayout());
-  m_history    ->setVisible(false);
   m_information->setLayout(createReportLayout());
 }
 
@@ -524,4 +470,26 @@ void SegmentationInspector::saveGeometryState()
   settings.setValue(GEOMETRY_SETTINGS_KEY, this->saveGeometry());
   settings.setValue(INFORMATION_SPLITTER_SETTINGS_KEY, m_splitter->saveState());
   settings.sync();
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::connectSignals()
+{
+  connect(getContext().model().get(), SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
+          this,                       SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
+{
+  for(auto seg: segmentations)
+  {
+    auto segPtr = segmentationPtr(seg.get());
+    if(m_segmentations.contains(segPtr))
+    {
+      removeSegmentation(segPtr);
+
+      if(m_segmentations.isEmpty()) break; // Wait for the close event
+    }
+  }
 }
