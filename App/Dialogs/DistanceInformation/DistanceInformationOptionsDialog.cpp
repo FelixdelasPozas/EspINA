@@ -18,19 +18,33 @@
  *
  */
 
+// ESPINA
 #include "DistanceInformationOptionsDialog.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Widgets/CategorySelector.h>
+#include <Support/Context.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
 
 //----------------------------------------------------------------------------
-DistanceInformationOptionsDialog::DistanceInformationOptionsDialog()
+DistanceInformationOptionsDialog::DistanceInformationOptionsDialog(Support::Context &context)
 : QDialog{GUI::DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
 {
   setupUi(this);
 
-  connect(m_maxDistanceCheck, SIGNAL(stateChanged(int)),
-          this,               SLOT(onMaxDistanceCheckChanged(int)));
+  m_category = new CategorySelector{context.model(), nullptr};
+  m_category->setEnabled(false);
+
+  connect(m_categoryCheck, SIGNAL(toggled(bool)), m_category, SLOT(setEnabled(bool)));
+
+  m_constraintsBox->layout()->addWidget(m_category);
+
+  connect(m_minDistance, SIGNAL(valueChanged(double)), this, SLOT(onMinimumValueChanged(double)));
+  connect(m_maxDistance, SIGNAL(valueChanged(double)), this, SLOT(onMaximumValueChanged(double)));
+  connect(m_minDistanceCheck, SIGNAL(toggled(bool)), this, SLOT(onMinimumCheckChanged(bool)));
+  connect(m_maxDistanceCheck, SIGNAL(toggled(bool)), this, SLOT(onMaximumCheckChanged(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -48,11 +62,11 @@ DistanceInformationOptionsDialog::DistanceType DistanceInformationOptionsDialog:
 //----------------------------------------------------------------------------
 DistanceInformationOptionsDialog::Options DistanceInformationOptionsDialog::getOptions() const
 {
-  return Options{getDistanceType(),getMaximumDistance(), getTableType()};
+  return Options{getDistanceType(),getMinimumDistance(), getMaximumDistance(), getTableType(), getCategory()};
 }
 
 //----------------------------------------------------------------------------
-double DistanceInformationOptionsDialog::getMaximumDistance() const
+const double DistanceInformationOptionsDialog::getMaximumDistance() const
 {
   return isMaximumDistanceEnabled() ? m_maxDistance->value() : 0;
 }
@@ -64,7 +78,75 @@ bool DistanceInformationOptionsDialog::isMaximumDistanceEnabled() const
 }
 
 //----------------------------------------------------------------------------
-void DistanceInformationOptionsDialog::onMaxDistanceCheckChanged(int state)
+bool DistanceInformationOptionsDialog::isMinimumDistanceEnabled() const
 {
-  m_maxDistance->setEnabled(state == Qt::Checked);
+  return m_minDistanceCheck->isChecked();
+}
+
+//----------------------------------------------------------------------------
+const double DistanceInformationOptionsDialog::getMinimumDistance() const
+{
+  return isMinimumDistanceEnabled() ? m_minDistance->value() : 0;
+}
+
+//----------------------------------------------------------------------------
+bool DistanceInformationOptionsDialog::isCategoryOptionEnabled() const
+{
+  return m_categoryCheck->isChecked();
+}
+
+//----------------------------------------------------------------------------
+const CategoryAdapterSPtr DistanceInformationOptionsDialog::getCategory() const
+{
+  return isCategoryOptionEnabled() ? m_category->selectedCategory() : CategoryAdapterSPtr();
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationOptionsDialog::onMinimumValueChanged(double value)
+{
+  if((m_maxDistanceCheck->isChecked()) && (value > m_maxDistance->value()))
+  {
+    m_minDistance->blockSignals(true);
+    m_minDistance->setValue(m_maxDistance->value());
+    m_minDistance->blockSignals(false);
+  }
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationOptionsDialog::onMaximumValueChanged(double value)
+{
+  if((m_minDistanceCheck->isChecked()) && (value < m_minDistance->value()))
+  {
+    m_maxDistance->blockSignals(true);
+    m_maxDistance->setValue(m_minDistance->value());
+    m_maxDistance->blockSignals(false);
+  }
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationOptionsDialog::onMinimumCheckChanged(bool value)
+{
+  if(value)
+  {
+    if(m_maxDistanceCheck->isChecked() && (m_minDistance->value() > m_maxDistance->value()))
+    {
+      m_minDistance->blockSignals(true);
+      m_minDistance->setValue(m_maxDistance->value());
+      m_minDistance->blockSignals(false);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void DistanceInformationOptionsDialog::onMaximumCheckChanged(bool value)
+{
+  if(value)
+  {
+    if(m_minDistanceCheck->isChecked() && (m_minDistance->value() > m_maxDistance->value()))
+    {
+      m_maxDistance->blockSignals(true);
+      m_maxDistance->setValue(m_minDistance->value());
+      m_maxDistance->blockSignals(false);
+    }
+  }
 }

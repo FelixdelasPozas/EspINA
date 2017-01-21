@@ -203,7 +203,7 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
   }
 
   // remove m_horizontalHeaders elements if there is a minimum distance.
-  if(options.maximumDistance != 0)
+  if(options.maxDistance != 0 || options.minDistance != 0)
   {
     QSet<SegmentationAdapterPtr> headers;
 
@@ -211,7 +211,20 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
     {
       for(auto to: m_horizontalHeaders)
       {
-        if((distances[from][to] < options.maximumDistance) && !headers.contains(to))
+        auto dist = distances[from][to];
+        bool accepted = true;
+
+        if((options.maxDistance != 0) && (dist > options.maxDistance))
+        {
+          accepted = false;
+        }
+
+        if((options.minDistance != 0) && (dist < options.minDistance))
+        {
+          accepted = false;
+        }
+
+        if(accepted)
         {
           headers << to;
         }
@@ -245,19 +258,32 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
 
     for (auto to : m_horizontalHeaders)
     {
-      auto distItem = new QStandardItem(QString::number(distances[from][to]));
+      auto dist = distances[from][to];
+
+      auto distItem = new QStandardItem(QString::number(dist));
       distItem->setEditable(false);
       distItem->setDragEnabled(false);
       distItem->setDropEnabled(false);
 
-      if(distances[from][to] == -1)
+      if(dist == -1)
       {
         distItem->setData(tr("Error"), Qt::DisplayRole);
         distItem->setData(Qt::red, Qt::TextColorRole);
+        distItem->setToolTip(tr("Error occurred when computing this distance."));
         auto font = distItem->font();
         font.setBold(true);
         distItem->setFont(font);
       }
+      else
+      {
+        if( ((options.maxDistance != 0) && (dist > options.maxDistance)) ||
+            ((options.minDistance != 0) && (dist < options.minDistance)) )
+        {
+          distItem->setData(Qt::red, Qt::TextColorRole);
+          distItem->setToolTip(tr("Distance outside of given limits."));
+        }
+      }
+
       table->setItem(row, column++, distItem);
     }
 

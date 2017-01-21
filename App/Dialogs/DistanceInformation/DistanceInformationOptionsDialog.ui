@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>316</width>
-    <height>298</height>
+    <width>520</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>316</width>
-    <height>298</height>
+    <width>520</width>
+    <height>464</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>316</width>
-    <height>298</height>
+    <width>520</width>
+    <height>479</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -32,61 +32,156 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1,0,0,0">
    <item>
     <widget class="QGroupBox" name="m_groupBox_distanceType">
      <property name="title">
-      <string>Distance type</string>
+      <string>Distance Type</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QRadioButton" name="m_centroidOption">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>Centroid to centroid</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Type of distance to be computed:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="m_surfaceOption">
-        <property name="text">
-         <string>Surface to surface</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="minimumSize">
+           <size>
+            <width>7</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QRadioButton" name="m_centroidOption">
+            <property name="text">
+             <string>Centroid to centroid</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="m_surfaceOption">
+            <property name="text">
+             <string>Surface to surface</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
-     <zorder>m_surfaceOption</zorder>
-     <zorder>m_centroidOption</zorder>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="m_groupBox_maxDistance">
      <property name="title">
-      <string>Maximum distance</string>
+      <string>Distance Limits</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="m_maxDistanceCheck">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Enable</string>
+         <string>Only show segmentations which distance is between the limits:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="m_maxDistance">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="suffix">
-         <string> nm</string>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>1000000000.000000000000000</double>
+       <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1">
+        <item row="0" column="2">
+         <widget class="QDoubleSpinBox" name="m_minDistance">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="suffix">
+           <string> nm</string>
+          </property>
+          <property name="minimum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000000000.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="m_maxDistanceCheck">
+          <property name="text">
+           <string>Maximum</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QDoubleSpinBox" name="m_maxDistance">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="suffix">
+           <string> nm</string>
+          </property>
+          <property name="minimum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000000000.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="m_minDistanceCheck">
+          <property name="text">
+           <string>Minimum</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="minimumSize">
+           <size>
+            <width>12</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="m_constraintsBox">
+     <property name="title">
+      <string>Computation Constraints</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0">
+      <item>
+       <widget class="QCheckBox" name="m_categoryCheck">
+        <property name="text">
+         <string>Compute distances only to </string>
         </property>
        </widget>
       </item>
@@ -99,25 +194,53 @@
       <bool>true</bool>
      </property>
      <property name="title">
-      <string>Ordenation table</string>
+      <string>Results Table</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QRadioButton" name="m_combinedTable">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Combined table</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Type of table:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="m_singleTable">
-        <property name="text">
-         <string>Single table per segmentation</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="minimumSize">
+           <size>
+            <width>7</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QRadioButton" name="m_combinedTable">
+            <property name="text">
+             <string>Combined table</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="m_singleTable">
+            <property name="text">
+             <string>Single table per segmentation</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -167,6 +290,38 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_maxDistanceCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>m_maxDistance</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>213</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>213</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>m_minDistanceCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>m_minDistance</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>185</y>
     </hint>
    </hints>
   </connection>

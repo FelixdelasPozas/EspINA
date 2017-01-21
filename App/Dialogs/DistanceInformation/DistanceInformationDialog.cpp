@@ -30,6 +30,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // Qt
 #include <QSpacerItem>
@@ -64,7 +65,7 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
 , m_i                 {0}
 , m_j                 {0}
 , m_iMax              {m_segmentations.isEmpty() ? context.model()->segmentations().size() : m_segmentations.size()}
-, m_jMax              {context.model()->segmentations().size()}
+, m_jMax              {options.category == CategoryAdapterSPtr() ? context.model()->segmentations().size() : QueryAdapter::segmentationsOfCategory(getModel(), options.category).size()}
 , m_finished          {false}
 {
   setWindowTitle(tr("Distance Information Report"));
@@ -94,18 +95,14 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
   window()->resize(layout()->sizeHint());
   window()->adjustSize();
 
-  auto numSegs = context.model()->segmentations().size();
-
   int numComputations;
-
   if(m_segmentations.isEmpty())
   {
-    numComputations = (numSegs * (numSegs-1))/2;
+    numComputations = (m_iMax * (m_iMax-1))/2;
   }
   else
   {
-    auto givenSegsNum = m_segmentations.size();
-    numComputations = (givenSegsNum * (numSegs - 1)) - ((givenSegsNum * (givenSegsNum - 1))/2);
+    numComputations = (m_iMax * (m_jMax - 1)) - ((m_iMax * (m_iMax - 1))/2);
   }
 
   m_progress->setMaximum(numComputations);
@@ -133,9 +130,18 @@ void DistanceInformationDialog::computeNextDistance()
     }
   };
 
-  auto segmentations            = getModel()->segmentations();
-  SegmentationAdapterPtr first  = nullptr;
-  SegmentationAdapterPtr second = nullptr;
+  SegmentationAdapterSList segmentations;
+  SegmentationAdapterPtr   first  = nullptr;
+  SegmentationAdapterPtr   second = nullptr;
+
+  if(m_options.category == CategoryAdapterSPtr())
+  {
+    segmentations = getModel()->segmentations();
+  }
+  else
+  {
+    segmentations = QueryAdapter::segmentationsOfCategory(getModel(), m_options.category);
+  }
 
   while((first == second) && !m_finished)
   {
@@ -164,7 +170,7 @@ void DistanceInformationDialog::computeNextDistance()
   {
     m_distances[first][second] = m_distances[second][first] = VTK_DOUBLE_MAX;
 
-    auto task = std::make_shared<DistanceComputationThread>(first, second, m_options.distanceInformationType, getContext());
+    auto task = std::make_shared<DistanceComputationThread>(first, second, m_options.distanceType, getContext());
     connect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
 
     m_tasks << task;

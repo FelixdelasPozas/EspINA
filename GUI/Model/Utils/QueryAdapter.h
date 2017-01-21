@@ -105,6 +105,13 @@ namespace ESPINA
      */
     static SegmentationAdapterSList segmentationsOnChannel(ChannelAdapterSPtr channel);
 
+    /** \brief Returns the list of segmentations of the given category (including sub-categories).
+     * \param[in] model model containing the segmentations.
+     * \param[in] category category of the segmentations to return.
+     *
+     */
+    static SegmentationAdapterSList segmentationsOfCategory(ModelAdapterSPtr model, CategoryAdapterSPtr category);
+
   private:
     /** \brief Returns the sample adapter smart pointer of a sample contained in the specified model.
      * \param[in] model model adapter raw pointer.

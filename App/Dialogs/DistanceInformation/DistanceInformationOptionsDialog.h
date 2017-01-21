@@ -23,17 +23,27 @@
 
 // ESPINA
 #include "DistanceInformationOptionsDialog.h"
+#include <ui_DistanceInformationOptionsDialog.h>
+#include <GUI/Types.h>
 
 // QT
-#include <QDebug>
 #include <QDialog>
-#include <ui_DistanceInformationOptionsDialog.h>
-
-// TODO add minimum and maximum distance fields
-// TODO add category constraint.
 
 namespace ESPINA
 {
+  namespace GUI
+  {
+    namespace Widgets
+    {
+      class CategorySelector;
+    }
+  }
+
+  namespace Support
+  {
+    class Context;
+  }
+
   /** \class DistanceInformationOptionsDialog
    * \brief Options dialog for the Distance Information Report.
    *
@@ -57,17 +67,20 @@ namespace ESPINA
       /** \brief Struct containing the distance information options
         *
         */
-      struct Options {
-          DistanceType distanceInformationType; /** type of distance (centroid or surface)      */
-          double       maximumDistance;         /** maximum distance to select or zero if none. */
-          TableType    tableType;               /** type of table to show (combined or single). */
+      struct Options
+      {
+          DistanceType        distanceType; /** type of distance (centroid or surface)               */
+          double              minDistance;  /** minimum distance to appear in results. Zero if none. */
+          double              maxDistance;  /** maximum distance to appear in results. zero if none. */
+          TableType           tableType;    /** type of table to show (combined or single).          */
+          CategoryAdapterSPtr category;     /** category of the segmetations to compute distance to. */
       };
 
       /** \brief DistanceInformationOptionsDialog class constructor.
-       * \param[in] QWidget parent widget.
+       * \param[in] context application context.
        *
        */
-      DistanceInformationOptionsDialog();
+      DistanceInformationOptionsDialog(Support::Context &context);
 
       /** \brief DistanceInformationOptionsDialog class virtual destructor.
        *
@@ -83,7 +96,27 @@ namespace ESPINA
       /** \brief Returns the maximum distance between segmentations.
        *
        */
-      double getMaximumDistance() const;
+      const double getMaximumDistance() const;
+
+      /** \brief Returns true whether minimum distance option is enabled.
+       *
+       */
+      bool isMinimumDistanceEnabled() const;
+
+      /** \brief Returns the minimum distance between segmentations.
+       *
+       */
+      const double getMinimumDistance() const;
+
+      /** \brief Returns true whether there is a category constraint.
+       *
+       */
+      bool isCategoryOptionEnabled() const;
+
+      /** \brief Returns the category of the segmentations to compute distances to.
+       *
+       */
+      const CategoryAdapterSPtr getCategory() const;
 
       /** \brief Returns the enum type selected in the dialog.
        *
@@ -101,11 +134,30 @@ namespace ESPINA
       Options getOptions() const;
 
     private slots:
-      /** \brief DistanceInformationOptionsDialog class virtual destructor.
-       * \param[in] state state of the checkbox.
+      /** \brief Updates the minimum value regarding the current value of the maximum.
+       * \param[in] value new minimum value.
        *
        */
-      void onMaxDistanceCheckChanged(int state);
+      void onMinimumValueChanged(double value);
+
+      /** \brief Updates the maximum value regarding the current value of the minimum.
+       * \param[in] value new minimum value.
+       *
+       */
+      void onMaximumValueChanged(double value);
+
+      /** \brief Updates the value of the minimum when activated regarding the current value of the maximum.
+       *
+       */
+      void onMinimumCheckChanged(bool value);
+
+      /** \brief Updates the value of the maximum when activated regarding the current value of the minimum.
+       *
+       */
+      void onMaximumCheckChanged(bool value);
+
+    private:
+      GUI::Widgets::CategorySelector *m_category; /** category constraint selector. */
   };
 
 } // namespace ESPINA

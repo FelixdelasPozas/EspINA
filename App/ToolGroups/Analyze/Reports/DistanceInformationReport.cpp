@@ -22,6 +22,7 @@
 #include "DistanceInformationReport.h"
 #include <Dialogs/DistanceInformation/DistanceInformationDialog.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -67,10 +68,22 @@ void DistanceInformationReport::show(SegmentationAdapterList segmentations) cons
   }
   else
   {
-    DistanceInformationOptionsDialog optionsDialog;
+    DistanceInformationOptionsDialog optionsDialog(getContext());
 
     if (optionsDialog.exec() == QDialog::Accepted)
     {
+      auto options = optionsDialog.getOptions();
+
+      if(options.category != CategoryAdapterSPtr())
+      {
+        auto segmentations = QueryAdapter::segmentationsOfCategory(getModel(), options.category);
+        if(segmentations.isEmpty())
+        {
+          DefaultDialogs::ErrorMessage(tr("There aren't any segmentations in the selected category '%1'.").arg(options.category->name()));
+          return;
+        }
+      }
+
       DistanceInformationDialog dialog(segmentations, optionsDialog.getOptions(), getContext());
       dialog.exec();
     }
