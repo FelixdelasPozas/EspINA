@@ -23,6 +23,7 @@
 #include "QueryAdapter.h"
 #include <Core/Analysis/Query.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 using namespace ESPINA;
 
@@ -97,7 +98,6 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapt
 {
   return segmentationsOnChannelSample(channel.get());
 }
-
 
 //------------------------------------------------------------------------
 SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapterPtr channel)
@@ -198,6 +198,22 @@ SegmentationAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, Segmen
   }
 
   return SegmentationAdapterSPtr();
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::segmentationsOfCategory(ModelAdapterSPtr model, CategoryAdapterSPtr category)
+{
+  SegmentationAdapterSList results;
+
+  for(auto segmentation: model->segmentations())
+  {
+    if((category == segmentation->category()) || (segmentation->category()->classificationName().startsWith(category->classificationName(), Qt::CaseSensitive)))
+    {
+      results << segmentation;
+    }
+  }
+
+  return results;
 }
 
 //------------------------------------------------------------------------

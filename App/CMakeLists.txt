@@ -1,11 +1,14 @@
 find_package (VTK REQUIRED NO_MODULE)
 include (${VTK_USE_FILE})
 
+find_package(XLSLIB REQUIRED)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}     # Generated EspinaConfig.h
   ${CMAKE_BINARY_DIR}/GUI # Generated UI files
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------
@@ -19,11 +22,14 @@ qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
+  Dialogs/Dialog3D/Dialog3D.h
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
+  Dialogs/DistanceInformation/DistanceInformationDialog.h
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
-  Dialogs/Dialog3D/Dialog3D.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -85,11 +91,12 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
+  Dialogs/Dialog3D/Dialog3D.ui
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Dialogs/Dialog3D/Dialog3D.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/IssueProperty.ui
@@ -101,6 +108,7 @@ qt4_wrap_ui (ESPINA_UI
   ToolGroups/Analyze/Reports/ReportSelectorDialog.ui
   ToolGroups/Edit/CODERefineWidget.ui
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
+  ${ESPINA_INCLUDE}/Support/Widgets/TabularReportEntry.ui
   )
 
 if (METADONA_FOUND)
@@ -121,6 +129,9 @@ set (ESPINA_SOURCES
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
   Dialogs/RawInformation/RawInformationDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
@@ -145,6 +156,7 @@ set (ESPINA_SOURCES
   Settings/Utils.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
+  ToolGroups/Analyze/Reports/DistanceInformationReport.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
@@ -212,6 +224,7 @@ set (ESPINA_LIBRARIES
 
 set (EXTERNAL_LIBRARIES
   ${METADONA_LIBRARIES}
+  ${XLSLIB_LIBRARIES}
 )
 
 if(DEFINED MINGW OR DEFINED MSVC)

@@ -119,7 +119,7 @@ namespace ESPINA
      * NOTE: throws EspinaException on error.
      *
      */
-    void exportToCSV(const QFileInfo &filename);
+    virtual void exportToCSV(const QFileInfo &filename);
 
     /** \brief Exports all the model values to a file in disk in Microsoft Excel format.
      * \param[in] fileName file name.
@@ -127,7 +127,7 @@ namespace ESPINA
      * NOTE: throws EspinaException on error.
      *
      */
-    void exportToXLS(const QString &filename);
+    virtual void exportToXLS(const QString &filename);
 
   public slots:
     /** \brief Updates the selection in the widget.
@@ -141,7 +141,7 @@ namespace ESPINA
      * \param[in] index model index that has been double-clicked.
      *
      */
-    void indexDoubleClicked(QModelIndex index);
+    virtual void indexDoubleClicked(QModelIndex index);
 
     /** \brief Updates the data of the specified index.
      * \param[in] index model index to be updated.
@@ -154,7 +154,7 @@ namespace ESPINA
      * \param[in] deselected QItemSelection object.
      *
      */
-    void updateSelection(QItemSelection selected, QItemSelection deselected);
+    virtual void updateSelection(QItemSelection selected, QItemSelection deselected);
 
     /** \brief Perform operations after some rows of the model have been removed.
      * \param[in] parent model index parent of the removed items.

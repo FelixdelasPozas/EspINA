@@ -215,12 +215,16 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
   QModelIndex sourceIndex = mapToSource(index);
 
   auto sItem        = itemAdapter(sourceIndex);
-  auto segmentation = segmentationPtr(sItem);
-  auto bounds       = segmentation->output()->bounds();
 
-  m_context.viewState().focusViewOn(centroid(bounds));
+  if(sItem)
+  {
+    auto segmentation = segmentationPtr(sItem);
+    auto bounds       = segmentation->output()->bounds();
 
-  emit doubleClicked(sourceIndex);
+    m_context.viewState().focusViewOn(centroid(bounds));
+
+    emit doubleClicked(sourceIndex);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -228,9 +232,12 @@ void TabularReport::updateRepresentation(const QModelIndex &index)
 {
   auto sItem = itemAdapter(mapToSource(index));
 
-  auto segmentation = segmentationPtr(sItem);
+  if(sItem)
+  {
+    auto segmentation = segmentationPtr(sItem);
 
-  segmentation->invalidateRepresentations();
+    segmentation->invalidateRepresentations();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -310,10 +317,10 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
   {
     for (int i = 0; i < m_tabs->count(); ++i)
     {
-      Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-      QTableView *tableView = entry->tableView;
+      auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+      auto tableView = entry->tableView;
+      auto sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
 
-      QSortFilterProxyModel *sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
       for(auto index : tableView->selectionModel()->selectedRows())
       {
         auto sItem = itemAdapter(sortFilter->mapToSource(index));

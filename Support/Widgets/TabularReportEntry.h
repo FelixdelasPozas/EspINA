@@ -30,38 +30,70 @@
 
 #include "Support/EspinaSupport_Export.h"
 
+//ESPINA
 #include "TabularReport.h"
 #include <ui_TabularReportEntry.h>
-
 #include <GUI/Model/Proxies/InformationProxy.h>
 #include <GUI/Widgets/InformationSelector.h>
 
+// xlslib
 #include <common/xlconfig.h>
 #include <xlslib.h>
+
+// Qt
 #include <QSettings>
 
 namespace ESPINA
 {
   using ExcelWorkBook = std::shared_ptr<xlslib_core::workbook>;
 
+  /** \class TabularReport::Entry
+   * \brief Individual tab entry for TabularReport widget.
+   *
+   */
   class EspinaSupport_EXPORT TabularReport::Entry
   : public QWidget
   , public Ui_TabularReportEntry
   {
     Q_OBJECT
   public:
+    /** \brief Entry class constructor.
+     * \param[in] category name of the tab's category.
+     * \param[in] model session model.
+     * \param[in] factory model factory.
+     * \param[in] parent pointer to the widget parent of this one.
+     *
+     */
     explicit Entry(const QString   &category,
                    ModelAdapterSPtr model,
                    ModelFactorySPtr factory,
                    QWidget         *parent);
+
+    /** \brief Entry class virtual destructor.
+     *
+     */
     virtual ~Entry();
 
+    /** \brief Sets the information proxy for the model of the entry.
+     *
+     */
     void setProxy(InformationProxy *proxy);
 
-    int rowCount() const;
+    /** \brief Returns the number of columns of the table.
+     *
+     */
+    virtual int rowCount() const;
 
-    int columnCount() const;
+    /** \brief Returns the number of rows of the table.
+     *
+     */
+    virtual int columnCount() const;
 
+    /** \brief Returns the contents the the given table position.
+     * \param[in] row row index.
+     * \param[in] column column index.
+     *
+     */
     virtual QVariant value(int row, int column) const;
 
   signals:
@@ -70,27 +102,57 @@ namespace ESPINA
   protected:
     virtual void paintEvent(QPaintEvent* event);
 
+    /** \brief Returns the available information to be selected to show on the table.
+     *
+     */
     virtual GUI::InformationSelector::GroupedInfo availableInformation();
 
+    /** \brief Saves the contents of the table to the given file on disk on CSV format.
+     * \param[in] filename file name.
+     *
+     */
     void exportToCSV(const QString &filename);
 
+    /** \brief Saves the contents of the table to the fiven file on disk on XLS format.
+     * \param[in] filename file name.
+     *
+     */
     void exportToXLS(const QString &filename);
 
-  private slots:
-    void changeDisplayedInformation();
-
-    void saveSelectedInformation();
-
+  protected slots:
+    /** \brief Exports all table information to disk.
+     *
+     */
     virtual void extractInformation();
 
-    void refreshAllInformation();
+  private slots:
+    /** \brief Launches the information selection dialog and modifies the contents on the table with the selected fields.
+     *
+     */
+    virtual void changeDisplayedInformation();
 
+    /** \brief Saves the fields of the table to the session temporal directory.
+     *
+     */
+    virtual void saveSelectedInformation();
+
+    /** \brief Refreshes the table contents when changed.
+     *
+     */
+    virtual void refreshAllInformation();
+
+    /** \brief Refreshes the entry GUI.
+     *
+     */
     void refreshGUI();
 
   private:
-    void refreshGUIImplementation();
+    /** \brief Private implementation of the GUI refresh.
+     *
+     */
+    virtual void refreshGUIImplementation();
 
-    /** \brief Returns the filename for this entry.
+    /** \brief Returns the name of the file that contains the information fields to show in the table.
      *
      */
     QString selectedInformationFile() const
@@ -112,22 +174,40 @@ namespace ESPINA
       return TabularReport::extraPath(path.replace("/",">") + ".txt");
     }
 
+    /** \brief Helper method to return the saved information fields (last used).
+     *
+     */
     Core::SegmentationExtension::InformationKeyList lastInformationOrder();
 
+    /** \brief Helper method to return the saved information fields (last used) in GroupedInfo format.
+     *
+     */
     GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
 
+    /** \brief Sets the new information fields to show on the table.
+     * \param[in] extensionInformation information provided by extensions.
+     * \param[in] informationOrder order or the fields to show.
+     *
+     */
     virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformation, Core::SegmentationExtension::InformationKeyList informationOrder);
 
+    /** \brief Returns the information provided by the given extensions.
+     * \param[in] extensionInformation extensions information key list.
+     *
+     */
     Core::SegmentationExtension::InformationKeyList information(GUI::InformationSelector::GroupedInfo extensionInformation);
 
+    /** \brief Updates the fields order.
+     * \param[in] extensionInformation extensions information key list.
+     *
+     */
     Core::SegmentationExtension::InformationKeyList updateInformationOrder(GUI::InformationSelector::GroupedInfo extensionInformation);
 
   protected:
-    QString           m_category;
-    ModelAdapterSPtr  m_model;
-    ModelFactorySPtr  m_factory;
-
-    InformationProxy *m_proxy;
+    QString           m_category; /** category of the entry.         */
+    ModelAdapterSPtr  m_model;    /** session model.                 */
+    ModelFactorySPtr  m_factory;  /** model factory.                 */
+    InformationProxy *m_proxy;    /** entry model information proxy. */
   };
 } // namespace ESPINA
 

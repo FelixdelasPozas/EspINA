@@ -28,7 +28,6 @@
 #include <QVariant>
 #include <QColor>
 
-
 namespace ESPINA
 {
   class CategoryAdapter;
