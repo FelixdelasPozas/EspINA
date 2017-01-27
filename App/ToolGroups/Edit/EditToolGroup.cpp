@@ -26,6 +26,7 @@
 #include "FillHolesTool.h"
 #include "FillHoles2DTool.h"
 #include "ImageLogicTool.h"
+#include "SliceInterpolationTool.h"
 
 #include <App/ToolGroups/Edit/CODERefiner.h>
 #include <Core/Analysis/Output.h>
@@ -40,6 +41,7 @@
 #include <Filters/ImageLogicFilter.h>
 #include <Filters/OpenFilter.h>
 #include <Filters/OpenFilter.h>
+#include <Filters/SliceInterpolationFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
@@ -77,6 +79,7 @@ const Filter::Type MorphologicalFilterFactory::FILL_HOLES2D_FILTER  = "FillSegme
 const Filter::Type MorphologicalFilterFactory::IMAGE_LOGIC_FILTER   = "ImageLogicFilter";
 const Filter::Type MorphologicalFilterFactory::ADDITION_FILTER      = "AdditionFilter";
 const Filter::Type MorphologicalFilterFactory::SUBTRACTION_FILTER   = "SubstractionFilter";
+const Filter::Type MorphologicalFilterFactory::SLICE_INTERPOLATION_FILTER  = "SliceInterpolationFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::CloseFilters()
@@ -148,6 +151,16 @@ FilterTypeList MorphologicalFilterFactory::FillHolesFilters()
 }
 
 //------------------------------------------------------------------------
+FilterTypeList MorphologicalFilterFactory::InterpolationFilters()
+{
+  FilterTypeList filters;
+
+  filters << SLICE_INTERPOLATION_FILTER;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
 FilterTypeList MorphologicalFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
@@ -158,6 +171,7 @@ FilterTypeList MorphologicalFilterFactory::providedFilters() const
   filters << ErodeFilters();
   filters << FillHolesFilters();
   filters << ImageLogicFilters();
+  filters << InterpolationFilters();
 
   return filters;
 }
@@ -201,6 +215,10 @@ FilterSPtr MorphologicalFilterFactory::createFilter(InputSList          inputs,
   else if (isAdditionFilter(filter) || isSubstractionFilter(filter))
   {
     morphologicalFilter = std::make_shared<ImageLogicFilter>(inputs, filter, scheduler);
+  }
+  else if (isSliceInterpolationFilter(filter))
+  {
+    morphologicalFilter = std::make_shared<SliceInterpolationFilter>(inputs, filter, scheduler);
   }
   else if(filter == IMAGE_LOGIC_FILTER) // Older versions didn't distinguish between addition/substraction
   {
@@ -267,6 +285,12 @@ bool MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) 
   return SUBTRACTION_FILTER == type;
 }
 
+//------------------------------------------------------------------------
+bool MorphologicalFilterFactory::isSliceInterpolationFilter(const Filter::Type &type) const
+{
+  return SLICE_INTERPOLATION_FILTER == type;
+}
+
 
 //-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
@@ -286,6 +310,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initCODETools();
   initFillHolesTools();
   initImageLogicTools();
+  initSliceInterpolationTool();
 }
 
 //-----------------------------------------------------------------------------
@@ -325,14 +350,6 @@ void EditToolGroup::initManualEditionTool()
   manualEdition->setOrder("1");
 
   addTool(manualEdition);
-}
-
-//-----------------------------------------------------------------------------
-void EditToolGroup::initSplitTool()
-{
-  auto split = std::make_shared<SplitTool>(getContext());
-  split->setOrder("3-3");
-  addTool(split);
 }
 
 //-----------------------------------------------------------------------------
@@ -387,4 +404,20 @@ void EditToolGroup::initImageLogicTools()
   addTool(addition);
   addTool(subtract);
   addTool(subtractAndErase);
+}
+
+//-----------------------------------------------------------------------------
+void EditToolGroup::initSplitTool()
+{
+  auto split = std::make_shared<SplitTool>(getContext());
+  split->setOrder("3-3");
+  addTool(split);
+}
+
+//-----------------------------------------------------------------------------
+void EditToolGroup::initSliceInterpolationTool()
+{
+  auto sliceInterpolation  = std::make_shared<SliceInterpolationTool>(getContext());
+  sliceInterpolation->setOrder("4-0");
+  addTool(sliceInterpolation);
 }

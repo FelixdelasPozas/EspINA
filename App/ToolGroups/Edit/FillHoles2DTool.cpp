@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "FillHoles2DTool.h"
-#include <App/ToolGroups/Edit/EditToolGroup.h>
+#include "EditToolGroup.h"
 #include <Core/Utils/Spatial.h>
 #include <Filters/FillHoles2DFilter.h>
 #include <GUI/Widgets/Styles.h>

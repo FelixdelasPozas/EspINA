@@ -63,10 +63,15 @@ namespace ESPINA
        */
       static FilterTypeList ImageLogicFilters();
 
-      /** \brief Returns the fill holes filters' signatures.
+      /** \brief Returns the fill holes filter's signatures.
        *
        */
       static FilterTypeList FillHolesFilters();
+
+      /** \brief Returns the interpolation filter's signatures.
+       *
+       */
+      static FilterTypeList InterpolationFilters();
 
       static const Filter::Type CLOSE_FILTER;           /** close filter signature.            */
       static const Filter::Type CLOSE_FILTER_V4;        /** close filter old signature.        */
@@ -82,6 +87,7 @@ namespace ESPINA
       static const Filter::Type IMAGE_LOGIC_FILTER;     /** image logic filters old signature. */
       static const Filter::Type ADDITION_FILTER;        /** addition filter signature.         */
       static const Filter::Type SUBTRACTION_FILTER;     /** subtraction filter signature.      */
+      static const Filter::Type SLICE_INTERPOLATION_FILTER;     /** slice interpolation filter signature.      */
 
     private:
       virtual FilterTypeList providedFilters() const;
@@ -136,6 +142,12 @@ namespace ESPINA
        */
       bool isSubstractionFilter(const Filter::Type &type) const;
 
+      /** \brief Returns true if the given filter type corresponds to a slice interpolation filter and false otherwise.
+       * \param[in] type filter type.
+       *
+       */
+      bool isSliceInterpolationFilter(const Filter::Type &type) const;
+
     private:
       mutable DataFactorySPtr m_dataFactory; /** data factory object. */
   };
@@ -171,11 +183,6 @@ namespace ESPINA
      */
     void initManualEditionTool();
 
-    /** \brief Modifies the gui and tool parameters when the split tool is activated.
-     *
-     */
-    void initSplitTool();
-
     /** \brief Modifies the gui and tool parameters when any of the morphological tools is activated.
      *
      */
@@ -190,6 +197,16 @@ namespace ESPINA
      *
      */
     void initImageLogicTools();
+
+    /** \brief Modifies the gui and tool parameters when the split tool is activated.
+     *
+     */
+    void initSplitTool();
+
+    /** \brief Modifies the gui and tool parameters when a interpolation operation tool is activated.
+     *
+     */
+    void initSliceInterpolationTool();
   };
 
 } // namespace ESPINA
