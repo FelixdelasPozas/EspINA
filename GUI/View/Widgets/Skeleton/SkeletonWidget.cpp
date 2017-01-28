@@ -22,6 +22,7 @@
 #include "SkeletonWidget.h"
 #include "vtkSkeletonWidget.h"
 #include <GUI/View/View2D.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonPointTracker.h>
 
 // VTK
 #include <vtkRenderWindow.h>
@@ -34,27 +35,30 @@
 #include <QDesktopWidget>
 #include <QMouseEvent>
 
-namespace ESPINA
-{
-  //-----------------------------------------------------------------------------
-  SkeletonWidget::SkeletonWidget()
-  : m_command  {vtkSmartPointer<vtkSkeletonWidgetCommand>::New()}
-  , m_tolerance{1}
-  {
-    m_command->setWidget(this);
-  }
-  
-  //-----------------------------------------------------------------------------
-  SkeletonWidget::~SkeletonWidget()
-  {
-    //for(auto view: m_widgets.keys())
-    //{
-      //unregisterView(view);
-    //}
+using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
-    //setCursor(Qt::ArrowCursor);
-    m_widgets.clear();
-  }
+//-----------------------------------------------------------------------------
+SkeletonWidget::SkeletonWidget(SkeletonPointTrackerSPtr handler)
+: m_command  {vtkSmartPointer<vtkSkeletonWidgetCommand>::New()}
+, m_tolerance{1}
+, m_plane    {Plane::UNDEFINED}
+, m_handler  {handler}
+{
+  m_command->setWidget(this);
+}
+  
+//-----------------------------------------------------------------------------
+SkeletonWidget::~SkeletonWidget()
+{
+  //for(auto view: m_widgets.keys())
+  //{
+    //unregisterView(view);
+  //}
+
+  //setCursor(Qt::ArrowCursor);
+  m_widgets.clear();
+}
 
   //-----------------------------------------------------------------------------
 //  void SkeletonWidget::registerView(RenderView* view)
@@ -262,92 +266,97 @@ namespace ESPINA
 //    return false;
 //  }
 
-  //-----------------------------------------------------------------------------
-  void SkeletonWidget::setTolerance(const double value)
+//-----------------------------------------------------------------------------
+void SkeletonWidget::setTolerance(const double value)
+{
+  if (this->m_tolerance == value)
+    return;
+
+  this->m_tolerance = value;
+
+  for (auto vtkWidget : this->m_widgets)
   {
-    if(this->m_tolerance == value) return;
-
-    this->m_tolerance = value;
-
-    for(auto vtkWidget: this->m_widgets)
-    {
-      vtkWidget->SetTolerance(m_tolerance);
-    }
+    vtkWidget->SetTolerance(m_tolerance);
   }
+}
 
-  //-----------------------------------------------------------------------------
-  void SkeletonWidget::changeSlice(Plane plane, Nm slice)
+//-----------------------------------------------------------------------------
+void SkeletonWidget::changeSlice(Plane plane, Nm slice)
+{
+  for (auto vtkWidget : this->m_widgets)
   {
-    for(auto vtkWidget: this->m_widgets)
-    {
-      vtkWidget->changeSlice(plane, slice);
-    }
+    vtkWidget->changeSlice(plane, slice);
   }
+}
 
-  //-----------------------------------------------------------------------------
-  void vtkSkeletonWidgetCommand::Execute(vtkObject* caller, unsigned long int eventId, void *callData)
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidgetCommand::Execute(vtkObject* caller, unsigned long int eventId, void *callData)
+{
+  if (strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0)
   {
-    if(strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0)
+    if ((eventId == vtkCommand::EndInteractionEvent) || (eventId == vtkCommand::ModifiedEvent))
     {
-      if((eventId == vtkCommand::EndInteractionEvent) || (eventId == vtkCommand::ModifiedEvent))
+      auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
+      for (auto vtkWidget : m_widget->m_widgets)
       {
-        auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
-        for(auto vtkWidget: m_widget->m_widgets)
-        {
-          if(vtkWidget == callerWidget) continue;
+        if (vtkWidget == callerWidget)
+          continue;
 
-          vtkWidget->UpdateRepresentation();
-        }
+        vtkWidget->UpdateRepresentation();
       }
     }
   }
+}
 
-  //-----------------------------------------------------------------------------
-  void SkeletonWidget::initialize(vtkSmartPointer<vtkPolyData> pd)
+//-----------------------------------------------------------------------------
+void SkeletonWidget::initialize(vtkSmartPointer<vtkPolyData> pd)
+{
+  for (auto vtkWidget : this->m_widgets)
   {
-    for(auto vtkWidget: this->m_widgets)
-    {
-      vtkWidget->Initialize(pd);
-    }
-
-    if(pd)
-    {
-      emit status(Status::READY_TO_EDIT);
-    }
-    else
-    {
-      emit status(Status::READY_TO_CREATE);
-    }
+    vtkWidget->Initialize(pd);
   }
 
-  //-----------------------------------------------------------------------------
-  vtkSmartPointer<vtkPolyData> SkeletonWidget::getSkeleton()
+  if (pd)
   {
-    // all the vtkSkeletonWidgets should have the same data so anyone can suffice.
-    if(m_widgets.isEmpty()) return nullptr;
-
-    return m_widgets.values().first()->getSkeleton();
+    emit status(Status::READY_TO_EDIT);
   }
-
-  //-----------------------------------------------------------------------------
-  void SkeletonWidget::setRepresentationColor(const QColor &color)
+  else
   {
-    for(auto vtkWidget: this->m_widgets)
-    {
-      vtkWidget->setRepresentationColor(color);
-    }
+    emit status(Status::READY_TO_CREATE);
   }
+}
 
-  //-----------------------------------------------------------------------------
-  void SkeletonWidget::setSpacing(const NmVector3 &spacing)
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> SkeletonWidget::getSkeleton()
+{
+  // all the vtkSkeletonWidgets should have the same data so anyone can suffice.
+  if (m_widgets.isEmpty())
+    return nullptr;
+
+  return m_widgets.values().first()->getSkeleton();
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonWidget::setRepresentationColor(const QColor &color)
+{
+  for (auto vtkWidget : this->m_widgets)
   {
-    m_spacing = spacing;
-
-    for(auto vtkWidget: this->m_widgets)
-    {
-      vtkWidget->SetSpacing(spacing);
-    }
+    vtkWidget->setRepresentationColor(color);
   }
+}
 
-} // namespace ESPINA
+//-----------------------------------------------------------------------------
+void SkeletonWidget::setSpacing(const NmVector3 &spacing)
+{
+  m_spacing = spacing;
 
+  for (auto vtkWidget : this->m_widgets)
+  {
+    vtkWidget->SetSpacing(spacing);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget::initializeImplementation(RenderView* view)
+{
+}

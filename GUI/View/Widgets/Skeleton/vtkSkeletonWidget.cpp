@@ -34,8 +34,9 @@
 #include <QApplication>
 #include <QPixmap>
 
-namespace ESPINA
-{
+using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Skeleton;
+
   vtkStandardNewMacro(vtkSkeletonWidget);
 
   //-----------------------------------------------------------------------------
@@ -610,20 +611,19 @@ namespace ESPINA
     this->Render();
   }
 
-  //-----------------------------------------------------------------------------
-  void vtkSkeletonWidget::SetSpacing(const NmVector3 &spacing)
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::SetSpacing(const NmVector3 &spacing)
+{
+  if(m_spacing != spacing)
   {
-    if(m_spacing != spacing)
+    this->m_spacing = spacing;
+
+    if(this->WidgetRep == nullptr)
     {
-      this->m_spacing = spacing;
-
-      if(this->WidgetRep == nullptr)
-      {
-        this->CreateDefaultRepresentation();
-      }
-
-      reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSpacing(spacing);
+      this->CreateDefaultRepresentation();
     }
-  }
 
-} // namespace ESPINA
+    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSpacing(spacing);
+  }
+}
+

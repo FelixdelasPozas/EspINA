@@ -35,6 +35,7 @@ namespace ESPINA
     {
       /** \class SegmentationSkeletonPoolSettins
        * \brief Implements the settings for the Skeleton representation, to be used by pools.
+       *
        */
       class EspinaGUI_EXPORT SegmentationSkeletonPoolSettings
       : public PoolSettings

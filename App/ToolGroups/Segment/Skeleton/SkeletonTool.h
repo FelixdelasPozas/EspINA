@@ -27,6 +27,8 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonPointTracker.h>
+#include <GUI/Widgets/CategorySelector.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 
@@ -42,12 +44,9 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  namespace GUI
+  namespace //unnamed namespace
   {
-    namespace Widgets
-    {
-      class CategorySelector;
-    }
+    namespace SkeletonNamespace = GUI::View::Widgets::Skeleton;
   }
   class DoubleSpinBoxAction;
   class SkeletonToolStatusAction;
@@ -61,14 +60,18 @@ namespace ESPINA
     public:
       static const Filter::Type SKELETON_FILTER;
 
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const override;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type &filter, SchedulerSPtr scheduler) const override;
 
       virtual FilterTypeList providedFilters() const override;
 
     private:
-      mutable DataFactorySPtr m_dataFactory; /** data factory for this provider. */
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this factory. */
   };
 
+  /** \class SkeletonTool
+   * \brief Tool for skeleton segmentation and edition.
+   *
+   */
   class EspinaGUI_EXPORT SkeletonTool
   : public Support::Widgets::ProgressTool
   {
@@ -78,7 +81,7 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      SkeletonTool(Support::Context &context);
+      SkeletonTool(Support::Context& context);
 
       /** \brief SkeletonTool class virtual destructor.
        *
@@ -89,7 +92,7 @@ namespace ESPINA
        *
        */
       CategoryAdapterSPtr getSelectedCategory()
-      { return m_itemCategory; }
+      { return m_categorySelector->selectedCategory(); }
 
       /** \brief Returns the item the skeleton has been created for or a nullptr
        *  if there is no item (created a new one).
@@ -134,12 +137,6 @@ namespace ESPINA
        */
       void categoryChanged(CategoryAdapterSPtr category);
 
-      /** \brief Removes the widget when the event handler is turned off
-       * by another event handler.
-       *
-       */
-      void eventHandlerToogled(bool toggled);
-
       /** \brief Updates the tolerance value in the widgets when the value in the spinbox changes.
        * \param[in] value new tolerance value.
        *
@@ -167,17 +164,13 @@ namespace ESPINA
       void updateReferenceItem();
 
     private:
-      GUI::Widgets::CategorySelector *m_categorySelector;
-      DoubleSpinBoxAction      *m_toleranceWidget;
-      EventHandlerSPtr          m_handler;
-      QAction                  *m_action;
+      GUI::Widgets::CategorySelector             *m_categorySelector; /** category selector widget.       */
+      DoubleSpinBoxAction                        *m_toleranceWidget;  /** distance between points widget. */
+      SkeletonNamespace::SkeletonPointTrackerSPtr m_eventHandler;     /** tool's event handler.           */
+      SegmentationAdapterPtr                      m_item;             /** current element being created.  */
 
       // TODO: 27-05-2015 SkeletonTool/Widget refactorization
       //EspinaWidgetSPtr          m_widget;
-
-      // widget's return values
-      SegmentationAdapterPtr       m_item;
-      CategoryAdapterSPtr          m_itemCategory;
   };
 
   using SkeletonToolPtr  = SkeletonTool *;

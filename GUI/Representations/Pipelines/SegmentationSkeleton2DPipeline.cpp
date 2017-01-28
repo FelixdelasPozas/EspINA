@@ -23,8 +23,10 @@
 #include <GUI/Representations/Pipelines/SegmentationSkeleton2DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Representations/Pipelines/SegmentationSkeletonPipelineBase.h>
 #include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 
 // VTK
 #include <vtkActor.h>
@@ -38,139 +40,120 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 
+using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::RepresentationUtils;
 
-namespace ESPINA
+//----------------------------------------------------------------------------
+SegmentationSkeleton2DPipeline::SegmentationSkeleton2DPipeline(Plane plane, ColorEngineSPtr colorEngine)
+: SegmentationSkeletonPipelineBase{"SegmentationSkeleton2D", colorEngine}
+, m_plane                         {plane}
 {
-  IntensitySelectionHighlighter SegmentationSkeleton2DPipeline::s_highlighter;
+}
 
-  //----------------------------------------------------------------------------
-  SegmentationSkeleton2DPipeline::SegmentationSkeleton2DPipeline(Plane plane, ColorEngineSPtr colorEngine)
-  : RepresentationPipeline{"SegmentationSkeleton2D"}
-  , m_plane               {plane}
-  , m_colorEngine         {colorEngine}
-  {
-  }
+//----------------------------------------------------------------------------
+RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(ConstViewItemAdapterPtr item, const RepresentationState &state)
+{
+  auto segmentation = segmentationPtr(item);
+  auto planeIndex = normalCoordinateIndex(m_plane);
+
+  ActorList actors;
   
-  //----------------------------------------------------------------------------
-  RepresentationState SegmentationSkeleton2DPipeline::representationState(ConstViewItemAdapterPtr    item,
-                                                                          const RepresentationState &settings)
+  if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    RepresentationState state;
+    auto data = readLockSkeleton(segmentation->output());
+    Bounds sliceBounds = data->bounds();
 
-    auto segmentation = segmentationPtr(item);
-
-    state.apply(segmentationPipelineSettings(segmentation));
-    state.apply(settings);
+    Nm reslicePoint = crosshairPosition(m_plane, state);
     
-    return state;
-  }
-
-  //----------------------------------------------------------------------------
-  RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(ConstViewItemAdapterPtr    item,
-                                                                                 const RepresentationState &state)
-  {
-    auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
-    auto planeIndex   = normalCoordinateIndex(m_plane);
-
-    ActorList actors;
-
-    if (isVisible(state) && hasSkeletonData(segmentation->output()))
+    if (sliceBounds[2 * planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2 * planeIndex + 1])
     {
-      auto data = readLockSkeleton(segmentation->output());
-      Bounds sliceBounds = data->bounds();
+      auto newPoints = vtkSmartPointer<vtkPoints>::New();
+      auto newLines = vtkSmartPointer<vtkCellArray>::New();
 
-      Nm reslicePoint = crosshairPosition(m_plane, state);
+      auto skeleton = data->skeleton();
+      auto planeSpacing = data->bounds().spacing()[planeIndex];
 
-      if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
+      QMap<vtkIdType, NmVector3> pointIds;
+      QMap<vtkIdType, vtkIdType> newPointIds;
+      auto points = skeleton->GetPoints();
+      auto lines = skeleton->GetLines();
+      double pointACoords[3]{0, 0, 0};
+      double pointBCoords[3]{0, 0, 0};
+
+      if(SegmentationSkeletonPoolSettings::getShowAnnotations(state))
       {
-        auto newPoints = vtkSmartPointer<vtkPoints>::New();
-        auto newLines = vtkSmartPointer<vtkCellArray>::New();
+        // TODO prepare for annotations actor, insert data in next while expr.
+      }
 
-        auto skeleton = data->skeleton();
-        auto planeSpacing = data->bounds().spacing()[planeIndex];
-
-        QMap<vtkIdType, NmVector3> pointIds;
-        QMap<vtkIdType, vtkIdType> newPointIds;
-        auto points = skeleton->GetPoints();
-        auto lines = skeleton->GetLines();
-        double pointACoords[3]{0,0,0};
-        double pointBCoords[3]{0,0,0};
-
-        lines->InitTraversal();
-        vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-        auto sliceDepth = reslicePoint + segmentationDepth(state);
-        while(lines->GetNextCell(idList))
+      lines->InitTraversal();
+      vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+      auto sliceDepth = reslicePoint + segmentationDepth(state);
+      while (lines->GetNextCell(idList))
+      {
+        if (idList->GetNumberOfIds() != 2)
         {
-          if(idList->GetNumberOfIds() != 2)
-          {
-            continue;
-          }
-
-          vtkIdType pointAId = idList->GetId(0);
-          vtkIdType pointBId = idList->GetId(1);
-          points->GetPoint(pointAId, pointACoords);
-          points->GetPoint(pointBId, pointBCoords);
-
-          if((pointACoords[planeIndex] < reslicePoint && pointBCoords[planeIndex] > reslicePoint) ||
-             (pointACoords[planeIndex] > reslicePoint && pointBCoords[planeIndex] < reslicePoint) ||
-              areEqual(pointACoords[planeIndex], reslicePoint, planeSpacing) ||
-              areEqual(pointBCoords[planeIndex], reslicePoint, planeSpacing))
-          {
-            if(!newPointIds.contains(pointAId))
-            {
-              pointACoords[planeIndex] = sliceDepth;
-              newPointIds.insert(pointAId, newPoints->InsertNextPoint(pointACoords));
-            }
-
-            if(!newPointIds.contains(pointBId))
-            {
-              pointBCoords[planeIndex] = sliceDepth;
-              newPointIds.insert(pointBId, newPoints->InsertNextPoint(pointBCoords));
-            }
-
-            auto line = vtkSmartPointer<vtkLine>::New();
-            line->GetPointIds()->SetId(0, newPointIds[pointAId]);
-            line->GetPointIds()->SetId(1, newPointIds[pointBId]);
-            newLines->InsertNextCell(line);
-          }
+          continue;
         }
 
-        auto polyData = vtkSmartPointer<vtkPolyData>::New();
-        polyData->SetPoints(newPoints);
-        polyData->SetLines(newLines);
+        vtkIdType pointAId = idList->GetId(0);
+        vtkIdType pointBId = idList->GetId(1);
+        points->GetPoint(pointAId, pointACoords);
+        points->GetPoint(pointBId, pointBCoords);
 
-        auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputData(polyData);
-        mapper->Update();
+        if ((pointACoords[planeIndex] < reslicePoint && pointBCoords[planeIndex] > reslicePoint) ||
+            (pointACoords[planeIndex] > reslicePoint && pointBCoords[planeIndex] < reslicePoint) ||
+            areEqual(pointACoords[planeIndex], reslicePoint, planeSpacing)                       ||
+            areEqual(pointBCoords[planeIndex], reslicePoint, planeSpacing))
+        {
+          if (!newPointIds.contains(pointAId))
+          {
+            pointACoords[planeIndex] = sliceDepth;
+            newPointIds.insert(pointAId, newPoints->InsertNextPoint(pointACoords));
+          }
 
-        auto color = m_colorEngine->color(segmentation);
-        double rgba[4];
-        s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
+          if (!newPointIds.contains(pointBId))
+          {
+            pointBCoords[planeIndex] = sliceDepth;
+            newPointIds.insert(pointBId, newPoints->InsertNextPoint(pointBCoords));
+          }
 
-        auto actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-        actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
-
-        auto width = item->isSelected() ? 4 : 2;
-        actor->GetProperty()->SetLineWidth(width);
-        actor->Modified();
-
-        actors << actor;
+          auto line = vtkSmartPointer<vtkLine>::New();
+          line->GetPointIds()->SetId(0, newPointIds[pointAId]);
+          line->GetPointIds()->SetId(1, newPointIds[pointBId]);
+          newLines->InsertNextCell(line);
+        }
       }
+
+      auto polyData = vtkSmartPointer<vtkPolyData>::New();
+      polyData->SetPoints(newPoints);
+      polyData->SetLines(newLines);
+
+      auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      mapper->SetInputData(polyData);
+      mapper->Update();
+
+      auto color = m_colorEngine->color(segmentation);
+      double rgba[4];
+      SegmentationSkeletonPipelineBase::s_highlighter.lut(color, item->isSelected())->GetTableValue(1, rgba);
+
+      auto actor = vtkSmartPointer<vtkActor>::New();
+      actor->SetMapper(mapper);
+      actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
+      actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
+
+      auto width = item->isSelected() ? 2 : 1;
+      width *= SegmentationSkeletonPoolSettings::getWidth(state);
+
+      actor->GetProperty()->SetLineWidth(width);
+      actor->Modified();
+
+      actors << actor;
     }
-
-    return actors;
   }
 
-  //----------------------------------------------------------------------------
-  bool SegmentationSkeleton2DPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
-  {
-    // TODO
-    return false;
-  }
-
-} // namespace ESPINA
+  return actors;
+}

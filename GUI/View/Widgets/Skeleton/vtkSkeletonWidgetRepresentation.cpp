@@ -43,8 +43,9 @@
 #include <vtkSphereSource.h>
 #include <vtkRenderWindow.h>
 
-namespace ESPINA
-{
+using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Skeleton;
+
   vtkStandardNewMacro(vtkSkeletonWidgetRepresentation);
 
   const double vtkSkeletonWidgetRepresentation::s_sliceWindow = 40;
@@ -1061,5 +1062,3 @@ namespace ESPINA
 
     return false;
   }
-
-} // namespace EspINA

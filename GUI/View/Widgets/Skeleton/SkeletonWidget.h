@@ -21,13 +21,14 @@
 #ifndef ESPINA_SKELETON_TOOL_WIDGET_H_
 #define ESPINA_SKELETON_TOOL_WIDGET_H_
 
-#include <Core/Utils/Vector3.hxx>
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "Core/Utils/Spatial.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonPointTracker.h>
 #include <vtkSmartPointer.h>
 
 // Qt
@@ -35,141 +36,173 @@
 
 class vtkPolyData;
 
-using namespace ESPINA::GUI::Representations::Managers;
-using namespace ESPINA::GUI::View::Widgets;
-
 namespace ESPINA
 {
-  class vtkSkeletonWidget;
-  class vtkSkeletonWidgetCommand;
-
-  class EspinaGUI_EXPORT SkeletonWidget
-  : public EspinaWidget2D
+  namespace GUI
   {
-    Q_OBJECT
-    public:
-      enum class Status : std::int8_t { READY_TO_CREATE = 0, CREATING = 1, READY_TO_EDIT = 2, EDITING = 3 };
+    namespace View
+    {
+      namespace Widgets
+      {
+        namespace Skeleton
+        {
+          class vtkSkeletonWidget;
+          class vtkSkeletonWidgetCommand;
 
-      /** \brief SkeletonWidget class constructor.
-       *
-       */
-      SkeletonWidget();
+          /** \class SkeletonWidget
+           * \brief Two dimensional widget for creating and modifying skeletons.
+           *
+           */
+          class EspinaGUI_EXPORT SkeletonWidget
+          : public EspinaWidget2D
+          {
+            Q_OBJECT
+            public:
+              enum class Status : std::int8_t { READY_TO_CREATE = 0, CREATING = 1, READY_TO_EDIT = 2, EDITING = 3 };
 
-      /** \brief SkeletonWidget class virtual destructor.
-       *
-       */
-      virtual ~SkeletonWidget();
+              /** \brief SkeletonWidget class constructor.
+               * \brief handler handler for this widget.
+               *
+               */
+              SkeletonWidget(SkeletonPointTrackerSPtr handler);
 
-      /** \brief Sets the minimum distance between points.
-       * \param[in] value minimum distance between points.
-       *
-       */
-      void setTolerance(const double value);
+              /** \brief SkeletonWidget class virtual destructor.
+               *
+               */
+              virtual ~SkeletonWidget();
 
-      /** \brief Sets the spacing of the skeleton to make all the nodes centered in the voxels.
-       *
-       */
-      void setSpacing(const NmVector3 &spacing);
+              /** \brief Sets the minimum distance between points.
+               * \param[in] value minimum distance between points.
+               *
+               */
+              void setTolerance(const double value);
 
-      /** \brief Returns the skeleton when the operation has finished.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> getSkeleton();
+              /** \brief Sets the spacing of the skeleton to make all the nodes centered in the voxels.
+               *
+               */
+              void setSpacing(const NmVector3 &spacing);
 
-      /** \brief Sets the color of the representation.
-       * \param[in] color Qcolor object.
-       *
-       */
-      void setRepresentationColor(const QColor &color);
+              /** \brief Returns the skeleton when the operation has finished.
+               *
+               */
+              vtkSmartPointer<vtkPolyData> getSkeleton();
 
-      /** \brief Initialize the vtkWidgets with a polydata.
-       * \param[in] pd VtkPolyData smartPointer.
-       *
-       */
-      void initialize(vtkSmartPointer<vtkPolyData> pd);
+              /** \brief Sets the color of the representation.
+               * \param[in] color Qcolor object.
+               *
+               */
+              void setRepresentationColor(const QColor &color);
 
-//      virtual void registerView(RenderView *view);
-//
-//      virtual void unregisterView(RenderView *view);
-//
-//      virtual void setEnabled(bool enable);
-//
-//      bool filterEvent(QEvent *e, RenderView *view) override;
+              /** \brief Initialize the vtkWidgets with a polydata.
+               * \param[in] pd VtkPolyData smartPointer.
+               *
+               */
+              void initialize(vtkSmartPointer<vtkPolyData> pd);
 
-      virtual void setPlane(Plane plane) {};
+              virtual void setPlane(Plane plane)
+              { /* plane initialized in initializeImplementation() */ };
 
-      virtual void setRepresentationDepth(Nm depth) {};
+              virtual void setRepresentationDepth(Nm depth)
+              { /* representation depth initialized in initializeImplementation() */ };
 
-      virtual TemporalRepresentation2DSPtr clone() { return std::make_shared<SkeletonWidget>();};
+              virtual Representations::Managers::TemporalRepresentation2DSPtr clone()
+              { return std::make_shared<SkeletonWidget>(m_handler);};
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override { /* TODO */ return false; };
+              virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
+              { return false; };
 
-      virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const { /* TODO */ return false; };
+              virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+              { return false; };
 
-    protected:
-      virtual bool isEnabled() {return true;};
+            protected:
+              virtual bool isEnabled()
+              { return true; };
 
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {return false;};
+              virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const
+              { return false; };
 
-      virtual void setCrosshair(const NmVector3 &crosshair) {}
+              virtual void setCrosshair(const NmVector3 &crosshair)
+              {}
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {return false;};
+              virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const
+              { return false; };
 
-      virtual void setSceneResolution(const NmVector3 &resolution) {}
+              virtual void setSceneResolution(const NmVector3 &resolution)
+              {}
 
-    public slots:
-      void changeSlice(Plane, Nm);
+            public slots:
+              void changeSlice(Plane, Nm);
 
-    signals:
-      void modified(vtkSmartPointer<vtkPolyData> polydata);
-      void status(SkeletonWidget::Status status);
+            signals:
+              void modified(vtkSmartPointer<vtkPolyData> polydata);
+              void status(SkeletonWidget::Status status);
 
-    private:
-      friend class vtkSkeletonWidgetCommand;
+            private:
+              friend class vtkSkeletonWidgetCommand;
 
-      virtual void initializeImplementation(RenderView *view) {};
+              virtual void initializeImplementation(RenderView *view);
 
-      virtual void uninitializeImplementation() {};
+              virtual void uninitializeImplementation() {};
 
-      virtual vtkAbstractWidget *vtkWidget() {return nullptr;};
+              virtual vtkAbstractWidget *vtkWidget() {return nullptr;};
 
-      vtkSmartPointer<vtkSkeletonWidgetCommand> m_command;
-      QMap<RenderView *, vtkSkeletonWidget*>    m_widgets;
-      double                                    m_tolerance;
-      NmVector3                                 m_spacing;
-  };
+              vtkSmartPointer<vtkSkeletonWidgetCommand> m_command;
+              QMap<RenderView *, vtkSkeletonWidget*>    m_widgets;
+              double                                    m_tolerance;
+              NmVector3                                 m_spacing;
+              Plane                                     m_plane;
+              SkeletonPointTrackerSPtr                  m_handler;
+          };
 
-  class vtkSkeletonWidgetCommand
-  : public vtkCommand
-  {
-    public:
-      vtkTypeMacro(vtkSkeletonWidgetCommand, vtkCommand);
+          /** \class vtkSkeletonCommand
+           * \brief Handles vtk events and passes them to the skeleton widget.
+           *
+           */
+          class vtkSkeletonWidgetCommand
+          : public vtkCommand
+          {
+            public:
+              /** \brief VTK type macro.
+               *
+               */
+              vtkTypeMacro(vtkSkeletonWidgetCommand, vtkCommand);
 
-      static vtkSkeletonWidgetCommand *New()
-      { return new vtkSkeletonWidgetCommand(); }
+              /** \brief VTK-style New method for compatibility.
+               *
+               */
+              static vtkSkeletonWidgetCommand *New()
+              { return new vtkSkeletonWidgetCommand(); }
 
-      void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
+              void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
-      void setWidget(EspinaWidget2D *widget)
-      { m_widget = dynamic_cast<SkeletonWidget *>(widget); }
+              /** \brief Sets the widget of the vtkCommand object.
+               * \param[in] widget skeleton widget associated with this object.
+               *
+               */
+              void setWidget(SkeletonWidget *widget)
+              { m_widget = widget; }
 
-    private:
-      /** \brief SkeletonWidgetCommand class private constructor.
-       *
-       */
-      explicit vtkSkeletonWidgetCommand()
-      : m_widget{nullptr}
-      {}
+            private:
+              /** \brief SkeletonWidgetCommand class private constructor.
+               *
+               */
+              explicit vtkSkeletonWidgetCommand()
+              : m_widget{nullptr}
+              {}
 
-      /** \brief SkeletonWidgetCommand class private destructor.
-       *
-       */
-      virtual ~vtkSkeletonWidgetCommand()
-      {};
+              /** \brief SkeletonWidgetCommand class private destructor.
+               *
+               */
+              virtual ~vtkSkeletonWidgetCommand()
+              {};
 
-      SkeletonWidget *m_widget;
-  };
+              SkeletonWidget *m_widget; /** widget this vtkCommand responds to. */
+          };
 
+        } // namespace Skeleton
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_SKELETON_TOOL_WIDGET_H_
