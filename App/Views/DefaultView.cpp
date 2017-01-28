@@ -72,13 +72,10 @@ DefaultView::DefaultView(Support::Context &context,
   m_panelYZ->setWidget(m_viewYZ);
 
   m_panelXZ = new Panel(tr("XZ"), context, parent);
-  m_panelXZ->setObjectName("xzDock");
+  m_panelXZ->setObjectName("DockXZ");
   m_panelXZ->setWidget(m_viewXZ);
 
   m_dialog3D = new Dialog3D(context);
-
-  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelYZ);
-  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelXZ);
 
   initView(m_viewXY, parent);
   initView(m_viewXZ, parent);
@@ -91,7 +88,9 @@ DefaultView::DefaultView(Support::Context &context,
 
   parent->setCentralWidget(this);
 
-  //auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelYZ);
+  parent->addDockWidget(Qt::RightDockWidgetArea, m_panelXZ);
+
   connect(getContext().colorEngine().get(), SIGNAL(modified()),
           this,                             SLOT(onColorEngineModified()));
 }

@@ -239,37 +239,37 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for(auto filterFactory: validPlugin->filterFactories())
       {
-        qDebug() << plugin << "- Filter Factory  ...... OK";
+        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
         factory->registerFilterFactory(filterFactory);
       }
 
       for(auto reader: validPlugin->analysisReaders())
       {
-        qDebug() << plugin << "- Analysis Reader  ...... OK";
+        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
         factory->registerAnalysisReader(reader);
       }
 
       for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
       {
-//        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
+        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
         factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto report : validPlugin->reports())
       {
-//        qDebug() << plugin << "- Register Reprot" << report->name() << " ...... OK";
+        qDebug() << plugin << "- Register Report" << report->name() << " ...... OK";
         m_analyzeToolGroup->registerReport(report);
       }
 
       for (auto settings : validPlugin->settingsPanels())
       {
-//        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
+        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
         m_availableSettingsPanels << settings;
       }
 
       for (auto factory : validPlugin->representationFactories())
       {
-//        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
+        qDebug() << plugin << "- Representation Factory  ...... OK";
         registerRepresentationFactory(factory);
       }
     }
@@ -336,6 +336,49 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   m_minimizedStatus = false;
+
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup("MainWindow");
+  auto firstRun = !settings.childKeys().contains("size"); // absent in first run of the application.
+
+  // if first time running adjust the docks into tabs to avoid getting a size bigger than the screen (if accumulated top-bottom)
+  if(firstRun)
+  {
+    QList<QDockWidget *> panels;
+    QDockWidget *segPanel = nullptr;
+
+    for (auto dock : findChildren<QDockWidget *>())
+    {
+      if(dynamic_cast<View2D *>(dock)) continue;
+
+      auto panel = dynamic_cast<Panel *>(dock);
+
+      if(panel == m_view->panelXZ() || panel == m_view->panelYZ())
+      {
+        addDockWidget(Qt::RightDockWidgetArea, panel);
+        continue;
+      }
+
+      if(panel && panel->isVisible() && (panel != m_view->panelXZ()) && (panel != m_view->panelYZ()))
+      {
+        if(dynamic_cast<SegmentationExplorer *>(dock))
+        {
+          segPanel = dock;
+        }
+        else
+        {
+          panels << dock;
+        }
+      }
+    }
+
+    for(auto dock: panels)
+    {
+      QMainWindow::tabifyDockWidget(segPanel, dock);
+    }
+
+    showMaximized();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1051,7 +1094,6 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 //------------------------------------------------------------------------
 void EspinaMainWindow::createDefaultPanels()
 {
-
   auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
   auto segmentationPropertiesSwitch = std::make_shared<PanelSwitch>("SegmentationProperties",
                                                                     segmentationProperties,
