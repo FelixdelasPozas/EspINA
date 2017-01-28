@@ -132,6 +132,7 @@ set (GUI_SOURCES
   Representations/Pipelines/SegmentationMeshPipeline.cpp
   Representations/Pipelines/SegmentationSmoothedMeshPipeline.cpp
   Representations/Pipelines/SegmentationContourPipeline.cpp
+  Representations/Pipelines/SegmentationSkeletonPipelineBase.cpp
   Representations/Pipelines/SegmentationSkeleton2DPipeline.cpp
   Representations/Pipelines/SegmentationSkeleton3DPipeline.cpp
   Representations/Pipelines/SegmentationVolumetricCPUPipeline.cpp

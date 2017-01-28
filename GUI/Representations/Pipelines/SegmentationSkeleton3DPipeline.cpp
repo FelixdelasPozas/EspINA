@@ -22,6 +22,7 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
@@ -32,41 +33,27 @@
 #include <vtkProperty.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-IntensitySelectionHighlighter SegmentationSkeleton3DPipeline::s_highlighter;
 
 //----------------------------------------------------------------------------
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
-: RepresentationPipeline{"SegmentationSkeleton3D"}
-, m_colorEngine         {colorEngine}
+: SegmentationSkeletonPipelineBase{"SegmentationSkeleton3D", colorEngine}
 {
-}
-
-//----------------------------------------------------------------------------
-RepresentationState SegmentationSkeleton3DPipeline::representationState(ConstViewItemAdapterPtr    item,
-                                                                        const RepresentationState &settings)
-{
-  RepresentationState state;
-
-  auto segmentation = segmentationPtr(item);
-
-  state.apply(segmentationPipelineSettings(segmentation));
-  state.apply(settings);
-
-  return state;
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                const RepresentationState &state)
 {
-  auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
+  auto segmentation = segmentationPtr(item);
 
   ActorList actors;
 
-  if (isVisible(state) && hasSkeletonData(segmentation->output()))
+  if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
     auto data = readLockSkeleton(segmentation->output());
 
@@ -76,9 +63,10 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
     auto color = m_colorEngine->color(segmentation);
     double rgba[4];
-    s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
+    SegmentationSkeletonPipelineBase::s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
-    auto width = item->isSelected() ? 4 : 2;
+    auto width = item->isSelected() ? 2 : 1;
+    width *= SegmentationSkeletonPoolSettings::getWidth(state);
 
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
@@ -88,14 +76,12 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     actor->Modified();
 
     actors << actor;
+
+    if(SegmentationSkeletonPoolSettings::getShowAnnotations(state))
+    {
+      // TODO annotations actor.
+    }
   }
 
   return actors;
-}
-
-//----------------------------------------------------------------------------
-bool SegmentationSkeleton3DPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
-{
-  // TODO
-  return false;
 }

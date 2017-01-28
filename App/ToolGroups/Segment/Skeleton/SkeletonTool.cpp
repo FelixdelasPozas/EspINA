@@ -51,8 +51,9 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
-const Filter::Type SkeletonFilterFactory::SKELETON_FILTER    = "SkeletonSource";
+const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
 
 //-----------------------------------------------------------------------------
 FilterTypeList SkeletonFilterFactory::providedFilters() const
@@ -88,17 +89,20 @@ FilterSPtr SkeletonFilterFactory::createFilter(InputSList          inputs,
 }
 
 //-----------------------------------------------------------------------------
-SkeletonTool::SkeletonTool(Support::Context &context)
-: ProgressTool("SkeletonTool", ":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
+SkeletonTool::SkeletonTool(Support::Context& context)
+: ProgressTool      ("SkeletonTool", ":/espina/tubular.svg", tr("Manual creation of skeletons."), context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_toleranceWidget {new DoubleSpinBoxAction(this)}
+, m_eventHandler    {std::make_shared<SkeletonPointTracker>()}
+, m_item            {nullptr}
 {
   this->getFactory()->registerFilterFactory(std::make_shared<SkeletonFilterFactory>());
 
   setCheckable(true);
   setExclusive(true);
+  setEventHandler(m_eventHandler);
 
-  connect(this, SIGNAL(triggered(bool)),
+  connect(this, SIGNAL(toggled(bool)),
           this, SLOT(initTool(bool)));
 
   connect(getSelection().get(), SIGNAL(selectionChanged()),
@@ -136,7 +140,7 @@ void SkeletonTool::updateState()
   auto selection = getSelectedSegmentations();
   auto validItem = (selection.size() <= 1);
 
-  m_action->setEnabled(validItem);
+  setEnabled(validItem);
   m_categorySelector->setEnabled(validItem);
   m_toleranceWidget->setEnabled(validItem);
 
@@ -146,10 +150,12 @@ void SkeletonTool::updateState()
   {
     spacing = m_item->output()->spacing();
     m_item = selection.first();
-    m_itemCategory = m_item->category();
+    m_categorySelector->selectCategory(m_item->category());
   }
   else
   {
+    m_item = nullptr;
+
     auto activeChannel = getActiveChannel();
 
     if(activeChannel)
@@ -161,19 +167,14 @@ void SkeletonTool::updateState()
       spacing = NmVector3{1,1,1};
     }
 
-    m_item = nullptr;
-    m_itemCategory = m_categorySelector->selectedCategory();
-
     //TODO: 27-05-2015 SkeletonTool/Widget refactorization
 //    if(m_widget)
 //    {
 //      initTool(false);
 //    }
-    m_toleranceWidget->setSpinBoxMinimum(1);
   }
 
   m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
-  m_categorySelector->selectCategory(m_itemCategory);
 }
 
 //-----------------------------------------------------------------------------
@@ -181,20 +182,31 @@ void SkeletonTool::updateReferenceItem()
 {
   auto selectedSegs = getSelectedSegmentations();
 
+  NmVector3 spacing;
   if (selectedSegs.size() != 1)
   {
     m_item = nullptr;
-    m_itemCategory = m_categorySelector->selectedCategory();
-    m_toleranceWidget->setSpinBoxMinimum(1);
+
+    auto activeChannel = getActiveChannel();
+
+    if(activeChannel)
+    {
+      spacing = activeChannel->output()->spacing();
+    }
+    else
+    {
+      spacing = NmVector3{1,1,1};
+    }
   }
   else
   {
     m_item = selectedSegs.first();
-    m_itemCategory = m_item->category();
+    m_categorySelector->selectCategory(m_item->category());
 
-    auto spacing = m_item->output()->spacing();
-    m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
+    spacing = m_item->output()->spacing();
   }
+
+  m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
 }
 
 //-----------------------------------------------------------------------------
@@ -247,7 +259,7 @@ void SkeletonTool::initTool(bool value)
       color = getContext().colorEngine()->color(selection.first());
     }
 
-    auto widget = new SkeletonWidget();
+    auto widget = new SkeletonWidget(m_eventHandler);
     connect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
             this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
 
@@ -261,10 +273,7 @@ void SkeletonTool::initTool(bool value)
 //    m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
 //    m_handler->setCursor(Qt::CrossCursor);
 
-    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-            this,            SLOT(eventHandlerToogled(bool)));
-
-    getViewState().setEventHandler(m_handler);
+    activateEventHandler();
     //TODO m_vm->setSelectionEnabled(false);
     // TODO URGENT m_vm->addWidget(m_widget);
     widget->setSpacing(spacing);
@@ -295,15 +304,12 @@ void SkeletonTool::initTool(bool value)
   {
 //    if(!m_widget) return; // can be called twice on undo/redo action combinations.
 
-    m_action->blockSignals(true);
-    m_action->setChecked(false);
-    m_action->blockSignals(false);
+    blockSignals(true);
+    setChecked(false);
+    blockSignals(false);
 
     disconnect(getModel().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
                this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
-
-    disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-               this,            SLOT(eventHandlerToogled(bool)));
 
 //    m_widget->setEnabled(false);
     //TODO URGENT m_vm->removeWidget(m_widget);
@@ -316,8 +322,8 @@ void SkeletonTool::initTool(bool value)
 //    disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
 //               m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
 
-    getViewState().unsetEventHandler(m_handler);
-    m_handler.reset();
+    deactivateEventHandler();
+
     //TODO m_vm->setSelectionEnabled(true);
     //m_widget.reset();
 
@@ -359,7 +365,7 @@ void SkeletonTool::onToolGroupActivated()
 //  }
 
   bool enabled = true;
-  m_action->setEnabled(enabled);
+  setEnabled(enabled);
   m_categorySelector->setEnabled(enabled);
   m_toleranceWidget->setEnabled(enabled);
 }
@@ -417,16 +423,6 @@ void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
 //  if(m_widget)
 //  {
 //    dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
-//  }
-}
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::eventHandlerToogled(bool toggled)
-{
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if (!toggled && m_widget)
-//  {
-//    initTool(false);
 //  }
 }
 
