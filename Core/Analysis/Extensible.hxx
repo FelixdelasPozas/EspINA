@@ -159,6 +159,12 @@ namespace ESPINA
         ExtensionSList extensions() const
         { return m_extensions.values(); }
 
+        /** \brief Returns a list of available extensions.
+         *
+         */
+        const QList<typename E::Type> available() const
+        { return m_extensions.keys(); }
+
         /** \brief Returns the list of information keys provided by extensible.
          *
          */
@@ -360,7 +366,7 @@ namespace ESPINA
       template<typename E, typename T>
       void Extensions<E, T>::add(ExtensionSPtr extension)
       {
-        if (m_extensions.contains(extension->type()))
+        if (hasExtension(extension))
         {
           auto what    = QObject::tr("Attempt to add an existing extension, type: %1").arg(extension->type());
           auto details = QObject::tr("Extensions::add() -> Attempt to add an existing extension, type: %1").arg(extension->type());
@@ -384,7 +390,7 @@ namespace ESPINA
       template<typename E, typename T>
       void Extensions<E, T>::remove(const typename E::Type &extension)
       {
-        if (!m_extensions.contains(extension))
+        if (!hasExtension(extension))
         {
           auto what    = QObject::tr("Attempt to remove an unregistered extension, type: %1").arg(extension);
           auto details = QObject::tr("Extensions::remove() -> Attempt to obtain an unregistered extension, type: %1").arg(extension);
@@ -399,7 +405,7 @@ namespace ESPINA
       template<typename E, typename T>
       bool Extensions<E, T>::hasExtension(const typename E::Type& extension) const
       {
-        return m_extensions.contains(extension);
+        return m_extensions.keys().contains(extension);
       }
 
       //------------------------------------------------------------------
@@ -413,7 +419,7 @@ namespace ESPINA
       template<typename E, typename T>
       typename Extensions<E, T>::ExtensionSPtr Extensions<E, T>::operator[](const typename E::Type& type) const
       {
-        if (!m_extensions.contains(type))
+        if (!hasExtension(type))
         {
           auto what    = QObject::tr("Attempt to obtain an unregistered extension, type: %1").arg(type);
           auto details = QObject::tr("Extensions::operator[] -> Attempt to obtain an unregistered extension, type: %1").arg(type);
@@ -442,7 +448,7 @@ namespace ESPINA
       template<typename E, typename T>
       QVariant Extensions<E, T>::information(const typename E::InformationKey& key) const
       {
-        if (m_extensions.contains(key.extension()))
+        if (hasExtension(key.extension()))
         {
           auto extension = m_extensions[key.extension()];
 
@@ -493,7 +499,6 @@ namespace ESPINA
 
         return information;
       }
-
     }
   }
 }

@@ -100,11 +100,11 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
-, m_showThumbnail   {false}
+, m_showThumbnail   {true}
 , m_inThumbnail     {false}
 , m_inThumbnailClick{true}
 , m_scaleValue      {1.0}
-, m_scaleVisibility {false}
+, m_scaleVisibility {true}
 , m_scale           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_plane           {plane}
 , m_normalCoord     {normalCoordinateIndex(plane)}
@@ -185,6 +185,9 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
   this->setAutoFillBackground(true);
   this->setLayout(m_mainLayout);
   this->setFocusPolicy(Qt::WheelFocus);
+
+  setScaleVisibility(false);
+  setThumbnailVisibility(false);
 }
 
 //-----------------------------------------------------------------------------

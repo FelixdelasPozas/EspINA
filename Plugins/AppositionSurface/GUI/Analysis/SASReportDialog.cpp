@@ -24,13 +24,8 @@
 #include "SASTabularReport.h"
 
 // ESPINA
-#include <Core/Extensions/AppositionSurfaceExtension.h>
 #include <GUI/Model/SegmentationAdapter.h>
-#include <Core/Factory/CoreFactory.h>
-#include <Extensions/Morphological/MorphologicalInformation.h>
-#include <GUI/Widgets/InformationSelector.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Widgets/TabularReport.h>
 
 // Qt
 #include <QPushButton>
@@ -39,7 +34,6 @@
 #include <QDialogButtonBox>
 
 using namespace ESPINA;
-using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
 SASReportDialog::SASReportDialog(SegmentationAdapterList segmentations,

@@ -35,19 +35,30 @@
 
 namespace ESPINA
 {
+  /** \class SASReportDialog
+   * \brief Dialog to show SAS reports.
+   *
+   */
   class AppositionSurfacePlugin_EXPORT SASReportDialog
   : public QDialog
   {
-  public:
-    /** \brief SASAnalysisDialog class constructor.
-     * \param[in] segmentations list of segmentation adapter to show in the analysis.
-     * \param[in] context ESPINA context
-     *
-     */
-    explicit SASReportDialog(SegmentationAdapterList segmentations,
-                               Support::Context &context);
-  protected:
-    virtual void closeEvent(QCloseEvent* event);
+    public:
+      /** \brief SASAnalysisDialog class constructor.
+       * \param[in] segmentations list of segmentation adapter to show in the analysis.
+       * \param[in] context ESPINA context
+       *
+       */
+      explicit SASReportDialog(SegmentationAdapterList segmentations,
+                                 Support::Context &context);
+
+      /** \brief SASReportDialog virtual destructor.
+       *
+       */
+      virtual ~SASReportDialog()
+      {};
+
+    protected:
+      virtual void closeEvent(QCloseEvent* event);
   };
 }
 

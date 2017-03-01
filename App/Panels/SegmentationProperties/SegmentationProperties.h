@@ -137,8 +137,6 @@ namespace ESPINA
        */
       void clearIssues();
 
-
-
     private:
       class UI;
 

@@ -344,7 +344,6 @@ namespace ESPINA
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
-
     QList<QPluginLoader *> m_plugins;
 
     MenuState m_menuState;

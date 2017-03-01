@@ -40,8 +40,9 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::Support;
 using namespace ESPINA::Extensions;
 
-class SegmentationProperties::UI: public QWidget,
-    public Ui::SegmentationProperties
+class SegmentationProperties::UI
+: public QWidget
+, public Ui::SegmentationProperties
 {
   public:
     UI()
@@ -51,10 +52,11 @@ class SegmentationProperties::UI: public QWidget,
 };
 
 //----------------------------------------------------------------------------
-SegmentationProperties::SegmentationProperties(
-    FilterRefinerFactory &filterRefiners, Context &context)
-    : Panel(tr("Segmentation Properties"), context), m_register(filterRefiners), m_segmentation(
-        nullptr), m_gui(new UI())
+SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context)
+: Panel         {tr("Segmentation Properties"), context}
+, m_register    (filterRefiners)
+, m_segmentation{nullptr}
+, m_gui         {new UI()}
 {
   setObjectName("SegmentationProperties");
 
@@ -82,9 +84,8 @@ void SegmentationProperties::showEvent(QShowEvent *event)
 {
   ESPINA::Panel::showEvent(event);
 
-  connect(getSelection().get(),
-      SIGNAL(selectionChanged(SegmentationAdapterList)), this,
-      SLOT(onSelectionChanged(SegmentationAdapterList)));
+  connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+          this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 
   onSelectionChanged(getSelectedSegmentations());
 }
@@ -94,9 +95,8 @@ void SegmentationProperties::hideEvent(QHideEvent* event)
 {
   hideInformation();
 
-  disconnect(getSelection().get(),
-      SIGNAL(selectionChanged(SegmentationAdapterList)), this,
-      SLOT(onSelectionChanged(SegmentationAdapterList)));
+  disconnect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+             this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 
   ESPINA::Panel::hideEvent(event);
 }
@@ -184,11 +184,11 @@ void SegmentationProperties::showInformation(
       showNotes();
       showIssues();
 
-      connect(m_segmentation, SIGNAL(outputModified()), this,
-          SLOT(onOutputModified()));
+      connect(m_segmentation, SIGNAL(outputModified()),
+              this,           SLOT(onOutputModified()));
 
-      connect(m_gui->notes, SIGNAL(textChanged()), this,
-          SLOT(onNotesModified()));
+      connect(m_gui->notes, SIGNAL(textChanged()),
+              this,         SLOT(onNotesModified()));
     }
   }
 }
@@ -198,11 +198,11 @@ void SegmentationProperties::hideInformation()
 {
   if (m_segmentation)
   {
-    disconnect(m_segmentation, SIGNAL(outputModified()), this,
-        SLOT(onOutputModified()));
+    disconnect(m_segmentation, SIGNAL(outputModified()),
+               this,           SLOT(onOutputModified()));
 
-    disconnect(m_gui->notes, SIGNAL(textChanged()), this,
-        SLOT(onNotesModified()));
+    disconnect(m_gui->notes, SIGNAL(textChanged()),
+               this,         SLOT(onNotesModified()));
 
     clearSegmentationName();
     removeRefineWidget();
@@ -349,7 +349,6 @@ void ESPINA::SegmentationProperties::showIssues()
       if (issueProperty != nullptr)
       {
         m_gui->issuesGroup->layout()->addWidget(issueProperty);
-        //map << issueProperty;
       }
     }
 

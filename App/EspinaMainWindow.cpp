@@ -170,8 +170,8 @@ EspinaMainWindow::~EspinaMainWindow()
   }
   m_toolShortcuts.clear();
 
-  delete m_exploreToolGroup;
   delete m_restrictToolGroup;
+  delete m_exploreToolGroup;
   delete m_segmentToolGroup;
   delete m_refineToolGroup;
   delete m_visualizeToolGroup;
@@ -1035,7 +1035,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
           m_view.get(),   SLOT(setRulerVisibility(bool)));
 
   scalebar->setOrder("0-0", "2-Display");
-  scalebar->setChecked(true);
 
   m_visualizeToolGroup->addTool(scalebar);
 
@@ -1048,7 +1047,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
           m_view.get(), SLOT(showThumbnail(bool)));
 
   thumbnail->setOrder("0-1", "2-Display");
-  thumbnail->setChecked(true);
 
   m_visualizeToolGroup->addTool(thumbnail);
 
