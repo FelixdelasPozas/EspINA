@@ -40,7 +40,7 @@ using namespace ESPINA::CF;
 CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *parent)
 : QDialog  {parent}
 , m_type   {CF::ADAPTIVE}
-, m_proxy  {new ChannelProxy(context.model())}
+, m_proxy  {std::make_shared<ChannelProxy>(context.model())}
 , m_stack  {nullptr}
 , m_model  {context.model()}
 , m_factory{context.factory()}

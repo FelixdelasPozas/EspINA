@@ -37,7 +37,7 @@ const QString SETTINGS_GROUP = "Distance Information Report";
 //----------------------------------------------------------------------------
 DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterList segmentations,
                                                      const DistanceInformationDialog::DistancesMap distances,
-                                                     const DistanceInformationOptionsDialog::Options options,
+                                                     const DistanceInformationOptionsDialog::Options &options,
                                                      Support::Context &context)
 : QDialog(DefaultDialogs::defaultParentWidget())
 {

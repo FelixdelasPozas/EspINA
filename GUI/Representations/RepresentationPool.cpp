@@ -178,7 +178,7 @@ bool RepresentationPool::hasSources() const
 //-----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
 {
-  return m_validActors.value(t, RepresentationPipeline::Actors());
+  return m_validActors.value(t, std::make_shared<RepresentationPipeline::ActorsData>());
 }
 
 //-----------------------------------------------------------------------------
@@ -280,7 +280,7 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, const GUI
 
     m_validActors.invalidate();
 
-    onActorsReady(frame, RepresentationPipeline::Actors());
+    onActorsReady(frame, std::make_shared<RepresentationPipeline::ActorsData>());
   }
 }
 
@@ -313,6 +313,8 @@ bool RepresentationPool::isEnabled() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) const
 {
+  QMutexLocker (&actors->lock);
+
   if(m_validActors.isEmpty())
   {
     return (actors != nullptr) && !actors->actors.isEmpty();
@@ -321,7 +323,6 @@ bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) co
   auto currentActors = m_validActors.last();
 
   QMutexLocker (&currentActors->lock);
-  QMutexLocker (&actors->lock);
 
   return (actors->actors.values() != currentActors->actors.values());
 }

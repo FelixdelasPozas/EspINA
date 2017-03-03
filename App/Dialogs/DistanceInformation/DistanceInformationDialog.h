@@ -51,7 +51,7 @@ namespace ESPINA
        */
       explicit DistanceInformationDialog(const SegmentationAdapterList segmentations,
                                          const DistancesMap distances,
-                                         const DistanceInformationOptionsDialog::Options options,
+                                         const DistanceInformationOptionsDialog::Options &options,
                                          Support::Context &context);
 
       /** \brief DistanceInformationDialog class destructor.

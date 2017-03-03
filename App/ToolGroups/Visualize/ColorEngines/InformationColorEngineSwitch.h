@@ -122,7 +122,7 @@ namespace ESPINA
        * \param[in] scheduler application task scheduler.
        *
        */
-        explicit UpdateColorEngineTask(const Core::SegmentationExtension::InformationKey  key,
+        explicit UpdateColorEngineTask(const Core::SegmentationExtension::InformationKey &key,
                                        ESPINA::GUI::ColorEngines::InformationColorEngine *colorEngine,
                                        SegmentationAdapterList                            segmentations,
                                        ModelFactorySPtr                                   factory,

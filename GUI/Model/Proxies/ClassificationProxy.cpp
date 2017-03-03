@@ -175,7 +175,7 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
 //------------------------------------------------------------------------
 bool ClassificationProxy::hasChildren(const QModelIndex& parent) const
 {
-  return hasValidIndexes() && rowCount(parent) > 0 && columnCount(parent) > 0;
+  return hasValidIndexes() && (rowCount(parent) > 0) && (columnCount(parent) > 0);
 }
 
 //------------------------------------------------------------------------
@@ -274,13 +274,15 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
 //------------------------------------------------------------------------
 QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
-  if (!sourceIndex.isValid() || !hasValidIndexes()) return QModelIndex();
-
-  if (sourceIndex == m_model->classificationRoot()
-   || sourceIndex == m_model->sampleRoot()
-   || sourceIndex == m_model->channelRoot()
-   || sourceIndex == m_model->segmentationRoot())
+  if (!sourceIndex.isValid()                       ||
+      !hasValidIndexes()                           ||
+      sourceIndex == m_model->classificationRoot() ||
+      sourceIndex == m_model->sampleRoot()         ||
+      sourceIndex == m_model->channelRoot()        ||
+      sourceIndex == m_model->segmentationRoot())
+  {
     return QModelIndex();
+  }
 
   auto sourceItem = itemAdapter(sourceIndex);
 
@@ -323,8 +325,7 @@ QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) c
 //------------------------------------------------------------------------
 QModelIndex ClassificationProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
-  if (!proxyIndex.isValid())
-    return QModelIndex();
+  if (!proxyIndex.isValid()) return QModelIndex();
 
   auto proxyItem = itemAdapter(proxyIndex);
   Q_ASSERT(proxyItem);
@@ -383,7 +384,7 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
   using  DraggedItem = QMap<int, QVariant>;
 
   auto root       = m_model->classification()->root().get();
-  auto parentItem = parent.isValid()?itemAdapter(parent):root;
+  auto parentItem = parent.isValid() ? itemAdapter(parent) : root;
 
   DragSource source = NoSource;
 
@@ -467,19 +468,22 @@ int ClassificationProxy::numSegmentations(QModelIndex categoryIndex, bool recurs
 {
   int total = 0;
 
-  ItemAdapterPtr item = itemAdapter(categoryIndex);
-
-  if (isCategory(item))
+  if(categoryIndex.isValid())
   {
-    auto category = toCategoryAdapterPtr(item);
+    ItemAdapterPtr item = itemAdapter(categoryIndex);
 
-    total = numSegmentations(category);
-
-    if (recursive)
+    if (isCategory(item))
     {
-      for (int i = 0; i < numSubCategories(category); ++i)
+      auto category = toCategoryAdapterPtr(item);
+
+      total = numSegmentations(category);
+
+      if (recursive)
       {
-        total += numSegmentations(index(i, 0, categoryIndex), true);
+        for (int i = 0; i < numSubCategories(category); ++i)
+        {
+          total += numSegmentations(index(i, 0, categoryIndex), true);
+        }
       }
     }
   }
@@ -490,9 +494,11 @@ int ClassificationProxy::numSegmentations(QModelIndex categoryIndex, bool recurs
 //------------------------------------------------------------------------
 int ClassificationProxy::numSubCategories(QModelIndex categoryIndex) const
 {
+  if(!categoryIndex.isValid()) return 0;
+
   ItemAdapterPtr item = itemAdapter(categoryIndex);
-  if (!isCategory(item))
-    return 0;
+
+  if (!isCategory(item)) return 0;
 
   auto category = toCategoryAdapterPtr(item);
 
@@ -504,16 +510,24 @@ QModelIndexList ClassificationProxy::segmentations(QModelIndex catIndex, bool re
 {
   QModelIndexList segs;
 
-  int start = numSubCategories(catIndex);
-  int end = start + numSegmentations(catIndex) - 1;
-  if (recursive)
+  if(catIndex.isValid())
   {
-    for (int tax = 0; tax < start; tax++)
-      segs << segmentations(index(tax, 0, catIndex), true);
-  }
-  if (start <= end)
-    segs << proxyIndices(catIndex, start, end);
+    int start = numSubCategories(catIndex);
+    int end = start + numSegmentations(catIndex) - 1;
 
+    if (recursive)
+    {
+      for (int tax = 0; tax < start; tax++)
+      {
+        segs << segmentations(index(tax, 0, catIndex), true);
+      }
+    }
+
+    if (start <= end)
+    {
+      segs << proxyIndices(catIndex, start, end);
+    }
+  }
   return segs;
 }
 
@@ -522,17 +536,20 @@ SegmentationAdapterList ClassificationProxy::segmentations(CategoryAdapterPtr ca
 {
   SegmentationAdapterList categorySegmentation;
 
-  if (recursive)
+  if(category)
   {
-    for(auto subCategory : category->subCategories())
+    if (recursive)
     {
-      categorySegmentation << segmentations(subCategory.get(), recursive);
+      for(auto subCategory : category->subCategories())
+      {
+        categorySegmentation << segmentations(subCategory.get(), recursive);
+      }
     }
-  }
 
-  for(auto item : m_categorySegmentations[category])
-  {
-    categorySegmentation << segmentationPtr(item);
+    for(auto item : m_categorySegmentations[category])
+    {
+      categorySegmentation << segmentationPtr(item);
+    }
   }
 
   return categorySegmentation;
@@ -542,23 +559,20 @@ SegmentationAdapterList ClassificationProxy::segmentations(CategoryAdapterPtr ca
 QModelIndexList ClassificationProxy::sourceIndices(const QModelIndex& parent, int start, int end) const
 {
   QModelIndexList res;
-//   static int indent = 0;
 
-//   QString tab = std::string(indent*2,' ').c_str();
-//   qDebug() <<  tab << parent.data(Qt::DisplayRole).toString() << m_model->rowCount(parent) << start << end;
-  for (int row = start; row <= end; row++)
+  if(parent.isValid() && (start <= end))
   {
-    QModelIndex sourceIndex = m_model->index(row, 0, parent);
-//     qDebug() << tab << "  " << sourceIndex.data(Qt::DisplayRole).toString();
-    res << sourceIndex;
-
-//     indent++;
-    int numChildren = m_model->rowCount(sourceIndex);
-    if (numChildren > 0)
+    for (int row = start; row <= end; row++)
     {
-      res << sourceIndices(sourceIndex,0,numChildren - 1);
+      QModelIndex sourceIndex = m_model->index(row, 0, parent);
+      res << sourceIndex;
+
+      int numChildren = m_model->rowCount(sourceIndex);
+      if (numChildren > 0)
+      {
+        res << sourceIndices(sourceIndex,0,numChildren - 1);
+      }
     }
-//     indent--;
   }
 
   return res;
@@ -568,15 +582,19 @@ QModelIndexList ClassificationProxy::sourceIndices(const QModelIndex& parent, in
 QModelIndexList ClassificationProxy::proxyIndices(const QModelIndex& parent, int start, int end) const
 {
   QModelIndexList res;
-  for (int row = start; row <= end; row++)
-  {
-    QModelIndex proxyIndex = index(row, 0, parent);
-    res << proxyIndex;
 
-    int numChildren = rowCount(proxyIndex);
-    if (numChildren > 0)
+  if(parent.isValid() && (start <= end))
+  {
+    for (int row = start; row <= end; row++)
     {
-      res << proxyIndices(proxyIndex,0,numChildren - 1);
+      QModelIndex proxyIndex = index(row, 0, parent);
+      res << proxyIndex;
+
+      int numChildren = rowCount(proxyIndex);
+      if (numChildren > 0)
+      {
+        res << proxyIndices(proxyIndex,0,numChildren - 1);
+      }
     }
   }
 
@@ -586,12 +604,12 @@ QModelIndexList ClassificationProxy::proxyIndices(const QModelIndex& parent, int
 //------------------------------------------------------------------------
 void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
-  if (!sourceParent.isValid())
-    return;
-
-  if (sourceParent == m_model->sampleRoot() ||
+  if ((end < start)                           ||
+      sourceParent == m_model->sampleRoot()   ||
       sourceParent == m_model->channelRoot())
+  {
     return;
+  }
 
   if (sourceParent == m_model->classificationRoot())
   {
@@ -682,9 +700,12 @@ void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, in
 //------------------------------------------------------------------------
 void ClassificationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
-  if (!sourceParent.isValid()) return;
-
-  if (sourceParent == m_model->sampleRoot() || sourceParent == m_model->channelRoot()) return;
+  if (!sourceParent.isValid()                ||
+      sourceParent == m_model->sampleRoot()  ||
+      sourceParent == m_model->channelRoot())
+  {
+    return;
+  }
 
   if (sourceParent == m_model->segmentationRoot())
   {
@@ -786,15 +807,15 @@ void ClassificationProxy::sourceRowsMoved(const QModelIndex &sourceParent, int s
 //------------------------------------------------------------------------
 bool ClassificationProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
 {
+  if(!topLeft.isValid() || !bottomRight.isValid()) return false;
+
   result << topLeft;
 
-  if (topLeft == bottomRight)
-    return true;
+  if (topLeft == bottomRight) return true;
 
   for (int r = 0; r < m_model->rowCount(topLeft); r++)
   {
-    if (indices(topLeft.child(r, 0), bottomRight, result))
-      return true;
+    if (indices(topLeft.child(r, 0), bottomRight, result)) return true;
   }
 
   for (int r = topLeft.row() + 1; r < m_model->rowCount(topLeft.parent()); r++)
@@ -825,9 +846,11 @@ SegmentationAdapterPtr ClassificationProxy::findSegmentation(QString tooltip)
 //------------------------------------------------------------------------
 void ClassificationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+  if(!sourceTopLeft.isValid() || !sourceBottomRight.isValid()) return;
+
   QModelIndexList sources;
 
-  // heteregeneous data changed
+  // Heterogeneous data changed
   if (sourceTopLeft.parent() != sourceBottomRight.parent() &&
     !(isCategoryIndex(sourceTopLeft) && isCategoryIndex(sourceBottomRight)))
   {
@@ -890,24 +913,29 @@ void ClassificationProxy::sourceModelReset()
 //------------------------------------------------------------------------
 bool idOrdered(SegmentationAdapterPtr seg1, SegmentationAdapterPtr seg2)
 {
-  return seg1->number() < seg2->number();
+  return seg1 && seg2 && (seg1->number() < seg2->number());
 }
 
 //------------------------------------------------------------------------
 void ClassificationProxy::addCategory(CategoryAdapterPtr category)
 {
-  m_numCategories[category]      = category->subCategories().size();
-  m_categoryVisibility[category] = Qt::Checked;
-
-  for(auto subCategory : category->subCategories())
+  if(category)
   {
-    addCategory(subCategory.get());
+    m_numCategories[category]      = category->subCategories().size();
+    m_categoryVisibility[category] = Qt::Checked;
+
+    for(auto subCategory : category->subCategories())
+    {
+      addCategory(subCategory.get());
+    }
   }
 }
 
 //------------------------------------------------------------------------
 void ClassificationProxy::removeCategory(CategoryAdapterPtr proxyCategory)
 {
+  if(!proxyCategory) return;
+
   // First remove its subCategories
   for(auto subCategory : proxyCategory->subCategories())
   {
@@ -954,19 +982,22 @@ ClassificationProxy::CategorySegmentations ClassificationProxy::groupSegmentatio
 {
   CategorySegmentations relations;
 
-  for (int row=start; row <= end; row++)
+  if(start <= end)
   {
-    auto sourceIndex    = m_model->index(row, 0, m_model->segmentationRoot());
-    auto sourceItem     = itemAdapter(sourceIndex);
-    auto segmentation   = segmentationPtr(sourceItem);
-    auto sourceCategory = segmentation->category().get();
-
-    if (sourceCategory)
+    for (int row=start; row <= end; row++)
     {
-      //qDebug() << "Source Category: " << sourceCategory->name();
-      auto proxyCategory = toProxyPtr(sourceCategory);
-      //qDebug() << "Proxy Category: " << proxyCategory->name();
-      relations[proxyCategory] << sourceItem;
+      auto sourceIndex    = m_model->index(row, 0, m_model->segmentationRoot());
+      auto sourceItem     = itemAdapter(sourceIndex);
+      auto segmentation   = segmentationPtr(sourceItem);
+      auto sourceCategory = segmentation->category().get();
+
+      if (sourceCategory)
+      {
+        //qDebug() << "Source Category: " << sourceCategory->name();
+        auto proxyCategory = toProxyPtr(sourceCategory);
+        //qDebug() << "Proxy Category: " << proxyCategory->name();
+        relations[proxyCategory] << sourceItem;
+      }
     }
   }
 
@@ -975,7 +1006,7 @@ ClassificationProxy::CategorySegmentations ClassificationProxy::groupSegmentatio
 
 //------------------------------------------------------------------------
 ClassificationProxy::SegmentationsGroup ClassificationProxy::groupSegmentationsByPreviousCategory(ItemAdapterList    sourceItems,
-                                                                                                                             CategoryAdapterPtr currentCategory)
+                                                                                                  CategoryAdapterPtr currentCategory)
 {
   CategorySegmentations prevCategories;
   ItemAdapterList       unchangedItems;
@@ -1179,11 +1210,9 @@ SegmentationAdapterSPtr ClassificationProxy::toSourceSPtr(SegmentationAdapterPtr
 //------------------------------------------------------------------------
 bool ClassificationProxy::isCategoryIndex(const QModelIndex &index) const
 {
-  return !index.parent().isValid()
-      ||  index.parent() == m_model->classificationRoot()
-      || (index.parent() != m_model->sampleRoot()
-       && index.parent() != m_model->channelRoot()
-       && index.parent() != m_model->segmentationRoot());
+  return !index.parent().isValid()                        ||
+          index.parent() == m_model->classificationRoot() ||
+          (index.parent() != m_model->sampleRoot() && index.parent() != m_model->channelRoot() && index.parent() != m_model->segmentationRoot());
 }
 
 //------------------------------------------------------------------------

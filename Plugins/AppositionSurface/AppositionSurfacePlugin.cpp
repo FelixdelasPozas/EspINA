@@ -3,8 +3,8 @@
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -20,27 +20,26 @@
 
 // plugin
 #include "AppositionSurfacePlugin.h"
+#include "SASReport.h"
 
+// ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Extensions/ExtensionFactory.h>
 #include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Core/Utils/EspinaException.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Morphological/MorphologicalInformation.h>
 #include <Filter/AppositionSurfaceFilter.h>
 #include <GUI/Analysis/SASReportDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
-#include "SASReport.h"
-
-// ESPINA
-#include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Settings/Settings.h>
-#include <Undo/AddCategoryCommand.h>
 #include <Support/Utils/SelectionUtils.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
+#include <Undo/AddCategoryCommand.h>
 
 // Qt
 #include <QColorDialog>

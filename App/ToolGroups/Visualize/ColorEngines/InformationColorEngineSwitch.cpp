@@ -49,11 +49,11 @@ const QString EXTENSION_KEY   = "Extension";
 const QString INFORMATION_KEY = "Key";
 
 //-----------------------------------------------------------------------------
-UpdateColorEngineTask::UpdateColorEngineTask(const SegmentationExtension::InformationKey key,
-                                             InformationColorEngine                     *colorEngine,
-                                             SegmentationAdapterList                     segmentations,
-                                             ModelFactorySPtr                            factory,
-                                             SchedulerSPtr                               scheduler)
+UpdateColorEngineTask::UpdateColorEngineTask(const SegmentationExtension::InformationKey &key,
+                                             InformationColorEngine                      *colorEngine,
+                                             SegmentationAdapterList                      segmentations,
+                                             ModelFactorySPtr                             factory,
+                                             SchedulerSPtr                                scheduler)
 : Task           {scheduler}
 , m_key          {key}
 , m_colorEngine  {colorEngine}

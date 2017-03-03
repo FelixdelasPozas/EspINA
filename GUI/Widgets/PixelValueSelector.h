@@ -23,7 +23,7 @@
 #define GUI_WIDGETS_PIXELVALUESELECTOR_H_
 
 // ESPINA
-#include "EspinaGUI_Export.h"
+#include <GUI/EspinaGUI_Export.h>
 
 // Qt
 #include <QWidget>

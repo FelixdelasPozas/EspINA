@@ -131,7 +131,7 @@ namespace ESPINA
        *
        */
       SegmentationAdapterList getSegmentations() const
-      { return m_segmentations; }
+      { return m_iSegmentations; }
 
     protected:
       virtual void run() override;
@@ -155,17 +155,23 @@ namespace ESPINA
       const bool isDistanceCached(SegmentationAdapterPtr first, SegmentationAdapterPtr second) const;
 
     private:
+      /** \brief Returns true if the segmentation is from the give category or a subcategory if it.
+       * \param[in] segmentation segmentation pointer.
+       * \param[in] category category smart pointer.
+       *
+       */
+      const bool validCategory(const SegmentationAdapterPtr seg1, const CategoryAdapterSPtr category) const;
+
       friend class DistanceComputationThread;
 
-      const SegmentationAdapterList                   m_segmentations;   /** input segmentations.                    */
-      const DistanceInformationOptionsDialog::Options m_options;         /** computation options.                    */
-      int                                             m_i;               /** i iterator for thread launch.           */
-      int                                             m_j;               /** j iterator for thread launch.           */
-      const int                                       m_iMax;            /** max i iterator value.                   */
-      const int                                       m_jMax;            /** max j iterator value.                   */
-      long long unsigned int                          m_numComputations; /** total number of computations.           */
-      long long unsigned int                          m_computations;    /** number of completd computations so far. */
-      bool                                            m_finished;        /** true if calculations finished.          */
+      const SegmentationAdapterList                   m_iSegmentations;  /** input segmentations (from).               */
+      const SegmentationAdapterList                   m_jSegmentations;  /** input segmentations (to).                 */
+      const DistanceInformationOptionsDialog::Options m_options;         /** computation options.                      */
+      long int                                        m_i;               /** i iterator for thread launch.             */
+      long int                                        m_j;               /** j iterator for thread launch.             */
+      long long int                                   m_numComputations; /** total number of computations.             */
+      long long int                                   m_computations;    /** number of completed computations so far.  */
+      std::atomic<bool>                               m_finished;        /** true if calculations finished completely. */
 
       Support::Context                                 &m_context;   /** application context.                 */
       mutable QMutex                                    m_lock;      /** lock for the distances.              */

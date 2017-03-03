@@ -534,11 +534,20 @@ void SegFile_V5::Loader::createStackExtension(ChannelSPtr channel,
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
 {
-  QString xmlFile = StackExtension::ExtensionFilePath(channel.get());
+  auto xmlFile = StackExtension::ExtensionFilePath(channel.get());
 
   if (!channel->storage()->exists(xmlFile)) return;
 
-  QByteArray extensions = channel->storage()->snapshot(xmlFile);
+  auto extensions = channel->storage()->snapshot(xmlFile);
+
+  // in some SEG files the extension xml files were corrupted, need to clean them or the extensions won't be created.
+  const auto token = QByteArray("</Channel>") + '\n';
+  if(!extensions.endsWith(token))
+  {
+    auto index = extensions.indexOf(token, 0);
+    Q_ASSERT(index != -1);
+    extensions.remove(index + token.length(), extensions.size() - index - token.length());
+  }
 
   QXmlStreamReader xml(extensions);
 
@@ -611,11 +620,20 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 {
-  QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
 
   if (!segmentation->storage()->exists(xmlFile)) return;
 
-  QByteArray extensions = segmentation->storage()->snapshot(xmlFile);
+  auto extensions = segmentation->storage()->snapshot(xmlFile);
+
+  // in some SEG files the extension xml files were corrupted, need to clean them or the extensions won't be created.
+  const auto token = QByteArray("</Segmentation>") + '\n';
+  if(!extensions.endsWith(token))
+  {
+    auto index = extensions.indexOf(token, 0);
+    Q_ASSERT(index != -1);
+    extensions.remove(index + token.length(), extensions.size() - index - token.length());
+  }
 
   QXmlStreamReader xml(extensions);
 

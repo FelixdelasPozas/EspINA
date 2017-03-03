@@ -312,15 +312,15 @@ void SegmentationProperties::clearNotes()
 }
 
 //----------------------------------------------------------------------------
-void ESPINA::SegmentationProperties::showIssues()
+void SegmentationProperties::showIssues()
 {
   clearIssues();
 
   auto extensions = m_segmentation->extensions();
-  IssueProperty *issueProperty = nullptr;
 
   if (extensions->hasExtension(SegmentationIssues::TYPE))
   {
+    IssueProperty *issueProperty = nullptr;
     auto extension = retrieveExtension<SegmentationIssues>(extensions);
     auto isueList = extension->issues();
     QString icon_path;

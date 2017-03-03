@@ -27,6 +27,7 @@
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <Core/Utils/ListUtils.hxx>
 
 // C++
 #include <cmath>
@@ -40,8 +41,11 @@
 // Qt
 #include <QMutex>
 
+using ESPINA::Core::Utils::toRawList;
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 
@@ -103,7 +107,7 @@ void DistanceInformationReport::show(SegmentationAdapterList segmentations) cons
       }
 
       auto task = std::make_shared<DistanceComputationManagerThread>(segmentations, optionsDialog.getOptions(), getContext());
-      task->setDescription(tr("Segmentation's distances computation."));
+      task->setDescription(tr("Distances computation."));
 
       connect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
 
@@ -121,7 +125,7 @@ void DistanceInformationReport::show(SegmentationAdapterList segmentations) cons
 //--------------------------------------------------------------------
 void DistanceInformationReport::onComputationFinished()
 {
-  auto task = dynamic_cast<DistanceComputationManagerThread *>(sender());
+  auto task = qobject_cast<DistanceComputationManagerThread *>(sender());
 
   if(!task)
   {
@@ -259,17 +263,16 @@ const NmVector3 DistanceComputationThread::getCentroid(SegmentationAdapterPtr se
 DistanceComputationManagerThread::DistanceComputationManagerThread(const SegmentationAdapterList selectedSegmentations,
                                                                    const DistanceInformationOptionsDialog::Options options,
                                                                    Support::Context &context)
-: Task             {context.scheduler()}
-, m_segmentations  (selectedSegmentations)
-, m_options        (options)
-, m_i              {0}
-, m_j              {0}
-, m_iMax           {m_segmentations.isEmpty() ? context.model()->segmentations().size() : m_segmentations.size()}
-, m_jMax           {options.category == CategoryAdapterSPtr() ? context.model()->segmentations().size() : QueryAdapter::segmentationsOfCategory(context.model(), options.category).size()}
-, m_numComputations{0}
-, m_computations   {0}
-, m_finished       {false}
-, m_context        (context)
+: Task               {context.scheduler()}
+, m_iSegmentations   (selectedSegmentations.isEmpty() ? toRawList<SegmentationAdapter>(context.model()->segmentations()) : selectedSegmentations)
+, m_jSegmentations   (options.category == CategoryAdapterSPtr() ? toRawList<SegmentationAdapter>(context.model()->segmentations()) : toRawList<SegmentationAdapter>(QueryAdapter::segmentationsOfCategory(context.model(), options.category)))
+, m_options          (options)
+, m_i                {0}
+, m_j                {0}
+, m_numComputations  {0}
+, m_computations     {0}
+, m_finished         {false}
+, m_context          (context)
 {
 }
 
@@ -288,27 +291,38 @@ DistanceComputationManagerThread::~DistanceComputationManagerThread()
 }
 
 //--------------------------------------------------------------------
+const bool DistanceComputationManagerThread::validCategory(const SegmentationAdapterPtr segmentation, const CategoryAdapterSPtr category) const
+{
+  return (segmentation->category()->classificationName().startsWith(category->classificationName(), Qt::CaseSensitive));
+}
+
+//--------------------------------------------------------------------
 void DistanceComputationManagerThread::run()
 {
-  if(m_segmentations.isEmpty())
+  m_numComputations = m_iSegmentations.size() * m_jSegmentations.size();
+
+  int included = 0;
+  for(int i = 0; i < m_iSegmentations.size(); ++i)
   {
-    m_numComputations = (m_iMax * (m_iMax-1))/2;
-  }
-  else
-  {
-    m_numComputations = (m_iMax * (m_jMax - 1)) - ((m_iMax * (m_iMax - 1))/2);
+    auto from = m_iSegmentations.at(i);
+    if(m_jSegmentations.contains(from)) ++included;
   }
 
-  for(unsigned int i = 0; i < Scheduler::maxRunningTasks(); ++i)
+  m_numComputations -= (included * (included-1))/2 + included;
+
   {
-    computeNextDistance();
+    QMutexLocker lock(&m_lock);
+    for(unsigned int i = 0; i < Scheduler::maxRunningTasks(); ++i)
+    {
+      computeNextDistance();
+    }
   }
 
   // wait until finished or cancelled
-  while((!m_finished || !m_tasks.isEmpty()) && canExecute())
+  while(!m_finished && canExecute())
   {
     m_waitMutex.lock();
-    m_waiter.wait(&m_waitMutex);
+    if(!m_finished) m_waiter.wait(&m_waitMutex);
     m_waitMutex.unlock();
 
     QApplication::processEvents();
@@ -329,16 +343,17 @@ void DistanceComputationManagerThread::onComputationFinished()
     }
 
     m_tasks.clear();
+    m_waiter.wakeAll();
 
     return;
   }
-
-  QMutexLocker lock(&m_lock);
 
   auto thread = qobject_cast<DistanceComputationThread *>(sender());
 
   if(thread)
   {
+    QMutexLocker lock(&m_lock);
+
     for(auto task: m_tasks)
     {
       if(task.get() == thread)
@@ -352,6 +367,12 @@ void DistanceComputationManagerThread::onComputationFinished()
         reportProgress(static_cast<int>((100 * m_computations)/m_numComputations));
 
         computeNextDistance();
+
+        if(m_computations == m_numComputations)
+        {
+          m_finished = true;
+        }
+
         break;
       }
     }
@@ -365,68 +386,38 @@ void DistanceComputationManagerThread::onComputationFinished()
 //--------------------------------------------------------------------
 void DistanceComputationManagerThread::computeNextDistance()
 {
-  auto incrementCheck = [this] ()
+  if (m_i == m_iSegmentations.size()) return;
+
+  SegmentationAdapterPtr first  = m_iSegmentations.at(m_i);
+  SegmentationAdapterPtr second = m_jSegmentations.at(m_j);
+
+  while(first == second || isDistanceCached(first, second))
   {
-    if(this->m_j == this->m_jMax)
+    if(first == second) m_distances[first][second] = m_distances[second][first] = 0;
+
+    ++m_j;
+
+    if(m_j == m_jSegmentations.size())
     {
-      this->m_i = this->m_i + 1;
-      this->m_j = 0;
+      ++m_i;
+      m_j = 0;
     }
 
-    if (this->m_i == this->m_iMax)
-    {
-      this->m_finished = true;
-    }
-  };
+    if (m_i == m_iSegmentations.size()) return;
 
-  SegmentationAdapterSList segmentations;
-  SegmentationAdapterPtr   first  = nullptr;
-  SegmentationAdapterPtr   second = nullptr;
-
-  if(m_options.category == CategoryAdapterSPtr())
-  {
-    segmentations = m_context.model()->segmentations();
-  }
-  else
-  {
-    segmentations = QueryAdapter::segmentationsOfCategory(m_context.model(), m_options.category);
+    first  = m_iSegmentations.at(m_i);
+    second = m_jSegmentations.at(m_j);
   }
 
-  while((first == second) && !m_finished)
-  {
-    incrementCheck();
+  m_distances[first][second] = m_distances[second][first] = VTK_DOUBLE_MAX;
 
-    if(!m_finished)
-    {
-      first = m_segmentations.isEmpty() ? segmentations.at(m_i).get() : m_segmentations.at(m_i);
-      second = segmentations.at(m_j).get();
+  auto task = std::make_shared<DistanceComputationThread>(first, second, m_options.distanceType, m_context, this);
 
-      while((first == second) || isDistanceCached(first, second))
-      {
-        ++m_j;
+  connect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
 
-        incrementCheck();
+  m_tasks << task;
 
-        if(m_finished) break;
-
-        first = m_segmentations.isEmpty() ? segmentations.at(m_i).get() : m_segmentations.at(m_i);
-        second = segmentations.at(m_j).get();
-      }
-    }
-  }
-
-  if(!m_finished)
-  {
-    m_distances[first][second] = m_distances[second][first] = VTK_DOUBLE_MAX;
-
-    auto task = std::make_shared<DistanceComputationThread>(first, second, m_options.distanceType, m_context, this);
-
-    connect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
-
-    m_tasks << task;
-
-    Task::submit(task);
-  }
+  Task::submit(task);
 }
 
 //--------------------------------------------------------------------
