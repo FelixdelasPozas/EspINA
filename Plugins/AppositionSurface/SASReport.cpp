@@ -67,71 +67,13 @@ SegmentationAdapterList SASReport::acceptedInput(SegmentationAdapterList segment
 //----------------------------------------------------------------------------
 QString SASReport::requiredInputDescription() const
 {
-  return tr("Current report input does not contain any synapses");
+  return tr("Current report input does not contain any synapses.");
 }
 
 //----------------------------------------------------------------------------
 void SASReport::show(SegmentationAdapterList input) const
 {
-  SASReportDialog dialog(input, getContext());
-  dialog.exec();
-
-//  auto undoStack = getUndoStack();
-//  auto model = getModel();
-//  auto factory = getFactory();
-//  auto SAS = QObject::tr("SAS");
-//
-//  if (model->classification()->category(SAS) == nullptr)
-//  {
-//    undoStack->beginMacro(tr("Apposition Surface"));
-//    undoStack->push(new AddCategoryCommand(model->classification()->root(), SAS, model, QColor(255, 255, 0)));
-//    undoStack->endMacro();
-//
-//    model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
-//    model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
-//    model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
-//  }
-//
-//  //check segmentations for SAS and create it if needed
-//  for (auto segmentation : input)
-//  {
-//    auto sasItems = model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-//    if (sasItems.isEmpty())
-//    {
-//      if (!m_delayedAnalysis)
-//      {
-//        m_delayedAnalysis = true;
-//        m_analysisSynapses = synapsis;
-//        QApplication::setOverrideCursor(Qt::WaitCursor);
-//      }
-//
-//      InputSList inputs;
-//      inputs << segmentation->asInput();
-//
-//      auto filter = factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
-//
-//      struct Data data(filter, model->smartPointer(segmentation));
-//      m_executingTasks.insert(filter.get(), data);
-//
-//      connect(filter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-//
-//      Task::submit(filter);
-//    }
-//    else
-//    {
-//      Q_ASSERT(sasItems.size() == 1);
-//      auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
-//      auto extensions = sas->extensions();
-//      auto extension = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-//      std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(model->smartPointer(segmentation));
-//      extensions->add(extension);
-//    }
-//  }
-//  if (!m_delayedAnalysis)
-//  {
-//    SASReportDialog dialog(input, getContext());
-//    dialog.exec();
-//
-//    delete analysis;
-//  };
+  auto dialog = new SASReportDialog(input, getContext());
+  dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+  dialog->show();
 }

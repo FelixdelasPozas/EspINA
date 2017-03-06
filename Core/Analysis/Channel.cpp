@@ -161,10 +161,18 @@ Snapshot Channel::snapshot() const
     stream.writeStartDocument();
     stream.writeStartElement("Channel");
     stream.writeAttribute("Name", name());
-    for(auto extension : extensions)
+    for(auto type : extensions->available())
     {
+      auto extension = extensions[type];
+
+      if(!extension)
+      {
+        qWarning() << "Channel::snapshot() -> Couldn't save " << type << "extension: null pointer. Name:" << name();
+        continue;
+      }
+
       stream.writeStartElement("Extension");
-      stream.writeAttribute("Type", extension->type());
+      stream.writeAttribute("Type", type);
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
       for(auto key : extension->readyInformation())
       {

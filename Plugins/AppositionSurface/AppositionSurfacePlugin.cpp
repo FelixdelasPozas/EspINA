@@ -254,7 +254,7 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
   {
     auto segmentation = segmentationPtr(item.get());
 
-    if(isValidSynapse(segmentation) && segmentation->filter()->hasFinished())
+    if(segmentation && isValidSynapse(segmentation) && segmentation->filter()->hasFinished())
     {
       bool valid = true;
       // must check if the segmentation already has a SAS, as this call

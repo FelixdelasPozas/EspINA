@@ -47,11 +47,22 @@ bool MaskPainter::filterEvent(QEvent *e, RenderView *view)
       case QEvent::KeyPress:
       case QEvent::KeyRelease:
         ke = static_cast<QKeyEvent *>(e);
-        if ((ke->key() == Qt::Key_Shift) && !m_tracker->isTracking() && m_canErase)
+        if(!m_tracker->isTracking() && m_canErase)
         {
-          updateDrawingMode();
-          return true;
+          if (ke->key() == Qt::Key_Shift)
+          {
+            updateDrawingMode();
+            return true;
+          }
+
+          if((ke->key() == Qt::Key_Plus) && (ke->modifiers() & Qt::KeypadModifier))
+          {
+            auto mode = currentMode() == DrawingMode::PAINTING ? DrawingMode::ERASING : DrawingMode::PAINTING;
+            setDrawingMode(mode);
+            return true;
+          }
         }
+
         break;
       default:
         break;

@@ -27,7 +27,6 @@
 // ESPINA
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <Undo/AddCategoryCommand.h>
 #include <Undo/AddRelationCommand.h>
 
 // Qt
@@ -142,7 +141,7 @@ void AppositionSurfaceTool::createSAS()
 }
 
 //-----------------------------------------------------------------------------
-QString AppositionSurfaceTool::defaultTooltip() const
+const QString AppositionSurfaceTool::defaultTooltip() const
 {
   return tr("Synaptic Apposition Surface");
 }
