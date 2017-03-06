@@ -228,7 +228,11 @@ RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
 //-----------------------------------------------------------------------------
 RestrictToolGroup::~RestrictToolGroup()
 {
-  blockSignals(true);
+  disconnect();
+
+  m_freehandROI->disconnect();
+  m_orthogonalROI->disconnect();
+
   setCurrentROI(nullptr);
 }
 
