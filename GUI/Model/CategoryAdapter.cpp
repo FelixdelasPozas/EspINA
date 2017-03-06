@@ -95,13 +95,13 @@ bool CategoryAdapter::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-QString CategoryAdapter::classificationName() const
+const QString CategoryAdapter::classificationName() const
 {
   return m_category->classificationName();
 }
 
 //------------------------------------------------------------------------
-QColor CategoryAdapter::color() const
+const QColor CategoryAdapter::color() const
 {
   return selectedColor(m_category->color());
 }
@@ -113,7 +113,7 @@ void CategoryAdapter::setName(const QString& name)
 }
 
 //------------------------------------------------------------------------
-QString CategoryAdapter::name() const
+const QString CategoryAdapter::name() const
 {
   return m_category->name();
 }
@@ -162,13 +162,13 @@ void CategoryAdapter::deleteProperty(const QString& prop)
 }
 
 //------------------------------------------------------------------------
-QStringList CategoryAdapter::properties() const
+const QStringList CategoryAdapter::properties() const
 {
   return m_category->properties();
 }
 
 //------------------------------------------------------------------------
-QVariant CategoryAdapter::property(const QString& prop) const
+const QVariant CategoryAdapter::property(const QString& prop) const
 {
   return m_category->property(prop);
 }
@@ -202,7 +202,7 @@ void CategoryAdapter::setColor(const QColor& color)
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
+const CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
 {
   CategoryAdapterSPtr res = nullptr;
 
