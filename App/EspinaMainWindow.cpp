@@ -109,6 +109,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_view             {new DefaultView(m_context, this)}
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy             {false}
+, m_checkTask        {nullptr}
 {
   updateUndoStackIndex();
 
@@ -515,6 +516,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 {
   Q_ASSERT(analysis);
 
+  stopAnalysisConsistencyCheck();
+
   if(!analysis->classification())
   {
     QFileInfo defaultClassification(":/espina/defaultClassification.xml");
@@ -574,6 +577,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 {
+  stopAnalysisConsistencyCheck();
+
   auto model = m_context.model();
 
   emit abortOperation();
@@ -587,6 +592,11 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
   assignActiveChannel();
 
   updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
+
+  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  {
+    checkAnalysisConsistency();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1225,17 +1235,43 @@ void EspinaMainWindow::updateUndoStackIndex()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::stopAnalysisConsistencyCheck()
+{
+  if(m_checkTask)
+  {
+    disconnect(m_checkTask.get(), SIGNAL(finished()),
+               this,              SLOT(stopAnalysisConsistencyCheck()));
+
+    disconnect(m_checkTask.get(), SIGNAL(progress(int)),
+               m_checkTool.get(), SLOT(setProgress(int)));
+
+    m_checkTool->setProgress(100);
+
+    disconnect(m_checkTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
+               this,              SLOT(showIssuesDialog(Extensions::IssueList)));
+
+    m_checkTask->abort();
+    m_checkTask = nullptr;
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::checkAnalysisConsistency()
 {
-  auto checkerTask = std::make_shared<CheckAnalysis>(m_context);
+  stopAnalysisConsistencyCheck();
 
-  connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
+  m_checkTask = std::make_shared<CheckAnalysis>(m_context);
+
+  connect(m_checkTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
-  connect(checkerTask.get(), SIGNAL(progress(int)),
+  connect(m_checkTask.get(), SIGNAL(finished()),
+          this,              SLOT(stopAnalysisConsistencyCheck()));
+
+  connect(m_checkTask.get(), SIGNAL(progress(int)),
           m_checkTool.get(), SLOT(setProgress(int)));
 
-  checkerTask->submit(checkerTask);
+  m_checkTask->submit(m_checkTask);
 }
 
 //------------------------------------------------------------------------

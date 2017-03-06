@@ -65,6 +65,7 @@ namespace ESPINA
   class ROISettings;
   class FileSaveTool;
   class FileOpenTool;
+  class CheckAnalysis;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -197,6 +198,11 @@ namespace ESPINA
      */
     void checkAnalysisConsistency();
 
+    /** \brief Stops the analysis check task if its running.
+     *
+     */
+    void stopAnalysisConsistencyCheck();
+
   private:
     void initColorEngines();
 
@@ -251,7 +257,6 @@ namespace ESPINA
      *
      */
     void registerToolGroup(ToolGroupPtr tools);
-
 
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
@@ -351,7 +356,7 @@ namespace ESPINA
     bool m_busy;
 
     int m_savedUndoStackIndex;
-
+    std::shared_ptr<CheckAnalysis> m_checkTask; /** analysis check task. */
   };
 
 } // namespace ESPINA
