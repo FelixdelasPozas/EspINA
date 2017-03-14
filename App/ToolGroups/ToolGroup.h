@@ -60,7 +60,8 @@ namespace ESPINA
       /** \brief ToolGroup class virtual destructor.
        *
        */
-      virtual ~ToolGroup();
+      virtual ~ToolGroup()
+      {}
 
       /** \brief Returns the tools contained by the tool group
        *

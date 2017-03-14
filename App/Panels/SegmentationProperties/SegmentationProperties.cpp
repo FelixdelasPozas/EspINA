@@ -238,11 +238,11 @@ void SegmentationProperties::addRefineWidget()
   QWidget *widget = nullptr;
   try
   {
-    widget = m_register.createRefineWidget(m_segmentation, getContext(), m_gui->refineGroup);
+    widget = m_register.createRefineWidget(m_segmentation, getContext());
   }
   catch (...)
   {
-    widget = new NoFilterRefiner(m_gui->refineGroup);
+    widget = new NoFilterRefiner();
   }
 
   m_gui->refineGroup->layout()->addWidget(widget);

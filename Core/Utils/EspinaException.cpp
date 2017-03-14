@@ -33,7 +33,6 @@
 // C++
 #include <iostream>
 #include <cxxabi.h>
-#include <process.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -176,6 +175,7 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
   #include <libloaderapi.h>
   #include <csignal>
   #include <cfloat>
+  #include <process.h>
 
 //--------------------------------------------------------------------
 void win_sig_action(int signal)

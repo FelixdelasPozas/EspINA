@@ -35,7 +35,7 @@
         <item>
          <widget class="QLineEdit" name="m_userName">
           <property name="toolTip">
-           <string/>
+           <string>User name</string>
           </property>
          </widget>
         </item>
@@ -107,6 +107,9 @@
       </item>
       <item row="2" column="0">
        <widget class="QCheckBox" name="m_autoSaveBackground">
+        <property name="toolTip">
+         <string>Execute the auto-save process in background</string>
+        </property>
         <property name="text">
          <string>Execute in background</string>
         </property>
@@ -126,6 +129,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="QCheckBox" name="m_systemPathCheckbox">
+        <property name="toolTip">
+         <string>Use the system temporal directory for storage.</string>
+        </property>
         <property name="text">
          <string>Use system temporal directory</string>
         </property>
@@ -138,13 +144,20 @@
         </property>
         <item>
          <widget class="QLabel" name="m_temporalPathLabel">
+          <property name="toolTip">
+           <string>Path to use for temporal file storage.</string>
+          </property>
           <property name="text">
            <string>Path:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="m_temporalPath"/>
+         <widget class="QLineEdit" name="m_temporalPath">
+          <property name="toolTip">
+           <string>Path to use for temporal file storage.</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="m_browseDirButton">
@@ -153,6 +166,9 @@
             <width>30</width>
             <height>30</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Select path to use for temporal file storage.</string>
           </property>
           <property name="text">
            <string>...</string>
@@ -172,6 +188,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QCheckBox" name="m_loadSEGSettings">
+        <property name="toolTip">
+         <string>Load the tool settings stored in the session file.</string>
+        </property>
         <property name="text">
          <string>Load settings stored inside the file.</string>
         </property>
@@ -188,6 +207,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <widget class="QCheckBox" name="m_doCheck">
+        <property name="toolTip">
+         <string>Check session integrity after loading.</string>
+        </property>
         <property name="text">
          <string>Perform a check after loading a file.</string>
         </property>
