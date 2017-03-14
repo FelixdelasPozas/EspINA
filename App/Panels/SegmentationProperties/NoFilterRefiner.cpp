@@ -16,13 +16,14 @@
  *
  */
 
+// ESPINA
 #include "NoFilterRefiner.h"
 
 using namespace ESPINA;
 
+//--------------------------------------------------------------------
 NoFilterRefiner::NoFilterRefiner(QWidget *parent, Qt::WindowFlags f)
 : QWidget(parent, f)
-, m_gui(new Ui::NoFilterRefiner())
 {
-  m_gui->setupUi(this);
+  setupUi(this);
 }

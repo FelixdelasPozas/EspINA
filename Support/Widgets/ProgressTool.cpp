@@ -58,7 +58,6 @@ ProgressTool::NestedWidgets::~NestedWidgets()
   }
 }
 
-
 //----------------------------------------------------------------------------
 void ProgressTool::NestedWidgets::addWidget(QWidget *widget)
 {
@@ -101,6 +100,8 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
 //----------------------------------------------------------------------------
 ProgressTool::~ProgressTool()
 {
+  abortOperation();
+
   delete m_action;
   delete m_settings;
 }

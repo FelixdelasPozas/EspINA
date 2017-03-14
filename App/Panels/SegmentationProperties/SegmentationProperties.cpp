@@ -40,12 +40,14 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::Support;
 using namespace ESPINA::Extensions;
 
+//----------------------------------------------------------------------------
 class SegmentationProperties::UI
 : public QWidget
 , public Ui::SegmentationProperties
 {
   public:
-    UI()
+    UI(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
+    : QWidget{parent, f}
     {
       setupUi(this);
     }
@@ -56,7 +58,7 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
 : Panel         {tr("Segmentation Properties"), context}
 , m_register    (filterRefiners)
 , m_segmentation{nullptr}
-, m_gui         {new UI()}
+, m_gui         {new UI(this)}
 {
   setObjectName("SegmentationProperties");
 
@@ -102,8 +104,7 @@ void SegmentationProperties::hideEvent(QHideEvent* event)
 }
 
 //----------------------------------------------------------------------------
-void SegmentationProperties::onSelectionChanged(
-    SegmentationAdapterList selection)
+void SegmentationProperties::onSelectionChanged(SegmentationAdapterList selection)
 {
   Q_ASSERT(isVisible());
 
@@ -165,8 +166,7 @@ void SegmentationProperties::onNotesModified()
 }
 
 //----------------------------------------------------------------------------
-void SegmentationProperties::showInformation(
-    SegmentationAdapterPtr segmentation)
+void SegmentationProperties::showInformation(SegmentationAdapterPtr segmentation)
 {
   // Update if segmentation are different
   if (segmentation != m_segmentation)
@@ -236,14 +236,13 @@ void SegmentationProperties::addRefineWidget()
   Q_ASSERT(m_filter);
 
   QWidget *widget = nullptr;
-
   try
   {
-    widget = m_register.createRefineWidget(m_segmentation, getContext());
+    widget = m_register.createRefineWidget(m_segmentation, getContext(), m_gui->refineGroup);
   }
   catch (...)
   {
-    widget = new NoFilterRefiner();
+    widget = new NoFilterRefiner(m_gui->refineGroup);
   }
 
   m_gui->refineGroup->layout()->addWidget(widget);

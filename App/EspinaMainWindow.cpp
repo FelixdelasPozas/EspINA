@@ -165,6 +165,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
+
   for(auto shortcut: m_toolShortcuts)
   {
     delete shortcut;
@@ -568,8 +569,6 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   {
     checkAnalysisConsistency();
   }
-
-  m_autoSave.resetCountDown();
 
   emit analysisChanged();
 }
@@ -1103,6 +1102,10 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 void EspinaMainWindow::createDefaultPanels()
 {
   auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
+
+  connect(this,                   SIGNAL(analysisAboutToBeClosed()),
+          segmentationProperties, SLOT(reset()));
+
   auto segmentationPropertiesSwitch = std::make_shared<PanelSwitch>("SegmentationProperties",
                                                                     segmentationProperties,
                                                                     ":espina/display_segmentation_properties.svg",

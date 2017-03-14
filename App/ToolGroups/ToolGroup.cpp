@@ -38,12 +38,6 @@ ToolGroup::ToolGroup(const QString &icon, const QString  &text, QObject *parent)
 }
 
 //-----------------------------------------------------------------------------
-ToolGroup::~ToolGroup()
-{
-  abortOperations();
-}
-
-//-----------------------------------------------------------------------------
 void ToolGroup::addTool(ToolSPtr tool)
 {
   connect(tool.get(), SIGNAL(exclusiveToolInUse(Support::Widgets::ProgressTool*)),

@@ -27,97 +27,118 @@
 class QString;
 namespace ESPINA
 {
+  /** \class AutoSave
+   * \brief Auto save properties.
+   *
+   */
   class AutoSave
   : public QObject
   {
-    Q_OBJECT
+      Q_OBJECT
+    public:
+      static const QString PATH;
+      static const QString INTERVAL;
+      static const QString INTHREAD;
 
-  public:
-    /** \brief AutoSave class constructor.
-     *
-     */
-    AutoSave();
+    public:
+      /** \brief AutoSave class constructor.
+       *
+       */
+      AutoSave();
 
-    /** \brief AutoSave class destructor.
-     *
-     */
-    ~AutoSave();
+      /** \brief AutoSave class destructor.
+       *
+       */
+      ~AutoSave();
 
-    /** \brief Sets the path for the auto save file.
-     * \param[in] path file system path for the auto save file.
-     *
-     */
-    void setPath(const QDir &path);
+      /** \brief Sets the path for the auto save file.
+       * \param[in] path file system path for the auto save file.
+       *
+       */
+      void setPath(const QDir &path);
 
-    /** \brief Returns the path for the auto save file.
-     *
-     */
-    QDir path() const
-    { return m_path; }
+      /** \brief Returns the path for the auto save file.
+       *
+       */
+      QDir path() const
+      { return m_path; }
 
-    /** \brief Sets the time interval for auto save events
-     * \param[in] minutes time interval in minutes.
-     *
-     */
-    void setInterval(const unsigned int minutes);
+      /** \brief Sets the time interval for auto save events
+       * \param[in] minutes time interval in minutes.
+       *
+       */
+      void setInterval(const unsigned int minutes);
 
-    /** \brief Returns the time interval for auto save events.
-     *
-     */
-    int interval() const;
+      /** \brief Returns the time interval for auto save events.
+       *
+       */
+      const int interval() const;
 
-    /** \brief Resets time to next auto save event
-     *
-     */
-    void resetCountDown();
+      /** \brief Resets time to next auto save event
+       *
+       */
+      void resetCountDown();
 
-    /** \brief Returns if it is possible to restore from currently auto saved analysis
-     *
-     */
-    bool canRestore() const;
+      /** \brief Returns if it is possible to restore from currently auto saved analysis
+       *
+       */
+      bool canRestore() const;
 
-    /** \brief Restore currently auto saved analysis
-     *
-     */
-    void restore();
+      /** \brief Restore currently auto saved analysis
+       *
+       */
+      void restore();
 
-    /** \brief Clear currently auto saved analysis
-     *
-     */
-    void clear();
+      /** \brief Clear currently auto saved analysis
+       *
+       */
+      void clear();
 
-    /** \brief Returns true if the given filename is equal to the auto save file.
-     *
-     */
-    bool isAutoSaveFile(const QString &filename);
+      /** \brief Returns true if the given filename is equal to the auto save file.
+       *
+       */
+      const bool isAutoSaveFile(const QString &filename);
 
-    /** \brief Returns the date of the auto-save file or an empty string if it doesn't exist.
-     *
-     */
-    QString autoSaveDate() const;
+      /** \brief Returns the date of the auto-save file or an empty string if it doesn't exist.
+       *
+       */
+      const QString autoSaveDate() const;
 
-    /** \brief Returns the time of the auto-save file or an empty string if it doesn't exists.
-     *
-     */
-    QString autoSaveTime() const;
+      /** \brief Returns the time of the auto-save file or an empty string if it doesn't exists.
+       *
+       */
+      const QString autoSaveTime() const;
 
-  signals:
-    void restoreFromFile(const QString);
+      /** \brief Returns true if the auto save must be done in a separate thread.
+       *
+       */
+      const bool autoSaveInThread() const
+      { return m_inThread; }
 
-    void saveToFile(const QString);
+      /** \brief Sets if the auto save must be done in a saparate thread.
+       * \param[in] value true to use a thread to save data and false otherwise.
+       *
+       */
+      void setSaveInThread(const bool value);
 
-  private slots:
-    /** \brief Resets the timer and emits the save signal.
-     *
-     */
-    void autoSave();
+    signals:
+      void restoreFromFile(const QString);
 
-  private:
-    QString autosaveFile() const;
+      void saveToFile(const QString);
 
-  private:
-    QDir   m_path;
-    QTimer m_timer;
+    private slots:
+      /** \brief Resets the timer and emits the save signal.
+       *
+       */
+      void autoSave();
+
+    private:
+      QString autosaveFile() const;
+
+    private:
+      QDir   m_path;     /** auto save file path.                              */
+      QTimer m_timer;    /** timer.                                            */
+      bool   m_inThread; /** true to use a thread to save and false otherwise. */
   };
 }
 

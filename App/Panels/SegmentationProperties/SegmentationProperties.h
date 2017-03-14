@@ -52,6 +52,7 @@ namespace ESPINA
 
       virtual void hideEvent(QHideEvent* event);
 
+    public slots:
       virtual void reset();
 
     private slots:

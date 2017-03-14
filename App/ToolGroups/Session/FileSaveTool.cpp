@@ -29,6 +29,8 @@
 #include <Core/Utils/SupportedFormats.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
+#include <Support/Settings/Settings.h>
+#include <App/AutoSave.h>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -125,7 +127,9 @@ void FileSaveTool::saveAnalysis(const QString &filename)
     auto info     = QFileInfo{filename};
     info.refresh();
 
-    if (isAutoSave)
+    ESPINA_SETTINGS(settings);
+
+    if (isAutoSave && settings.value(AutoSave::INTHREAD, true).toBool())
     {
       setIcon(saveIcon());
 
@@ -173,11 +177,15 @@ void FileSaveTool::saveAnalysis()
 //----------------------------------------------------------------------------
 void FileSaveTool::onSaveThreadFinished()
 {
+  bool success = false;
+  QString filename = tr("Unknown");
+
   auto thread = dynamic_cast<SaveThread *>(sender());
 
-  if(thread && !thread->isAborted() && thread->hasFinished())
+  if(thread)
   {
-    auto filename = thread->filename().absoluteFilePath();
+    filename = thread->filename().absoluteFilePath();
+    success  = thread->successful();
 
     if(!thread->successful())
     {
@@ -186,8 +194,6 @@ void FileSaveTool::onSaveThreadFinished()
 
       DefaultDialogs::ErrorMessage(message, title, thread->errorMessage());
     }
-
-    emit sessionSaved(filename, thread->successful());
   }
 
   if(m_thread)
@@ -197,6 +203,8 @@ void FileSaveTool::onSaveThreadFinished()
 
     m_thread = nullptr;
   }
+
+  emit sessionSaved(filename, success);
 
   setProgress(100);
 

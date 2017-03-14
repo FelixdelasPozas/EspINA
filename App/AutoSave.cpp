@@ -26,16 +26,18 @@
 
 using namespace ESPINA;
 
-const QString AUTOSAVE_PATH     = "Autosave::Path";
-const QString AUTOSAVE_INTERVAL = "Autosave::Interval";
+const QString AutoSave::PATH     = "Autosave::Path";
+const QString AutoSave::INTERVAL = "Autosave::Interval";
+const QString AutoSave::INTHREAD = "Autosave::InThread";
 
 //------------------------------------------------------------------------
 AutoSave::AutoSave()
 {
   ESPINA_SETTINGS(settings);
 
-  setInterval(settings.value(AUTOSAVE_INTERVAL, 10).toUInt());
-  setPath(settings.value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString());
+  setInterval(settings.value(INTERVAL, 10).toUInt());
+  setPath(settings.value(PATH, QDir::homePath()+"/.espina").toString());
+  m_inThread = settings.value(INTHREAD, true).toBool();
 
   connect(&m_timer, SIGNAL(timeout()),
           this,     SLOT(autoSave()));
@@ -66,20 +68,24 @@ void AutoSave::setPath(const QDir& path)
   m_path = path;
 
   ESPINA_SETTINGS(settings);
-  settings.setValue(AUTOSAVE_PATH, path.absolutePath());
+  settings.setValue(PATH, path.absolutePath());
 }
 
 //------------------------------------------------------------------------
 void AutoSave::setInterval(const unsigned int minutes)
 {
-  m_timer.setInterval(minutes*60*1000);
+  auto value = minutes*60*1000;
+  if(interval() != value)
+  {
+    m_timer.setInterval(value);
 
-  ESPINA_SETTINGS(settings);
-  settings.setValue(AUTOSAVE_INTERVAL, minutes);
+    ESPINA_SETTINGS(settings);
+    settings.setValue(INTERVAL, minutes);
+  }
 }
 
 //------------------------------------------------------------------------
-int AutoSave::interval() const
+const int AutoSave::interval() const
 {
   return m_timer.interval()/60/1000;
 }
@@ -125,13 +131,13 @@ QString AutoSave::autosaveFile() const
 }
 
 //------------------------------------------------------------------------
-bool AutoSave::isAutoSaveFile(const QString& filename)
+const bool AutoSave::isAutoSaveFile(const QString& filename)
 {
   return filename == autosaveFile();
 }
 
 //------------------------------------------------------------------------
-QString AutoSave::autoSaveDate() const
+const QString AutoSave::autoSaveDate() const
 {
   QString dateString;
 
@@ -147,7 +153,7 @@ QString AutoSave::autoSaveDate() const
 }
 
 //------------------------------------------------------------------------
-QString AutoSave::autoSaveTime() const
+const QString AutoSave::autoSaveTime() const
 {
   QString timeString;
 
@@ -160,4 +166,17 @@ QString AutoSave::autoSaveTime() const
   }
 
   return timeString;
+}
+
+//------------------------------------------------------------------------
+void AutoSave::setSaveInThread(const bool value)
+{
+  if(m_inThread != value)
+  {
+    m_inThread = value;
+
+    ESPINA_SETTINGS(settings);
+
+    settings.setValue(INTHREAD, value);
+  }
 }
