@@ -26,19 +26,18 @@
 #include <QObject>
 #include <QDateTime>
 #include <QStringList>
+#include <QString>
 #include <QTextStream>
 #include <QDir>
 
 // C++
 #include <iostream>
 #include <cxxabi.h>
+#include <process.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
-
-#ifdef __linux__
-  #include <execinfo.h>
-#endif
 
 using namespace ESPINA::Core::Utils;
 
@@ -47,35 +46,10 @@ static int const STACK_FRAMES = 40;
 const int ESPINA::Core::Utils::STACK_SIZE = 8192;
 uint8_t ESPINA::Core::Utils::alternate_stack[ESPINA::Core::Utils::STACK_SIZE];
 
-//-----------------------------------------------------------------------------
-EspinaException::EspinaException(const QString& what, const QString& info)
-: m_what{what.toUtf8().constData()}
-, m_info{info.toUtf8().constData()}
-{
-//  std::cerr << "ESPINA EXCEPTION" << std::endl;
-//  std::cerr << what.toStdString().c_str() << std::endl;
-//  std::cerr << info.toStdString().c_str() << std::endl;
-//  std::cerr << std::flush;
-}
-
-//-----------------------------------------------------------------------------
-EspinaException::~EspinaException()
-{
-}
-
-//-----------------------------------------------------------------------------
-const char* EspinaException::what() const noexcept
-{
-  return m_what.c_str();
-}
-
-//-----------------------------------------------------------------------------
-const char* EspinaException::details() const
-{
-  return m_info.c_str();
-}
-
 #ifdef __linux__
+
+#include <execinfo.h>
+
 //-----------------------------------------------------------------------------
 void signalHandler(int signal, siginfo_t *siginfo, void *context)
 {
@@ -184,12 +158,284 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
 
   std::_Exit(1);
 }
-#endif
+
+#endif // Linux
+
+#ifdef __WIN64__
+
+  // definitions needed by bfd.h apparently
+  #define PACKAGE "EspINA"
+  #define PACKAGE_VERSION "Win64"
+
+  #include <windows.h>
+  #include <excpt.h>
+  #include <imagehlp.h>
+  #include <bfd.h>
+  #include <psapi.h>
+  #include <windef.h>
+  #include <libloaderapi.h>
+  #include <csignal>
+  #include <cfloat>
+
+//--------------------------------------------------------------------
+void win_sig_action(int signal)
+{
+  const char *signal_text = nullptr;
+
+  switch(signal)
+  {
+    case SIGSEGV:
+      signal_text = "SIGSEGV: segmentation fault";
+      break;
+    case SIGINT:
+      signal_text = "SIGINT: interactive attention signal (ctrl+c ?)";
+      break;
+    case SIGFPE:
+      signal_text = "SIGFPE: floating point exception";
+      break;
+    case SIGILL:
+      signal_text = "SIGILL: illegal instruction";
+      break;
+    case SIGTERM:
+      signal_text = "SIGTERM: explicit termination request";
+      break;
+    case SIGABRT:
+      signal_text = "SIGABRT: probably assert()";
+      break;
+    default:
+      signal_text = "Unidentified signal.";
+      break;
+  }
+
+  auto date     = QDate::currentDate();
+  auto time     = QTime::currentTime();
+  auto fileName = QObject::tr("EspINA-dump-%1_%2_%3-%4_%5_%6.txt").arg(date.year(),   4, 10, QChar('0'))
+                                                                  .arg(date.month(),  2, 10, QChar('0'))
+                                                                  .arg(date.day(),    2, 10, QChar('0'))
+                                                                  .arg(time.hour(),   2, 10, QChar('0'))
+                                                                  .arg(time.minute(), 2, 10, QChar('0'))
+                                                                  .arg(time.second(), 2, 10, QChar('0'));
+  QFile file{QDir::home().filePath(fileName)};
+  if(file.open(QIODevice::Truncate|QIODevice::ReadWrite))
+  {
+    QTextStream out(&file);
+    out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
+    out << "SIGNAL: " << signal_text << "\n";
+    out.flush();
+    ESPINA::Core::Utils::backtrace_stack_print(out);
+  }
+
+  std::_Exit(1);
+}
+
+#define BFD_ERR_OK          (0)
+#define BFD_ERR_OPEN_FAIL   (1)
+#define BFD_ERR_BAD_FORMAT  (2)
+#define BFD_ERR_NO_SYMBOLS  (3)
+#define BFD_ERR_READ_SYMBOL (4)
+
+static const char *const bfd_errors[] = {
+  "Empty",
+  "Failed to open bfd",
+  "Bad format",
+  "No symbols",
+  "Failed to read symbols",
+};
+
+struct bfd_ctx
+{
+  bfd * handle;
+  asymbol ** symbol;
+};
+
+struct bfd_set
+{
+  char * name;
+  struct bfd_ctx * bc;
+  struct bfd_set *next;
+};
+
+struct find_info
+{
+  asymbol **symbol;
+  bfd_vma counter;
+  const char *file;
+  const char *func;
+  unsigned line;
+};
+
+//--------------------------------------------------------------------
+void lookup_section(bfd *abfd, asection *sec, void *opaque_data)
+{
+  struct find_info *data = reinterpret_cast<struct find_info *>(opaque_data);
+
+  if (data->func) return;
+
+  if (!(bfd_get_section_flags(abfd, sec) & SEC_ALLOC)) return;
+
+  bfd_vma vma = bfd_get_section_vma(abfd, sec);
+  if (data->counter < vma || vma + bfd_get_section_size(sec) <= data->counter) return;
+
+  bfd_find_nearest_line(abfd, sec, data->symbol, data->counter - vma, &(data->file), &(data->func), &(data->line));
+}
+
+//--------------------------------------------------------------------
+void find(struct bfd_ctx * b, DWORD offset, const char **file, const char **func, unsigned int *line)
+{
+  struct find_info data;
+  data.func    = nullptr;
+  data.symbol  = b->symbol;
+  data.counter = offset;
+  data.file    = nullptr;
+  data.func    = nullptr;
+  data.line    = 0;
+
+  bfd_map_over_sections(b->handle, &lookup_section, &data);
+  if (file)
+  {
+    *file = data.file;
+  }
+  if (func)
+  {
+    *func = data.func;
+  }
+  if (line)
+  {
+    *line = data.line;
+  }
+}
+
+//--------------------------------------------------------------------
+int init_bfd_ctx(struct bfd_ctx *bc, const char * procname, int *err)
+{
+  bc->handle = nullptr;
+  bc->symbol = nullptr;
+
+  bfd *b = bfd_openr(procname, 0);
+  if (!b)
+  {
+    if(err) { *err = BFD_ERR_OPEN_FAIL; }
+    return 1;
+  }
+
+  if(!bfd_check_format(b, bfd_object))
+  {
+    bfd_close(b);
+    if(err) { *err = BFD_ERR_BAD_FORMAT; }
+    return 1;
+  }
+
+  if(!(bfd_get_file_flags(b) & HAS_SYMS))
+  {
+    bfd_close(b);
+    if(err) { *err = BFD_ERR_NO_SYMBOLS; }
+    return 1;
+  }
+
+  void *symbol_table;
+
+  unsigned dummy = 0;
+  if (bfd_read_minisymbols(b, FALSE, &symbol_table, &dummy) == 0)
+  {
+    if (bfd_read_minisymbols(b, TRUE, &symbol_table, &dummy) < 0)
+    {
+      free(symbol_table);
+      bfd_close(b);
+      if(err) { *err = BFD_ERR_READ_SYMBOL; }
+      return 1;
+    }
+  }
+
+  bc->handle = b;
+  bc->symbol = reinterpret_cast<asymbol **>(symbol_table);
+
+  if(err) { *err = BFD_ERR_OK; }
+  return 0;
+}
+
+//--------------------------------------------------------------------
+void close_bfd_ctx(struct bfd_ctx *bc)
+{
+  if (bc) {
+    if (bc->symbol) {
+      free(bc->symbol);
+    }
+    if (bc->handle) {
+      bfd_close(bc->handle);
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+struct bfd_ctx *get_bc(struct bfd_set *set , const char *procname, int *err)
+{
+  while (set->name)
+  {
+    if (strcmp(set->name, procname) == 0)
+    {
+      return set->bc;
+    }
+    set = set->next;
+  }
+  struct bfd_ctx bc;
+  if (init_bfd_ctx(&bc, procname, err))
+  {
+    return NULL;
+  }
+  set->next = reinterpret_cast<struct bfd_set *>(calloc(1, sizeof(*set)));
+  set->bc   = reinterpret_cast<struct bfd_ctx *>(malloc(sizeof(struct bfd_ctx)));
+  memcpy(set->bc, &bc, sizeof(bc));
+  set->name = strdup(procname);
+
+  return set->bc;
+}
+
+//--------------------------------------------------------------------
+void release_set(struct bfd_set *set)
+{
+  while(set) {
+    struct bfd_set * temp = set->next;
+    free(set->name);
+    close_bfd_ctx(set->bc);
+    free(set);
+    set = temp;
+  }
+}
+
+#endif // Windows
+
+//-----------------------------------------------------------------------------
+EspinaException::EspinaException(const QString& what, const QString& info)
+: m_what{what.toUtf8().constData()}
+, m_info{info.toUtf8().constData()}
+{
+//  std::cerr << "ESPINA EXCEPTION" << std::endl;
+//  std::cerr << what.toStdString().c_str() << std::endl;
+//  std::cerr << info.toStdString().c_str() << std::endl;
+//  std::cerr << std::flush;
+}
+
+//-----------------------------------------------------------------------------
+EspinaException::~EspinaException()
+{
+}
+
+//-----------------------------------------------------------------------------
+const char* EspinaException::what() const noexcept
+{
+  return m_what.c_str();
+}
+
+//-----------------------------------------------------------------------------
+const char* EspinaException::details() const
+{
+  return m_info.c_str();
+}
 
 //-----------------------------------------------------------------------------
 void exceptionHandler()
 {
-#ifdef __linux__
   auto exptr = std::current_exception();
 
   const char *message = nullptr;
@@ -229,9 +475,9 @@ void exceptionHandler()
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "EXCEPTION MESSAGE: " << message << "\n";
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
+    out.flush();
     ESPINA::Core::Utils::backtrace_stack_print(out);
   }
-#endif
 
   std::_Exit(1);
 }
@@ -240,6 +486,7 @@ void exceptionHandler()
 void ESPINA::Core::Utils::installSignalHandler()
 {
 #ifdef __linux__
+
   /* setup alternate stack */
   stack_t ss;
   ss.ss_sp = (void*) alternate_stack;
@@ -273,22 +520,39 @@ void ESPINA::Core::Utils::installSignalHandler()
 
     throw EspinaException(message, details);
   }
-#endif
+
+#endif // Linux
+
+#ifdef __WIN64__
+
+  if ((std::signal(SIGSEGV, &win_sig_action) == SIG_ERR) ||
+      (std::signal(SIGFPE,  &win_sig_action) == SIG_ERR) ||
+      (std::signal(SIGINT,  &win_sig_action) == SIG_ERR) ||
+      (std::signal(SIGILL,  &win_sig_action) == SIG_ERR) ||
+      (std::signal(SIGTERM, &win_sig_action) == SIG_ERR) ||
+      (std::signal(SIGABRT, &win_sig_action) == SIG_ERR))
+  {
+    auto message = QObject::tr("Error setting the handlers for signals.");
+    auto details = QObject::tr("installSignalHandler -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
+#endif // Windows
 }
 
 //-----------------------------------------------------------------------------
 void ESPINA::Core::Utils::installExceptionHandler()
 {
-#ifdef __linux__
-  std::set_terminate(exceptionHandler);
-#endif
+  std::set_terminate(exceptionHandler); // in Win64 SetUnhandledEventHandler alternative?
 }
 
 //-----------------------------------------------------------------------------
 void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
 {
-#ifdef __linux__
   stream << "-- STACK TRACE -------------------------------------------\n";
+
+#ifdef __linux__
 
   void *stack_traces[STACK_FRAMES];
   auto trace_size = backtrace(stack_traces, STACK_FRAMES);
@@ -357,5 +621,123 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
   }
 
   if (messages) free(messages);
-#endif
+
+#endif // Linux
+
+#ifdef __WIN64__
+
+  if (!SymInitialize(GetCurrentProcess(), 0, true))
+  {
+    stream << "Failed to init symbol context\n";
+    return;
+  }
+
+  CONTEXT context;
+  memset(&context, 0, sizeof(CONTEXT));
+  context.ContextFlags = CONTEXT_FULL;
+  RtlCaptureContext(&context);
+  bfd_init();
+  struct bfd_set *set = reinterpret_cast<struct bfd_set *>(calloc(1,sizeof(*set)));
+
+  char procname[MAX_PATH];
+  GetModuleFileNameA(nullptr, procname, sizeof procname);
+
+  struct bfd_ctx *bc = nullptr;
+  int err = BFD_ERR_OK;
+
+  STACKFRAME64 frame;
+  memset(&frame,0,sizeof(frame));
+  frame.AddrPC.Offset    = context.Rip;
+  frame.AddrPC.Mode      = AddrModeFlat;
+  frame.AddrStack.Offset = context.Rsp;
+  frame.AddrStack.Mode   = AddrModeFlat;
+  frame.AddrFrame.Offset = context.Rbp;
+  frame.AddrFrame.Mode   = AddrModeFlat;
+
+  auto process = GetCurrentProcess();
+  auto thread  = GetCurrentThread();
+  char symbol_buffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+  char module_name_raw[MAX_PATH];
+
+  while(StackWalk64(IMAGE_FILE_MACHINE_AMD64, process, thread, &frame, &context, 0, SymFunctionTableAccess64, SymGetModuleBase64, 0))
+  {
+    auto symbol = reinterpret_cast<IMAGEHLP_SYMBOL *>(symbol_buffer);
+    symbol->SizeOfStruct = (sizeof *symbol) + 255;
+    symbol->MaxNameLength = 254;
+
+    auto module_base = SymGetModuleBase(process, frame.AddrPC.Offset);
+
+    const char * module_name = "[unknown module]";
+    if (module_base && GetModuleFileNameA(reinterpret_cast<HMODULE>(module_base), module_name_raw,MAX_PATH))
+    {
+      module_name = module_name_raw;
+      bc = get_bc(set, module_name, &err);
+    }
+
+    const char * file = nullptr;
+    const char * func = nullptr;
+
+    unsigned int line = 0;
+    int status = 0;
+    unsigned long long int size = 1024;
+    char funcname[1024];
+
+    if (bc)
+    {
+      find(bc,frame.AddrPC.Offset,&file,&func,&line);
+    }
+
+    if (!file)
+    {
+      PDWORD64 dummy = 0;
+      if (SymGetSymFromAddr(process, frame.AddrPC.Offset, dummy, symbol))
+      {
+        // Need to prepend '_' to symbols to be demangled correctly. If it fails it's not a symbol to demangle.
+        char prepended[1024];
+        prepended[0] = '_';
+        std::strcpy(prepended + 1, symbol->Name);
+        auto ret = abi::__cxa_demangle(prepended, funcname, &size, &status);
+
+        if (status == 0)
+        {
+          file = ret;
+        }
+        else
+        {
+          file = symbol->Name;
+        }
+      }
+      else
+      {
+        file = "[unknown file]";
+      }
+    }
+
+    if(func)
+    {
+      auto ret = abi::__cxa_demangle(func, funcname, &size, &status);
+
+      if (status == 0)
+      {
+        func = ret;
+      }
+    }
+
+    stream << file << " (" << (func ? func : bfd_errors[err]) << ":" << dec << static_cast<int>(line) << ") " << hex << "Addr: " <<  frame.AddrPC.Offset << "\n";
+  }
+
+  // release set
+  while(set)
+  {
+    auto temp = set->next;
+    free(set->name);
+    close_bfd_ctx(set->bc);
+    free(set);
+    set = temp;
+  }
+
+  // symbols clean-up
+  SymCleanup(GetCurrentProcess());
+
+#endif // Windows
 }
