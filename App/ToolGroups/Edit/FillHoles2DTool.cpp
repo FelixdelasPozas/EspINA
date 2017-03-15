@@ -22,7 +22,6 @@
 #include "FillHoles2DTool.h"
 #include "EditToolGroup.h"
 #include <Core/Utils/Spatial.h>
-#include <Filters/FillHoles2DFilter.h>
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <Undo/ReplaceOutputCommand.h>
@@ -47,6 +46,8 @@ ESPINA::FillHoles2DTool::~FillHoles2DTool()
 	delete m_directionLabel;
 	delete m_directionComboBox;
 	delete m_applyButton;
+
+	abortOperation();
 }
 
 //------------------------------------------------------------------------
@@ -54,8 +55,11 @@ void FillHoles2DTool::abortOperation()
 {
   for(auto task: m_executingTasks.keys())
   {
+    disconnect(task, SIGNAL(finished()),
+            this,    SLOT(onTaskFinished()));
     task->abort();
   }
+  m_executingTasks.clear();
 }
 
 //------------------------------------------------------------------------

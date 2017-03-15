@@ -23,7 +23,12 @@
 
 // ESPINA
 #include "Filters/EspinaFilters_Export.h"
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Filter.h>
+
+// ITK
+#include <itkShapeLabelObject.h>
+#include <itkSmartPointer.h>
 
 namespace ESPINA
 {
@@ -57,11 +62,53 @@ namespace ESPINA
 
       virtual bool needUpdate() const;
 
-      virtual void execute();
-
       virtual bool ignoreStorageContent() const
       { return false; }
+
+      virtual void execute();
+
+    private:
+      using SLO = itk::SmartPointer<itk::ShapeLabelObject<itkVolumeType::SizeValueType,itkVolumeType::ImageDimension>>;
+
+    private:
+      class ContourInfo {
+        public:
+          ContourInfo()
+          : m_max{0}
+          , m_min{0}
+          , m_average{0}
+          {};
+
+          ContourInfo(itkVolumeType::PixelType max, itkVolumeType::PixelType min, double average);
+          const ContourInfo operator&&(const ContourInfo & other);
+          const itkVolumeType::PixelType max() const;
+          const itkVolumeType::PixelType min() const;
+          const double average() const;
+          const bool inRange(const unsigned char value) const;
+
+          void print(std::ostream & os)
+          {
+            os << "[ min " << static_cast<int>(min()) << " max: " << static_cast<int>(max()) << " med: " << average() << " threshold " << (average() - static_cast<int>(min())) << "\n";
+          }
+
+
+        private:
+          itkVolumeType::PixelType m_max;
+          itkVolumeType::PixelType m_min;
+          double m_average;
+
+      };
+
+    private:
+      ContourInfo getContourInfo(itkVolumeType::Pointer image, Output::ReadLockData<DefaultVolumetricData> stackVolume, SLO slObject, Axis direction);
+      bool belongToContour(itkVolumeType::IndexType index, SLO slObject, Axis direction);
+      void printRegion(itkVolumeType::RegionType region);
+      void printImageInZ(itkVolumeType::Pointer image, itkVolumeType::OffsetValueType offsetInZ = 0);
+
+    private:
+      QString m_errorMessage;
   };
+
 
   using SliceInterpolationFilterPtr = SliceInterpolationFilter *;
   using SliceInterpolationFilterSPtr = std::shared_ptr<SliceInterpolationFilter>;

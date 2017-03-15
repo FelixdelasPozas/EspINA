@@ -218,7 +218,7 @@ FilterSPtr MorphologicalFilterFactory::createFilter(InputSList          inputs,
   }
   else if (isSliceInterpolationFilter(filter))
   {
-    morphologicalFilter = std::make_shared<SliceInterpolationFilter>(inputs, filter, scheduler);
+    morphologicalFilter = std::make_shared<SliceInterpolationFilter>(inputs, SLICE_INTERPOLATION_FILTER, scheduler);
   }
   else if(filter == IMAGE_LOGIC_FILTER) // Older versions didn't distinguish between addition/substraction
   {

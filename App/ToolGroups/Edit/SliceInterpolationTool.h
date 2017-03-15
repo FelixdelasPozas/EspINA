@@ -56,7 +56,7 @@ namespace ESPINA
       /** \brief Launches the operation task.
        *
        */
-      void executeFilter();
+      void applyFilter();
 
       /** \brief Performs post operations after the task has finished.
        *
