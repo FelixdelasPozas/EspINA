@@ -632,6 +632,8 @@ CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(Support::Cont
 : CheckTask      {context}
 , m_segmentations{context.model()->segmentations()}
 {
+  setDescription(tr("Check duplicate segmentations."));
+
   // detach from implicit sharing
   m_segmentations.detach();
 }
