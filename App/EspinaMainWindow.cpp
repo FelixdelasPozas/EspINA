@@ -425,14 +425,15 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::closeCurrentAnalysis()
 {
-  if (isModelModified())
+  // checks if the model have been modified since that last save or the file never has been saved.
+  if (isModelModified() || (!m_context.model()->isEmpty() && !m_saveTool->isEnabled()))
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
     auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
     auto title   = windowTitle().split(QDir::separator()).last();
-    auto userResponse = DefaultDialogs::UserQuestion(message, buttons, title);
+    auto answer  = DefaultDialogs::UserQuestion(message, buttons, title);
 
-    switch(userResponse)
+    switch(answer)
     {
       case QMessageBox::Yes:
         m_saveAsTool->saveAnalysis();
