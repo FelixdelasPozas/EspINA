@@ -351,11 +351,7 @@ void Task::finishThreadExecution()
 
   moveToThread(m_thread);
 
-//   disconnect(this,     SIGNAL(finished()),
-//              this,     SLOT(finishThreadExecution()));
-
   m_executingThread->quit();
-
   m_executingThread = nullptr;
 }
 
