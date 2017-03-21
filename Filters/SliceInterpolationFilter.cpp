@@ -54,8 +54,8 @@ bool SliceInterpolationFilter::needUpdate() const
 }
 
 //------------------------------------------------------------------------
-void SliceInterpolationFilter::execute()
-{
+void SliceInterpolationFilter::execute(){//TODO
+
   BlockTimer timer0("Whole filter execution");
 
   qDebug() << "Number of inputs: " << m_inputs.size();
@@ -94,13 +94,6 @@ void SliceInterpolationFilter::execute()
   biToSlmFilter->Update();
 
   auto slmOutput = biToSlmFilter->GetOutput();
-  for (auto slmObj : slmOutput->GetLabelObjects())
-  { //TODO remove
-    auto reg = slmObj->GetBoundingBox();
-    printRegion(reg);
-    if (reg.GetSize(2) == 1)
-      printImageInZ(image, reg.GetIndex(2));
-  }
 
   // Checking correct number of pieces
   const auto slmOutputSize = slmOutput->GetNumberOfLabelObjects();
@@ -148,7 +141,7 @@ void SliceInterpolationFilter::execute()
   itkVolumeType::RegionType sloTargetReg;
   auto stackVolume = readLockVolume(m_inputs.at(1)->output());
   auto maxRegion = equivalentRegion<itkVolumeType>(stackVolume->bounds());
-  itkVolumeType::RegionType currentRegion, sourceRegion, targetRegion;
+  itkVolumeType::RegionType currentRegion;
   ContourInfo sloSourceInfo, sloTargetInfo, commonInfo;
   {
     BlockTimer timer1("Processing time");
@@ -158,18 +151,25 @@ void SliceInterpolationFilter::execute()
       sloTarget = sloList.first();
       sloSourceInfo = getContourInfo(image, stackVolume, sloSource, toAxis(dir));
       sloTargetInfo = getContourInfo(image, stackVolume, sloTarget, toAxis(dir));
-      commonInfo = sloSourceInfo && sloTargetInfo;
-      commonInfo.print(std::cout);
-      currentRegion = maxRegion;
+      //commonInfo = sloSourceInfo && sloTargetInfo;
+      commonInfo = sloSourceInfo;
       currentRegion.SetIndex(dir, sloSource->GetBoundingBox().GetIndex(dir));
       currentRegion.SetSize(dir, sloTarget->GetBoundingBox().GetIndex(dir) - sloSource->GetBoundingBox().GetIndex(dir) + 1);
+      auto dirAux = (dir + 1) % 3;
+      setMaximumRangeSizeBetween2SLO(currentRegion, maxRegion, sloSource, sloTarget, dirAux);
+      dirAux = (dirAux + 1) % 3;
+      setMaximumRangeSizeBetween2SLO(currentRegion, maxRegion, sloSource, sloTarget, dirAux);
+      printRegion(maxRegion);
+      printRegion(image->GetLargestPossibleRegion());
+      printRegion(currentRegion);
 
       // Copy stack slice and assign values in a temp image
       auto tempImage = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
-      {BlockTimer timer2("Copy stack");
+
       auto buffer = tempImage->GetBufferPointer();
       for (unsigned int i = 0; i < currentRegion.GetSize()[0] * currentRegion.GetSize()[1] * currentRegion.GetSize()[2]; ++i)
-        buffer[i] = (commonInfo.inRange(buffer[i])) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
+        buffer[i] = (commonInfo.inHistogramRange(buffer[i])) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
+      //buffer[i] = (commonInfo.inRange(buffer[i])) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
 
       // Copy the top piece
       for (unsigned int pID = 0; pID < sloSource->Size(); pID++)
@@ -178,17 +178,14 @@ void SliceInterpolationFilter::execute()
       // Copy the bottom piece
       for (unsigned int pID = 0; pID < sloTarget->Size(); pID++)
         tempImage->SetPixel(sloTarget->GetIndex(pID), SEG_VOXEL_VALUE);
-      }
 
       // Get connected labels
       auto biToSlmFilter2 = BinImgToShapeLabMapFilter::New();
-      {BlockTimer timer3("BinImgToShapeLabMapFilter");
       biToSlmFilter2->SetInput(tempImage);
       biToSlmFilter2->SetInputForegroundValue(SEG_VOXEL_VALUE);
       biToSlmFilter2->SetFullyConnected(true);
       biToSlmFilter2->SetNumberOfThreads(1);
       biToSlmFilter2->Update();
-      }
 
       auto outputLabelmap = biToSlmFilter2->GetOutput();
 
@@ -211,7 +208,6 @@ void SliceInterpolationFilter::execute()
         return;
       }
 
-      {BlockTimer timer4("Creating output image");
       // Creating output image
       using LabMapToBinImgFilter = itk::LabelMapToBinaryImageFilter<BinImgToShapeLabMapFilter::OutputImageType, itkVolumeType>;
       auto lmToBiFilter = LabMapToBinImgFilter::New();
@@ -225,7 +221,6 @@ void SliceInterpolationFilter::execute()
       auto outputImg = lmToBiFilter->GetOutput();
 
       expandAndDraw<itkVolumeType>(volume, outputImg, equivalentBounds<itkVolumeType>(outputImg));
-      }
     }
   }
 
@@ -253,14 +248,15 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(i
   itkVolumeType::PixelType min = SEG_VOXEL_VALUE;
   double average = 0;
   unsigned int borderPX = 0;
-  std::vector<unsigned char> histogram(256);
+  auto histogram = std::make_shared<Histogram>(256);
+
   for (unsigned int pxId = 0; pxId < slObject->Size(); pxId++)
   {
     index = slObject->GetIndex(pxId);
     if (belongToContour(index, slObject, direction))
     {
       value = stackImage->GetPixel(index);
-      ++histogram[value];
+      ++(*histogram)[value];
       if (value > max)
         max = value;
       if (value < min)
@@ -270,7 +266,29 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(i
     }
   }
   average /= borderPX;
-  return ContourInfo(max, min, average);
+
+  itkVolumeType::PixelType maxHist = SEG_BG_VALUE;
+  itkVolumeType::PixelType minHist = SEG_VOXEL_VALUE;
+  QList<unsigned char> posList;
+  for(unsigned int i = 0; i < histogram->size(); ++i)
+    if ((*histogram)[i] != 0) posList << i;
+
+  std::sort(posList.begin(), posList.end(),
+      [histogram](unsigned char a,unsigned char b) {return (*histogram)[a] > (*histogram)[b];});
+
+  unsigned char pos;
+  unsigned long minHistOcurrences;
+  for(auto i = 0; i < 30 && i < posList.size(); ++i){
+    pos = posList.at(i);
+    minHistOcurrences = (*histogram)[pos];
+    if (pos > maxHist)
+      maxHist = pos;
+    if (pos < minHist)
+      minHist = pos;
+  }
+
+  return ContourInfo(maxHist, minHist, 2.0, histogram, minHistOcurrences);
+
 }
 
 //------------------------------------------------------------------------
@@ -290,8 +308,38 @@ bool SliceInterpolationFilter::belongToContour(itkVolumeType::IndexType index, S
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo::ContourInfo(itkVolumeType::PixelType max, itkVolumeType::PixelType min, double average)
-    : m_max(max), m_min(min), m_average(average)
+void SliceInterpolationFilter::setMaximumRangeSizeBetween2SLO(itkVolumeType::RegionType& region, const itkVolumeType::RegionType& maxRegion, const SLO sloSrc, const SLO sloTar, const int direction, const int extraOffset)
+{
+  auto srcOrigin = sloSrc->GetBoundingBox().GetIndex(direction);
+  auto tarOrigin = sloTar->GetBoundingBox().GetIndex(direction);
+  auto minIndex = (srcOrigin < tarOrigin) ? srcOrigin : tarOrigin;
+  if (minIndex < 0) minIndex = 0;
+  auto srcEnd = srcOrigin + sloSrc->GetBoundingBox().GetSize(direction);
+  auto tarEnd = tarOrigin + sloTar->GetBoundingBox().GetSize(direction);
+  auto maxSize = (srcEnd > tarEnd) ? srcEnd - minIndex : tarEnd - minIndex;
+  auto maxRegionSize = maxRegion.GetSize(direction);
+  if (minIndex + maxSize > maxRegionSize) maxSize = maxRegionSize - minIndex;
+
+  minIndex -= extraOffset;
+  maxSize += 2 * extraOffset;
+
+  region.SetIndex(direction, minIndex);
+  region.SetSize(direction, maxSize);
+}
+
+//------------------------------------------------------------------------
+SliceInterpolationFilter::ContourInfo::ContourInfo()
+    : m_max { 0 }
+    , m_min { 0 }
+    , m_average { 0 }
+    , m_histogram { nullptr }
+    , m_minHistOcurrences { 0 }
+{
+}
+
+//------------------------------------------------------------------------
+SliceInterpolationFilter::ContourInfo::ContourInfo(itkVolumeType::PixelType max, itkVolumeType::PixelType min, double average, HistogramSptr histogram, unsigned long minHistOcurrences)
+    : m_max(max), m_min(min), m_average(average), m_histogram(histogram), m_minHistOcurrences(minHistOcurrences)
 {
 }
 
@@ -302,7 +350,13 @@ const SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::ContourInf
   itkVolumeType::PixelType min = (m_min < other.min()) ? m_min : other.min();
   double average = (m_average + other.average())/2;
 
-  return ContourInfo(max, min, average);
+  auto histogram = new Histogram(256);
+  for (auto i = 0;i<256;++i)
+    (*histogram)[i] = m_histogram->at(i) + other.histogram()->at(i);
+
+  auto mho = m_minHistOcurrences + other.minHistOcurrences();
+
+  return ContourInfo(max, min, average, std::make_shared<Histogram>(histogram), mho);
 }
 
 //------------------------------------------------------------------------
@@ -324,9 +378,33 @@ const double SliceInterpolationFilter::ContourInfo::average() const
 }
 
 //------------------------------------------------------------------------
+SliceInterpolationFilter::HistogramSptr SliceInterpolationFilter::ContourInfo::histogram() const
+{
+  return m_histogram;
+}
+
+//------------------------------------------------------------------------
+unsigned long SliceInterpolationFilter::ContourInfo::minHistOcurrences() const
+{
+  return m_minHistOcurrences;
+}
+
+//------------------------------------------------------------------------
 const bool SliceInterpolationFilter::ContourInfo::inRange(const unsigned char value) const
 {
   return (value < m_max) && (value > m_min);
+}
+
+//------------------------------------------------------------------------
+const bool SliceInterpolationFilter::ContourInfo::inHistogramRange(const unsigned char value) const
+{
+  return (*m_histogram)[value] >= m_minHistOcurrences;
+}
+
+//------------------------------------------------------------------------
+void SliceInterpolationFilter::ContourInfo::print(std::ostream& os) const
+{
+  os << "[ min " << static_cast<int>(min()) << " max: " << static_cast<int>(max()) << " med: " << average() << " threshold: " << (average() - static_cast<int>(min())) << "]\n";
 }
 
 //------------------------------------------------------------------------
@@ -345,6 +423,9 @@ void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image,
   auto it = itk::ImageRegionIteratorWithIndex<itkVolumeType>(image, region);
   auto index = region.GetIndex();
   std::cout << "---Slice " << region.GetIndex(Z) << "---" << std::endl;
+  bool inSlice = false;
+  unsigned int number = 0;
+  unsigned char histogram[256];
   for (unsigned int i = region.GetIndex(0); i < region.GetIndex(0) + region.GetSize(0); ++i)
   {
     for (unsigned int j = region.GetIndex(1); j < region.GetIndex(1) + region.GetSize(1); ++j)
@@ -352,6 +433,33 @@ void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image,
       index[0] = i;
       index[1] = j;
       it.SetIndex(index);
+
+      switch(it.Value())
+      {
+        case SEG_VOXEL_VALUE:
+          if(!inSlice)
+          {
+            inSlice = true;
+            ++number;
+            ++histogram[it.Value()];
+          }
+          else
+          {
+            if(number < 10)
+              ++number;
+          }
+          break;
+        case SEG_BG_VALUE:
+          if(inSlice)
+          {
+            inSlice = false;
+            number = 0;
+          }
+          break;
+        default:
+          break;
+      }
+
       std::cout << ((it.Value() == SEG_BG_VALUE) ? '0' : '1');
       if (j == region.GetIndex(1) + region.GetSize(1) - 1)
         std::cout << std::endl;
