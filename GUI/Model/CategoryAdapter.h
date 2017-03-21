@@ -75,7 +75,7 @@ namespace ESPINA
       /** \brief Return the name of the category.
        *
        */
-      QString name() const;
+      const QString name() const;
 
       /** \brief Return the name of the category inside a classification.
        *
@@ -87,7 +87,7 @@ namespace ESPINA
        *  A classification name is the concatenation of the names of all the
        *  categories from the root of the classification to the category itself
        */
-      QString classificationName() const;
+      const QString classificationName() const;
 
       /** \brief Sets the color of the category.
        * \param[in] color.
@@ -98,7 +98,7 @@ namespace ESPINA
       /** \brief Returns the color of the category.
        *
        */
-      QColor color() const;
+      const QColor color() const;
 
       /** \brief Adds a property and a value to the category.
        * \param[in] prop, property key.
@@ -117,12 +117,12 @@ namespace ESPINA
        * \param[in] prop, property key.
        *
        */
-      QVariant property(const QString &prop) const;
+      const QVariant property(const QString &prop) const;
 
       /** \brief Returns a list of the properties the category has.
        *
        */
-      QStringList properties() const;
+      const QStringList properties() const;
 
       /** \brief Create a new sub category with the given name.
        * \param[in] name, sub-category name.
@@ -160,13 +160,7 @@ namespace ESPINA
        *
        *  If no sub-category has the requested name, nullptr will be returned
        */
-      CategoryAdapterSPtr subCategory(const QString &name) const;
-
-      /** \brief Return a list with all the sub-categories of this category.
-       *
-       */
-      CategoryAdapterSList subCategories()
-      {return m_subCategories;}
+      const CategoryAdapterSPtr subCategory(const QString &name) const;
 
       /** \brief Return a list with all the sub-categories of this category.
        *
@@ -179,7 +173,7 @@ namespace ESPINA
        * WARNING: Shadows QObject::parent().
        *
        */
-      CategoryAdapterPtr parent()
+      const CategoryAdapterPtr parent() const
       {return m_parent;}
 
     private:
@@ -197,9 +191,9 @@ namespace ESPINA
       explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name);
 
     private:
-      CategorySPtr         m_category;
-      CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
-      CategoryAdapterSList m_subCategories;
+      CategorySPtr         m_category;      /** adapted category.                                                     */
+      CategoryAdapterPtr   m_parent;        /** Parent node can't be a shared pointer to avoid circular dependencies. */
+      CategoryAdapterSList m_subCategories; /** subcateogies of this one.                                             */
 
       friend class ClassificationAdapter;
       friend class SegmentationAdapter;

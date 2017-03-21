@@ -165,7 +165,7 @@ namespace ESPINA
         {
           auto camera = vtkCamera::SafeDownCast(caller);
 
-          if(camera)
+          if(camera && m_view)
           {
             if(std::abs(camera->GetDistance() - m_view->m_zoomFactor->value()) < 0.01) return;
 
@@ -179,6 +179,14 @@ namespace ESPINA
          */
         void SetView(View3D *view)
         { m_view = view; }
+
+      protected:
+        /** \brief vtkCameraCommand class protected constructor.
+         *
+         */
+        explicit vtkCameraCommand()
+        : m_view{nullptr}
+        {};
 
       private:
         View3D* m_view; /** Qt view with the camera. */

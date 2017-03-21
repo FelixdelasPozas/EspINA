@@ -29,7 +29,13 @@
 
 namespace ESPINA
 {
-  class IssueProperty: public QWidget, private Ui::IssueProperty
+  /** \class IssueProperty
+   * \brief Implements the widget for an issue.
+   *
+   */
+  class IssueProperty
+  : public QWidget
+  , private Ui::IssueProperty
   {
     public:
       /** \brief IssueProperty class constructor.

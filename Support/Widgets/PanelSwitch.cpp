@@ -30,6 +30,8 @@ PanelSwitch::PanelSwitch(const QString &id, Panel *dock, const QString &icon, co
 : ProgressTool(id, icon, tooltip, context)
 , m_dock(dock)
 {
+  Q_ASSERT(dock);
+
   setCheckable(true);
   setChecked(dock->isVisible());
 
@@ -46,6 +48,7 @@ PanelSwitch::PanelSwitch(const QString &id, Panel *dock, const QString &icon, co
 void PanelSwitch::showPanel(bool visible)
 {
   m_dock->setVisible(visible);
+
   if (visible)
   {
     m_dock->raise();

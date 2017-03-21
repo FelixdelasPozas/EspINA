@@ -98,6 +98,16 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 //-----------------------------------------------------------------------------
 OrthogonalROITool::~OrthogonalROITool()
 {
+  disconnect();
+  m_resizeROI->disconnect();
+  m_applyROI->disconnect();
+
+  if(m_defineHandler->isEnabled())
+  {
+    m_defineHandler->disconnect();
+    getViewState().unsetEventHandler(m_defineHandler);
+  }
+
   delete m_applyROI;
   delete m_resizeROI;
 }
@@ -187,7 +197,6 @@ void OrthogonalROITool::initControls()
 
   connect(m_applyROI, SIGNAL(clicked(bool)),
           this,       SLOT(setDefinitionMode(bool)));
-
 
   addSettingsWidget(m_resizeROI);
   addSettingsWidget(m_applyROI);

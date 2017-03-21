@@ -138,7 +138,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
 //   qDebug() << type() << s_plane << "Execution Time" <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   return actors;
- }
+}
 
 //----------------------------------------------------------------------------
 void ChannelSlicePipeline::updateColors(ActorList& actors,

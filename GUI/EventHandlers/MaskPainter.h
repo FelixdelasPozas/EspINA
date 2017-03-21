@@ -153,9 +153,10 @@ namespace ESPINA
     QColor           m_color;    /** painting color.                         */
 
   private:
-    PointTrackerSPtr m_tracker;  /** point tracker.                          */
-    bool             m_canErase; /** true if the brush can enter erase mode. */
-    DrawingMode      m_mode;     /** current drawing mode.                   */
+    PointTrackerSPtr m_tracker;        /** point tracker.                          */
+    bool             m_canErase;       /** true if the brush can enter erase mode. */
+    DrawingMode      m_mode;           /** current drawing mode.                   */
+    bool             m_plusKeyPressed; /** true if the plus key is pressed.        */
   };
 
   using MaskPainterSPtr = std::shared_ptr<MaskPainter>;

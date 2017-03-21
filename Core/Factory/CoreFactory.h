@@ -202,7 +202,9 @@ namespace ESPINA
   template<typename Extensible, typename Factory>
   Core::SegmentationExtensionSPtr retrieveOrCreateSegmentationExtension(Extensible item, const Core::SegmentationExtension::Type &type, Factory factory)
   {
-    if(!item->readOnlyExtensions()->hasExtension(type))
+    auto extensions = item->extensions(); // get extensions lock for the rest of the method to avoid concurrency problems.
+
+    if(!extensions->hasExtension(type))
     {
       if(!factory->availableSegmentationExtensions().contains(type))
       {
@@ -216,7 +218,7 @@ namespace ESPINA
 
       if(extension->validCategory(item->category()->classificationName()))
       {
-        item->extensions()->add(extension);
+        extensions->add(extension);
       }
       else
       {
@@ -227,7 +229,7 @@ namespace ESPINA
       }
     }
 
-    return item->readOnlyExtensions()[type];
+    return extensions[type];
   }
 
   //--------------------------------------------------------------------
@@ -242,7 +244,9 @@ namespace ESPINA
   template<typename Extensible, typename Factory>
   Core::StackExtensionSPtr retrieveOrCreateStackExtension(Extensible item, const Core::StackExtension::Type &type, Factory factory)
   {
-    if(!item->readOnlyExtensions()->hasExtension(type))
+    auto extensions = item->extensions(); // get extensions lock for the rest of the method to avoid concurrency problems.
+
+    if(!extensions->hasExtension(type))
     {
       if(!factory->availableStackExtensions().contains(type))
       {
@@ -253,10 +257,10 @@ namespace ESPINA
       }
 
       auto extension = factory->createStackExtension(type);
-      item->extensions()->add(extension);
+      extensions->add(extension);
     }
 
-    return item->readOnlyExtensions()[type];
+    return extensions[type];
   }
 
   //--------------------------------------------------------------------

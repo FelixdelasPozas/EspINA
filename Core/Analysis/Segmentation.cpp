@@ -79,10 +79,18 @@ Snapshot Segmentation::snapshot() const
     stream.writeStartElement("Segmentation");
     stream.writeAttribute("Name", name());
 
-    for(auto extension : extensions)
+    for(auto type: extensions->available())
     {
+      auto extension = extensions[type];
+
+      if(!extension)
+      {
+        qWarning() << "Segmentation::snapshot() -> Couldn't save " << type << "extension: null pointer. Name:" << name();
+        continue;
+      }
+
       stream.writeStartElement("Extension");
-      stream.writeAttribute("Type", extension->type());
+      stream.writeAttribute("Type", type);
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
       for(auto key : extension->readyInformation())
       {

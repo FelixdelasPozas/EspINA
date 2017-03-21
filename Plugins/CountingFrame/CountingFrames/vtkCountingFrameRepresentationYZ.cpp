@@ -23,6 +23,7 @@
 
 // ESPINA
 #include <GUI/View/View2D.h>
+#include <Core/Utils/Spatial.h>
 
 // VTK
 #include <vtkObjectFactory.h>
@@ -47,13 +48,24 @@ void vtkCountingFrameRepresentationYZ::SetSlice(ESPINA::Nm pos)
 
   bool visible = false;
   int  slice   = firstSlice;
-  // cheack all visible slices
-  while (!visible && slice <= lastSlice)
+  // check all slices
+  double lastSliceX = -VTK_DOUBLE_MAX;
+  while (slice <= lastSlice)
   {
     double sliceBounds[6];
     regionBounds(slice, sliceBounds);
-    visible = (sliceBounds[0] + InclusionOffset[0] <= Slice) &&
-              (Slice <= sliceBounds[1] - ExclusionOffset[0]);
+    auto sliceX = sliceBounds[1] - ExclusionOffset[0];
+
+    if(!visible)
+    {
+      visible = (sliceBounds[0] + InclusionOffset[0] <= Slice) && (Slice <= sliceX);
+    }
+
+    if(sliceX > lastSliceX)
+    {
+      lastSliceX = sliceX;
+    }
+
     slice++;
   }
 
@@ -62,7 +74,7 @@ void vtkCountingFrameRepresentationYZ::SetSlice(ESPINA::Nm pos)
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
     {
       // Check if it is back slice
-      if (fabs(Slice - (lastSliceBounds[1]-(SlicingStep[0]/2)-ExclusionOffset[0])) < SlicingStep[0])
+      if (ESPINA::areEqual(lastSliceX, pos, SlicingStep[0]))
       {
         this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
       }

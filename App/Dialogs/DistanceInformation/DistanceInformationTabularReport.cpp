@@ -139,21 +139,21 @@ void DistanceInformationTabularReport::updateSelection(QItemSelection selected, 
 
   if(emitter)
   {
-    Entry *entry = nullptr;
-
     for(int i = 0; i < m_tabs->count(); ++i)
     {
-      entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+      auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
       if(entry && entry->tableView->selectionModel() == emitter)
       {
         SegmentationAdapterList selectedSegs;
 
         for(auto index: entry->tableView->selectionModel()->selectedIndexes())
         {
-          if(index.column() == 0) continue;
+          if(index.column() == 0 || !index.isValid()) continue;
 
-          if(!selectedSegs.contains(entry->horizontalHeaders().at(index.column()-1))) selectedSegs << entry->horizontalHeaders().at(index.column()-1);
-          if(!selectedSegs.contains(entry->verticalHeaders().at(index.row()))) selectedSegs << entry->verticalHeaders().at(index.row());
+          auto horizontalItem = entry->horizontalHeaders().at(index.column()-1);
+          auto verticalItem   = entry->verticalHeaders().at(index.row());
+          if(!selectedSegs.contains(horizontalItem)) selectedSegs << horizontalItem;
+          if(!selectedSegs.contains(verticalItem)) selectedSegs << verticalItem;
         }
 
         if(!selectedSegs.isEmpty())
@@ -258,29 +258,45 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
 
     for (auto to : m_horizontalHeaders)
     {
-      auto dist = distances[from][to];
+      QStandardItem *distItem = nullptr;
 
-      auto distItem = new QStandardItem(QString::number(dist));
-      distItem->setEditable(false);
-      distItem->setDragEnabled(false);
-      distItem->setDropEnabled(false);
-
-      if(dist == -1)
+      if((options.category != CategoryAdapterSPtr()) &&
+          !to->category()->classificationName().startsWith(options.category->classificationName(), Qt::CaseSensitive) &&
+          !from->category()->classificationName().startsWith(options.category->classificationName(), Qt::CaseSensitive))
       {
-        distItem->setData(tr("Error"), Qt::DisplayRole);
-        distItem->setData(Qt::red, Qt::TextColorRole);
-        distItem->setToolTip(tr("Error occurred when computing this distance."));
-        auto font = distItem->font();
-        font.setBold(true);
-        distItem->setFont(font);
+        distItem = new QStandardItem("Not computed");
+        distItem->setEditable(false);
+        distItem->setDragEnabled(false);
+        distItem->setDropEnabled(false);
+        distItem->setData(Qt::blue, Qt::TextColorRole);
+        distItem->setToolTip(tr("Does not comply with category selection."));
       }
       else
       {
-        if( ((options.maxDistance != 0) && (dist > options.maxDistance)) ||
-            ((options.minDistance != 0) && (dist < options.minDistance)) )
+        auto dist = distances[from][to];
+
+        distItem = new QStandardItem(QString::number(dist));
+        distItem->setEditable(false);
+        distItem->setDragEnabled(false);
+        distItem->setDropEnabled(false);
+
+        if(dist == -1)
         {
+          distItem->setData(tr("Error"), Qt::DisplayRole);
           distItem->setData(Qt::red, Qt::TextColorRole);
-          distItem->setToolTip(tr("Distance outside of given limits."));
+          distItem->setToolTip(tr("Error occurred when computing this distance."));
+          auto font = distItem->font();
+          font.setBold(true);
+          distItem->setFont(font);
+        }
+        else
+        {
+          if( ((options.maxDistance != 0) && (dist > options.maxDistance)) ||
+              ((options.minDistance != 0) && (dist < options.minDistance)) )
+          {
+            distItem->setData(Qt::red, Qt::TextColorRole);
+            distItem->setToolTip(tr("Distance outside of given limits."));
+          }
         }
       }
 

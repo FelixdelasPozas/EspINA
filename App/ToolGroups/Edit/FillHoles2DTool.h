@@ -32,8 +32,12 @@
 
 namespace ESPINA
 {
+  /** \class FillHoles2DTool
+   * \brief Tool for fill holes 2D filter.
+   *
+   */
   class FillHoles2DTool
-      : public Support::Widgets::EditTool
+  : public Support::Widgets::EditTool
   {
     Q_OBJECT
     public:
@@ -74,7 +78,7 @@ namespace ESPINA
     private:
       struct TaskContext
       {
-          FillHoles2DFilterSPtr Filter;        /** filter being executed. */
+          FillHoles2DFilterSPtr  Filter;       /** filter being executed. */
           SegmentationAdapterPtr Segmentation; /** segmentation.          */
       };
 

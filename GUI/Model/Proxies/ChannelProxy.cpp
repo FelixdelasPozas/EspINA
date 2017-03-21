@@ -158,7 +158,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
 //------------------------------------------------------------------------
 bool ChannelProxy::hasChildren(const QModelIndex& parent) const
 {
-  return rowCount(parent) > 0 && columnCount(parent) > 0;
+  return (rowCount(parent) > 0) && (columnCount(parent) > 0);
 }
 
 //------------------------------------------------------------------------
@@ -247,13 +247,14 @@ QModelIndex ChannelProxy::parent(const QModelIndex& child) const
 //------------------------------------------------------------------------
 QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
-  if (!sourceIndex.isValid()) return QModelIndex();
-
-  if (sourceIndex == m_model->classificationRoot() ||
+  if (!sourceIndex.isValid()                       ||
+      sourceIndex == m_model->classificationRoot() ||
       sourceIndex == m_model->sampleRoot()         ||
       sourceIndex == m_model->channelRoot()        ||
       sourceIndex == m_model->segmentationRoot())
+  {
     return QModelIndex();
+  }
 
   auto sourceItem = itemAdapter(sourceIndex);
 
@@ -325,9 +326,6 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
 //------------------------------------------------------------------------
 Qt::ItemFlags ChannelProxy::flags(const QModelIndex& index) const
 {
-//  return QAbstractProxyModel::flags(index);
-
-  // TODO: enable proper drag and drop for channels to change sample.
   Qt::ItemFlags f = QAbstractProxyModel::flags(index) | Qt::ItemIsDropEnabled;
 
   if (index.isValid())
@@ -389,13 +387,17 @@ bool ChannelProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, in
 //------------------------------------------------------------------------
 int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
 {
-  auto item = itemAdapter(sampleIndex);
   int total = 0;
 
-  if (isSample(item))
+  if(sampleIndex.isValid())
   {
-    auto sample = samplePtr(item);
-    total = numChannels(sample);
+    auto item = itemAdapter(sampleIndex);
+
+    if (isSample(item))
+    {
+      auto sample = samplePtr(item);
+      total = numChannels(sample);
+    }
   }
 
   return total;
@@ -404,13 +406,17 @@ int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
 //------------------------------------------------------------------------
 int ChannelProxy::numSubSamples(QModelIndex sampleIndex) const
 {
-  auto item = itemAdapter(sampleIndex);
   int total = 0;
 
-  if (isSample(item))
+  if(sampleIndex.isValid())
   {
-    auto sample = samplePtr(item);
-    total = numSubSamples(sample);
+    auto item = itemAdapter(sampleIndex);
+
+    if (isSample(item))
+    {
+      auto sample = samplePtr(item);
+      total = numSubSamples(sample);
+    }
   }
 
   return total;
@@ -421,19 +427,22 @@ QModelIndexList ChannelProxy::channels(QModelIndex sampleIndex, bool recursive) 
 {
   QModelIndexList res;
 
-  auto start = numSubSamples(sampleIndex);
-  auto end = start + numChannels(sampleIndex) - 1;
-  if (recursive)
+  if(sampleIndex.isValid())
   {
-    for (int tax = 0; tax < start; tax++)
+    auto start = numSubSamples(sampleIndex);
+    auto end = start + numChannels(sampleIndex) - 1;
+    if (recursive)
     {
-      res << channels(index(tax, 0, sampleIndex), true);
+      for (int tax = 0; tax < start; tax++)
+      {
+        res << channels(index(tax, 0, sampleIndex), true);
+      }
     }
-  }
 
-  if (start <= end)
-  {
-    res << proxyIndices(sampleIndex, start, end);
+    if (start <= end)
+    {
+      res << proxyIndices(sampleIndex, start, end);
+    }
   }
 
   return res;
@@ -442,11 +451,13 @@ QModelIndexList ChannelProxy::channels(QModelIndex sampleIndex, bool recursive) 
 //------------------------------------------------------------------------
 void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
-  if (!sourceParent.isValid()) return;
-
-  if (sourceParent == m_model->classificationRoot() ||
+  if (!sourceParent.isValid()                       ||
+      (end < start)                                 ||
+      sourceParent == m_model->classificationRoot() ||
       sourceParent == m_model->segmentationRoot())
+  {
     return;
+  }
 
   if (sourceParent == m_model->sampleRoot())
   {
@@ -510,11 +521,13 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
 //------------------------------------------------------------------------
 void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
-  if (!sourceParent.isValid()) return;
-
-  if (sourceParent == m_model->classificationRoot() ||
+  if (!sourceParent.isValid()                       ||
+      (end < start)                                 ||
+      sourceParent == m_model->classificationRoot() ||
       sourceParent == m_model->segmentationRoot())
+  {
     return;
+  }
 
   if (sourceParent == m_model->sampleRoot())
   {
@@ -598,6 +611,8 @@ void ChannelProxy::sourceRowsMoved(const QModelIndex& sourceParent, int sourceSt
 //------------------------------------------------------------------------
 bool ChannelProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
 {
+  if(!topLeft.isValid() || !bottomRight.isValid()) return false;
+
   result << topLeft;
 
   if (topLeft == bottomRight) return true;
@@ -625,15 +640,19 @@ bool ChannelProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottom
 QModelIndexList ChannelProxy::proxyIndices(const QModelIndex& parent, int start, int end) const
 {
   QModelIndexList res;
-  for (int row = start; row <= end; row++)
-  {
-    auto proxyIndex = index(row, 0, parent);
-    res << proxyIndex;
 
-    int numChildren = rowCount(proxyIndex);
-    if (numChildren > 0)
+  if(parent.isValid() && (start <= end))
+  {
+    for (int row = start; row <= end; row++)
     {
-      res << proxyIndices(proxyIndex,0,numChildren - 1);
+      auto proxyIndex = index(row, 0, parent);
+      res << proxyIndex;
+
+      int numChildren = rowCount(proxyIndex);
+      if (numChildren > 0)
+      {
+        res << proxyIndices(proxyIndex,0,numChildren - 1);
+      }
     }
   }
 

@@ -79,19 +79,24 @@ void ChangeSegmentationNotes::swapNotes()
 
     auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
     notesExtension->setNotes(m_formerNote);
-    m_formerNote = "";
   }
-  else if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
+  else
   {
-    auto extension = retrieveExtension<SegmentationNotes>(extensions);
-    extension->setNotes(m_formerNote);
-    m_formerNote = currentNote;
+    if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
+    {
+      auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+      notesExtension->setNotes(m_formerNote);
+    }
+    else
+    {
+      if (!currentNote.isEmpty() && m_formerNote.isEmpty())
+      {
+        extensions->remove(SegmentationNotes::TYPE);
+      }
+    }
   }
-  if (!currentNote.isEmpty() && m_formerNote.isEmpty())
-  {
-    extensions->remove(SegmentationNotes::TYPE);
-    m_formerNote = currentNote;
-  }
+
+  m_formerNote = currentNote;
 
   m_segmentation->notifyModification();
 }

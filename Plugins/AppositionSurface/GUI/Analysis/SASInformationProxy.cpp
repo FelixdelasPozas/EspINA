@@ -68,6 +68,13 @@ class SASInformationProxy::SASInformationFetcher
         {
           ready &= m_sas->isReady(key);
         }
+        else
+        {
+          if(Segmentation)
+          {
+            ready &= Segmentation->isReady(key);
+          }
+        }
 
         if (!ready) break;
       }
@@ -155,6 +162,18 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     return disabled?Qt::lightGray:QAbstractProxyModel::data(proxyIndex, role);
   }
 
+  if(role == Qt::ToolTipRole)
+  {
+    auto key = m_keys[proxyIndex.column()];
+    auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
+    if(!sas && isSASInformation(key))
+    {
+      return tr("No SAS has been created for %1.").arg(segmentation->data().toString());
+    }
+
+    return QString();
+  }
+
   if (role == Qt::DisplayRole && !m_keys.isEmpty())
   {
     auto key = m_keys[proxyIndex.column()];
@@ -184,7 +203,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
                   this,       SLOT(onProgessReported(int)));
           connect(task.get(), SIGNAL(finished()),
                   this,       SLOT(onTaskFininished()));
-          //qDebug() << "Launching Task";
+
           Task::submit(task);
         }
         else // we avoid overloading the scheduler
@@ -211,7 +230,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
   }
   else if (proxyIndex.column() > 0)
   {
-    return QVariant();//To avoid checkrole or other roles
+    return QVariant(); //To avoid checkrole or other roles
   }
 
   return QAbstractProxyModel::data(proxyIndex, role);

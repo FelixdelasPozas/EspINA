@@ -77,6 +77,16 @@ DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model,
 //------------------------------------------------------------------------
 DrawingWidget::~DrawingWidget()
 {
+  disconnect();
+  m_circularPainter->disconnect();
+  m_sphericalPainter->disconnect();
+  m_contourPainter->disconnect();
+
+  if(m_contourPainter->isInUse())
+  {
+    m_viewState.unsetEventHandler(m_currentPainter);
+    m_viewState.removeTemporalRepresentations(m_contourWidgetfactory);
+  }
 }
 
 //------------------------------------------------------------------------

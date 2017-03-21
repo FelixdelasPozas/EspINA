@@ -37,12 +37,13 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralS
 {
   setupUi(this);
 
-  m_userName        ->setText(m_settings->userName());
-  m_autosavePath    ->setText(m_autoSave.path().absolutePath());
-  m_autosaveInterval->setValue(m_autoSave.interval());
-  m_loadSEGSettings ->setChecked(m_settings->loadSEGfileSettings());
-  m_temporalPath    ->setText(m_settings->temporalPath());
-  m_doCheck         ->setChecked(m_settings->performAnalysisCheckOnLoad());
+  m_userName          ->setText(m_settings->userName());
+  m_autosavePath      ->setText(m_autoSave.path().absolutePath());
+  m_autosaveInterval  ->setValue(m_autoSave.interval());
+  m_autoSaveBackground->setChecked(autoSave.autoSaveInThread());
+  m_loadSEGSettings   ->setChecked(m_settings->loadSEGfileSettings());
+  m_temporalPath      ->setText(m_settings->temporalPath());
+  m_doCheck           ->setChecked(m_settings->performAnalysisCheckOnLoad());
 
   auto isSystemTemporalPath = (m_settings->temporalPath() == QDir::tempPath());
   m_systemPathCheckbox->setChecked(isSystemTemporalPath);
@@ -71,6 +72,7 @@ void GeneralSettingsPanel::acceptChanges()
   m_settings->setPerformAnalysisCheckOnLoad(m_doCheck->isChecked());
   m_autoSave.setPath(m_autosavePath->text());
   m_autoSave.setInterval(m_autosaveInterval->value());
+  m_autoSave.setSaveInThread(m_autoSaveBackground->isChecked());
 }
 
 //------------------------------------------------------------------------
@@ -81,12 +83,13 @@ void GeneralSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool GeneralSettingsPanel::modified() const
 {
-  return m_userName->text()             != m_settings->userName()
-      || m_loadSEGSettings->isChecked() != m_settings->loadSEGfileSettings()
-      || m_autosavePath->text()         != m_autoSave.path().absolutePath()
-      || m_autosaveInterval->value()    != m_autoSave.interval()
-      || m_temporalPath->text()         != m_settings->temporalPath()
-      || m_doCheck->isChecked()         != m_settings->performAnalysisCheckOnLoad();
+  return m_userName->text()                != m_settings->userName()
+      || m_loadSEGSettings->isChecked()    != m_settings->loadSEGfileSettings()
+      || m_autosavePath->text()            != m_autoSave.path().absolutePath()
+      || m_autosaveInterval->value()       != m_autoSave.interval()
+      || m_temporalPath->text()            != m_settings->temporalPath()
+      || m_doCheck->isChecked()            != m_settings->performAnalysisCheckOnLoad()
+      || m_autoSaveBackground->isChecked() != m_autoSave.autoSaveInThread();
 }
 
 //------------------------------------------------------------------------

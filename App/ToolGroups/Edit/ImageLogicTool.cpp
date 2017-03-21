@@ -67,13 +67,13 @@ void ImageLogicTool::applyFilter()
 
   Q_ASSERT(segmentations.size() > 1);
 
-  auto type        = MorphologicalFilterFactory::ADDITION_FILTER;
+  auto type        = EditionFilterFactory::ADDITION_FILTER;
   auto description = tr("Segmentation addition");
   auto remove      = true;
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
-    type        = MorphologicalFilterFactory::SUBTRACTION_FILTER;
+    type        = EditionFilterFactory::SUBTRACTION_FILTER;
     description = tr("Segmentation subtraction");
     remove      = m_removeOnSubtract;
   }

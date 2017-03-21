@@ -87,7 +87,7 @@ void SliceInterpolationTool::applyFilter()
     auto stack = channels.first();
     inputs << stack->asInput();
 
-    auto filter = getFactory()->createFilter<SliceInterpolationFilter>(inputs, MorphologicalFilterFactory::SLICE_INTERPOLATION_FILTER);
+    auto filter = getFactory()->createFilter<SliceInterpolationFilter>(inputs, EditionFilterFactory::SLICE_INTERPOLATION_FILTER);
 
     filter->setDescription(tr("Interpolate slices from %1").arg(segmentation->data().toString()));
 

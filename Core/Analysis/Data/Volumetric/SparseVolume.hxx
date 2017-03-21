@@ -387,11 +387,11 @@ namespace ESPINA
 
       if(value == this->backgroundValue() && isEmpty(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
     }
   }
-
 
   //-----------------------------------------------------------------------------
   template<typename T>
@@ -438,6 +438,7 @@ namespace ESPINA
 
       if(value == this->backgroundValue() && isEmpty(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
     }
@@ -473,6 +474,7 @@ namespace ESPINA
 
       if(isEmpty(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
     }
@@ -507,6 +509,7 @@ namespace ESPINA
 
       if(isEmpty(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
     }
@@ -567,6 +570,7 @@ namespace ESPINA
 
       if (value == this->backgroundValue() && isEmpty(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
     }
@@ -589,6 +593,7 @@ namespace ESPINA
     {
       if(!affectedIndexes.contains(index))
       {
+        m_blocks[index] = nullptr;
         m_blocks.remove(index);
       }
       else
@@ -613,7 +618,6 @@ namespace ESPINA
            ++iit;
          }
       }
-
     }
 
     this->updateModificationTime();
@@ -724,6 +728,31 @@ namespace ESPINA
 
     this->setEditedRegions(regions);
 
+    // FIX: 2.1.9 isEmpty() error. Reconstruct the bounds if possible to avoid crashing.
+    if(!this->m_bounds.areValid() && (this->m_blocks.keys().size() != 0))
+    {
+      Bounds tempBounds;
+      auto spacing = bounds.spacing();
+      for(auto index: this->m_blocks.keys())
+      {
+        auto region = m_blocks[index]->GetLargestPossibleRegion();
+        Bounds bBounds{index[0] * spacing[0] - spacing[0]/2, (index[0] + s_blockSize) * spacing[0]  - spacing[0]/2,
+                       index[1] * spacing[1] - spacing[1]/2, (index[1] + s_blockSize) * spacing[1]  - spacing[1]/2,
+                       index[2] * spacing[2] - spacing[2]/2, (index[2] + s_blockSize) * spacing[2]  - spacing[2]/2};
+
+        if(!tempBounds.areValid())
+        {
+          tempBounds = bBounds;
+        }
+        else
+        {
+          tempBounds = boundingBox(tempBounds, bBounds, this->m_bounds.spacing());
+        }
+      }
+
+      this->m_bounds = VolumeBounds{tempBounds, this->m_bounds.spacing(), this->m_bounds.origin()};
+    }
+
     return dataFetched;
   }
 
@@ -804,7 +833,18 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isEmpty() const
   {
-    return !isValid() || m_blocks.isEmpty();
+    if(isValid() && !m_blocks.isEmpty())
+    {
+      for(auto index: this->m_blocks.keys())
+      {
+        if(!isEmpty(index))
+        {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   //-----------------------------------------------------------------------------
@@ -911,7 +951,7 @@ namespace ESPINA
   {
     auto block  = m_blocks[index];
     auto region = block->GetLargestPossibleRegion();
-    auto it     = itk::ImageRegionIterator<T>(block, region);
+    auto it     = itk::ImageRegionConstIterator<T>(block, region);
 
     it.GoToBegin();
     while(!it.IsAtEnd())

@@ -24,7 +24,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
-  Dialogs/DistanceInformation/DistanceInformationDialog.h
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
@@ -43,6 +42,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   ToolGroups/Analyze/Reports/ReportSelectorDialog.h
+  ToolGroups/Analyze/Reports/DistanceInformationReport.h
   ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/Explore/ResetViewTool.h

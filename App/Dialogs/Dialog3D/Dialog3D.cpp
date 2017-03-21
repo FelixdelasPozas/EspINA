@@ -36,7 +36,7 @@ const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
-: QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
+: QDialog          {DefaultDialogs::defaultParentWidget()}
 , WithContext      (context)
 , m_view3D         {context.viewState(), true}
 , m_representations("", "")

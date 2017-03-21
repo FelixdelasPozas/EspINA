@@ -32,7 +32,7 @@ namespace ESPINA
   {
   public:
     virtual QString type() const
-    { return "SegmharReader"; }
+    { return "SegmhaReader"; }
 
     virtual ExtensionList supportedFileExtensions() const;
 

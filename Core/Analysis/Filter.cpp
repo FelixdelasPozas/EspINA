@@ -168,6 +168,8 @@ Filter::Filter(InputSList inputs, const Filter::Type &type, SchedulerSPtr schedu
 , m_inputs     {inputs}
 , m_dataFactory{new RawDataFactory()}
 {
+  setDescription(tr("Filter execution task: %1").arg(m_type));
+
   setName(m_type);
 }
 

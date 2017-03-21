@@ -50,7 +50,10 @@ namespace ESPINA
        */
       RepresentationState(RepresentationState &&state)
       : m_properties{state.m_properties}
-      {};
+      {
+        // duplicate mutex state. It is needed?
+        if(!state.m_mutex.tryLock()) m_mutex.lock();
+      };
 
       /** \brief RepresentationState copy constructor.
        *

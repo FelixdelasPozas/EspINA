@@ -74,7 +74,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Apply changes</string>
        </property>
        <property name="text">
         <string/>
@@ -121,7 +121,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Cancel changes</string>
        </property>
        <property name="text">
         <string/>

@@ -217,7 +217,7 @@ namespace ESPINA
    */
   Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Returns the minimum bouds containing b1 and b2
+  /** \brief Returns the minimum bounds containing b1 and b2
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.

@@ -128,7 +128,7 @@ RepresentationPipeline::Actors SliceManager::actors(TimeStamp time)
     return planePool()->actors(time);
   }
 
-  return RepresentationPipeline::Actors();
+  return std::make_shared<RepresentationPipeline::ActorsData>();
 }
 
 //----------------------------------------------------------------------------

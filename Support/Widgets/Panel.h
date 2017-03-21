@@ -34,18 +34,29 @@ class QUndoStack;
 
 namespace ESPINA
 {
+  /** \class Panel
+   * \brief EspINA main window panel base class.
+   */
   class EspinaSupport_EXPORT Panel
   : public QDockWidget
   , protected Support::WithContext
   {
     Q_OBJECT
   public:
-    /** \brief DockWidget class constructor.
+    /** \brief Panel class constructor.
+     * \param[in] context application context.
      * \param[in] parent raw pointer of the parent widget of this one.
      *
      */
     explicit Panel(Support::Context &context, QWidget *parent = nullptr);
 
+    /** \brief Panel class constructor.
+     * \param[in] title panel title.
+     * \param[in] context application context.
+     * \param[in] parent raw pointer of the parent widget of this one.
+     * \param[in] flags widget's flags.
+     *
+     */
     explicit Panel(const QString& title, Support::Context &context, QWidget* parent = 0, Qt::WindowFlags flags = 0);
 
     /** \brief DockWidget class virtual destructor.

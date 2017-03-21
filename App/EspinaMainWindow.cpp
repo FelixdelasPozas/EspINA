@@ -109,6 +109,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_view             {new DefaultView(m_context, this)}
 , m_schedulerProgress{new SchedulerProgress(m_context.scheduler(), this)}
 , m_busy             {false}
+, m_checkTask        {nullptr}
 {
   updateUndoStackIndex();
 
@@ -164,14 +165,15 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
+
   for(auto shortcut: m_toolShortcuts)
   {
     delete shortcut;
   }
   m_toolShortcuts.clear();
 
-  delete m_exploreToolGroup;
   delete m_restrictToolGroup;
+  delete m_exploreToolGroup;
   delete m_segmentToolGroup;
   delete m_refineToolGroup;
   delete m_visualizeToolGroup;
@@ -239,37 +241,37 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for(auto filterFactory: validPlugin->filterFactories())
       {
-        qDebug() << plugin << "- Filter Factory  ...... OK";
+        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
         factory->registerFilterFactory(filterFactory);
       }
 
       for(auto reader: validPlugin->analysisReaders())
       {
-        qDebug() << plugin << "- Analysis Reader  ...... OK";
+        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
         factory->registerAnalysisReader(reader);
       }
 
       for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
       {
-//        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
+        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
         factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto report : validPlugin->reports())
       {
-//        qDebug() << plugin << "- Register Reprot" << report->name() << " ...... OK";
+        qDebug() << plugin << "- Register Report" << report->name() << " ...... OK";
         m_analyzeToolGroup->registerReport(report);
       }
 
       for (auto settings : validPlugin->settingsPanels())
       {
-//        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
+        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
         m_availableSettingsPanels << settings;
       }
 
       for (auto factory : validPlugin->representationFactories())
       {
-//        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
+        qDebug() << plugin << "- Representation Factory  ...... OK";
         registerRepresentationFactory(factory);
       }
     }
@@ -336,6 +338,49 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   QWidget::showEvent(event);
 
   m_minimizedStatus = false;
+
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup("MainWindow");
+  auto firstRun = !settings.childKeys().contains("size"); // absent in first run of the application.
+
+  // if first time running adjust the docks into tabs to avoid getting a size bigger than the screen (if accumulated top-bottom)
+  if(firstRun)
+  {
+    QList<QDockWidget *> panels;
+    QDockWidget *segPanel = nullptr;
+
+    for (auto dock : findChildren<QDockWidget *>())
+    {
+      if(dynamic_cast<View2D *>(dock)) continue;
+
+      auto panel = dynamic_cast<Panel *>(dock);
+
+      if(panel == m_view->panelXZ() || panel == m_view->panelYZ())
+      {
+        addDockWidget(Qt::RightDockWidgetArea, panel);
+        continue;
+      }
+
+      if(panel && panel->isVisible() && (panel != m_view->panelXZ()) && (panel != m_view->panelYZ()))
+      {
+        if(dynamic_cast<SegmentationExplorer *>(dock))
+        {
+          segPanel = dock;
+        }
+        else
+        {
+          panels << dock;
+        }
+      }
+    }
+
+    for(auto dock: panels)
+    {
+      QMainWindow::tabifyDockWidget(segPanel, dock);
+    }
+
+    showMaximized();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -380,14 +425,15 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::closeCurrentAnalysis()
 {
-  if (isModelModified())
+  // checks if the model have been modified since that last save or the file never has been saved.
+  if (isModelModified() || (!m_context.model()->isEmpty() && !m_saveTool->isEnabled()))
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
     auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
     auto title   = windowTitle().split(QDir::separator()).last();
-    auto userResponse = DefaultDialogs::UserQuestion(message, buttons, title);
+    auto answer  = DefaultDialogs::UserQuestion(message, buttons, title);
 
-    switch(userResponse)
+    switch(answer)
     {
       case QMessageBox::Yes:
         m_saveAsTool->saveAnalysis();
@@ -472,6 +518,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 {
   Q_ASSERT(analysis);
 
+  stopAnalysisConsistencyCheck();
+
   if(!analysis->classification())
   {
     QFileInfo defaultClassification(":/espina/defaultClassification.xml");
@@ -523,14 +571,14 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
     checkAnalysisConsistency();
   }
 
-  m_autoSave.resetCountDown();
-
   emit analysisChanged();
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 {
+  stopAnalysisConsistencyCheck();
+
   auto model = m_context.model();
 
   emit abortOperation();
@@ -544,6 +592,11 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
   assignActiveChannel();
 
   updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
+
+  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  {
+    checkAnalysisConsistency();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -992,7 +1045,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
           m_view.get(),   SLOT(setRulerVisibility(bool)));
 
   scalebar->setOrder("0-0", "2-Display");
-  scalebar->setChecked(true);
 
   m_visualizeToolGroup->addTool(scalebar);
 
@@ -1005,7 +1057,6 @@ void EspinaMainWindow::createVisualizeToolGroup()
           m_view.get(), SLOT(showThumbnail(bool)));
 
   thumbnail->setOrder("0-1", "2-Display");
-  thumbnail->setChecked(true);
 
   m_visualizeToolGroup->addTool(thumbnail);
 
@@ -1051,8 +1102,11 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 //------------------------------------------------------------------------
 void EspinaMainWindow::createDefaultPanels()
 {
-
   auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
+
+  connect(this,                   SIGNAL(analysisAboutToBeClosed()),
+          segmentationProperties, SLOT(reset()));
+
   auto segmentationPropertiesSwitch = std::make_shared<PanelSwitch>("SegmentationProperties",
                                                                     segmentationProperties,
                                                                     ":espina/display_segmentation_properties.svg",
@@ -1185,17 +1239,43 @@ void EspinaMainWindow::updateUndoStackIndex()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::stopAnalysisConsistencyCheck()
+{
+  if(m_checkTask)
+  {
+    disconnect(m_checkTask.get(), SIGNAL(finished()),
+               this,              SLOT(stopAnalysisConsistencyCheck()));
+
+    disconnect(m_checkTask.get(), SIGNAL(progress(int)),
+               m_checkTool.get(), SLOT(setProgress(int)));
+
+    m_checkTool->setProgress(100);
+
+    disconnect(m_checkTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
+               this,              SLOT(showIssuesDialog(Extensions::IssueList)));
+
+    m_checkTask->abort();
+    m_checkTask = nullptr;
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::checkAnalysisConsistency()
 {
-  auto checkerTask = std::make_shared<CheckAnalysis>(m_context);
+  stopAnalysisConsistencyCheck();
 
-  connect(checkerTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
+  m_checkTask = std::make_shared<CheckAnalysis>(m_context);
+
+  connect(m_checkTask.get(), SIGNAL(issuesFound(Extensions::IssueList)),
           this,              SLOT(showIssuesDialog(Extensions::IssueList)));
 
-  connect(checkerTask.get(), SIGNAL(progress(int)),
+  connect(m_checkTask.get(), SIGNAL(finished()),
+          this,              SLOT(stopAnalysisConsistencyCheck()));
+
+  connect(m_checkTask.get(), SIGNAL(progress(int)),
           m_checkTool.get(), SLOT(setProgress(int)));
 
-  checkerTask->submit(checkerTask);
+  m_checkTask->submit(m_checkTask);
 }
 
 //------------------------------------------------------------------------

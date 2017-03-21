@@ -36,54 +36,74 @@ namespace ESPINA
 {
   class RenderView;
 
+  /** \class ToolGroup
+   * \brief Implements behaviour of a group of tools.
+   *
+   */
   class ToolGroup
   : public QAction
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    using GroupedTools = QList<Support::Widgets::ToolSList>;
+    public:
+      using GroupedTools = QList<Support::Widgets::ToolSList>;
 
-  public:
-    /** \brief ToolGroup class constructor.
-     * \param[in] icon of the tool group.
-     * \param[in] text of the tool group
-     * \param[in] parent of the tool group
-     *
-     */
-    ToolGroup(const QString& icon, const QString& text, QObject* parent = nullptr);
+    public:
+      /** \brief ToolGroup class constructor.
+       * \param[in] icon of the tool group.
+       * \param[in] text of the tool group
+       * \param[in] parent of the tool group
+       *
+       */
+      ToolGroup(const QString& icon, const QString& text, QObject* parent = nullptr);
 
-    virtual ~ToolGroup();
+      /** \brief ToolGroup class virtual destructor.
+       *
+       */
+      virtual ~ToolGroup()
+      {}
 
-    /** \brief Returns the tools contained by the tool group
-     *
-     */
-    GroupedTools groupedTools() const;
+      /** \brief Returns the tools contained by the tool group
+       *
+       */
+      GroupedTools groupedTools() const;
 
-    /** \brief Adds a tool to the tool group
-     *
-     *  \param[in] tool to be added
-     */
-    void addTool(Support::Widgets::ToolSPtr tool);
+      /** \brief Adds a tool to the tool group
+       *  \param[in] tool to be added
+       *
+       */
+      void addTool(Support::Widgets::ToolSPtr tool);
 
-  public slots:
-    void abortOperations();
+    public slots:
+      /** \brief Aborts all the tools of the group.
+       *
+       */
+      virtual void abortOperations();
 
-    void onExclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+      /** \brief Communicates the activation of a exclusive tool to the tools of this group.
+       * \brief tool activated tool that is exclusive, that is, overrides other activated tools.
+       *
+       */
+      void onExclusiveToolInUse(Support::Widgets::ProgressTool *tool);
 
-  signals:
-    void activated(ToolGroup *tool);
+    signals:
+      void activated(ToolGroup *tool);
 
-    void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+      void exclusiveToolInUse(Support::Widgets::ProgressTool *tool);
 
-  private slots:
-    void activate(bool value);
+    private slots:
+      void activate(bool value);
 
-  private:
-    virtual void onToolAdded(Support::Widgets::ToolSPtr tool) {}
+    private:
+      /** \brief Additional operations when a tool is added to a group.
+       * \param[in] tool tool added to the group.
+       *
+       */
+      virtual void onToolAdded(Support::Widgets::ToolSPtr tool)
+      {};
 
-  private:
-    QMap<QString, Support::Widgets::ToolSList> m_tools;
+    private:
+      QMap<QString, Support::Widgets::ToolSList> m_tools; /** id<->tool map. */
   };
 
   using ToolGroupPtr = ToolGroup *;

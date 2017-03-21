@@ -21,6 +21,7 @@
 #include "AboutDialog.h"
 #include "EspinaConfig.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -33,6 +34,15 @@ AboutDialog::AboutDialog()
 
   setWindowTitle(tr("About ESPINA"));
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
+
+  // Adjust label pixmaps. If the ui file is modified those values need to be modified to be in sync. Don'tlike it but it does the job scaling
+  // the bitmap and SVG graphics without pixelating.
+  constexpr auto fixedWidth = 158;
+  constexpr auto fixedHeight = 104;
+
+  logoUPM->setPixmap(QIcon(":/espina/upm.gif").pixmap(fixedHeight).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCeSViMa->setPixmap(QIcon(":/espina/cesvima.svg").pixmap(fixedWidth).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCBBP->setPixmap(QIcon(":/espina/cajalbbp.svg").pixmap(fixedWidth).scaled(fixedWidth,fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 

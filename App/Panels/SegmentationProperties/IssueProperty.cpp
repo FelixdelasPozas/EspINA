@@ -26,6 +26,7 @@
 
 using namespace ESPINA;
 
+//--------------------------------------------------------------------
 IssueProperty::IssueProperty(const QString &warning, const QString &suggestion, QWidget* parent, QPixmap icon)
 : QWidget{parent}
 {

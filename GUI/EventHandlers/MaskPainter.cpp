@@ -29,9 +29,10 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 MaskPainter::MaskPainter(PointTrackerSPtr handler)
-: m_tracker {handler}
-, m_canErase{true}
-, m_mode    {DrawingMode::PAINTING}
+: m_tracker       {handler}
+, m_canErase      {true}
+, m_mode          {DrawingMode::PAINTING}
+, m_plusKeyPressed{false}
 {
 }
 
@@ -47,11 +48,22 @@ bool MaskPainter::filterEvent(QEvent *e, RenderView *view)
       case QEvent::KeyPress:
       case QEvent::KeyRelease:
         ke = static_cast<QKeyEvent *>(e);
-        if ((ke->key() == Qt::Key_Shift) && !m_tracker->isTracking() && m_canErase)
+        if(!m_tracker->isTracking() && m_canErase)
         {
-          updateDrawingMode();
-          return true;
+          if (ke->key() == Qt::Key_Shift)
+          {
+            updateDrawingMode();
+            return true;
+          }
+
+          if((ke->key() == Qt::Key_Plus) && (ke->modifiers() & Qt::KeypadModifier))
+          {
+            m_plusKeyPressed = (e->type() == QEvent::KeyPress);
+            updateDrawingMode();
+            return true;
+          }
         }
+
         break;
       default:
         break;
@@ -127,9 +139,11 @@ bool MaskPainter::ShiftKeyIsDown() const
 //------------------------------------------------------------------------
 DrawingMode MaskPainter::currentMode() const
 {
-  auto  mode = m_mode;
+  auto mode = m_mode;
 
-  if (ShiftKeyIsDown())
+  // NOTE: the boolean var is needed because Qt has to ways to know if a key is being pressed
+  //  except fot the keyboard modifiers, at least in Linux and 4.8 version.
+  if (ShiftKeyIsDown() || m_plusKeyPressed)
   {
     auto isPainting = (m_mode == DrawingMode::PAINTING);
 

@@ -40,21 +40,25 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::Support;
 using namespace ESPINA::Extensions;
 
-class SegmentationProperties::UI: public QWidget,
-    public Ui::SegmentationProperties
+//----------------------------------------------------------------------------
+class SegmentationProperties::UI
+: public QWidget
+, public Ui::SegmentationProperties
 {
   public:
-    UI()
+    UI(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
+    : QWidget{parent, f}
     {
       setupUi(this);
     }
 };
 
 //----------------------------------------------------------------------------
-SegmentationProperties::SegmentationProperties(
-    FilterRefinerFactory &filterRefiners, Context &context)
-    : Panel(tr("Segmentation Properties"), context), m_register(filterRefiners), m_segmentation(
-        nullptr), m_gui(new UI())
+SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context)
+: Panel         {tr("Segmentation Properties"), context}
+, m_register    (filterRefiners)
+, m_segmentation{nullptr}
+, m_gui         {new UI(this)}
 {
   setObjectName("SegmentationProperties");
 
@@ -82,9 +86,8 @@ void SegmentationProperties::showEvent(QShowEvent *event)
 {
   ESPINA::Panel::showEvent(event);
 
-  connect(getSelection().get(),
-      SIGNAL(selectionChanged(SegmentationAdapterList)), this,
-      SLOT(onSelectionChanged(SegmentationAdapterList)));
+  connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+          this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 
   onSelectionChanged(getSelectedSegmentations());
 }
@@ -94,16 +97,14 @@ void SegmentationProperties::hideEvent(QHideEvent* event)
 {
   hideInformation();
 
-  disconnect(getSelection().get(),
-      SIGNAL(selectionChanged(SegmentationAdapterList)), this,
-      SLOT(onSelectionChanged(SegmentationAdapterList)));
+  disconnect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+             this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 
   ESPINA::Panel::hideEvent(event);
 }
 
 //----------------------------------------------------------------------------
-void SegmentationProperties::onSelectionChanged(
-    SegmentationAdapterList selection)
+void SegmentationProperties::onSelectionChanged(SegmentationAdapterList selection)
 {
   Q_ASSERT(isVisible());
 
@@ -165,8 +166,7 @@ void SegmentationProperties::onNotesModified()
 }
 
 //----------------------------------------------------------------------------
-void SegmentationProperties::showInformation(
-    SegmentationAdapterPtr segmentation)
+void SegmentationProperties::showInformation(SegmentationAdapterPtr segmentation)
 {
   // Update if segmentation are different
   if (segmentation != m_segmentation)
@@ -184,11 +184,11 @@ void SegmentationProperties::showInformation(
       showNotes();
       showIssues();
 
-      connect(m_segmentation, SIGNAL(outputModified()), this,
-          SLOT(onOutputModified()));
+      connect(m_segmentation, SIGNAL(outputModified()),
+              this,           SLOT(onOutputModified()));
 
-      connect(m_gui->notes, SIGNAL(textChanged()), this,
-          SLOT(onNotesModified()));
+      connect(m_gui->notes, SIGNAL(textChanged()),
+              this,         SLOT(onNotesModified()));
     }
   }
 }
@@ -198,11 +198,11 @@ void SegmentationProperties::hideInformation()
 {
   if (m_segmentation)
   {
-    disconnect(m_segmentation, SIGNAL(outputModified()), this,
-        SLOT(onOutputModified()));
+    disconnect(m_segmentation, SIGNAL(outputModified()),
+               this,           SLOT(onOutputModified()));
 
-    disconnect(m_gui->notes, SIGNAL(textChanged()), this,
-        SLOT(onNotesModified()));
+    disconnect(m_gui->notes, SIGNAL(textChanged()),
+               this,         SLOT(onNotesModified()));
 
     clearSegmentationName();
     removeRefineWidget();
@@ -236,7 +236,6 @@ void SegmentationProperties::addRefineWidget()
   Q_ASSERT(m_filter);
 
   QWidget *widget = nullptr;
-
   try
   {
     widget = m_register.createRefineWidget(m_segmentation, getContext());
@@ -312,15 +311,15 @@ void SegmentationProperties::clearNotes()
 }
 
 //----------------------------------------------------------------------------
-void ESPINA::SegmentationProperties::showIssues()
+void SegmentationProperties::showIssues()
 {
   clearIssues();
 
   auto extensions = m_segmentation->extensions();
-  IssueProperty *issueProperty = nullptr;
 
   if (extensions->hasExtension(SegmentationIssues::TYPE))
   {
+    IssueProperty *issueProperty = nullptr;
     auto extension = retrieveExtension<SegmentationIssues>(extensions);
     auto isueList = extension->issues();
     QString icon_path;
@@ -349,7 +348,6 @@ void ESPINA::SegmentationProperties::showIssues()
       if (issueProperty != nullptr)
       {
         m_gui->issuesGroup->layout()->addWidget(issueProperty);
-        //map << issueProperty;
       }
     }
 

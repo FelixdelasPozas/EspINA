@@ -28,15 +28,22 @@
 
 namespace ESPINA
 {
+  /** \class NoFilterRefiner
+   * \brief Empty widget for filters without a refiner.
+   *
+   */
   class NoFilterRefiner
   : public QWidget
+  , public Ui::NoFilterRefiner
   {
-    Q_OBJECT
-  public:
-    explicit NoFilterRefiner(QWidget *parent = 0, Qt::WindowFlags f = 0);
-
-  private:
-    Ui::NoFilterRefiner *m_gui;
+      Q_OBJECT
+    public:
+      /** \brief NoFilterRefiner class constructor.
+       * \param[in] widget QWidget parent of this one.
+       * \param[in] f Widget flags.
+       *
+       */
+      explicit NoFilterRefiner(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
   };
 
 } // namespace ESPINA

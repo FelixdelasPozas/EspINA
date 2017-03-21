@@ -213,7 +213,7 @@ void CheckAnalysis::run()
     connect(task.get(), SIGNAL(issueFound(Extensions::IssueSPtr)),
             this,       SLOT(addIssue(Extensions::IssueSPtr)), Qt::DirectConnection);
 
-    task->submit(task);
+    Task::submit(task);
   }
 
   pause();
@@ -230,6 +230,17 @@ void CheckAnalysis::finishedTask()
   auto tasksNum = m_checkList.size();
   auto progressValue = m_finishedTasks * 100 / tasksNum;
   reportProgress(progressValue);
+
+  if(isAborted())
+  {
+    for(auto task: m_checkList)
+    {
+      task->abort();
+    }
+
+    resume();
+    return;
+  }
 
   if(tasksNum - m_finishedTasks == 0)
   {
@@ -386,8 +397,11 @@ void CheckSegmentationTask::run()
 {
   try
   {
+    if(!canExecute()) return;
     checkViewItemOutputs(m_segmentation);
+    if(!canExecute()) return;
     checkHasChannel();
+    if(!canExecute()) return;
     checkRelations();
   }
   catch(const EspinaException &e)
@@ -589,7 +603,9 @@ void CheckStackTask::run()
 {
   try
   {
+    if(!canExecute()) return;
     checkViewItemOutputs(m_stack);
+    if(!canExecute()) return;
     checkRelations();
   }
   catch(const EspinaException &e)
@@ -616,6 +632,8 @@ CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(Support::Cont
 : CheckTask      {context}
 , m_segmentations{context.model()->segmentations()}
 {
+  setDescription(tr("Check duplicate segmentations."));
+
   // detach from implicit sharing
   m_segmentations.detach();
 }
@@ -632,6 +650,8 @@ void CheckDuplicatedSegmentationsTask::run()
     {
       auto seg_j    = m_segmentations[j].get();
       auto bounds_j = readLockVolume(seg_j->output())->bounds();
+
+      if(!canExecute()) return;
 
       if (seg_i->category() == seg_j->category())
       {

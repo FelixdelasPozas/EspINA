@@ -30,7 +30,7 @@ using namespace ESPINA::GUI::Widgets;
 
 //----------------------------------------------------------------------------
 DistanceInformationOptionsDialog::DistanceInformationOptionsDialog(Support::Context &context)
-: QDialog{GUI::DefaultDialogs::defaultParentWidget(), Qt::WindowStaysOnTopHint}
+: QDialog{GUI::DefaultDialogs::defaultParentWidget()}
 {
   setupUi(this);
 

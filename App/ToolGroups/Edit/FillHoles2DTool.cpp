@@ -86,7 +86,7 @@ void FillHoles2DTool::applyFilter()
 
     inputs << segmentation->asInput();
 
-    auto filter = getFactory()->createFilter<FillHoles2DFilter>(inputs, MorphologicalFilterFactory::FILL_HOLES2D_FILTER);
+    auto filter = getFactory()->createFilter<FillHoles2DFilter>(inputs, EditionFilterFactory::FILL_HOLES2D_FILTER);
 
     filter->setDescription(tr("Fill %1 Holes in %2 direction").arg(segmentation->data().toString()).arg(toText(direction)));
     filter->setDirection(direction);

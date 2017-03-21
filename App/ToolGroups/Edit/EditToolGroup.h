@@ -30,11 +30,11 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  /** \class MorphologicalFilterFactory
-   * \brief Factory for morhological filters.
+  /** \class EditionFilterFactory
+   * \brief Factory for segmentation edition filters.
    *
    */
-  class MorphologicalFilterFactory
+  class EditionFilterFactory
   : public FilterFactory
   {
     public:
