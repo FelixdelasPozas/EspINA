@@ -31,7 +31,7 @@ namespace ESPINA {
   public:
     explicit CODERefiner(const QString &title);
 
-    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context, QWidget *parent = nullptr);
 
   signals:
     void radiusChanged(int);

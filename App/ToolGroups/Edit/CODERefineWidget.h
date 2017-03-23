@@ -46,13 +46,14 @@ namespace ESPINA
       /** \brief CODERefineWidget class constructor.
        * \param[in] title widget title.
        * \param[in] segmentation input segmentation.
-       * \param[in] filter segmentation's filter.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
       explicit CODERefineWidget(const QString                 &title,
                                 SegmentationAdapterPtr         segmentation,
-                                Support::Context              &context);
+                                Support::Context              &context,
+                                QWidget                       *parent = nullptr);
 
       /** \brief CODERefineWidget class destructor.
        *

@@ -48,7 +48,7 @@ namespace ESPINA
          * \param[in] context of current session
          *
          */
-        QWidget *createRefineWidget(SegmentationAdapterPtr segmentation, Context &context);
+        QWidget *createRefineWidget(SegmentationAdapterPtr segmentation, Context &context, QWidget *parent = nullptr);
 
         // TODO: DEPRECATED
         void unregisterFilterRefiners();

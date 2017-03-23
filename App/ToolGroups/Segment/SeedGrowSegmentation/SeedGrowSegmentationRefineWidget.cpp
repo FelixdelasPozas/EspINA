@@ -155,8 +155,10 @@ void SGSFilterModification::invalidateRepresentations()
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr segmentation,
                                                                    RestrictToolGroupSPtr  roiTools,
-                                                                   Support::Context      &context)
-: WithContext   (context)
+                                                                   Support::Context      &context,
+                                                                   QWidget               *parent)
+: QWidget       {parent}
+, WithContext   (context)
 , m_segmentation{segmentation}
 , m_gui         {new Ui::SeedGrowSegmentationRefineWidget()}
 , m_filter      {std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter())}

@@ -31,7 +31,7 @@ void FilterRefinerFactory::registerFilterRefiner(const FilterRefinerSPtr refiner
 }
 
 //------------------------------------------------------------------------
-QWidget *FilterRefinerFactory::createRefineWidget(SegmentationAdapterPtr segmentation, Context& context)
+QWidget *FilterRefinerFactory::createRefineWidget(SegmentationAdapterPtr segmentation, Context& context, QWidget *parent)
 {
   auto filter = segmentation->filter();
   auto type   = filter->type();
@@ -44,7 +44,7 @@ QWidget *FilterRefinerFactory::createRefineWidget(SegmentationAdapterPtr segment
     throw EspinaException(what, details);
   }
 
-  return m_register[type]->createWidget(segmentation, context);
+  return m_register[type]->createWidget(segmentation, context, parent);
 }
 
 //------------------------------------------------------------------------

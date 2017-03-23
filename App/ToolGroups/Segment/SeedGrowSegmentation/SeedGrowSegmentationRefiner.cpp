@@ -27,8 +27,8 @@ using namespace ESPINA::Support;
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationRefiner::RefineWidget::RefineWidget(SegmentationAdapterPtr segmentation, Context& context)
-: Count      {0}
-, RoiTools   {SeedGrowSegmentationRefiner::tools(context)}
+: Count   {0}
+, RoiTools{SeedGrowSegmentationRefiner::tools(context)}
 {
   QColor sgsROIColor{Qt::yellow};
   sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
@@ -60,7 +60,7 @@ RestrictToolGroupSPtr SeedGrowSegmentationRefiner::tools(Context &context)
 }
 
 //-----------------------------------------------------------------------------
-QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmentation, Context& context)
+QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmentation, Context& context, QWidget *parent)
 {
   if (!m_refineWidgets.contains(segmentation))
   {
@@ -71,7 +71,7 @@ QWidget* SeedGrowSegmentationRefiner::createWidget(SegmentationAdapterPtr segmen
 
   rw->Count++;
 
-  auto widget = new SeedGrowSegmentationRefineWidget(segmentation, rw->RoiTools, context);
+  auto widget = new SeedGrowSegmentationRefineWidget(segmentation, rw->RoiTools, context, parent);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed(QObject *)));

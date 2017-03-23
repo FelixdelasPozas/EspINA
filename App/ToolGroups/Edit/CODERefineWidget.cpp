@@ -100,8 +100,10 @@ void CODEModification::invalidateRepresentations()
 //----------------------------------------------------------------------------
 CODERefineWidget::CODERefineWidget(const QString                 &title,
                                    SegmentationAdapterPtr         segmentation,
-                                   Support::Context              &context)
-: WithContext   (context)
+                                   Support::Context              &context,
+                                   QWidget                       *parent)
+: QWidget       {parent}
+, WithContext   (context)
 , m_gui         {new Ui::CODERefineWidget()}
 , m_title       {title}
 , m_segmentation{segmentation}

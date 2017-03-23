@@ -43,7 +43,7 @@ namespace ESPINA
        */
       virtual ~SeedGrowSegmentationRefiner();
 
-      virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context);
+      virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context, QWidget *parent = nullptr);
 
       /** \brief Returns the roi refinement tools used by the widgets.
        *

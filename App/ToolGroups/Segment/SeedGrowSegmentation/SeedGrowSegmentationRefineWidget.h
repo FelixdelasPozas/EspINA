@@ -49,11 +49,13 @@ namespace ESPINA
        * \param[in] segmentation input segmentation.
        * \param[in] roiTools ROI tool group.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
       explicit SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr segmentation,
                                                 RestrictToolGroupSPtr  roiTools,
-                                                Support::Context      &context);
+                                                Support::Context      &context,
+                                                QWidget               *parent = nullptr);
 
       /** \brief SeedGrowSegmentationRefineWidget class virtual destructor.
        *
