@@ -25,6 +25,7 @@
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Context.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDockWidget>
@@ -48,16 +49,15 @@ namespace ESPINA
      * \param[in] parent raw pointer of the parent widget of this one.
      *
      */
-    explicit Panel(Support::Context &context, QWidget *parent = nullptr);
+    explicit Panel(Support::Context &context, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
     /** \brief Panel class constructor.
      * \param[in] title panel title.
      * \param[in] context application context.
      * \param[in] parent raw pointer of the parent widget of this one.
-     * \param[in] flags widget's flags.
      *
      */
-    explicit Panel(const QString& title, Support::Context &context, QWidget* parent = 0, Qt::WindowFlags flags = 0);
+    explicit Panel(const QString& title, Support::Context &context, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
     /** \brief DockWidget class virtual destructor.
      *

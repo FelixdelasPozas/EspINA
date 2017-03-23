@@ -71,8 +71,8 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //-----------------------------------------------------------------------------
-View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
-: RenderView                   {state, ViewType::VIEW_3D}
+View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QWidget *parent)
+: RenderView                   {state, ViewType::VIEW_3D, parent}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
 , m_cameraCommand              {vtkSmartPointer<vtkCameraCommand>::New()}
@@ -91,6 +91,7 @@ View3D::~View3D()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Volume View";
 //   qDebug() << "********************************************************";
+  mainRenderer()->RemoveAllViewProps();
 }
 
 //-----------------------------------------------------------------------------
@@ -234,7 +235,7 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
             }
 
             pickedItems << item;
-            picked |= true;
+            picked = true;
           }
         }
       }

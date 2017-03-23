@@ -231,9 +231,11 @@ namespace ESPINA
   protected:
     /** \brief RenderView class constructor.
      * \param[in] parent raw pointer of the QWidget parent of this one.
+     * \param[in] type type of view 2D or 3D
+     * \param[in] parent QWidget parent of this one.
      *
      */
-    explicit RenderView(GUI::View::ViewState &state, ViewType type);
+    explicit RenderView(GUI::View::ViewState &state, ViewType type, QWidget *parent = nullptr);
 
     /** \brief Returns the point world coordinates corresponding to the given ones in the given renderer.
      * \param[in] renderer vtkRenderer used for transformation.

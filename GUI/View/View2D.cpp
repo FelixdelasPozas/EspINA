@@ -90,8 +90,8 @@ using namespace ESPINA::GUI::Model::Utils;
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-View2D::View2D(GUI::View::ViewState &state, Plane plane)
-: RenderView        {state, ViewType::VIEW_2D}
+View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
+: RenderView        {state, ViewType::VIEW_2D, parent}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -197,9 +197,10 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  m_renderer->RemoveViewProp(m_scale);
+  m_renderer->RemoveAllViewProps();
+  m_thumbnail->RemoveAllViewProps();
 
-  m_state2D.reset();
+  m_state2D = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -1211,7 +1212,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
           }
 
           pickedItems << item;
-          picked |= true;
+          picked = true;
         }
       }
     }

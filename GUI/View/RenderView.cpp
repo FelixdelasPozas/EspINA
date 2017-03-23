@@ -64,8 +64,9 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(ViewState &state, ViewType type)
-: SelectableView           (state)
+RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
+: QWidget                  {parent}
+, SelectableView           (state)
 , m_view                   {new QVTKWidget()}
 , m_lastFrameActiveManagers{0}
 , m_state                  (state)
@@ -85,6 +86,8 @@ RenderView::RenderView(ViewState &state, ViewType type)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
+  disconnect();
+
   m_managers.clear();
   m_temporalManagers.clear();
 
@@ -720,14 +723,15 @@ void RenderView::showSegmentationTooltip(const int x, const int y)
 {
   auto segmentations = pick(Selector::SEGMENTATION, x, y);
 
-  QString toopTip;
+  QString toolTip;
 
   for (auto segmentation : segmentations)
   {
-    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+    toolTip = toolTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+    if(segmentation != segmentations.last()) toolTip = toolTip.append(QString("<hr>"));
   }
 
-  m_view->setToolTip(toopTip);
+  m_view->setToolTip(toolTip);
 }
 
 //-----------------------------------------------------------------------------

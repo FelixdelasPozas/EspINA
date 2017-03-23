@@ -63,10 +63,11 @@ namespace ESPINA
 
   public:
     /** \brief View2D class constructor.
+     * \param[in] state application's view state.
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      */
-    explicit View2D(GUI::View::ViewState &state, Plane plane = Plane::XY);
+    explicit View2D(GUI::View::ViewState &state, Plane plane = Plane::XY, QWidget *parent = nullptr);
 
     /** \brief View2D class virtual destructor.
      *

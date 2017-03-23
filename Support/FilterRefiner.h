@@ -36,9 +36,12 @@ namespace ESPINA
     virtual ~FilterRefiner() {}
 
     /** \brief Create a widge to refine the filter
+     * \param[in] segmentation refiner's segmentation.
+     * \param[in] context application context.
+     * \param[in] parent QWidget parent of the one being created.
      *
      */
-    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context &context) = 0;
+    virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context &context, QWidget *parent = nullptr) = 0;
   };
 
   using FilterRefinerSPtr = std::shared_ptr<FilterRefiner>;
