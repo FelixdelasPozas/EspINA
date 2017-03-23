@@ -152,7 +152,6 @@ QVariant SegmentationAdapter::data(int role) const
       const QString WS  = "&nbsp;"; // White space
       const QString TAB = WS+WS+WS;
       QString boundsInfo;
-      QString filterInfo;
 
       if (output()->isValid()) // It shouldn't exist a segmentation without filter as it was checked before, but maybe there is some weird condition in which we should check it
       {
@@ -169,7 +168,7 @@ QVariant SegmentationAdapter::data(int role) const
         boundsInfo = tr("<b>Bounds:</b><br>");
         boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm]<br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm]<br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm]").arg(bounds[4]).arg(bounds[5]);
+        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm]<br>").arg(bounds[4]).arg(bounds[5]);
       }
 
       QString categoryInfo;
@@ -182,24 +181,32 @@ QVariant SegmentationAdapter::data(int role) const
       tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
       tooltip = tooltip.append(categoryInfo);
       tooltip = tooltip.append(boundsInfo);
-      bool addBreakLine = false;
 
-      if (!filterInfo.isEmpty())
-      {
-        tooltip      = tooltip.append(filterInfo);
-        addBreakLine = true;
-      }
-
+      QString extTooltip;
       for(auto extension : m_segmentation->readOnlyExtensions())
       {
-        auto extToolTip = extension->toolTipText();
-        if (!extToolTip.isEmpty())
+        auto extensionTooltip = extension->toolTipText();
+        if (!extensionTooltip.isEmpty())
         {
-          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+          extTooltip = extTooltip.append(extensionTooltip).append("<br>");
+        }
+      }
 
-          tooltip = tooltip.append(extToolTip);
+      if(!extTooltip.isEmpty())
+      {
+        tooltip = tooltip.append(tr("<b>Extensions:</b><br>%1").arg(extTooltip));
+      }
 
-          addBreakLine = true;
+      while(tooltip.endsWith("<br>"))
+      {
+        auto index = tooltip.lastIndexOf("<br>");
+        if(index != -1)
+        {
+          tooltip = tooltip.remove(index, 4);
+        }
+        else
+        {
+          break;
         }
       }
 

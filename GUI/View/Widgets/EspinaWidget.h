@@ -52,15 +52,11 @@ namespace ESPINA
         class EspinaGUI_EXPORT EspinaWidget
         {
           public:
-            /** \brief Default constructor.
+            /** \brief EspinaWidget class virtual destructor.
              *
              */
-            explicit EspinaWidget();
-
-            /** \brief Virtual destructor.
-             *
-             */
-            virtual ~EspinaWidget();
+            virtual ~EspinaWidget()
+            {}
 
             /** \brief Initializes the widget for the given view.
              * \param[in] view Espina view.

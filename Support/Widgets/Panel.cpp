@@ -32,8 +32,8 @@ Panel::Panel(Support::Context &context, QWidget* parent)
 }
 
 //------------------------------------------------------------------------
-Panel::Panel(const QString& title, Support::Context &context, QWidget* parent, Qt::WindowFlags flags)
-: QDockWidget(title, parent, flags)
+Panel::Panel(const QString& title, Support::Context &context, QWidget* parent)
+: QDockWidget(title, parent)
 , WithContext(context)
 {
 }
