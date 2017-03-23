@@ -49,6 +49,7 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QThread>
 
 #include "GUI/Model/ViewItemAdapter.h"
 using namespace ESPINA;
@@ -146,6 +147,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
+  abortTasks();
+
   delete m_categorySelector;
   delete m_seedThreshold;
   delete m_roi;
@@ -346,32 +349,33 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if (validSeed)
   {
-    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    struct Data data;
+    data.Filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    data.Category = m_categorySelector->selectedCategory();
 
-    filter->setSeed(seed);
-    filter->setUpperThreshold(m_seedThreshold->upperThreshold());
-    filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
-    filter->setDescription(tr("Grey Level Segmentation"));
+    data.Filter->setSeed(seed);
+    data.Filter->setUpperThreshold(m_seedThreshold->upperThreshold());
+    data.Filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
+    data.Filter->setDescription(tr("Grey Level Segmentation"));
 
     if(m_applyClose->isChecked())
     {
-      filter->setClosingRadius(m_close->value());
+      data.Filter->setClosingRadius(m_close->value());
     }
 
     if(currentROI)
     {
-      filter->setROI(currentROI->clone());
+      data.Filter->setROI(currentROI->clone());
     }
 
-    m_executingTasks[filter.get()]   = filter;
-    m_executingFilters[filter.get()] = filter;
+    m_tasks[data.Filter.get()] = data;
 
-    showTaskProgress(filter);
+    showTaskProgress(data.Filter);
 
-    connect(filter.get(), SIGNAL(finished()),
-            this,         SLOT(createSegmentation()));
+    connect(data.Filter.get(), SIGNAL(finished()),
+            this,              SLOT(createSegmentation()));
 
-    Task::submit(filter);
+    Task::submit(data.Filter);
 
     if (currentROI == m_context.roiProvider()->currentROI())
     {
@@ -394,7 +398,7 @@ void SeedGrowSegmentationTool::createSegmentation()
 
   if (!filter->isAborted())
   {
-    auto adapter = m_executingTasks[filter];
+    auto data = m_tasks[filter];
 
     if (filter->numberOfOutputs() != 1)
     {
@@ -402,12 +406,8 @@ void SeedGrowSegmentationTool::createSegmentation()
       throw EspinaException(message, message);
     }
 
-    auto segmentation = m_context.factory()->createSegmentation(adapter, 0);
-
-    auto category = m_categorySelector->selectedCategory();
-    Q_ASSERT(category);
-
-    segmentation->setCategory(category);
+    auto segmentation = m_context.factory()->createSegmentation(data.Filter, 0);
+    segmentation->setCategory(data.Category);
 
     SampleAdapterSList samples;
     samples << QueryAdapter::sample(inputChannel());
@@ -418,7 +418,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
     undoStack->endMacro();
 
-    auto sgsFilter = m_executingFilters[filter];
+    auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(data.Filter);
     if(sgsFilter->isTouchingROI())
     {
       auto message = tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString());
@@ -431,8 +431,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     getSelection()->set(toViewItemList(segmentation.get()));
   }
 
-  m_executingFilters.remove(filter);
-  m_executingTasks.remove(filter);
+  m_tasks.remove(filter);
 }
 
 //-----------------------------------------------------------------------------
@@ -561,4 +560,22 @@ void SeedGrowSegmentationTool::onCloseStateChanged(bool value)
 {
   m_settings->setApplyClose(value);
   m_close->setVisible(value);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::abortTasks()
+{
+  for(auto task: m_tasks)
+  {
+    disconnect(task.Filter.get(), SIGNAL(finished()),
+               this,              SLOT(createSegmentation()));
+
+    task.Filter->abort();
+    if(!task.Filter->thread()->wait(500))
+    {
+      task.Filter->thread()->terminate();
+    }
+  }
+
+  m_tasks.clear();
 }

@@ -48,8 +48,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <QVBoxLayout>
-
-using ESPINA::GUI::View::Widgets::PlanarSplitWidgetPtr;
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -136,10 +135,18 @@ SplitTool::SplitTool(Support::Context &context)
 //------------------------------------------------------------------------
 SplitTool::~SplitTool()
 {
+  if(isChecked()) setChecked(false);
+
   disconnect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
              this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
 
-  delete m_apply;
+  disconnect(this,  SIGNAL(toggled(bool)),
+             this,  SLOT(toggleWidgetsVisibility(bool)));
+
+  disconnect(m_apply, SIGNAL(clicked(bool)),
+             this,  SLOT(applyCurrentState()));
+
+  abortTasks();
 }
 
 //-----------------------------------------------------------------------------
@@ -152,7 +159,6 @@ void SplitTool::initSplitWidgets()
 
   addSettingsWidget(m_apply);
 }
-
 
 //------------------------------------------------------------------------
 void SplitTool::showCuttingPlane()
@@ -213,6 +219,8 @@ void SplitTool::applyCurrentState()
   filter->setDescription(tr("Split %1").arg(selectedSeg->data(Qt::DisplayRole).toString()));
 
   showTaskProgress(filter);
+
+  selectedSeg->setBeingModified(true);
 
   auto output = selectedSeg->output();
   VolumeBounds bounds(output->bounds(), output->spacing());
@@ -333,7 +341,7 @@ void SplitTool::createSegmentations()
 
       for(auto i: {0, 1})
       {
-        auto segmentation  = getFactory()->createSegmentation(m_executingTasks[filter].adapter, i);
+        auto segmentation  = getFactory()->createSegmentation(m_executingTasks[filter].filter, i);
         segmentation->setCategory(category);
 
         segmentationsList << segmentation;
@@ -347,6 +355,8 @@ void SplitTool::createSegmentations()
       undoStack->endMacro();
 
       deactivateEventHandler();
+
+      m_executingTasks[filter].segmentation->setBeingModified(false);
 
       getSelection()->clear();
       getSelection()->set(toViewItemList(segmentations[1]));
@@ -374,4 +384,25 @@ bool SplitTool::acceptsNInputs(int n) const
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
   return EditTool::acceptsVolumetricSegmentations(segmentations) && segmentations.size() == 1;
+}
+
+//------------------------------------------------------------------------
+void SplitTool::abortTasks()
+{
+  for(auto data: m_executingTasks)
+  {
+    disconnect(data.filter.get(), SIGNAL(finished()),
+               this,               SLOT(createSegmentations()));
+
+    data.filter->abort();
+
+    data.segmentation->setBeingModified(false);
+
+    if(!data.filter->thread()->wait(500))
+    {
+      data.filter->thread()->terminate();
+    }
+  }
+
+  m_executingTasks.clear();
 }

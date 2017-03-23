@@ -45,29 +45,31 @@ namespace ESPINA
   {
     Q_OBJECT
 
-    struct ScheduledTask
-    {
-      static const unsigned MAX_CICLES = 100;
+//    struct ScheduledTask
+//    {
+//      static const unsigned MAX_CICLES = 100;
+//
+//      explicit ScheduledTask(TaskSPtr task)
+//      : Task(task)
+//      , Cicles(MAX_CICLES)
+//      {}
+//
+//      TaskSPtr Task;
+//      unsigned Cicles;
+//
+//      bool consumeCicle()
+//      {
+//        return --Cicles > 0;
+//      }
+//
+//      void restoreCicles()
+//      { Cicles = MAX_CICLES; }
+//
+//      bool operator==(const ScheduledTask &rhs)
+//      { return Task == rhs.Task; }
+//    };
 
-      ScheduledTask(TaskSPtr task)
-      : Task(task)
-      , Cicles(MAX_CICLES)
-      {}
-
-      TaskSPtr Task;
-      unsigned Cicles;
-
-      bool consumeCicle()
-      {
-        return --Cicles > 0;
-      }
-
-      void restoreCicles()
-      { Cicles = MAX_CICLES; }
-
-      bool operator==(const ScheduledTask &rhs)
-      { return Task == rhs.Task; }
-    };
+    using ScheduledTask = TaskSPtr;
 
     class TaskQueue
     : public QList<ScheduledTask>

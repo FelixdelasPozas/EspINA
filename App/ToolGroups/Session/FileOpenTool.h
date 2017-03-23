@@ -26,8 +26,8 @@
 
 namespace ESPINA
 {
+  class EspinaMainWindow;
 
-class EspinaMainWindow;
   /** \class FileOpenTool
    * \brief Class to load session files in a background task.
    *
@@ -53,11 +53,20 @@ class EspinaMainWindow;
                           Support::Context& context,
                           EspinaErrorHandlerSPtr handler);
 
+    /** \brief FileOpenTool class virtual destructor.
+     *
+     */
+    virtual ~FileOpenTool();
+
     /** \brief Returns the list of files that has been loaded/try to load in the last attempt.
      *
      */
     QStringList loadedFiles() const;
 
+    /** \brief Sets the application pointer for the close session callback when opening a new session.
+     * \param[in] callback application main window pointer.
+     *
+     */
     void setCloseCallback(EspinaMainWindow *callback);
 
   public slots:
@@ -83,10 +92,9 @@ class EspinaMainWindow;
     void onTriggered();
 
   private:
-    EspinaErrorHandlerSPtr    m_errorHandler;  /** application error handler */
-    QStringList               m_loadedFiles; /** list of file names to be loaded in the task. */
-
-    EspinaMainWindow *m_closeCallaback;
+    EspinaErrorHandlerSPtr m_errorHandler;  /** application error handler                                                    */
+    QStringList            m_loadedFiles;   /** list of file names to be loaded in the task.                                 */
+    EspinaMainWindow      *m_closeCallback; /** application pointer, used to close current session before loading a new one. */
   };
 }
 

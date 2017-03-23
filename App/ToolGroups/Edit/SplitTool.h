@@ -76,7 +76,7 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      SplitTool(Support::Context &context);
+      explicit SplitTool(Support::Context &context);
 
       /** \brief SplitTool class virtual destructor.
        *
@@ -122,6 +122,7 @@ namespace ESPINA
       void onWidgetDestroyed(QObject *object);
 
       /** \brief Helper method called by the widget that has finished defining the splitting plane.
+       * \param[in] widget planer split widget with the defined splitting plane.
        *
        */
       void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
@@ -132,6 +133,10 @@ namespace ESPINA
       void onSelectionChanged();
 
     private slots:
+      /** \brief Shows/hides the splitting widget.
+       * \param[in] enable true to enable and make visible and false otherwise.
+       *
+       */
       void toggleWidgetsVisibility(bool enable);
 
       /** \brief Splits the segmentation using the current state of the tool.
@@ -155,6 +160,11 @@ namespace ESPINA
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
+      /** \brief Aborts the currently executing tasks.
+       *
+       */
+      void abortTasks();
+
     private:
       using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
@@ -164,7 +174,7 @@ namespace ESPINA
        */
       struct Data
       {
-        FilterSPtr              adapter;      /** filter . */
+        FilterSPtr              filter;       /** filter . */
         SegmentationAdapterSPtr segmentation; /** segmentation to cut. */
 
         /** \brief Data constructor.
@@ -172,14 +182,15 @@ namespace ESPINA
          * \param[in] segmentation segmentation to cut.
          *
          */
-        Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
-        : adapter{adapterP}, segmentation{segmentationP}
+        Data(FilterSPtr filterP, SegmentationAdapterSPtr segmentationP)
+        : filter{filterP}, segmentation{segmentationP}
         {};
 
         /** \brief Data empty constructor.
          *
          */
-        Data(): adapter{nullptr}, segmentation{nullptr}
+        Data()
+        : filter{nullptr}, segmentation{nullptr}
         {};
       };
 

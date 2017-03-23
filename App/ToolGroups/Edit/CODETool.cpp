@@ -28,7 +28,9 @@
 #include <Undo/ReplaceOutputCommand.h>
 #include <GUI/Widgets/ToolButton.h>
 
+// Qt
 #include <QHBoxLayout>
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -56,8 +58,12 @@ CODEToolBase::CODEToolBase(const Filter::Type type,
 }
 
 //------------------------------------------------------------------------
-void CODEToolBase::abortOperation()
+CODEToolBase::~CODEToolBase()
 {
+  disconnect(m_apply, SIGNAL(clicked(bool)),
+             this,    SLOT(onApplyClicked()));
+
+  abortTasks();
 }
 
 //------------------------------------------------------------------------
@@ -70,13 +76,13 @@ void CODEToolBase::initOptionWidgets()
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
 
-  auto apply = Styles::createToolButton(":/espina/apply.svg", tr("Apply"));
+  m_apply = Styles::createToolButton(":/espina/apply.svg", tr("Apply"));
 
-  connect(apply, SIGNAL(clicked(bool)),
-          this,  SLOT(onApplyClicked()));
+  connect(m_apply, SIGNAL(clicked(bool)),
+          this,    SLOT(onApplyClicked()));
 
   addSettingsWidget(m_radius);
-  addSettingsWidget(apply);
+  addSettingsWidget(m_apply);
 }
 
 //------------------------------------------------------------------------
@@ -180,4 +186,25 @@ void CODEToolBase::onTaskFinished()
   markAsBeingModified(taskContext.Segmentation, false);
 
   m_executingTasks.remove(filter);
+}
+
+//------------------------------------------------------------------------
+void CODEToolBase::abortTasks()
+{
+  for(auto task: m_executingTasks)
+  {
+    disconnect(task.Task.get(), SIGNAL(finished()),
+               this,            SLOT(onTaskFinished()));
+
+    task.Task->abort();
+
+    markAsBeingModified(task.Segmentation, true);
+
+    if(!task.Task->thread()->wait(100))
+    {
+      task.Task->thread()->terminate();
+    }
+  }
+
+  m_executingTasks.clear();
 }

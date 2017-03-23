@@ -36,7 +36,6 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Utils/SelectionUtils.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
 #include <Undo/AddCategoryCommand.h>
@@ -113,9 +112,7 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 //-----------------------------------------------------------------------------
 AppositionSurfacePlugin::~AppositionSurfacePlugin()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Apposition Surface Plugin";
-//   qDebug() << "********************************************************";
+  abortTasks();
 }
 
 //-----------------------------------------------------------------------------
@@ -402,6 +399,12 @@ void AppositionSurfacePlugin::finishedTask()
 }
 
 //-----------------------------------------------------------------------------
+void ESPINA::AppositionSurfacePlugin::onAnalysisClosed()
+{
+  abortTasks();
+}
+
+//-----------------------------------------------------------------------------
 bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item)
 {
   bool result = false;
@@ -432,6 +435,20 @@ SegmentationAdapterPtr AppositionSurfacePlugin::segmentationSAS(SegmentationAdap
   }
 
   return sas;
+}
+
+//-----------------------------------------------------------------------------
+void AppositionSurfacePlugin::abortTasks()
+{
+  for(auto task: m_executingTasks)
+  {
+    disconnect(task.adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+
+    task.adapter.get()->abort();
+  }
+
+  m_executingTasks.clear();
+  m_finishedTasks.clear();
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)

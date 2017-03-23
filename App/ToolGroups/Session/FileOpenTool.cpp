@@ -41,12 +41,19 @@ using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
 FileOpenTool::FileOpenTool(const QString& id, const QString& icon, const QString& tooltip, Support::Context& context, EspinaErrorHandlerSPtr handler)
-: ProgressTool(id, icon, tooltip, context)
-, m_errorHandler{handler}
-, m_closeCallaback{nullptr}
+: ProgressTool   {id, icon, tooltip, context}
+, m_errorHandler {handler}
+, m_closeCallback{nullptr}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered()));
+}
+
+//----------------------------------------------------------------------------
+FileOpenTool::~FileOpenTool()
+{
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(onTriggered()));
 }
 
 //----------------------------------------------------------------------------
@@ -58,7 +65,7 @@ QStringList FileOpenTool::loadedFiles() const
 //----------------------------------------------------------------------------
 void FileOpenTool::setCloseCallback(EspinaMainWindow *callback)
 {
-  m_closeCallaback = callback;
+  m_closeCallback = callback;
 }
 
 //----------------------------------------------------------------------------
@@ -73,7 +80,7 @@ void FileOpenTool::onTriggered()
 
   if (!files.isEmpty())
   {
-    if (m_closeCallaback && !m_closeCallaback->closeCurrentAnalysis())
+    if (m_closeCallback && !m_closeCallback->closeCurrentAnalysis())
     {
       return;
     }

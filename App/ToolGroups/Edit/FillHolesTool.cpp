@@ -25,6 +25,9 @@
 #include <Undo/ReplaceOutputCommand.h>
 #include <App/ToolGroups/Edit/EditToolGroup.h>
 
+// Qt
+#include <QThread>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
@@ -37,12 +40,24 @@ FillHolesTool::FillHolesTool(Support::Context &context)
 }
 
 //------------------------------------------------------------------------
-void FillHolesTool::abortOperation()
+void FillHolesTool::abortTasks()
 {
-  for(auto filter: m_executingTasks.keys())
+  for(auto data: m_executingTasks)
   {
-    filter->abort();
+    disconnect(data.Filter.get(), SIGNAL(finished()),
+               this,              SLOT(onTaskFinished()));
+
+    data.Filter->abort();
+
+    markAsBeingModified(data.Segmentation, false);
+
+    if(!data.Filter->thread()->wait(500))
+    {
+      data.Filter->thread()->terminate();
+    }
   }
+
+  m_executingTasks.clear();
 }
 
 //------------------------------------------------------------------------

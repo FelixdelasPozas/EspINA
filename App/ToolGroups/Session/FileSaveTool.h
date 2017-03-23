@@ -103,6 +103,11 @@ namespace ESPINA
        */
       void onSaveThreadFinished();
 
+      /** \brief Aborts the running task and frees it. Connected from the main window.
+       *
+       */
+      void abortTask();
+
     signals:
       void aboutToSaveSession();
 

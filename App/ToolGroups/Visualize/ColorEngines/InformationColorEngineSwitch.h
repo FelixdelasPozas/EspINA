@@ -35,73 +35,83 @@ namespace ESPINA
   class InformationColorEngineSwitch
   : public Support::Widgets::ColorEngineSwitch
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    /** \brief InformationColorEngineSwitch class constructor.
-     * \param[in] context application context.
-     *
-     */
-    explicit InformationColorEngineSwitch(Support::Context& context);
+    public:
+      /** \brief InformationColorEngineSwitch class constructor.
+       * \param[in] context application context.
+       *
+       */
+      explicit InformationColorEngineSwitch(Support::Context& context);
 
-    using InformationKey = Core::SegmentationExtension::InformationKey;
+      /** \brief InformationColorEngineSwitch class virtual destructor.
+       *
+       */
+      virtual ~InformationColorEngineSwitch();
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+      using InformationKey = Core::SegmentationExtension::InformationKey;
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings);
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings);
 
-  private:
-    /** \brief Creates the property selection widget.
-     *
-     */
-    void createPropertySelector();
+      virtual void saveSettings(std::shared_ptr<QSettings> settings);
 
-    /** \brief Creates the color range widget.
-     *
-     */
-    void createColorRange();
+    private:
+      /** \brief Creates the property selection widget.
+       *
+       */
+      void createPropertySelector();
 
-    /** \brief Helper method to return the color engine.
-     *
-     */
-    GUI::ColorEngines::InformationColorEngine *informationColorEngine() const;
+      /** \brief Creates the color range widget.
+       *
+       */
+      void createColorRange();
 
-    /** \brief Updates the colors of the segmentations and the property selection label widget.
-     *
-     */
-    void update();
+      /** \brief Helper method to return the color engine.
+       *
+       */
+      GUI::ColorEngines::InformationColorEngine *informationColorEngine() const;
 
-    /** \brief Helper method to update the property selection label widget.
-     *
-     */
-    void updateLink();
+      /** \brief Updates the colors of the segmentations and the property selection label widget.
+       *
+       */
+      void update();
 
-  private slots:
-    /** \brief Displays the dialog to chenge the coloring property and manages the result.
-     *
-     */
-    void changeProperty();
+      /** \brief Helper method to update the property selection label widget.
+       *
+       */
+      void updateLink();
 
-    /** \brief Launches the task to get the minimum and maximum values of the selected property.
-     *
-     */
-    void updateRange();
+    private slots:
+      /** \brief Displays the dialog to chenge the coloring property and manages the result.
+       *
+       */
+      void changeProperty();
 
-    /** \brief Helper method to enable/disable the tool.
-     *
-     */
-    void onToolToggled(bool checked);
+      /** \brief Launches the task to get the minimum and maximum values of the selected property.
+       *
+       */
+      void updateRange();
 
-    /** \brief Helper method to check for the returning value of the task and to inform the user of
-     * any failure.
-     */
-    void onTaskFinished();
+      /** \brief Helper method to enable/disable the tool.
+       *
+       */
+      void onToolToggled(bool checked);
 
-  private:
-    InformationKey m_key;        /** coloring property.                                                                    */
-    bool           m_needUpdate; /** true if the coloring values needs to be updated.                                      */
-    TaskSPtr       m_task;       /** task to compute the maximum and minimum values of the property for all segmentations. */
-    QLabel        *m_property;   /** property link label widget.                                                           */
+      /** \brief Helper method to check for the returning value of the task and to inform the user of
+       * any failure.
+       */
+      void onTaskFinished();
+
+      /** \brief Aborts the currently running task.
+       *
+       */
+      void abortTask();
+
+    private:
+      InformationKey m_key;        /** coloring property.                                                                    */
+      bool           m_needUpdate; /** true if the coloring values needs to be updated.                                      */
+      TaskSPtr       m_task;       /** task to compute the maximum and minimum values of the property for all segmentations. */
+      QLabel        *m_property;   /** property link label widget.                                                           */
   };
 
   //-----------------------------------------------------------------------------

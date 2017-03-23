@@ -32,6 +32,9 @@
 #include <Support/Settings/Settings.h>
 #include <App/AutoSave.h>
 
+// Qt
+#include <QThread>
+
 using namespace ESPINA;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
@@ -47,8 +50,8 @@ FileSaveTool::FileSaveTool(const QString &id,
                            Context       &context,
                            AnalysisSPtr  &analysis,
                            EspinaErrorHandlerSPtr handler)
-: ProgressTool  (id, icon, tooltip, context)
-, m_analysis    (analysis)
+: ProgressTool  {id, icon, tooltip, context}
+, m_analysis    {analysis}
 , m_errorHandler{handler}
 , m_askAlways   {false}
 , m_icon        {icon}
@@ -63,6 +66,10 @@ FileSaveTool::FileSaveTool(const QString &id,
 //----------------------------------------------------------------------------
 FileSaveTool::~FileSaveTool()
 {
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(saveAnalysis()));
+
+  abortTask();
 }
 
 //----------------------------------------------------------------------------
@@ -221,4 +228,23 @@ QIcon FileSaveTool::saveIcon() const
 QIcon FileSaveTool::defaultIcon() const
 {
   return m_icon;
+}
+
+//----------------------------------------------------------------------------
+void FileSaveTool::abortTask()
+{
+  if(m_thread)
+  {
+    disconnect(m_thread.get(), SIGNAL(finished()),
+               this,           SLOT(onSaveThreadFinished()));
+
+    m_thread->abort();
+
+    if(!m_thread->thread()->wait(5000))
+    {
+      m_thread->thread()->terminate();
+    }
+
+    m_thread = nullptr;
+  }
 }
