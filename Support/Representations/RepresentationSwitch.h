@@ -31,6 +31,10 @@
 
 namespace ESPINA
 {
+  /** \class RepresentationSwitch
+   * \brief Tool button implementation for representation switches.
+   *
+   */
   class EspinaSupport_EXPORT RepresentationSwitch
   : public Support::Widgets::ProgressTool
   {

@@ -65,8 +65,8 @@ namespace ESPINA
 
       enum class Mode
       {
-        SINGLE_STROKE,
-        MULTI_STROKE
+        SINGLE_STROKE, /** single stroke operation mode.    */
+        MULTI_STROKE   /** multiple strokes operation mode. */
       };
 
     public:
@@ -74,7 +74,7 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      ManualSegmentTool(Support::Context &context);
+      explicit ManualSegmentTool(Support::Context &context);
 
       /** \brief ManualSegmentTool class virtual destructor.
        *
@@ -121,8 +121,14 @@ namespace ESPINA
        */
       void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
+      /** \brief Returns true if the tool is in segmentation creation mode and false if it's in the modify segmentation mode.
+       *
+       */
       bool isCreationMode() const;
 
+      /** \brief Returns the segmentation being modified.
+       *
+       */
       SegmentationAdapterSPtr referenceSegmentation() const;
 
     private slots:
@@ -186,20 +192,20 @@ namespace ESPINA
       void clearTemporalPipeline() const;
 
     protected:
-      ModelAdapterSPtr                   m_model;         /** current analysis model. */
-      ModelFactorySPtr                   m_factory;       /** current analysis factory. */
+      ModelAdapterSPtr                   m_model;         /** current analysis model.                */
+      ModelFactorySPtr                   m_factory;       /** current analysis factory.              */
       GUI::ColorEngines::ColorEngineSPtr m_colorEngine;   /** application color engine for coloring. */
-      FilterFactorySPtr                  m_filterFactory; /** tool's filter factory. */
+      FilterFactorySPtr                  m_filterFactory; /** tool's filter factory.                 */
 
       using DrawingTool = GUI::Widgets::DrawingWidget;
 
-      DrawingTool        m_drawingWidget;      /** drawing widget. */
-      QPushButton       *m_multiStroke;        /** multi stroke button. */
-      Mode               m_mode;               /** edition mode: paint/erase. */
+      DrawingTool        m_drawingWidget;      /** drawing widget.                                               */
+      QPushButton       *m_multiStroke;        /** multi stroke button.                                          */
+      Mode               m_mode;               /** edition mode: paint/erase.                                    */
       bool               m_createSegmentation; /** true to create a segmentation when a mask object is received. */
-      ViewItemAdapterPtr m_referenceItem;      /** item used to take spacing reference. */
+      ViewItemAdapterPtr m_referenceItem;      /** item used to take spacing reference.                          */
 
-      MaskPainterSPtr m_currentPainter; /** current painter. */
+      MaskPainterSPtr                   m_currentPainter;   /** current painter.                                 */
       mutable SliceEditionPipelineSPtr  m_temporalPipeline; /** temporal pipeline to show while the user paints. */
   };
 } // namespace ESPINA

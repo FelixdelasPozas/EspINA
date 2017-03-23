@@ -33,8 +33,8 @@ SegmentationSliceSwitch::SegmentationSliceSwitch(const QString &id,
                                                  std::shared_ptr<SegmentationSlicePoolSettings>  settings,
                                                  ViewTypeFlags                                   supportedViews,
                                                  Support::Context                               &context)
-: BasicRepresentationSwitch(id, manager, supportedViews, context)
-, m_settings{settings}
+: BasicRepresentationSwitch{id, manager, supportedViews, context}
+, m_settings               {settings}
 {
   initWidgets();
 
@@ -45,6 +45,8 @@ SegmentationSliceSwitch::SegmentationSliceSwitch(const QString &id,
 //----------------------------------------------------------------------------
 SegmentationSliceSwitch::~SegmentationSliceSwitch()
 {
+  disconnect(m_settings.get(), SIGNAL(modified()),
+             this,             SLOT(onSettingsModified()));
 }
 
 //----------------------------------------------------------------------------

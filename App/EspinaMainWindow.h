@@ -29,7 +29,6 @@
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/IssueList/IssueListDialog.h>
 #include <Extensions/LibraryExtensionFactory.h>
-#include "ToolGroups/Visualize/VisualizeToolGroup.h"
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
 #include "ToolGroups/Edit/EditToolGroup.h"
 #include "ToolGroups/Analyze/AnalyzeToolGroup.h"
@@ -335,7 +334,7 @@ namespace ESPINA
     RestrictToolGroup  *m_restrictToolGroup;
     ToolGroup          *m_segmentToolGroup;
     EditToolGroup      *m_refineToolGroup;
-    VisualizeToolGroup *m_visualizeToolGroup;
+    ToolGroup          *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;
 
     std::shared_ptr<FileOpenTool> m_openFileTool;

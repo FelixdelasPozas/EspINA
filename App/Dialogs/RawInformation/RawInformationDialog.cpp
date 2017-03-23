@@ -22,7 +22,6 @@
 #include "RawInformationDialog.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Utils/SelectionUtils.h>
 #include <Support/Widgets/TabularReport.h>
 #include <QSettings>
 #include <QDialogButtonBox>

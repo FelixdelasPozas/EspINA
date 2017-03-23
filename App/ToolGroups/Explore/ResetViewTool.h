@@ -30,30 +30,33 @@ class QAction;
 
 namespace ESPINA
 {
-
+  /** \class ResetViewTool
+   * \brief Tool for reset view action.
+   *
+   */
   class ResetViewTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief ResetViewTool class constructor.
-     */
-    explicit ResetViewTool(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief ResetViewTool class constructor.
+       */
+      explicit ResetViewTool(Support::Context &context);
 
-    /** \brief ResetViewTool class destructor.
-     *
-     */
-    virtual ~ResetViewTool();
+      /** \brief ResetViewTool class destructor.
+       *
+       */
+      virtual ~ResetViewTool();
 
-  private slots:
-    /** \brief Slot to activate when the action gets triggered. Resets the views
-     * via ViewManager.
-     *
-     */
-    void resetViews();
+    private slots:
+      /** \brief Slot to activate when the action gets triggered. Resets the views
+       * via ViewManager.
+       *
+       */
+      void resetViews();
 
-  private:
-    GUI::View::ViewState &m_viewState;
+    private:
+      GUI::View::ViewState &m_viewState; /** application's view state reference. */
   };
 } // namespace ESPINA
 

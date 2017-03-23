@@ -42,23 +42,19 @@ SegmentationMeshSwitch::SegmentationMeshSwitch(GUI::Representations::Representat
 , m_smoothEnabled      {false}
 {
   initWidgets();
-
-  for(auto pool: meshManager->pools())
-  {
-    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
-            this,       SLOT(showTaskProgress(TaskSPtr)));
-  }
-
-  for(auto pool: smoothedMeshManager->pools())
-  {
-    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
-            this,       SLOT(showTaskProgress(TaskSPtr)));
-  }
 }
 
 //----------------------------------------------------------------------------
 SegmentationMeshSwitch::~SegmentationMeshSwitch()
 {
+  if(!m_smoothEnabled)
+  {
+    disconnectMeshManagersPools();
+  }
+  else
+  {
+    disconnectSmoothMeshManagersPools();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -72,10 +68,12 @@ void SegmentationMeshSwitch::showRepresentations(const GUI::Representations::Fra
 {
   if(m_smooth->value() != 0)
   {
+    connectSmoothMeshManagersPools();
     m_smoothedMeshManager->show(frame);
   }
   else
   {
+    connectMeshManagersPools();
     m_meshManager->show(frame);
   }
 }
@@ -86,10 +84,12 @@ void SegmentationMeshSwitch::hideRepresentations(const GUI::Representations::Fra
   if(m_smooth->value() != 0)
   {
     m_smoothedMeshManager->hide(frame);
+    disconnectSmoothMeshManagersPools();
   }
   else
   {
     m_meshManager->hide(frame);
+    disconnectMeshManagersPools();
   }
 }
 
@@ -115,9 +115,9 @@ void SegmentationMeshSwitch::onSmoothChanged(int value)
 {
   if(m_settings->smoothValue() != value)
   {
-    auto smoothEnabled = (value != 0);
-
     m_settings->setSmoothValue(value);
+
+    auto smoothEnabled = (value != 0);
 
     if (smoothEnabled != m_smoothEnabled)
     {
@@ -160,16 +160,20 @@ void SegmentationMeshSwitch::switchManagers()
   {
     m_meshManager->blockSignals(true);
     m_meshManager->hide(frame);
+    disconnectMeshManagersPools();
     m_meshManager->blockSignals(false);
 
+    connectSmoothMeshManagersPools();
     m_smoothedMeshManager->show(frame);
   }
   else
   {
     m_smoothedMeshManager->blockSignals(true);
     m_smoothedMeshManager->hide(frame);
+    disconnectSmoothMeshManagersPools();
     m_smoothedMeshManager->blockSignals(false);
 
+    connectMeshManagersPools();
     m_meshManager->show(frame);
   }
 }
@@ -182,5 +186,45 @@ void SegmentationMeshSwitch::invalidateRepresentationsImplementation(ViewItemAda
   for(auto pool: manager->pools())
   {
     pool->invalidateRepresentations(items, frame);
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshSwitch::connectMeshManagersPools()
+{
+  for(auto pool: m_meshManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshSwitch::connectSmoothMeshManagersPools()
+{
+  for(auto pool: m_smoothedMeshManager->pools())
+  {
+    connect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+            this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshSwitch::disconnectMeshManagersPools()
+{
+  for(auto pool: m_meshManager->pools())
+  {
+    disconnect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+               this,       SLOT(showTaskProgress(TaskSPtr)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationMeshSwitch::disconnectSmoothMeshManagersPools()
+{
+  for(auto pool: m_smoothedMeshManager->pools())
+  {
+    disconnect(pool.get(), SIGNAL(taskStarted(TaskSPtr)),
+               this,       SLOT(showTaskProgress(TaskSPtr)));
   }
 }

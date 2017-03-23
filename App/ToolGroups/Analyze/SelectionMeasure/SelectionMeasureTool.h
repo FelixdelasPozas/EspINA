@@ -32,6 +32,10 @@ namespace ESPINA
   class RenderView;
   class SelectionMeasureWidget;
 
+  /** \class SelectionMeasureTool
+   * \brief Tool button for selection measure tool.
+   *
+   */
   class SelectionMeasureTool
   : public Support::Widgets::ProgressTool
   {
@@ -47,17 +51,19 @@ namespace ESPINA
      */
     virtual ~SelectionMeasureTool();
 
-    virtual void abortOperation();
-
   private slots:
+    /** \brief Shows/hides the tools representations.
+     * \param[in] value true to show the representations and false otherwise.
+     *
+     */
     void onToolActivated(bool value);
 
   private:
     using ViewState              = GUI::View::ViewState;
     using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-    ViewState             &m_viewState;
-    TemporalPrototypesSPtr m_factory;
+    ViewState             &m_viewState; /** application's view state reference. */
+    TemporalPrototypesSPtr m_factory;   /** tool's representations factory.      */
   };
 } // namespace ESPINA
 

@@ -56,11 +56,13 @@ SelectionMeasureTool::SelectionMeasureTool(Support::Context &context)
 //----------------------------------------------------------------------------
 SelectionMeasureTool::~SelectionMeasureTool()
 {
-}
+  if(isChecked())
+  {
+    setChecked(false);
+  }
 
-//----------------------------------------------------------------------------
-void SelectionMeasureTool::abortOperation()
-{
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(onToolActivated(bool)));
 }
 
 //----------------------------------------------------------------------------

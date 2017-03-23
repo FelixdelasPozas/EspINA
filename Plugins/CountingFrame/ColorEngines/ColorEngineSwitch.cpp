@@ -29,6 +29,8 @@ using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
+const QString OPACITY_KEY = QString("Counting Frame Representation Opacity");
+
 //-----------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(CountingFrameManager *manager, CountingFrameColorEngineSPtr engine, Support::Context& context)
 : Support::Widgets::ColorEngineSwitch(engine, ":color_by_cf.svg", context)
@@ -66,6 +68,22 @@ void ColorEngineSwitch::onOpacityChanged(int value)
 
   auto segmentations = toRawList<ViewItemAdapter>(getModel()->segmentations());
   getViewState().invalidateRepresentationColors(segmentations);
+}
+
+//-----------------------------------------------------------------------------
+void ColorEngineSwitch::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  saveCheckedState(settings);
+
+  settings->setValue(OPACITY_KEY, m_engine->exlcusionOpacity());
+}
+
+//-----------------------------------------------------------------------------
+void ColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  restoreCheckedState(settings);
+
+  m_engine->setExclusionOpacity(settings->value(OPACITY_KEY, 0.75).toDouble());
 }
 
 //-----------------------------------------------------------------------------

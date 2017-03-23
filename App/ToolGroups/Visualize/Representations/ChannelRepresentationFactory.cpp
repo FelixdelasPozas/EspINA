@@ -18,7 +18,6 @@
  */
 
 // ESPINA
-#include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <App/ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>

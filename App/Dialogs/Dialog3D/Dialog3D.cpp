@@ -39,7 +39,7 @@ Dialog3D::Dialog3D(Support::Context   &context)
 : QDialog          {DefaultDialogs::defaultParentWidget()}
 , WithContext      (context)
 , m_view3D         {context.viewState(), true}
-, m_representations("", "")
+, m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))
 , m_toolsSettings  {std::make_shared<QSettings>()}
 {
   setupUi(this);
@@ -55,11 +55,6 @@ Dialog3D::Dialog3D(Support::Context   &context)
   initView3D();
 
   restoreGeometryState();
-}
-
-//------------------------------------------------------------------------
-Dialog3D::~Dialog3D()
-{
 }
 
 //------------------------------------------------------------------------
@@ -89,6 +84,8 @@ void Dialog3D::showEvent(QShowEvent* event)
 {
   populateToolBar(&m_toolbar, m_representations.groupedTools());
 
+  restoreToolsSettings();
+
   QDialog::showEvent(event);
 }
 
@@ -96,6 +93,7 @@ void Dialog3D::showEvent(QShowEvent* event)
 void Dialog3D::closeEvent(QCloseEvent *event)
 {
   saveGeometryState();
+  saveToolsSettings();
 
   emit dialogVisible(false);
 
@@ -153,14 +151,10 @@ void Dialog3D::onToggled(bool checked)
 {
   if(checked)
   {
-    restoreToolsSettings();
-
     this->show();
   }
   else
   {
-    saveToolsSettings();
-
     this->hide();
   }
 
@@ -229,7 +223,7 @@ void Dialog3D::saveToolsSettings()
 
 //------------------------------------------------------------------------
 Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
-: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display 3D View"), context)
+: ProgressTool{"Dialog3DTool", ":espina/panel_3d.svg", tr("Display 3D View"), context}
 , m_dialog    {dialog}
 {
 }

@@ -53,9 +53,9 @@ public:
 
 //------------------------------------------------------------------------
 StackExplorer::StackExplorer(Support::Context &context)
-: Panel(tr("StackExplorer"), context)
-, m_channelProxy{new ChannelProxy(context.model())}
-, m_sort        {new QSortFilterProxyModel()}
+: Panel         {tr("StackExplorer"), context}
+, m_channelProxy{std::make_shared<ChannelProxy>(context.model())}
+, m_sort        {std::make_shared<QSortFilterProxyModel>()}
 , m_gui         {new CentralWidget()}
 {
   setObjectName("StackExplorer");
@@ -501,7 +501,7 @@ void StackExplorer::onActiveChannelChanged(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
-void ESPINA::StackExplorer::contextMenuEvent(QContextMenuEvent *e)
+void StackExplorer::contextMenuEvent(QContextMenuEvent *e)
 {
   ChannelAdapterList channels;
 

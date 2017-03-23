@@ -30,6 +30,10 @@ namespace ESPINA
   {
     class CountingFrameManager;
 
+    /** \class ColorEngineSwitch
+     * \brief Tool button for the counting frame coloring engine.
+     *
+     */
     class CountingFramePlugin_EXPORT ColorEngineSwitch
     : public Support::Widgets::ColorEngineSwitch
     {
@@ -42,6 +46,10 @@ namespace ESPINA
        *
        */
       explicit ColorEngineSwitch(CountingFrameManager *manager, CountingFrameColorEngineSPtr engine, Support::Context& context);
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
     private:
       /** \brief Helper method to initialize the widgets

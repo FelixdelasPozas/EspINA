@@ -157,7 +157,8 @@ namespace ESPINA
     /** \brief EditionToolGroup class virtual destructor.
      *
      */
-    virtual ~EditToolGroup();
+    virtual ~EditToolGroup()
+    {}
 
   private:
     /** \brief Registers the refiners in the factory.

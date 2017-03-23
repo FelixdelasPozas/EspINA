@@ -44,7 +44,7 @@ namespace ESPINA
      * \param[in] parent parent qobject raw pointer.
      *
      */
-    SegmentationFilterProxyModel(QObject *parent = nullptr);
+    explicit SegmentationFilterProxyModel(QObject *parent = nullptr);
 
   protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;

@@ -30,11 +30,6 @@ CountingFramePlugin::CountingFramePlugin()
 }
 
 //------------------------------------------------------------------------
-CountingFramePlugin::~CountingFramePlugin()
-{
-}
-
-//------------------------------------------------------------------------
 void CountingFramePlugin::init(Support::Context &context)
 {
   m_scheduler   = context.scheduler();

@@ -47,6 +47,8 @@ void ToolGroup::addTool(ToolSPtr tool)
 
   auto group = tool->groupWith();
 
+  if(group.isEmpty()) group = tr("Ungrouped");
+
   m_tools[group] << tool;
 
   auto &tools = m_tools[group];

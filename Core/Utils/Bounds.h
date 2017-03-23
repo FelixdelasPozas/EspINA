@@ -243,7 +243,7 @@ namespace ESPINA
    *
    *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
    */
-  NmVector3 EspinaCore_EXPORT upperrPoint(const Bounds &bounds);
+  NmVector3 EspinaCore_EXPORT upperPoint(const Bounds &bounds);
 
   /** \brief Add bounds to boundingBox
    * \param[in] boundingBox to be updated

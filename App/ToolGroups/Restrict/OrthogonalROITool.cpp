@@ -37,32 +37,44 @@
 
 using namespace ESPINA;
 
+/** \class ModifyOrthogonalRegion
+ * \brief QUndoCommand for orthogonal ROI modifications.
+ *
+ */
 class ModifyOrthogonalRegion
 : public QUndoCommand
 {
-public:
-  ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
-  : m_roi(roi)
-  , m_swap(bounds)
-  {}
+  public:
+    /** \brief ModifyOrthogonalRegion class constructor.
+     * \param[in] roi ROI being modified.
+     * \param[in] bounds new bounds.
+     *
+     */
+    ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
+    : m_roi {roi}
+    , m_swap{bounds}
+    {}
 
-  virtual void redo()
-  { swapBounds(); }
+    virtual void redo()
+    { swapBounds(); }
 
-  virtual void undo()
-  { swapBounds(); }
+    virtual void undo()
+    { swapBounds(); }
 
-private:
-  void swapBounds()
-  {
-    Bounds tmp = m_roi->bounds();
-    m_roi->resize(m_swap);
-    m_swap = tmp;
-  }
+  private:
+    /** \brief Swaps the old and new bounds.
+     *
+     */
+    void swapBounds()
+    {
+      Bounds tmp = m_roi->bounds();
+      m_roi->resize(m_swap);
+      m_swap = tmp;
+    }
 
-private:
-  ROISPtr m_roi;
-  Bounds  m_swap;
+  private:
+    ROISPtr m_roi;  /** ROI being modified. */
+    Bounds  m_swap; /** old/new bounds      */
 };
 
 using namespace ESPINA::GUI;
@@ -171,11 +183,6 @@ Bounds OrthogonalROITool::createRegion(const NmVector3 &centroid, const Nm xSize
   return Bounds{centroid[0] - xSize/2.0, centroid[0] + xSize/2.0,
                 centroid[1] - ySize/2.0, centroid[1] + ySize/2.0,
                 centroid[2] - zSize/2.0, centroid[2] + zSize/2.0 };
-}
-
-//-----------------------------------------------------------------------------
-void OrthogonalROITool::onToolGroupActivated()
-{
 }
 
 //-----------------------------------------------------------------------------

@@ -388,7 +388,7 @@ NmVector3 ESPINA::lowerPoint(const Bounds& bounds)
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 ESPINA::upperrPoint(const Bounds& bounds)
+NmVector3 ESPINA::upperPoint(const Bounds& bounds)
 {
   return NmVector3{bounds[1], bounds[3], bounds[5]};
 }

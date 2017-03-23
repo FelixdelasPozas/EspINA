@@ -61,12 +61,6 @@ namespace ESPINA
 
     void addRepresentation(const Representation &representation);
 
-    /** \brief Fill the view menu.
-     * \param[inout] menu to modify.
-     *
-     */
-    void createViewMenu(QMenu *menu);
-
     /** \brief Returns a reference to the XZ panel
      *
      */

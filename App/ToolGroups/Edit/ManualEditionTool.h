@@ -48,7 +48,7 @@ namespace ESPINA
      * \param[in] context to be used for this tool
      *
      */
-    ManualEditionTool(Support::Context &context);
+    explicit ManualEditionTool(Support::Context &context);
 
     /** \brief ManualEditionTool class virtual destructor.
      *
@@ -63,11 +63,21 @@ namespace ESPINA
 
     virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
+    /** \brief Updates the reference item of the spacing and updates the GUI.
+     *
+     */
     void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
 
   private:
+    /** \brief Modifies the current selected segmentation with the mask contents.
+     * \param[in] mask binary mask.
+     *
+     */
     void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
+    /** \brief Returns the reference item used for spacing.
+     *
+     */
     SegmentationAdapterSPtr referenceSegmentation() const;
 
     virtual bool acceptsNInputs(int n) const override
@@ -76,10 +86,21 @@ namespace ESPINA
     virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
   private slots:
+    /** \brief Sets the temporal actor for the stroke.
+     *
+     */
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
+    /** \brief Modifies the segmentation with the contents of the mask.
+     * \param[in] mask binary mask.
+     *
+     */
     void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
+    /** \brief Updates the interface when the user changes the painter.
+     * \param[in] painter new selected painter.
+     *
+     */
     void onPainterChanged(MaskPainterSPtr painter);
 
     /** \brief Updates the item being edited or disables the tool on invalid selection.
@@ -89,6 +110,10 @@ namespace ESPINA
     void onSelectionChanged(SegmentationAdapterList segmentations);
 
   private:
+    /** \brief Minimizes the bounds of the segmentation if it has reduced its size.
+     * \param[in] item Segmentation whose volume has been partially or totally deleted.
+     *
+     */
     void onVoxelDeletion(ViewItemAdapterPtr item);
 
     /** \brief Removes the temporal representation for the reference item.

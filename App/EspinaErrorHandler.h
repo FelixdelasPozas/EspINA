@@ -44,7 +44,7 @@ namespace ESPINA
      * \param[in] parent QWidget raw pointer of the parent of this object.
      *
      */
-    EspinaErrorHandler(QWidget *parent = nullptr)
+    explicit EspinaErrorHandler(QWidget *parent = nullptr)
     : m_parent(parent)
     {};
 

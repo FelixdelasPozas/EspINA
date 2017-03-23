@@ -44,7 +44,7 @@ namespace ESPINA
   private:
     struct SegmentationObject
     {
-      SegmentationObject(const QString &line);
+      explicit SegmentationObject(const QString &line);
 
       unsigned int  label;
       unsigned int  categoryId;
@@ -53,7 +53,7 @@ namespace ESPINA
 
     struct CategoryObject
     {
-      CategoryObject(const QString &line);
+      explicit CategoryObject(const QString &line);
 
       QString      name;
       unsigned int label;

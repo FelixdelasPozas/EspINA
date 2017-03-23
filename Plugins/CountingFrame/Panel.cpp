@@ -23,7 +23,6 @@
 #include "Dialogs/CFTypeSelectorDialog.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "Extensions/ExtensionUtils.h"
-#include "ui_Panel.h"
 
 // ESPINA
 #include <Core/Analysis/Channel.h>
@@ -53,63 +52,11 @@ using namespace ESPINA::CF;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
-class CF::Panel::GUI
-: public QWidget
-, public Ui::Panel
-{
-public:
-  explicit GUI();
-
-  void setOffsetRanges(int min, int max);
-};
-
-//------------------------------------------------------------------------
-CF::Panel::GUI::GUI()
-{
-  setupUi(this);
-
-  leftMargin  ->installEventFilter(this);
-  rightMargin ->installEventFilter(this);
-  topMargin   ->installEventFilter(this);
-  bottomMargin->installEventFilter(this);
-  frontMargin ->installEventFilter(this);
-  backMargin  ->installEventFilter(this);
-
-  QString tooltip("%1 Face: <br><br> &nbsp; <img src=':/%1.png'> &nbsp; <br>");
-  leftMargin  ->setToolTip(tooltip.arg("Left"));
-  rightMargin ->setToolTip(tooltip.arg("Right"));
-  topMargin   ->setToolTip(tooltip.arg("Top"));
-  bottomMargin->setToolTip(tooltip.arg("Bottom"));
-  frontMargin ->setToolTip(tooltip.arg("Front"));
-  backMargin  ->setToolTip(tooltip.arg("Back"));
-
-  countingFrames->setSortingEnabled(false);
-}
-
-//------------------------------------------------------------------------
-void CF::Panel::GUI::setOffsetRanges(int min, int max)
-{
-  leftMargin ->setMinimum(min);
-  leftMargin ->setMaximum(max);
-  topMargin  ->setMinimum(min);
-  topMargin  ->setMaximum(max);
-  frontMargin->setMinimum(min);
-  frontMargin->setMaximum(max);
-
-  rightMargin ->setMinimum(min);
-  rightMargin ->setMaximum(max);
-  bottomMargin->setMinimum(min);
-  bottomMargin->setMaximum(max);
-  backMargin  ->setMinimum(min);
-  backMargin  ->setMaximum(max);
-}
-
-//------------------------------------------------------------------------
 class CF::Panel::CFModel
 : public QAbstractTableModel
 {
   public:
-    CFModel(CountingFrameManager *manager)
+    explicit CFModel(CountingFrameManager *manager)
     : m_manager(manager)
     {}
 
@@ -269,10 +216,9 @@ Qt::ItemFlags CF::Panel::CFModel::flags(const QModelIndex& index) const
 const QString CF::Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
-CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
-: ESPINA::Panel(tr("Counting Frame Dock"), context)
+CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context, QWidget *parent)
+: ESPINA::Panel(tr("Counting Frame Dock"), context, parent)
 , m_manager  {manager}
-, m_gui      {new GUI()}
 , m_cfModel  {new CFModel(m_manager)}
 , m_useSlices{true}
 , m_activeCF {nullptr}
@@ -281,44 +227,67 @@ CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context)
 
   setWindowTitle(tr("Counting Frame"));
 
-  setWidget(m_gui);
+  setupUi(this);
 
-  m_gui->countingFrames->setModel(m_cfModel);
+  leftMargin  ->installEventFilter(this);
+  rightMargin ->installEventFilter(this);
+  topMargin   ->installEventFilter(this);
+  bottomMargin->installEventFilter(this);
+  frontMargin ->installEventFilter(this);
+  backMargin  ->installEventFilter(this);
+
+  QString tooltip("%1 Face: <br><br> &nbsp; <img src=':/%1.png'> &nbsp; <br>");
+  leftMargin  ->setToolTip(tooltip.arg("Left"));
+  rightMargin ->setToolTip(tooltip.arg("Right"));
+  topMargin   ->setToolTip(tooltip.arg("Top"));
+  bottomMargin->setToolTip(tooltip.arg("Bottom"));
+  frontMargin ->setToolTip(tooltip.arg("Front"));
+  backMargin  ->setToolTip(tooltip.arg("Back"));
+
+  countingFrames->setSortingEnabled(false);
+  countingFrames->setModel(m_cfModel);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-  m_gui->exportCF->setIcon(iconSave);
+  exportCF->setIcon(iconSave);
 
-  connect(m_gui->exportCF, SIGNAL(clicked(bool)),
-          this,            SLOT(exportCountingFramesData()));
+  connect(exportCF, SIGNAL(clicked(bool)),
+          this,     SLOT(exportCountingFramesData()));
 
-  connect(m_gui->createCF, SIGNAL(clicked()),
-          this,            SLOT(createCountingFrame()));
-  connect(m_gui->resetCF, SIGNAL(clicked(bool)),
-          this,           SLOT(resetActiveCountingFrame()));
-  connect(m_gui->deleteCF, SIGNAL(clicked()),
-          this,            SLOT(deleteActiveCountingFrame()));
+  connect(createCF, SIGNAL(clicked()),
+          this,     SLOT(createCountingFrame()));
 
-  connect(m_gui->countingFrames, SIGNAL(clicked(QModelIndex)),
-          this,                  SLOT(updateUI(QModelIndex)));
+  connect(resetCF, SIGNAL(clicked(bool)),
+          this,    SLOT(resetActiveCountingFrame()));
 
-  connect(m_gui->leftMargin, SIGNAL(valueChanged(double)),
-          this,              SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->topMargin, SIGNAL(valueChanged(double)),
-          this,             SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->frontMargin, SIGNAL(valueChanged(double)),
-          this,               SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->rightMargin, SIGNAL(valueChanged(double)),
-          this,               SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->bottomMargin, SIGNAL(valueChanged(double)),
-          this,                SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->backMargin, SIGNAL(valueChanged(double)),
-          this,              SLOT(updateActiveCountingFrameMargins()));
+  connect(deleteCF, SIGNAL(clicked()),
+          this,     SLOT(deleteActiveCountingFrame()));
 
-  connect(m_gui->useCategoryConstraint, SIGNAL(toggled(bool)),
-          this,                         SLOT(enableCategoryConstraints(bool)));
-  connect(m_gui->categorySelector, SIGNAL(activated(QModelIndex)),
-          this,                    SLOT(applyCategoryConstraint()));
+  connect(countingFrames, SIGNAL(clicked(QModelIndex)),
+          this,           SLOT(updateUI(QModelIndex)));
+
+  connect(leftMargin, SIGNAL(valueChanged(double)),
+          this,       SLOT(updateActiveCountingFrameMargins()));
+
+  connect(topMargin, SIGNAL(valueChanged(double)),
+          this,      SLOT(updateActiveCountingFrameMargins()));
+
+  connect(frontMargin, SIGNAL(valueChanged(double)),
+          this,        SLOT(updateActiveCountingFrameMargins()));
+
+  connect(rightMargin, SIGNAL(valueChanged(double)),
+          this,        SLOT(updateActiveCountingFrameMargins()));
+
+  connect(bottomMargin, SIGNAL(valueChanged(double)),
+          this,         SLOT(updateActiveCountingFrameMargins()));
+
+  connect(backMargin, SIGNAL(valueChanged(double)),
+          this,       SLOT(updateActiveCountingFrameMargins()));
+
+  connect(useCategoryConstraint, SIGNAL(toggled(bool)),
+          this,                  SLOT(enableCategoryConstraints(bool)));
+  connect(categorySelector, SIGNAL(activated(QModelIndex)),
+          this,             SLOT(applyCategoryConstraint()));
 
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this,      SLOT(onCountingFrameCreated(CountingFrame*)));
@@ -345,16 +314,34 @@ CF::Panel::~Panel()
 }
 
 //------------------------------------------------------------------------
+void CF::Panel::setOffsetRanges(int min, int max)
+{
+  leftMargin ->setMinimum(min);
+  leftMargin ->setMaximum(max);
+  topMargin  ->setMinimum(min);
+  topMargin  ->setMaximum(max);
+  frontMargin->setMinimum(min);
+  frontMargin->setMaximum(max);
+
+  rightMargin ->setMinimum(min);
+  rightMargin ->setMaximum(max);
+  bottomMargin->setMinimum(min);
+  bottomMargin->setMaximum(max);
+  backMargin  ->setMinimum(min);
+  backMargin  ->setMaximum(max);
+}
+
+//------------------------------------------------------------------------
 void CF::Panel::reset()
 {
-  m_gui->countingFrameDescription->clear();
+  countingFrameDescription->clear();
 
-  m_gui->countingFrames->setModel(nullptr);
+  countingFrames->setModel(nullptr);
 
-  m_gui->createCF->setEnabled(false);
-  m_gui->deleteCF->setEnabled(false);
-  m_gui->resetCF ->setEnabled(false);
-  m_gui->exportCF->setEnabled(false);
+  createCF->setEnabled(false);
+  deleteCF->setEnabled(false);
+  resetCF ->setEnabled(false);
+  exportCF->setEnabled(false);
 
   for(auto cf: m_countingFrames)
   {
@@ -397,7 +384,7 @@ void CF::Panel::deleteCountingFrame(CountingFrame *cf)
 
   updateTable();
 
-  updateUI(m_gui->countingFrames->model()->index(0,0));
+  updateUI(countingFrames->model()->index(0,0));
 
   updateSegmentationExtensions();
 
@@ -409,9 +396,9 @@ void CF::Panel::applyCategoryConstraint()
 {
   if(!m_activeCF) return;
 
-  if (m_gui->useCategoryConstraint->isChecked())
+  if (useCategoryConstraint->isChecked())
   {
-    auto categoryIndex = m_gui->categorySelector->currentModelIndex();
+    auto categoryIndex = categorySelector->currentModelIndex();
     if (categoryIndex.isValid())
     {
       auto item = itemAdapter(categoryIndex);
@@ -433,7 +420,7 @@ void CF::Panel::applyCategoryConstraint()
 //------------------------------------------------------------------------
 void CF::Panel::enableCategoryConstraints(bool enable)
 {
-  m_gui->categorySelector->setEnabled(enable);
+  categorySelector->setEnabled(enable);
 
   applyCategoryConstraint();
 }
@@ -455,37 +442,37 @@ void CF::Panel::updateUI(QModelIndex index)
   {
     m_activeCF = nullptr;
 
-    m_gui->leftMargin  ->setValue(0);
-    m_gui->topMargin   ->setValue(0);
-    m_gui->frontMargin ->setValue(0);
-    m_gui->rightMargin ->setValue(0);
-    m_gui->bottomMargin->setValue(0);
-    m_gui->backMargin  ->setValue(0);
+    leftMargin  ->setValue(0);
+    topMargin   ->setValue(0);
+    frontMargin ->setValue(0);
+    rightMargin ->setValue(0);
+    bottomMargin->setValue(0);
+    backMargin  ->setValue(0);
 
-    m_gui->useCategoryConstraint->setChecked(validCF);
+    useCategoryConstraint->setChecked(validCF);
 
-    m_gui->countingFrameDescription->clear();
+    countingFrameDescription->clear();
 
-    m_gui->countingFrames->setFocus();
+    countingFrames->setFocus();
   }
 
-  m_gui->countingFrames->setEnabled(validCF);
+  countingFrames->setEnabled(validCF);
 
-  m_gui->leftMargin  ->setEnabled(validCF);
-  m_gui->topMargin   ->setEnabled(validCF);
-  m_gui->frontMargin ->setEnabled(validCF);
-  m_gui->rightMargin ->setEnabled(validCF);
-  m_gui->bottomMargin->setEnabled(validCF);
-  m_gui->backMargin  ->setEnabled(validCF);
+  leftMargin  ->setEnabled(validCF);
+  topMargin   ->setEnabled(validCF);
+  frontMargin ->setEnabled(validCF);
+  rightMargin ->setEnabled(validCF);
+  bottomMargin->setEnabled(validCF);
+  backMargin  ->setEnabled(validCF);
 
-  m_gui->countingFrameDescription->setEnabled(validCF);
+  countingFrameDescription->setEnabled(validCF);
 
-  m_gui->useCategoryConstraint->setEnabled(validCF);
-  m_gui->categorySelector     ->setEnabled(m_gui->useCategoryConstraint->isChecked());
+  useCategoryConstraint->setEnabled(validCF);
+  categorySelector     ->setEnabled(useCategoryConstraint->isChecked());
 
-  m_gui->deleteCF->setEnabled(validCF);
-  m_gui->resetCF ->setEnabled(validCF);
-  m_gui->exportCF->setEnabled(validCF);
+  deleteCF->setEnabled(validCF);
+  resetCF ->setEnabled(validCF);
+  exportCF->setEnabled(validCF);
 }
 
 //------------------------------------------------------------------------
@@ -502,7 +489,6 @@ void CF::Panel::createCountingFrame()
 
     auto channel = cfSelector.stack();
     Q_ASSERT(channel);
-
 
     auto spacing = channel->output()->spacing();
 
@@ -565,10 +551,10 @@ void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
 {
   auto model = getContext().model().get();
 
-  m_gui->categorySelector->setModel(model);
-  m_gui->categorySelector->setRootModelIndex(model->classificationRoot());
+  categorySelector->setModel(model);
+  categorySelector->setRootModelIndex(model->classificationRoot());
 
-  m_gui->createCF->setEnabled(channel != nullptr);
+  createCF->setEnabled(channel != nullptr);
 
   if (channel)
   {
@@ -580,16 +566,16 @@ void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
       lenght[i] = bounds[2*i+1]-bounds[2*i];
     }
 
-    m_gui->leftMargin  ->setMaximum(lenght[0]);
-    m_gui->topMargin   ->setMaximum(lenght[1]);
-    m_gui->frontMargin ->setMaximum(lenght[2]);
-    m_gui->rightMargin ->setMaximum(lenght[0]);
-    m_gui->bottomMargin->setMaximum(lenght[1]);
-    m_gui->backMargin  ->setMaximum(lenght[2]);
+    leftMargin  ->setMaximum(lenght[0]);
+    topMargin   ->setMaximum(lenght[1]);
+    frontMargin ->setMaximum(lenght[2]);
+    rightMargin ->setMaximum(lenght[0]);
+    bottomMargin->setMaximum(lenght[1]);
+    backMargin  ->setMaximum(lenght[2]);
   }
   else
   {
-    m_gui->setOffsetRanges(0,0);
+    setOffsetRanges(0,0);
   }
 }
 
@@ -602,66 +588,66 @@ void CF::Panel::showInfo(CountingFrame* activeCF)
 
   int row = m_manager->countingFrames().indexOf(activeCF);
 
-  auto selectionModel = m_gui->countingFrames->selectionModel();
+  auto selectionModel = countingFrames->selectionModel();
   auto index = m_cfModel->index(row, 0);
   selectionModel->select(index, QItemSelectionModel::ClearAndSelect|QItemSelectionModel::Rows);
 
-  m_gui->leftMargin  ->blockSignals(true);
-  m_gui->topMargin   ->blockSignals(true);
-  m_gui->frontMargin ->blockSignals(true);
-  m_gui->rightMargin ->blockSignals(true);
-  m_gui->bottomMargin->blockSignals(true);
-  m_gui->backMargin  ->blockSignals(true);
+  leftMargin  ->blockSignals(true);
+  topMargin   ->blockSignals(true);
+  frontMargin ->blockSignals(true);
+  rightMargin ->blockSignals(true);
+  bottomMargin->blockSignals(true);
+  backMargin  ->blockSignals(true);
 
   auto channel = activeCF->extension()->extendedItem();
   auto spacing = channel->output()->spacing();
 
-  m_gui->leftMargin  ->setSingleStep(spacing[0]);
-  m_gui->rightMargin ->setSingleStep(spacing[0]);
-  m_gui->topMargin   ->setSingleStep(spacing[1]);
-  m_gui->bottomMargin->setSingleStep(spacing[1]);
+  leftMargin  ->setSingleStep(spacing[0]);
+  rightMargin ->setSingleStep(spacing[0]);
+  topMargin   ->setSingleStep(spacing[1]);
+  bottomMargin->setSingleStep(spacing[1]);
 
-  m_gui->leftMargin  ->setValue(activeCF->left());
-  m_gui->topMargin   ->setValue(activeCF->top() );
-  m_gui->rightMargin ->setValue(activeCF->right() );
-  m_gui->bottomMargin->setValue(activeCF->bottom());
+  leftMargin  ->setValue(activeCF->left());
+  topMargin   ->setValue(activeCF->top() );
+  rightMargin ->setValue(activeCF->right() );
+  bottomMargin->setValue(activeCF->bottom());
 
   if (m_useSlices)
   {
-    m_gui->frontMargin->setSingleStep(1);
-    m_gui->backMargin ->setSingleStep(1);
+    frontMargin->setSingleStep(1);
+    backMargin ->setSingleStep(1);
 
-    m_gui->frontMargin ->setValue(int(activeCF->front()/spacing[2]));
-    m_gui->backMargin  ->setValue(int(activeCF->back()/spacing[2]));
+    frontMargin ->setValue(int(activeCF->front()/spacing[2]));
+    backMargin  ->setValue(int(activeCF->back()/spacing[2]));
   } else
   {
-    m_gui->frontMargin->setSingleStep(spacing[2]);
-    m_gui->backMargin ->setSingleStep(spacing[2]);
+    frontMargin->setSingleStep(spacing[2]);
+    backMargin ->setSingleStep(spacing[2]);
 
-    m_gui->frontMargin ->setValue(activeCF->front());
-    m_gui->backMargin  ->setValue(activeCF->back());
+    frontMargin ->setValue(activeCF->front());
+    backMargin  ->setValue(activeCF->back());
   }
 
-  m_gui->leftMargin  ->blockSignals(false);
-  m_gui->topMargin   ->blockSignals(false);
-  m_gui->frontMargin ->blockSignals(false);
-  m_gui->rightMargin ->blockSignals(false);
-  m_gui->bottomMargin->blockSignals(false);
-  m_gui->backMargin  ->blockSignals(false);
+  leftMargin  ->blockSignals(false);
+  topMargin   ->blockSignals(false);
+  frontMargin ->blockSignals(false);
+  rightMargin ->blockSignals(false);
+  bottomMargin->blockSignals(false);
+  backMargin  ->blockSignals(false);
 
   auto applyCaregoryConstraint = !activeCF->categoryConstraint().isEmpty();
-  m_gui->categorySelector->blockSignals(true);
+  categorySelector->blockSignals(true);
   if (applyCaregoryConstraint)
   {
-    m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(activeCF->categoryConstraint()));
+    categorySelector->setCurrentModelIndex(findCategoryIndex(activeCF->categoryConstraint()));
   }
-  m_gui->categorySelector->blockSignals(false);
+  categorySelector->blockSignals(false);
 
-  m_gui->useCategoryConstraint->blockSignals(true);
-  m_gui->useCategoryConstraint->setChecked(applyCaregoryConstraint);
-  m_gui->useCategoryConstraint->blockSignals(false);
+  useCategoryConstraint->blockSignals(true);
+  useCategoryConstraint->setChecked(applyCaregoryConstraint);
+  useCategoryConstraint->blockSignals(false);
 
-  m_gui->countingFrameDescription->setText(activeCF->description());
+  countingFrameDescription->setText(activeCF->description());
 
   for (auto cf : m_countingFrames)
   {
@@ -712,13 +698,13 @@ void CF::Panel::changeUnitMode(bool useSlices)
 
   if (useSlices)
   {
-    m_gui->frontMargin->setSuffix("");
-    m_gui->backMargin ->setSuffix("");
+    frontMargin->setSuffix("");
+    backMargin ->setSuffix("");
   }
   else
   {
-    m_gui->frontMargin->setSuffix(" nm");
-    m_gui->backMargin ->setSuffix(" nm");
+    frontMargin->setSuffix(" nm");
+    backMargin ->setSuffix(" nm");
   }
 
   showInfo(m_activeCF);
@@ -729,7 +715,7 @@ void CF::Panel::reportProgess(int progress)
 {
   QIcon icon(":/create-cf.svg");
 
-  auto size = m_gui->createCF->size();
+  auto size = createCF->size();
   auto original = icon.pixmap(size);
   auto inverted = icon.pixmap(size, QIcon::Disabled);
 
@@ -756,15 +742,15 @@ void CF::Panel::reportProgess(int progress)
   }
   original = original.fromImage(originalImage);
 
-  m_gui->createCF->setIcon(original);
+  createCF->setIcon(original);
 }
 
 //------------------------------------------------------------------------
 void CF::Panel::inclusionMargins(double values[3])
 {
-  values[0] = m_gui->leftMargin ->value();
-  values[1] = m_gui->topMargin  ->value();
-  values[2] = m_gui->frontMargin->value();
+  values[0] = leftMargin ->value();
+  values[1] = topMargin  ->value();
+  values[2] = frontMargin->value();
 
   if (m_useSlices)
   {
@@ -778,16 +764,16 @@ void CF::Panel::inclusionMargins(double values[3])
 //------------------------------------------------------------------------
 void CF::Panel::exclusionMargins(double values[3])
 {
-  values[0] = m_gui->rightMargin ->value();
-  values[1] = m_gui->bottomMargin->value();
-  values[2] = m_gui->backMargin  ->value();
+  values[0] = rightMargin ->value();
+  values[1] = bottomMargin->value();
+  values[2] = backMargin  ->value();
 
   if (m_useSlices)
   {
     auto channel = m_activeCF->extension()->extendedItem();
     auto spacing = channel->output()->spacing();
 
-    values[2] = (m_gui->backMargin->value() + 0.5) * spacing[2];
+    values[2] = (backMargin->value() + 0.5) * spacing[2];
   }
 }
 
@@ -866,9 +852,9 @@ void CF::Panel::onSegmentationsAdded(ViewItemAdapterSList items)
 //------------------------------------------------------------------------
 void CF::Panel::updateTable()
 {
-  m_gui->countingFrames->setModel(nullptr);
-  m_gui->countingFrames->setModel(m_cfModel);
-  m_gui->countingFrames->resizeColumnsToContents();
+  countingFrames->setModel(nullptr);
+  countingFrames->setModel(m_cfModel);
+  countingFrames->resizeColumnsToContents();
 }
 
 //------------------------------------------------------------------------

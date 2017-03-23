@@ -56,7 +56,7 @@ namespace ESPINA
        * \param[in] text, data of the item.
        *
        */
-      IssueTableWidgetItem(const QString &text)
+      explicit IssueTableWidgetItem(const QString &text)
       : QTableWidgetItem(text)
       {}
 

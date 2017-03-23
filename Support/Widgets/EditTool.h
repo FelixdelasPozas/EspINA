@@ -36,7 +36,7 @@ namespace ESPINA
     namespace Widgets
     {
       /** \class EditTool
-       * \brief Super class for tools that edit segmentations.
+       * \brief Base class for tools that edit segmentations.
        *
        */
       class EspinaSupport_EXPORT EditTool
@@ -56,7 +56,8 @@ namespace ESPINA
           /** \brief EditTools class destructor.
            *
            */
-          virtual ~EditTool();
+          virtual ~EditTool()
+          {}
 
           virtual void onToolGroupActivated() override;
 

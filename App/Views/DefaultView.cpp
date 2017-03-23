@@ -28,7 +28,6 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <Support/Settings/Settings.h>
-#include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt
 #include <QApplication>
@@ -55,11 +54,12 @@ const QString DefaultView::FIT_TO_SLICES_KEY = "FitToSlices";
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
-: WithContext(context)
+: QWidget{parent}
+, WithContext(context)
 , m_sources  (getModel(), getViewState())
-, m_viewXY   {new View2D(context.viewState(), Plane::XY)}
-, m_viewYZ   {new View2D(context.viewState(), Plane::YZ)}
-, m_viewXZ   {new View2D(context.viewState(), Plane::XZ)}
+, m_viewXY   {new View2D(context.viewState(), Plane::XY, parent)}
+, m_viewYZ   {new View2D(context.viewState(), Plane::YZ, parent)}
+, m_viewXZ   {new View2D(context.viewState(), Plane::XZ, parent)}
 {
   setObjectName("viewXY");
 
@@ -127,26 +127,6 @@ void DefaultView::addRepresentation(const Representation& representation)
     pool->setPipelineSources(&m_sources);
     m_pools << pool;
   }
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::createViewMenu(QMenu* menu)
-{
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-
-  auto fs = settings.value(FIT_TO_SLICES_KEY,  true).toBool();
-
-  settings.endGroup();
-
-  auto fitToSlices = new QAction(tr("Fit To Slices"), menu);
-  fitToSlices->setCheckable(true);
-  fitToSlices->setChecked(fs);
-  menu->addAction(fitToSlices);
-  connect(fitToSlices, SIGNAL(toggled(bool)),
-          this,        SLOT(setFitToSlices(bool)));
-
-  setFitToSlices(fs);
 }
 
 //-----------------------------------------------------------------------------

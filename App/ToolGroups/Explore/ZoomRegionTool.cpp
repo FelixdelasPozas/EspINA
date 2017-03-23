@@ -51,6 +51,10 @@ ZoomRegionTool::ZoomRegionTool(Support::Context &context)
 //----------------------------------------------------------------------------
 ZoomRegionTool::~ZoomRegionTool()
 {
+  setChecked(false);
+
+  disconnect(this, SIGNAL(toggled(bool)),
+             this, SLOT(onToolActivated(bool)));
 }
 
 //----------------------------------------------------------------------------

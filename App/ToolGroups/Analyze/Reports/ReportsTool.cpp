@@ -37,6 +37,12 @@ ReportsTool::ReportsTool(Support::Context &context)
 }
 
 //----------------------------------------------------------------------------
+ReportsTool::~ReportsTool()
+{
+  disconnect();
+}
+
+//----------------------------------------------------------------------------
 void ReportsTool::onTriggered(bool value)
 {
   ReportSelectorDialog dialog(m_reports, getContext());
@@ -49,3 +55,4 @@ void ReportsTool::registerReport(Support::ReportSPtr report)
 {
   m_reports << report;
 }
+

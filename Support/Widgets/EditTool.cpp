@@ -42,11 +42,6 @@ EditTool::EditTool(const QString &id, const QString& icon, const QString& toolti
 }
 
 //------------------------------------------------------------------------
-EditTool::~EditTool()
-{
-}
-
-//------------------------------------------------------------------------
 bool EditTool::acceptsVolumetricSegmentations(SegmentationAdapterList segmentations)
 {
   bool hasRequiredData = true;

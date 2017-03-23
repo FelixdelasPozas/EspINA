@@ -57,6 +57,8 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg,
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
+  m_segmentation->setBeingModified(true);
+
   auto output = m_segmentation->output();
   SignalBlocker<OutputSPtr> blocker(output);
 
@@ -80,11 +82,15 @@ void DrawUndoCommand::redo()
   }
 
   m_segmentation->invalidateRepresentations();
+
+  m_segmentation->setBeingModified(false);
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
+  m_segmentation->setBeingModified(true);
+
   auto output = m_segmentation->output();
   SignalBlocker<OutputSPtr> blocker(output);
 
@@ -111,4 +117,6 @@ void DrawUndoCommand::undo()
   }
 
   m_segmentation->invalidateRepresentations();
+
+  m_segmentation->setBeingModified(false);
 }

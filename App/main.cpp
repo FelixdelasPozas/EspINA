@@ -106,12 +106,12 @@ int main(int argc, char **argv)
     }
 
     res = app.exec();
-  }
 
-  for(auto plugin: loaders)
-  {
-    plugin->unload();
-    delete plugin;
+    for(auto plugin: loaders)
+    {
+      plugin->unload();
+      delete plugin;
+    }
   }
 
   qDebug() << "ESPINA exited with value" << res;

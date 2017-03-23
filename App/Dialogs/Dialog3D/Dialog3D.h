@@ -36,6 +36,10 @@ namespace ESPINA
 {
   class Dialog3D;
 
+  /** \class Dialog3DTool
+   * \brief Implements the tool for the 3D view dialog.
+   *
+   */
   class Dialog3DTool
   : public Support::Widgets::ProgressTool
   {
@@ -52,97 +56,110 @@ namespace ESPINA
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
     private:
+      /** \brief Returns the tools of the dialog.
+       *
+       */
       Support::Widgets::ToolSList tools() const;
 
-      Dialog3D *m_dialog;
+      Dialog3D *m_dialog; /** current dialog. */
   };
 
+  /** \class Dialog3D
+   * \brief Implements the 3D view dialog.
+   *
+   */
   class Dialog3D
   : public QDialog
   , public Ui::Dialog3D
   , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    /** \brief Dialog3D class constructor.
-     * \param[in] context ESPINA context
-     */
-    Dialog3D(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief Dialog3D class constructor.
+       * \param[in] context application context
+       *
+       */
+      explicit Dialog3D(Support::Context &context);
 
-    /** \brief SegmentationInspector class destructor.
-     *
-     */
-    virtual ~Dialog3D();
+      /** \brief SegmentationInspector class virtual destructor.
+       *
+       */
+      virtual ~Dialog3D()
+      {}
 
-    /** \brief Returns the internal pointer of the 3d view.
-     *
-     */
-    RenderView *renderView();
+      /** \brief Returns the internal pointer of the 3d view.
+       *
+       */
+      RenderView *renderView();
 
-    /** \brief Returns the QAction that shows/hides the dialog.
-     *
-     */
-    QAction *toggleViewAction();
+      /** \brief Returns the QAction that shows/hides the dialog.
+       *
+       */
+      QAction *toggleViewAction();
 
-    /** \brief Returs the tool for this dialog.
-     *
-     */
-    std::shared_ptr<Support::Widgets::ProgressTool> tool();
+      /** \brief Returs the tool for this dialog.
+       *
+       */
+      std::shared_ptr<Support::Widgets::ProgressTool> tool();
 
-    /** \brief Adds a representation switch to the toolbar.
-     *
-     */
-    void addRepresentationSwitch(RepresentationSwitchSPtr repSwitch);
+      /** \brief Adds a representation switch to the toolbar.
+       *
+       */
+      void addRepresentationSwitch(RepresentationSwitchSPtr repSwitch);
 
-  signals:
-    void dialogVisible(bool);
+    signals:
+      void dialogVisible(bool);
 
-  private slots:
-    void onToggled(bool checked);
+    private slots:
+      /** \brief Restores the dialog's tools settings and hides/shows the dialog.
+       * \param[in] checked true to show the dialog and false to hide it.
+       *
+       */
+      void onToggled(bool checked);
 
-  protected:
-    virtual void showEvent(QShowEvent *event) override;
-    virtual void closeEvent(QCloseEvent *event) override;
+    protected:
+      virtual void showEvent(QShowEvent *event) override;
+      virtual void closeEvent(QCloseEvent *event) override;
 
-  private:
-    /** \brief Helper method to initialize the view widget.
-     *
-     */
-    void initView3D();
+    private:
+      /** \brief Helper method to initialize the view widget.
+       *
+       */
+      void initView3D();
 
-    /** \brief Helper method to restore the dialog geometry from the registry.
-     *
-     */
-    void restoreGeometryState();
+      /** \brief Helper method to restore the dialog geometry from the registry.
+       *
+       */
+      void restoreGeometryState();
 
-    /** \brief Helper method to save the dialog geometry to the registry.
-     *
-     */
-    void saveGeometryState();
+      /** \brief Helper method to save the dialog geometry to the registry.
+       *
+       */
+      void saveGeometryState();
 
-    /** \brief Sets the settings for the included tools.
-     * \param[in] settings tools' settings.
-     *
-     */
-    void setToolsSettings(std::shared_ptr<QSettings> settings);
+      /** \brief Sets the settings for the included tools.
+       * \param[in] settings tools' settings.
+       *
+       */
+      void setToolsSettings(std::shared_ptr<QSettings> settings);
 
-    /** \brief Restores the settings of the tools.
-     *
-     */
-    void restoreToolsSettings();
+      /** \brief Restores the settings of the tools.
+       *
+       */
+      void restoreToolsSettings();
 
-    /** \brief Saves the current settings of the tools to the QSettings object and deactivates the tools.
-     *
-     */
-    void saveToolsSettings();
+      /** \brief Saves the current settings of the tools to the QSettings object and deactivates the tools.
+       *
+       */
+      void saveToolsSettings();
 
-  private:
-    friend class Dialog3DTool;
+    private:
+      friend class Dialog3DTool;
 
-    View3D                     m_view3D;
-    QToolBar                   m_toolbar;
-    ToolGroup                  m_representations;
-    std::shared_ptr<QSettings> m_toolsSettings;
+      View3D                     m_view3D;          /** 3D view.                 */
+      QToolBar                   m_toolbar;         /** dialog's toolbar.        */
+      ToolGroup                  m_representations; /** visualization toolgroup. */
+      std::shared_ptr<QSettings> m_toolsSettings;   /** tools settings.          */
   };
 
 } // namespace ESPINA

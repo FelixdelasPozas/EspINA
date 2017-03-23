@@ -38,8 +38,8 @@ SegmentationContourSwitch::SegmentationContourSwitch(GUI::Representations::Repre
                                                      std::shared_ptr<SegmentationContourPoolSettings> settings,
                                                      ViewTypeFlags                                    supportedViews,
                                                      Support::Context                                &context)
-: BasicRepresentationSwitch("SegmentationContourSwitch", manager, supportedViews, context)
-, m_settings{settings}
+: BasicRepresentationSwitch{"SegmentationContourSwitch", manager, supportedViews, context}
+, m_settings               {settings}
 {
   initWidgets();
 
@@ -50,6 +50,8 @@ SegmentationContourSwitch::SegmentationContourSwitch(GUI::Representations::Repre
 //----------------------------------------------------------------------------
 ESPINA::SegmentationContourSwitch::~SegmentationContourSwitch()
 {
+  disconnect(m_settings.get(), SIGNAL(modified()),
+             this,             SLOT(onSettingsModified()));
 }
 
 //----------------------------------------------------------------------------

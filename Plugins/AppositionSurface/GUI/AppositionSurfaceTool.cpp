@@ -44,8 +44,8 @@ using namespace ESPINA::GUI;
 //-----------------------------------------------------------------------------
 AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
                                              Support::Context        &context)
-: ProgressTool("SynapticAppositionSurface", ":/AppSurface.svg", defaultTooltip(), context)
-, m_plugin (plugin)
+: ProgressTool{"SynapticAppositionSurface", ":/AppSurface.svg", defaultTooltip(), context}
+, m_plugin    {plugin}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(createSAS()));
@@ -59,6 +59,11 @@ AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
 //-----------------------------------------------------------------------------
 AppositionSurfaceTool::~AppositionSurfaceTool()
 {
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(createSAS()));
+
+  disconnect(getSelection().get(), SIGNAL(selectionChanged()),
+             this,                 SLOT(selectionChanged()));
 }
 
 //-----------------------------------------------------------------------------

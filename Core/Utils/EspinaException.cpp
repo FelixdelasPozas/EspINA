@@ -726,17 +726,8 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
     stream << file << " (" << (func ? func : bfd_errors[err]) << ":" << dec << static_cast<int>(line) << ") " << hex << "Addr: " <<  frame.AddrPC.Offset << "\n";
   }
 
-  // release set
-  while(set)
-  {
-    auto temp = set->next;
-    free(set->name);
-    close_bfd_ctx(set->bc);
-    free(set);
-    set = temp;
-  }
 
-  // symbols clean-up
+  release_set(set);
   SymCleanup(GetCurrentProcess());
 
 #endif // Windows

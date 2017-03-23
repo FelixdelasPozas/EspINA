@@ -33,12 +33,12 @@ SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
                            RepresentationPoolSPtr poolXZ,
                            RepresentationPoolSPtr poolYZ,
                            ManagerFlags           flags)
-: PoolManager(ViewType::VIEW_2D, flags)
-, m_plane{Plane::UNDEFINED}
-, m_depth{0}
-, m_XY{poolXY}
-, m_XZ{poolXZ}
-, m_YZ{poolYZ}
+: PoolManager{ViewType::VIEW_2D, flags}
+, m_plane    {Plane::UNDEFINED}
+, m_depth    {0}
+, m_XY       {poolXY}
+, m_XZ       {poolXZ}
+, m_YZ       {poolYZ}
 {
 }
 

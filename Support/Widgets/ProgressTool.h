@@ -188,6 +188,7 @@ namespace ESPINA
 
           /** \brief Helper method to execute when the user has cancelled the current action.
            *
+           *  Reimplement this method if your tool enters a state that can be aborted.
            */
           virtual void abortOperation()
           {};
@@ -212,14 +213,28 @@ namespace ESPINA
           /** \brief Restores the settings of the tool from the given QSettings object.
            * \param[in] settings.
            *
+           * Reimplement this method on your tool to restore button and nested widgets state settings.
+           * Use the method ProgressTool::restoreCheckedState(std::shared_ptr<QSettings> settings) only for
+           * settings and not for tools with widgets.
+           * If your tool only has a state button use the base class GenericTooglableTool.
+           * If your tool is a representation swith use the base class RepresentationSwitch.
+           *
            */
-          virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+          virtual void restoreSettings(std::shared_ptr<QSettings> settings)
+          {}
 
           /** \brief Saves the settings of the tool to the given QSettings object.
            * \param[in] settings.
            *
+           * Reimplement this method on your tool to restore button and nested widgets state settings.
+           * Use the method ProgressTool::saveCheckedState(std::shared_ptr<QSettings> settings) only for
+           * settings and not for tools with widgets.
+           * If your tool only has a state button use the base class GenericTooglableTool.
+           * If your tool is a representation swith use the base class RepresentationSwitch.
+           *
            */
-          virtual void saveSettings(std::shared_ptr<QSettings> settings);
+          virtual void saveSettings(std::shared_ptr<QSettings> settings)
+          {}
 
           /** \brief Returns the unique identifier of the tool.
            *

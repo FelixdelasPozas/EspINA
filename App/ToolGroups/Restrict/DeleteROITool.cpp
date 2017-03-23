@@ -25,7 +25,6 @@
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
-#include <QDebug>
 #include <QAction>
 
 using namespace ESPINA;
@@ -33,9 +32,9 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 DeleteROITool::DeleteROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
-: ProgressTool("DeleteROI", ":/espina/roi_delete_roi.svg", tr("Delete Current ROI"), context)
-, m_context  (context)
-, m_toolGroup{toolGroup}
+: ProgressTool{"DeleteROI", ":/espina/roi_delete_roi.svg", tr("Delete Current ROI"), context}
+, m_context   (context)
+, m_toolGroup {toolGroup}
 {
   connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
           this,        SLOT(onROIChanged()));
@@ -47,6 +46,7 @@ DeleteROITool::DeleteROITool(Support::Context &context,
 //-----------------------------------------------------------------------------
 DeleteROITool::~DeleteROITool()
 {
+  disconnect();
 }
 
 //-----------------------------------------------------------------------------
@@ -63,10 +63,4 @@ void DeleteROITool::cancelROI()
 void DeleteROITool::onROIChanged()
 {
   setEnabled(m_toolGroup->hasValidROI());
-}
-
-//-----------------------------------------------------------------------------
-void DeleteROITool::onToolEnabled(bool enabled)
-{
-  onROIChanged();
 }

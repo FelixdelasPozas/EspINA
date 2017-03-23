@@ -30,7 +30,7 @@ const QString OPACITY_KEY = "CountingFrameOpacity";
 //------------------------------------------------------------------------
 CF::CFRepresentationSwitch::CFRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
                                                    Support::Context                               &context)
-: BasicRepresentationSwitch("CD3DSwitch", manager, ViewType::VIEW_3D, context)
+: BasicRepresentationSwitch{"CD3DSwitch", manager, ViewType::VIEW_3D, context}
 {
   initWidget();
 }

@@ -33,6 +33,10 @@ class QPushButton;
 
 namespace ESPINA
 {
+  /** \class PositionMarksTool
+   * \brief Tool button for the position marks.
+   *
+   */
   class PositionMarksTool
   : public ProgressTool
   {
@@ -94,19 +98,19 @@ namespace ESPINA
        */
       struct CameraPositions
       {
-        QString id;
-        QMap<QString, struct RenderView::CameraState> states;
+        QString id;                                            /** position identificator.                */
+        QMap<QString, struct RenderView::CameraState> states;  /** map of view<->state for this position. */
       };
 
       using CameraPositionsList = QList<struct CameraPositions>;
 
-      QList<RenderView *> m_views;
-      CameraPositionsList m_bookmarks;
+      QList<RenderView *> m_views;     /** list of views of the application that will be stored in a position. */
+      CameraPositionsList m_bookmarks; /** list of stored camera positions.                                    */
 
-      QPushButton *m_add;
-      QPushButton *m_remove;
-      QPushButton *m_apply;
-      QComboBox   *m_combobox;
+      QPushButton *m_add;      /** add position button.                         */
+      QPushButton *m_remove;   /** remove position button.                      */
+      QPushButton *m_apply;    /** apply selected position button.              */
+      QComboBox   *m_combobox; /** combo box for selection of stored positions. */
   };
 
 } // namespace ESPINA

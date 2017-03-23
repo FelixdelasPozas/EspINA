@@ -100,6 +100,10 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
 //----------------------------------------------------------------------------
 ProgressTool::~ProgressTool()
 {
+  disconnect();
+  m_action->disconnect();
+  m_taskProgress.disconnect();
+
   abortOperation();
 
   delete m_action;
@@ -299,18 +303,6 @@ void ProgressTool::onActionToggled(bool value)
 void ProgressTool::onEventHandlerInUse(bool isUsed)
 {
   m_action->setActionChecked(isUsed);
-}
-
-//----------------------------------------------------------------------------
-void ProgressTool::restoreSettings(std::shared_ptr<QSettings> settings)
-{
-  restoreCheckedState(settings);
-}
-
-//----------------------------------------------------------------------------
-void ProgressTool::saveSettings(std::shared_ptr<QSettings> settings)
-{
-  saveCheckedState(settings);
 }
 
 //----------------------------------------------------------------------------

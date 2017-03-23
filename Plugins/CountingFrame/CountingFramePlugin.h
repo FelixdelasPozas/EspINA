@@ -31,53 +31,54 @@
 
 namespace ESPINA
 {
+  class Panel;
 
-class Panel;
   namespace CF
   {
     class CountingFramePlugin_EXPORT CountingFramePlugin
     : public Support::Plugin
     {
-      Q_OBJECT
-      Q_INTERFACES(ESPINA::Support::Plugin)
+        Q_OBJECT
+        Q_INTERFACES(ESPINA::Support::Plugin)
 
-    public:
-      /** \brief CountingFramePlugin class constructor.
-       *
-       */
-      explicit CountingFramePlugin();
+      public:
+        /** \brief CountingFramePlugin class constructor.
+         *
+         */
+        explicit CountingFramePlugin();
 
-      /** \brief CountingFramePlugin class virtual destructor.
-       *
-       */
-      virtual ~CountingFramePlugin();
+        /** \brief CountingFramePlugin class virtual destructor.
+         *
+         */
+        virtual ~CountingFramePlugin()
+        {};
 
-      virtual void init(Support::Context &context);
+        virtual void init(Support::Context &context);
 
-      virtual Core::StackExtensionFactorySList channelExtensionFactories() const;
+        virtual Core::StackExtensionFactorySList channelExtensionFactories() const;
 
-      virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const;
+        virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-      virtual Support::ColorEngineSwitchSList colorEngines() const;
+        virtual Support::ColorEngineSwitchSList colorEngines() const;
 
-      virtual RepresentationFactorySList representationFactories() const;
+        virtual RepresentationFactorySList representationFactories() const;
 
-      virtual QList<Support::CategorizedTool> tools() const;
+        virtual QList<Support::CategorizedTool> tools() const;
 
-    public slots:
-      virtual void onAnalysisClosed();
+      public slots:
+        virtual void onAnalysisClosed();
 
-    private:
-      SchedulerSPtr                          m_scheduler;                      /** application task scheduler.                    */
-      QUndoStack                            *m_undoStack;                      /** application undo stack.                        */
-      Support::Context                      *m_context;                        /** application context.                           */
+      private:
+        SchedulerSPtr                          m_scheduler;                      /** application task scheduler.                    */
+        QUndoStack                            *m_undoStack;                      /** application undo stack.                        */
+        Support::Context                      *m_context;                        /** application context.                           */
 
-      std::shared_ptr<CountingFrameManager>  m_manager;                        /** counting frame manager object.                 */
-      Panel                                 *m_dockWidget;                     /** counting frame panel.                          */
-      CountingFrameColorEngineSPtr           m_colorEngine;                    /** counting frame color engine.                   */
-      RepresentationFactorySPtr              m_representationFactory;          /** counting frame representation factory.         */
-      Core::StackExtensionFactorySPtr        m_channelExtensionFactory;        /** counting frame channel extension factory.      */
-      Core::SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;   /** counting frame segmentation extension factory. */
+        std::shared_ptr<CountingFrameManager>  m_manager;                        /** counting frame manager object.                 */
+        Panel                                 *m_dockWidget;                     /** counting frame panel.                          */
+        CountingFrameColorEngineSPtr           m_colorEngine;                    /** counting frame color engine.                   */
+        RepresentationFactorySPtr              m_representationFactory;          /** counting frame representation factory.         */
+        Core::StackExtensionFactorySPtr        m_channelExtensionFactory;        /** counting frame channel extension factory.      */
+        Core::SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;   /** counting frame segmentation extension factory. */
     };
   }
 } // namespace ESPINA

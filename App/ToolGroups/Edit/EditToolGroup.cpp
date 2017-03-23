@@ -270,7 +270,7 @@ bool EditionFilterFactory::isSubstractionFilter(const Filter::Type &type) const
 
 //-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
-                             Support::Context               &context)
+                             Support::Context              &context)
 : ToolGroup{":/espina/toolgroup_refine.svg", tr("Edit")}
 , WithContext(context)
 {
@@ -286,11 +286,6 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initCODETools();
   initFillHolesTools();
   initImageLogicTools();
-}
-
-//-----------------------------------------------------------------------------
-EditToolGroup::~EditToolGroup()
-{
 }
 
 //-----------------------------------------------------------------------------
@@ -321,9 +316,7 @@ void EditToolGroup::registerFilterRefiners(Support::FilterRefinerFactory &filter
 void EditToolGroup::initManualEditionTool()
 {
   auto manualEdition = std::make_shared<ManualEditionTool>(getContext());
-
   manualEdition->setOrder("1");
-
   addTool(manualEdition);
 }
 

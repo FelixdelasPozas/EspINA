@@ -345,7 +345,7 @@ namespace ESPINA
          *
          * NOTE: it creates a mask for the whole region to iterate. In this case, the whole image.
          */
-        iterator(SparseBinaryVolumeSPtr mask)
+        explicit iterator(SparseBinaryVolumeSPtr mask)
         : m_it(mask->computeMask(mask->bounds()).get(), mask->bounds())
         , m_mask(mask)
         {
@@ -518,7 +518,7 @@ namespace ESPINA
         /** \brief const_iterator constructor.
          * \param[in] mask, SparseBinaryVolume smart pointer.
          */
-        const_iterator(SparseBinaryVolumeSPtr mask)
+        explicit const_iterator(SparseBinaryVolumeSPtr mask)
         : iterator(mask)
         {};
 

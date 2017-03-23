@@ -29,7 +29,6 @@
 #include "Panels/SegmentationExplorer/SegmentationExplorer.h"
 #include "Panels/SegmentationProperties/SegmentationProperties.h"
 #include "IO/SegFileReader.h"
-#include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
@@ -863,6 +862,9 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &, bool)),
           this,             SLOT(onSessionSaved(const QString &, bool)));
 
+  connect(this,             SIGNAL(analysisAboutToBeClosed()),
+          m_saveTool.get(), SLOT(abortTask()));
+
   m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save File As"), m_context, m_analysis, m_errorHandler);
   m_saveAsTool->setOrder("1-1", "1_FileGroup");
   m_saveAsTool->setAlwaysAskUser(true);
@@ -1033,8 +1035,7 @@ void EspinaMainWindow::createEditToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createVisualizeToolGroup()
 {
-  m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
-
+  m_visualizeToolGroup = createToolGroup(":/espina/toolgroup_visualize.svg", tr("Visualize"));
 
   auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
                                                          ":/espina/display_view_scalebar.svg",
@@ -1077,10 +1078,10 @@ void EspinaMainWindow::createVisualizeToolGroup()
   panelSwitchYZ->setOrder("1","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
-  auto dialogSwith3D = m_view->dialog3D()->tool();
-  dialogSwith3D->setOrder("2","3-Views");
+  auto dialogSwitch3D = m_view->dialog3D()->tool();
+  dialogSwitch3D->setOrder("2","3-Views");
 
-  m_visualizeToolGroup->addTool(dialogSwith3D);
+  m_visualizeToolGroup->addTool(dialogSwitch3D);
 
   registerToolGroup(m_visualizeToolGroup);
 }
@@ -1199,7 +1200,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
   {
     if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
     {
-      m_visualizeToolGroup->addRepresentationSwitch(repSwitch);
+      m_visualizeToolGroup->addTool(repSwitch);
     }
   }
 

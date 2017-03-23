@@ -69,7 +69,6 @@ set (Support_SOURCES
   Settings/Settings.cpp
   Settings/SettingsPanel.cpp
   Utils/FactoryUtils.cpp
-  Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
   Context.cpp
   Report.cpp

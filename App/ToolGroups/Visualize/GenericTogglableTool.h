@@ -24,17 +24,42 @@
 
 namespace ESPINA
 {
+  /** \class GenericTogglableTool
+   * \brief Implements a genering tool base class used for tooglable tools.
+   *
+   */
   class GenericTogglableTool
   : public Support::Widgets::ProgressTool
   {
-  public:
-    explicit GenericTogglableTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context);
+    public:
+      /** \brief GenericTogglableTool class constructor.
+       * \param[in] id tool's id.
+       * \param[in] icon tool's icon name from resources files.
+       * \param[in] tooltip tool's tooltip.
+       * \param[in] context application context.
+       *
+       */
+      explicit GenericTogglableTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context);
 
-    explicit GenericTogglableTool(const QString &id, const QIcon &icon, const QString &tooltip, Support::Context &context);
+      /** \brief GenericTogglableTool class constructor.
+       * \param[in] id tool's id.
+       * \param[in] icon tool's icon.
+       * \param[in] icon tool's icon name from resources files.
+       * \param[in] tooltip tool's tooltip.
+       * \param[in] context application context.
+       *
+       */
+      explicit GenericTogglableTool(const QString &id, const QIcon &icon, const QString &tooltip, Support::Context &context);
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings);
+      /** \brief GenericTogglableTool class virtual destructor.
+       *
+       */
+      virtual ~GenericTogglableTool()
+      {}
 
-    virtual void restoreSettings(std::shared_ptr< QSettings > settings);
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void restoreSettings(std::shared_ptr< QSettings > settings) override;
   };
 }
 

@@ -28,6 +28,10 @@
 
 namespace ESPINA
 {
+  /** \class BasicRepresentationSwitch
+   * \brief Basic implementation of a representation switch tool.
+   *
+   */
   class EspinaSupport_EXPORT BasicRepresentationSwitch
   : public RepresentationSwitch
   {
@@ -58,11 +62,15 @@ namespace ESPINA
 
       virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
 
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+
     protected:
-      GUI::Representations::RepresentationManagerSPtr m_manager;
+      GUI::Representations::RepresentationManagerSPtr m_manager; /** Representation manager activated/deactivated by this switch. */
 
     private:
-      ViewTypeFlags m_flags;
+      ViewTypeFlags m_flags; /** supported views flags for the switch. */
   };
 }
 

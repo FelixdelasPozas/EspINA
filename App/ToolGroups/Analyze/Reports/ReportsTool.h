@@ -26,22 +26,43 @@
 
 namespace ESPINA
 {
+  /** \brief ReportsTool
+   * \brief Simple tool for showing the reports dialog.
+   *
+   */
   class ReportsTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    explicit ReportsTool(Support::Context &context);
+    public:
+      /** \brief Reports tool class constructor.
+       * \param[in] context application context.
+       *
+       */
+      explicit ReportsTool(Support::Context &context);
 
-    void registerReport(Support::ReportSPtr report);
+      /** \brief ReportsTool class virtual destructor.
+       *
+       */
+      virtual ~ReportsTool();
 
-  private slots:
-    void onTriggered(bool value);
+      /** \brief Registers a new report into the reports dialog.
+       * \param[in] report Report object.
+       *
+       */
+      void registerReport(Support::ReportSPtr report);
 
-  private:
-    Support::ReportSList m_reports;
-  };
+    private slots:
+      /** \brief Shows the report dialog when the button is clicked.
+       * \param[in] unused
+       *
+       */
+      void onTriggered(bool unused);
+
+    private:
+      Support::ReportSList m_reports; /** list of reports to show in the report dialog. */
+    };
 }
 
 #endif // ESPINA_REPORTS_TOOL_H

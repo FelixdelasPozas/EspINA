@@ -73,7 +73,7 @@ namespace ESPINA
       virtual void doAction() = 0;
 
     protected:
-      QUndoStack *m_undoStack;
+      QUndoStack *m_undoStack; /** application's redo/undo stack. */
 
     private:
       QString m_tooltipPrefix; /** tool tooltip prefix (name of the tool). */
