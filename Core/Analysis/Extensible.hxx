@@ -91,7 +91,8 @@ namespace ESPINA
          *
          */
         Extensions(T *item)
-        : m_item(item)
+        : m_lock{QReadWriteLock::NonRecursive}
+        , m_item(item)
         {}
 
         /** \brief Extensions class virtual destructor.
@@ -170,7 +171,7 @@ namespace ESPINA
          */
         virtual typename E::InformationKeyList availableInformation() const;
 
-        /** \brief Returns true if any of the extensions has an information corrending to the given key.
+        /** \brief Returns true if any of the extensions has an information corresponding to the given key.
          * \param[in] key information key.
          *
          */
@@ -212,6 +213,9 @@ namespace ESPINA
          */
         Iterator end() const
         { return Iterator(this, m_extensions.size()); }
+
+        Extensions(const Extensions &other) = delete;
+        Extensions(Extensions &&other) = delete;
 
       private:
         using ExtensionSMap = QMap<typename E::Type, ExtensionSPtr>;

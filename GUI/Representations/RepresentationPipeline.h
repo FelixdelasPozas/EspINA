@@ -45,7 +45,7 @@ namespace ESPINA
 {
   /** \class RepresentationPipeline
    *
-   * This representation pipeline settings are ThreadSafe
+   * This representation pipeline settings are ThreadSafe if using the mutex to access data.
    */
   class EspinaGUI_EXPORT RepresentationPipeline
   {
@@ -53,11 +53,12 @@ namespace ESPINA
       using Type      = QString;
       using VTKActor  = vtkSmartPointer<vtkProp>;
       using ActorList = QList<VTKActor>;
+      using ActorsMap = QMap<ViewItemAdapter*, ActorList>;
 
       struct ActorsData
       {
-          QMap<ViewItemAdapter*, ActorList> actors; /** map of item-item's actors. */
-          QMutex                            lock;   /** access lock.               */
+          ActorsMap actors; /** map of item-item's actors. */
+          QMutex    lock;   /** access lock.               */
       };
 
       using Actors = std::shared_ptr<ActorsData>;

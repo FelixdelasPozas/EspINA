@@ -29,10 +29,11 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
                                                        RepresentationPipelineSPtr pipeline,
                                                        SchedulerSPtr              scheduler,
                                                        unsigned                   windowSize)
-: RepresentationPool(type)
-, m_normalIdx{normalCoordinateIndex(plane)}
-, m_updateWindow{scheduler, pipeline, windowSize}
-, m_normalRes{0}
+: RepresentationPool{type}
+, m_normalIdx       {normalCoordinateIndex(plane)}
+, m_updateWindow    {scheduler, pipeline, windowSize}
+, m_normalRes       {0}
+, m_pipeline        {pipeline}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -43,14 +44,56 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
 ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
                                                      vtkProp *actor) const
 {
-  ViewItemAdapterList pickedItems;
+  ViewItemAdapterList result;
 
-  if (m_updateWindow.current()->hasFinished())
+  auto lastActors = actors(lastUpdateTimeStamp());
+
+  if(lastActors.get() != nullptr)
   {
-    pickedItems = m_updateWindow.current()->pick(point, actor);
+    ViewItemAdapterPtr pickedItem = nullptr;
+
+    if(lastActors->lock.tryLock())
+    {
+      if (actor)
+      {
+        auto it = lastActors->actors.begin();
+
+        while (it != lastActors->actors.end() && !pickedItem)
+        {
+          for (auto itemActor : it.value())
+          {
+            if (itemActor.GetPointer() == actor)
+            {
+              pickedItem = it.key();
+              break;
+            }
+          }
+
+          ++it;
+        }
+      }
+      else
+      {
+        for (auto item: lastActors->actors.keys())
+        {
+          if (m_pipeline->pick(item, point))
+          {
+            pickedItem = item;
+            break;
+          }
+        }
+      }
+
+      lastActors->lock.unlock();
+    }
+
+    if (pickedItem && m_pipeline->pick(pickedItem, point))
+    {
+      result << pickedItem;
+    }
   }
 
-  return pickedItems;
+  return result;
 }
 
 //-----------------------------------------------------------------------------

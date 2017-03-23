@@ -176,7 +176,7 @@ bool RepresentationPool::hasSources() const
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
+RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t) const
 {
   return m_validActors.value(t, std::make_shared<RepresentationPipeline::ActorsData>());
 }

@@ -162,7 +162,7 @@ namespace ESPINA
      * \param[in] t timestamp.
      *
      */
-    RepresentationPipeline::Actors actors(TimeStamp t);
+    RepresentationPipeline::Actors actors(TimeStamp t) const;
 
     /** \brief Invalidates all actors previous a given time.
      * \param[in] t timestamp.

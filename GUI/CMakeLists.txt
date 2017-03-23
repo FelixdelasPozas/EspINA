@@ -27,6 +27,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/Managers/PassiveActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
+  Representations/RepresentationParallelUpdater.h
   Representations/RepresentationWindow.h
   Representations/Managers/TemporalManager.h
   Selectors/Selector.h
@@ -142,7 +143,6 @@ set (GUI_SOURCES
   Representations/Settings/SegmentationMeshPoolSettings.cpp
 #  Representations/Settings/SegmentationSkeletonPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
-  Representations/Pools/BasicRepresentationPool.cpp
   Representations/Managers/CrosshairManager.cpp 
   Representations/Managers/TemporalManager.cpp
   Representations/ModelSources.cpp
@@ -155,6 +155,7 @@ set (GUI_SOURCES
   Representations/RepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
+  Representations/RepresentationParallelUpdater.cpp
   Representations/RepresentationWindow.cpp
   Representations/Frame.cpp
   Selectors/PixelSelector.cpp

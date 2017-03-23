@@ -145,8 +145,6 @@ void RepresentationManager::hide(const GUI::Representations::FrameCSPtr frame)
       waitForDisplay(frame);
 
       emitRenderRequest(frame);
-
-      updateRepresentations(frame);
     }
   }
 

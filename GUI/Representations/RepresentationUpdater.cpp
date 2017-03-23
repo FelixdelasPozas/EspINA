@@ -33,11 +33,11 @@ using namespace ESPINA::GUI::Representations;
 //----------------------------------------------------------------------------
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
                                              RepresentationPipelineSPtr pipeline)
-: Task         {scheduler}
-, m_frame      {Frame::InvalidFrame()}
-, m_pipeline   {pipeline}
-, m_updateList {&m_sources}
-, m_actors     {std::make_shared<RepresentationPipeline::ActorsData>()}
+: Task        {scheduler}
+, m_frame     {Frame::InvalidFrame()}
+, m_pipeline  {pipeline}
+, m_updateList{&m_sources}
+, m_actors    {std::make_shared<RepresentationPipeline::ActorsData>()}
 {
   setHidden(true);
 }
@@ -144,38 +144,6 @@ void RepresentationUpdater::invalidate()
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterList RepresentationUpdater::pick(const NmVector3 &point, vtkProp *actor) const
-{
-  QMutexLocker lock(&m_mutex);
-
-  ViewItemAdapterList pickedItems;
-
-  if (actor)
-  {
-    auto foundItem = findActorItem(actor);
-
-    if (foundItem && m_pipeline->pick(foundItem, point))
-    {
-      pickedItems << foundItem;
-    }
-  }
-  else
-  {
-    QMutexLocker actorsLock(&m_actors->lock);
-
-    for (auto item : m_actors->actors.keys())
-    {
-      if (m_pipeline->pick(item, point))
-      {
-        pickedItems << item;
-      }
-    }
-  }
-
-  return pickedItems;
-}
-
-//----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   QMutexLocker lock(&m_mutex);
@@ -243,31 +211,6 @@ RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapter
   }
 
   return pipeline;
-}
-
-//----------------------------------------------------------------------------
-ViewItemAdapterPtr RepresentationUpdater::findActorItem(vtkProp *actor) const
-{
-  ViewItemAdapterPtr item = nullptr;
-
-  QMutexLocker lock(&m_actors->lock);
-
-  auto it = m_actors->actors.begin();
-  while (it != m_actors->actors.end() && !item)
-  {
-    for (auto itemActor : it.value())
-    {
-      if (itemActor.GetPointer() == actor)
-      {
-        item = it.key();
-        break;
-      }
-    }
-
-    ++it;
-  }
-
-  return item;
 }
 
 //----------------------------------------------------------------------------

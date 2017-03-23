@@ -23,7 +23,8 @@
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
 //#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
-#include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
+#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/RepresentationParallelUpdater.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationMeshPipeline.h>
@@ -33,17 +34,16 @@
 #include <GUI/Representations/Pipelines/SegmentationSmoothedMeshPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationVolumetricCPUPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationVolumetricGPUPipeline.h>
-#include <GUI/Representations/Pools/BasicRepresentationPool.h>
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
+#include <GUI/Representations/Pools/BasicRepresentationPool.hxx>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationMeshPoolSettings.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/RepresentationUtils.h>
-#include <GUI/Representations/RepresentationManager.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -231,11 +231,11 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto meshesSettings = std::make_shared<SegmentationMeshPoolSettings>();
 
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
-  auto poolMesh       = std::make_shared<BasicRepresentationPool>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineMesh);
+  auto poolMesh       = std::make_shared<BasicRepresentationPool<RepresentationParallelUpdater>>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineMesh);
   auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
 
   auto pipelineSmoothedMesh = std::make_shared<SegmentationSmoothedMeshPipeline>(colorEngine);
-  auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineSmoothedMesh);
+  auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool<RepresentationParallelUpdater>>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineSmoothedMesh);
   auto smoothedMeshManager  = std::make_shared<PassiveActorManager>(poolSmoothedMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
 
   poolMesh->setSettings(meshesSettings);
