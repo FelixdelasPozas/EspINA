@@ -29,6 +29,8 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 // ITK
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryErodeImageFilter.h>
 #include <itkBinaryImageToShapeLabelMapFilter.h>
 #include <itkLabelMapToBinaryImageFilter.h>
 
@@ -38,8 +40,18 @@
 #include <QList>
 #include <QtCore>
 
+// ESPINA TYPES
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
+
+// ITK TYPES TODO
+using BinaryImageToShapeLabelMapFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>;
+using LabelMapToBinaryImageFilter = itk::LabelMapToBinaryImageFilter<BinaryImageToShapeLabelMapFilter::OutputImageType, itkVolumeType>;
+using ShapeLabelMap = itk::LabelMap<itk::ShapeLabelObject<itkVolumeType::SizeValueType,itkVolumeType::ImageDimension>>;
+using ShapeLabelMapToBinaryImageFilter = itk::LabelMapToBinaryImageFilter<ShapeLabelMap, itkVolumeType>;
+using BinaryImage = ShapeLabelMapToBinaryImageFilter::OutputImageType;
+using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
+using BinaryErodeFilter = itk::BinaryErodeImageFilter<BinaryImage, BinaryImage, StructuringElementType>;
 
 //------------------------------------------------------------------------
 SliceInterpolationFilter::SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
@@ -54,8 +66,8 @@ bool SliceInterpolationFilter::needUpdate() const
 }
 
 //------------------------------------------------------------------------
-void SliceInterpolationFilter::execute(){//TODO
-
+void SliceInterpolationFilter::execute()
+{ //TODO
   BlockTimer timer0("Whole filter execution");
 
   qDebug() << "Number of inputs: " << m_inputs.size();
@@ -85,8 +97,7 @@ void SliceInterpolationFilter::execute(){//TODO
 
   auto image = volume->itkImage();
 
-  using BinImgToShapeLabMapFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>;
-  auto biToSlmFilter = BinImgToShapeLabMapFilter::New();
+  auto biToSlmFilter = BinaryImageToShapeLabelMapFilter::New();
   biToSlmFilter->SetInput(image);
   biToSlmFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
   biToSlmFilter->SetFullyConnected(true);
@@ -150,7 +161,7 @@ void SliceInterpolationFilter::execute(){//TODO
       sloSource = sloList.takeFirst();
       sloTarget = sloList.first();
       sloSourceInfo = getContourInfo(image, stackVolume, sloSource, toAxis(dir));
-      sloTargetInfo = getContourInfo(image, stackVolume, sloTarget, toAxis(dir));
+      //sloTargetInfo = getContourInfo(image, stackVolume, sloTarget, toAxis(dir));
       //commonInfo = sloSourceInfo && sloTargetInfo;
       commonInfo = sloSourceInfo;
       currentRegion.SetIndex(dir, sloSource->GetBoundingBox().GetIndex(dir));
@@ -159,9 +170,6 @@ void SliceInterpolationFilter::execute(){//TODO
       setMaximumRangeSizeBetween2SLO(currentRegion, maxRegion, sloSource, sloTarget, dirAux);
       dirAux = (dirAux + 1) % 3;
       setMaximumRangeSizeBetween2SLO(currentRegion, maxRegion, sloSource, sloTarget, dirAux);
-      printRegion(maxRegion);
-      printRegion(image->GetLargestPossibleRegion());
-      printRegion(currentRegion);
 
       // Copy stack slice and assign values in a temp image
       auto tempImage = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
@@ -180,7 +188,7 @@ void SliceInterpolationFilter::execute(){//TODO
         tempImage->SetPixel(sloTarget->GetIndex(pID), SEG_VOXEL_VALUE);
 
       // Get connected labels
-      auto biToSlmFilter2 = BinImgToShapeLabMapFilter::New();
+      auto biToSlmFilter2 = BinaryImageToShapeLabelMapFilter::New();
       biToSlmFilter2->SetInput(tempImage);
       biToSlmFilter2->SetInputForegroundValue(SEG_VOXEL_VALUE);
       biToSlmFilter2->SetFullyConnected(true);
@@ -209,13 +217,12 @@ void SliceInterpolationFilter::execute(){//TODO
       }
 
       // Creating output image
-      using LabMapToBinImgFilter = itk::LabelMapToBinaryImageFilter<BinImgToShapeLabMapFilter::OutputImageType, itkVolumeType>;
-      auto lmToBiFilter = LabMapToBinImgFilter::New();
+      auto lmToBiFilter = LabelMapToBinaryImageFilter::New();
       lmToBiFilter->SetInput(outputLabelmap);
       lmToBiFilter->ReleaseDataFlagOn();
       lmToBiFilter->SetNumberOfThreads(1);
-      lmToBiFilter->SetBackgroundValue(SEG_BG_VALUE);
       lmToBiFilter->SetForegroundValue(SEG_VOXEL_VALUE);
+      lmToBiFilter->SetBackgroundValue(SEG_BG_VALUE);
       lmToBiFilter->Update();
 
       auto outputImg = lmToBiFilter->GetOutput();
@@ -239,36 +246,60 @@ void SliceInterpolationFilter::execute(){//TODO
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(itkVolumeType::Pointer image, Output::ReadLockData<DefaultVolumetricData> stackVolume, SLO slObject, Axis direction){
+SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(itkVolumeType::Pointer image, Output::ReadLockData<DefaultVolumetricData> stackVolume, SLO slObject, Axis direction)
+{
   // Obtaining average, minimum and maximum from the label pixels value of the stack
   auto stackImage = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, slObject->GetBoundingBox()));
-  itkVolumeType::IndexType index;
-  itkVolumeType::PixelType value;
-  itkVolumeType::PixelType max = SEG_BG_VALUE;
-  itkVolumeType::PixelType min = SEG_VOXEL_VALUE;
-  double average = 0;
-  unsigned int borderPX = 0;
   auto histogram = std::make_shared<Histogram>(256);
+  const auto RADIOUS = 5;
+  const auto VALID_VALUES = 30; //TODO Unused
+  const auto PERCENTAGE_VALIDS = 30;
 
-  for (unsigned int pxId = 0; pxId < slObject->Size(); pxId++)
+  // Contour calculation TODO
   {
-    index = slObject->GetIndex(pxId);
-    if (belongToContour(index, slObject, direction))
-    {
-      value = stackImage->GetPixel(index);
-      ++(*histogram)[value];
-      if (value > max)
-        max = value;
-      if (value < min)
-        min = value;
-      average += value;
-      borderPX++;
-    }
-  }
-  average /= borderPX;
+    // Creates a temporal map with the label
+    BlockTimer timer("Contour calculation");
+    auto map = ShapeLabelMap::New();
+    map->SetLargestPossibleRegion(slObject->GetBoundingBox());
+    map->AddLabelObject(slObject.GetPointer());
 
-  itkVolumeType::PixelType maxHist = SEG_BG_VALUE;
-  itkVolumeType::PixelType minHist = SEG_VOXEL_VALUE;
+    // Converts the map in a image
+    auto slmToBiFilter = ShapeLabelMapToBinaryImageFilter::New();
+    slmToBiFilter->SetInput(map);
+    slmToBiFilter->SetForegroundValue(SEG_VOXEL_VALUE);
+    slmToBiFilter->SetBackgroundValue(SEG_BG_VALUE);
+    slmToBiFilter->SetNumberOfThreads(1);
+    slmToBiFilter->Update();
+    auto binImage = slmToBiFilter->GetOutput();
+
+    // Erodes the image to get the second image contained into the first
+    StructuringElementType ball;
+    ball.SetRadius(RADIOUS);
+    ball.CreateStructuringElement();
+
+    auto filter = BinaryErodeFilter::New();
+    filter->SetInput(binImage);
+    filter->SetKernel(ball);
+    filter->SetNumberOfThreads(1);
+    filter->Update();
+    auto binErodedImage = filter->GetOutput();
+
+    auto binImageBuffer = binImage->GetBufferPointer();
+    auto binErodedImageBuffer = binErodedImage->GetBufferPointer();
+    auto stackImageBuffer = stackImage->GetBufferPointer();
+    auto regionSizePtr = binImage->GetLargestPossibleRegion().GetSize().GetSize();
+    auto size = regionSizePtr[0] * regionSizePtr[1] * regionSizePtr[2];
+    // Applies the subtraction operation to get the contour with the given "RADIOUS"
+    // Then gets contour values into the histogram
+    for (unsigned int i = 0; i < size; i++)
+      if((binImageBuffer[i] -= binErodedImageBuffer[i]) != 0)
+        ++(*histogram)[stackImageBuffer[i]];
+
+    printRegion(binImage->GetLargestPossibleRegion());
+    printImageInZ(binImage);
+//    printImageInZ(binErodedImage);
+  }
+
   QList<unsigned char> posList;
   for(unsigned int i = 0; i < histogram->size(); ++i)
     if ((*histogram)[i] != 0) posList << i;
@@ -276,19 +307,10 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(i
   std::sort(posList.begin(), posList.end(),
       [histogram](unsigned char a,unsigned char b) {return (*histogram)[a] > (*histogram)[b];});
 
-  unsigned char pos;
   unsigned long minHistOcurrences;
-  for(auto i = 0; i < 30 && i < posList.size(); ++i){
-    pos = posList.at(i);
-    minHistOcurrences = (*histogram)[pos];
-    if (pos > maxHist)
-      maxHist = pos;
-    if (pos < minHist)
-      minHist = pos;
-  }
+  minHistOcurrences = (*histogram)[posList.first()] * (100 - PERCENTAGE_VALIDS) / 100;
 
-  return ContourInfo(maxHist, minHist, 2.0, histogram, minHistOcurrences);
-
+  return ContourInfo(0, 0, 0.0, histogram, minHistOcurrences);
 }
 
 //------------------------------------------------------------------------
