@@ -67,7 +67,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 : QWidget                  {parent}
 , SelectableView           (state)
-, m_view                   {new QVTKWidget()}
+, m_view                   {new QVTKWidget()} // WARNING parenting this crashes 3D, fix in VTK 7.x
 , m_lastFrameActiveManagers{0}
 , m_state                  (state)
 , m_selection              {state.selection()}

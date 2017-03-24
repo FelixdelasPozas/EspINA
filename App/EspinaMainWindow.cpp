@@ -144,7 +144,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   restoreGeometry();
 
-  statusBar()->addPermanentWidget(m_schedulerProgress.get());
+  statusBar()->addPermanentWidget(m_schedulerProgress.get(), 1);
   statusBar()->clearMessage();
 
   m_sessionToolGroup->setChecked(true);

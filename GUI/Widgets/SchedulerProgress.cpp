@@ -41,8 +41,8 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
                                      Qt::WindowFlags f)
 : QWidget           {parent, f}
 , m_scheduler       {scheduler}
-, m_notification    {new QWidget(nullptr)}
-, m_notificationArea{new QScrollArea(nullptr)}
+, m_notification    {new QWidget(this)}
+, m_notificationArea{new QScrollArea()}
 , m_width           {350}
 , m_height          {400}
 , m_taskProgress    {0}
@@ -51,6 +51,9 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
   setupUi(this);
 
   setVisible(false);
+
+  setMinimumWidth(m_width+15);
+  setMaximumWidth(m_width+15);
 
   m_notification->setLayout(new QVBoxLayout(m_notification));
   m_notification->setMinimumWidth(m_width);
