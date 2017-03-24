@@ -74,6 +74,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #  ToolGroups/Segment/Skeleton/SkeletonTool.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
+  ToolGroups/Visualize/FullscreenTool.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
@@ -191,6 +192,7 @@ set (ESPINA_SOURCES
   ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
+  ToolGroups/Visualize/FullscreenTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp

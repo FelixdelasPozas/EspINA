@@ -135,5 +135,6 @@
     <file>zoom_tools.png</file>
     <file>file_open_classification.svg</file>
     <file>file_save_classification.svg</file>
+    <file>fullscreen.svg</file>
   </qresource>
 </RCC>

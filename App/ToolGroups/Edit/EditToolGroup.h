@@ -149,10 +149,12 @@ namespace ESPINA
     /** \brief EditionToolGroup class constructor.
      * \param[in] filterRefiners filter refiners factory.
      * \param[in] context application context
+     * \param[in] parent QWidget parent of this one.
      *
      */
     explicit EditToolGroup(Support::FilterRefinerFactory &filterRefiners,
-                           Support::Context               &context);
+                           Support::Context               &context,
+                           QWidget                        *parent = nullptr);
 
     /** \brief EditionToolGroup class virtual destructor.
      *

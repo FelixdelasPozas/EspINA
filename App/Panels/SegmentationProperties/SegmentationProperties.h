@@ -38,10 +38,12 @@ namespace ESPINA
       /** \brief SegmentationProperties class constructor.
        * \param[in] filterRefiners refine widgets factory.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
       explicit SegmentationProperties(Support::FilterRefinerFactory &filterRefiners,
-                                      Support::Context               &context);
+                                      Support::Context               &context,
+                                      QWidget                        *parent = nullptr);
 
       /** \brief SegmentationProperties class virtual destructor.
        *

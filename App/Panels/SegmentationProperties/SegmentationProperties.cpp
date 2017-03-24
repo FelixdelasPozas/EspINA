@@ -54,8 +54,8 @@ class SegmentationProperties::UI
 };
 
 //----------------------------------------------------------------------------
-SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context)
-: Panel         {tr("Segmentation Properties"), context}
+SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context, QWidget *parent)
+: Panel         {tr("Segmentation Properties"), context, parent}
 , m_register    (filterRefiners)
 , m_segmentation{nullptr}
 , m_gui         {new UI(this)}

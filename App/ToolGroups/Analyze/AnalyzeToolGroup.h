@@ -18,40 +18,49 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_MEASURES_TOOLS_H_
-#define ESPINA_MEASURES_TOOLS_H_
+#ifndef ESPINA_ANALYZE_TOOLGROUP_H
+#define ESPINA_ANALYZE_TOOLGROUP_H
 
 // ESPINA
 #include <ToolGroups/ToolGroup.h>
-
 #include <Support/Context.h>
 #include <Support/Report.h>
 
 namespace ESPINA
 {
+  class ReportsTool;
 
-class ReportsTool;
+  /** \class AnalyzeToolGroup
+   * \brief Implemens the analize toolgroup.
+   *
+   */
   class AnalyzeToolGroup
   : public ToolGroup
   {
-    Q_OBJECT
+      Q_OBJECT
     public:
       /** \brief AnalyzeToolGroup class constructor.
+       * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
-      explicit AnalyzeToolGroup(Support::Context &context);
+      explicit AnalyzeToolGroup(Support::Context &context, QWidget *parent = nullptr);
 
       /** \brief MeasuresTools class destructor.
        *
        */
       virtual ~AnalyzeToolGroup();
 
+      /** \brief Registers a report in the toolgroup.
+       * \param[in] report report smart pointer.
+       *
+       */
       void registerReport(Support::ReportSPtr report);
 
-  private:
-    std::shared_ptr<ReportsTool> m_reports;
+    private:
+      std::shared_ptr<ReportsTool> m_reports; /** reports tool. */
   };
 
 } /* namespace ESPINA */
 
-#endif /* MEASURESTOOLS_H_ */
+#endif // ESPINA_ANALYZE_TOOLGROUP_H

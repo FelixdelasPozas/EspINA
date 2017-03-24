@@ -270,8 +270,9 @@ bool EditionFilterFactory::isSubstractionFilter(const Filter::Type &type) const
 
 //-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
-                             Support::Context              &context)
-: ToolGroup{":/espina/toolgroup_refine.svg", tr("Edit")}
+                             Support::Context              &context,
+                             QWidget                       *parent)
+: ToolGroup{":/espina/toolgroup_refine.svg", tr("Edit"), parent}
 , WithContext(context)
 {
   auto editionFactory = std::make_shared<EditionFilterFactory>();

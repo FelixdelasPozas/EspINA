@@ -51,10 +51,12 @@ namespace ESPINA
       /** \brief RestrictToolGroup class constructor.
        * \param[in] settings application ROI settings.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
-      RestrictToolGroup(ROISettings*      settings,
-                        Support::Context &context);
+      explicit RestrictToolGroup(ROISettings*      settings,
+                                 Support::Context &context,
+                                 QWidget          *parent = nullptr);
 
       /** \brief RestrictToolGroup class virtual destructor.
        *

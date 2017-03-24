@@ -40,6 +40,10 @@ namespace ESPINA
 {
   class SegmentationInspector;
 
+  /** \class SegmentationExplorer
+   * \brief Segmentations explorer panel.
+   *
+   */
   class SegmentationExplorer
   : public Panel
   , public SelectableView
@@ -51,9 +55,14 @@ namespace ESPINA
 
   public:
     /** \brief SegmentationExplorer class constructor.
+     * \param[in] filterRefiners factory for filter refiners.
+     * \param[in] context application context.
+     * \param[in] parent QWidget parent of this one.
+     *
      */
     explicit SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
-                                  Support::Context              &context);
+                                  Support::Context              &context,
+                                  QWidget                       *parent = nullptr);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *

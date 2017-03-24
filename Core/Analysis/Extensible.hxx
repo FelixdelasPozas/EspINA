@@ -214,9 +214,6 @@ namespace ESPINA
         Iterator end() const
         { return Iterator(this, m_extensions.size()); }
 
-        Extensions(const Extensions &other) = delete;
-        Extensions(Extensions &&other) = delete;
-
       private:
         using ExtensionSMap = QMap<typename E::Type, ExtensionSPtr>;
 

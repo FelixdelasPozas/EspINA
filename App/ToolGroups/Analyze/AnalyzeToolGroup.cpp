@@ -26,7 +26,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
+AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context, QWidget *parent)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
 , m_reports(new ReportsTool(context))
 {

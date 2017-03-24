@@ -37,6 +37,10 @@ namespace ESPINA
   class ChannelInspector;
   class ViewManager;
 
+  /** \clas StackExplorer
+   * \brief Stack exploration panel.
+   *
+   */
   class StackExplorer
   : public Panel
   {
@@ -46,9 +50,11 @@ namespace ESPINA
 
   public:
     /** \brief StackExplorer class constructor.
+     * \param[in] context application context.
+     * \param[in] parent QWidget parent of this one.
      *
      */
-    explicit StackExplorer(Support::Context &context);
+    explicit StackExplorer(Support::Context &context, QWidget *parent = nullptr);
 
     /** \brief StackExplorer class virtual destructor.
      *

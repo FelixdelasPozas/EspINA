@@ -52,8 +52,8 @@ public:
 };
 
 //------------------------------------------------------------------------
-StackExplorer::StackExplorer(Support::Context &context)
-: Panel         {tr("StackExplorer"), context}
+StackExplorer::StackExplorer(Support::Context &context, QWidget *parent)
+: Panel         {tr("StackExplorer"), context, parent}
 , m_channelProxy{std::make_shared<ChannelProxy>(context.model())}
 , m_sort        {std::make_shared<QSortFilterProxyModel>()}
 , m_gui         {new CentralWidget()}

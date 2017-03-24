@@ -190,9 +190,8 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 }
 
 //-----------------------------------------------------------------------------
-RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
-                                     Support::Context &context)
-: ToolGroup      {":/espina/toolgroup_restrict.svg", tr("ROI")}
+RestrictToolGroup::RestrictToolGroup(ROISettings *settings, Support::Context &context, QWidget *parent)
+: ToolGroup      {":/espina/toolgroup_restrict.svg", tr("ROI"), parent}
 , m_context      (context)
 , m_freehandROI  {new FreehandROITool(context, this)}
 , m_orthogonalROI{new OrthogonalROITool(settings, context, this)}

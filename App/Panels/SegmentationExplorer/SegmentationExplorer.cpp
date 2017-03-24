@@ -73,7 +73,8 @@ public:
 
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
-                                           Support::Context &context)
+                                           Support::Context &context,
+                                           QWidget *parent)
 : Panel(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())
 , m_gui   {new GUI()}
