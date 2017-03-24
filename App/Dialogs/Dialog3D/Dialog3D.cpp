@@ -36,7 +36,7 @@ const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
 Dialog3D::Dialog3D(Support::Context   &context)
-: QDialog          {DefaultDialogs::defaultParentWidget()}
+: QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint}}
 , WithContext      (context)
 , m_view3D         {context.viewState(), true}
 , m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))
@@ -45,7 +45,6 @@ Dialog3D::Dialog3D(Support::Context   &context)
   setupUi(this);
 
   setAttribute(Qt::WA_DeleteOnClose, false);
-  setWindowModality(Qt::WindowModality::NonModal);
   setWindowTitle("View 3D");
 
   m_toolbar.setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);

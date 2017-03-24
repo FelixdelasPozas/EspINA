@@ -26,6 +26,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Settings/Settings.h>
@@ -42,6 +43,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Support;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Representations::Utils;
@@ -52,12 +54,12 @@ const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segmentations,
                                              Support::Context              &context)
-: QWidget               (nullptr)
+: QDialog               {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint}}
 , WithContext           (context)
-, m_selectedSegmentation(nullptr)
+, m_selectedSegmentation{nullptr}
 , m_channelSources      (getViewState())
 , m_segmentationSources (getViewState())
-, m_view                (context.viewState(), true)
+, m_view                {context.viewState(), true, this}
 , m_tabularReport       (context)
 {
   setupUi(this);

@@ -43,7 +43,7 @@ using namespace ESPINA::Support::Widgets;
 namespace ESPINA
 {
   class SegmentationInspector
-  : public QWidget
+  : public QDialog
   , public Ui::SegmentationInspector
   , private Support::WithContext
   {

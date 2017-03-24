@@ -30,9 +30,6 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Support/Context.h>
 
-// Qt
-#include <QDialog>
-
 namespace ESPINA
 {
   /** \class CheckTask

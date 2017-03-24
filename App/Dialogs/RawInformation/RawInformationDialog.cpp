@@ -35,7 +35,7 @@ const QString SETTINGS_GROUP = "Raw Information Report";
 
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget())
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint})
 {
   setObjectName("Raw Information Report");
 
