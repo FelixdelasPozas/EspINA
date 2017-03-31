@@ -18,18 +18,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// ESPINA
+// Plugin
 #include "ApplyCountingFrame.h"
 
+// ESPINA
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/MultiTasking/Scheduler.h>
 #include <CountingFrames/CountingFrame.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/StereologicalInclusion.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/ModelFactory.h>
+
+// Qt
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -43,43 +48,199 @@ ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,
 , m_countingFrame{countingFrame}
 , m_factory      {factory}
 {
+  setDescription(tr("Applying CF: %1").arg(m_countingFrame->id()));
 }
 
 //------------------------------------------------------------------------
 ApplyCountingFrame::~ApplyCountingFrame()
 {
+  abortTasks();
 }
 
 //------------------------------------------------------------------------
 void ApplyCountingFrame::run()
 {
-  setDescription(tr("Applying %1 CF").arg(m_countingFrame->id()));
+  bool validExecution = false;
 
-  auto channel       = m_countingFrame->channel();
-  auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
-
-  if (!segmentations.isEmpty())
   {
-    double taskProgress = 0;
-    double inc = 100.0 / segmentations.size();
-    auto constraint = m_countingFrame->categoryConstraint();
+    auto channel       = m_countingFrame->channel();
+    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
-    for (auto segmentation: segmentations)
+    SegmentationSList validSegmentations;
+
+    if (!segmentations.isEmpty())
     {
-      if (!canExecute()) break;
+      auto constraint = m_countingFrame->categoryConstraint();
 
-      if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+      for (auto segmentation: segmentations)
       {
-        auto inclusionExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, m_factory);
-        inclusionExtension->addCountingFrame(m_countingFrame);
-        inclusionExtension->evaluateCountingFrame(m_countingFrame);
+        if (!canExecute()) break;
+
+        if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+        {
+          validSegmentations << segmentation;
+        }
+      }
+    }
+
+    if(!validSegmentations.isEmpty())
+    {
+      auto maxTasks = Scheduler::maxRunningTasks();
+      QVector<SegmentationSList> partitions(maxTasks);
+
+      int i = 0;
+      for(auto segmentation: validSegmentations)
+      {
+        if (!canExecute()) break;
+
+        partitions[i++ % maxTasks] << segmentation;
       }
 
-      taskProgress += inc;
+      for(unsigned int i = 0; i < maxTasks; ++i)
+      {
+        if (!canExecute()) break;
 
-      reportProgress(taskProgress);
+        struct Data data;
+        data.Task     = std::make_shared<ApplySegmentationCountingFrame>(m_countingFrame, partitions[i], m_factory, m_scheduler);
+        data.Progress = 0;
+
+        connect(data.Task.get(), SIGNAL(progress(int, ApplySegmentationCountingFrame *)),
+                this,            SLOT(onTaskProgress(int, ApplySegmentationCountingFrame *)), Qt::DirectConnection);
+
+        connect(data.Task.get(), SIGNAL(finished()),
+                this,            SLOT(onTaskFinished()), Qt::DirectConnection);
+
+        m_tasks[data.Task.get()] = data;
+
+        Task::submit(data.Task);
+      }
+    }
+
+    validExecution = !validSegmentations.isEmpty();
+  }
+
+  if(validExecution && canExecute())
+  {
+    m_waitMutex.lock();
+    m_condition.wait(&m_waitMutex);
+    m_waitMutex.unlock();
+  }
+
+  if(isAborted())
+  {
+    abortTasks();
+  }
+
+  reportProgress(100);
+}
+
+//--------------------------------------------------------------------
+void ApplyCountingFrame::abortTasks()
+{
+  for(auto task: m_tasks.keys())
+  {
+    disconnect(task, SIGNAL(progress(int, ApplySegmentationCountingFrame *)),
+               this, SLOT(onTaskProgress(int, ApplySegmentationCountingFrame *)));
+
+    disconnect(task, SIGNAL(finished()),
+               this, SLOT(onTaskFinished()));
+
+    if(!task->hasFinished())
+    {
+      task->abort();
+
+      if(!task->thread()->wait(500))
+      {
+        task->thread()->terminate();
+      }
     }
   }
 
-  setFinished(canExecute());
+  m_tasks.clear();
+}
+
+//--------------------------------------------------------------------
+void ApplyCountingFrame::onTaskProgress(int value, ApplySegmentationCountingFrame *task)
+{
+  if(isAborted())
+  {
+    m_condition.wakeAll();
+    return;
+  }
+
+  m_tasks[task].Progress = value;
+
+  double progressValue = 0;
+  for(auto data: m_tasks.values())
+  {
+    progressValue += data.Progress;
+  }
+
+  reportProgress(progressValue/Scheduler::maxRunningTasks());
+}
+
+//--------------------------------------------------------------------
+void ApplyCountingFrame::onTaskFinished()
+{
+  if(isAborted())
+  {
+    m_condition.wakeAll();
+    return;
+  }
+
+  bool finished = true;
+  for(auto task: m_tasks.keys())
+  {
+    finished &= task->hasFinished();
+  }
+
+  if(finished)
+  {
+    m_condition.wakeAll();
+  }
+}
+
+//--------------------------------------------------------------------
+ApplySegmentationCountingFrame::ApplySegmentationCountingFrame(CountingFrame    *countingFrame,
+                                                               SegmentationSList segmentations,
+                                                               CoreFactory      *factory,
+                                                               SchedulerSPtr     scheduler)
+: Task           {scheduler}
+, m_countingFrame{countingFrame}
+, m_segmentations{segmentations}
+, m_factory      {factory}
+{
+  setDescription(tr("Apply counting frame '%1'").arg(countingFrame->id()));
+  setHidden(true);
+}
+
+//--------------------------------------------------------------------
+void ApplySegmentationCountingFrame::run()
+{
+  if (!m_segmentations.isEmpty())
+  {
+    int oldProgress = 0;
+
+    for (int i = 0; i < m_segmentations.size(); ++i)
+    {
+      if (!canExecute()) break;
+
+      auto segmentation = m_segmentations.at(i);
+
+      auto inclusionExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, m_factory);
+      inclusionExtension->addCountingFrame(m_countingFrame);
+      inclusionExtension->evaluateCountingFrame(m_countingFrame);
+
+      auto newProgress = (100 * i)/m_segmentations.size();
+
+      if(oldProgress != newProgress)
+      {
+        oldProgress = newProgress;
+
+        emit progress(oldProgress, this);
+      }
+    }
+  }
+
+  emit progress(100, this);
 }

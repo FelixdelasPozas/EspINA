@@ -39,6 +39,7 @@
 #include <vtkPointData.h>
 
 // Qt
+#include <QThread>
 #include <QMutex>
 
 using ESPINA::Core::Utils::toRawList;
@@ -327,6 +328,11 @@ void DistanceComputationManagerThread::run()
 
     QApplication::processEvents();
   }
+
+  if(isAborted())
+  {
+    abortTasks();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -335,16 +341,7 @@ void DistanceComputationManagerThread::onComputationFinished()
   if(!canExecute())
   {
     m_finished = true;
-
-    for(auto task: m_tasks)
-    {
-      disconnect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
-      task->abort();
-    }
-
-    m_tasks.clear();
     m_waiter.wakeAll();
-
     return;
   }
 
@@ -439,4 +436,22 @@ const bool DistanceComputationManagerThread::isDistanceCached(SegmentationAdapte
   }
 
   return false;
+}
+
+//--------------------------------------------------------------------
+void DistanceComputationManagerThread::abortTasks()
+{
+  for(auto task: m_tasks)
+  {
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onComputationFinished()));
+
+    task->abort();
+
+    if(!task->thread()->wait(100))
+    {
+      task->thread()->terminate();
+    }
+  }
+
+  m_tasks.clear();
 }

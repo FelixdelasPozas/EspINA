@@ -54,7 +54,7 @@ class SASInformationProxy::SASInformationFetcher
     : InformationProxy::InformationFetcher(segmentation, keys, scheduler)
     , m_sas{sas}
     {
-      auto id = Segmentation->data(Qt::DisplayRole).toString();
+      auto id = m_segmentation->data(Qt::DisplayRole).toString();
       setDescription(tr("%1 information").arg(id));
       setHidden(true);
 
@@ -70,9 +70,9 @@ class SASInformationProxy::SASInformationFetcher
         }
         else
         {
-          if(Segmentation)
+          if(m_segmentation)
           {
-            ready &= Segmentation->isReady(key);
+            ready &= m_segmentation->isReady(key);
           }
         }
 
@@ -103,7 +103,7 @@ class SASInformationProxy::SASInformationFetcher
           }
           else
           {
-            updateInformation(Segmentation, key);
+            updateInformation(m_segmentation, key);
             if (!canExecute()) break;
           }
         }
@@ -200,7 +200,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
         {
           connect(task.get(), SIGNAL(progress(int)),
-                  this,       SLOT(onProgessReported(int)));
+                  this,       SLOT(onProgressReported(int)));
           connect(task.get(), SIGNAL(finished()),
                   this,       SLOT(onTaskFininished()));
 

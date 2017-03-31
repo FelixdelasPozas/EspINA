@@ -106,12 +106,13 @@ int main(int argc, char **argv)
     }
 
     res = app.exec();
+  }
 
-    for(auto plugin: loaders)
-    {
-      plugin->unload();
-      delete plugin;
-    }
+  // plugins must be deleted after EspINA application has been destroyed.
+  for(auto plugin: loaders)
+  {
+    plugin->unload();
+    delete plugin;
   }
 
   qDebug() << "ESPINA exited with value" << res;

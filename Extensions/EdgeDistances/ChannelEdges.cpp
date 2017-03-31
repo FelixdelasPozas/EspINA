@@ -119,8 +119,8 @@ ChannelEdges::~ChannelEdges()
   m_analisysWait.wakeAll();
   m_edgesTask.wakeAll();
 
-  m_edgesAnalyzer = nullptr;
-  m_edgesCreator = nullptr;
+  if(m_edgesAnalyzer->isRunning()) m_edgesAnalyzer->abort();
+  if(m_edgesCreator->isRunning()) m_edgesCreator->abort();
 }
 
 //-----------------------------------------------------------------------------

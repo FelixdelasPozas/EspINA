@@ -30,6 +30,10 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/ChannelAdapter.h>
 
+// Qt
+#include <QMutex>
+#include <QWaitCondition>
+
 namespace ESPINA
 {
   class CoreFactory;
@@ -37,6 +41,45 @@ namespace ESPINA
   namespace CF
   {
     class CountingFrame;
+
+    /** \class ApplySegmentationsCountingFrame
+     * \brief Applies the counting frame to the given segmentations list.
+     *
+     */
+    class ApplySegmentationCountingFrame
+    : public Task
+    {
+        Q_OBJECT
+      public:
+        /** \brief ApplySegmentationCountingFrame class constructor.
+         * \param[in] countingFrame countingFrame of the segmentations.
+         * \param[in] segmentations segmentations list to apply.
+         * \param[in] factory core factory for extension creation.
+         * \param[in] scheduler application task scheduler.
+         *
+         */
+        ApplySegmentationCountingFrame(CountingFrame    *countingFrame,
+                                       SegmentationSList segmentations,
+                                       CoreFactory      *factory,
+                                       SchedulerSPtr     scheduler);
+
+        /** \brief ApplySegmentationCountingFrame class virtual destructor.
+         *
+         */
+        ~ApplySegmentationCountingFrame()
+        {};
+
+      signals:
+        void progress(int value, ApplySegmentationCountingFrame* task);
+
+      protected:
+        virtual void run() override;
+
+      private:
+        CountingFrame    *m_countingFrame; /** CountingFrame of the segmentations.  */
+        SegmentationSList m_segmentations; /** list of segmentations to apply.      */
+        CoreFactory      *m_factory;       /** core factory for extension creation. */
+    };
 
     /** \class ApplyCountingFrame
      * \brief Computes the inclusion of all segmentations in the counting frame.
@@ -65,9 +108,46 @@ namespace ESPINA
       protected:
         virtual void run();
 
+      private slots:
+        /** \brief Computes and signals the progress of the whole operation.
+         * \param[in] value task progress value.
+         * \param[in] task computing task pointer.
+         *
+         */
+        void onTaskProgress(int value, ApplySegmentationCountingFrame *task);
+
+        /** \brief Wakes up the thread when all the sub tasks have finished computation.
+         *
+         */
+        void onTaskFinished();
+
       private:
-        CountingFrame   *m_countingFrame;
-        CoreFactory     *m_factory;
+        void onAbort() override
+        { m_condition.wakeAll(); }
+
+        /** \brief Aborts the computation tasks.
+         *
+         */
+        void abortTasks();
+
+        CountingFrame *m_countingFrame; /** counting frame to apply              */
+        CoreFactory   *m_factory;       /** core factory for extension creation. */
+        QMutex         m_waitMutex;     /** wait condition mutex.                */
+        QWaitCondition m_condition;     /** wait condition to stop the thread.   */
+
+        using TaskType = std::shared_ptr<ApplySegmentationCountingFrame>;
+
+        /** \struct Data
+         * \brief Executing tasks context.
+         *
+         */
+        struct Data
+        {
+            TaskType Task;     /** running task.          */
+            int      Progress; /** task current progress. */
+        };
+
+        QMap<ApplySegmentationCountingFrame *, struct Data> m_tasks; /** executing task list. */
     };
 
     using ApplyCountingFramePtr  = ApplyCountingFrame *;

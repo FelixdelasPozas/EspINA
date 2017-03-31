@@ -122,6 +122,9 @@ namespace ESPINA
       void computeProgress(ParallelUpdaterTask *task, int progress);
 
     private:
+      void onAbort() override
+      { m_condition.wakeAll(); }
+
       /** \brief Aborts all the running tasks.
        *
        */

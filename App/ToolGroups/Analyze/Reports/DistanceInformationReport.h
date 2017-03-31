@@ -143,6 +143,9 @@ namespace ESPINA
       void onComputationFinished();
 
     private:
+      void onAbort() override
+      { m_waiter.wakeAll(); }
+
       /** \brief Starts the next computation thread or does nothing if all distances have been computed.
        *
        */
@@ -155,6 +158,11 @@ namespace ESPINA
       const bool isDistanceCached(SegmentationAdapterPtr first, SegmentationAdapterPtr second) const;
 
     private:
+      /** \brief Aborts all running tasks;
+       *
+       */
+      void abortTasks();
+
       /** \brief Returns true if the segmentation is from the give category or a subcategory if it.
        * \param[in] segmentation segmentation pointer.
        * \param[in] category category smart pointer.

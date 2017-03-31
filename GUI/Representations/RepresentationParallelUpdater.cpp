@@ -119,23 +119,25 @@ void RepresentationParallelUpdater::run()
   auto updateList = *m_updateList;
   updateList.detach();
 
+  if(updateList.isEmpty()) return;
+
   m_updateList    = &m_sources;
   m_requestedSources.clear();
 
-  auto it       = updateList.begin();
   auto size     = updateList.size();
-  auto maxTasks = Scheduler::maxRunningTasks();
+  auto maxTasks = static_cast<int>(Scheduler::maxRunningTasks());
   RepresentationPipeline::ActorsMap data[maxTasks];
 
   {
-    QMutexLocker actorsLock(&m_actors->lock);
+    RepresentationPipeline::ActorsLocker actors(m_actors);
     QMutexLocker dataLock(&m_dataMutex);
 
     if(size < maxTasks)
     {
       for(auto request: updateList)
       {
-        data[0][request.first] = (request.second == false ? m_actors->actors[request.first] : RepresentationPipeline::ActorList());
+        if(!canExecute()) break;
+        data[0][request.first] = (request.second == false ? actors.get()[request.first] : RepresentationPipeline::ActorList());
       }
 
       createTask(data[0]);
@@ -147,18 +149,24 @@ void RepresentationParallelUpdater::run()
       // partition the data.
       for(auto request: updateList)
       {
-        data[i % maxTasks][request.first] = (request.second == false ? m_actors->actors[request.first] : RepresentationPipeline::ActorList());
+        if(!canExecute()) break;
+        data[i % maxTasks][request.first] = (request.second == false ? actors.get()[request.first] : RepresentationPipeline::ActorList());
         ++i;
       }
 
-      for(i = 0; i < maxTasks; ++i)
+      for(i = 0; i < maxTasks && canExecute(); ++i)
       {
         createTask(data[i]);
       }
     }
   }
 
-  m_condition.wait(&m_waitMutex);
+  if(canExecute())
+  {
+    m_waitMutex.lock();
+    m_condition.wait(&m_waitMutex);
+    m_waitMutex.unlock();
+  }
 
   if(!canExecute())
   {
@@ -184,11 +192,14 @@ void RepresentationParallelUpdater::onTaskFinished(ParallelUpdaterTask* task)
     return;
   }
 
-  auto actors = task->actors();
-
-  for(auto item: actors.keys())
   {
-    m_actors->actors[item] = actors[item];
+    RepresentationPipeline::ActorsLocker finalActors(m_actors);
+    auto actors = task->actors();
+
+    for(auto item: actors.keys())
+    {
+      finalActors.get()[item] = actors[item];
+    }
   }
 
   m_tasks.remove(task);
