@@ -52,39 +52,41 @@ ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
   {
     ViewItemAdapterPtr pickedItem = nullptr;
 
-    if(lastActors->lock.tryLock())
     {
-      if (actor)
-      {
-        auto it = lastActors->actors.begin();
+      RepresentationPipeline::ActorsLocker actors(lastActors, true);
 
-        while (it != lastActors->actors.end() && !pickedItem)
+      if(actors.isLocked())
+      {
+        if (actor)
         {
-          for (auto itemActor : it.value())
+          auto it = actors.get().begin();
+
+          while (it != actors.get().end() && !pickedItem)
           {
-            if (itemActor.GetPointer() == actor)
+            for (auto itemActor : it.value())
             {
-              pickedItem = it.key();
+              if (itemActor.GetPointer() == actor)
+              {
+                pickedItem = it.key();
+                break;
+              }
+            }
+
+            ++it;
+          }
+        }
+        else
+        {
+          for (auto item : actors.get().keys())
+          {
+            if (m_pipeline->pick(item, point))
+            {
+              pickedItem = item;
               break;
             }
           }
-
-          ++it;
         }
       }
-      else
-      {
-        for (auto item: lastActors->actors.keys())
-        {
-          if (m_pipeline->pick(item, point))
-          {
-            pickedItem = item;
-            break;
-          }
-        }
-      }
-
-      lastActors->lock.unlock();
     }
 
     if (pickedItem && m_pipeline->pick(pickedItem, point))

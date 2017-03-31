@@ -22,6 +22,7 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <Core/Utils/Locker.h>
 #include <Core/Utils/EspinaException.h>
 
 // Qt
@@ -229,6 +230,7 @@ namespace ESPINA
 
       template<typename E, typename T>
       class ReadLockExtensions
+      : private Core::Utils::ReadLocker
       {
         public:
           /** \brief ReadLockExtensions class constructor.
@@ -236,14 +238,15 @@ namespace ESPINA
            *
            */
           ReadLockExtensions(const Extensions<E, T> &extensions)
-          : m_extensions(extensions)
-          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.lockForRead(); }
+          : Core::Utils::ReadLocker(const_cast<Extensions<E, T> *>(&extensions)->m_lock)
+          , m_extensions(extensions)
+          {}
 
           /** \brief ReadLockExtensions class destructor.
            *
            */
-          ~ReadLockExtensions()
-          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.unlock(); }
+          virtual ~ReadLockExtensions()
+          {}
 
           /** \brief Extensions Iterator begin.
            *
@@ -276,6 +279,7 @@ namespace ESPINA
 
       template<typename E, typename T>
       class WriteLockExtensions
+      : private Core::Utils::WriteLocker
       {
         public:
           /** \brief WriteLockExtensions class constructor.
@@ -283,14 +287,15 @@ namespace ESPINA
            *
            */
           WriteLockExtensions(Extensions<E, T> &extensions)
-          : m_extensions(extensions)
-          { m_extensions.m_lock.lockForWrite(); }
+          : Core::Utils::WriteLocker(extensions.m_lock)
+          , m_extensions(extensions)
+          {}
 
           /** \brief WriteLockExtensions class destructor.
            *
            */
-          ~WriteLockExtensions()
-          { m_extensions.m_lock.unlock(); }
+          virtual ~WriteLockExtensions()
+          {}
 
           /** \brief Extensions Iterator begin.
            *

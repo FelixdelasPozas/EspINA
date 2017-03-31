@@ -44,9 +44,9 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
 
   if(frameActors.get() != nullptr)
   {
-    QMutexLocker lock(&frameActors->lock);
+    RepresentationPipeline::ActorsLocker actors(frameActors);
 
-    for (auto itemActors: frameActors->actors)
+    for (auto itemActors: actors.get())
     {
       for (auto actor: itemActors)
       {

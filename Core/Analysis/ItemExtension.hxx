@@ -312,7 +312,7 @@ namespace ESPINA
           m_infoCache.clear();
         }
 
-        InformationKey createKey(const Key &value) const
+        inline InformationKey createKey(const Key &value) const
         { return InformationKey(type(), value); }
 
       protected:

@@ -56,11 +56,11 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
   QMutexLocker lock(&m_mutex);
 
   {
-    QMutexLocker actorsLock(&m_actors->lock);
+    RepresentationPipeline::ActorsLocker actors(m_actors);
 
-    if(m_actors->actors.keys().contains(item))
+    if(actors.get().keys().contains(item))
     {
-      m_actors->actors.remove(item);
+      actors.get().remove(item);
     }
   }
 
@@ -148,8 +148,6 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   QMutexLocker lock(&m_mutex);
 
-  QMutexLocker actorsLock(&m_actors->lock);
-
   return m_actors;
 }
 
@@ -170,7 +168,7 @@ void RepresentationUpdater::run()
   auto size = updateList.size();
 
   {
-    QMutexLocker actorsLock(&m_actors->lock);
+    RepresentationPipeline::ActorsLocker actors(m_actors);
 
     int i = 0;
     while (canExecute() && it != updateList.end())
@@ -182,10 +180,10 @@ void RepresentationUpdater::run()
 
       if (it->second)
       {
-        m_actors->actors[item] = pipeline->createActors(item, state);
+        actors.get()[item] = pipeline->createActors(item, state);
       }
 
-      pipeline->updateColors(m_actors->actors[item], item, state);
+      pipeline->updateColors(actors.get()[item], item, state);
 
       ++it;
       ++i;

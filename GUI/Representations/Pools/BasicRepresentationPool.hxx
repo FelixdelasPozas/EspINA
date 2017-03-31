@@ -106,39 +106,41 @@ namespace ESPINA
     {
       ViewItemAdapterPtr pickedItem = nullptr;
 
-      if(lastActors->lock.tryLock())
       {
-        if (actor)
-        {
-          auto it = lastActors->actors.begin();
+        RepresentationPipeline::ActorsLocker frameActors(lastActors, true);
 
-          while (it != lastActors->actors.end() && !pickedItem)
+        if(frameActors.isLocked())
+        {
+          if (actor)
           {
-            for (auto itemActor : it.value())
+            auto it = frameActors.get().begin();
+
+            while (it != frameActors.get().end() && !pickedItem)
             {
-              if (itemActor.GetPointer() == actor)
+              for (auto itemActor : it.value())
               {
-                pickedItem = it.key();
+                if (itemActor.GetPointer() == actor)
+                {
+                  pickedItem = it.key();
+                  break;
+                }
+              }
+
+              ++it;
+            }
+          }
+          else
+          {
+            for (auto item: frameActors.get().keys())
+            {
+              if (m_pipeline->pick(item, point))
+              {
+                pickedItem = item;
                 break;
               }
             }
-
-            ++it;
           }
         }
-        else
-        {
-          for (auto item: lastActors->actors.keys())
-          {
-            if (m_pipeline->pick(item, point))
-            {
-              pickedItem = item;
-              break;
-            }
-          }
-        }
-
-        lastActors->lock.unlock();
       }
 
       if (pickedItem && m_pipeline->pick(pickedItem, point))

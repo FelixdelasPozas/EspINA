@@ -26,6 +26,7 @@
 
 // Qt
 #include <QReadWriteLock>
+#include <QMutex>
 
 namespace ESPINA
 {
@@ -33,62 +34,99 @@ namespace ESPINA
   {
     namespace Utils
     {
-      /** \class Locker
-       * \brief Auxiliary class to lock objects for read or read-write access.
-       */
-      class EspinaCore_EXPORT Locker
-      {
-        public:
-          /** \brief Locker class constructor.
-           * \param[in] locker read/write lock object to use.
-           */
-          explicit Locker(QReadWriteLock &locker)
-          : m_locker(locker)
-          {}
-
-          /** \brief Locker virtual destructor.
-           *
-           */
-          virtual ~Locker()
-          { m_locker.unlock();}
-
-        protected:
-          QReadWriteLock &m_locker; /** object lock */
-      };
-
-      /** \class ReadLocker
-       * \brief Implements a read-only Output::Locker.
-       */
-      class EspinaCore_EXPORT ReadLocker
-      : public Locker
-      {
-        public:
-          /** \brief ReadLocker class constructor.
-           * \param[in] locker read/write lock object to use.
-           *
-           */
-          explicit ReadLocker(QReadWriteLock &locker)
-          : Locker(locker)
-          { m_locker.lockForRead(); }
-      };
-
       /** \class WriteLocker
-       * \brief Implements a read-write Output::Locker
+       * \brief Class to lock objects for read-write access.
        *
        */
       class EspinaCore_EXPORT WriteLocker
-      : public Locker
       {
         public:
-          /** \brief WriteLocker class constructor.
-           * \param[in] locker read/write lock object to use.
+          /** \brief Locker class constructor.
+           * \param[in] locker lock object to use.
            *
            */
           explicit WriteLocker(QReadWriteLock &locker)
-          : Locker(locker)
+          : m_locker(locker)
           { m_locker.lockForWrite(); }
+
+          /** \brief WriteLocker class virtual destructor.
+           *
+           */
+          virtual ~WriteLocker()
+          { m_locker.unlock(); }
+
+        protected:
+          QReadWriteLock &m_locker; /** object locker. */
       };
-    
+
+      /** \class ReadLocker
+       * \brief Class to lock objects for read access.
+       *
+       */
+      class EspinaCore_EXPORT ReadLocker
+      {
+        public:
+          /** \brief ReadLocker class constructor.
+           * \param[in] locker lock object to use.
+           *
+           */
+          ReadLocker(QReadWriteLock &locker)
+          : m_locker(locker)
+          { const_cast<QReadWriteLock &>(m_locker).lockForRead(); }
+
+          /** \brief ReadLocker class virtual destructor.
+           *
+           */
+          virtual ~ReadLocker()
+          { const_cast<QReadWriteLock &>(m_locker).unlock();}
+
+        private:
+          const QReadWriteLock &m_locker; /** object locker. */
+      };
+
+      /** \class MutexLocker
+       *  \brief Class to locks objects prior using them.
+       *
+       */
+      class EspinaCore_EXPORT MutexLocker
+      {
+        public:
+          /** \brief MutexLocker class constructor
+           * \param[in] mutex mutex object.
+           * \param[in] tryFirst true to try to lock instead of directly locking and false to lock right away.
+           *
+           */
+          explicit MutexLocker(QMutex &mutex, bool tryFirst = false)
+          : m_mutex   (mutex)
+          , m_isLocked{true}
+          {
+            if(tryFirst)
+            {
+              m_isLocked = m_mutex.tryLock();
+            }
+            else
+            {
+              m_mutex.lock();
+            }
+          }
+
+          /** \brief Returns true if the mutex is locked and false otherwise.
+           *
+           */
+          bool isLocked() const
+          { return m_isLocked; }
+
+          /** \brief MutexLocker class virtual destructor.
+           *
+           */
+          virtual ~MutexLocker()
+          { if(m_isLocked) m_mutex.unlock(); }
+
+        private:
+          QMutex &m_mutex;    /** mutex reference.                                */
+          bool    m_isLocked; /** true if the lock is locked and false otherwise. */
+      };
+
     } // namespace Utils
   } // namespace Core
 } // namespace ESPINA

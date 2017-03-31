@@ -313,18 +313,20 @@ bool RepresentationPool::isEnabled() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) const
 {
-  QMutexLocker (&actors->lock);
+  RepresentationPipeline::ActorsLocker actorsData(actors);
 
   if(m_validActors.isEmpty())
   {
-    return (actors != nullptr) && !actors->actors.isEmpty();
+    return !actorsData.get().isEmpty();
   }
 
   auto currentActors = m_validActors.last();
 
-  QMutexLocker (&currentActors->lock);
+  if(currentActors == actors) return false;
 
-  return (actors->actors.values() != currentActors->actors.values());
+  RepresentationPipeline::ActorsLocker lastActors(m_validActors.last());
+
+  return (actorsData.get().values() != lastActors.get().values());
 }
 
 //-----------------------------------------------------------------------------
