@@ -90,16 +90,18 @@ namespace ESPINA
          * \param[in] type counting frame type.
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
-         * \param[in] constraint name of the segmentations' category the counting frame will apply.
+         * \param[in] constraint name of the segmentations' category the counting frame will apply to.
+         * \param[in] id id of the counting frame.
          *
          */
         void createCountingFrame(CFType type,
                                  Nm inclusion[3],
                                  Nm exclusion[3],
-                                 const QString &constraint = QString(),
-                                 const CountingFrame::Id &id = CountingFrame::Id());
+                                 const QString &constraint,
+                                 const CountingFrame::Id &id);
 
         /** \brief Removes a counting frame from the counting frame manager.
+         * \param[in] countingFrame counting frame to remove.
          *
          */
         void deleteCountingFrame(CountingFrame *countingFrame);
@@ -135,11 +137,11 @@ namespace ESPINA
                                         CoreFactory          *factory,
                                         const State          &state = State());
 
-        CountingFrameManager *m_manager;         /** counting frame manager.             */
-        SchedulerSPtr         m_scheduler;       /** task scheduler.                     */
-        CoreFactory          *m_factory;         /** model factory.                      */
+        CountingFrameManager  *m_manager;        /** counting frame manager.             */
+        SchedulerSPtr          m_scheduler;      /** task scheduler.                     */
+        CoreFactory           *m_factory;        /** model factory.                      */
 
-        State m_prevState;                       /** previous state of the extension.    */
+        State                  m_prevState;      /** previous state of the extension.    */
 
         CountingFrameList      m_countingFrames; /** list of created counting frames.    */
         mutable QReadWriteLock m_CFmutex;        /** protects CF list.                   */

@@ -81,7 +81,7 @@ State CountingFrameExtension::state() const
   QReadLocker lock(&m_CFmutex);
 
   QString br =  "";
-  for(auto cf : m_countingFrames)
+  for(auto cf: m_countingFrames)
   {
     Nm inclusion[3], exclusion[3];
     cf->margins(inclusion, exclusion);

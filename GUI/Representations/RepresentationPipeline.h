@@ -79,10 +79,11 @@ namespace ESPINA
         public:
           /** \brief ActorsLocker class constructor.
            * \param[in] data Actors object.
+           * \param[in] tryLock true to try the lock instead of locking right away and false otherwise.
            *
            */
-          explicit ActorsLocker(Actors data)
-          : Core::Utils::MutexLocker(data->lock)
+          explicit ActorsLocker(Actors data, bool tryLock = false)
+          : Core::Utils::MutexLocker(data->lock, tryLock)
           , m_data                  {data}
           {};
 

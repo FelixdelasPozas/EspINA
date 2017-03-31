@@ -71,8 +71,11 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    auto data   = readLockVolume(segmentation->output());
-    auto volume = vtkImage(data, data->bounds());
+    vtkSmartPointer<vtkImageData> volume = nullptr;
+    {
+      auto data = readLockVolume(segmentation->output());
+      volume    = vtkImage(data, data->bounds());
+    }
 
     auto mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
     mapper->ReleaseDataFlagOn();

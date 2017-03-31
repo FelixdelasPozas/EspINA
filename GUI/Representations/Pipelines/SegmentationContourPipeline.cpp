@@ -80,8 +80,7 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(Cons
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    auto volume = readLockVolume(segmentation->output());
-    Bounds sliceBounds = volume->bounds();
+    Bounds sliceBounds = readLockVolume(segmentation->output())->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
 
@@ -91,7 +90,7 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(Cons
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-      auto slice   = vtkImage(volume, sliceBounds);
+      auto slice   = vtkImage(readLockVolume(segmentation->output()), sliceBounds);
       auto pattern = representationPattern(state);
       auto width   = representationWidth(state);
 

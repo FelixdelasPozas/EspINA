@@ -26,7 +26,7 @@
 // ESPINA
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
@@ -47,6 +47,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
+using namespace ESPINA::GUI::Utils::Format;
 
 const SegmentationExtension::Type StereologicalInclusion::TYPE = "StereologicalInclusion";
 const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
@@ -64,10 +65,10 @@ SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFram
 //------------------------------------------------------------------------
 StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::InfoCache& infoCache)
 : SegmentationExtension{infoCache}
-, m_isInitialized      {false}
 , m_isUpdated          {false}
 , m_isExcluded         {false}
 {
+  m_keys << TOUCH_EDGES;
 }
 
 //------------------------------------------------------------------------
@@ -100,16 +101,9 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList StereologicalInclusion::availableInformation() const
 {
-  InformationKeyList keys;
+  QMutexLocker lock(&m_mutex);
 
-  keys << TOUCH_EDGES;
-
-  for (auto cf : m_exclusionCFs.keys())
-  {
-    keys << cfKey(cf);
-  }
-
-  return keys;
+  return m_keys;
 }
 
 //------------------------------------------------------------------------
@@ -139,18 +133,29 @@ QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
 
-  if (isReady(TOUCH_EDGES) && isOnEdge())
   {
-    QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
-    tooltip = tooltip.append(condition(":/apply.svg", description));
-  }
+    if (isReady(TOUCH_EDGES) && isOnEdge())
+    {
+      QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
+      tooltip = tooltip.append(createTable(":/apply.svg", description));
+    }
 
-  for(auto cf : m_exclusionCFs.keys())
-  {
-    QString description = information(cfKey(cf)).toBool()?
-    "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(cf->id()) + "</font>":
-    "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(cf->id()) + "</font>";
-    tooltip = tooltip.append(condition(":/apply.svg", description));
+    InformationKeyList keys;
+    {
+      QMutexLocker lock(&m_mutex);
+      keys = m_keys;
+      keys.detach();
+    }
+
+    for(auto key: keys)
+    {
+      if(key == TOUCH_EDGES) continue;
+
+      QString description = cachedInfo(key).toBool()?
+      "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(key.value()) + "</font>":
+      "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(key.value()) + "</font>";
+      tooltip = tooltip.append(createTable(":/apply.svg", description));
+    }
   }
 
   return tooltip;
@@ -164,11 +169,12 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
   if (!m_exclusionCFs.contains(cf))
   {
     m_exclusionCFs[cf] = false;
-    m_cfIds[cf] = cf->id();
-    m_isUpdated = false;
+    m_cfIds[cf]        = cf->id();
+    m_isUpdated        = false;
+    m_keys            << cfKey(cf);
 
     connect(cf,   SIGNAL(modified(CountingFrame *)),
-            this, SLOT(onCountingFrameModified(CountingFrame *)), Qt::DirectConnection);
+            this, SLOT(onCountingFrameModified(CountingFrame *)));
   }
 }
 
@@ -181,6 +187,7 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
   {
     m_exclusionCFs.remove(cf);
     m_cfIds.remove(cf);
+    m_keys.removeOne(cfKey(cf));
 
     disconnect(cf,   SIGNAL(modified(CountingFrame *)),
                this, SLOT(onCountingFrameModified(CountingFrame *)));
@@ -212,7 +219,6 @@ void StereologicalInclusion::evaluateCountingFrames()
       evaluateCountingFrame(cf);
     }
 
-    m_isInitialized = true;
     m_isUpdated = true;
   }
 }
@@ -388,8 +394,6 @@ bool StereologicalInclusion::isOnEdge() const
   }
   else
   {
-    Nm threshold = 1.0;
-
     auto channels = QueryRelations::channels(m_extendedItem);
 
     if(channels.empty())
@@ -405,6 +409,8 @@ bool StereologicalInclusion::isOnEdge() const
     {
       auto channel        = channels.first();
       auto edgesExtension = retrieveExtension<ChannelEdges>(channel->readOnlyExtensions());
+      auto spacing        = channel->output()->spacing();
+      const NmVector3 DELTA{ 0.5 * spacing[0], 0.5 * spacing[1], 0.5 * spacing[2] };
 
       Nm distances[6];
       if (edgesExtension->useDistanceToBounds())
@@ -416,9 +422,10 @@ bool StereologicalInclusion::isOnEdge() const
         edgesExtension->distanceToEdges(m_extendedItem, distances);
       }
 
-      for(int i = 0; i < 6; ++i)
+      for(int i = 0; i < 3; ++i)
       {
-        isOnEdge |= distances[i] < threshold;
+        isOnEdge |= (distances[2*i]     < DELTA[i]);
+        isOnEdge |= (distances[(2*i)+1] < DELTA[i]);
       }
     }
 
@@ -437,23 +444,28 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 
   if (hasVolumetricData(output))
   {
-    auto volume = readLockVolume(output);
-
-    if(intersect(volume->bounds(), collisionBounds, volume->bounds().spacing()))
+    VolumeBounds bounds;
+    unsigned char bgValue = SEG_BG_VALUE;
     {
-      auto bounds = intersection(volume->bounds(), collisionBounds, volume->bounds().spacing());
+      auto volume = readLockVolume(output);
+      bounds      = volume->bounds();
+      bgValue     = volume->backgroundValue();
+    }
 
-      if (bounds.areValid())
+    if(intersect(bounds, collisionBounds, bounds.spacing()))
+    {
+      auto intersectionBounds = intersection(bounds, collisionBounds, bounds.spacing());
+
+      if (intersectionBounds.areValid())
       {
         try
         {
-          auto image  = volume->itkImage(bounds);
-
-          auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+          auto image = readLockVolume(output)->itkImage(bounds);
+          auto it    = ImageIterator(image, image->GetLargestPossibleRegion());
           it.GoToBegin();
           while (!it.IsAtEnd())
           {
-            if (it.Get() != volume->backgroundValue()) return true;
+            if (it.Get() != bgValue) return true;
             ++it;
           }
         }
@@ -518,7 +530,9 @@ void StereologicalInclusion::checkSampleCountingFrames()
 //------------------------------------------------------------------------
 void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 {
-  if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()))
+  QMutexLocker lock(&m_mutex);
+
+  if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()) && !cf->id().isEmpty())
   {
     auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
     auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
@@ -529,6 +543,9 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
       m_infoCache.insert(newIdKey, m_infoCache[oldIdKey]);
       m_infoCache.remove(oldIdKey);
     }
+
+    m_keys.removeOne(createKey(oldIdKey));
+    m_keys << createKey(newIdKey);
   }
 }
 

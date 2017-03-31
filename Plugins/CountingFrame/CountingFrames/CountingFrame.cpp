@@ -224,12 +224,17 @@ void CountingFrame::setHighlighted(bool highlight)
 //-----------------------------------------------------------------------------
 void CountingFrame::setCategoryConstraint(const QString& category)
 {
-  if(m_categoryConstraint != category)
+  bool changed = false;
   {
-    m_categoryConstraint = category;
-
-    emit modified(this);
+    QWriteLocker lock(&m_countingFrameMutex);
+    if(m_categoryConstraint != category)
+    {
+      m_categoryConstraint = category;
+      changed = true;
+    }
   }
+
+  if(changed) emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -425,12 +430,18 @@ vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
 //-----------------------------------------------------------------------------
 void CountingFrame::setId(Id id)
 {
-  if(m_id != id)
-  {
-    m_id = id;
+  bool changed = false;
 
-    emit modified(this);
+  {
+    QWriteLocker lock(&m_countingFrameMutex);
+    if(m_id != id)
+    {
+      m_id = id;
+      changed = true;
+    }
   }
+
+  if(changed) emit modified(this);
 }
 
 //-----------------------------------------------------------------------------

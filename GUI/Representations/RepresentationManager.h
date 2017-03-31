@@ -191,7 +191,8 @@ namespace ESPINA
          *
          * TODO: 17-06-2016 implement!!!
          */
-        virtual void reset() {};
+        virtual void reset()
+        {};
 
       public slots:
         /** \brief Managers the view's state frame change.

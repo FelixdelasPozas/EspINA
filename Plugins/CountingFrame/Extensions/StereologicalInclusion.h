@@ -29,6 +29,9 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Extensions.h>
 
+// C++
+#include <atomic>
+
 class vtkPoints;
 class vtkPolyData;
 
@@ -53,7 +56,7 @@ namespace ESPINA
         static const Type           TYPE;
         static const InformationKey TOUCH_EDGES;
 
-        InformationKey cfKey(CountingFrame *cf) const;
+        inline InformationKey cfKey(CountingFrame *cf) const;
 
       public:
         /** \brief StereologicalInclusion class virtual destructor.
@@ -162,13 +165,12 @@ namespace ESPINA
          */
         explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
 
-        bool m_isInitialized;                              /** true if the extension has been initialized.              */
-        bool m_isUpdated;                                  /** true if the extension data is up to date.                */
-
-        QMutex m_mutex;                                    /** lock for extension data computation.                     */
-        bool   m_isExcluded;                               /** true if the segmentation is excluded by at least one CF. */
-        QMap<CountingFrame *, bool> m_exclusionCFs;        /** maps CF pointer - exclusion information.                 */
-        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;  /** maps CF with CF::id for key invalidation.                */
+        std::atomic<bool>                        m_isUpdated;     /** true if the extension data is up to date.                */
+        mutable QMutex                           m_mutex;         /** lock for extension data computation.                     */
+        std::atomic<bool>                        m_isExcluded;    /** true if the segmentation is excluded by at least one CF. */
+        QMap<CountingFrame *, bool>              m_exclusionCFs;  /** maps CF pointer - exclusion information.                 */
+        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;         /** maps CF with CF::id for key invalidation.                */
+        InformationKeyList                       m_keys;          /** informatio keys in this extension.                       */
 
         friend class CFSegmentationExtensionFactory;
     };
