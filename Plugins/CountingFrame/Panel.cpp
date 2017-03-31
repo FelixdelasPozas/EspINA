@@ -602,7 +602,7 @@ void CF::Panel::onChannelChanged(ChannelAdapterPtr channel)
   }
   else
   {
-    setOffsetRanges(0,0);
+    m_gui->setOffsetRanges(0,0);
   }
 }
 

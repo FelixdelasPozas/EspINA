@@ -22,6 +22,8 @@
 #ifndef GUI_WIDGETS_LINEEDITWITHCLEAR_H_
 #define GUI_WIDGETS_LINEEDITWITHCLEAR_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
 // Qt
 #include <QLineEdit>
 #include <QToolButton>
@@ -32,23 +34,38 @@ namespace ESPINA
   {
     namespace Widgets
     {
-      class LineEditWithClear
+      /** \class LineEditWithClear
+       * \brief Imlements a QLineEdit with a clear input button that appears when the user enters text.
+       *
+       */
+      class EspinaGUI_EXPORT LineEditWithClear
       : public QLineEdit
       {
           Q_OBJECT
         public:
+          /** \brief LineEditWithClear class constructor.
+           * \param[in] parent QWidget parent of this one.
+           *
+           */
           explicit LineEditWithClear(QWidget *parent = nullptr);
 
+          /** LineEditWithClear class virtual destructor.
+           *
+           */
           virtual ~LineEditWithClear()
           {}
 
           virtual void resizeEvent(QResizeEvent *event);
 
         private slots:
+          /** \brief Shows/hides the clear button depending on the input text.
+           * \param[in] text text currently in the edit field.
+           *
+           */
           void updateClearButton(const QString& text);
 
         private:
-          QToolButton *m_button;
+          QToolButton *m_button; /** clear button. */
       };
     
     } // namespace Widgets

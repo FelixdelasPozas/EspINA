@@ -169,13 +169,6 @@ namespace ESPINA
         void changeUnitMode(bool useSlices);
 
       private:
-        /** \brief Sets the limits of offset ranges in the GUI.
-         * \param[in] min minimum offset.
-         * \param[in] max maximum offset.
-         *
-         */
-        void setOffsetRanges(int min, int max);
-
         /** \brief Exports the properties and descriptions of the CFs in the panel
          * to a text file.
          * \param[in] fileName file name.
