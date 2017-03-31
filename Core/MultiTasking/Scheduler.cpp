@@ -102,12 +102,14 @@ Scheduler::Scheduler(int period, QObject* parent)
 //-----------------------------------------------------------------------------
 Scheduler::~Scheduler()
 {
-  abortExecutingTasks();
+  abort();
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(TaskSPtr task)
 {
+  if(m_abort) return;
+
   QMutexLocker lock(&m_insertionMutex);
 
   task->setId(m_lastId++);
@@ -121,9 +123,24 @@ void Scheduler::addTask(TaskSPtr task)
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::abortExecutingTasks()
+void Scheduler::abort()
 {
   m_abort = true;
+
+  // wait for the scheduler thread to end scheduleTask() method. Period is microsec so its converted to millisec.
+  m_waitMutex.lock();
+  m_wait.wait(&m_waitMutex, 3 * m_period/1000);
+  m_waitMutex.unlock();
+
+  {
+    QMutexLocker priorityLock(&m_priorityMutex);
+    m_priorityBuffer.clear();
+  }
+
+  {
+    QMutexLocker insertionLock(&m_insertionMutex);
+    m_insertionBuffer.clear();
+  }
 
   QMutexLocker lock(&m_mutex);
 
@@ -131,10 +148,6 @@ void Scheduler::abortExecutingTasks()
   {
     for (auto task : m_scheduledTasks[priority])
     {
-//    for (auto scheduledTask : m_scheduledTasks[priority])
-//    {
-//      auto task = scheduledTask.Task;
-
       QMutexLocker lock(&task->m_submissionMutex);
       task->m_submitted = false;
 
@@ -147,6 +160,7 @@ void Scheduler::abortExecutingTasks()
     }
     m_scheduledTasks[priority].clear();
   }
+  m_scheduledTasks.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -318,11 +332,15 @@ void Scheduler::scheduleTasks()
 
     usleep(std::max(0, m_period - lastSchedulingTime));
   }
+
+  m_wait.wakeAll();
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::proccessTaskInsertion()
 {
+  if(m_abort) return;
+
   QMutexLocker insertionLock(&m_insertionMutex);
   QMutexLocker priorityLock(&m_priorityMutex);
 

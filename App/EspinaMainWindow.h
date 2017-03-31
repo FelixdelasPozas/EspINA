@@ -305,9 +305,9 @@ namespace ESPINA
     // ESPINA
     bool m_minimizedStatus;
 
-    Support::Context               m_context;
+    Support::Context              m_context;
     Support::FilterRefinerFactory m_filterRefiners;
-    AnalysisSPtr                   m_analysis;
+    AnalysisSPtr                  m_analysis;
 
     AutoSave m_autoSave;
     EspinaErrorHandlerSPtr m_errorHandler;

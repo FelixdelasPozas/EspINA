@@ -26,25 +26,32 @@
  *
  */
 
-#ifndef ESPINA_DISPATCHER_H
-#define ESPINA_DISPATCHER_H
+#ifndef ESPINA_SCHEDULER_H
+#define ESPINA_SCHEDULER_H
 
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include "Task.h"
+
+// Qt
 #include <QMap>
+
+// C++
+#include <atomic>
 
 namespace ESPINA
 {
   /** \class Scheduler
    * \brief Task scheduler.
+   *
    */
   class EspinaCore_EXPORT Scheduler
   : public QObject
   {
     Q_OBJECT
 
+// TODO: @felix re-schedule executing tasks to lower the max running tasks number to max CPU threads.
 //    struct ScheduledTask
 //    {
 //      static const unsigned MAX_CICLES = 100;
@@ -71,11 +78,18 @@ namespace ESPINA
 
     using ScheduledTask = TaskSPtr;
 
+    /** \class TaskQueue
+     * \brief List of tasks ordered by task id.
+     *
+     */
     class TaskQueue
     : public QList<ScheduledTask>
     {
       public:
-        void orderedInsert(TaskSPtr worker);
+        /** \brief Inserts the given task in the list in order.
+         *
+         */
+        void orderedInsert(TaskSPtr task);
     };
 
 
@@ -100,10 +114,10 @@ namespace ESPINA
      */
     void addTask(TaskSPtr task);
 
-    /** \brief Aborts all tasks currently in the task list.
+    /** \brief Aborts all tasks currently in the task list and in the insertion list. Clears all lists.
      *
      */
-    void abortExecutingTasks();
+    void abort();
 
     /** \brief Changes a task priority.
      * \param[in] task task raw pointer.
@@ -133,14 +147,25 @@ namespace ESPINA
     void taskRemoved(TaskSPtr);
 
   private:
+    /** \brief Helper method to insert recently added tasks into the scheduler.
+     *
+     */
     void proccessTaskInsertion();
 
+    /** \brief Changes the currently running tasks based on the priorities.
+     *
+     */
     void reschedule();
 
+    /** \brief Helper method to process the task's priority changes.
+     *
+     */
     void proccessPriorityChanges();
 
+    /** \brief Helper re-scheduling method. Currently disabled.
+     *
+     */
     void roundRobinShift();
-
 
     /** \brief Removes a task from the task list.
      * \param[in] task task smart pointer.
@@ -153,27 +178,32 @@ namespace ESPINA
      */
     unsigned int numberOfTasks() const;
 
+    /** \brief Returns true if the given task can execute.
+     * \param[in] task task smart pointer.
+     *
+     */
     bool canExecute(TaskSPtr task) const;
 
+    /** \brief Helper method to print the state of the given task in std::cout.
+     * \param[in] task task smart pointer.
+     *
+     */
     void printState(TaskSPtr task) const;
 
   private:
-    int m_period;
-
-    QMutex          m_insertionMutex;
-    QList<TaskSPtr> m_insertionBuffer;
-
-    QMutex                  m_priorityMutex;
-    QMap<TaskPtr, Priority> m_priorityBuffer;
-
-    QMap<Priority, TaskQueue> m_scheduledTasks;
-
-    Task::Id m_lastId;
-
-    unsigned int   m_maxNumRunningTasks;
-    mutable QMutex m_mutex;
-    bool           m_abort;
+    int                       m_period;             /** schduler executing period.                                 */
+    QMutex                    m_insertionMutex;     /** mutex to protect insetion list.                            */
+    QList<TaskSPtr>           m_insertionBuffer;    /** task insertion list, not currently in execution.           */
+    QMutex                    m_priorityMutex;      /** mutex to protect tasks priorities.                         */
+    QMap<TaskPtr, Priority>   m_priorityBuffer;     /** maps task<->priority.                                      */
+    QMap<Priority, TaskQueue> m_scheduledTasks;     /** maps priority<->tasks.                                     */
+    Task::Id                  m_lastId;             /** id of last added task.                                     */
+    unsigned int              m_maxNumRunningTasks; /** maximum number of running tasks.                           */
+    mutable QMutex            m_mutex;              /** scheduler data mutex.                                      */
+    std::atomic<bool>         m_abort;              /** true to abort the schduler and finish, false otherwise.    */
+    QMutex                    m_waitMutex;          /** wait condition mutex.                                      */
+    QWaitCondition            m_wait;               /** wait condition to correctly finish and free all resources. */
   };
 }
 
-#endif // ESPINA_DISPATCHER_H
+#endif // ESPINA_SCHEDULER_H

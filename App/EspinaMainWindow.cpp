@@ -420,6 +420,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
   m_view.reset();
 
   removeTemporalDirectory(m_settings->temporalPath());
+
+  m_context.scheduler()->abort();
 }
 
 //------------------------------------------------------------------------
@@ -460,12 +462,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   enableWidgets(false);
   enableToolShortcuts(false);
-
-  auto &viewState = m_context.viewState();
-
-  updateSceneState(NmVector3{0,0,0}, viewState, ViewItemAdapterSList());
-
-  viewState.resetCamera();
 
   setWindowTitle(tr("ESPINA Interactive Neuron Analyzer"));
 
