@@ -23,7 +23,6 @@
 
 // Plugin
 #include "CountingFramePlugin_Export.h"
-#include "ui_Panel.h"
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
 
@@ -47,9 +46,9 @@ namespace ESPINA
      */
     class CountingFramePlugin_EXPORT Panel
     : public ESPINA::Panel
-    , public Ui::Panel
     {
         Q_OBJECT
+        class GUI;     /** gui implementation.     */
         class CFModel; /** qt model for the table. */
 
       public:
@@ -169,11 +168,6 @@ namespace ESPINA
          */
         void changeUnitMode(bool useSlices);
 
-        /** \brief Reports the progress on CF creation of the creation icon.
-         *
-         */
-        void reportProgess(int progress);
-
       private:
         /** \brief Sets the limits of offset ranges in the GUI.
          * \param[in] min minimum offset.
@@ -241,6 +235,7 @@ namespace ESPINA
         void applyCountingFrames(SegmentationAdapterSList segmentations);
 
       private:
+        GUI                  *m_gui;            /** user interface chessire-cat.                */
         CountingFrameManager *m_manager;        /** Counting frame manager.                     */
         CFModel              *m_cfModel;        /** table's qt model.                           */
         bool                  m_useSlices;      /** true to measure in slices and false for Nm. */

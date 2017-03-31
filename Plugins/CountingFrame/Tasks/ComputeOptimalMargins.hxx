@@ -81,6 +81,12 @@ namespace ESPINA
       void exclusion(Nm value[3]) const
       { memcpy(value, m_exclusion, 3*sizeof(Nm)); }
 
+      /** \brief Returns the names of the segmentations guilty of inclusion margins, or empty if none.
+       *         The returned values correspond to Axis::X, Axis::Y, Axis::Z.
+       */
+      const QStringList guiltySegmentations() const
+      { return m_guilty; }
+
     protected:
       virtual void run();
 
@@ -90,6 +96,7 @@ namespace ESPINA
       ModelFactory* m_factory;       /** application object factory.       */
       Nm            m_inclusion[3];  /** counting frame inclusion margins. */
       Nm            m_exclusion[3];  /** counting frame exclusion margins. */
+      QStringList   m_guilty;        /** guilty segmentations names.       */
   };
 
   //------------------------------------------------------------------------
@@ -99,6 +106,7 @@ namespace ESPINA
   , m_stack        {stack}
   , m_segmentations{segmentations}
   , m_factory      {factory}
+  , m_guilty       {QString(), QString(), QString()}
   {
     setDescription("Computing Optimal Margins");
     Q_ASSERT(factory);
@@ -139,9 +147,20 @@ namespace ESPINA
         Nm length = bounds.lenght(toAxis(i));
 
         if (dist2Margin[2 * i] < DELTA[i])
-          m_inclusion[i] = (vtkMath::Round(std::max(length, m_inclusion[i]) / spacing[i] - shift) + shift) * spacing[i];
-        //         if (dist2Margin[2*i+1] < DELTA[i])
-        //           exclusion[i] = std::max(length, exclusion[i]);
+        {
+          auto value = (vtkMath::Round(std::max(length, m_inclusion[i]) / spacing[i] - shift) + shift) * spacing[i];
+
+          if(value != m_inclusion[i])
+          {
+            m_inclusion[i] = value;
+            m_guilty[i] = segmentation->alias().isEmpty() ? segmentation->name() : segmentation->alias();
+          }
+        }
+
+//        if (dist2Margin[2*i+1] < DELTA[i])
+//        {
+//          exclusion[i] = std::max(length, m_exclusion[i]);
+//        }
       }
       taskProgress += inc;
 

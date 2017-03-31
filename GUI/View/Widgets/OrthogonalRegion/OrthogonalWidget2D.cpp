@@ -149,6 +149,7 @@ void OrthogonalWidget2D::initializeImplementation(RenderView *view)
   connect(m_representation.get(), SIGNAL(patternChanged(int)),
           this,                   SLOT(onPatternChanged(int)));
 
+  m_widget->SetPlane(view2D_cast(view)->plane());
   m_widget->SetDepth(static_cast<View2D*>(view)->widgetDepth());
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 }

@@ -83,35 +83,49 @@ namespace ESPINA
   template<typename T>
   QString SuggestId(const QString& id, const T& list)
   {
-    QRegExp cardinalityRegExp("\\([0-9]+\\)");
-    QString cardinalityStrippedId = QString(id).replace(cardinalityRegExp, "").trimmed();
-
-    QString suggestedId = cardinalityStrippedId;
+    QRegExp regExp("\\([0-9]+\\)");
+    int strippedNum = 0;
+    QString strippedId = id;
+    auto pos = regExp.lastIndexIn(id);
+    if(pos == -1)
+    {
+      strippedNum = regExp.capturedTexts().last().mid(1, regExp.capturedTexts().last().length()-2).toInt();
+      strippedId = strippedId.remove(pos, regExp.capturedTexts().last().length()).simplified();
+    }
 
     int count = 0;
-    for (auto item : list)
+    for(auto item: list)
     {
-      if (item->id().startsWith(cardinalityStrippedId))
+      int itemNum = 0;
+      QString itemId = item->id();
+
+      auto idPos = regExp.lastIndexIn(itemId);
+      if(idPos != -1)
       {
-        int cardinalityIndex = item->id().lastIndexOf(cardinalityRegExp);
+        itemNum = regExp.capturedTexts().last().mid(1, regExp.capturedTexts().last().length()-2).toInt();
+        itemId = itemId.remove(pos, regExp.capturedTexts().last().length()).simplified();
+      }
 
-        if ((cardinalityIndex == -1) && (count == 0))
-        {
-          ++count;
-        }
-        else
-        {
-          auto cardinality = item->id().mid(cardinalityIndex + 1);
-          cardinality = cardinality.left(cardinality.length()-1);
-
-          count = std::max(count, cardinality.toInt() + 1);
-        }
+      if(itemId.startsWith(strippedId))
+      {
+        count = std::max(count, itemNum + 1);
       }
     }
 
-    if (count > 0)
+    if(list.isEmpty())
     {
-      suggestedId.append(QString(" (%1)").arg(count));
+      count = strippedNum;
+    }
+
+    auto suggestedId = id;
+    if(strippedNum != 0)
+    {
+      pos = regExp.lastIndexIn(id);
+      suggestedId.replace(pos + 1, regExp.capturedTexts().last().length() - 2, QString::number(count));
+    }
+    else
+    {
+      if(count != 0) suggestedId += QObject::tr(" (%1)").arg(count);
     }
 
     return suggestedId;

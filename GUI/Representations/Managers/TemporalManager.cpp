@@ -79,6 +79,13 @@ TemporalManager::TemporalManager(TemporalPrototypesSPtr prototypes, ManagerFlags
 //------------------------------------------------------------------------
 TemporalManager::~TemporalManager()
 {
+  if(m_representation)
+  {
+    m_representation->uninitialize();
+
+    disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+               this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+  }
 }
 
 //------------------------------------------------------------------------
@@ -146,7 +153,6 @@ void TemporalManager::onShow(const FrameCSPtr frame)
     if (m_plane != Plane::UNDEFINED)
     {
       auto representation2D = m_prototypes->createRepresentation2D();
-
       representation2D->setPlane(m_plane);
       representation2D->setRepresentationDepth(m_depth);
 
@@ -184,7 +190,6 @@ void TemporalManager::displayRepresentations(const FrameCSPtr frame)
 void TemporalManager::hideRepresentations(const FrameCSPtr frame)
 {
   m_representation->hide();
-  m_representation->uninitialize();
 
   disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
              this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));

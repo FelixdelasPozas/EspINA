@@ -21,6 +21,9 @@
 #ifndef ESPINA_TEMPORAL_MANAGER_H
 #define ESPINA_TEMPORAL_MANAGER_H
 
+#include <GUI/EspinaGUI_Export.h>
+
+// ESPINA
 #include <GUI/Representations/RepresentationManager.h>
 
 namespace ESPINA

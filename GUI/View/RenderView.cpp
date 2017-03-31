@@ -78,7 +78,7 @@ RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 
   if(!state.activeWidgets().isEmpty())
   {
-    // needs the object to be fully constructed, so well put the action on the event queue.
+    // needs the object to be fully constructed, so we'll put the action on the event queue.
     QTimer::singleShot(10, this, SLOT(delayedWidgetsShow()));
   }
 }
@@ -87,6 +87,9 @@ RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 RenderView::~RenderView()
 {
   disconnect();
+
+  for(auto manager: m_managers) manager->disconnect();
+  for(auto manager: m_temporalManagers) manager->disconnect();
 
   m_managers.clear();
   m_temporalManagers.clear();

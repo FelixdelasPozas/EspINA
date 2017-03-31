@@ -32,7 +32,7 @@ void EspinaWidget::initializeWidget(RenderView *view)
 
   initializeImplementation(view);
 
-  widget->On();
+  if(renderer && interactor) widget->On();
 }
 
 //-----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ void EspinaWidget::showWidget()
 {
   auto widget = vtkWidget();
 
-  if(!widget->GetEnabled())
+  if(!widget->GetEnabled() && widget->GetCurrentRenderer() && widget->GetInteractor())
   {
     widget->On();
   }
