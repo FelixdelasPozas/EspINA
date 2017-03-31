@@ -27,12 +27,13 @@
 
 // ESPINA
 #include "SegmentationTags.h"
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 #include <Core/Analysis/Segmentation.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Utils::Format;
 
 const SegmentationExtension::Type SegmentationTags::TYPE = "SegmentationTags";
 const SegmentationExtension::Key  SegmentationTags::TAGS = "Tags";
@@ -85,7 +86,7 @@ QString SegmentationTags::toolTipText() const
   if (!tagList.isEmpty())
   {
     tagList.removeDuplicates();
-    toolTip = condition(":/espina/tag.svg", tagList.join(","));
+    toolTip = createTable(":/espina/tag.svg", tagList.join(","));
   }
 
   return toolTip;

@@ -38,10 +38,10 @@ namespace ESPINA
    */
   struct Representation
   {
-    RepresentationGroup        Group;
-    RepresentationPoolSList    Pools;
-    GUI::Representations::RepresentationManagerSList Managers;
-    RepresentationSwitchSList  Switches;
+    RepresentationGroup                              Group;    /** Representation name.                    */
+    RepresentationPoolSList                          Pools;    /** List of pools of the representation.    */
+    GUI::Representations::RepresentationManagerSList Managers; /** List of managers of the representation. */
+    RepresentationSwitchSList                        Switches; /** List of switches of the representation. */
   };
 
   using RepresentationList = QList<Representation>;
@@ -51,19 +51,29 @@ namespace ESPINA
    */
   class EspinaSupport_EXPORT RepresentationFactory
   {
-  public:
-    virtual ~RepresentationFactory() {}
+    public:
+      /** \brief RepresentationFactory class virtual destructor.
+       *
+       */
+      virtual ~RepresentationFactory()
+      {}
 
-    /** \brief Create a group of objects which are coordinated
-     *         to display an specific type of related elements
-     *
-     */
-    Representation createRepresentation(Support::Context &context, ViewTypeFlags supportedViews = ViewType::VIEW_2D|ViewType::VIEW_3D) const
-    { return doCreateRepresentation(context, supportedViews); }
+      /** \brief Create a group of objects which are coordinated
+       *         to display an specific type of related elements
+       *
+       */
+      Representation createRepresentation(Support::Context &context, ViewTypeFlags supportedViews = ViewType::VIEW_2D|ViewType::VIEW_3D) const
+      {
+        auto representation = doCreateRepresentation(context, supportedViews);
+        m_representations << representation;
 
-  private:
-    virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const = 0;
+        return representation;
+      }
 
+    private:
+      virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const = 0;
+
+      mutable QList<Representation> m_representations; /** list of created representations. */
   };
 } // namespace ESPINA
 

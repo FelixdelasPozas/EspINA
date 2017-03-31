@@ -114,7 +114,7 @@ void ESPINA::populateToolBar(QToolBar *bar, ToolGroup::GroupedTools tools)
     {
       for(auto action: tool->actions())
       {
-        bar->addAction(action);
+        if(!bar->actions().contains(action)) bar->addAction(action);
       }
     }
   }

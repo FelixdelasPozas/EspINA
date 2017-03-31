@@ -72,6 +72,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
+  Widgets/LineEditWithClear.h
   Widgets/NoteEditor.h
   Widgets/ProgressAction.h
   Widgets/PixelValueSelector.h
@@ -151,7 +152,6 @@ set (GUI_SOURCES
   Representations/RepresentationManager.cpp
   Representations/Managers/PoolManager.cpp
   Representations/Managers/PassiveActorManager.cpp
-  Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
@@ -162,7 +162,6 @@ set (GUI_SOURCES
   Selectors/Selector.cpp
   Utils/ColorRange.cpp
   Utils/DefaultIcons.cpp
-  Utils/Format.cpp
   Utils/QtModelUtils.cpp
   Utils/RepresentationUtils.cpp
   Utils/Timer.cpp
@@ -226,6 +225,7 @@ set (GUI_SOURCES
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
+  Widgets/LineEditWithClear.cpp
   Widgets/NoteEditor.cpp 
   Widgets/ProgressAction.cpp
   Widgets/PixelValueSelector.cpp

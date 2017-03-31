@@ -51,7 +51,7 @@ FileSaveTool::FileSaveTool(const QString &id,
                            AnalysisSPtr  &analysis,
                            EspinaErrorHandlerSPtr handler)
 : ProgressTool  {id, icon, tooltip, context}
-, m_analysis    {analysis}
+, m_analysis    (analysis)
 , m_errorHandler{handler}
 , m_askAlways   {false}
 , m_icon        {icon}

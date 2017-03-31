@@ -182,12 +182,29 @@ QVariant SegmentationAdapter::data(int role) const
       tooltip = tooltip.append(categoryInfo);
       tooltip = tooltip.append(boundsInfo);
 
+      auto cleanTextBR = [] (QString &text)
+      {
+        while(text.endsWith("<br>"))
+        {
+          auto index = text.lastIndexOf("<br>");
+          if(index != -1)
+          {
+            text = text.remove(index, 4);
+          }
+          else
+          {
+            break;
+          }
+        }
+      };
+
       QString extTooltip;
       for(auto extension : m_segmentation->readOnlyExtensions())
       {
         auto extensionTooltip = extension->toolTipText();
         if (!extensionTooltip.isEmpty())
         {
+          cleanTextBR(extensionTooltip);
           extTooltip = extTooltip.append(extensionTooltip).append("<br>");
         }
       }
@@ -197,18 +214,7 @@ QVariant SegmentationAdapter::data(int role) const
         tooltip = tooltip.append(tr("<b>Extensions:</b><br>%1").arg(extTooltip));
       }
 
-      while(tooltip.endsWith("<br>"))
-      {
-        auto index = tooltip.lastIndexOf("<br>");
-        if(index != -1)
-        {
-          tooltip = tooltip.remove(index, 4);
-        }
-        else
-        {
-          break;
-        }
-      }
+      cleanTextBR(tooltip);
 
       return tooltip;
     }

@@ -27,11 +27,12 @@
 
 // ESPINA
 #include "SegmentationIssues.h"
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Utils::Format;
 
 const QString SegmentationIssues::TYPE   = "SegmentationIssues";
 
@@ -74,7 +75,7 @@ QString SegmentationIssues::toolTipText() const
     auto report = QString("<b>%1</b><br>(%2)").arg(issue->description())
                                              .arg(issue->suggestion());
 
-    toolTip += condition(severityIcon(issue->severity()), report);
+    toolTip += createTable(severityIcon(issue->severity()), report);
   }
 
   return toolTip;

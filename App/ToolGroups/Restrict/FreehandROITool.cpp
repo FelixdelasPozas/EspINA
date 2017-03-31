@@ -64,9 +64,6 @@ FreehandROITool::~FreehandROITool()
 {
   abortOperation();
 
-  disconnect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-             this,                 SLOT(updateReferenceItem(ChannelAdapterPtr)));
-
   disconnect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
              this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 

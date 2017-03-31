@@ -48,7 +48,7 @@ namespace ESPINA
        * \param[in] supportedViews view flags of the vies the representations will be shown.
        *
        */
-      virtual Representation doCreateRepresentation ( Support::Context& context, ViewTypeFlags supportedViews ) const;
+      virtual Representation doCreateRepresentation(Support::Context& context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the slice representations for segmentations.
        * \param[out] representation Representation object.
@@ -56,28 +56,28 @@ namespace ESPINA
        * \param[in] supportedViews view flags of the vies the representations will be shown.
        *
        */
-      void createSliceRepresentation     (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
+      void createSliceRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the slice contour representation.
        * \param[out] representation Representation object.
        * \param[in] context application context.
        *
        */
-      void createContourRepresentation   (Representation &representation, Support::Context &context) const;
+      void createContourRepresentation(Representation &representation, Support::Context &context) const;
 
       /** \brief Creates the skeleton representation and adds it to the Representation object.
        * \param[out] representation Representation object.
        * \param[in] context application context.
        *
        */
-      void createSkeletonRepresentation  (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
+      void createSkeletonRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the mesh representation and adds it to the Representation object.
        * \param[out] representation Representation object.
        * \param[in] context application context.
        *
        */
-      void createMeshRepresentation      (Representation &representation, Support::Context &context) const;
+      void createMeshRepresentation(Representation &representation, Support::Context &context) const;
 
       /** \brief Sets the order of the representation for the given tool.
        * \param[in] order order string id.

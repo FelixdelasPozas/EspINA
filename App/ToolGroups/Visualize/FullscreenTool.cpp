@@ -28,9 +28,9 @@ const QString StateOnToltip = QString("Set application fullscreen off");
 const QString StateOffTooltip = QString("Set application fullscreen on");
 
 //--------------------------------------------------------------------
-FullscreenTool::FullscreenTool(Support::Context& context, EspinaMainWindow& window)
+FullscreenTool::FullscreenTool(Support::Context &context, EspinaMainWindow &window)
 : GenericTogglableTool{tr("FullscreenTool"), ":/espina/fullscreen.svg", StateOffTooltip, context}
-, m_window            {window}
+, m_window            (window)
 {
   setShortcut(Qt::Key_F11);
 

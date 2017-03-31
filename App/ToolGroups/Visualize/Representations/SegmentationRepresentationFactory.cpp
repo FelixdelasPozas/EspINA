@@ -103,13 +103,13 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
-    auto sliceManager    = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
+    auto sliceManager = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
 
     sliceManager->setName("DisplaySegmentations");
     sliceManager->setIcon(QIcon(":espina/display_segmentations.svg"));
     sliceManager->setDescription(QObject::tr("Display Segmentations"));
 
-    auto sliceSwitch     = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentations", sliceManager, sliceSettings, ViewType::VIEW_2D, context);
+    auto sliceSwitch = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentations", sliceManager, sliceSettings, ViewType::VIEW_2D, context);
     sliceSwitch->setChecked(true);
     sliceSwitch->setShortcut(Qt::Key_Space);
     sliceSwitch->setShortcut(Qt::KeypadModifier + Qt::Key_0);
@@ -126,9 +126,9 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 
     slice3DManager->setName("DisplaySegmentationProjections");
     slice3DManager->setIcon(QIcon(":espina/display_segmentation_projections.svg"));
-    slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Proyections"));
+    slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Projections"));
 
-    auto slice3DSwitch   = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, context);
+    auto slice3DSwitch = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, context);
     groupSwitch("1-1", slice3DSwitch);
 
     representation.Managers << slice3DManager;

@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "SegmentationExplorer.h"
-#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
 #include "Panels/SegmentationExplorer/SegmentationExplorerLayout.h"
 #include "Layouts/ClassificationLayout.h"
 #include <Extensions/Tags/SegmentationTags.h>
@@ -295,8 +294,6 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSearchFilter()
 {
-  m_gui->clearSearch->setEnabled(!m_gui->searchText->text().isEmpty());
-
   m_layout->setFilterRegExp(m_gui->searchText->text());
 }
 

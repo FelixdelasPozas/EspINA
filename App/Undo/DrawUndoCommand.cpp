@@ -81,9 +81,9 @@ void DrawUndoCommand::redo()
     output->setData(mesh);
   }
 
-  m_segmentation->invalidateRepresentations();
-
   m_segmentation->setBeingModified(false);
+
+  m_segmentation->invalidateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ void DrawUndoCommand::undo()
     output->removeData(MarchingCubesMesh::TYPE);
   }
 
-  m_segmentation->invalidateRepresentations();
-
   m_segmentation->setBeingModified(false);
+
+  m_segmentation->invalidateRepresentations();
 }

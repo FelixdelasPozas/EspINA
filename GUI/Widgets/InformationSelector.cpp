@@ -250,7 +250,7 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
       }
       else
       {
-        // fix for extensions with variable keys like stereological inclusion.
+        // fix for extensions with variable keys like stereological inclusion (variable number of counting frames).
         for(auto key: extension->availableInformation())
         {
           if(!info[key.extension()].contains(key))
