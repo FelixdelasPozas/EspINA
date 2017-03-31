@@ -39,7 +39,7 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
                                                      const DistanceInformationDialog::DistancesMap distances,
                                                      const DistanceInformationOptionsDialog::Options &options,
                                                      Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint})
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
   setWindowTitle(tr("Distance Information Report"));
   setWindowIconText(":/espina/Espina.svg");

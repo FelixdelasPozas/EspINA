@@ -239,7 +239,7 @@ namespace ESPINA
           /** \brief Returns the unique identifier of the tool.
            *
            */
-          const QString id() const;
+          const QString &id() const;
 
         public slots:
           /** \brief Helper method to launch the action of the tool.

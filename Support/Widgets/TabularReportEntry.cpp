@@ -90,11 +90,11 @@ TabularReport::Entry::Entry(const QString   &category,
                             ModelAdapterSPtr model,
                             ModelFactorySPtr factory,
                             QWidget         *parent)
-: QWidget(parent)
+: QWidget   {parent}
 , m_category(category)
-, m_model(model)
-, m_factory(factory)
-, m_proxy(nullptr)
+, m_model   {model}
+, m_factory {factory}
+, m_proxy   {nullptr}
 {
   setupUi(this);
 

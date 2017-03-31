@@ -28,7 +28,7 @@ using namespace ESPINA::GUI;
 
   //------------------------------------------------------------------------
 IssueListDialog::IssueListDialog(IssueList issuesList)
-: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint})
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
   setupUi(this);
   setWindowTitle(tr("Current session problems"));

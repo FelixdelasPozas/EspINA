@@ -51,6 +51,12 @@ namespace ESPINA
        */
       explicit Dialog3DTool(Support::Context &context, Dialog3D *dialog);
 
+      /** \brief Dialog3DTool class virtual destructor.
+       *
+       */
+      virtual ~Dialog3DTool()
+      {};
+
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;

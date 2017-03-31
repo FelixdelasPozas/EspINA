@@ -35,8 +35,8 @@ using namespace ESPINA::Support::Widgets;
 const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
-Dialog3D::Dialog3D(Support::Context   &context)
-: QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint}}
+Dialog3D::Dialog3D(Support::Context &context)
+: QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext      (context)
 , m_view3D         {context.viewState(), true}
 , m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))

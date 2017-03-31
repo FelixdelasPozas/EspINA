@@ -80,7 +80,7 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint})
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 , WithContext(context)
 , m_spacingModified   {false}
 , m_edgesModified     {false}

@@ -37,6 +37,7 @@ namespace ESPINA
 {
   /** \class Panel
    * \brief EspINA main window panel base class.
+   *
    */
   class EspinaSupport_EXPORT Panel
   : public QDockWidget

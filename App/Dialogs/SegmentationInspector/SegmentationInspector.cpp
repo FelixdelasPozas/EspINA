@@ -54,7 +54,7 @@ const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segmentations,
                                              Support::Context              &context)
-: QDialog               {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowMinimizeButtonHint}}
+: QDialog               {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext           (context)
 , m_selectedSegmentation{nullptr}
 , m_channelSources      (getViewState())
@@ -439,8 +439,8 @@ void SegmentationInspector::initReport()
   SegmentationExtension::KeyList tags;
   tags << tr("Name") << tr("Category");
 
-  m_tabularReport.setModel(getModel());
   m_tabularReport.setFilter(m_segmentations);
+  m_tabularReport.setModel(getModel());
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport.setMinimumHeight(0);
 }

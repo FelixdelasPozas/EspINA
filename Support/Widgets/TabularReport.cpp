@@ -49,6 +49,7 @@ TabularReport::TabularReport(Support::Context &context,
                              Qt::WindowFlags   flags)
 : QAbstractItemView(parent)
 , m_context       (context)
+, m_model         {nullptr}
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {

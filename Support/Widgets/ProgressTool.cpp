@@ -306,7 +306,7 @@ void ProgressTool::onEventHandlerInUse(bool isUsed)
 }
 
 //----------------------------------------------------------------------------
-const QString ProgressTool::id() const
+const QString &ProgressTool::id() const
 {
   return m_id;
 }
