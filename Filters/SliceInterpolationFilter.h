@@ -27,14 +27,61 @@
 #include <Core/Analysis/Filter.h>
 
 // ITK
+#include <itkLabelMap.h>
 #include <itkShapeLabelObject.h>
 #include <itkSmartPointer.h>
+// ITK
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryDilateImageFilter.h>
+#include <itkBinaryErodeImageFilter.h>
+#include <itkBinaryImageToShapeLabelMapFilter.h>
+#include <itkLabelMapToBinaryImageFilter.h>
 
 namespace ESPINA
 {
   class EspinaFilters_EXPORT SliceInterpolationFilter
   : public Filter
-  {
+{
+    private:
+      using RegionType = itkVolumeType::RegionType;
+      using SizeValueType = itkVolumeType::SizeValueType;
+      using PixelCounterType = unsigned long;
+      using Histogram = std::vector<PixelCounterType>;
+      //using HistogramSptr = std::shared_ptr<Histogram>;
+      using SLO = itk::ShapeLabelObject<SizeValueType,itkVolumeType::ImageDimension>;
+      using SLOSptr = itk::SmartPointer<SLO>;
+      using ShapeLabelMap = itk::LabelMap<SLO>;
+      using ShapeLabelMapToBinaryImageFilter = itk::LabelMapToBinaryImageFilter<ShapeLabelMap, itkVolumeType>;
+      using BinaryImageToShapeLabelMapFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>;
+      using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
+      using BinaryErodeFilter = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+      using BinaryDilateFilter = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+
+      class ContourInfo
+      {
+        public:
+          ContourInfo();
+          ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode, PixelCounterType seaMode, itkVolumeType::Pointer contourMask);
+          PixelCounterType getInlandMode() const;
+          PixelCounterType getBeachMode() const;
+          PixelCounterType getCoastMode() const;
+          PixelCounterType getSeaMode() const;
+          itkVolumeType::Pointer getContourMask() const; /* Mask with the following values: inland = 255, beach = 2, coast = 1  and sea = 0 */
+          void setContourMask(itkVolumeType::Pointer image);
+
+          void print(std::ostream & os) const;
+
+        private:
+          PixelCounterType m_inland_mode;
+          PixelCounterType m_beach_mode;
+          PixelCounterType m_coast_mode;
+          PixelCounterType m_sea_mode;
+
+          itkVolumeType::Pointer m_contour_mask;
+      };
+
+      //using ContourInfoSptr = itk::SmartPointer<ContourInfo>;
+
     public:
       /** \brief SliceInterpolationFilter class constructor.
        * \param[in] inputs list of input smart pointers.
@@ -68,44 +115,16 @@ namespace ESPINA
       virtual void execute();
 
     private:
-      using SLO = itk::SmartPointer<itk::ShapeLabelObject<itkVolumeType::SizeValueType,itkVolumeType::ImageDimension>>;
-      using Histogram = std::vector<unsigned long>;
-      using HistogramSptr = std::shared_ptr<Histogram>;
-    private:
-      class ContourInfo
-      {
-        public:
-          ContourInfo();
-          ContourInfo(itkVolumeType::PixelType max, itkVolumeType::PixelType min, double average, HistogramSptr histogram, unsigned long minHistOcurrences);
-          const ContourInfo operator&&(const ContourInfo & other);
-          const itkVolumeType::PixelType max() const;
-          const itkVolumeType::PixelType min() const;
-          HistogramSptr histogram() const;
-          unsigned long minHistOcurrences() const;
-          const double average() const;
-          const bool inRange(const unsigned char value) const;
-          const bool inHistogramRange(const unsigned char value) const;
-          void print(std::ostream & os) const;
+      ContourInfo getContourInfo(const itkVolumeType::Pointer stackImage, const itkVolumeType::Pointer sloImage, const Axis direction, const SizeValueType bufferSize) const;
+      itkVolumeType::Pointer sloToImage(const SLOSptr slObject, RegionType region);
+      RegionType calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction, const int extraOffset = 0);
 
-        private:
-          itkVolumeType::PixelType m_max;
-          itkVolumeType::PixelType m_min;
-          double m_average;
-          HistogramSptr m_histogram;
-          unsigned long m_minHistOcurrences;
-      };
-
-    private:
-      ContourInfo getContourInfo(itkVolumeType::Pointer image, Output::ReadLockData<DefaultVolumetricData> stackVolume, SLO slObject, Axis direction);
-      bool belongToContour(itkVolumeType::IndexType index, SLO slObject, Axis direction);
-      void setMaximumRangeSizeBetween2SLO(itkVolumeType::RegionType& region, const itkVolumeType::RegionType& maxRegion, const SLO sloSrc, const SLO sloTar, const int direction, const int extraOffset = 0);
-      void printRegion(itkVolumeType::RegionType region);
-      void printImageInZ(itkVolumeType::Pointer image, itkVolumeType::OffsetValueType offsetInZ = 0);
+      void printRegion(const RegionType region) const;
+      void printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ = 0) const;
 
     private:
       QString m_errorMessage;
   };
-
 
   using SliceInterpolationFilterPtr = SliceInterpolationFilter *;
   using SliceInterpolationFilterSPtr = std::shared_ptr<SliceInterpolationFilter>;
