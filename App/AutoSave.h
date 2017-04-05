@@ -72,7 +72,7 @@ namespace ESPINA
       /** \brief Returns the time interval for auto save events.
        *
        */
-      const int interval() const;
+      const unsigned int interval() const;
 
       /** \brief Resets time to next auto save event
        *

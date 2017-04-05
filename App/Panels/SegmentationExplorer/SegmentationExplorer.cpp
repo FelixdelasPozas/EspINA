@@ -250,7 +250,7 @@ void SegmentationExplorer::showSelectedItemsInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ItemAdapterPtr item;
+  ItemAdapterPtr item = nullptr;
 
   if(m_layout)
   {

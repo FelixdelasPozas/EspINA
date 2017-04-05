@@ -27,9 +27,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </item>
-   <item>
     <widget class="QFrame" name="frame_2">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -86,7 +83,7 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer_2">
+    <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -166,8 +163,6 @@
     </layout>
    </item>
   </layout>
-  <zorder>verticalSpacer_2</zorder>
-  <zorder>frame_2</zorder>
  </widget>
  <resources>
   <include location="../../rsc/espina.qrc"/>

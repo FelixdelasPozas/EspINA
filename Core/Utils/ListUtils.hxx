@@ -154,8 +154,9 @@ namespace ESPINA
         }
 
         // use the last number, we can't be sure that there is only one
-        int pos = 0;
-        int numLeft, numRight;
+        int pos      = 0;
+        int numLeft  = 0;
+        int numRight = 0;
 
         while ((pos = numExtractor.indexIn(lstring, pos)) != -1)
         {

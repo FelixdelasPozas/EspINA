@@ -141,7 +141,7 @@ QModelIndex InformationProxy::parent(const QModelIndex& child) const
   if (!child.isValid()) return QModelIndex();
 
   auto childItem = itemAdapter(child);
-  Q_ASSERT(isSegmentation(childItem));
+  if(!childItem || !isSegmentation(childItem)) return QModelIndex();
 
   return mapFromSource(m_model->segmentationRoot());
 }
