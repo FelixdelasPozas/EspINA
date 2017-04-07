@@ -323,9 +323,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (!currentROI && m_roi->applyROI())
   {
     // Create default ROI
-    auto xSize = std::max(m_roi->value(Axis::X), (unsigned int) 2);
-    auto ySize = std::max(m_roi->value(Axis::Y), (unsigned int) 2);
-    auto zSize = std::max(m_roi->value(Axis::Z), (unsigned int) 2);
+    auto xSize = std::max(m_roi->value(Axis::X), (long long) 2);
+    auto ySize = std::max(m_roi->value(Axis::Y), (long long) 2);
+    auto zSize = std::max(m_roi->value(Axis::Z), (long long) 2);
 
     auto bounds  = OrthogonalROITool::createRegion(seed, xSize, ySize, zSize);
     auto spacing = channel->output()->spacing();
@@ -448,14 +448,14 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
       ESPINA_SETTINGS(settings);
       settings.beginGroup(ROI_SETTINGS_GROUP);
 
-      xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toInt();
-      ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toInt();
-      zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toInt();
+      xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toLongLong();
+      ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toLongLong();
+      zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toLongLong();
     }
 
-    m_roi->setValue(Axis::X, xSize.toInt());
-    m_roi->setValue(Axis::Y, ySize.toInt());
-    m_roi->setValue(Axis::Z, zSize.toInt());
+    m_roi->setValue(Axis::X, xSize.toLongLong());
+    m_roi->setValue(Axis::Y, ySize.toLongLong());
+    m_roi->setValue(Axis::Z, zSize.toLongLong());
   }
 }
 
@@ -465,15 +465,15 @@ void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settin
   m_seedThreshold->setUpperThreshold(settings->value(UPPER_THRESHOLD, 30).toInt());
   m_seedThreshold->setLowerThreshold(settings->value(LOWER_THRESHOLD, 30).toInt());
 
-  auto roiX = settings->value(XSIZE,500).toInt();
+  auto roiX = settings->value(XSIZE,500).toLongLong();
   m_roi->setValue(Axis::X, roiX);
   m_settings->setXSize(roiX);
 
-  auto roiY = settings->value(YSIZE,500).toInt();
+  auto roiY = settings->value(YSIZE,500).toLongLong();
   m_roi->setValue(Axis::Y, roiY);
   m_settings->setYSize(roiY);
 
-  auto roiZ = settings->value(ZSIZE,500).toInt();
+  auto roiZ = settings->value(ZSIZE,500).toLongLong();
   m_roi->setValue(Axis::Z, roiZ);
   m_settings->setZSize(roiZ);
 

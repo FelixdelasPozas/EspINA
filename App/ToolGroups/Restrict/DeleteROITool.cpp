@@ -36,7 +36,7 @@ DeleteROITool::DeleteROITool(Support::Context &context,
 , m_context   (context)
 , m_toolGroup {toolGroup}
 {
-  connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
+  connect(m_toolGroup, SIGNAL(ROIChanged(ROISPtr)),
           this,        SLOT(onROIChanged()));
 
   connect(this, SIGNAL(triggered(bool)),

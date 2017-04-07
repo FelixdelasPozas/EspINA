@@ -48,36 +48,36 @@ namespace ESPINA
      * \param[in] value X size value.
      *
      */
-    void setXSize(int value);
+    void setXSize(long long value);
 
     /** \brief Returns the value of the X size.
      *
      */
-    int xSize() const
+    long long xSize() const
     {return m_xSize;}
 
     /** \brief Sets Y size.
      * \param[in] value Y size value.
      *
      */
-    void setYSize(int value);
+    void setYSize(long long value);
 
     /** \brief Returns the value of the Y size.
      *
      */
-    int ySize() const
+    long long ySize() const
     {return m_ySize;}
 
     /** \brief Sets Z size.
      * \param[in] value Z size value.
      *
      */
-    void setZSize(int value);
+    void setZSize(long long value);
 
     /** \brief Returns the value of the Z size.
      *
      */
-    int zSize() const
+    long long zSize() const
     {return m_zSize;}
 
   private:
@@ -86,9 +86,9 @@ namespace ESPINA
      * \param[in] value integer value.
      *
      */
-    void set(const QString &key, int value);
+    void set(const QString &key, long long value);
 
-    int m_xSize, m_ySize, m_zSize;
+    long long m_xSize, m_ySize, m_zSize;
   };
 
 }

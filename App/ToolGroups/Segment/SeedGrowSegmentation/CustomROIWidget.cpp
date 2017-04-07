@@ -31,7 +31,7 @@
 
 using namespace ESPINA;
 
-const unsigned int DEFAULT_ROI_VALUE = 500;
+const long long DEFAULT_ROI_VALUE = 500;
 
 //------------------------------------------------------------------------
 CustomROIWidget::CustomROIWidget(QWidget* parent)
@@ -50,21 +50,22 @@ CustomROIWidget::CustomROIWidget(QWidget* parent)
     m_labelROI[i]->setText(labels[i]);
     m_labelROI[i]->setVisible(m_useROI);
 
-    m_spinBoxROI[i] = new QSpinBox(this);
+    m_spinBoxROI[i] = new QDoubleSpinBox(this);
     m_spinBoxROI[i]->setVisible(m_useROI);
+    m_spinBoxROI[i]->setDecimals(0);
     m_spinBoxROI[i]->setAlignment(Qt::AlignRight);
     m_spinBoxROI[i]->setMinimum(0);
-    m_spinBoxROI[i]->setMaximum(100000);
+    m_spinBoxROI[i]->setMaximum(999999999);
     m_spinBoxROI[i]->setValue(m_values[i]);
     m_spinBoxROI[i]->setSuffix(" nm");
   }
 
-  connect(m_spinBoxROI[0], SIGNAL(valueChanged(int)),
-          this,            SLOT(onXSizeChanged(int)));
-  connect(m_spinBoxROI[1], SIGNAL(valueChanged(int)),
-          this,            SLOT(onYSizeChanged(int)));
-  connect(m_spinBoxROI[2], SIGNAL(valueChanged(int)),
-          this,            SLOT(onZSizeChanged(int)));
+  connect(m_spinBoxROI[0], SIGNAL(valueChanged(double)),
+          this,            SLOT(onXSizeChanged(double)));
+  connect(m_spinBoxROI[1], SIGNAL(valueChanged(double)),
+          this,            SLOT(onYSizeChanged(double)));
+  connect(m_spinBoxROI[2], SIGNAL(valueChanged(double)),
+          this,            SLOT(onZSizeChanged(double)));
 
   auto mainLaout = new QHBoxLayout(this);
   mainLaout->addWidget(roiCheckBox);
@@ -81,7 +82,7 @@ CustomROIWidget::CustomROIWidget(QWidget* parent)
 }
 
 //------------------------------------------------------------------------
-void CustomROIWidget::setValue(Axis axis, unsigned int value)
+void CustomROIWidget::setValue(Axis axis, long long value)
 {
   int i = idx(axis);
 
@@ -114,18 +115,18 @@ void CustomROIWidget::onApplyROIChanged(bool value)
 }
 
 //------------------------------------------------------------------------
-void CustomROIWidget::onXSizeChanged(int value)
+void CustomROIWidget::onXSizeChanged(double value)
 {
-  m_values[0] = value;
+  m_values[0] = static_cast<long long>(value);
 }
 
 //------------------------------------------------------------------------
-void CustomROIWidget::onYSizeChanged(int value)
+void CustomROIWidget::onYSizeChanged(double value)
 {
-  m_values[1] = value;
+  m_values[1] = static_cast<long long>(value);
 }
 //------------------------------------------------------------------------
-void CustomROIWidget::onZSizeChanged(int value)
+void CustomROIWidget::onZSizeChanged(double value)
 {
-  m_values[2] = value;
+  m_values[2] = static_cast<long long>(value);
 }

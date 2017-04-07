@@ -40,9 +40,9 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup(SGS_GROUP);
-  m_xSize            = settings.value(ROI_X_SIZE_KEY, 500).toInt();
-  m_ySize            = settings.value(ROI_Y_SIZE_KEY, 500).toInt();
-  m_zSize            = settings.value(ROI_Z_SIZE_KEY, 500).toInt();
+  m_xSize            = settings.value(ROI_X_SIZE_KEY, 500).toLongLong();
+  m_ySize            = settings.value(ROI_Y_SIZE_KEY, 500).toLongLong();
+  m_zSize            = settings.value(ROI_Z_SIZE_KEY, 500).toLongLong();
   m_applyClose       = settings.value(APPLY_CLOSE, false).toBool();
   m_radius           = settings.value(CLOSE_RADIUS, 0).toInt();
   m_bestValue        = settings.value(BEST_PIXEL_VALUE, 0).toInt();
@@ -51,27 +51,27 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationSettings::setXSize(int value)
+void SeedGrowSegmentationSettings::setXSize(long long value)
 {
   m_xSize = value;
 
-  set<int>(ROI_X_SIZE_KEY, value);
+  set<long long>(ROI_X_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationSettings::setYSize(int value)
+void SeedGrowSegmentationSettings::setYSize(long long value)
 {
   m_ySize = value;
 
-  set<int>(ROI_Y_SIZE_KEY, value);
+  set<long long>(ROI_Y_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationSettings::setZSize(int value)
+void SeedGrowSegmentationSettings::setZSize(long long value)
 {
   m_zSize = value;
 
-  set<int>(ROI_Z_SIZE_KEY, value);
+  set<long long>(ROI_Z_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------

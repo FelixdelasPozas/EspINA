@@ -113,9 +113,9 @@ bool ROISettingsPanel::categoryROIModified() const
 
   if (m_activeCategory)
   {
-    modified |= (m_activeCategory->property(Category::DIM_X()).toInt() != m_xCategorySize->value());
-    modified |= (m_activeCategory->property(Category::DIM_Y()).toInt() != m_yCategorySize->value());
-    modified |= (m_activeCategory->property(Category::DIM_Z()).toInt() != m_zCategorySize->value());
+    modified |= (m_activeCategory->property(Category::DIM_X()).toLongLong() != m_xCategorySize->value());
+    modified |= (m_activeCategory->property(Category::DIM_Y()).toLongLong() != m_yCategorySize->value());
+    modified |= (m_activeCategory->property(Category::DIM_Z()).toLongLong() != m_zCategorySize->value());
   }
 
   return modified;

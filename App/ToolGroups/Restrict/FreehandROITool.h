@@ -23,10 +23,13 @@
 // ESPINA
 #include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
+#include <GUI/View/Selection.h>
 #include <GUI/Widgets/DrawingWidget.h>
 
 // Qt
 #include <QUndoStack>
+
+using ESPINA::GUI::View::SelectionSPtr;
 
 namespace ESPINA
 {
@@ -44,10 +47,10 @@ namespace ESPINA
   public:
     /** \brief FreehandROITool class constructor.
      * \param[in] context to be used for this tool
-     * \param[in] toolGroup ROIToolsGroup raw pointer containing ROI accumulator.
+     * \param[in] toolGroup toolgroup container of this tool.
      */
     explicit FreehandROITool(Support::Context  &context,
-                           RestrictToolGroup *toolGroup);
+                             RestrictToolGroup *toolGroup);
 
     /** \brief FreehandROITool class virtual destructor.
      *
@@ -94,10 +97,11 @@ namespace ESPINA
   private:
     using DrawingTool = GUI::Widgets::DrawingWidget;
 
-    QUndoStack        *m_undoStack;     /** application undo-redo stack.           */
-    RestrictToolGroup *m_toolGroup;     /** parent toolgroup this tool belongs to. */
-    ChannelAdapterPtr  m_referenceItem; /** reference item for spacing.            */
-    DrawingTool        m_drawingWidget; /** drawing widget for ROI.                */
+    QUndoStack        *m_undoStack;     /** application undo-redo stack.                          */
+    RestrictToolGroup *m_toolGroup;     /** parent toolgroup this tool belongs to.                */
+    ChannelAdapterPtr  m_referenceItem; /** reference item for spacing.                           */
+    DrawingTool        m_drawingWidget; /** drawing widget for ROI.                               */
+    SelectionSPtr      m_selection;     /** needs to get a pointer to avoid crash on destruction. */
   };
 
   using FreehandROIToolSPtr = std::shared_ptr<FreehandROITool>;

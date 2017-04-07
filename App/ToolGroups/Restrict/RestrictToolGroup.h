@@ -94,7 +94,7 @@ namespace ESPINA
       { return m_visible; }
 
     signals:
-      void roiChanged(ROISPtr);
+      void ROIChanged(ROISPtr);
 
     private slots:
       /** \brief Updates ROI accumulator when a new ROI is defined and signals the modification.

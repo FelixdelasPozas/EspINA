@@ -208,7 +208,7 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
           this,                           SLOT(onDiscardROIModifications()));
   connect(m_gui->apply,                   SIGNAL(clicked(bool)),
           this,                           SLOT(modifyFilter()));
-  connect(m_roiTools.get(),               SIGNAL(roiChanged(ROISPtr)),
+  connect(m_roiTools.get(),               SIGNAL(ROIChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
 
   connect(m_filter.get(), SIGNAL(thresholdModified(int, int)),
@@ -248,7 +248,7 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onFilterThresholdModified(int lower, int upper)
 {
-  // NOTE: assuming simmetric threshold.
+  // NOTE: assuming symmetric threshold.
   m_gui->threshold->setValue(lower);
 }
 

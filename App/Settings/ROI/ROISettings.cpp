@@ -31,14 +31,14 @@ ROISettings::ROISettings()
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup(ROI_SETTINGS_GROUP);
-  m_xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toInt();
-  m_ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toInt();
-  m_zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toInt();
+  m_xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toLongLong();
+  m_ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toLongLong();
+  m_zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toLongLong();
   settings.endGroup();
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setXSize(int value)
+void ROISettings::setXSize(long long value)
 {
   m_xSize = value;
 
@@ -46,7 +46,7 @@ void ROISettings::setXSize(int value)
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setYSize(int value)
+void ROISettings::setYSize(long long value)
 {
   m_ySize = value;
 
@@ -54,7 +54,7 @@ void ROISettings::setYSize(int value)
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setZSize(int value)
+void ROISettings::setZSize(long long value)
 {
   m_zSize = value;
 
@@ -62,7 +62,7 @@ void ROISettings::setZSize(int value)
 }
 
 //------------------------------------------------------------------------
-void ROISettings::set(const QString& key, int value)
+void ROISettings::set(const QString& key, long long value)
 {
   ESPINA_SETTINGS(settings);
 

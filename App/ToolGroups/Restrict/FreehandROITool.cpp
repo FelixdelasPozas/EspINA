@@ -36,6 +36,7 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context.viewState(), context.model()}
+, m_selection    {getSelection()}
 {
   setCheckable(true);
   setExclusive(true);
@@ -44,8 +45,8 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 
   configureDrawingTools();
 
-  connect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this,                 SLOT(updateReferenceItem(ChannelAdapterPtr)));
+  connect(m_selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,              SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
@@ -53,8 +54,8 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
 
-  connect(toolGroup, SIGNAL(roiChanged(ROISPtr)),
-          this,      SLOT(ROIChanged(ROISPtr)));
+  connect(m_toolGroup, SIGNAL(ROIChanged(ROISPtr)),
+          this,        SLOT(ROIChanged(ROISPtr)));
 
   onPainterChanged(m_drawingWidget.painter());
 }
@@ -62,7 +63,12 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 //-----------------------------------------------------------------------------
 FreehandROITool::~FreehandROITool()
 {
+  disconnect();
+
   abortOperation();
+
+  disconnect(m_selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+             this,              SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
   disconnect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
              this,             SLOT(onPainterChanged(MaskPainterSPtr)));

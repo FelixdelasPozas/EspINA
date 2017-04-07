@@ -233,6 +233,9 @@ RestrictToolGroup::~RestrictToolGroup()
   m_orthogonalROI->disconnect();
 
   setCurrentROI(nullptr);
+
+  m_orthogonalROI = nullptr;
+  m_freehandROI = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -273,7 +276,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
     }
   }
 
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -348,7 +351,7 @@ void RestrictToolGroup::onManualROIDefined(BinaryMaskSPtr<unsigned char> roi)
 
   m_context.roiProvider()->setProvider(this);
 
-  emit roiChanged(currentROI());
+  emit ROIChanged(currentROI());
 }
 
 //-----------------------------------------------------------------------------
@@ -358,13 +361,13 @@ void RestrictToolGroup::onOrthogonalROIDefined(ROISPtr roi)
 
   m_context.roiProvider()->setProvider(this);
 
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::onOrthogonalROIModified(ROISPtr roi)
 {
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -414,7 +417,6 @@ void RestrictToolGroup::addOrthogonalROI(const VolumeBounds& bounds)
 
     setCurrentROI(roi);
   }
-
 }
 
 //-----------------------------------------------------------------------------
