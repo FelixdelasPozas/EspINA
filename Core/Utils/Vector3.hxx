@@ -271,7 +271,6 @@ namespace ESPINA
             (lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] < rhs[2]));
   }
 
-
   using Nm         = double;
   using NmVector3  = Vector3<Nm>;
   using lliVector3 = Vector3<long long int>;

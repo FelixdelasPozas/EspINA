@@ -38,6 +38,10 @@
 #include <cstring>
 #include <string>
 
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkFileOutputWindow.h>
+
 using namespace ESPINA::Core::Utils;
 
 static int const STACK_FRAMES = 40;
@@ -726,9 +730,21 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
     stream << file << " (" << (func ? func : bfd_errors[err]) << ":" << dec << static_cast<int>(line) << ") " << hex << "Addr: " <<  frame.AddrPC.Offset << "\n";
   }
 
-
   release_set(set);
   SymCleanup(GetCurrentProcess());
 
 #endif // Windows
+}
+
+//--------------------------------------------------------------------
+void ESPINA::Core::Utils::installVTKErrorLogger()
+{
+  auto name = QString("VTKErrors.txt");
+  auto filename = QDir::home().filePath(name);
+
+  auto VTKlogger = vtkSmartPointer<vtkFileOutputWindow>::New();
+  VTKlogger->SetAppend(false);
+  VTKlogger->SetFileName(filename.toStdString().c_str());
+
+  vtkOutputWindow::SetInstance(VTKlogger);
 }

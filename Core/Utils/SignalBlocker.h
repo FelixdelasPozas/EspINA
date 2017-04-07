@@ -39,11 +39,12 @@ namespace ESPINA
     public:
       /** \brief SignalBlocker class constructor.
        * \param[in] data Data/Output object smart pointer.
+       * \param[in] launch true to launch updateModificationSignal (default) and false otherwise.
        *
        */
-      explicit SignalBlocker(T &data)
+      explicit SignalBlocker(T &data, bool launch = true)
       : m_object(data)
-      , m_launch{true}
+      , m_launch{launch}
       {
         m_object->blockSignals(true);
       }

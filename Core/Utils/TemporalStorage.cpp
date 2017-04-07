@@ -24,6 +24,7 @@
 #include "EspinaException.h"
 
 // C++
+#include <unistd.h>
 #include <iostream>
 
 // Qt
@@ -97,7 +98,7 @@ bool moveRecursively(const QString &sourceDir, const QString &destinationDir, bo
 }
 
 //----------------------------------------------------------------------------
-bool removeRecursively(const QString & dirName)
+bool removeRecursively(const QString &dirName)
 {
   bool result = true;
   QDir dir(dirName);
@@ -128,7 +129,7 @@ bool removeRecursively(const QString & dirName)
 }
 
 //----------------------------------------------------------------------------
-TemporalStorage::TemporalStorage(const QDir* parent)
+TemporalStorage::TemporalStorage(const QDir *parent)
 : m_uuid    {QUuid::createUuid()}
 , m_settings{nullptr}
 {
@@ -221,7 +222,7 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
   QFile file(fileName.absoluteFilePath());
   if (!file.open(QIODevice::WriteOnly))
   {
-    auto message = QObject::tr("Can't create file: %1").arg(fileName.absoluteFilePath());
+    auto message = QObject::tr("Can't create file: %1").arg(fileName.absoluteFilePath()).arg(file.errorString());
     auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
 
     throw EspinaException(message, details);
@@ -230,18 +231,18 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
   {
     if(-1 == file.write(data.second))
     {
-      auto message = QObject::tr("Can't write data to file: %1").arg(file.fileName());
+      auto message = QObject::tr("Can't write data to file: %1. Error: %2").arg(fileName.absoluteFilePath()).arg(file.errorString());
       auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
 
       throw EspinaException(message, details);
     }
-    file.flush();
+
     file.close();
   }
 }
 
 //----------------------------------------------------------------------------
-QByteArray TemporalStorage::snapshot(const QString& descriptor) const
+QByteArray TemporalStorage::snapshot(const QString &descriptor) const
 {
   QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
@@ -263,7 +264,7 @@ QByteArray TemporalStorage::snapshot(const QString& descriptor) const
 }
 
 //----------------------------------------------------------------------------
-Snapshot TemporalStorage::snapshots(const QString& relativePath, TemporalStorage::Mode mode) const
+Snapshot TemporalStorage::snapshots(const QString &relativePath, TemporalStorage::Mode mode) const
 {
   Snapshot result;
 
@@ -342,7 +343,7 @@ std::shared_ptr<QSettings> TemporalStorage::sessionSettings()
 }
 
 //----------------------------------------------------------------------------
-void TemporalStorage::makePath(const QString& path)
+void TemporalStorage::makePath(const QString &path)
 {
   if(!m_storageDir.mkpath(path))
   {

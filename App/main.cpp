@@ -62,6 +62,7 @@ int main(int argc, char **argv)
 
   installExceptionHandler();
   installSignalHandler();
+  installVTKErrorLogger();
 
   pluginsDir.cd("plugins");
 
