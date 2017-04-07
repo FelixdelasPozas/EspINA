@@ -164,7 +164,7 @@ configure_file(
 if (NOT DEFINED MINGW)
   set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 else(NOT DEFINED MINGW)
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ToolsDev/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/ToolsDev/inno-setup/EspINA-Mingw64.iss")
 endif (NOT DEFINED MINGW)
 
 if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X, it has only been tested in Unix

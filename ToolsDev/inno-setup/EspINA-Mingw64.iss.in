@@ -4,8 +4,6 @@
 ;
 ; NOTES: Assumes that the user has compiled all the library dependencies, not 
 ; installed precompiled libraries.
-; This file has been fitted to work on the vagrant box, so some of the names of
-; the directories have been fixed.
 
 [Setup]
 AppName=EspINA
@@ -16,7 +14,7 @@ OutputDir=@CMAKE_CURRENT_BINARY_DIR@
 AlwaysShowComponentsList=yes
 AppComments=EspINA Interactive Neuron Analizer
 AppContact=CesViMa/UPM
-AppCopyright=(c)2013-2016 CesViMA/UPM
+AppCopyright=(c)2013-2017 CesViMA/UPM
 AppPublisher=CesViMA/UPM
 ArchitecturesAllowed=x64
 Compression=lzma2/ultra64
@@ -24,9 +22,9 @@ UninstallDisplayIcon={app}\espina.exe
 UninstallDisplayName=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
 SourceDir=@CMAKE_CURRENT_BINARY_DIR@\App
 SetupIconFile=@CMAKE_CURRENT_SOURCE_DIR@\App\rsc\espina.ico
-OutputBaseFilename=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@ Setup
-WizardImageFile=@CMAKE_CURRENT_SOURCE_DIR@\tools\inno-setup\image.bmp
-WizardSmallImageFile=@CMAKE_CURRENT_SOURCE_DIR@\tools\inno-setup\smallimage.bmp
+OutputBaseFilename=EspINA_v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@_Setup
+WizardImageFile=@CMAKE_CURRENT_SOURCE_DIR@\ToolsDev\inno-setup\image.bmp
+WizardSmallImageFile=@CMAKE_CURRENT_SOURCE_DIR@\ToolsDev\inno-setup\smallimage.bmp
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -63,10 +61,10 @@ Source: "plugins\libSegmhaImporterPlugin.dll"; DestDir: "{app}\plugins"; Compone
 Source: "D:\Desarrollo\Mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
 
 ; VTK FILES
-Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: dependencies\VTK
+Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
 
 ; ITK FILES
-Source: "@ITK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: dependencies\ITK
+Source: "@ITK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
 
 ; QT FILES
 Source: "@QT_BINARY_DIR@\Qt*.dll"; DestDir: "{app}"; Components: program
@@ -76,10 +74,11 @@ Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystem
 Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
 
 ; QUAZIP FILES
-Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: dependencies\Quazip
+Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: program
 
-; BOOST FILES - TODO: Requires the detection of version to fully automate the script
-Source: "@Boost_INCLUDE_DIR@\stage\lib\libboost_*-mt-1_61.dll"; DestDir: "{app}"; Components: program
+; BOOST 
+Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
+Source: "@Boost_REGEX_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"
