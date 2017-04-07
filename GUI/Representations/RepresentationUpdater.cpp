@@ -45,7 +45,7 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 //----------------------------------------------------------------------------
 void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
-  QMutexLocker lock(&m_mutex);
+  QWriteLocker lock(&m_dataLock);
 
   addUpdateRequest(m_sources, item, true);
 }
@@ -53,8 +53,6 @@ void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
-  QMutexLocker lock(&m_mutex);
-
   {
     RepresentationPipeline::ActorsLocker actors(m_actors);
 
@@ -64,6 +62,7 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
     }
   }
 
+  QWriteLocker lock(&m_dataLock);
   removeUpdateRequest(m_sources, item);
   removeUpdateRequest(m_requestedSources, item);
 }
@@ -71,7 +70,7 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 //----------------------------------------------------------------------------
 bool RepresentationUpdater::isEmpty() const
 {
-  QMutexLocker lock(&m_mutex);
+  QReadLocker lock(&m_dataLock);
 
   return m_sources.isEmpty();
 }
@@ -79,7 +78,7 @@ bool RepresentationUpdater::isEmpty() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
-  QMutexLocker lock(&m_mutex);
+  QWriteLocker lock(&m_dataLock);
 
   setCrosshairPoint(point, m_settings);
 }
@@ -93,7 +92,7 @@ void RepresentationUpdater::setResolution(const NmVector3 &resolution)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setSettings(const RepresentationState &settings)
 {
-  QMutexLocker lock(&m_mutex);
+  QWriteLocker lock(&m_dataLock);
 
   if (hasCrosshairPoint(m_settings))
   {
@@ -126,7 +125,7 @@ void RepresentationUpdater::updateRepresentationColors(const ViewItemAdapterList
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setFrame(const GUI::Representations::FrameCSPtr frame)
 {
-  QMutexLocker lock(&m_mutex);
+  QWriteLocker lock(&m_dataLock);
 
   m_frame = frame;
 }
@@ -134,35 +133,49 @@ void RepresentationUpdater::setFrame(const GUI::Representations::FrameCSPtr fram
 //----------------------------------------------------------------------------
 FrameCSPtr RepresentationUpdater::frame() const
 {
+  QReadLocker lock(&m_dataLock);
+
   return m_frame;
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::invalidate()
 {
+  QWriteLocker lock(&m_dataLock);
+
   m_frame = Frame::InvalidFrame();
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
-  QMutexLocker lock(&m_mutex);
-
   return m_actors;
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
-  QMutexLocker lock(&m_mutex);
+  FrameSPtr frame;
+  RepresentationState settings;
+  UpdateRequestList updateList;
 
-  // Local copy needed to prevent condition race on same frame
-  // (usually due to invalidation view item representations)
-  auto updateList = *m_updateList;
-  updateList.detach();
+  {
+    QReadLocker lock(&m_dataLock);
+    frame = m_frame;
+    settings = m_settings;
+  }
 
-  m_updateList    = &m_sources;
-  m_requestedSources.clear();
+  {
+    QWriteLocker lock(&m_dataLock);
+
+    // Local copy needed to prevent condition race on same frame
+    // (usually due to invalidation view item representations)
+    updateList = *m_updateList;
+    updateList.detach();
+
+    m_updateList    = &m_sources;
+    m_requestedSources.clear();
+  }
 
   auto it   = updateList.begin();
   auto size = updateList.size();
@@ -192,15 +205,17 @@ void RepresentationUpdater::run()
     }
   }
 
-  if (isValid(m_frame) && canExecute())
+  if (isValid(frame) && canExecute())
   {
-    emit actorsReady(m_frame, m_actors);
+    emit actorsReady(frame, m_actors);
   }
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapterPtr item) const
 {
+  QWriteLocker lock(&m_dataLock);
+
   auto pipeline = item->temporalRepresentation();
 
   if (!pipeline || pipeline->type() != m_pipeline->type())
@@ -214,7 +229,7 @@ RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapter
 //----------------------------------------------------------------------------
 void RepresentationUpdater::updateRepresentations(ViewItemAdapterList sources, const bool createActors)
 {
-  QMutexLocker lock(&m_mutex);
+  QWriteLocker lock(&m_dataLock);
 
   ViewItemAdapterList sourceItems;
   for(auto source: m_sources)

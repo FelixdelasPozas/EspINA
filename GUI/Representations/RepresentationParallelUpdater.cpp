@@ -27,6 +27,7 @@
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //--------------------------------------------------------------------
 ParallelUpdaterTask::ParallelUpdaterTask(const RepresentationPipeline::ActorsMap& updateList,
@@ -98,6 +99,7 @@ RepresentationPipelineSPtr ParallelUpdaterTask::sourcePipeline(ViewItemAdapterPt
 //--------------------------------------------------------------------
 RepresentationParallelUpdater::RepresentationParallelUpdater(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
 : RepresentationUpdater{scheduler, pipeline}
+, m_taskNum            {0}
 {
   setDescription(tr("Representation Parallel Updater"));
   setHidden(true);
@@ -112,20 +114,33 @@ RepresentationParallelUpdater::~RepresentationParallelUpdater()
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::run()
 {
-  QMutexLocker lock(&m_mutex);
+  FrameCSPtr frame;
+  RepresentationState settings;
+  UpdateRequestList updateList;
 
-  // Local copy needed to prevent condition race on same frame
-  // (usually due to invalidation view item representations)
-  auto updateList = *m_updateList;
-  updateList.detach();
+  {
+    QReadLocker lock(&m_dataLock);
+    frame = m_frame;
+    settings = m_settings;
+  }
+
+  {
+    QWriteLocker lock(&m_dataLock);
+
+    // Local copy needed to prevent condition race on same frame
+    // (usually due to invalidation view item representations)
+    updateList = *m_updateList;
+    updateList.detach();
+
+    m_updateList    = &m_sources;
+    m_requestedSources.clear();
+  }
 
   if(updateList.isEmpty()) return;
 
-  m_updateList    = &m_sources;
-  m_requestedSources.clear();
-
   auto size     = updateList.size();
   auto maxTasks = static_cast<int>(Scheduler::maxRunningTasks());
+
   RepresentationPipeline::ActorsMap data[maxTasks];
 
   {

@@ -35,7 +35,6 @@ namespace ESPINA
   {
     namespace Widgets
     {
-
       class EspinaGUI_EXPORT NumericalInput
       : public QWidget
       {

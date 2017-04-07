@@ -195,11 +195,11 @@ namespace ESPINA
        */
       friend QDebug operator<< (QDebug debug, const QList<RepresentationWindow::Cursor> &cursors);
 
-      const unsigned BUFFER_INCREMENT = 4;    /** fixed buffer increment/decrement value. */
+      const unsigned BUFFER_INCREMENT = 4;     /** fixed buffer increment/decrement value.  */
 
-      unsigned int m_currentPos;
-      unsigned int m_width;
-      RepresentationUpdaterSList m_buffer;
+      unsigned int               m_currentPos; /** current position of actual frame actors. */
+      unsigned int               m_width;      /** representation's buffer width.           */
+      RepresentationUpdaterSList m_buffer;     /** representation's buffer.                 */
   };
 
   QDebug EspinaGUI_EXPORT operator<< (QDebug debug, const QList<RepresentationWindow::Cursor> &cursors);

@@ -152,14 +152,14 @@ namespace ESPINA
       GUI::Representations::FrameCSPtr m_frame;            /** frame of the actors.                                       */
       RepresentationPipelineSPtr       m_pipeline;         /** actor creation pipeline and pick resolver.                 */
 
-      mutable QMutex                   m_mutex;            /** data protection mutex.                                     */
-
       UpdateRequestList                m_requestedSources; /** list of requested to update sources.                       */
       UpdateRequestList                m_sources;          /** items to create or update.                                 */
       UpdateRequestList               *m_updateList;       /** pointer to the list to update during the updater run.      */
 
       RepresentationState              m_settings;         /** representation's settings.                                 */
       RepresentationPipeline::Actors   m_actors;           /** list of actors of the frame.                               */
+
+      mutable QReadWriteLock           m_dataLock;         /** protects the execution data.                               */
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;
