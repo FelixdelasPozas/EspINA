@@ -68,7 +68,7 @@ namespace ESPINA
       virtual ~Plugin()
       {}
 
-      /** \brief Gives the plugin the neccesary objects to initilize itself.
+      /** \brief Gives the plugin the neccesary objects to initialize itself.
        *        Must be called before any other plugin method.
        *
        */
@@ -118,7 +118,7 @@ namespace ESPINA
 
       /** \brief Returns a list of tools provided by the plugin.
        *
-       *  Each tool is asigned to one of the available categories
+       *  Each tool is assigned to one of the available categories
        */
       virtual QList<CategorizedTool> tools() const
       { return QList<CategorizedTool>(); }

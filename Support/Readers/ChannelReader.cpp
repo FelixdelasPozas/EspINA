@@ -173,6 +173,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   auto filter = factory->createFilter<VolumetricStreamReader>(InputSList(), VOLUMETRIC_STREAM_READER);
   filter->setErrorHandler(handler);
   filter->setFileName(file);
+  filter->setStorage(factory->defaultStorage());
   filter->update();
 
   auto channel = factory->createChannel(filter, 0);

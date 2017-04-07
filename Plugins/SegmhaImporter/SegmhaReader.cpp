@@ -18,9 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "SegmhaReader.h"
 
+// ESPINA
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
@@ -30,8 +31,6 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Support/Readers/ChannelReader.h>
-
-// ESPINA
 
 // Qt
 #include <QApplication>
@@ -104,8 +103,6 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 
-  qDebug() << "Reading segmentation's meta data from file:";
-
   QList<SegmentationObject> segmentationObjects;
   CategorySList categories;
 
@@ -152,10 +149,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   analysis->setClassification(classification);
 
   int numSegmentations = segmentationObjects.size();
-  std::cout << "  Total Number of Segmentations: " << numSegmentations << std::endl;
-  //std::cout << "Total Number of Categories: " << categories.size() << std::endl;
 
-  //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
   labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
   labelMapReader->SetUseStreaming(false);
@@ -163,8 +157,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   labelMapReader->SetImageIO(itk::MetaImageIO::New());
   labelMapReader->Update();
 
-  //qDebug() << "Invert ITK image's slices";
-  // ESPINA python used an inversed representation of the samples
+  // ESPINA python used an inverted representation of the samples
   auto originalImage = ImageToVTKImageFilter::New();
   originalImage->SetInput(labelMapReader->GetOutput());
   originalImage->Update();
@@ -183,19 +176,15 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   vtk2itk_filter->SetInput(infoChanger->GetOutput());
   vtk2itk_filter->Update();
 
-  qDebug() << "Converting from ITK to LabelMap";
   // Convert labeled image to label map
   auto image2label = Image2LabelFilter::New();
   image2label->SetInput(vtk2itk_filter->GetOutput());
   image2label->Update();
 
   auto labelMap = image2label->GetOutput();
-  qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
-
-
-  auto sample  = analysis->samples().first();
-  auto channel = analysis->channels().first();
-  auto spacing = ItkSpacing<itkVolumeType>(channel->output()->spacing());
+  auto sample   = analysis->samples().first();
+  auto channel  = analysis->channels().first();
+  auto spacing  = ItkSpacing<itkVolumeType>(channel->output()->spacing());
 
   auto sourceFilter = factory->createFilter<SourceFilter>(channel.get(), SEGMHA_FILTER);
 
@@ -254,7 +243,8 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
       segmentations << segmentation;
 
       id++;
-    } catch (...)
+    }
+    catch (...)
     {
       std::cerr << "Couldn't import segmentation " << segmentationObject.label << std::endl;
     }

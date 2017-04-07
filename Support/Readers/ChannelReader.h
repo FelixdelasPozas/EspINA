@@ -30,6 +30,10 @@
 
 namespace ESPINA
 {
+  /** \class ChannelReader
+   * \brief Implements a reader for stacks.
+   *
+   */
   class EspinaSupport_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader
