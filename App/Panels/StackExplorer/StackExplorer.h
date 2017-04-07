@@ -34,7 +34,7 @@ class QObject;
 
 namespace ESPINA
 {
-  class ChannelInspector;
+  class StackInspector;
   class ViewManager;
 
   /** \clas StackExplorer
@@ -78,46 +78,46 @@ namespace ESPINA
     void updateTooltips(int index);
     /******************************************************/
 
-    /** \brief Sets the currently selected channel as the active one.
+    /** \brief Sets the currently selected stack as the active one.
      *
      */
-    void activateChannel();
+    void activateStack();
 
-    /** \brief Removes the channel from the analysis.
+    /** \brief Removes the stack from the analysis.
      *
      */
-    void unloadChannel();
+    void unloadStack();
 
-    /** \brief Updates the channel representation.
+    /** \brief Updates the stack representation.
      * \param[in] index item index in the tree.
      *
      */
-    void updateChannelRepresentations(QModelIndex index);
+    void updateStackRepresentations(QModelIndex index);
 
-    /** \brief Opens a channel inspector dialog.
+    /** \brief Opens a stack inspector dialog.
      *
      */
     void showInformation();
 
-    /** \brief Changes the sample association of a channel that has been dragged onto a sample.
+    /** \brief Changes the sample association of a stack that has been dragged onto a sample.
      *
      */
-    void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
+    void stacksDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
 
-    /** \brief Updates the active channel on the channel proxy.
+    /** \brief Updates the active stack on the stack proxy.
      *
      */
-    void onActiveChannelChanged(ChannelAdapterPtr channel);
+    void onActiveStackChanged(ChannelAdapterPtr channel);
 
-    /** \brief Updates the unload button state.
+    /** \brief Updates the stack properties button depending on the selected items.
      *
      */
-    void onChannelsModified();
+    void onSelectionChanged();
 
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
-    std::shared_ptr<ChannelProxy>          m_channelProxy;
+    std::shared_ptr<ChannelProxy>          m_stackProxy;
     std::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;

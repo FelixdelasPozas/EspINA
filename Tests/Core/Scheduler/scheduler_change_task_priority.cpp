@@ -99,5 +99,7 @@ int scheduler_change_task_priority( int argc, char** argv )
     }
   }
 
+  scheduler->abort();
+
   return error;
 }

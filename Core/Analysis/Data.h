@@ -35,6 +35,7 @@
 #include <Core/Utils/VolumeBounds.h>
 #include "Persistent.h"
 
+// Qt
 #include <QMutex>
 
 namespace ESPINA

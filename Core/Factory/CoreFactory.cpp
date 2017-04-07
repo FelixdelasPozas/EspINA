@@ -217,7 +217,7 @@ void CoreFactory::setTemporalDirectory(const QDir &directory)
   {
     for(auto storage: TemporalStorage::s_Storages)
     {
-      auto baseDirectory = storage->baseDirectory();
+      auto baseDirectory = storage->rootDirectory();
       if((baseDirectory.absolutePath() != newDirectory.absolutePath()) && !storage->move(newDirectory.absolutePath(), false))
       {
         auto what = QObject::tr("Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());

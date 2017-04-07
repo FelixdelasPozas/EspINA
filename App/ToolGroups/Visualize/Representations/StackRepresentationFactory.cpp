@@ -18,25 +18,27 @@
  */
 
 // ESPINA
-#include <App/ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <ToolGroups/Visualize/Representations/StackRepresentationFactory.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Representations::Utils;
 
+const unsigned StackRepresentationFactory::WINDOW_SIZE = 8;
+
 //----------------------------------------------------------------------------
-ChannelRepresentationFactory::ChannelRepresentationFactory()
+StackRepresentationFactory::StackRepresentationFactory()
 {
 }
 
 //----------------------------------------------------------------------------
-Representation ChannelRepresentationFactory::doCreateRepresentation(Context &context, ViewTypeFlags supportedViews) const
+Representation StackRepresentationFactory::doCreateRepresentation(Context &context, ViewTypeFlags supportedViews) const
 {
   Representation representation;
 
@@ -46,10 +48,8 @@ Representation ChannelRepresentationFactory::doCreateRepresentation(Context &con
 }
 
 //----------------------------------------------------------------------------
-void ChannelRepresentationFactory::createSliceRepresentation(Representation &representation, Context &context, ViewTypeFlags supportedViews) const
+void StackRepresentationFactory::createSliceRepresentation(Representation &representation, Context &context, ViewTypeFlags supportedViews) const
 {
-  const unsigned WINDOW_SIZE = 10;
-
   auto scheduler  = context.scheduler();
 
   auto pipelineXY = std::make_shared<ChannelSlicePipeline>(Plane::XY);

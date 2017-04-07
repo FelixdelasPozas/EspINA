@@ -251,7 +251,9 @@ void Channel::setHue(double hue)
 void Channel::setOpacity(double opacity)
 {
   if (opacity == -1.0)
+  {
     opacity = 1.0; // Fix for older espina seg files.
+  }
 
   if (opacity < MIN_OPACITY)
   {
@@ -346,4 +348,3 @@ QString Channel::metadata() const
 
   return m_metadata;
 }
-

@@ -21,7 +21,7 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
-  Dialogs/ChannelInspector/ChannelInspector.h
+  Dialogs/StackInspector/StackInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
@@ -90,7 +90,7 @@ qt4_wrap_cpp (ESPINA_MOC
 qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
-  Dialogs/ChannelInspector/ChannelInspector.ui
+  Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
@@ -125,7 +125,7 @@ set (ESPINA_SOURCES
   AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
-  Dialogs/ChannelInspector/ChannelInspector.cpp
+  Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
@@ -194,7 +194,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
   ToolGroups/Visualize/FullscreenTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp
-  ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp

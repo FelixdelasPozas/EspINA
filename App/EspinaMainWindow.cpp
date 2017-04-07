@@ -41,9 +41,9 @@
 #include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
-#include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include <ToolGroups/Visualize/Representations/StackRepresentationFactory.h>
 #include "ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h"
 #include "ToolGroups/Visualize/GenericTogglableTool.h"
 #include "ToolGroups/Visualize/FullscreenTool.h"
@@ -762,7 +762,7 @@ void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwit
 void EspinaMainWindow::initRepresentations()
 {
   registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
-  registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
+  registerRepresentationFactory(std::make_shared<StackRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }
 

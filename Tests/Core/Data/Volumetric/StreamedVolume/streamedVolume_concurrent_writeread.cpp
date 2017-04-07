@@ -171,12 +171,11 @@ int streamedVolume_concurrent_writeread( int argc, char** argv )
         {
           if(test.GetElement(j) != value.GetElement(j))
           {
-            std::cout << "slice " << i << " has non-uniform values: " << value << " test is: " << test;
+            std::cout << "slice " << i << " has non-uniform values: " << value << " test is: " << test << std::endl;
             error = EXIT_FAILURE;
             break;
           }
         }
-
         ++it;
       }
     }

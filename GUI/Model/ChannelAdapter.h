@@ -147,8 +147,14 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
+    /** \brief Returns the item extensions as read only.
+     *
+     */
     ReadLockExtensions readOnlyExtensions() const;
 
+    /** \brief Returns the item extensions.
+     *
+     */
     WriteLockExtensions extensions();
 
   protected:
@@ -201,8 +207,16 @@ namespace ESPINA
    */
   bool EspinaGUI_EXPORT operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
+  /** \brief Returns the stack pointer of the givem item, if it's a stack or nullptr otherwise.
+   * \param[in] item item pointer to convert to stack pointer.
+   *
+   */
   ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ItemAdapterPtr item);
 
+  /** \brief Returns the stack pointer to const of the givem item, if it's a stack or nullptr otherwise.
+   * \param[in] item item pointer to const to convert to stack pointer to const.
+   *
+   */
   ConstChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ConstItemAdapterPtr item);
 
   /** \brief Returns true if the given item is a channel item.
@@ -211,11 +225,19 @@ namespace ESPINA
    */
   bool EspinaGUI_EXPORT isChannel(ItemAdapterPtr item);
 
-  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemSList(ChannelAdapterSPtr channel);
+  /** \brief Converts and returns the given stack smart pointer to a view item adapter smart pointer list.
+   * \param[in] stack stack smart pointer.
+   *
+   *
+   */
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemSList(ChannelAdapterSPtr stack);
 
-  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemSList(ChannelAdapterSList channels);
-
-  ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(ChannelAdapterSList channels);
+  /** \brief Converts and returns the given stack smart pointer list to a view item adapter smart pointer list.
+   * \param[in] stacks list of stack smart pointers.
+   *
+   *
+   */
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemSList(ChannelAdapterSList stacks);
 
 }// namespace ESPINA
 
