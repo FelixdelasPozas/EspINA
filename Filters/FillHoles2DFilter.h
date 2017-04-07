@@ -29,6 +29,10 @@
 
 namespace ESPINA
 {
+  /** \class FillHoles2DFilter
+   * \brief Implements the fill holes algorithm for 2D.
+   *
+   */
 	class EspinaFilters_EXPORT FillHoles2DFilter
 	: public Filter
 	{

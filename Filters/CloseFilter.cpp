@@ -20,9 +20,9 @@
 
 // ESPINA
 #include "CloseFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -44,12 +44,6 @@ CloseFilter::CloseFilter(InputSList          inputs,
                          SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-//-----------------------------------------------------------------------------
-CloseFilter::~CloseFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------

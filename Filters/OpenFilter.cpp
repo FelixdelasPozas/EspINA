@@ -20,8 +20,8 @@
 
 // ESPINA
 #include "OpenFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -43,13 +43,6 @@ OpenFilter::OpenFilter(InputSList          inputs,
                        SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-
-//-----------------------------------------------------------------------------
-OpenFilter::~OpenFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------

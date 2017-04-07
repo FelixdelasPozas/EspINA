@@ -49,7 +49,8 @@ namespace ESPINA
       /** \brief SeedGrowSegmentationFilter class virtual destructor.
        *
        */
-      virtual ~SeedGrowSegmentationFilter();
+      virtual ~SeedGrowSegmentationFilter()
+      {}
 
       virtual void restoreState(const State& state);
 

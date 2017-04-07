@@ -28,28 +28,33 @@
 
 namespace ESPINA
 {
+  /** \class OpenFilter
+   * \brief Implements morphological open operation.
+   *
+   */
   class EspinaFilters_EXPORT OpenFilter
   : public MorphologicalEditionFilter
   {
-  public:
-    /** \brief OpenFilter class constructor.
-     * \param[in] inputs    list of input smart pointers.
-     * \param[in] type      OpenFilter type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit OpenFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
+    public:
+      /** \brief OpenFilter class constructor.
+       * \param[in] inputs    list of input smart pointers.
+       * \param[in] type      OpenFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit OpenFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
-    /** \brief OpenFilter class virtual destructor.
-     *
-     */
-    virtual ~OpenFilter();
+      /** \brief OpenFilter class virtual destructor.
+       *
+       */
+      virtual ~OpenFilter()
+      {}
 
-  protected:
-    virtual void execute()
-    { execute(0); }
+    protected:
+      virtual void execute()
+      { execute(0); }
 
-    virtual void execute(Output::Id id);
+      virtual void execute(Output::Id id);
   };
 
 } // namespace ESPINA

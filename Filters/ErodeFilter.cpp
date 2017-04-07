@@ -20,9 +20,9 @@
 
 // ESPINA
 #include "ErodeFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -44,13 +44,6 @@ ErodeFilter::ErodeFilter(InputSList          inputs,
                          SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-
-//-----------------------------------------------------------------------------
-ErodeFilter::~ErodeFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------

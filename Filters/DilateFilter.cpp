@@ -20,10 +20,10 @@
 
 // ESPINA
 #include "DilateFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkBinaryBallStructuringElement.h>
@@ -44,12 +44,6 @@ using BinaryDilateFilter     = itk::DilateObjectMorphologyImageFilter<itkVolumeT
 DilateFilter::DilateFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-//-----------------------------------------------------------------------------
-DilateFilter::~DilateFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -95,8 +89,10 @@ void DilateFilter::execute()
   padFilter->SetInput(inputVolume->itkImage());
   padFilter->SetPadLowerBound(lowerExtendRegion);
   padFilter->SetPadUpperBound(upperExtendRegion);
-  padFilter->Update();
+
   ITKProgressReporter<PadFilterType> padReporter(this, padFilter, 0, 25);
+
+  padFilter->Update();
 
   reportProgress(25);
   if (!canExecute()) return;

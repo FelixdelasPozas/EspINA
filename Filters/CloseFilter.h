@@ -28,28 +28,33 @@
 
 namespace ESPINA
 {
+  /** \class CloseFilter
+   * \brief Implements morphological close operation.
+   *
+   */
   class EspinaFilters_EXPORT CloseFilter
   : public MorphologicalEditionFilter
   {
-  public:
-    /** \brief CloseFilter class constructor.
-     * \param[in] inputs, list of input smart pointers.
-     * \param[in] type, CloseFilter type.
-     * \param[in] scheduler, scheduler smart pointer.
-     *
-     */
-    explicit CloseFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
+    public:
+      /** \brief CloseFilter class constructor.
+       * \param[in] inputs, list of input smart pointers.
+       * \param[in] type, CloseFilter type.
+       * \param[in] scheduler, scheduler smart pointer.
+       *
+       */
+      explicit CloseFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
-    /** \brief CloseFilter class virtual destructor.
-     *
-     */
-    virtual ~CloseFilter();
+      /** \brief CloseFilter class virtual destructor.
+       *
+       */
+      virtual ~CloseFilter()
+      {}
 
-  protected:
-    virtual void execute()
-    { execute(0); }
+    protected:
+      virtual void execute()
+      { execute(0); }
 
-    virtual void execute(Output::Id id);
+      virtual void execute(Output::Id id);
   };
 
 } // namespace ESPINA
