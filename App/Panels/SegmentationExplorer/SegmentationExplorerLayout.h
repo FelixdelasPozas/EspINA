@@ -184,11 +184,6 @@ namespace ESPINA
     QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors;
   };
 
-  /** \brief Comparison function for segmentations implementing less-than operation.
-   *
-   */
-  bool sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right);
-
 } // namespace ESPINA
 
 #endif // SEGMENTATIONEXPLORERLAYOUT_H

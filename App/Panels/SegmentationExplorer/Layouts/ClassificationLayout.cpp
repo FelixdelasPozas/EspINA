@@ -21,6 +21,7 @@
 // ESPINA
 #include <Dialogs/HueSelector/HueSelector.h>
 #include "ClassificationLayout.h"
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -121,50 +122,7 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 
   if (leftItem->type() == rightItem->type())
   {
-    if (isSegmentation(leftItem))
-    {
-      return sortSegmentationLessThan(leftItem, rightItem);
-    }
-    else
-    {
-      auto stringLeft  = leftItem->data(Qt::DisplayRole).toString();
-      auto stringRight = rightItem->data(Qt::DisplayRole).toString();
-
-      QRegExp categoryExtractor("(\\D+)");
-      categoryExtractor.setMinimal(false);
-
-      if ((categoryExtractor.indexIn(stringLeft) == -1) || (categoryExtractor.indexIn(stringRight) == -1))
-      {
-        return stringLeft < stringRight;
-      }
-
-      categoryExtractor.indexIn(stringLeft);
-      auto categoryLeft = categoryExtractor.cap(1);
-
-      categoryExtractor.indexIn(stringRight);
-      auto categoryRight = categoryExtractor.cap(1);
-
-      if(categoryLeft != categoryRight)
-      {
-        return categoryLeft < categoryRight;
-      }
-
-      QRegExp numExtractor("(\\d+)");
-      numExtractor.setMinimal(false);
-
-      if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
-      {
-        return stringLeft < stringRight;
-      }
-
-      numExtractor.indexIn(stringLeft);
-      auto numLeft = numExtractor.cap(1).toInt();
-
-      numExtractor.indexIn(stringRight);
-      auto numRight = numExtractor.cap(1).toInt();
-
-      return numLeft < numRight;
-    }
+    return Core::Utils::lessThan<ItemAdapterPtr>(leftItem, rightItem);
   }
   else
   {
