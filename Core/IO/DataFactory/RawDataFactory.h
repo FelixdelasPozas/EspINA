@@ -29,6 +29,10 @@
 
 namespace ESPINA
 {
+  /** \class RawDataFactory
+   * \brief Data factory for raw data.
+   *
+   */
   class EspinaCore_EXPORT RawDataFactory
   : public DataFactory
   {

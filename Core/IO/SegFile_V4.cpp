@@ -135,6 +135,10 @@ AnalysisSPtr SegFile_V4::Loader::load()
       && !file.contains("MeshOutputType/"))
     {
       auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+
+      // FIX: Windows doesn't allow some characters in filenames that Linux does and were used in previous versions.
+      file = file.replace(">", "_"); // TabularReport save key information file.
+
       m_storage->saveSnapshot(SnapshotData(file, currentFile));
     }
 

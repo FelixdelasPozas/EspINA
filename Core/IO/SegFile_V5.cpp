@@ -98,12 +98,12 @@ SegFile_V5::Loader::Loader(QuaZip           &zip,
                            CoreFactorySPtr  factory,
                            ProgressReporter *reporter,
                            ErrorHandlerSPtr  handler)
-: m_zip        (zip)
-, m_factory    {factory}
-, m_reporter   {reporter}
-, m_handler    {handler}
-, m_analysis   {new Analysis()}
-, m_dataFactory{new RawDataFactory()}
+: m_zip            (zip)
+, m_factory        {factory}
+, m_reporter       {reporter}
+, m_handler        {handler}
+, m_analysis       {new Analysis()}
+, m_dataFactory    {new RawDataFactory()}
 , m_fixSourceInputs{false}
 {
 }
@@ -166,6 +166,10 @@ AnalysisSPtr SegFile_V5::Loader::load()
       if (file != CLASSIFICATION_FILE && file != CONTENT_FILE && file != RELATIONS_FILE)
       {
         auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+
+        // FIX: Windows doesn't allow some characters in filenames that Linux does and were used in previous versions.
+        file = file.replace(">", "_"); // TabularReport save key information file.
+
         m_storage->saveSnapshot(SnapshotData(file, currentFile));
       }
     }
