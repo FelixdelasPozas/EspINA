@@ -38,7 +38,6 @@ class QPushButton;
 class QHBoxLayout;
 class QSettings;
 class QWidgetAction;
-class ActionSelector;
 
 namespace ESPINA
 {

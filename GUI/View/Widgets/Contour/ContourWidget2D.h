@@ -52,12 +52,16 @@ namespace ESPINA
           {
               Q_OBJECT
             public:
+              /** \struct ContourData
+               * \brief Data of a contour.
+               *
+               */
               struct ContourData
               {
-                Nm                           slice;
-                Plane                        plane;
-                DrawingMode                  mode;
-                vtkSmartPointer<vtkPolyData> polyData;
+                Nm                           slice;    /** slice of the contour.     */
+                Plane                        plane;    /** plane of the contour.     */
+                DrawingMode                  mode;     /** contour mode (draw/erase) */
+                vtkSmartPointer<vtkPolyData> polyData; /** node data as vtkPolyData. */
 
                 ContourData(Nm actual, Nm position, Plane plane, DrawingMode mode, vtkSmartPointer<vtkPolyData> contour) : slice{position}, plane{plane}, mode{mode}, polyData{contour} {};
                 ContourData() : slice{0}, plane{Plane::XY}, mode{DrawingMode::PAINTING}, polyData{} { polyData = nullptr; };
@@ -67,7 +71,15 @@ namespace ESPINA
               using Contour = struct ContourData;
 
             public:
+              /** \brief ContourWidget2D class cosntructor.
+               * \param[in] hander Contour tool event handler.
+               *
+               */
               explicit ContourWidget2D(ContourPainterSPtr handler);
+
+              /** \brief ContourWidget2D class virtual destructor.
+               *
+               */
               virtual ~ContourWidget2D();
 
               virtual void setPlane(Plane plane);
@@ -124,20 +136,26 @@ namespace ESPINA
 
               virtual vtkAbstractWidget *vtkWidget();
 
+              /** \brief Updates the widget with the representation associated with the given crosshair (if any) or stores the representatio of the previous slice.
+               * \param[in] crosshair crosshair point.
+               *
+               */
               virtual void setCrosshair(const NmVector3 &crosshair);
 
+              /** \brief Rastizes the current contour on termination.
+               *
+               */
               void notifyContourEnd();
 
             private:
               friend class vtkPlaneContourWidget;
 
-              ContourPainterSPtr m_handler;
-              Contour            m_storedContour;
-              vtkSmartPointer<vtkPlaneContourWidget> m_widget;
-
-              Nm        m_slice;
-              int       m_index;
-              NmVector3 m_spacing;
+              ContourPainterSPtr                     m_handler;       /** contour tool event handler.      */
+              Contour                                m_storedContour; /** data of stored contour (if any). */
+              vtkSmartPointer<vtkPlaneContourWidget> m_widget;        /** vtk widget.                      */
+              Nm                                     m_slice;         /** current slice position in Nm.    */
+              int                                    m_index;         /** view index of widget.            */
+              NmVector3                              m_spacing;       /** spacing of the view.             */
           };
 
         } // namespace Contour

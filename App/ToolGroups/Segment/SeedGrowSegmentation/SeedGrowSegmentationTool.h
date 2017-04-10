@@ -28,7 +28,6 @@
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
 #include <Support/Factory/FilterRefinerFactory.h>

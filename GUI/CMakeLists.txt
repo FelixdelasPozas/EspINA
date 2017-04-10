@@ -62,8 +62,6 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/Zoom/ZoomWidget2D.h
   View/Widgets/Zoom/ZoomWidget3D.h  
   View/Widgets/Zoom/ZoomEventHandler.h  
-  Widgets/ActionSelector.h
-  Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
@@ -215,8 +213,6 @@ set (GUI_SOURCES
 #  View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
 #  View/Widgets/Skeleton/SkeletonPointTracker.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
-  Widgets/ActionSelector.cpp
-  Widgets/ActionSelectorWidget.cpp
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp

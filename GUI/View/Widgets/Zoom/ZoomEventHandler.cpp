@@ -32,7 +32,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomEventHandler::ZoomEventHandler()
-: m_inClick(false)
+: m_isDragging{false}
 {
   QPixmap cursorBitmap;
 
@@ -54,22 +54,22 @@ bool ZoomEventHandler::filterEvent(QEvent* e, RenderView* view)
     auto me = static_cast<QMouseEvent *>(e);
     auto position = me->pos();
 
-    if (e->type() == QEvent::MouseMove && m_inClick)
+    if (e->type() == QEvent::MouseMove && m_isDragging)
     {
       emit movement(position, view);
       return true;
     }
 
-    if (e->type() == QEvent::MouseButtonPress && me->button() == Qt::LeftButton && !m_inClick)
+    if (e->type() == QEvent::MouseButtonPress && me->button() == Qt::LeftButton && !m_isDragging)
     {
-      m_inClick = true;
+      m_isDragging = true;
       emit leftPress(position, view);
       return true;
     }
 
-    if (e->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && m_inClick)
+    if (e->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && m_isDragging)
     {
-      m_inClick = false;
+      m_isDragging = false;
       emit leftRelease(position, view);
       return true;
     }

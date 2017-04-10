@@ -19,7 +19,6 @@
 
 // ESPINA
 #include "DrawingWidget.h"
-#include "ActionSelector.h"
 #include "CategorySelector.h"
 #include "NumericalInput.h"
 #include "Styles.h"

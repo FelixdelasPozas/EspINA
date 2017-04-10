@@ -52,7 +52,17 @@ namespace ESPINA
             class Command;
 
           public:
+            /** \brief Widget2D class constructor.
+             * \param[in] selection application selection.
+             *
+             */
             explicit Widget2D(SelectionSPtr selection);
+
+            /** \brief Widget2D class virtual destructor.
+             *
+             */
+            virtual ~Widget2D()
+            {};
 
             virtual void setPlane(Plane plane);
 
@@ -79,29 +89,46 @@ namespace ESPINA
           private:
             virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
+            /** \brief Updates the widget according to the given crosshair.
+             * \param[in] crosshar crosshair point.
+             *
+             */
             virtual void setCrosshair(const NmVector3 &crosshair);
 
+            /** \brief Connects the selection objects to modify this widget when ony of them changes.
+             *
+             */
             void synchronizeSelectionChanges();
 
+            /** \brief Disconnects the selection objects to modify this widget when ony of them changes.
+             *
+             */
             void desynchronizeSelectionChanges();
 
+            /** \brief Updates the widget visibility depending on the current slice.
+             *
+             */
             void updateVisibility();
 
           private slots:
+            /** \brief Updates the widget when the group of selected objects change.
+             *
+             */
             void onSelectionChanged();
 
+            /** \brief Updates the widget size according to currently selected items.
+             *
+             */
             void updateSelectionMeasure();
 
           private:
-            int m_index;
-
-            SelectionSPtr                m_selection;
-            vtkSmartPointer<vtkWidget2D> m_widget;
-            vtkSmartPointer<Command>     m_command;
-            vtkCamera                   *m_camera;
-
-            Nm                      m_slice;
-            SegmentationAdapterList m_selectedSegmentations;
+            int                          m_index;            /** plane index                                                    */
+            SelectionSPtr                m_selection;        /** application selection object.                                  */
+            vtkSmartPointer<vtkWidget2D> m_widget;           /** vtk widget.                                                    */
+            vtkSmartPointer<Command>     m_command;          /** vtk widget command object.                                     */
+            vtkCamera                   *m_camera;           /** pointer to the camera of the view (to update on zoom changes). */
+            Nm                           m_slice;            /** slice position in Nm.                                          */
+            SegmentationAdapterList m_selectedSegmentations; /** groups of currently selected segmentations.                    */
           };
         }
       }

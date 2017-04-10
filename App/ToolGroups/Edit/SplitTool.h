@@ -26,7 +26,6 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
-#include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/EditTool.h>
 #include <Support/Context.h>
 
