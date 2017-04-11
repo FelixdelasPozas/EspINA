@@ -41,10 +41,6 @@
 
 // ITK
 #include <itkImageRegionIterator.h>
-#include <itkImageFileReader.h>
-#include <itkExceptionObject.h>
-#include <itkNumericTraitsVectorPixel.h>
-#include <itkMetaImageIO.h>
 
 // Qt
 #include <QMutex>
@@ -206,13 +202,7 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      auto reader = itk::ImageFileReader<T>::New();
-      reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.absoluteFilePath().toStdString());
-      reader->SetNumberOfThreads(1);
-      reader->UpdateOutputInformation();
-
-      typename T::Pointer image = reader->GetOutput();
+      typename T::Pointer image = readVolume<T>(m_fileName.absoluteFilePath());
 
       m_vectorLength = image->GetNumberOfComponentsPerPixel();
       if(m_vectorLength == 0)
@@ -459,7 +449,6 @@ namespace ESPINA
       extractor->SetInput(reader->GetOutput());
       extractor->SetExtractionRegion(requestedRegion);
       extractor->Update();
-
 
       typename T::Pointer image = extractor->GetOutput();
       image->DisconnectPipeline();

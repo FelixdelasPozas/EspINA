@@ -22,13 +22,10 @@
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/ITKProgressReporter.h>
-
-// ITK
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -127,7 +124,8 @@ void VolumetricStreamReader::execute()
     }
   }
 
-  DataSPtr volume = nullptr;
+  DataSPtr volume              = nullptr;
+  itkVolumeType::Pointer image = nullptr;
 
   if(!canExecute()) return;
 
@@ -141,7 +139,6 @@ void VolumetricStreamReader::execute()
       {
         m_streamingStorage = std::make_shared<TemporalStorage>(&storage()->rootDirectory());
 
-        itkVolumeType::Pointer image = nullptr;
         bool needRead = false;
 
         if(m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
@@ -152,54 +149,37 @@ void VolumetricStreamReader::execute()
         else
         {
           needRead = true;
+
           auto fileName = m_fileName.absoluteFilePath().toUtf8();
           fileName.detach();
           auto filename = fileName.constData();
 
-          auto imageIO = itk::ImageIOFactory::CreateImageIO(filename, itk::ImageIOFactory::ReadMode);
-          imageIO->SetGlobalWarningDisplay(false);
-          imageIO->SetFileName(filename);
-          imageIO->ReadImageInformation();
-
-          if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
+          try
           {
-            auto message = QObject::tr("Can't read image file, file name: %1. Pixel type is not 8-bits.").arg(m_fileName.absoluteFilePath());
-            auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
-
-            throw EspinaException(message, details);
+            image = readVolumeWithProgress<itkVolumeType>(filename, this, 0, 50);
           }
+          catch(const itk::ExceptionObject &e)
+          {
+            auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
+            auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
 
-          if(!canExecute()) return;
-
-          auto reader  = itk::ImageFileReader<itkVolumeType>::New();
-          reader->SetGlobalWarningDisplay(false);
-          reader->UseStreamingOff();
-          reader->SetNumberOfThreads(1);
-          reader->SetFileName(filename);
-
-          ITKProgressReporter<itk::ImageFileReader<itkVolumeType>> readReporter(this, reader, 0, 50);
-
-          reader->Update();
-
-          image = reader->GetOutput();
-          image->DisconnectPipeline();
+            throw EspinaException(what, details);
+          }
         }
 
         if(!canExecute()) return;
 
-        auto writer = itk::ImageFileWriter<itkVolumeType>::New();
-        writer->SetGlobalWarningDisplay(false);
-        writer->ReleaseDataFlagOn();
-        writer->SetNumberOfThreads(1);
-        writer->UseCompressionOff();
-        writer->UseInputMetaDataDictionaryOff();
-        writer->SetNumberOfStreamDivisions(1);
-        writer->SetInput(image);
-        writer->SetFileName(m_streamingStorage->absoluteFilePath(STREAM_FILENAME).toStdString());
+        try
+        {
+          exportVolumeWithProgress<itkVolumeType>(image, m_streamingStorage->absoluteFilePath(STREAM_FILENAME), this, (needRead ? 50 : 0), 100);
+        }
+        catch(const itk::ExceptionObject &e)
+        {
+          auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
+          auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
 
-        ITKProgressReporter<itk::ImageFileWriter<itkVolumeType>> writeReporter(this, writer, (needRead ? 50 : 0), 100);
-
-        writer->Write();
+          throw EspinaException(what, details);
+        }
 
         if(!canExecute()) return;
 
@@ -208,7 +188,7 @@ void VolumetricStreamReader::execute()
     }
     else
     {
-      // mhd files are streamable, hurayy
+      // mhd files are streamable
       m_streamingFile = m_fileName;
     }
 
@@ -222,38 +202,20 @@ void VolumetricStreamReader::execute()
     fileName.detach();
     auto filename = fileName.constData();
 
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(filename, itk::ImageIOFactory::ReadMode);
-    imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(filename);
-    imageIO->ReadImageInformation();
-
-    if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
-    {
-      auto message = QObject::tr("Can't read image file, file name: %1. Pixel type is not 8-bits.").arg(m_fileName.absoluteFilePath());
-      auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
-
-      throw EspinaException(message, details);
-    }
-
-    auto reader  = itk::ImageFileReader<itkVolumeType>::New();
-    reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(filename);
-    reader->SetUseStreaming(false);
-    reader->SetNumberOfThreads(1);
     try
     {
-      reader->Update();
+      image = readVolumeWithProgress<itkVolumeType>(filename, this);
       if(!canExecute()) return;
     }
     catch(const itk::ExceptionObject &e)
     {
-      auto what    = QObject::tr("Error in itk, exception message: %1").arg(QString(e.what()));
+      auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
 
       throw EspinaException(what, details);
     }
 
-    volume  = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
+    volume  = std::make_shared<RawVolume<itkVolumeType>>(image);
   }
 
   auto spacing = volume->bounds().spacing();
@@ -273,4 +235,6 @@ void VolumetricStreamReader::execute()
   {
     volume->setSpacing(m_outputs[0]->spacing());
   }
+
+  reportProgress(100);
 }

@@ -74,7 +74,7 @@ Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystem
 Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
 
 ; QUAZIP FILES
-Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: program
+Source: "@QUAZIP_LIBRARIES@"; DestDir: "{app}"; Components: program
 
 ; BOOST 
 Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program

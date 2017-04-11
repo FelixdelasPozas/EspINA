@@ -31,9 +31,6 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-
 #if USE_METADONA
   #include <Producer.h>
   #include <IRODS_Storage.h>

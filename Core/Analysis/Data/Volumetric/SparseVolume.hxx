@@ -42,10 +42,7 @@
 
 // ITK
 #include <itkImageRegionIterator.h>
-#include <itkExtractImageFilter.h>
-#include <itkMetaImageIO.h>
-#include <itkImageFileReader.h>
-#include <itkConstantPadImageFilter.h>
+#include <itkImageRegionExclusionIteratorWithIndex.h>
 
 // VTK
 #include <vtkImplicitFunction.h>
@@ -638,8 +635,6 @@ namespace ESPINA
 
     if(!m_blocks.empty()) return true; // test
 
-    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-
     bool dataFetched = false;
 
     int i = 0;
@@ -666,14 +661,11 @@ namespace ESPINA
 
     while (blockFile.exists())
     {
-      auto reader = VolumeReader::New();
-      reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
-      reader->SetUseStreaming(false);
-      reader->SetNumberOfThreads(1);
+      typename T::Pointer image = nullptr;
 
       try
       {
-        reader->Update();
+        image = readVolume<T>(blockFile.absoluteFilePath());
       }
       catch(...)
       {
@@ -683,7 +675,6 @@ namespace ESPINA
       }
 
       auto spacing = this->m_bounds.spacing();
-      auto image   = reader->GetOutput();
       image->SetSpacing(ItkSpacing<T>(spacing));
       image->Update();
 
