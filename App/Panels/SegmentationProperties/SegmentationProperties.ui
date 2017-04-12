@@ -18,6 +18,9 @@
     <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
@@ -25,6 +28,15 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -34,8 +46,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>444</width>
-        <height>617</height>
+        <width>464</width>
+        <height>637</height>
        </rect>
       </property>
       <property name="sizePolicy">

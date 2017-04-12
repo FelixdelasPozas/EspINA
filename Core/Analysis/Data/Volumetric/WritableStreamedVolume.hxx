@@ -93,7 +93,6 @@ namespace ESPINA
         virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                           const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-      private:
         virtual void write(const typename T::Pointer &image) = 0;
     };
 
@@ -125,7 +124,6 @@ namespace ESPINA
         virtual ~WritableStreamedVolume()
         {}
 
-      private:
         virtual void write(const typename T::Pointer &image) override;
     };
 
