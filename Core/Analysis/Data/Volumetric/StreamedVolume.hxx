@@ -202,7 +202,14 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      typename T::Pointer image = readVolume<T>(m_fileName.absoluteFilePath());
+      auto reader = itk::ImageFileReader<T>::New();
+      reader->ReleaseDataFlagOn();
+      reader->SetFileName(m_fileName.absoluteFilePath().toUtf8().data());
+      reader->UseStreamingOff();
+      reader->SetNumberOfThreads(1);
+      reader->UpdateOutputInformation();
+
+      auto image = reader->GetOutput();
 
       m_vectorLength = image->GetNumberOfComponentsPerPixel();
       if(m_vectorLength == 0)
