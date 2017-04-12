@@ -83,13 +83,13 @@ namespace ESPINA
     virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
-    QString snapshotFilename(const QString &path, const QString &id) const
+    const QString snapshotFilename(const QString &path, const QString &id) const
     { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
 
-    QString oldSnapshotFilename(const QString &path, const QString &id) const
+    const QString oldSnapshotFilename(const QString &path, const QString &id) const
     { return path + QString("%1_%2.vtp").arg(type()).arg(id); }
 
-    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+    const QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
     { return snapshotFilename(path, id); }
   };
 

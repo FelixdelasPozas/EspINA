@@ -33,6 +33,10 @@
 
 namespace ESPINA
 {
+  /** \class RawMesh
+   * \brief Implements a raw mesh data.
+   *
+   */
   class EspinaCore_EXPORT RawMesh
   : public MeshData
   {
@@ -78,18 +82,8 @@ namespace ESPINA
     { return QList<Data::Type>(); }
 
   private:
-    QString snapshotFilename(const QString &path, const QString &id) const
-    { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
-
-    QString oldSnapshotFilename(const QString &path, const QString &id) const
-    { return path + QString("%1_%2.vtp").arg(type()).arg(id); }
-
-    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
-    { return snapshotFilename(path, id); }
-
-  private:
-    vtkSmartPointer<vtkPolyData> m_mesh;
-    mutable QMutex m_lock;
+    vtkSmartPointer<vtkPolyData> m_mesh; /** mesh data. */
+    mutable QMutex               m_lock; /** data lock. */
   };
 }
 

@@ -35,12 +35,12 @@ MeshData::MeshData()
 }
 
 //----------------------------------------------------------------------------
-bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id, const VolumeBounds &bounds)
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
 {
   bool dataFetched = false;
 
-  for (auto filename : {snapshotFilename   (path, id),
-                        oldSnapshotFilename(path, id)})
+  for (const auto filename : {snapshotFilename   (path, id),
+                              oldSnapshotFilename(path, id)})
   {
     QFileInfo meshFile(storage->absoluteFilePath(filename));
 

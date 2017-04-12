@@ -89,12 +89,12 @@ namespace ESPINA
        */
       void makePath(const QString& path);
 
-      /** \brief Returns the absolute file path of the specified path in the storage.
-       * \param[in] path, path relative to storage parent directory.
+      /** \brief Returns the absolute file path of the specified file in the storage.
+       * \param[in] filename file name relative to storage parent directory.
        *
        */
-      QString absoluteFilePath(const QString &path) const
-      { return m_storageDir.absoluteFilePath(path); }
+      QString absoluteFilePath(const QString &filename) const
+      { return m_storageDir.absoluteFilePath(filename); }
 
       /** \brief Returns true if final given as argument exists in this storage.
        *
