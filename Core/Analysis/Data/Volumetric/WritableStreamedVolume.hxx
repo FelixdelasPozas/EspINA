@@ -32,6 +32,9 @@
 
 // ITK
 #include <itkImage.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkMetaImageIO.h>
 #include <itkNumericTraitsVectorPixel.h>
 #include <itkVectorImage.h>
 

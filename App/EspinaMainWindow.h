@@ -23,16 +23,10 @@
 
 // ESPINA
 #include "EspinaConfig.h"
-#include "EspinaErrorHandler.h"
-#include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
-#include <Dialogs/IssueList/IssueListDialog.h>
 #include <Extensions/LibraryExtensionFactory.h>
-#include "ToolGroups/Restrict/RestrictToolGroup.h"
-#include "ToolGroups/Edit/EditToolGroup.h"
-#include "ToolGroups/Analyze/AnalyzeToolGroup.h"
-#include "AutoSave.h"
+#include <Extensions/Issues/Issues.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
@@ -43,6 +37,12 @@
 #include <Support/Widgets/Panel.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
 #include <Support/Context.h>
+#include <App/EspinaErrorHandler.h>
+#include <App/Views/DefaultView.h>
+#include <App/ToolGroups/Restrict/RestrictToolGroup.h>
+#include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <App/ToolGroups/Analyze/AnalyzeToolGroup.h>
+#include <App/AutoSave.h>
 
 // Qt
 #include <QMainWindow>
