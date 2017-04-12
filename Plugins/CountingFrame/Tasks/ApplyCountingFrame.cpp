@@ -23,6 +23,7 @@
 
 // ESPINA
 #include <Core/Analysis/Query.h>
+#include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
@@ -63,8 +64,8 @@ void ApplyCountingFrame::run()
   bool validExecution = false;
 
   {
-    auto channel       = m_countingFrame->channel();
-    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
+    auto stack       = m_countingFrame->channel();
+    auto segmentations = m_countingFrame->channel()->analysis()->segmentations();
 
     SegmentationSList validSegmentations;
 
@@ -76,7 +77,14 @@ void ApplyCountingFrame::run()
       {
         if (!canExecute()) break;
 
-        if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+        bool validChannel = false;
+
+        for(auto segStack: QueryContents::channels(segmentation))
+        {
+          validChannel |= (segStack.get() == stack);
+        }
+
+        if(validChannel && (constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint))))
         {
           validSegmentations << segmentation;
         }

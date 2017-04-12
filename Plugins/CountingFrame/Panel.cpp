@@ -537,10 +537,22 @@ void CF::Panel::resetActiveCountingFrame()
 {
   if (m_activeCF)
   {
-    auto channel       = m_activeCF->channel();
-    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
+    auto stack = m_activeCF->channel();
 
-    auto task = std::make_shared<ComputeOptimalMarginsTask>(channel, segmentations, getContext().factory().get(), getContext().scheduler());
+    SegmentationSList validSegmentations;
+
+    for(auto segmentation: m_activeCF->channel()->analysis()->segmentations())
+    {
+      for(auto segStack: QueryContents::channels(segmentation))
+      {
+        if(segStack.get() == stack)
+        {
+          validSegmentations << segmentation;
+        }
+      }
+    }
+
+    auto task = std::make_shared<ComputeOptimalMarginsTask>(stack, validSegmentations, getContext().factory().get(), getContext().scheduler());
 
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(onMarginsComputed()));
