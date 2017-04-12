@@ -145,7 +145,6 @@ namespace ESPINA
       {};
     };
 
-
   private:
     Support::Context                      *m_context;          /** application context.             */
     Support::Settings::SettingsPanelSPtr   m_settings;         /** SAS execution settings.          */

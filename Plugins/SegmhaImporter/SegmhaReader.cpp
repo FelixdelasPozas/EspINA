@@ -148,8 +148,6 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
   analysis->setClassification(classification);
 
-  int numSegmentations = segmentationObjects.size();
-
   // Read the original image, whose pixels are indeed labelmap object ids
   labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
   labelMapReader->SetUseStreaming(false);
