@@ -8,7 +8,7 @@
 [Setup]
 AppName=EspINA
 AppVersion=@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
-DefaultDirName={pf}\EspINA
+DefaultDirName={pf64}\EspINA
 DefaultGroupName=EspINA
 OutputDir=@CMAKE_CURRENT_BINARY_DIR@
 AlwaysShowComponentsList=yes
@@ -18,6 +18,10 @@ AppCopyright=(c)2013-2017 CesViMA/UPM
 AppPublisher=CesViMA/UPM
 ArchitecturesAllowed=x64
 Compression=lzma2/ultra64
+CreateUninstallRegKey=yes
+Uninstallable=yes
+ChangesAssociations=yes
+CloseApplications=yes
 UninstallDisplayIcon={app}\espina.exe
 UninstallDisplayName=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
 SourceDir=@CMAKE_CURRENT_BINARY_DIR@\App
@@ -73,13 +77,81 @@ Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}\imageformats\"; C
 Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystems\"; Components: program
 Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
 
-; QUAZIP FILES
+; QUAZIP  (Comment if static lib)
 Source: "@QUAZIP_LIBRARIES@"; DestDir: "{app}"; Components: program
 
-; BOOST 
+; BOOST (Comment if static lib)
 Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 Source: "@Boost_REGEX_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"
 Name: "{commondesktop}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"
+
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\.seg"; Flags: uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\Classes\.seg"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.seg\OpenWithProgids"; ValueType: string; ValueName: "EspINA"; ValueData: ""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.seg\shell"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA"; ValueType: string; ValueName: "FriendlyTypeName"; ValueData: "EspINA Segmentation File"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\DefaultIcon"; ValueType: string; ValueData: "{app}\ESPINA.exe,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\shell\open"; ValueType: string; ValueData: "Open using EspINA"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\shell\open\command"; ValueType: string; ValueData: "{app}\ESPINA.exe ""%1"""; Flags: uninsdeletekey
+
+[Run]
+Filename: "{app}\ESPINA.EXE"; Description: "Launch EspINA application"; Flags: postinstall nowait skipifsilent unchecked
+
+[Code]
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\EspINA_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+function IsUpgrade(): Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+function UnInstallOldVersion(): Integer;
+var
+  sUnInstallString: String;
+  iResultCode: Integer;
+begin
+// Return Values:
+// 1 - uninstall string is empty
+// 2 - error executing the UnInstallString
+// 3 - successfully executed the UnInstallString
+
+  // default return value
+  Result := 0;
+
+  // get the uninstall string of the old app
+  sUnInstallString := GetUninstallString();
+  if sUnInstallString <> '' then begin
+    sUnInstallString := RemoveQuotes(sUnInstallString);
+    if Exec(sUnInstallString, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES','', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      Result := 3
+    else
+      Result := 2;
+  end else
+    Result := 1;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep=ssInstall) then
+  begin
+    if (IsUpgrade()) then
+    begin
+      UnInstallOldVersion();
+    end;
+  end;
+end;
