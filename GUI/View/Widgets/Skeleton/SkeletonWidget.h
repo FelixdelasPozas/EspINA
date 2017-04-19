@@ -105,7 +105,7 @@ namespace ESPINA
               virtual void setRepresentationDepth(Nm depth)
               { /* representation depth initialized in initializeImplementation() */ };
 
-              virtual Representations::Managers::TemporalRepresentation2DSPtr clone()
+              virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation()
               { return std::make_shared<SkeletonWidget>(m_handler);};
 
               virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
