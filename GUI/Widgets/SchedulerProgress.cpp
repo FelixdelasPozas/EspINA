@@ -170,14 +170,15 @@ void SchedulerProgress::updateProgress()
   QMutexLocker lock(&m_mutex);
 
   int total = m_taskProgress;
+  auto hasTasks = !m_tasks.isEmpty();
 
-  for(TaskProgressSPtr task : m_tasks)
+  if(hasTasks)
   {
-    total += task->progress();
-  }
+    for(TaskProgressSPtr task : m_tasks)
+    {
+      total += task->progress();
+    }
 
-  if (total > 0)
-  {
     total = (total / m_taskTotal);
   }
   else
@@ -187,7 +188,7 @@ void SchedulerProgress::updateProgress()
 
   m_progressBar->setValue(total);
 
-  setVisible(0 != total || !m_tasks.isEmpty());
+  setVisible(hasTasks);
 }
 
 //------------------------------------------------------------------------
