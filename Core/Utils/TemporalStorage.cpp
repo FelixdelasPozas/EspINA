@@ -339,7 +339,7 @@ bool TemporalStorage::move(const QString &path, bool createDir)
 //----------------------------------------------------------------------------
 std::shared_ptr<QSettings> TemporalStorage::sessionSettings()
 {
-  return std::make_shared<QSettings>(m_storageDir.absoluteFilePath(SETTINGS_FILE).replace('/', QDir::separator()), QSettings::IniFormat);
+  return std::make_shared<QSettings>(QDir::toNativeSeparators(m_storageDir.absoluteFilePath(SETTINGS_FILE)), QSettings::IniFormat);
 }
 
 //----------------------------------------------------------------------------

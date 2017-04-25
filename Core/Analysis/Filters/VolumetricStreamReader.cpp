@@ -50,7 +50,17 @@ void VolumetricStreamReader::restoreState(const State& state)
     auto tokens = element.split("=");
     if ("File" == tokens[0])
     {
-      m_fileName = QFileInfo(tokens[1].trimmed());
+      auto filename = tokens[1].simplified();
+      auto file = QFileInfo(filename);
+
+      if(handler() && (handler()->defaultDir() != QDir()))
+      {
+        m_fileName = QFileInfo(handler()->defaultDir().filePath(file.fileName()));
+      }
+      else
+      {
+        m_fileName = QFileInfo(file.fileName());
+      }
     }
 
     if("Streaming" == tokens[0])

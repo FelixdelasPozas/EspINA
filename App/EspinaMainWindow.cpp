@@ -432,7 +432,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
     auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
-    auto title   = windowTitle().split(QDir::separator()).last();
+    auto title   = windowTitle();
     auto answer  = DefaultDialogs::UserQuestion(message, buttons, title);
 
     switch(answer)
@@ -549,16 +549,16 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   auto files = m_openFileTool->loadedFiles();
 
   Q_ASSERT(!files.isEmpty());
-  auto referenceFile = files.first();
+  auto referenceFile = QFileInfo{files.first()};
 
-  setWindowTitle(referenceFile);
+  setWindowTitle(referenceFile.fileName());
 
   updateUndoStackIndex();
 
-  m_saveTool->setSaveFilename(referenceFile);
-  m_saveTool->setEnabled(files.size() == 1 && referenceFile.endsWith(".seg", Qt::CaseInsensitive));
+  m_saveTool->setSaveFilename(referenceFile.absoluteFilePath());
+  m_saveTool->setEnabled(files.size() == 1 && referenceFile.fileName().endsWith(".seg", Qt::CaseInsensitive));
 
-  m_saveAsTool->setSaveFilename(referenceFile);
+  m_saveAsTool->setSaveFilename(referenceFile.absoluteFilePath());
 
   m_autoSave.resetCountDown();
 

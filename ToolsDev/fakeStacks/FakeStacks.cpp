@@ -434,7 +434,8 @@ void FakeStacks::generateStacks(const QString &path)
     auto spacing = m_spacing[file];
     auto bounds  = m_stacks[file];
 
-    auto fileName = path + QDir::separator() + file.simplified();
+    auto fileName = path + '/' + file.simplified();
+    fileName = QDir::toNativeSeparators(fileName);
 
     auto region = equivalentRegion<ESPINA::itkVolumeType>(NmVector3{}, spacing, bounds);
 

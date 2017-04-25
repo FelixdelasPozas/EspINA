@@ -136,14 +136,15 @@ void SpacingChanger::startConversion()
     }
 
     auto otherFileName = fileInfo.path() +
-                         QDir::separator() +
+                         '/' +
                          fileInfo.baseName() +
                          tr("_(scaled_%1_%2_%3).").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value())
-                         + fileInfo.fileName().split('.').last();
+                         + fileInfo.suffix();
+    otherFileName = QDir::toNativeSeparators(otherFileName);
 
     writeImportant(tr("Processing '%1' to '%2'.").arg(fileInfo.fileName()).arg(otherFileName));
 
-    QuaZip destZip(otherFileName);
+    QuaZip destZip(QDir::toNativeSeparators(otherFileName));
     destZip.open(QuaZip::mdCreate, nullptr);
 
     if(destZip.getZipError() != UNZ_OK)
