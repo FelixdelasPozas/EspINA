@@ -45,7 +45,6 @@ void TaskGroupProgress::showTaskProgress(TaskSPtr task)
 //----------------------------------------------------------------------------
 void TaskGroupProgress::updateProgress()
 {
-  int partial = 0;
   int total   = 0;
 
   {
@@ -53,6 +52,8 @@ void TaskGroupProgress::updateProgress()
 
     if (!m_tasks.isEmpty())
     {
+      int partial = 0;
+
       for(auto task : m_tasks) partial += task->progress();
 
       total = (m_finished*100 + partial) / (m_tasks.size() + m_finished);

@@ -86,7 +86,7 @@ bool GeneralSettingsPanel::modified() const
   return m_userName->text()                != m_settings->userName()
       || m_loadSEGSettings->isChecked()    != m_settings->loadSEGfileSettings()
       || m_autosavePath->text()            != m_autoSave.path().absolutePath()
-      || m_autosaveInterval->value()       != m_autoSave.interval()
+      || m_autosaveInterval->value()       != static_cast<int>(m_autoSave.interval())
       || m_temporalPath->text()            != m_settings->temporalPath()
       || m_doCheck->isChecked()            != m_settings->performAnalysisCheckOnLoad()
       || m_autoSaveBackground->isChecked() != m_autoSave.autoSaveInThread();

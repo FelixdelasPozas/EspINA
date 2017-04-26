@@ -671,10 +671,9 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
 
     auto module_base = SymGetModuleBase(process, frame.AddrPC.Offset);
 
-    const char * module_name = "[unknown module]";
-    if (module_base && GetModuleFileNameA(reinterpret_cast<HMODULE>(module_base), module_name_raw,MAX_PATH))
+    if (module_base && GetModuleFileNameA(reinterpret_cast<HMODULE>(module_base), module_name_raw, MAX_PATH))
     {
-      module_name = module_name_raw;
+      const char * module_name = module_name_raw;
       bc = get_bc(set, module_name, &err);
     }
 

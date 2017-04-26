@@ -1,3 +1,6 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 enable_testing()
 
 set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
@@ -23,7 +26,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
   )
-
+  
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -91,6 +94,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/SupportedFormats.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+message("External libs")
 target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
