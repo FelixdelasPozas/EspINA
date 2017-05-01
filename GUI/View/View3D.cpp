@@ -37,7 +37,6 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QScrollBar>
-#include <QDebug>
 
 // VTK
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -88,9 +87,6 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QW
 //-----------------------------------------------------------------------------
 View3D::~View3D()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Volume View";
-//   qDebug() << "********************************************************";
   mainRenderer()->RemoveAllViewProps();
 }
 

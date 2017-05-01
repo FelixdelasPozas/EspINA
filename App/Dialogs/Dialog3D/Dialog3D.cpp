@@ -40,8 +40,12 @@ Dialog3D::Dialog3D(Support::Context &context)
 , WithContext      (context)
 , m_view3D         {context.viewState(), true}
 , m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))
-, m_toolsSettings  {std::make_shared<QSettings>()}
 {
+  // Maintaining a different group of settings requires a file on disk. A temporary one will do.
+  // Could do with the session settings file (from temp storage), but prefer to maintain the state in different one.
+  m_iniFile.open();
+  m_toolsSettings = std::make_shared<QSettings>(m_iniFile.fileName(), QSettings::IniFormat);
+
   setupUi(this);
 
   setAttribute(Qt::WA_DeleteOnClose, false);
@@ -148,11 +152,12 @@ std::shared_ptr<ProgressTool> Dialog3D::tool()
 //------------------------------------------------------------------------
 void Dialog3D::onToggled(bool checked)
 {
-  if(checked)
+  if(checked && !this->isVisible())
   {
     this->show();
   }
-  else
+
+  if(!checked && this->isVisible())
   {
     this->hide();
   }
