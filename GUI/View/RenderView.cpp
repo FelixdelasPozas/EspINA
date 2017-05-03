@@ -547,8 +547,7 @@ void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Repres
 
   if (hasVisibleRepresentations())
   {
-    if (requiresReset(frame)
-        || (m_lastFrameActiveManagers == 0 && numManagers != 0))
+    if (requiresReset(frame) || (m_lastFrameActiveManagers == 0 && numManagers != 0))
     {
       resetCameraImplementation();
     }
