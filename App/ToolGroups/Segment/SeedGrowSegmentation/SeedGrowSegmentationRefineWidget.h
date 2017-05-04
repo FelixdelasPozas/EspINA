@@ -47,13 +47,11 @@ namespace ESPINA
     public:
       /** \brief SeedGrowSegmentationRefineWidget class constructor.
        * \param[in] segmentation input segmentation.
-       * \param[in] roiTools ROI tool group.
        * \param[in] context application context.
        * \param[in] parent QWidget parent of this one.
        *
        */
       explicit SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr segmentation,
-                                                RestrictToolGroupSPtr  roiTools,
                                                 Support::Context      &context,
                                                 QWidget               *parent = nullptr);
 
@@ -122,11 +120,6 @@ namespace ESPINA
        */
       QString dialogTitle() const;
 
-      /** \brief Returns true if the changes have been discarded.
-       *
-       */
-      bool discardChangesConfirmed() const;
-
     private:
       SegmentationAdapterPtr                m_segmentation; /** input segmentation.                     */
       Ui::SeedGrowSegmentationRefineWidget *m_gui;          /** widget's GUI class, chessire cat style. */
@@ -137,6 +130,10 @@ namespace ESPINA
       static bool s_exists;
   };
 
+  /** \class DiscardROIModificationsCommand
+   * \brief QUndoCommand to undo the modifications in the ROI of a filter.
+   *
+   */
   class DiscardROIModificationsCommand
   : public QUndoCommand
   {
@@ -169,6 +166,10 @@ namespace ESPINA
       ROISPtr               m_ROI;      /** ROI             */
   };
 
+  /** \class SGSFilterModification
+   * \brief QUndoCommand to undo the modifications of a SGS filter.
+   *
+   */
   class SGSFilterModification
   : public QUndoCommand
   {

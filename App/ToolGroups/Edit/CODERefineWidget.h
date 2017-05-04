@@ -37,6 +37,10 @@ namespace ESPINA
     class CODERefineWidget;
   }
 
+  /** \class CODERefineWidget
+   * \brief Refiner widget for CODE filters.
+   *
+   */
   class CODERefineWidget
   : public QWidget
   , private Support::WithContext
@@ -72,13 +76,16 @@ namespace ESPINA
       void refineFilter();
 
     private:
-      Ui::CODERefineWidget *m_gui;
-
-      QString m_title;
-      SegmentationAdapterPtr m_segmentation;
-      MorphologicalEditionFilterSPtr m_filter;
+      Ui::CODERefineWidget          *m_gui;          /** widget's gui.                             */
+      QString                        m_title;        /** widget's title, depends on the operation. */
+      SegmentationAdapterPtr         m_segmentation; /** filter's segmentation.                    */
+      MorphologicalEditionFilterSPtr m_filter;       /** morphological filter.                     */
   };
 
+  /** \class CODEModification
+   * \brief QUndoCommand to undo/redo modifications of CODE filters.
+   *
+   */
   class CODEModification
   : public QUndoCommand
   {
@@ -93,7 +100,11 @@ namespace ESPINA
                        unsigned int           radius,
                        QUndoCommand          *parent = nullptr);
 
-      virtual ~CODEModification() {};
+      /** \brief CODEModification class virtual destructor.
+       *
+       */
+      virtual ~CODEModification()
+      {};
 
       virtual void redo() override;
       virtual void undo() override;
@@ -109,14 +120,13 @@ namespace ESPINA
        */
       void invalidateRepresentations();
 
-      SegmentationAdapterPtr         m_segmentation;
-      MorphologicalEditionFilterSPtr m_filter;
-      unsigned int                   m_radius;
-
-      unsigned int           m_oldRadius;
-      Bounds                 m_oldBounds;
-      itkVolumeType::Pointer m_oldVolume;
-      BoundsList             m_editedRegions;
+      SegmentationAdapterPtr         m_segmentation;  /** affected segmentation.                  */
+      MorphologicalEditionFilterSPtr m_filter;        /** segmentation's filter.                  */
+      unsigned int                   m_radius;        /** radius of the operation.                */
+      unsigned int                   m_oldRadius;     /** filter's old radius value.              */
+      Bounds                         m_oldBounds;     /** old segmentation's bounds value.        */
+      itkVolumeType::Pointer         m_oldVolume;     /** old segmentation's volume.              */
+      BoundsList                     m_editedRegions; /** old segmentation's edited regions list. */
   };
 
 } // namespace ESPINA

@@ -184,9 +184,10 @@ namespace ESPINA
     /** \brief Helper method to create a render view action buttons
      * \param[in] icon of the button.
      * \param[in] tooltip of the button.
+     * \param[in] parent QWidget parent of the button.
      *
      */
-    static QPushButton *createButton(const QString& icon, const QString& tooltip);
+    static QPushButton *createButton(const QString& icon, const QString& tooltip, QWidget *parent = nullptr);
 
     /** \brief Returns the name of the view, for debugging purposes.
      *

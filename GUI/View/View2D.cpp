@@ -408,11 +408,11 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
+  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"), this);
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(resetCamera()));
 
-  m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
+  m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"), this);
   connect(m_snapshot, SIGNAL(clicked(bool)),
           this,       SLOT(onTakeSnapshot()));
 
@@ -1052,7 +1052,7 @@ void View2D::addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType ty
   auto sliceSelector = selector->clone(this, m_plane);
 
   auto fromWidget = sliceSelector->lowerWidget();
-  auto toWidget   = sliceSelector->rightWidget();
+  auto toWidget   = sliceSelector->upperWidget();
 
   fromWidget->setVisible(type.testFlag(SliceSelectionTypes::From));
   toWidget  ->setVisible(type.testFlag(SliceSelectionTypes::To));

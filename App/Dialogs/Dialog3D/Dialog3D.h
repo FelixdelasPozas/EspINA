@@ -164,7 +164,7 @@ namespace ESPINA
       friend class Dialog3DTool;
 
       View3D                     m_view3D;          /** 3D view.                 */
-      QToolBar                   m_toolbar;         /** dialog's toolbar.        */
+      QToolBar                  *m_toolbar;         /** dialog's toolbar.        */
       ToolGroup                  m_representations; /** visualization toolgroup. */
       QTemporaryFile             m_iniFile;         /** ini file storage.        */
       std::shared_ptr<QSettings> m_toolsSettings;   /** tools settings.          */

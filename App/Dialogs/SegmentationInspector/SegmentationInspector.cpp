@@ -59,6 +59,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segm
 , m_selectedSegmentation{nullptr}
 , m_channelSources      (getViewState())
 , m_segmentationSources (getViewState())
+, m_toolbar             {new QToolBar(this)}
 , m_view                {context.viewState(), true, this}
 , m_tabularReport       (context)
 {
@@ -364,7 +365,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 //------------------------------------------------------------------------
 void SegmentationInspector::configureLayout()
 {
-  layout()->setMenuBar(&m_toolbar);
+  layout()->setMenuBar(m_toolbar);
 
   m_viewport   ->setLayout(createViewLayout());
   m_information->setLayout(createReportLayout());
@@ -397,19 +398,15 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
   m_view.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view.setMinimumWidth(250);
 
+  RepresentationSwitchSList switches;
+
   for (auto factory : representations)
   {
     auto representation = factory->createRepresentation(getContext(), ViewType::VIEW_3D);
 
     m_representations << representation;
 
-    for (auto repSwitch : representation.Switches)
-    {
-      for (auto action : repSwitch->actions())
-      {
-        m_toolbar.addAction(action);
-      }
-    }
+    switches << representation.Switches;
 
     for (auto manager : representation.Managers)
     {
@@ -431,6 +428,18 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
       }
     }
   }
+
+  auto comparisonOp = [] (const RepresentationSwitchSPtr &left, const RepresentationSwitchSPtr &right) { if(left == nullptr || right == nullptr) return false; return left->groupWith() < right->groupWith(); };
+  std::sort(switches.begin(), switches.end(), comparisonOp);
+
+  for(auto repSwitch: switches)
+  {
+    for (auto action : repSwitch->actions())
+    {
+      m_toolbar->addAction(action);
+    }
+  }
+
 }
 
 //------------------------------------------------------------------------

@@ -108,6 +108,12 @@ namespace ESPINA
          */
         void removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory);
 
+        /** \brief Returns true if the views are currently using the given representation factory.
+         * \param[in] factory representation factory object.
+         *
+         */
+        bool hasTemporalRepresentation(const Representations::Managers::TemporalPrototypesSPtr factory) const;
+
         /** \brief Adds slice selector to all views sharing the view state
          *
          */

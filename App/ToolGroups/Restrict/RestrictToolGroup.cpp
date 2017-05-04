@@ -243,7 +243,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    if(m_visible)
+    if(m_context.viewState().hasTemporalRepresentation(m_roiPrototypes))
     {
       m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
     }

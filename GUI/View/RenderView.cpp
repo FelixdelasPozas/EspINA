@@ -572,12 +572,12 @@ const Bounds RenderView::sceneBounds() const
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
+QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip, QWidget *parent)
 {
   const int BUTTON_SIZE = 22;
   const int ICON_SIZE = 20;
 
-  auto button = new QPushButton();
+  auto button = new QPushButton(parent);
 
   button->setIcon(QIcon(icon));
   button->setToolTip(tooltip);

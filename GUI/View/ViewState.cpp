@@ -218,25 +218,37 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 //----------------------------------------------------------------------------
 void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame(m_crosshair);
+  if(!hasTemporalRepresentation(factory))
+  {
+    auto frame = createFrame(m_crosshair);
 
-  if(!m_activeWidgets.contains(factory)) m_activeWidgets << factory;
+    m_activeWidgets << factory;
 
-  emit widgetsAdded(factory, frame);
+    emit widgetsAdded(factory, frame);
 
-  emitFrameChanged(frame);
+    emitFrameChanged(frame);
+  }
 }
 
 //----------------------------------------------------------------------------
 void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame(m_crosshair);
+  if(hasTemporalRepresentation(factory))
+  {
+    auto frame = createFrame(m_crosshair);
 
-  emit widgetsRemoved(factory, frame);
+    emit widgetsRemoved(factory, frame);
 
-  if(m_activeWidgets.contains(factory)) m_activeWidgets.removeAll(factory);
+    m_activeWidgets.removeAll(factory);
 
-  emitFrameChanged(frame);
+    emitFrameChanged(frame);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool ViewState::hasTemporalRepresentation(const Representations::Managers::TemporalPrototypesSPtr factory) const
+{
+  return m_activeWidgets.contains(factory);
 }
 
 //----------------------------------------------------------------------------

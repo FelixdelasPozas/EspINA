@@ -25,6 +25,7 @@
 // ESPINA
 #include "SeedThreshold.h"
 #include "CustomROIWidget.h"
+#include "SeedGrowSegmentationRefineWidget.h"
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
@@ -38,6 +39,21 @@ class QUndoStack;
 namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
+
+  /** \class SeedGrowSegmentationRefiner
+   * \brief Filter refiner widget factory for SGS filters.
+   *
+   */
+  class SeedGrowSegmentationRefiner
+  : public FilterRefiner
+  {
+    Q_OBJECT
+    public:
+      virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context, QWidget *parent = nullptr)
+      {
+        return new SeedGrowSegmentationRefineWidget(segmentation, context, parent);
+      }
+  };
 
   /** \class SeedGrowSegmentationFactory
    * \brief Factory for seed grow segmentation filters.

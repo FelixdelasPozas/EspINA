@@ -51,9 +51,10 @@ Dialog3D::Dialog3D(Support::Context &context)
   setAttribute(Qt::WA_DeleteOnClose, false);
   setWindowTitle("View 3D");
 
-  m_toolbar.setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
-  m_toolbar.setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
-  layout()->setMenuBar(&m_toolbar);
+  m_toolbar = new QToolBar(this);
+  m_toolbar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_toolbar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
+  layout()->setMenuBar(m_toolbar);
 
   initView3D();
 
@@ -85,7 +86,7 @@ QAction *Dialog3D::toggleViewAction()
 //------------------------------------------------------------------------
 void Dialog3D::showEvent(QShowEvent* event)
 {
-  populateToolBar(&m_toolbar, m_representations.groupedTools());
+  populateToolBar(m_toolbar, m_representations.groupedTools());
 
   restoreToolsSettings();
 

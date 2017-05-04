@@ -96,15 +96,15 @@ void View3D::buildViewActionsButtons()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"));
+  m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"), this);
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(resetCamera()));
 
-  m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
+  m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"), this);
   connect(m_snapshot,  SIGNAL(clicked()),
           this,        SLOT(onTakeSnapshot()));
 
-  m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
+  m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"), this);
   connect(m_export,    SIGNAL(clicked()),
           this,        SLOT(exportScene()));
 

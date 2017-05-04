@@ -22,9 +22,7 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
-#include "SeedGrowSegmentationRefineWidget.h"
 #include "CustomROIWidget.h"
-#include "SeedGrowSegmentationRefiner.h"
 #include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
