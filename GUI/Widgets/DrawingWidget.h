@@ -120,6 +120,10 @@ namespace ESPINA
         bool eraserControlsVisibility()
         { return m_showEraserControls; }
 
+        /** \brief Sets the category of the category widget.
+         * \param[in] category category adapter object.
+         *
+         */
         void setCategory(CategoryAdapterSPtr category);
 
         /** \brief Disables eraser tool
@@ -127,12 +131,25 @@ namespace ESPINA
          */
         void setCanErase(bool value);
 
+        /** \brief Aborts current operation and disables the tool.
+         *
+         */
         void abortOperation();
 
+        /** \brief Stops the current drawing operation.
+         *
+         */
         void stopDrawing();
 
+        /** \brief Enables/disables the tool.
+         * \param[in] value true to enable and false otherwise.
+         *
+         */
         void setEnabled(bool value);
 
+        /** \brief Returns if the tool is enabled.
+         *
+         */
         bool enabled()
         { return m_enabled; }
 

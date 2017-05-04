@@ -531,8 +531,6 @@ void View2D::resetCameraImplementation()
   m_thumbnail->ResetCamera();
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
-
-  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
@@ -718,11 +716,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           // the drag movement though.
           m_inThumbnailClick = false;
 
-          if (me->button() == Qt::RightButton)
-          {
-            updateScaleValue();
-          }
-          else if (me->button() == Qt::LeftButton)
+          if (me->button() == Qt::LeftButton)
           {
             if ((e->type() == QEvent::MouseButtonPress))
             {
@@ -1240,4 +1234,12 @@ void View2D::incrementSlice()
 void View2D::decrementSlice()
 {
   m_scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
+}
+
+//-----------------------------------------------------------------------------
+double View2D::scale()
+{
+  updateScaleValue();
+
+  return m_scaleValue;
 }

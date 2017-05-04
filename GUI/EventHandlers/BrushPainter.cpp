@@ -65,7 +65,12 @@ void BrushPainter::setColor(const QColor &color)
 {
   MaskPainter::setColor(color);
 
-  m_brush->setColor(color);
+  if(color != m_brush->color())
+  {
+    m_brush->setColor(color);
+  }
+
+  setCursor(m_brush->cursor());
 }
 
 //-----------------------------------------------------------------------------
@@ -181,4 +186,41 @@ BinaryMaskSPtr<unsigned char> BrushPainter::strokeMask(const Brush::Stroke &stro
   mask->setForegroundValue(value);
 
   return mask;
+}
+
+//------------------------------------------------------------------------
+void BrushPainter::setBorderColor(const QColor borderColor)
+{
+  if(borderColor != m_brush->borderColor())
+  {
+    m_brush->setBorderColor(borderColor);
+    setCursor(m_brush->cursor());
+  }
+}
+
+//------------------------------------------------------------------------
+void BrushPainter::setImage(const QImage &image)
+{
+  m_brush->setImage(image);
+
+  setCursor(m_brush->cursor());
+}
+
+//------------------------------------------------------------------------
+void BrushPainter::clearImage()
+{
+  m_brush->clearImage();
+
+  setCursor(m_brush->cursor());
+}
+
+//------------------------------------------------------------------------
+void BrushPainter::setRadius(const int value)
+{
+  if(m_brush->radius() != value)
+  {
+    m_brush->setRadius(value);
+
+    setCursor(m_brush->cursor());
+  }
 }

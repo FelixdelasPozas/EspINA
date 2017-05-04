@@ -108,8 +108,7 @@ namespace ESPINA
     /** \brief Returns scale of the view given by world position / display pixels
      *
      */
-    double scale() const
-    { return m_scaleValue; }
+    double scale();
 
     /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *
