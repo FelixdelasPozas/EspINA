@@ -390,14 +390,14 @@ void RenderView::resetCamera()
 {
   resetCameraImplementation();
 
-  refreshViewImplementation();
-
-  m_view->update();
+  refresh();
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
+  refreshViewImplementation();
+
   m_view->update();
 }
 
