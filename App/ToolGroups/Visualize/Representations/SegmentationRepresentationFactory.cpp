@@ -23,6 +23,7 @@
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
 //#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h>
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationParallelUpdater.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
@@ -76,6 +77,7 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
   if (supportedViews.testFlag(ESPINA::VIEW_3D))
   {
     createMeshRepresentation(representation, context);
+    createVolumetricRepresentation(representation, context);
   }
 
   return representation;
@@ -126,7 +128,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 
     slice3DManager->setName("DisplaySegmentationProjections");
     slice3DManager->setIcon(QIcon(":espina/display_segmentation_projections.svg"));
-    slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Projections"));
+    slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Projection"));
 
     auto slice3DSwitch = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, context);
     groupSwitch("1-1", slice3DSwitch);
@@ -157,7 +159,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 
   contourManager->setName("DisplaySegmentationContour");
   contourManager->setIcon(QIcon(":espina/display_segmentation_contours.svg"));
-  contourManager->setDescription(QObject::tr("Display Segmentation Contours"));
+  contourManager->setDescription(QObject::tr("Display Segmentation Contour"));
 
   auto contourSwitch = std::make_shared<SegmentationContourSwitch>(contourManager, contourSettings, ViewType::VIEW_2D, context);
   groupSwitch("1-1", contourSwitch);
@@ -242,7 +244,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 
   meshManager->setName("DisplaySegmentationMesh");
   meshManager->setIcon(QIcon(":espina/display_segmentations.svg"));
-  meshManager->setDescription(QObject::tr("Display Segmentations"));
+  meshManager->setDescription(QObject::tr("Display Segmentation Mesh"));
 
   poolSmoothedMesh->setSettings(meshesSettings);
 
@@ -254,6 +256,36 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;
   representation.Switches << meshSwitch;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createVolumetricRepresentation(Representation& representation, Support::Context& context) const
+{
+  auto scheduler   = context.scheduler();
+  auto colorEngine = context.colorEngine();
+
+  auto settings = std::make_shared<PoolSettings>();
+
+  auto gpuPipeline = std::make_shared<SegmentationVolumetricGPUPipeline>(colorEngine);
+  auto gpuPool     = std::make_shared<BasicRepresentationPool<RepresentationParallelUpdater>>(ItemAdapter::Type::SEGMENTATION, scheduler, gpuPipeline);
+  auto gpuManager  = std::make_shared<PassiveActorManager>(gpuPool, ViewType::VIEW_3D);
+
+  gpuPool->setSettings(settings);
+  gpuManager->setName("DisplaySegmentationGPUVolume");
+
+  auto cpuPipeline = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
+  auto cpuPool     = std::make_shared<BasicRepresentationPool<RepresentationParallelUpdater>>(ItemAdapter::Type::SEGMENTATION, scheduler, cpuPipeline);
+  auto cpuManager  = std::make_shared<PassiveActorManager>(cpuPool, ViewType::VIEW_3D);
+
+  cpuPool->setSettings(settings);
+  cpuManager->setName("DisplaySegmentationCPUVolume");
+
+  auto volumetricSwitch = std::make_shared<SegmentationVolumetricSwitch>(gpuManager, cpuManager, context);
+  groupSwitch("1-2", volumetricSwitch);
+
+  representation.Pools    << gpuPool << cpuPool;
+  representation.Managers << gpuManager << cpuManager;
+  representation.Switches << volumetricSwitch;
 }
 
 //----------------------------------------------------------------------------

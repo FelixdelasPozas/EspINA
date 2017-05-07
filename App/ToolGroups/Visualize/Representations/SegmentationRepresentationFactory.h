@@ -79,6 +79,13 @@ namespace ESPINA
        */
       void createMeshRepresentation(Representation &representation, Support::Context &context) const;
 
+      /** \brief Creates the volumetric representation and adds it to the representation object.
+       * \param[out] representation Representation object.
+       * \param[in] context application context.
+       *
+       */
+      void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;
+
       /** \brief Sets the order of the representation for the given tool.
        * \param[in] order order string id.
        * \param[inout] representation object tool.

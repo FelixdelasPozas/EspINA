@@ -38,8 +38,8 @@ const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 Dialog3D::Dialog3D(Support::Context &context)
 : QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext      (context)
-, m_view3D         {context.viewState(), true}
 , m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))
+, m_view3D         {context.viewState(), true}
 {
   // Maintaining a different group of settings requires a file on disk. A temporary one will do.
   // Could do with the session settings file (from temp storage), but prefer to maintain the state in different one.

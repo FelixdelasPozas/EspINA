@@ -92,11 +92,12 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
 
     auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
     colorFunction->AllowDuplicateScalarsOff();
+    colorFunction->AddHSVPoint(SEG_BG_VALUE, 0, 0, 0);
     colorFunction->AddHSVPoint(SEG_VOXEL_VALUE, color.hsvHueF(), color.hsvSaturationF(), color.valueF());
     colorFunction->Modified();
 
     auto piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
-    piecewise->AddPoint(0, 0.0);
+    piecewise->AddPoint(SEG_BG_VALUE, 0.0);
     piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
     piecewise->Modified();
 
@@ -111,6 +112,8 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
 
     auto actor = vtkSmartPointer<vtkVolume>::New();
     actor->SetMapper(mapper);
+    actor->UseBoundsOn();
+    actor->PickableOn();
     actor->SetProperty(property);
     actor->Update();
 

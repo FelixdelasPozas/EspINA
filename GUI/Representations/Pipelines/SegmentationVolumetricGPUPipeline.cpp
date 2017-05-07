@@ -33,6 +33,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
+#include <vtkSmartVolumeMapper.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
@@ -77,11 +78,13 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
       volume    = vtkImage(data, data->bounds());
     }
 
-    auto mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    auto mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
     mapper->ReleaseDataFlagOn();
     mapper->GlobalWarningDisplayOff();
-    mapper->AutoAdjustSampleDistancesOn();
+    mapper->DebugOff();
     mapper->SetScalarModeToUsePointData();
+    mapper->SetInterpolationModeToCubic();
+    mapper->SetCropping(false);
     mapper->SetBlendModeToComposite();
     mapper->SetMaxMemoryFraction(1);
     mapper->SetInputData(volume);
@@ -91,12 +94,15 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
 
     auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
     colorFunction->AllowDuplicateScalarsOff();
+    colorFunction->AddHSVPoint(SEG_BG_VALUE, 0,0,0);
     colorFunction->AddHSVPoint(SEG_VOXEL_VALUE, color.hsvHueF(), color.hsvSaturationF(), color.valueF());
+    colorFunction->SetAlpha(0);
     colorFunction->Modified();
 
     auto piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
-    piecewise->AddPoint(0, 0.0);
+    piecewise->AddPoint(SEG_BG_VALUE, 0.0);
     piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
+    piecewise->ClampingOff();
     piecewise->Modified();
 
     auto property = vtkSmartPointer<vtkVolumeProperty>::New();
@@ -109,9 +115,9 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
     property->Modified();
 
     auto actor = vtkSmartPointer<vtkVolume>::New();
+    actor->SetMapper(mapper);
     actor->UseBoundsOn();
     actor->PickableOn();
-    actor->SetMapper(mapper);
     actor->SetProperty(property);
     actor->Update();
 
@@ -139,6 +145,10 @@ void SegmentationVolumetricGPUPipeline::updateColors(ActorList                 &
     auto transferFunction = property->GetRGBTransferFunction();
 
     transferFunction->AddHSVPoint(SEG_VOXEL_VALUE, color.hsvHueF(), color.hsvSaturationF(), color.valueF());
+
+    transferFunction->Modified();
+    property->Modified();
+    actor->Update();
   }
 }
 

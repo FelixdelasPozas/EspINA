@@ -48,7 +48,6 @@ namespace ESPINA
        * \param[in] smoothedMeshManager manager of smoothed mesh representations.
        * \param[in] settings representation settings.
        * \param[in] supportedViews flags of the supported views of the manager.
-       * \param[in] timer view states' timer.
        * \param[in] context session context.
        *
        */
