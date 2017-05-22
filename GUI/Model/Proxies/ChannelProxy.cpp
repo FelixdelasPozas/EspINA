@@ -46,11 +46,6 @@ ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
 }
 
 //------------------------------------------------------------------------
-ChannelProxy::~ChannelProxy()
-{
-}
-
-//------------------------------------------------------------------------
 void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
   if (m_model)

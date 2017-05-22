@@ -29,6 +29,7 @@
 
 //Qt
 #include <QSortFilterProxyModel>
+#include <QShortcut>
 
 class QObject;
 
@@ -116,11 +117,23 @@ namespace ESPINA
 
     virtual void contextMenuEvent(QContextMenuEvent *);
 
+    /** \brief Alternates between the stacks
+     *
+     */
+    void switchStacksVisibility();
+
   private:
+    /** \brief Helper method to connect ths UI signals.
+     *
+     */
+    void connectSignals();
+
     std::shared_ptr<ChannelProxy>          m_stackProxy;
     std::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
+
+    QShortcut m_stacksShortCut; /** shortcut to switch the visibility of the stacks. */
   };
 
 } // namespace ESPINA

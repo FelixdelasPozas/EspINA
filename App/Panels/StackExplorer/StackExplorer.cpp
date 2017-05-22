@@ -25,6 +25,7 @@
 #include <Menus/DefaultContextualMenu.h>
 #include <Core/Analysis/Channel.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/RemoveChannel.h>
 #include <Undo/DragChannelsCommand.h>
@@ -33,6 +34,7 @@
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QContextMenuEvent>
+#include <QKeySequence>
 #include <ui_StackExplorer.h>
 
 using namespace ESPINA;
@@ -53,10 +55,11 @@ public:
 
 //------------------------------------------------------------------------
 StackExplorer::StackExplorer(Support::Context &context, QWidget *parent)
-: Panel       {tr("StackExplorer"), context, parent}
-, m_stackProxy{std::make_shared<ChannelProxy>(context.model())}
-, m_sort      {std::make_shared<QSortFilterProxyModel>()}
-, m_gui       {new CentralWidget()}
+: Panel           {tr("StackExplorer"), context, parent}
+, m_stackProxy    {std::make_shared<ChannelProxy>(context.model())}
+, m_sort          {std::make_shared<QSortFilterProxyModel>()}
+, m_gui           {new CentralWidget()}
+, m_stacksShortCut{QKeySequence(Qt::CTRL + Qt::Key_Space), this, SLOT(switchStacksVisibility()), SLOT(switchStacksVisibility()), Qt::ApplicationShortcut}
 {
   setObjectName("StackExplorer");
 
@@ -65,53 +68,7 @@ StackExplorer::StackExplorer(Support::Context &context, QWidget *parent)
   m_sort->setSourceModel(m_stackProxy.get());
   m_gui->view->setModel(m_sort.get());
 
-  connect(m_stackProxy.get(),        SIGNAL(channelsDragged(ChannelAdapterList, SampleAdapterPtr)),
-          this,                      SLOT  (stacksDragged(ChannelAdapterList,SampleAdapterPtr)));
-
-  connect(m_gui->showInformation,    SIGNAL(clicked(bool)),
-          this,                      SLOT(showInformation()));
-
-  connect(m_gui->changeActiveStack,  SIGNAL(clicked(bool)),
-          this,                      SLOT(activateStack()));
-
-  connect(m_gui->alignLeft,          SIGNAL(clicked(bool)),
-          this,                      SLOT(alignLeft()));
-
-  connect(m_gui->alignCenter,        SIGNAL(clicked(bool)),
-          this,                      SLOT(alignCenter()));
-
-  connect(m_gui->alignRight,         SIGNAL(clicked(bool)),
-          this,                      SLOT(alignRight()));
-
-  connect(m_gui->moveLeft,           SIGNAL(clicked(bool)),
-          this,                      SLOT(moveLelft()));
-
-  connect(m_gui->moveRight,          SIGNAL(clicked(bool)),
-          this,                      SLOT(moveRight()));
-
-  connect(m_gui->view,               SIGNAL(clicked(QModelIndex)),
-          this,                      SLOT(channelSelected()));
-
-  connect(m_gui->view,               SIGNAL(itemStateChanged(QModelIndex)),
-          this,                      SLOT(updateStackRepresentations(QModelIndex)));
-
-  connect(m_gui->xPos,               SIGNAL(valueChanged(int)),
-          this,                      SLOT(updateChannelPosition()));
-
-  connect(m_gui->yPos,               SIGNAL(valueChanged(int)),
-          this,                      SLOT(updateChannelPosition()));
-
-  connect(m_gui->zPos,               SIGNAL(valueChanged(int)),
-          this,                      SLOT(updateChannelPosition()));
-
-  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
-          this,                      SLOT(updateTooltips(int)));
-
-  connect(m_gui->unloadChannel,      SIGNAL(clicked(bool)),
-          this,                      SLOT(unloadStack()));
-
-  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this,                          SLOT(onSelectionChanged()));
+  connectSignals();
 
   updateTooltips(0);
 
@@ -583,4 +540,103 @@ void StackExplorer::onSelectionChanged()
   m_gui->showInformation->setEnabled(enabled);
   m_gui->changeActiveStack->setEnabled(enabled);
   m_gui->unloadChannel->setEnabled(enabled && canUnload);
+}
+
+//------------------------------------------------------------------------
+void StackExplorer::connectSignals()
+{
+  connect(m_stackProxy.get(),        SIGNAL(channelsDragged(ChannelAdapterList, SampleAdapterPtr)),
+          this,                      SLOT  (stacksDragged(ChannelAdapterList,SampleAdapterPtr)));
+
+  connect(m_gui->showInformation,    SIGNAL(clicked(bool)),
+          this,                      SLOT(showInformation()));
+
+  connect(m_gui->changeActiveStack,  SIGNAL(clicked(bool)),
+          this,                      SLOT(activateStack()));
+
+  connect(m_gui->alignLeft,          SIGNAL(clicked(bool)),
+          this,                      SLOT(alignLeft()));
+
+  connect(m_gui->alignCenter,        SIGNAL(clicked(bool)),
+          this,                      SLOT(alignCenter()));
+
+  connect(m_gui->alignRight,         SIGNAL(clicked(bool)),
+          this,                      SLOT(alignRight()));
+
+  connect(m_gui->moveLeft,           SIGNAL(clicked(bool)),
+          this,                      SLOT(moveLelft()));
+
+  connect(m_gui->moveRight,          SIGNAL(clicked(bool)),
+          this,                      SLOT(moveRight()));
+
+  connect(m_gui->view,               SIGNAL(clicked(QModelIndex)),
+          this,                      SLOT(channelSelected()));
+
+  connect(m_gui->view,               SIGNAL(itemStateChanged(QModelIndex)),
+          this,                      SLOT(updateStackRepresentations(QModelIndex)));
+
+  connect(m_gui->xPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
+  connect(m_gui->yPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
+  connect(m_gui->zPos,               SIGNAL(valueChanged(int)),
+          this,                      SLOT(updateChannelPosition()));
+
+  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
+          this,                      SLOT(updateTooltips(int)));
+
+  connect(m_gui->unloadChannel,      SIGNAL(clicked(bool)),
+          this,                      SLOT(unloadStack()));
+
+  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this,                          SLOT(onSelectionChanged()));
+}
+
+//------------------------------------------------------------------------
+void StackExplorer::switchStacksVisibility()
+{
+  auto model = getModel();
+  auto stacks = model->channels();
+
+  if(stacks.size() < 2) return;
+
+  auto stacksNum = stacks.size();
+  int visible = -1;
+
+  // detect the first visible stack and then disable all and enable the next mod size
+  // it has the befit of working independently of samples organization of stacks.
+  for(int i = 0; i < stacksNum; ++i)
+  {
+    if(stacks.at(i)->isVisible())
+    {
+      visible = i;
+      break;
+    }
+  }
+
+  auto next = (visible + 1) % stacksNum;
+  ViewItemAdapterList toUpdate;
+
+  // should work even if no stack visible (visible == -1)
+  for(int i = 0; i < stacksNum; ++i)
+  {
+    auto stack = stacks.at(i);
+    if(stack->isVisible() != (i == next))
+    {
+      stack->setVisible(i == next);
+      toUpdate << stack.get();
+    }
+  }
+
+  if(!toUpdate.isEmpty())
+  {
+    for(auto stack: toUpdate)
+    {
+      m_stackProxy->emitModified(stack);
+    }
+
+    getViewState().invalidateRepresentations(toUpdate);
+  }
 }
