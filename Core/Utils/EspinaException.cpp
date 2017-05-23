@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "EspinaException.h"
+#include "EspinaConfig.h"
 
 // QT
 #include <QObject>
@@ -154,6 +155,8 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: Linux\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
@@ -224,6 +227,8 @@ void win_sig_action(int signal)
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: Windows\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     out.flush();
@@ -476,6 +481,8 @@ void exceptionHandler()
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: Windows\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "EXCEPTION MESSAGE: " << message << "\n";
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
