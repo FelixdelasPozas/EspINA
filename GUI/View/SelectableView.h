@@ -27,8 +27,6 @@
 #include <GUI/View/ViewState.h>
 #include "Selection.h"
 
-using namespace ESPINA::GUI::View;
-
 namespace ESPINA
 {
   /** \class SelectableView
@@ -41,7 +39,7 @@ namespace ESPINA
     /** \brief SelectableView class constructor.
      *
      */
-    SelectableView(ViewState &viewState)
+    SelectableView(GUI::View::ViewState &viewState)
     : m_selection{viewState.selection()}
     {}
 
@@ -54,11 +52,11 @@ namespace ESPINA
     /** \brief Returns the view's current selection.
      *
      */
-    SelectionSPtr currentSelection() const
+    GUI::View::SelectionSPtr currentSelection() const
     { return m_selection; }
 
   private:
-    SelectionSPtr m_selection;
+    GUI::View::SelectionSPtr m_selection;
   };
 
   using SelectableViewPtr  = SelectableView*;

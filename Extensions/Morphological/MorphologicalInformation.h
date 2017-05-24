@@ -37,8 +37,8 @@ namespace ESPINA
     class EspinaExtensions_EXPORT MorphologicalInformation
     : public Core::SegmentationExtension
     {
-        using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
-        using LabelMapType    = itk::LabelMap<LabelObjectType>;
+        using LabelObjectType       = itk::StatisticsLabelObject<unsigned int, 3>;
+        using LabelMapType          = itk::LabelMap<LabelObjectType>;
         using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 
       public:

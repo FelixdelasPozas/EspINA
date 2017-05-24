@@ -53,7 +53,9 @@ bool EventHandler::filterEvent(QEvent *e, RenderView *view)
   return false;
 }
 
-
-
-
-
+//-----------------------------------------------------------------------------
+void EventHandler::setCursor(const QCursor &cursor)
+{
+  m_cursor = cursor;
+  emit cursorChanged();
+}

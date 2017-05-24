@@ -43,6 +43,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Support;
+using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;

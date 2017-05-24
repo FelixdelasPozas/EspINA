@@ -567,7 +567,7 @@ namespace ESPINA
     const unsigned long sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*componentsNum;
 
     const auto destPointer   = destination->GetBufferPointer();
-    const auto destLargest   = destination->GetLargestPossibleRegion();;
+    const auto destLargest   = destination->GetLargestPossibleRegion();
     const auto destRegion    = equivalentRegion<T>(destination, bounds);
 
     const unsigned long destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*componentsNum;

@@ -34,6 +34,10 @@ namespace ESPINA
     {
       namespace Managers
       {
+        /** \class TemporalRepresentation
+         * \brief Implements the base class for a temporal representation in a EspINA View.
+         *
+         */
         class EspinaGUI_EXPORT TemporalRepresentation
         : public QObject
         {
@@ -41,12 +45,14 @@ namespace ESPINA
             /** \brief Class constructor.
              *
              */
-            explicit TemporalRepresentation() {}
+            explicit TemporalRepresentation()
+            {}
 
             /** \brief Class virtual destructor.
              *
              */
-            virtual ~TemporalRepresentation() {}
+            virtual ~TemporalRepresentation()
+            {}
 
             /** \brief Initializes temporal representation for the given view
              * \param[in] view view to show the temporal representations.
@@ -97,7 +103,7 @@ namespace ESPINA
              * \param[in] frame const frame object.
              *
              */
-            virtual void display(const FrameCSPtr &frame) {};
+            virtual void display(const GUI::Representations::FrameCSPtr &frame) {};
         };
 
         using TemporalRepresentationSPtr = std::shared_ptr<TemporalRepresentation>;
@@ -108,6 +114,10 @@ namespace ESPINA
         class TemporalRepresentation3D;
         using TemporalRepresentation3DSPtr = std::shared_ptr<TemporalRepresentation3D>;
 
+        /** \class TemporalRepresentation2D
+         * \brief Implements a temporal representation for a 2D EspINA view.
+         *
+         */
         class EspinaGUI_EXPORT TemporalRepresentation2D
         : public TemporalRepresentation
         {
@@ -136,7 +146,7 @@ namespace ESPINA
               return clone;
             }
           signals:
-            void cloned(TemporalRepresentation2DSPtr);
+            void cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr);
 
           private:
             /** \brief Implementation of the object cloning.
@@ -146,6 +156,10 @@ namespace ESPINA
 
         };
 
+        /** \class TemporalRepresentation3D
+         * \brief Implements a temporal representation for a 3D EspINA view.
+         *
+         */
         class EspinaGUI_EXPORT TemporalRepresentation3D
         : public TemporalRepresentation
         {
@@ -162,12 +176,16 @@ namespace ESPINA
               return clone;
             }
           signals:
-            void cloned(TemporalRepresentation3DSPtr);
+            void cloned(GUI::Representations::Managers::TemporalRepresentation3DSPtr);
 
           private:
             virtual TemporalRepresentation3DSPtr cloneImplementation() = 0;
         };
 
+        /** \class TemporalPrototypes
+         * \brief Implements the container for temporal representations that can be added to views.
+         *
+         */
         class EspinaGUI_EXPORT TemporalPrototypes
         {
           public:
@@ -206,8 +224,11 @@ namespace ESPINA
         };
 
         using TemporalPrototypesSPtr  = std::shared_ptr<TemporalPrototypes>;
-//        using TemporalPrototypesSList = QList<TemporalPrototypesSPtr>;
 
+        /** \class TemporalManager
+         * \brief Implements a representation manager for temporal representations.
+         *
+         */
         class EspinaGUI_EXPORT TemporalManager
         : public RepresentationManager
         , public RepresentationManager2D
@@ -256,10 +277,10 @@ namespace ESPINA
             virtual RepresentationManagerSPtr cloneImplementation() override;
 
           private:
-            TemporalPrototypesSPtr m_prototypes;          /** manager's temporal representations. */
-            Plane m_plane;                                /** plane of the representations. */
-            Nm    m_depth;                                /** distance from the current crosshair to show the representations. */
-            TemporalRepresentationSPtr  m_representation; /** representation currently managed. */
+            TemporalPrototypesSPtr      m_prototypes;     /** manager's temporal representations.                              */
+            Plane                       m_plane;          /** plane of the representations.                                    */
+            Nm                          m_depth;          /** distance from the current crosshair to show the representations. */
+            TemporalRepresentationSPtr  m_representation; /** representation currently managed.                                */
         };
       }
     }

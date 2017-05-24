@@ -85,6 +85,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
@@ -562,6 +563,7 @@ void View2D::refreshViewImplementation()
 {
   updateScale();
   updateThumbnail();
+  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
@@ -664,13 +666,13 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       // get the focus this very moment
       setFocus(Qt::OtherFocusReason);
 
-      if (eventHandler() && !m_inThumbnail)
+      if (m_inThumbnail)
       {
-        m_view->setCursor(eventHandler()->cursor());
+        m_view->setCursor(Qt::ArrowCursor);
       }
       else
       {
-        m_view->setCursor(Qt::ArrowCursor);
+        onCursorChanged();
       }
 
       e->accept();
@@ -738,14 +740,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             }
           }
           // to avoid interfering with ctrl use in the event handler/selector
-          if (eventHandler())
-          {
-            m_view->setCursor(eventHandler()->cursor());
-          }
-          else
-          {
-            m_view->setCursor(Qt::ArrowCursor);
-          }
+          onCursorChanged();
         }
 
         updateScale();

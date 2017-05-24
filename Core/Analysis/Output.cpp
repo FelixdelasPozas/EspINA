@@ -201,7 +201,7 @@ void Output::updateModificationTime()
 {
   m_timeStamp = s_tick++;
 
-  emit modified();;
+  emit modified();
 }
 
 //----------------------------------------------------------------------------

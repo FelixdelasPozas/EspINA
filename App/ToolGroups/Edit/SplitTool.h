@@ -38,9 +38,6 @@
 class QAction;
 class vtkPlane;
 
-using namespace ESPINA::GUI::Representations::Managers;
-using namespace ESPINA::GUI::View::Widgets;
-
 namespace ESPINA
 {
   /** \class SplitFilterFactory
@@ -106,13 +103,13 @@ namespace ESPINA
        * \param[in] widget created 2D widget.
        *
        */
-      void onWidgetCreated(TemporalRepresentation2DSPtr widget);
+      void onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation2DSPtr widget);
 
       /** \brief Helper method called by the 3D widgets on creation.
        * \param[in] widget created 3D widget.
        *
        */
-      void onWidgetCreated(TemporalRepresentation3DSPtr widget);
+      void onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation3DSPtr widget);
 
       /** \brief Helper method called by the widgets on destruction.
        * \param[in] object pointer to the destroyed QObject.
@@ -124,7 +121,7 @@ namespace ESPINA
        * \param[in] widget planer split widget with the defined splitting plane.
        *
        */
-      void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
+      void onSplittingPlaneDefined(GUI::View::Widgets::PlanarSplitWidgetPtr widget);
 
       /** \brief Disables the widget when the selection changes.
        *
@@ -166,6 +163,7 @@ namespace ESPINA
 
     private:
       using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using PlanarSplitEventHandlerSPtr = GUI::View::Widgets::PlanarSplitEventHandlerSPtr;
 
       /** \struct Data
        * \brief Split filters required data for execution and results return.

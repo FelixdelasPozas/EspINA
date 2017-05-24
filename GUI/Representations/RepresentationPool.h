@@ -33,6 +33,7 @@
 
 // C++
 #include <memory>
+#include <atomic>
 
 namespace ESPINA
 {
@@ -359,8 +360,8 @@ namespace ESPINA
 
     RangedValue<RepresentationPipeline::Actors> m_validActors; /** range of frames and corresponding actors. */
 
-    unsigned m_numObservers;                                   /** number of managers using the pool. */
-    unsigned m_sourcesCount;                                   /** number of items observing. */
+    std::atomic<unsigned> m_numObservers;                      /** number of managers using the pool. */
+    std::atomic<unsigned> m_sourcesCount;                      /** number of items observing. */
   };
 
   template<typename T>
