@@ -46,6 +46,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 

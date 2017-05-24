@@ -106,12 +106,12 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 
   if (isActive())
   {
+    onShow(frame);
+
     if (hasRepresentations())
     {
       updateRepresentations(frame);
     }
-
-    onShow(frame);
   }
 }
 
@@ -120,9 +120,14 @@ void RepresentationManager::show(const GUI::Representations::FrameCSPtr frame)
 {
   m_isActive = true;
 
-  if (isActive() && hasRepresentations())
+  if(m_view)
   {
-    updateRepresentations(frame);
+    onShow(frame);
+
+    if (isActive() && hasRepresentations())
+    {
+      updateRepresentations(frame);
+    }
   }
 
   for (auto child : m_childs)
@@ -394,8 +399,6 @@ bool RepresentationManager::waitingNewerFrames(TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationManager::updateRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  onShow(frame);
-
   if (hasRepresentations())
   {
     waitForDisplay(frame);

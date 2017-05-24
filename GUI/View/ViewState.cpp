@@ -77,12 +77,18 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
     if (m_eventHandler)
     {
       m_eventHandler->setInUse(false);
+
+      disconnect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+                 this,                 SIGNAL(cursorChanged()));
     }
 
     m_eventHandler = handler;
 
     if (m_eventHandler)
     {
+      connect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+              this,                 SIGNAL(cursorChanged()));
+
       m_eventHandler->setInUse(true);
     }
 
@@ -220,7 +226,7 @@ void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPr
 {
   auto frame = createFrame(m_crosshair);
 
-  if(!m_activeWidgets.contains(factory)) m_activeWidgets << factory;
+  if(!hasTemporalRepresentation(factory)) m_activeWidgets << factory;
 
   emit widgetsAdded(factory, frame);
 
@@ -234,9 +240,15 @@ void ViewState::removeTemporalRepresentations(Representations::Managers::Tempora
 
   emit widgetsRemoved(factory, frame);
 
-  if(m_activeWidgets.contains(factory)) m_activeWidgets.removeAll(factory);
+  if(hasTemporalRepresentation(factory)) m_activeWidgets.removeAll(factory);
 
   emitFrameChanged(frame);
+}
+
+//----------------------------------------------------------------------------
+bool ViewState::hasTemporalRepresentation(Representations::Managers::TemporalPrototypesSPtr factory) const
+{
+  return m_activeWidgets.contains(factory);
 }
 
 //----------------------------------------------------------------------------

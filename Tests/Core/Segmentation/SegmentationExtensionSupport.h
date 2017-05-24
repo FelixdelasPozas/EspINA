@@ -22,13 +22,11 @@
 
 #include <Extensions.h>
 
-using namespace ESPINA;
-
 class DummySegmentationExtension
-: public Core::SegmentationExtension
+: public ESPINA::Core::SegmentationExtension
 {
   public:
-    const Core::SegmentationExtension::Type TYPE = "DummySegmentationExtension";
+    const ESPINA::Core::SegmentationExtension::Type TYPE = "DummySegmentationExtension";
    
   public:
     DummySegmentationExtension() : SegmentationExtension(InfoCache()) {
@@ -40,22 +38,22 @@ class DummySegmentationExtension
     virtual bool invalidateOnChange() const
     { return false; }
 
-    virtual State state() const
+    virtual ESPINA::State state() const
     { return "Diameter=27"; }
 
-    virtual Snapshot snapshot() const
+    virtual ESPINA::Snapshot snapshot() const
     { 
-      Snapshot snapshot;
+      ESPINA::Snapshot snapshot;
 
       QByteArray data;
-      snapshot << SnapshotData(QString("%1.txt").arg(TYPE), data);
+      snapshot << ESPINA::SnapshotData(QString("%1.txt").arg(TYPE), data);
 
       return snapshot;
     }
 
     virtual TypeList dependencies() const{ return TypeList(); }
 
-    virtual void onExtendedItemSet(Segmentation* item){}
+    virtual void onExtendedItemSet(ESPINA::Segmentation* item){}
     virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
 

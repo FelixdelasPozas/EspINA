@@ -34,6 +34,7 @@
 
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget2D::PlanarSplitWidget2D(PlanarSplitEventHandler *handler)

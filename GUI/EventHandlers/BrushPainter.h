@@ -59,8 +59,7 @@ namespace ESPINA
       /** \brief Implements Brush::setBorderColor().
        *
        */
-      void setBorderColor(const QColor borderColor)
-      { m_brush->setBorderColor(borderColor); }
+      void setBorderColor(const QColor borderColor);
 
       /** \brief Implements Brush::borderColor().
        *
@@ -71,20 +70,17 @@ namespace ESPINA
       /** \brief Implements Brush::setImage().
        *
        */
-      void setImage(const QImage &image)
-      { m_brush->setImage(image); }
+      void setImage(const QImage &image);
 
       /** \brief Implements Brush::clearImage().
        *
        */
-      void clearImage()
-      { m_brush->clearImage(); }
+      void clearImage();
 
       /** \brief Implements Brush::setRadius().
        *
        */
-      void setRadius(const int value)
-      { m_brush->setRadius(value); }
+      void setRadius(const int value);
 
       /** \brief Implements Brush::radius().
        *

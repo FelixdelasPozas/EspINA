@@ -30,8 +30,6 @@
 // VTK
 #include <vtkSmartPointer.h>
 
-using namespace ESPINA::GUI::Representations::Managers;
-
 namespace ESPINA
 {
   class RenderView;
@@ -98,7 +96,7 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget();
 
           private:
-            virtual TemporalRepresentation3DSPtr cloneImplementation();
+            virtual ESPINA::GUI::Representations::Managers::TemporalRepresentation3DSPtr cloneImplementation();
 
           private:
             ZoomEventHandler                       *m_eventHandler;

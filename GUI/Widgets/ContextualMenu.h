@@ -48,7 +48,7 @@ namespace ESPINA
 		/** \brief Sets the selection of the menu.
 		 *
 		 */
-    virtual void setSelection(SelectionSPtr selection) = 0;
+    virtual void setSelection(GUI::View::SelectionSPtr selection) = 0;
   };
 
   using ContextualMenuSPtr = std::shared_ptr<ContextualMenu>;

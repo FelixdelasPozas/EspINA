@@ -390,14 +390,14 @@ void RenderView::resetCamera()
 {
   resetCameraImplementation();
 
-  refreshViewImplementation();
-
-  m_view->update();
+  refresh();
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
+  refreshViewImplementation();
+
   m_view->update();
 }
 
@@ -461,6 +461,9 @@ void RenderView::connectSignals()
 
   connect(m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
           this,                             SLOT(onSceneBoundsChanged(Bounds)));
+
+  connect(&m_state, SIGNAL(cursorChanged()),
+          this,     SLOT(onCursorChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -755,4 +758,19 @@ void RenderView::delayedWidgetsShow()
   {
     onWidgetsAdded(factory, m_state.createFrame());
   }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onCursorChanged()
+{
+  if (eventHandler() && eventHandler()->isInUse())
+  {
+    m_view->setCursor(eventHandler()->cursor());
+  }
+  else
+  {
+    m_view->setCursor(Qt::CrossCursor);
+  }
+
+  m_view->update();
 }

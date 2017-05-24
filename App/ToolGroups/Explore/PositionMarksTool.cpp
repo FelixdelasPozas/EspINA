@@ -30,6 +30,7 @@
 #include <QInputDialog>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
 
 const QString PLANE       = "View's plane";
 const QString SLICE       = "View's slice";
