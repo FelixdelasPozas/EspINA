@@ -478,9 +478,9 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
 
       addRepresentationManager(manager);
 
-      manager->show(frame);
-
       m_temporalManagers[prototypes] = manager;
+
+      manager->show(frame);
     }
     else
     {

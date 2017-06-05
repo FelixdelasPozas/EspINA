@@ -44,11 +44,8 @@ SegmentationSkeletonSwitch::SegmentationSkeletonSwitch(const QString &id,
                                                        std::shared_ptr<SegmentationSkeletonPoolSettings> settings,
                                                        ViewTypeFlags supportedViews,
                                                        Support::Context& context)
-: BasicRepresentationSwitch(id, manager, supportedViews, context)
+: BasicRepresentationSwitch{id, manager, supportedViews, context}
 , m_settings               {settings}
-, m_opacityWidget          {nullptr}
-, m_widthWidget            {nullptr}
-, m_annotationsWidget      {nullptr}
 {
   initWidgets();
 
@@ -59,7 +56,8 @@ SegmentationSkeletonSwitch::SegmentationSkeletonSwitch(const QString &id,
 //---------------------------------------------------------------------
 SegmentationSkeletonSwitch::~SegmentationSkeletonSwitch()
 {
-  // created widgets destroyed by Qt
+  disconnect(m_settings.get(), SIGNAL(modified()),
+             this,             SLOT(onSettingsModified()));
 }
 
 //---------------------------------------------------------------------
@@ -134,10 +132,10 @@ void SegmentationSkeletonSwitch::initWidgets()
   m_opacityWidget->setSpinBoxVisibility(false);
   m_opacityWidget->setWidgetsToolTip(tr("Skeleton representation opacity."));
 
-  addSettingsWidget(m_opacityWidget);
-
   connect(m_opacityWidget, SIGNAL(valueChanged(int)),
           this,            SLOT(onOpacityChanged()));
+
+  addSettingsWidget(m_opacityWidget);
 
   auto widthLabel = new QLabel("Width");
   widthLabel->setToolTip(tr("Skeleton representation line width"));

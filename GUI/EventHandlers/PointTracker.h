@@ -38,6 +38,7 @@ namespace ESPINA
       Q_OBJECT
     public:
       using Track = QList<NmVector3>;
+      enum class EventType { START = 0, END = 1 };
 
     public:
       /** \brief PointTracker class constructor.
@@ -85,10 +86,23 @@ namespace ESPINA
        */
       bool isTracking() const;
 
+      /** \brief Enables/disables the emission of cursor position signal.
+       * \param[in] value true to enable and false otherwise
+       * .
+       */
+      void emitCursorPosition(bool value);
+
+      /** \brief Returns true if the handler emits the cursor position of an event and false otherwise.
+       *
+       */
+      bool emitsCursorPosition() const;
+
     signals:
       void trackStarted(Track track, RenderView *view);
       void trackUpdated(Track track);
-      void trackStopped(Track track, RenderView *view);;
+      void trackStopped(Track track, RenderView *view);
+      void cursorPosition(const QPoint &p);
+      void endStroke();
 
     protected:
       /** \brief Called when a stroke starts.
@@ -124,12 +138,13 @@ namespace ESPINA
        */
       Nm distance2(const NmVector3 &p1, const NmVector3 &p2);
 
-      bool  m_tracking;            /** true if tracking and false otherwise.     */
-      bool  m_interpolation;       /** true if interpolation is being made.      */
-      Nm    m_maxDistance2;        /** max distance between points of the track. */
-      bool  m_distanceHasBeenSet;  /** true if max distance has been set.        */
-      Track m_track;               /** track points group.                       */
-      Track m_updatedTrack;        /** group of points in the update track step. */
+      bool  m_tracking;            /** true if tracking and false otherwise.                                                   */
+      bool  m_interpolation;       /** true if interpolation is being made.                                                    */
+      Nm    m_maxDistance2;        /** max distance between points of the track.                                               */
+      bool  m_distanceHasBeenSet;  /** true if max distance has been set.                                                      */
+      bool  m_reportPosition;      /** true to report mouse position if not on track, and false to not emit the signal at all. */
+      Track m_track;               /** track points group.                                                                     */
+      Track m_updatedTrack;        /** group of points in the update track step.                                               */
 
       RenderView *m_view; /** view under event handler. */
   };
