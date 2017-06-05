@@ -95,14 +95,13 @@ Output::ReadLockData<SkeletonData> ESPINA::readLockSkeleton(Output *output, Data
 }
 
 //----------------------------------------------------------------------------
-Output::WriteLockData<SkeletonData> ESPINA::writeLockSkeleton(Output *output, DataUpdatePolicy policy)
-{
-  return outputWriteLockData<SkeletonData>(output, policy);
-}
-
-//----------------------------------------------------------------------------
 Output::WriteLockData<SkeletonData> ESPINA::writeLockSkeleton(OutputSPtr output, DataUpdatePolicy policy)
 {
   return outputWriteLockData<SkeletonData>(output.get(), policy);
 }
 
+//----------------------------------------------------------------------------
+Output::WriteLockData<SkeletonData> ESPINA::writeLockSkeleton(Output *output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<SkeletonData>(output, policy);
+}

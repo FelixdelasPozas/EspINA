@@ -53,8 +53,8 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
   View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
-  View/Widgets/Skeleton/SkeletonWidget.h
-  View/Widgets/Skeleton/SkeletonPointTracker.h
+  View/Widgets/Skeleton/SkeletonWidget2D.h
+  View/Widgets/Skeleton/SkeletonEventHandler.h
   View/CoordinateSystem.h
   View/Widgets/SelectionMeasure/Widget2D.h
   View/Widgets/SelectionMeasure/Widget3D.h
@@ -209,10 +209,10 @@ set (GUI_SOURCES
   View/Widgets/SelectionMeasure/Widget3D.cpp
   View/Widgets/SelectionMeasure/vtkWidget2D.cpp
   View/Widgets/SelectionMeasure/vtkWidget3D.cpp
-  View/Widgets/Skeleton/SkeletonWidget.cpp
+  View/Widgets/Skeleton/SkeletonWidget2D.cpp
+  View/Widgets/Skeleton/SkeletonEventHandler.cpp
   View/Widgets/Skeleton/vtkSkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
-  View/Widgets/Skeleton/SkeletonPointTracker.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp

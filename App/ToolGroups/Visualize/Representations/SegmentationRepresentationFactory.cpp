@@ -157,7 +157,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 
   contourManager->setName("DisplaySegmentationContour");
   contourManager->setIcon(QIcon(":espina/display_segmentation_contours.svg"));
-  contourManager->setDescription(QObject::tr("Display Segmentation Contours"));
+  contourManager->setDescription(QObject::tr("Display segmentation contours"));
 
   auto contourSwitch = std::make_shared<SegmentationContourSwitch>(contourManager, contourSettings, ViewType::VIEW_2D, context);
   groupSwitch("1-1", contourSwitch);
@@ -188,9 +188,9 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      poolSkeleton2DXZ->setSettings(skeletonSettings2D);
      poolSkeleton2DYZ->setSettings(skeletonSettings2D);
 
-     skeletonManager2D->setName(QObject::tr("Skeleton 2D Representation"));
+     skeletonManager2D->setName(QObject::tr("DisplaySkeleton2DRepresentation"));
      skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
-     skeletonManager2D->setDescription(QObject::tr("Skeleton 2D Representation"));
+     skeletonManager2D->setDescription(QObject::tr("Display skeleton segmentations"));
 
      auto skeletonSwitch2D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton2DSwitch", skeletonManager2D, skeletonSettings2D, ViewType::VIEW_2D, context);
      groupSwitch("1-2", skeletonSwitch2D);
@@ -209,9 +209,9 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
 
      poolSkeleton3D->setSettings(skeletonSettings3D);
 
-     skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
+     skeletonManager3D->setName(QObject::tr("DisplaySkeleton3DRepresentation"));
      skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
-     skeletonManager3D->setDescription(QObject::tr("Skeleton 3D Representation"));
+     skeletonManager3D->setDescription(QObject::tr("Display skeleton segmentations"));
 
      auto skeletonSwitch3D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton3DSwitch", skeletonManager3D, skeletonSettings3D, ViewType::VIEW_3D, context);
      groupSwitch("1-1", skeletonSwitch3D);

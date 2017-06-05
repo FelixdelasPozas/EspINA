@@ -34,8 +34,6 @@
 #include <QCursor>
 #include <QColor>
 
-using namespace std;
-
 namespace ESPINA
 {
   namespace GUI
@@ -46,8 +44,10 @@ namespace ESPINA
       {
         namespace Skeleton
         {
-          class SkeletonWidget;
-
+          /** \class vtkSkeletonWidget
+           * \brief VTK widget for skeleton interactions.
+           *
+           */
           class EspinaGUI_EXPORT vtkSkeletonWidget
           : public vtkAbstractWidget
           {
@@ -95,19 +95,11 @@ namespace ESPINA
                */
               virtual void SetOrientation(Plane plane);
 
-              /** \brief Returns the orientation of the widget.
+              /** \brief Returns the widget planar orientation.
                *
                */
-              virtual Plane GetOrientation();
-
-              /** \brief Sets the parent SkeletonWidget for this vtk widget.
-               * \param[in] parent SkeletonWidget raw pointer.
-               *
-               * Parent needed to signal start/end of a contour.
-               *
-               */
-              void setParentWidget(SkeletonWidget *parent)
-              { m_parent = parent; }
+              const Plane &orientation() const
+              { return m_orientation; }
 
               /** \brief Sets the slice for the representation of the widget if it's from the same orientation.
                * \param[in] plane orientation plane.
@@ -121,16 +113,17 @@ namespace ESPINA
                */
               vtkSmartPointer<vtkPolyData> getSkeleton();
 
-              /** \brief Sets the tolerance value of the widget.
-               * \param[in] tolerance tolerance value.
-               *
-               */
-              void SetTolerance(const double tolerance);
-
               /** \brief Sets the spacing of the view in the Z coordinate to draw the representation correctly.
+               * \param[in] shift distance in Nm.
                *
                */
-              void SetShift(const Nm spacing);
+              void SetShift(const Nm shift);
+
+              /** \brief Returns the spacing of the view in the Z coordinate to draw the representation correctly.
+               *
+               */
+              const Nm shift() const
+              { return m_shift; }
 
               /** \brief Sets the spacing of the representation to make the position of all nodes of the
                * representation centered on voxel center.
@@ -139,11 +132,23 @@ namespace ESPINA
                */
               void SetSpacing(const NmVector3 &spacing);
 
+              /** \brief Returns the spacing of the widget.
+               *
+               */
+              const NmVector3 &spacing() const
+              { return m_spacing; }
+
               /** \brief Sets the color of the representation.
                * \param[in] color QColor object.
                *
                */
               void setRepresentationColor(const QColor &color);
+
+              /** \brief Returns the representation color.
+               *
+               */
+              const QColor &representationColor() const
+              { return m_color; }
 
               /** \brief Updates the representation.
                *
@@ -163,29 +168,42 @@ namespace ESPINA
               void resetModifiedFlag()
               { m_modified = false; }
 
-              enum
-              {
-                Start, Define, Manipulate
-              };
+              /** \brief Operation modes. */
+              enum { Start = 0, Define = 1, Manipulate = 2 };
 
-            protected:
-              int       m_widgetState;
-              int       m_currentHandle;
-              Plane     m_orientation;
-              double    m_drawTolerance;
-              Nm        m_slice;
-              Nm        m_shift;
-              QColor    m_color;
-              NmVector3 m_spacing;
-
-              /** \brief Callback interface to capture events when placing the widget.
+              /** \brief Adds a point to the skeleton in the event coordinates position.
                *
                */
-              static void StopAction(vtkAbstractWidget*);
-              static void MoveAction(vtkAbstractWidget*);
-              static void KeyPressAction(vtkAbstractWidget *);
-              static void ReleaseKeyPressAction(vtkAbstractWidget *);
-              static void TranslateAction(vtkAbstractWidget *);
+              void addPoint();
+
+              /** \brief Moves the currently selected node to the given event coordinates position.
+               *
+               */
+              void movePoint();
+
+              /** \brief Stops the current operation.
+               *
+               */
+              void stop();
+
+            protected:
+              int       m_widgetState;   /** widget operation state.                */
+              Plane     m_orientation;   /** orthogonal plane of the widget.        */
+              Nm        m_slice;         /** current slice position in Nm.          */
+              Nm        m_shift;         /** actor's shift over the slice position. */
+              QColor    m_color;         /** color of the representation.           */
+              NmVector3 m_spacing;       /** representation's spacing.              */
+
+              /** \brief Sets the current operation mode of the widget.
+               * \param[in] mode integer of operation mode.
+               *
+               */
+              void setCurrentOperationMode(const int mode);
+
+              /** \brief Returns the integer of the current operation mode of the widget.
+               *
+               */
+              const int currentOperationMode() const;
 
               /** \brief Overrides vtkAbstractWidget::cursor().
                *
@@ -204,6 +222,14 @@ namespace ESPINA
               virtual ~vtkSkeletonWidget();
 
             private:
+              /** \brief Helper method to create the cursors for this widget.
+               *
+               */
+              void createCursors();
+
+              /** \brief vtkSkeletonWidget class copy constructor (not implemented).
+               *
+               */
               vtkSkeletonWidget(const vtkSkeletonWidget&);
 
               /** \brief Assignment operator not implemented.
@@ -211,9 +237,10 @@ namespace ESPINA
                */
               void operator=(const vtkSkeletonWidget&);
 
-              QCursor         m_crossMinusCursor, m_crossPlusCursor, m_crossCheckCursor;
-              SkeletonWidget *m_parent;
-              bool            m_modified;
+              QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                     */
+              QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes. */
+              QCursor m_crossCheckCursor; /** cross check cursor shown when connecting two strokes.             */
+              bool    m_modified;         /** modified flag.                                                    */
           };
 
         } // namespace Skeleton

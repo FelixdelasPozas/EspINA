@@ -22,12 +22,12 @@
 #define APP_UNDO_MODIFY_SKELETON_COMMAND_H_
 
 // ESPINA
-#include <Core/Analysis/Data/SkeletonData.h>
-#include <Core/Types.h>
 #include <Core/Utils/Bounds.h>
+#include <GUI/Types.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 // Qt
 #include <QUndoStack>
@@ -46,7 +46,7 @@ namespace ESPINA
        * \param[in] sleleton SkeletonData smart pointer of the new skeleton.
        *
        */
-      explicit ModifySkeletonCommand(SkeletonDataSPtr data, vtkSmartPointer<vtkPolyData> skeleton);
+      explicit ModifySkeletonCommand(SegmentationAdapterPtr segmentation, vtkSmartPointer<vtkPolyData> skeleton);
 
       /** \brief ModifySkeletonCommand class virtual destructor.
        *
@@ -57,7 +57,7 @@ namespace ESPINA
       void redo() override;
 
     private:
-      SkeletonDataSPtr             m_skeletonData;
+      SegmentationAdapterPtr       m_segmentation;
       vtkSmartPointer<vtkPolyData> m_newSkeleton;
       vtkSmartPointer<vtkPolyData> m_oldSkeleton;
       BoundsList                   m_editedRegions;
