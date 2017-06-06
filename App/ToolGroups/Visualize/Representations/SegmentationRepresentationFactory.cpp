@@ -193,6 +193,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      skeletonManager2D->setDescription(QObject::tr("Display skeleton segmentations"));
 
      auto skeletonSwitch2D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton2DSwitch", skeletonManager2D, skeletonSettings2D, ViewType::VIEW_2D, context);
+     skeletonSwitch2D->setChecked(true);
      groupSwitch("1-2", skeletonSwitch2D);
 
      representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ;

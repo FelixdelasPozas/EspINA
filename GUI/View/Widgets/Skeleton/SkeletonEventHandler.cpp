@@ -24,10 +24,6 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 
-// VTK
-#include <vtkType.h>
-#include <vtkCoordinate.h>
-
 // Qt
 #include <QEvent>
 #include <QMouseEvent>
@@ -51,6 +47,7 @@ SkeletonEventHandler::SkeletonEventHandler()
 bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
 {
   auto me = dynamic_cast<QMouseEvent *>(e);
+  auto ke = dynamic_cast<QKeyEvent *>(e);
 
   switch(e->type())
   {
@@ -68,7 +65,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
 
         if (!m_track.isEmpty() && me && (me->button() == Qt::RightButton))
         {
-          emit endStroke();
+          emit stopped();
           m_track.clear();
           m_view = nullptr;
           return true;
@@ -97,18 +94,17 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       if (m_tracking && me && (me->button() == Qt::LeftButton))
       {
         m_tracking = false;
-        stopTrack(me->pos());
+        updateTrack(me->pos());
         return true;
       }
       break;
     case QEvent::Leave:
-      qDebug() << "leave";
       if (m_tracking)
       {
         m_tracking = false;
-        stopTrack(me->pos());
+        updateTrack(me->pos());
 
-        emit endStroke();
+        emit stopped();
         m_track.clear();
         m_view = nullptr;
       }
@@ -121,6 +117,19 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
           return false; // let the view also handle the event.
         }
       }
+      break;
+    case QEvent::KeyPress:
+      if(ke && ke->key() == Qt::Key_Shift)
+      {
+        emit modifier(true);
+      }
+      break;
+    case QEvent::KeyRelease:
+      if(ke && ke->key() == Qt::Key_Shift)
+      {
+        emit modifier(false);
+      }
+      break;
       return true;
       break;
     default:
@@ -184,7 +193,7 @@ void SkeletonEventHandler::startTrack(const QPoint &pos)
 
     m_track << pos;
 
-    emit trackStarted(m_track, m_view);
+    emit started(m_track, m_view);
   }
 }
 
@@ -214,20 +223,9 @@ void SkeletonEventHandler::updateTrack(const QPoint &pos)
       m_updatedTrack << pos;
     }
 
-    emit trackUpdated(m_updatedTrack);
+    emit updated(m_updatedTrack);
 
     m_track << m_updatedTrack;
-  }
-}
-
-//------------------------------------------------------------------------
-void SkeletonEventHandler::stopTrack(const QPoint &pos)
-{
-  if(m_view)
-  {
-    updateTrack(pos);
-
-    emit trackStopped(m_track, m_view);
   }
 }
 

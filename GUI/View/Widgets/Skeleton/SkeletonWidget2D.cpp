@@ -182,45 +182,39 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
 //--------------------------------------------------------------------
 void SkeletonWidget2D::connectSignals()
 {
-  connect(m_handler.get(), SIGNAL(trackStarted(Track, RenderView*)),
+  connect(m_handler.get(), SIGNAL(started(Track, RenderView*)),
          this,             SLOT(onTrackStarted(Track, RenderView*)));
 
-  connect(m_handler.get(), SIGNAL(trackUpdated(Track)),
+  connect(m_handler.get(), SIGNAL(updated(Track)),
           this,            SLOT(onTrackUpdated(Track)));
 
-  connect(m_handler.get(), SIGNAL(trackStopped(Track, RenderView*)),
-          this,            SLOT(onTrackStopped(Track, RenderView*)));
+  connect(m_handler.get(), SIGNAL(stopped()),
+           this,           SLOT(onStrokeEnded()));
 
   connect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &)),
            this,           SLOT(onCursorPositionChanged(const QPoint &)));
 
-  connect(m_handler.get(), SIGNAL(endStroke()),
-           this,           SLOT(onStrokeEnded()));
-
   connect(m_handler.get(), SIGNAL(cancelled()),
-          this,            SLOT(onCancellation()));
+          this,            SLOT(onStrokeEnded()));
 }
 
 //--------------------------------------------------------------------
 void SkeletonWidget2D::disconnectSignals()
 {
-  disconnect(m_handler.get(), SIGNAL(trackStarted(Track, RenderView*)),
+  disconnect(m_handler.get(), SIGNAL(started(Track, RenderView*)),
              this,             SLOT(onTrackStarted(Track, RenderView*)));
 
-  disconnect(m_handler.get(), SIGNAL(trackUpdated(Track)),
+  disconnect(m_handler.get(), SIGNAL(updated(Track)),
              this,            SLOT(onTrackUpdated(Track)));
 
-  disconnect(m_handler.get(), SIGNAL(trackStopped(Track, RenderView*)),
-             this,            SLOT(onTrackStopped(Track, RenderView*)));
+  disconnect(m_handler.get(), SIGNAL(stopped()),
+             this,           SLOT(onStrokeEnded()));
 
   disconnect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &)),
              this,           SLOT(onCursorPositionChanged(const QPoint &)));
 
-  disconnect(m_handler.get(), SIGNAL(endStroke()),
-             this,           SLOT(onStrokeEnded()));
-
   disconnect(m_handler.get(), SIGNAL(cancelled()),
-             this,            SLOT(onCancellation()));
+             this,            SLOT(onStrokeEnded()));
 }
 
 //--------------------------------------------------------------------
@@ -232,12 +226,12 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
 
     auto point = track.first();
 
-    qDebug() << "enter view" << normalCoordinateIndex(m_widget->orientation());
+    m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), 0, 0);
+    m_widget->addPoint();
 
-    // add two points, one where clicked and the other to act as cursor.
-    for(int i = 0; i < 2; ++i)
+    // if it's the first point add another to act as cursor.
+    if(m_widget->numberOfPoints() == 1)
     {
-      m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
       m_widget->addPoint();
     }
   }
@@ -250,35 +244,15 @@ void SkeletonWidget2D::onTrackUpdated(Track track)
 
   for(auto point: track)
   {
-    qDebug() << "track updated on view" << normalCoordinateIndex(m_widget->orientation());
-
     m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
     m_widget->addPoint();
   }
 }
 
 //--------------------------------------------------------------------
-void SkeletonWidget2D::onTrackStopped(Track track, RenderView* view)
-{
-  if(!m_hasHandler) return;
-
-//  int x,y;
-//  view->eventPosition(x, y);
-//
-//
-//  qDebug() << "track stopped on view" << normalCoordinateIndex(m_widget->orientation());
-//
-//  m_widget->GetInteractor()->SetEventInformationFlipY(x, y, Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
-//  m_widget->movePoint();
-}
-
-
-//--------------------------------------------------------------------
 void SkeletonWidget2D::onCursorPositionChanged(const QPoint& p)
 {
   if(!m_hasHandler) return;
-
-  qDebug() << "cursor position" << p << "plane" << normalCoordinateIndex(m_widget->orientation());
 
   m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
   m_widget->movePoint();
@@ -289,19 +263,18 @@ void SkeletonWidget2D::onStrokeEnded()
 {
   if(!m_hasHandler) return;
 
-  qDebug() << "stroke ended - plane" << normalCoordinateIndex(m_widget->orientation());
-  m_widget->stop();
-}
-
-//--------------------------------------------------------------------
-void SkeletonWidget2D::onCancellation()
-{
-  if(!m_hasHandler) return;
-
   m_hasHandler = false;
-
-  qDebug() << "received cancel";
   m_widget->stop();
+
+  if(m_widget->numberOfPoints() < 2)
+  {
+    // not allowed strokes of only one point.
+    m_widget->Initialize();
+  }
+  else
+  {
+    emit modified(m_widget->getSkeleton());
+  }
 }
 
 //--------------------------------------------------------------------

@@ -83,6 +83,9 @@ namespace ESPINA
         virtual bool validCategory(const QString& classificationName) const
         { return true; }
 
+        virtual bool validData(const OutputSPtr output) const
+        { return true; }
+
         virtual QString toolTipText() const
         { return tr("%1 as Read-Only").arg(m_type); }
 

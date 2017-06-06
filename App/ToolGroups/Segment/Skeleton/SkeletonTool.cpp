@@ -291,7 +291,7 @@ void SkeletonTool::onWidgetCloned(TemporalRepresentation2DSPtr clone)
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
-            this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)));
+            this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
 
     m_widgets << skeletonWidget;
   }

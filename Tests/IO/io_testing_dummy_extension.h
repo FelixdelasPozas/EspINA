@@ -22,6 +22,9 @@
 
 // ESPINA
 #include <Core/Analysis/Extensions.h>
+#include <Core/Types.h>
+
+using ESPINA::OutputSPtr;
 
 class DummySegmentationExtension
 : public ESPINA::Core::SegmentationExtension
@@ -53,6 +56,7 @@ class DummySegmentationExtension
     virtual void onExtendedItemSet(ESPINA::Segmentation* item) {}
     virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
+    bool validData(const OutputSPtr output) const { return true; }
 
     InformationKeyList availableInformation() const
     {

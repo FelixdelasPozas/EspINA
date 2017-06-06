@@ -149,9 +149,13 @@ void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
 //----------------------------------------------------------------------------
 bool SegmentationSlicePipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
-  Q_ASSERT(hasVolumetricData(item->output()));
-  auto volume = readLockVolume(item->output());
-  return isSegmentationVoxel(volume, point);
+  if(hasVolumetricData(item->output()))
+  {
+    auto volume = readLockVolume(item->output());
+    return isSegmentationVoxel(volume, point);
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------

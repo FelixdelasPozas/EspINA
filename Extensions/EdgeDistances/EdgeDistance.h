@@ -25,6 +25,8 @@
 
 // ESPINA
 #include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Utils/Spatial.h>
 
 // Qt
@@ -59,7 +61,8 @@ namespace ESPINA
       /** \brief EdgeDistance class destructor.
        *
        */
-      virtual ~EdgeDistance();
+      virtual ~EdgeDistance()
+      {}
 
       virtual Type type() const
       { return TYPE; }
@@ -78,6 +81,9 @@ namespace ESPINA
 
       virtual bool validCategory(const QString& classificationName) const
       { return true; }
+
+      virtual bool validData(const OutputSPtr output) const
+      { return hasMeshData(output) || hasSkeletonData(output); }
 
       /** \brief Returns the distances as numerical values in the parameter.
        * \param[out] distances.

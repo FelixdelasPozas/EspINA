@@ -148,9 +148,15 @@ bool ManualEditionTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
   Q_ASSERT(segmentations.size() == 1);
 
-  updateReferenceItem(segmentations.first());
+  auto item = segmentations.first();
 
-  return true;
+  if(hasVolumetricData(item->output()))
+  {
+    updateReferenceItem(item);
+    return true;
+  }
+
+  return false;
 }
 
 //------------------------------------------------------------------------

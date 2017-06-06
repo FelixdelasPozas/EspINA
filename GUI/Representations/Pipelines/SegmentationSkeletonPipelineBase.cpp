@@ -20,6 +20,7 @@
  */
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeletonPipelineBase.h>
@@ -30,6 +31,11 @@
 // VTK
 #include <vtkActor.h>
 #include <vtkProperty.h>
+#include <vtkPolyData.h>
+#include <vtkPoints.h>
+#include <vtkCellArray.h>
+#include <vtkLine.h>
+#include <vtkMath.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -66,7 +72,6 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
       s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
       actorVTK->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actorVTK->GetProperty()->SetOpacity(opacity(state) * rgba[3]);
 
       auto width = item->isSelected() ? 2 : 1;
       width *= SegmentationSkeletonPoolSettings::getWidth(state);
@@ -80,7 +85,64 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 //--------------------------------------------------------------------
 bool SegmentationSkeletonPipelineBase::pick(ConstViewItemAdapterPtr item, const NmVector3& point) const
 {
-  // TODO
+  if(hasSkeletonData(item->output()))
+  {
+    auto skeleton = readLockSkeleton(item->output())->skeleton();
+    auto lines = skeleton->GetLines();
+    double projection[3];
+    auto points = skeleton->GetPoints();
+    long long npts;
+    long long *pts;
+
+    // NOTE to self: vtkLine::DistanceToLine(p0, lineP0, lineP1, t, closest) is pure shit. Thank god for a little
+    // knowledge of computational geometry.
+    lines->InitTraversal();
+    while(lines->GetNextCell(npts, pts))
+    {
+      for(int i = 0; i < npts-1; ++i)
+      {
+        double pos_i[3], pos_j[3];
+        points->GetPoint(pts[i], pos_i);
+        points->GetPoint(pts[i+1], pos_j);
+
+        double v[3]{pos_j[0]-pos_i[0], pos_j[1]-pos_i[1], pos_j[2]-pos_i[2]};
+        double w[3]{point[0]-pos_i[0], point[1]-pos_i[1], point[2]-pos_i[2]};
+
+        double dotwv = 0;
+        double dotvv = 0;
+        for(auto ii: {0,1,2})
+        {
+          dotwv += w[ii]*v[ii];
+          dotvv += v[ii]*v[ii];
+        }
+
+        double r = dotwv / dotvv;
+
+        if(r <= 0)
+        {
+          std::memcpy(projection, pos_i, 3*sizeof(double));
+        }
+        else
+        {
+          if(r >= 1)
+          {
+            std::memcpy(projection, pos_j, 3*sizeof(double));
+          }
+          else
+          {
+            projection[0] = pos_i[0] + r*(pos_j[0] - pos_i[0]);
+            projection[1] = pos_i[1] + r*(pos_j[1] - pos_i[1]);
+            projection[2] = pos_i[2] + r*(pos_j[2] - pos_i[2]);
+          }
+        }
+
+        double distance = std::pow(projection[0] - point[0], 2) + std::pow(projection[1] - point[1], 2) + std::pow(projection[2] - point[2], 2);
+
+        if(distance < 10) return true;
+      }
+    }
+  }
+
   return false;
 }
 

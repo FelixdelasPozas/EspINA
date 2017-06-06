@@ -80,6 +80,12 @@ namespace ESPINA
          */
         virtual bool validCategory(const QString &classification) const = 0;
 
+        /** \brief Returns true if the extension can get results with the given data.
+         * \param[in] output output containing the data.
+         *
+         */
+        virtual bool validData(const OutputSPtr output) const = 0;
+
       signals:
         void invalidated();
 

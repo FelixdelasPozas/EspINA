@@ -56,7 +56,8 @@ namespace ESPINA
       /** \brief SegmentationNotes class virtual destructor.
        *
        */
-      virtual ~SegmentationNotes();
+      virtual ~SegmentationNotes()
+      {}
 
       virtual Type type() const override
       { return TYPE; }
@@ -73,7 +74,10 @@ namespace ESPINA
       virtual TypeList dependencies() const override
       { return TypeList(); }
 
-      virtual bool validCategory(const QString& classification) const override
+      virtual bool validCategory(const QString& classification) const
+      { return true; }
+
+      virtual bool validData(const OutputSPtr output) const
       { return true; }
 
       virtual InformationKeyList availableInformation() const override;

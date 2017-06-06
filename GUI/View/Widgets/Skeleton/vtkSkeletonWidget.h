@@ -186,6 +186,11 @@ namespace ESPINA
                */
               void stop();
 
+              /** \brief Returns the number of nodes in the current representation.
+               *
+               */
+              const unsigned int numberOfPoints() const;
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */
