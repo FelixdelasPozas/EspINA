@@ -72,11 +72,6 @@ StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::
 }
 
 //------------------------------------------------------------------------
-StereologicalInclusion::~StereologicalInclusion()
-{
-}
-
-//------------------------------------------------------------------------
 State StereologicalInclusion::state() const
 {
   return State();
@@ -554,4 +549,10 @@ void StereologicalInclusion::onOutputModified()
 {
   m_isUpdated = false;
   evaluateCountingFrames();
+}
+
+//------------------------------------------------------------------------
+bool StereologicalInclusion::validData(const OutputSPtr output) const
+{
+  return true;
 }

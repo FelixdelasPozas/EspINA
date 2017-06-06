@@ -32,11 +32,6 @@
 #include <QList>
 #include <QPoint>
 
-// VTK
-#include <vtkSmartPointer.h>
-
-class vtkCoordinate;
-
 namespace ESPINA
 {
   namespace GUI
@@ -95,7 +90,7 @@ namespace ESPINA
                * handler will produce.
                *
                */
-              Nm maximumPointDistance() const
+              const Nm maximumPointDistance() const
               { return std::sqrt(m_maxDistance2); }
 
               /** \brief Sets the minimum distance between two consecutive track points. If this distance
@@ -118,12 +113,12 @@ namespace ESPINA
               bool isTracking() const;
 
             signals:
-              void trackStarted(Track track, RenderView *view);
-              void trackUpdated(Track track);
-              void trackStopped(Track track, RenderView *view);
+              void started(Track track, RenderView *view);
+              void updated(Track track);
               void cursorPosition(const QPoint &p);
               void cancelled();
-              void endStroke();
+              void stopped();
+              void modifier(bool);
 
             protected:
               /** \brief Called when a stroke starts.
@@ -137,12 +132,6 @@ namespace ESPINA
                *
                */
               void updateTrack(const QPoint &pos);
-
-              /** \brief Called when a stroke ends.
-               * \param[in] pos track point 2D position.
-               *
-               */
-              void stopTrack(const QPoint &pos);
 
               /** \brief Interpolates p1 and p2 and generates extra points using the max distance.
                * \param[in] p1 point 3D coordinates.
@@ -158,15 +147,14 @@ namespace ESPINA
                */
               Nm distance2(const NmVector3 &p1, const NmVector3 &p2);
 
-              bool  m_tracking;            /** true if tracking and false otherwise.                      */
-              bool  m_interpolation;       /** true if interpolation is being made.                       */
-              Nm    m_maxDistance2;        /** max distance between points of the track (in view coords). */
-              Nm    m_minDistance2;        /** min distance between points of the track (in view coords). */
-              bool  m_distanceHasBeenSet;  /** true if max distance has been set.                         */
-              Track m_track;               /** track points group.                                        */
-              Track m_updatedTrack;        /** group of points in the update track step.                  */
-
-              RenderView *m_view; /** view under event handler. */
+              bool        m_tracking;           /** true if tracking and false otherwise.                      */
+              bool        m_interpolation;      /** true if interpolation is being made.                       */
+              Nm          m_maxDistance2;       /** max distance between points of the track (in view coords). */
+              Nm          m_minDistance2;       /** min distance between points of the track (in view coords). */
+              bool        m_distanceHasBeenSet; /** true if max distance has been set.                         */
+              Track       m_track;              /** track points group.                                        */
+              Track       m_updatedTrack;       /** group of points in the update track step.                  */
+              RenderView *m_view;               /** view under event handler.                                  */
           };
 
           using SkeletonEventHandlerSPtr = std::shared_ptr<SkeletonEventHandler>;

@@ -27,6 +27,7 @@
 #include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
+#include <GUI/View/Utils.h>
 
 // VTK
 #include <vtkActor.h>
@@ -42,6 +43,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::View::Utils;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
@@ -142,8 +144,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
       auto actor = vtkSmartPointer<vtkActor>::New();
       actor->SetMapper(mapper);
+      actor->SetPickable(true);
       actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
 
       auto width = item->isSelected() ? 2 : 1;
       width *= SegmentationSkeletonPoolSettings::getWidth(state);

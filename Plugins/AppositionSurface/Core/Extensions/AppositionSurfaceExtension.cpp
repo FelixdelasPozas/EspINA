@@ -25,6 +25,7 @@ o *    Copyright (C) 2014  Juan Morales del Olmo <juan.morales@upm.es>
 // ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/EspinaException.h>
 
 // VTK
@@ -496,4 +497,10 @@ void AppositionSurfaceExtension::setOriginSegmentation(SegmentationAdapterSPtr s
   {
     updateInfoCache(SYNAPSE, tr("Unknown"));
   }
+}
+
+//------------------------------------------------------------------------
+bool AppositionSurfaceExtension::validData(const OutputSPtr output) const
+{
+  return hasVolumetricData(output);
 }

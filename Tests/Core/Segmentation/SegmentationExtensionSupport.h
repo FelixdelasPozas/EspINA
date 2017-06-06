@@ -20,7 +20,10 @@
 #ifndef SEGMENTATIONEXTENSIONSUPPORT_H_
 #define SEGMENTATIONEXTENSIONSUPPORT_H_
 
+#include <Core/Types.h>
 #include <Extensions.h>
+
+using ESPINA::OutputSPtr;
 
 class DummySegmentationExtension
 : public ESPINA::Core::SegmentationExtension
@@ -56,6 +59,7 @@ class DummySegmentationExtension
     virtual void onExtendedItemSet(ESPINA::Segmentation* item){}
     virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
+    bool validData(const OutputSPtr output) const { return true; };
 
     virtual InformationKeyList availableInformation() const
     {

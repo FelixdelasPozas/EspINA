@@ -52,11 +52,6 @@ EdgeDistance::EdgeDistance(CoreFactory *factory, const SegmentationExtension::In
 }
 
 //-----------------------------------------------------------------------------
-EdgeDistance::~EdgeDistance()
-{
-}
-
-//-----------------------------------------------------------------------------
 State EdgeDistance::state() const
 {
   return State();

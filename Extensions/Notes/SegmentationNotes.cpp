@@ -44,12 +44,6 @@ SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
 {
 }
 
-
-//------------------------------------------------------------------------
-SegmentationNotes::~SegmentationNotes()
-{
-}
-
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
 {

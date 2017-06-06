@@ -141,7 +141,7 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_renderer->GetActiveCamera()->SetThickness(2000);
-  m_renderer->SetNearClippingPlaneTolerance(0.01);
+  m_renderer->SetNearClippingPlaneTolerance(0.001);
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
@@ -1169,7 +1169,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   NeuroItemAdapterList pickedItems;
 
   vtkProp *pickedProp;
-  auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
+  QList<vtkProp *> pickedProps;
 
   bool finished = false;
   bool picked   = false;
@@ -1181,7 +1181,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
     if (pickedProp && pickedProp->GetVisibility())
     {
-      pickedProps->AddItem(pickedProp);
+      pickedProps << pickedProp;
       sceneActors->RemoveItem(pickedProp);
     }
 
@@ -1214,11 +1214,11 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   }
   while(picked && !finished);
 
-  pickedProps->InitTraversal();
 
-  while ((pickedProp = pickedProps->GetNextProp()))
+  for(auto prop: pickedProps)
   {
-    sceneActors->AddItem(pickedProp);
+    sceneActors->AddItem(prop);
+    prop->VisibilityOn();
   }
   sceneActors->Modified();
 

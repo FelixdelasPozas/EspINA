@@ -26,7 +26,6 @@
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/View/ViewTypeFlags.h>
-#include <GUI/Widgets/NumericalInput.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <Support/Context.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -71,11 +70,6 @@ namespace ESPINA
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
 
     private slots:
-      /** \brief Propagates changes in the opacity widget to the settings and the representations.
-       *
-       */
-      void onOpacityChanged();
-
       /** \brief Propagates changes in the width widget to the settings and the representations.
        *
        */
@@ -99,7 +93,6 @@ namespace ESPINA
 
       std::shared_ptr<GUI::Representations::SegmentationSkeletonPoolSettings> m_settings; /** settings object. */
 
-      GUI::Widgets::NumericalInput *m_opacityWidget;      /** representation's opacity widget.                */
       QComboBox                    *m_widthWidget;        /** representation's width widget.                  */
       GUI::Widgets::ToolButton     *m_annotationsWidget;  /** representation's annotations visibility widget. */
   };

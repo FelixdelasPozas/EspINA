@@ -286,8 +286,6 @@ void vtkSkeletonWidget::stop()
   {
     case vtkSkeletonWidget::Define:
     {
-      m_widgetState = vtkSkeletonWidget::Start;
-      qDebug() << "state -> start";
       rep->DeleteCurrentNode();
 
       Superclass::EndInteraction();
@@ -626,6 +624,17 @@ void vtkSkeletonWidget::setCurrentOperationMode(const int mode)
 const int vtkSkeletonWidget::currentOperationMode() const
 {
   return m_widgetState;
+}
+
+//-----------------------------------------------------------------------------
+const unsigned int vtkSkeletonWidget::numberOfPoints() const
+{
+  if(WidgetRep)
+  {
+    return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->GetNumberOfNodes();
+  }
+
+  return 0;
 }
 
 //-----------------------------------------------------------------------------

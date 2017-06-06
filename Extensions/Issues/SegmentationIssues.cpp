@@ -46,12 +46,6 @@ SegmentationIssues::SegmentationIssues(const InfoCache& infoCache)
 {
 }
 
-
-//------------------------------------------------------------------------
-SegmentationIssues::~SegmentationIssues()
-{
-}
-
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
 {

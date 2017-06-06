@@ -25,6 +25,8 @@
 
 // ESPINA
 #include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -67,6 +69,9 @@ namespace ESPINA
 
         virtual bool validCategory(const QString& classificationName) const
         { return true;}
+
+        virtual bool validData(const OutputSPtr output) const
+        { return hasVolumetricData(output) && hasMeshData(output); }
 
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;

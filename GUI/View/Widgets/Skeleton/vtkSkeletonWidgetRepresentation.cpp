@@ -154,6 +154,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
   auto node = new SkeletonNode{worldPos};
 
   this->s_skeleton.push_back(node);
+  qDebug() << s_skeleton.size();
 
   if (this->s_currentVertex != nullptr)
   {
@@ -360,7 +361,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 //-----------------------------------------------------------------------------
 unsigned int vtkSkeletonWidgetRepresentation::GetNumberOfNodes() const
 {
-  return s_skeleton.size();
+  return this->s_skeleton.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -927,7 +928,7 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y,
       pos_j = this->s_skeleton[locator[connections[j]]]->worldPosition;
 
       double v[3]{pos_j[0]-pos_i[0], pos_j[1]-pos_i[1], pos_j[2]-pos_i[2]};
-      double w[3]{ point_pos[0]-pos_i[0], point_pos[1]-pos_i[1], point_pos[2]-pos_i[2]};
+      double w[3]{point_pos[0]-pos_i[0], point_pos[1]-pos_i[1], point_pos[2]-pos_i[2]};
 
       double dotwv = 0;
       double dotvv = 0;

@@ -34,7 +34,6 @@ using namespace ESPINA::Representations;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Widgets::Styles;
 
-const QString SEGMENTATION_SKELETON_OPACITY_KEY = "Opacity";
 const QString SEGMENTATION_SKELETON_WIDTH_KEY   = "Width";
 const QString SEGMENTATION_SKELETON_SHOWIDS_KEY = "ShowIds";
 
@@ -65,11 +64,9 @@ void SegmentationSkeletonSwitch::restoreSettings(std::shared_ptr<QSettings> sett
 {
   restoreCheckedState(settings);
 
-  auto opacity = settings->value(SEGMENTATION_SKELETON_OPACITY_KEY, 0.6).toDouble();
   auto width   = settings->value(SEGMENTATION_SKELETON_WIDTH_KEY,     2).toInt();
   auto show    = settings->value(SEGMENTATION_SKELETON_SHOWIDS_KEY, false).toBool();
 
-  m_settings->setOpacity(opacity);
   m_settings->setWidth(width);
   m_settings->setShowAnnotations(show);
 }
@@ -79,17 +76,8 @@ void SegmentationSkeletonSwitch::saveSettings(std::shared_ptr<QSettings> setting
 {
   saveCheckedState(settings);
 
-  settings->setValue(SEGMENTATION_SKELETON_OPACITY_KEY, m_settings->opacity());
   settings->setValue(SEGMENTATION_SKELETON_WIDTH_KEY,   m_settings->width());
   settings->setValue(SEGMENTATION_SKELETON_SHOWIDS_KEY, m_settings->showAnnotations());
-}
-
-//---------------------------------------------------------------------
-void SegmentationSkeletonSwitch::onOpacityChanged()
-{
-  if (m_settings->opacity() == m_opacityWidget->value()/100.0) return;
-
-  m_settings->setOpacity(m_opacityWidget->value()/100.0);
 }
 
 //---------------------------------------------------------------------
@@ -111,7 +99,6 @@ void SegmentationSkeletonSwitch::onAnnotationsVisibilityChanged()
 //---------------------------------------------------------------------
 void SegmentationSkeletonSwitch::onSettingsModified()
 {
-  m_opacityWidget->setValue(m_settings->opacity()*100);
   m_widthWidget->setCurrentIndex(m_settings->width());
   m_annotationsWidget->setChecked(m_settings->showAnnotations());
 
@@ -123,20 +110,6 @@ void SegmentationSkeletonSwitch::onSettingsModified()
 //---------------------------------------------------------------------
 void SegmentationSkeletonSwitch::initWidgets()
 {
-  m_opacityWidget = new GUI::Widgets::NumericalInput();
-  m_opacityWidget->setLabelText(tr("Opacity"));
-  m_opacityWidget->setMinimum(0);
-  m_opacityWidget->setMaximum(100);
-  m_opacityWidget->setSliderTracking(false);
-  m_opacityWidget->setValue(m_settings->opacity()*100);
-  m_opacityWidget->setSpinBoxVisibility(false);
-  m_opacityWidget->setWidgetsToolTip(tr("Skeleton representation opacity."));
-
-  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
-          this,            SLOT(onOpacityChanged()));
-
-  addSettingsWidget(m_opacityWidget);
-
   auto widthLabel = new QLabel("Width");
   widthLabel->setToolTip(tr("Skeleton representation line width"));
 

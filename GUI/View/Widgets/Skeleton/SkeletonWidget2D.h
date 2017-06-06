@@ -128,10 +128,8 @@ namespace ESPINA
             private slots:
               void onTrackStarted(Track track, RenderView* view);
               void onTrackUpdated(Track track);
-              void onTrackStopped(Track track, RenderView *view);
               void onCursorPositionChanged(const QPoint &p);
               void onStrokeEnded();
-              void onCancellation();
 
             private:
               /** \brief Helper method to connect the handler signals.
