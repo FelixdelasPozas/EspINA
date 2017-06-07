@@ -222,18 +222,18 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
 {
   if(m_view == view)
   {
-    m_hasHandler = true;
-
     auto point = track.first();
 
     m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), 0, 0);
     m_widget->addPoint();
 
-    // if it's the first point add another to act as cursor.
-    if(m_widget->numberOfPoints() == 1)
+    // if it's the first point of a track add another to act as cursor.
+    if(!m_hasHandler)
     {
       m_widget->addPoint();
     }
+
+    m_hasHandler = true;
   }
 }
 

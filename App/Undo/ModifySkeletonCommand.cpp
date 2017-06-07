@@ -23,37 +23,36 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace ESPINA
+using namespace ESPINA;
+
+//-----------------------------------------------------------------------------
+ModifySkeletonCommand::ModifySkeletonCommand(SegmentationAdapterPtr segmentation, vtkSmartPointer<vtkPolyData> skeletonPolyData)
+: m_segmentation {segmentation}
+, m_newSkeleton  {skeletonPolyData}
+, m_oldSkeleton  {readLockSkeleton(segmentation->output())->skeleton()}
+, m_editedRegions{readLockSkeleton(segmentation->output())->editedRegions()}
 {
-  //-----------------------------------------------------------------------------
-  ModifySkeletonCommand::ModifySkeletonCommand(SegmentationAdapterPtr segmentation, vtkSmartPointer<vtkPolyData> skeletonPolyData)
-  : m_segmentation{segmentation}
-  , m_newSkeleton {skeletonPolyData}
-  , m_oldSkeleton {readLockSkeleton(segmentation->output())->skeleton()}
-  , m_editedRegions{readLockSkeleton(segmentation->output())->editedRegions()}
-  {
-  }
-  
-  //-----------------------------------------------------------------------------
-  ModifySkeletonCommand::~ModifySkeletonCommand()
-  {
-  }
+}
 
-  //-----------------------------------------------------------------------------
-  void ModifySkeletonCommand::redo()
-  {
-    // set skeleton modifies edited regions accordingly
-    writeLockSkeleton(m_segmentation->output())->setSkeleton(m_newSkeleton);
-  }
+//-----------------------------------------------------------------------------
+ModifySkeletonCommand::~ModifySkeletonCommand()
+{
+}
 
-  //-----------------------------------------------------------------------------
-  void ModifySkeletonCommand::undo()
-  {
-    auto data = writeLockSkeleton(m_segmentation->output());
-    data->setSkeleton(m_oldSkeleton);
-    // original skeleton edited regions can be empty, must restore the original state,
-    // as setSkeleton() modifies edited regions.
-    data->setEditedRegions(m_editedRegions);
-  }
+//-----------------------------------------------------------------------------
+void ModifySkeletonCommand::redo()
+{
+  // set skeleton modifies edited regions accordingly
+  writeLockSkeleton(m_segmentation->output())->setSkeleton(m_newSkeleton);
+}
 
-} // namespace EspINA
+//-----------------------------------------------------------------------------
+void ModifySkeletonCommand::undo()
+{
+  auto data = writeLockSkeleton(m_segmentation->output());
+  data->setSkeleton(m_oldSkeleton);
+  // original skeleton edited regions can be empty, must restore the original state,
+  // as setSkeleton() modifies edited regions.
+  data->setEditedRegions(m_editedRegions);
+}
+

@@ -27,7 +27,6 @@
 #include <GUI/Utils/RepresentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
-#include <GUI/View/Utils.h>
 
 // VTK
 #include <vtkActor.h>
@@ -43,7 +42,6 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
-using namespace ESPINA::GUI::View::Utils;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
@@ -86,7 +84,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       double pointACoords[3]{0, 0, 0};
       double pointBCoords[3]{0, 0, 0};
 
-      if(SegmentationSkeletonPoolSettings::getShowAnnotations(state))
+      if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
       {
         // TODO prepare for annotations actor, insert data in next while expr.
       }

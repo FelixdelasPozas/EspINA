@@ -177,6 +177,46 @@ namespace ESPINA
       void setControlsVisibility(bool value);
 
     private:
+      /** \class NullRepresentationPipeline
+       * \brief Implements an empty representation.
+       *
+       */
+      class NullRepresentationPipeline
+      : public RepresentationPipeline
+      {
+        public:
+          /** \brief NullRepresentationPipeline class constructor.
+           *
+           */
+          explicit NullRepresentationPipeline()
+          : RepresentationPipeline("SegmentationSkeleton2D")
+          { /* representation type must be the same as the default one. */ }
+
+          /** \brief NullRepresentationPipeline class virtual destructor.
+           *
+           */
+          virtual ~NullRepresentationPipeline()
+          {};
+
+          virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
+                                                                 const RepresentationState &state)
+          { return RepresentationPipeline::ActorList(); }
+
+          virtual  void updateColors(RepresentationPipeline::ActorList &actors,
+                                     ConstViewItemAdapterPtr            item,
+                                     const RepresentationState         &state)
+          {}
+
+          virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
+          { return false; }
+
+          virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
+                                                          const RepresentationState &settings)
+          { return RepresentationState(); }
+      };
+
+
+    private:
       bool                                                      m_init;             /** true if the tool has been initialized.             */
       GUI::Widgets::CategorySelector                           *m_categorySelector; /** category selector widget.                          */
       QLabel                                                   *m_label;            /** distances label widget.                            */
