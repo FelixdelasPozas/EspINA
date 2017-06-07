@@ -257,6 +257,11 @@ void SkeletonTool::initTool(bool value)
 
       if(getViewState().hasTemporalRepresentation(m_factory)) getViewState().removeTemporalRepresentations(m_factory);
 
+      if(m_item && m_item != getActiveChannel())
+      {
+        m_item->clearTemporalRepresentation();
+        m_item->invalidateRepresentations();
+      }
       m_item = nullptr;
 
       disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
@@ -399,6 +404,7 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       Q_ASSERT(category);
 
       segmentation->setCategory(category);
+      segmentation->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
 
       SampleAdapterSList samples;
       samples << QueryAdapter::sample(activeChannel);
@@ -414,7 +420,6 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       selection << segmentation.get();
 
       getSelection()->set(selection);
-      m_item->invalidateRepresentations();
     }
   }
   else
