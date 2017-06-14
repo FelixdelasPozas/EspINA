@@ -190,6 +190,12 @@ void CODEToolBase::onTaskFinished()
 }
 
 //------------------------------------------------------------------------
+bool CODEToolBase::acceptsSelection(SegmentationAdapterList segmentations)
+{
+  return acceptsVolumetricSegmentations(segmentations);
+}
+
+//------------------------------------------------------------------------
 void CODEToolBase::abortTasks()
 {
   for(auto task: m_executingTasks)
