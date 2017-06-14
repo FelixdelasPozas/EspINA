@@ -83,7 +83,7 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
     mapper->ReleaseDataFlagOn();
     mapper->SetBlendModeToComposite();
     mapper->SetVolumeRayCastFunction(composite);
-    mapper->IntermixIntersectingGeometryOff();
+    mapper->IntermixIntersectingGeometryOn();
     mapper->SetInputData(volume);
     mapper->SetNumberOfThreads(1);
     mapper->Update();
