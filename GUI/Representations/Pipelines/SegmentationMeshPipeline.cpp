@@ -71,7 +71,7 @@ RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(ConstVi
   {
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->ReleaseDataFlagOn();
-    mapper->ImmediateModeRenderingOn();
+    mapper->ImmediateModeRenderingOff();
     mapper->ScalarVisibilityOff();
     mapper->SetInputData(readLockMesh(segmentation->output())->mesh());
     mapper->Update();
