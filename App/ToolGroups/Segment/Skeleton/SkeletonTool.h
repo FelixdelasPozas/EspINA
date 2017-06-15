@@ -94,7 +94,7 @@ namespace ESPINA
        *
        */
       void abortOperation()
-      { initTool(false); };
+      { deactivateEventHandler(); };
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
@@ -170,12 +170,6 @@ namespace ESPINA
        */
       void initEventHandler();
 
-      /** \brief Helper method to manage the visibility of widgets.
-       * \param[in] value true to set visible false otherwise.
-       *
-       */
-      void setControlsVisibility(bool value);
-
     private:
       /** \class NullRepresentationPipeline
        * \brief Implements an empty representation.
@@ -219,7 +213,6 @@ namespace ESPINA
     private:
       bool                                                      m_init;             /** true if the tool has been initialized.             */
       GUI::Widgets::CategorySelector                           *m_categorySelector; /** category selector widget.                          */
-      QLabel                                                   *m_label;            /** distances label widget.                            */
       DoubleSpinBoxAction                                      *m_minWidget;        /** min distance between points widget.                */
       DoubleSpinBoxAction                                      *m_maxWidget;        /** max distance between points widget.                */
       GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr    m_eventHandler;     /** tool's event handler.                              */

@@ -164,6 +164,7 @@ set (GUI_SOURCES
   Utils/QtModelUtils.cpp
   Utils/RepresentationUtils.cpp
   Utils/Timer.cpp
+  Utils/EventUtils.cpp
   EventHandlers/Brush.cpp
   EventHandlers/CircularBrush.cpp
   EventHandlers/SphericalBrush.cpp

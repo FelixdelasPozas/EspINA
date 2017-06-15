@@ -39,7 +39,6 @@ SkeletonEventHandler::SkeletonEventHandler()
 , m_maxDistance2      {10}
 , m_minDistance2      {0}
 , m_distanceHasBeenSet{false}
-, m_view              {nullptr}
 {
 }
 
@@ -52,68 +51,78 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
   switch(e->type())
   {
     case QEvent::MouseButtonPress:
-      if(!m_tracking && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+      if(!m_tracking && me && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
       {
+        emit mousePress(me->button(), me->pos(), view);
+
         if (me && (me->button() == Qt::LeftButton))
         {
           m_tracking = true;
-          m_view     = view;
 
-          startTrack(me->pos());
+          startTrack(me->pos(), view);
+
           return true;
         }
 
         if (!m_track.isEmpty() && me && (me->button() == Qt::RightButton))
         {
-          emit stopped();
+          emit stopped(view);
           m_track.clear();
-          m_view = nullptr;
+
           return true;
         }
       }
       break;
     case QEvent::MouseMove:
-      if (me && (view == m_view))
+      if (me)
       {
         if(m_tracking)
         {
-          updateTrack(me->pos());
+          updateTrack(me->pos(), view);
+
           return true;
         }
         else
         {
+          emit cursorPosition(me->pos(), view);
           if(!m_track.isEmpty())
           {
-            emit cursorPosition(me->pos());
+
             return true;
           }
         }
       }
       break;
     case QEvent::MouseButtonRelease:
-      if (m_tracking && me && (me->button() == Qt::LeftButton))
+      if(me)
       {
-        m_tracking = false;
-        updateTrack(me->pos());
-        return true;
+        emit mouseRelease(me->button(), me->pos(), view);
+
+        if (m_tracking && (me->button() == Qt::LeftButton))
+        {
+          m_tracking = false;
+          updateTrack(me->pos(), view);
+
+          return true;
+        }
       }
       break;
     case QEvent::Leave:
       if (m_tracking)
       {
         m_tracking = false;
-        updateTrack(me->pos());
+        updateTrack(me->pos(), view);
 
-        emit stopped();
+        emit stopped(view);
         m_track.clear();
-        m_view = nullptr;
       }
       else
       {
         if (!m_track.isEmpty())
         {
-          emit cancelled();
+          emit cancelled(view);
           m_track.clear();
+
           return false; // let the view also handle the event.
         }
       }
@@ -122,15 +131,17 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       if(ke && ke->key() == Qt::Key_Shift)
       {
         emit modifier(true);
+
+        return true;
       }
       break;
     case QEvent::KeyRelease:
       if(ke && ke->key() == Qt::Key_Shift)
       {
         emit modifier(false);
+
+        return true;
       }
-      break;
-      return true;
       break;
     default:
       break;
@@ -168,15 +179,15 @@ bool SkeletonEventHandler::isTracking() const
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::startTrack(const QPoint &pos)
+void SkeletonEventHandler::startTrack(const QPoint &pos, RenderView *view)
 {
-  if(m_view)
+  if(view)
   {
     if(!m_distanceHasBeenSet)
     {
       // if not set, the default is minimum spacing, and max is 5* minimum
-      auto res    = m_view->sceneResolution();
-      auto view2d = view2D_cast(m_view);
+      auto res    = view->sceneResolution();
+      auto view2d = view2D_cast(view);
       auto planeIndex = normalCoordinateIndex(view2d->plane());
       double minRes = VTK_DOUBLE_MAX;
       for(int i: {0,1,2})
@@ -193,51 +204,51 @@ void SkeletonEventHandler::startTrack(const QPoint &pos)
 
     m_track << pos;
 
-    emit started(m_track, m_view);
+    emit started(m_track, view);
   }
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::updateTrack(const QPoint &pos)
+void SkeletonEventHandler::updateTrack(const QPoint &pos, RenderView *view)
 {
-  if(m_view)
+  if(view)
   {
     m_updatedTrack.clear();
 
-    auto viewPoint1 = m_view->worldEventPosition(pos);
-    auto viewPoint2 = m_view->worldEventPosition(m_track.last());
+    auto viewPoint1 = view->worldEventPosition(pos);
+    auto viewPoint2 = view->worldEventPosition(m_track.last());
     auto distance = distance2(viewPoint1, viewPoint2);
 
     if(distance < m_minDistance2)
     {
-      emit cursorPosition(pos);
+      emit cursorPosition(pos, view);
       return;
     }
 
     if(distance > m_maxDistance2 && m_interpolation)
     {
-      m_updatedTrack << interpolate(m_track.last(), pos);
+      m_updatedTrack << interpolate(m_track.last(), pos, view);
     }
     else
     {
       m_updatedTrack << pos;
     }
 
-    emit updated(m_updatedTrack);
+    emit updated(m_updatedTrack, view);
 
     m_track << m_updatedTrack;
   }
 }
 
 //------------------------------------------------------------------------
-SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint &point1, const QPoint &point2)
+SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint &point1, const QPoint &point2, RenderView *view)
 {
   Track track;
 
-  if(m_view)
+  if(view)
   {
-    auto viewPoint1 = m_view->worldEventPosition(point1);
-    auto viewPoint2 = m_view->worldEventPosition(point2);
+    auto viewPoint1 = view->worldEventPosition(point1);
+    auto viewPoint2 = view->worldEventPosition(point2);
     auto distance = distance2(viewPoint1, viewPoint2);
 
     if(distance > m_maxDistance2)

@@ -106,8 +106,8 @@ SkeletonTool::SkeletonTool(Support::Context& context)
   setCheckable(true);
   setExclusive(true);
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(initTool(bool)));
+  connect(m_eventHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+          this                , SLOT(initTool(bool)));
 
   initParametersWidgets();
 }
@@ -122,17 +122,24 @@ SkeletonTool::~SkeletonTool()
 void SkeletonTool::initParametersWidgets()
 {
   m_categorySelector = new CategorySelector(getModel());
+  m_categorySelector->setToolTip(tr("Category of the segmentation to be created."));
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
 
+  connect(this, SIGNAL(toggled(bool)), m_categorySelector, SLOT(setVisible(bool)));
+
   addSettingsWidget(m_categorySelector);
 
-  m_label = new QLabel("Points distance:");
+  auto label = new QLabel("Points distance:");
+  label->setToolTip(tr("Manage distance between points"));
 
-  addSettingsWidget(m_label);
+  connect(this, SIGNAL(toggled(bool)), label, SLOT(setVisible(bool)));
+
+  addSettingsWidget(label);
 
   m_minWidget = new DoubleSpinBoxAction(this);
+  m_minWidget->setToolTip(tr("Minimum distance between points."));
 
   m_minWidget->setLabelText(tr("Minimum"));
   m_minWidget->setSuffix(tr(" nm"));
@@ -141,9 +148,12 @@ void SkeletonTool::initParametersWidgets()
   connect(m_minWidget, SIGNAL(valueChanged(double)),
           this,        SLOT(onMinimumDistanceChanged(double)));
 
+  connect(this, SIGNAL(toggled(bool)), m_minWidget, SLOT(setVisible(bool)));
+
   addSettingsWidget(m_minWidget->createWidget(nullptr));
 
   m_maxWidget = new DoubleSpinBoxAction(this);
+  m_maxWidget->setToolTip(tr("Maximum distance between points."));
 
   m_maxWidget->setLabelText(tr("Maximum"));
   m_maxWidget->setSuffix(tr(" nm"));
@@ -151,6 +161,8 @@ void SkeletonTool::initParametersWidgets()
 
   connect(m_maxWidget, SIGNAL(valueChanged(double)),
           this,        SLOT(onMaximumDistanceChanged(double)));
+
+  connect(this, SIGNAL(toggled(bool)), m_maxWidget, SLOT(setVisible(bool)));
 
   addSettingsWidget(m_maxWidget->createWidget(nullptr));
 }
@@ -270,8 +282,6 @@ void SkeletonTool::initTool(bool value)
       getViewState().refresh();
     }
   }
-
-  setControlsVisibility(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -320,15 +330,6 @@ void SkeletonTool::onMaximumDistanceChanged(double value)
 {
   m_eventHandler->setMaximumPointDistance(value);
   m_minWidget->setSpinBoxMaximum(value);
-}
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::setControlsVisibility(bool value)
-{
-  m_categorySelector->setVisible(value);
-  m_minWidget->setVisible(value);
-  m_maxWidget->setVisible(value);
-  m_label->setVisible(value);
 }
 
 //-----------------------------------------------------------------------------

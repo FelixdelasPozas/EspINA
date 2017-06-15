@@ -26,6 +26,7 @@
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
+#include <vtkSetGet.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkSmartPointer.h>
 
@@ -271,9 +272,6 @@ namespace ESPINA
                 Outside = 0, NearContour, NearPoint
               };
 
-              /** \brief Implements vtkAbstractWidgetRepresentation::BuildRepresentation().
-               *
-               */
               void BuildRepresentation();
 
               /** \brief Updates the pointer position and visibility.
@@ -281,34 +279,16 @@ namespace ESPINA
                */
               void UpdatePointer();
 
-              /* \brief Implements vtkAbstractWidgetRepresentation::ComputeInteractionState().
-               *
-               */
               virtual int ComputeInteractionState(int X, int Y, int vtkNotUsed(modified) = 0);
 
-              /** \brief Implements vtkWidgetRepresentation::ReleaseGraphicResources().
-               *
-               */
               virtual void ReleaseGraphicsResources(vtkWindow *w);
 
-              /** \brief Implements vtkWidgetRepresentation::RenderOverlay().
-               *
-               */
               virtual int RenderOverlay(vtkViewport *viewport);
 
-              /** \brief Implements vtkWidgetRepresentation::RenderOpaqueGeometry().
-               *
-               */
               virtual int RenderOpaqueGeometry(vtkViewport *viewport);
 
-              /** \brief Implements vtkWidgetRepresentation::RenderTranslucentGeometry().
-               *
-               */
               virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
 
-              /** \brief Implements vtkWidgetRepresentation::HasTranslucentPolygonalGeometry().
-               *
-               */
               virtual int HasTranslucentPolygonalGeometry();
 
               /** \brief Returns the current representation data as a vtkPolyData smart pointer.
@@ -334,8 +314,7 @@ namespace ESPINA
                * \param[in] spacing Spacing vector.
                *
                */
-              void SetSpacing(const NmVector3 &spacing)
-              { m_spacing = spacing; }
+              void SetSpacing(const NmVector3 &spacing);
 
               /** \brief Returns the slice of the representation.
                *
@@ -357,6 +336,19 @@ namespace ESPINA
                *
                */
               bool IsPointTooClose(int x, int y) const;
+
+              /** \brief Sets the value of the ignore cursor flag.
+               * \param[in] value true to ignore the cursor node in 'near node' and state computations, false otherwise.
+               *
+               */
+              void setIgnoreCursorNode(bool value)
+              { m_ignoreCursor = value; }
+
+              /** \brief Returns the value of the ignore cursor node flag.
+               *
+               */
+              bool ignoresCursor() const
+              { return m_ignoreCursor; }
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
@@ -438,6 +430,9 @@ namespace ESPINA
               vtkSmartPointer<vtkPolyData>          m_lines;
               vtkSmartPointer<vtkPolyDataMapper>    m_linesMapper;
               vtkSmartPointer<vtkActor>             m_linesActor;
+
+            private:
+              bool m_ignoreCursor; /** flag, true to ignore the cursor node (if any) in some computations, false otherwise. */
           };
 
         } // namespace Skeleton

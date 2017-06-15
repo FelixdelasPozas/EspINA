@@ -155,19 +155,6 @@ namespace ESPINA
                */
               void UpdateRepresentation();
 
-              /** \brief Returns true if the last event has resulted in data modification.
-               *  Used to signal modifications to the parent tool.
-               *
-               */
-              bool eventModifiedData() const
-              { return m_modified; }
-
-              /** \brief Deactivated the modified flag.
-               *
-               */
-              void resetModifiedFlag()
-              { m_modified = false; }
-
               /** \brief Operation modes. */
               enum { Start = 0, Define = 1, Manipulate = 2 };
 
@@ -186,10 +173,28 @@ namespace ESPINA
                */
               void stop();
 
+              /** \brief Removes the current node or does nothing if there is no node selected.
+               *
+               */
+              void deletePoint();
+
+              /** \brief Selects the closest node to the given mouse coordinates if is between tolerance values.
+               * Returns true on success and false otherwise.
+               *
+               */
+              bool selectNode();
+
               /** \brief Returns the number of nodes in the current representation.
                *
                */
               const unsigned int numberOfPoints() const;
+
+              /** \brief Sets the value of the "ignore cursor" flag.
+               * \param[in] value true to ignore the cursor in distances computations and false otherwise.
+               *
+               */
+              void setIgnoreCursor(bool value)
+              { m_ignoreCursor = value; }
 
             protected:
               int       m_widgetState;   /** widget operation state.                */
@@ -242,10 +247,10 @@ namespace ESPINA
                */
               void operator=(const vtkSkeletonWidget&);
 
-              QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                     */
-              QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes. */
-              QCursor m_crossCheckCursor; /** cross check cursor shown when connecting two strokes.             */
-              bool    m_modified;         /** modified flag.                                                    */
+              QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                                         */
+              QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes.                     */
+              QCursor m_crossCheckCursor; /** cross check cursor shown when connecting two strokes.                                 */
+              bool    m_ignoreCursor;     /** true to ignore the current cursor node in distances computations and false otherwise. */
           };
 
         } // namespace Skeleton
