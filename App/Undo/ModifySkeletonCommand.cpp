@@ -44,6 +44,8 @@ void ModifySkeletonCommand::redo()
 {
   // set skeleton modifies edited regions accordingly
   writeLockSkeleton(m_segmentation->output())->setSkeleton(m_newSkeleton);
+
+  m_segmentation->invalidateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -54,5 +56,7 @@ void ModifySkeletonCommand::undo()
   // original skeleton edited regions can be empty, must restore the original state,
   // as setSkeleton() modifies edited regions.
   data->setEditedRegions(m_editedRegions);
+
+  m_segmentation->invalidateRepresentations();
 }
 

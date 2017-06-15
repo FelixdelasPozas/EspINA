@@ -48,7 +48,7 @@ SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler)
 , m_position  {-std::numeric_limits<Nm>::max()}
 , m_handler   {handler}
 , m_view      {nullptr}
-, m_hasHandler{false}
+, m_mode      {Mode::CREATE}
 {
 }
   
@@ -182,88 +182,135 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
 //--------------------------------------------------------------------
 void SkeletonWidget2D::connectSignals()
 {
+  connect(m_handler.get(), SIGNAL(mousePress(Qt::MouseButtons, const QPoint &, RenderView *)),
+          this,            SLOT(onMousePress(Qt::MouseButtons, const QPoint &, RenderView *)));
+
+  connect(m_handler.get(), SIGNAL(mouseRelease(Qt::MouseButtons, const QPoint &, RenderView *)),
+          this,            SLOT(onMouseRelease(Qt::MouseButtons, const QPoint &, RenderView *)));
+
   connect(m_handler.get(), SIGNAL(started(Track, RenderView*)),
          this,             SLOT(onTrackStarted(Track, RenderView*)));
 
-  connect(m_handler.get(), SIGNAL(updated(Track)),
-          this,            SLOT(onTrackUpdated(Track)));
+  connect(m_handler.get(), SIGNAL(updated(Track, RenderView *)),
+          this,            SLOT(onTrackUpdated(Track, RenderView *)));
 
-  connect(m_handler.get(), SIGNAL(stopped()),
-           this,           SLOT(onStrokeEnded()));
+  connect(m_handler.get(), SIGNAL(stopped(RenderView *)),
+           this,           SLOT(onStrokeEnded(RenderView *)));
 
-  connect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &)),
-           this,           SLOT(onCursorPositionChanged(const QPoint &)));
+  connect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &, RenderView *)),
+           this,           SLOT(onCursorPositionChanged(const QPoint &, RenderView *)));
 
-  connect(m_handler.get(), SIGNAL(cancelled()),
-          this,            SLOT(onStrokeEnded()));
+  connect(m_handler.get(), SIGNAL(cancelled(RenderView *)),
+          this,            SLOT(onStrokeEnded(RenderView *)));
 }
 
 //--------------------------------------------------------------------
 void SkeletonWidget2D::disconnectSignals()
 {
+  disconnect(m_handler.get(), SIGNAL(mousePress(Qt::MouseButtons, const QPoint &, RenderView *)),
+             this,            SLOT(onMousePress(Qt::MouseButtons, const QPoint &, RenderView *)));
+
+  disconnect(m_handler.get(), SIGNAL(mouseRelease(Qt::MouseButtons, const QPoint &, RenderView *)),
+             this,            SLOT(onMouseRelease(Qt::MouseButtons, const QPoint &, RenderView *)));
+
   disconnect(m_handler.get(), SIGNAL(started(Track, RenderView*)),
-             this,             SLOT(onTrackStarted(Track, RenderView*)));
+             this,            SLOT(onTrackStarted(Track, RenderView*)));
 
-  disconnect(m_handler.get(), SIGNAL(updated(Track)),
-             this,            SLOT(onTrackUpdated(Track)));
+  disconnect(m_handler.get(), SIGNAL(updated(Track, RenderView *)),
+             this,            SLOT(onTrackUpdated(Track, RenderView *)));
 
-  disconnect(m_handler.get(), SIGNAL(stopped()),
-             this,           SLOT(onStrokeEnded()));
+  disconnect(m_handler.get(), SIGNAL(stopped(RenderView *)),
+             this,            SLOT(onStrokeEnded(RenderView *)));
 
-  disconnect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &)),
-             this,           SLOT(onCursorPositionChanged(const QPoint &)));
+  disconnect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &, RenderView *)),
+             this,            SLOT(onCursorPositionChanged(const QPoint &, RenderView *)));
 
-  disconnect(m_handler.get(), SIGNAL(cancelled()),
-             this,            SLOT(onStrokeEnded()));
+  disconnect(m_handler.get(), SIGNAL(cancelled(RenderView *)),
+             this,            SLOT(onStrokeEnded(RenderView *)));
 }
 
 //--------------------------------------------------------------------
 void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
 {
-  if(m_view == view)
+  if(view != m_view) return;
+
+  auto point = track.first();
+
+  m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), 0, 0);
+
+  switch (m_mode)
   {
-    auto point = track.first();
-
-    m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), 0, 0);
-    m_widget->addPoint();
-
-    // if it's the first point of a track add another to act as cursor.
-    if(!m_hasHandler)
-    {
+    case Mode::CREATE:
+      m_widget->setIgnoreCursor(true);
       m_widget->addPoint();
-    }
-
-    m_hasHandler = true;
+      break;
+    case Mode::DELETE:
+      m_widget->deletePoint();
+      break;
+    case Mode::MODIFY:
+      m_widget->movePoint();
+      break;
+    default:
+      break;
   }
 }
 
 //--------------------------------------------------------------------
-void SkeletonWidget2D::onTrackUpdated(Track track)
+void SkeletonWidget2D::onTrackUpdated(Track track, RenderView *view)
 {
-  if(!m_hasHandler) return;
+  if(view != m_view) return;
 
   for(auto point: track)
   {
-    m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
-    m_widget->addPoint();
+    m_widget->GetInteractor()->SetEventInformationFlipY(point.x(), point.y(), 0, 0);
+
+    switch(m_mode)
+    {
+      case Mode::CREATE:
+        m_widget->addPoint();
+        break;
+      case Mode::DELETE:
+        m_widget->deletePoint();
+        break;
+      case Mode::MODIFY:
+        m_widget->movePoint();
+        break;
+      default:
+        break;
+    }
   }
 }
 
 //--------------------------------------------------------------------
-void SkeletonWidget2D::onCursorPositionChanged(const QPoint& p)
+void SkeletonWidget2D::onCursorPositionChanged(const QPoint& p, RenderView *view)
 {
-  if(!m_hasHandler) return;
+  if(view != m_view) return;
 
-  m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), Qt::ControlModifier == QApplication::keyboardModifiers(), Qt::ShiftModifier == QApplication::keyboardModifiers());
-  m_widget->movePoint();
+  m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
+  m_widget->GetInteractor()->MouseMoveEvent();
+
+  switch(m_mode)
+  {
+    case Mode::CREATE:
+      m_widget->movePoint();
+      break;
+    case Mode::DELETE:
+      m_widget->selectNode();
+      break;
+    case Mode::MODIFY:
+      m_widget->selectNode();
+      break;
+    default:
+      break;
+  }
 }
 
 //--------------------------------------------------------------------
-void SkeletonWidget2D::onStrokeEnded()
+void SkeletonWidget2D::onStrokeEnded(RenderView *view)
 {
-  if(!m_hasHandler) return;
+  if(view != m_view) return;
 
-  m_hasHandler = false;
+  m_widget->setIgnoreCursor(false);
   m_widget->stop();
 
   if(m_widget->numberOfPoints() < 2)
@@ -274,6 +321,49 @@ void SkeletonWidget2D::onStrokeEnded()
   else
   {
     emit modified(m_widget->getSkeleton());
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, RenderView *view)
+{
+  if(view != m_view) return;
+
+  switch(m_mode)
+  {
+    case Mode::CREATE:
+      break;
+    case Mode::DELETE:
+      break;
+    case Mode::MODIFY:
+      if (button == Qt::LeftButton)
+      {
+        m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
+        m_widget->selectNode();
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, RenderView *view)
+{
+  if(view != m_view) return;
+
+  switch (m_mode)
+  {
+    case Mode::CREATE:
+      break;
+    case Mode::DELETE:
+      break;
+    case Mode::MODIFY:
+      m_widget->stop();
+      emit modified(m_widget->getSkeleton());
+      break;
+    default:
+      break;
   }
 }
 

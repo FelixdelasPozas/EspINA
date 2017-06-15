@@ -54,36 +54,37 @@ QList<vtkSkeletonWidgetRepresentation::SkeletonNode *> vtkSkeletonWidgetRepresen
 
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
-: m_orientation{Plane::UNDEFINED}
-, m_tolerance  {std::sqrt(10)}
-, m_slice      {-1}
-, m_shift      {-1}
-, m_color      {QColor{254,254,254}}
+: m_orientation {Plane::UNDEFINED}
+, m_tolerance   {std::sqrt(20)}
+, m_slice       {-1}
+, m_shift       {-1}
+, m_color       {QColor{254,254,254}}
+, m_ignoreCursor{false}
 {
-  this->m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  this->m_colors->SetName("Colors");
-  this->m_colors->SetNumberOfComponents(3);
+  m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  m_colors->SetName("Colors");
+  m_colors->SetNumberOfComponents(3);
 
-  this->m_points = vtkSmartPointer<vtkPoints>::New();
-  this->m_points->SetNumberOfPoints(1);
-  this->m_points->SetPoint(0, 0.0, 0.0, 0.0);
+  m_points = vtkSmartPointer<vtkPoints>::New();
+  m_points->SetNumberOfPoints(1);
+  m_points->SetPoint(0, 0.0, 0.0, 0.0);
 
-  this->m_pointsData = vtkSmartPointer<vtkPolyData>::New();
-  this->m_pointsData->SetPoints(this->m_points);
-  this->m_pointsData->GetPointData()->SetScalars(m_colors);
+  m_pointsData = vtkSmartPointer<vtkPolyData>::New();
+  m_pointsData->SetPoints(m_points);
+  m_pointsData->GetPointData()->SetScalars(m_colors);
 
-  this->m_glypher = vtkSmartPointer<vtkGlyph3D>::New();
-  this->m_glypher->SetInputData(m_pointsData);
-  this->m_glypher->SetColorModeToColorByScalar();
+  m_glypher = vtkSmartPointer<vtkGlyph3D>::New();
+  m_glypher->SetInputData(m_pointsData);
+  m_glypher->SetColorModeToColorByScalar();
 
-  this->m_glypher->ScalingOn();
-  this->m_glypher->SetScaleModeToDataScalingOff();
-  this->m_glypher->SetScaleFactor(1.0);
+  m_glypher->ScalingOn();
+  m_glypher->SetScaleModeToDataScalingOff();
+  m_glypher->SetScaleFactor(1.0);
 
   // Use a sphere for nodes.
   auto sphere = vtkSmartPointer<vtkSphereSource>::New();
   sphere->SetRadius(0.5);
-  this->m_glypher->SetSourceConnection(sphere->GetOutputPort());
+  m_glypher->SetSourceConnection(sphere->GetOutputPort());
 
   auto sphere2 = vtkSmartPointer<vtkSphereSource>::New();
   sphere2->SetRadius(0.75);
@@ -109,26 +110,26 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_pointerActor->SetMapper(pointerMapper);
   m_pointerActor->GetProperty()->SetColor(1, 1, 1);
 
-  this->m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->m_mapper->SetInputData(m_glypher->GetOutput());
+  m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_mapper->SetInputData(m_glypher->GetOutput());
 
-  this->m_actor = vtkSmartPointer<vtkActor>::New();
-  this->m_actor->SetMapper(this->m_mapper);
-  this->m_actor->GetProperty()->SetLineWidth(3);
-  this->m_actor->GetProperty()->SetPointSize(1);
-  this->m_actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
+  m_actor = vtkSmartPointer<vtkActor>::New();
+  m_actor->SetMapper(m_mapper);
+  m_actor->GetProperty()->SetLineWidth(3);
+  m_actor->GetProperty()->SetPointSize(1);
+  m_actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
 
-  this->m_lines = vtkSmartPointer<vtkPolyData>::New();
-  this->m_linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->m_linesMapper->SetInputData(this->m_lines);
+  m_lines = vtkSmartPointer<vtkPolyData>::New();
+  m_linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_linesMapper->SetInputData(m_lines);
 
-  this->m_linesActor = vtkSmartPointer<vtkActor>::New();
-  this->m_linesActor->SetMapper(this->m_linesMapper);
-  this->m_linesActor->GetProperty()->SetLineWidth(2.5);
-  this->m_linesActor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
+  m_linesActor = vtkSmartPointer<vtkActor>::New();
+  m_linesActor->SetMapper(m_linesMapper);
+  m_linesActor->GetProperty()->SetLineWidth(2.5);
+  m_linesActor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
 
-  this->m_interactionOffset[0] = 0.0;
-  this->m_interactionOffset[1] = 0.0;
+  m_interactionOffset[0] = 0.0;
+  m_interactionOffset[1] = 0.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -145,47 +146,47 @@ vtkSkeletonWidgetRepresentation::~vtkSkeletonWidgetRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
 {
-  for (auto i: {0,1,2})
-  {
-    worldPos[i] = std::round(worldPos[i] / m_spacing[i]) * m_spacing[i];
-  }
+// NOTE: uncomment to add nodes only in voxel centers.
+//  for (auto i: {0,1,2})
+//  {
+//    worldPos[i] = std::round(worldPos[i] / m_spacing[i]) * m_spacing[i];
+//  }
 
-  worldPos[normalCoordinateIndex(this->m_orientation)] = this->m_slice;
+  worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
   auto node = new SkeletonNode{worldPos};
 
-  this->s_skeleton.push_back(node);
-  qDebug() << s_skeleton.size();
+  s_skeleton.push_back(node);
 
-  if (this->s_currentVertex != nullptr)
+  if (s_currentVertex != nullptr)
   {
-    this->s_currentVertex->connections << node;
+    s_currentVertex->connections << node;
     node->connections << s_currentVertex;
   }
 
-  this->s_currentVertex = node;
-  this->BuildRepresentation();
+  s_currentVertex = node;
+  BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::AddNodeAtWorldPosition(double x, double y, double z)
 {
   double worldPos[3]{x,y,z};
-  this->AddNodeAtPosition(worldPos);
+  AddNodeAtPosition(worldPos);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::AddNodeAtDisplayPosition(int displayPos[2])
 {
   double worldPos[3];
-  this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
-  this->AddNodeAtPosition(worldPos);
+  GetWorldPositionFromDisplayPosition(displayPos, worldPos);
+  AddNodeAtPosition(worldPos);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::AddNodeAtDisplayPosition(int X, int Y)
 {
   int displayPos[2]{X,Y};
-  this->AddNodeAtDisplayPosition(displayPos);
+  AddNodeAtDisplayPosition(displayPos);
 }
 
 //-----------------------------------------------------------------------------
@@ -194,9 +195,9 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(int displayPos[2])
   SkeletonNode *closestNode = nullptr;
 
   double worldPos[3];
-  this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
+  GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
-  double distance2 = VTK_DOUBLE_MAX; // we'll use distance^2 to avoid doing square root operation.
+  double distance2 = VTK_DOUBLE_MAX;
   for (auto node : m_visiblePoints.keys())
   {
     auto nodeDistance = vtkMath::Distance2BetweenPoints(worldPos, node->worldPosition);
@@ -208,15 +209,15 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(int displayPos[2])
     }
   }
 
-  if ((closestNode == nullptr) || ((m_tolerance * m_tolerance) < vtkMath::Distance2BetweenPoints(worldPos, closestNode->worldPosition)))
+  if ((closestNode == nullptr) || (m_tolerance < vtkMath::Distance2BetweenPoints(worldPos, closestNode->worldPosition)))
   {
-    this->s_currentVertex = nullptr;
+    s_currentVertex = nullptr;
   }
   else
   {
-    this->s_currentVertex = closestNode;
+    s_currentVertex = closestNode;
   }
-  this->UpdatePointer();
+  UpdatePointer();
 
   return (s_currentVertex != nullptr);
 }
@@ -226,14 +227,14 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(int X, int Y)
 {
   int displayPos[2]{X, Y};
 
-  return this->ActivateNode(displayPos);
+  return ActivateNode(displayPos);
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::ActivateNode(SkeletonNode *node)
 {
   s_currentVertex = node;
-  this->UpdatePointer();
+  UpdatePointer();
 
   return true;
 }
@@ -242,16 +243,16 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(SkeletonNode *node)
 void vtkSkeletonWidgetRepresentation::DeactivateNode()
 {
   s_currentVertex = nullptr;
-  this->UpdatePointer();
+  UpdatePointer();
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int displayPos[2], bool updateRepresentation)
 {
   double worldPos[3];
-  this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
+  GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
-  return this->SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
+  return SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
 }
 
 //-----------------------------------------------------------------------------
@@ -259,7 +260,7 @@ bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int X, int 
 {
   int displayPos[2]{X,Y};
 
-  return this->SetActiveNodeToDisplayPosition(displayPos, updateRepresentation);
+  return SetActiveNodeToDisplayPosition(displayPos, updateRepresentation);
 }
 
 //-----------------------------------------------------------------------------
@@ -267,19 +268,19 @@ bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double x, dou
 {
   double worldPos[3]{x,y,z};
 
-  return this->SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
+  return SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldPos[3], bool updateRepresentation)
 {
-  if (this->s_currentVertex == nullptr) return false;
+  if (s_currentVertex == nullptr) return false;
 
-  std::memcpy(this->s_currentVertex->worldPosition, worldPos, 3 * sizeof(double));
+  std::memcpy(s_currentVertex->worldPosition, worldPos, 3 * sizeof(double));
 
   if (updateRepresentation)
   {
-    this->BuildRepresentation();
+    BuildRepresentation();
   }
 
   return true;
@@ -288,9 +289,9 @@ bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldP
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::GetActiveNodeWorldPosition(double worldPos[3])
 {
-  if (this->s_currentVertex == nullptr) return false;
+  if (s_currentVertex == nullptr) return false;
 
-  std::memcpy(worldPos, this->s_currentVertex->worldPosition, 3 * sizeof(double));
+  std::memcpy(worldPos, s_currentVertex->worldPosition, 3 * sizeof(double));
 
   return true;
 }
@@ -298,13 +299,13 @@ bool vtkSkeletonWidgetRepresentation::GetActiveNodeWorldPosition(double worldPos
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::DeleteCurrentNode()
 {
-  if (this->s_currentVertex == nullptr) return false;
+  if (s_currentVertex == nullptr) return false;
 
   s_skeleton.removeAll(s_currentVertex);
-  delete this->s_currentVertex;
-  this->s_currentVertex = nullptr;
+  delete s_currentVertex;
+  s_currentVertex = nullptr;
 
-  this->BuildRepresentation();
+  BuildRepresentation();
 
   return true;
 }
@@ -313,26 +314,30 @@ bool vtkSkeletonWidgetRepresentation::DeleteCurrentNode()
 void vtkSkeletonWidgetRepresentation::ClearAllNodes()
 {
   DeleteCurrentNode();
-  for (auto node : this->s_skeleton)
+  for (auto node : s_skeleton)
   {
     delete node;
   }
 
-  this->s_skeleton.clear();
+  s_skeleton.clear();
 
-  this->BuildRepresentation();
+  BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 {
+  auto currentVertex = s_currentVertex;
+  if(currentVertex) s_skeleton.removeAll(s_currentVertex);
+
   double worldPos[3];
   int node_i = 0;
   int node_j = 0;
-  auto distance = this->FindClosestDistanceAndNode(X, Y, worldPos, node_i, node_j);
+  auto distance = FindClosestDistanceAndNode(X, Y, worldPos, node_i, node_j);
 
-  if (distance > m_tolerance)
-    return false;
+  if (distance > m_tolerance) return false;
+
+  SkeletonNode *addedNode = nullptr;
 
   if (node_i != node_j)
   {
@@ -346,14 +351,35 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 
     s_skeleton[node_j]->connections.removeAll(s_skeleton[node_i]);
     s_skeleton[node_j]->connections << s_currentVertex;
+
+    addedNode = s_currentVertex;
   }
   else
   {
-    s_currentVertex = s_skeleton[node_i];
-    this->AddNodeAtDisplayPosition(X, Y);
+    addedNode = s_skeleton[node_i];
   }
 
-  this->BuildRepresentation();
+  if(currentVertex == nullptr)
+  {
+    AddNodeAtDisplayPosition(X, Y);
+  }
+  else
+  {
+    s_currentVertex = currentVertex;
+
+    for(auto connection: s_currentVertex->connections)
+    {
+      if(!addedNode->connections.contains(connection)) addedNode->connections << connection;
+    }
+
+    s_currentVertex->connections.clear();
+
+    s_skeleton << s_currentVertex;
+  }
+
+  s_currentVertex->connections << addedNode;
+
+  BuildRepresentation();
 
   return true;
 }
@@ -361,7 +387,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 //-----------------------------------------------------------------------------
 unsigned int vtkSkeletonWidgetRepresentation::GetNumberOfNodes() const
 {
-  return this->s_skeleton.size();
+  return s_skeleton.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -379,43 +405,43 @@ bool vtkSkeletonWidgetRepresentation::SetOrientation(Plane plane)
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 {
-  if (this->s_skeleton.size() == 0 || !this->Renderer || !this->Renderer->GetActiveCamera())
+  if (s_skeleton.size() == 0 || !Renderer || !Renderer->GetActiveCamera())
   {
     VisibilityOff();
     return;
   }
 
   double p1[4], p2[4];
-  this->Renderer->GetActiveCamera()->GetFocalPoint(p1);
+  Renderer->GetActiveCamera()->GetFocalPoint(p1);
   p1[3] = 1.0;
-  this->Renderer->SetWorldPoint(p1);
-  this->Renderer->WorldToView();
-  this->Renderer->GetViewPoint(p1);
+  Renderer->SetWorldPoint(p1);
+  Renderer->WorldToView();
+  Renderer->GetViewPoint(p1);
 
   double depth = p1[2];
   double aspect[2];
-  this->Renderer->ComputeAspect();
-  this->Renderer->GetAspect(aspect);
+  Renderer->ComputeAspect();
+  Renderer->GetAspect(aspect);
 
   p1[0] = -aspect[0];
   p1[1] = -aspect[1];
-  this->Renderer->SetViewPoint(p1);
-  this->Renderer->ViewToWorld();
-  this->Renderer->GetWorldPoint(p1);
+  Renderer->SetViewPoint(p1);
+  Renderer->ViewToWorld();
+  Renderer->GetWorldPoint(p1);
 
   p2[0] = aspect[0];
   p2[1] = aspect[1];
   p2[2] = depth;
   p2[3] = 1.0;
-  this->Renderer->SetViewPoint(p2);
-  this->Renderer->ViewToWorld();
-  this->Renderer->GetWorldPoint(p2);
+  Renderer->SetViewPoint(p2);
+  Renderer->ViewToWorld();
+  Renderer->GetWorldPoint(p2);
 
   double distance = sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
 
-  int *size = this->Renderer->GetRenderWindow()->GetSize();
+  int *size = Renderer->GetRenderWindow()->GetSize();
   double viewport[4];
-  this->Renderer->GetViewport(viewport);
+  Renderer->GetViewport(viewport);
 
   double x, y, scale;
 
@@ -552,7 +578,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_pointsData->Modified();
   m_pointsData->GetPointData()->Modified();
   m_glypher->SetInputData(m_pointsData);
-  m_glypher->SetScaleFactor(distance * this->HandleSize);
+  m_glypher->SetScaleFactor(distance * HandleSize);
   m_glypher->Update();
   m_mapper->Update();
   m_actor->Modified();
@@ -563,11 +589,11 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_linesMapper->Update();
   m_linesActor->Modified();
 
-  m_pointer->SetScaleFactor(distance * this->HandleSize);
-  this->UpdatePointer();
+  m_pointer->SetScaleFactor(distance * HandleSize);
+  UpdatePointer();
 
-  this->VisibilityOn();
-  this->NeedToRenderOn();
+  VisibilityOn();
+  NeedToRenderOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -589,7 +615,7 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
     m_pointerActor->GetMapper()->Update();
     double color[3];
     m_linesActor->GetProperty()->GetColor(color);
-    m_pointerActor->GetProperty()->SetColor(1 - color[0], 1 - color[1], 1 - color[2]);
+    m_pointerActor->GetProperty()->SetColor(1 - color[0]/2., 1 - color[1]/2., 1 - color[2]/2.);
     m_pointerActor->VisibilityOn();
   }
   else
@@ -598,59 +624,63 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
   }
 
   m_pointerActor->Modified();
-  this->NeedToRenderOn();
+  NeedToRenderOn();
 }
 
 //-----------------------------------------------------------------------------
 int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
+  if(m_ignoreCursor && s_currentVertex) s_skeleton.removeAll(s_currentVertex);
+
   if (IsNearNode(X, Y))
   {
-    this->InteractionState = vtkSkeletonWidgetRepresentation::NearPoint;
+    InteractionState = vtkSkeletonWidgetRepresentation::NearPoint;
   }
   else
   {
     double worldPos[3];
     int unused1 = 0;
     int unused2 = 0;
-    if (this->FindClosestDistanceAndNode(X, Y, worldPos, unused1, unused2) <= this->m_tolerance)
+    if (FindClosestDistanceAndNode(X, Y, worldPos, unused1, unused2) <= m_tolerance)
     {
-      this->InteractionState = vtkSkeletonWidgetRepresentation::NearContour;
+      InteractionState = vtkSkeletonWidgetRepresentation::NearContour;
     }
     else
     {
-      this->InteractionState = vtkSkeletonWidgetRepresentation::Outside;
+      InteractionState = vtkSkeletonWidgetRepresentation::Outside;
     }
   }
 
-  return this->InteractionState;
+  if(m_ignoreCursor && s_currentVertex) s_skeleton << s_currentVertex;
+
+  return InteractionState;
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* win)
 {
-  this->m_actor->ReleaseGraphicsResources(win);
-  this->m_pointerActor->ReleaseGraphicsResources(win);
-  this->m_linesActor->ReleaseGraphicsResources(win);
+  m_actor->ReleaseGraphicsResources(win);
+  m_pointerActor->ReleaseGraphicsResources(win);
+  m_linesActor->ReleaseGraphicsResources(win);
 }
 
 //-----------------------------------------------------------------------------
 int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
 {
   int count = 0;
-  if (this->m_pointerActor->GetVisibility())
+  if (m_pointerActor->GetVisibility())
   {
-    count += this->m_pointerActor->RenderOverlay(viewport);
+    count += m_pointerActor->RenderOverlay(viewport);
   }
 
-  if (this->m_linesActor->GetVisibility())
+  if (m_linesActor->GetVisibility())
   {
-    count += this->m_linesActor->RenderOverlay(viewport);
+    count += m_linesActor->RenderOverlay(viewport);
   }
 
-  if (this->m_actor->GetVisibility())
+  if (m_actor->GetVisibility())
   {
-    count += this->m_actor->RenderOverlay(viewport);
+    count += m_actor->RenderOverlay(viewport);
   }
 
   return count;
@@ -660,22 +690,22 @@ int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
 int vtkSkeletonWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* viewport)
 {
   // Since we know RenderOpaqueGeometry gets called first, will do the build here
-  this->BuildRepresentation();
+  BuildRepresentation();
 
   int count = 0;
-  if (this->m_pointerActor->GetVisibility())
+  if (m_pointerActor->GetVisibility())
   {
-    count += this->m_pointerActor->RenderOpaqueGeometry(viewport);
+    count += m_pointerActor->RenderOpaqueGeometry(viewport);
   }
 
-  if (this->m_linesActor->GetVisibility())
+  if (m_linesActor->GetVisibility())
   {
-    count += this->m_linesActor->RenderOpaqueGeometry(viewport);
+    count += m_linesActor->RenderOpaqueGeometry(viewport);
   }
 
-  if (this->m_actor->GetVisibility())
+  if (m_actor->GetVisibility())
   {
-    count += this->m_actor->RenderOpaqueGeometry(viewport);
+    count += m_actor->RenderOpaqueGeometry(viewport);
   }
 
   return count;
@@ -686,19 +716,19 @@ int vtkSkeletonWidgetRepresentation::RenderTranslucentPolygonalGeometry(vtkViewp
 {
   int count = 0;
 
-  if (this->m_pointerActor->GetVisibility())
+  if (m_pointerActor->GetVisibility())
   {
-    count += this->m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
+    count += m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
-  if (this->m_linesActor->GetVisibility())
+  if (m_linesActor->GetVisibility())
   {
-    count += this->m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
+    count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
-  if (this->m_actor->GetVisibility())
+  if (m_actor->GetVisibility())
   {
-    count += this->m_actor->RenderTranslucentPolygonalGeometry(viewport);
+    count += m_actor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
   return count;
@@ -709,18 +739,18 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result = 0;
 
-  if (this->m_pointerActor->GetVisibility())
+  if (m_pointerActor->GetVisibility())
   {
-    result += this->m_pointerActor->HasTranslucentPolygonalGeometry();
+    result += m_pointerActor->HasTranslucentPolygonalGeometry();
   }
 
-  if (this->m_linesActor->GetVisibility())
+  if (m_linesActor->GetVisibility())
   {
-    result |= this->m_linesActor->HasTranslucentPolygonalGeometry();
+    result |= m_linesActor->HasTranslucentPolygonalGeometry();
   }
-  if (this->m_actor->GetVisibility())
+  if (m_actor->GetVisibility())
   {
-    result |= this->m_actor->HasTranslucentPolygonalGeometry();
+    result |= m_actor->HasTranslucentPolygonalGeometry();
   }
 
   return result;
@@ -781,14 +811,14 @@ void vtkSkeletonWidgetRepresentation::GetWorldPositionFromDisplayPosition(int di
   pos[2] = 1.0;
   pos[3] = 1.0;
 
-  this->Renderer->SetDisplayPoint(pos);
-  this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(pos);
+  Renderer->SetDisplayPoint(pos);
+  Renderer->DisplayToWorld();
+  Renderer->GetWorldPoint(pos);
 
   worldPos[0] = pos[0];
   worldPos[1] = pos[1];
   worldPos[2] = pos[2];
-  worldPos[normalCoordinateIndex(this->m_orientation)] = m_slice;
+  worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
 }
 
 //-----------------------------------------------------------------------------
@@ -798,13 +828,13 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double world
 
   double pos[4];
   int displayPos[2]{X,Y};
-  this->GetWorldPositionFromDisplayPosition(displayPos, pos);
+  GetWorldPositionFromDisplayPosition(displayPos, pos);
   pos[3] = 0;
 
   auto planeIndex = normalCoordinateIndex(m_orientation);
   for(auto i = 0; i < s_skeleton.size(); ++i)
   {
-    if(!areEqual(this->s_skeleton[i]->worldPosition[planeIndex], m_slice)) continue;
+    if(!areEqual(s_skeleton[i]->worldPosition[planeIndex], m_slice)) continue;
 
     auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton[i]->worldPosition);
     if(distance > nodeDistance)
@@ -828,7 +858,7 @@ void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd
   if (nPoints <= 0) return; // Yeah right.. build from nothing!
 
   // Clear all existing nodes.
-  this->ClearAllNodes();
+  ClearAllNodes();
 
   // Points in our skeleton will be added while traversing lines.
   lines->InitTraversal();
@@ -881,22 +911,38 @@ void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd
     }
   }
 
-  this->BuildRepresentation();
+  BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::PrintSelf(std::ostream &os, vtkIndent indent)
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
-  this->Superclass::PrintSelf(os, indent);
-  os << indent << "Number of points in the skeleton: " << this->s_skeleton.size() << std::endl;
-  os << indent << "Pixel Tolerance: " << this->m_tolerance << std::endl;
+  Superclass::PrintSelf(os, indent);
+  os << indent << "Number of points in the skeleton: " << s_skeleton.size() << std::endl;
+  os << indent << "Tolerance: " << m_tolerance << std::endl;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
+{
+  m_spacing = spacing;
+
+  auto planeIdx = normalCoordinateIndex(m_orientation);
+  double max = -1;
+  for(int i = 0; i < 3; ++i)
+  {
+    if(i == planeIdx) continue;
+    max = std::max(spacing[i], max);
+  }
+
+  m_tolerance = 2 * max;
 }
 
 //-----------------------------------------------------------------------------
 double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const
 {
-  if (!this->Renderer) return VTK_DOUBLE_MAX;
+  if (!Renderer) return VTK_DOUBLE_MAX;
 
   std::memset(worldPos, 0, 3*sizeof(double));
   node_i = node_j = VTK_INT_MAX;
@@ -909,23 +955,25 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y,
 
   double point_pos[3];
   int displayPos[2]{X,Y};
-  this->GetWorldPositionFromDisplayPosition(displayPos, point_pos);
+  GetWorldPositionFromDisplayPosition(displayPos, point_pos);
 
   // build temporary map to accelerate access to lines
   QMap<SkeletonNode *, unsigned int> locator;
-  for(unsigned int i = 0; i < this->GetNumberOfNodes(); ++i)
+  for(unsigned int i = 0; i < GetNumberOfNodes(); ++i)
   {
-    locator[this->s_skeleton[i]] = i;
+    locator[s_skeleton[i]] = i;
   }
 
-  for (int i = 0; i < this->s_skeleton.size(); i++)
+  for (int i = 0; i < s_skeleton.size(); i++)
   {
-    pos_i = this->s_skeleton[i]->worldPosition;
+    pos_i = s_skeleton[i]->worldPosition;
 
-    auto connections = this->s_skeleton[i]->connections;
+    auto connections = s_skeleton[i]->connections;
     for(int j = 0; j < connections.size(); ++j)
     {
-      pos_j = this->s_skeleton[locator[connections[j]]]->worldPosition;
+      if(connections[j] == s_currentVertex) continue;
+
+      pos_j = s_skeleton[locator[connections[j]]]->worldPosition;
 
       double v[3]{pos_j[0]-pos_i[0], pos_j[1]-pos_i[1], pos_j[2]-pos_i[2]};
       double w[3]{point_pos[0]-pos_i[0], point_pos[1]-pos_i[1], point_pos[2]-pos_i[2]};
@@ -980,26 +1028,26 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y,
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::SetSlice(const Nm slice)
 {
-  this->m_slice = slice;
-  this->BuildRepresentation();
+  m_slice = slice;
+  BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 {
-  if (this->Renderer)
+  if (Renderer)
   {
     double worldPos[3];
     int nodeIndex = VTK_INT_MAX;
-    this->FindClosestNode(x, y, worldPos, nodeIndex);
+    FindClosestNode(x, y, worldPos, nodeIndex);
 
     if ((nodeIndex == VTK_INT_MAX) || !m_visiblePoints.contains(s_skeleton[nodeIndex])) return false;
 
     int displayPos[2]{x,y};
     double displayWorldPos[3];
-    this->GetWorldPositionFromDisplayPosition(displayPos, displayWorldPos);
+    GetWorldPositionFromDisplayPosition(displayPos, displayWorldPos);
 
-    return (m_tolerance * m_tolerance > vtkMath::Distance2BetweenPoints(worldPos, displayWorldPos));
+    return (m_tolerance > vtkMath::Distance2BetweenPoints(worldPos, displayWorldPos));
   }
 
   return false;
@@ -1008,13 +1056,13 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::IsPointTooClose(int x, int y) const
 {
-  if (this->s_currentVertex != nullptr)
+  if (s_currentVertex != nullptr)
   {
     double worldPos[3];
     int displayPos[2]{x,y};
-    this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
+    GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
-    return ((m_tolerance * m_tolerance) > vtkMath::Distance2BetweenPoints(worldPos, s_currentVertex->worldPosition));
+    return (m_tolerance > vtkMath::Distance2BetweenPoints(worldPos, s_currentVertex->worldPosition));
   }
 
   return false;
@@ -1026,9 +1074,9 @@ void vtkSkeletonWidgetRepresentation::SetColor(const QColor &color)
   if (color != m_color)
   {
     m_color = color;
-    this->m_linesActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-    this->m_linesActor->Modified();
-    this->NeedToRenderOn();
+    m_linesActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+    m_linesActor->Modified();
+    NeedToRenderOn();
   }
 }
 
@@ -1039,29 +1087,29 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
 
   double worldPos[3];
   int nodeIndex = VTK_INT_MAX;
-  s_skeleton.removeAll(s_currentVertex);
-  this->FindClosestNode(X, Y, worldPos, nodeIndex);
-  s_skeleton << s_currentVertex;
+  if(s_currentVertex) s_skeleton.removeAll(s_currentVertex);
+  FindClosestNode(X, Y, worldPos, nodeIndex);
+  if(s_currentVertex) s_skeleton << s_currentVertex;
 
   if (nodeIndex == VTK_INT_MAX) return false;
 
   auto closestNode = s_skeleton[nodeIndex];
 
-  // remove current vertex if the distance is too close
-  auto isClose = ((m_tolerance * m_tolerance) > vtkMath::Distance2BetweenPoints(s_currentVertex->worldPosition, closestNode->worldPosition));
-  if (!s_currentVertex->connections.contains(closestNode) && isClose)
+  if(!s_currentVertex) AddNodeAtDisplayPosition(X, Y);
+
+  auto isClose = (m_tolerance > vtkMath::Distance2BetweenPoints(s_currentVertex->worldPosition, closestNode->worldPosition));
+  if (isClose)
   {
     for (auto connectionNode : s_currentVertex->connections)
     {
+      if(!connectionNode->connections.contains(closestNode)) connectionNode->connections << closestNode;
+      if(!closestNode->connections.contains(connectionNode)) closestNode->connections << connectionNode;
+
       connectionNode->connections.removeAll(s_currentVertex);
-      connectionNode->connections << closestNode;
-      closestNode->connections << connectionNode;
     }
     s_currentVertex->connections.clear();
-    s_skeleton.removeAll(s_currentVertex);
-    delete s_currentVertex;
+    s_currentVertex->connections << closestNode;
 
-    s_currentVertex = closestNode;
     return true;
   }
 

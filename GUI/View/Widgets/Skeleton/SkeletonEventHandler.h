@@ -113,32 +113,37 @@ namespace ESPINA
               bool isTracking() const;
 
             signals:
-              void started(Track track, RenderView *view);
-              void updated(Track track);
-              void cursorPosition(const QPoint &p);
-              void cancelled();
-              void stopped();
+              void started(Track, RenderView *);
+              void updated(Track, RenderView *);
+              void cursorPosition(const QPoint &, RenderView *);
+              void cancelled(RenderView *);
+              void stopped(RenderView *);
               void modifier(bool);
+              void mousePress(Qt::MouseButtons, const QPoint &, RenderView *);
+              void mouseRelease(Qt::MouseButtons, const QPoint &, RenderView *);
 
             protected:
               /** \brief Called when a stroke starts.
                * \param[in] pos track point 2D position.
+               * \param[in] view view of the event.
                *
                */
-              void startTrack(const QPoint &pos);
+              void startTrack(const QPoint &pos, RenderView *view);
 
               /** \brief Called when a stroke is updated.
                * \param[in] pos track point 2D position.
+               * \param[in] view view of the event.
                *
                */
-              void updateTrack(const QPoint &pos);
+              void updateTrack(const QPoint &pos, RenderView *view);
 
               /** \brief Interpolates p1 and p2 and generates extra points using the max distance.
                * \param[in] p1 point 3D coordinates.
                * \param[in] p2 point 3D coordinates.
+               * \param[in] view view of the event.
                *
                */
-              Track interpolate(const QPoint &p1, const QPoint &p2);
+              Track interpolate(const QPoint &p1, const QPoint &p2, RenderView *view);
 
               /** \brief Returns the squared distance between the two given points.
                * \param[in] p1 point 3D coordinates.
@@ -154,7 +159,6 @@ namespace ESPINA
               bool        m_distanceHasBeenSet; /** true if max distance has been set.                         */
               Track       m_track;              /** track points group.                                        */
               Track       m_updatedTrack;       /** group of points in the update track step.                  */
-              RenderView *m_view;               /** view under event handler.                                  */
           };
 
           using SkeletonEventHandlerSPtr = std::shared_ptr<SkeletonEventHandler>;

@@ -58,7 +58,7 @@ namespace ESPINA
           {
             Q_OBJECT
             public:
-              enum class Status : std::int8_t { READY_TO_CREATE = 0, CREATING = 1, READY_TO_EDIT = 2, EDITING = 3 };
+              enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, DELETE = 2, };
 
               /** \brief SkeletonWidget class constructor.
                * \brief handler handler for this widget.
@@ -93,6 +93,12 @@ namespace ESPINA
                */
               void initialize(vtkSmartPointer<vtkPolyData> pd);
 
+              /** \brief Sets the operating mode of the widget.
+               *
+               */
+              void setMode(Mode mode)
+              { m_mode = mode; }
+
               virtual void setPlane(Plane plane);
 
               virtual void setRepresentationDepth(Nm depth);
@@ -126,10 +132,12 @@ namespace ESPINA
               using Track = SkeletonEventHandler::Track;
 
             private slots:
-              void onTrackStarted(Track track, RenderView* view);
-              void onTrackUpdated(Track track);
-              void onCursorPositionChanged(const QPoint &p);
-              void onStrokeEnded();
+              void onTrackStarted(Track track, RenderView * view);
+              void onTrackUpdated(Track track, RenderView *view);
+              void onCursorPositionChanged(const QPoint &p, RenderView *view);
+              void onStrokeEnded(RenderView *view);
+              void onMousePress(Qt::MouseButtons button, const QPoint &p, RenderView *view);
+              void onMouseRelease(Qt::MouseButtons button, const QPoint &p, RenderView *view);
 
             private:
               /** \brief Helper method to connect the handler signals.
@@ -153,7 +161,7 @@ namespace ESPINA
               Nm                                 m_position;   /** position of the actors over the segmentations.    */
               SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                     */
               RenderView                        *m_view;       /** view of the widget.                               */
-              bool                               m_hasHandler; /** true if the view is interacting with the handler. */
+              Mode                               m_mode;       /** current operation mode.                            */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;
