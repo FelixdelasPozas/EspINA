@@ -196,6 +196,12 @@ namespace ESPINA
               void setIgnoreCursor(bool value)
               { m_ignoreCursor = value; }
 
+              /** \brief Returns the value of the "ignore cursor flag". If true means that a create operation is not finished.
+               *
+               */
+              bool ignoreCursor() const
+              { return m_ignoreCursor; }
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */

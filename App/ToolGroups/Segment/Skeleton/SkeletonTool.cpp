@@ -30,7 +30,6 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/Styles.h>
-#include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
@@ -165,6 +164,15 @@ void SkeletonTool::initParametersWidgets()
   connect(this, SIGNAL(toggled(bool)), m_maxWidget, SLOT(setVisible(bool)));
 
   addSettingsWidget(m_maxWidget->createWidget(nullptr));
+
+  m_nextButton = createToolButton(":/espina/next_tubular.svg", tr("Start a new skeleton."));
+  m_nextButton->setCheckable(false);
+
+  connect(m_nextButton, SIGNAL(pressed()), this, SLOT(onNextButtonPressed()));
+
+  connect(this, SIGNAL(toggled(bool)), m_nextButton, SLOT(setVisible(bool)));
+
+  addSettingsWidget(m_nextButton);
 }
 
 //-----------------------------------------------------------------------------
@@ -282,6 +290,8 @@ void SkeletonTool::initTool(bool value)
       getViewState().refresh();
     }
   }
+
+  m_nextButton->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -363,6 +373,8 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 
   if(widget)
   {
+    Q_ASSERT(polydata->GetNumberOfLines() != 0);
+
     auto undoStack = getUndoStack();
     auto model     = getModel();
 
@@ -371,20 +383,9 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       // modification
       auto segmentation = segmentationPtr(m_item);
 
-      if(polydata->GetNumberOfLines() == 0)
-      {
-        undoStack->beginMacro(tr("Remove Segmentation"));
-        undoStack->push(new RemoveSegmentations(segmentation, model));
-        undoStack->endMacro();
-
-        m_item = getActiveChannel();
-      }
-      else
-      {
-        undoStack->beginMacro(tr("Modify skeleton"));
-        undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton()));
-        undoStack->endMacro();
-      }
+      undoStack->beginMacro(tr("Modify skeleton"));
+      undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton()));
+      undoStack->endMacro();
     }
     else
     {
@@ -422,10 +423,33 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 
       getSelection()->set(selection);
     }
+
+    m_nextButton->setEnabled(m_item != getActiveChannel());
   }
   else
   {
     qWarning() << "onSkeletonModified received signal but couldn't identify the sender." << __FILE__ << __LINE__;
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onNextButtonPressed()
+{
+  if(m_item && m_item != getActiveChannel())
+  {
+    for(auto widget: m_widgets)
+    {
+      widget->stop();
+      widget->initialize(nullptr);
+    }
+
+    m_item->clearTemporalRepresentation();
+    m_item->invalidateRepresentations();
+
+    m_item = getActiveChannel();
+    m_nextButton->setEnabled(false);
+
+    getViewState().refresh();
   }
 }
 
