@@ -31,6 +31,7 @@
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonEventHandler.h>
 #include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 
@@ -149,6 +150,11 @@ namespace ESPINA
        */
       void onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata);
 
+      /** \brief Ends the current skeleton and starts a new one.
+       *
+       */
+      void onNextButtonPressed();
+
     private:
       /** \brief Initializes the filter factory.
        *
@@ -215,6 +221,7 @@ namespace ESPINA
       GUI::Widgets::CategorySelector                           *m_categorySelector; /** category selector widget.                          */
       DoubleSpinBoxAction                                      *m_minWidget;        /** min distance between points widget.                */
       DoubleSpinBoxAction                                      *m_maxWidget;        /** max distance between points widget.                */
+      GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                          */
       GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr    m_eventHandler;     /** tool's event handler.                              */
       ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init.  */
       GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** representation prototypes.                         */

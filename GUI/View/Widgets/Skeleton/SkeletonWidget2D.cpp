@@ -310,18 +310,7 @@ void SkeletonWidget2D::onStrokeEnded(RenderView *view)
 {
   if(view != m_view) return;
 
-  m_widget->setIgnoreCursor(false);
-  m_widget->stop();
-
-  if(m_widget->numberOfPoints() < 2)
-  {
-    // not allowed strokes of only one point.
-    m_widget->Initialize();
-  }
-  else
-  {
-    emit modified(m_widget->getSkeleton());
-  }
+  stop();
 }
 
 //--------------------------------------------------------------------
@@ -364,6 +353,26 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
       break;
     default:
       break;
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::stop()
+{
+  if(m_widget->ignoreCursor())
+  {
+    m_widget->setIgnoreCursor(false);
+    m_widget->stop();
+
+    if (m_widget->numberOfPoints() < 2)
+    {
+      // not allowed strokes of only one point.
+      m_widget->Initialize();
+    }
+    else
+    {
+      emit modified(m_widget->getSkeleton());
+    }
   }
 }
 

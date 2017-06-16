@@ -99,6 +99,11 @@ namespace ESPINA
               void setMode(Mode mode)
               { m_mode = mode; }
 
+              /** \brief Stops the current operation.
+               *
+               */
+              void stop();
+
               virtual void setPlane(Plane plane);
 
               virtual void setRepresentationDepth(Nm depth);
@@ -157,11 +162,12 @@ namespace ESPINA
               virtual vtkAbstractWidget *vtkWidget()
               { return m_widget; }
 
-              vtkSmartPointer<vtkSkeletonWidget> m_widget;     /** vtk widget.                                       */
-              Nm                                 m_position;   /** position of the actors over the segmentations.    */
-              SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                     */
-              RenderView                        *m_view;       /** view of the widget.                               */
-              Mode                               m_mode;       /** current operation mode.                            */
+              vtkSmartPointer<vtkSkeletonWidget> m_widget;     /** vtk widget.                                              */
+              Nm                                 m_position;   /** position of the actors over the segmentations.           */
+              SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                            */
+              RenderView                        *m_view;       /** view of the widget.                                      */
+              Mode                               m_mode;       /** current operation mode.                                  */
+              bool                               m_modified;   /** true if the skeleton has been modified, false otherwise. */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;
