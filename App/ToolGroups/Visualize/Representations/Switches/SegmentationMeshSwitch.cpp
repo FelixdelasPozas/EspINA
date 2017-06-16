@@ -47,13 +47,16 @@ SegmentationMeshSwitch::SegmentationMeshSwitch(GUI::Representations::Representat
 //----------------------------------------------------------------------------
 SegmentationMeshSwitch::~SegmentationMeshSwitch()
 {
-  if(!m_smoothEnabled)
+  if(!m_smoothEnabled && m_smoothedMeshManager->isActive())
   {
     disconnectMeshManagersPools();
   }
   else
   {
-    disconnectSmoothMeshManagersPools();
+    if(m_meshManager->isActive())
+    {
+      disconnectSmoothMeshManagersPools();
+    }
   }
 }
 

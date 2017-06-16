@@ -72,6 +72,7 @@ TemporalManager::TemporalManager(TemporalPrototypesSPtr prototypes, ManagerFlags
 , m_prototypes         {prototypes}
 , m_plane              {Plane::UNDEFINED}
 , m_depth              {0}
+, m_representation     {nullptr}
 {
   setName(QString("TemporalManager::%1").arg(prototypes->name()));
 }
@@ -189,10 +190,13 @@ void TemporalManager::displayRepresentations(const FrameCSPtr frame)
 //------------------------------------------------------------------------
 void TemporalManager::hideRepresentations(const FrameCSPtr frame)
 {
-  m_representation->hide();
+  if(m_representation)
+  {
+    m_representation->hide();
 
-  disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-             this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+    disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+               this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+  }
 }
 
 //------------------------------------------------------------------------
