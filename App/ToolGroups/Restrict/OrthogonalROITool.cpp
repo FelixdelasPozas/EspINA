@@ -110,7 +110,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 //-----------------------------------------------------------------------------
 OrthogonalROITool::~OrthogonalROITool()
 {
-  disconnect();
   m_resizeROI->disconnect();
   m_applyROI->disconnect();
 
@@ -199,6 +198,9 @@ void OrthogonalROITool::initControls()
   m_defineHandler->setSelectionTag(Selector::CHANNEL, true);
   m_defineHandler->setCursor(QCursor(QPixmap(":/espina/roi_define_cursor.svg").scaled(32,32)));
 
+  connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
+          this,                  SLOT(defineROI(Selector::Selection)));
+
   connect(m_resizeROI, SIGNAL(clicked(bool)),
           this,        SLOT(setResizable(bool)));
 
@@ -276,14 +278,10 @@ void OrthogonalROITool::setDefinitionMode(bool value)
     if (viewState.eventHandler() != m_defineHandler)
     {
       viewState.setEventHandler(m_defineHandler);
-      connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
-              this,                  SLOT(defineROI(Selector::Selection)));
     }
   }
   else
   {
-    disconnect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
-               this,                  SLOT(defineROI(Selector::Selection)));
     viewState.unsetEventHandler(m_defineHandler);
   }
 }

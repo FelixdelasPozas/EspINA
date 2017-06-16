@@ -63,8 +63,6 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 //-----------------------------------------------------------------------------
 FreehandROITool::~FreehandROITool()
 {
-  disconnect();
-
   abortOperation();
 
   disconnect(m_selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),

@@ -36,9 +36,10 @@ const int FRAME_LIMIT = 20;
 
 //----------------------------------------------------------------------------
 ViewState::ViewState()
-: m_fitToSlices{true}
-, m_coordinateSystem(std::make_shared<CoordinateSystem>())
-, m_selection(new Selection())
+: m_fitToSlices     {true}
+, m_coordinateSystem{std::make_shared<CoordinateSystem>()}
+, m_selection       {new Selection()}
+, m_eventHandler    {nullptr}
 {
   connect(m_selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this,              SLOT(selectionChanged(SegmentationAdapterList)));
@@ -76,10 +77,10 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
   {
     if (m_eventHandler)
     {
-      m_eventHandler->setInUse(false);
-
       disconnect(m_eventHandler.get(), SIGNAL(cursorChanged()),
                  this,                 SIGNAL(cursorChanged()));
+
+      m_eventHandler->setInUse(false);
     }
 
     m_eventHandler = handler;

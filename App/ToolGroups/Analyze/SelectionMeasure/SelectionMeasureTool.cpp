@@ -61,7 +61,7 @@ SelectionMeasureTool::~SelectionMeasureTool()
     setChecked(false);
   }
 
-  disconnect(this, SIGNAL(triggered(bool)),
+  disconnect(this, SIGNAL(toggled(bool)),
              this, SLOT(onToolActivated(bool)));
 }
 

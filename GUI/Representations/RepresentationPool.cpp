@@ -49,6 +49,8 @@ RepresentationPool::RepresentationPool(const ItemAdapter::Type &type)
 , m_numObservers{0}
 , m_sourcesCount{0}
 {
+  connect(m_settings.get(), SIGNAL(modified()),
+          this,             SLOT(onSettingsModified()));
 }
 
 //-----------------------------------------------------------------------------

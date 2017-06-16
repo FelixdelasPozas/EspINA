@@ -105,7 +105,6 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
 //----------------------------------------------------------------------------
 ProgressTool::~ProgressTool()
 {
-  disconnect();
   m_action->disconnect();
   m_taskProgress.disconnect();
 
