@@ -202,6 +202,11 @@ namespace ESPINA
               bool ignoreCursor() const
               { return m_ignoreCursor; }
 
+              /** \brief Removes all the nodes.
+               *
+               */
+              void cleanup();
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */

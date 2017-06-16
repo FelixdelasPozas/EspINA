@@ -34,6 +34,7 @@
 #include <QList>
 #include <QMap>
 #include <QColor>
+#include <QMutex>
 
 class vtkActor;
 class vtkPolyData;
@@ -350,6 +351,11 @@ namespace ESPINA
               bool ignoresCursor() const
               { return m_ignoreCursor; }
 
+              /** \brief Removes all nodes from the static skeleton representation.
+               *
+               */
+              static void cleanup();
+
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
                *
@@ -399,8 +405,6 @@ namespace ESPINA
               void operator=(const vtkSkeletonWidgetRepresentation&);
 
             protected:
-              static const double s_sliceWindow;
-
               Plane     m_orientation;
               double    m_tolerance;
               Nm        m_slice;
@@ -409,7 +413,9 @@ namespace ESPINA
               NmVector3 m_spacing;
 
               static QList<SkeletonNode *> s_skeleton;
+              static NmVector3             s_skeletonSpacing;
               static SkeletonNode         *s_currentVertex;
+              static QMutex                s_skeletonMutex;
 
               QMap<SkeletonNode *, vtkIdType> m_visiblePoints;
 

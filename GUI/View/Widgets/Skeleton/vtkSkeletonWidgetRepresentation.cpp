@@ -43,14 +43,18 @@
 #include <vtkSphereSource.h>
 #include <vtkRenderWindow.h>
 
+// Qt
+#include <QMutexLocker>
+
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
 vtkStandardNewMacro(vtkSkeletonWidgetRepresentation);
 
-const double vtkSkeletonWidgetRepresentation::s_sliceWindow = 40;
 vtkSkeletonWidgetRepresentation::SkeletonNode *vtkSkeletonWidgetRepresentation::s_currentVertex = nullptr;
 QList<vtkSkeletonWidgetRepresentation::SkeletonNode *> vtkSkeletonWidgetRepresentation::s_skeleton;
+NmVector3 vtkSkeletonWidgetRepresentation::s_skeletonSpacing = NmVector3{1,1,1};
+QMutex vtkSkeletonWidgetRepresentation::s_skeletonMutex;
 
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
@@ -135,12 +139,18 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::~vtkSkeletonWidgetRepresentation()
 {
-  for (auto node : s_skeleton)
+  if(s_skeletonMutex.tryLock())
   {
-    delete node;
-  }
+    for (auto node : s_skeleton)
+    {
+      delete node;
+    }
 
-  s_skeleton.clear();
+    s_skeleton.clear();
+    s_skeletonSpacing = NmVector3{1,1,1};
+
+    s_skeletonMutex.unlock();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -926,17 +936,53 @@ void vtkSkeletonWidgetRepresentation::PrintSelf(std::ostream &os, vtkIndent inde
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
 {
-  m_spacing = spacing;
-
-  auto planeIdx = normalCoordinateIndex(m_orientation);
-  double max = -1;
-  for(int i = 0; i < 3; ++i)
+  if(m_spacing != spacing)
   {
-    if(i == planeIdx) continue;
-    max = std::max(spacing[i], max);
+    if(s_skeletonMutex.tryLock())
+    {
+      if(s_skeletonSpacing != spacing)
+      {
+        for(auto node: s_skeleton)
+        {
+          node->worldPosition[0] = node->worldPosition[0]/s_skeletonSpacing[0] * spacing[0];
+          node->worldPosition[1] = node->worldPosition[1]/s_skeletonSpacing[1] * spacing[1];
+          node->worldPosition[2] = node->worldPosition[2]/s_skeletonSpacing[2] * spacing[2];
+        }
+
+        s_skeletonSpacing = spacing;
+      }
+
+      s_skeletonMutex.unlock();
+    }
+
+    m_spacing = spacing;
+
+    auto planeIdx = normalCoordinateIndex(m_orientation);
+    double max = -1;
+    for(int i = 0; i < 3; ++i)
+    {
+      if(i == planeIdx) continue;
+      max = std::max(spacing[i], max);
+    }
+
+    m_tolerance = 2 * max;
+
+    BuildRepresentation();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::cleanup()
+{
+  QMutexLocker lock(&s_skeletonMutex);
+
+  for(auto node: s_skeleton)
+  {
+    delete node;
   }
 
-  m_tolerance = 2 * max;
+  s_skeleton.clear();
+  s_currentVertex = nullptr;
 }
 
 //-----------------------------------------------------------------------------

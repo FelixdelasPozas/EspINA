@@ -34,6 +34,7 @@
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
@@ -216,7 +217,17 @@ void SkeletonTool::onResolutionChanged()
     m_eventHandler->setMinimumPointDistance(m_minWidget->value());
     m_eventHandler->setMaximumPointDistance(m_maxWidget->value());
 
-    m_init = true;
+    if(m_widgets.empty())
+    {
+      m_init = true;
+    }
+    else
+    {
+      for(auto widget: m_widgets)
+      {
+        widget->setSpacing(spacing);
+      }
+    }
   }
 }
 
@@ -251,6 +262,7 @@ void SkeletonTool::initTool(bool value)
               this,             SLOT(onModelReset()));
     }
 
+    getSelection()->clear();
     m_item = getActiveChannel();
 
     if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
@@ -269,6 +281,8 @@ void SkeletonTool::initTool(bool value)
     {
       for(auto widget: m_widgets)
       {
+        widget->stop();
+
         disconnect(widget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
                    this,         SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)));
       }
@@ -287,10 +301,11 @@ void SkeletonTool::initTool(bool value)
       disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                  this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-      getViewState().refresh();
+      vtkSkeletonWidgetRepresentation::cleanup();
     }
   }
 
+  getViewState().refresh();
   m_nextButton->setEnabled(false);
 }
 

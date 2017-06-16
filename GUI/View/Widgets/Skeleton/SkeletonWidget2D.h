@@ -104,6 +104,12 @@ namespace ESPINA
                */
               void stop();
 
+              /** \brief Orders the vtkWidget to clean the statis skeleton representation.
+               *
+               */
+              void cleanup()
+              { m_widget->cleanup(); }
+
               virtual void setPlane(Plane plane);
 
               virtual void setRepresentationDepth(Nm depth);
@@ -167,7 +173,6 @@ namespace ESPINA
               SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                            */
               RenderView                        *m_view;       /** view of the widget.                                      */
               Mode                               m_mode;       /** current operation mode.                                  */
-              bool                               m_modified;   /** true if the skeleton has been modified, false otherwise. */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;

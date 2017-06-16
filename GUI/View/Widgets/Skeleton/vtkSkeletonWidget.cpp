@@ -697,3 +697,9 @@ void vtkSkeletonWidget::createCursors()
   m_crossPlusCursor  = QCursor(crossPlusPixmap, -1, -1);
   m_crossCheckCursor = QCursor(crossCheckPixmap, -1, -1);
 }
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::cleanup()
+{
+  vtkSkeletonWidgetRepresentation::cleanup();
+}
