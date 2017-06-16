@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -16,108 +16,60 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
  */
 
-#ifndef ESPINA_SKELETON_TOOL_H_
-#define ESPINA_SKELETON_TOOL_H_
-
-#include "GUI/EspinaGUI_Export.h"
+#ifndef APP_TOOLGROUPS_EDIT_SKELETONEDITIONTOOL_H_
+#define APP_TOOLGROUPS_EDIT_SKELETONEDITIONTOOL_H_
 
 // ESPINA
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/EventHandler.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
-#include <GUI/EventHandlers/PointTracker.h>
-#include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
+#include <Core/Utils/Vector3.hxx>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Representations/RepresentationPipeline.h>
+#include <GUI/Representations/RepresentationState.h>
+#include <GUI/Types.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonEventHandler.h>
-#include <GUI/Widgets/CategorySelector.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
 #include <GUI/Widgets/ToolButton.h>
-#include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
+#include <Support/Widgets/EditTool.h>
 
 // VTK
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-// Qt
-#include <QAction>
-
-class vtkPolyData;
-class QUndoStack;
-
 namespace ESPINA
 {
-  namespace //unnamed namespace
-  {
-    namespace SkeletonNamespace = GUI::View::Widgets::Skeleton;
-  }
-  class DoubleSpinBoxAction;
-
-  /** \class ManualFilterFactory
-   * \brief Factory for SourceFilter filters.
+  /** \class SkeletonEditionTool
+   * \brief Tool for skeleton segmentation edition
    *
    */
-  class SkeletonFilterFactory
-  : public FilterFactory
-  {
-    public:
-      static const Filter::Type SKELETON_FILTER;
-
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type &filter, SchedulerSPtr scheduler) const override;
-
-      virtual FilterTypeList providedFilters() const override;
-
-    private:
-      mutable DataFactorySPtr m_dataFactory; /** data factory for this factory. */
-  };
-
-  /** \class SkeletonTool
-   * \brief Tool for skeleton segmentation creation
-   *
-   */
-  class EspinaGUI_EXPORT SkeletonTool
-  : public Support::Widgets::ProgressTool
+  class SkeletonEditionTool
+  : public Support::Widgets::EditTool
   {
       Q_OBJECT
     public:
-      /** \brief SkeletonTool class constructor.
-       * \param[in] context application context
+      /** \brief SkeletonEditionTool class constructor.
+       * \param[in] context application context.
        *
        */
-      SkeletonTool(Support::Context &context);
+      explicit SkeletonEditionTool(Support::Context &context);
 
-      /** \brief SkeletonTool class virtual destructor.
+      /** \brief SkeletonEditionTool class virtual destructor.
        *
        */
-      virtual ~SkeletonTool();
+      virtual ~SkeletonEditionTool();
 
       virtual void abortOperation() override
       { deactivateEventHandler(); };
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
-       * \param[in] value, true to initialize and false otherwise.
+       * \param[in] value true to initialize and false otherwise.
        *
        */
       void initTool(bool value);
-
-      /** \brief Updates the widget with the new category properties.
-       * \param[in] category CategoryAdapter smart pointer.
-       *
-       */
-      void onCategoryChanged(CategoryAdapterSPtr category);
-
-      /** \brief Updates the minimum point distance value in the widget when the value in the spinbox changes.
-       * \param[in] value new minimum distance value.
-       *
-       */
-      void onMinimumDistanceChanged(double value);
-
-      /** \brief Updates the maximum point distance value in the widget when the value in the spinbox changes.
-       * \param[in] value new maximum distance value.
-       *
-       */
-      void onMaximumDistanceChanged(double value);
 
       /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
        * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
@@ -147,16 +99,14 @@ namespace ESPINA
        */
       void onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata);
 
-      /** \brief Ends the current skeleton and starts a new one.
-       *
-       */
-      void onNextButtonPressed();
+      void onEraseButtonClicked(bool value);
+
+      void onMoveButtonClicked(bool value);
 
     private:
-      /** \brief Initializes the filter factory.
-       *
-       */
-      void initFilterFactory();
+      virtual bool acceptsNInputs(int n) const;
+
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
       /** \brief Initializes and connects the representation factory.
        *
@@ -213,20 +163,15 @@ namespace ESPINA
       };
 
     private:
-      bool                                                      m_init;             /** true if the tool has been initialized.            */
-      GUI::Widgets::CategorySelector                           *m_categorySelector; /** category selector widget.                         */
-      DoubleSpinBoxAction                                      *m_minWidget;        /** min distance between points widget.               */
-      DoubleSpinBoxAction                                      *m_maxWidget;        /** max distance between points widget.               */
-      GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
-      GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr    m_eventHandler;     /** tool's event handler.                             */
-      ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
-      GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** representation prototypes.                        */
-      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_widgets;          /** list of widgets currently on views.               */
+      bool                                                   m_init;         /** true if the tool has been initialized.            */
+      GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr m_eventHandler; /** tool's event handler.                             */
+      GUI::Widgets::ToolButton                              *m_eraseButton;  /** Paint/erase button.                               */
+      GUI::Widgets::ToolButton                              *m_moveButton;   /** Move nodes button.                                */
+      ViewItemAdapterPtr                                     m_item;         /** current element being created or channel in init. */
+      GUI::Representations::Managers::TemporalPrototypesSPtr m_factory;      /** representation prototypes.                        */
+      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_widgets;   /** list of widgets currently on views.               */
   };
 
-  using SkeletonToolPtr  = SkeletonTool *;
-  using SkeletonToolSPtr = std::shared_ptr<SkeletonTool>;
+} // namespace ESPINA
 
-} // namespace EspINA
-
-#endif // ESPINA_SKELETON_TOOL_H_
+#endif // APP_TOOLGROUPS_EDIT_SKELETONEDITIONTOOL_H_
