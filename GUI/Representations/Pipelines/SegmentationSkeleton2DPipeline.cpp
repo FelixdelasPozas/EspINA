@@ -64,18 +64,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
   
   if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto data = readLockSkeleton(segmentation->output());
-    Bounds sliceBounds = data->bounds();
+    Bounds sliceBounds = segmentation->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
     
     if (sliceBounds[2 * planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2 * planeIndex + 1])
     {
-      auto newPoints = vtkSmartPointer<vtkPoints>::New();
-      auto newLines = vtkSmartPointer<vtkCellArray>::New();
-
-      auto skeleton = data->skeleton();
-      auto planeSpacing = data->bounds().spacing()[planeIndex];
+      auto newPoints    = vtkSmartPointer<vtkPoints>::New();
+      auto newLines     = vtkSmartPointer<vtkCellArray>::New();
+      auto skeleton     = readLockSkeleton(segmentation->output())->skeleton();
+      auto planeSpacing = segmentation->output()->spacing()[planeIndex];
 
       QMap<vtkIdType, NmVector3> pointIds;
       QMap<vtkIdType, vtkIdType> newPointIds;

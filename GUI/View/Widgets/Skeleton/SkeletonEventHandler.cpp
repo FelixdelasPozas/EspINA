@@ -122,24 +122,20 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
         {
           emit cancelled(view);
           m_track.clear();
-
-          return false; // let the view also handle the event.
         }
       }
       break;
     case QEvent::KeyPress:
-      if(ke && ke->key() == Qt::Key_Shift)
+      if(ke && (ke->key() == Qt::Key_Shift))
       {
         emit modifier(true);
-
         return true;
       }
       break;
     case QEvent::KeyRelease:
-      if(ke && ke->key() == Qt::Key_Shift)
+      if(ke && (ke->key() == Qt::Key_Shift))
       {
         emit modifier(false);
-
         return true;
       }
       break;

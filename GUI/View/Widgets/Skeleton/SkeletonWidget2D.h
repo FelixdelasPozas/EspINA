@@ -96,8 +96,13 @@ namespace ESPINA
               /** \brief Sets the operating mode of the widget.
                *
                */
-              void setMode(Mode mode)
-              { m_mode = mode; }
+              void setMode(Mode mode);
+
+              /** \brief Returns the current operation mode of the widget.
+               *
+               */
+              Mode mode() const
+              { return m_mode; }
 
               /** \brief Stops the current operation.
                *
@@ -173,6 +178,7 @@ namespace ESPINA
               SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                            */
               RenderView                        *m_view;       /** view of the widget.                                      */
               Mode                               m_mode;       /** current operation mode.                                  */
+              bool                               m_moving;     /** true when translating a node, false otherwise.           */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;

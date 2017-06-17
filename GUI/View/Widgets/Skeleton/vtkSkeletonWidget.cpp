@@ -41,7 +41,7 @@ vtkStandardNewMacro(vtkSkeletonWidget);
 
 //-----------------------------------------------------------------------------
 vtkSkeletonWidget::vtkSkeletonWidget()
-: m_widgetState  {vtkSkeletonWidget::Start}
+: m_widgetState  {vtkSkeletonWidget::Define}
 , m_orientation  {Plane::UNDEFINED}
 , m_slice        {-1}
 , m_shift        {1}
@@ -132,16 +132,14 @@ void vtkSkeletonWidget::Initialize(vtkSmartPointer<vtkPolyData> pd)
   if (pd == nullptr)
   {
     rep->ClearAllNodes();
-    Render();
-    rep->NeedToRenderOff();
     rep->VisibilityOff();
-    m_widgetState = vtkSkeletonWidget::Define;
   }
   else
   {
     rep->Initialize(pd);
-    m_widgetState = vtkSkeletonWidget::Start;
   }
+
+  m_widgetState = vtkSkeletonWidget::Define;
 
   if (GetCurrentRenderer() != nullptr)
   {
@@ -158,6 +156,12 @@ void vtkSkeletonWidget::Initialize(vtkSmartPointer<vtkPolyData> pd)
 
       SetCursor(wState);
     }
+  }
+
+  if(rep->GetNeedToRender())
+  {
+    Render();
+    rep->NeedToRenderOff();
   }
 }
 
@@ -222,39 +226,32 @@ void vtkSkeletonWidget::movePoint()
 
   int X,Y;
   Interactor->GetEventPosition(X,Y);
+  double worldPos[3];
 
   switch (m_widgetState)
   {
-    case vtkSkeletonWidget::Start:
+    case vtkSkeletonWidget::Delete:
       if (rep->IsNearNode(X, Y))
       {
         rep->ActivateNode(X, Y);
-
-        m_widgetState = vtkSkeletonWidget::Manipulate;
-        Superclass::StartInteraction();
-        InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
-        StartInteraction();
       }
       break;
     case vtkSkeletonWidget::Manipulate:
-      rep->SetActiveNodeToDisplayPosition(X, Y);
-
-      m_widgetState = vtkSkeletonWidget::Start;
-      Superclass::EndInteraction();
-      InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-      EndInteraction();
+      if(rep->GetActiveNodeWorldPosition(worldPos))
+      {
+        rep->SetActiveNodeToDisplayPosition(X, Y);
+      }
       break;
     case vtkSkeletonWidget::Define:
       rep->SetActiveNodeToDisplayPosition(X, Y);
-      InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       break;
     default:
       break;
   }
 
-  if(m_ignoreCursor) rep->setIgnoreCursorNode(true);
+  if(m_widgetState == vtkSkeletonWidget::Define && m_ignoreCursor) rep->setIgnoreCursorNode(true);
   rep->ComputeInteractionState(X, Y);
-  if(m_ignoreCursor) rep->setIgnoreCursorNode(false);
+  if(m_widgetState == vtkSkeletonWidget::Define && m_ignoreCursor) rep->setIgnoreCursorNode(false);
   SetCursor(WidgetRep->GetInteractionState());
 
   if (WidgetRep->GetNeedToRender())
@@ -265,23 +262,21 @@ void vtkSkeletonWidget::movePoint()
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidget::deletePoint()
+bool vtkSkeletonWidget::deletePoint()
 {
   auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
   int X,Y;
   Interactor->GetEventPosition(X,Y);
 
-  if(rep->IsNearNode(X, Y))
-  {
-    rep->ActivateNode(X, Y);
-    rep->DeleteCurrentNode();
-  }
+  auto result = rep->DeleteCurrentNode();
 
   if (rep->GetNeedToRender())
   {
     Render();
     rep->NeedToRenderOff();
   }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------
@@ -292,23 +287,10 @@ void vtkSkeletonWidget::stop()
   switch (m_widgetState)
   {
     case vtkSkeletonWidget::Define:
-    {
       rep->DeleteCurrentNode();
-
-      Superclass::EndInteraction();
-      InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-      EndInteraction();
-    }
       break;
     case vtkSkeletonWidget::Manipulate:
-      m_widgetState = vtkSkeletonWidget::Start;
-      Superclass::EndInteraction();
-      InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-      EndInteraction();
-      break;
-    case vtkSkeletonWidget::Start:
-      rep->DeleteCurrentNode();
-      break;
+    case vtkSkeletonWidget::Delete:
     default:
       break;
   }
@@ -319,121 +301,6 @@ void vtkSkeletonWidget::stop()
     WidgetRep->NeedToRenderOff();
   }
 }
-
-//-----------------------------------------------------------------------------
-//void vtkSkeletonWidget::KeyPressAction(vtkAbstractWidget *w)
-//{
-//  auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
-//  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(self->WidgetRep);
-//
-//  auto key = std::string(self->Interactor->GetKeySym());
-//
-//  int X = self->Interactor->GetEventPosition()[0];
-//  int Y = self->Interactor->GetEventPosition()[1];
-//
-//  if (("Alt_L" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
-//  {
-//    if (rep->DeleteCurrentNode())
-//    {
-//      self->m_modified = true;
-//    }
-//
-//    self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
-//  }
-//
-//  self->WidgetRep->ComputeInteractionState(X, Y);
-//  int state = self->WidgetRep->GetInteractionState();
-//  self->SetCursor(state);
-//
-//  if (self->WidgetRep->GetNeedToRender())
-//  {
-//    self->Render();
-//    self->WidgetRep->NeedToRenderOff();
-//  }
-//}
-
-//-----------------------------------------------------------------------------
-//void vtkSkeletonWidget::ReleaseKeyPressAction(vtkAbstractWidget *w)
-//{
-//  auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
-//  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(self->WidgetRep);
-//
-//  auto key = std::string(self->Interactor->GetKeySym());
-//
-//  int X = self->Interactor->GetEventPosition()[0];
-//  int Y = self->Interactor->GetEventPosition()[1];
-//
-//  self->WidgetRep->ComputeInteractionState(X, Y);
-//  int state = self->WidgetRep->GetInteractionState();
-//  self->SetCursor(state);
-//
-//  if ("Tab" == key)
-//  {
-//    switch (self->m_widgetState)
-//    {
-//      case vtkSkeletonWidget::Define:
-//      {
-//        self->m_widgetState = vtkSkeletonWidget::Start;
-//        vtkSkeletonWidgetRepresentation::SkeletonNode *nullnode = nullptr;
-//        if (rep->TryToJoin(X, Y))
-//        {
-//          self->m_modified = true;
-//        }
-//        rep->ActivateNode(nullnode);
-//
-//        self->Superclass::EndInteraction();
-//        self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-//        self->EndInteraction();
-//      }
-//        break;
-//      case vtkSkeletonWidget::Start:
-//        self->m_widgetState = vtkSkeletonWidget::Define;
-//        self->Superclass::StartInteraction();
-//        self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
-//        self->StartInteraction();
-//
-//        switch (state)
-//        {
-//          case vtkSkeletonWidgetRepresentation::NearContour:
-//            if (rep->AddNodeOnContour(X, Y))
-//            {
-//              self->m_modified = true;
-//            }
-//            break;
-//          case vtkSkeletonWidgetRepresentation::NearPoint:
-//            rep->ActivateNode(X, Y);
-//            if (!rep->IsPointTooClose(X, Y))
-//            {
-//              rep->AddNodeAtDisplayPosition(X, Y);
-//              self->m_modified = true;
-//            }
-//            break;
-//          case vtkSkeletonWidgetRepresentation::Outside:
-//            rep->AddNodeAtDisplayPosition(X, Y);
-//            self->m_modified = true;
-//            break;
-//          default:
-//            break;
-//        }
-//
-//        rep->VisibilityOn();
-//        self->EventCallbackCommand->SetAbortFlag(1);
-//        self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-//        break;
-//      case vtkSkeletonWidget::Manipulate:
-//      default:
-//        break;
-//    }
-//  }
-//
-//  self->SetCursor(state);
-//
-//  if (self->WidgetRep->GetNeedToRender())
-//  {
-//    self->Render();
-//    self->WidgetRep->NeedToRenderOff();
-//  }
-//}
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::SetCursor(int State)
@@ -465,22 +332,10 @@ void vtkSkeletonWidget::SetCursor(int State)
           break;
       }
     }
-
-//      if (ManagesCursor)
-//      {
-//        ManagesCursorOff();
-//        QApplication::restoreOverrideCursor();
-//      }
       break;
     case vtkSkeletonWidget::Manipulate:
-      if (!ManagesCursor)
-      {
-        QApplication::setOverrideCursor(Qt::PointingHandCursor);
-        ManagesCursorOn();
-      }
-      break;
-    case vtkSkeletonWidget::Start:
-      switch (State)
+    {
+      switch(State)
       {
         case vtkSkeletonWidgetRepresentation::NearPoint:
           if (!ManagesCursor)
@@ -492,20 +347,33 @@ void vtkSkeletonWidget::SetCursor(int State)
           {
             QApplication::changeOverrideCursor(Qt::PointingHandCursor);
           }
-          break;
+        break;
         case vtkSkeletonWidgetRepresentation::NearContour:
-        {
+        default:
+          if(ManagesCursor)
+          {
+            QApplication::restoreOverrideCursor();
+            ManagesCursorOff();
+          }
+          break;
+      }
+    }
+      break;
+    case vtkSkeletonWidget::Delete:
+      switch (State)
+      {
+        case vtkSkeletonWidgetRepresentation::NearPoint:
           if (!ManagesCursor)
           {
-            QApplication::setOverrideCursor(m_crossPlusCursor);
+            QApplication::setOverrideCursor(m_crossMinusCursor);
             ManagesCursorOn();
           }
           else
           {
-            QApplication::changeOverrideCursor(m_crossPlusCursor);
+            QApplication::changeOverrideCursor(m_crossMinusCursor);
           }
-        }
           break;
+        case vtkSkeletonWidgetRepresentation::NearContour:
         case vtkSkeletonWidgetRepresentation::Outside:
         default:
           if (ManagesCursor)
@@ -554,7 +422,7 @@ void vtkSkeletonWidget::changeSlice(Plane plane, Nm value)
     SetCursor(state);
     rep->setIgnoreCursorNode(false);
 
-    if (m_widgetState == vtkSkeletonWidget::Start)
+    if (m_widgetState == vtkSkeletonWidget::Manipulate)
     {
       if (rep->IsNearNode(X, Y))
       {
@@ -648,8 +516,13 @@ void vtkSkeletonWidget::setCurrentOperationMode(const int mode)
 {
   if(m_widgetState != mode)
   {
-    // TODO acciones necesarias cuando se cambia de modo
     m_widgetState = mode;
+
+    if(WidgetRep)
+    {
+      auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+      rep->DeactivateNode();
+    }
   }
 }
 
@@ -679,10 +552,26 @@ bool vtkSkeletonWidget::selectNode()
     Interactor->GetEventPosition(X, Y);
 
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-    return (rep->IsNearNode(X, Y) && rep->ActivateNode(X, Y));
+
+    auto nodeSelected = rep->ActivateNode(X, Y);
+    rep->UpdatePointer();
+
+    return nodeSelected;
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::updateCursor()
+{
+  int X, Y;
+  Interactor->GetEventPosition(X, Y);
+
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  rep->ComputeInteractionState(X, Y);
+
+  SetCursor(rep->GetInteractionState());
 }
 
 //-----------------------------------------------------------------------------

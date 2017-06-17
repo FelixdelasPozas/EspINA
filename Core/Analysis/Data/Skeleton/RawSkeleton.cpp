@@ -108,7 +108,10 @@ vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
 {
   QMutexLocker lock(&m_lock);
 
-  return m_skeleton;
+  auto skeleton = vtkSmartPointer<vtkPolyData>::New();
+  skeleton->DeepCopy(m_skeleton);
+
+  return skeleton;
 }
 
 //----------------------------------------------------------------------------

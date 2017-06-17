@@ -45,6 +45,8 @@
 #include <vtkRenderer.h>
 
 // Qt
+#include <QEvent>
+#include <QKeyEvent>
 #include <QApplication>
 #include <QDialog>
 #include <QMessageBox>
@@ -773,4 +775,16 @@ void RenderView::onCursorChanged()
   }
 
   m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyPressEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyPressEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyReleaseEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
 }
