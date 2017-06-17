@@ -281,8 +281,6 @@ void SkeletonTool::initTool(bool value)
     {
       for(auto widget: m_widgets)
       {
-        widget->stop();
-
         disconnect(widget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
                    this,         SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)));
       }

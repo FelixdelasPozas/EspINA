@@ -234,6 +234,9 @@ namespace ESPINA
     void onCursorChanged();
 
   protected:
+    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
+
     /** \brief RenderView class constructor.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      * \param[in] type type of view 2D or 3D

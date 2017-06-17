@@ -65,12 +65,6 @@ namespace ESPINA
 
               virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
-              /** \brief Convenient method to change what state the widget is in.
-               * \param[in] state enumerated state of the widget.
-               *
-               */
-              void SetWidgetState(int state);
-
               /** \brief Convenient method to determine the state of the method.
                *
                */
@@ -156,7 +150,7 @@ namespace ESPINA
               void UpdateRepresentation();
 
               /** \brief Operation modes. */
-              enum { Start = 0, Define = 1, Manipulate = 2 };
+              enum { Define = 0, Delete = 1, Manipulate = 2 };
 
               /** \brief Adds a point to the skeleton in the event coordinates position.
                *
@@ -173,10 +167,10 @@ namespace ESPINA
                */
               void stop();
 
-              /** \brief Removes the current node or does nothing if there is no node selected.
+              /** \brief Removes the current node or does nothing if there is no node selected. Returns true if a node was delete and false otherwise.
                *
                */
-              void deletePoint();
+              bool deletePoint();
 
               /** \brief Selects the closest node to the given mouse coordinates if is between tolerance values.
                * Returns true on success and false otherwise.
@@ -207,14 +201,6 @@ namespace ESPINA
                */
               void cleanup();
 
-            protected:
-              int       m_widgetState;   /** widget operation state.                */
-              Plane     m_orientation;   /** orthogonal plane of the widget.        */
-              Nm        m_slice;         /** current slice position in Nm.          */
-              Nm        m_shift;         /** actor's shift over the slice position. */
-              QColor    m_color;         /** color of the representation.           */
-              NmVector3 m_spacing;       /** representation's spacing.              */
-
               /** \brief Sets the current operation mode of the widget.
                * \param[in] mode integer of operation mode.
                *
@@ -225,6 +211,19 @@ namespace ESPINA
                *
                */
               const int currentOperationMode() const;
+
+              /** \brief Computes the interaction state and updates the mouse cursor.
+               *
+               */
+              void updateCursor();
+
+            protected:
+              int       m_widgetState;   /** widget operation state.                */
+              Plane     m_orientation;   /** orthogonal plane of the widget.        */
+              Nm        m_slice;         /** current slice position in Nm.          */
+              Nm        m_shift;         /** actor's shift over the slice position. */
+              QColor    m_color;         /** color of the representation.           */
+              NmVector3 m_spacing;       /** representation's spacing.              */
 
               /** \brief Overrides vtkAbstractWidget::cursor().
                *

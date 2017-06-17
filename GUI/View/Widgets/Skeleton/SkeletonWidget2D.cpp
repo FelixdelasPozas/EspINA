@@ -49,6 +49,7 @@ SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler)
 , m_handler   {handler}
 , m_view      {nullptr}
 , m_mode      {Mode::CREATE}
+, m_moving    {false}
 {
 }
   
@@ -244,11 +245,14 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
       m_widget->setIgnoreCursor(true);
       m_widget->addPoint();
       break;
-    case Mode::DELETE:
-      m_widget->deletePoint();
-      break;
     case Mode::MODIFY:
-      m_widget->movePoint();
+      if(m_moving)
+      {
+        m_widget->movePoint();
+      }
+      break;
+    case Mode::DELETE:
+      m_widget->updateCursor();
       break;
     default:
       break;
@@ -269,11 +273,14 @@ void SkeletonWidget2D::onTrackUpdated(Track track, RenderView *view)
       case Mode::CREATE:
         m_widget->addPoint();
         break;
-      case Mode::DELETE:
-        m_widget->deletePoint();
-        break;
       case Mode::MODIFY:
-        m_widget->movePoint();
+        if(m_moving)
+        {
+          m_widget->movePoint();
+        }
+        break;
+      case Mode::DELETE:
+        m_widget->updateCursor();
         break;
       default:
         break;
@@ -294,13 +301,23 @@ void SkeletonWidget2D::onCursorPositionChanged(const QPoint& p, RenderView *view
     case Mode::CREATE:
       m_widget->movePoint();
       break;
+    case Mode::MODIFY:
+      if(m_moving)
+      {
+        m_widget->movePoint();
+      }
+      else
+      {
+        m_widget->selectNode();
+      }
+      m_widget->updateCursor();
+      break;
     case Mode::DELETE:
       m_widget->selectNode();
-      break;
-    case Mode::MODIFY:
-      m_widget->selectNode();
+      m_widget->updateCursor();
       break;
     default:
+
       break;
   }
 }
@@ -323,12 +340,20 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
     case Mode::CREATE:
       break;
     case Mode::DELETE:
+      m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
+      if(m_widget->selectNode() && m_widget->deletePoint())
+      {
+        emit modified(m_widget->getSkeleton());
+      }
       break;
     case Mode::MODIFY:
       if (button == Qt::LeftButton)
       {
         m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
-        m_widget->selectNode();
+        if(m_widget->selectNode())
+        {
+          m_moving = true;
+        }
       }
       break;
     default:
@@ -348,8 +373,12 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
     case Mode::DELETE:
       break;
     case Mode::MODIFY:
-      m_widget->stop();
-      emit modified(m_widget->getSkeleton());
+      if(button == Qt::LeftButton && m_moving)
+      {
+        m_widget->stop();
+        emit modified(m_widget->getSkeleton());
+        m_moving = false;
+      }
       break;
     default:
       break;
@@ -359,7 +388,7 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
 //--------------------------------------------------------------------
 void SkeletonWidget2D::stop()
 {
-  if(m_widget->ignoreCursor())
+  if(m_mode == Mode::CREATE)
   {
     m_widget->setIgnoreCursor(false);
     m_widget->stop();
@@ -388,5 +417,24 @@ void SkeletonWidget2D::uninitializeImplementation()
     m_widget->SetInteractor(nullptr);
 
     m_view = nullptr;
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setMode(Mode mode)
+{
+  m_mode = mode;
+  switch(m_mode)
+  {
+    case Mode::CREATE:
+      m_widget->setCurrentOperationMode(vtkSkeletonWidget::Define);
+      break;
+    case Mode::DELETE:
+      m_widget->setCurrentOperationMode(vtkSkeletonWidget::Delete);
+      break;
+    case Mode::MODIFY:
+    default:
+      m_widget->setCurrentOperationMode(vtkSkeletonWidget::Manipulate);
+      break;
   }
 }

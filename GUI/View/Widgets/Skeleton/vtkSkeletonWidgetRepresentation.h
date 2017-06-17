@@ -35,6 +35,7 @@
 #include <QMap>
 #include <QColor>
 #include <QMutex>
+#include <QDebug>
 
 class vtkActor;
 class vtkPolyData;
@@ -329,14 +330,6 @@ namespace ESPINA
                *
                */
               bool IsNearNode(int x, int y) const;
-
-              /** \brief Returns true if the point is too close to the previous point
-               * using the tolerance value.
-               * \param[in] x x display coordinate.
-               * \param[in] y y display coordinate.
-               *
-               */
-              bool IsPointTooClose(int x, int y) const;
 
               /** \brief Sets the value of the ignore cursor flag.
                * \param[in] value true to ignore the cursor node in 'near node' and state computations, false otherwise.

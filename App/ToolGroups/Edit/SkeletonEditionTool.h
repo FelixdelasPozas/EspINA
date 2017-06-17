@@ -39,8 +39,12 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
+using ESPINA::GUI::View::Widgets::Skeleton::SkeletonWidget2D;
+
 namespace ESPINA
 {
+  class DoubleSpinBoxAction;
+
   /** \class SkeletonEditionTool
    * \brief Tool for skeleton segmentation edition
    *
@@ -99,9 +103,29 @@ namespace ESPINA
        */
       void onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata);
 
-      void onEraseButtonClicked(bool value);
+      /** \brief Updates the widget operation mode depending on the clicked buttons.
+       * \param[in] value true if the sender button is checked and false otherwise.
+       *
+       */
+      void onModeChanged(bool value);
 
-      void onMoveButtonClicked(bool value);
+      /** \brief Updates the minimum point distance value in the widget when the value in the spinbox changes.
+       * \param[in] value new minimum distance value.
+       *
+       */
+      void onMinimumDistanceChanged(double value);
+
+      /** \brief Updates the maximum point distance value in the widget when the value in the spinbox changes.
+       * \param[in] value new maximum distance value.
+       *
+       */
+      void onMaximumDistanceChanged(double value);
+
+      /** \brief Enables/disables the erase button depeding on the value.
+       * \param[in] value true if the modifier is pressed, and false when the modifier key is released.
+       *
+       */
+      void onModifierPressed(bool value);
 
     private:
       virtual bool acceptsNInputs(int n) const;
@@ -122,6 +146,11 @@ namespace ESPINA
        *
        */
       void initEventHandler();
+
+      /** \brief Sets the operating mode of the widget depending on the state of the buttons.
+       *
+       */
+      void updateWidgetsMode();
 
     private:
       /** \class NullRepresentationPipeline
@@ -166,6 +195,8 @@ namespace ESPINA
       bool                                                   m_init;         /** true if the tool has been initialized.            */
       GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr m_eventHandler; /** tool's event handler.                             */
       GUI::Widgets::ToolButton                              *m_eraseButton;  /** Paint/erase button.                               */
+      DoubleSpinBoxAction                                   *m_minWidget;    /** min distance between points widget.               */
+      DoubleSpinBoxAction                                   *m_maxWidget;    /** max distance between points widget.               */
       GUI::Widgets::ToolButton                              *m_moveButton;   /** Move nodes button.                                */
       ViewItemAdapterPtr                                     m_item;         /** current element being created or channel in init. */
       GUI::Representations::Managers::TemporalPrototypesSPtr m_factory;      /** representation prototypes.                        */
