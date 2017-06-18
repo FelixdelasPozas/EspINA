@@ -122,12 +122,17 @@ namespace ESPINA
               virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
               virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
-              { return false; };
+              { return true; };
 
               virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
-              { return false; };
+              { return true; }
 
               virtual void display(const GUI::Representations::FrameCSPtr &frame);
+
+              /** \brief Updates the vtk widget representation.
+               *
+               */
+              void updateRepresentation();
 
             protected:
               virtual bool isEnabled()
@@ -136,13 +141,14 @@ namespace ESPINA
               virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
               virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const
-              { return false; };
+              { return true; };
 
               virtual void setSceneResolution(const NmVector3 &resolution)
               {}
 
             signals:
               void modified(vtkSmartPointer<vtkPolyData> polydata);
+              void updateWidgets();
 
             private:
               using Track = SkeletonEventHandler::Track;

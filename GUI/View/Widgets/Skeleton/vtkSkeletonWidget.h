@@ -26,6 +26,8 @@
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
+
+// VTK
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -216,6 +218,11 @@ namespace ESPINA
                *
                */
               void updateCursor();
+
+              /** \brief Callback method to rebuild the representation when a change occurs in the representation.
+               *
+               */
+              void BuildRepresentation();
 
             protected:
               int       m_widgetState;   /** widget operation state.                */

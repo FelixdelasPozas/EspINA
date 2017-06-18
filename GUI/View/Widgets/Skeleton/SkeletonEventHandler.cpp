@@ -21,6 +21,7 @@
 
 // ESPINA
 #include <GUI/View/Widgets/Skeleton/SkeletonEventHandler.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 
@@ -271,6 +272,24 @@ SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint &poin
 }
 
 //------------------------------------------------------------------------
+void SkeletonEventHandler::addWidget(SkeletonWidget2D *widget)
+{
+  if(!m_widgets.contains(widget))
+  {
+    m_widgets << widget;
+  }
+}
+
+//------------------------------------------------------------------------
+void SkeletonEventHandler::removeWidget(SkeletonWidget2D *widget)
+{
+  if(m_widgets.contains(widget))
+  {
+    m_widgets.removeAll(widget);
+  }
+}
+
+//------------------------------------------------------------------------
 Nm SkeletonEventHandler::distance2(const NmVector3 &p1, const NmVector3 &p2)
 {
   double point1[3] = { p1[0], p1[1], p1[2] };
@@ -279,3 +298,15 @@ Nm SkeletonEventHandler::distance2(const NmVector3 &p1, const NmVector3 &p2)
   return vtkMath::Distance2BetweenPoints(point1, point2);
 }
 
+//------------------------------------------------------------------------
+void SkeletonEventHandler::updateRepresentations()
+{
+  auto caller = dynamic_cast<SkeletonWidget2D *>(sender());
+
+  for(auto widget: m_widgets)
+  {
+    if(widget == caller) continue;
+
+    widget->updateRepresentation();
+  }
+}

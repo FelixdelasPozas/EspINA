@@ -129,7 +129,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     slice3DManager->setDescription(QObject::tr("Display Segmentation Stack Projections"));
 
     auto slice3DSwitch = std::make_shared<SegmentationSliceSwitch>("DisplaySegmentationProjections", slice3DManager, sliceSettings, ViewType::VIEW_3D, context);
-    groupSwitch("1-1", slice3DSwitch);
+    groupSwitch("1-0", slice3DSwitch);
 
     representation.Managers << slice3DManager;
     representation.Switches << slice3DSwitch;
@@ -215,7 +215,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      skeletonManager3D->setDescription(QObject::tr("Display skeleton segmentations"));
 
      auto skeletonSwitch3D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton3DSwitch", skeletonManager3D, skeletonSettings3D, ViewType::VIEW_3D, context);
-     groupSwitch("1-1", skeletonSwitch3D);
+     groupSwitch("1-2", skeletonSwitch3D);
 
      representation.Pools    << poolSkeleton3D;
      representation.Managers << skeletonManager3D;
@@ -250,7 +250,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   smoothedMeshManager->setName("DisplaySmoothedSegmentationMesh");
 
   auto meshSwitch = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, ViewType::VIEW_3D, context);
-  groupSwitch("1-0", meshSwitch);
+  groupSwitch("1-1", meshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;

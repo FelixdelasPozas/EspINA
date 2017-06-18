@@ -282,6 +282,8 @@ void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyda
   {
     qWarning() << "onSkeletonModified received signal but couldn't identify the sender." << __FILE__ << __LINE__;
   }
+
+  getViewState().refresh();
 }
 
 //--------------------------------------------------------------------

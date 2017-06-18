@@ -156,6 +156,12 @@ vtkSkeletonWidgetRepresentation::~vtkSkeletonWidgetRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
 {
+  // centering coordinates in voxel center allows points to be later moved easily in other views.
+  for(int i: {0,1,2})
+  {
+    worldPos[i] = std::round(worldPos[i]/m_spacing[i]) * m_spacing[i];
+  }
+
   {
     QMutexLocker lock(&s_skeletonMutex);
 
@@ -294,6 +300,11 @@ bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldP
     QMutexLocker lock(&s_skeletonMutex);
 
     if (s_currentVertex == nullptr) return false;
+
+    for(int i: {0,1,2})
+    {
+      worldPos[i] = std::round(worldPos[i]/m_spacing[i]) * m_spacing[i];
+    }
 
     std::memcpy(s_currentVertex->worldPosition, worldPos, 3 * sizeof(double));
   }
@@ -661,13 +672,15 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::UpdatePointer()
 {
+  auto idx = normalCoordinateIndex(m_orientation);
+
   QMutexLocker lock(&s_skeletonMutex);
 
-  if (s_currentVertex != nullptr)
+  if (s_currentVertex != nullptr && (std::abs(s_currentVertex->worldPosition[idx] - m_slice) <= std::abs(m_shift)))
   {
     double pos[3];
     std::memcpy(pos, s_currentVertex->worldPosition, 3 * sizeof(double));
-    pos[normalCoordinateIndex(m_orientation)] = m_slice;
+    pos[idx] = m_slice + m_shift;
 
     auto polyData = vtkPolyData::SafeDownCast(m_pointer->GetInput());
     polyData->GetPoints()->Reset();
