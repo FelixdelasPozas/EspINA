@@ -176,6 +176,10 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
     m_widget->SetInteractor(view->renderWindow()->GetInteractor());
     m_widget->EnabledOn();
 
+    m_handler->addWidget(this);
+
+    connect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
+
     connectSignals();
   }
 }
@@ -344,6 +348,7 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
       if(m_widget->selectNode() && m_widget->deletePoint())
       {
         emit modified(m_widget->getSkeleton());
+        emit updateWidgets();
       }
       break;
     case Mode::MODIFY:
@@ -377,6 +382,7 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
       {
         m_widget->stop();
         emit modified(m_widget->getSkeleton());
+        emit updateWidgets();
         m_moving = false;
       }
       break;
@@ -401,6 +407,7 @@ void SkeletonWidget2D::stop()
     else
     {
       emit modified(m_widget->getSkeleton());
+      emit updateWidgets();
     }
   }
 }
@@ -415,6 +422,10 @@ void SkeletonWidget2D::uninitializeImplementation()
     m_widget->EnabledOff();
     m_widget->SetCurrentRenderer(nullptr);
     m_widget->SetInteractor(nullptr);
+
+    disconnect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
+
+    m_handler->removeWidget(this);
 
     m_view = nullptr;
   }
@@ -437,4 +448,10 @@ void SkeletonWidget2D::setMode(Mode mode)
       m_widget->setCurrentOperationMode(vtkSkeletonWidget::Manipulate);
       break;
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::updateRepresentation()
+{
+  m_widget->BuildRepresentation();
 }

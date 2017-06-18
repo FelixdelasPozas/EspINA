@@ -28,7 +28,6 @@
 #include <vtkCommand.h>
 #include <vtkWidgetEvent.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkCallbackCommand.h>
 
 // Qt
 #include <QApplication>
@@ -46,6 +45,7 @@ vtkSkeletonWidget::vtkSkeletonWidget()
 , m_slice        {-1}
 , m_shift        {1}
 , m_color        {QColor{254,254,154}}
+, m_ignoreCursor {false}
 {
   ManagesCursor = false; // from Superclass
   CreateDefaultRepresentation();
@@ -383,7 +383,6 @@ void vtkSkeletonWidget::SetCursor(int State)
           }
           break;
       }
-
       break;
     default:
       break;
@@ -572,6 +571,12 @@ void vtkSkeletonWidget::updateCursor()
   rep->ComputeInteractionState(X, Y);
 
   SetCursor(rep->GetInteractionState());
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::BuildRepresentation()
+{
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------

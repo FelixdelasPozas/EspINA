@@ -443,6 +443,8 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
   {
     qWarning() << "onSkeletonModified received signal but couldn't identify the sender." << __FILE__ << __LINE__;
   }
+
+  getViewState().refresh();
 }
 
 //--------------------------------------------------------------------

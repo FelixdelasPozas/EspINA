@@ -42,6 +42,8 @@ namespace ESPINA
       {
         namespace Skeleton
         {
+          class SkeletonWidget2D;
+
           /** \class SkeletonEventHandler
            * \brief Handles view events for skeleton tools.
            *
@@ -112,6 +114,22 @@ namespace ESPINA
                */
               bool isTracking() const;
 
+              /** \brief Adds a widget to observe to the list.
+               *
+               */
+              void addWidget(SkeletonWidget2D *widget);
+
+              /** \brief Removes a widget from the list of widgets to observe.
+               *
+               */
+              void removeWidget(SkeletonWidget2D *widget);
+
+            public slots:
+              /** \brief Updates the widget's representations.
+               *
+               */
+              void updateRepresentations();
+
             signals:
               void started(Track, RenderView *);
               void updated(Track, RenderView *);
@@ -159,6 +177,8 @@ namespace ESPINA
               bool        m_distanceHasBeenSet; /** true if max distance has been set.                         */
               Track       m_track;              /** track points group.                                        */
               Track       m_updatedTrack;       /** group of points in the update track step.                  */
+
+              QList<SkeletonWidget2D *> m_widgets; /** list of widgets to observe events.                    */
           };
 
           using SkeletonEventHandlerSPtr = std::shared_ptr<SkeletonEventHandler>;

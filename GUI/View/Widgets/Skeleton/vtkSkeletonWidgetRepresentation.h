@@ -35,7 +35,6 @@
 #include <QMap>
 #include <QColor>
 #include <QMutex>
-#include <QDebug>
 
 class vtkActor;
 class vtkPolyData;
