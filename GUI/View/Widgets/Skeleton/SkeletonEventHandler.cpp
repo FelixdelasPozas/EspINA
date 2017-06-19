@@ -49,6 +49,9 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
   auto me = dynamic_cast<QMouseEvent *>(e);
   auto ke = dynamic_cast<QKeyEvent *>(e);
 
+  auto view2D = view2D_cast(view);
+  if(!view2D) return false;
+
   switch(e->type())
   {
     case QEvent::MouseButtonPress:

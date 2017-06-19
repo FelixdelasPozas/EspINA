@@ -36,6 +36,7 @@
 #include <vtkCellArray.h>
 #include <vtkLine.h>
 #include <vtkMath.h>
+#include <vtkActor2D.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -78,6 +79,13 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
       actorVTK->GetProperty()->SetLineWidth(width);
       actorVTK->Modified();
+    }
+
+    auto actor2D = vtkActor2D::SafeDownCast(actor.Get());
+
+    if(actor2D)
+    {
+      actor2D->SetVisibility(item->isSelected());
     }
   }
 }

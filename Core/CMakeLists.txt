@@ -38,6 +38,7 @@ set (CORE_SOURCES
   Analysis/Data/Mesh/RawMesh.cpp
   Analysis/Data/Mesh/MarchingCubesMesh.cpp
   Analysis/Data/SkeletonData.cpp
+  Analysis/Data/SkeletonDataUtils.cpp
   Analysis/Data/Skeleton/RawSkeleton.cpp
   Analysis/Data/VolumetricData.cpp
   Analysis/Data/Volumetric/ROI.cpp

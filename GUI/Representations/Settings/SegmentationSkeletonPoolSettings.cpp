@@ -76,7 +76,7 @@ double SegmentationSkeletonPoolSettings::opacity() const
 //--------------------------------------------------------------------
 int SegmentationSkeletonPoolSettings::getWidth(const RepresentationState& state)
 {
-  if(!state.hasValue(WIDTH)) return 2;
+  if(!state.hasValue(WIDTH)) return 1;
 
   return state.getValue<int>(WIDTH);
 }
