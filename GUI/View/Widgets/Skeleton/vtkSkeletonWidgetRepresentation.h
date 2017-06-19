@@ -25,6 +25,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/Vector3.hxx>
 #include <vtkSetGet.h>
 #include <vtkWidgetRepresentation.h>
@@ -61,31 +62,6 @@ namespace ESPINA
           class EspinaGUI_EXPORT vtkSkeletonWidgetRepresentation
           : public vtkWidgetRepresentation
           {
-            private:
-              /** \class SkeletonNode
-               *  \brief To represent the skeleton as a list of nodes.
-               *
-               */
-              class SkeletonNode
-              {
-                public:
-                  double worldPosition[3];
-                  QList<SkeletonNode *> connections;
-
-                  SkeletonNode(double worldPos[3])
-                  {
-                    worldPosition[0] = worldPos[0];
-                    worldPosition[1] = worldPos[1];
-                    worldPosition[2] = worldPos[2];
-                  }
-
-                  ~SkeletonNode()
-                  {
-                    for(auto node: connections)
-                      node->connections.removeAll(this);
-                  }
-              };
-
             public:
               friend class vtkSkeletonWidget;
 
@@ -153,7 +129,7 @@ namespace ESPINA
                * \param[in] node skeleton node raw pointer.
                *
                */
-              bool ActivateNode(SkeletonNode *node);
+              bool ActivateNode(Core::SkeletonNode *node);
 
               /** \brief Sets the current node as none.
                *
@@ -404,12 +380,12 @@ namespace ESPINA
               QColor    m_color;
               NmVector3 m_spacing;
 
-              static QList<SkeletonNode *> s_skeleton;
-              static NmVector3             s_skeletonSpacing;
-              static SkeletonNode         *s_currentVertex;
-              static QMutex                s_skeletonMutex;
+              static Core::SkeletonNodes s_skeleton;
+              static NmVector3           s_skeletonSpacing;
+              static Core::SkeletonNode *s_currentVertex;
+              static QMutex              s_skeletonMutex;
 
-              QMap<SkeletonNode *, vtkIdType> m_visiblePoints;
+              QMap<Core::SkeletonNode *, vtkIdType> m_visiblePoints;
 
               // Support picking
               double m_lastPickPosition[2];

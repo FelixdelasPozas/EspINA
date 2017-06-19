@@ -28,16 +28,25 @@
 // VTK
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
+#include <vtkActor2D.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
+#include <vtkTubeFilter.h>
+#include <vtkLabeledDataMapper.h>
+#include <vtkPoints.h>
+#include <vtkPointData.h>
+#include <vtkIntArray.h>
+#include <vtkStringArray.h>
+#include <vtkPointSetToLabelHierarchy.h>
+#include <vtkLabelPlacementMapper.h>
+#include <vtkTextProperty.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
-
 
 //----------------------------------------------------------------------------
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
@@ -55,31 +64,88 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
   if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto data = readLockSkeleton(segmentation->output());
+    auto data        = readLockSkeleton(segmentation->output())->skeleton();
+    auto width       = SegmentationSkeletonPoolSettings::getWidth(state);
+    auto mapperInput = vtkSmartPointer<vtkPolyData>::New();
+
+    if(width == 0)
+    {
+      mapperInput = data;
+    }
+    else
+    {
+      // Create a tube (cylinder) around the line
+      auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+      tubeFilter->SetInputData(data);
+      tubeFilter->SetRadius(width + (item->isSelected() ? 2 : 0));
+      tubeFilter->SetNumberOfSides(30);
+      tubeFilter->Update();
+
+      mapperInput->DeepCopy(tubeFilter->GetOutput());
+    }
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputData(data->skeleton());
+    mapper->SetInputData(mapperInput);
     mapper->Update();
 
     auto color = m_colorEngine->color(segmentation);
     double rgba[4];
     SegmentationSkeletonPipelineBase::s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
-    auto width = item->isSelected() ? 2 : 1;
-    width *= SegmentationSkeletonPoolSettings::getWidth(state);
-
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
     actor->GetProperty()->SetLineWidth(width);
     actor->Modified();
 
     actors << actor;
 
-    if(SegmentationSkeletonPoolSettings::getShowAnnotations(state))
+    if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
     {
-      // TODO annotations actor.
+      auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+      auto labelText   = vtkSmartPointer<vtkStringArray>::New();
+      labelText->SetName("Labels");
+
+      auto labels      = vtkIntArray::SafeDownCast(data->GetPointData()->GetScalars("Connections"));
+
+      int number = 0;
+      for(int i = 0; i < labels->GetNumberOfTuples(); ++i)
+      {
+        if(labels->GetValue(i) != 2)
+        {
+          labelPoints->InsertNextPoint(data->GetPoint(i));
+          labelText->InsertNextValue(QString::number(++number).toStdString().c_str());
+        }
+      }
+
+      auto labelsData = vtkSmartPointer<vtkPolyData>::New();
+      labelsData->SetPoints(labelPoints);
+      labelsData->GetPointData()->AddArray(labelText);
+
+      auto property = vtkSmartPointer<vtkTextProperty>::New();
+      property->SetBold(true);
+      property->SetFontFamilyToArial();
+      property->SetFontSize(15);
+      property->SetJustificationToCentered();
+
+      auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+      labelFilter->SetInputData(labelsData);
+      labelFilter->SetLabelArrayName("Labels");
+      labelFilter->SetTextProperty(property);
+      labelFilter->Update();
+
+      auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+      labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+      labelMapper->SetGeneratePerturbedLabelSpokes(true);
+      labelMapper->SetBackgroundColor(rgba[0]*0.6, rgba[1]*0.6, rgba[2]*0.6);
+      labelMapper->SetPlaceAllLabels(true);
+      labelMapper->SetShapeToRoundedRect();
+      labelMapper->SetStyleToFilled();
+
+      auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+      labelActor->SetMapper(labelMapper);
+
+      actors << labelActor;
     }
   }
 

@@ -39,6 +39,13 @@
 #include <vtkType.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
+#include <vtkTextProperty.h>
+#include <vtkStringArray.h>
+#include <vtkIntArray.h>
+#include <vtkPointSetToLabelHierarchy.h>
+#include <vtkLabelPlacementMapper.h>
+#include <vtkActor2D.h>
+#include <vtkPointData.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -68,34 +75,27 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
     
+    QMap<vtkIdType, vtkIdType> newPointIds;
+
     if (sliceBounds[2 * planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2 * planeIndex + 1])
     {
-      auto newPoints    = vtkSmartPointer<vtkPoints>::New();
-      auto newLines     = vtkSmartPointer<vtkCellArray>::New();
-      auto skeleton     = readLockSkeleton(segmentation->output())->skeleton();
-      auto planeSpacing = segmentation->output()->spacing()[planeIndex];
+      auto newPoints = vtkSmartPointer<vtkPoints>::New();
+      auto newLines  = vtkSmartPointer<vtkCellArray>::New();
+      auto skeleton  = readLockSkeleton(segmentation->output())->skeleton();
+      auto spacing   = segmentation->output()->spacing();
 
-      QMap<vtkIdType, NmVector3> pointIds;
-      QMap<vtkIdType, vtkIdType> newPointIds;
       auto points = skeleton->GetPoints();
       auto lines = skeleton->GetLines();
       double pointACoords[3]{0, 0, 0};
       double pointBCoords[3]{0, 0, 0};
-
-      if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
-      {
-        // TODO prepare for annotations actor, insert data in next while expr.
-      }
+      auto showIds = SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected();
 
       lines->InitTraversal();
       vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
       auto sliceDepth = reslicePoint + segmentationDepth(state);
       while (lines->GetNextCell(idList))
       {
-        if (idList->GetNumberOfIds() != 2)
-        {
-          continue;
-        }
+        if (idList->GetNumberOfIds() != 2) continue;
 
         vtkIdType pointAId = idList->GetId(0);
         vtkIdType pointBId = idList->GetId(1);
@@ -104,8 +104,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
         if ((pointACoords[planeIndex] < reslicePoint && pointBCoords[planeIndex] > reslicePoint) ||
             (pointACoords[planeIndex] > reslicePoint && pointBCoords[planeIndex] < reslicePoint) ||
-            areEqual(pointACoords[planeIndex], reslicePoint, planeSpacing)                       ||
-            areEqual(pointBCoords[planeIndex], reslicePoint, planeSpacing))
+            areEqual(pointACoords[planeIndex], reslicePoint, spacing[planeIndex])                ||
+            areEqual(pointBCoords[planeIndex], reslicePoint, spacing[planeIndex]))
         {
           if (!newPointIds.contains(pointAId))
           {
@@ -150,6 +150,59 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       actor->Modified();
 
       actors << actor;
+
+      if(showIds)
+      {
+        auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+        auto labelText   = vtkSmartPointer<vtkStringArray>::New();
+        labelText->SetName("Labels");
+
+        auto labels = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetScalars("Connections"));
+
+        int number = 0;
+        auto usedPointIds = newPointIds.keys();
+        for(int i = 0; i < labels->GetNumberOfTuples(); ++i)
+        {
+          if(labels->GetValue(i) != 2)
+          {
+            ++number;
+            if(usedPointIds.contains(i))
+            {
+              labelPoints->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
+              labelText->InsertNextValue(QString::number(number).toStdString().c_str());
+            }
+          }
+        }
+
+        auto labelsData = vtkSmartPointer<vtkPolyData>::New();
+        labelsData->SetPoints(labelPoints);
+        labelsData->GetPointData()->AddArray(labelText);
+
+        auto property = vtkSmartPointer<vtkTextProperty>::New();
+        property->SetBold(true);
+        property->SetFontFamilyToArial();
+        property->SetFontSize(15);
+        property->SetJustificationToCentered();
+
+        auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+        labelFilter->SetInputData(labelsData);
+        labelFilter->SetLabelArrayName("Labels");
+        labelFilter->SetTextProperty(property);
+        labelFilter->Update();
+
+        auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+        labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+        labelMapper->SetGeneratePerturbedLabelSpokes(true);
+        labelMapper->SetBackgroundColor(rgba[0]*0.6, rgba[1]*0.6, rgba[2]*0.6);
+        labelMapper->SetPlaceAllLabels(true);
+        labelMapper->SetShapeToRoundedRect();
+        labelMapper->SetStyleToFilled();
+
+        auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+        labelActor->SetMapper(labelMapper);
+
+        actors << labelActor;
+      }
     }
   }
 
