@@ -28,6 +28,9 @@
 #include <Support/Representations/RepresentationUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 
+// Qt
+#include <QColor>
+
 // VTK
 #include <vtkActor.h>
 #include <vtkCellArray.h>
@@ -153,9 +156,15 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
       if(showIds)
       {
-        auto labelPoints = vtkSmartPointer<vtkPoints>::New();
-        auto labelText   = vtkSmartPointer<vtkStringArray>::New();
-        labelText->SetName("Labels");
+        auto labelPointsBlue = vtkSmartPointer<vtkPoints>::New();
+        auto labelTextBlue   = vtkSmartPointer<vtkStringArray>::New();
+        labelTextBlue->SetName("Labels");
+        auto labelPointsRed = vtkSmartPointer<vtkPoints>::New();
+        auto labelTextRed   = vtkSmartPointer<vtkStringArray>::New();
+        labelTextRed->SetName("Labels");
+        auto labelPointsGreen = vtkSmartPointer<vtkPoints>::New();
+        auto labelTextGreen   = vtkSmartPointer<vtkStringArray>::New();
+        labelTextGreen->SetName("Labels");
 
         auto labels = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetScalars("Connections"));
 
@@ -168,15 +177,40 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
             ++number;
             if(usedPointIds.contains(i))
             {
-              labelPoints->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
-              labelText->InsertNextValue(QString::number(number).toStdString().c_str());
+              auto sliceValue = skeleton->GetPoint(i)[planeIndex];
+              if(areEqual(sliceValue, reslicePoint))
+              {
+                labelPointsGreen->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
+                labelTextGreen->InsertNextValue(QString::number(number).toStdString().c_str());
+              }
+              else
+              {
+                if(sliceValue < reslicePoint)
+                {
+                  labelPointsBlue->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
+                  labelTextBlue->InsertNextValue(QString::number(number).toStdString().c_str());
+                }
+                else
+                {
+                  labelPointsRed->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
+                  labelTextRed->InsertNextValue(QString::number(number).toStdString().c_str());
+                }
+              }
             }
           }
         }
 
-        auto labelsData = vtkSmartPointer<vtkPolyData>::New();
-        labelsData->SetPoints(labelPoints);
-        labelsData->GetPointData()->AddArray(labelText);
+        auto labelsDataGreen = vtkSmartPointer<vtkPolyData>::New();
+        labelsDataGreen->SetPoints(labelPointsGreen);
+        labelsDataGreen->GetPointData()->AddArray(labelTextGreen);
+
+        auto labelsDataBlue = vtkSmartPointer<vtkPolyData>::New();
+        labelsDataBlue->SetPoints(labelPointsBlue);
+        labelsDataBlue->GetPointData()->AddArray(labelTextBlue);
+
+        auto labelsDataRed = vtkSmartPointer<vtkPolyData>::New();
+        labelsDataRed->SetPoints(labelPointsRed);
+        labelsDataRed->GetPointData()->AddArray(labelTextRed);
 
         auto property = vtkSmartPointer<vtkTextProperty>::New();
         property->SetBold(true);
@@ -184,24 +218,31 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         property->SetFontSize(15);
         property->SetJustificationToCentered();
 
-        auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
-        labelFilter->SetInputData(labelsData);
-        labelFilter->SetLabelArrayName("Labels");
-        labelFilter->SetTextProperty(property);
-        labelFilter->Update();
+        for(auto input: {labelsDataGreen, labelsDataBlue, labelsDataRed})
+        {
+          if(input->GetNumberOfPoints() == 0) continue;
 
-        auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
-        labelMapper->SetInputConnection(labelFilter->GetOutputPort());
-        labelMapper->SetGeneratePerturbedLabelSpokes(true);
-        labelMapper->SetBackgroundColor(rgba[0]*0.6, rgba[1]*0.6, rgba[2]*0.6);
-        labelMapper->SetPlaceAllLabels(true);
-        labelMapper->SetShapeToRoundedRect();
-        labelMapper->SetStyleToFilled();
+          auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+          labelFilter->SetInputData(input);
+          labelFilter->SetLabelArrayName("Labels");
+          labelFilter->SetTextProperty(property);
+          labelFilter->Update();
 
-        auto labelActor = vtkSmartPointer<vtkActor2D>::New();
-        labelActor->SetMapper(labelMapper);
+          double labelColor[3]{(input == labelsDataRed ? 1. : 0.), (input == labelsDataGreen ? 1. : 0.), (input == labelsDataBlue ? 1. : 0.)};
 
-        actors << labelActor;
+          auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+          labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+          labelMapper->SetGeneratePerturbedLabelSpokes(true);
+          labelMapper->SetBackgroundColor(labelColor[0]*0.6, labelColor[1]*0.6, labelColor[2]*0.6);
+          labelMapper->SetPlaceAllLabels(true);
+          labelMapper->SetShapeToRoundedRect();
+          labelMapper->SetStyleToFilled();
+
+          auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+          labelActor->SetMapper(labelMapper);
+
+          actors << labelActor;
+        }
       }
     }
   }
