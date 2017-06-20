@@ -22,12 +22,18 @@
 #ifndef CORE_ANALYSIS_DATA_SKELETONDATAUTILS_H_
 #define CORE_ANALYSIS_DATA_SKELETONDATAUTILS_H_
 
+#include <Core/EspinaCore_Export.h>
+
+// ESPINA
+#include <Core/Analysis/Segmentation.h>
+
 // VTK
 #include <vtkSmartPointer.h>
 
 // Qt
 #include <QList>
 #include <QString>
+#include <QDebug>
 
 class vtkPolyData;
 
@@ -39,7 +45,7 @@ namespace ESPINA
      * \brief Definition of a point in 3D coordinates and it's connections and annotations.
      *
      */
-    struct SkeletonNode
+    struct EspinaCore_EXPORT SkeletonNode
     {
       double                position[3]; /** position of the node in space.        */
       QList<SkeletonNode *> connections; /** list of connections with other nodes. */
@@ -74,25 +80,46 @@ namespace ESPINA
     };
 
     using SkeletonNodes = QList<SkeletonNode *>;
+    using Conenction    = QPair<SkeletonNode *, Segmentation *>;
+    using Connections   = QList<Conenction>;
+
+    struct EspinaCore_EXPORT Path
+    {
+      SkeletonNode *begin;
+      SkeletonNode *end;
+      SkeletonNodes seen;
+      QString       note;
+
+      Path(): begin{nullptr}, end{nullptr} {};
+    };
+
+    using PathList      = QList<Path>;
+
+    /** \brief Operator << for QDebug and Path struct.
+     * \param[in] stream QDebug stream
+     * \param[in] path path struct.
+     *
+     */
+    QDebug EspinaCore_EXPORT operator<<(QDebug stream, const struct Path &path);
 
     /** \brief Converts a vtk structure to Skeleton nodes list.
      * \param[in] skeleton skeleton polydata object.
      *
      */
-    SkeletonNodes toNodes(const vtkSmartPointer<vtkPolyData> skeleton);
+    SkeletonNodes EspinaCore_EXPORT toNodes(const vtkSmartPointer<vtkPolyData> skeleton);
 
     /** \brief Converts a list of nodes to a vtk mesh object.
      * \param[in] nodes list of nodes.
      *
      */
-    vtkSmartPointer<vtkPolyData> toPolyData(const SkeletonNodes nodes);
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT toPolyData(const SkeletonNodes nodes);
 
     /** \brief Returns the index of the closest node to the given position in space.
      * \param[in] point coordinates of a point in space.
      * \param[in] nodes list of nodes.
      *
      */
-    int closestNode(const double position[3], const SkeletonNodes nodes);
+    int EspinaCore_EXPORT closestNode(const double position[3], const SkeletonNodes nodes);
 
     /** \brief Returns the distance closest point in the skeleton to the given point coordinates.
      * \param[in] point input point coordinates.
@@ -102,7 +129,14 @@ namespace ESPINA
      * \param[out] worldPosition position of the closest point in the skeleton to the input point.
      *
      */
-    double closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
+    double EspinaCore_EXPORT closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
+
+    /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
+     * \param[in] skeleton skeleton in nodes list form.
+     *
+     */
+    PathList EspinaCore_EXPORT paths(const SkeletonNodes &skeleton);
+
   } // namespace Core
 } // namespace ESPINA
 

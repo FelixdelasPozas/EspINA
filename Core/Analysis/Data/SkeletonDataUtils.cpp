@@ -106,7 +106,7 @@ Core::SkeletonNodes Core::toNodes(const vtkSmartPointer<vtkPolyData> skeleton)
   int idNum = 0;
   for(auto node: result)
   {
-    if(node->connections.size() % 2 != 0)
+    if(node->connections.size() != 2)
     {
       node->id = QString::number(++idNum);
     }
@@ -259,4 +259,204 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
   }
 
   return ::sqrt(result);
+}
+
+//--------------------------------------------------------------------
+ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
+{
+  PathList result, stack;
+
+  auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
+
+  auto checkIfReported = [lessThan, skeleton] (const Path currentPath, const PathList result)
+  {
+    for(auto path: result)
+    {
+      if((path.begin == currentPath.end && path.end == currentPath.begin) ||
+         (path.end == currentPath.end && path.begin == currentPath.begin))
+      {
+        if(path.seen.size() != currentPath.seen.size()) continue;
+
+        auto seen1 = path.seen;
+        auto seen2 = currentPath.seen;
+
+        qSort(seen1.begin(), seen1.end(), lessThan);
+        qSort(seen2.begin(), seen2.end(), lessThan);
+
+        if(seen1 == seen2)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  if(skeleton.isEmpty()) return result;
+
+  if(skeleton.size() == 1)
+  {
+    struct Path path;
+    path.begin = path.end = skeleton.first();
+    path.seen << path.begin << path.begin;
+
+    result << path;
+    return result;
+  }
+
+  SkeletonNode *first = nullptr;
+  for(auto node: skeleton)
+  {
+    if(node->connections.size() != 2)
+    {
+      first = node;
+      break;
+    }
+  }
+
+  if(first == nullptr)
+  {
+    // its a closed loop
+    struct Path path;
+    path.begin = path.end = skeleton.first();
+    path.seen = skeleton;
+    path.seen << skeleton.first();
+    path.note = "Loop";
+
+    result << path;
+    return result;
+  }
+
+  for(auto node: first->connections)
+  {
+    Q_ASSERT(node != first);
+
+    struct Path path;
+    path.begin = first;
+    path.end = node;
+    path.seen << first;
+
+    stack << path;
+  }
+
+  QList<Core::SkeletonNode *> alreadyExpanded;
+
+  int j = 0;
+  while(!stack.isEmpty() && stack.size() < 100 && j < 1000)
+  {
+    ++j;
+
+    auto currentPath = stack.takeFirst();
+    bool finished = false;
+
+    if(currentPath.begin == currentPath.end)
+    {
+      currentPath.seen << currentPath.end;
+      currentPath.note = "Loop";
+      if(!checkIfReported(currentPath, result))
+      {
+        result << currentPath;
+      }
+      continue;
+    }
+
+    while(!finished && stack.size() < 100 && j < 1000)
+    {
+      if(currentPath.begin == currentPath.end)
+      {
+        currentPath.note = "Loop";
+        currentPath.seen << currentPath.end;
+
+        if(!checkIfReported(currentPath, result))
+        {
+          result << currentPath;
+        }
+        break;
+      }
+
+      switch(currentPath.end->connections.size())
+      {
+        case 1:
+          {
+            currentPath.seen << currentPath.end;
+            if(!checkIfReported(currentPath, result))
+            {
+              result << currentPath;
+            }
+            finished = true;
+          }
+          break;
+        case 2:
+          {
+            auto node = currentPath.end->connections.at(0) == currentPath.seen.last() ? currentPath.end->connections.at(1) : currentPath.end->connections.at(0);
+            currentPath.seen << currentPath.end;
+            currentPath.end = node;
+
+            if(currentPath.end == currentPath.begin)
+            {
+              currentPath.seen << currentPath.end;
+              currentPath.note = "Loop";
+              if(!checkIfReported(currentPath, result))
+              {
+                result << currentPath;
+              }
+              finished = true;
+            }
+          }
+          break;
+        default:
+          {
+            Path toResult;
+            toResult.begin = currentPath.begin;
+            toResult.end   = currentPath.end;
+            toResult.seen  = currentPath.seen;
+            toResult.seen << currentPath.end;
+            toResult.note  = (currentPath.begin == currentPath.end ? "Loop" : "");
+
+            if(!checkIfReported(toResult, result))
+            {
+              result << toResult;
+            }
+
+            if(!alreadyExpanded.contains(currentPath.end))
+            {
+              alreadyExpanded << currentPath.end;
+              for(auto node: currentPath.end->connections)
+              {
+                if(node == currentPath.seen.last()) continue;
+
+                Path toStack;
+                toStack.begin = currentPath.end;
+                toStack.seen << currentPath.end;
+                toStack.end   = node;
+
+                toStack.seen << node;
+                if(!checkIfReported(toStack, result))
+                {
+                  toStack.seen.takeLast();
+                  stack << toStack;
+                }
+              }
+            }
+
+            finished = true;
+          }
+          break;
+      }
+    }
+  }
+
+  // for debugging purposes, check loops removed.
+  for(auto path: result) qDebug() << path;
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+QDebug Core::operator <<(QDebug stream, const struct Path& path)
+{
+  stream << "Path " << path.begin->id << "<->" << path.end->id << " - length: "
+         << path.seen.size() << " nodes. Notes: " << (path.note.isEmpty() ? "None" : path.note);
+
+  return stream;
 }
