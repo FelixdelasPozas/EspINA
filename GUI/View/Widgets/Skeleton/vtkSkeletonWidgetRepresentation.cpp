@@ -43,6 +43,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSphereSource.h>
 #include <vtkRenderWindow.h>
+#include <vtkPlane.h>
 
 // Qt
 #include <QMutexLocker>
@@ -563,6 +564,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   unsigned char red[3]{255,0,0};
   unsigned char green[3]{0,255,0};
   unsigned char blue[3]{0,0,255};
+  unsigned char intersection[3]{255,0,255};
   m_colors->Reset();
 
   m_visiblePoints.clear();
@@ -666,6 +668,25 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           line->GetPointIds()->SetId(0, m_visiblePoints[node]);
           line->GetPointIds()->SetId(1, m_visiblePoints[connectedNode]);
           cells->InsertNextCell(line);
+
+          // compute plane intersection point.
+          if(!areEqual(node->position[planeIndex], m_slice) && !areEqual(connectedNode->position[planeIndex], m_slice))
+          {
+            double normal[3]{0,0,0};
+            normal[planeIndex] = 1;
+            double point[3]{0,0,0};
+            point[planeIndex] = m_slice;
+            double result[3]{0,0,0};
+            double t = 0;
+            auto intersect = vtkPlane::IntersectWithLine(node->position, connectedNode->position, normal, point, t, result);
+
+            if(intersect != 0)
+            {
+              m_points->InsertNextPoint(result);
+              m_colors->InsertNextTupleValue(intersection);
+            }
+          }
+
         }
     }
   }

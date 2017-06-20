@@ -122,8 +122,6 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
   QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
 
   auto points = vtkSmartPointer<vtkPoints>::New();
-//  points->SetNumberOfPoints(nodes.size());
-
   auto lines  = vtkSmartPointer<vtkCellArray>::New();
   auto ids    = vtkSmartPointer<vtkIntArray>::New();
   ids->SetName("Connections");
