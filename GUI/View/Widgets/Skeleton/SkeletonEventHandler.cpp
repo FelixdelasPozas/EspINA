@@ -40,6 +40,8 @@ SkeletonEventHandler::SkeletonEventHandler()
 , m_maxDistance2      {10}
 , m_minDistance2      {0}
 , m_distanceHasBeenSet{false}
+, m_mode              {Mode::CREATE}
+, m_view              {nullptr}
 {
 }
 
@@ -61,7 +63,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
         if (me && (me->button() == Qt::LeftButton))
         {
           m_tracking = true;
-
+          m_view = view;
           startTrack(me->pos(), view);
 
           return true;
@@ -69,10 +71,13 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
 
         if (!m_track.isEmpty() && me && (me->button() == Qt::RightButton))
         {
-          emit stopped(view);
           m_track.clear();
+          if(m_mode == Mode::CREATE)
+          {
+            emit stopped(view);
 
-          return true;
+            return true;
+          }
         }
       }
       break;
@@ -88,11 +93,6 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
         else
         {
           emit cursorPosition(me->pos(), view);
-          if(!m_track.isEmpty())
-          {
-
-            return true;
-          }
         }
       }
       break;
@@ -104,6 +104,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
         if (m_tracking && (me->button() == Qt::LeftButton))
         {
           m_tracking = false;
+          m_view = nullptr;
           updateTrack(me->pos(), view);
 
           return true;
@@ -114,17 +115,18 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       if (m_tracking)
       {
         m_tracking = false;
+        m_view = nullptr;
         updateTrack(me->pos(), view);
 
-        emit stopped(view);
         m_track.clear();
+        emit stopped(view);
       }
       else
       {
-        if (!m_track.isEmpty())
+        if (!m_track.isEmpty() && m_mode == CREATE)
         {
-          emit cancelled(view);
           m_track.clear();
+          emit cancelled(view);
         }
       }
       break;
@@ -213,6 +215,8 @@ void SkeletonEventHandler::updateTrack(const QPoint &pos, RenderView *view)
   if(view)
   {
     m_updatedTrack.clear();
+
+    if(pos == m_track.last()) return;
 
     auto viewPoint1 = view->worldEventPosition(pos);
     auto viewPoint2 = view->worldEventPosition(m_track.last());
@@ -310,5 +314,25 @@ void SkeletonEventHandler::updateRepresentations()
     if(widget == caller) continue;
 
     widget->updateRepresentation();
+  }
+}
+
+//------------------------------------------------------------------------
+void SkeletonEventHandler::setMode(Mode mode)
+{
+  if(m_mode != mode)
+  {
+    m_tracking = false;
+    m_track.clear();
+
+    switch(m_mode)
+    {
+      case Mode::CREATE:
+        if(m_tracking) emit cancelled(m_view);
+        break;
+      default:
+        break;
+    }
+    m_mode = mode;
   }
 }

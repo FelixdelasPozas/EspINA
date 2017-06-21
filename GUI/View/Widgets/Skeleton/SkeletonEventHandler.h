@@ -54,6 +54,7 @@ namespace ESPINA
               Q_OBJECT
             public:
               using Track = QList<QPoint>;
+              enum Mode: char { CREATE = 0, OTHER = 1 };
 
               /** \brief SkeletonEventHandler class constructor.
                *
@@ -124,6 +125,18 @@ namespace ESPINA
                */
               void removeWidget(SkeletonWidget2D *widget);
 
+              /** \brief Sets the operation mode.
+               * \param[in] mode new operation mode.
+               *
+               */
+              void setMode(Mode mode);
+
+              /** \brief Returns the current operation mode.
+               *
+               */
+              Mode mode() const
+              { return m_mode; }
+
             public slots:
               /** \brief Updates the widget's representations.
                *
@@ -177,6 +190,8 @@ namespace ESPINA
               bool        m_distanceHasBeenSet; /** true if max distance has been set.                         */
               Track       m_track;              /** track points group.                                        */
               Track       m_updatedTrack;       /** group of points in the update track step.                  */
+              Mode        m_mode;               /** current operation mode.                                    */
+              RenderView *m_view;               /** current operation view, only valid in CREATE mode.         */
 
               QList<SkeletonWidget2D *> m_widgets; /** list of widgets to observe events.                    */
           };
