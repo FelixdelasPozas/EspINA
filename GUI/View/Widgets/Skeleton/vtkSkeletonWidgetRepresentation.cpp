@@ -924,6 +924,8 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 {
   QMutexLocker lock(&s_skeletonMutex);
 
+  Core::annotateNodes(s_skeleton);
+
   return Core::toPolyData(s_skeleton);
 }
 

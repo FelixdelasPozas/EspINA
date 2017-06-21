@@ -36,7 +36,6 @@
 #include <vtkLabeledDataMapper.h>
 #include <vtkPoints.h>
 #include <vtkPointData.h>
-#include <vtkIntArray.h>
 #include <vtkStringArray.h>
 #include <vtkPointSetToLabelHierarchy.h>
 #include <vtkLabelPlacementMapper.h>
@@ -106,15 +105,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       auto labelText   = vtkSmartPointer<vtkStringArray>::New();
       labelText->SetName("Labels");
 
-      auto labels      = vtkIntArray::SafeDownCast(data->GetPointData()->GetScalars("Connections"));
+      auto labels = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Annotations"));
 
-      int number = 0;
-      for(int i = 0; i < labels->GetNumberOfTuples(); ++i)
+      if(!labels) return actors;
+
+      for(int i = 0; i < labels->GetNumberOfValues(); ++i)
       {
-        if(labels->GetValue(i) != 2)
+        if(!labels->GetValue(i).empty())
         {
           labelPoints->InsertNextPoint(data->GetPoint(i));
-          labelText->InsertNextValue(QString::number(++number).toStdString().c_str());
+          labelText->InsertNextValue(labels->GetValue(i));
         }
       }
 

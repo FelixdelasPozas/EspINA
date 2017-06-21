@@ -39,9 +39,10 @@
 #include <vtkCellArray.h>
 #include <vtkIdList.h>
 #include <vtkType.h>
-#include <vtkIntArray.h>
+#include <vtkStringArray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //--------------------------------------------------------------------
 Core::SkeletonNodes Core::toNodes(const vtkSmartPointer<vtkPolyData> skeleton)
@@ -116,6 +117,33 @@ Core::SkeletonNodes Core::toNodes(const vtkSmartPointer<vtkPolyData> skeleton)
 }
 
 //--------------------------------------------------------------------
+void Core::annotateNodes(SkeletonNodes nodes)
+{
+  int idNum = 0;
+  for(auto node: nodes)
+  {
+    node->id.clear();
+    if(node->connections.size() != 2)
+    {
+      node->id = QString::number(++idNum);
+    }
+  }
+
+  int loopNumber = 0;
+  for(auto component: Core::connectedComponents(nodes))
+  {
+    // annotates loops
+    for(auto path: Core::paths(component))
+    {
+      if(path.note == "Loop" && path.begin->id.isEmpty())
+      {
+        path.begin->id = QString("Loop %1").arg(++loopNumber);
+      }
+    }
+  }
+}
+
+//--------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
 {
   QMap<SkeletonNode *, vtkIdType> locator;
@@ -123,18 +151,20 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
 
   auto points = vtkSmartPointer<vtkPoints>::New();
   auto lines  = vtkSmartPointer<vtkCellArray>::New();
-  auto ids    = vtkSmartPointer<vtkIntArray>::New();
-  ids->SetName("Connections");
+  auto ids    = vtkSmartPointer<vtkStringArray>::New();
+  ids->SetName("Annotations");
   ids->SetNumberOfValues(nodes.size());
 
   for (auto node : nodes)
   {
+    if(node->connections.size() == 0) continue;
     locator.insert(node, points->InsertNextPoint(node->position));
-    ids->InsertValue(locator[node], node->connections.size());
+    ids->InsertValue(locator[node], node->id.toStdString().c_str());
   }
 
   for (auto node : nodes)
   {
+    if(node->connections.size() == 0) continue;
     relationsLocator.insert(locator[node], QList<vtkIdType>());
 
     for (auto connectedNode : node->connections)
@@ -262,32 +292,36 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
+bool Core::operator==(const Core::Path &left, const Core::Path &right)
+{
+  auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
+
+  if(left.seen.size() != right.seen.size()) return false;
+
+  if((left.begin == right.end && left.end == right.begin) || (left.end == right.end && left.begin == right.begin))
+  {
+    auto seen1 = left.seen;
+    auto seen2 = right.seen;
+
+    qSort(seen1.begin(), seen1.end(), lessThan);
+    qSort(seen2.begin(), seen2.end(), lessThan);
+
+    if(seen1 == seen2) return true;
+  }
+
+  return false;
+}
+
+//--------------------------------------------------------------------
 ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
 {
   PathList result, stack;
 
-  auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
-
-  auto checkIfReported = [lessThan, skeleton] (const Path currentPath, const PathList result)
+  auto checkIfReported = [] (const Path currentPath, const PathList result)
   {
     for(auto path: result)
     {
-      if((path.begin == currentPath.end && path.end == currentPath.begin) ||
-         (path.end == currentPath.end && path.begin == currentPath.begin))
-      {
-        if(path.seen.size() != currentPath.seen.size()) continue;
-
-        auto seen1 = path.seen;
-        auto seen2 = currentPath.seen;
-
-        qSort(seen1.begin(), seen1.end(), lessThan);
-        qSort(seen2.begin(), seen2.end(), lessThan);
-
-        if(seen1 == seen2)
-        {
-          return true;
-        }
-      }
+      if(path == currentPath) return true;
     }
     return false;
   };
@@ -299,6 +333,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
     struct Path path;
     path.begin = path.end = skeleton.first();
     path.seen << path.begin << path.begin;
+    path.begin->id = "Isolated";
 
     result << path;
     return result;
@@ -341,11 +376,8 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
 
   QList<Core::SkeletonNode *> alreadyExpanded;
 
-  int j = 0;
-  while(!stack.isEmpty() && stack.size() < 100 && j < 1000)
+  while(!stack.isEmpty())
   {
-    ++j;
-
     auto currentPath = stack.takeFirst();
     bool finished = false;
 
@@ -360,7 +392,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
       continue;
     }
 
-    while(!finished && stack.size() < 100 && j < 1000)
+    while(!finished)
     {
       if(currentPath.begin == currentPath.end)
       {
@@ -446,10 +478,40 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
     }
   }
 
-  // for debugging purposes, check loops removed.
-  for(auto path: result) qDebug() << path;
-
   return result;
+}
+
+//--------------------------------------------------------------------
+QDebug Core::operator <<(QDebug stream, const SkeletonNodes& skeleton)
+{
+  stream << "Skeleton:\n- Size:" << skeleton.size() << "nodes.";
+
+  auto components = Core::connectedComponents(skeleton);
+
+  stream << "\n- connected components:" << components.size();
+
+  for(auto component: components)
+  {
+    auto pathList = Core::paths(component);
+
+    stream << "\n- component" << components.indexOf(component) + 1 << "paths:" << pathList.size();
+    for(auto path: Core::paths(component))
+    {
+      stream << "\n    path" << pathList.indexOf(path) +1 << path;
+    }
+  }
+  QStringList nodeNames;
+  for(auto node: skeleton)
+  {
+    if(!node->id.isEmpty())
+    {
+      nodeNames << node->id;
+    }
+  }
+
+  stream << "\n- relevant nodes number:" << nodeNames.size() << nodeNames;
+
+  return stream;
 }
 
 //--------------------------------------------------------------------
@@ -459,4 +521,54 @@ QDebug Core::operator <<(QDebug stream, const struct Path& path)
          << path.seen.size() << " nodes. Notes: " << (path.note.isEmpty() ? "None" : path.note);
 
   return stream;
+}
+
+//--------------------------------------------------------------------
+QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skeleton)
+{
+  QSet<SkeletonNode *> visited;
+  QSet<SkeletonNode *> visitedTotal;
+
+  std::function<void(SkeletonNode*)> visit = [&visited, &visitedTotal, &visit] (SkeletonNode *visitor)
+  {
+    if(!visited.contains(visitor))
+    {
+      visited.insert(visitor);
+      visitedTotal.insert(visitor);
+      for(auto connection: visitor->connections)
+      {
+        visit(connection);
+      }
+    }
+  };
+
+  QList<SkeletonNodes> result;
+  bool visitedAll = false;
+  auto node = skeleton.first();
+
+  while(!visitedAll)
+  {
+    visit(node);
+
+    result << visited.toList();
+    visited.clear();
+
+    if(visitedTotal.size() == skeleton.size())
+    {
+      visitedAll = true;
+    }
+    else
+    {
+      for(auto skeletonNode: skeleton)
+      {
+        if(!visitedTotal.contains(skeletonNode))
+        {
+          node = skeletonNode;
+          break;
+        }
+      }
+    }
+  }
+
+  return result;
 }
