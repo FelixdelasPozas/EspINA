@@ -52,6 +52,7 @@ set (CORE_SOURCES
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
   ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonDataUtils.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
