@@ -21,6 +21,7 @@
 // ESPINA
 #include "SkeletonData.h"
 #include <Core/Analysis/Data/Skeleton/SkeletonProxy.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 #include <Core/Utils/VolumeBounds.h>
 
@@ -28,6 +29,7 @@
 #include <vtkPolyData.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 const Data::Type SkeletonData::TYPE = "SkeletonData";
 
@@ -45,7 +47,12 @@ bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QS
 
   if (skeletonFile.exists())
   {
-    setSkeleton(PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath()));
+    auto skeleton = PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath());
+
+    auto nodes = toNodes(skeleton);
+    annotateNodes(nodes);
+
+    setSkeleton(toPolyData(nodes));
     dataFetched = true;
   }
   

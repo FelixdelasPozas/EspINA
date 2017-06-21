@@ -157,18 +157,19 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
 
   for (auto node : nodes)
   {
-    if(node->connections.size() == 0) continue;
+    if(node->connections.contains(node)) node->connections.removeAll(node); // users can connect a node with itself.
+    if(node->connections.size() == 0) continue;                             // won't allow isolated nodes.
     locator.insert(node, points->InsertNextPoint(node->position));
     ids->InsertValue(locator[node], node->id.toStdString().c_str());
   }
 
   for (auto node : nodes)
   {
-    if(node->connections.size() == 0) continue;
     relationsLocator.insert(locator[node], QList<vtkIdType>());
 
     for (auto connectedNode : node->connections)
     {
+      if(connectedNode == node) continue;
       relationsLocator[locator[node]] << locator[connectedNode];
     }
   }
@@ -292,6 +293,14 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
+bool Core::operator==(const SkeletonNode &left, const SkeletonNode &right)
+{
+  return ((::memcmp(left.position, right.position, 3*sizeof(double))) &&
+          (left.connections == right.connections)                     &&
+          (left.id == right.id));
+}
+
+//--------------------------------------------------------------------
 bool Core::operator==(const Core::Path &left, const Core::Path &right)
 {
   auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
@@ -317,7 +326,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
 {
   PathList result, stack;
 
-  auto checkIfReported = [] (const Path currentPath, const PathList result)
+  auto checkIfDuplicated = [] (const Path currentPath, const PathList result)
   {
     for(auto path: result)
     {
@@ -385,7 +394,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
     {
       currentPath.seen << currentPath.end;
       currentPath.note = "Loop";
-      if(!checkIfReported(currentPath, result))
+      if(!checkIfDuplicated(currentPath, result))
       {
         result << currentPath;
       }
@@ -399,7 +408,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
         currentPath.note = "Loop";
         currentPath.seen << currentPath.end;
 
-        if(!checkIfReported(currentPath, result))
+        if(!checkIfDuplicated(currentPath, result))
         {
           result << currentPath;
         }
@@ -411,7 +420,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
         case 1:
           {
             currentPath.seen << currentPath.end;
-            if(!checkIfReported(currentPath, result))
+            if(!checkIfDuplicated(currentPath, result))
             {
               result << currentPath;
             }
@@ -428,7 +437,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
             {
               currentPath.seen << currentPath.end;
               currentPath.note = "Loop";
-              if(!checkIfReported(currentPath, result))
+              if(!checkIfDuplicated(currentPath, result))
               {
                 result << currentPath;
               }
@@ -445,7 +454,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
             toResult.seen << currentPath.end;
             toResult.note  = (currentPath.begin == currentPath.end ? "Loop" : "");
 
-            if(!checkIfReported(toResult, result))
+            if(!checkIfDuplicated(toResult, result))
             {
               result << toResult;
             }
@@ -463,7 +472,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
                 toStack.end   = node;
 
                 toStack.seen << node;
-                if(!checkIfReported(toStack, result))
+                if(!checkIfDuplicated(toStack, result))
                 {
                   toStack.seen.takeLast();
                   stack << toStack;
@@ -543,6 +552,8 @@ QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skelet
   };
 
   QList<SkeletonNodes> result;
+  if(skeleton.isEmpty()) return result;
+
   bool visitedAll = false;
   auto node = skeleton.first();
 
@@ -569,6 +580,60 @@ QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skelet
       }
     }
   }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
+{
+  QList<SkeletonNodes> result;
+  if(skeleton.isEmpty()) return result;
+
+  SkeletonNodes visited;
+
+  auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
+
+  auto checkIfDuplicated = [lessThan](SkeletonNodes path, QList<SkeletonNodes> &paths)
+  {
+    qSort(path.begin(), path.end(), lessThan);
+
+    for(auto item: paths)
+    {
+      qSort(item.begin(), item.end(), lessThan);
+
+      if(item == path) return true;
+    }
+    return false;
+  };
+
+  std::function<void(SkeletonNode*, SkeletonNodes)> visit = [&visit, &result, checkIfDuplicated] (SkeletonNode *visitor, SkeletonNodes visited)
+  {
+    SkeletonNode *lastVisited = nullptr; // needed because edges are bidirectional in our graphs.
+    if(!visited.contains(visitor))
+    {
+      if(!visited.isEmpty()) lastVisited = visited.last();
+      visited << visitor;
+      for(auto connection: visitor->connections)
+      {
+        if(connection == lastVisited) continue;
+        visit(connection, visited);
+      }
+    }
+    else
+    {
+      auto index = visited.indexOf(visitor);
+      visited << visitor;
+
+      auto path = visited.mid(index);
+      if(!checkIfDuplicated(path, result))
+      {
+        result << path;
+      }
+    }
+  };
+
+  visit(skeleton.first(), visited);
 
   return result;
 }

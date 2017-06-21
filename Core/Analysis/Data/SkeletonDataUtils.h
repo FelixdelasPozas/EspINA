@@ -103,6 +103,13 @@ namespace ESPINA
 
     using PathList      = QList<Path>;
 
+    /** \brief Operator == for skeleton nodes.
+     * \param[in] left path object.
+     * \param[in] right path object.
+     *
+     */
+    bool EspinaCore_EXPORT operator==(const SkeletonNode &left, const SkeletonNode &right);
+
     /** \brief Operator == for paths.
      * \param[in] left path object.
      * \param[in] right path object.
@@ -156,10 +163,18 @@ namespace ESPINA
     /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
      * \param[in] skeleton skeleton in nodes list form.
      *
-     * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then paths on every component.
+     * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then this on every component.
      *
      */
     PathList EspinaCore_EXPORT paths(const SkeletonNodes &skeleton);
+
+    /** \brief Returns the loops in the given skeleton.
+     * \param[in] skeleton skeleton structure as a list of nodes.
+     *
+     * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then this on every component.
+     *
+     */
+    QList<SkeletonNodes> EspinaCore_EXPORT loops(const SkeletonNodes &skeleton);
 
     /** \brief Returns the skeleton as a list of connected components
      * \param[in] skeleton skeleton as as list of nodes.
