@@ -52,13 +52,21 @@ namespace ESPINA
       QString               id;          /** identifier.                           */
 
       /** \brief SkeletonNode struct constructor with coordinates.
+       * \param[in] worldPos pointer to values.
        *
        */
       SkeletonNode(const double worldPos[3])
       {
-        position[0] = worldPos[0];
-        position[1] = worldPos[1];
-        position[2] = worldPos[2];
+        ::memcpy(position, worldPos, 3*sizeof(double));
+      }
+
+      /** \brief SkeletonNode struct constructor with initializer list.
+       * \param[in] list list of values.
+       */
+      SkeletonNode(std::initializer_list<double> list)
+      {
+        Q_ASSERT(list.size() == 3);
+        std::copy(list.begin(), list.end(), position);
       }
 
       /** \brief SkeletonNode struct constructor with coordinates and identifier.
@@ -94,6 +102,20 @@ namespace ESPINA
     };
 
     using PathList      = QList<Path>;
+
+    /** \brief Operator == for paths.
+     * \param[in] left path object.
+     * \param[in] right path object.
+     *
+     */
+    bool EspinaCore_EXPORT operator==(const Path &left, const Path &right);
+
+    /** \brief Operator << for QDebug and a skeleton in nodes list form.
+     * \param[in] stream QDebug stream
+     * \param[in] skeleton skeleton in nodes list form.
+     *
+     */
+    QDebug EspinaCore_EXPORT operator<<(QDebug stream, const SkeletonNodes &skeleton);
 
     /** \brief Operator << for QDebug and Path struct.
      * \param[in] stream QDebug stream
@@ -134,8 +156,21 @@ namespace ESPINA
     /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
      * \param[in] skeleton skeleton in nodes list form.
      *
+     * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then paths on every component.
+     *
      */
     PathList EspinaCore_EXPORT paths(const SkeletonNodes &skeleton);
+
+    /** \brief Returns the skeleton as a list of connected components
+     * \param[in] skeleton skeleton as as list of nodes.
+     *
+     */
+    QList<SkeletonNodes> EspinaCore_EXPORT connectedComponents(const SkeletonNodes &skeleton);
+
+    /** \brief Annotates relevant nodes in the given structure.
+     * \param[in] nodes nodes list.
+     */
+    void EspinaCore_EXPORT annotateNodes(SkeletonNodes nodes);
 
   } // namespace Core
 } // namespace ESPINA

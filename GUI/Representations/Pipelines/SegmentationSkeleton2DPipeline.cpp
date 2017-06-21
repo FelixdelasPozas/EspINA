@@ -166,34 +166,34 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         auto labelTextGreen   = vtkSmartPointer<vtkStringArray>::New();
         labelTextGreen->SetName("Labels");
 
-        auto labels = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetScalars("Connections"));
+        auto labels = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Annotations"));
 
-        int number = 0;
+        if(!labels) return actors;
+
         auto usedPointIds = newPointIds.keys();
-        for(int i = 0; i < labels->GetNumberOfTuples(); ++i)
+        for(int i = 0; i < labels->GetNumberOfValues(); ++i)
         {
-          if(labels->GetValue(i) != 2)
+          if(!labels->GetValue(i).empty())
           {
-            ++number;
             if(usedPointIds.contains(i))
             {
               auto sliceValue = skeleton->GetPoint(i)[planeIndex];
               if(areEqual(sliceValue, reslicePoint))
               {
                 labelPointsGreen->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
-                labelTextGreen->InsertNextValue(QString::number(number).toStdString().c_str());
+                labelTextGreen->InsertNextValue(labels->GetValue(i));
               }
               else
               {
                 if(sliceValue < reslicePoint)
                 {
                   labelPointsBlue->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
-                  labelTextBlue->InsertNextValue(QString::number(number).toStdString().c_str());
+                  labelTextBlue->InsertNextValue(labels->GetValue(i));
                 }
                 else
                 {
                   labelPointsRed->InsertNextPoint(newPoints->GetPoint(newPointIds[i]));
-                  labelTextRed->InsertNextValue(QString::number(number).toStdString().c_str());
+                  labelTextRed->InsertNextValue(labels->GetValue(i));
                 }
               }
             }
