@@ -20,15 +20,19 @@
 
 // ESPINA
 #include "RawSkeleton.h"
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
 #include <vtkPoints.h>
+#include <vtkPointData.h>
+#include <vtkStringArray.h>
 
 // C++
 #include <memory>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::PolyDataUtils;
 
 //----------------------------------------------------------------------------
@@ -110,6 +114,15 @@ vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
 
   auto skeleton = vtkSmartPointer<vtkPolyData>::New();
   skeleton->DeepCopy(m_skeleton);
+
+  auto labels = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Annotations"));
+
+  if(!labels)
+  {
+    auto nodes = toNodes(skeleton);
+    annotateNodes(nodes);
+    skeleton = toPolyData(nodes);
+  }
 
   return skeleton;
 }

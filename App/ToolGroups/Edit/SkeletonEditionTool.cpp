@@ -449,6 +449,16 @@ void SkeletonEditionTool::updateWidgetsMode()
   if(m_eraseButton->isChecked()) mode = SkeletonWidget2D::Mode::DELETE;
   if(m_moveButton->isChecked()) mode = SkeletonWidget2D::Mode::MODIFY;
 
+  switch(mode)
+  {
+    case SkeletonWidget2D::Mode::CREATE:
+      m_eventHandler->setMode(SkeletonEventHandler::Mode::CREATE);
+      break;
+    default:
+      m_eventHandler->setMode(SkeletonEventHandler::Mode::OTHER);
+      break;
+  }
+
   for(auto widget: m_widgets)
   {
     widget->setMode(mode);
