@@ -47,122 +47,62 @@ using namespace ESPINA::Core;
 //--------------------------------------------------------------------
 Core::SkeletonNodes Core::toNodes(const vtkSmartPointer<vtkPolyData> skeleton)
 {
-  Q_ASSERT(skeleton != nullptr && skeleton->GetNumberOfPoints() != 0 && skeleton->GetNumberOfLines() != 0);
+  if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonNodes();
 
   auto points = skeleton->GetPoints();
   auto lines  = skeleton->GetLines();
-  SkeletonNodes result;
+  auto labels = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Annotations"));
+  auto idList = vtkSmartPointer<vtkIdList>::New();
 
-  // Points in our skeleton will be added while traversing lines.
+  SkeletonNodes nodes;
+  // get positions and annotations.
+  for(int i = 0; i < points->GetNumberOfPoints(); ++i)
+  {
+    SkeletonNode *node = new SkeletonNode{points->GetPoint(i)};
+    node->id = QString(labels->GetValue(i).c_str());
+    nodes << node;
+  }
+
+  // get connections
   lines->InitTraversal();
-  vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+  while (lines->GetNextCell(idList))
   {
-    while (lines->GetNextCell(idList))
-    {
-      if (idList->GetNumberOfIds() != 2) continue;
+    if (idList->GetNumberOfIds() != 2) continue;
 
-      SkeletonNode *pointA = nullptr;
-      SkeletonNode *pointB = nullptr;
-      vtkIdType data[2];
-      data[0] = idList->GetId(0);
-      data[1] = idList->GetId(1);
-      double dataCoords[2][3];
-      points->GetPoint(data[0], dataCoords[0]);
-      points->GetPoint(data[1], dataCoords[1]);
+    vtkIdType data[2];
+    data[0] = idList->GetId(0);
+    data[1] = idList->GetId(1);
 
-      // Find the points.
-      for (auto i = 0; i < result.size(); ++i)
-      {
-        if (::memcmp(result[i]->position, dataCoords[0], 3 * sizeof(double)) == 0)
-          pointA = result[i];
-
-        if (::memcmp(result[i]->position, dataCoords[1], 3 * sizeof(double)) == 0)
-          pointB = result[i];
-      }
-
-      if (pointA == nullptr)
-      {
-        pointA = new SkeletonNode{dataCoords[0]};
-        result << pointA;
-      }
-
-      if (pointB == nullptr)
-      {
-        pointB = new SkeletonNode{dataCoords[1]};
-        result << pointB;
-      }
-
-      if (!pointA->connections.contains(pointB))
-      {
-        pointA->connections << pointB;
-      }
-
-      if (!pointB->connections.contains(pointA))
-      {
-        pointB->connections << pointA;
-      }
-    }
+    nodes.at(data[0])->connections << nodes.at(data[1]);
+    nodes.at(data[1])->connections << nodes.at(data[0]);
   }
 
-  int idNum = 0;
-  for(auto node: result)
-  {
-    if(node->connections.size() != 2)
-    {
-      node->id = QString::number(++idNum);
-    }
-  }
-
-  return result;
+  return nodes;
 }
 
 //--------------------------------------------------------------------
-void Core::annotateNodes(SkeletonNodes nodes)
+vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes &nodes)
 {
-  int idNum = 0;
-  for(auto node: nodes)
-  {
-    node->id.clear();
-    if(node->connections.size() != 2)
-    {
-      node->id = QString::number(++idNum);
-    }
-  }
-
-  int loopNumber = 0;
-  for(auto component: Core::connectedComponents(nodes))
-  {
-    // annotates loops
-    for(auto path: Core::paths(component))
-    {
-      if(path.note == "Loop" && path.begin->id.isEmpty())
-      {
-        path.begin->id = QString("Loop %1").arg(++loopNumber);
-      }
-    }
-  }
-}
-
-//--------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
-{
-  QMap<SkeletonNode *, vtkIdType> locator;
-  QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
-
   auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetNumberOfPoints(nodes.size());
   auto lines  = vtkSmartPointer<vtkCellArray>::New();
   auto ids    = vtkSmartPointer<vtkStringArray>::New();
   ids->SetName("Annotations");
   ids->SetNumberOfValues(nodes.size());
 
-  for (auto node : nodes)
+  // positions and annotations.
+  QMap<SkeletonNode *, vtkIdType> locator;
+  for(vtkIdType i = 0; i < nodes.size(); ++i)
   {
-    if(node->connections.contains(node)) node->connections.removeAll(node); // users can connect a node with itself.
-    if(node->connections.size() == 0) continue;                             // won't allow isolated nodes.
-    locator.insert(node, points->InsertNextPoint(node->position));
-    ids->InsertValue(locator[node], node->id.toStdString().c_str());
+    auto node = nodes.at(static_cast<int>(i));
+    points->SetPoint(i, node->position);
+    ids->SetValue(i, node->id.toStdString().c_str());
+    locator.insert(node, i);
   }
 
+  QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
+
+  // build locator to avoid changing the nodes data.
   for (auto node : nodes)
   {
     relationsLocator.insert(locator[node], QList<vtkIdType>());
@@ -194,6 +134,33 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes nodes)
   polyData->GetPointData()->AddArray(ids);
 
   return polyData;
+}
+
+//--------------------------------------------------------------------
+void Core::annotateNodes(SkeletonNodes nodes)
+{
+  int number = 0;
+  for(auto node: nodes)
+  {
+    node->id.clear();
+    if(node->connections.size() != 2)
+    {
+      node->id = QString::number(++number);
+    }
+  }
+
+  int loopNumber = 0;
+  for(auto component: Core::connectedComponents(nodes))
+  {
+    // annotates loops
+    for(auto path: Core::paths(component))
+    {
+      if(path.note == "Loop" && path.begin->id.isEmpty())
+      {
+        path.begin->id = QString("Loop %1").arg(++loopNumber);
+      }
+    }
+  }
 }
 
 //--------------------------------------------------------------------

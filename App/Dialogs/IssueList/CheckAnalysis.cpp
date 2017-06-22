@@ -545,13 +545,10 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 {
   if(m_segmentation->output()->hasData(SkeletonData::TYPE))
   {
-    auto skeleton = readLockSkeleton(m_segmentation->output())->skeleton();
-
-    auto nodes = Core::toNodes(skeleton);
-
-    Core::annotateNodes(nodes);
-
+    auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
+    auto nodes      = Core::toNodes(skeleton);
     auto components = Core::connectedComponents(nodes);
+
     if(components.size() != 1)
     {
       auto description = tr("Segmentation is not fully connected, has %1 components.").arg(components.size());

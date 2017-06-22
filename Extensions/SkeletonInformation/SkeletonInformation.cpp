@@ -38,11 +38,11 @@ using namespace ESPINA::Extensions;
 
 const SegmentationExtension::Type EspinaExtensions_EXPORT SkeletonInformation::TYPE = "SkeletonInformation";
 
-const SegmentationExtension::Key SKELETON_LENGTH      = "Total Length";
-const SegmentationExtension::Key SKELETON_COMPONENTS  = "Connected Components";
-const SegmentationExtension::Key SKELETON_PATHS       = "Number Of Segments";
-const SegmentationExtension::Key SKELETON_LOOPS       = "Cycles";
-const SegmentationExtension::Key SKELETON_CONNECTIONS = "Number Of Connections";
+const SegmentationExtension::Key SKELETON_LENGTH           = "Total Length (Nm)";
+const SegmentationExtension::Key SKELETON_COMPONENTS       = "Connected Components";
+const SegmentationExtension::Key SKELETON_PATHS            = "Number Of Segments";
+const SegmentationExtension::Key SKELETON_LOOPS            = "Cycles";
+const SegmentationExtension::Key SKELETON_CONNECTIONS      = "Number Of Connections";
 
 //--------------------------------------------------------------------
 SkeletonInformation::SkeletonInformation(const InfoCache& infoCache)
@@ -133,7 +133,6 @@ void SkeletonInformation::updateInformation() const
           node = connection;
         }
       }
-
       return node->id;
     };
 
@@ -157,23 +156,28 @@ void SkeletonInformation::updateInformation() const
         length += path.length();
         totalLength += path.length();
 
-        auto name = path.begin->id + "<->" + path.end->id;
-        updateInfoCache(tr("Segment %1 length").arg(name), path.length());
+        auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
+        updateInfoCache(tr("Segment %1 Length (Nm)").arg(name), path.length());
 
         if(path.begin->connections.size() != 1)
         {
+          QStringList angleNames;
           for(auto connection: path.begin->connections)
           {
-            if(connection == path.seen.at(1)) continue;
+            if(connection == path.seen.at(1) || connection == path.seen.at(path.seen.length()-2)) continue;
 
             auto endName = follow(connection, SkeletonNodes{path.begin});
-            updateInfoCache(tr("Angle %1^%2^%3").arg(path.end->id).arg(path.begin->id).arg(endName), tr("%1").arg(angle(path.begin, path.seen.at(1), connection)));
+            auto name    = tr("Angle %1^%2^%3 (Degrees)").arg(path.end->id).arg(path.begin->id).arg(endName);
+            if(angleNames.contains(name)) continue;
+            angleNames << name;
+
+            updateInfoCache(name, tr("%1").arg(angle(path.begin, path.seen.at(1), connection)));
           }
         }
       }
       pathList << componentPaths;
 
-      updateInfoCache(tr("Component %1 Length").arg(index), length);
+      updateInfoCache(tr("Component %1 Length (Nm)").arg(index), length);
       auto comploops = loops(component);
       if(comploops.size() != 0)
       {
@@ -235,32 +239,34 @@ void SkeletonInformation::updateKeys()
     auto index = components.indexOf(component) + 1;
     auto componentPaths = paths(component);
 
-    connectedLength << createKey(tr("Component %1 Length").arg(index));
+    connectedLength << createKey(tr("Component %1 Length (Nm)").arg(index));
     loopList = loops(component);
     if(loopList.size() != 0) loopsKeys << createKey(tr("Component %1 Loops").arg(index));
 
     pathList = paths(component);
     for(auto path: pathList)
     {
-      auto name = path.begin->id + "<->" + path.end->id;
-      pathLength << createKey(tr("Segment %1 length").arg(name));
+      auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
+      pathLength << createKey(tr("Segment %1 Length (Nm)").arg(name));
 
       if(path.begin->connections.size() != 1)
       {
         for(auto connection: path.begin->connections)
         {
-          if(connection == path.seen.at(1)) continue;
+          if(connection == path.seen.at(1) || connection == path.seen.at(path.seen.length()-2)) continue;
 
           auto endName = follow(connection, SkeletonNodes{path.begin});
-          if(angleNames.contains(tr("Angle %1^%2^%3").arg(path.end->id).arg(path.begin->id).arg(endName))) continue;
+          auto name    = tr("Angle %1^%2^%3 (Degrees)").arg(path.end->id).arg(path.begin->id).arg(endName);
+          if(angleNames.contains(name)) continue;
+          angleNames << name;
 
-          angles << createKey(tr("Angle %1^%2^%3").arg(path.end->id).arg(path.begin->id).arg(endName));
+          angles << createKey(name);
         }
       }
     }
   }
 
-  // put a little order.
+  // put a little order in the keys.
   for(auto group: {connectedLength, loopsKeys, pathLength, angles})
   {
     qSort(group.begin(), group.end());
