@@ -77,7 +77,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
     Bounds sliceBounds = segmentation->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
-    
+
     QMap<vtkIdType, vtkIdType> newPointIds;
 
     if (sliceBounds[2 * planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2 * planeIndex + 1])

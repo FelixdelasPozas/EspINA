@@ -91,13 +91,25 @@ namespace ESPINA
 
       public slots:
         virtual void invalidate()
-        { Extension<Segmentation>::invalidate(); emit invalidated(); }
+        {
+          Extension<Segmentation>::invalidate();
+
+          invalidateImplementation();
+
+          emit invalidated();
+        }
 
       protected:
-      /** \brief SegmentationExtension class constructor.
-       * \param[in] infoCache cache object.
-       *
-       */
+        /** \brief Particular invalidate actions of the extention. To be implemented on the extension that needs it, default empty.
+         *
+         */
+        virtual void invalidateImplementation()
+        {};
+
+        /** \brief SegmentationExtension class constructor.
+         * \param[in] infoCache cache object.
+         *
+         */
         SegmentationExtension(const InfoCache &infoCache)
         : Extension<Segmentation>(infoCache)
         {}

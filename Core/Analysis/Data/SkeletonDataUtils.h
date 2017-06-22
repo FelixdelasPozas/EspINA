@@ -29,11 +29,15 @@
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkMath.h>
 
 // Qt
 #include <QList>
 #include <QString>
 #include <QDebug>
+
+// C++
+#include <cmath>
 
 class vtkPolyData;
 
@@ -99,6 +103,19 @@ namespace ESPINA
       QString       note;
 
       Path(): begin{nullptr}, end{nullptr} {};
+
+      double length()
+      {
+        double total = 0;
+        if(seen.size() == 1) return 0;
+        for(int i = 0; i < seen.size() - 1; ++i)
+        {
+          auto partial = vtkMath::Distance2BetweenPoints(seen.at(i)->position, seen.at(i+1)->position);
+          total += std::sqrt(partial);
+        }
+
+        return total;
+      }
     };
 
     using PathList      = QList<Path>;
