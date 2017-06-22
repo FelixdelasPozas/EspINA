@@ -115,15 +115,6 @@ vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
   auto skeleton = vtkSmartPointer<vtkPolyData>::New();
   skeleton->DeepCopy(m_skeleton);
 
-  auto labels = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Annotations"));
-
-  if(!labels)
-  {
-    auto nodes = toNodes(skeleton);
-    annotateNodes(nodes);
-    skeleton = toPolyData(nodes);
-  }
-
   return skeleton;
 }
 

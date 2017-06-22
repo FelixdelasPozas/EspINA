@@ -158,7 +158,7 @@ namespace ESPINA
      * \param[in] nodes list of nodes.
      *
      */
-    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT toPolyData(const SkeletonNodes nodes);
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT toPolyData(const SkeletonNodes &nodes);
 
     /** \brief Returns the index of the closest node to the given position in space.
      * \param[in] point coordinates of a point in space.

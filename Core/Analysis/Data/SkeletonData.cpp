@@ -47,12 +47,8 @@ bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QS
 
   if (skeletonFile.exists())
   {
-    auto skeleton = PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath());
+    setSkeleton(PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath()));
 
-    auto nodes = toNodes(skeleton);
-    annotateNodes(nodes);
-
-    setSkeleton(toPolyData(nodes));
     dataFetched = true;
   }
   
