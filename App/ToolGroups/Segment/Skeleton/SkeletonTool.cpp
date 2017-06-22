@@ -27,6 +27,7 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
+#include <Extensions/SkeletonInformation/SkeletonInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/Styles.h>
@@ -49,9 +50,12 @@
 // Qt
 #include <QUndoStack>
 
+using ESPINA::Extensions::SkeletonInformation;
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
@@ -430,6 +434,11 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       undoStack->endMacro();
 
       m_item = segmentation.get();
+
+      // SkeletonInformation extension has dynamic keys so it needs to be created in advance in case
+      // raw information asks for keys later.
+      auto informationExtension = getFactory()->createSegmentationExtension(SkeletonInformation::TYPE);
+      segmentation->extensions()->add(informationExtension);
 
       SegmentationAdapterList selection;
       selection << segmentation.get();

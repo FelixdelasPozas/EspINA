@@ -373,7 +373,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
 
   for(auto node: first->connections)
   {
-    Q_ASSERT(node != first);
+    if(node == first) continue;
 
     struct Path path;
     path.begin = first;
