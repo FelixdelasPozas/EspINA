@@ -42,7 +42,10 @@ const SegmentationExtension::Key SKELETON_LENGTH           = "Total Length (Nm)"
 const SegmentationExtension::Key SKELETON_COMPONENTS       = "Connected Components";
 const SegmentationExtension::Key SKELETON_PATHS            = "Number Of Segments";
 const SegmentationExtension::Key SKELETON_LOOPS            = "Cycles";
-const SegmentationExtension::Key SKELETON_CONNECTIONS      = "Number Of Connections";
+const SegmentationExtension::Key SKELETON_CENTROID_X       = "Centroid X";
+const SegmentationExtension::Key SKELETON_CENTROID_Y       = "Centroid Y";
+const SegmentationExtension::Key SKELETON_CENTROID_Z       = "Centroid Z";
+const SegmentationExtension::Key SKELETON_FERET_DIAMETER   = "Feret Diameter";
 
 //--------------------------------------------------------------------
 SkeletonInformation::SkeletonInformation(const InfoCache& infoCache)
@@ -72,7 +75,14 @@ SegmentationExtension::InformationKeyList SkeletonInformation::availableInformat
 {
   InformationKeyList keys;
 
-  for (auto value : {SKELETON_LENGTH, SKELETON_COMPONENTS, SKELETON_PATHS, SKELETON_LOOPS, SKELETON_CONNECTIONS})
+  for (auto value : {SKELETON_LENGTH,
+                     SKELETON_COMPONENTS,
+                     SKELETON_PATHS,
+                     SKELETON_LOOPS,
+                     SKELETON_CENTROID_X,
+                     SKELETON_CENTROID_Y,
+                     SKELETON_CENTROID_Z,
+                     SKELETON_FERET_DIAMETER})
   {
     keys << createKey(value);
   }
@@ -128,11 +138,12 @@ void SkeletonInformation::updateInformation() const
         for(auto connection: node->connections)
         {
           if(connection == visited.last()) continue;
-
           visited << node;
           node = connection;
+          break;
         }
       }
+
       return node->id;
     };
 
@@ -143,6 +154,23 @@ void SkeletonInformation::updateInformation() const
 
       return vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(vector1, vector2));
     };
+
+    auto bounds = m_extendedItem->bounds();
+    updateInfoCache(SKELETON_CENTROID_X, (bounds[1]-bounds[0]/2));
+    updateInfoCache(SKELETON_CENTROID_Y, (bounds[3]-bounds[2]/2));
+    updateInfoCache(SKELETON_CENTROID_Z, (bounds[5]-bounds[4]/2));
+
+    double maxDistance = 0;
+    for(int i = 0; i < nodes.size() - 1; ++i)
+    {
+      auto node = nodes.at(i);
+      for(int j = i+1; j < nodes.size(); ++j)
+      {
+        auto distance = vtkMath::Distance2BetweenPoints(node->position, nodes.at(j)->position);
+        if(distance > maxDistance) maxDistance = distance;
+      }
+    }
+    updateInfoCache(SKELETON_FERET_DIAMETER, std::sqrt(maxDistance));
 
     double totalLength = 0;
     for(auto component: components)
@@ -158,25 +186,9 @@ void SkeletonInformation::updateInformation() const
 
         auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
         updateInfoCache(tr("Segment %1 Length (Nm)").arg(name), path.length());
-
-        if(path.begin->connections.size() != 1)
-        {
-          QStringList angleNames;
-          for(auto connection: path.begin->connections)
-          {
-            if(connection == path.seen.at(1) || connection == path.seen.at(path.seen.length()-2)) continue;
-
-            auto endName = follow(connection, SkeletonNodes{path.begin});
-            auto name    = tr("Angle %1^%2^%3 (Degrees)").arg(path.end->id).arg(path.begin->id).arg(endName);
-            if(angleNames.contains(name)) continue;
-            angleNames << name;
-
-            updateInfoCache(name, tr("%1").arg(angle(path.begin, path.seen.at(1), connection)));
-          }
-        }
       }
-      pathList << componentPaths;
 
+      pathList << componentPaths;
       updateInfoCache(tr("Component %1 Length (Nm)").arg(index), length);
       auto comploops = loops(component);
       if(comploops.size() != 0)
@@ -184,20 +196,38 @@ void SkeletonInformation::updateInformation() const
         updateInfoCache(tr("Component %1 Loops").arg(index), comploops.size());
         loopList << comploops;
       }
+
+      for (auto node: component)
+      {
+        // get the angles of relevant nodes
+        if(node->connections.size() > 2)
+        {
+          auto pivot = node->connections.first();
+          auto pivotName = follow(pivot, SkeletonNodes{node});
+
+          for(auto connection: node->connections)
+          {
+            if(connection == pivot) continue;
+            auto otherName = follow(connection, SkeletonNodes{node});
+            auto name      = tr("Angle %1<->%2^%1<->%3 (Degrees)").arg(node->id).arg(pivotName).arg(otherName);
+
+            updateInfoCache(name, tr("%1").arg(angle(node, pivot, connection)));
+          }
+        }
+      }
     }
 
     updateInfoCache(SKELETON_LENGTH,     totalLength);
     updateInfoCache(SKELETON_COMPONENTS, components.size());
     updateInfoCache(SKELETON_PATHS,      pathList.size());
     updateInfoCache(SKELETON_LOOPS,      loopList.size());
-    updateInfoCache(SKELETON_CONNECTIONS, 0); // TODO
   }
 }
 
 //--------------------------------------------------------------------
 void SkeletonInformation::invalidateImplementation()
 {
-  // need to defer the keys update so it doesn't interfere with representation updates.
+  // need to defer the keys update so it doesn't interfere with representation updates and block the program.
   QTimer::singleShot(0, this, SLOT(updateKeys()));
 }
 
@@ -219,9 +249,9 @@ void SkeletonInformation::updateKeys()
       for(auto connection: node->connections)
       {
         if(connection == visited.last()) continue;
-
         visited << node;
         node = connection;
+        break;
       }
     }
 
@@ -230,7 +260,6 @@ void SkeletonInformation::updateKeys()
 
   InformationKeyList connectedLength, angles, pathLength, loopsKeys;
 
-  QStringList angleNames;
   for(auto component: components)
   {
     loopList.clear();
@@ -248,22 +277,27 @@ void SkeletonInformation::updateKeys()
     {
       auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
       pathLength << createKey(tr("Segment %1 Length (Nm)").arg(name));
+    }
 
-      if(path.begin->connections.size() != 1)
+    for (auto node: component)
+    {
+      // get the angles of relevant nodes
+      if(node->connections.size() > 2)
       {
-        for(auto connection: path.begin->connections)
-        {
-          if(connection == path.seen.at(1) || connection == path.seen.at(path.seen.length()-2)) continue;
+        auto pivot = node->connections.first();
+        auto pivotName = follow(pivot, SkeletonNodes{node});
 
-          auto endName = follow(connection, SkeletonNodes{path.begin});
-          auto name    = tr("Angle %1^%2^%3 (Degrees)").arg(path.end->id).arg(path.begin->id).arg(endName);
-          if(angleNames.contains(name)) continue;
-          angleNames << name;
+        for(auto connection: node->connections)
+        {
+          if(connection == pivot) continue;
+          auto otherName = follow(connection, SkeletonNodes{node});
+          auto name      = tr("Angle %1<->%2^%1<->%3 (Degrees)").arg(node->id).arg(pivotName).arg(otherName);
 
           angles << createKey(name);
         }
       }
     }
+
   }
 
   // put a little order in the keys.

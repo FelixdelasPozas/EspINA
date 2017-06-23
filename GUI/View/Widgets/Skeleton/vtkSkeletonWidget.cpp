@@ -210,7 +210,7 @@ void vtkSkeletonWidget::addPoint()
       break;
   }
 
-  SetCursor(WidgetRep->GetInteractionState());
+  SetCursor(State);
 
   if (WidgetRep->GetNeedToRender())
   {
