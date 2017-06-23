@@ -395,8 +395,8 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
   }
 
   double worldPos[3]{0,0,0};
-  int node_i = 0;
-  int node_j = 0;
+  int node_i = VTK_INT_MAX;
+  int node_j = VTK_INT_MAX;
   auto distance = FindClosestDistanceAndNode(X, Y, worldPos, node_i, node_j);
 
   if(currentVertex)
@@ -433,11 +433,10 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
       QMutexLocker lock(&s_skeletonMutex);
       for(auto connection: currentVertex->connections)
       {
-        connection->connections.removeAll(currentVertex);
-
         if(connection == s_currentVertex) continue;
         connection->connections << s_currentVertex;
         s_currentVertex->connections << connection;
+        connection->connections.removeAll(currentVertex);
       }
       currentVertex->connections.clear();
       currentVertex->connections << s_currentVertex;
@@ -445,7 +444,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
     }
     else
     {
-      AddNodeAtDisplayPosition(X, Y);
+      AddNodeAtPosition(worldPos);
     }
   }
   else
@@ -461,15 +460,16 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
     {
       QMutexLocker lock(&s_skeletonMutex);
 
-      for(auto connection: currentVertex->connections)
+      for(auto connection: s_currentVertex->connections)
       {
         if(connection == addedNode) continue;
         addedNode->connections << connection;
+        connection->connections << addedNode;
+        connection->connections.removeAll(s_currentVertex);
       }
 
-      currentVertex->connections.clear();
-      currentVertex->connections << s_currentVertex;
-      s_currentVertex = currentVertex;
+      s_currentVertex->connections.clear();
+      s_currentVertex->connections << addedNode;
     }
     else
     {
@@ -477,7 +477,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
         QMutexLocker lock(&s_skeletonMutex);
         s_currentVertex = addedNode;
       }
-      AddNodeAtDisplayPosition(X, Y);
+      AddNodeAtPosition(worldPos);
     }
   }
 
@@ -773,12 +773,14 @@ int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int v
     QMutexLocker lock(&s_skeletonMutex);
     if(m_ignoreCursor && s_currentVertex)
     {
-      currentNode = new SkeletonNode{s_currentVertex->position};
-      currentNode->connections = s_currentVertex->connections;
-      currentNode->id = s_currentVertex->id;
+      currentNode = s_currentVertex;
 
       s_skeleton.removeAll(s_currentVertex);
-      delete s_currentVertex;
+      for(auto connection: s_currentVertex->connections)
+      {
+        connection->connections.removeAll(s_currentVertex);
+      }
+
       s_currentVertex = nullptr;
     }
   }
@@ -957,7 +959,6 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double world
   int displayPos[2]{X,Y};
 
   GetWorldPositionFromDisplayPosition(displayPos, pos);
-  pos[planeIndex] = m_slice;
 
   for(auto i = 0; i < s_skeleton.size(); ++i)
   {
@@ -1081,7 +1082,9 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
   {
     double worldPos[3];
     int nodeIndex = VTK_INT_MAX;
+    if(m_ignoreCursor && s_currentVertex) s_skeleton.removeAll(s_currentVertex);
     FindClosestNode(x, y, worldPos, nodeIndex);
+    if(m_ignoreCursor && s_currentVertex) s_skeleton << s_currentVertex;
 
     {
       QMutexLocker lock(&s_skeletonMutex);
@@ -1116,22 +1119,27 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
   bool hasPointer = true;
   int nodeIndex = VTK_INT_MAX;
 
+  int displayPos[2]{X,Y};
+  double displayWorldPos[3], closestNodePos[3];
+  GetWorldPositionFromDisplayPosition(displayPos, displayWorldPos);
+
   SkeletonNode *closestNode;
   {
     QMutexLocker lock(&s_skeletonMutex);
     if (s_skeleton.size() < 3) return false;
 
-    double worldPos[3];
-
     if(s_currentVertex) s_skeleton.removeAll(s_currentVertex);
-    FindClosestNode(X, Y, worldPos, nodeIndex);
+    FindClosestNode(X, Y, closestNodePos, nodeIndex);
     if(s_currentVertex) s_skeleton << s_currentVertex;
 
     if (nodeIndex == VTK_INT_MAX) return false;
 
     closestNode = s_skeleton[nodeIndex];
     hasPointer = s_currentVertex != nullptr;
+    Q_ASSERT(nodeIndex < s_skeleton.size());
   }
+
+  if(vtkMath::Distance2BetweenPoints(displayWorldPos, closestNodePos) > m_tolerance) return false;
 
   if(!hasPointer)
   {
@@ -1139,25 +1147,20 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       QMutexLocker lock(&s_skeletonMutex);
       s_currentVertex = closestNode;
     }
-    AddNodeAtDisplayPosition(X, Y);
+    AddNodeAtPosition(displayWorldPos);
     return true;
   }
 
   QMutexLocker lock(&s_skeletonMutex);
-  if (m_tolerance > vtkMath::Distance2BetweenPoints(s_currentVertex->position, closestNode->position))
+  for (auto connectionNode : s_currentVertex->connections)
   {
-    for (auto connectionNode : s_currentVertex->connections)
-    {
-      if(!connectionNode->connections.contains(closestNode)) connectionNode->connections << closestNode;
-      if(!closestNode->connections.contains(connectionNode)) closestNode->connections << connectionNode;
+    if(!connectionNode->connections.contains(closestNode)) connectionNode->connections << closestNode;
+    if(!closestNode->connections.contains(connectionNode)) closestNode->connections << connectionNode;
 
-      connectionNode->connections.removeAll(s_currentVertex);
-    }
-    s_currentVertex->connections.clear();
-    s_currentVertex->connections << closestNode;
-
-    return true;
+    connectionNode->connections.removeAll(s_currentVertex);
   }
+  s_currentVertex->connections.clear();
+  s_currentVertex->connections << closestNode;
 
-  return false;
+  return true;
 }
