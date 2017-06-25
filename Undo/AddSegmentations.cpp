@@ -25,9 +25,6 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/ModelUtils.h>
 
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -35,10 +32,12 @@ using namespace ESPINA::GUI::Model::Utils;
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
                                    SampleAdapterSList      samples,
                                    ModelAdapterSPtr        model,
+                                   ConnectionList          connections,
                                    QUndoCommand           *parent)
-: QUndoCommand{parent}
-, m_samples   {samples}
-, m_model     {model}
+: QUndoCommand {parent}
+, m_samples    {samples}
+, m_model      {model}
+, m_connections{connections}
 {
   m_segmentations << segmentation;
 }
@@ -47,10 +46,12 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
 AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
                                    SampleAdapterSList       samples,
                                    ModelAdapterSPtr         model,
+                                   ConnectionList           connections,
                                    QUndoCommand            *parent)
-: QUndoCommand{parent}
-, m_samples   {samples}
-, m_model     {model}
+: QUndoCommand {parent}
+, m_samples    {samples}
+, m_model      {model}
+, m_connections{connections}
 {
   m_segmentations << segmentations;
 }
@@ -75,6 +76,9 @@ void AddSegmentations::redo()
       m_model->addRelation(sample, segmentation, Sample::CONTAINS);
     }
   }
+
+  if(!m_connections.empty()) m_model->addConnections(m_connections);
+
   m_model->endBatchMode();
 }
 

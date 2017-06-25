@@ -53,6 +53,7 @@ const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 const QString CONTENT_FILE        = "content.dot";
 const QString RELATIONS_FILE      = "relations.dot";
 const QString CLASSIFICATION_FILE = "classification.xml";
+const QString CONNECTIONS_FILE    = ConnectionStorage::CONNECTIONS_STORAGE_FILE;
 const QString CURRENT_SEG_FILE_VERSION = "6";
 
 const int FIX_SOURCE_INPUTS_SEG_FILE_VERSION = 5;
@@ -184,6 +185,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
   loadRelations();
 
   m_analysis->setStorage(m_storage);
+
+  loadConnections();
 
   reportProgress(100);
 
@@ -698,6 +701,12 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 }
 
 //-----------------------------------------------------------------------------
+void SegFile_V5::Loader::loadConnections()
+{
+  m_analysis->loadConnections();
+}
+
+//-----------------------------------------------------------------------------
 void SegFile_V5::Loader::reportProgress(unsigned int progress)
 {
   if (m_reporter) m_reporter->setProgress(progress);
@@ -778,6 +787,25 @@ void SegFile_V5::save(AnalysisPtr analysis,
     reporter->setProgress(CLASSIFICATION_PROGRESS);
   }
 
+  auto storage = analysis->storage();
+
+  if(analysis->saveConnections())
+  {
+    try
+    {
+      addFileToZip(CONNECTIONS_FILE, storage->snapshot(CONNECTIONS_FILE), zip, handler);
+    }
+    catch(const EspinaException &e)
+    {
+      if (handler)
+      {
+        handler->error("Error while saving connections data.");
+      }
+
+      throw (e);
+    }
+  }
+
   std::ostringstream content;
   write(analysis->content(), content);
   try
@@ -850,11 +878,12 @@ void SegFile_V5::save(AnalysisPtr analysis,
     }
   }
 
-  if(analysis->storage() != nullptr)
+  if(storage != nullptr)
   {
+
     Snapshot files;
-    files << analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::RECURSIVE);
-    files << analysis->storage()->snapshots(QString("Settings"), TemporalStorage::Mode::RECURSIVE);
+    files << storage->snapshots(QString("Extra"), TemporalStorage::Mode::RECURSIVE);
+    files << storage->snapshots(QString("Settings"), TemporalStorage::Mode::RECURSIVE);
 
     i = 0;
     total = files.size();

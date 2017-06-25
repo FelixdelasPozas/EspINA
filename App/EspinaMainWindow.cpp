@@ -568,6 +568,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   }
 
   emit analysisChanged();
+
+  m_context.viewState().refresh();
 }
 
 //------------------------------------------------------------------------

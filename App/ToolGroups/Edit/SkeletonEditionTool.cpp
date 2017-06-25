@@ -26,6 +26,7 @@
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Model/ModelAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 #include <Undo/ModifySkeletonCommand.h>
@@ -34,6 +35,11 @@
 
 // Qt
 #include <QApplication>
+
+// VTK
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -263,9 +269,18 @@ void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyda
 
     if(widget->getSkeleton()->GetNumberOfPoints() != 0)
     {
+      // insert connections
+      auto segmentationSPtr = model->smartPointer(segmentation);
+      ConnectionList connections = GUI::Model::Utils::connections(polydata, model);
+      for(auto &connection: connections)
+      {
+        connection.item1 = segmentationSPtr;
+        Q_ASSERT(connection.item1 && connection.item1.get());
+      }
+
       // modification
       undoStack->beginMacro(tr("Modify skeleton"));
-      undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton()));
+      undoStack->push(new ModifySkeletonCommand(segmentationSPtr, widget->getSkeleton(), connections));
       undoStack->endMacro();
     }
     else

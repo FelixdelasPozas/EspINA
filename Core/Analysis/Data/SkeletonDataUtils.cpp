@@ -40,6 +40,7 @@
 #include <vtkIdList.h>
 #include <vtkType.h>
 #include <vtkStringArray.h>
+#include <vtkDoubleArray.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -89,6 +90,9 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes &nodes)
   auto ids    = vtkSmartPointer<vtkStringArray>::New();
   ids->SetName("Annotations");
   ids->SetNumberOfValues(nodes.size());
+  auto terminal = vtkSmartPointer<vtkDoubleArray>::New();
+  terminal->SetNumberOfComponents(3);
+  terminal->SetName("TerminalNodes");
 
   // positions and annotations.
   QMap<SkeletonNode *, vtkIdType> locator;
@@ -98,6 +102,7 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes &nodes)
     points->SetPoint(i, node->position);
     ids->SetValue(i, node->id.toStdString().c_str());
     locator.insert(node, i);
+    if(node->connections.size() == 1) terminal->InsertNextTuple(node->position);
   }
 
   QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
@@ -132,6 +137,7 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes &nodes)
   polyData->SetPoints(points);
   polyData->SetLines(lines);
   polyData->GetPointData()->AddArray(ids);
+  polyData->GetPointData()->AddArray(terminal);
 
   return polyData;
 }

@@ -69,6 +69,8 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     m_relations << m_model->relations(segmentation, ESPINA::RELATION_INOUT);
 
+    m_connections << m_model->connections(m_model->smartPointer(segmentation));
+
     //TODO: Add segmentations a new flag to indicate whether it has to be deleted if
     //      its input is deleted or add an special relation to notify that
 
@@ -97,6 +99,7 @@ void RemoveSegmentations::redo()
     m_model->deleteRelation(relation);
   }
 
+  m_model->deleteConnections(m_connections);
   m_model->remove(m_segmentations);
   m_model->endBatchMode();
 }
@@ -108,9 +111,11 @@ void RemoveSegmentations::undo()
   m_model->beginBatchMode();
   m_model->add(m_segmentations);
 
-  for(Relation relation : m_relations)
+  for(auto relation : m_relations)
   {
     m_model->addRelation(relation);
   }
+
+  m_model->addConnections(m_connections);
   m_model->endBatchMode();
 }

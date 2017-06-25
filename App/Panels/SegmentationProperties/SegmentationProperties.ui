@@ -56,7 +56,7 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,1,0">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,1,0,0">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
@@ -200,6 +200,18 @@
           <string>Issues</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>1</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="connectionsGroup">
+         <property name="title">
+          <string>Connections</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
           <property name="spacing">
            <number>1</number>
           </property>

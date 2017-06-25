@@ -34,7 +34,6 @@
 // Qt
 #include <QList>
 #include <QString>
-#include <QDebug>
 
 // C++
 #include <cmath>
@@ -92,8 +91,6 @@ namespace ESPINA
     };
 
     using SkeletonNodes = QList<SkeletonNode *>;
-    using Conenction    = QPair<SkeletonNode *, Segmentation *>;
-    using Connections   = QList<Conenction>;
 
     struct EspinaCore_EXPORT Path
     {

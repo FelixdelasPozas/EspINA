@@ -46,11 +46,12 @@
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
 #include <vtkLine.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
 
 // Qt
 #include <QUndoStack>
-
-using ESPINA::Extensions::SkeletonInformation;
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -395,13 +396,20 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
     auto undoStack = getUndoStack();
     auto model     = getModel();
 
+    ConnectionList connections = GUI::Model::Utils::connections(polydata, model);
+
     if(m_item != getActiveChannel())
     {
       // modification
-      auto segmentation = segmentationPtr(m_item);
+      auto segmentation = model->smartPointer(segmentationPtr(m_item));
+      for(auto &connection: connections)
+      {
+        connection.item1 = segmentation;
+        Q_ASSERT(connection.item1);
+      }
 
       undoStack->beginMacro(tr("Modify skeleton"));
-      undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton()));
+      undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton(), connections));
       undoStack->endMacro();
     }
     else
@@ -429,8 +437,13 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       samples << QueryAdapter::sample(activeChannel);
       Q_ASSERT(samples.size() == 1);
 
+      for(auto &connection: connections)
+      {
+        connection.item1 = segmentation;
+      }
+
       undoStack->beginMacro(tr("Add Segmentation"));
-      undoStack->push(new AddSegmentations(segmentation, samples, model));
+      undoStack->push(new AddSegmentations(segmentation, samples, model, connections));
       undoStack->endMacro();
 
       m_item = segmentation.get();
