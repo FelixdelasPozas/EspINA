@@ -33,6 +33,7 @@ set (CORE_SOURCES
   Analysis/Analysis.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
+  Analysis/Connections.cpp
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
   Analysis/Data/Mesh/RawMesh.cpp

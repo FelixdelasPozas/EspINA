@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "ModelAdapter.h"
-
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
@@ -29,7 +28,6 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-
 #include "Utils/SegmentationUtils.h"
 
 using namespace ESPINA;
@@ -1096,7 +1094,7 @@ ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
 {
-  SegmentationAdapterSPtr pointer;
+  SegmentationAdapterSPtr pointer = nullptr;
 
   int i=0;
   while (!pointer && i < m_segmentations.size())
@@ -1217,7 +1215,7 @@ void ModelAdapter::queueAddRelationCommand(ItemAdapterSPtr ancestor,
                                            ItemAdapterSPtr successor,
                                            const QString  &relation)
 {
-  // In case no item needs to be added, it doesn't matter which is used to keep the refernce
+  // In case no item needs to be added, it doesn't matter which is used to keep the reference
   auto commandQueueItem = ancestor;
   auto emptyQueueItem   = successor;
 
@@ -1681,7 +1679,8 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addRelationCommand(ItemAdapterSPtr 
                                                                 ItemAdapterSPtr    successor,
                                                                 const RelationName &relation)
 {
-  auto command = [this, ancestor, successor, relation]() {
+  auto command = [this, ancestor, successor, relation]()
+  {
     m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
   };
 
@@ -1793,7 +1792,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
   FilterSPtr active = nullptr;
   for(auto channel: m_channels)
   {
-    qDebug() << "found" << channel->data().toString();
     if(channel->data().toString().compare(primary->data().toString()) == 0)
     {
       active = channel->filter();
@@ -1832,13 +1830,11 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
                                            element.target,
                                            QString(element.relationship.c_str()));
       }
-      qDebug() << "changed" << changed << "relations to channel" << primary->data().toString() << "from channel" << channel->data().toString();
     }
   }
 
   if (m_samples.size() != 1)
   {
-    qDebug() << "several samples";
     // segmentations can be associated to wrong sample with relation Sample::CONTAINS.
     SampleSPtr mainSample = nullptr;
     for(auto channel: m_analysis->channels())
@@ -1846,7 +1842,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
       if(channel->filter() == active)
       {
         mainSample = QueryContents::sample(channel);
-        qDebug() << "Sample of primary channel: " << mainSample->name();
         break;
       }
     }
@@ -1856,7 +1851,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
     int changed = 0;
     for(auto sample: m_analysis->samples())
     {
-      qDebug() << "inspecting sample " << sample->name();
       if(sample == mainSample) continue;
 
       auto segs = QueryRelations::segmentations(sample);
@@ -1867,7 +1861,92 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
         m_analysis->addRelation(mainSample, seg, Sample::CONTAINS);
       }
     }
-
-    qDebug() << "moved " << changed << "Sample::CONTAINS relations to sample " << mainSample->name();
   }
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::queueAddConnectionCommand(SegmentationAdapterSPtr seg1, SegmentationAdapterSPtr seg2, const NmVector3 &point)
+{
+  auto command = [this, seg1, seg2, point]()
+  {
+    m_analysis->addConnection(seg1->m_analysisItem, seg2->m_analysisItem, point);
+  };
+
+  queueUpdateCommand(seg1, std::make_shared<Command<decltype(command)>>(command));
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::addConnection(const Connection connection)
+{
+  queueAddConnectionCommand(connection.item1, connection.item2, connection.point);
+
+  executeCommandsIfNoBatchMode();
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::addConnections(const ConnectionList connections)
+{
+  for(auto connection: connections)
+  {
+    addConnection(connection);
+  }
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::deleteConnection(const Connection connection)
+{
+  m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::deleteConnections(const ConnectionList connections)
+{
+  for(auto connection: connections)
+  {
+    deleteConnection(connection);
+  }
+}
+
+//--------------------------------------------------------------------
+void ModelAdapter::deleteConnections(const SegmentationAdapterSPtr segmentation)
+{
+  m_analysis->removeConnections(segmentation->m_analysisItem);
+}
+
+//--------------------------------------------------------------------
+ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation)
+{
+  ConnectionList connections;
+
+  auto modelConnections = m_analysis->connections(segmentation->m_analysisItem);
+  for(auto connection: modelConnections)
+  {
+    Connection transformedConnection;
+    transformedConnection.item1 = segmentation;
+    transformedConnection.item2 = std::dynamic_pointer_cast<SegmentationAdapter>(find(connection.segmentation2));
+    transformedConnection.point = connection.point;
+
+    connections << transformedConnection;
+  }
+
+  return connections;
+}
+
+//--------------------------------------------------------------------
+ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2)
+{
+  ConnectionList connections;
+
+  auto modelConnections = m_analysis->connections(segmentation1->m_analysisItem, segmentation2->m_analysisItem);
+  for(auto connection: modelConnections)
+  {
+    Connection transformedConnection;
+    transformedConnection.item1 = segmentation1;
+    transformedConnection.item2 = segmentation2;
+    transformedConnection.point = connection.point;
+
+    connections << transformedConnection;
+  }
+
+  return connections;
 }

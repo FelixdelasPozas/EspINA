@@ -60,9 +60,17 @@ namespace ESPINA
       {};
 
     protected slots:
+      /** \brief Updates the application selection depending on the selected report cells.
+       * \param[in] selected group of selected items in the model.
+       * \param[in] deselected group of deselected items (previous selected items).
+       *
+       */
       virtual void updateSelection(QItemSelection selected, QItemSelection deselected) override;
 
     protected:
+      /** \brief Saves the tabular report information to disk.
+       *
+       */
       virtual void exportInformation();
 
     private:

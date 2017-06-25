@@ -297,7 +297,6 @@ void SkeletonInformation::updateKeys()
         }
       }
     }
-
   }
 
   // put a little order in the keys.

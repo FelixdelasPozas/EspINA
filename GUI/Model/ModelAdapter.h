@@ -41,7 +41,15 @@ namespace ESPINA
     ItemAdapterSPtr successor;
     RelationName    relation;
   };
-  typedef QList<Relation> RelationList;
+  using RelationList = QList<Relation>;
+
+  struct Connection
+  {
+    SegmentationAdapterSPtr item1;
+    SegmentationAdapterSPtr item2;
+    NmVector3               point;
+  };
+  using ConnectionList = QList<Connection>;
 
   class Analysis;
   using AnalysisSPtr = std::shared_ptr<Analysis>;
@@ -478,6 +486,49 @@ namespace ESPINA
      */
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
+    /** \brief Adds the given connection to the model.
+     * \param[in] connection connection object.
+     *
+     */
+    void addConnection(const Connection connection);
+
+    /** \brief Adds the given connections to the model.
+     * \param[in] connection list of connections.
+     *
+     */
+    void addConnections(const ConnectionList connections);
+
+    /** \brief Removes the given connection from the model.
+     * \param[in] connection connection object.
+     *
+     */
+    void deleteConnection(const Connection connection);
+
+    /** \brief Removes the given connections from the model.
+     * \param[in] connections list of connections.
+     *
+     */
+    void deleteConnections(const ConnectionList connections);
+
+    /** \brief Removes all the connections of the given segmentation from the model.
+     * \param[in] segmentation segmentation object.
+     *
+     */
+    void deleteConnections(const SegmentationAdapterSPtr segmentation);
+
+    /** \brief Returns all the connection of the given segmentation.
+     * \param[in] segmentation segmentation object.
+     *
+     */
+    ConnectionList connections(const SegmentationAdapterSPtr segmentation);
+
+    /** \brief Returns all the connections between the given segmentations.
+     * \param[in] segmentation1 segmentation object.
+     * \param[in] segmentation2 segmentation object.
+     *
+     */
+    ConnectionList connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2);
+
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
     //---------------------------------------------------------------------------
@@ -565,6 +616,8 @@ namespace ESPINA
     SampleAdapterSList queuedSamples(const ItemCommandsList &queue) const;
 
     void queueAddRelationCommand(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const QString &relation);
+
+    void queueAddConnectionCommand(SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2, const NmVector3 &point);
 
     void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 
@@ -696,7 +749,6 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isCategory(ItemAdapterPtr item);
-
 
 } // namespace ESPINA
 

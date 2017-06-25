@@ -57,6 +57,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Connections.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/MarchingCubesMesh.cpp

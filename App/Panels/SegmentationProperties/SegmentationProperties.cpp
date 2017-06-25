@@ -18,12 +18,12 @@
  */
 
 // ESPINA
+#include "ui_SegmentationProperties.h"
 #include "SegmentationProperties.h"
 #include <App/Utils/TagUtils.h>
 #include <Core/Analysis/Segmentation.h>
 #include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
-#include "ui_SegmentationProperties.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
@@ -65,6 +65,7 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
   setWidget(m_gui);
 
   m_gui->issuesGroup->hide();
+  m_gui->connectionsGroup->hide();
 
   connect(m_gui->manageTags, SIGNAL(clicked(bool)), this, SLOT(manageTags()));
 }
@@ -183,6 +184,7 @@ void SegmentationProperties::showInformation(SegmentationAdapterPtr segmentation
       showTags();
       showNotes();
       showIssues();
+      showConnections();
 
       connect(m_segmentation, SIGNAL(outputModified()),
               this,           SLOT(onOutputModified()));
@@ -209,6 +211,7 @@ void SegmentationProperties::hideInformation()
     clearTags();
     clearNotes();
     clearIssues();
+    clearConnections();
 
     m_segmentation = nullptr;
     m_filter.reset();
@@ -370,4 +373,46 @@ void SegmentationProperties::clearIssues()
   }
 
   m_gui->issuesGroup->hide();
+}
+
+//----------------------------------------------------------------------------
+void SegmentationProperties::showConnections()
+{
+  auto segmentation = getModel()->smartPointer(m_segmentation);
+  auto connections  = getModel()->connections(segmentation);
+
+  if(!connections.isEmpty())
+  {
+    auto layout = m_gui->connectionsGroup->layout();
+    for(auto connection: connections)
+    {
+      auto text = tr("<b>%1</b> at point <b>%2</b>").arg(connection.item2->data().toString()).arg(connection.point.toString());
+      auto label = new QLabel{text};
+
+      layout->addWidget(label);
+    }
+
+    m_gui->connectionsGroup->show();
+  }
+  else
+  {
+    clearConnections();
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationProperties::clearConnections()
+{
+  auto layout = m_gui->connectionsGroup->layout();
+  while (layout->count() != 0)
+  {
+    auto widget = layout->itemAt(0)->widget();
+
+    Q_ASSERT(widget);
+    layout->removeWidget(widget);
+
+    delete widget;
+  }
+
+  m_gui->connectionsGroup->hide();
 }

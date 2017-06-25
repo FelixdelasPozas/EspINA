@@ -140,6 +140,16 @@ namespace ESPINA
        */
       void clearIssues();
 
+      /** \brief Shows the segmentation connections, to and where.
+       *
+       */
+      void showConnections();
+
+      /** \brief Clears the connections group.
+       *
+       */
+      void clearConnections();
+
     private:
       class UI;
 

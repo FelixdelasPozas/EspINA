@@ -24,7 +24,13 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "GUI/Model/SegmentationAdapter.h"
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+
+// VTK
+#include <vtkSmartPointer.h>
+
+class vtkPolyData;
 
 namespace ESPINA
 {
@@ -61,6 +67,16 @@ namespace ESPINA
          *
          */
         const QString EspinaGUI_EXPORT categoricalName(SegmentationAdapterPtr segmentation);
+
+        /** \brief Returns the connections the given polydata has with the segmentations of the given model. The connections
+         *  returned are not in the model, just the ones looking at the terminal nodes of the polydata.
+         * \param[in] polyData skeleton polydata.
+         * \param[in] model session model adapter.
+         *
+         * NOTE: as the only information is the polydata, the connection list has no "item1", it must be filled by the caller.
+         *
+         */
+        ConnectionList EspinaGUI_EXPORT connections(vtkSmartPointer<vtkPolyData> polyData, const ModelAdapterSPtr model);
       }
     }
   }

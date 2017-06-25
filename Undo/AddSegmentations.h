@@ -39,24 +39,28 @@ namespace ESPINA
      * \param[in] segmentation smart pointer of the segmentation adapter to add.
      * \param[in] samples list of sample adapter smart pointer related to the segmentation.
      * \param[in] model model adapter smart pointer.
+     * \param[in] connections list of segmentation connections.
      * \param[in] parent raw pointer of the QUndoCommand parent of this one.
      *
      */
     explicit AddSegmentations(SegmentationAdapterSPtr segmentation,
                               SampleAdapterSList      samples,
                               ModelAdapterSPtr        model,
+                              ConnectionList          connections = ConnectionList(),
                               QUndoCommand           *parent = nullptr);
 
     /** \brief AddSegmentations class constructor.
      * \param[in] segmentations list of smart pointers of the segmentation adapters to add.
      * \param[in] samples list of sample adapter smart pointer related to the segmentations.
      * \param[in] model model adapter smart pointer.
+     * \param[in] connections list of segmentation connections.
      * \param[in] parent raw pointer of the QUndoCommand parent of this one.
      *
      */
     explicit AddSegmentations(SegmentationAdapterSList segmentations,
                               SampleAdapterSList       samples,
                               ModelAdapterSPtr         model,
+                              ConnectionList           connections = ConnectionList(),
                               QUndoCommand            *parent = nullptr);
 
     virtual void redo() override;
@@ -66,6 +70,7 @@ namespace ESPINA
   private:
     SampleAdapterSList m_samples;
     ModelAdapterSPtr   m_model;
+    ConnectionList     m_connections;
 
     SegmentationAdapterSList m_segmentations;
   };
