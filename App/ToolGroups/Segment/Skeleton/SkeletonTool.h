@@ -21,8 +21,6 @@
 #ifndef ESPINA_SKELETON_TOOL_H_
 #define ESPINA_SKELETON_TOOL_H_
 
-#include "GUI/EspinaGUI_Export.h"
-
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
@@ -75,7 +73,7 @@ namespace ESPINA
    * \brief Tool for skeleton segmentation creation
    *
    */
-  class EspinaGUI_EXPORT SkeletonTool
+  class SkeletonTool
   : public Support::Widgets::ProgressTool
   {
       Q_OBJECT

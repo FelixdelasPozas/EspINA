@@ -33,8 +33,6 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
-const QString ConnectionStorage::CONNECTIONS_STORAGE_FILE = "connections.bin";
-
 //--------------------------------------------------------------------
 bool ConnectionStorage::addConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3& point)
 {
@@ -190,10 +188,10 @@ bool ConnectionStorage::save() const
     throw EspinaException(message, details);
   }
 
-  QFile file{m_storage->absoluteFilePath(CONNECTIONS_STORAGE_FILE)};
+  QFile file{m_storage->absoluteFilePath(connectionsFileName())};
   if(!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
   {
-    auto message = QObject::tr("Couldn't open file %1 for writing.").arg(m_storage->absoluteFilePath(CONNECTIONS_STORAGE_FILE));
+    auto message = QObject::tr("Couldn't open file %1 for writing.").arg(m_storage->absoluteFilePath(connectionsFileName()));
     auto details = QObject::tr("ConnectionStorage::save() -> ") + message;
 
     throw EspinaException(message, details);
@@ -220,12 +218,13 @@ bool ConnectionStorage::load()
     throw EspinaException(message, details);
   }
 
-  if(m_storage->exists(CONNECTIONS_STORAGE_FILE))
+  auto fileName = connectionsFileName();
+  if(m_storage->exists(fileName))
   {
-    QFile file{m_storage->absoluteFilePath(CONNECTIONS_STORAGE_FILE)};
+    QFile file{m_storage->absoluteFilePath(fileName)};
     if(!file.open(QIODevice::ReadOnly))
     {
-      auto message = QObject::tr("Couldn't open file %1 for reading.").arg(m_storage->absoluteFilePath(CONNECTIONS_STORAGE_FILE));
+      auto message = QObject::tr("Couldn't open file %1 for reading.").arg(m_storage->absoluteFilePath(fileName));
       auto details = QObject::tr("ConnectionStorage::load() -> ") + message;
 
       throw EspinaException(message, details);

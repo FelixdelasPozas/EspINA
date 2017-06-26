@@ -58,7 +58,7 @@ namespace ESPINA
           {
             Q_OBJECT
             public:
-              enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, DELETE = 2, };
+              enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, ERASE = 2 };
 
               /** \brief SkeletonWidget class constructor.
                * \brief handler handler for this widget.

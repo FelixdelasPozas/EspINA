@@ -30,6 +30,7 @@
 // Qt
 #include <QStack>
 #include <QObject>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;

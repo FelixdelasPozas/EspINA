@@ -21,6 +21,8 @@
 #ifndef ESPINA_SEGMENTATION_SKELETON_2D_PIPELINE_H_
 #define ESPINA_SEGMENTATION_SKELETON_2D_PIPELINE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Representations/Pipelines/SegmentationSkeletonPipelineBase.h>
 
@@ -34,7 +36,7 @@ namespace ESPINA
        * \brief Two dimensional representation for Skeletons.
        *
        */
-      class SegmentationSkeleton2DPipeline
+      class EspinaGUI_EXPORT SegmentationSkeleton2DPipeline
       : public SegmentationSkeletonPipelineBase
       {
         public:

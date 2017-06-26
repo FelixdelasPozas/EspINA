@@ -22,6 +22,8 @@
 #ifndef GUI_REPRESENTATIONS_PIPELINES_SEGMENTATIONSKELETONPIPELINEBASE_H_
 #define GUI_REPRESENTATIONS_PIPELINES_SEGMENTATIONSKELETONPIPELINEBASE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
@@ -39,7 +41,7 @@ namespace ESPINA
        * \brief Base class for skeleton representations.
        *
        */
-      class SegmentationSkeletonPipelineBase
+      class EspinaGUI_EXPORT SegmentationSkeletonPipelineBase
       : public RepresentationPipeline
       {
         public:
