@@ -26,6 +26,7 @@
 #include "ProgressReporter.h"
 #include <EspinaConfig.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Connections.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>
 #include <Core/Analysis/Persistent.h>
@@ -53,7 +54,7 @@ const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 const QString CONTENT_FILE        = "content.dot";
 const QString RELATIONS_FILE      = "relations.dot";
 const QString CLASSIFICATION_FILE = "classification.xml";
-const QString CONNECTIONS_FILE    = ConnectionStorage::CONNECTIONS_STORAGE_FILE;
+const QString CONNECTIONS_FILE    = ConnectionStorage::connectionsFileName();
 const QString CURRENT_SEG_FILE_VERSION = "6";
 
 const int FIX_SOURCE_INPUTS_SEG_FILE_VERSION = 5;

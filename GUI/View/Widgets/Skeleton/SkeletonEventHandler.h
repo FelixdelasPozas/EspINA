@@ -48,7 +48,7 @@ namespace ESPINA
            * \brief Handles view events for skeleton tools.
            *
            */
-          class SkeletonEventHandler
+          class EspinaGUI_EXPORT SkeletonEventHandler
           : public EventHandler
           {
               Q_OBJECT

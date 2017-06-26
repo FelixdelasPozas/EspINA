@@ -56,8 +56,6 @@ namespace ESPINA
     class EspinaCore_EXPORT ConnectionStorage
     {
       public:
-        static const QString CONNECTIONS_STORAGE_FILE; /** connections data file name. */
-
         /** \brief ConnectionStorage class constructor.
          *
          */
@@ -69,6 +67,12 @@ namespace ESPINA
          */
         virtual ~ConnectionStorage()
         {}
+
+        /** \brief Returns the name of the file where the connections data is stored in the temporal storage.
+         *
+         */
+        static const QString connectionsFileName()
+        { return "connections.bin"; }
 
       private:
         struct Connection
