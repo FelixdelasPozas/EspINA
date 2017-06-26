@@ -20,11 +20,17 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 #include <ToolGroups/Analyze/Reports/AdjacencyMatrixReport.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 using namespace ESPINA::Support;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //--------------------------------------------------------------------
 AdjacencyMatrixReport::AdjacencyMatrixReport(Support::Context& context)
@@ -59,7 +65,53 @@ QString AdjacencyMatrixReport::requiredInputDescription() const
 //--------------------------------------------------------------------
 void AdjacencyMatrixReport::show(SegmentationAdapterList input) const
 {
-  auto dialog = new AdjacencyMatrixDialog(input, getContext());
-  dialog->setAttribute(Qt::WA_DeleteOnClose, true);
-  dialog->show();
+  auto model = getModel();
+  SegmentationAdapterSList inputSList;
+  int count = 0;
+
+  {
+    WaitingCursor cursor;
+
+    if(input.isEmpty())
+    {
+      inputSList = model->segmentations();
+    }
+    else
+    {
+      for(auto seg: input)
+      {
+        inputSList << model->smartPointer(seg);
+      }
+    }
+
+    for(auto seg: inputSList)
+    {
+      count += model->connections(seg).size();
+    }
+  }
+
+  if(count == 0)
+  {
+    QString message;
+    if(input.isEmpty())
+    {
+      message = tr("There are no connections defined in the current session.");
+    }
+    else
+    {
+      message = tr("The selected segmentations doesn't have any connections associated to them.");
+    }
+
+    auto details = tr("The adjacency matrix is empty if there are no connections to show.");
+
+    DefaultDialogs::ErrorMessage(message, DefaultDialogs::DefaultTitle(), details);
+  }
+  else
+  {
+    WaitingCursor cursor;
+
+    auto dialog = new AdjacencyMatrixDialog(input, getContext());
+    dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+    dialog->show();
+  }
 }

@@ -396,16 +396,23 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
     auto undoStack = getUndoStack();
     auto model     = getModel();
 
-    ConnectionList connections = GUI::Model::Utils::connections(polydata, model);
+    ConnectionList connections;
 
     if(m_item != getActiveChannel())
     {
       // modification
-      auto segmentation = model->smartPointer(segmentationPtr(m_item));
-      for(auto &connection: connections)
+      auto segmentation       = model->smartPointer(segmentationPtr(m_item));
+      auto classificationName = segmentation->category()->classificationName();
+
+      // insert connections if it's a dendrite or axon
+      if(classificationName.startsWith("Dendrite") || classificationName.startsWith("Axon"))
       {
-        connection.item1 = segmentation;
-        Q_ASSERT(connection.item1);
+        connections = GUI::Model::Utils::connections(polydata, model);
+        for(auto &connection: connections)
+        {
+          connection.item1 = segmentation;
+          Q_ASSERT(connection.item1);
+        }
       }
 
       undoStack->beginMacro(tr("Modify skeleton"));

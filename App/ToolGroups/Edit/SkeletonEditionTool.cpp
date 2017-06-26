@@ -269,13 +269,19 @@ void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyda
 
     if(widget->getSkeleton()->GetNumberOfPoints() != 0)
     {
-      // insert connections
-      auto segmentationSPtr = model->smartPointer(segmentation);
-      ConnectionList connections = GUI::Model::Utils::connections(polydata, model);
-      for(auto &connection: connections)
+      ConnectionList connections;
+      auto segmentationSPtr   = model->smartPointer(segmentation);
+      auto classificationName = segmentation->category()->classificationName();
+
+      // insert connections if it's a dendrite or axon
+      if(classificationName.startsWith("Dendrite") || classificationName.startsWith("Axon"))
       {
-        connection.item1 = segmentationSPtr;
-        Q_ASSERT(connection.item1 && connection.item1.get());
+        connections = GUI::Model::Utils::connections(polydata, model);
+        for(auto &connection: connections)
+        {
+          connection.item1 = segmentationSPtr;
+          Q_ASSERT(connection.item1 && connection.item1.get());
+        }
       }
 
       // modification
