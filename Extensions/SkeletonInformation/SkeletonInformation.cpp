@@ -152,7 +152,10 @@ void SkeletonInformation::updateInformation() const
       double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
       double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
 
-      return vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(vector1, vector2));
+      double cross[3];
+      vtkMath::Cross(vector1, vector2, cross);
+      auto angle = std::atan2(vtkMath::Norm(cross), vtkMath::Dot(vector1, vector2));
+      return vtkMath::DegreesFromRadians(angle);
     };
 
     auto bounds = m_extendedItem->bounds();
