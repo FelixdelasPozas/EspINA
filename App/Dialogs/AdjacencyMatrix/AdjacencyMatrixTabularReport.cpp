@@ -30,6 +30,9 @@
 #include <QStandardItemModel>
 #include <QItemDelegate>
 
+// C++
+#include <cstring>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
@@ -158,13 +161,44 @@ AdjacencyMatrixTabularReport::Entry::Entry(const SegmentationAdapterList segment
     m_verticalHeaders = m_horizontalHeaders;
   }
 
+  // get values
+  int connectionsVertical[m_verticalHeaders.size()];
+  int connectionsHorizontal[m_horizontalHeaders.size()];
+  std::memset(connectionsVertical, 0, sizeof(int)*m_verticalHeaders.size());
+  std::memset(connectionsHorizontal, 0, sizeof(int)*m_horizontalHeaders.size());
+
+  int tableValues[m_verticalHeaders.size()][m_horizontalHeaders.size()];
+  for(int i = 0; i < m_verticalHeaders.size(); ++i)
+  {
+    auto seg_i = model->smartPointer(m_verticalHeaders.at(i));
+    for(int j = 0; j < m_horizontalHeaders.size(); ++j)
+    {
+      tableValues[i][j] = model->connections(seg_i, model->smartPointer(m_horizontalHeaders.at(j))).size();
+      connectionsVertical[i] += tableValues[i][j];
+      connectionsHorizontal[j] += tableValues[i][j];
+    }
+  }
+
+  // remove empty table values.
+  SegmentationAdapterList toShowVertical;
+  for(int i = 0; i < m_verticalHeaders.size(); ++i)
+  {
+    if(connectionsVertical[i] != 0) toShowVertical << m_verticalHeaders.at(i);
+  }
+
+  SegmentationAdapterList toShowHorizontal;
+  for(int j = 0; j < m_horizontalHeaders.size(); ++j)
+  {
+    if(connectionsHorizontal[j] != 0) toShowHorizontal << m_horizontalHeaders.at(j);
+  }
+
   int column = 0;
   int row = 0;
 
-  table->setRowCount(m_verticalHeaders.size());
-  table->setColumnCount(1 + m_horizontalHeaders.size());
+  table->setRowCount(toShowVertical.size());
+  table->setColumnCount(1 + toShowHorizontal.size());
 
-  for (auto from: m_verticalHeaders)
+  for (auto from: toShowVertical)
   {
     auto segItem = new QStandardItem(QString(from->data().toString()));
     auto font = segItem->font();
@@ -176,18 +210,15 @@ AdjacencyMatrixTabularReport::Entry::Entry(const SegmentationAdapterList segment
     segItem->setDropEnabled(false);
     table->setItem(row, column++, segItem);
 
-    for (auto to: m_horizontalHeaders)
+    for (auto to: toShowHorizontal)
     {
       QStandardItem *item = nullptr;
       if(from != to)
       {
-        auto connections = model->connections(model->smartPointer(from), model->smartPointer(to));
-
-        item = new QStandardItem(QString::number(connections.size()));
+        item = new QStandardItem(QString::number(tableValues[m_verticalHeaders.indexOf(from)][m_horizontalHeaders.indexOf(to)]));
         item->setEditable(false);
         item->setDragEnabled(false);
         item->setDropEnabled(false);
-        item->setData(Qt::blue, Qt::TextColorRole);
         item->setToolTip(tr("Connections between %1 and %2.").arg(from->data().toString()).arg(to->data().toString()));
       }
       else
@@ -196,7 +227,7 @@ AdjacencyMatrixTabularReport::Entry::Entry(const SegmentationAdapterList segment
         item->setEditable(false);
         item->setDragEnabled(false);
         item->setDropEnabled(false);
-        item->setBackground(QColor{128,128,128});
+        item->setBackground(QColor{192,192,192});
       }
 
       table->setItem(row, column++, item);
@@ -207,7 +238,7 @@ AdjacencyMatrixTabularReport::Entry::Entry(const SegmentationAdapterList segment
   }
 
   table->setHeaderData(0, Qt::Horizontal, "Segmentation");
-  for(int i = 0; i < m_horizontalHeaders.size(); ++i) table->setHeaderData(i + 1, Qt::Horizontal, m_horizontalHeaders.at(i)->data().toString());
+  for(int i = 0; i < toShowHorizontal.size(); ++i) table->setHeaderData(i + 1, Qt::Horizontal, toShowHorizontal.at(i)->data().toString());
 
   tableView->setModel(sortFilter);
 }
