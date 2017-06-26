@@ -28,13 +28,12 @@
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
-using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()
 : m_classification{nullptr}
-, m_relations{new DirectedGraph()}
-, m_content{new DirectedGraph()}
+, m_relations     {new DirectedGraph()}
+, m_content       {new DirectedGraph()}
 {
 }
 
@@ -55,6 +54,7 @@ void Analysis::clear()
   m_channels.clear();
   m_segmentations.clear();
   m_filters.clear();
+  m_connections.clear();
 }
 
 //------------------------------------------------------------------------
@@ -66,6 +66,8 @@ void Analysis::setStorage(TemporalStorageSPtr storage)
   {
     persistent->setStorage(storage);
   }
+
+  m_connections.setStorage(m_storage);
 }
 
 //------------------------------------------------------------------------
@@ -82,7 +84,7 @@ void Analysis::add(SampleSPtr sample)
     auto what    = QObject::tr("Attempt to add an already existing sample, sample: %1").arg(sample->name());
     auto details = QObject::tr("Analysis::add(sample) -> Attempt to add an already existing sample, sample: %1").arg(sample->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   m_samples << sample;
@@ -110,7 +112,7 @@ void Analysis::add(ChannelSPtr channel)
     auto what    = QObject::tr("Attempt to add an already existing channel, channel: %1").arg(channel->name());
     auto details = QObject::tr("Analysis::add(channel) -> Attempt to add an already existing channel, channel: %1").arg(channel->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   m_channels << channel;
@@ -147,7 +149,7 @@ void Analysis::add(SegmentationSPtr segmentation)
     auto what    = QObject::tr("Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
     auto details = QObject::tr("Analysis::add(segmentation) -> Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   m_segmentations << segmentation;
@@ -182,7 +184,7 @@ void Analysis::remove(SampleSPtr sample)
     auto what    = QObject::tr("Attempt to delete an unknown sample, sample: %1").arg(sample->name());
     auto details = QObject::tr("Analysis::remove(sample) -> Attempt to delete an unknown sample, sample: %1").arg(sample->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   sample->setAnalysis(nullptr);
@@ -210,7 +212,7 @@ void Analysis::remove(ChannelSPtr channel)
     auto what    = QObject::tr("Attempt to delete an unknown channel, channel: %1").arg(channel->name());
     auto details = QObject::tr("Analysis::remove(channel) -> Attempt to delete an unknown channel, channel: %1").arg(channel->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   channel->setAnalysis(nullptr);
@@ -239,7 +241,7 @@ void Analysis::remove(SegmentationSPtr segmentation)
     auto what    = QObject::tr("Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
     auto details = QObject::tr("Analysis::remove(segmentation) -> Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   segmentation->setAnalysis(nullptr);
@@ -247,6 +249,7 @@ void Analysis::remove(SegmentationSPtr segmentation)
 
   m_content->remove(segmentation);
   m_relations->remove(segmentation);
+  m_connections.removeSegmentation(segmentation);
 
   removeIfIsolated(segmentation->filter());
 }
@@ -280,7 +283,7 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
     auto what    = QObject::tr("Attempt to add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
     auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   if (!m_relations->contains(successor))
@@ -288,7 +291,7 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
     auto what    = QObject::tr("Attempt to add a relation to an unknown successor, item: %1").arg(successor->name());
     auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown successor, item: %1").arg(successor->name());
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   if (findRelation(ancestor, successor, relation))
@@ -296,7 +299,7 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
     auto what    = QObject::tr("Attempt to add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
     auto details = QObject::tr("Analysis::addRelation() -> Attempt add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   m_relations->addRelation(ancestor, successor, relation);
@@ -312,7 +315,7 @@ void Analysis::deleteRelation(PersistentSPtr    ancestor,
     auto what    = QObject::tr("Attempt to delete an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
     auto details = QObject::tr("Analysis::deleteRelation() -> Attempt to remove an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
 
-    throw EspinaException(what, details);
+    throw Core::Utils::EspinaException(what, details);
   }
 
   m_relations->removeRelation(ancestor, successor, relation);
@@ -462,4 +465,110 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
   }
 
   return false;
+}
+
+//------------------------------------------------------------------------
+void Analysis::addConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point)
+{
+  if(!m_connections.addConnection(segmentation1, segmentation2, point))
+  {
+    auto message = QObject::tr("Tried to add an existing connection between %1 and %2 at the point %3.").arg(segmentation1->name()).arg(segmentation2->name()).arg(point.toString());
+    auto details = QObject::tr("Analysis::addConnection() -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point)
+{
+  if(!m_connections.removeConnection(segmentation1, segmentation2, point))
+  {
+    auto message = QObject::tr("Tried to remove a non existing connection between %1 and %2 at the point %3.").arg(segmentation1->name()).arg(segmentation2->name()).arg(point.toString());
+    auto details = QObject::tr("Analysis::removeConnection() -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2)
+{
+  if(!m_connections.removeConnections(segmentation1, segmentation2))
+  {
+    auto message = QObject::tr("Tried to remove non existing connections between %1 and %2.").arg(segmentation1->name()).arg(segmentation2->name());
+    auto details = QObject::tr("Analysis::removeConnections(segmentation1, segmentation2) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnections(const PersistentSPtr segmentation)
+{
+  if(!m_connections.removeSegmentation(segmentation))
+  {
+    auto message = QObject::tr("Tried to remove non existing connections of segmentation %1.").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::removeConnections(segmentation) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+Core::Connections Analysis::connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2)
+{
+  Core::Connections result;
+
+  for(auto connection: m_connections.connections(segmentation1, segmentation2))
+  {
+    Core::Connection coreConnection;
+    coreConnection.segmentation1 = segmentation1;
+    coreConnection.segmentation2 = segmentation2;
+    coreConnection.point         = connection.point;
+
+    result << coreConnection;
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+Core::Connections Analysis::connections(const PersistentSPtr segmentation)
+{
+  Core::Connections result;
+
+  auto getSegmentationSPtr = [this] (const QString &uuid)
+  {
+    for(auto seg: this->m_segmentations)
+    {
+      if(uuid == seg->uuid()) return seg;
+    }
+    Q_ASSERT(false);
+    return m_segmentations.first(); // ao the lambda has a consistent return type.
+  };
+
+  for(auto connection: m_connections.connections(segmentation))
+  {
+    Core::Connection coreConnection;
+    coreConnection.segmentation1 = segmentation;
+    coreConnection.segmentation2 = getSegmentationSPtr(connection.segmentation2);
+    coreConnection.point         = connection.point;
+
+    result << coreConnection;
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+bool Analysis::saveConnections() const
+{
+  return m_connections.save();
+}
+
+//------------------------------------------------------------------------
+bool Analysis::loadConnections()
+{
+  return m_connections.load();
 }

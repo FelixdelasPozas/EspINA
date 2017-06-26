@@ -38,119 +38,121 @@
 
 class QUndoStack;
 
-using namespace ESPINA::Support::Widgets;
-
 namespace ESPINA
 {
+  /** \class SegmentationInspector
+   * \brief Dialog to inspect the properties of a segmentation.
+   *
+   */
   class SegmentationInspector
   : public QDialog
   , public Ui::SegmentationInspector
   , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    /** \brief SegmentationInspector class constructor.
-     * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] context ESPINA context
-     */
-    SegmentationInspector(SegmentationAdapterList         segmentations,
-                          Support::Context               &context);
+      Q_OBJECT
+    public:
+      /** \brief SegmentationInspector class constructor.
+       * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
+       * \param[in] context ESPINA context
+       */
+      SegmentationInspector(SegmentationAdapterList         segmentations,
+                            Support::Context               &context);
 
-    /** \brief SegmentationInspector class destructor.
-     *
-     */
-    virtual ~SegmentationInspector()
-    {};
+      /** \brief SegmentationInspector class destructor.
+       *
+       */
+      virtual ~SegmentationInspector()
+      {};
 
-    /** \brief Adds a segmentation to the dialog and connects signals.
-     * \param[in] segmentation segmentation adapter raw pointer.
-     *
-     */
-    virtual void addSegmentation(SegmentationAdapterPtr segmentation);
+      /** \brief Adds a segmentation to the dialog and connects signals.
+       * \param[in] segmentation segmentation adapter raw pointer.
+       *
+       */
+      virtual void addSegmentation(SegmentationAdapterPtr segmentation);
 
-    /** \brief Removes a segmentation from the dialog and disconnects signals.
-     * \param[in] segmentation segmentation adapter raw pointer.
-     *
-     */
-    virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
+      /** \brief Removes a segmentation from the dialog and disconnects signals.
+       * \param[in] segmentation segmentation adapter raw pointer.
+       *
+       */
+      virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
 
-    /** \brief Adds a channel to the dialog.
-     * \param[in] channel channel adapter raw pointer.
-     *
-     */
-    virtual void addChannel(ChannelAdapterPtr channel);
+      /** \brief Adds a channel to the dialog.
+       * \param[in] channel channel adapter raw pointer.
+       *
+       */
+      virtual void addChannel(ChannelAdapterPtr channel);
 
-    /** \brief Removes a channel from the dialog.
-     * \param[in] channel channel adapter raw pointer.
-     *
-     */
-    virtual void removeChannel(ChannelAdapterPtr channel);
+      /** \brief Removes a channel from the dialog.
+       * \param[in] channel channel adapter raw pointer.
+       *
+       */
+      virtual void removeChannel(ChannelAdapterPtr channel);
 
-    /** \brief Implments drag enter events in the dialog.
-     * \param[in] event drag enter event raw pointer.
-     *
-     */
-    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+      /** \brief Implments drag enter events in the dialog.
+       * \param[in] event drag enter event raw pointer.
+       *
+       */
+      virtual void dragEnterEvent(QDragEnterEvent *event) override;
 
-    /** \brief Implements drop events in the dialog.
-     * \param[in] event drop event raw pointer.
-     *
-     */
-    virtual void dropEvent(QDropEvent *event) override;
+      /** \brief Implements drop events in the dialog.
+       * \param[in] event drop event raw pointer.
+       *
+       */
+      virtual void dropEvent(QDropEvent *event) override;
 
-    /** \brief Implements drag move events in the dialog.
-     * \param[in] event drag move event raw pointer.
-     *
-     */
-    virtual void dragMoveEvent(QDragMoveEvent *event) override;
+      /** \brief Implements drag move events in the dialog.
+       * \param[in] event drag move event raw pointer.
+       *
+       */
+      virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
-  signals:
-    void inspectorClosed(SegmentationInspector *inspector);
+    signals:
+      void inspectorClosed(SegmentationInspector *inspector);
 
-  protected:
-    virtual void showEvent(QShowEvent *event) override;
+    protected:
+      virtual void showEvent(QShowEvent *event) override;
 
-    virtual void closeEvent(QCloseEvent *e) override;
+      virtual void closeEvent(QCloseEvent *e) override;
 
-  protected slots:
-    void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
+    protected slots:
+      void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
 
-  private:
-    void connectSignals();
+    private:
+      void connectSignals();
 
-    void updateWindowTitle();
+      void updateWindowTitle();
 
-    void initView3D(RepresentationFactorySList representations);
+      void initView3D(RepresentationFactorySList representations);
 
-    void initReport();
+      void initReport();
 
-    void configureLayout();
+      void configureLayout();
 
-    void restoreGeometryState();
+      void restoreGeometryState();
 
-    void saveGeometryState();
+      void saveGeometryState();
 
-    QHBoxLayout *createViewLayout();
+      QHBoxLayout *createViewLayout();
 
-    QHBoxLayout *createReportLayout();
+      QHBoxLayout *createReportLayout();
 
-  private:
-    static const QString GEOMETRY_SETTINGS_KEY;
-    static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
+    private:
+      static const QString GEOMETRY_SETTINGS_KEY;
+      static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
 
-    SegmentationAdapterList m_segmentations;
-    ChannelAdapterList      m_channels;
+      SegmentationAdapterList m_segmentations;
+      ChannelAdapterList      m_channels;
 
-    SegmentationAdapterPtr  m_selectedSegmentation;
+      SegmentationAdapterPtr  m_selectedSegmentation;
 
-    ManualPipelineSources m_channelSources;
-    ManualPipelineSources m_segmentationSources;
+      ManualPipelineSources m_channelSources;
+      ManualPipelineSources m_segmentationSources;
 
-    RepresentationList m_representations;
+      RepresentationList m_representations;
 
-    QToolBar           *m_toolbar;
-    View3D              m_view;
-    TabularReport       m_tabularReport;
+      QToolBar           *m_toolbar;
+      View3D              m_view;
+      TabularReport       m_tabularReport;
   };
 
 } // namespace ESPINA

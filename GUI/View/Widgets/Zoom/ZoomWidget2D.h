@@ -32,8 +32,6 @@
 // VTK
 #include <vtkSmartPointer.h>
 
-using namespace ESPINA::GUI::Representations::Managers;
-
 namespace ESPINA
 {
   namespace GUI
@@ -103,7 +101,7 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget();
 
           private:
-            virtual TemporalRepresentation2DSPtr cloneImplementation();
+            virtual ESPINA::GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
           private:
             ZoomEventHandler                       *m_eventHandler;

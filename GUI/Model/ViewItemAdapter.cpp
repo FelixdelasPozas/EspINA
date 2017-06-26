@@ -28,11 +28,12 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
-: NeuroItemAdapter {item}
-, m_viewItem       {item}
-, m_isSelected     {false}
-, m_isVisible      {true}
-, m_isBeingModified{false}
+: NeuroItemAdapter        {item}
+, m_viewItem              {item}
+, m_isSelected            {false}
+, m_isVisible             {true}
+, m_isBeingModified       {false}
+, m_temporalRepresentation{nullptr}
 {
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
@@ -47,7 +48,7 @@ void ViewItemAdapter::setTemporalRepresentation(RepresentationPipelineSPtr pipel
 //------------------------------------------------------------------------
 void ViewItemAdapter::clearTemporalRepresentation()
 {
-  m_temporalRepresentation.reset();
+  m_temporalRepresentation = nullptr;
 }
 
 //------------------------------------------------------------------------

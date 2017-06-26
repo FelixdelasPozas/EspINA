@@ -36,9 +36,10 @@ const int FRAME_LIMIT = 20;
 
 //----------------------------------------------------------------------------
 ViewState::ViewState()
-: m_fitToSlices{true}
-, m_coordinateSystem(std::make_shared<CoordinateSystem>())
-, m_selection(new Selection())
+: m_fitToSlices     {true}
+, m_coordinateSystem{std::make_shared<CoordinateSystem>()}
+, m_selection       {new Selection()}
+, m_eventHandler    {nullptr}
 {
   connect(m_selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this,              SLOT(selectionChanged(SegmentationAdapterList)));
@@ -76,6 +77,9 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
   {
     if (m_eventHandler)
     {
+      disconnect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+                 this,                 SIGNAL(cursorChanged()));
+
       m_eventHandler->setInUse(false);
     }
 
@@ -83,6 +87,9 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
 
     if (m_eventHandler)
     {
+      connect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+              this,                 SIGNAL(cursorChanged()));
+
       m_eventHandler->setInUse(true);
     }
 
@@ -222,7 +229,7 @@ void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPr
   {
     auto frame = createFrame(m_crosshair);
 
-    m_activeWidgets << factory;
+    if(!hasTemporalRepresentation(factory)) m_activeWidgets << factory;
 
     emit widgetsAdded(factory, frame);
 
@@ -239,7 +246,7 @@ void ViewState::removeTemporalRepresentations(Representations::Managers::Tempora
 
     emit widgetsRemoved(factory, frame);
 
-    m_activeWidgets.removeAll(factory);
+    if(hasTemporalRepresentation(factory)) m_activeWidgets.removeAll(factory);
 
     emitFrameChanged(frame);
   }

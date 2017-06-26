@@ -130,7 +130,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     if (Qt::DecorationRole == role)
     {
-      return channelPtr(item)->data(role);;
+      return channelPtr(item)->data(role);
     }
     else
     {

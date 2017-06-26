@@ -82,12 +82,12 @@ namespace ESPINA
       /** \brief Helper method to connect the pool's signals.
        *
        */
-      void connectPools();
+      virtual void connectPools();
 
       /** \brief Helper method to disconnect the pool's signals.
        *
        */
-      void disconnectPools();
+      virtual void disconnectPools();
 
     private slots:
       /** \brief Helper method to emit a render request only when all the pools have the actors ready for the given frame.

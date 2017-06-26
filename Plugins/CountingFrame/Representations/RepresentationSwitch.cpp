@@ -79,6 +79,7 @@ void CF::CFRepresentationSwitch::initWidget()
   m_opacityWidget->setSliderTracking(false);
   m_opacityWidget->setValue(70);
   m_opacityWidget->setSpinBoxVisibility(false);
+  m_opacityWidget->setToolTip(tr("%1 representation's opacity.").arg(this->m_manager->name()));
 
   addSettingsWidget(m_opacityWidget);
 

@@ -54,11 +54,14 @@ namespace ESPINA
 
       /** \brief Activates/deactvates the event handler.
        * \param[in] value true to enable false otherwise.
+       *
        */
       void setInUse(bool value);
 
+      /** \brief Returns true if the event handler is currently in use and false otherwise.
+       *
+       */
       bool isInUse() const;
-
 
       /** \brief Perform the operations needed to events in the given view.
        * \param[in] e raw pointer of the event received.
@@ -76,11 +79,11 @@ namespace ESPINA
       /** \brief Sets the cursor of the event handler.
        *
        */
-      void setCursor(const QCursor& cursor)
-      { m_cursor = cursor; }
+      void setCursor(const QCursor& cursor);
 
     signals:
       void eventHandlerInUse(bool);
+      void cursorChanged();
 
     private:
       bool    m_inUse;

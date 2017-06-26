@@ -30,6 +30,7 @@
 #include <vtkRenderWindowInteractor.h>
 
 using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //----------------------------------------------------------------------------
 ZoomWidget2D::ZoomWidget2D(ZoomEventHandler *eventHandler)

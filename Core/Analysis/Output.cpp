@@ -222,10 +222,10 @@ void Output::setData(Output::DataSPtr data)
 
   proxy(type)->set(data);
 
-  updateModificationTime();
-
   connect(data.get(), SIGNAL(dataChanged()),
           this,       SLOT(onDataChanged()));
+
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------

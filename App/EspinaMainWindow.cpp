@@ -63,7 +63,7 @@
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
-//#include <ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
 #include <App/ToolGroups/Explore/ResetViewTool.h>
 #include <App/ToolGroups/Explore/ZoomRegionTool.h>
 #include <App/ToolGroups/Explore/PositionMarksTool.h>
@@ -568,6 +568,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   }
 
   emit analysisChanged();
+
+  m_context.viewState().refresh();
 }
 
 //------------------------------------------------------------------------
@@ -996,11 +998,11 @@ void EspinaMainWindow::createSegmentToolGroup()
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
-//  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
-//  m_segmentToolGroup->addTool(skeleton);
+  m_segmentToolGroup->addTool(skeleton);
 
   registerToolGroup(m_segmentToolGroup);
 }

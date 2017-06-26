@@ -21,6 +21,7 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
   Dialogs/StackInspector/StackInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
@@ -57,6 +58,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/ManualEditionTool.h
   ToolGroups/Edit/EditToolGroup.h
   ToolGroups/Edit/SplitTool.h
+  ToolGroups/Edit/SkeletonEditionTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
   ToolGroups/Session/UndoRedoTools.h
@@ -70,7 +72,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-#  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonTool.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
@@ -78,7 +80,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
-#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
@@ -125,6 +127,8 @@ set (ESPINA_SOURCES
   AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
   Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
@@ -160,6 +164,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Edit/CODERefineWidget.cpp
   ToolGroups/Edit/CODERefiner.cpp
@@ -171,6 +176,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/ManualEditionTool.cpp
   ToolGroups/Edit/SliceEditionPipeline.cpp
   ToolGroups/Edit/SplitTool.cpp
+  ToolGroups/Edit/SkeletonEditionTool.cpp
   ToolGroups/Explore/PositionMarksTool.cpp
   ToolGroups/Explore/ResetViewTool.cpp
   ToolGroups/Explore/ZoomRegionTool.cpp
@@ -184,7 +190,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-#  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp
@@ -200,7 +206,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
-#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DragChannelsCommand.cpp
   Undo/DrawUndoCommand.cpp

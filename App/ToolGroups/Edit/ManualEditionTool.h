@@ -34,101 +34,103 @@
 
 class QUndoStack;
 
-using namespace ESPINA::GUI::View;
-
 namespace ESPINA
 {
+  /** \class ManualEditionTool
+   * \brief Tool to edit a segmentation manually using brushes.
+   *
+   */
   class ManualEditionTool
   : public Support::Widgets::EditTool
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    /** \brief ManualEditionTool class constructor.
-     * \param[in] context to be used for this tool
-     *
-     */
-    explicit ManualEditionTool(Support::Context &context);
+    public:
+      /** \brief ManualEditionTool class constructor.
+       * \param[in] context to be used for this tool
+       *
+       */
+      explicit ManualEditionTool(Support::Context &context);
 
-    /** \brief ManualEditionTool class virtual destructor.
-     *
-     */
-    virtual ~ManualEditionTool();
+      /** \brief ManualEditionTool class virtual destructor.
+       *
+       */
+      virtual ~ManualEditionTool();
 
-    virtual void setEnabled(bool value) override;
+      virtual void setEnabled(bool value) override;
 
-    virtual void abortOperation() override;
+      virtual void abortOperation() override;
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-    /** \brief Updates the reference item of the spacing and updates the GUI.
-     *
-     */
-    void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
+      /** \brief Updates the reference item of the spacing and updates the GUI.
+       *
+       */
+      void updateReferenceItem(SegmentationAdapterPtr segmentation) const;
 
-  private:
-    /** \brief Modifies the current selected segmentation with the mask contents.
-     * \param[in] mask binary mask.
-     *
-     */
-    void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
+    private:
+      /** \brief Modifies the current selected segmentation with the mask contents.
+       * \param[in] mask binary mask.
+       *
+       */
+      void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Returns the reference item used for spacing.
-     *
-     */
-    SegmentationAdapterSPtr referenceSegmentation() const;
+      /** \brief Returns the reference item used for spacing.
+       *
+       */
+      SegmentationAdapterSPtr referenceSegmentation() const;
 
-    virtual bool acceptsNInputs(int n) const override
-    { return n == 1; }
+      virtual bool acceptsNInputs(int n) const override
+      { return n == 1; }
 
-    virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
-  private slots:
-    /** \brief Sets the temporal actor for the stroke.
-     *
-     */
-    void onStrokeStarted(BrushPainter *painter, RenderView *view);
+    private slots:
+      /** \brief Sets the temporal actor for the stroke.
+       *
+       */
+      void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
-    /** \brief Modifies the segmentation with the contents of the mask.
-     * \param[in] mask binary mask.
-     *
-     */
-    void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
+      /** \brief Modifies the segmentation with the contents of the mask.
+       * \param[in] mask binary mask.
+       *
+       */
+      void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Updates the interface when the user changes the painter.
-     * \param[in] painter new selected painter.
-     *
-     */
-    void onPainterChanged(MaskPainterSPtr painter);
+      /** \brief Updates the interface when the user changes the painter.
+       * \param[in] painter new selected painter.
+       *
+       */
+      void onPainterChanged(MaskPainterSPtr painter);
 
-    /** \brief Updates the item being edited or disables the tool on invalid selection.
-     * \param[in] segmentations current selection's segmentations.
-     *
-     */
-    void onSelectionChanged(SegmentationAdapterList segmentations);
+      /** \brief Updates the item being edited or disables the tool on invalid selection.
+       * \param[in] segmentations current selection's segmentations.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
 
-  private:
-    /** \brief Minimizes the bounds of the segmentation if it has reduced its size.
-     * \param[in] item Segmentation whose volume has been partially or totally deleted.
-     *
-     */
-    void onVoxelDeletion(ViewItemAdapterPtr item);
+    private:
+      /** \brief Minimizes the bounds of the segmentation if it has reduced its size.
+       * \param[in] item Segmentation whose volume has been partially or totally deleted.
+       *
+       */
+      void onVoxelDeletion(ViewItemAdapterPtr item);
 
-    /** \brief Removes the temporal representation for the reference item.
-     *
-     */
-    void clearTemporalPipeline() const;
+      /** \brief Removes the temporal representation for the reference item.
+       *
+       */
+      void clearTemporalPipeline() const;
 
-    using DrawingTool = GUI::Widgets::DrawingWidget;
+      using DrawingTool = GUI::Widgets::DrawingWidget;
 
-    // mutable needed by updateReferenceItem() const
-    mutable DrawingTool        m_drawingWidget; /** drawing widget.                                */
-    mutable ViewItemAdapterPtr m_referenceItem; /** current item being edited or the origin stack. */
+      // mutable needed by updateReferenceItem() const
+      mutable DrawingTool        m_drawingWidget; /** drawing widget.                                */
+      mutable ViewItemAdapterPtr m_referenceItem; /** current item being edited or the origin stack. */
 
-    MaskPainterSPtr                  m_currentHandler;   /** current event handler.                                              */
-    mutable SliceEditionPipelineSPtr m_temporalPipeline; /** temporal pipeline to generate representations for the current item. */
+      MaskPainterSPtr                  m_currentHandler;   /** current event handler.                                              */
+      mutable SliceEditionPipelineSPtr m_temporalPipeline; /** temporal pipeline to generate representations for the current item. */
   };
 
   using ManualEditionToolPtr  = ManualEditionTool *;

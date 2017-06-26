@@ -143,12 +143,12 @@ void SliceManager::invalidatePreviousActors(TimeStamp time)
 //----------------------------------------------------------------------------
 void SliceManager::onShow(const FrameCSPtr frame)
 {
-  connectPools();
-
   auto pool = planePool();
 
   GUI::RepresentationUtils::setPlane(pool, m_plane);
   GUI::RepresentationUtils::setSegmentationDepth(pool, m_depth);
+
+  connectPools();
 }
 
 //----------------------------------------------------------------------------

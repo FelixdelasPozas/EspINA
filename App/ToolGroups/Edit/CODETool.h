@@ -83,7 +83,11 @@ namespace ESPINA
 
       virtual bool acceptsNInputs(int n) const override;
 
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
+
       /** \brief Helper method to create and return the morphological filter.
+       * \param[in] inputs filter's inputs.
+       * \param[in] type filter's type.
        *
        */
       virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type& type) = 0;

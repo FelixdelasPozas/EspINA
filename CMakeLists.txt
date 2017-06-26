@@ -28,6 +28,7 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
+set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED COMPONENTS graph regex)
 link_directories (${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIR})

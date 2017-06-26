@@ -28,8 +28,6 @@
 
 class QAction;
 
-using namespace ESPINA::GUI::View::Widgets::Measures;
-
 namespace ESPINA
 {
   /** \class MeasureLengthTool
@@ -66,8 +64,9 @@ namespace ESPINA
       void onToolActivated(bool value);
 
     private:
-      using ViewState              = GUI::View::ViewState;
-      using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using ViewState               = GUI::View::ViewState;
+      using TemporalPrototypesSPtr  = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using MeasureEventHandlerSPtr = GUI::View::Widgets::Measures::MeasureEventHandlerSPtr;
 
       ViewState              &m_viewState;  /** application view state.    */
       MeasureEventHandlerSPtr m_handler;    /** tool's event handler.      */

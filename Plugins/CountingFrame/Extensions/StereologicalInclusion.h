@@ -62,7 +62,8 @@ namespace ESPINA
         /** \brief StereologicalInclusion class virtual destructor.
          *
          */
-        virtual ~StereologicalInclusion();
+        virtual ~StereologicalInclusion()
+        {}
 
         virtual Type type() const
         { return TYPE; }
@@ -78,6 +79,8 @@ namespace ESPINA
 
         virtual bool validCategory(const QString& classificationName) const
         { return true; }
+
+        virtual bool validData(const OutputSPtr output) const;
 
         virtual InformationKeyList availableInformation() const;
 

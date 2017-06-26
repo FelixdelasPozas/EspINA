@@ -94,13 +94,17 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
   connect(&m_taskProgress, SIGNAL(progress(int)),
           m_action,        SLOT(setProgress(int)));
 
+  auto selection = getSelection().get();
+
+  connect(selection, SIGNAL(selectionStateChanged()),
+          this,      SLOT(updateStatus()));
+
   m_settings->setVisible(false);
 }
 
 //----------------------------------------------------------------------------
 ProgressTool::~ProgressTool()
 {
-  disconnect();
   m_action->disconnect();
   m_taskProgress.disconnect();
 

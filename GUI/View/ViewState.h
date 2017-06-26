@@ -97,13 +97,13 @@ namespace ESPINA
         EventHandlerSPtr eventHandler() const;
 
         /** \brief Adds a widget to the view.
-         * \param[in] widget espina widget smart pointer.
+         * \param[in] factory temporal representations factory.
          *
          */
         void addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory);
 
         /** \brief Removes a widget to the view.
-         * \param[in] widget espina widget smart pointer.
+         * \param[in] factory temporal representations factory.
          *
          */
         void removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory);
@@ -200,6 +200,8 @@ namespace ESPINA
 
       signals:
         void eventHandlerChanged();
+
+        void cursorChanged();
 
         void frameChanged(const GUI::Representations::FrameCSPtr frame);
 

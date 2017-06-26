@@ -41,6 +41,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DrawUndoCommand class constructor.
+     * \param[in] context application context.
      * \param[in] seg segmentation adapter pointer of the segmentation going to be modified.
      * \param[in] mask Mask to modify segmentation with.
      */

@@ -80,18 +80,36 @@ namespace ESPINA
          */
         virtual bool validCategory(const QString &classification) const = 0;
 
+        /** \brief Returns true if the extension can get results with the given data.
+         * \param[in] output output containing the data.
+         *
+         */
+        virtual bool validData(const OutputSPtr output) const = 0;
+
       signals:
         void invalidated();
 
       public slots:
         virtual void invalidate()
-        { Extension<Segmentation>::invalidate(); emit invalidated(); }
+        {
+          Extension<Segmentation>::invalidate();
+
+          invalidateImplementation();
+
+          emit invalidated();
+        }
 
       protected:
-      /** \brief SegmentationExtension class constructor.
-       * \param[in] infoCache cache object.
-       *
-       */
+        /** \brief Particular invalidate actions of the extention. To be implemented on the extension that needs it, default empty.
+         *
+         */
+        virtual void invalidateImplementation()
+        {};
+
+        /** \brief SegmentationExtension class constructor.
+         * \param[in] infoCache cache object.
+         *
+         */
         SegmentationExtension(const InfoCache &infoCache)
         : Extension<Segmentation>(infoCache)
         {}

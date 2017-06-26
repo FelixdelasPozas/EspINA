@@ -62,31 +62,31 @@ namespace ESPINA
           class EspinaSupport_EXPORT NestedWidgets
           : public QWidgetAction
           {
-          public:
-            /** \brief NestedWidgets class constructor.
-             * \param[in] parent pointer of the parent widget of this one.
-             *
-             */
-            explicit NestedWidgets(QObject *parent);
+            public:
+              /** \brief NestedWidgets class constructor.
+               * \param[in] parent pointer of the parent widget of this one.
+               *
+               */
+              explicit NestedWidgets(QObject *parent);
 
-            /** \brief NestedWidgets class virtual destructor.
-             *
-             */
-            virtual ~NestedWidgets();
+              /** \brief NestedWidgets class virtual destructor.
+               *
+               */
+              virtual ~NestedWidgets();
 
-            /** \brief Adds a given widget to the container.
-             * \param[in] widget pointer to the QWidget to add.
-             *
-             */
-            void addWidget(QWidget *widget);
+              /** \brief Adds a given widget to the container.
+               * \param[in] widget pointer to the QWidget to add.
+               *
+               */
+              void addWidget(QWidget *widget);
 
-            /** \brief Returns true if there is no widgets in the container and false otherwise.
-             *
-             */
-            bool isEmpty() const;
+              /** \brief Returns true if there is no widgets in the container and false otherwise.
+               *
+               */
+              bool isEmpty() const;
 
-          private:
-            QHBoxLayout *m_layout;
+              private:
+                QHBoxLayout *m_layout; /** nested widgets container. */
           };
 
         public:
@@ -271,6 +271,15 @@ namespace ESPINA
            *
            */
           void showTaskProgress(TaskSPtr task);
+
+          /** \brief Updates the status of the tool depending on the current selection.
+           *
+           * NOTE: default implementation empty, but a tool that manages segmentations should update
+           * it's status (enabling/disabling itself) if the current selection doesn't apply to it.
+           *
+           */
+          virtual void updateStatus()
+          {};
 
         protected:
           /** \brief Adds a widget to the group of settings widgets of this tool.

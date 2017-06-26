@@ -85,6 +85,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
@@ -140,7 +141,7 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_renderer->GetActiveCamera()->SetThickness(2000);
-  m_renderer->SetNearClippingPlaneTolerance(0.01);
+  m_renderer->SetNearClippingPlaneTolerance(0.001);
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
@@ -560,6 +561,7 @@ void View2D::refreshViewImplementation()
 {
   updateScale();
   updateThumbnail();
+  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
@@ -662,13 +664,13 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       // get the focus this very moment
       setFocus(Qt::OtherFocusReason);
 
-      if (eventHandler() && !m_inThumbnail)
+      if (m_inThumbnail)
       {
-        m_view->setCursor(eventHandler()->cursor());
+        m_view->setCursor(Qt::ArrowCursor);
       }
       else
       {
-        m_view->setCursor(Qt::ArrowCursor);
+        onCursorChanged();
       }
 
       e->accept();
@@ -732,14 +734,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             }
           }
           // to avoid interfering with ctrl use in the event handler/selector
-          if (eventHandler())
-          {
-            m_view->setCursor(eventHandler()->cursor());
-          }
-          else
-          {
-            m_view->setCursor(Qt::ArrowCursor);
-          }
+          onCursorChanged();
         }
 
         updateScale();
@@ -1168,7 +1163,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   NeuroItemAdapterList pickedItems;
 
   vtkProp *pickedProp;
-  auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
+  QList<vtkProp *> pickedProps;
 
   bool finished = false;
   bool picked   = false;
@@ -1180,7 +1175,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
     if (pickedProp && pickedProp->GetVisibility())
     {
-      pickedProps->AddItem(pickedProp);
+      pickedProps << pickedProp;
       sceneActors->RemoveItem(pickedProp);
     }
 
@@ -1213,11 +1208,11 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   }
   while(picked && !finished);
 
-  pickedProps->InitTraversal();
 
-  while ((pickedProp = pickedProps->GetNextProp()))
+  for(auto prop: pickedProps)
   {
-    sceneActors->AddItem(pickedProp);
+    sceneActors->AddItem(prop);
+    prop->VisibilityOn();
   }
   sceneActors->Modified();
 

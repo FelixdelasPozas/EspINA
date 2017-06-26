@@ -45,6 +45,8 @@
 #include <vtkRenderer.h>
 
 // Qt
+#include <QEvent>
+#include <QKeyEvent>
 #include <QApplication>
 #include <QDialog>
 #include <QMessageBox>
@@ -461,6 +463,9 @@ void RenderView::connectSignals()
 
   connect(m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
           this,                             SLOT(onSceneBoundsChanged(Bounds)));
+
+  connect(&m_state, SIGNAL(cursorChanged()),
+          this,     SLOT(onCursorChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -475,9 +480,9 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
 
       addRepresentationManager(manager);
 
-      manager->show(frame);
-
       m_temporalManagers[prototypes] = manager;
+
+      manager->show(frame);
     }
     else
     {
@@ -755,4 +760,31 @@ void RenderView::delayedWidgetsShow()
   {
     onWidgetsAdded(factory, m_state.createFrame());
   }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onCursorChanged()
+{
+  if (eventHandler() && eventHandler()->isInUse())
+  {
+    m_view->setCursor(eventHandler()->cursor());
+  }
+  else
+  {
+    m_view->setCursor(Qt::CrossCursor);
+  }
+
+  m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyPressEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyPressEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyReleaseEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
 }

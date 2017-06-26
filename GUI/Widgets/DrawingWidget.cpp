@@ -313,6 +313,8 @@ void DrawingWidget::initPainters()
 //------------------------------------------------------------------------
 void DrawingWidget::initCategoryWidget()
 {
+  m_categorySelector.setToolTip(tr("Segmentation category."));
+
   addWidget(&m_categorySelector);
 
   connect(&m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -322,6 +324,8 @@ void DrawingWidget::initCategoryWidget()
 //------------------------------------------------------------------------
 void DrawingWidget::initEraseWidget()
 {
+  m_eraserWidget->setToolTip(tr("Brush eraser mode."));
+
   addWidget(m_eraserWidget);
 
   m_eraserWidget->setCheckable(true);
@@ -333,6 +337,8 @@ void DrawingWidget::initEraseWidget()
 //------------------------------------------------------------------------
 void DrawingWidget::initRadiusWidget()
 {
+  m_radiusWidget.setToolTip(tr("Brush radius size."));
+
   addWidget(&m_radiusWidget);
 
   m_radiusWidget.setValue(m_brushRadius);
@@ -348,6 +354,8 @@ void DrawingWidget::initRadiusWidget()
 //------------------------------------------------------------------------
 void DrawingWidget::initOpacityWidget()
 {
+  m_opacityWidget.setToolTip(tr("Brush stroke opacity while drawing."));
+
   addWidget(&m_opacityWidget);
 
   m_opacityWidget.setMinimum(1);
@@ -473,6 +481,7 @@ void DrawingWidget::updateVisibleControls()
     m_radiusWidget.setMinimum(1);
     m_radiusWidget.setMaximum(100);
     m_radiusWidget.setValue(m_contourDistance);
+    m_radiusWidget.setToolTip(tr("Minimum distance between contour points."));
 
     m_contourPainter->setMinimumPointDistance(m_contourDistance);
   }
@@ -482,6 +491,7 @@ void DrawingWidget::updateVisibleControls()
     m_radiusWidget.setMinimum(5);
     m_radiusWidget.setMaximum(40);
     m_radiusWidget.setValue(m_brushRadius);
+    m_radiusWidget.setToolTip(tr("Brush radius size."));
   }
 }
 

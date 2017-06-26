@@ -96,30 +96,42 @@ namespace ESPINA
   using MeshDataPtr  = MeshData *;
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  /** \brief Obtains and returns the MeshData smart pointer of the spacified Output.
-   * \param[in] output Output object smart pointer.
-   * 
-   *  This function ensures the output is up to date by callig mesh data update first
-   *  If the output doesn't contain the requested data type an expection will be thrown
-   */
-  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(OutputSPtr       output,
-                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
-
-  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(Output          *output,
-                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
-
-  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(Output          *output,
-                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
-
-  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(OutputSPtr       output,
-                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
-
   /** \brief Returns whether output has any mesh data or not
    *
    */
   bool EspinaCore_EXPORT hasMeshData(OutputSPtr output);
 
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-only operations.
+   * \param[in] output Output object smart pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(OutputSPtr       output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-only operations.
+   * \param[in] output Output object pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(Output          *output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object smart pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(OutputSPtr       output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(Output          *output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
 } // namespace ESPINA
 
 #endif // ESPINA_MESH_DATA_H

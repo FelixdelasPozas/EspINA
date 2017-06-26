@@ -21,45 +21,45 @@
 #ifndef ESPINA_SEGMENTATION_SKELETON_3D_PIPELINE_H_
 #define ESPINA_SEGMENTATION_SKELETON_3D_PIPELINE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
+#include <GUI/Representations/Pipelines/SegmentationSkeletonPipelineBase.h>
+#include <GUI/Representations/RepresentationState.h>
 #include <GUI/Types.h>
-#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
-#include <GUI/Representations/RepresentationPipeline.h>
 
 namespace ESPINA
 {
-  class SegmentationSkeleton3DPipeline
-  : public RepresentationPipeline
+  namespace GUI
   {
-    public:
-      /** \brief SegmentationSkeleton3DPipeline class constructor.
-       * \param[in] colorEngine color engine smart pointer.
+    namespace Representations
+    {
+      /** \class SegmentationSkeleton3DPipeline
+       * \brief Three dimensional representation for Skeletons.
        *
        */
-      explicit SegmentationSkeleton3DPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
+      class EspinaGUI_EXPORT SegmentationSkeleton3DPipeline
+      : public SegmentationSkeletonPipelineBase
+      {
+        public:
+          /** \brief SegmentationSkeleton3DPipeline class constructor.
+           * \param[in] colorEngine color engine smart pointer.
+           *
+           */
+          explicit SegmentationSkeleton3DPipeline(ColorEngines::ColorEngineSPtr colorEngine);
 
-      /** brief SegmentationSkeleton3DPipeline class virtual destructor.
-       *
-       */
-      virtual ~SegmentationSkeleton3DPipeline()
-      {};
+          /** brief SegmentationSkeleton3DPipeline class virtual destructor.
+           *
+           */
+          virtual ~SegmentationSkeleton3DPipeline()
+          {};
 
-      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
-                                                      const RepresentationState &settings);
+          virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
+                                                                 const RepresentationState &state) override final;
+      };
 
-      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
-                                                             const RepresentationState &state);
-
-    virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr    item, const RepresentationState& state) {}
-
-      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
-
-    private:
-      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
-
-      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
-  };
-
+    } // namespace Representations
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_SKELETON_3D_PIPELINE_H_

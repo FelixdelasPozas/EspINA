@@ -25,10 +25,7 @@
 // ESPINA
 #include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
-#include <GUI/View/ViewState.h>
 #include <GUI/View/Widgets/Zoom/ZoomEventHandler.h>
-
-using namespace ESPINA::GUI::Representations::Managers;
 
 namespace ESPINA
 {
@@ -60,9 +57,8 @@ namespace ESPINA
       void onToolActivated(bool value);
 
     private:
-      GUI::View::ViewState  &m_viewState; /** application view's state.           */
-      ZoomEventHandlerSPtr   m_handler;   /** event handler for the tool.         */
-      TemporalPrototypesSPtr m_factory;   /** temporal representation prototypes. */
+      ZoomEventHandlerSPtr                                           m_handler;   /** event handler for the tool.         */
+      ESPINA::GUI::Representations::Managers::TemporalPrototypesSPtr m_factory;   /** temporal representation prototypes. */
   };
 
 } // namespace ESPINA

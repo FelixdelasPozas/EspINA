@@ -112,11 +112,11 @@ namespace ESPINA
       int invalidationShift() const;
 
     private:
-      const int            m_normalIdx;      /** index of the plane normal. in [0,1,2]      */
-      RepresentationWindow m_updateWindow;   /** the tasks window.                          */
-      Nm                   m_normalRes;      /** resolution of the normal plane.            */
-      NmVector3            m_crosshair;      /** current position's crosshair.              */
-      RepresentationPipelineSPtr m_pipeline; /** actor creation pipeline and pick resolver. */
+      const int                  m_normalIdx;    /** index of the plane normal. in [0,1,2]      */
+      RepresentationWindow       m_updateWindow; /** the tasks window.                          */
+      Nm                         m_normalRes;    /** resolution of the normal plane.            */
+      NmVector3                  m_crosshair;    /** current position's crosshair.              */
+      RepresentationPipelineSPtr m_pipeline;     /** actor creation pipeline and pick resolver. */
   };
 }
 

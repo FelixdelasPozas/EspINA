@@ -71,6 +71,14 @@ void NumericalInput::setSliderTracking(bool enabled)
 }
 
 //------------------------------------------------------------------------
+void NumericalInput::setWidgetsToolTip(const QString& tooltip)
+{
+  m_label->setToolTip(tooltip);
+  m_slider->setToolTip(tooltip);
+  m_spinBox->setToolTip(tooltip);
+}
+
+//------------------------------------------------------------------------
 void NumericalInput::setValue(int value)
 {
   m_spinBox->setValue(value);

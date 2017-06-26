@@ -33,6 +33,7 @@
 #include <vtkImplicitPlaneRepresentation.h>
 
 using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget3D::PlanarSplitWidget3D(PlanarSplitEventHandler *handler)

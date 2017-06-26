@@ -22,80 +22,132 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
+#include <vtkActor2D.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
+#include <vtkTubeFilter.h>
+#include <vtkLabeledDataMapper.h>
+#include <vtkPoints.h>
+#include <vtkPointData.h>
+#include <vtkStringArray.h>
+#include <vtkPointSetToLabelHierarchy.h>
+#include <vtkLabelPlacementMapper.h>
+#include <vtkTextProperty.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-IntensitySelectionHighlighter SegmentationSkeleton3DPipeline::s_highlighter;
-
 //----------------------------------------------------------------------------
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
-: RepresentationPipeline{"SegmentationSkeleton3D"}
-, m_colorEngine         {colorEngine}
+: SegmentationSkeletonPipelineBase{"SegmentationSkeleton3D", colorEngine}
 {
-}
-
-//----------------------------------------------------------------------------
-RepresentationState SegmentationSkeleton3DPipeline::representationState(ConstViewItemAdapterPtr    item,
-                                                                        const RepresentationState &settings)
-{
-  RepresentationState state;
-
-  auto segmentation = segmentationPtr(item);
-
-  state.apply(segmentationPipelineSettings(segmentation));
-  state.apply(settings);
-
-  return state;
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(ConstViewItemAdapterPtr    item,
                                                                                const RepresentationState &state)
 {
-  auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
+  auto segmentation = segmentationPtr(item);
 
   ActorList actors;
 
-  if (isVisible(state) && hasSkeletonData(segmentation->output()))
+  if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto data = readLockSkeleton(segmentation->output());
+    auto data        = readLockSkeleton(segmentation->output())->skeleton();
+    auto width       = SegmentationSkeletonPoolSettings::getWidth(state);
+    auto mapperInput = vtkSmartPointer<vtkPolyData>::New();
+
+    if(width == 0)
+    {
+      mapperInput = data;
+    }
+    else
+    {
+      // Create a tube (cylinder) around the line
+      auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+      tubeFilter->SetInputData(data);
+      tubeFilter->SetRadius(width + (item->isSelected() ? 2 : 0));
+      tubeFilter->SetNumberOfSides(30);
+      tubeFilter->Update();
+
+      mapperInput->DeepCopy(tubeFilter->GetOutput());
+    }
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputData(data->skeleton());
+    mapper->SetInputData(mapperInput);
     mapper->Update();
 
     auto color = m_colorEngine->color(segmentation);
     double rgba[4];
-    s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-
-    auto width = item->isSelected() ? 4 : 2;
+    SegmentationSkeletonPipelineBase::s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
     actor->GetProperty()->SetLineWidth(width);
     actor->Modified();
 
     actors << actor;
+
+    if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
+    {
+      auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+      auto labelText   = vtkSmartPointer<vtkStringArray>::New();
+      labelText->SetName("Labels");
+
+      auto labels = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Annotations"));
+
+      if(!labels) return actors;
+
+      for(int i = 0; i < labels->GetNumberOfValues(); ++i)
+      {
+        if(!labels->GetValue(i).empty())
+        {
+          labelPoints->InsertNextPoint(data->GetPoint(i));
+          labelText->InsertNextValue(labels->GetValue(i));
+        }
+      }
+
+      auto labelsData = vtkSmartPointer<vtkPolyData>::New();
+      labelsData->SetPoints(labelPoints);
+      labelsData->GetPointData()->AddArray(labelText);
+
+      auto property = vtkSmartPointer<vtkTextProperty>::New();
+      property->SetBold(true);
+      property->SetFontFamilyToArial();
+      property->SetFontSize(15);
+      property->SetJustificationToCentered();
+
+      auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+      labelFilter->SetInputData(labelsData);
+      labelFilter->SetLabelArrayName("Labels");
+      labelFilter->SetTextProperty(property);
+      labelFilter->Update();
+
+      auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+      labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+      labelMapper->SetGeneratePerturbedLabelSpokes(true);
+      labelMapper->SetBackgroundColor(rgba[0]*0.6, rgba[1]*0.6, rgba[2]*0.6);
+      labelMapper->SetPlaceAllLabels(true);
+      labelMapper->SetShapeToRoundedRect();
+      labelMapper->SetStyleToFilled();
+
+      auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+      labelActor->SetMapper(labelMapper);
+
+      actors << labelActor;
+    }
   }
 
   return actors;
-}
-
-//----------------------------------------------------------------------------
-bool SegmentationSkeleton3DPipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
-{
-  // TODO
-  return false;
 }

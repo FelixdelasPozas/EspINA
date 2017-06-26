@@ -35,6 +35,10 @@ class vtkPolyData;
 
 namespace ESPINA
 {
+  /** \class SkeletonData
+   * \brief Implements a data to hold skeletons.
+   *
+   */
   class EspinaCore_EXPORT SkeletonData
   : public Data
   {
@@ -52,8 +56,6 @@ namespace ESPINA
 
       virtual DataSPtr createProxy() const override final;
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
-
       /** \brief Returns the vtkPolyData smart pointer object.
        *
        */
@@ -65,14 +67,16 @@ namespace ESPINA
        */
       virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) = 0;
 
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id);
+
     protected:
       virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override = 0;
 
     private:
-      QString snapshotFilename(const QString &path, const QString &id) const
-      { return path + QString("%2_%3.vtp").arg(id).arg(type()); }
+      const QString snapshotFilename(const QString &path, const QString &id) const
+      { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
 
-      QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+      const QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
       { return snapshotFilename(path, id); }
   };
 
@@ -83,18 +87,35 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT hasSkeletonData(OutputSPtr output);
 
-  /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output.
+  /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output for read only operations.
    * \param[in] output Output object smart pointer
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
    */
   Output::ReadLockData<SkeletonData> EspinaCore_EXPORT readLockSkeleton(OutputSPtr       output,
                                                                         DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
+  /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output for read only operations.
+   * \param[in] output Output object pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval.
+   *
+   */
   Output::ReadLockData<SkeletonData> EspinaCore_EXPORT readLockSkeleton(Output          *output,
                                                                         DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
+  /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object smart pointer
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
   Output::WriteLockData<SkeletonData> EspinaCore_EXPORT writeLockSkeleton(Output          *output,
                                                                           DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
+  /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object pointer
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
   Output::WriteLockData<SkeletonData> EspinaCore_EXPORT writeLockSkeleton(OutputSPtr       output,
                                                                           DataUpdatePolicy policy = DataUpdatePolicy::Request);
 

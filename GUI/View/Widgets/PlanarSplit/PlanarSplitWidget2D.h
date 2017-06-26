@@ -48,6 +48,10 @@ namespace ESPINA
         class PlanarSplitEventHandler;
         class vtkPlanarSplitWidget;
 
+        /** \class PlanarSplitWidget2D
+         * \brief Interactive widget for planar split operation in 2D views.
+         *
+         */
         class EspinaGUI_EXPORT PlanarSplitWidget2D
         : public PlanarSplitWidget
         , public EspinaWidget2D
@@ -98,12 +102,12 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget() override;
 
           private:
-            virtual TemporalRepresentation2DSPtr cloneImplementation() override;
+            virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
           private:
-            vtkSmartPointer<vtkPlanarSplitWidget> m_widget;
-            vtkSmartPointer<vtkSplitCommand>      m_command;
-            RenderView                           *m_view;
+            vtkSmartPointer<vtkPlanarSplitWidget> m_widget;  /** vtk interactive widget.           */
+            vtkSmartPointer<vtkSplitCommand>      m_command; /** vtk command to respond to events. */
+            RenderView                           *m_view;    /** view that contains the widget.    */
         };
 
         using PlanarSplitWidget2DPtr  = PlanarSplitWidget2D *;

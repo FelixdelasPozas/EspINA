@@ -74,6 +74,8 @@ namespace ESPINA
 
       virtual bool validCategory(const QString &classificationName) const;
 
+      virtual bool validData(const OutputSPtr output) const;
+
       /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
        * other way to inject that information to the SAS extension.
        */

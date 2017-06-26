@@ -30,17 +30,17 @@
 namespace ESPINA
 {
   /** \class RawDataFactory
-   * \brief Data factory for raw data.
+   * \brief Implements a data factory that returns non-dependent datas (raw types).
    *
    */
   class EspinaCore_EXPORT RawDataFactory
   : public DataFactory
   {
-  public:
-    virtual DataSPtr createData(OutputSPtr           output,
-                                TemporalStorageSPtr  storage,
-                                const QString       &path,
-                                QXmlStreamAttributes info) override;
+    public:
+      virtual DataSPtr createData(OutputSPtr           output,
+                                  TemporalStorageSPtr  storage,
+                                  const QString       &path,
+                                  QXmlStreamAttributes info) override;
   };
 } // namespace ESPINA
 

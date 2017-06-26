@@ -194,12 +194,15 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
 //----------------------------------------------------------------------------
 bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
 {
-  for (auto segmentation : segmentations)
+  bool result = true;
+
+  for(auto i = 0; i < segmentations.size() && result; ++i)
   {
-    if (extension->validCategory(segmentation->category()->classificationName())) return true;
+    result &= (extension->validCategory(segmentations.at(i)->category()->classificationName())) &&
+              (extension->validData(segmentations.at(i)->output()));
   }
 
-  return false;
+  return result;
 }
 
 //----------------------------------------------------------------------------

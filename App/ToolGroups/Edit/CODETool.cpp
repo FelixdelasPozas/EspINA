@@ -75,6 +75,7 @@ void CODEToolBase::initOptionWidgets()
   m_radius->setMinimum(1);
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
+  m_radius->setToolTip(tr("Morphological %1 radius.").arg(m_name));
 
   m_apply = Styles::createToolButton(":/espina/apply.svg", tr("Apply"));
 
@@ -186,6 +187,12 @@ void CODEToolBase::onTaskFinished()
   markAsBeingModified(taskContext.Segmentation, false);
 
   m_executingTasks.remove(filter);
+}
+
+//------------------------------------------------------------------------
+bool CODEToolBase::acceptsSelection(SegmentationAdapterList segmentations)
+{
+  return acceptsVolumetricSegmentations(segmentations);
 }
 
 //------------------------------------------------------------------------

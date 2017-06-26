@@ -22,9 +22,11 @@
 #include "RawDataFactory.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
-//#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 DataSPtr RawDataFactory::createData(OutputSPtr           output,
@@ -39,18 +41,31 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
 
   if (!output->hasData(requestedType))
   {
-    if (VolumetricData<itkVolumeType>::TYPE == requestedType)
+    if(VolumetricData<itkVolumeType>::TYPE == requestedType)
     {
       data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
     }
-    else if (MeshData::TYPE == requestedType)
+    else
     {
-      data = std::make_shared<RawMesh>();
+      if(MeshData::TYPE == requestedType)
+      {
+        data = std::make_shared<RawMesh>();
+      }
+      else
+      {
+        if(SkeletonData::TYPE == requestedType)
+        {
+          data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
+        }
+        else
+        {
+          auto message = QObject::tr("Unknown data type for RawDataFactory: %1").arg(requestedType);
+          auto details = QObject::tr("RawDataFactory::createData() -> ") + message;
+
+          throw EspinaException(message, details);
+        }
+      }
     }
-//     else if (SkeletonData::TYPE == requestedType)
-//     {
-//       data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
-//     }
 
     if (data)
     {

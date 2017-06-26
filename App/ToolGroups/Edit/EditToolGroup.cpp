@@ -26,6 +26,7 @@
 #include "FillHolesTool.h"
 #include "FillHoles2DTool.h"
 #include "ImageLogicTool.h"
+#include "SkeletonEditionTool.h"
 
 #include <App/ToolGroups/Edit/CODERefiner.h>
 #include <Core/Analysis/Output.h>
@@ -267,7 +268,6 @@ bool EditionFilterFactory::isSubstractionFilter(const Filter::Type &type) const
   return SUBTRACTION_FILTER == type;
 }
 
-
 //-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
                              Support::Context              &context,
@@ -283,6 +283,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   registerFilterRefiners(filgerRefiners);
 
   initManualEditionTool();
+  initSkeletonTools();
   initSplitTool();
   initCODETools();
   initFillHolesTools();
@@ -317,7 +318,7 @@ void EditToolGroup::registerFilterRefiners(Support::FilterRefinerFactory &filter
 void EditToolGroup::initManualEditionTool()
 {
   auto manualEdition = std::make_shared<ManualEditionTool>(getContext());
-  manualEdition->setOrder("1");
+  manualEdition->setOrder("1-0");
   addTool(manualEdition);
 }
 
@@ -381,4 +382,13 @@ void EditToolGroup::initImageLogicTools()
   addTool(addition);
   addTool(subtract);
   addTool(subtractAndErase);
+}
+
+//-----------------------------------------------------------------------------
+void EditToolGroup::initSkeletonTools()
+{
+  auto skeletonEdit = std::make_shared<SkeletonEditionTool>(getContext());
+  skeletonEdit->setOrder("1-1");
+
+  addTool(skeletonEdit);
 }

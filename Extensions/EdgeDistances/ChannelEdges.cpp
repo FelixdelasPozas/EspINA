@@ -27,6 +27,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
@@ -312,10 +313,24 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   bool computed = false;
   auto output = segmentation->output();
 
-  if (hasMeshData(output))
+  vtkSmartPointer<vtkPolyData> segmentationPolyData = nullptr;
+
+  if(hasMeshData(output))
   {
-    auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
+    segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
     segmentationPolyData->DeepCopy(writeLockMesh(output)->mesh());
+  }
+  else
+  {
+    if(hasSkeletonData(output))
+    {
+      segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
+      segmentationPolyData->DeepCopy(writeLockSkeleton(output)->skeleton());
+    }
+  }
+
+  if (segmentationPolyData != nullptr)
+  {
     for (int face = 0; face < 6; ++face)
     {
       auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
@@ -338,7 +353,7 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
 
   if(!computed)
   {
-    qWarning() << tr("Unavailable mesh information");
+    qWarning() << tr("Unavailable information") << __FILE__ << __LINE__;
     for (int i = 0; i < 6; ++i)
     {
       distances[i] = -1;

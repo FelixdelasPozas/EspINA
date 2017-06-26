@@ -36,8 +36,8 @@
 #include <QDebug>
 #include <Core/Utils/TemporalStorage.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   using State = QString;
 
   class EspinaCore_EXPORT Persistent

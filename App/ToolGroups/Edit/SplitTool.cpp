@@ -115,17 +115,17 @@ SplitTool::SplitTool(Support::Context &context)
 
   initSplitWidgets();
 
-  connect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
-          this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
+  connect(m_handler.get(), SIGNAL(planeDefined(GUI::View::Widgets::PlanarSplitWidgetPtr)),
+          this,            SLOT(onSplittingPlaneDefined(GUI::View::Widgets::PlanarSplitWidgetPtr)));
 
   auto factory2D = std::make_shared<PlanarSplitWidget2D>(m_handler.get());
   auto factory3D = std::make_shared<PlanarSplitWidget3D>(m_handler.get());
 
-  connect(factory2D.get(), SIGNAL(cloned(TemporalRepresentation2DSPtr)),
-          this,            SLOT(onWidgetCreated(TemporalRepresentation2DSPtr)));
+  connect(factory2D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
+          this,            SLOT(onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
 
-  connect(factory3D.get(), SIGNAL(cloned(TemporalRepresentation3DSPtr)),
-          this,            SLOT(onWidgetCreated(TemporalRepresentation3DSPtr)));
+  connect(factory3D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation3DSPtr)),
+          this,            SLOT(onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation3DSPtr)));
 
   m_factory = std::make_shared<TemporalPrototypes>(factory2D, factory3D, id());
 
@@ -137,8 +137,8 @@ SplitTool::~SplitTool()
 {
   if(isChecked()) setChecked(false);
 
-  disconnect(m_handler.get(), SIGNAL(planeDefined(PlanarSplitWidgetPtr)),
-             this,            SLOT(onSplittingPlaneDefined(PlanarSplitWidgetPtr)));
+  disconnect(m_handler.get(), SIGNAL(planeDefined(GUI::View::Widgets::PlanarSplitWidgetPtr)),
+             this,            SLOT(onSplittingPlaneDefined(GUI::View::Widgets::PlanarSplitWidgetPtr)));
 
   disconnect(this,  SIGNAL(toggled(bool)),
              this,  SLOT(toggleWidgetsVisibility(bool)));

@@ -156,12 +156,6 @@ namespace ESPINA
        */
       void onPainterChanged(MaskPainterSPtr painter);
 
-      /** \brief Updates the tool when enabling/disabling it.
-       * \param[in] toggled true if checked and false otherwise.
-       *
-       */
-      void onToolToggled(bool toggled);
-
       /** \brief Updates the tool when the stroke mode changes state.
        * \param[in] toggled true if checked and false otherwise.
        *
