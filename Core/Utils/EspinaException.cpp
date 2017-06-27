@@ -51,6 +51,12 @@ const int ESPINA::Core::Utils::STACK_SIZE = 8192;
 uint8_t ESPINA::Core::Utils::alternate_stack[ESPINA::Core::Utils::STACK_SIZE];
 
 #ifdef __linux__
+#define OS_STRING "Linux"
+#elif __WIN64__
+#define OS_STRING "Windows"
+#endif
+
+#ifdef __linux__
 
 #include <execinfo.h>
 
@@ -156,7 +162,7 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
     out << "VERSION: " << ESPINA_VERSION << "\n";
-    out << "OS: Linux\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
@@ -228,7 +234,7 @@ void win_sig_action(int signal)
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
     out << "VERSION: " << ESPINA_VERSION << "\n";
-    out << "OS: Windows\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     out.flush();
@@ -482,7 +488,7 @@ void exceptionHandler()
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
     out << "VERSION: " << ESPINA_VERSION << "\n";
-    out << "OS: Windows\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "EXCEPTION MESSAGE: " << message << "\n";
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
