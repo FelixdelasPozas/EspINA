@@ -131,6 +131,10 @@ void SegmentationProperties::onOutputModified()
     removeRefineWidget();
     addRefineWidget();
   }
+  else
+  {
+    showConnections();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -375,6 +379,8 @@ void SegmentationProperties::clearIssues()
 //----------------------------------------------------------------------------
 void SegmentationProperties::showConnections()
 {
+  clearConnections();
+
   auto segmentation = getModel()->smartPointer(m_segmentation);
   auto connections  = getModel()->connections(segmentation);
 
@@ -383,17 +389,17 @@ void SegmentationProperties::showConnections()
     auto layout = m_gui->connectionsGroup->layout();
     for(auto connection: connections)
     {
-      auto text = tr("<b>%1</b> at point <b>%2</b>").arg(connection.item2->data().toString()).arg(connection.point.toString());
+      auto text = tr("<b>%1</b> at point <a href=""%2"">%2</a>").arg(connection.item2->data().toString()).arg(connection.point.toString());
       auto label = new QLabel{text};
+      label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+      label->setOpenExternalLinks(false);
+      label->setTextFormat(Qt::RichText);
+      connect(label, SIGNAL(linkActivated(const QString &)), this, SLOT(onLinkActivated(const QString &)));
 
       layout->addWidget(label);
     }
 
     m_gui->connectionsGroup->show();
-  }
-  else
-  {
-    clearConnections();
   }
 }
 
@@ -411,5 +417,13 @@ void SegmentationProperties::clearConnections()
     delete widget;
   }
 
-  m_gui->connectionsGroup->hide();
+  if(m_gui->connectionsGroup->isVisible()) m_gui->connectionsGroup->hide();
+}
+
+//--------------------------------------------------------------------
+void SegmentationProperties::onLinkActivated(const QString &link)
+{
+  NmVector3 point{link};
+
+  getViewState().focusViewOn(point);
 }

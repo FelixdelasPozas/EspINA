@@ -78,6 +78,12 @@ namespace ESPINA
        */
       void onNotesModified();
 
+      /** \brief Centers the view on the connection when a link in the connection group is activated.
+       * \param[in] link connection point in string form.
+       *
+       */
+      void onLinkActivated(const QString &link);
+
     private:
       /** \brief Creates or replaces the current refine widget for the given segmentation's refine widget.
        * \param[in] segmentation segmentation to refine.

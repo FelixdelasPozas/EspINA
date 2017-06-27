@@ -444,9 +444,13 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       samples << QueryAdapter::sample(activeChannel);
       Q_ASSERT(samples.size() == 1);
 
-      for(auto &connection: connections)
+      if(category->classificationName().startsWith("Dendrite") || category->classificationName().startsWith("Axon"))
       {
-        connection.item1 = segmentation;
+        connections = GUI::Model::Utils::connections(polydata, model);
+        for(auto &connection: connections)
+        {
+          connection.item1 = segmentation;
+        }
       }
 
       undoStack->beginMacro(tr("Add Segmentation"));
