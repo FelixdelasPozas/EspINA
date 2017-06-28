@@ -997,8 +997,11 @@ void EspinaMainWindow::createSegmentToolGroup()
   m_segmentToolGroup->setToolTip(tr("Create New Segmentations"));
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
+  manualSegment->setOrder("1-0", "1-SEGMENT");
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
+  sgsSegment->setOrder("1-1", "1-SEGMENT");
   auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  skeleton->setOrder("1-2", "1-SEGMENT");
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
@@ -1117,7 +1120,7 @@ void EspinaMainWindow::createDefaultPanels()
                                                                     ":espina/display_segmentation_properties.svg",
                                                                     tr("Segmentation Properties"),
                                                                     m_context);
-  segmentationPropertiesSwitch->setOrder("0");
+  segmentationPropertiesSwitch->setOrder("0", "0-PROPERTIES");
 
   m_refineToolGroup->addTool(segmentationPropertiesSwitch);
 }

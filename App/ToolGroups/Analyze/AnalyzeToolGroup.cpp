@@ -17,8 +17,10 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <ToolGroups/Analyze/AnalyzeToolGroup.h>
 
+// ESPINA
+#include "AnalyzeToolGroup.h"
+#include "ConnectionCount/ConnectionCountTool.h"
 #include "MeasureLength/MeasureLengthTool.h"
 #include "SelectionMeasure/SelectionMeasureTool.h"
 #include "Reports/ReportsTool.h"
@@ -30,9 +32,20 @@ AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context, QWidget *parent)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
 , m_reports(new ReportsTool(context))
 {
-  addTool(std::make_shared<MeasureLengthTool>(context));
-  addTool(std::make_shared<SelectionMeasureTool>(context));
+  m_reports->setOrder("1-0", "1-REPORTS");
   addTool(m_reports);
+
+  auto measure = std::make_shared<MeasureLengthTool>(context);
+  measure->setOrder("1-0", "3-MEASURE");
+  addTool(measure);
+
+  auto selectionMeasure = std::make_shared<SelectionMeasureTool>(context);
+  selectionMeasure->setOrder("1-1", "3-MEASURE");
+  addTool(selectionMeasure);
+
+  auto connectionCount = std::make_shared<ConnectionCountTool>(context);
+  connectionCount->setOrder("1-0", "2-SKELETON");
+  addTool(connectionCount);
 }
 
 //----------------------------------------------------------------------------

@@ -318,7 +318,7 @@ void EditToolGroup::registerFilterRefiners(Support::FilterRefinerFactory &filter
 void EditToolGroup::initManualEditionTool()
 {
   auto manualEdition = std::make_shared<ManualEditionTool>(getContext());
-  manualEdition->setOrder("1-0");
+  manualEdition->setOrder("1-0", "1-EDIT");
   addTool(manualEdition);
 }
 
@@ -326,7 +326,7 @@ void EditToolGroup::initManualEditionTool()
 void EditToolGroup::initSplitTool()
 {
   auto split = std::make_shared<SplitTool>(getContext());
-  split->setOrder("3-3");
+  split->setOrder("1-0", "5-SPLIT");
   addTool(split);
 }
 
@@ -338,10 +338,10 @@ void EditToolGroup::initCODETools()
   auto dilate = std::make_shared<CODETool<DilateFilter>>(EditionFilterFactory::DILATE_FILTER,"DilateTool", tr("Dilate"),":/espina/morphological_dilate.svg", tr("Dilate Segmentations"), getContext());
   auto erode  = std::make_shared<CODETool<ErodeFilter>> (EditionFilterFactory::ERODE_FILTER, "ErodeTool",  tr("Erode"), ":/espina/morphological_erode.svg",  tr("Erode Segmentations") , getContext());
 
-  close ->setOrder("2-0");
-  open  ->setOrder("2-1");
-  dilate->setOrder("2-2");
-  erode ->setOrder("2-3");
+  close ->setOrder("1-0", "2-CODE");
+  open  ->setOrder("1-1", "2-CODE");
+  dilate->setOrder("1-2", "2-CODE");
+  erode ->setOrder("1-3", "2-CODE");
 
   addTool(close);
   addTool(open);
@@ -355,8 +355,8 @@ void EditToolGroup::initFillHolesTools()
   auto fillHoles   = std::make_shared<FillHolesTool>(getContext());
   auto fillHoles2D = std::make_shared<FillHoles2DTool>(getContext());
 
-  fillHoles  ->setOrder("2-4");
-  fillHoles2D->setOrder("2-5");
+  fillHoles  ->setOrder("1-0", "3-FILLHOLES");
+  fillHoles2D->setOrder("1-1", "3-FILLHOLES");
 
   addTool(fillHoles);
   addTool(fillHoles2D);
@@ -375,9 +375,9 @@ void EditToolGroup::initImageLogicTools()
   auto subtractAndErase = std::make_shared<ImageLogicTool>("SubstractErase", ":/espina/logical_difference_erase.svg", tr("Subtract selected segmentations deleting the subtracted segmentations"), getContext());
   subtractAndErase->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
 
-  addition        ->setOrder("3-0");
-  subtract        ->setOrder("3-1");
-  subtractAndErase->setOrder("3-2");
+  addition        ->setOrder("1-0", "4-LOGIC");
+  subtract        ->setOrder("1-1", "4-LOGIC");
+  subtractAndErase->setOrder("1-2", "4-LOGIC");
 
   addTool(addition);
   addTool(subtract);
@@ -388,7 +388,7 @@ void EditToolGroup::initImageLogicTools()
 void EditToolGroup::initSkeletonTools()
 {
   auto skeletonEdit = std::make_shared<SkeletonEditionTool>(getContext());
-  skeletonEdit->setOrder("1-1");
+  skeletonEdit->setOrder("1-1", "1-EDIT");
 
   addTool(skeletonEdit);
 }

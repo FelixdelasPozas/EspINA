@@ -62,7 +62,8 @@ AdjacencyMatrixDialog::AdjacencyMatrixDialog(SegmentationAdapterList segmentatio
   settings.beginGroup(SETTINGS_GROUP);
   resize(settings.value("size", QSize (400, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
-  settings.endGroup();}
+  settings.endGroup();
+}
 
 //--------------------------------------------------------------------
 void AdjacencyMatrixDialog::closeEvent(QCloseEvent *event)

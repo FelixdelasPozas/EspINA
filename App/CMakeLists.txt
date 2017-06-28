@@ -22,6 +22,7 @@ qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
+  Dialogs/ConnectionCount/ConnectionCountDialog.h
   Dialogs/StackInspector/StackInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
@@ -42,6 +43,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/GeneralSettings/GeneralSettingsPanel.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.h
   ToolGroups/Analyze/Reports/ReportSelectorDialog.h
   ToolGroups/Analyze/Reports/DistanceInformationReport.h
   ToolGroups/Analyze/Reports/ReportsTool.h
@@ -92,6 +94,7 @@ qt4_wrap_cpp (ESPINA_MOC
 qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
+  Dialogs/ConnectionCount/ConnectionCountDialog.ui
   Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
@@ -129,6 +132,7 @@ set (ESPINA_SOURCES
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
+  Dialogs/ConnectionCount/ConnectionCountDialog.cpp
   Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
@@ -159,6 +163,7 @@ set (ESPINA_SOURCES
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
   Settings/Utils.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.cpp
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
   ToolGroups/Analyze/Reports/DistanceInformationReport.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
