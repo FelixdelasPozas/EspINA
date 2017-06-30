@@ -38,6 +38,7 @@
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
 #include <GUI/Representations/Managers/PassiveActorManager.h>
+#include <GUI/Representations/Managers/ConnectionsManager.h>
 #include <GUI/Representations/Pools/BasicRepresentationPool.hxx>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationMeshPoolSettings.h>
@@ -68,6 +69,7 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
 
   createSliceRepresentation(representation, context, supportedViews);
   createSkeletonRepresentation(representation, context, supportedViews);
+  createMiscellaneousManagers(representation, context, supportedViews);
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -293,4 +295,23 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
 void SegmentationRepresentationFactory::groupSwitch(const QString &order, ToolSPtr tool) const
 {
   tool->setOrder(order,"0-Representations");
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createMiscellaneousManagers(Representation& representation, Support::Context& context, ViewTypeFlags supportedViews) const
+{
+  for(auto flag: {ESPINA::VIEW_2D, ESPINA::VIEW_3D})
+  {
+    auto connectionsManager = std::make_shared<ConnectionsManager>(flag, context.model());
+    connectionsManager->setName(QObject::tr("DisplayCrosshair"));
+    connectionsManager->setIcon(QIcon(":/espina/connection.svg"));
+    connectionsManager->setDescription(QObject::tr("Display segmentation's connections"));
+
+    auto connectionsSwitch = std::make_shared<BasicRepresentationSwitch>("DisplayConnections", connectionsManager, flag, context);
+    connectionsSwitch->setOrder("2", "2-Display");
+    connectionsSwitch->setChecked(true);
+
+    representation.Managers << connectionsManager;
+    representation.Switches << connectionsSwitch;
+  }
 }

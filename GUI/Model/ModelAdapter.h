@@ -48,6 +48,10 @@ namespace ESPINA
     SegmentationAdapterSPtr item1;
     SegmentationAdapterSPtr item2;
     NmVector3               point;
+
+    Connection(): item1{nullptr}, item2{nullptr}, point{NmVector3()} {};
+    Connection(const SegmentationAdapterSPtr seg1, const SegmentationAdapterSPtr seg2, const NmVector3 p)
+    : item1{seg1}, item2{seg2}, point{p} {};
   };
   using ConnectionList = QList<Connection>;
 
@@ -592,6 +596,9 @@ namespace ESPINA
     void viewItemsRemoved(ViewItemAdapterSList channesl);
     void viewItemsAboutToBeRemoved(ViewItemAdapterSList channesl);
 
+    void connectionAdded(Connection connection);
+    void connectionRemoved(Connection connection);
+
     void aboutToBeReset();
 
     void modelChanged();
@@ -617,7 +624,7 @@ namespace ESPINA
 
     void queueAddRelationCommand(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const QString &relation);
 
-    void queueAddConnectionCommand(SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2, const NmVector3 &point);
+    void queueAddConnectionCommand(Connection connection);
 
     void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 

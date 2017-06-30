@@ -140,5 +140,6 @@
     <file>tubular_id.svg</file>
     <file>tubular_move.svg</file>
     <file>connectionTool.svg</file>
+    <file>connection.svg</file>
   </qresource>
 </RCC>

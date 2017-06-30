@@ -1033,7 +1033,7 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
       max = std::max(spacing[i], max);
     }
 
-    m_tolerance = 2 * max;
+    m_tolerance = max * max;
 
     BuildRepresentation();
   }

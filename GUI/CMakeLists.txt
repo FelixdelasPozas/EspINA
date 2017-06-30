@@ -23,6 +23,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/ModelSources.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
+  Representations/Managers/ConnectionsManager.h
   Representations/Managers/PoolManager.h
   Representations/Managers/PassiveActorManager.h
   Representations/RepresentationPool.h
@@ -143,6 +144,7 @@ set (GUI_SOURCES
   Representations/Settings/SegmentationMeshPoolSettings.cpp
   Representations/Settings/SegmentationSkeletonPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
+  Representations/Managers/ConnectionsManager.cpp
   Representations/Managers/CrosshairManager.cpp 
   Representations/Managers/TemporalManager.cpp
   Representations/ModelSources.cpp

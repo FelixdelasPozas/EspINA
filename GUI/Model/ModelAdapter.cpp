@@ -1865,20 +1865,22 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::queueAddConnectionCommand(SegmentationAdapterSPtr seg1, SegmentationAdapterSPtr seg2, const NmVector3 &point)
+void ModelAdapter::queueAddConnectionCommand(Connection connection)
 {
-  auto command = [this, seg1, seg2, point]()
+  auto command = [this, connection]()
   {
-    m_analysis->addConnection(seg1->m_analysisItem, seg2->m_analysisItem, point);
+    m_analysis->addConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
+
+    emit connectionAdded(connection);
   };
 
-  queueUpdateCommand(seg1, std::make_shared<Command<decltype(command)>>(command));
+  queueUpdateCommand(connection.item1, std::make_shared<Command<decltype(command)>>(command));
 }
 
 //--------------------------------------------------------------------
 void ModelAdapter::addConnection(const Connection connection)
 {
-  queueAddConnectionCommand(connection.item1, connection.item2, connection.point);
+  queueAddConnectionCommand(connection);
 
   executeCommandsIfNoBatchMode();
 }
@@ -1896,6 +1898,8 @@ void ModelAdapter::addConnections(const ConnectionList connections)
 void ModelAdapter::deleteConnection(const Connection connection)
 {
   m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
+
+  emit connectionRemoved(connection);
 }
 
 //--------------------------------------------------------------------
