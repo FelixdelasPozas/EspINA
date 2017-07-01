@@ -43,6 +43,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr model)
 : RepresentationManager{flags, flags.testFlag(ESPINA::VIEW_2D) ? RepresentationManager::NEEDS_ACTORS : RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 , m_model              {model}
+, m_scale              {7}
 {
   setFlag(HAS_ACTORS, false);
   m_glyph = vtkSmartPointer<vtkGlyph3DMapper>::New();
@@ -54,8 +55,9 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
   m_actor->GetProperty()->SetColor(1,1,1);
   m_actor->GetProperty()->SetLineWidth(2);
 
-  connect(model.get(), SIGNAL(connectionAdded(Connection)), this, SLOT(onConnectionAdded(Connection)));
-  connect(model.get(), SIGNAL(connectionRemoved(Connection)), this, SLOT(onConnectionRemoved(Connection)));
+  connectSignals();
+
+  getConnectionData();
 }
 
 //--------------------------------------------------------------------
@@ -173,7 +175,10 @@ void ConnectionsManager::onShow(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 RepresentationManagerSPtr ConnectionsManager::cloneImplementation()
 {
-  return std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  auto clone = std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  m_clones << clone;
+
+  return clone;
 }
 
 //--------------------------------------------------------------------
@@ -190,7 +195,7 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
     glyphSource->SetGlyphTypeToCircle();
     glyphSource->SetFilled(false);
     glyphSource->SetCenter(0,0,0);
-    glyphSource->SetScale(7);
+    glyphSource->SetScale(m_scale);
     glyphSource->SetColor(1,1,1);
     glyphSource->Update();
 
@@ -231,7 +236,7 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   {
     auto glyphSource = vtkSmartPointer<vtkSphereSource>::New();
     glyphSource->SetCenter(0.0, 0.0, 0.0);
-    glyphSource->SetRadius(5.0);
+    glyphSource->SetRadius(m_scale);
     glyphSource->Update();
 
     m_glyph->SetSourceData(glyphSource->GetOutput());
@@ -249,4 +254,52 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   m_glyph->SetInputData(polyData);
   m_glyph->Update();
   m_actor->Modified();
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::setRepresentationSize(int size)
+{
+  size = std::min(std::max(3, size), 15);
+
+  for(auto clone: m_clones)
+  {
+    clone->setRepresentationSize(size);
+  }
+
+  if(isActive() && (size != m_scale))
+  {
+    m_scale = size;
+    auto frame = m_view->state().createFrame();
+
+    invalidateFrames(frame);
+    waitForDisplay(frame);
+    emitRenderRequest(frame);
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::connectSignals()
+{
+  connect(m_model.get(), SIGNAL(connectionAdded(Connection)),
+          this,          SLOT(onConnectionAdded(Connection)));
+
+  connect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
+          this,          SLOT(onConnectionRemoved(Connection)));
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::getConnectionData()
+{
+  for(auto seg: m_model->segmentations())
+  {
+    auto connections = m_model->connections(seg);
+
+    for(auto connection: connections)
+    {
+      if(!m_connections.keys().contains(connection.point))
+      {
+        m_connections.insert(connection.point, connection.item2->category()->color());
+      }
+    }
+  }
 }

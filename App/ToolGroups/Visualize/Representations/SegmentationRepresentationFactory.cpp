@@ -19,6 +19,7 @@
 
 // ESPINA
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h>
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
@@ -300,16 +301,20 @@ void SegmentationRepresentationFactory::groupSwitch(const QString &order, ToolSP
 //----------------------------------------------------------------------------
 void SegmentationRepresentationFactory::createMiscellaneousManagers(Representation& representation, Support::Context& context, ViewTypeFlags supportedViews) const
 {
-  for(auto flag: {ESPINA::VIEW_2D, ESPINA::VIEW_3D})
+  QList<ViewType> flags;
+  if(supportedViews.testFlag(ESPINA::VIEW_2D)) flags << ESPINA::VIEW_2D;
+  if(supportedViews.testFlag(ESPINA::VIEW_3D)) flags << ESPINA::VIEW_3D;
+
+  for(auto flag: flags)
   {
     auto connectionsManager = std::make_shared<ConnectionsManager>(flag, context.model());
     connectionsManager->setName(QObject::tr("DisplayCrosshair"));
     connectionsManager->setIcon(QIcon(":/espina/connection.svg"));
     connectionsManager->setDescription(QObject::tr("Display segmentation's connections"));
 
-    auto connectionsSwitch = std::make_shared<BasicRepresentationSwitch>("DisplayConnections", connectionsManager, flag, context);
+    auto connectionsSwitch = std::make_shared<SegmentationConnectionsSwitch>(connectionsManager, context);
     connectionsSwitch->setOrder("2", "2-Display");
-    connectionsSwitch->setChecked(true);
+    if(flag == ESPINA::VIEW_2D) connectionsSwitch->setChecked(true);
 
     representation.Managers << connectionsManager;
     representation.Switches << connectionsSwitch;

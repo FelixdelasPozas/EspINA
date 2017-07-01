@@ -66,6 +66,12 @@ namespace ESPINA
 
             virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
+            /** \brief Changes the representation size.
+             * \param[in] size new size value in [3-15].
+             *
+             */
+            void setRepresentationSize(int size);
+
           private slots:
             /** \brief Updates the internal data adding the connection information.
              * \param[in] connection added connection.
@@ -108,11 +114,23 @@ namespace ESPINA
              */
             void updateActor(const FrameCSPtr frame);
 
+            /** \brief Helper method to connect model signals.
+             *
+             */
+            void connectSignals();
+
+            /** \brief Fills the connections data map, needed for switches created mid-session (like segmentation inspector).
+             *
+             */
+            void getConnectionData();
+
           private:
-            ModelAdapterSPtr                  m_model;       /** model with the connection information. */
-            vtkSmartPointer<vtkGlyph3DMapper> m_glyph;       /** glyph filter.                          */
-            vtkSmartPointer<vtkFollower>      m_actor;       /** representation actor.                  */
-            QMap<NmVector3, QColor>           m_connections; /** Maps connection<->segmentation color   */
+            ModelAdapterSPtr                           m_model;       /** model with the connection information. */
+            vtkSmartPointer<vtkGlyph3DMapper>          m_glyph;       /** glyph filter.                          */
+            vtkSmartPointer<vtkFollower>               m_actor;       /** representation actor.                  */
+            QMap<NmVector3, QColor>                    m_connections; /** Maps connection<->segmentation color   */
+            int                                        m_scale;       /** representation's scale value.          */
+            QList<std::shared_ptr<ConnectionsManager>> m_clones;      /** cloned managers.                       */
         };
       
       } // namespace Managers
