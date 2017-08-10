@@ -79,14 +79,6 @@ vtkSmartPointer<vtkPolyData> SkeletonWidget2D::getSkeleton()
   return m_widget->getSkeleton();
 }
 
-//-----------------------------------------------------------------------------
-void SkeletonWidget2D::setRepresentationColor(const QColor &color)
-{
-  if(m_widget->representationColor() != color)
-  {
-    m_widget->setRepresentationColor(color);
-  }
-}
 
 //-----------------------------------------------------------------------------
 void SkeletonWidget2D::setSpacing(const NmVector3 &spacing)
@@ -409,6 +401,15 @@ void SkeletonWidget2D::stop()
       emit modified(m_widget->getSkeleton());
       emit updateWidgets();
     }
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setStroke(const Core::SkeletonStroke &stroke)
+{
+  if(m_widget)
+  {
+    m_widget->setStroke(stroke);
   }
 }
 

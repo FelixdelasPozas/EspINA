@@ -39,12 +39,6 @@ int raw_skeleton_save_edited_regions( int argc, char** argv )
 
   skeleton.setSkeleton(polyData);
 
-  if (skeleton.skeleton() != polyData)
-  {
-    std::cerr << "Unexpected skeleton polydata." << std::endl;
-    error = true;
-  }
-
   if (skeleton.editedRegions().size() != 1)
   {
     std::cerr << "Unexpected number of edited regions." << std::endl;

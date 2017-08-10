@@ -22,11 +22,18 @@
 #ifndef TESTING_DUMMYFILTER_H
 #define TESTING_DUMMYFILTER_H
 
+// ESPINA
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace ESPINA {
-  namespace Testing {
+namespace ESPINA
+{
+  namespace Testing
+  {
+    /** \class DummyFilter
+     * \brief Empty filter used for testing.
+     *
+     */
     class DummyFilter
     : public Filter
     {
@@ -47,6 +54,10 @@ namespace ESPINA {
       virtual bool areEditedRegionsInvalidated() { return false; }
     };
 
+    /** \class DummyFilterWithInputs
+     * \brief Empty filter used for testing with inputs.
+     *
+     */
     class DummyFilterWithInputs
     : public Filter
     {

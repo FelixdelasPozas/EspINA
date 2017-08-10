@@ -211,7 +211,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      auto skeletonSettings3D   = std::make_shared<SegmentationSkeletonPoolSettings>();
      auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
      auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool<RepresentationParallelUpdater>>(ItemAdapter::Type::SEGMENTATION, scheduler, pipelineSkeleton3D);
-     auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
+     auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
 
      poolSkeleton3D->setSettings(skeletonSettings3D);
 

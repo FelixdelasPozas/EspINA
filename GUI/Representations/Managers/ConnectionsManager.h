@@ -85,6 +85,11 @@ namespace ESPINA
              */
             void onConnectionRemoved(Connection connection);
 
+            /** \brief Removes all connection data.
+             *
+             */
+            void resetConnections();
+
           private:
             virtual bool hasRepresentations() const override;
 
@@ -128,7 +133,7 @@ namespace ESPINA
             ModelAdapterSPtr                           m_model;       /** model with the connection information. */
             vtkSmartPointer<vtkGlyph3DMapper>          m_glyph;       /** glyph filter.                          */
             vtkSmartPointer<vtkFollower>               m_actor;       /** representation actor.                  */
-            QMap<NmVector3, QColor>                    m_connections; /** Maps connection<->segmentation color   */
+            ConnectionList                             m_connections; /** list of connections                    */
             int                                        m_scale;       /** representation's scale value.          */
             QList<std::shared_ptr<ConnectionsManager>> m_clones;      /** cloned managers.                       */
         };

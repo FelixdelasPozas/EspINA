@@ -117,21 +117,31 @@ void ConnectionCountDialog::onSegmentationsAdded(ViewItemAdapterSList segmentati
 //--------------------------------------------------------------------
 void ConnectionCountDialog::addSegmentationToLists(const SegmentationAdapterSPtr segmentation)
 {
+  auto name = segmentation->data().toString();
   QPixmap pixmap(32,32);
   pixmap.fill(segmentation->category()->color());
-  auto item = new QListWidgetItem(QIcon(pixmap), segmentation->data().toString());
+  auto item = new QListWidgetItem(QIcon(pixmap), name);
   item->setData(Qt::UserRole, reinterpret_cast<unsigned long long>(segmentation.get()));
 
-  switch(getModel()->connections(segmentation).count())
+  auto connections = getModel()->connections(segmentation);
+  switch(connections.count())
   {
-    case 1:
-      m_halfList->addItem(item);
-      break;
     case 0:
+      item->setToolTip(tr("%1 is unconnected").arg(name));
       m_noneList->addItem(item);
       break;
+    case 1:
+      item->setToolTip(tr("%1 is half connected.\nConnected to: %2").arg(name).arg(connections.first().item2->data().toString()));
+      m_halfList->addItem(item);
+      break;
     case 2:
+      item->setToolTip(tr("%1 is fully connected.\nConnected to: %2\nConnected to: %3").arg(name).arg(connections.at(0).item2->data().toString()).arg(connections.at(1).item2->data().toString()));
+      m_fullList->addItem(item);
+      break;
     default:
+      // more than 2 connections? show the error.
+      item->setIcon(QIcon("./espina/warning.svg"));
+      item->setToolTip(tr("%1 has more than two connections!").arg(name));
       m_fullList->addItem(item);
       break;
   }

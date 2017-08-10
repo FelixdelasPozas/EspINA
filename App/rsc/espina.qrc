@@ -141,5 +141,7 @@
     <file>tubular_move.svg</file>
     <file>connectionTool.svg</file>
     <file>connection.svg</file>
+    <file>line.svg</file>
+    <file>dashed-line.svg</file>
   </qresource>
 </RCC>

@@ -35,10 +35,11 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::PolyDataUtils;
 
-//----------------------------------------------------------------------------
-RawSkeleton::RawSkeleton()
+//--------------------------------------------------------------------
+RawSkeleton::RawSkeleton(const NmVector3 &spacing, const NmVector3 &origin)
 : m_skeleton{nullptr}
 {
+  m_bounds = VolumeBounds{Bounds(), spacing, origin};
 }
 
 //----------------------------------------------------------------------------
@@ -49,13 +50,6 @@ RawSkeleton::RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton, const NmVector3 
   {
     m_bounds = PolyDataUtils::polyDataVolumeBounds(skeleton, spacing, origin);
   }
-}
-
-//----------------------------------------------------------------------------
-RawSkeleton::RawSkeleton(const NmVector3 &spacing, const NmVector3 &origin)
-: m_skeleton{nullptr}
-{
-  m_bounds = VolumeBounds{Bounds(), spacing, origin};
 }
 
 //----------------------------------------------------------------------------
@@ -98,9 +92,9 @@ void RawSkeleton::setSkeleton(vtkSmartPointer<vtkPolyData> skeleton)
   BoundsList editedRegions;
   if (m_skeleton)
   {
-    editedRegions << bounds();
-
     m_bounds = polyDataVolumeBounds(m_skeleton, m_bounds.spacing(), m_bounds.origin());
+
+    editedRegions << bounds();
 
     setEditedRegions(editedRegions);
     updateModificationTime();
@@ -112,8 +106,13 @@ vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
 {
   QMutexLocker lock(&m_lock);
 
-  auto skeleton = vtkSmartPointer<vtkPolyData>::New();
-  skeleton->DeepCopy(m_skeleton);
+  vtkSmartPointer<vtkPolyData> skeleton = nullptr;
+
+  if(m_skeleton)
+  {
+    skeleton = vtkSmartPointer<vtkPolyData>::New();
+    skeleton->DeepCopy(m_skeleton);
+  }
 
   return skeleton;
 }

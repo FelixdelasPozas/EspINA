@@ -69,36 +69,18 @@ ViewItemAdapterList ConnectionsManager::pick(const NmVector3& point, vtkProp* ac
 //--------------------------------------------------------------------
 void ConnectionsManager::onConnectionAdded(Connection connection)
 {
-  if(!m_connections.keys().contains(connection.point))
+  if(!m_connections.contains(connection))
   {
-    m_connections.insert(connection.point, connection.item2->category()->color());
-
-    if(isActive())
-    {
-      auto frame = m_view->state().createFrame();
-
-      invalidateFrames(frame);
-      waitForDisplay(frame);
-      emitRenderRequest(frame);
-    }
+    m_connections << connection;
   }
 }
 
 //--------------------------------------------------------------------
 void ConnectionsManager::onConnectionRemoved(Connection connection)
 {
-  if(m_connections.keys().contains(connection.point))
+  if(m_connections.contains(connection))
   {
-    m_connections.remove(connection.point);
-
-    if(isActive())
-    {
-      auto frame = m_view->state().createFrame();
-
-      invalidateFrames(frame);
-      waitForDisplay(frame);
-      emitRenderRequest(frame);
-    }
+    m_connections.removeOne(connection);
   }
 }
 
@@ -111,6 +93,7 @@ bool ConnectionsManager::hasRepresentations() const
 //--------------------------------------------------------------------
 void ConnectionsManager::updateFrameRepresentations(const FrameCSPtr frame)
 {
+  updateActor(frame);
 }
 
 //--------------------------------------------------------------------
@@ -134,7 +117,7 @@ bool ConnectionsManager::acceptSceneBoundsChange(const Bounds& bounds) const
 //--------------------------------------------------------------------
 bool ConnectionsManager::acceptInvalidationFrame(const FrameCSPtr frame) const
 {
-  return false;
+  return true;
 }
 
 //--------------------------------------------------------------------
@@ -190,12 +173,15 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
+    auto spacing    = frame->resolution;
+    spacing[planeIndex] = 1;
+    auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
     auto glyphSource = vtkSmartPointer<vtkGlyphSource2D>::New();
     glyphSource->SetGlyphTypeToCircle();
     glyphSource->SetFilled(false);
     glyphSource->SetCenter(0,0,0);
-    glyphSource->SetScale(m_scale);
+    glyphSource->SetScale(m_scale*max);
     glyphSource->SetColor(1,1,1);
     glyphSource->Update();
 
@@ -221,29 +207,30 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
         break;
     }
 
-
-
-    for(auto point: m_connections.keys())
+    for(auto connection: m_connections)
     {
-      if(point[planeIndex] == frame->crosshair[planeIndex])
+      if(connection.point[planeIndex] == frame->crosshair[planeIndex])
       {
-        point[planeIndex] += view2d->widgetDepth();
-        points->InsertNextPoint(point[0], point[1], point[2]);
+        connection.point[planeIndex] += view2d->widgetDepth();
+        points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
       }
     }
   }
   else
   {
+    auto spacing    = frame->resolution;
+    auto max = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+
     auto glyphSource = vtkSmartPointer<vtkSphereSource>::New();
     glyphSource->SetCenter(0.0, 0.0, 0.0);
-    glyphSource->SetRadius(m_scale);
+    glyphSource->SetRadius(m_scale*max);
     glyphSource->Update();
 
     m_glyph->SetSourceData(glyphSource->GetOutput());
 
-    for(auto point: m_connections.keys())
+    for(auto connection: m_connections)
     {
-      points->InsertNextPoint(point[0], point[1], point[2]);
+      points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
     }
   }
 
@@ -285,6 +272,9 @@ void ConnectionsManager::connectSignals()
 
   connect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
           this,          SLOT(onConnectionRemoved(Connection)));
+
+  connect(m_model.get(), SIGNAL(aboutToBeReset()),
+          this,          SLOT(resetConnections()));
 }
 
 //--------------------------------------------------------------------
@@ -296,10 +286,16 @@ void ConnectionsManager::getConnectionData()
 
     for(auto connection: connections)
     {
-      if(!m_connections.keys().contains(connection.point))
+      if(!m_connections.contains(connection))
       {
-        m_connections.insert(connection.point, connection.item2->category()->color());
+        m_connections << connection;
       }
     }
   }
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::resetConnections()
+{
+  m_connections.clear();
 }

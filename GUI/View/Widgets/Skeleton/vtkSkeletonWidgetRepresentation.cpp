@@ -47,6 +47,7 @@
 
 // Qt
 #include <QMutexLocker>
+#include <QColor>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -55,18 +56,19 @@ using namespace ESPINA::GUI::View::Widgets::Skeleton;
 vtkStandardNewMacro(vtkSkeletonWidgetRepresentation);
 
 Core::SkeletonNode *vtkSkeletonWidgetRepresentation::s_currentVertex = nullptr;
-Core::SkeletonNodes vtkSkeletonWidgetRepresentation::s_skeleton;
+Core::SkeletonDefinition vtkSkeletonWidgetRepresentation::s_skeleton;
 NmVector3 vtkSkeletonWidgetRepresentation::s_skeletonSpacing = NmVector3{1,1,1};
 QMutex vtkSkeletonWidgetRepresentation::s_skeletonMutex;
 
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
-: m_orientation {Plane::UNDEFINED}
-, m_tolerance   {std::sqrt(20)}
-, m_slice       {-1}
-, m_shift       {-1}
-, m_color       {QColor{254,254,254}}
-, m_ignoreCursor{false}
+: m_orientation       {Plane::UNDEFINED}
+, m_tolerance         {std::sqrt(20)}
+, m_slice             {-1}
+, m_shift             {-1}
+, m_currentStrokeIndex{-1}
+, m_currentEdgeIndex  {-1}
+, m_ignoreCursor      {false}
 {
   m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   m_colors->SetName("Colors");
@@ -124,7 +126,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_actor->SetMapper(m_mapper);
   m_actor->GetProperty()->SetLineWidth(3);
   m_actor->GetProperty()->SetPointSize(1);
-  m_actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
 
   m_lines = vtkSmartPointer<vtkPolyData>::New();
   m_linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -132,8 +133,17 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 
   m_linesActor = vtkSmartPointer<vtkActor>::New();
   m_linesActor->SetMapper(m_linesMapper);
-  m_linesActor->GetProperty()->SetLineWidth(2.5);
-  m_linesActor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
+  m_linesActor->GetProperty()->SetLineWidth(3);
+
+  m_dashedLines = vtkSmartPointer<vtkPolyData>::New();
+  m_dashedLinesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_dashedLinesMapper->SetInputData(m_dashedLines);
+
+  m_dashedLinesActor = vtkSmartPointer<vtkActor>::New();
+  m_dashedLinesActor->SetMapper(m_dashedLinesMapper);
+  m_dashedLinesActor->GetProperty()->SetLineWidth(3);
+  m_dashedLinesActor->GetProperty()->SetLineStipplePattern(0x00F0);
+  m_dashedLinesActor->GetProperty()->SetLineStippleRepeatFactor(2);
 
   m_interactionOffset[0] = 0.0;
   m_interactionOffset[1] = 0.0;
@@ -144,13 +154,15 @@ vtkSkeletonWidgetRepresentation::~vtkSkeletonWidgetRepresentation()
 {
   if(s_skeletonMutex.tryLock())
   {
-    for (auto node : s_skeleton)
+    for (auto node : s_skeleton.nodes)
     {
       delete node;
     }
 
-    s_skeleton.clear();
-    s_skeletonSpacing = NmVector3{1,1,1};
+    s_skeleton.nodes.clear();
+    s_skeleton.edges.clear();
+    s_skeleton.strokes.clear();
+    s_skeleton.count.clear();
 
     s_skeletonMutex.unlock();
   }
@@ -168,15 +180,38 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
   {
     QMutexLocker lock(&s_skeletonMutex);
 
+    auto stroke = currentStroke();
+
     worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
     auto node = new SkeletonNode{worldPos};
 
-    s_skeleton.push_back(node);
+    s_skeleton.nodes << node;
+
+    SkeletonEdge edge;
 
     if (s_currentVertex != nullptr)
     {
-      s_currentVertex->connections << node;
-      node->connections << s_currentVertex;
+      switch(s_currentVertex->connections.size())
+      {
+        case 1:
+          {
+            auto otherNode = s_currentVertex->connections.keys().first();
+            m_currentEdgeIndex = s_currentVertex->connections[otherNode];
+          }
+          break;
+        default:
+          s_skeleton.count[stroke]++;
+
+          edge.strokeIndex  = m_currentStrokeIndex;
+          edge.strokeNumber = s_skeleton.count[stroke];
+          s_skeleton.edges << edge;
+
+          m_currentEdgeIndex = s_skeleton.edges.indexOf(edge);
+          break;
+      }
+
+      s_currentVertex->connections.insert(node, m_currentEdgeIndex);
+      node->connections.insert(s_currentVertex, m_currentEdgeIndex);
     }
 
     s_currentVertex = node;
@@ -342,10 +377,10 @@ bool vtkSkeletonWidgetRepresentation::DeleteCurrentNode()
 
     if (s_currentVertex == nullptr) return false;
 
-    s_skeleton.removeAll(s_currentVertex);
-    for(auto connection: s_currentVertex->connections)
+    s_skeleton.nodes.removeAll(s_currentVertex);
+    for(auto connection: s_currentVertex->connections.keys())
     {
-      connection->connections.removeAll(s_currentVertex);
+      connection->connections.remove(s_currentVertex);
     }
 
     delete s_currentVertex;
@@ -363,12 +398,13 @@ void vtkSkeletonWidgetRepresentation::ClearAllNodes()
   {
     QMutexLocker lock(&s_skeletonMutex);
 
-    for (auto node : s_skeleton)
+    for (auto node : s_skeleton.nodes)
     {
       delete node;
     }
 
-    s_skeleton.clear();
+    s_skeleton.nodes.clear();
+    s_skeleton.count.clear();
     s_currentVertex = nullptr;
   }
 
@@ -385,11 +421,11 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
     if(s_currentVertex)
     {
       currentVertex = s_currentVertex;
-      for(auto connection: s_currentVertex->connections)
+      for(auto connection: s_currentVertex->connections.keys())
       {
-        connection->connections.removeAll(s_currentVertex);
+        connection->connections.remove(s_currentVertex);
       }
-      s_skeleton.removeAll(s_currentVertex);
+      s_skeleton.nodes.removeAll(s_currentVertex);
       s_currentVertex = nullptr;
     }
   }
@@ -404,10 +440,11 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
     QMutexLocker lock(&s_skeletonMutex);
 
     s_currentVertex = currentVertex;
-    s_skeleton << s_currentVertex;
-    for(auto connection: s_currentVertex->connections)
+    s_skeleton.nodes << s_currentVertex;
+    for(auto connection: s_currentVertex->connections.keys())
     {
-      if(!connection->connections.contains(s_currentVertex)) connection->connections << s_currentVertex;
+      auto value = s_currentVertex->connections[connection];
+      if(!connection->connections.contains(s_currentVertex)) connection->connections.insert(s_currentVertex, value);
     }
   }
 
@@ -419,27 +456,31 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 
     {
       QMutexLocker lock(&s_skeletonMutex);
-      s_currentVertex->connections << s_skeleton[node_i] << s_skeleton[node_j];
+      auto contourEdgeIndex = s_skeleton.nodes[node_i]->connections[s_skeleton.nodes[node_j]];
 
-      s_skeleton[node_i]->connections.removeAll(s_skeleton[node_j]);
-      s_skeleton[node_i]->connections << s_currentVertex;
+      s_currentVertex->connections.insert(s_skeleton.nodes[node_i], contourEdgeIndex);
+      s_currentVertex->connections.insert(s_skeleton.nodes[node_j], contourEdgeIndex);
 
-      s_skeleton[node_j]->connections.removeAll(s_skeleton[node_i]);
-      s_skeleton[node_j]->connections << s_currentVertex;
+      s_skeleton.nodes[node_i]->connections.remove(s_skeleton.nodes[node_j]);
+      s_skeleton.nodes[node_i]->connections.insert(s_currentVertex, contourEdgeIndex);
+
+      s_skeleton.nodes[node_j]->connections.remove(s_skeleton.nodes[node_i]);
+      s_skeleton.nodes[node_j]->connections.insert(s_currentVertex, contourEdgeIndex);
     }
 
     if(currentVertex)
     {
       QMutexLocker lock(&s_skeletonMutex);
-      for(auto connection: currentVertex->connections)
+
+      for(auto connection: currentVertex->connections.keys())
       {
         if(connection == s_currentVertex) continue;
-        connection->connections << s_currentVertex;
-        s_currentVertex->connections << connection;
-        connection->connections.removeAll(currentVertex);
+        connection->connections.insert(s_currentVertex, currentVertex->connections[connection]);
+        s_currentVertex->connections.insert(connection, currentVertex->connections[connection]);
+        connection->connections.remove(currentVertex);
       }
       currentVertex->connections.clear();
-      currentVertex->connections << s_currentVertex;
+      currentVertex->connections.insert(s_currentVertex, m_currentEdgeIndex);
       s_currentVertex = currentVertex;
     }
     else
@@ -453,23 +494,24 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
     {
       QMutexLocker lock(&s_skeletonMutex);
 
-      addedNode = s_skeleton[node_i];
+      addedNode = s_skeleton.nodes[node_i];
     }
 
     if(currentVertex)
     {
       QMutexLocker lock(&s_skeletonMutex);
 
-      for(auto connection: s_currentVertex->connections)
+      for(auto connection: s_currentVertex->connections.keys())
       {
         if(connection == addedNode) continue;
-        addedNode->connections << connection;
-        connection->connections << addedNode;
-        connection->connections.removeAll(s_currentVertex);
+        addedNode->connections.insert(connection, s_currentVertex->connections[connection]);
+        connection->connections.insert(addedNode, s_currentVertex->connections[connection]);
+        connection->connections.remove(s_currentVertex);
       }
 
       s_currentVertex->connections.clear();
-      s_currentVertex->connections << addedNode;
+      s_currentVertex->connections.insert(addedNode, m_currentEdgeIndex);
+      addedNode->connections.insert(s_currentVertex, m_currentEdgeIndex);
     }
     else
     {
@@ -477,6 +519,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
         QMutexLocker lock(&s_skeletonMutex);
         s_currentVertex = addedNode;
       }
+
       AddNodeAtPosition(worldPos);
     }
   }
@@ -491,7 +534,7 @@ unsigned int vtkSkeletonWidgetRepresentation::GetNumberOfNodes() const
 {
   QMutexLocker lock(&s_skeletonMutex);
 
-  return s_skeleton.size();
+  return s_skeleton.nodes.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -512,7 +555,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   int numNodes = 0;
   {
     QMutexLocker lock(&s_skeletonMutex);
-    numNodes = s_skeleton.size();
+    numNodes = s_skeleton.nodes.size();
   }
 
   if (numNodes == 0 || !Renderer || !Renderer->GetActiveCamera())
@@ -520,6 +563,9 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     VisibilityOff();
     return;
   }
+
+  auto strokes = s_skeleton.strokes;
+  auto edges   = s_skeleton.edges;
 
   double p1[4], p2[4];
   Renderer->GetActiveCamera()->GetFocalPoint(p1);
@@ -565,7 +611,15 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 
   m_points->Reset();
   m_lines->Reset();
+  m_dashedLines->Reset();
+
   auto cells = vtkSmartPointer<vtkCellArray>::New();
+  auto dashedCells = vtkSmartPointer<vtkCellArray>::New();
+
+  auto cellsColors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  cellsColors->SetNumberOfComponents(3);
+  auto dashedCellsColors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  dashedCellsColors->SetNumberOfComponents(3);
 
   auto planeIndex = normalCoordinateIndex(m_orientation);
 
@@ -579,7 +633,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   double worldPos[3];
 
   s_skeletonMutex.lock();
-  for (auto node : s_skeleton)
+  for (auto node : s_skeleton.nodes)
   {
     // we only want "some" points in the screen representation and want all the representation to be visible.
     if (areEqual(node->position[planeIndex], m_slice))
@@ -593,7 +647,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
         m_colors->InsertNextTupleValue(green);
       }
 
-      for (auto connectedNode : node->connections)
+      for (auto connectedNode : node->connections.keys())
       {
         if (!m_visiblePoints.contains(connectedNode))
         {
@@ -622,12 +676,30 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
         auto line = vtkSmartPointer<vtkLine>::New();
         line->GetPointIds()->SetId(0, m_visiblePoints[node]);
         line->GetPointIds()->SetId(1, m_visiblePoints[connectedNode]);
-        cells->InsertNextCell(line);
+
+        auto stroke = strokes.at(edges.at(node->connections[connectedNode]).strokeIndex);
+
+        vtkSmartPointer<vtkUnsignedCharArray> currentCellsColors = nullptr;
+        if(stroke.type == 0)
+        {
+          cells->InsertNextCell(line);
+          currentCellsColors = cellsColors;
+        }
+        else
+        {
+          dashedCells->InsertNextCell(line);
+          currentCellsColors = dashedCellsColors;
+        }
+
+        auto qcolor = QColor::fromHsv(stroke.colorHue, 255, 255);
+        unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
+        currentCellsColors->InsertNextTupleValue(color);
       }
     }
     else
     {
-      for (auto connectedNode : node->connections)
+      for (auto connectedNode : node->connections.keys())
+      {
         if ((node->position[planeIndex] < m_slice && connectedNode->position[planeIndex] >= m_slice)
             || (node->position[planeIndex] > m_slice && connectedNode->position[planeIndex] <= m_slice))
         {
@@ -675,7 +747,24 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           auto line = vtkSmartPointer<vtkLine>::New();
           line->GetPointIds()->SetId(0, m_visiblePoints[node]);
           line->GetPointIds()->SetId(1, m_visiblePoints[connectedNode]);
-          cells->InsertNextCell(line);
+
+          auto stroke = strokes.at(edges.at(node->connections[connectedNode]).strokeIndex);
+
+          vtkSmartPointer<vtkUnsignedCharArray> currentCellsColors = nullptr;
+          if(stroke.type == 0)
+          {
+            cells->InsertNextCell(line);
+            currentCellsColors = cellsColors;
+          }
+          else
+          {
+            dashedCells->InsertNextCell(line);
+            currentCellsColors = dashedCellsColors;
+          }
+
+          auto qcolor = QColor::fromHsv(stroke.colorHue, 255, 255);
+          unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
+          currentCellsColors->InsertNextTupleValue(color);
 
           // compute plane intersection point.
           if(!areEqual(node->position[planeIndex], m_slice) && !areEqual(connectedNode->position[planeIndex], m_slice))
@@ -694,8 +783,8 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
               m_colors->InsertNextTupleValue(intersection);
             }
           }
-
         }
+      }
     }
   }
   s_skeletonMutex.unlock();
@@ -717,10 +806,18 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_actor->Modified();
 
   m_lines->SetLines(cells);
+  m_lines->GetCellData()->SetScalars(cellsColors);
   m_lines->SetPoints(m_points);
   m_lines->Modified();
   m_linesMapper->Update();
   m_linesActor->Modified();
+
+  m_dashedLines->SetLines(dashedCells);
+  m_dashedLines->GetCellData()->SetScalars(dashedCellsColors);
+  m_dashedLines->SetPoints(m_points);
+  m_dashedLines->Modified();
+  m_dashedLinesMapper->Update();
+  m_dashedLinesActor->Modified();
 
   m_pointer->SetScaleFactor(distance * HandleSize);
   UpdatePointer();
@@ -750,9 +847,9 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
     polyData->Modified();
     m_pointer->Update();
     m_pointerActor->GetMapper()->Update();
-    double color[3];
-    m_linesActor->GetProperty()->GetColor(color);
-    m_pointerActor->GetProperty()->SetColor(1 - color[0]/2., 1 - color[1]/2., 1 - color[2]/2.);
+
+    auto color = QColor::fromHsv(currentStroke().colorHue, 255,255);
+    m_pointerActor->GetProperty()->SetColor(1 - color.redF()/2., 1 - color.greenF()/2., 1 - color.blueF()/2.);
     m_pointerActor->VisibilityOn();
   }
   else
@@ -775,10 +872,10 @@ int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int v
     {
       currentNode = s_currentVertex;
 
-      s_skeleton.removeAll(s_currentVertex);
-      for(auto connection: s_currentVertex->connections)
+      s_skeleton.nodes.removeAll(s_currentVertex);
+      for(auto connection: s_currentVertex->connections.keys())
       {
-        connection->connections.removeAll(s_currentVertex);
+        connection->connections.remove(s_currentVertex);
       }
 
       s_currentVertex = nullptr;
@@ -794,7 +891,7 @@ int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int v
     double worldPos[3];
     int unused1 = 0;
     int unused2 = 0;
-    if (GetNumberOfNodes() != 0 && FindClosestDistanceAndNode(X, Y, worldPos, unused1, unused2) <= m_tolerance)
+    if (GetNumberOfNodes() != 0 && (FindClosestDistanceAndNode(X, Y, worldPos, unused1, unused2) <= m_tolerance))
     {
       InteractionState = vtkSkeletonWidgetRepresentation::NearContour;
     }
@@ -809,12 +906,12 @@ int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int v
     if(m_ignoreCursor && currentNode != nullptr)
     {
       s_currentVertex = currentNode;
-      for(auto connection: s_currentVertex->connections)
+      for(auto connection: s_currentVertex->connections.keys())
       {
-        connection->connections << s_currentVertex;
+        connection->connections.insert(s_currentVertex, s_currentVertex->connections[connection]);
       }
 
-      s_skeleton << s_currentVertex;
+      s_skeleton.nodes << s_currentVertex;
     }
   }
 
@@ -827,6 +924,7 @@ void vtkSkeletonWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* win)
   m_actor->ReleaseGraphicsResources(win);
   m_pointerActor->ReleaseGraphicsResources(win);
   m_linesActor->ReleaseGraphicsResources(win);
+  m_dashedLinesActor->ReleaseGraphicsResources(win);
 }
 
 //-----------------------------------------------------------------------------
@@ -841,6 +939,11 @@ int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
   if (m_linesActor->GetVisibility())
   {
     count += m_linesActor->RenderOverlay(viewport);
+  }
+
+  if (m_dashedLinesActor->GetVisibility())
+  {
+    count += m_dashedLinesActor->RenderOverlay(viewport);
   }
 
   if (m_actor->GetVisibility())
@@ -868,6 +971,11 @@ int vtkSkeletonWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* viewport)
     count += m_linesActor->RenderOpaqueGeometry(viewport);
   }
 
+  if (m_dashedLinesActor->GetVisibility())
+  {
+    count += m_dashedLinesActor->RenderOpaqueGeometry(viewport);
+  }
+
   if (m_actor->GetVisibility())
   {
     count += m_actor->RenderOpaqueGeometry(viewport);
@@ -889,6 +997,11 @@ int vtkSkeletonWidgetRepresentation::RenderTranslucentPolygonalGeometry(vtkViewp
   if (m_linesActor->GetVisibility())
   {
     count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+
+  if (m_dashedLinesActor->GetVisibility())
+  {
+    count += m_dashedLinesActor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
   if (m_actor->GetVisibility())
@@ -913,6 +1026,12 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
   {
     result |= m_linesActor->HasTranslucentPolygonalGeometry();
   }
+
+  if (m_dashedLinesActor->GetVisibility())
+  {
+    result |= m_dashedLinesActor->HasTranslucentPolygonalGeometry();
+  }
+
   if (m_actor->GetVisibility())
   {
     result |= m_actor->HasTranslucentPolygonalGeometry();
@@ -926,7 +1045,7 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 {
   QMutexLocker lock(&s_skeletonMutex);
 
-  Core::annotateNodes(s_skeleton);
+  adjustStrokeNumbers(s_skeleton);
 
   return Core::toPolyData(s_skeleton);
 }
@@ -960,17 +1079,17 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double world
 
   GetWorldPositionFromDisplayPosition(displayPos, pos);
 
-  for(auto i = 0; i < s_skeleton.size(); ++i)
+  for(auto i = 0; i < s_skeleton.nodes.size(); ++i)
   {
-    if(!areEqual(s_skeleton[i]->position[planeIndex], m_slice)) continue;
+    if(!areEqual(s_skeleton.nodes[i]->position[planeIndex], m_slice)) continue;
 
-    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton[i]->position);
+    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton.nodes[i]->position);
     if(distance > nodeDistance)
     {
       distance = nodeDistance;
       closestNode = i;
 
-      std::memcpy(worldPos, s_skeleton[i]->position, 3* sizeof(double));
+      std::memcpy(worldPos, s_skeleton.nodes[i]->position, 3* sizeof(double));
     }
   }
 }
@@ -986,7 +1105,7 @@ void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd
 
   {
     QMutexLocker lock(&s_skeletonMutex);
-    s_skeleton = Core::toNodes(pd);
+    s_skeleton = Core::toSkeletonDefinition(pd);
   }
 
   BuildRepresentation();
@@ -997,7 +1116,7 @@ void vtkSkeletonWidgetRepresentation::PrintSelf(std::ostream &os, vtkIndent inde
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
   Superclass::PrintSelf(os, indent);
-  os << indent << "Number of points in the skeleton: " << s_skeleton.size() << std::endl;
+  os << indent << "Number of points in the skeleton: " << s_skeleton.nodes.size() << std::endl;
   os << indent << "Tolerance: " << m_tolerance << std::endl;
 }
 
@@ -1010,7 +1129,7 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
     {
       if(s_skeletonSpacing != spacing)
       {
-        for(auto node: s_skeleton)
+        for(auto node: s_skeleton.nodes)
         {
           node->position[0] = node->position[0]/s_skeletonSpacing[0] * spacing[0];
           node->position[1] = node->position[1]/s_skeletonSpacing[1] * spacing[1];
@@ -1044,12 +1163,14 @@ void vtkSkeletonWidgetRepresentation::cleanup()
 {
   QMutexLocker lock(&s_skeletonMutex);
 
-  for(auto node: s_skeleton)
+  for(auto node: s_skeleton.nodes)
   {
     delete node;
   }
 
-  s_skeleton.clear();
+  s_skeleton.nodes.clear();
+  s_skeleton.count.clear();
+
   s_currentVertex = nullptr;
 }
 
@@ -1065,7 +1186,10 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y,
   int displayPos[2]{X,Y};
   GetWorldPositionFromDisplayPosition(displayPos, point_pos);
 
-  return Core::closestDistanceAndNode(point_pos, s_skeleton, node_i, node_j, worldPos);
+  auto result = Core::closestDistanceAndNode(point_pos, s_skeleton.nodes, node_i, node_j, worldPos);
+
+  // NOTE: the Core:: util method returns the sqrt, that is, the real distance, but we're using the square of that in all of our computations in the widget.
+  return result * result;
 }
 
 //-----------------------------------------------------------------------------
@@ -1082,13 +1206,13 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
   {
     double worldPos[3];
     int nodeIndex = VTK_INT_MAX;
-    if(m_ignoreCursor && s_currentVertex) s_skeleton.removeAll(s_currentVertex);
+    if(m_ignoreCursor && s_currentVertex) s_skeleton.nodes.removeAll(s_currentVertex);
     FindClosestNode(x, y, worldPos, nodeIndex);
-    if(m_ignoreCursor && s_currentVertex) s_skeleton << s_currentVertex;
+    if(m_ignoreCursor && s_currentVertex) s_skeleton.nodes << s_currentVertex;
 
     {
       QMutexLocker lock(&s_skeletonMutex);
-      if ((nodeIndex == VTK_INT_MAX) || !m_visiblePoints.contains(s_skeleton[nodeIndex])) return false;
+      if ((nodeIndex == VTK_INT_MAX) || !m_visiblePoints.contains(s_skeleton.nodes[nodeIndex])) return false;
     }
 
     int displayPos[2]{x,y};
@@ -1102,15 +1226,16 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidgetRepresentation::SetColor(const QColor &color)
+void vtkSkeletonWidgetRepresentation::setStroke(const Core::SkeletonStroke &stroke)
 {
-  if (color != m_color)
+  if(!s_skeleton.strokes.contains(stroke))
   {
-    m_color = color;
-    m_linesActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-    m_linesActor->Modified();
-    NeedToRenderOn();
+    s_skeleton.strokes << stroke;
+    s_skeleton.count.insert(stroke, 0);
   }
+
+  m_currentStrokeIndex = s_skeleton.strokes.indexOf(stroke);
+  m_currentEdgeIndex   = -1;
 }
 
 //-----------------------------------------------------------------------------
@@ -1126,17 +1251,17 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
   SkeletonNode *closestNode;
   {
     QMutexLocker lock(&s_skeletonMutex);
-    if (s_skeleton.size() < 3) return false;
+    if (s_skeleton.nodes.size() < 3) return false;
 
-    if(s_currentVertex) s_skeleton.removeAll(s_currentVertex);
+    if(s_currentVertex) s_skeleton.nodes.removeAll(s_currentVertex);
     FindClosestNode(X, Y, closestNodePos, nodeIndex);
-    if(s_currentVertex) s_skeleton << s_currentVertex;
+    if(s_currentVertex) s_skeleton.nodes << s_currentVertex;
 
     if (nodeIndex == VTK_INT_MAX) return false;
 
-    closestNode = s_skeleton[nodeIndex];
+    closestNode = s_skeleton.nodes[nodeIndex];
     hasPointer = s_currentVertex != nullptr;
-    Q_ASSERT(nodeIndex < s_skeleton.size());
+    Q_ASSERT(nodeIndex < s_skeleton.nodes.size());
   }
 
   if(vtkMath::Distance2BetweenPoints(displayWorldPos, closestNodePos) > m_tolerance) return false;
@@ -1148,19 +1273,28 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       s_currentVertex = closestNode;
     }
     AddNodeAtPosition(displayWorldPos);
+
     return true;
   }
 
   QMutexLocker lock(&s_skeletonMutex);
-  for (auto connectionNode : s_currentVertex->connections)
+  for (auto connectionNode : s_currentVertex->connections.keys())
   {
-    if(!connectionNode->connections.contains(closestNode)) connectionNode->connections << closestNode;
-    if(!closestNode->connections.contains(connectionNode)) closestNode->connections << connectionNode;
+    if(!connectionNode->connections.contains(closestNode)) connectionNode->connections.insert(closestNode, s_currentVertex->connections[connectionNode]);
+    if(!closestNode->connections.contains(connectionNode)) closestNode->connections.insert(connectionNode, s_currentVertex->connections[connectionNode]);
 
-    connectionNode->connections.removeAll(s_currentVertex);
+    connectionNode->connections.remove(s_currentVertex);
   }
   s_currentVertex->connections.clear();
-  s_currentVertex->connections << closestNode;
+  s_currentVertex->connections.insert(closestNode, m_currentStrokeIndex);
 
   return true;
+}
+
+//--------------------------------------------------------------------
+Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
+{
+  Q_ASSERT(m_currentStrokeIndex >= 0);
+
+  return s_skeleton.strokes.at(m_currentStrokeIndex);
 }

@@ -20,6 +20,7 @@
 
 // ESPINA
 #include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
@@ -40,6 +41,7 @@
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
+#include "SkeletonToolsUtils.h"
 
 // VTK
 #include <vtkIdList.h>
@@ -52,6 +54,7 @@
 
 // Qt
 #include <QUndoStack>
+#include <QBitmap>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -62,6 +65,7 @@ using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
+using namespace ESPINA::SkeletonToolsUtils;
 
 const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
 
@@ -115,6 +119,8 @@ SkeletonTool::SkeletonTool(Support::Context& context)
           this                , SLOT(initTool(bool)));
 
   initParametersWidgets();
+
+  registerSkeletonDataOperators();
 }
 
 //-----------------------------------------------------------------------------
@@ -170,6 +176,25 @@ void SkeletonTool::initParametersWidgets()
   connect(this, SIGNAL(toggled(bool)), m_maxWidget, SLOT(setVisible(bool)));
 
   addSettingsWidget(m_maxWidget->createWidget(nullptr));
+
+  auto strokeLabel = new QLabel{tr("Stroke type:")};
+  strokeLabel->setToolTip(tr("Select stroke type."));
+
+  addSettingsWidget(strokeLabel);
+
+  m_strokeCombo = new QComboBox();
+  m_strokeCombo->setEditable(false);
+  m_strokeCombo->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
+  m_strokeCombo->setToolTip(tr("Select stroke type."));
+
+  connect(m_strokeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onStrokeTypeChanged(int)));
+
+  addSettingsWidget(m_strokeCombo);
+
+  m_strokeButton = createToolButton(":/espina/tag.svg", tr("Define the stroke types."));
+  connect(m_strokeButton, SIGNAL(pressed()), this, SLOT(onStrokeConfigurationPressed()));
+
+  addSettingsWidget(m_strokeButton);
 
   m_nextButton = createToolButton(":/espina/next_tubular.svg", tr("Start a new skeleton."));
   m_nextButton->setCheckable(false);
@@ -250,6 +275,7 @@ void SkeletonTool::onModelReset()
              this,             SLOT(onModelReset()));
 
   m_init = false;
+  STROKES.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -279,6 +305,8 @@ void SkeletonTool::initTool(bool value)
     {
       widget->initialize(nullptr);
     }
+
+    onStrokeTypeChanged(m_strokeCombo->currentIndex());
   }
   else
   {
@@ -330,7 +358,8 @@ void SkeletonTool::onWidgetCloned(TemporalRepresentation2DSPtr clone)
 
   if(skeletonWidget)
   {
-    skeletonWidget->setRepresentationColor(m_categorySelector->selectedCategory()->color());
+    auto stroke = STROKES[m_categorySelector->selectedCategory()->classificationName()].at(m_strokeCombo->currentIndex());
+    skeletonWidget->setStroke(stroke);
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
@@ -378,9 +407,21 @@ void SkeletonTool::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
 //-----------------------------------------------------------------------------
 void SkeletonTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-  for(auto widget: m_widgets)
+  if(m_item && m_item != getActiveChannel())
   {
-    widget->setRepresentationColor(category->color());
+    onNextButtonPressed();
+  }
+
+  if(category)
+  {
+    if(!STROKES.contains(category->classificationName()))
+    {
+      STROKES[category->classificationName()] = defaultStrokes(category);
+    }
+
+    updateStrokes();
+
+    onStrokeTypeChanged(0);
   }
 }
 
@@ -502,6 +543,25 @@ void SkeletonTool::onNextButtonPressed()
 }
 
 //--------------------------------------------------------------------
+void SkeletonTool::onStrokeTypeChanged(int index)
+{
+  auto category = m_categorySelector->selectedCategory();
+
+  if(category)
+  {
+    auto name = category->classificationName();
+    index = std::min(std::max(0,index), STROKES[name].size() - 1);
+
+    auto stroke = STROKES[name].at(index);
+
+    for(auto widget: m_widgets)
+    {
+      widget->setStroke(stroke);
+    }
+  }
+}
+
+//--------------------------------------------------------------------
 void SkeletonTool::initEventHandler()
 {
   m_eventHandler = std::make_shared<SkeletonEventHandler>();
@@ -509,4 +569,67 @@ void SkeletonTool::initEventHandler()
   m_eventHandler->setCursor(Qt::CrossCursor);
 
   setEventHandler(m_eventHandler);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onStrokeConfigurationPressed()
+{
+  auto category = m_categorySelector->selectedCategory();
+  if(category)
+  {
+    auto index = m_strokeCombo->currentIndex();
+    auto name  = category->classificationName();
+
+    StrokeDefinitionDialog dialog(STROKES[name], category);
+    dialog.exec();
+
+    updateStrokes();
+    index = std::min(index, STROKES[name].size() - 1);
+    m_strokeCombo->setCurrentIndex(index);
+    onStrokeTypeChanged(index);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  // used only to load SkeletonToolsUtils::STROKE values.
+  loadStrokes(settings);
+
+  updateStrokes();
+  onStrokeTypeChanged(0);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  // used only to save SkeletonToolsUtils::STROKE values.
+  if(!STROKES.isEmpty()) saveStrokes(settings);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::updateStrokes()
+{
+  auto currentCategory = m_categorySelector->selectedCategory();
+
+  if(currentCategory)
+  {
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->clear();
+
+    auto strokes = STROKES[currentCategory->classificationName()];
+    for(int i = 0; i < strokes.size(); ++i)
+    {
+      auto stroke = strokes.at(i);
+
+      QPixmap original(ICONS.at(stroke.type));
+      QPixmap copy(original.size());
+      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      copy.setMask(original.createMaskFromColor(Qt::transparent));
+
+      m_strokeCombo->insertItem(i, QIcon(copy), stroke.name);
+    }
+
+    m_strokeCombo->blockSignals(false);
+  }
 }

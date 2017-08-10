@@ -21,6 +21,7 @@
 
 // ESPINA
 #include <Extensions/SkeletonInformation/SkeletonInformation.h>
+#include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Segmentation.h>
@@ -38,14 +39,15 @@ using namespace ESPINA::Extensions;
 
 const SegmentationExtension::Type EspinaExtensions_EXPORT SkeletonInformation::TYPE = "SkeletonInformation";
 
-const SegmentationExtension::Key SKELETON_LENGTH           = "Total Length (Nm)";
-const SegmentationExtension::Key SKELETON_COMPONENTS       = "Connected Components";
-const SegmentationExtension::Key SKELETON_PATHS            = "Number Of Segments";
-const SegmentationExtension::Key SKELETON_LOOPS            = "Cycles";
-const SegmentationExtension::Key SKELETON_CENTROID_X       = "Centroid X";
-const SegmentationExtension::Key SKELETON_CENTROID_Y       = "Centroid Y";
-const SegmentationExtension::Key SKELETON_CENTROID_Z       = "Centroid Z";
-const SegmentationExtension::Key SKELETON_FERET_DIAMETER   = "Feret Diameter";
+const SegmentationExtension::Key SKELETON_LENGTH             = "Total Length (Nm)";
+const SegmentationExtension::Key SKELETON_COMPONENTS         = "Connected Components";
+const SegmentationExtension::Key SKELETON_PATHS              = "Number Of Strokes";
+const SegmentationExtension::Key SKELETON_LOOPS              = "Cycles";
+const SegmentationExtension::Key SKELETON_CENTROID_X         = "Centroid X";
+const SegmentationExtension::Key SKELETON_CENTROID_Y         = "Centroid Y";
+const SegmentationExtension::Key SKELETON_CENTROID_Z         = "Centroid Z";
+const SegmentationExtension::Key SKELETON_FERET_DIAMETER     = "Feret Diameter";
+const SegmentationExtension::Key SKELETON_CONNECTIONS_NUMBER = "Number Of Connections";
 
 //--------------------------------------------------------------------
 SkeletonInformation::SkeletonInformation(const InfoCache& infoCache)
@@ -82,7 +84,8 @@ SegmentationExtension::InformationKeyList SkeletonInformation::availableInformat
                      SKELETON_CENTROID_X,
                      SKELETON_CENTROID_Y,
                      SKELETON_CENTROID_Z,
-                     SKELETON_FERET_DIAMETER})
+                     SKELETON_FERET_DIAMETER,
+                     SKELETON_CONNECTIONS_NUMBER})
   {
     keys << createKey(value);
   }
@@ -105,6 +108,23 @@ QVariant SkeletonInformation::cacheFail(const InformationKey& key) const
     {
       info = information(key);
     }
+    else
+    {
+      auto keyText = key.value();
+      if(keyText.startsWith("Angle"))
+      {
+        auto parts = keyText.remove("Angle ").remove(" (Degrees)").split('^');
+
+        auto altKeyText = QString("%Angle %1^%2 (Degrees)").arg(parts[1]).arg(parts[0]);
+
+        InformationKey altKey{key.extension(), altKeyText};
+
+        if(availableInformation().contains(altKey))
+        {
+          info = information(altKey);
+        }
+      }
+    }
   }
 
   return info;
@@ -126,26 +146,11 @@ void SkeletonInformation::updateInformation() const
   if(m_extendedItem && readLockSkeleton(m_extendedItem->output())->isValid())
   {
     auto skeleton   = readLockSkeleton(m_extendedItem->output())->skeleton();
-    auto nodes      = toNodes(skeleton);
+    auto definition = toSkeletonDefinition(skeleton);
+    auto nodes      = definition.nodes;
+    auto edges      = definition.edges;
+    auto strokes    = definition.strokes;
     auto components = connectedComponents(nodes);
-    PathList pathList;
-    QList<SkeletonNodes> loopList;
-
-    auto follow = [](SkeletonNode *node, SkeletonNodes visited)
-    {
-      while(node->connections.size() == 2 && !visited.contains(node))
-      {
-        for(auto connection: node->connections)
-        {
-          if(connection == visited.last()) continue;
-          visited << node;
-          node = connection;
-          break;
-        }
-      }
-
-      return node->id;
-    };
 
     auto angle = [](SkeletonNode *base, SkeletonNode *a, SkeletonNode *b)
     {
@@ -175,20 +180,57 @@ void SkeletonInformation::updateInformation() const
     }
     updateInfoCache(SKELETON_FERET_DIAMETER, std::sqrt(maxDistance));
 
+    int connections = 0;
+    for(auto seg: m_extendedItem->analysis()->segmentations())
+    {
+      if(seg.get() == m_extendedItem)
+      {
+        connections = m_extendedItem->analysis()->connections(seg).size();
+      }
+    }
+    updateInfoCache(SKELETON_CONNECTIONS_NUMBER, connections);
+
+    PathList pathList;
+    QList<SkeletonNodes> loopList;
+
+    QMap<QString, double> lengths;
     double totalLength = 0;
     for(auto component: components)
     {
       auto index = components.indexOf(component) + 1;
-      auto componentPaths = paths(component);
+      auto componentPaths = paths(component, edges, strokes);
 
       double length = 0;
       for(auto path: componentPaths)
       {
-        length += path.length();
-        totalLength += path.length();
+        if(path.begin == path.end && path.seen.size() <= 2) continue;
 
-        auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
-        updateInfoCache(tr("Segment %1 Length (Nm)").arg(name), path.length());
+        auto edge        = edges.at(path.seen.at(0)->connections[path.seen.at(1)]);
+        auto stroke      = strokes.at(edge.strokeIndex);
+        auto useMeasure  = stroke.useMeasure;
+
+        if(useMeasure)
+        {
+          QString name = strokeName(edge, strokes);
+          auto pathLength = path.length();
+
+          if(lengths.contains(name))
+          {
+            lengths[name] += pathLength;
+          }
+          else
+          {
+            lengths.insert(name, pathLength);
+          }
+
+          length += pathLength;
+          totalLength += path.length();
+        }
+      }
+
+      for(auto name: lengths.keys())
+      {
+        updateInfoCache(tr("%1 Length (Nm)").arg(name), lengths[name]);
       }
 
       pathList << componentPaths;
@@ -200,23 +242,60 @@ void SkeletonInformation::updateInformation() const
         loopList << comploops;
       }
 
-      for (auto node: component)
+      QMap<QString, double> angles;
+      for (auto path: componentPaths)
       {
-        // get the angles of relevant nodes
-        if(node->connections.size() > 2)
+        if(path.begin == path.end && path.seen.size() <= 2) continue;
+
+        auto edge     = edges.at(path.seen.at(0)->connections[path.seen.at(1)]);
+        auto strokeId = strokeName(edge, strokes);
+
+        for(auto node: path.seen)
         {
-          auto pivot = node->connections.first();
-          auto pivotName = follow(pivot, SkeletonNodes{node});
-
-          for(auto connection: node->connections)
+          if(node->connections.size() > 2)
           {
-            if(connection == pivot) continue;
-            auto otherName = follow(connection, SkeletonNodes{node});
-            auto name      = tr("Angle %1<->%2^%1<->%3 (Degrees)").arg(node->id).arg(pivotName).arg(otherName);
+            SkeletonNodes ofStroke;
+            SkeletonNodes other;
+            for(auto connection: node->connections.keys())
+            {
+              if(strokeId == strokeName(edges.at(node->connections[connection]), strokes))
+              {
+                ofStroke << connection;
+              }
+              else
+              {
+                other << connection;
+              }
+            }
 
-            updateInfoCache(name, tr("%1").arg(angle(node, pivot, connection)));
+            for(auto connection: ofStroke)
+            {
+              for(auto otherNode: other)
+              {
+                QStringList strokeNames;
+                strokeNames << strokeId << strokeName(edges.at(node->connections[otherNode]), strokes);
+                strokeNames.sort();
+
+                auto key = tr("Angle %1^%2 (Degrees)").arg(strokeNames.at(0)).arg(strokeNames.at(1));
+                auto value = angle(node, connection, otherNode);
+
+                if(angles.contains(key))
+                {
+                  angles[key] = std::min(angles[key], value);
+                }
+                else
+                {
+                  angles.insert(key, value);
+                }
+              }
+            }
           }
         }
+      }
+
+      for(auto key: angles.keys())
+      {
+        updateInfoCache(key, angles[key]);
       }
     }
 
@@ -240,26 +319,13 @@ void SkeletonInformation::updateKeys()
   m_keys.clear();
 
   auto skeleton   = readLockSkeleton(m_extendedItem->output())->skeleton();
-  auto nodes      = toNodes(skeleton);
+  auto definition = toSkeletonDefinition(skeleton);
+  auto nodes      = definition.nodes;
+  auto edges      = definition.edges;
+  auto strokes    = definition.strokes;
   auto components = connectedComponents(nodes);
   PathList pathList;
   QList<SkeletonNodes> loopList;
-
-  auto follow = [](SkeletonNode *node, SkeletonNodes visited)
-  {
-    while(node->connections.size() == 2 && !visited.contains(node))
-    {
-      for(auto connection: node->connections)
-      {
-        if(connection == visited.last()) continue;
-        visited << node;
-        node = connection;
-        break;
-      }
-    }
-
-    return node->id;
-  };
 
   InformationKeyList connectedLength, angles, pathLength, loopsKeys;
 
@@ -269,36 +335,78 @@ void SkeletonInformation::updateKeys()
     pathList.clear();
 
     auto index = components.indexOf(component) + 1;
-    auto componentPaths = paths(component);
+    auto componentPaths = paths(component, edges, strokes);
 
     connectedLength << createKey(tr("Component %1 Length (Nm)").arg(index));
     loopList = loops(component);
     if(loopList.size() != 0) loopsKeys << createKey(tr("Component %1 Loops").arg(index));
 
-    pathList = paths(component);
-    for(auto path: pathList)
+    QStringList names;
+    for(auto path: componentPaths)
     {
-      auto name = (path.begin->id == path.end->id ? path.begin->id + " (Loop)" : path.begin->id + "<->" + path.end->id);
-      pathLength << createKey(tr("Segment %1 Length (Nm)").arg(name));
-    }
+      if(path.begin == path.end && path.seen.size() <= 2) continue;
 
-    for (auto node: component)
-    {
-      // get the angles of relevant nodes
-      if(node->connections.size() > 2)
+      auto edge        = edges.at(path.seen.at(0)->connections[path.seen.at(1)]);
+      auto stroke      = strokes.at(edge.strokeIndex);
+      auto useMeasure  = stroke.useMeasure;
+
+      if(useMeasure)
       {
-        auto pivot = node->connections.first();
-        auto pivotName = follow(pivot, SkeletonNodes{node});
+        QString name = strokeName(edge, strokes);
 
-        for(auto connection: node->connections)
+        if(!names.contains(name))
         {
-          if(connection == pivot) continue;
-          auto otherName = follow(connection, SkeletonNodes{node});
-          auto name      = tr("Angle %1<->%2^%1<->%3 (Degrees)").arg(node->id).arg(pivotName).arg(otherName);
-
-          angles << createKey(name);
+          names << name;
         }
       }
+    }
+
+    for (auto name : names)
+    {
+      pathLength << createKey(tr("%1 Length (Nm)").arg(name));
+    }
+
+    QStringList anglesKeys;
+    for (auto path: componentPaths)
+    {
+      if(path.begin == path.end && path.seen.size() <= 2) continue;
+
+      auto edge     = edges.at(path.seen.at(0)->connections[path.seen.at(1)]);
+      auto strokeId = strokeName(edge, strokes);
+
+      for(auto node: path.seen)
+      {
+        if(node->connections.size() > 2)
+        {
+          SkeletonNodes other;
+          for(auto connection: node->connections.keys())
+          {
+            if(strokeId != strokeName(edges.at(node->connections[connection]), strokes))
+            {
+              other << connection;
+            }
+          }
+
+          for(auto connection: other)
+          {
+            QStringList strokeNames;
+            strokeNames << strokeId << strokeName(edges.at(node->connections[connection]), strokes);
+            strokeNames.sort();
+
+            auto key = tr("Angle %1^%2 (Degrees)").arg(strokeNames.at(0)).arg(strokeNames.at(1));
+
+            if(!anglesKeys.contains(key))
+            {
+              anglesKeys << key;
+            }
+          }
+        }
+      }
+    }
+
+    for(auto key: anglesKeys)
+    {
+      angles << createKey(key);
     }
   }
 

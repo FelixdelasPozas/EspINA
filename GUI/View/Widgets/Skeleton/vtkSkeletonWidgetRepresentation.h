@@ -231,11 +231,11 @@ namespace ESPINA
               void SetTolerance(const double value)
               { if(value < 0 || m_tolerance== value) return; m_tolerance = value; }
 
-              /** \brief Sets the color of the representation.
-               * \param[in] color QColor object.
+              /** \brief Sets the properties of the next stroke.
+               * \param[in] stroke stroke struct.
                *
                */
-              void SetColor(const QColor &color);
+              void setStroke(const Core::SkeletonStroke &stroke);
 
               /** \brief Returns the current tolerance for the widget.
                *
@@ -373,17 +373,21 @@ namespace ESPINA
               void operator=(const vtkSkeletonWidgetRepresentation&);
 
             protected:
+              /** \brief Helper method that returns the current stroke definition.
+               *
+               */
+              Core::SkeletonStroke currentStroke() const;
+
               Plane     m_orientation;
               double    m_tolerance;
               Nm        m_slice;
               Nm        m_shift;
-              QColor    m_color;
               NmVector3 m_spacing;
 
-              static Core::SkeletonNodes s_skeleton;
-              static NmVector3           s_skeletonSpacing;
-              static Core::SkeletonNode *s_currentVertex;
-              static QMutex              s_skeletonMutex;
+              static Core::SkeletonDefinition s_skeleton;
+              static NmVector3                s_skeletonSpacing;
+              static Core::SkeletonNode      *s_currentVertex;
+              static QMutex                   s_skeletonMutex;
 
               QMap<Core::SkeletonNode *, vtkIdType> m_visiblePoints;
 
@@ -404,6 +408,12 @@ namespace ESPINA
               vtkSmartPointer<vtkPolyData>          m_lines;
               vtkSmartPointer<vtkPolyDataMapper>    m_linesMapper;
               vtkSmartPointer<vtkActor>             m_linesActor;
+              vtkSmartPointer<vtkPolyData>          m_dashedLines;
+              vtkSmartPointer<vtkPolyDataMapper>    m_dashedLinesMapper;
+              vtkSmartPointer<vtkActor>             m_dashedLinesActor;
+
+              int m_currentStrokeIndex; /** index of current stroke in s_skeleton.strokes. */
+              int m_currentEdgeIndex;   /** index of current edge in s_skeleton.edges.     */
 
             private:
               bool m_ignoreCursor; /** flag, true to ignore the cursor node (if any) in some computations, false otherwise. */

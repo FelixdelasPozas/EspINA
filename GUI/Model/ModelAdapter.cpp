@@ -131,6 +131,32 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   {
     emit viewItemsAdded(addedItems);
   }
+
+  // emit connections but don't repeat points.
+  QMap<SegmentationAdapterSPtr, ConnectionList> connectionsMap;
+  for(auto segmentation: segmentations())
+  {
+    auto connectionList = connections(segmentation);
+    if(!connectionList.isEmpty())
+    {
+      connectionsMap.insert(segmentation, connectionList);
+    }
+  }
+
+  for(auto seg: connectionsMap.keys())
+  {
+    for(auto &connection: connectionsMap[seg])
+    {
+      emit connectionAdded(connection);
+
+      // remove symmetric connections to avoid sending the same connection twice.
+      Connection symmetric;
+      symmetric.item1 = connection.item2;
+      symmetric.item2 = connection.item1;
+      symmetric.point = connection.point;
+      connectionsMap[connection.item2].removeOne(symmetric);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1953,4 +1979,12 @@ ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentat
   }
 
   return connections;
+}
+
+//--------------------------------------------------------------------
+bool ESPINA::Connection::operator ==(const Connection& other)
+{
+  return (item1 == other.item1 || item1 == other.item2) &&
+         (item2 == other.item1 || item2 == other.item2) &&
+         (point == other.point);
 }

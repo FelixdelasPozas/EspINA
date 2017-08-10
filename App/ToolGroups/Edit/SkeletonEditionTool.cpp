@@ -20,6 +20,9 @@
  */
 
 // ESPINA
+#include <App/ToolGroups/Edit/SkeletonEditionTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolsUtils.h>
+#include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
@@ -31,10 +34,11 @@
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include <App/ToolGroups/Edit/SkeletonEditionTool.h>
 
 // Qt
 #include <QApplication>
+#include <QComboBox>
+#include <QBitmap>
 
 // VTK
 #include <vtkPointData.h>
@@ -47,6 +51,7 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
+using namespace ESPINA::SkeletonToolsUtils;
 
 //--------------------------------------------------------------------
 SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
@@ -106,6 +111,8 @@ void SkeletonEditionTool::initTool(bool value)
     m_item->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
     m_item->setBeingModified(true);
 
+    updateStrokes();
+
     if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
 
     connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
@@ -115,6 +122,8 @@ void SkeletonEditionTool::initTool(bool value)
     {
       widget->initialize(readLockSkeleton(m_item->output())->skeleton());
     }
+
+    onStrokeTypeChanged(m_strokeCombo->currentIndex());
 
     updateWidgetsMode();
     m_item->invalidateRepresentations();
@@ -242,10 +251,11 @@ void SkeletonEditionTool::onWidgetCloned(GUI::Representations::Managers::Tempora
 {
   auto skeletonWidget = std::dynamic_pointer_cast<SkeletonWidget2D>(clone);
 
-  if(skeletonWidget)
+  if(skeletonWidget && m_item)
   {
-    auto segmentation = segmentationPtr(m_item);
-    skeletonWidget->setRepresentationColor(segmentation->category()->color());
+    auto name = segmentationPtr(m_item)->category()->classificationName();
+    auto stroke = STROKES[name].at(std::min(std::max(0,m_strokeCombo->currentIndex()), STROKES[name].size() - 1));
+    skeletonWidget->setStroke(stroke);
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
@@ -384,6 +394,25 @@ void SkeletonEditionTool::initParametersWidgets()
 
   addSettingsWidget(m_maxWidget->createWidget(nullptr));
 
+  auto strokeLabel = new QLabel{tr("Stroke type:")};
+  strokeLabel->setToolTip(tr("Select stroke type."));
+
+  addSettingsWidget(strokeLabel);
+
+  m_strokeCombo = new QComboBox();
+  m_strokeCombo->setEditable(false);
+  m_strokeCombo->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
+  m_strokeCombo->setToolTip(tr("Select stroke type."));
+
+  connect(m_strokeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onStrokeTypeChanged(int)));
+
+  addSettingsWidget(m_strokeCombo);
+
+  m_strokeButton = createToolButton(":/espina/tag.svg", tr("Define the stroke types."));
+  connect(m_strokeButton, SIGNAL(pressed()), this, SLOT(onStrokeConfigurationPressed()));
+
+  addSettingsWidget(m_strokeButton);
+
   m_moveButton = createToolButton(":/espina/tubular_move.svg", tr("Translate skeleton nodes."));
   m_moveButton->setCheckable(true);
   m_moveButton->setChecked(false);
@@ -483,5 +512,70 @@ void SkeletonEditionTool::updateWidgetsMode()
   for(auto widget: m_widgets)
   {
     widget->setMode(mode);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeTypeChanged(int index)
+{
+  if(m_item)
+  {
+    auto segmentation = segmentationPtr(m_item);
+    auto name = segmentation->category()->classificationName();
+
+    index = std::min(std::max(0,index), STROKES[name].size() - 1);
+
+    auto stroke = STROKES[name].at(index);
+
+    for(auto widget: m_widgets)
+    {
+      widget->setStroke(stroke);
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeConfigurationPressed()
+{
+  if(m_item)
+  {
+    auto segmentation = segmentationPtr(m_item);
+    auto name = segmentation->category()->classificationName();
+    auto index = m_strokeCombo->currentIndex();
+
+    StrokeDefinitionDialog dialog(STROKES[name], segmentation->category());
+    dialog.exec();
+
+    updateStrokes();
+
+    onStrokeTypeChanged(std::min(index, STROKES[name].size() - 1));
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::updateStrokes()
+{
+  if(m_item)
+  {
+    auto segmentation = segmentationPtr(m_item);
+    auto category = segmentation->category();
+
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->clear();
+
+    auto strokes = STROKES[category->classificationName()];
+    for(int i = 0; i < strokes.size(); ++i)
+    {
+      auto stroke = strokes.at(i);
+
+      QPixmap original(ICONS.at(stroke.type));
+      QPixmap copy(original.size());
+      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      copy.setMask(original.createMaskFromColor(Qt::transparent));
+
+      m_strokeCombo->insertItem(i, QIcon(copy), stroke.name);
+    }
+
+    m_strokeCombo->blockSignals(false);
   }
 }

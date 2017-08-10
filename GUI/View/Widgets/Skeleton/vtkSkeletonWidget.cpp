@@ -44,7 +44,6 @@ vtkSkeletonWidget::vtkSkeletonWidget()
 , m_orientation  {Plane::UNDEFINED}
 , m_slice        {-1}
 , m_shift        {1}
-, m_color        {QColor{254,254,154}}
 , m_ignoreCursor {false}
 {
   ManagesCursor = false; // from Superclass
@@ -102,7 +101,6 @@ void vtkSkeletonWidget::CreateDefaultRepresentation()
     rep->SetSlice(m_slice);
     rep->SetShift(m_shift);
     rep->SetTolerance(0); // handled by event handler
-    rep->SetColor(m_color);
     WidgetRep = rep;
   }
 }
@@ -466,24 +464,6 @@ void vtkSkeletonWidget::SetShift(const Nm shift)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidget::setRepresentationColor(const QColor &color)
-{
-  if (m_color != color)
-  {
-    m_color = color;
-
-    if (WidgetRep == nullptr)
-    {
-      CreateDefaultRepresentation();
-    }
-
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->SetColor(color);
-    Render();
-    WidgetRep->NeedToRenderOff();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void vtkSkeletonWidget::UpdateRepresentation()
 {
   if (!WidgetRep) return;
@@ -577,6 +557,16 @@ void vtkSkeletonWidget::updateCursor()
 void vtkSkeletonWidget::BuildRepresentation()
 {
   reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->BuildRepresentation();
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setStroke(const Core::SkeletonStroke& stroke)
+{
+  if(WidgetRep)
+  {
+    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+    rep->setStroke(stroke);
+  }
 }
 
 //-----------------------------------------------------------------------------

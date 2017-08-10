@@ -34,9 +34,16 @@
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
+#include <vtkIntArray.h>
+#include <vtkDataArray.h>
 #include <vtkLine.h>
 #include <vtkMath.h>
+#include <vtkMapper.h>
 #include <vtkActor2D.h>
+#include <vtkCellData.h>
+#include <vtkDataSet.h>
+#include <vtkPointData.h>
+#include <vtkLabelPlacementMapper.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -64,28 +71,69 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
   for(auto actor: actors)
   {
-    auto actorVTK = vtkActor::SafeDownCast(actor.Get());
-
-    if(actorVTK)
-    {
-      auto color = m_colorEngine->color(segmentation);
-      double rgba[4];
-      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-
-      actorVTK->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-
-      auto width = item->isSelected() ? 2 : 1;
-      width *= SegmentationSkeletonPoolSettings::getWidth(state);
-
-      actorVTK->GetProperty()->SetLineWidth(width);
-      actorVTK->Modified();
-    }
-
+    auto color   = m_colorEngine->color(segmentation);
     auto actor2D = vtkActor2D::SafeDownCast(actor.Get());
 
     if(actor2D)
     {
-      actor2D->SetVisibility(item->isSelected());
+      actor2D->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
+
+      // 3D representation has 3 actors.
+      if(actors.size() == 3)
+      {
+        auto mapper = vtkLabelPlacementMapper::SafeDownCast(actor2D->GetMapper());
+
+        if(mapper)
+        {
+          mapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+        }
+      }
+    }
+
+    auto actorVTK = vtkActor::SafeDownCast(actor.Get());
+
+    if(actorVTK)
+    {
+      auto data        = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
+      auto colors      = vtkUnsignedCharArray::SafeDownCast(data->GetCellData()->GetScalars());
+      auto cellChanges = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("ChangeColor"));
+
+      if(!colors || !cellChanges)
+      {
+        qWarning() << "Bad polydata for" << segmentation->data().toString();
+        qWarning() << "Could extract array for cellChanges: " << (cellChanges == nullptr ? "false" : "true");
+        qWarning() << "Could extract array for colors: " << (colors == nullptr ? "false" : "true");
+        return;
+      }
+
+      data->GetLines()->InitTraversal();
+      for(int i = 0; i < data->GetNumberOfLines(); ++i)
+      {
+        double rgba[4];
+
+        if(cellChanges->GetValue(i) == 0)
+        {
+          s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
+        }
+        else
+        {
+          unsigned char values[3];
+          colors->GetTupleValue(i, values);
+
+          auto custom = QColor::fromRgb(values[0], values[1], values[2]);
+          s_highlighter.lut(custom, item->isSelected())->GetTableValue(1,rgba);
+        }
+
+        colors->SetTuple3(i, rgba[0]*255, rgba[1]*255, rgba[2]*255);
+      }
+
+      auto width = item->isSelected() ? 2 : 1;
+      width *= SegmentationSkeletonPoolSettings::getWidth(state);
+
+      colors->Modified();
+      actorVTK->GetMapper()->Update();
+      actorVTK->GetProperty()->SetLineWidth(width);
+      actorVTK->Modified();
     }
   }
 }
@@ -97,12 +145,13 @@ bool SegmentationSkeletonPipelineBase::pick(ConstViewItemAdapterPtr item, const 
   {
     auto skeleton = readLockSkeleton(item->output())->skeleton();
     auto lines = skeleton->GetLines();
+    auto spacing = item->output()->spacing();
     double projection[3];
     auto points = skeleton->GetPoints();
     long long npts;
     long long *pts;
 
-    // NOTE to self: vtkLine::DistanceToLine(p0, lineP0, lineP1, t, closest) is pure shit. Thank god for a little
+    // NOTE: vtkLine::DistanceToLine(p0, lineP0, lineP1, t, closest) is pure shit. Thank god for a little
     // knowledge of computational geometry.
     lines->InitTraversal();
     while(lines->GetNextCell(npts, pts))
@@ -145,8 +194,9 @@ bool SegmentationSkeletonPipelineBase::pick(ConstViewItemAdapterPtr item, const 
         }
 
         double distance = std::pow(projection[0] - point[0], 2) + std::pow(projection[1] - point[1], 2) + std::pow(projection[2] - point[2], 2);
+        auto maxSpacing = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-        if(distance < 10) return true;
+        if(distance < (maxSpacing * maxSpacing)) return true;
       }
     }
   }

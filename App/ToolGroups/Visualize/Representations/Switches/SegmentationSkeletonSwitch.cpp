@@ -125,7 +125,7 @@ void SegmentationSkeletonSwitch::initWidgets()
 
   addSettingsWidget(m_widthWidget);
 
-  m_annotationsWidget = createToolButton(":/espina/tubular_id.svg", tr("Show node annotations"), nullptr);
+  m_annotationsWidget = createToolButton(":/espina/tubular_id.svg", tr("Show stroke names"), nullptr);
   m_annotationsWidget->setCheckable(true);
   m_annotationsWidget->setChecked(m_settings->showAnnotations());
 

@@ -62,7 +62,7 @@ int raw_skeleton_default_constructor( int argc, char** argv )
 
   if (skeleton.isValid() != false)
   {
-    std::cerr << "Default skeleton polydata must be empty" << std::endl;
+    std::cerr << "Default skeleton data must be empty" << std::endl;
     error = true;
   }
 

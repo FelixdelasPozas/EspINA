@@ -39,7 +39,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-using ESPINA::GUI::View::Widgets::Skeleton::SkeletonWidget2D;
+class QComboBox;
 
 namespace ESPINA
 {
@@ -121,11 +121,22 @@ namespace ESPINA
        */
       void onMaximumDistanceChanged(double value);
 
-      /** \brief Enables/disables the erase button depeding on the value.
+      /** \brief Enables/disables the erase button depending on the value.
        * \param[in] value true if the modifier is pressed, and false when the modifier key is released.
        *
        */
       void onModifierPressed(bool value);
+
+      /** \brief Updates the stroke type used in widgets.
+       * \param[in] index new stroke index.
+       *
+       */
+      void onStrokeTypeChanged(int index);
+
+      /** \brief Shows the stroke configuration dialog.
+       *
+       */
+      void onStrokeConfigurationPressed();
 
     private:
       virtual bool acceptsNInputs(int n) const;
@@ -151,6 +162,11 @@ namespace ESPINA
        *
        */
       void updateWidgetsMode();
+
+      /** \brief Updates the contents of the strokes combobox.
+       *
+       */
+      void updateStrokes();
 
     private:
       /** \class NullRepresentationPipeline
@@ -198,6 +214,8 @@ namespace ESPINA
       DoubleSpinBoxAction                                   *m_minWidget;    /** min distance between points widget.               */
       DoubleSpinBoxAction                                   *m_maxWidget;    /** max distance between points widget.               */
       GUI::Widgets::ToolButton                              *m_moveButton;   /** Move nodes button.                                */
+      QComboBox                                             *m_strokeCombo;  /** stroke type combobox.                             */
+      GUI::Widgets::ToolButton                              *m_strokeButton; /** stroke configuration dialog button.               */
       ViewItemAdapterPtr                                     m_item;         /** current element being created or channel in init. */
       GUI::Representations::Managers::TemporalPrototypesSPtr m_factory;      /** representation prototypes.                        */
       QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_widgets;   /** list of widgets currently on views.               */

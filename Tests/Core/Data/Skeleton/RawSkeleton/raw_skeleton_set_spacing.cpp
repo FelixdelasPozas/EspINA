@@ -18,37 +18,44 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "Core/Analysis/Data/Skeleton/RawSkeleton.h"
 #include <Core/Utils/Spatial.h>
+
+// Testing
 #include <Tests/testing_support_dummy_filter.h>
-
-
 #include "SkeletonTestingUtils.h"
 
+// Qt
 #include <QList>
 
-using ESPINA::Testing::DummyFilter;
+// C++
+#include <memory>
 
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 
-int raw_skeleton_set_spacing( int argc, char** argv )
+int raw_skeleton_set_spacing(int argc, char** argv)
 {
   bool error = false;
 
   NmVector3 spacing{1.0, 2.0, 3.0};
 
   auto polyData = ESPINA::Testing::createSimpleTestSkeleton();
+  auto output   = std::make_shared<Output>(new DummyFilter(), 0, spacing);
   auto numberOfNodes = polyData->GetPoints()->GetNumberOfPoints();
 
-  RawSkeleton skeleton{polyData, spacing};
+  auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
 
-  if(skeleton.spacing() != spacing)
+  output->setData(skeleton);
+
+  if(output->spacing() != spacing)
   {
-    std::cerr << "Unexpected skeleton spacing: " << skeleton.spacing() << ". Expected " << spacing << std::endl;
+    std::cerr << "Unexpected skeleton spacing: " << output->spacing() << ". Expected " << spacing << std::endl;
     error = true;
   }
 
-  Bounds defaultBounds = skeleton.bounds();
+  Bounds defaultBounds = skeleton->bounds();
 
   if(defaultBounds != Bounds{-0.5, 1.5, -1.0, 1.0, -1.5, 1.5})
   {
@@ -58,15 +65,15 @@ int raw_skeleton_set_spacing( int argc, char** argv )
 
   NmVector3 newSpacing{2.0,2.0,2.0};
 
-  skeleton.setSpacing(newSpacing);
+  output->setSpacing(newSpacing);
 
-  if(skeleton.spacing() != newSpacing)
+  if(output->spacing() != newSpacing)
   {
-    std::cerr << "Unexpected skeleton spacing: " << skeleton.spacing() << " after changing it to " << newSpacing << std::endl;
+    std::cerr << "Unexpected skeleton spacing: " << output->spacing() << " after changing it to " << newSpacing << std::endl;
     error = true;
   }
 
-  Bounds newBounds = skeleton.bounds();
+  Bounds newBounds = skeleton->bounds();
 
   if(newBounds != Bounds{-1.0, 3.0, -1.0, 1.0, -1.0, 1.0})
   {
@@ -89,13 +96,13 @@ int raw_skeleton_set_spacing( int argc, char** argv )
     }
   }
 
-  if(skeleton.isEmpty())
+  if(skeleton->isEmpty())
   {
     std::cerr << "Skeleton musn't be empty." << std::endl;
     error = true;
   }
 
-  if(numberOfNodes != skeleton.skeleton()->GetPoints()->GetNumberOfPoints())
+  if(numberOfNodes != skeleton->skeleton()->GetPoints()->GetNumberOfPoints())
   {
     std::cerr << "Unexpected number of points of scaled skeleton." << std::endl;
     error = true;

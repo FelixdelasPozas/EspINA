@@ -38,9 +38,12 @@ namespace ESPINA
   {
     public:
       /** \brief RawSkeleton class constructor.
+       * \param[in] spacing spacing of origin volume.
+       * \param[in] output smart pointer of associated output.
        *
        */
-      explicit RawSkeleton();
+      explicit RawSkeleton(const NmVector3 &spacing = NmVector3{1,1,1},
+                           const NmVector3 &origin  = NmVector3{0,0,0});
 
       /** \brief RawSkeleton class constructor.
        * \param[in] skeleton vtkPolyData smart pointer.
@@ -50,14 +53,6 @@ namespace ESPINA
        */
       explicit RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton,
                            const NmVector3 &spacing = NmVector3{1,1,1},
-                           const NmVector3 &origin  = NmVector3{0,0,0});
-
-      /** \brief RawSkeleton class constructor.
-       * \param[in] spacing spacing of origin volume.
-       * \param[in] output smart pointer of associated output.
-       *
-       */
-      explicit RawSkeleton(const NmVector3 &spacing = NmVector3{1,1,1},
                            const NmVector3 &origin  = NmVector3{0,0,0});
 
       /** \brief RawSkeleton class virtual destructor.

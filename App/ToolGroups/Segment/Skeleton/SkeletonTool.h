@@ -22,6 +22,7 @@
 #define ESPINA_SKELETON_TOOL_H_
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
@@ -45,10 +46,6 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  namespace //unnamed namespace
-  {
-    namespace SkeletonNamespace = GUI::View::Widgets::Skeleton;
-  }
   class DoubleSpinBoxAction;
 
   /** \class ManualFilterFactory
@@ -150,6 +147,21 @@ namespace ESPINA
        */
       void onNextButtonPressed();
 
+      /** \brief Updates the stroke type of the widget when the stroke type changes.
+       * \param[in] index current type combo box index.
+       *
+       */
+      void onStrokeTypeChanged(int index);
+
+      /** \brief Shows the stroke type definition dialog.
+       *
+       */
+      void onStrokeConfigurationPressed();
+
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+
     private:
       /** \brief Initializes the filter factory.
        *
@@ -170,6 +182,11 @@ namespace ESPINA
        *
        */
       void initEventHandler();
+
+      /** \brief Updates the list of strokes in the strokes combobox.
+       *
+       */
+      void updateStrokes();
 
     private:
       /** \class NullRepresentationPipeline
@@ -216,6 +233,8 @@ namespace ESPINA
       DoubleSpinBoxAction                                      *m_minWidget;        /** min distance between points widget.               */
       DoubleSpinBoxAction                                      *m_maxWidget;        /** max distance between points widget.               */
       GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
+      QComboBox                                                *m_strokeCombo;      /** stroke type combo box.                            */
+      GUI::Widgets::ToolButton                                 *m_strokeButton;     /** stroke configuration dialog.                      */
       GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr    m_eventHandler;     /** tool's event handler.                             */
       ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
       GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** representation prototypes.                        */

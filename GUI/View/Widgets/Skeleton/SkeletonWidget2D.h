@@ -24,6 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
 #include <GUI/View/EventHandler.h>
@@ -81,11 +82,11 @@ namespace ESPINA
                */
               vtkSmartPointer<vtkPolyData> getSkeleton();
 
-              /** \brief Sets the color of the representation.
-               * \param[in] color Qcolor object.
+              /** \brief Sets the properties of the next stroke.
+               * \param[in] stroke stroke struct.
                *
                */
-              void setRepresentationColor(const QColor &color);
+              void setStroke(const Core::SkeletonStroke &stroke);
 
               /** \brief Initialize the vtkWidgets with a polydata.
                * \param[in] pd VtkPolyData smartPointer.

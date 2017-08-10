@@ -32,14 +32,20 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
-#include <vtkTubeFilter.h>
 #include <vtkLabeledDataMapper.h>
 #include <vtkPoints.h>
 #include <vtkPointData.h>
-#include <vtkStringArray.h>
 #include <vtkPointSetToLabelHierarchy.h>
 #include <vtkLabelPlacementMapper.h>
 #include <vtkTextProperty.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkLine.h>
+#include <vtkStringArray.h>
+#include <vtkIntArray.h>
+
+// Qt
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -63,90 +69,175 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
   if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto data        = readLockSkeleton(segmentation->output())->skeleton();
-    auto width       = SegmentationSkeletonPoolSettings::getWidth(state);
-    auto mapperInput = vtkSmartPointer<vtkPolyData>::New();
-
-    if(width == 0)
-    {
-      mapperInput = data;
-    }
-    else
-    {
-      // Create a tube (cylinder) around the line
-      auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
-      tubeFilter->SetInputData(data);
-      tubeFilter->SetRadius(width + (item->isSelected() ? 2 : 0));
-      tubeFilter->SetNumberOfSides(30);
-      tubeFilter->Update();
-
-      mapperInput->DeepCopy(tubeFilter->GetOutput());
-    }
-
-    auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputData(mapperInput);
-    mapper->Update();
-
     auto color = m_colorEngine->color(segmentation);
-    double rgba[4];
-    SegmentationSkeletonPipelineBase::s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
+    auto hue   = segmentation->category()->color().hue();
+    auto data  = readLockSkeleton(segmentation->output())->skeleton();
+    auto width = segmentation->isSelected() ? 2 : 1;
+    width *= SegmentationSkeletonPoolSettings::getWidth(state) + 1;
 
-    auto actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    actor->GetProperty()->SetLineWidth(width);
-    actor->Modified();
+    auto cellIndexes  = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("LineIndexes"));
+    auto edgeIndexes  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeIndexes"));
+    auto strokeColors = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeColor"));
+    auto strokeTypes  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeType"));
 
-    actors << actor;
-
-    if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
+    if(!cellIndexes || !strokeColors || !strokeTypes || !edgeIndexes)
     {
-      auto labelPoints = vtkSmartPointer<vtkPoints>::New();
-      auto labelText   = vtkSmartPointer<vtkStringArray>::New();
-      labelText->SetName("Labels");
+      qWarning() << "Bad polydata for" << segmentation->data().toString();
+      qWarning() << "Could extract array for cellIndexes: " << (cellIndexes == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for edgeIndexes: " << (edgeIndexes == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for strokeColors: " << (strokeColors == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for strokeTypes: " << (strokeTypes == nullptr ? "false" : "true");
 
-      auto labels = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Annotations"));
+      return actors;
+    }
 
-      if(!labels) return actors;
+    auto solidColors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    solidColors->SetNumberOfComponents(3);
 
-      for(int i = 0; i < labels->GetNumberOfValues(); ++i)
+    auto dashedColors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    dashedColors->SetNumberOfComponents(3);
+
+    auto solidCells = vtkSmartPointer<vtkCellArray>::New();
+    auto dashedCells = vtkSmartPointer<vtkCellArray>::New();
+
+    auto solidChanges = vtkSmartPointer<vtkIntArray>::New();
+    solidChanges->SetName("ChangeColor");
+    auto dashedChanges = vtkSmartPointer<vtkIntArray>::New();
+    dashedChanges->SetName("ChangeColor");
+
+    data->GetLines()->InitTraversal();
+    for(int i = 0; i < data->GetNumberOfLines(); ++i)
+    {
+      auto idList = vtkSmartPointer<vtkIdList>::New();
+      data->GetLines()->GetNextCell(idList);
+
+      if(idList->GetNumberOfIds() != 2) continue;
+
+      auto index = edgeIndexes->GetValue(cellIndexes->GetValue(i));
+      auto lineHue = strokeColors->GetValue(index);
+      double rgba[4];
+
+      if(hue == lineHue)
       {
-        if(!labels->GetValue(i).empty())
-        {
-          labelPoints->InsertNextPoint(data->GetPoint(i));
-          labelText->InsertNextValue(labels->GetValue(i));
-        }
+        s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
+      }
+      else
+      {
+        auto custom = QColor::fromHsv(lineHue, 255, 255);
+        s_highlighter.lut(custom, item->isSelected())->GetTableValue(1,rgba);
       }
 
-      auto labelsData = vtkSmartPointer<vtkPolyData>::New();
-      labelsData->SetPoints(labelPoints);
-      labelsData->GetPointData()->AddArray(labelText);
+      auto line = vtkSmartPointer<vtkLine>::New();
+      line->GetPointIds()->SetId(0, idList->GetId(0));
+      line->GetPointIds()->SetId(1, idList->GetId(1));
 
-      auto property = vtkSmartPointer<vtkTextProperty>::New();
-      property->SetBold(true);
-      property->SetFontFamilyToArial();
-      property->SetFontSize(15);
-      property->SetJustificationToCentered();
-
-      auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
-      labelFilter->SetInputData(labelsData);
-      labelFilter->SetLabelArrayName("Labels");
-      labelFilter->SetTextProperty(property);
-      labelFilter->Update();
-
-      auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
-      labelMapper->SetInputConnection(labelFilter->GetOutputPort());
-      labelMapper->SetGeneratePerturbedLabelSpokes(true);
-      labelMapper->SetBackgroundColor(rgba[0]*0.6, rgba[1]*0.6, rgba[2]*0.6);
-      labelMapper->SetPlaceAllLabels(true);
-      labelMapper->SetShapeToRoundedRect();
-      labelMapper->SetStyleToFilled();
-
-      auto labelActor = vtkSmartPointer<vtkActor2D>::New();
-      labelActor->SetMapper(labelMapper);
-
-      actors << labelActor;
+      if(strokeTypes->GetValue(index) == 0)
+      {
+        solidColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
+        solidCells->InsertNextCell(line);
+        solidChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+      }
+      else
+      {
+        dashedColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
+        dashedCells->InsertNextCell(line);
+        dashedChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+      }
     }
+
+    auto solidData = vtkSmartPointer<vtkPolyData>::New();
+    solidData->SetPoints(data->GetPoints());
+    solidData->SetLines(solidCells);
+    solidData->GetCellData()->SetScalars(solidColors);
+    solidData->GetCellData()->AddArray(solidChanges);
+
+    auto dashedData = vtkSmartPointer<vtkPolyData>::New();
+    dashedData->SetPoints(data->GetPoints());
+    dashedData->SetLines(dashedCells);
+    dashedData->GetCellData()->SetScalars(dashedColors);
+    dashedData->GetCellData()->AddArray(dashedChanges);
+
+    auto solidMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    solidMapper->SetInputData(solidData);
+    solidMapper->Update();
+
+    auto dashedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    dashedMapper->SetInputData(dashedData);
+    dashedMapper->Update();
+
+    auto solidActor = vtkSmartPointer<vtkActor>::New();
+    solidActor->SetMapper(solidMapper);
+    solidActor->GetProperty()->SetLineWidth(width);
+    solidActor->Modified();
+
+    auto dashedActor = vtkSmartPointer<vtkActor>::New();
+    dashedActor->SetMapper(dashedMapper);
+    dashedActor->GetProperty()->SetLineWidth(width);
+    dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
+    dashedActor->Modified();
+
+    actors << solidActor << dashedActor;
+
+    QStringList ids;
+    auto edgeNumbers  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
+    auto strokeNames  = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
+
+    if(!edgeNumbers || !strokeNames)
+    {
+      qWarning() << "Bad polydata for" << segmentation->data().toString();
+      qWarning() << "Could extract array for edgeNumbers: " << (edgeNumbers == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for strokeNames: " << (strokeNames == nullptr ? "false" : "true");
+      return actors;
+    }
+
+    auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+    auto labelText   = vtkSmartPointer<vtkStringArray>::New();
+    labelText->SetName("Labels");
+
+    data->GetLines()->InitTraversal();
+    for(int i = 0; i < data->GetNumberOfLines(); ++i)
+    {
+      auto idList = vtkSmartPointer<vtkIdList>::New();
+      data->GetLines()->GetNextCell(idList);
+
+      auto index = cellIndexes->GetValue(i);
+      auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str()) + " " + QString::number(edgeNumbers->GetValue(index));
+      if(ids.contains(text)) continue;
+      ids << text;
+
+      labelPoints->InsertNextPoint(data->GetPoint(idList->GetId(1)));
+      labelText->InsertNextValue(text.toStdString().c_str());
+    }
+
+    auto labelsData = vtkSmartPointer<vtkPolyData>::New();
+    labelsData->SetPoints(labelPoints);
+    labelsData->GetPointData()->AddArray(labelText);
+
+    auto property = vtkSmartPointer<vtkTextProperty>::New();
+    property->SetBold(true);
+    property->SetFontFamilyToArial();
+    property->SetFontSize(15);
+    property->SetJustificationToCentered();
+
+    auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+    labelFilter->SetInputData(labelsData);
+    labelFilter->SetLabelArrayName("Labels");
+    labelFilter->SetTextProperty(property);
+    labelFilter->Update();
+
+    auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+    labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+    labelMapper->SetGeneratePerturbedLabelSpokes(true);
+    labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetPlaceAllLabels(true);
+    labelMapper->SetShapeToRoundedRect();
+    labelMapper->SetStyleToFilled();
+
+    auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+    labelActor->SetMapper(labelMapper);
+    labelActor->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
+
+    actors << labelActor;
   }
 
   return actors;

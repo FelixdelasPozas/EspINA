@@ -31,9 +31,9 @@ using namespace ESPINA::GUI::Representations;
 
 //--------------------------------------------------------------------
 ParallelUpdaterTask::ParallelUpdaterTask(const RepresentationPipeline::ActorsMap& updateList,
-                                         const RepresentationState& settings,
-                                         SchedulerSPtr scheduler,
-                                         RepresentationPipelineSPtr pipeline)
+                                         const RepresentationState&               settings,
+                                         SchedulerSPtr                            scheduler,
+                                         RepresentationPipelineSPtr               pipeline)
 : Task        {scheduler}
 , m_updateList(updateList)
 , m_settings  (settings)

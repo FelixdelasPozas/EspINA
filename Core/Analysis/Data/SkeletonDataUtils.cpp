@@ -29,6 +29,7 @@
 // Qt
 #include <QtGlobal>
 #include <QMap>
+#include <QSet>
 
 // VTK
 #include <vtkPolyData.h>
@@ -41,132 +42,223 @@
 #include <vtkType.h>
 #include <vtkStringArray.h>
 #include <vtkDoubleArray.h>
+#include <vtkCellData.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 
 //--------------------------------------------------------------------
-Core::SkeletonNodes Core::toNodes(const vtkSmartPointer<vtkPolyData> skeleton)
+Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
 {
-  if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonNodes();
+  if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonDefinition();
 
+  SkeletonDefinition result;
+
+  // edges information
+  auto edgeIndexes = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeIndexes"));
+  auto edgeNumbers = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
+  Q_ASSERT(edgeIndexes && edgeNumbers && (edgeIndexes->GetNumberOfTuples() == edgeNumbers->GetNumberOfTuples()));
+
+  for(int i = 0; i < edgeIndexes->GetNumberOfTuples(); ++i)
+  {
+    SkeletonEdge edge;
+    edge.strokeIndex = edgeIndexes->GetValue(i);
+    edge.strokeNumber = edgeNumbers->GetValue(i);
+
+    result.edges << edge;
+  }
+
+  // strokes information.
+  auto strokeNames  = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeName"));
+  auto strokeColors = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeColor"));
+  auto strokeTypes  = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeType"));
+  auto strokeUses   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeUse"));
+  auto numbers      = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Numbers"));
+  Q_ASSERT(strokeNames && strokeColors && strokeTypes && strokeUses && numbers);
+  Q_ASSERT(strokeNames->GetNumberOfValues() == strokeColors->GetNumberOfTuples());
+  Q_ASSERT(strokeNames->GetNumberOfValues() == strokeTypes->GetNumberOfTuples());
+  Q_ASSERT(strokeNames->GetNumberOfValues() == strokeUses->GetNumberOfTuples());
+  Q_ASSERT(strokeNames->GetNumberOfValues() == numbers->GetNumberOfTuples());
+
+  for(int i = 0; i < strokeNames->GetNumberOfValues(); ++i)
+  {
+    SkeletonStroke stroke;
+    stroke.name       = QString::fromLocal8Bit(strokeNames->GetValue(i).c_str());
+    stroke.colorHue   = strokeColors->GetValue(i);
+    stroke.type       = strokeTypes->GetValue(i);
+    stroke.useMeasure = (strokeUses->GetValue(i) == 0 ? true : false);
+
+    result.count.insert(stroke, numbers->GetValue(i));
+    result.strokes << stroke;
+  }
+
+  // nodes information.
   auto points = skeleton->GetPoints();
   auto lines  = skeleton->GetLines();
-  auto labels = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Annotations"));
-  auto idList = vtkSmartPointer<vtkIdList>::New();
 
-  SkeletonNodes nodes;
-  // get positions and annotations.
   for(int i = 0; i < points->GetNumberOfPoints(); ++i)
   {
     SkeletonNode *node = new SkeletonNode{points->GetPoint(i)};
-    node->id = QString(labels->GetValue(i).c_str());
-    nodes << node;
+
+    result.nodes << node;
   }
 
-  // get connections
+  auto cellIndexes = vtkIntArray::SafeDownCast(skeleton->GetCellData()->GetAbstractArray("LineIndexes"));
+  Q_ASSERT(cellIndexes);
+
+  // get connections and stroke values.
   lines->InitTraversal();
-  while (lines->GetNextCell(idList))
+  for(int i = 0; i < lines->GetNumberOfCells(); ++i)
   {
+    auto idList = vtkSmartPointer<vtkIdList>::New();
+    lines->GetNextCell(idList);
+    auto edgeIndex = cellIndexes->GetValue(i);
+
     if (idList->GetNumberOfIds() != 2) continue;
 
     vtkIdType data[2];
     data[0] = idList->GetId(0);
     data[1] = idList->GetId(1);
 
-    nodes.at(data[0])->connections << nodes.at(data[1]);
-    nodes.at(data[1])->connections << nodes.at(data[0]);
+    result.nodes.at(data[0])->connections.insert(result.nodes.at(data[1]), edgeIndex);
+    result.nodes.at(data[1])->connections.insert(result.nodes.at(data[0]), edgeIndex);
   }
 
-  return nodes;
+  return result;
 }
 
 //--------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonNodes &nodes)
+vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
 {
-  auto points = vtkSmartPointer<vtkPoints>::New();
-  points->SetNumberOfPoints(nodes.size());
-  auto lines  = vtkSmartPointer<vtkCellArray>::New();
-  auto ids    = vtkSmartPointer<vtkStringArray>::New();
-  ids->SetName("Annotations");
-  ids->SetNumberOfValues(nodes.size());
+  // saves stroke information.
+  auto strokeNames = vtkSmartPointer<vtkStringArray>::New();
+  strokeNames->SetName("StrokeName");
+  strokeNames->SetNumberOfComponents(1);
+  strokeNames->SetNumberOfValues(skeleton.strokes.size());
+
+  // saves stroke hue values.
+  auto strokeColors = vtkSmartPointer<vtkIntArray>::New();
+  strokeColors->SetName("StrokeColor");
+  strokeColors->SetNumberOfComponents(1);
+  strokeColors->SetNumberOfValues(skeleton.strokes.size());
+
+  // saves stroke type.
+  auto strokeTypes = vtkSmartPointer<vtkIntArray>::New();
+  strokeTypes->SetName("StrokeType");
+  strokeTypes->SetNumberOfComponents(1);
+  strokeTypes->SetNumberOfValues(skeleton.strokes.size());
+
+  // saves stroke use boolean.
+  auto strokeUses = vtkSmartPointer<vtkIntArray>::New();
+  strokeUses->SetName("StrokeUse");
+  strokeUses->SetNumberOfComponents(1);
+  strokeUses->SetNumberOfValues(skeleton.strokes.size());
+
+  auto numbers = vtkSmartPointer<vtkIntArray>::New();
+  numbers->SetName("Numbers");
+  numbers->SetNumberOfComponents(1);
+  numbers->SetNumberOfValues(skeleton.strokes.size());
+
+  for(int i = 0; i < skeleton.strokes.size(); ++i)
+  {
+    auto stroke = skeleton.strokes.at(i);
+
+    strokeNames->SetValue(i, stroke.name.toStdString().c_str());
+    strokeColors->SetValue(i, stroke.colorHue);
+    strokeTypes->SetValue(i, stroke.type);
+    strokeUses->SetValue(i, stroke.useMeasure == true ? 0 : 1);
+    numbers->SetValue(i, skeleton.count[stroke]);
+  }
+
+  // save edge numbers
+  auto edgeNumbers = vtkSmartPointer<vtkIntArray>::New();
+  edgeNumbers->SetName("EdgeNumbers");
+  edgeNumbers->SetNumberOfComponents(1);
+  edgeNumbers->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge indexes
+  auto edgeIndexes = vtkSmartPointer<vtkIntArray>::New();
+  edgeIndexes->SetName("EdgeIndexes");
+  edgeIndexes->SetNumberOfComponents(1);
+  edgeIndexes->SetNumberOfValues(skeleton.edges.size());
+
+  for(int i = 0; i < skeleton.edges.size(); ++i)
+  {
+    auto edge = skeleton.edges.at(i);
+
+    edgeIndexes->SetValue(i, edge.strokeIndex);
+    edgeNumbers->SetValue(i, edge.strokeNumber);
+  }
+
+  // save terminal points
   auto terminal = vtkSmartPointer<vtkDoubleArray>::New();
   terminal->SetNumberOfComponents(3);
   terminal->SetName("TerminalNodes");
 
-  // positions and annotations.
+  // saves nodes coords
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetNumberOfPoints(skeleton.nodes.size());
+
+  // save node information.
   QMap<SkeletonNode *, vtkIdType> locator;
-  for(vtkIdType i = 0; i < nodes.size(); ++i)
+  for(vtkIdType i = 0; i < skeleton.nodes.size(); ++i)
   {
-    auto node = nodes.at(static_cast<int>(i));
+    auto node = skeleton.nodes.at(static_cast<int>(i));
     points->SetPoint(i, node->position);
-    ids->SetValue(i, node->id.toStdString().c_str());
+
     locator.insert(node, i);
     if(node->connections.size() == 1) terminal->InsertNextTuple(node->position);
   }
 
   QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
+  auto cellIndexes = vtkSmartPointer<vtkIntArray>::New();
+  cellIndexes->SetName("LineIndexes");
+  cellIndexes->SetNumberOfComponents(1);
 
   // build locator to avoid changing the nodes data.
-  for (auto node : nodes)
+  for(auto node: skeleton.nodes)
   {
     relationsLocator.insert(locator[node], QList<vtkIdType>());
 
-    for (auto connectedNode : node->connections)
+    for(auto connectedNode: node->connections.keys())
     {
       if(connectedNode == node) continue;
       relationsLocator[locator[node]] << locator[connectedNode];
     }
   }
 
-  for (auto nodeId : relationsLocator.keys())
+  // saves nodes connections.
+  auto lines  = vtkSmartPointer<vtkCellArray>::New();
+  for(auto nodeId: relationsLocator.keys())
   {
-    for (auto connectionId : relationsLocator[nodeId])
+    for(auto connectionId: relationsLocator[nodeId])
     {
       auto line = vtkSmartPointer<vtkLine>::New();
       line->GetPointIds()->SetId(0, nodeId);
       line->GetPointIds()->SetId(1, connectionId);
       lines->InsertNextCell(line);
 
+      cellIndexes->InsertNextValue(locator.key(nodeId)->connections.value(locator.key(connectionId)));
+
       // remove duplicated lines
-      relationsLocator[connectionId].removeAll(nodeId);
+      relationsLocator[connectionId].removeOne(nodeId);
     }
   }
 
   auto polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->SetPoints(points);
   polyData->SetLines(lines);
-  polyData->GetPointData()->AddArray(ids);
+  polyData->GetPointData()->AddArray(strokeNames);
+  polyData->GetPointData()->AddArray(strokeColors);
+  polyData->GetPointData()->AddArray(strokeTypes);
+  polyData->GetPointData()->AddArray(strokeUses);
+  polyData->GetPointData()->AddArray(numbers);
   polyData->GetPointData()->AddArray(terminal);
+  polyData->GetPointData()->AddArray(edgeIndexes);
+  polyData->GetPointData()->AddArray(edgeNumbers);
+  polyData->GetCellData()->AddArray(cellIndexes);
 
   return polyData;
-}
-
-//--------------------------------------------------------------------
-void Core::annotateNodes(SkeletonNodes nodes)
-{
-  int number = 0;
-  for(auto node: nodes)
-  {
-    node->id.clear();
-    if(node->connections.size() != 2)
-    {
-      node->id = QString::number(++number);
-    }
-  }
-
-  int loopNumber = 0;
-  for(auto component: Core::connectedComponents(nodes))
-  {
-    // annotates loops
-    for(auto path: Core::paths(component))
-    {
-      if(path.note == "Loop" && path.begin->id.isEmpty())
-      {
-        path.begin->id = QString("Loop %1").arg(++loopNumber);
-      }
-    }
-  }
 }
 
 //--------------------------------------------------------------------
@@ -210,7 +302,7 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
   {
     pos_i = nodes[i]->position;
 
-    auto connections = nodes[i]->connections;
+    auto connections = nodes[i]->connections.keys();
     for(int j = 0; j < connections.size(); ++j)
     {
       pos_j = nodes[locator[connections[j]]]->position;
@@ -266,24 +358,23 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
-bool Core::operator==(const SkeletonNode &left, const SkeletonNode &right)
+bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 {
-  return ((::memcmp(left.position, right.position, 3*sizeof(double))) &&
-          (left.connections == right.connections)                     &&
-          (left.id == right.id));
+  return ((::memcmp(position, other.position, 3*sizeof(double))) &&
+          (connections == other.connections));
 }
 
 //--------------------------------------------------------------------
-bool Core::operator==(const Core::Path &left, const Core::Path &right)
+bool Core::Path::operator==(const Core::Path &other) const
 {
   auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
 
-  if(left.seen.size() != right.seen.size()) return false;
+  if(seen.size() != other.seen.size()) return false;
 
-  if((left.begin == right.end && left.end == right.begin) || (left.end == right.end && left.begin == right.begin))
+  if((begin == other.end && end == other.begin) || (end == other.end && begin == other.begin))
   {
-    auto seen1 = left.seen;
-    auto seen2 = right.seen;
+    auto seen1 = seen;
+    auto seen2 = other.seen;
 
     qSort(seen1.begin(), seen1.end(), lessThan);
     qSort(seen2.begin(), seen2.end(), lessThan);
@@ -295,203 +386,156 @@ bool Core::operator==(const Core::Path &left, const Core::Path &right)
 }
 
 //--------------------------------------------------------------------
-ESPINA::Core::PathList Core::paths(const SkeletonNodes& skeleton)
+ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
 {
   PathList result, stack;
 
-  auto checkIfDuplicated = [] (const Path currentPath, const PathList result)
+  // remove loops to itself
+  for(auto node: nodes)
   {
-    for(auto path: result)
+    if(node->connections.contains(node))
     {
-      if(path == currentPath) return true;
+      node->connections.remove(node);
     }
-    return false;
+  }
+
+  if(nodes.isEmpty()) return result;
+
+  if(nodes.size() == 1)
+  {
+    struct Path path;
+    path.begin = path.end = nodes.first();
+    path.seen << path.begin << path.begin;
+    path.note = QString("Isolated node");
+
+    result << path;
+    return result;
+  }
+
+  QMap<int, QSet<SkeletonNode *>> pathNodes;
+  for(auto node: nodes)
+  {
+    for(auto value: node->connections.values())
+    {
+      pathNodes[value] << node;
+    }
+  }
+
+  auto searchBegin = [](Path &path, const QSet<SkeletonNode *> set, const int edge)
+  {
+    for(auto node: set)
+    {
+      auto count = 0;
+      for(auto connection: node->connections.keys())
+      {
+        if(edge == node->connections[connection]) ++count;
+      }
+
+      if(count == 1)
+      {
+        path.begin = node;
+        path.end   = node;
+        return;
+      }
+    }
   };
 
-  if(skeleton.isEmpty()) return result;
-
-  if(skeleton.size() == 1)
+  auto buildPath = [](Path &path, QSet<SkeletonNode *> set, const int edge)
   {
-    struct Path path;
-    path.begin = path.end = skeleton.first();
-    path.seen << path.begin << path.begin;
-    path.begin->id = "Isolated";
-
-    result << path;
-    return result;
-  }
-
-  SkeletonNode *first = nullptr;
-  for(auto node: skeleton)
-  {
-    if(node->connections.size() != 2)
+    while(path.seen.size() != set.size())
     {
-      first = node;
-      break;
-    }
-  }
+      auto oldEnd = path.end;
 
-  if(first == nullptr)
-  {
-    // its a closed loop
-    struct Path path;
-    path.begin = path.end = skeleton.first();
-    path.seen = skeleton;
-    path.seen << skeleton.first();
-    path.note = "Loop";
-
-    result << path;
-    return result;
-  }
-
-  for(auto node: first->connections)
-  {
-    if(node == first) continue;
-
-    struct Path path;
-    path.begin = first;
-    path.end = node;
-    path.seen << first;
-
-    stack << path;
-  }
-
-  QList<Core::SkeletonNode *> alreadyExpanded;
-
-  while(!stack.isEmpty())
-  {
-    auto currentPath = stack.takeFirst();
-    bool finished = false;
-
-    if(currentPath.begin == currentPath.end)
-    {
-      currentPath.seen << currentPath.end;
-      currentPath.note = "Loop";
-      if(!checkIfDuplicated(currentPath, result))
+      for(auto connection: path.end->connections.keys())
       {
-        result << currentPath;
-      }
-      continue;
-    }
-
-    while(!finished)
-    {
-      if(currentPath.begin == currentPath.end)
-      {
-        currentPath.note = "Loop";
-        currentPath.seen << currentPath.end;
-
-        if(!checkIfDuplicated(currentPath, result))
+        if(path.end->connections[connection] == edge && (path.seen.isEmpty() || path.seen.last() != connection))
         {
-          result << currentPath;
+          path.seen << path.end;
+          path.end = connection;
+          break;
         }
-        break;
       }
 
-      switch(currentPath.end->connections.size())
+      if(path.end == oldEnd)
       {
-        case 1:
-          {
-            currentPath.seen << currentPath.end;
-            if(!checkIfDuplicated(currentPath, result))
-            {
-              result << currentPath;
-            }
-            finished = true;
-          }
-          break;
-        case 2:
-          {
-            auto node = currentPath.end->connections.at(0) == currentPath.seen.last() ? currentPath.end->connections.at(1) : currentPath.end->connections.at(0);
-            currentPath.seen << currentPath.end;
-            currentPath.end = node;
-
-            if(currentPath.end == currentPath.begin)
-            {
-              currentPath.seen << currentPath.end;
-              currentPath.note = "Loop";
-              if(!checkIfDuplicated(currentPath, result))
-              {
-                result << currentPath;
-              }
-              finished = true;
-            }
-          }
-          break;
-        default:
-          {
-            Path toResult;
-            toResult.begin = currentPath.begin;
-            toResult.end   = currentPath.end;
-            toResult.seen  = currentPath.seen;
-            toResult.seen << currentPath.end;
-            toResult.note  = (currentPath.begin == currentPath.end ? "Loop" : "");
-
-            if(!checkIfDuplicated(toResult, result))
-            {
-              result << toResult;
-            }
-
-            if(!alreadyExpanded.contains(currentPath.end))
-            {
-              alreadyExpanded << currentPath.end;
-              for(auto node: currentPath.end->connections)
-              {
-                if(node == currentPath.seen.last()) continue;
-
-                Path toStack;
-                toStack.begin = currentPath.end;
-                toStack.seen << currentPath.end;
-                toStack.end   = node;
-
-                toStack.seen << node;
-                if(!checkIfDuplicated(toStack, result))
-                {
-                  toStack.seen.takeLast();
-                  stack << toStack;
-                }
-              }
-            }
-
-            finished = true;
-          }
-          break;
+        path.seen << path.end;
+        return;
       }
     }
+  };
+
+  for(auto group: pathNodes.values())
+  {
+    auto key = pathNodes.key(group);
+    Path path;
+
+    searchBegin(path, group, key);
+
+    if(path.begin != nullptr)
+    {
+      path.note  = strokeName(edges.at(key), strokes);
+    }
+    else
+    {
+      path.begin = (*group.begin());
+      path.end   = path.begin;
+      path.note  = "Loop " + strokeName(edges.at(key), strokes);
+    }
+
+    buildPath(path, group, key);
+
+    if(path.seen.size() != group.size())
+    {
+      path.note += "(Malformed)";
+    }
+
+    result << path;
   }
 
   return result;
 }
 
 //--------------------------------------------------------------------
-QDebug Core::operator <<(QDebug stream, const SkeletonNodes& skeleton)
+QDebug Core::operator <<(QDebug stream, const SkeletonDefinition& skeleton)
 {
-  stream << "Skeleton:\n- Size:" << skeleton.size() << "nodes.";
+  stream << "Skeleton:\n- Size:" << skeleton.nodes.size() << "nodes.";
 
-  auto components = Core::connectedComponents(skeleton);
+  auto strokes = skeleton.strokes;
+
+  stream << "\nNumber of strokes:" << strokes.size();
+
+  for(int i = 0; i < strokes.size(); ++i)
+  {
+    auto stroke = strokes.at(i);
+    stream << "\n\t" << stroke.name << ": color" << stroke.colorHue << ", type" << (stroke.type == 0 ? "solid" : "dashed") << ", use measure" << stroke.useMeasure;
+  }
+
+  auto components = Core::connectedComponents(skeleton.nodes);
 
   stream << "\n- connected components:" << components.size();
 
   for(auto component: components)
   {
-    auto pathList = Core::paths(component);
+    auto pathList = Core::paths(skeleton.nodes, skeleton.edges, skeleton.strokes);
 
     stream << "\n- component" << components.indexOf(component) + 1 << "paths:" << pathList.size();
-    for(auto path: Core::paths(component))
+    for(auto path: pathList)
     {
       stream << "\n    path" << pathList.indexOf(path) +1 << path;
     }
   }
+
   QStringList nodeNames;
-  for(auto node: skeleton)
+  int count = 0;
+  for(auto node: skeleton.nodes)
   {
-    if(!node->id.isEmpty())
+    if(node->connections.size() == 1)
     {
-      nodeNames << node->id;
+      ++count;
     }
   }
 
-  stream << "\n- relevant nodes number:" << nodeNames.size() << nodeNames;
+  stream << "\n- relevant nodes number:" << count;
 
   return stream;
 }
@@ -499,8 +543,15 @@ QDebug Core::operator <<(QDebug stream, const SkeletonNodes& skeleton)
 //--------------------------------------------------------------------
 QDebug Core::operator <<(QDebug stream, const struct Path& path)
 {
-  stream << "Path " << path.begin->id << "<->" << path.end->id << " - length: "
-         << path.seen.size() << " nodes. Notes: " << (path.note.isEmpty() ? "None" : path.note);
+  if(path.begin->connections.empty())
+  {
+    stream << "Path is an isolated node";
+  }
+  else
+  {
+    auto edge = path.seen.at(0)->connections[path.seen.at(1)];
+    stream << "Path stroke index:" << edge << ", path size:" << path.seen.size() << "Note:" << (path.note.isEmpty() ? "None" : path.note);
+  }
 
   return stream;
 }
@@ -517,7 +568,7 @@ QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skelet
     {
       visited.insert(visitor);
       visitedTotal.insert(visitor);
-      for(auto connection: visitor->connections)
+      for(auto connection: visitor->connections.keys())
       {
         visit(connection);
       }
@@ -587,7 +638,7 @@ QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
     {
       if(!visited.isEmpty()) lastVisited = visited.last();
       visited << visitor;
-      for(auto connection: visitor->connections)
+      for(auto connection: visitor->connections.keys())
       {
         if(connection == lastVisited) continue;
         visit(connection, visited);
@@ -609,4 +660,113 @@ QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
   visit(skeleton.first(), visited);
 
   return result;
+}
+
+//--------------------------------------------------------------------
+void Core::registerSkeletonDataOperators()
+{
+  qRegisterMetaTypeStreamOperators<SkeletonStroke>("SkeletonStroke");
+}
+
+//--------------------------------------------------------------------
+QDataStream& operator <<(QDataStream& out, const ESPINA::Core::SkeletonStroke& stroke)
+{
+  out << stroke.name << stroke.colorHue << stroke.type << stroke.useMeasure;
+
+  return out;
+}
+
+//--------------------------------------------------------------------
+QDataStream& operator >>(QDataStream& in, ESPINA::Core::SkeletonStroke& stroke)
+{
+  in >> stroke.name;
+  in >> stroke.colorHue;
+  in >> stroke.type;
+  in >> stroke.useMeasure;
+
+  return in;
+}
+
+//--------------------------------------------------------------------
+void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
+{
+  QMap<int, QSet<int>> recount;
+
+  for(auto node: skeleton.nodes)
+  {
+    for(auto connection: node->connections.values())
+    {
+      auto edge = skeleton.edges.at(connection);
+
+      recount[edge.strokeIndex] << edge.strokeNumber;
+    }
+  }
+
+  auto maximum = [](QSet<int> set)
+  {
+    int result = -1;
+    for(auto element: set)
+    {
+      if(result < element) result = element;
+    }
+
+    return result;
+  };
+
+  auto firstMissing = [maximum](QSet<int> set)
+  {
+    for(int i = 1; i <= maximum(set); ++i)
+    {
+      if(!set.contains(i)) return i;
+    }
+
+    return -1;
+  };
+
+  auto nextAfterMissing = [maximum](QSet<int> set, const int element)
+  {
+    if(element == -1) return element;
+
+    for(int i = element + 1; i <= maximum(set); ++i)
+    {
+      if(set.contains(i)) return i;
+    }
+
+    return -1;
+  };
+
+  for(auto index: recount.keys())
+  {
+    auto missing = firstMissing(recount[index]);
+    while(missing != -1)
+    {
+      const auto element = nextAfterMissing(recount[index], missing);
+
+      for(auto &edge: skeleton.edges)
+      {
+        if(edge.strokeIndex == index && edge.strokeNumber == element)
+        {
+          edge.strokeNumber = missing;
+          break;
+        }
+      }
+
+      recount[index] << missing;
+      recount[index].remove(element);
+
+      missing = firstMissing(recount[index]);
+    }
+  }
+
+  for(int i = 0; i < skeleton.strokes.size(); ++i)
+  {
+    auto stroke = skeleton.strokes.at(i);
+    skeleton.count[stroke] = recount.keys().contains(i) ? recount[i].size() : 0;
+  }
+}
+
+//--------------------------------------------------------------------
+const QString ESPINA::Core::strokeName(const Core::SkeletonEdge& edge, const Core::SkeletonStrokes& strokes)
+{
+  return QString("%1 %2").arg(strokes.at(edge.strokeIndex).name).arg(edge.strokeNumber);
 }

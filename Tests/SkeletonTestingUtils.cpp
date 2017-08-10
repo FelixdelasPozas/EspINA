@@ -18,15 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
+
+// Testing
 #include "SkeletonTestingUtils.h"
 
-#include <vtkCellArray.h>
-#include <vtkPoints.h>
-#include <vtkLine.h>
-#include <vtkIdList.h>
-
+// VTK
 #include <cassert>
 #include <random>
+
+using namespace ESPINA::Core;
 
 vtkSmartPointer<vtkPolyData> ESPINA::Testing::createRandomTestSkeleton(int numberOfNodes)
 {
@@ -35,52 +37,74 @@ vtkSmartPointer<vtkPolyData> ESPINA::Testing::createRandomTestSkeleton(int numbe
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(0, 100);
 
-  auto points = vtkSmartPointer<vtkPoints>::New();
-  points->SetNumberOfPoints(numberOfNodes);
+  SkeletonDefinition skeleton;
 
-  for(vtkIdType i = 0; i < numberOfNodes; ++i)
+  SkeletonStroke stroke;
+  stroke.name = "Stroke";
+  stroke.colorHue = 1;
+  stroke.type = 0;
+  stroke.useMeasure = true;
+
+  skeleton.strokes << stroke;
+
+  SkeletonEdge edge;
+  edge.strokeIndex = 0;
+  edge.strokeNumber = 1;
+
+  skeleton.edges << edge;
+
+  skeleton.count[stroke] = 1;
+
+  for(int i = 0; i < numberOfNodes; ++i)
   {
-    points->SetPoint(i, dis(gen), dis(gen), dis(gen));
+    auto node = new SkeletonNode{dis(gen), dis(gen), dis(gen)};
+
+    if(!skeleton.nodes.isEmpty())
+    {
+      node->connections.insert(skeleton.nodes.last(), 0);
+      skeleton.nodes.last()->connections.insert(node, 0);
+    }
+
+    skeleton.nodes << node;
   }
 
-  auto lines = vtkSmartPointer<vtkCellArray>::New();
-
-  for(vtkIdType i = 0; i < numberOfNodes -1; ++i)
-  {
-    auto line = vtkSmartPointer<vtkLine>::New();
-    line->GetPointIds()->SetId(0, i);
-    line->GetPointIds()->SetId(1, i+1);
-    lines->InsertNextCell(line);
-  }
-
-  auto polyData = vtkSmartPointer<vtkPolyData>::New();
-  polyData->SetPoints(points);
-  polyData->SetLines(lines);
-
-  return polyData;
+  return toPolyData(skeleton);
 }
 
 vtkSmartPointer<vtkPolyData> ESPINA::Testing::createSimpleTestSkeleton()
 {
-  auto points = vtkSmartPointer<vtkPoints>::New();
-  points->SetNumberOfPoints(4);
-  points->SetPoint(0, 0.0, 0.0, 0.0);
-  points->SetPoint(1, 1.0, 0.0, 0.0);
-  points->SetPoint(2, 0.0, 1.0, 0.0);
-  points->SetPoint(3, 0.0, 0.0, 1.0);
+  SkeletonDefinition skeleton;
+  skeleton.nodes << new SkeletonNode{0,0,0};
+  skeleton.nodes << new SkeletonNode{1,0,0};
+  skeleton.nodes << new SkeletonNode{0,1,0};
+  skeleton.nodes << new SkeletonNode{0,0,1};
 
-  auto lines = vtkSmartPointer<vtkCellArray>::New();
-  for(vtkIdType i = 0; i < 3; ++i)
+  SkeletonStroke stroke;
+  stroke.name = "Stroke";
+  stroke.colorHue = 1;
+  stroke.type = 0;
+  stroke.useMeasure = true;
+
+  skeleton.strokes << stroke;
+
+  SkeletonEdge edge;
+  edge.strokeIndex = 0;
+  edge.strokeNumber = 1;
+
+  skeleton.edges << edge;
+
+  skeleton.count[stroke] = 1;
+
+  for(int i = 0; i < skeleton.nodes.size(); ++i)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
-    line->GetPointIds()->SetId(0, i);
-    line->GetPointIds()->SetId(1, i+1);
-    lines->InsertNextCell(line);
+    auto node = skeleton.nodes.at(i);
+
+    if(i != skeleton.nodes.size() - 1)
+    {
+      node->connections.insert(skeleton.nodes.at(i+1), 0);
+      skeleton.nodes.at(i+1)->connections.insert(node, 0);
+    }
   }
 
-  auto polyData = vtkSmartPointer<vtkPolyData>::New();
-  polyData->SetPoints(points);
-  polyData->SetLines(lines);
-
-  return polyData;
+  return toPolyData(skeleton);
 }

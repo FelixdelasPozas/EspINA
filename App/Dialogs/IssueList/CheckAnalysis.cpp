@@ -546,7 +546,8 @@ void CheckSegmentationTask::checkSkeletonProblems() const
   if(m_segmentation->output()->hasData(SkeletonData::TYPE))
   {
     auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
-    auto nodes      = Core::toNodes(skeleton);
+    auto definition = Core::toSkeletonDefinition(skeleton);
+    auto nodes      = definition.nodes;
     auto components = Core::connectedComponents(nodes);
 
     if(components.size() != 1)

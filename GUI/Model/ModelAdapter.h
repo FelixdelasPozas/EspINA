@@ -49,9 +49,25 @@ namespace ESPINA
     SegmentationAdapterSPtr item2;
     NmVector3               point;
 
+    /** \brief Connection struct constructor.
+     *
+     */
     Connection(): item1{nullptr}, item2{nullptr}, point{NmVector3()} {};
+
+    /** \brief Connection struct constructor.
+     * \param[in] seg1 first segmentation.
+     * \param[in] seg2 second segmentation.
+     * \param[in] point connection point.
+     *
+     */
     Connection(const SegmentationAdapterSPtr seg1, const SegmentationAdapterSPtr seg2, const NmVector3 p)
     : item1{seg1}, item2{seg2}, point{p} {};
+
+    /** \brief Operator== for connections.
+     * \param[in] other Connection struct to compare.
+     *
+     */
+    bool operator==(const Connection &other);
   };
   using ConnectionList = QList<Connection>;
 

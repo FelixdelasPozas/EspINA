@@ -998,16 +998,9 @@ void View2D::onCrosshairChanged(const FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 void View2D::moveCamera(const NmVector3 &point)
 {
-  double fp[3];
-  m_renderer->GetActiveCamera()->GetFocalPoint(fp);
-  NmVector3 focalPoint{fp};
+  m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
 
-  if(point != focalPoint)
-  {
-    m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
-
-    refresh();
-  }
+  refresh();
 }
 
 //-----------------------------------------------------------------------------

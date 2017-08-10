@@ -24,6 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
 
@@ -134,18 +135,6 @@ namespace ESPINA
               const NmVector3 &spacing() const
               { return m_spacing; }
 
-              /** \brief Sets the color of the representation.
-               * \param[in] color QColor object.
-               *
-               */
-              void setRepresentationColor(const QColor &color);
-
-              /** \brief Returns the representation color.
-               *
-               */
-              const QColor &representationColor() const
-              { return m_color; }
-
               /** \brief Updates the representation.
                *
                */
@@ -224,12 +213,17 @@ namespace ESPINA
                */
               void BuildRepresentation();
 
+              /** \brief Sets the stroke of the next points.
+               * \param[in] stroke skeleton stroke struct.
+               *
+               */
+              void setStroke(const Core::SkeletonStroke &stroke);
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */
               Nm        m_slice;         /** current slice position in Nm.          */
               Nm        m_shift;         /** actor's shift over the slice position. */
-              QColor    m_color;         /** color of the representation.           */
               NmVector3 m_spacing;       /** representation's spacing.              */
 
               /** \brief Overrides vtkAbstractWidget::cursor().
