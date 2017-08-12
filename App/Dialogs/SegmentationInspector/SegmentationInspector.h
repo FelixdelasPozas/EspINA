@@ -115,44 +115,69 @@ namespace ESPINA
       virtual void closeEvent(QCloseEvent *e) override;
 
     protected slots:
+      /** \brief Removes the given view items from the view. Closes the dialog if there are no more segmentations on the view.
+       * \param[in] segmentations List of view items to remove from the view.
+       *
+       */
       void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
 
     private:
+      /** \brief Helper method to connect the QObject signals to its respective slots.
+       *
+       */
       void connectSignals();
 
+      /** \brief Updates the window title with the names of the inspected segmentations.
+       *
+       */
       void updateWindowTitle();
 
+      /** \brief Initializes the 3D view with the given representation factories.
+       * \param[in] representations Representations factories and buttons.
+       *
+       */
       void initView3D(RepresentationFactorySList representations);
 
+      /** \brief Helper method to initialize the tabular report widget.
+       *
+       */
       void initReport();
 
+      /** \brief Helper method to configure the layout and add the toolbar.
+       *
+       */
       void configureLayout();
 
+      /** \brief Helper method to restore the dialog geometry and position.
+       *
+       */
       void restoreGeometryState();
 
+      /** \brief Helper method to save the dialog geometry and position.
+       *
+       */
       void saveGeometryState();
 
+      /** \brief Helper method to create and return the view layout.
+       *
+       */
       QHBoxLayout *createViewLayout();
 
+      /** \brief Helper method to create and return the report layout.
+       *
+       */
       QHBoxLayout *createReportLayout();
 
     private:
-      static const QString GEOMETRY_SETTINGS_KEY;
-      static const QString INFORMATION_SPLITTER_SETTINGS_KEY;
-
-      SegmentationAdapterList m_segmentations;
-      ChannelAdapterList      m_channels;
-
-      SegmentationAdapterPtr  m_selectedSegmentation;
-
-      ManualPipelineSources m_channelSources;
-      ManualPipelineSources m_segmentationSources;
-
-      RepresentationList m_representations;
-
-      QToolBar           *m_toolbar;
-      View3D              m_view;
-      TabularReport       m_tabularReport;
+      SegmentationAdapterList m_segmentations;        /** list of segmentations in the view.                     */
+      ChannelAdapterList      m_channels;             /** list of channels in the view.                          */
+      SegmentationAdapterPtr  m_selectedSegmentation; /** Pointer to selected segmentation.                      */
+      ManualPipelineSources   m_channelSources;       /** list of segmentations as sources for pipelines.        */
+      ManualPipelineSources   m_segmentationSources;  /** list of channels as sources for pipelines.             */
+      RepresentationList      m_representations;      /** list of view's representations factories and switches. */
+      QToolBar               *m_toolbar;              /** view's toolbar with representations switches.          */
+      View3D                  m_view;                 /** 3D View.                                               */
+      TabularReport           m_tabularReport;        /** Tabular report.                                        */
   };
 
 } // namespace ESPINA

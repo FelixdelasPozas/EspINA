@@ -324,6 +324,7 @@ void SkeletonTool::initTool(bool value)
 
       if(m_item && m_item != getActiveChannel())
       {
+        m_item->setBeingModified(false);
         m_item->clearTemporalRepresentation();
         m_item->invalidateRepresentations();
       }
@@ -499,6 +500,7 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
       undoStack->endMacro();
 
       m_item = segmentation.get();
+      m_item->setBeingModified(true);
 
       // SkeletonInformation extension has dynamic keys so it needs to be created in advance in case
       // raw information asks for keys later.
@@ -532,6 +534,7 @@ void SkeletonTool::onNextButtonPressed()
       widget->initialize(nullptr);
     }
 
+    m_item->setBeingModified(false);
     m_item->clearTemporalRepresentation();
     m_item->invalidateRepresentations();
 

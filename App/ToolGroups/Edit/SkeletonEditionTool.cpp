@@ -450,9 +450,11 @@ void SkeletonEditionTool::onModeChanged(bool value)
     }
   }
 
-  auto enableBoxes = !m_eraseButton->isChecked() && !m_moveButton->isChecked();
-  m_minWidget->setEnabled(enableBoxes);
-  m_maxWidget->setEnabled(enableBoxes);
+  auto enableOtherWidgets = !m_eraseButton->isChecked() && !m_moveButton->isChecked();
+  m_minWidget->setEnabled(enableOtherWidgets);
+  m_maxWidget->setEnabled(enableOtherWidgets);
+  m_strokeButton->setEnabled(enableOtherWidgets);
+  m_strokeCombo->setEnabled(enableOtherWidgets);
 
   updateWidgetsMode();
 }
@@ -550,6 +552,19 @@ void SkeletonEditionTool::onStrokeConfigurationPressed()
 
     onStrokeTypeChanged(std::min(index, STROKES[name].size() - 1));
   }
+}
+
+//--------------------------------------------------------------------
+bool SkeletonEditionTool::selectionIsNotBeingModified(SegmentationAdapterList segmentations)
+{
+  for(auto segmentation: segmentations)
+  {
+    if(segmentation == segmentationPtr(m_item)) continue;
+
+    if(segmentation->isBeingModified()) return false;
+  }
+
+  return true;
 }
 
 //--------------------------------------------------------------------

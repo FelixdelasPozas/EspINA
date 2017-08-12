@@ -187,6 +187,9 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
+  // don't do anything if not properly configured.
+  if(m_managers.isEmpty()) return finalSelection;
+
   auto meshPicker   = vtkSmartPointer<vtkPropPicker>::New();
   auto volumePicker = vtkSmartPointer<vtkVolumePicker>::New();
   auto sceneActors  = m_renderer->GetViewProps();

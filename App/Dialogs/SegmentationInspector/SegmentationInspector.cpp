@@ -49,8 +49,8 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Representations::Utils;
 
-const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
-const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
+const QString GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
+const QString INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segmentations,
@@ -440,7 +440,6 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
       m_toolbar->addAction(action);
     }
   }
-
 }
 
 //------------------------------------------------------------------------

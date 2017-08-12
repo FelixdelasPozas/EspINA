@@ -473,7 +473,7 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
 
     if(path.begin != nullptr)
     {
-      path.note  = strokeName(edges.at(key), strokes);
+      path.note = strokeName(edges.at(key), strokes);
     }
     else
     {
@@ -481,6 +481,9 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
       path.end   = path.begin;
       path.note  = "Loop " + strokeName(edges.at(key), strokes);
     }
+
+    path.edge   = key;
+    path.stroke = edges.at(key).strokeIndex;
 
     buildPath(path, group, key);
 

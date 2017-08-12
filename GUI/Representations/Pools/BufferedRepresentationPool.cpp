@@ -67,8 +67,8 @@ ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
             {
               if (itemActor.GetPointer() == actor)
               {
-                pickedItem = it.key();
-                break;
+                result << it.key();
+                return result;
               }
             }
 
@@ -81,17 +81,11 @@ ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
           {
             if (m_pipeline->pick(item, point))
             {
-              pickedItem = item;
-              break;
+              result << item;
             }
           }
         }
       }
-    }
-
-    if (pickedItem && m_pipeline->pick(pickedItem, point))
-    {
-      result << pickedItem;
     }
   }
 

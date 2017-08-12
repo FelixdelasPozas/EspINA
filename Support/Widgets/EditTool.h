@@ -97,7 +97,7 @@ namespace ESPINA
            * \param[in] segmentations list of segmentations.
            *
            */
-          bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
+          virtual bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
      };
     }
   }

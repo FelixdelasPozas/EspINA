@@ -121,8 +121,8 @@ namespace ESPINA
               {
                 if (itemActor.GetPointer() == actor)
                 {
-                  pickedItem = it.key();
-                  break;
+                  result << it.key();
+                  return result;
                 }
               }
 
@@ -135,17 +135,11 @@ namespace ESPINA
             {
               if (m_pipeline->pick(item, point))
               {
-                pickedItem = item;
-                break;
+                result << item;
               }
             }
           }
         }
-      }
-
-      if (pickedItem && m_pipeline->pick(pickedItem, point))
-      {
-        result << pickedItem;
       }
     }
 

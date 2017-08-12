@@ -34,6 +34,15 @@ ConnectionCountTool::ConnectionCountTool(Support::Context& context)
 }
 
 //--------------------------------------------------------------------
+ConnectionCountTool::~ConnectionCountTool()
+{
+  if(m_dialog)
+  {
+    m_dialog->close();
+  }
+}
+
+//--------------------------------------------------------------------
 void ESPINA::ConnectionCountTool::onPressed(bool value)
 {
   if(!m_dialog)

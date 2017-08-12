@@ -47,8 +47,7 @@ namespace ESPINA
       /** \brief ConnectionCountTool class virtual destructor.
        *
        */
-      virtual ~ConnectionCountTool()
-      {}
+      virtual ~ConnectionCountTool();
 
     private slots:
       /** \brief Displays the dialog with the connections information.

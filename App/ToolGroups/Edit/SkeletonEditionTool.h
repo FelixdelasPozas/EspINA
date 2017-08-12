@@ -143,6 +143,8 @@ namespace ESPINA
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
+      virtual bool selectionIsNotBeingModified(SegmentationAdapterList segmentations) override;
+
       /** \brief Initializes and connects the representation factory.
        *
        */

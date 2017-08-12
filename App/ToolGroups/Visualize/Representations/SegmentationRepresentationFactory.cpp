@@ -72,12 +72,12 @@ Representation SegmentationRepresentationFactory::doCreateRepresentation(Support
   createSkeletonRepresentation(representation, context, supportedViews);
   createMiscellaneousManagers(representation, context, supportedViews);
 
-  if (supportedViews.testFlag(ESPINA::VIEW_2D))
+  if(supportedViews.testFlag(ESPINA::VIEW_2D))
   {
     createContourRepresentation(representation, context);
   }
 
-  if (supportedViews.testFlag(ESPINA::VIEW_3D))
+  if(supportedViews.testFlag(ESPINA::VIEW_3D))
   {
     createMeshRepresentation(representation, context);
     createVolumetricRepresentation(representation, context);

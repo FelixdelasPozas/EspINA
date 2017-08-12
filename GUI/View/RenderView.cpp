@@ -162,7 +162,7 @@ void RenderView::selectPickedItems(int x, int y, bool append)
   }
 
   auto flags = Selector::SelectionFlags(Selector::CHANNEL | Selector::SEGMENTATION);
-  auto pickedItems = pick(flags, x, y);
+  auto pickedItems = pick(flags, x, y, append);
 
   ViewItemAdapterList channels;
   ViewItemAdapterList segmentations;
@@ -419,10 +419,23 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
-    const int x, const int y, bool multiselection) const
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  return pickImplementation(flags, x, y, multiselection);
+  // NOTE: segmentations must have higher priority than stacks.
+  Selector::Selection pickedItems;
+  if(flags.testFlag(Selector::SEGMENTATION))
+  {
+    pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);
+  }
+
+  if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+
+  if(flags.testFlag(Selector::CHANNEL) || flags.testFlag(Selector::SAMPLE))
+  {
+    pickedItems << pickImplementation(flags & ~Selector::SEGMENTATION, x, y, multiselection);
+  }
+
+  return pickedItems;
 }
 
 //-----------------------------------------------------------------------------

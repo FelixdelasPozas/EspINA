@@ -215,11 +215,13 @@ namespace ESPINA
       SkeletonNode *end;
       SkeletonNodes seen;
       QString       note;
+      int           edge;
+      int           stroke;
 
       /** \brief Path struct constructor.
        *
        */
-      Path(): begin{nullptr}, end{nullptr} {};
+      Path(): begin{nullptr}, end{nullptr}, edge{-1}, stroke{-1} {};
 
       /** \brief Returns the length of the path.
        *
