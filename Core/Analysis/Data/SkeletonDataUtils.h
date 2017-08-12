@@ -89,6 +89,15 @@ namespace ESPINA
           return !(*this == other);
         }
 
+        /** \brief Operator < for skeleton strokes.
+         * \param[in] other other skeleton to compare with.
+         *
+         */
+        bool operator<(const SkeletonStroke &other) const
+        {
+           return (name < other.name);
+        }
+
         /** \brief Operator = for skeleton strokes.
          * \param[in] other other skeleton definition.
          *

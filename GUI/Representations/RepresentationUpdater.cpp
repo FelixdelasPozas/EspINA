@@ -161,7 +161,11 @@ void RepresentationUpdater::run()
 
   {
     QReadLocker lock(&m_dataLock);
-    frame = m_frame;
+    frame->time = m_frame->time;
+    frame->crosshair = m_frame->crosshair;
+    frame->resolution = m_frame->resolution;
+    frame->bounds = m_frame->bounds;
+    frame->flags = m_frame->flags;
     settings = m_settings;
   }
 
