@@ -43,6 +43,7 @@
 #include <vtkStringArray.h>
 #include <vtkDoubleArray.h>
 #include <vtkCellData.h>
+#include <vtkMath.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -772,4 +773,16 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 const QString ESPINA::Core::strokeName(const Core::SkeletonEdge& edge, const Core::SkeletonStrokes& strokes)
 {
   return QString("%1 %2").arg(strokes.at(edge.strokeIndex).name).arg(edge.strokeNumber);
+}
+
+//--------------------------------------------------------------------
+double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
+{
+  double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
+  double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
+
+  double cross[3];
+  vtkMath::Cross(vector1, vector2, cross);
+  auto angle = std::atan2(vtkMath::Norm(cross), vtkMath::Dot(vector1, vector2));
+  return vtkMath::DegreesFromRadians(angle);
 }

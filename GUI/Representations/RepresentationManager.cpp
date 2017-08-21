@@ -102,15 +102,18 @@ RepresentationManager::ManagerFlags RepresentationManager::flags() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
-  m_view = view;
-
-  if (isActive())
+  if(!m_view && view)
   {
-    onShow(frame);
+    m_view = view;
 
-    if (hasRepresentations())
+    if (isActive())
     {
-      updateRepresentations(frame);
+      onShow(frame);
+
+      if (hasRepresentations())
+      {
+        updateRepresentations(frame);
+      }
     }
   }
 }

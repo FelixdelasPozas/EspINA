@@ -23,6 +23,7 @@
 #include "ConnectionCount/ConnectionCountTool.h"
 #include "MeasureLength/MeasureLengthTool.h"
 #include "SelectionMeasure/SelectionMeasureTool.h"
+#include "SkeletonInspector/SkeletonInspectorTool.h"
 #include "Reports/ReportsTool.h"
 
 using namespace ESPINA;
@@ -44,8 +45,12 @@ AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context, QWidget *parent)
   addTool(selectionMeasure);
 
   auto connectionCount = std::make_shared<ConnectionCountTool>(context);
-  connectionCount->setOrder("1-0", "2-SKELETON");
+  connectionCount->setOrder("1-0", "2-CONNECTIONS");
   addTool(connectionCount);
+
+  auto skeletonInspector = std::make_shared<SkeletonInspectorTool>(context);
+  skeletonInspector->setOrder("1-0", "4-SKELETONINSPECTOR");
+  addTool(skeletonInspector);
 }
 
 //----------------------------------------------------------------------------

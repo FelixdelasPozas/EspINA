@@ -143,5 +143,6 @@
     <file>connection.svg</file>
     <file>line.svg</file>
     <file>dashed-line.svg</file>
+    <file>skeletonInspector.svg</file>
   </qresource>
 </RCC>

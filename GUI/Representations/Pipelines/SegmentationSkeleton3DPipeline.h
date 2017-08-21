@@ -55,7 +55,7 @@ namespace ESPINA
           {};
 
           virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
-                                                                 const RepresentationState &state) override final;
+                                                                 const RepresentationState &state) override;
       };
 
     } // namespace Representations

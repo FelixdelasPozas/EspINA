@@ -46,9 +46,16 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
 , m_scale              {7}
 {
   setFlag(HAS_ACTORS, false);
+
+  m_points = vtkSmartPointer<vtkPoints>::New();
+
+  m_polyData = vtkSmartPointer<vtkPolyData>::New();
+  m_polyData->SetPoints(m_points);
+
   m_glyph = vtkSmartPointer<vtkGlyph3DMapper>::New();
   m_glyph->SetScalarVisibility(false);
   m_glyph->SetStatic(true);
+  m_glyph->SetInputData(m_polyData);
 
   m_actor = vtkSmartPointer<vtkFollower>::New();
   m_actor->SetMapper(m_glyph);
@@ -58,6 +65,15 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
   connectSignals();
 
   getConnectionData();
+}
+
+//--------------------------------------------------------------------
+ConnectionsManager::~ConnectionsManager()
+{
+  m_actor    = nullptr;
+  m_glyph    = nullptr;
+  m_polyData = nullptr;
+  m_points   = nullptr;
 }
 
 //--------------------------------------------------------------------
@@ -125,7 +141,7 @@ void ConnectionsManager::displayRepresentations(const FrameCSPtr frame)
 {
   updateActor(frame);
 
-  if (!hasActors() && m_connections.size() > 0)
+  if (!hasActors() && hasRepresentations())
   {
     setFlag(HAS_ACTORS, true);
     m_view->addActor(m_actor);
@@ -167,13 +183,16 @@ RepresentationManagerSPtr ConnectionsManager::cloneImplementation()
 //--------------------------------------------------------------------
 void ConnectionsManager::updateActor(const FrameCSPtr frame)
 {
-  auto view2d = view2D_cast(m_view);
-  auto points = vtkSmartPointer<vtkPoints>::New();
+  if(!m_view) return;
+
+  auto view2d  = view2D_cast(m_view);
+  auto spacing = frame->resolution;
+  if(!isValidSpacing(spacing)) return;
+  m_points->Reset();
 
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    auto spacing    = frame->resolution;
     spacing[planeIndex] = 1;
     auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
@@ -212,33 +231,29 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
       if(connection.point[planeIndex] == frame->crosshair[planeIndex])
       {
         connection.point[planeIndex] += view2d->widgetDepth();
-        points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
+        m_points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
       }
     }
   }
   else
   {
-    auto spacing    = frame->resolution;
-    auto max = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    auto min = std::min(spacing[0], std::min(spacing[1], spacing[2]));
 
     auto glyphSource = vtkSmartPointer<vtkSphereSource>::New();
     glyphSource->SetCenter(0.0, 0.0, 0.0);
-    glyphSource->SetRadius(m_scale*max);
+    glyphSource->SetRadius(m_scale*min);
     glyphSource->Update();
 
     m_glyph->SetSourceData(glyphSource->GetOutput());
 
     for(auto connection: m_connections)
     {
-      points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
+      m_points->InsertNextPoint(connection.point[0], connection.point[1], connection.point[2]);
     }
   }
 
-  auto polyData = vtkSmartPointer<vtkPolyData>::New();
-  polyData->SetPoints(points);
-  polyData->Modified();
-
-  m_glyph->SetInputData(polyData);
+  m_points->Modified();
+  m_polyData->Modified();
   m_glyph->Update();
   m_actor->Modified();
 }
@@ -256,6 +271,7 @@ void ConnectionsManager::setRepresentationSize(int size)
   if(isActive() && (size != m_scale))
   {
     m_scale = size;
+
     auto frame = m_view->state().createFrame();
 
     invalidateFrames(frame);

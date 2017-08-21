@@ -32,6 +32,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
+  Dialogs/SkeletonInspector/SkeletonInspector.h
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -49,6 +51,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Analyze/Reports/DistanceInformationReport.h
   ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.h
   ToolGroups/Explore/ResetViewTool.h
   ToolGroups/Explore/PositionMarksTool.h
   ToolGroups/Explore/ZoomRegionTool.h
@@ -105,6 +108,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
+  Dialogs/SkeletonInspector/SkeletonInspector.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/IssueProperty.ui
@@ -148,6 +152,8 @@ set (ESPINA_SOURCES
   Dialogs/Settings/GeneralSettingsDialog.cpp
   Dialogs/Dialog3D/Dialog3D.cpp
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.cpp
+  Dialogs/SkeletonInspector/SkeletonInspector.cpp
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -175,6 +181,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/ReportsTool.cpp
   ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
   ToolGroups/Edit/CODERefineWidget.cpp
   ToolGroups/Edit/CODERefiner.cpp
   ToolGroups/Edit/CODETool.cpp

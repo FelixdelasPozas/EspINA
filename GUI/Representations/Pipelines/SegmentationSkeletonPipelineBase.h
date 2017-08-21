@@ -63,12 +63,12 @@ namespace ESPINA
 
           virtual  void updateColors(RepresentationPipeline::ActorList &actors,
                                      ConstViewItemAdapterPtr            item,
-                                     const RepresentationState         &state) override final;
+                                     const RepresentationState         &state) override;
 
-          virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override final;
+          virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const override;
 
           virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
-                                                          const RepresentationState &settings) override final;
+                                                          const RepresentationState &settings) override;
   
         protected:
           GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** color engine for skeleton representations. */

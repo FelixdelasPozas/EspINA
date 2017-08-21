@@ -67,7 +67,7 @@ void SegmentationSkeletonSwitch::restoreSettings(std::shared_ptr<QSettings> sett
   auto width   = settings->value(SEGMENTATION_SKELETON_WIDTH_KEY,     2).toInt();
   auto show    = settings->value(SEGMENTATION_SKELETON_SHOWIDS_KEY, false).toBool();
 
-  m_settings->setWidth(width);
+  m_settings->setWidth(std::max(1, std::min(width, 5)));
   m_settings->setShowAnnotations(show);
 }
 
@@ -83,9 +83,9 @@ void SegmentationSkeletonSwitch::saveSettings(std::shared_ptr<QSettings> setting
 //---------------------------------------------------------------------
 void SegmentationSkeletonSwitch::onWidthChanged()
 {
-  if(m_settings->width() == m_widthWidget->currentIndex()) return;
+  if(m_settings->width() == m_widthWidget->currentIndex() + 1) return;
 
-  m_settings->setWidth(m_widthWidget->currentIndex());
+  m_settings->setWidth(m_widthWidget->currentIndex() + 1);
 }
 
 //---------------------------------------------------------------------
@@ -99,7 +99,7 @@ void SegmentationSkeletonSwitch::onAnnotationsVisibilityChanged()
 //---------------------------------------------------------------------
 void SegmentationSkeletonSwitch::onSettingsModified()
 {
-  m_widthWidget->setCurrentIndex(m_settings->width());
+  m_widthWidget->setCurrentIndex(m_settings->width() - 1);
   m_annotationsWidget->setChecked(m_settings->showAnnotations());
 
   auto items = m_manager->pools().first()->sources();
@@ -117,7 +117,7 @@ void SegmentationSkeletonSwitch::initWidgets()
 
   m_widthWidget = new QComboBox();
   m_widthWidget->insertItems(0, QStringList{ "Tiny", "Small", "Medium", "Large", "Big" });
-  m_widthWidget->setCurrentIndex(m_settings->width());
+  m_widthWidget->setCurrentIndex(m_settings->width() - 1);
   m_widthWidget->setToolTip(tr("Skeleton representation line width"));
 
   connect(m_widthWidget, SIGNAL(currentIndexChanged(int)),

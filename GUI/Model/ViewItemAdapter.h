@@ -129,12 +129,24 @@ namespace ESPINA {
     Bounds bounds() const
     { return output()->bounds(); }
 
+    /** \brief Sets a new representation pipeline for this item.
+     *
+     */
     void setTemporalRepresentation(RepresentationPipelineSPtr pipeline);
 
+    /** \brief Clears the temporal representation of this item, if any.
+     *
+     */
     void clearTemporalRepresentation();
 
+    /** \brief Returns the temporal representation for this item or null if none.
+     *
+     */
     RepresentationPipelineSPtr temporalRepresentation() const;
 
+    /** \brief Invalidates this item's representations forcing to be computed again.
+     *
+     */
     void invalidateRepresentations();
 
   signals:

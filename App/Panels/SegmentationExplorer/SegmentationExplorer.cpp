@@ -76,7 +76,7 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
                                            QWidget *parent)
 : Panel(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())
-, m_gui   {new GUI()}
+, m_gui   {new SegmentationExplorer::GUI()}
 , m_layout{nullptr}
 {
   setObjectName("SegmentationExplorer");

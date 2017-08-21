@@ -172,8 +172,8 @@ namespace ESPINA
       SegmentationAdapterList m_segmentations;        /** list of segmentations in the view.                     */
       ChannelAdapterList      m_channels;             /** list of channels in the view.                          */
       SegmentationAdapterPtr  m_selectedSegmentation; /** Pointer to selected segmentation.                      */
-      ManualPipelineSources   m_channelSources;       /** list of segmentations as sources for pipelines.        */
-      ManualPipelineSources   m_segmentationSources;  /** list of channels as sources for pipelines.             */
+      ManualPipelineSources   m_channelSources;       /** list of channels as sources for pipelines.             */
+      ManualPipelineSources   m_segmentationSources;  /** list of segmentations as sources for pipelines.        */
       RepresentationList      m_representations;      /** list of view's representations factories and switches. */
       QToolBar               *m_toolbar;              /** view's toolbar with representations switches.          */
       View3D                  m_view;                 /** 3D View.                                               */

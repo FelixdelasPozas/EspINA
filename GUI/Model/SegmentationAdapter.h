@@ -136,8 +136,8 @@ namespace ESPINA
     QPixmap appendImage(const QPixmap& original, const QString& image, bool slim = false) const;
 
   private:
-    SegmentationSPtr    m_segmentation;
-    CategoryAdapterSPtr m_category;
+    SegmentationSPtr    m_segmentation; /** adapted segmentation object.          */
+    CategoryAdapterSPtr m_category;     /** adapted category of the segmentation. */
 
     friend class ModelFactory;
     friend class ModelAdapter;

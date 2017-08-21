@@ -33,6 +33,8 @@
 
 class vtkGlyph3DMapper;
 class vtkFollower;
+class vtkPoints;
+class vtkPolyData;
 
 namespace ESPINA
 {
@@ -61,8 +63,7 @@ namespace ESPINA
             /** \brief ConnectionsManager class virtual destructor.
              *
              */
-            virtual ~ConnectionsManager()
-            {}
+            virtual ~ConnectionsManager();
 
             virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -131,6 +132,8 @@ namespace ESPINA
 
           private:
             ModelAdapterSPtr                           m_model;       /** model with the connection information. */
+            vtkSmartPointer<vtkPoints>                 m_points;      /** connection points.                     */
+            vtkSmartPointer<vtkPolyData>               m_polyData;    /** polydata.                              */
             vtkSmartPointer<vtkGlyph3DMapper>          m_glyph;       /** glyph filter.                          */
             vtkSmartPointer<vtkFollower>               m_actor;       /** representation actor.                  */
             ConnectionList                             m_connections; /** list of connections                    */

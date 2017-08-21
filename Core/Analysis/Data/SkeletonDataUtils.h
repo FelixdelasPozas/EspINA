@@ -339,6 +339,14 @@ namespace ESPINA
      */
     void EspinaCore_EXPORT adjustStrokeNumbers(Core::SkeletonDefinition &skeleton);
 
+    /** \brief Computes and returns the angle between the edges base-a and base-b.
+     * \param[in] base common brach node.
+     * \param[in] a first node of branch A.
+     * \param[in] b first node of branch B.
+     *
+     */
+    double EspinaCore_EXPORT angle(SkeletonNode *base, SkeletonNode *a, SkeletonNode *b);
+
   } // namespace Core
 } // namespace ESPINA
 

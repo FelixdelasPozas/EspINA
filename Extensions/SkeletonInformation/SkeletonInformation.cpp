@@ -152,17 +152,6 @@ void SkeletonInformation::updateInformation() const
     auto strokes    = definition.strokes;
     auto components = connectedComponents(nodes);
 
-    auto angle = [](SkeletonNode *base, SkeletonNode *a, SkeletonNode *b)
-    {
-      double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
-      double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
-
-      double cross[3];
-      vtkMath::Cross(vector1, vector2, cross);
-      auto angle = std::atan2(vtkMath::Norm(cross), vtkMath::Dot(vector1, vector2));
-      return vtkMath::DegreesFromRadians(angle);
-    };
-
     auto bounds = m_extendedItem->bounds();
     updateInfoCache(SKELETON_CENTROID_X, (bounds[1]-bounds[0]/2));
     updateInfoCache(SKELETON_CENTROID_Y, (bounds[3]-bounds[2]/2));
@@ -277,7 +266,7 @@ void SkeletonInformation::updateInformation() const
                 strokeNames.sort();
 
                 auto key = tr("Angle %1^%2 (Degrees)").arg(strokeNames.at(0)).arg(strokeNames.at(1));
-                auto value = angle(node, connection, otherNode);
+                auto value = Core::angle(node, connection, otherNode);
 
                 if(angles.contains(key))
                 {

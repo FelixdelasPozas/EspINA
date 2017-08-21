@@ -54,7 +54,7 @@ namespace ESPINA
           {};
 
           virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
-                                                                 const RepresentationState &state) override final;
+                                                                 const RepresentationState &state) override;
 
         private:
           Plane m_plane; /** orientation of the representation. */
