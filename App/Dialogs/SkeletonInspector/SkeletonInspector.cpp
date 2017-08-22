@@ -28,7 +28,6 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
-#include <GUI/View/View3D.h>
 #include <GUI/Representations/Pipelines/SegmentationMeshPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
@@ -76,7 +75,7 @@ const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
 SkeletonInspector::SkeletonInspector(Support::Context& context)
 : QDialog              {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , Support::WithContext (context)
-, m_view               {nullptr}
+, m_view               {getViewState(), false, nullptr}
 , m_segmentationSources(getViewState())
 {
   setupUi(this);
@@ -93,12 +92,6 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
 }
 
 //--------------------------------------------------------------------
-SkeletonInspector::~SkeletonInspector()
-{
-  m_segmentation->clearTemporalRepresentation();
-}
-
-//--------------------------------------------------------------------
 void SkeletonInspector::closeEvent(QCloseEvent *event)
 {
   ESPINA_SETTINGS(settings);
@@ -111,6 +104,10 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   settings.endGroup();
 
   QDialog::closeEvent(event);
+
+  m_segmentation->clearTemporalRepresentation();
+  for(auto stroke: m_strokes) stroke.actor = nullptr;
+  m_strokes.clear();
 }
 
 //--------------------------------------------------------------------
@@ -179,7 +176,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
 
                 if(!branchName.isEmpty())
                 {
-                  info.branchDistances += QString("%1<->%2 = %3. ").arg(branchName).arg(name).arg(distance);
+                  info.branchDistances += QString("%1<->%2 = %3 nm. ").arg(branchName).arg(name).arg(distance);
                 }
 
                 branchName = name;
@@ -193,7 +190,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
                   if(otherBranchAngle < branchAngle) branchAngle = otherBranchAngle;
                 }
 
-                info.branchAngles += QString("%1 (%2 degrees). ").arg(name).arg(branchAngle);
+                info.branchAngles += QString("%1 = %2 degrees. ").arg(name).arg(branchAngle);
               }
             }
           }
@@ -253,7 +250,7 @@ void SkeletonInspector::showEvent(QShowEvent* event)
 {
   QDialog::showEvent(event);
 
-  m_view->resetCamera();
+  m_view.resetCamera();
 }
 
 //--------------------------------------------------------------------
@@ -279,11 +276,10 @@ void SkeletonInspector::restoreGeometry()
 //--------------------------------------------------------------------
 void SkeletonInspector::initView3D(RepresentationFactorySList representations)
 {
-  m_view = std::make_shared<View3D>(getViewState(), false, this);
-  m_splitter->insertWidget(1, m_view.get());
+  m_view.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  m_view.setMinimumWidth(250);
 
-  m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  m_view->setMinimumWidth(250);
+  m_splitter->insertWidget(1, &m_view);
 
   RepresentationSwitchSList switches, toEnable;
   for (auto factory : representations)
@@ -298,7 +294,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
 
     for (auto manager : representation.Managers)
     {
-      m_view->addRepresentationManager(manager);
+      m_view.addRepresentationManager(manager);
 
       for(auto pool: manager->pools())
       {
@@ -330,7 +326,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
     }
   }
 
-  m_view->layout()->setMenuBar(toolbar);
+  m_view.layout()->setMenuBar(toolbar);
 
   for(auto repSwitch: toEnable)
   {
@@ -387,7 +383,7 @@ void SkeletonInspector::addSegmentations()
 //--------------------------------------------------------------------
 void SkeletonInspector::initTreeView()
 {
-  auto model = new SkeletonInspectorTreeModel(m_segmentation, m_segmentations, m_strokes);
+  auto model = new SkeletonInspectorTreeModel(m_segmentation, m_segmentations, m_strokes, m_treeView);
   m_treeView->setModel(model);
   m_treeView->setHeaderHidden(true);
   m_treeView->update();
@@ -408,6 +404,9 @@ void SkeletonInspector::connectSignals()
 
   connect(m_connections, SIGNAL(linkActivated(const QString &)),
          this,           SLOT(onLinkActivated(const QString &)));
+
+  connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+          this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 }
 
 //--------------------------------------------------------------------
@@ -512,7 +511,7 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
   }
 
   m_segmentation->invalidateRepresentations();
-  m_view->refresh();
+  m_view.refresh();
 }
 
 //--------------------------------------------------------------------
@@ -556,6 +555,28 @@ void SkeletonInspector::onRepresentationsInvalidated(ViewItemAdapterList segment
 }
 
 //--------------------------------------------------------------------
+void SkeletonInspector::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  QModelIndex selectedIndex;
+
+  for(int i = 0; i < m_segmentations.size(); ++i)
+  {
+    auto segmentation = m_segmentations.at(i);
+    if(segmentations.contains(segmentation))
+    {
+      auto parent = m_treeView->model()->index(1,0, QModelIndex());
+      selectedIndex = m_treeView->model()->index(i, 0, parent);
+      break;
+    }
+  }
+
+  if(selectedIndex.isValid())
+  {
+    m_treeView->selectionModel()->setCurrentIndex(selectedIndex, QItemSelectionModel::ClearAndSelect);
+  }
+}
+
+//--------------------------------------------------------------------
 SkeletonInspector::SkeletonInspectorPipeline::SkeletonInspectorPipeline(QList<struct StrokeInfo>& strokes)
 : SegmentationSkeleton3DPipeline(std::make_shared<CategoryColorEngine>())
 , m_strokes(strokes)
@@ -567,8 +588,8 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
 {
   auto segmentation = segmentationPtr(item);
   if(!segmentation) return;
-  auto width = segmentation->isSelected() ? 2 : 1;
-  width *= SegmentationSkeletonPoolSettings::getWidth(state) + 1;
+  auto width = segmentation->isSelected() ? 2 : 0;
+  width += SegmentationSkeletonPoolSettings::getWidth(state);
   double rgba[4];
 
   for(auto actor: actors)
@@ -593,7 +614,7 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
     double factor = stroke.selected ? 1.0 : 0.65;
-    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 5 : width);
+    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
     stroke.actor->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
     stroke.actor->Modified();
   }
@@ -609,8 +630,8 @@ bool SkeletonInspector::SkeletonInspectorPipeline::pick(ConstViewItemAdapterPtr 
 RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::createActors(ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
   auto segmentation = segmentationPtr(item);
-  auto width = segmentation->isSelected() ? 2 : 1;
-  width *= SegmentationSkeletonPoolSettings::getWidth(state) + 1;
+  auto width = segmentation->isSelected() ? 2 : 0;
+  width += SegmentationSkeletonPoolSettings::getWidth(state);
   double rgba[4];
 
   RepresentationPipeline::ActorList actors;
@@ -625,7 +646,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
-    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 5 : width);
+    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
     stroke.actor->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
 
     actors << stroke.actor;

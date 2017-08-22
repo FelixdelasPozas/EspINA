@@ -72,8 +72,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     auto color = m_colorEngine->color(segmentation);
     auto hue   = segmentation->category()->color().hue();
     auto data  = readLockSkeleton(segmentation->output())->skeleton();
-    auto width = segmentation->isSelected() ? 2 : 1;
-    width *= SegmentationSkeletonPoolSettings::getWidth(state) + 1;
+    auto width = segmentation->isSelected() ? 2 : 0;
+    width += SegmentationSkeletonPoolSettings::getWidth(state) + 1;
 
     auto cellIndexes  = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("LineIndexes"));
     auto edgeIndexes  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeIndexes"));

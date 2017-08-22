@@ -42,6 +42,10 @@ namespace ESPINA
       {
         class vtkZoomSelectionWidget;
         
+        /** \class ZoomWidget3D
+         * \brief 3D representation for the zoom tool widget.
+         *
+         */
         class EspinaGUI_EXPORT ZoomWidget3D
         : public EspinaWidget3D
         {
@@ -99,9 +103,9 @@ namespace ESPINA
             virtual ESPINA::GUI::Representations::Managers::TemporalRepresentation3DSPtr cloneImplementation();
 
           private:
-            ZoomEventHandler                       *m_eventHandler;
-            vtkSmartPointer<vtkZoomSelectionWidget> m_widget;
-            RenderView                             *m_view;
+            ZoomEventHandler                       *m_eventHandler; /** tool's event handler.                              */
+            vtkSmartPointer<vtkZoomSelectionWidget> m_widget;       /** vtk widget with the representation implementation. */
+            RenderView                             *m_view;         /** view where the representation will be shown.       */
         };
       
       } // namespace Widgets

@@ -122,13 +122,13 @@ namespace ESPINA
             void updateSelectionMeasure();
 
           private:
-            int                          m_index;            /** plane index                                                    */
-            SelectionSPtr                m_selection;        /** application selection object.                                  */
-            vtkSmartPointer<vtkWidget2D> m_widget;           /** vtk widget.                                                    */
-            vtkSmartPointer<Command>     m_command;          /** vtk widget command object.                                     */
-            vtkCamera                   *m_camera;           /** pointer to the camera of the view (to update on zoom changes). */
-            Nm                           m_slice;            /** slice position in Nm.                                          */
-            SegmentationAdapterList m_selectedSegmentations; /** groups of currently selected segmentations.                    */
+            int                          m_index;                 /** plane index                                                    */
+            SelectionSPtr                m_selection;             /** application selection object.                                  */
+            vtkSmartPointer<vtkWidget2D> m_widget;                /** vtk widget.                                                    */
+            vtkSmartPointer<Command>     m_command;               /** vtk widget command object.                                     */
+            vtkCamera                   *m_camera;                /** pointer to the camera of the view (to update on zoom changes). */
+            Nm                           m_slice;                 /** slice position in Nm.                                          */
+            SegmentationAdapterList      m_selectedSegmentations; /** groups of currently selected segmentations.                    */
           };
         }
       }

@@ -127,8 +127,8 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
         colors->SetTuple3(i, rgba[0]*255, rgba[1]*255, rgba[2]*255);
       }
 
-      auto width = item->isSelected() ? 2 : 1;
-      width *= SegmentationSkeletonPoolSettings::getWidth(state);
+      auto width = item->isSelected() ? 2 : 0;
+      width += SegmentationSkeletonPoolSettings::getWidth(state);
 
       colors->Modified();
       actorVTK->GetMapper()->Update();

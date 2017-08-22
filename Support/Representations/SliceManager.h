@@ -28,6 +28,10 @@
 
 namespace ESPINA
 {
+  /** \class SliceManager
+   * \brief Manager for segmentation slice representations.
+   *
+   */
   class EspinaSupport_EXPORT SliceManager
   : public GUI::Representations::Managers::PoolManager
   , public GUI::Representations::RepresentationManager2D
@@ -110,11 +114,11 @@ namespace ESPINA
       Nm normalCoordinate(const NmVector3 &point) const;
 
     private:
-      Plane m_plane;                /** plane of the manager.                                         */
-      Nm    m_depth;                /** distance from the plane position to show the representations. */
-      RepresentationPoolSPtr m_XY;  /** Axial plane pool.                                             */
-      RepresentationPoolSPtr m_XZ;  /** Coronal plane pool.                                           */
-      RepresentationPoolSPtr m_YZ;  /** Sagittal plane pool.                                          */
+      Plane                  m_plane; /** plane of the manager.                                         */
+      Nm                     m_depth; /** distance from the plane position to show the representations. */
+      RepresentationPoolSPtr m_XY;    /** Axial plane pool.                                             */
+      RepresentationPoolSPtr m_XZ;    /** Coronal plane pool.                                           */
+      RepresentationPoolSPtr m_YZ;    /** Sagittal plane pool.                                          */
   };
 }
 

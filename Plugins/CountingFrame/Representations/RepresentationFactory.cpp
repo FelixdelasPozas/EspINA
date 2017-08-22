@@ -65,8 +65,6 @@ Representation CF::RepresentationFactory::doCreateRepresentation(Support::Contex
     auto switch3D = std::make_shared<CFRepresentationSwitch>(manager3D, context);
     switch3D->setOrder("1", "2-Display");
 
-    manager3D->setSwitch(switch3D.get());
-
     representation.Managers << manager3D;
     representation.Switches << switch3D;
   }

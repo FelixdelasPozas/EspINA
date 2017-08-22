@@ -308,7 +308,7 @@ void SegmentationRepresentationFactory::createMiscellaneousManagers(Representati
   for(auto flag: flags)
   {
     auto connectionsManager = std::make_shared<ConnectionsManager>(flag, context.model());
-    connectionsManager->setName(QObject::tr("DisplayCrosshair"));
+    connectionsManager->setName(QObject::tr("DisplayConnections"));
     connectionsManager->setIcon(QIcon(":/espina/connection.svg"));
     connectionsManager->setDescription(QObject::tr("Display segmentation's connections"));
 

@@ -64,16 +64,11 @@ namespace ESPINA
        */
       Representation createRepresentation(Support::Context &context, ViewTypeFlags supportedViews = ViewType::VIEW_2D|ViewType::VIEW_3D) const
       {
-        auto representation = doCreateRepresentation(context, supportedViews);
-        m_representations << representation;
-
-        return representation;
+        return doCreateRepresentation(context, supportedViews);
       }
 
     private:
       virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const = 0;
-
-      mutable QList<Representation> m_representations; /** list of created representations. */
   };
 } // namespace ESPINA
 

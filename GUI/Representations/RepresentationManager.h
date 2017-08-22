@@ -45,6 +45,7 @@ namespace ESPINA
     {
       class RepresentationManager;
       using RepresentationManagerSPtr  = std::shared_ptr<RepresentationManager>;
+      using RepresentationManagerList  = QList<RepresentationManager *>;
       using RepresentationManagerSList = QList<RepresentationManagerSPtr>;
 
       class EspinaGUI_EXPORT RepresentationManager
@@ -71,8 +72,7 @@ namespace ESPINA
         /** \brief Representation manager class virtual destructor.
          *
          */
-        virtual ~RepresentationManager()
-        {}
+        virtual ~RepresentationManager();
 
         /** \brief Sets the name of the representation manager
          *
@@ -194,6 +194,12 @@ namespace ESPINA
         virtual void reset()
         {};
 
+        /** \brief Disconnects and de-configures the RepresentationManager, also emits the terminated() signal to be
+         * removed from the child list of its parent. A terminated representation manager should not be used.
+         *
+         */
+        virtual void shutdown();
+
       public slots:
         /** \brief Managers the view's state frame change.
          * \param[in] frame new frame object.
@@ -203,6 +209,7 @@ namespace ESPINA
 
       signals:
         void renderRequested();
+        void terminated(RepresentationManager *);
 
       protected slots:
         /** \brief Emits a render request for the given frame if the conditions apply.
@@ -299,6 +306,13 @@ namespace ESPINA
          */
         void invalidateFrames(const FrameCSPtr frame);
 
+      private slots:
+        /** \brief Removes the given manager from the child list.
+         * \param[in] manager previously cloned representation manager pointer.
+         *
+         */
+        void onChildTerminated(RepresentationManager *manager);
+
       private:
         /** \brief Returns true if the manager has representations to show and false otherwise.
          *
@@ -362,24 +376,23 @@ namespace ESPINA
         friend class ESPINA::RenderView; /* setView() */
 
       protected:
-        RenderView *m_view; /** manager's view. */
+        RenderView               *m_view;   /** manager's view.        */
+        RepresentationManagerList m_childs; /** list of cloned childs. */
 
       private:
-        QString      m_name;        /** manager's name. */
-        QIcon        m_icon;        /** display icon. */
-        QString      m_description; /** manager description. */
-        bool         m_isActive;    /** true if the manager is enabled and false otherwise. */
-        Status       m_status;      /** current manager's status. */
-        ManagerFlags m_flags;       /** manager's properties flags values */
+        QString      m_name;        /** manager's name.                                               */
+        QIcon        m_icon;        /** display icon.                                                 */
+        QString      m_description; /** manager description.                                          */
+        bool         m_isActive;    /** true if the manager is enabled and false otherwise.           */
+        Status       m_status;      /** current manager's status.                                     */
+        ManagerFlags m_flags;       /** manager's properties flags values                             */
 
         ViewTypeFlags m_supportedViews;   /** types of views supported by this manager. */
         RangedValue<FrameCSPtr> m_frames; /** frame range of available representations. */
 
-        TimeStamp m_lastFrameChanged;            /** last frame the manager has attended ?? */
-        TimeStamp m_lastInvalidationFrame;       /** last received invalidation signal. */
+        TimeStamp m_lastFrameChanged;            /** last frame the manager has attended.            */
+        TimeStamp m_lastInvalidationFrame;       /** last received invalidation signal.              */
         QMap<TimeStamp, TimeStamp> m_lazyFrames; /** list of frames received during a waiting state. */
-
-        RepresentationManagerSList m_childs; /** list of cloned childs. */
       };
 
       class EspinaGUI_EXPORT RepresentationManager2D

@@ -277,13 +277,13 @@ ConstChannelAdapterPtr ESPINA::channelPtr(ConstItemAdapterPtr item)
 
 
 //------------------------------------------------------------------------
-bool ESPINA::isChannel(ItemAdapterPtr item)
+bool ESPINA::isChannel(const ItemAdapterPtr item)
 {
   return item && (ItemAdapter::Type::CHANNEL == item->type());
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSPtr channel)
+ViewItemAdapterSList ESPINA::toViewItemSList(const ChannelAdapterSPtr channel)
 {
   ViewItemAdapterSList result;
 
@@ -293,7 +293,7 @@ ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSPtr channel)
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemSList(ChannelAdapterSList channels)
+ViewItemAdapterSList ESPINA::toViewItemSList(const ChannelAdapterSList channels)
 {
   ViewItemAdapterSList result;
 

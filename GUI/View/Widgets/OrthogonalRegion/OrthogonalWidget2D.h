@@ -48,7 +48,8 @@ namespace ESPINA
           class vtkOrthogonalWidget2D;
 
           /** \class OrthogonalWidget2D
-           * \brief
+           * \brief Interactive widget for a 2D representation of a orthogonal region.
+           *
            */
           class EspinaGUI_EXPORT OrthogonalWidget2D
           : public EspinaWidget2D
@@ -56,6 +57,10 @@ namespace ESPINA
             Q_OBJECT
 
           public:
+            /** \brief OrthogonalWidget2D class constructor.
+             * \param[in] reopresentation Orthogonal representation smart pointer.
+             *
+             */
             explicit OrthogonalWidget2D(OrthogonalRepresentationSPtr representation);
 
             virtual void setPlane(Plane plane) override;
@@ -82,27 +87,45 @@ namespace ESPINA
             virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
           private slots:
+            /** \brief Enables/disables the interaction process depending on the region mode.
+             * \param[in] mode
+             *
+             */
             void onModeChanged(const OrthogonalRepresentation::Mode mode);
 
+            /** \brief Udpates the representation resolution when it changes.
+             * \para[in] resolution new scene resolution.
+             *
+             */
             void onResolutionChanged(const NmVector3 &resolution);
 
+            /** \brief Updates the representation when the bounds of the region changes.
+             * \param[in] bounds new region bounds.
+             *
+             */
             void onBoundsChanged(const Bounds &bounds);
 
+            /** \brief Updates the representation color.
+             * \param[in] color new color of the representation.
+             *
+             */
             void onColorChanged(const QColor &color);
 
+            /** \brief Updates the line pattern of the representation.
+             * \param[in] pattern line patter in hex mode, see widget representation for details.
+             *
+             */
             void onPatternChanged(const int pattern);
 
           private:
             class Command;
 
-            OrthogonalRepresentationSPtr m_representation;
-
-            vtkSmartPointer<vtkOrthogonalWidget2D> m_widget;
-            vtkSmartPointer<Command>     m_command;
-
-            int m_index;
-            Nm  m_slice;
-            Nm  m_resolution;
+            OrthogonalRepresentationSPtr           m_representation; /** orthogonal region definition.                           */
+            vtkSmartPointer<vtkOrthogonalWidget2D> m_widget;         /** vtk widget for representation.                          */
+            vtkSmartPointer<Command>               m_command;        /** vtk command object to handle interaction with the view. */
+            int                                    m_index;          /** plane index of the representation.                      */
+            Nm                                     m_slice;          /** current representation slice.                           */
+            Nm                                     m_resolution;     /** representation and scene resolution.                    */
           };
         }
       }

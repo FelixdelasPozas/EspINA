@@ -90,9 +90,6 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  for(auto manager: m_managers) manager->disconnect();
-  for(auto manager: m_temporalManagers) manager->disconnect();
-
   m_managers.clear();
   m_temporalManagers.clear();
 

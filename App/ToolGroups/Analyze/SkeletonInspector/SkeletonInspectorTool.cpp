@@ -40,7 +40,6 @@ void SkeletonInspectorTool::onPressed(bool unused)
 {
   auto dialog = new SkeletonInspector(getContext());
   dialog->setAttribute(Qt::WA_DeleteOnClose, true);
-
   dialog->exec();
 }
 

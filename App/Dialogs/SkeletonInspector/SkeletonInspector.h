@@ -38,8 +38,6 @@
 
 namespace ESPINA
 {
-  class View3D;
-
   /** \class SkeletonInspector
    * \brief Dialog to show information about a given skeleton.
    *
@@ -60,7 +58,8 @@ namespace ESPINA
       /** \brief SkeletonInspector class virtual destructor.
        *
        */
-      virtual ~SkeletonInspector();
+      virtual ~SkeletonInspector()
+      {};
 
     protected:
       void showEvent(QShowEvent *event) override;
@@ -91,6 +90,12 @@ namespace ESPINA
        *
        */
       void onRepresentationsInvalidated(ViewItemAdapterList segmentations);
+
+      /** \brief Updates the selected items in the tree depending on the current selection.
+       * \param[in] segmentations Currently selected segmentations.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
 
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
@@ -180,7 +185,7 @@ namespace ESPINA
 
       SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                             */
       SegmentationAdapterList  m_segmentations;       /** list of segmentations in the view.                                 */
-      std::shared_ptr<View3D>  m_view;                /** 3D view.                                                           */
+      View3D                   m_view;                /** 3D view.                                                           */
       ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.                         */
       RepresentationList       m_representations;     /** list of view's representations factories and switches.             */
       QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                                        */

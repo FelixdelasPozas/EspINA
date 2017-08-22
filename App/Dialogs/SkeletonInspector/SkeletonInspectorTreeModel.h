@@ -76,7 +76,8 @@ namespace ESPINA
    * \brief Model for skeleton inspector tree view.
    *
    */
-  class SkeletonInspectorTreeModel: public QAbstractItemModel
+  class SkeletonInspectorTreeModel
+  : public QAbstractItemModel
   {
       Q_OBJECT
     public:

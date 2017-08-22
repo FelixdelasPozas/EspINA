@@ -43,24 +43,15 @@ using namespace ESPINA::GUI::Representations::Managers;
 ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr model)
 : RepresentationManager{flags, flags.testFlag(ESPINA::VIEW_2D) ? RepresentationManager::NEEDS_ACTORS : RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 , m_model              {model}
-, m_scale              {7}
+, m_points             {nullptr}
+, m_polyData           {nullptr}
+, m_glyph              {nullptr}
+, m_glyph2D            {nullptr}
+, m_glyph3D            {nullptr}
+, m_actor              {nullptr}
+, m_scale              {4}
 {
   setFlag(HAS_ACTORS, false);
-
-  m_points = vtkSmartPointer<vtkPoints>::New();
-
-  m_polyData = vtkSmartPointer<vtkPolyData>::New();
-  m_polyData->SetPoints(m_points);
-
-  m_glyph = vtkSmartPointer<vtkGlyph3DMapper>::New();
-  m_glyph->SetScalarVisibility(false);
-  m_glyph->SetStatic(true);
-  m_glyph->SetInputData(m_polyData);
-
-  m_actor = vtkSmartPointer<vtkFollower>::New();
-  m_actor->SetMapper(m_glyph);
-  m_actor->GetProperty()->SetColor(1,1,1);
-  m_actor->GetProperty()->SetLineWidth(2);
 
   connectSignals();
 
@@ -71,6 +62,8 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
 ConnectionsManager::~ConnectionsManager()
 {
   m_actor    = nullptr;
+  m_glyph2D  = nullptr;
+  m_glyph3D  = nullptr;
   m_glyph    = nullptr;
   m_polyData = nullptr;
   m_points   = nullptr;
@@ -141,7 +134,7 @@ void ConnectionsManager::displayRepresentations(const FrameCSPtr frame)
 {
   updateActor(frame);
 
-  if (!hasActors() && hasRepresentations())
+  if (!hasActors() && hasRepresentations() && m_actor)
   {
     setFlag(HAS_ACTORS, true);
     m_view->addActor(m_actor);
@@ -151,8 +144,11 @@ void ConnectionsManager::displayRepresentations(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 void ConnectionsManager::hideRepresentations(const FrameCSPtr frame)
 {
-  setFlag(HAS_ACTORS, false);
-  m_view->removeActor(m_actor);
+  if(hasActors() && m_actor)
+  {
+    setFlag(HAS_ACTORS, false);
+    m_view->removeActor(m_actor);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -174,10 +170,7 @@ void ConnectionsManager::onShow(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 RepresentationManagerSPtr ConnectionsManager::cloneImplementation()
 {
-  auto clone = std::make_shared<ConnectionsManager>(supportedViews(), m_model);
-  m_clones << clone;
-
-  return clone;
+  return std::make_shared<ConnectionsManager>(supportedViews(), m_model);
 }
 
 //--------------------------------------------------------------------
@@ -185,46 +178,23 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
 {
   if(!m_view) return;
 
+  if(!m_points)
+  {
+    buildVTKPipeline(frame);
+  }
+
   auto view2d  = view2D_cast(m_view);
   auto spacing = frame->resolution;
-  if(!isValidSpacing(spacing)) return;
+
   m_points->Reset();
 
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    spacing[planeIndex] = 1;
     auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-    auto glyphSource = vtkSmartPointer<vtkGlyphSource2D>::New();
-    glyphSource->SetGlyphTypeToCircle();
-    glyphSource->SetFilled(false);
-    glyphSource->SetCenter(0,0,0);
-    glyphSource->SetScale(m_scale*max);
-    glyphSource->SetColor(1,1,1);
-    glyphSource->Update();
-
-    switch(planeIndex)
-    {
-      case 0:
-      case 1:
-        {
-          auto transform = vtkSmartPointer<vtkTransform>::New();
-          transform->RotateWXYZ(90, (planeIndex == 0 ? 0 : 1), (planeIndex == 1 ? 0 : 1), 0);
-
-          auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-          transformFilter->SetTransform(transform);
-          transformFilter->SetInputData(glyphSource->GetOutput());
-          transformFilter->Update();
-
-          m_glyph->SetSourceData(transformFilter->GetOutput());
-        }
-        break;
-      default:
-      case 2:
-        m_glyph->SetSourceData(glyphSource->GetOutput());
-        break;
-    }
+    m_glyph2D->SetScale(m_scale*max);
+    m_glyph2D->Update();
 
     for(auto connection: m_connections)
     {
@@ -239,12 +209,8 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   {
     auto min = std::min(spacing[0], std::min(spacing[1], spacing[2]));
 
-    auto glyphSource = vtkSmartPointer<vtkSphereSource>::New();
-    glyphSource->SetCenter(0.0, 0.0, 0.0);
-    glyphSource->SetRadius(m_scale*min);
-    glyphSource->Update();
-
-    m_glyph->SetSourceData(glyphSource->GetOutput());
+    m_glyph3D->SetRadius(m_scale*min);
+    m_glyph3D->Update();
 
     for(auto connection: m_connections)
     {
@@ -261,11 +227,12 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 void ConnectionsManager::setRepresentationSize(int size)
 {
-  size = std::min(std::max(3, size), 15);
+  size = std::min(std::max(1, size), 15);
 
-  for(auto clone: m_clones)
+  for(auto child: m_childs)
   {
-    clone->setRepresentationSize(size);
+    auto clone = dynamic_cast<ConnectionsManager *>(child);
+    if(clone) clone->setRepresentationSize(size);
   }
 
   if(isActive() && (size != m_scale))
@@ -314,4 +281,99 @@ void ConnectionsManager::getConnectionData()
 void ConnectionsManager::resetConnections()
 {
   m_connections.clear();
+
+  if(m_points)
+  {
+    m_points->Reset();
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::shutdown()
+{
+  disconnect(m_model.get(), SIGNAL(connectionAdded(Connection)),
+             this,          SLOT(onConnectionAdded(Connection)));
+
+  disconnect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
+             this,          SLOT(onConnectionRemoved(Connection)));
+
+  disconnect(m_model.get(), SIGNAL(aboutToBeReset()),
+             this,          SLOT(resetConnections()));
+
+  resetConnections();
+
+  RepresentationManager::shutdown();
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
+{
+  if(!m_view) return;
+
+  auto spacing = frame->resolution;
+  if(!isValidSpacing(spacing)) return;
+  auto view2d  = view2D_cast(m_view);
+
+  m_points = vtkSmartPointer<vtkPoints>::New();
+
+  m_polyData = vtkSmartPointer<vtkPolyData>::New();
+  m_polyData->SetPoints(m_points);
+
+  m_glyph = vtkSmartPointer<vtkGlyph3DMapper>::New();
+  m_glyph->SetScalarVisibility(false);
+  m_glyph->SetStatic(true);
+  m_glyph->SetInputData(m_polyData);
+
+  if(view2d)
+  {
+    auto planeIndex = normalCoordinateIndex(view2d->plane());
+    spacing[planeIndex] = 1;
+    auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+
+    m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
+    m_glyph2D->SetGlyphTypeToCircle();
+    m_glyph2D->SetFilled(false);
+    m_glyph2D->SetCenter(0,0,0);
+    m_glyph2D->SetScale(m_scale*max);
+    m_glyph2D->SetColor(1,1,1);
+    m_glyph2D->Update();
+
+    switch(planeIndex)
+    {
+      case 0:
+      case 1:
+        {
+          auto transform = vtkSmartPointer<vtkTransform>::New();
+          transform->RotateWXYZ(90, (planeIndex == 0 ? 0 : 1), (planeIndex == 1 ? 0 : 1), 0);
+
+          auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+          transformFilter->SetTransform(transform);
+          transformFilter->SetInputData(m_glyph2D->GetOutput());
+          transformFilter->Update();
+
+          m_glyph->SetSourceData(transformFilter->GetOutput());
+        }
+        break;
+      default:
+      case 2:
+        m_glyph->SetSourceData(m_glyph2D->GetOutput());
+        break;
+    }
+  }
+  else
+  {
+    auto min = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+
+    m_glyph3D = vtkSmartPointer<vtkSphereSource>::New();
+    m_glyph3D->SetCenter(0.0, 0.0, 0.0);
+    m_glyph3D->SetRadius(m_scale*min);
+    m_glyph3D->Update();
+
+    m_glyph->SetSourceData(m_glyph3D->GetOutput());
+  }
+
+  m_actor = vtkSmartPointer<vtkFollower>::New();
+  m_actor->SetMapper(m_glyph);
+  m_actor->GetProperty()->SetColor(1,1,1);
+  m_actor->GetProperty()->SetLineWidth(2);
 }

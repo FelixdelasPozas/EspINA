@@ -62,15 +62,18 @@ void CF::CFRepresentationSwitch::saveSettings(std::shared_ptr<QSettings> setting
 //------------------------------------------------------------------------
 void CF::CFRepresentationSwitch::onOpacityChanged(int value)
 {
-  emit opacityChanged(value/100.0);
-
-  getViewState().createFrame();
+  auto manager = std::dynamic_pointer_cast<CF::RepresentationManager3D>(m_manager);
+  if(manager)
+  {
+    manager->setOpacity(static_cast<float>(value)/100.0);
+    getViewState().refresh();
+  }
 }
 
 //------------------------------------------------------------------------
 void CF::CFRepresentationSwitch::initWidget()
 {
-  auto manager = std::dynamic_pointer_cast<RepresentationManager3D>(this->m_manager);
+  auto manager = std::dynamic_pointer_cast<CF::RepresentationManager3D>(m_manager);
 
   m_opacityWidget = new GUI::Widgets::NumericalInput();
   m_opacityWidget->setLabelText(tr("Opacity"));
@@ -79,7 +82,7 @@ void CF::CFRepresentationSwitch::initWidget()
   m_opacityWidget->setSliderTracking(false);
   m_opacityWidget->setValue(70);
   m_opacityWidget->setSpinBoxVisibility(false);
-  m_opacityWidget->setToolTip(tr("%1 representation's opacity.").arg(this->m_manager->name()));
+  m_opacityWidget->setToolTip(tr("%1 representation's opacity.").arg(m_manager->name()));
 
   addSettingsWidget(m_opacityWidget);
 

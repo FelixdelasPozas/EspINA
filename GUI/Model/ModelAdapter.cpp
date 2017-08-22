@@ -69,30 +69,44 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     endInsertRows();
   }
 
+  // NOTE: channels depends on samples and samples on channels in the ChannelProxy...
+  // thats why the begin-endInsertRows are done later. If not, the find(PersistenSPtr) called
+  // by the ChannelProxy will fail and potentially crash Espina.
+
   if (!analysis->samples().isEmpty())
   {
-    // Adapt Samples
-    beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
+    // Adapt Samples first
     for(auto sample : analysis->samples())
     {
       auto adapted = factory->adaptSample(sample);
       m_samples << adapted;
       adapted->setModel(this);
     }
-    endInsertRows();
   }
 
-  ViewItemAdapterSList addedItems;
   if (!analysis->channels().isEmpty())
   {
     // Adapt channels --> adapt non adapted filters
-    beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
     for(auto channel : analysis->channels())
     {
       auto adapted = factory->adaptChannel(channel);
       m_channels << adapted;
       adapted->setModel(this);
     }
+  }
+
+  ViewItemAdapterSList addedItems;
+
+  // call the insertion later when samples and channels have been adapted.
+  if(!analysis->samples().isEmpty())
+  {
+    beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
+    endInsertRows();
+  }
+
+  if(!analysis->channels().isEmpty())
+  {
+    beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
     endInsertRows();
 
     auto addedChannels = toViewItemSList(m_channels);
@@ -1048,20 +1062,22 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
   for(auto sample : m_samples)
   {
     auto base = std::dynamic_pointer_cast<Persistent>(sample->m_sample);
-    if (base == item) return sample;
+    if(base == item) return sample;
   }
 
   for(auto channel : m_channels)
   {
     auto base = std::dynamic_pointer_cast<Persistent>(channel->m_channel);
-    if (base == item) return channel;
+    if(base == item) return channel;
   }
 
   for(auto segmentation : m_segmentations)
   {
     auto base = std::dynamic_pointer_cast<Persistent>(segmentation->m_segmentation);
-    if (base == item) return segmentation;
+    if(base == item) return segmentation;
   }
+
+  qWarning() << __FILE__ << __LINE__ << "Failed ModelAdapter::find(Persistent) on item" << item->name() << "uuid" << item->uuid();
 
   return ItemAdapterSPtr();
 }

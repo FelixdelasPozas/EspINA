@@ -185,9 +185,7 @@ void Slice3DManager::disconnectPools()
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
-  auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
-
-  return clone;
+  return std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
 }
 
 //----------------------------------------------------------------------------

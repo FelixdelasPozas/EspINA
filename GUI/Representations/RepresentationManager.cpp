@@ -40,6 +40,14 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, Manag
 }
 
 //-----------------------------------------------------------------------------
+RepresentationManager::~RepresentationManager()
+{
+  emit terminated(this);
+
+  if(m_view) shutdown();
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::setName(const QString &name)
 {
   m_name = name;
@@ -102,18 +110,15 @@ RepresentationManager::ManagerFlags RepresentationManager::flags() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
-  if(!m_view && view)
+  m_view = view;
+
+  if (isActive())
   {
-    m_view = view;
+    onShow(frame);
 
-    if (isActive())
+    if (hasRepresentations())
     {
-      onShow(frame);
-
-      if (hasRepresentations())
-      {
-        updateRepresentations(frame);
-      }
+      updateRepresentations(frame);
     }
   }
 }
@@ -200,7 +205,7 @@ FrameCSPtr RepresentationManager::lastFrame() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::display(TimeStamp time)
 {
-  Q_ASSERT(m_view);
+  if(!m_view) return;
 
   if(m_frames.value(time, Frame::InvalidFrame()) == Frame::InvalidFrame())
   {
@@ -243,7 +248,10 @@ RepresentationManagerSPtr RepresentationManager::clone()
   child->m_description = m_description;
   child->m_isActive    = m_isActive;
 
-  m_childs << child;
+  m_childs << child.get();
+
+  connect(child.get(), SIGNAL(terminated(RepresentationManager *)),
+          this,        SLOT(onChildTerminated(RepresentationManager *)));
 
   return child;
 }
@@ -458,4 +466,32 @@ void RepresentationManager::invalidateFrames(const FrameCSPtr frame)
 //  qDebug() << debugName() << "invalidates frames on" << frame->time;
   m_lastInvalidationFrame = frame->time;
   m_frames.invalidate();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::shutdown()
+{
+  setView(nullptr, Frame::InvalidFrame());
+
+  disconnect();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::onChildTerminated(RepresentationManager *sender)
+{
+  auto manager = dynamic_cast<RepresentationManager *>(sender);
+
+  if(manager)
+  {
+    for(auto child: m_childs)
+    {
+      if(manager == child)
+      {
+        m_childs.removeOne(child);
+        return;
+      }
+    }
+  }
+
+  qWarning() << __FILE__ << __LINE__ << "Received object but couldn't identify it.";
 }

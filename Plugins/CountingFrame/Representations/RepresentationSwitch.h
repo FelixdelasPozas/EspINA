@@ -61,9 +61,6 @@ namespace ESPINA
 
         virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
 
-      signals:
-        void opacityChanged(float);
-
       private slots:
         /** \brief Propagates changes in opacity to the widgets.
          *

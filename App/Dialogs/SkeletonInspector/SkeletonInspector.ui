@@ -139,6 +139,9 @@ QTreeView::indicator:unchecked {
         <property name="text">
          <string>Does not apply</string>
         </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+        </property>
        </widget>
       </item>
       <item row="5" column="1">
@@ -172,6 +175,9 @@ QTreeView::indicator:unchecked {
        <widget class="QLabel" name="m_branchDistances">
         <property name="text">
          <string>Does not apply</string>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>
