@@ -88,9 +88,6 @@ qt4_wrap_cpp(GUI_MOC
 qt4_wrap_ui (GUI_UI
   Dialogs/CategorySelectorDialog.ui
   Dialogs/ImageResolutionDialog.ui
-  Representations/RepresentationEmptySettings.ui
-  Representations/SliceRepresentationSettings.ui
-  Representations/ContourRepresentationSettings.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui

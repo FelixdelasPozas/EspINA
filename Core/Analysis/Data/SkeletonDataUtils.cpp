@@ -25,6 +25,7 @@
 // C++
 #include <cmath>
 #include <cstring>
+#include <functional>
 
 // Qt
 #include <QtGlobal>
