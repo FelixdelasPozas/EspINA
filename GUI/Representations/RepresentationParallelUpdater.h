@@ -132,9 +132,10 @@ namespace ESPINA
 
       /** \brief Creates a task, inserts it in the task list and launches it.
        * \param[in] inputData input data of the task.
+       * \param[in] settings represenation state for the pipelines.
        *
        */
-      void createTask(const RepresentationPipeline::ActorsMap &inputData);
+      void createTask(const RepresentationPipeline::ActorsMap &inputData, const RepresentationState &settings);
 
       struct Data
       {

@@ -64,7 +64,7 @@ namespace ESPINA
       { m_dialog = nullptr; }
 
     private:
-      ConnectionCountDialog *m_dialog;
+      ConnectionCountDialog *m_dialog; /** pointer to current dialog or null if none. */
   };
 
 } // namespace ESPINA

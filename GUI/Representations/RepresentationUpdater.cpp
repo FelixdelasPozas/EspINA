@@ -155,7 +155,7 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
-  FrameSPtr frame;
+  auto frame = std::make_shared<Frame>();
   RepresentationState settings;
   UpdateRequestList updateList;
 
@@ -193,7 +193,7 @@ void RepresentationUpdater::run()
       auto item     = it->first;
       auto pipeline = sourcePipeline(item);
 
-      auto state = pipeline->representationState(item, m_settings);
+      auto state = pipeline->representationState(item, settings);
 
       if (it->second)
       {

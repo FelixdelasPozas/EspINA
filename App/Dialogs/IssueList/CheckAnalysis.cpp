@@ -404,6 +404,8 @@ void CheckSegmentationTask::run()
     if(!canExecute()) return;
     checkRelations();
     if(!canExecute()) return;
+    checkExtensionsValidity();
+    if(!canExecute()) return;
     checkSkeletonProblems();
   }
   catch(const EspinaException &e)

@@ -37,7 +37,7 @@ const QString SETTINGS_GROUP = "Synapse Connection Count Dialog";
 
 //--------------------------------------------------------------------
 ConnectionCountDialog::ConnectionCountDialog(Support::Context& context, QWidget* parent, Qt::WindowFlags flags)
-: QDialog{parent, flags}
+: QDialog{parent, Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext(context)
 {
   setupUi(this);

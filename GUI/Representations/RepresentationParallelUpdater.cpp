@@ -114,13 +114,17 @@ RepresentationParallelUpdater::~RepresentationParallelUpdater()
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::run()
 {
-  FrameCSPtr frame;
+  auto frame = std::make_shared<Frame>();
   RepresentationState settings;
   UpdateRequestList updateList;
 
   {
     QReadLocker lock(&m_dataLock);
-    frame = m_frame;
+    frame->time = m_frame->time;
+    frame->crosshair = m_frame->crosshair;
+    frame->resolution = m_frame->resolution;
+    frame->bounds = m_frame->bounds;
+    frame->flags = m_frame->flags;
     settings = m_settings;
   }
 
@@ -155,7 +159,7 @@ void RepresentationParallelUpdater::run()
         data[0][request.first] = (request.second == false ? actors.get()[request.first] : RepresentationPipeline::ActorList());
       }
 
-      createTask(data[0]);
+      createTask(data[0], settings);
     }
     else
     {
@@ -171,7 +175,7 @@ void RepresentationParallelUpdater::run()
 
       for(i = 0; i < maxTasks && canExecute(); ++i)
       {
-        createTask(data[i]);
+        createTask(data[i], settings);
       }
     }
   }
@@ -189,9 +193,9 @@ void RepresentationParallelUpdater::run()
   }
   else
   {
-    if(isValid(m_frame))
+    if(isValid(frame))
     {
-      emit actorsReady(m_frame, m_actors);
+      emit actorsReady(frame, m_actors);
     }
   }
 }
@@ -247,9 +251,9 @@ void RepresentationParallelUpdater::abortTasks()
 }
 
 //--------------------------------------------------------------------
-void RepresentationParallelUpdater::createTask(const RepresentationPipeline::ActorsMap& inputData)
+void RepresentationParallelUpdater::createTask(const RepresentationPipeline::ActorsMap& inputData, const RepresentationState &settings)
 {
-  auto task = std::make_shared<ParallelUpdaterTask>(inputData, m_settings, m_scheduler, m_pipeline);
+  auto task = std::make_shared<ParallelUpdaterTask>(inputData, settings, m_scheduler, m_pipeline);
 
   connect(task.get(), SIGNAL(finished(ParallelUpdaterTask *)), this, SLOT(onTaskFinished(ParallelUpdaterTask *)), Qt::DirectConnection);
   connect(task.get(), SIGNAL(progress(ParallelUpdaterTask *, int)), this, SLOT(computeProgress(ParallelUpdaterTask *, int)), Qt::DirectConnection);

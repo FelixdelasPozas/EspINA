@@ -41,6 +41,10 @@ namespace ESPINA
            *
            */
           explicit Frame();
+
+          /** \brief Frame struct destructor.
+           *
+           */
           ~Frame();
 
           /** \brief Returns an invalid frame.

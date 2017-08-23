@@ -242,7 +242,8 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
 
   for (auto segmentation : segmentations)
   {
-    for(auto extension: segmentation->readOnlyExtensions())
+    auto extensions = segmentation->readOnlyExtensions();
+    for(auto extension: extensions)
     {
       if(!info.keys().contains(extension->type()))
       {

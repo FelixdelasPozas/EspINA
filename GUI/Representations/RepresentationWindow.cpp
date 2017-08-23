@@ -17,8 +17,10 @@
  *
  */
 
+// ESPINA
 #include "RepresentationWindow.h"
 
+// C++
 #include <cmath>
 
 using namespace ESPINA;
@@ -64,7 +66,7 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
     else
     {
       int n = abs(distance);
-      int s = copysign(1.0, distance);
+      int s = std::copysign(1.0, distance);
       int i = innerPosition(m_currentPos - s*m_width);
 
       while (n > 0)

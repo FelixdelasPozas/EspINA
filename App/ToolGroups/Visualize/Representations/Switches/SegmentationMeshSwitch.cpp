@@ -118,8 +118,6 @@ void SegmentationMeshSwitch::onSmoothChanged(int value)
 {
   if(m_settings->smoothValue() != value)
   {
-    m_settings->setSmoothValue(value);
-
     auto smoothEnabled = (value != 0);
 
     if (smoothEnabled != m_smoothEnabled)
@@ -127,6 +125,8 @@ void SegmentationMeshSwitch::onSmoothChanged(int value)
       m_smoothEnabled = smoothEnabled;
       switchManagers();
     }
+
+    m_settings->setSmoothValue(value);
 
     if(m_smoothEnabled)
     {
