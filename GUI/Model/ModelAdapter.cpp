@@ -1907,7 +1907,7 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::queueAddConnectionCommand(Connection connection)
+void ModelAdapter::queueAddConnectionCommand(const Connection &connection)
 {
   auto command = [this, connection]()
   {
@@ -1920,7 +1920,7 @@ void ModelAdapter::queueAddConnectionCommand(Connection connection)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::addConnection(const Connection connection)
+void ModelAdapter::addConnection(const Connection &connection)
 {
   queueAddConnectionCommand(connection);
 
@@ -1928,7 +1928,7 @@ void ModelAdapter::addConnection(const Connection connection)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::addConnections(const ConnectionList connections)
+void ModelAdapter::addConnections(const ConnectionList &connections)
 {
   for(auto connection: connections)
   {
@@ -1937,7 +1937,7 @@ void ModelAdapter::addConnections(const ConnectionList connections)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::deleteConnection(const Connection connection)
+void ModelAdapter::deleteConnection(const Connection &connection)
 {
   m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
 
@@ -1945,7 +1945,7 @@ void ModelAdapter::deleteConnection(const Connection connection)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::deleteConnections(const ConnectionList connections)
+void ModelAdapter::deleteConnections(const ConnectionList &connections)
 {
   for(auto connection: connections)
   {
@@ -1960,7 +1960,7 @@ void ModelAdapter::deleteConnections(const SegmentationAdapterSPtr segmentation)
 }
 
 //--------------------------------------------------------------------
-ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation)
+const ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation)
 {
   ConnectionList connections;
 
@@ -1979,7 +1979,7 @@ ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentat
 }
 
 //--------------------------------------------------------------------
-ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2)
+const ConnectionList ModelAdapter::connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2)
 {
   ConnectionList connections;
 

@@ -510,25 +510,25 @@ namespace ESPINA
      * \param[in] connection connection object.
      *
      */
-    void addConnection(const Connection connection);
+    void addConnection(const Connection &connection);
 
     /** \brief Adds the given connections to the model.
      * \param[in] connection list of connections.
      *
      */
-    void addConnections(const ConnectionList connections);
+    void addConnections(const ConnectionList &connections);
 
     /** \brief Removes the given connection from the model.
      * \param[in] connection connection object.
      *
      */
-    void deleteConnection(const Connection connection);
+    void deleteConnection(const Connection &connection);
 
     /** \brief Removes the given connections from the model.
      * \param[in] connections list of connections.
      *
      */
-    void deleteConnections(const ConnectionList connections);
+    void deleteConnections(const ConnectionList &connections);
 
     /** \brief Removes all the connections of the given segmentation from the model.
      * \param[in] segmentation segmentation object.
@@ -540,14 +540,14 @@ namespace ESPINA
      * \param[in] segmentation segmentation object.
      *
      */
-    ConnectionList connections(const SegmentationAdapterSPtr segmentation);
+    const ConnectionList connections(const SegmentationAdapterSPtr segmentation);
 
     /** \brief Returns all the connections between the given segmentations.
      * \param[in] segmentation1 segmentation object.
      * \param[in] segmentation2 segmentation object.
      *
      */
-    ConnectionList connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2);
+    const ConnectionList connections(const SegmentationAdapterSPtr segmentation1, SegmentationAdapterSPtr segmentation2);
 
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
@@ -640,7 +640,7 @@ namespace ESPINA
 
     void queueAddRelationCommand(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const QString &relation);
 
-    void queueAddConnectionCommand(Connection connection);
+    void queueAddConnectionCommand(const Connection &connection);
 
     void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 

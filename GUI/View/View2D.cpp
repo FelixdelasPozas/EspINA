@@ -1148,23 +1148,21 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
-  auto picker      = vtkSmartPointer<vtkPropPicker>::New();
+  auto picker = vtkSmartPointer<vtkPropPicker>::New();
   picker->PickFromListOn();
 
   auto sceneActors = rendererUnderCursor()->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
-
-  vtkProp *pickedProp;
-  QList<vtkProp *> pickedProps;
+  QList<vtkProp *>     pickedProps;
 
   bool finished = false;
   bool picked   = false;
 
   do
   {
-    picked     = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
-    pickedProp = picker->GetViewProp();
+    picked = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
+    auto pickedProp = picker->GetViewProp();
 
     if (pickedProp && pickedProp->GetVisibility())
     {
@@ -1200,7 +1198,6 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
     }
   }
   while(picked && !finished);
-
 
   for(auto prop: pickedProps)
   {

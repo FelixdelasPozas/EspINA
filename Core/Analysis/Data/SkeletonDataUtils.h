@@ -102,12 +102,14 @@ namespace ESPINA
          * \param[in] other other skeleton definition.
          *
          */
-        void operator=(const SkeletonStroke &other)
+        SkeletonStroke& operator=(const SkeletonStroke &other)
         {
           colorHue   = other.colorHue;
           name       = other.name;
           type       = other.type;
           useMeasure = other.useMeasure;
+
+          return *this;
         }
 
         /** \brief Operator < for skeleton strokes. Needed for using it in a QMap.
