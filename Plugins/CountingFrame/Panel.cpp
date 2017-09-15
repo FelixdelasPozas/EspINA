@@ -151,12 +151,12 @@ class CF::Panel::CFModel
 
       if (alreadyUsed)
       {
-        QString suggestedId = m_manager->suggestedId(requestedId);
+        auto suggestedId = m_manager->suggestedId(requestedId);
         while (accepted && (suggestedId != requestedId))
         {
           requestedId = QInputDialog::getText(nullptr,
                                               tr("Id already used"),
-                                              tr("Introduce new id (or accept suggested one)"),
+                                              tr("Introduce new id (or accept the suggested one)"),
                                               QLineEdit::Normal,
                                               suggestedId,
                                               &accepted);
@@ -353,9 +353,6 @@ CF::Panel::~Panel()
   }
 
   delete m_cfModel;
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Counting Frame Panel Plugin";
-//   qDebug() << "********************************************************";
 }
 
 //------------------------------------------------------------------------

@@ -445,6 +445,14 @@ void CountingFrame::setId(Id id)
 }
 
 //-----------------------------------------------------------------------------
+const CountingFrame::Id& CF::CountingFrame::id() const
+{
+  QReadLocker lock(&m_countingFrameMutex);
+
+  return m_id;
+}
+
+//-----------------------------------------------------------------------------
 bool CF::lessThan(const CountingFrame *lhs, const CountingFrame *rhs)
 {
   auto lhsParts = lhs->id().split(' ');

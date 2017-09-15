@@ -129,8 +129,7 @@ namespace ESPINA
       /** \brief Returns the counting frame's id.
        *
        */
-      Id id() const
-      { return m_id; }
+      const Id& id() const;
 
       /** \brief Sets the id of the counting frame.
        *

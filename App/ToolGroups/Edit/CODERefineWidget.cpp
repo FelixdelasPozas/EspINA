@@ -142,7 +142,7 @@ CODERefineWidget::~CODERefineWidget()
 void CODERefineWidget::onRadiusModified(int value)
 {
   m_gui->radius->setValue(value);
-  m_gui->apply->setEnabled(value == m_filter->radius());
+  m_gui->apply->setEnabled(value == static_cast<int>(m_filter->radius()));
 }
 
 //----------------------------------------------------------------------------

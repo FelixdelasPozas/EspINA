@@ -113,6 +113,11 @@ namespace ESPINA
          */
         bool isOnEdge() const;
 
+        /** \brief NOTE: Fixes old SEG files that carry incorrect cache values that prevents the file from being saved later.
+         *
+         */
+        virtual InformationKeyList readyInformation() const override;
+
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;
 

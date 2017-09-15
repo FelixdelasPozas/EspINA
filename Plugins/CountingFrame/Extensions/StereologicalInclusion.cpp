@@ -161,7 +161,18 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
   QMutexLocker lock(&m_mutex);
 
-  if (!m_exclusionCFs.contains(cf))
+  auto channels = QueryContents::channels(m_extendedItem);
+  bool validChannel = false;
+  for(auto channel: channels)
+  {
+    if(channel.get() == cf->channel())
+    {
+      validChannel = true;
+      break;
+    }
+  }
+
+  if (!m_exclusionCFs.contains(cf) && validChannel)
   {
     m_exclusionCFs[cf] = false;
     m_cfIds[cf]        = cf->id();
@@ -221,6 +232,8 @@ void StereologicalInclusion::evaluateCountingFrames()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
+  if(!m_exclusionCFs.keys().contains(cf)) return;
+
   auto key = cfKey(cf);
 
   updateInfoCache(key.value(), QVariant());
@@ -393,7 +406,7 @@ bool StereologicalInclusion::isOnEdge() const
 
     if(channels.empty())
     {
-      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any channel, cannot get edges information.";
+      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
     }
 
     if (channels.size() > 1)
@@ -527,10 +540,11 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 {
   QMutexLocker lock(&m_mutex);
 
-  if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()) && !cf->id().isEmpty())
+  if(m_exclusionCFs.keys().contains(cf))
   {
     auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
     auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
+
     m_cfIds[cf] = cf->id();
 
     if(m_infoCache.keys().contains(oldIdKey))
@@ -555,4 +569,26 @@ void StereologicalInclusion::onOutputModified()
 bool StereologicalInclusion::validData(const OutputSPtr output) const
 {
   return true;
+}
+
+//------------------------------------------------------------------------
+SegmentationExtension::InformationKeyList StereologicalInclusion::readyInformation() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  InformationKeyList keys;
+
+  for (auto key : SegmentationExtension::readyInformation())
+  {
+    if(!m_keys.contains(key))
+    {
+      m_infoCache.remove(key);
+    }
+    else
+    {
+      keys << key;
+    }
+  }
+
+  return keys;
 }
