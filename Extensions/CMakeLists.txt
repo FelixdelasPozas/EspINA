@@ -5,6 +5,11 @@ include_directories(
 
 include (GenerateExportHeader)
 
+# Add Qt Resource files
+qt4_add_resources(EXTENSIONS_RCC
+  EdgeDistances/rsc/EdgeDistances.qrc
+  )
+
 qt4_wrap_cpp(EXTENSIONS_MOC
   EdgeDistances/ChannelEdges.h
   SkeletonInformation/SkeletonInformation.h
@@ -14,6 +19,7 @@ qt4_wrap_cpp(EXTENSIONS_MOC
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
+  ${EXTENSIONS_RCC}
   EdgeDistances/ChannelEdges.cpp
   EdgeDistances/ChannelEdgesFactory.cpp
   Issues/Issues.cpp

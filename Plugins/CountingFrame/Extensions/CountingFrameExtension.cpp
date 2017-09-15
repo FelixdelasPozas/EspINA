@@ -21,8 +21,6 @@
 // Plugin
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
-//#include "CountingFrames/OrthogonalCountingFrame.h"
-//#include <CountingFrames/AdaptiveCountingFrame.h>
 #include <CountingFrameManager.h>
 
 // ESPINA
@@ -42,12 +40,6 @@ using namespace ESPINA::Core;
 using namespace ESPINA::CF;
 
 StackExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
-
-const QString CountingFrameExtension::FILE = CountingFrameExtension::TYPE + "/CountingFrame.ext";
-
-const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 2.0\n";
-
-const char SEP = ';';
 
 //-----------------------------------------------------------------------------
 CountingFrameExtension::CountingFrameExtension(CountingFrameManager *manager,

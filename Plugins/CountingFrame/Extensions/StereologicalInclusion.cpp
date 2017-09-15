@@ -50,11 +50,6 @@ using namespace ESPINA::CF;
 using namespace ESPINA::GUI::Utils::Format;
 
 const SegmentationExtension::Type StereologicalInclusion::TYPE = "StereologicalInclusion";
-const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
-
-const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
-
-const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 1.0\n";
 
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFrame *cf) const
@@ -68,7 +63,6 @@ StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::
 , m_isUpdated          {false}
 , m_isExcluded         {false}
 {
-  m_keys << TOUCH_EDGES;
 }
 
 //------------------------------------------------------------------------
@@ -104,14 +98,7 @@ SegmentationExtension::InformationKeyList StereologicalInclusion::availableInfor
 //------------------------------------------------------------------------
 QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 {
-  if (TOUCH_EDGES == key)
-  {
-    isOnEdge();
-  }
-  else
-  {
-    //evaluateCountingFrames();
-  }
+  //evaluateCountingFrames();
 
   return cachedInfo(key);
 }
@@ -129,12 +116,6 @@ QString StereologicalInclusion::toolTipText() const
   QString tooltip;
 
   {
-    if (isReady(TOUCH_EDGES) && isOnEdge())
-    {
-      QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
-      tooltip = tooltip.append(createTable(":/apply.svg", description));
-    }
-
     InformationKeyList keys;
     {
       QMutexLocker lock(&m_mutex);
@@ -144,8 +125,6 @@ QString StereologicalInclusion::toolTipText() const
 
     for(auto key: keys)
     {
-      if(key == TOUCH_EDGES) continue;
-
       QString description = cachedInfo(key).toBool()?
       "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(key.value()) + "</font>":
       "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(key.value()) + "</font>";
@@ -389,58 +368,6 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
   // If no internal collision was detected, then the input was indeed inside our bounding region or touches a green face
   return false;
-}
-
-//------------------------------------------------------------------------
-bool StereologicalInclusion::isOnEdge() const
-{
-  bool isOnEdge  = false;
-
-  if (cachedInfo(TOUCH_EDGES).isValid())
-  {
-    isOnEdge = cachedInfo(TOUCH_EDGES).toBool();
-  }
-  else
-  {
-    auto channels = QueryRelations::channels(m_extendedItem);
-
-    if(channels.empty())
-    {
-      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
-    }
-
-    if (channels.size() > 1)
-    {
-      qWarning() << "Tiling not supported by Stereological Inclusion Extension";
-    }
-    else if (channels.size() == 1)
-    {
-      auto channel        = channels.first();
-      auto edgesExtension = retrieveExtension<ChannelEdges>(channel->readOnlyExtensions());
-      auto spacing        = channel->output()->spacing();
-      const NmVector3 DELTA{ 0.5 * spacing[0], 0.5 * spacing[1], 0.5 * spacing[2] };
-
-      Nm distances[6];
-      if (edgesExtension->useDistanceToBounds())
-      {
-        edgesExtension->distanceToBounds(m_extendedItem, distances);
-      }
-      else
-      {
-        edgesExtension->distanceToEdges(m_extendedItem, distances);
-      }
-
-      for(int i = 0; i < 3; ++i)
-      {
-        isOnEdge |= (distances[2*i]     < DELTA[i]);
-        isOnEdge |= (distances[(2*i)+1] < DELTA[i]);
-      }
-    }
-
-    updateInfoCache(TOUCH_EDGES.value(), isOnEdge?1:0);
-  }
-
-  return isOnEdge;
 }
 
 //------------------------------------------------------------------------

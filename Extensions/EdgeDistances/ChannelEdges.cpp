@@ -59,8 +59,6 @@ const StackExtension::Type ChannelEdges::TYPE = "AdaptiveEdges";
 const QString ChannelEdges::EDGES_FILE = "ChannelEdges.vtp";
 const QString ChannelEdges::FACES_FILE = "ChannelFaces_%1.vtp";
 
-const std::string FILE_VERSION = ChannelEdges::TYPE.toStdString() + " 2.0\n";
-
 using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
 using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
 using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;

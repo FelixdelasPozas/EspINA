@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/">
+    <file>touchStackEdge.svg</file>
+  </qresource>
+</RCC>

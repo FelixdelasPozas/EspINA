@@ -49,12 +49,8 @@ namespace ESPINA
     : public Core::SegmentationExtension
     {
         Q_OBJECT
-
-        static const QString FILE;
-
       public:
-        static const Type           TYPE;
-        static const InformationKey TOUCH_EDGES;
+        static const Type TYPE;
 
         inline InformationKey cfKey(CountingFrame *cf) const;
 
@@ -107,11 +103,6 @@ namespace ESPINA
          *
          */
         bool isExcluded();
-
-        /** \brief Returns true if the segmentation is at the edge of the channel.
-         *
-         */
-        bool isOnEdge() const;
 
         /** \brief NOTE: Fixes old SEG files that carry incorrect cache values that prevents the file from being saved later.
          *

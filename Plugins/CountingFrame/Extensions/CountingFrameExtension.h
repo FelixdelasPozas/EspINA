@@ -45,8 +45,6 @@ namespace ESPINA
     : public Core::StackExtension
     {
         Q_OBJECT
-        static const QString FILE;
-
       public:
         static Type TYPE;
 
@@ -78,13 +76,6 @@ namespace ESPINA
 
         virtual InformationKeyList availableInformation() const
         { return InformationKeyList(); }
-
-        /** \brief Returns true if the given filename corresponds to a cache file for this extension.
-         * \param[in] file filename.
-         *
-         */
-        virtual bool isCacheFile(const QString &file) const
-        { return FILE == file; }
 
         /** \brief Creates a counting frame with the given parameters.
          * \param[in] type counting frame type.
