@@ -199,7 +199,7 @@ void StereologicalInclusion::evaluateCountingFrames()
   Q_ASSERT(m_extendedItem);
 
   disconnect(m_extendedItem, SIGNAL(outputModified()),
-             this,         SLOT(onOutputModified()));
+             this,           SLOT(onOutputModified()));
 
   checkSampleCountingFrames();
 
@@ -214,7 +214,7 @@ void StereologicalInclusion::evaluateCountingFrames()
   }
 
   connect(m_extendedItem, SIGNAL(outputModified()),
-          this,         SLOT(onOutputModified()));
+          this,           SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------

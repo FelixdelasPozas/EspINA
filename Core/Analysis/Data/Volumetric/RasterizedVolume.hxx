@@ -29,16 +29,13 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 
-// ITK
-#include <itkImageRegionIteratorWithIndex.h>
-
 // VTK
 #include <vtkMath.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
-#include <vtkImplicitPolyDataDistance.h>
 #include <vtkImageExport.h>
+#include <vtkVoxelModeller.h>
 
 // Qt
 #include <QMutex>
@@ -274,56 +271,42 @@ namespace ESPINA
   template<typename T>
   void RasterizedVolume<T>::rasterize() const
   {
-    this->m_mutex.lock();
+    QMutexLocker lock(&m_mutex);
 
     auto mesh = readLockMesh(m_output, DataUpdatePolicy::Ignore)->mesh();
     // try to see if already rasterized while waiting in the mutex.
-    if (!this->m_blocks.empty() && m_rasterizationTime == mesh->GetMTime())
-    {
-      // already rasterized
-      this->m_mutex.unlock();
-      return;
-    }
+    if (!this->m_blocks.empty() && m_rasterizationTime == mesh->GetMTime()) return;
 
     auto origin  = this->m_bounds.origin();
     auto spacing = this->m_bounds.spacing();
 
     double minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
-    double meshBounds[6];
-    double point[3];
-
-    auto distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-    distance->SetInput(mesh);
-    distance->SetTolerance(0);
-
+    double meshBounds[6], rasterizationBounds[6];
     mesh->GetBounds(meshBounds);
-    auto rasterizationBounds = Bounds{meshBounds};
 
-    auto region = equivalentRegion<T>(origin, spacing, rasterizationBounds);
-    typename T::Pointer image = create_itkImage<T>(rasterizationBounds, SEG_BG_VALUE, spacing, origin);
-
-    itk::ImageRegionIteratorWithIndex<T> it(image, image->GetLargestPossibleRegion());
-    it.GoToBegin();
-    while(!it.IsAtEnd())
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      auto index = it.GetIndex();
-
-      for(auto i: {0,1,2})
-      {
-        point[i] = index[i] * spacing[i];
-      }
-
-      if (std::abs(distance->EvaluateFunction(point)) <= minSpacing)
-      {
-        it.Set(SEG_VOXEL_VALUE);
-      }
-      else
-      {
-        it.Set(SEG_BG_VALUE);
-      }
-
-      ++it;
+      rasterizationBounds[2*i]     = meshBounds[2*i]     - spacing[i];
+      rasterizationBounds[(2*i)+1] = meshBounds[(2*i)+1] + spacing[i];
     }
+
+    auto rBounds = Bounds{rasterizationBounds};
+    auto region = equivalentRegion<T>(origin, spacing, rBounds);
+    auto size   = region.GetSize();
+
+    auto modeller = vtkSmartPointer<vtkVoxelModeller>::New();
+    modeller->SetInputData(mesh);
+    modeller->SetModelBounds(rasterizationBounds);
+    modeller->SetScalarTypeToUnsignedChar();
+    modeller->SetSampleDimensions(size[0], size[1], size[2]);
+    modeller->SetForegroundValue(SEG_VOXEL_VALUE);
+    modeller->SetBackgroundValue(SEG_BG_VALUE);
+    modeller->SetMaximumDistance(minSpacing);
+    modeller->Update();
+
+    auto image = create_itkImage<T>(rBounds, SEG_BG_VALUE, spacing, origin);
+    std::memcpy(image->GetBufferPointer(), modeller->GetOutput()->GetScalarPointer(), size[0]*size[1]*size[2]);
+
     m_rasterizationTime = mesh->GetMTime();
 
     auto const_this = const_cast<RasterizedVolume<T> *>(this);
@@ -331,8 +314,6 @@ namespace ESPINA
     auto regions = this->editedRegions();
     const_this->SparseVolume<T>::draw(image);
     const_this->setEditedRegions(regions);
-
-    this->m_mutex.unlock();
   }
 
   //----------------------------------------------------------------------------
