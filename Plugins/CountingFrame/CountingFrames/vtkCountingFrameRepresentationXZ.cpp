@@ -234,7 +234,7 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   for(int slice = FrontSlice; slice <= BackSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id;
+    vtkIdType previous_id = 0;
 
     Region->GetPoint(slice*4+3, point);
     point[0] -= ExclusionOffset[0];

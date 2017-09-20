@@ -193,7 +193,13 @@ bool StereologicalInclusion::isExcluded()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  // NOTE: this method could trigger a modification in the output of the extended item, causing an endless loop.
+  // Disconnecting signals fixes that.
+
   Q_ASSERT(m_extendedItem);
+
+  disconnect(m_extendedItem, SIGNAL(outputModified()),
+             this,         SLOT(onOutputModified()));
 
   checkSampleCountingFrames();
 
@@ -206,6 +212,9 @@ void StereologicalInclusion::evaluateCountingFrames()
 
     m_isUpdated = true;
   }
+
+  connect(m_extendedItem, SIGNAL(outputModified()),
+          this,         SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------
@@ -489,6 +498,7 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 void StereologicalInclusion::onOutputModified()
 {
   m_isUpdated = false;
+
   evaluateCountingFrames();
 }
 

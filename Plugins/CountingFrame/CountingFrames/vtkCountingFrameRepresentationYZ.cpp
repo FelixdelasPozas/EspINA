@@ -191,7 +191,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   for(int slice = UpperSlice; slice <= LowerSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id;
+    vtkIdType previous_id = 0;
 
     Region->GetPoint(slice*4+0,point);
     point[0] = Slice + Depth;
