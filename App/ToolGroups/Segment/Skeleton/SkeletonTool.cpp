@@ -553,7 +553,9 @@ void SkeletonTool::onStrokeTypeChanged(int index)
   if(category)
   {
     auto name = category->classificationName();
+
     index = std::min(std::max(0,index), STROKES[name].size() - 1);
+    Q_ASSERT(index >= 0);
 
     auto stroke = STROKES[name].at(index);
 
@@ -621,6 +623,13 @@ void SkeletonTool::updateStrokes()
     m_strokeCombo->clear();
 
     auto strokes = STROKES[currentCategory->classificationName()];
+
+    // can happen if a category has been created
+    if(strokes.size() == 0)
+    {
+      STROKES[currentCategory->classificationName()] = defaultStrokes(currentCategory);
+    }
+
     for(int i = 0; i < strokes.size(); ++i)
     {
       auto stroke = strokes.at(i);

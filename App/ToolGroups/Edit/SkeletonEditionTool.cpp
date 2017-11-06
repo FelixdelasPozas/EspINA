@@ -526,6 +526,7 @@ void SkeletonEditionTool::onStrokeTypeChanged(int index)
     auto name = segmentation->category()->classificationName();
 
     index = std::min(std::max(0,index), STROKES[name].size() - 1);
+    Q_ASSERT(index >= 0);
 
     auto stroke = STROKES[name].at(index);
 
