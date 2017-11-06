@@ -72,7 +72,7 @@ void Output::setSpacing(const NmVector3& spacing)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 Output::spacing() const
+const NmVector3 Output::spacing() const
 {
   return m_spacing;
 }

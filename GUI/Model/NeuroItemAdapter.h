@@ -31,38 +31,42 @@ namespace ESPINA
   class ModelAdapter;
   using ModelAdapterPtr = ModelAdapter *;
 
+  /** \class NeuroItemAdapter
+   * \brief Base class for objects from a neurological structure (also, belonging to a model).
+   *
+   */
   class EspinaGUI_EXPORT NeuroItemAdapter
   : public ItemAdapter
   {
-  public:
-    /** \brief NeuroItemAdapter class virtual destructor.
-     *
-     */
-    virtual ~NeuroItemAdapter()
-    {}
+    public:
+      /** \brief NeuroItemAdapter class virtual destructor.
+       *
+       */
+      virtual ~NeuroItemAdapter()
+      {}
 
-    /** \brief Sets the model of the item.
-     * \param[in] model model adapter raw pointer.
-     *
-     */
-    void setModel(ModelAdapterPtr model)
-    { m_model = model; }
+      /** \brief Sets the model of the item.
+       * \param[in] model model adapter raw pointer.
+       *
+       */
+      void setModel(ModelAdapterPtr model)
+      { m_model = model; }
 
-    /** \brief Returns the model of the item.
-     *
-     */
-    ModelAdapterPtr model() const
-    { return m_model; }
+      /** \brief Returns the model of the item.
+       *
+       */
+      ModelAdapterPtr model() const
+      { return m_model; }
 
-  protected:
-    /** \brief NeuroItemAdapter class constructor.
-     * \param[in] item smart pointer of the NeuroItem to adapt.
-     *
-     */
-    explicit NeuroItemAdapter(NeuroItemSPtr item);
+    protected:
+      /** \brief NeuroItemAdapter class constructor.
+       * \param[in] item smart pointer of the NeuroItem to adapt.
+       *
+       */
+      explicit NeuroItemAdapter(NeuroItemSPtr item);
 
-  private:
-    ModelAdapterPtr m_model;
+    private:
+      ModelAdapterPtr m_model; /** model containing the object. */
   };
 
   using NeuroItemAdapterPtr  = NeuroItemAdapter *;

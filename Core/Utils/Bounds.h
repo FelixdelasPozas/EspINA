@@ -63,14 +63,14 @@ namespace ESPINA
        * Create Bounds from an initial list of values
        *
        *  There are three formats to initialize Bounds instances:
-       *  - {min_x, max_x, min_y, max_y, min_z, max_z} \n
-       *    Lower values are inlcuded.\n
-       *    Uppaer values are excluded.\n
+       *  - {min_x, max_x, min_y, max_y, min_z, max_z}
+       *    Lower values are included.
+       *    Upper values are excluded.
        *  - {'LI',min_x, max_x, min_y, max_y, min_z, max_z,'UI'}.
-       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.\n
-       *    Lower values are included or not according to LI value.\n
-       *    '[' includes values and '(' excludes them.\n
-       *    Upper values are included or not according to UI value.\n
+       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.
+       *    Lower values are included or not according to LI value.
+       *    '[' includes values and '(' excludes them.
+       *    Upper values are included or not according to UI value.
        *    ']' includes values and ')' excludes them.
        */
       Bounds(std::initializer_list<double> bounds);

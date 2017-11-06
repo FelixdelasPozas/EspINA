@@ -30,8 +30,7 @@
 #include "Bounds.h"
 #include <Core/Utils/EspinaException.h>
 
-// C++
-#include <tgmath.h>
+// Qt
 #include <QStringList>
 
 using namespace ESPINA;
@@ -62,7 +61,8 @@ bool lowerBoundsInclusion(double value)
 }
 
 //-----------------------------------------------------------------------------
-bool upperBoundsInclusion(double value) {
+bool upperBoundsInclusion(double value)
+{
   if (value == ']') return true;
   if (value == ')') return false;
 
@@ -258,7 +258,6 @@ bool ESPINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
   return overlap;
 }
 
-
 //-----------------------------------------------------------------------------
 Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
@@ -343,8 +342,10 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 
   if(!res.areValid())
   {
-    // TODO: use EspinaException.
-    qWarning() << "Bounds::intersection() resulted in invalid bounds: " << res;
+    auto message = QObject::tr("Intersection resulted in invalid bounds.");
+    auto details = QObject::tr("Bounds::intersection(b1,b2) -> b1 = %1, b2 = %2, result = %3").arg(b1.toString()).arg(b2.toString()).arg(res.toString());
+
+    throw EspinaException(message, details);
   }
 
   return res;
@@ -531,7 +532,6 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
   }
 
   return true;
-
 }
 
 //-----------------------------------------------------------------------------

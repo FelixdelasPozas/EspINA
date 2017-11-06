@@ -154,7 +154,7 @@ namespace ESPINA
       /** \brief Returns the spacing.
        *
        */
-      NmVector3 spacing() const;
+      const NmVector3 spacing() const;
 
       /** \brief Returns a snapshot data for this output.
        * \param[in]  storage temporal storage object where data files will be saved.
