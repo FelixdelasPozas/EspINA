@@ -158,6 +158,7 @@ void SegmentationProperties::onNotesModified()
   {
     auto note = m_gui->notes->toPlainText();
 
+    // not using the undo command because in this case the QTextEdit provides its own undo/redo.
     if (note.isEmpty())
     {
       safeDeleteExtension<SegmentationNotes>(m_segmentation);

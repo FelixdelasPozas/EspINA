@@ -27,11 +27,11 @@
 
 // ESPINA
 #include "ChangeSegmentationNotes.h"
-
-#include "Core/Analysis/Segmentation.h"
+#include <Core/Analysis/Segmentation.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -65,33 +65,32 @@ void ChangeSegmentationNotes::swapNotes()
 {
   QString currentNote;
 
-  auto extensions = m_segmentation->extensions();
-
-  if (extensions->hasExtension(SegmentationNotes::TYPE))
   {
-    currentNote = extensions->information(SegmentationNotes::NOTES).toString();
+    auto extensions = m_segmentation->extensions();
+
+    if (extensions->hasExtension(SegmentationNotes::TYPE))
+    {
+      currentNote = extensions->get<SegmentationNotes>()->notes();
+    }
   }
 
   if (currentNote.isEmpty() && !m_formerNote.isEmpty())
   {
-    auto extension = m_factory->createSegmentationExtension(SegmentationNotes::TYPE);
-    extensions->add(extension);
-
-    auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+    auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, m_factory);
     notesExtension->setNotes(m_formerNote);
   }
   else
   {
     if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
     {
-      auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+      auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, m_factory);
       notesExtension->setNotes(m_formerNote);
     }
     else
     {
       if (!currentNote.isEmpty() && m_formerNote.isEmpty())
       {
-        extensions->remove(SegmentationNotes::TYPE);
+        safeDeleteExtension<SegmentationNotes>(m_segmentation);
       }
     }
   }

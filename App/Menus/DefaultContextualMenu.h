@@ -35,6 +35,10 @@ namespace ESPINA
 {
   class ViewManager;
 
+  /** \class DefaultContextualMenu
+   *  \brief Default context menu for segmentation explorer layouts.
+   *
+   */
   class DefaultContextualMenu
   : public ContextualMenu
   , private Support::WithContext
