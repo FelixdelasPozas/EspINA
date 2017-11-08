@@ -88,7 +88,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   for(auto data : m_data)
   {
-    auto bounds = data->bounds();
+    const auto bounds = data->bounds();
     auto dependencies = QStringList{data->dependencies()};
 
     xml.writeStartElement("Data");
@@ -96,18 +96,23 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     xml.writeAttribute("bounds",  bounds.bounds().toString());
     xml.writeAttribute("depends", dependencies.join(";"));
 
-    for(int i = 0; i < data->editedRegions().size(); ++i)
+    if(bounds.areValid())
     {
-      // We need to crop the edited regions bounds in case
-      // the data bounds have been reduced to prevent
-      // out of bounds data requests
-      auto editedBounds = intersection(bounds, data->editedRegions().at(i));
-      if (bounds.areValid() && editedBounds.areValid())
+      for(int i = 0; i < data->editedRegions().size(); ++i)
       {
-        xml.writeStartElement("EditedRegion");
-        xml.writeAttribute("id",     QString::number(i));
-        xml.writeAttribute("bounds", editedBounds.toString());
-        xml.writeEndElement();
+        // We need to crop the edited regions bounds in case
+        // the data bounds have been reduced to prevent
+        // out of bounds data requests
+        if(!intersect(bounds, data->editedRegions().at(i))) continue;
+
+        auto editedBounds = intersection(bounds, data->editedRegions().at(i));
+        if (editedBounds.areValid())
+        {
+          xml.writeStartElement("EditedRegion");
+          xml.writeAttribute("id",     QString::number(i));
+          xml.writeAttribute("bounds", editedBounds.toString());
+          xml.writeEndElement();
+        }
       }
     }
     xml.writeEndElement();

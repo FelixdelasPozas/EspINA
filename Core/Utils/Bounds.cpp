@@ -342,14 +342,11 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 
   if(!res.areValid())
   {
-    auto message = QObject::tr("Intersection resulted in invalid bounds.");
-    auto details = QObject::tr("Bounds::intersection(b1,b2) -> b1 = %1, b2 = %2, result = %3").arg(b1.toString()).arg(b2.toString()).arg(res.toString());
-
-    throw EspinaException(message, details);
+    qWarning() << QObject::tr("Intersection resulted in invalid bounds.");
+    qWarning() << QObject::tr("Bounds::intersection(b1,b2) -> b1 = %1, b2 = %2, result = %3").arg(b1.toString()).arg(b2.toString()).arg(res.toString());
   }
 
   return res;
-
 }
 
 //-----------------------------------------------------------------------------
