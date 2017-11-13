@@ -56,6 +56,9 @@ namespace ESPINA
       , m_undoStack  {undoStack}
       {}
 
+      virtual ~CategoryItemDelegate()
+      {};
+
       virtual void setModelData(QWidget            *editor,
                                 QAbstractItemModel *model,
                                 const QModelIndex  &index) const override;

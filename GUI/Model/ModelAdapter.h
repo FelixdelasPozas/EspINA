@@ -32,6 +32,7 @@
 
 // Qt
 #include <QAbstractItemModel>
+#include <QHash>
 
 namespace ESPINA
 {
@@ -714,42 +715,68 @@ namespace ESPINA
     BatchCommandSPtr removeSegmentationCommand(SegmentationAdapterSPtr segmentation);
 
   private:
+    /** \class BatchCommand
+     * \brief Modifies the model executing a group of commands in batch mode.
+     *
+     */
     class BatchCommand
     {
-    public:
-      explicit BatchCommand() {}
+      public:
+        /** \brief BatchCommand class constructor.
+         *
+         */
+        explicit BatchCommand() {}
 
-      virtual ~BatchCommand() {}
+        /** \brief BatchCommand virtual destructor.
+         *
+         */
+        virtual ~BatchCommand() {}
 
-      virtual void execute() = 0;
+        /** \brief Executes the command.
+         *
+         */
+        virtual void execute() = 0;
     };
 
+    /** \class Command
+     * \brief Contains an executable lambda.
+     *
+     */
     template <typename T>
     class Command
     : public BatchCommand
     {
-    public:
-      explicit Command(T expression)
-      : m_lambda(expression) {}
+      public:
+        /** \brief Command class constructor.
+         * \param[in] expression Expression element.
+         *
+         */
+        explicit Command(T expression)
+        : m_lambda(expression) {}
 
-      virtual void execute()
-      { m_lambda();}
+        /** \brief Executes the stored expression.
+         *
+         */
+        virtual void execute()
+        { m_lambda();}
 
-    private:
-      T m_lambda;
+      private:
+        T m_lambda; /** executable expression. */
     };
 
   private:
-    AnalysisSPtr              m_analysis;
-    SampleAdapterSList        m_samples;
-    ChannelAdapterSList       m_channels;
-    SegmentationAdapterSList  m_segmentations;
-    ClassificationAdapterSPtr m_classification;
+    AnalysisSPtr              m_analysis;        /** adapted analysis class.                        */
+    SampleAdapterSList        m_samples;         /** list of sample adapters in the model.          */
+    ChannelAdapterSList       m_channels;        /** list of channel adapters in the model.         */
+    SegmentationAdapterSList  m_segmentations;   /** list of segmentation adapters in the model.    */
+    ClassificationAdapterSPtr m_classification;  /** adapter of classification of adapted analysis. */
 
-    bool m_isBatchMode;
-    ItemCommandsList m_addCommands;
-    ItemCommandsList m_updateCommands;
-    ItemCommandsList m_removeCommands;
+    QHash<const Persistent::Uuid, SegmentationAdapterSPtr> m_sptrLookup; /** relates pointers to smartpointers of segmentations for faster lookup based on common Uuid. */
+
+    bool m_isBatchMode;                 /** true if the model is currently in batch mode operation. */
+    ItemCommandsList m_addCommands;     /** pending add commands to process.                        */
+    ItemCommandsList m_updateCommands;  /** pending update commands to process.                     */
+    ItemCommandsList m_removeCommands;  /** pending remove commands to process.                     */
   };
 
   using ModelAdapterPtr  = ModelAdapter *;

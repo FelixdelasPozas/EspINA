@@ -131,6 +131,10 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 
       m_segmentations << adapted;
       adapted->setModel(this);
+
+      auto id = adapted->uuid();
+      Q_ASSERT(!m_sptrLookup.contains(id));
+      m_sptrLookup.insert(id, adapted);
     }
     endInsertRows();
 
@@ -1136,26 +1140,25 @@ ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
 {
-  SegmentationAdapterSPtr pointer = nullptr;
-
-  int i=0;
-  while (!pointer && i < m_segmentations.size())
+  auto id = segmentation->uuid();
+  Q_ASSERT(!id.isNull());
+  if(!m_sptrLookup.contains(id))
   {
-    if (m_segmentations[i].get() == segmentation)
-    {
-      pointer = m_segmentations[i];
-    }
+    auto name      = (segmentation ? segmentation->data().toString() : QString("Unknown segmentation"));
+    auto what      = QObject::tr("Attempt to get smartPointer for unregistered segmentation: %1").arg(name);
+    auto details   = QObject::tr("ModelAdapter::smartPointer(segmentation) -> Attempt to get smartPointer for unregistered segmentation: %1").arg(name);
 
-    i++;
+    throw EspinaException(what, details);
   }
 
-  return pointer;
+  return m_sptrLookup[id];
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::resetInternalData()
 {
   m_segmentations.clear();
+  m_sptrLookup.clear();
   m_channels.clear();
   m_samples.clear();
   m_classification.reset();
@@ -1710,6 +1713,20 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addSegmentationCommand(Segmentation
     m_analysis->add(segmentation->m_segmentation);
     m_segmentations << segmentation;
 
+    auto id = segmentation->uuid();
+
+    if(m_sptrLookup.contains(id))
+    {
+      auto otherName = m_sptrLookup[id]->data().toString();
+      auto name      = (segmentation ? segmentation->data().toString() : QString("Unknown segmentation"));
+      auto what      = QObject::tr("Duplicated Uuid attempting to add segmentation: %1 (duplicated of %2").arg(name).arg(otherName);
+      auto details   = QObject::tr("ModelAdapter::addSegmentationCommand() -> Duplicated Uuid attempting to add segmentation %1 (duplicated of %2").arg(name).arg(otherName);
+
+      throw EspinaException(what, details);
+    }
+
+    m_sptrLookup.insert(id, segmentation);
+
     segmentation->setModel(this);
   };
 
@@ -1795,6 +1812,7 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::removeSegmentationCommand(Segmentat
 
     m_analysis->remove(segmentation->m_segmentation);
     m_segmentations.removeOne(segmentation);
+    m_sptrLookup.remove(segmentation->uuid());
 
     segmentation->setModel(nullptr);
 
