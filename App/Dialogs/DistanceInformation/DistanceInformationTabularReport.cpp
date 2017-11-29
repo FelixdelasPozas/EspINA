@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "DistanceInformationTabularReport.h"
-#include <Core/Utils/BlockTimer.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Dialogs/DefaultDialogs.h>
 
