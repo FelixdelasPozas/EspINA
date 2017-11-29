@@ -188,10 +188,10 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LB));
   this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
 
+  vtkIdType previous_id = 0;
   for(int slice = UpperSlice; slice <= LowerSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id = 0;
 
     Region->GetPoint(slice*4+0,point);
     point[0] = Slice + Depth;
@@ -224,11 +224,11 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   }
 
   // TOP
+  previous_id = 0;
   this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
   for(int slice = UpperSlice; slice <= LowerSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id;
 
     Region->GetPoint(slice*4+1,point);
     point[0]  = Slice + Depth;
@@ -411,7 +411,6 @@ void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
       offset -= shift;
     }
   }
-
 
   InclusionOffset[1] = offset;
   CreateRegion();
