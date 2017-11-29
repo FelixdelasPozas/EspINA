@@ -41,7 +41,17 @@
 
 namespace ESPINA
 {
-  enum class Axis: std::int8_t { X=0, Y=1, Z=2 };
+  /** \class Axis
+   * \brief Axis direction enumeration.
+   *
+   */
+  enum class Axis: std::int8_t
+  {
+    X=0,
+    Y=1,
+    Z=2,
+    UNDEFINED=3
+  };
 
   /** \brief Returns the numerical index equivalent of the specified axis.
    * \param[in] axis.
@@ -49,7 +59,7 @@ namespace ESPINA
    */
   constexpr int idx(const Axis axis)
   {
-    return axis == Axis::X? 0:(axis == Axis::Y?1:2);
+    return (axis == Axis::X ? 0 : (axis == Axis::Y ? 1 : (axis == Axis::Z ? 2 : 3)));
   }
 
   /** \brief Converts the numerical value to its Axis equivalent.
@@ -58,7 +68,7 @@ namespace ESPINA
    */
   constexpr Axis toAxis(int idx)
   {
-    return idx == 0?Axis::X:(idx == 1?Axis::Y:Axis::Z);
+    return (idx == 0 ? Axis::X : (idx == 1 ? Axis::Y : (idx == 2 ? Axis::Z : Axis::UNDEFINED)));
   }
 
   /** \brief Returns the text of the given direction
@@ -72,10 +82,16 @@ namespace ESPINA
       case Axis::X: return QObject::tr("X");
       case Axis::Y: return QObject::tr("Y");
       case Axis::Z: return QObject::tr("Z");
-      default: return QObject::tr("Undefined");
+      default: break;
     }
+
+    return QObject::tr("Undefined");
   }
 
+  /** \class Plane
+   * \brief Plane surface enumeration.
+   *
+   */
   enum class Plane: std::int8_t
   {
     XY = 0,  // AXIAL

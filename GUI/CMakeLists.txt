@@ -20,6 +20,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
+  Model/Utils/DBVH.h
   Representations/ModelSources.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
@@ -119,7 +120,9 @@ set (GUI_SOURCES
   Model/Proxies/InformationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
+  Model/Utils/DBVH.cpp
   Model/Utils/ModelUtils.cpp
+  Model/Utils/SegmentationLocator.cpp
   Model/Utils/SegmentationUtils.cpp
   Model/Utils/QueryAdapter.cpp
   Model/ViewItemAdapter.cpp

@@ -33,6 +33,8 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
+const RelationName Connection::CONNECTS = "Connects";
+
 //--------------------------------------------------------------------
 bool ConnectionStorage::addConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3& point)
 {

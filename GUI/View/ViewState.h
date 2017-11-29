@@ -158,7 +158,7 @@ namespace ESPINA
          */
         void refresh();
 
-        /** \brief Sets the paremeters of the scene.
+        /** \brief Sets the parameters of the scene.
          * \param[in] crosshair crosshair point.
          * \param[in] resolution scene's resolution.
          * \param[in] bounds scene's bounds.
@@ -273,18 +273,16 @@ namespace ESPINA
         void emitFrameChanged(const GUI::Representations::FrameCSPtr frame);
 
       private:
-        Timer m_timer;
-
-        bool                 m_fitToSlices;
-        NmVector3            m_crosshair;
-        CoordinateSystemSPtr m_coordinateSystem;
-        SelectionSPtr        m_selection;
+        Timer                m_timer;             /** timer for frame numbers.                                                                      */
+        bool                 m_fitToSlices;       /** true if the movement from a slice to the next is done in spacing increments, false otherwise. */
+        NmVector3            m_crosshair;         /** position of the crosshair.                                                                    */
+        CoordinateSystemSPtr m_coordinateSystem;  /** view's coordinate system (origin, resolution & bounds).                                       */
+        SelectionSPtr        m_selection;         /** current view's selected items.                                                                */
+        EventHandlerSPtr     m_eventHandler;      /** view's event handler.                                                                         */
 
         QList<GUI::Representations::Managers::TemporalPrototypesSPtr> m_activeWidgets; /** currently active widgets on the views. */
 
-        QList<GUI::Representations::FrameCSPtr> m_frames;
-
-        EventHandlerSPtr m_eventHandler;
+        QList<GUI::Representations::FrameCSPtr> m_frames; /** last frames buffer. */
       };
 
       /** \brief Compute scene bounds and minimal resolution in the given state for the given items.

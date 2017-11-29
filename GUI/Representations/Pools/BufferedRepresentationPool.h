@@ -26,6 +26,7 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationUpdater.h>
 #include <GUI/Representations/RepresentationWindow.h>
+#include <GUI/Model/Utils/SegmentationLocator.h>
 
 // VTK
 #include <vtkMath.h>
@@ -47,13 +48,15 @@ namespace ESPINA
        * \param[in] pipeline generator of the actors for the items.
        * \param[in] scheduler task scheduler.
        * \param[in] windowsize width/2 of the window of the pool.
+       * \param[in] locator segmentation locator to accelerate picks, can be null.
        *
        */
       explicit BufferedRepresentationPool(const ItemAdapter::Type   &type,
                                           const Plane                plane,
                                           RepresentationPipelineSPtr pipeline,
                                           SchedulerSPtr              scheduler,
-                                          unsigned                   windowSize);
+                                          unsigned                   windowSize,
+                                          SegmentationLocatorSPtr    locator = nullptr);
 
       virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -117,6 +120,7 @@ namespace ESPINA
       Nm                         m_normalRes;    /** resolution of the normal plane.            */
       NmVector3                  m_crosshair;    /** current position's crosshair.              */
       RepresentationPipelineSPtr m_pipeline;     /** actor creation pipeline and pick resolver. */
+      SegmentationLocatorSPtr    m_locator;      /** segmentation locator object.               */
   };
 }
 

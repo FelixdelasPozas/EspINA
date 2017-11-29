@@ -67,7 +67,6 @@ AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, S
 , m_alreadyFetchedData{false}
 , m_lastModifiedMesh  {0}
 {
-  setDescription(tr("Compute SAS"));
 }
 
 //----------------------------------------------------------------------------

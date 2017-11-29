@@ -41,8 +41,8 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
-    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
-    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using ReadLockExtensions  = Core::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using WriteLockExtensions = Core::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
 
   public:
     /** \brief SegmentationAdapter class virtual destructor.

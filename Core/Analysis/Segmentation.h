@@ -36,7 +36,7 @@ namespace ESPINA
    */
   class EspinaCore_EXPORT Segmentation
   : public ViewItem
-  , public Core::Analysis::Extensible<Core::SegmentationExtension, Segmentation>
+  , public Core::Extensible<Core::SegmentationExtension, Segmentation>
   {
   public:
     /** \brief Segmentation class constructor.

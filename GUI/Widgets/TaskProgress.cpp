@@ -83,6 +83,15 @@ void TaskProgress::updateProgress(int value)
 
   m_progressBar->setFormat(text + QString(": %1%").arg(value));
   m_progressBar->setValue(value);
+
+  if(value >= 100 || value <= 0 || !m_task->isRunning())
+  {
+    if(isVisible()) hide();
+  }
+  else
+  {
+    if(!isVisible()) show();
+  }
 }
 
 //------------------------------------------------------------------------

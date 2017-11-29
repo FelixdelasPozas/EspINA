@@ -74,7 +74,7 @@ namespace ESPINA
      */
     virtual ~View2D();
 
-    /** \brief Reverses the efect of the mouse wheel on the view.
+    /** \brief Reverses the effect of the mouse wheel on the view.
      * \param[in] value true to reverse the movement of the wheel, false otherwise.
      *
      */

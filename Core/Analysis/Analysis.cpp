@@ -28,6 +28,7 @@
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()
@@ -435,7 +436,8 @@ void Analysis::removeFilterContentRelation(FilterSPtr filter, ViewItem* item)
   if (segmentation)
   {
     succesor = find<Segmentation>(segmentation, m_segmentations);
-  } else
+  }
+  else
   {
     auto channel = dynamic_cast<Channel *>(item);
     if (channel)
@@ -477,6 +479,9 @@ void Analysis::addConnection(const PersistentSPtr segmentation1, const Persisten
 
     throw Core::Utils::EspinaException(message, details);
   }
+
+  m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
+  m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
 }
 
 //------------------------------------------------------------------------
@@ -489,6 +494,9 @@ void Analysis::removeConnection(const PersistentSPtr segmentation1, const Persis
 
     throw Core::Utils::EspinaException(message, details);
   }
+
+  m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
+  m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
 }
 
 //------------------------------------------------------------------------
@@ -516,7 +524,7 @@ void Analysis::removeConnections(const PersistentSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-Core::Connections Analysis::connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2)
+Core::Connections Analysis::connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2) const
 {
   Core::Connections result;
 
@@ -534,7 +542,7 @@ Core::Connections Analysis::connections(const PersistentSPtr segmentation1, cons
 }
 
 //------------------------------------------------------------------------
-Core::Connections Analysis::connections(const PersistentSPtr segmentation)
+Core::Connections Analysis::connections(const PersistentSPtr segmentation) const
 {
   Core::Connections result;
 
@@ -545,7 +553,7 @@ Core::Connections Analysis::connections(const PersistentSPtr segmentation)
       if(uuid == seg->uuid()) return seg;
     }
     Q_ASSERT(false);
-    return m_segmentations.first(); // ao the lambda has a consistent return type.
+    return m_segmentations.first(); // so the lambda has a consistent return type.
   };
 
   for(auto connection: m_connections.connections(segmentation))

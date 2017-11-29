@@ -593,3 +593,15 @@ bool ESPINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
 
   return ((coincident == 2) && (adjacent == 1));
 }
+
+//-----------------------------------------------------------------------------
+const float ESPINA::surfaceArea(const Bounds &bounds)
+{
+  return 2.0 * ((bounds.lenght(Axis::X) * bounds.lenght(Axis::Y)) + (bounds.lenght(Axis::X) * bounds.lenght(Axis::Z)) + (bounds.lenght(Axis::Y) * bounds.lenght(Axis::Z)));
+}
+
+//-----------------------------------------------------------------------------
+const float ESPINA::enclosingVolume(const Bounds& bounds)
+{
+  return bounds.lenght(Axis::X)*bounds.lenght(Axis::Y)*bounds.lenght(Axis::Z);
+}

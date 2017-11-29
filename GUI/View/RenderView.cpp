@@ -332,7 +332,7 @@ const NmVector3 RenderView::crosshair() const
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::eventPosition(int& x, int& y)
+void RenderView::eventPosition(int& x, int& y) const
 {
   x = y = -1;
 
@@ -345,7 +345,7 @@ void RenderView::eventPosition(int& x, int& y)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RenderView::worldEventPosition()
+NmVector3 RenderView::worldEventPosition() const
 {
   int x, y;
   eventPosition(x, y);
@@ -364,7 +364,7 @@ NmVector3 RenderView::worldEventPosition()
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 RenderView::worldEventPosition(const QPoint &pos)
+NmVector3 RenderView::worldEventPosition(const QPoint &pos) const
 {
   renderWindow()->GetInteractor()->SetEventPositionFlipY(pos.x(), pos.y());
 

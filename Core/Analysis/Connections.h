@@ -49,9 +49,12 @@ namespace ESPINA
         PersistentSPtr segmentation1; /** segmentation object. */
         PersistentSPtr segmentation2; /** segmentation object. */
         NmVector3      point;         /** connection point.    */
+
+        const static RelationName CONNECTS;
     };
 
     using Connections = QList<Connection>;
+
 
     class EspinaCore_EXPORT ConnectionStorage
     {

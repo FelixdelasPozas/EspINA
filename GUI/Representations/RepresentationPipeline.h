@@ -64,7 +64,7 @@ namespace ESPINA
           friend class ActorsLocker;
 
           ActorsMap actors; /** map of item<->item's actors. */
-          QMutex    lock;   /** access lock.               */
+          QMutex    lock;   /** access lock.                 */
       };
 
       using Actors = std::shared_ptr<ActorsData>;

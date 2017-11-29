@@ -28,12 +28,14 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
                                                        const Plane                plane,
                                                        RepresentationPipelineSPtr pipeline,
                                                        SchedulerSPtr              scheduler,
-                                                       unsigned                   windowSize)
+                                                       unsigned                   windowSize,
+                                                       SegmentationLocatorSPtr    locator)
 : RepresentationPool{type}
 , m_normalIdx       {normalCoordinateIndex(plane)}
 , m_updateWindow    {scheduler, pipeline, windowSize}
 , m_normalRes       {0}
 , m_pipeline        {pipeline}
+, m_locator         {locator}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -41,19 +43,37 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
 
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
-                                                     vtkProp *actor) const
+ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
 {
   ViewItemAdapterList result;
 
   auto lastActors = actors(lastUpdateTimeStamp());
-
-  if(lastActors.get() != nullptr)
+  if(lastActors.get())
   {
-    ViewItemAdapterPtr pickedItem = nullptr;
-
+    RepresentationPipeline::ActorsLocker actors(lastActors, true);
+    if(actors.isLocked())
     {
-      RepresentationPipeline::ActorsLocker actors(lastActors, true);
+      // Test the fast method with the locator
+      if(m_locator && (type() == ItemAdapter::Type::SEGMENTATION))
+      {
+        ViewItemAdapterSList candidates{m_locator->contains(point)};
+
+        if(!candidates.isEmpty())
+        {
+          for (auto item : candidates)
+          {
+            if (actors.get().keys().contains(item.get()) && m_pipeline->pick(item.get(), point))
+            {
+              result << item.get();
+            }
+          }
+        }
+
+        if(!result.isEmpty()) return result;
+      }
+
+      // If none found check with the old linear iteration method.
+      ViewItemAdapterPtr pickedItem = nullptr;
 
       if(actors.isLocked())
       {

@@ -35,7 +35,7 @@ namespace ESPINA
 {
   class EspinaCore_EXPORT Channel
   : public ViewItem
-  , public Core::Analysis::Extensible<Core::StackExtension, Channel>
+  , public Core::Extensible<Core::StackExtension, Channel>
   {
     public:
       static const RelationName STAIN_LINK;

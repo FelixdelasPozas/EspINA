@@ -280,6 +280,7 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
     inputs << seg->asInput();
 
     auto filter = factory->createFilter<AppositionSurfaceFilter>(inputs, ASFilterFactory::AS_FILTER);
+    filter->setDescription(tr("SAS for %1").arg(seg->data().toString()));
 
     struct Data data(filter, model->smartPointer(seg));
     m_executingTasks.insert(filter.get(), data);

@@ -37,8 +37,8 @@ namespace ESPINA
   : public ViewItemAdapter
   {
     public:
-      using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<Core::StackExtension, Channel>;
-      using WriteLockExtensions = Core::Analysis::WriteLockExtensions<Core::StackExtension, Channel>;
+      using ReadLockExtensions  = Core::ReadLockExtensions<Core::StackExtension, Channel>;
+      using WriteLockExtensions = Core::WriteLockExtensions<Core::StackExtension, Channel>;
 
     public:
       /** \brief ChannelAdapter class destructor.

@@ -85,20 +85,23 @@ void RawSkeleton::setSpacing(const NmVector3 &newSpacing)
 //----------------------------------------------------------------------------
 void RawSkeleton::setSkeleton(vtkSmartPointer<vtkPolyData> skeleton)
 {
-  QMutexLocker lock(&m_lock);
-
-  m_skeleton = skeleton;
-
-  BoundsList editedRegions;
-  if (m_skeleton)
   {
-    m_bounds = polyDataVolumeBounds(m_skeleton, m_bounds.spacing(), m_bounds.origin());
+    QMutexLocker lock(&m_lock);
 
-    editedRegions << bounds();
+    m_skeleton = skeleton;
 
-    setEditedRegions(editedRegions);
-    updateModificationTime();
+    BoundsList editedRegions;
+    if (m_skeleton)
+    {
+      m_bounds = polyDataVolumeBounds(m_skeleton, m_bounds.spacing(), m_bounds.origin());
+
+      editedRegions << bounds();
+
+      setEditedRegions(editedRegions);
+    }
   }
+
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------

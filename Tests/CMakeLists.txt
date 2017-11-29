@@ -135,6 +135,7 @@ qt4_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
+  ${GUI_DIR}/Model/Utils/DBVH.h
   ${GUI_DIR}/Utils/Timer.h
   ${GUI_DIR}/View/ViewState.h
   ${GUI_DIR}/View/CoordinateSystem.h
@@ -160,6 +161,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/Model/Utils/QueryAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Model/Utils/DBVH.cpp
   ${GUI_DIR}/Representations/Frame.cpp
   ${GUI_DIR}/Utils/Timer.cpp
   ${GUI_DIR}/View/CoordinateSystem.cpp

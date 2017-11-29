@@ -310,6 +310,18 @@ namespace ESPINA
    * third side.
    */
   bool EspinaCore_EXPORT areAdjacent(const Bounds &lhs, const Bounds &rhs);
+
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  const float EspinaCore_EXPORT surfaceArea(const Bounds &bounds);
+
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  const float EspinaCore_EXPORT enclosingVolume(const Bounds &bounds);
 }
 
 #endif // ESPINA_BOUNDS_H

@@ -280,7 +280,8 @@ namespace ESPINA
     auto origin  = this->m_bounds.origin();
     auto spacing = this->m_bounds.spacing();
 
-    double minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    double minDistance = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    minDistance = (minDistance <= 0 ? 0.1 : (minDistance > 1.0 ? 1.0 : minDistance));
     double meshBounds[6], rasterizationBounds[6];
     mesh->GetBounds(meshBounds);
 
@@ -301,7 +302,7 @@ namespace ESPINA
     modeller->SetSampleDimensions(size[0], size[1], size[2]);
     modeller->SetForegroundValue(SEG_VOXEL_VALUE);
     modeller->SetBackgroundValue(SEG_BG_VALUE);
-    modeller->SetMaximumDistance(minSpacing);
+    modeller->SetMaximumDistance(minDistance);
     modeller->Update();
 
     auto image = create_itkImage<T>(rBounds, SEG_BG_VALUE, spacing, origin);

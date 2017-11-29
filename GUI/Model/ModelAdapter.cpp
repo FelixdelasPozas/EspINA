@@ -31,6 +31,7 @@
 #include "Utils/SegmentationUtils.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -141,6 +142,8 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     auto addedSegmentations = toList<ViewItemAdapter>(m_segmentations);
 
     addedItems << addedSegmentations;
+
+    m_dbvh.insert(addedSegmentations);
 
     emit segmentationsAdded(addedSegmentations);
   }
@@ -725,7 +728,7 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
 {
   RelationList relations;
 
-  if (ESPINA::RELATION_IN == type || ESPINA::RELATION_INOUT == type)
+  if (RELATION_IN == type || RELATION_INOUT == type)
   {
     for(auto edge : m_analysis->relationships()->inEdges(item->m_analysisItem, filter))
     {
@@ -737,7 +740,7 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
     }
   }
 
-  if (ESPINA::RELATION_OUT == type || ESPINA::RELATION_INOUT == type)
+  if (RELATION_OUT == type || RELATION_INOUT == type)
   {
     for(auto edge : m_analysis->relationships()->outEdges(item->m_analysisItem, filter))
     {
@@ -1075,6 +1078,13 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
     if(base == item) return channel;
   }
 
+  if(m_sptrLookup.contains(item->uuid()))
+  {
+    auto candidate = m_sptrLookup[item->uuid()];
+    auto base = std::dynamic_pointer_cast<Persistent>(candidate->m_segmentation);
+    if(base == item) return candidate;
+  }
+
   for(auto segmentation : m_segmentations)
   {
     auto base = std::dynamic_pointer_cast<Persistent>(segmentation->m_segmentation);
@@ -1162,6 +1172,7 @@ void ModelAdapter::resetInternalData()
   m_channels.clear();
   m_samples.clear();
   m_classification.reset();
+  m_dbvh.clear();
 }
 
 //------------------------------------------------------------------------
@@ -1726,6 +1737,7 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::addSegmentationCommand(Segmentation
     }
 
     m_sptrLookup.insert(id, segmentation);
+    m_dbvh.insert(segmentation);
 
     segmentation->setModel(this);
   };
@@ -1813,6 +1825,7 @@ ModelAdapter::BatchCommandSPtr ModelAdapter::removeSegmentationCommand(Segmentat
     m_analysis->remove(segmentation->m_segmentation);
     m_segmentations.removeOne(segmentation);
     m_sptrLookup.remove(segmentation->uuid());
+    m_dbvh.remove(segmentation);
 
     segmentation->setModel(nullptr);
 
@@ -2021,4 +2034,34 @@ bool ESPINA::Connection::operator ==(const Connection& other)
   return (item1 == other.item1 || item1 == other.item2) &&
          (item2 == other.item1 || item2 == other.item2) &&
          (point == other.point);
+}
+
+//------------------------------------------------------------------------
+const ViewItemAdapterSList ModelAdapter::contains(const NmVector3& point) const
+{
+  NmVector3 spacing{1,1,1};
+  if(!m_channels.empty())
+  {
+    spacing = m_channels.first()->output()->spacing();
+  }
+
+  return m_dbvh.contains(point, spacing);
+}
+
+//------------------------------------------------------------------------
+const ViewItemAdapterSList ModelAdapter::intersects(const Bounds& bounds) const
+{
+  NmVector3 spacing{1,1,1};
+  if(!m_channels.empty())
+  {
+    spacing = m_channels.first()->output()->spacing();
+  }
+
+  return m_dbvh.intersects(bounds, spacing);
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::rebuildLocator()
+{
+  m_dbvh.rebuild();
 }

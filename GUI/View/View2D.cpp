@@ -1152,16 +1152,17 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   picker->PickFromListOn();
 
   auto sceneActors = rendererUnderCursor()->GetViewProps();
+  const auto worldPoint  = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
   NeuroItemAdapterList pickedItems;
-  QList<vtkProp *>     pickedProps;
+  QList<vtkProp *> pickedProps;
 
   bool finished = false;
-  bool picked   = false;
+  bool picked = false;
 
   do
   {
-    picked = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
+    picked = picker->PickProp(x, y, rendererUnderCursor(), sceneActors);
     auto pickedProp = picker->GetViewProp();
 
     if (pickedProp && pickedProp->GetVisibility())
@@ -1170,20 +1171,20 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       sceneActors->RemoveItem(pickedProp);
     }
 
-    auto worldPoint = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
-
-    for(auto manager: m_managers)
+    for (auto manager : m_managers)
     {
+      if(!manager->isActive()) continue;
+
       auto items = manager->pick(worldPoint, pickedProp);
 
-      for(auto item: items)
+      for (auto item : items)
       {
-        if(!pickedItems.contains(item))
+        if (!pickedItems.contains(item))
         {
           if (Selector::IsValid(item, flags))
           {
             NeuroItemAdapterPtr neuroItem = item;
-            if(flags.testFlag(Selector::SAMPLE) && isChannel(item))
+            if (flags.testFlag(Selector::SAMPLE) && isChannel(item))
             {
               neuroItem = QueryAdapter::sample(channelPtr(item)).get();
             }
@@ -1197,9 +1198,9 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       }
     }
   }
-  while(picked && !finished);
+  while (picked && !finished);
 
-  for(auto prop: pickedProps)
+  for (auto prop : pickedProps)
   {
     sceneActors->AddItem(prop);
     prop->VisibilityOn();

@@ -25,6 +25,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/StatePair.h>
 #include <Core/Utils/ITKProgressReporter.h>
 
 using namespace ESPINA;
@@ -83,8 +84,8 @@ State VolumetricStreamReader::state() const
     throw EspinaException(message, details);
   }
 
-  state += QString("File=%1;").arg(m_fileName.absoluteFilePath());
-  state += QString("Streaming=%1;").arg(m_streaming ? "true" : "false");
+  state += StatePair("File", m_fileName.absoluteFilePath());
+  state += StatePair("Streaming", (m_streaming ? "true" : "false"));
 
   return state;
 }

@@ -97,17 +97,17 @@ namespace ESPINA
      * \param[out] y coordinate.
      *
      */
-    void eventPosition(int &x, int &y);
+    void eventPosition(int &x, int &y) const;
 
     /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    NmVector3 worldEventPosition();
+    NmVector3 worldEventPosition() const;
 
     /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    NmVector3 worldEventPosition(const QPoint &pos);
+    NmVector3 worldEventPosition(const QPoint &pos) const;
 
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
      * \param[in] flags view item types to be selected.
