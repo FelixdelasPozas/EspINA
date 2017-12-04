@@ -186,6 +186,11 @@ namespace ESPINA
        */
       void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
+      /** \brief Updates the inspector key when it changes the segmentations being inspected.
+       *
+       */
+      void onInspectorUpdated();
+
     protected:
       CheckableTreeView                                      *m_view; /** view of the model. */
       QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors; /** map of segmentation inspectors. */

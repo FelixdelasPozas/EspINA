@@ -88,7 +88,7 @@ namespace ESPINA
        */
       explicit Dialog3D(Support::Context &context);
 
-      /** \brief SegmentationInspector class virtual destructor.
+      /** \brief Dialog3D class virtual destructor.
        *
        */
       virtual ~Dialog3D()
