@@ -22,7 +22,7 @@
 #ifndef GUI_MODEL_UTILS_DBVH_H_
 #define GUI_MODEL_UTILS_DBVH_H_
 
-#include <Core/EspinaCore_Export.h>
+#include <GUI/EspinaGUI_Export.h>
 
 // ESPINA
 #include <GUI/Model/ViewItemAdapter.h>
@@ -108,7 +108,7 @@ namespace ESPINA
          * Josef Spjut, Erik Brunvand, Al Davis & Andrew Kensler.
          *
          */
-        class EspinaCore_EXPORT DBVHNode
+        class EspinaGUI_EXPORT DBVHNode
         : public QObject
         {
             Q_OBJECT
