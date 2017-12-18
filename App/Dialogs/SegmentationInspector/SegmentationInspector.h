@@ -106,8 +106,16 @@ namespace ESPINA
        */
       virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
+      /** \brief Returns the list of segmentations in the view.
+       *
+       */
+      const SegmentationAdapterList segmentations() const
+      { return m_segmentations; }
+
     signals:
       void inspectorClosed(SegmentationInspector *inspector);
+
+      void segmentationsUpdated();
 
     protected:
       virtual void showEvent(QShowEvent *event) override;

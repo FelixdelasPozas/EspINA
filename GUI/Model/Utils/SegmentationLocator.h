@@ -22,6 +22,8 @@
 #ifndef GUI_MODEL_UTILS_SEGMENTATIONLOCATOR_H_
 #define GUI_MODEL_UTILS_SEGMENTATIONLOCATOR_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Model/Utils/DBVH.h>
 
@@ -44,7 +46,7 @@ namespace ESPINA
          * removal of segmentations from the DBVH tree.
          *
          */
-        class SegmentationLocator
+        class EspinaGUI_EXPORT SegmentationLocator
         {
           public:
             /** \brief SegmentationLocator class constructor.
@@ -82,7 +84,7 @@ namespace ESPINA
          *
          *
          */
-        class ManualSegmentationLocator
+        class EspinaGUI_EXPORT ManualSegmentationLocator
         : public SegmentationLocator
         {
           public:

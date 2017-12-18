@@ -295,7 +295,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 
   QList<ItemData>         draggedItems;
   SegmentationAdapterList categorySegmentations;
-
+  const auto segmentationsNum = m_segmentations.size();
 
   while (!stream.atEnd())
   {
@@ -359,6 +359,13 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 
   m_view.resetCamera();
   m_view.refresh();
+
+  if(m_segmentations.size() != segmentationsNum)
+  {
+    updateWindowTitle();
+
+    emit segmentationsUpdated();
+  }
 
   event->acceptProposedAction();
 }
@@ -493,6 +500,8 @@ void SegmentationInspector::connectSignals()
 //------------------------------------------------------------------------
 void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
 {
+  const auto segmentationsNum = m_segmentations.size();
+
   for(auto seg: segmentations)
   {
     auto segPtr = segmentationPtr(seg.get());
@@ -500,7 +509,16 @@ void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmenta
     {
       removeSegmentation(segPtr);
 
-      if(m_segmentations.isEmpty()) break; // Wait for the close event
+      if(m_segmentations.isEmpty()) return; // Wait for the close event
     }
+  }
+
+  if(m_segmentations.size() != segmentationsNum)
+  {
+    m_view.refresh();
+
+    updateWindowTitle();
+
+    emit segmentationsUpdated();
   }
 }

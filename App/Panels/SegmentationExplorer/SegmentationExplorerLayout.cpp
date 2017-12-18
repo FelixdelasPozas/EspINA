@@ -128,6 +128,9 @@ void SegmentationExplorer::Layout::showSegmentationProperties(SegmentationAdapte
       connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
               this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
 
+      connect(inspector, SIGNAL(segmentationsUpdated()),
+              this,      SLOT(onInspectorUpdated()));
+
       m_inspectors.insert(toKey(segmentations), inspector);
     }
     inspector->show();
@@ -239,4 +242,17 @@ void SegmentationExplorer::Layout::reset()
 QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 {
   return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::Layout::onInspectorUpdated()
+{
+  auto inspector = qobject_cast<SegmentationInspector *>(sender());
+
+  if(inspector)
+  {
+    auto iKey = m_inspectors.key(inspector);
+    m_inspectors.remove(iKey);
+    m_inspectors.insert(toKey(inspector->segmentations()), inspector);
+  }
 }
