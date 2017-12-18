@@ -230,6 +230,11 @@ namespace ESPINA
         void idle();
 
       protected:
+        /** \brief RepresentationManager class constructor.
+         * \param[in] supportedViews Supported view's flags for this manager.
+         * \param[in] flags Manager properties flags.
+         *
+         */
         explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
         /** \brief Sets a manager flag.

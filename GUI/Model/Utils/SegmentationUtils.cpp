@@ -81,21 +81,20 @@ ConnectionList ESPINA::GUI::Model::Utils::connections(vtkSmartPointer<vtkPolyDat
 
       NmVector3 point{value};
 
-      for(auto seg: model->segmentations())
+      for(auto candidate: model->contains(point))
       {
-        if(!seg->category()->classificationName().startsWith("Synapse") || !hasVolumetricData(seg->output())) continue;
+        auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(candidate);
 
-        if(contains(seg->bounds(), point))
+        if(!seg || !seg->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive) || !hasVolumetricData(seg->output())) continue;
+
+        if(isSegmentationVoxel(readLockVolume(seg->output()), point))
         {
-          if(isSegmentationVoxel(readLockVolume(seg->output()), point))
-          {
-            Connection connection;
-            connection.item1 = nullptr;
-            connection.item2 = seg;
-            connection.point = point;
+          Connection connection;
+          connection.item1 = nullptr;
+          connection.item2 = seg;
+          connection.point = point;
 
-            connections << connection;
-          }
+          connections << connection;
         }
       }
     }

@@ -25,6 +25,7 @@
 // ESPINA
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Types.h>
 #include <Support/Context.h>
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 
@@ -80,6 +81,12 @@ namespace ESPINA
        */
       void onFilterroiModified(ROISPtr roi);
 
+      /** \brief Centers the view on the seed point when the user clicks the link.
+       * \param[in] link Seed point coordinates.
+       *
+       */
+      void onLinkActivated(const QString &link);
+
     private slots:
       /** \brief Updates the GUI when the GUI threshold changes.
        * \param[in] value siimetric threshold value.
@@ -121,10 +128,13 @@ namespace ESPINA
       QString dialogTitle() const;
 
     private:
-      SegmentationAdapterPtr                m_segmentation; /** input segmentation.                     */
-      Ui::SeedGrowSegmentationRefineWidget *m_gui;          /** widget's GUI class, chessire cat style. */
-      SeedGrowSegmentationFilterSPtr        m_filter;       /** segmentation's filter.                  */
-      RestrictToolGroupSPtr                 m_roiTools;     /** roi toolgroup.                          */
+      using SeedPrototypes = GUI::Representations::Managers::TemporalPrototypesSPtr;
+
+      SegmentationAdapterPtr                m_segmentation;   /** input segmentation.                      */
+      Ui::SeedGrowSegmentationRefineWidget *m_gui;            /** widget's GUI class, chessire cat style.  */
+      SeedGrowSegmentationFilterSPtr        m_filter;         /** segmentation's filter.                   */
+      RestrictToolGroupSPtr                 m_roiTools;       /** roi toolgroup.                           */
+      SeedPrototypes                        m_seedPrototypes; /** seed temporal representation prototypes. */
 
       static QMutex s_mutex;
       static bool s_exists;

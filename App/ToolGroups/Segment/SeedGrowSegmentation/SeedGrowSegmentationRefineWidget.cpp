@@ -18,6 +18,7 @@
 
 // ESPINA
 #include "SeedGrowSegmentationRefineWidget.h"
+#include "SeedTemporalPrototype.h"
 #include "ui_SeedGrowSegmentationRefineWidget.h"
 #include <Core/Utils/SignalBlocker.h>
 #include <App/ToolGroups/Restrict/RestrictToolGroup.h>
@@ -32,6 +33,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 // BEGIN DEBUG Only
 bool SeedGrowSegmentationRefineWidget::s_exists = false;
@@ -184,7 +186,14 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
   m_gui->roiFrame->layout()->addWidget(toolbar);
 
   auto seed = m_filter->seed();
-  m_gui->seed->setText(QString("(%1, %2, %3)").arg(seed[0]).arg(seed[1]).arg(seed[2]));
+
+  auto text = tr("<a href=""%1"">%1</a>").arg(seed.toString());
+  m_gui->seed->setText(text);
+  m_gui->seed->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+  m_gui->seed->setOpenExternalLinks(false);
+  m_gui->seed->setTextFormat(Qt::RichText);
+  connect(m_gui->seed, SIGNAL(linkActivated(const QString &)), this, SLOT(onLinkActivated(const QString &)));
+
   m_gui->threshold->setMaximum(255);
   m_gui->threshold->setValue(m_filter->lowerThreshold());
   m_gui->closingRadius->setValue(m_filter->closingRadius());
@@ -202,6 +211,10 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
     m_roiTools->setCurrentROI(roi->clone());
     m_roiTools->setVisible(true);
   }
+
+  auto prototype2D = std::make_shared<SeedTemporalRepresentation>(m_filter.get());
+  m_seedPrototypes = std::make_shared<TemporalPrototypes>(prototype2D, TemporalRepresentation3DSPtr(), tr("SeedTempRep"));
+  context.viewState().addTemporalRepresentations(m_seedPrototypes);
 
   connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
           this,                           SLOT(onThresholdChanged(int)));
@@ -243,6 +256,8 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
   Q_ASSERT(s_exists);
   s_exists = false;
   s_mutex.unlock();
+
+  getContext().viewState().removeTemporalRepresentations(m_seedPrototypes);
 
   if(m_roiTools->currentROI() != nullptr)
   {
@@ -370,7 +385,7 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
   }
   else
   {
-    auto message = tr("Segmentation couldn't be modified. Selected voxel is outside ROI");
+    auto message = tr("Segmentation couldn't be modified because the ROI doesn't contain the <b>seed point</b>.");
 
     GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
   }
@@ -380,4 +395,12 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
 QString SeedGrowSegmentationRefineWidget::dialogTitle() const
 {
   return tr("Grey Level Segmentation");
+}
+
+//--------------------------------------------------------------------
+void SeedGrowSegmentationRefineWidget::onLinkActivated(const QString &link)
+{
+  NmVector3 point{link};
+
+  getViewState().focusViewOn(point);
 }

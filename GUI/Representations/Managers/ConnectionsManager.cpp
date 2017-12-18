@@ -52,6 +52,8 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
 , m_scale              {4}
 {
   setFlag(HAS_ACTORS, false);
+  setName("ConnectionsManager");
+  setDescription("Displays a representation of connection points.");
 
   connectSignals();
 
