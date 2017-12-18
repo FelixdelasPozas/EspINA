@@ -34,9 +34,9 @@ using namespace ESPINA::SkeletonToolsUtils;
 
 //--------------------------------------------------------------------
 StrokeDefinitionDialog::StrokeDefinitionDialog(SkeletonStrokes &strokes, const CategoryAdapterSPtr category, QWidget* parent, Qt::WindowFlags flags)
-: QDialog        {parent, flags}
-, m_strokes      (strokes)
-, m_categoryColor{category->color().hue()}
+: QDialog   {parent, flags}
+, m_strokes (strokes)
+, m_category{category}
 {
   setupUi(this);
   m_hueWidget->reserveInitialValue(false);
@@ -57,9 +57,10 @@ StrokeDefinitionDialog::StrokeDefinitionDialog(SkeletonStrokes &strokes, const C
 //--------------------------------------------------------------------
 void StrokeDefinitionDialog::onAddButtonPressed()
 {
+  auto categoryColor = m_category->color().hue();
   QPixmap original(":/espina/line.svg");
   QPixmap copy(original.size());
-  copy.fill(QColor::fromHsv(m_categoryColor,255,255));
+  copy.fill(QColor::fromHsv(categoryColor,255,255));
   copy.setMask(original.createMaskFromColor(Qt::transparent));
 
   QStringList names;
@@ -79,7 +80,7 @@ void StrokeDefinitionDialog::onAddButtonPressed()
     name = tr("Undefined%1").arg(number == 0 ? "" : " (" + QString::number(number + 1) + ")");
   }
 
-  m_strokes.push_back(SkeletonStroke{name, m_categoryColor, 0, true});
+  m_strokes.push_back(SkeletonStroke{name, categoryColor, 0, true});
 
   auto item = new QListWidgetItem(copy, name);
   m_list->addItem(item);
@@ -118,6 +119,21 @@ void StrokeDefinitionDialog::onRemoveButtonPressed()
 void StrokeDefinitionDialog::onStrokeChanged(int row)
 {
   updateStrokeProperties();
+
+  // disable removing default strokes.
+  auto defaultvalues = defaultStrokes(m_category);
+  auto index  = std::min(row, m_strokes.size() - 1);
+  auto stroke = m_strokes.at(index);
+  for(auto defaultStroke: defaultvalues)
+  {
+    if(stroke.name == defaultStroke.name)
+    {
+      m_removeButton->setEnabled(false);
+      return;
+    }
+  }
+
+  m_removeButton->setEnabled(true);
 }
 
 //--------------------------------------------------------------------
@@ -233,6 +249,7 @@ void StrokeDefinitionDialog::updateStrokeProperties()
   enableProperties(!m_strokes.isEmpty());
 
   auto currentIndex = m_list->currentIndex();
+  auto categoryColor = m_category->color().hue();
 
   if(currentIndex.isValid() && !m_strokes.isEmpty())
   {
@@ -247,10 +264,10 @@ void StrokeDefinitionDialog::updateStrokeProperties()
 
     m_name->setText(stroke.name);
     m_hueWidget->setHueValue(stroke.colorHue);
-    m_hueWidget->setEnabled(stroke.colorHue != m_categoryColor);
+    m_hueWidget->setEnabled(stroke.colorHue != categoryColor);
     m_typeCombo->setCurrentIndex(stroke.type);
     m_validMeasure->setChecked(stroke.useMeasure);
-    m_useCategoryColor->setChecked(stroke.colorHue == m_categoryColor);
+    m_useCategoryColor->setChecked(stroke.colorHue == categoryColor);
 
     m_name->blockSignals(false);
     m_hueWidget->blockSignals(false);
@@ -341,7 +358,7 @@ void StrokeDefinitionDialog::onCategoryColorChecked(int unused)
     if(checked)
     {
       auto &stroke = m_strokes[currentIndex.row()];
-      stroke.colorHue = m_categoryColor;
+      stroke.colorHue = m_category->color().hue();
 
       m_hueWidget->setHueValue(stroke.colorHue);
     }

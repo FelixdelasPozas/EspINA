@@ -131,8 +131,8 @@ namespace ESPINA
        */
       void updateStrokeProperties();
 
-      Core::SkeletonStrokes &m_strokes;       /** stroke definitions map.                                       */
-      const int              m_categoryColor; /** hue value of the color of the category the strokes belong to. */
+      Core::SkeletonStrokes &m_strokes;  /** stroke definitions map. */
+      CategoryAdapterSPtr    m_category; /** strokes' category.      */
   };
 
 } // namespace ESPINA
