@@ -245,24 +245,19 @@ bool ConnectionStorage::load()
 //--------------------------------------------------------------------
 void ConnectionStorage::checkAndRemoveIfEmtpy(const QString& uuid1, const QString& uuid2)
 {
+  if(!m_data.keys().contains(uuid1)) return;
+
   if(!uuid2.isEmpty())
   {
-    if(m_data[uuid1][uuid2].isEmpty())
+    if(m_data[uuid1].keys().contains(uuid2) && m_data[uuid1][uuid2].isEmpty())
     {
       m_data[uuid1].remove(uuid2);
-
-      if(m_data[uuid1].isEmpty())
-      {
-        m_data.remove(uuid1);
-      }
     }
   }
-  else
+
+  if(m_data[uuid1].isEmpty())
   {
-    if(m_data[uuid1].isEmpty())
-    {
-      m_data.remove(uuid1);
-    }
+    m_data.remove(uuid1);
   }
 }
 
