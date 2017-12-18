@@ -194,7 +194,7 @@ void OrthogonalROITool::initControls()
   m_applyROI ->setCheckable(true);
   m_resizeROI->setEnabled(false);
 
-  m_defineHandler->setMultiSelection(false);
+  m_defineHandler->setMultiSelection(true);
   m_defineHandler->setSelectionTag(Selector::CHANNEL, true);
   m_defineHandler->setCursor(QCursor(QPixmap(":/espina/roi_define_cursor.svg").scaled(32,32)));
 

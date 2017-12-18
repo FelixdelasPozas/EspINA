@@ -49,8 +49,6 @@ namespace ESPINA
 {
   namespace GUI
   {
-    class View2D;
-
     namespace View
     {
       namespace Widgets

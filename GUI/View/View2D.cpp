@@ -1183,7 +1183,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
         {
           if (Selector::IsValid(item, flags))
           {
-            NeuroItemAdapterPtr neuroItem = item;
+            auto neuroItem = dynamic_cast<NeuroItemAdapterPtr>(item);
             if (flags.testFlag(Selector::SAMPLE) && isChannel(item))
             {
               neuroItem = QueryAdapter::sample(channelPtr(item)).get();
