@@ -37,6 +37,7 @@ class vtkPoints;
 class vtkPolyData;
 class vtkGlyphSource2D;
 class vtkSphereSource;
+class vtkTransformPolyDataFilter;
 
 namespace ESPINA
 {
@@ -140,15 +141,16 @@ namespace ESPINA
             void buildVTKPipeline(const FrameCSPtr frame);
 
           private:
-            ModelAdapterSPtr                  m_model;       /** model with the connection information. */
-            vtkSmartPointer<vtkPoints>        m_points;      /** connection points.                     */
-            vtkSmartPointer<vtkPolyData>      m_polyData;    /** polydata.                              */
-            vtkSmartPointer<vtkGlyph3DMapper> m_glyph;       /** glyph filter.                          */
-            vtkSmartPointer<vtkGlyphSource2D> m_glyph2D;     /** glyph source for 2D views, a circle.   */
-            vtkSmartPointer<vtkSphereSource>  m_glyph3D;     /** glyph source for 3D views, a sphere.   */
-            vtkSmartPointer<vtkFollower>      m_actor;       /** representation actor.                  */
-            ConnectionList                    m_connections; /** list of connections                    */
-            int                               m_scale;       /** representation's scale value.          */
+            ModelAdapterSPtr                            m_model;           /** model with the connection information.         */
+            vtkSmartPointer<vtkPoints>                  m_points;          /** connection points.                             */
+            vtkSmartPointer<vtkPolyData>                m_polyData;        /** polydata.                                      */
+            vtkSmartPointer<vtkTransformPolyDataFilter> m_transformFilter; /** transformed polydata filter for XZ & YZ views. */
+            vtkSmartPointer<vtkGlyph3DMapper>           m_glyph;           /** glyph filter.                                  */
+            vtkSmartPointer<vtkGlyphSource2D>           m_glyph2D;         /** glyph source for 2D views, a circle.           */
+            vtkSmartPointer<vtkSphereSource>            m_glyph3D;         /** glyph source for 3D views, a sphere.           */
+            vtkSmartPointer<vtkFollower>                m_actor;           /** representation actor.                          */
+            ConnectionList                              m_connections;     /** list of connections                            */
+            int                                         m_scale;           /** representation's scale value.                  */
         };
       
       } // namespace Managers

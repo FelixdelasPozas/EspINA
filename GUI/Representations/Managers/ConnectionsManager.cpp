@@ -45,6 +45,7 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
 , m_model              {model}
 , m_points             {nullptr}
 , m_polyData           {nullptr}
+, m_transformFilter    {nullptr}
 , m_glyph              {nullptr}
 , m_glyph2D            {nullptr}
 , m_glyph3D            {nullptr}
@@ -198,6 +199,11 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
     m_glyph2D->SetScale(m_scale*max);
     m_glyph2D->Update();
 
+    if(m_transformFilter)
+    {
+      m_transformFilter->Update();
+    }
+
     for(auto connection: m_connections)
     {
       if(connection.point[planeIndex] == frame->crosshair[planeIndex])
@@ -329,14 +335,14 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    spacing[planeIndex] = 1;
-    auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+    spacing[planeIndex] = spacing[(planeIndex+1) % 3];
+    auto max = std::min(spacing[0], std::min(spacing[1], spacing[2]));
 
     m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
     m_glyph2D->SetGlyphTypeToCircle();
     m_glyph2D->SetFilled(false);
     m_glyph2D->SetCenter(0,0,0);
-    m_glyph2D->SetScale(m_scale*max);
+    m_glyph2D->SetScale(m_scale*2*max);
     m_glyph2D->SetColor(1,1,1);
     m_glyph2D->Update();
 
@@ -348,12 +354,12 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
           auto transform = vtkSmartPointer<vtkTransform>::New();
           transform->RotateWXYZ(90, (planeIndex == 0 ? 0 : 1), (planeIndex == 1 ? 0 : 1), 0);
 
-          auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-          transformFilter->SetTransform(transform);
-          transformFilter->SetInputData(m_glyph2D->GetOutput());
-          transformFilter->Update();
+          m_transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+          m_transformFilter->SetTransform(transform);
+          m_transformFilter->SetInputData(m_glyph2D->GetOutput());
+          m_transformFilter->Update();
 
-          m_glyph->SetSourceData(transformFilter->GetOutput());
+          m_glyph->SetSourceData(m_transformFilter->GetOutput());
         }
         break;
       default:
