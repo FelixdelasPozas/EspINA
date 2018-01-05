@@ -131,7 +131,7 @@ void AdaptiveEdgesCreator::computeEdges()
   {
     if (zMax - zMin != 0)
     {
-      reportProgress(double(z - zMin) / double(zMax - zMin)*50.0);
+      reportProgress((static_cast<double>(z - zMin) / static_cast<double>(zMax - zMin))*50.0);
     }
     else
     {
@@ -484,7 +484,7 @@ void AdaptiveEdgesCreator::computeFaces()
       m_extension->m_faces[face] = poly;
     }
 
-    reportProgress(50 + static_cast<double>(face)/6.0*50.0);
+    reportProgress(50 + (static_cast<double>(face)/6.0)*50.0);
  }
 }
 

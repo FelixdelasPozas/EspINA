@@ -32,6 +32,8 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
+#include <ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
+#include <ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -60,7 +62,7 @@ SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
 , m_item  {nullptr}
 {
   initEventHandler();
-  initRepresentationFactory();
+  initRepresentationFactories();
 
   setCheckable(true);
   setExclusive(true);
@@ -114,6 +116,7 @@ void SkeletonEditionTool::initTool(bool value)
     updateStrokes();
 
     if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
+    if(!getViewState().hasTemporalRepresentation(m_pointsFactory)) getViewState().addTemporalRepresentations(m_pointsFactory);
 
     connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
             this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
@@ -141,6 +144,7 @@ void SkeletonEditionTool::initTool(bool value)
       m_widgets.clear();
 
       if(getViewState().hasTemporalRepresentation(m_factory)) getViewState().removeTemporalRepresentations(m_factory);
+      if(getViewState().hasTemporalRepresentation(m_pointsFactory)) getViewState().removeTemporalRepresentations(m_pointsFactory);
 
       if(m_item)
       {
@@ -247,27 +251,54 @@ void SkeletonEditionTool::onModelReset()
 }
 
 //--------------------------------------------------------------------
-void SkeletonEditionTool::onWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
+void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
 {
   auto skeletonWidget = std::dynamic_pointer_cast<SkeletonWidget2D>(clone);
 
   if(skeletonWidget && m_item)
   {
-    auto name = segmentationPtr(m_item)->category()->classificationName();
-    auto stroke = STROKES[name].at(std::min(std::max(0,m_strokeCombo->currentIndex()), STROKES[name].size() - 1));
-    skeletonWidget->setStroke(stroke);
-    skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
+    auto segmentation = dynamic_cast<SegmentationAdapterPtr>(m_item);
+    if(segmentation)
+    {
+      auto stroke = STROKES[segmentation->category()->classificationName()].at(m_strokeCombo->currentIndex());
+      skeletonWidget->setStroke(stroke);
+      skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
 
-    connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
-            this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
+      connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+              this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
 
-    m_widgets << skeletonWidget;
+      m_widgets << skeletonWidget;
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
+{
+  auto pointWidget = std::dynamic_pointer_cast<ConnectionPointsTemporalRepresentation2D>(clone);
+
+  if(pointWidget)
+  {
+    connect(m_eventHandler.get(), SIGNAL(addConnectionPoint(const NmVector3)),
+            pointWidget.get(),    SLOT(onConnectionPointAdded(const NmVector3)));
+
+    connect(m_eventHandler.get(), SIGNAL(removeConnectionPoint(const NmVector3)),
+            pointWidget.get(),    SLOT(onConnectionPointRemoved(const NmVector3)));
+
+    connect(m_eventHandler.get(), SIGNAL(addEntryPoint(const NmVector3)),
+            pointWidget.get(),    SLOT(onEntryPointAdded(const NmVector3)));
+
+    connect(m_eventHandler.get(), SIGNAL(clearConnections()),
+            pointWidget.get(),    SLOT(clearPoints()));
+
+    m_pointWidgets << pointWidget;
   }
 }
 
 //--------------------------------------------------------------------
 void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 {
+  qDebug() << "on skeleton modified";
   auto widget = dynamic_cast<SkeletonWidget2D *>(sender());
 
   if(widget)
@@ -337,14 +368,21 @@ bool SkeletonEditionTool::acceptsSelection(SegmentationAdapterList segmentations
 }
 
 //--------------------------------------------------------------------
-void SkeletonEditionTool::initRepresentationFactory()
+void SkeletonEditionTool::initRepresentationFactories()
 {
-  auto representation2D = std::make_shared<SkeletonWidget2D>(m_eventHandler);
+  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler);
 
   connect(representation2D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
-          this,                   SLOT(onWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+          this,                   SLOT(onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
 
-  m_factory = std::make_shared<TemporalPrototypes>(representation2D, TemporalRepresentation3DSPtr(), id());
+  m_factory = std::make_shared<TemporalPrototypes>(representation2D, TemporalRepresentation3DSPtr(), tr("%1 - Skeleton Widget 2D").arg(id()));
+
+  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+
+  connect(pointsRepresentation.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
+          this,                       SLOT(onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+
+  m_pointsFactory = std::make_shared<TemporalPrototypes>(pointsRepresentation, TemporalRepresentation3DSPtr(), tr("%1 - Points representations").arg(id()));
 }
 
 //--------------------------------------------------------------------
@@ -476,7 +514,7 @@ void SkeletonEditionTool::onMaximumDistanceChanged(double value)
 //--------------------------------------------------------------------
 void SkeletonEditionTool::initEventHandler()
 {
-  m_eventHandler = std::make_shared<SkeletonEventHandler>();
+  m_eventHandler = std::make_shared<SkeletonToolsEventHandler>(getContext());
   m_eventHandler->setInterpolation(true);
   m_eventHandler->setCursor(Qt::CrossCursor);
 
@@ -593,5 +631,7 @@ void SkeletonEditionTool::updateStrokes()
     }
 
     m_strokeCombo->blockSignals(false);
+
+    m_eventHandler->setStrokesCategory(category->classificationName());
   }
 }

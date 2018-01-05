@@ -65,7 +65,7 @@ namespace ESPINA
                * \brief handler handler for this widget.
                *
                */
-              SkeletonWidget2D(SkeletonEventHandlerSPtr handler);
+              explicit SkeletonWidget2D(SkeletonEventHandlerSPtr handler);
 
               /** \brief SkeletonWidget class virtual destructor.
                *
@@ -147,6 +147,8 @@ namespace ESPINA
               virtual void setSceneResolution(const NmVector3 &resolution)
               {}
 
+              vtkSmartPointer<vtkSkeletonWidget> m_widget;     /** vtk widget.                                              */
+              RenderView                        *m_view;       /** view of the widget.                                      */
             signals:
               void modified(vtkSmartPointer<vtkPolyData> polydata);
               void updateWidgets();
@@ -180,10 +182,8 @@ namespace ESPINA
               virtual vtkAbstractWidget *vtkWidget()
               { return m_widget; }
 
-              vtkSmartPointer<vtkSkeletonWidget> m_widget;     /** vtk widget.                                              */
               Nm                                 m_position;   /** position of the actors over the segmentations.           */
               SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                            */
-              RenderView                        *m_view;       /** view of the widget.                                      */
               Mode                               m_mode;       /** current operation mode.                                  */
               bool                               m_moving;     /** true when translating a node, false otherwise.           */
           };

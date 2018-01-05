@@ -129,11 +129,13 @@ void StrokeDefinitionDialog::onStrokeChanged(int row)
     if(stroke.name == defaultStroke.name)
     {
       m_removeButton->setEnabled(false);
+      m_name->setEnabled(false);
       return;
     }
   }
 
   m_removeButton->setEnabled(true);
+  m_name->setEnabled(true);
 }
 
 //--------------------------------------------------------------------

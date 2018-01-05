@@ -22,13 +22,14 @@
 #define ESPINA_SKELETON_TOOL_H_
 
 // ESPINA
+#include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h>
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/EventHandlers/PointTracker.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
-#include <GUI/View/Widgets/Skeleton/SkeletonEventHandler.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/ToolButton.h>
 #include <Support/Widgets/ProgressTool.h>
@@ -134,7 +135,13 @@ namespace ESPINA
        * \param[in] clone cloned widget.
        *
        */
-      void onWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
+      void onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
+
+      /** \brief Adds the cloned point representation widget to the list of cloned.
+       * \param[in] clone cloned widget.
+       *
+       */
+      void onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
       /** \brief Updates the created segmentation.
        * \param[in] polydata skeleton data.
@@ -168,10 +175,10 @@ namespace ESPINA
        */
       void initFilterFactory();
 
-      /** \brief Initializes and connects the representation factory.
+      /** \brief Initializes and connects the representation factories.
        *
        */
-      void initRepresentationFactory();
+      void initRepresentationFactories();
 
       /** \brief Initializes and connects the parameters widgets.
        *
@@ -235,10 +242,12 @@ namespace ESPINA
       GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
       QComboBox                                                *m_strokeCombo;      /** stroke type combo box.                            */
       GUI::Widgets::ToolButton                                 *m_strokeButton;     /** stroke configuration dialog.                      */
-      GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr    m_eventHandler;     /** tool's event handler.                             */
+      SkeletonToolsEventHandlerSPtr                             m_eventHandler;     /** tool's event handler.                             */
       ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
-      GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** representation prototypes.                        */
-      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_widgets;          /** list of widgets currently on views.               */
+      GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** skeleton representation prototypes.               */
+      GUI::Representations::Managers::TemporalPrototypesSPtr    m_pointsFactory;    /** points representation prototypes.                 */
+      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_skeletonWidgets;  /** list of skeleton widgets currently on views.      */
+      QList<ConnectionPointsTemporalRepresentation2DSPtr>       m_pointWidgets;     /** list of point representations currently on views. */
   };
 
   using SkeletonToolPtr  = SkeletonTool *;

@@ -30,6 +30,7 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/vtkPolyDataUtils.h>
+#include <Core/Utils/SpatialUtils.hxx>
 
 // VTK
 #include <vtkCellArray.h>
@@ -669,3 +670,63 @@ void ChannelEdges::createRectangularRegion(const Bounds &bounds)
   m_faces[5]->SetPolys(backcells);
 }
 
+//-----------------------------------------------------------------------------
+bool ChannelEdges::isPointOnEdge(const NmVector3 point, const Nm tolerance)
+{
+  initializeEdges();
+
+  bool result = false;
+  auto bounds = m_extendedItem->bounds();
+
+  if(contains(bounds, point))
+  {
+    if(useDistanceToBounds())
+    {
+      for(auto i: {0,1,2})
+      {
+        auto lower = point[i] - bounds[2*i];
+        auto upper = bounds[(2*i)+1] - point[i];
+
+        result |= lower >= 0 && lower < tolerance;
+        result |= upper >= 0 && upper < tolerance;
+
+        if(result) break;
+      }
+    }
+    else
+    {
+      auto spacing    = m_extendedItem->output()->spacing();
+      Nm halfZSpacing = spacing[2]/2.;
+      auto sliceIndex = std::floor((point[2]+halfZSpacing - (bounds[4]+halfZSpacing))/spacing[2]);
+      auto region     = sliceRegion(sliceIndex);
+      auto maxSlice   = std::floor((bounds[5]+halfZSpacing)/spacing[2]) - 1; // 0 <-> N-1
+      bool isInside   = true; // point inside X-Y frame.
+
+      for(auto i: {0,1})
+      {
+        auto lowerPoint = (region.GetIndex(i)*spacing[i]) - spacing[i]/2.0;
+        auto upperPoint = ((region.GetIndex(i) + region.GetSize(i))*spacing[i]) - spacing[i]/2.0;
+
+        auto lower = point[i] - lowerPoint;
+        auto upper = upperPoint - point[i];
+
+        result |= lower >= 0 && lower < tolerance;
+        result |= upper >= 0 && upper < tolerance;
+
+        if(result) break;
+
+        isInside &= (lowerPoint <= point[i]) && (point[i] <= upperPoint);
+      }
+
+      if(!result && isInside)
+      {
+        // check upper and lower Z slices of the stack.
+        auto zTolerance = std::max(tolerance, spacing[2]);
+        if(sliceIndex == 0) result |= (point[2] - bounds[4] < zTolerance);
+        if(sliceIndex == maxSlice) result |= (bounds[5] - point[2] < zTolerance);
+      }
+    }
+  }
+
+  return result;
+}

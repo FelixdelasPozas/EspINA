@@ -676,6 +676,8 @@ namespace ESPINA
 
       void queueAddConnectionCommand(const Connection &connection);
 
+      void queueRemoveConnectionCommand(const Connection &connection);
+
       void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 
       void queueUpdateCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
@@ -746,6 +748,12 @@ namespace ESPINA
        *
        */
       BatchCommandSPtr removeSegmentationCommand(SegmentationAdapterSPtr segmentation);
+
+      /** \brief Emits the connection removed signals.
+       * \param[in] connections List of connections that will be removed later after signaling.
+       *
+       */
+      BatchCommandSPtr removeConnectionsCommand(const ConnectionList connections);
 
     private:
       /** \class BatchCommand

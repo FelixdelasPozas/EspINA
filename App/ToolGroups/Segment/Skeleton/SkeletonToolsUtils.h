@@ -26,6 +26,8 @@
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Model/CategoryAdapter.h>
 
+class QMenu;
+
 namespace ESPINA
 {
   namespace SkeletonToolsUtils
@@ -54,6 +56,13 @@ namespace ESPINA
      *
      */
     void loadStrokes(std::shared_ptr<QSettings> settings);
+
+    /** \brief Returns a menu with a menu entry per stroke in the list.
+     * \param[in] title Menu title.
+     * \param[in] category Stroke list category.
+     *
+     */
+    QMenu * createStrokesContextMenu(const QString &title, const QString category);
   }
 }
 

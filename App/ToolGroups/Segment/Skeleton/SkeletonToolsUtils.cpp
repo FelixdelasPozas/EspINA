@@ -25,6 +25,10 @@
 // Qt
 #include <QString>
 #include <QObject>
+#include <QMenu>
+#include <QLabel>
+#include <QWidgetAction>
+#include <QBitmap>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -52,6 +56,7 @@ Core::SkeletonStrokes ESPINA::SkeletonToolsUtils::defaultStrokes(const CategoryA
     {
       result << SkeletonStroke(QObject::tr("Shaft"), hue, 0, true);
       result << SkeletonStroke(QObject::tr("Spine"), hue, 0, true);
+      result << SkeletonStroke(QObject::tr("BiSpine"), hue, 0, true);
       result << SkeletonStroke(QObject::tr("Synapse on shaft"), hue, 1, false);
       result << SkeletonStroke(QObject::tr("Synapse on spine head"), hue, 1, false);
 
@@ -106,4 +111,45 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
   }
 
   settings->endGroup();
+}
+
+//--------------------------------------------------------------------
+QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const QString category)
+{
+  QMenu *menu = nullptr;
+
+  if(STROKES.keys().contains(category))
+  {
+    menu = new QMenu(title, nullptr);
+    menu->setHidden(true);
+
+    auto label = new QLabel(QObject::tr("<b>%1</b>").arg(title));
+    label->setStyleSheet("QLabel { margin: 3px; background-color : blue; color : white; }");
+    label->setAlignment(Qt::AlignCenter);
+    label->setBaseSize(label->size().width(), label->size().height()+3);
+    auto action = new QWidgetAction(menu);
+    action->setDefaultWidget(label);
+    action->setEnabled(false);
+
+    menu->addAction(action);
+
+    for(int i = 0; i < STROKES[category].size(); ++i)
+    {
+      auto stroke = STROKES[category].at(i);
+
+      QPixmap original(ICONS.at(stroke.type));
+      QPixmap copy(original.size());
+      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      copy.setMask(original.createMaskFromColor(Qt::transparent));
+
+      auto action = menu->addAction(stroke.name);
+      action->setIcon(QIcon(copy));
+      action->setIconVisibleInMenu(true);
+    }
+
+    menu->addSeparator();
+    menu->addAction(QObject::tr("Cancel"));
+  }
+
+  return menu;
 }

@@ -314,6 +314,15 @@ namespace ESPINA
      */
     double EspinaCore_EXPORT closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
 
+    /** \brief Returns the distance and the closest point in the given segment to the input position in space.
+     * \param[in] point input point coordinates.
+     * \param[out] node_i begin node of the line segment.
+     * \param[out] node_j end node of the line segment.
+     * \param[out] worldPosition position of the closest point in the segment to the input point.
+     *
+     */
+    double EspinaCore_EXPORT closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3]);
+
     /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
      * \param[in] nodes list of connected nodes.
      * \param[in] edges list of defined edges.

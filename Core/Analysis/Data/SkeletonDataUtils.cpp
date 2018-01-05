@@ -360,6 +360,50 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
+double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
+{
+  double result = -1;
+
+  auto pos_i = node_i->position;
+  auto pos_j = node_j->position;
+
+  double v[3]{pos_j[0]-pos_i[0], pos_j[1]-pos_i[1], pos_j[2]-pos_i[2]};
+  double w[3]{position[0]-pos_i[0], position[1]-pos_i[1], position[2]-pos_i[2]};
+
+  double dotwv = 0;
+  double dotvv = 0;
+  for(auto ii: {0,1,2})
+  {
+    dotwv += w[ii]*v[ii];
+    dotvv += v[ii]*v[ii];
+  }
+
+  double r = dotwv / dotvv;
+
+  if(r <= 0)
+  {
+    ::memcpy(closestPoint, pos_i, 3*sizeof(double));
+  }
+  else
+  {
+    if(r >= 1)
+    {
+      ::memcpy(closestPoint, pos_j, 3*sizeof(double));
+    }
+    else
+    {
+      closestPoint[0] = pos_i[0] + r*(pos_j[0] - pos_i[0]);
+      closestPoint[1] = pos_i[1] + r*(pos_j[1] - pos_i[1]);
+      closestPoint[2] = pos_i[2] + r*(pos_j[2] - pos_i[2]);
+    }
+  }
+
+  result = vtkMath::Distance2BetweenPoints(closestPoint, position);
+
+  return ::sqrt(result);
+}
+
+//--------------------------------------------------------------------
 bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 {
   return ((::memcmp(position, other.position, 3*sizeof(double))) &&

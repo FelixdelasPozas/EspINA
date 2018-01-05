@@ -356,6 +356,25 @@ bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldP
 }
 
 //-----------------------------------------------------------------------------
+bool vtkSkeletonWidgetRepresentation::SetActiveNodeToLastNode(bool updateRepresentation)
+{
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    if(s_skeleton.nodes.isEmpty()) return false;
+
+    s_currentVertex = s_skeleton.nodes.last();
+  }
+
+  if (updateRepresentation)
+  {
+    BuildRepresentation();
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::GetActiveNodeWorldPosition(double worldPos[3])
 {
   {
@@ -1287,6 +1306,73 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
   }
   s_currentVertex->connections.clear();
   s_currentVertex->connections.insert(closestNode, m_currentStrokeIndex);
+
+  return true;
+}
+
+//--------------------------------------------------------------------
+bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStroke &stroke)
+{
+  auto nodesNum = GetNumberOfNodes();
+
+  if(nodesNum < 3) return false;
+
+  double cursorPosition[3];
+
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    // get the nodes involved in the party.
+    auto nodeA = s_skeleton.nodes.at(nodesNum-3);
+    auto connectionNode = s_skeleton.nodes.at(nodesNum-2);
+    auto nodeB = s_skeleton.nodes.at(nodesNum-1);
+
+    // and the guest node.
+    double positionNodeC[3];
+    Core::closestPointToSegment(connectionNode->position, nodeA, nodeB, positionNodeC);
+
+    // put guest node in position.
+    for(int i: {0,1,2})
+    {
+      positionNodeC[i] = std::round(positionNodeC[i]/m_spacing[i]) * m_spacing[i];
+    }
+    auto node = new SkeletonNode{positionNodeC};
+
+    // start the party.
+    for(auto node: connectionNode->connections.keys())
+    {
+      node->connections.remove(connectionNode);
+    }
+    connectionNode->connections.clear();
+
+    s_skeleton.nodes << node;
+
+    // get the stroke values.
+    if(!s_skeleton.strokes.contains(stroke))
+    {
+      s_skeleton.strokes << stroke;
+      s_skeleton.count.insert(stroke, 0);
+    }
+
+    s_skeleton.count[stroke]++;
+
+    SkeletonEdge edge;
+    edge.strokeIndex  = s_skeleton.strokes.indexOf(stroke);
+    edge.strokeNumber = s_skeleton.count[stroke];
+    s_skeleton.edges << edge;
+
+    auto edgeIndex = s_skeleton.edges.indexOf(edge);
+
+    nodeA->connections.insert(node, m_currentEdgeIndex);
+    nodeB->connections.insert(node, m_currentEdgeIndex);
+    node->connections.insert(nodeA, m_currentEdgeIndex);
+    node->connections.insert(nodeB, m_currentEdgeIndex);
+
+    connectionNode->connections.insert(node, edgeIndex);
+    node->connections.insert(connectionNode, edgeIndex);
+
+    ::memcpy(cursorPosition, nodeB->position, 3*sizeof(double));
+  }
 
   return true;
 }

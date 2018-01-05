@@ -143,7 +143,7 @@ namespace ESPINA
                */
               bool TryToJoin(int X, int Y);
 
-              /** \brief Move the active node to a specified display position.
+              /** \brief Moves the active node to a specified display position.
                * Returns false if there is no active node of the node
                * couldn't be moved to the position. Returns true otherwise.
                * \param[in] displayPos display coordinate vector.
@@ -151,7 +151,7 @@ namespace ESPINA
                */
               bool SetActiveNodeToDisplayPosition(int displayPos[2], bool updateRepresentation = true);
 
-              /** \brief Move the active node to a specified display position.
+              /** \brief Moves the active node to a specified display position.
                * Returns false if there is no active node of the node
                * couldn't be moved to the position. Returns true otherwise.
                * \param[in] x x display coordinate.
@@ -160,7 +160,7 @@ namespace ESPINA
                */
               bool SetActiveNodeToDisplayPosition(int X, int Y, bool updateRepresentation = true);
 
-              /** \brief Move the active node to a specified world position.
+              /** \brief Moves the active node to a specified world position.
                * Returns false if there is no active node or the node
                * couldn't be moved to the position. Returns true otherwise.
                * \param[in] x x world coordinate.
@@ -170,7 +170,7 @@ namespace ESPINA
                */
               bool SetActiveNodeToWorldPosition(double x, double y, double z, bool updateRepresentation = true);
 
-              /** \brief Move the active node to a specified world position.
+              /** \brief Moves the active node to a specified world position.
                * Returns false if there is no active node or the node
                * couldn't be moved to the position. Returns true otherwise.
                * \param[in] worldPos world coordinate vector.
@@ -178,6 +178,12 @@ namespace ESPINA
                *
                */
               bool SetActiveNodeToWorldPosition(double worldPos[3], bool updateRepresentation = true);
+
+              /** \brief Selects and sets the last node as active node, if any.
+               * \param[in] updateRepresentation true to re-build the representation and false otherwise.
+               *
+               */
+              bool SetActiveNodeToLastNode(bool updateRepresentation = false);
 
               /** \brief Returns true if there is a current node, and its position it's returned
                * in the parameter.
@@ -323,6 +329,14 @@ namespace ESPINA
                *
                */
               static void cleanup();
+
+              /** \brief Using the last three points connects the first and last with the current stroke and creates
+               *  a connection using the given stroke, the second point and the closest point to the first-last segment.
+               *  Returns true on success and false if a connection cannot be created (less than three nodes in the skeleton).
+               *  \param[in] stroke Stroke of the connection.
+               *
+               */
+              bool createConnection(const Core::SkeletonStroke &stroke);
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.

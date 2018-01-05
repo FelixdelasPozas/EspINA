@@ -587,3 +587,11 @@ void vtkSkeletonWidget::cleanup()
 {
   vtkSkeletonWidgetRepresentation::cleanup();
 }
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::createConnection(const Core::SkeletonStroke& stroke)
+{
+  if(!WidgetRep) return;
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->createConnection(stroke);
+}

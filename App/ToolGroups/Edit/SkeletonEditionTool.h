@@ -34,6 +34,8 @@
 #include <GUI/Widgets/ToolButton.h>
 #include <Support/Context.h>
 #include <Support/Widgets/EditTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h>
+#include <ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
 
 // VTK
 #include <vtkPolyData.h>
@@ -91,11 +93,17 @@ namespace ESPINA
        */
       void onModelReset();
 
-      /** \brief Adds the cloned widget to the list of cloned and sets the parameters.
+      /** \brief Adds the cloned skeleton widget to the list of cloned and sets the parameters.
        * \param[in] clone cloned widget.
        *
        */
-      void onWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
+      void onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
+
+      /** \brief Adds the cloned skeleton widget to the list of cloned and sets the parameters.
+       * \param[in] clone cloned widget.
+       *
+       */
+      void onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
       /** \brief Updates the created segmentation.
        * \param[in] polydata skeleton data.
@@ -145,10 +153,10 @@ namespace ESPINA
 
       virtual bool selectionIsNotBeingModified(SegmentationAdapterList segmentations) override;
 
-      /** \brief Initializes and connects the representation factory.
+      /** \brief Initializes and connects the representation factories.
        *
        */
-      void initRepresentationFactory();
+      void initRepresentationFactories();
 
       /** \brief Initializes and connects the parameters widgets.
        *
@@ -210,17 +218,22 @@ namespace ESPINA
       };
 
     private:
-      bool                                                   m_init;         /** true if the tool has been initialized.            */
-      GUI::View::Widgets::Skeleton::SkeletonEventHandlerSPtr m_eventHandler; /** tool's event handler.                             */
-      GUI::Widgets::ToolButton                              *m_eraseButton;  /** Paint/erase button.                               */
-      DoubleSpinBoxAction                                   *m_minWidget;    /** min distance between points widget.               */
-      DoubleSpinBoxAction                                   *m_maxWidget;    /** max distance between points widget.               */
-      GUI::Widgets::ToolButton                              *m_moveButton;   /** Move nodes button.                                */
-      QComboBox                                             *m_strokeCombo;  /** stroke type combobox.                             */
-      GUI::Widgets::ToolButton                              *m_strokeButton; /** stroke configuration dialog button.               */
-      ViewItemAdapterPtr                                     m_item;         /** current element being created or channel in init. */
-      GUI::Representations::Managers::TemporalPrototypesSPtr m_factory;      /** representation prototypes.                        */
-      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_widgets;   /** list of widgets currently on views.               */
+      using TemporalRepresentationsSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using SkeletonWidgetSPtr          = GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr;
+
+      bool                                                m_init;          /** true if the tool has been initialized.            */
+      SkeletonToolsEventHandlerSPtr                       m_eventHandler;  /** tool's event handler.                             */
+      GUI::Widgets::ToolButton                           *m_eraseButton;   /** Paint/erase button.                               */
+      DoubleSpinBoxAction                                *m_minWidget;     /** min distance between points widget.               */
+      DoubleSpinBoxAction                                *m_maxWidget;     /** max distance between points widget.               */
+      GUI::Widgets::ToolButton                           *m_moveButton;    /** Move nodes button.                                */
+      QComboBox                                          *m_strokeCombo;   /** stroke type combobox.                             */
+      GUI::Widgets::ToolButton                           *m_strokeButton;  /** stroke configuration dialog button.               */
+      ViewItemAdapterPtr                                  m_item;          /** current element being created or channel in init. */
+      TemporalRepresentationsSPtr                         m_factory;       /** representation prototypes.                        */
+      TemporalRepresentationsSPtr                         m_pointsFactory; /** representation prototypes.                        */
+      QList<SkeletonWidgetSPtr>                           m_widgets;       /** list of widgets currently on views.               */
+      QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;  /** list of point representations currently on views. */
   };
 
 } // namespace ESPINA

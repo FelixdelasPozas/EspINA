@@ -96,7 +96,7 @@ bool SeedTemporalRepresentation::acceptSceneBoundsChange(const Bounds& bounds) c
 //--------------------------------------------------------------------
 bool SeedTemporalRepresentation::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
 {
-  return true;
+  return false;
 }
 
 //--------------------------------------------------------------------

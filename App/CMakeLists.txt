@@ -23,6 +23,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
   Dialogs/ConnectionCount/ConnectionCountDialog.h
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.h
+  Dialogs/CustomFileOpenDialog/OptionsPanel.h
   Dialogs/StackInspector/StackInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
@@ -80,6 +82,9 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
   ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
@@ -101,6 +106,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ConnectionCount/ConnectionCountDialog.ui
+  Dialogs/CustomFileOpenDialog/OptionsPanel.ui
   Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
@@ -141,6 +147,8 @@ set (ESPINA_SOURCES
   Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
   Dialogs/ConnectionCount/ConnectionCountDialog.cpp
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
+  Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
   Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
@@ -210,6 +218,9 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
   ToolGroups/Segment/Skeleton/SkeletonTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.cpp
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp

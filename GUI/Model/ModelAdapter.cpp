@@ -335,6 +335,9 @@ void ModelAdapter::remove(ChannelAdapterSList channels)
 //------------------------------------------------------------------------
 void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
 {
+  auto segConnections = connections(segmentation);
+  if(!segConnections.isEmpty()) deleteConnections(segConnections);
+
   queueRemoveCommand(segmentation, removeSegmentationCommand(segmentation));
 
   executeCommandsIfNoBatchMode();
@@ -345,6 +348,9 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
 {
   for(auto segmentation : segmentations)
   {
+    auto segConnections = connections(segmentation);
+    if(!segConnections.isEmpty()) deleteConnections(segConnections);
+
     queueRemoveCommand(segmentation, removeSegmentationCommand(segmentation));
   }
 
@@ -1951,6 +1957,19 @@ void ModelAdapter::queueAddConnectionCommand(const Connection &connection)
 }
 
 //--------------------------------------------------------------------
+void ModelAdapter::queueRemoveConnectionCommand(const Connection &connection)
+{
+  auto command = [this, connection]()
+  {
+    m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
+
+    emit connectionRemoved(connection);
+  };
+
+  queueUpdateCommand(connection.item1, std::make_shared<Command<decltype(command)>>(command));
+}
+
+//--------------------------------------------------------------------
 void ModelAdapter::addConnection(const Connection &connection)
 {
   queueAddConnectionCommand(connection);
@@ -1970,9 +1989,9 @@ void ModelAdapter::addConnections(const ConnectionList &connections)
 //--------------------------------------------------------------------
 void ModelAdapter::deleteConnection(const Connection &connection)
 {
-  m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
+  queueRemoveConnectionCommand(connection);
 
-  emit connectionRemoved(connection);
+  executeCommandsIfNoBatchMode();
 }
 
 //--------------------------------------------------------------------
