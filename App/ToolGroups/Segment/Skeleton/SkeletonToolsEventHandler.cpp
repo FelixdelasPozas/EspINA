@@ -97,7 +97,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
   m_plane = view2D_cast(view)->plane();
 
   static bool isHandlingMenu = false;
-  static bool hasCollision = false;
+
   if(isHandlingMenu) return false;
   bool processed = false;
 
@@ -106,6 +106,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
     case QEvent::MouseButtonPress:
       if(!m_tracking && me && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
       {
+        static bool hasCollision = false;
         auto position = me->pos();
 
         if(me->button() == Qt::RightButton)

@@ -55,7 +55,7 @@ namespace ESPINA
        * \param[in] plane Plane of the connection event.
        *
        */
-      void onConnectionSignaled(const QString category, const int strokeIndex, const Plane plane);
+      void onConnectionSignaled(const QString &category, const int strokeIndex, const Plane plane);
 
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 

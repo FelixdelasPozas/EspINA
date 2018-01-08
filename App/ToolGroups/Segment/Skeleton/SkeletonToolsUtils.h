@@ -62,7 +62,7 @@ namespace ESPINA
      * \param[in] category Stroke list category.
      *
      */
-    QMenu * createStrokesContextMenu(const QString &title, const QString category);
+    QMenu * createStrokesContextMenu(const QString &title, const QString &category);
   }
 }
 

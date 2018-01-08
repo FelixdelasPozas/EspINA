@@ -682,9 +682,9 @@ QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
 
   std::function<void(SkeletonNode*, SkeletonNodes)> visit = [&visit, &result, checkIfDuplicated] (SkeletonNode *visitor, SkeletonNodes visited)
   {
-    SkeletonNode *lastVisited = nullptr; // needed because edges are bidirectional in our graphs.
     if(!visited.contains(visitor))
     {
+      SkeletonNode *lastVisited = nullptr; // needed because edges are bidirectional in our graphs.
       if(!visited.isEmpty()) lastVisited = visited.last();
       visited << visitor;
       for(auto connection: visitor->connections.keys())

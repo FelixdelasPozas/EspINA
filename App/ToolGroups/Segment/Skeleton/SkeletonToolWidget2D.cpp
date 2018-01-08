@@ -37,7 +37,7 @@ SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler
 }
 
 //--------------------------------------------------------------------
-void SkeletonToolWidget2D::onConnectionSignaled(const QString category, const int strokeIndex, const Plane plane)
+void SkeletonToolWidget2D::onConnectionSignaled(const QString &category, const int strokeIndex, const Plane plane)
 {
   if(!m_widget || !m_view) return;
   auto view2d = view2D_cast(m_view);

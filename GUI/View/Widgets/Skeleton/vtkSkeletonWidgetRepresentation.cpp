@@ -1317,8 +1317,6 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
 
   if(nodesNum < 3) return false;
 
-  double cursorPosition[3];
-
   {
     QMutexLocker lock(&s_skeletonMutex);
 
@@ -1370,8 +1368,6 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
 
     connectionNode->connections.insert(node, edgeIndex);
     node->connections.insert(connectionNode, edgeIndex);
-
-    ::memcpy(cursorPosition, nodeB->position, 3*sizeof(double));
   }
 
   return true;

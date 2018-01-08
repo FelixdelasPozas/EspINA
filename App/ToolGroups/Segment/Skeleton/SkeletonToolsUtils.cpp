@@ -114,7 +114,7 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
 }
 
 //--------------------------------------------------------------------
-QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const QString category)
+QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const QString &category)
 {
   QMenu *menu = nullptr;
 

@@ -76,7 +76,7 @@ namespace ESPINA
       void removeConnectionPoint(const NmVector3 point);
       void clearConnections();
       void addEntryPoint(const NmVector3 point);
-      void signalConnection(const QString category, const int strokeIndex, const Plane plane);
+      void signalConnection(const QString &category, const int strokeIndex, const Plane plane);
 
     private slots:
       /** \brief Signals the selection of a given stroke definition.
@@ -84,7 +84,7 @@ namespace ESPINA
        */
       void onActionSelected(QAction *action);
 
-      /** \brief Hides the menu if shown in case of deactivation.
+      /** \brief Hides the menu if shown in case of de-activation.
        * \param[in] enabled true if handler has been enabled and false in case it has been disabled.
        *
        */
