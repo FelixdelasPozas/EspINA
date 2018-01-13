@@ -70,6 +70,20 @@ namespace ESPINA
        */
       void setStrokesCategory(const QString &category);
 
+      /** \brief Sets the same stroke the user specified manually on the tool.
+       * \param[in] stroke Skeleton stroke definition.
+       *
+       */
+      void setStroke(const Core::SkeletonStroke &stroke)
+      { m_lastStroke = stroke; };
+
+      /** \brief Weird hack for the tool to respond if the last coordinates signaled correspond to a start point.
+       * \param[in] value True to indicate a start point and false otherwise.
+       *
+       */
+      void setIsStartNode(const bool value)
+      { m_isStartPoint = value; }
+
     signals:
       void selectedStroke(int index);
       void addConnectionPoint(const NmVector3 point);
@@ -77,6 +91,8 @@ namespace ESPINA
       void clearConnections();
       void addEntryPoint(const NmVector3 point);
       void signalConnection(const QString &category, const int strokeIndex, const Plane plane);
+      void checkStartNode(const NmVector3 &point);
+      void changeStrokeTo(const QString &category, const int strokeIndex, const Plane plane);
 
     private slots:
       /** \brief Signals the selection of a given stroke definition.
@@ -91,16 +107,39 @@ namespace ESPINA
       void onHandlerUseChanged(bool enabled);
 
     protected:
+      /** \brief Helper method that returns true if the current category has special connection "movements".
+       *
+       */
+      bool isSpecialCategory() const
+      { return isDendrite() || isAxon(); }
+
+      /** \brief Helper method that returns true if the current category is a dendrite.
+       *
+       */
+      bool isDendrite() const
+      { return m_category.startsWith("Dendrite", Qt::CaseInsensitive); }
+
+      bool isAxon() const
+      { return m_category.startsWith("Axon", Qt::CaseInsensitive); }
+
+      /** \brief Returns true if the given point collides with a Synapse and false otherwise.
+       * \param[in] point Point coordinates.
+       */
+      bool isCollision(const NmVector3 &point) const;
+
       using PointTemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
-      QMenu                       *m_contextMenu;    /** strokes context menu.                                                  */
-      QMenu                       *m_connectionMenu; /** Connection type context menu.                                          */
-      QString                      m_category;       /** current segmentation category.                                         */
-      bool                         m_checkCollision; /** true to check for point collision with segmentations, false otherwise. */
-      bool                         m_cancelled;      /** true if the menu was cancelled, false otherwise.                       */
-      Extensions::ChannelEdgesSPtr m_edges;          /** active stack edges extension.                                          */
-      Plane                        m_plane;          /** plane of the last event.                                               */
-      NmVector3                    m_point;          /** last connection point.                                                 */
+      enum class OperationMode: char { NORMAL = 0, COLLISION_START, COLLISION_MIDDLE };
+
+      OperationMode        m_operation;      /** current handler operation mode.                        */
+      QMenu               *m_strokeMenu;     /** strokes context menu.                                  */
+      QMenu               *m_connectionMenu; /** Connection type context menu.                          */
+      QString              m_category;       /** current segmentation category.                         */
+      bool                 m_cancelled;      /** true if the menu was cancelled, false otherwise.       */
+      Plane                m_plane;          /** plane of the last event.                               */
+      NmVector3            m_point;          /** last connection point.                                 */
+      bool                 m_isStartPoint;   /** true to indicate that the last point is a start point. */
+      Core::SkeletonStroke m_lastStroke;     /** last stroke selected.                                  */
   };
 
   using SkeletonToolsEventHandlerSPtr = std::shared_ptr<SkeletonToolsEventHandler>;

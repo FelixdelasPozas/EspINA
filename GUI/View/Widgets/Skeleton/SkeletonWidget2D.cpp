@@ -45,9 +45,9 @@ using namespace ESPINA::GUI::View::Widgets::Skeleton;
 //-----------------------------------------------------------------------------
 SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler)
 : m_widget    {vtkSmartPointer<vtkSkeletonWidget>::New()}
+, m_view      {nullptr}
 , m_position  {-std::numeric_limits<Nm>::max()}
 , m_handler   {handler}
-, m_view      {nullptr}
 , m_mode      {Mode::CREATE}
 , m_moving    {false}
 {

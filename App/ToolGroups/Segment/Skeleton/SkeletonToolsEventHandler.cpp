@@ -43,6 +43,7 @@
 #include <vtkPolyData.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Support;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::SkeletonToolsUtils;
@@ -50,35 +51,15 @@ using namespace ESPINA::GUI::View::Widgets::Skeleton;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //------------------------------------------------------------------------
-class EdgesCreatorHelper
-: public Task
-{
-  public:
-    explicit EdgesCreatorHelper(ChannelEdgesSPtr edges, Support::Context &context)
-    : Task(context.scheduler())
-    , m_edges{edges}
-    {};
-
-    virtual ~EdgesCreatorHelper()
-    {};
-
-    virtual void run()
-    { m_edges->channelEdges(); }
-
-  private:
-    ChannelEdgesSPtr m_edges;
-};
-
-//------------------------------------------------------------------------
 SkeletonToolsEventHandler::SkeletonToolsEventHandler(Context &context)
 : SkeletonEventHandler()
 , WithContext     (context)
-, m_contextMenu   {nullptr}
+, m_operation     {OperationMode::NORMAL}
+, m_strokeMenu    {nullptr}
 , m_connectionMenu{nullptr}
-, m_checkCollision{false}
 , m_cancelled     {false}
-, m_edges         {nullptr}
 , m_plane         {Plane::UNDEFINED}
+, m_isStartPoint  {true}
 {
   connect(this, SIGNAL(eventHandlerInUse(bool)), this, SLOT(onHandlerUseChanged(bool)));
 }
@@ -96,34 +77,40 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
   if(view->type() == ViewType::VIEW_3D) return false;
   m_plane = view2D_cast(view)->plane();
 
-  static bool isHandlingMenu = false;
+  if((m_connectionMenu && m_connectionMenu->isVisible()) || (m_strokeMenu && m_strokeMenu->isVisible())) return false;
 
-  if(isHandlingMenu) return false;
-  bool processed = false;
+  bool usedMenu = false;
 
   switch(e->type())
   {
     case QEvent::MouseButtonPress:
       if(!m_tracking && me && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
       {
-        static bool hasCollision = false;
-        auto position = me->pos();
-
         if(me->button() == Qt::RightButton)
         {
           emit clearConnections();
+          m_operation = OperationMode::NORMAL;
           break;
         }
 
-        if ((me->button() == Qt::LeftButton) && (m_mode == SkeletonEventHandler::Mode::CREATE) && m_contextMenu)
+        if(me->button() != Qt::LeftButton) break;
+
+        auto position = me->pos();
+        auto point    = view->worldEventPosition();
+        auto spacing  = view->sceneResolution();
+        for(auto i: {0,1,2}) point[i] = std::round(point[i]/spacing[i])*spacing[i];
+
+        if ((m_mode == SkeletonEventHandler::Mode::CREATE) && m_strokeMenu)
         {
           if(m_track.isEmpty())
           {
-            processed = true;
-            isHandlingMenu = true;
-            m_contextMenu->setParent(view);
-            m_contextMenu->exec(position);
-            isHandlingMenu = false;
+            emit checkStartNode(point);
+
+            if(!m_isStartPoint) break;
+
+            m_strokeMenu->setParent(view);
+            m_strokeMenu->exec(position);
+            usedMenu = true;
 
             if (m_cancelled)
             {
@@ -131,72 +118,97 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
               return true;
             }
 
-            auto bounds  = getActiveChannel()->bounds();
-            auto point   = view->worldEventPosition();
-            if(!contains(bounds, point)) break;
-
-            auto spacing = getActiveChannel()->output()->spacing();
-            Nm tolerance = 100;
-            for(auto i: {0,1,2})
+            if(isCollision(point))
             {
-              if(i == normalCoordinateIndex(m_plane)) continue;
-              tolerance = std::min(tolerance, spacing[i]);
+              m_point = point;
+              emit addConnectionPoint(m_point);
+              view->refresh();
+              m_operation = OperationMode::COLLISION_START;
             }
-            tolerance *=3; // three pixels wide at least in the smallest direction.
-
-            if(m_edges && m_edges->areEdgesAvailable() && m_edges->isPointOnEdge(point, tolerance))
-            {
-              emit addEntryPoint(point);
-            }
+            break;
           }
           else
           {
-            if(hasCollision && m_connectionMenu)
+            if(m_operation == OperationMode::COLLISION_START)
             {
-              processed = true;
-              isHandlingMenu = true;
-              m_connectionMenu->setParent(view);
-              m_connectionMenu->exec(position);
-              isHandlingMenu = false;
-              hasCollision = false;
-
-              if (m_cancelled) // can be cancelled leaving the view.
+              m_operation = OperationMode::NORMAL;
+              if(isDendrite())
               {
-                m_cancelled = false;
-                return true;
+                if(m_lastStroke.name.compare("Synapse on shaft", Qt::CaseInsensitive) == 0)
+                {
+                  emit changeStrokeTo(m_category, 0, m_plane); // Shaft
+                  return true;
+                }
+
+                if(m_lastStroke.name.startsWith("Synapse on", Qt::CaseInsensitive) && m_lastStroke.name.contains("spine", Qt::CaseInsensitive))
+                {
+                  emit changeStrokeTo(m_category, 1, m_plane); // Spine
+                  return true;
+                }
+              }
+              else
+              {
+                if(isAxon() && m_lastStroke.name.startsWith("Synapse", Qt::CaseInsensitive))
+                {
+                  emit changeStrokeTo(m_category, 0, m_plane); // Shaft
+                  return true;
+                }
               }
             }
-          }
-        }
 
-        if (m_checkCollision)
-        {
-          auto point = view->worldEventPosition();
-
-          auto candidates = getModel()->contains(point);
-          for (auto candidate: candidates)
-          {
-            auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(candidate);
-            if (seg && hasVolumetricData(seg->output()) && seg->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
+            if(m_operation == OperationMode::COLLISION_MIDDLE && m_connectionMenu)
             {
-              if(isSegmentationVoxel(readLockVolume(seg->output()), point))
+              m_operation = OperationMode::NORMAL;
+              if(m_lastStroke.name.startsWith("Shaft"))
               {
-                m_point = point;
-                emit addConnectionPoint(m_point);
-                view->refresh();
-                hasCollision = true;
+                if(isDendrite())
+                {
+                  emit signalConnection(m_category, 3, m_plane); // Synapse on shaft.
+                }
+                else
+                {
+                  emit signalConnection(m_category, 1, m_plane); // Synapse en passant.
+                }
               }
+              else
+              {
+                m_connectionMenu->setParent(view);
+                m_connectionMenu->exec(position);
+                usedMenu = true;
+
+                if (m_cancelled) // can be cancelled leaving the view.
+                {
+                  m_cancelled = false;
+                  return true;
+                }
+              }
+
+              break;
+            }
+
+            if(isCollision(point))
+            {
+              m_point = point;
+              emit addConnectionPoint(m_point);
+              view->refresh();
+              m_operation = OperationMode::COLLISION_MIDDLE;
             }
           }
         }
       }
       break;
     case QEvent::Leave:
-      if(m_contextMenu && m_contextMenu->isVisible())
+      if(m_strokeMenu && m_strokeMenu->isVisible())
       {
         m_cancelled = true;
-        m_contextMenu->close();
+        m_strokeMenu->close();
       }
+      if(m_connectionMenu && m_connectionMenu->isVisible())
+      {
+        m_cancelled = true;
+        m_connectionMenu->close();
+      }
+      m_operation = OperationMode::NORMAL;
       break;
     default:
       break;
@@ -204,7 +216,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
 
   auto result = SkeletonEventHandler::filterEvent(e, view);
 
-  if(processed)
+  if(usedMenu)
   {
     // if we've processed the event with the menu we need a mouse release event to interact correctly.
     auto releaseEvent = new QMouseEvent(QEvent::MouseButtonRelease, me->pos(), me->button(), me->buttons(), me->modifiers());
@@ -249,7 +261,12 @@ void SkeletonToolsEventHandler::onActionSelected(QAction *action)
     {
       if(index < strokes.size())
       {
+        m_lastStroke = strokes.at(index);
         emit selectedStroke(index);
+      }
+      else
+      {
+        m_lastStroke = SkeletonStroke();
       }
     }
 
@@ -260,12 +277,12 @@ void SkeletonToolsEventHandler::onActionSelected(QAction *action)
 //------------------------------------------------------------------------
 void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
 {
-  if(m_contextMenu)
+  if(m_strokeMenu)
   {
-    if(m_contextMenu->isVisible()) m_contextMenu->close();
-    m_contextMenu->setParent(nullptr);
-    disconnect(m_contextMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
-    delete m_contextMenu;
+    if(m_strokeMenu->isVisible()) m_strokeMenu->close();
+    m_strokeMenu->setParent(nullptr);
+    disconnect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+    delete m_strokeMenu;
 
     if(m_connectionMenu)
     {
@@ -275,7 +292,7 @@ void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
       delete m_connectionMenu;
     }
 
-    m_contextMenu = nullptr;
+    m_strokeMenu = nullptr;
     m_connectionMenu = nullptr;
   }
 
@@ -283,15 +300,16 @@ void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
 
   if(STROKES.keys().contains(m_category))
   {
-    m_checkCollision = m_category.startsWith("Dendrite", Qt::CaseInsensitive) || m_category.startsWith("Axon", Qt::CaseInsensitive);
-
-    m_contextMenu = SkeletonToolsUtils::createStrokesContextMenu("Start stroke", m_category);
-    connect(m_contextMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
-
-    if(m_checkCollision)
+    if(STROKES[m_category].size() != 1)
     {
-      m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_category);
-      connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+      m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", m_category);
+      connect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+
+      if(isSpecialCategory())
+      {
+        m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_category);
+        connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+      }
     }
   }
 }
@@ -299,34 +317,45 @@ void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
 //------------------------------------------------------------------------
 void SkeletonToolsEventHandler::onHandlerUseChanged(bool enabled)
 {
-  if(!enabled && m_contextMenu && m_contextMenu->isVisible())
+  if(!enabled)
   {
-    m_contextMenu->close();
-    m_contextMenu->setParent(nullptr);
-  }
-
-  if(!enabled && m_connectionMenu && m_connectionMenu->isVisible())
-  {
-    m_connectionMenu->close();
-    m_connectionMenu->setParent(nullptr);
-  }
-
-  if(enabled)
-  {
-    auto stack = getActiveChannel();
-    if(stack)
+    if(m_strokeMenu && m_strokeMenu->isVisible())
     {
-      m_edges = stack->readOnlyExtensions()->get<ChannelEdges>();
-      if(!m_edges->areEdgesAvailable())
-      {
-        auto helper = std::make_shared<EdgesCreatorHelper>(m_edges, getContext());
+      m_cancelled = true;
+      m_strokeMenu->close();
+      m_strokeMenu->setParent(nullptr);
+    }
 
-        Task::submit(helper);
+    if(m_connectionMenu && m_connectionMenu->isVisible())
+    {
+      m_cancelled = true;
+      m_connectionMenu->close();
+      m_connectionMenu->setParent(nullptr);
+    }
+
+    m_operation = OperationMode::NORMAL;
+  }
+}
+
+//------------------------------------------------------------------------
+bool SkeletonToolsEventHandler::isCollision(const NmVector3& point) const
+{
+  if(isSpecialCategory())
+  {
+    auto candidates = getModel()->contains(point);
+    for (auto candidate: candidates)
+    {
+      auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(candidate);
+
+      if (seg                                                                              &&
+          hasVolumetricData(seg->output())                                                 &&
+          seg->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive) &&
+          isSegmentationVoxel(readLockVolume(seg->output()), point))
+      {
+        return true;
       }
     }
   }
-  else
-  {
-    m_edges = nullptr;
-  }
+
+  return false;
 }

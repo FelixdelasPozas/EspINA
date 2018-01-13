@@ -311,6 +311,8 @@ namespace ESPINA
      * \param[out] node_j node of the line containing the closest point to the input point.
      * \param[out] worldPosition position of the closest point in the skeleton to the input point.
      *
+     * NOTE: in the case that the closest distance is between nodes i and j, node_i is the closest one.
+     *
      */
     double EspinaCore_EXPORT closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
 

@@ -34,6 +34,9 @@ SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler
 {
   connect(handler.get(), SIGNAL(signalConnection(const QString, const int, const Plane)),
           this,          SLOT(onConnectionSignaled(const QString, const int, const Plane)), Qt::DirectConnection);
+
+  connect(handler.get(), SIGNAL(changeStrokeTo(const QString, const int, const Plane)),
+          this,          SLOT(onStrokeChangeSignaled(const QString, const int, const Plane)), Qt::DirectConnection);
 }
 
 //--------------------------------------------------------------------
@@ -44,6 +47,24 @@ void SkeletonToolWidget2D::onConnectionSignaled(const QString &category, const i
   if(!view2d || view2d->plane() != plane) return;
 
   m_widget->createConnection(STROKES[category].at(strokeIndex));
+}
+
+//--------------------------------------------------------------------
+void SkeletonToolWidget2D::onStrokeChangeSignaled(const QString &category, const int strokeIndex, const Plane plane)
+{
+  if(!m_widget || !m_view) return;
+  auto view2d = view2D_cast(m_view);
+  if(!view2d || view2d->plane() != plane) return;
+
+  m_widget->changeStroke(STROKES[category].at(strokeIndex));
+}
+
+//--------------------------------------------------------------------
+bool SkeletonToolWidget2D::isStartNode(const NmVector3 &point)
+{
+  if(m_widget) return m_widget->isStartNode(point);
+
+  return false;
 }
 
 //--------------------------------------------------------------------

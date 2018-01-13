@@ -285,9 +285,6 @@ void SkeletonEditionTool::onPointWidgetCloned(GUI::Representations::Managers::Te
     connect(m_eventHandler.get(), SIGNAL(removeConnectionPoint(const NmVector3)),
             pointWidget.get(),    SLOT(onConnectionPointRemoved(const NmVector3)));
 
-    connect(m_eventHandler.get(), SIGNAL(addEntryPoint(const NmVector3)),
-            pointWidget.get(),    SLOT(onEntryPointAdded(const NmVector3)));
-
     connect(m_eventHandler.get(), SIGNAL(clearConnections()),
             pointWidget.get(),    SLOT(clearPoints()));
 
@@ -298,7 +295,6 @@ void SkeletonEditionTool::onPointWidgetCloned(GUI::Representations::Managers::Te
 //--------------------------------------------------------------------
 void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 {
-  qDebug() << "on skeleton modified";
   auto widget = dynamic_cast<SkeletonWidget2D *>(sender());
 
   if(widget)
@@ -518,6 +514,9 @@ void SkeletonEditionTool::initEventHandler()
   m_eventHandler->setInterpolation(true);
   m_eventHandler->setCursor(Qt::CrossCursor);
 
+  connect(m_eventHandler.get(), SIGNAL(checkStartNode(const NmVector3 &)),
+          this,                 SLOT(onPointCheckRequested(const NmVector3 &)), Qt::DirectConnection);
+
   setEventHandler(m_eventHandler);
 }
 
@@ -633,5 +632,19 @@ void SkeletonEditionTool::updateStrokes()
     m_strokeCombo->blockSignals(false);
 
     m_eventHandler->setStrokesCategory(category->classificationName());
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onPointCheckRequested(const NmVector3 &point)
+{
+  if(!m_widgets.isEmpty())
+  {
+    auto skeletonWidget = std::dynamic_pointer_cast<SkeletonToolWidget2D>(m_widgets.first());
+
+    if(skeletonWidget)
+    {
+      m_eventHandler->setIsStartNode(skeletonWidget->isStartNode(point));
+    }
   }
 }

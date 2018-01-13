@@ -165,6 +165,12 @@ namespace ESPINA
        */
       void onStrokeConfigurationPressed();
 
+      /** \brief Performs a point check requested by the event handler.
+       * \param[in] point Point 3D coordinates.
+       *
+       */
+      void onPointCheckRequested(const NmVector3 &point);
+
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;

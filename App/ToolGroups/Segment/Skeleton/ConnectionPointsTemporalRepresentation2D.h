@@ -95,12 +95,6 @@ namespace ESPINA
        */
       void onConnectionPointRemoved(const NmVector3 point);
 
-      /** \brief Adds the point to the entry points list to represent.
-       * \param[in] point 3D point coordinates.
-       *
-       */
-      void onEntryPointAdded(const NmVector3 point);
-
       /** \brief Empties the point lists.
        *
        */
@@ -120,23 +114,17 @@ namespace ESPINA
        */
       void updateActor(const Nm slice);
 
-      vtkSmartPointer<vtkPoints>        m_cPoints;      /** connection points.                                             */
-      vtkSmartPointer<vtkPoints>        m_ePoints;      /** entry points.                                                  */
-      vtkSmartPointer<vtkPolyData>      m_cPolyData;    /** connections polydata.                                          */
-      vtkSmartPointer<vtkPolyData>      m_ePolyData;    /** entry points polydata.                                         */
-      vtkSmartPointer<vtkGlyph3DMapper> m_cGlyphMapper; /** connections glyph mapper.                                      */
-      vtkSmartPointer<vtkGlyph3DMapper> m_eGlyphMapper; /** entry points glyph mapper.                                     */
-      vtkSmartPointer<vtkGlyphSource2D> m_glyph2D;      /** connection glyph source for 2D views, a circle.                */
-      vtkSmartPointer<vtkGlyphSource2D> m_entryGlyph2D; /** entry point glyph source for 2D views, a circle.               */
-      vtkSmartPointer<vtkFollower>      m_cActor;       /** connections representation actor.                              */
-      vtkSmartPointer<vtkFollower>      m_eActor;       /** entry points representation actor.                             */
-      int                               m_scale;        /** representation's scale value.                                  */
-      RenderView                       *m_view;         /** view of the representation.                                    */
-      int                               m_planeIndex;   /** views plane index.                                             */
-      Nm                                m_lastSlice;    /** last represented slice value.                                  */
-      bool                              m_active;       /** true if representation is active and visible, false otherwise. */
-      QList<NmVector3>                  m_connections;  /** connection points list.                                        */
-      QList<NmVector3>                  m_entryPoints;  /** entry points list.                                             */
+      vtkSmartPointer<vtkPoints>        m_points;      /** connection points.                                             */
+      vtkSmartPointer<vtkPolyData>      m_polyData;    /** connections polydata.                                          */
+      vtkSmartPointer<vtkGlyph3DMapper> m_glyphMapper; /** connections glyph mapper.                                      */
+      vtkSmartPointer<vtkGlyphSource2D> m_glyph2D;     /** connection glyph source for 2D views, a circle.                */
+      vtkSmartPointer<vtkFollower>      m_actor;       /** connections representation actor.                              */
+      int                               m_scale;       /** representation's scale value.                                  */
+      RenderView                       *m_view;        /** view of the representation.                                    */
+      int                               m_planeIndex;  /** views plane index.                                             */
+      Nm                                m_lastSlice;   /** last represented slice value.                                  */
+      bool                              m_active;      /** true if representation is active and visible, false otherwise. */
+      QList<NmVector3>                  m_connections; /** connection points list.                                        */
   };
 
   using ConnectionPointsTemporalRepresentation2DSPtr = std::shared_ptr<ConnectionPointsTemporalRepresentation2D>;

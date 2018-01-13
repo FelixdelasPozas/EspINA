@@ -398,9 +398,6 @@ void SkeletonTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalR
     connect(m_eventHandler.get(), SIGNAL(removeConnectionPoint(const NmVector3)),
             pointWidget.get(),    SLOT(onConnectionPointRemoved(const NmVector3)));
 
-    connect(m_eventHandler.get(), SIGNAL(addEntryPoint(const NmVector3)),
-            pointWidget.get(),    SLOT(onEntryPointAdded(const NmVector3)));
-
     connect(m_eventHandler.get(), SIGNAL(clearConnections()),
             pointWidget.get(),    SLOT(clearPoints()));
 
@@ -607,6 +604,7 @@ void SkeletonTool::onStrokeTypeChanged(int index)
     for(auto widget: m_skeletonWidgets)
     {
       widget->setStroke(stroke);
+      m_eventHandler->setStroke(stroke);
     }
   }
 }
@@ -617,6 +615,9 @@ void SkeletonTool::initEventHandler()
   m_eventHandler = std::make_shared<SkeletonToolsEventHandler>(getContext());
   m_eventHandler->setInterpolation(true);
   m_eventHandler->setCursor(Qt::CrossCursor);
+
+  connect(m_eventHandler.get(), SIGNAL(checkStartNode(const NmVector3 &)),
+          this,                 SLOT(onPointCheckRequested(const NmVector3 &)), Qt::DirectConnection);
 
   setEventHandler(m_eventHandler);
 }
@@ -692,5 +693,19 @@ void SkeletonTool::updateStrokes()
     m_strokeCombo->blockSignals(false);
 
     m_eventHandler->setStrokesCategory(categoryName);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onPointCheckRequested(const NmVector3 &point)
+{
+  if(!m_skeletonWidgets.isEmpty())
+  {
+    auto skeletonWidget = std::dynamic_pointer_cast<SkeletonToolWidget2D>(m_skeletonWidgets.first());
+
+    if(skeletonWidget)
+    {
+      m_eventHandler->setIsStartNode(skeletonWidget->isStartNode(point));
+    }
   }
 }

@@ -227,6 +227,18 @@ namespace ESPINA
                */
               void createConnection(const Core::SkeletonStroke &stroke);
 
+              /** \brief Changes the stroke to the given one after adding a new point.
+               *  \param[in] stroke New stroke.
+               *
+               */
+              void changeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Returns true if the given point will be considered collision with an existing stroke.
+               * \param[in] point 3D point coordinates.
+               *
+               */
+              bool isStartNode(const NmVector3 &point) const;
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */

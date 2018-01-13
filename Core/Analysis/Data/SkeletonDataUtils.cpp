@@ -339,8 +339,17 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
           projection[0] = pos_i[0] + r*(pos_j[0] - pos_i[0]);
           projection[1] = pos_i[1] + r*(pos_j[1] - pos_i[1]);
           projection[2] = pos_i[2] + r*(pos_j[2] - pos_i[2]);
-          segmentNode1Index = i;
-          segmentNode2Index = locator[connections[j]];
+
+          if(vtkMath::Distance2BetweenPoints(projection, pos_i) < vtkMath::Distance2BetweenPoints(projection, pos_j))
+          {
+            segmentNode1Index = i;
+            segmentNode2Index = locator[connections[j]];
+          }
+          else
+          {
+            segmentNode1Index = locator[connections[j]];
+            segmentNode2Index = i;
+          }
         }
       }
 

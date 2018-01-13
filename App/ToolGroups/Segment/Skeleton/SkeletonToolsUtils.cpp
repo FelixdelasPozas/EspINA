@@ -56,9 +56,10 @@ Core::SkeletonStrokes ESPINA::SkeletonToolsUtils::defaultStrokes(const CategoryA
     {
       result << SkeletonStroke(QObject::tr("Shaft"), hue, 0, true);
       result << SkeletonStroke(QObject::tr("Spine"), hue, 0, true);
-      result << SkeletonStroke(QObject::tr("BiSpine"), hue, 0, true);
+      result << SkeletonStroke(QObject::tr("Subspine"), hue, 0, true);
       result << SkeletonStroke(QObject::tr("Synapse on shaft"), hue, 1, false);
       result << SkeletonStroke(QObject::tr("Synapse on spine head"), hue, 1, false);
+      result << SkeletonStroke(QObject::tr("Synapse on spine neck"), hue, 1, false);
 
       return result;
     }

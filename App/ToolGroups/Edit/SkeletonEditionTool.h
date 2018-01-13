@@ -146,6 +146,12 @@ namespace ESPINA
        */
       void onStrokeConfigurationPressed();
 
+      /** \brief Performs a point check requested by the event handler.
+       * \param[in] point Point 3D coordinates.
+       *
+       */
+      void onPointCheckRequested(const NmVector3 &point);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 

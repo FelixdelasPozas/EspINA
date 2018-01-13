@@ -338,6 +338,19 @@ namespace ESPINA
                */
               bool createConnection(const Core::SkeletonStroke &stroke);
 
+              /** \brief Performs a stroke change after adding a point to the skeleton.
+               *  \param[in] stroke Stroke to change to.
+               *
+               */
+              bool switchToStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Returns true if the given point does not collide with a stroke or, if it collides, cannot be considered
+               * a continuation.
+               * \param[in] point Point 3D coordinates.
+               *
+               */
+              bool isStartNode(const NmVector3 &point);
+
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
                *
@@ -351,11 +364,18 @@ namespace ESPINA
 
               /** \brief Given a display position this computes the world position
                * using the renderer of this class.
-               * \param[in] displayPos display coordinate vector.
-               * \param[out] worldPos world coordinate vector.
+               * \param[in] displayPos Display coordinates.
+               * \param[out] worldPos World coordinates.
                *
                */
-              void GetWorldPositionFromDisplayPosition(int displayPos[2], double worldPos[3]) const;
+              void GetWorldPositionFromDisplayPosition(const int displayPos[2], double worldPos[3]) const;
+
+              /** \brief Given a world position this computes the pixel coordinates in display coordinates.
+               * \param[in] worldPos World coordinates.
+               * \param[out] displayPos Display coordinates.
+               *
+               */
+              void GetDisplayPositionFromWorldPosition(const double worldPos[3], int displayPos[2]) const;
 
               /** \brief Returns the closes point on the skeleton to a given display coordinate.
                * \param[in] X x display coordinate.

@@ -595,3 +595,19 @@ void vtkSkeletonWidget::createConnection(const Core::SkeletonStroke& stroke)
 
   reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->createConnection(stroke);
 }
+
+//-----------------------------------------------------------------------------
+bool vtkSkeletonWidget::isStartNode(const NmVector3 &point) const
+{
+  if(WidgetRep) return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->isStartNode(point);
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::changeStroke(const Core::SkeletonStroke& stroke)
+{
+  if(!WidgetRep) return;
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->switchToStroke(stroke);
+}

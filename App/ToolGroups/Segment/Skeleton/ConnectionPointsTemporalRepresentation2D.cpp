@@ -44,16 +44,11 @@ using namespace ESPINA::GUI::View::Utils;
 
 //--------------------------------------------------------------------
 ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation2D()
-: m_cPoints     {nullptr}
-, m_ePoints     {nullptr}
-, m_cPolyData   {nullptr}
-, m_ePolyData   {nullptr}
-, m_cGlyphMapper{nullptr}
-, m_eGlyphMapper{nullptr}
+: m_points     {nullptr}
+, m_polyData   {nullptr}
+, m_glyphMapper{nullptr}
 , m_glyph2D     {nullptr}
-, m_entryGlyph2D{nullptr}
-, m_cActor      {nullptr}
-, m_eActor      {nullptr}
+, m_actor      {nullptr}
 , m_scale       {9}
 , m_view        {nullptr}
 , m_planeIndex  {-1}
@@ -67,19 +62,14 @@ ConnectionPointsTemporalRepresentation2D::~ConnectionPointsTemporalRepresentatio
 {
   if(m_view)
   {
-    m_view->removeActor(m_cActor);
-    m_view->removeActor(m_eActor);
+    m_view->removeActor(m_actor);
   }
 
-  m_cActor       = nullptr;
-  m_eActor       = nullptr;
+  m_actor       = nullptr;
   m_glyph2D      = nullptr;
-  m_cGlyphMapper = nullptr;
-  m_eGlyphMapper = nullptr;
-  m_cPolyData    = nullptr;
-  m_ePolyData    = nullptr;
-  m_cPoints      = nullptr;
-  m_ePoints      = nullptr;
+  m_glyphMapper = nullptr;
+  m_polyData    = nullptr;
+  m_points      = nullptr;
 }
 
 //--------------------------------------------------------------------
@@ -105,19 +95,16 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
 
   buildPipeline();
 
-  repositionActor(m_cActor, view2d->widgetDepth(), m_planeIndex);
-  repositionActor(m_eActor, view2d->widgetDepth(), m_planeIndex);
+  repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
 
-  m_view->addActor(m_cActor);
-  m_view->addActor(m_eActor);
+  m_view->addActor(m_actor);
   m_view->refresh();
 }
 
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::uninitialize()
 {
-  m_view->removeActor(m_cActor);
-  m_view->removeActor(m_eActor);
+  m_view->removeActor(m_actor);
   m_view = nullptr;
 }
 
@@ -129,10 +116,8 @@ void ConnectionPointsTemporalRepresentation2D::show()
   if(!m_active)
   {
     m_active = true;
-    m_cActor->SetVisibility(true);
-    m_cActor->Modified();
-    m_eActor->SetVisibility(true);
-    m_eActor->Modified();
+    m_actor->SetVisibility(true);
+    m_actor->Modified();
   }
 }
 
@@ -144,10 +129,8 @@ void ConnectionPointsTemporalRepresentation2D::hide()
   if(m_active)
   {
     m_active = false;
-    m_cActor->SetVisibility(false);
-    m_cActor->Modified();
-    m_eActor->SetVisibility(false);
-    m_eActor->Modified();
+    m_actor->SetVisibility(false);
+    m_actor->Modified();
   }
 }
 
@@ -180,7 +163,7 @@ bool ConnectionPointsTemporalRepresentation2D::acceptInvalidationFrame(const GUI
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  if(!m_cPoints) buildPipeline();
+  if(!m_points) buildPipeline();
 
   auto slice = frame->crosshair[m_planeIndex];
   if(m_lastSlice != slice)
@@ -223,23 +206,9 @@ void ConnectionPointsTemporalRepresentation2D::onConnectionPointRemoved(const Nm
 }
 
 //--------------------------------------------------------------------
-void ConnectionPointsTemporalRepresentation2D::onEntryPointAdded(const NmVector3 point)
-{
-  if(!m_entryPoints.contains(point))
-  {
-    m_entryPoints << point;
-
-    updateActor(m_lastSlice);
-
-    if(m_view) m_view->mainRenderer()->Render();
-  }
-}
-
-//--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::clearPoints()
 {
   m_connections.clear();
-  m_entryPoints.clear();
 
   updateActor(m_lastSlice);
 
@@ -249,27 +218,17 @@ void ConnectionPointsTemporalRepresentation2D::clearPoints()
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 {
-  if(m_cPoints || !m_view) return;
+  if(m_points || !m_view) return;
 
-  m_cPoints = vtkSmartPointer<vtkPoints>::New();
+  m_points = vtkSmartPointer<vtkPoints>::New();
 
-  m_cPolyData = vtkSmartPointer<vtkPolyData>::New();
-  m_cPolyData->SetPoints(m_cPoints);
+  m_polyData = vtkSmartPointer<vtkPolyData>::New();
+  m_polyData->SetPoints(m_points);
 
-  m_cGlyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
-  m_cGlyphMapper->SetScalarVisibility(false);
-  m_cGlyphMapper->SetStatic(false);
-  m_cGlyphMapper->SetInputData(m_cPolyData);
-
-  m_ePoints = vtkSmartPointer<vtkPoints>::New();
-
-  m_ePolyData = vtkSmartPointer<vtkPolyData>::New();
-  m_ePolyData->SetPoints(m_ePoints);
-
-  m_eGlyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
-  m_eGlyphMapper->SetScalarVisibility(false);
-  m_eGlyphMapper->SetStatic(false);
-  m_eGlyphMapper->SetInputData(m_ePolyData);
+  m_glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+  m_glyphMapper->SetScalarVisibility(false);
+  m_glyphMapper->SetStatic(false);
+  m_glyphMapper->SetInputData(m_polyData);
 
   auto spacing = m_view->sceneResolution();
   spacing[m_planeIndex] = spacing[(m_planeIndex + 1) % 3];
@@ -282,14 +241,6 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
   m_glyph2D->SetScale(m_scale*multiplier);
   m_glyph2D->SetColor(1, 1, 1);
   m_glyph2D->Update();
-
-  m_entryGlyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
-  m_entryGlyph2D->SetGlyphTypeToCircle();
-  m_entryGlyph2D->SetFilled(true);
-  m_entryGlyph2D->SetCenter(0, 0, 0);
-  m_entryGlyph2D->SetScale(m_scale*multiplier);
-  m_entryGlyph2D->SetColor(0, 1, 0);
-  m_entryGlyph2D->Update();
 
   switch (m_planeIndex)
   {
@@ -306,44 +257,33 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 
       auto eTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
       eTransformFilter->SetTransform(transform);
-      eTransformFilter->SetInputData(m_entryGlyph2D->GetOutput());
       eTransformFilter->Update();
 
-      m_cGlyphMapper->SetSourceData(cTransformFilter->GetOutput());
-      m_eGlyphMapper->SetSourceData(eTransformFilter->GetOutput());
+      m_glyphMapper->SetSourceData(cTransformFilter->GetOutput());
     }
       break;
     default:
     case 2:
-      m_cGlyphMapper->SetSourceData(m_glyph2D->GetOutput());
-      m_eGlyphMapper->SetSourceData(m_entryGlyph2D->GetOutput());
+      m_glyphMapper->SetSourceData(m_glyph2D->GetOutput());
       break;
   }
 
-  m_cActor = vtkSmartPointer<vtkFollower>::New();
-  m_cActor->SetMapper(m_cGlyphMapper);
-  m_cActor->GetProperty()->SetColor(1,1,1);
-  m_cActor->GetProperty()->SetLineWidth(2);
-  m_cActor->GetProperty()->Modified();
-
-  m_eActor = vtkSmartPointer<vtkFollower>::New();
-  m_eActor->SetMapper(m_eGlyphMapper);
-  m_eActor->GetProperty()->SetColor(0,1,0);
-  m_eActor->GetProperty()->SetLineWidth(2);
-  m_eActor->GetProperty()->Modified();
+  m_actor = vtkSmartPointer<vtkFollower>::New();
+  m_actor->SetMapper(m_glyphMapper);
+  m_actor->GetProperty()->SetColor(1,1,1);
+  m_actor->GetProperty()->SetLineWidth(2);
+  m_actor->GetProperty()->Modified();
 
   auto view2d = view2D_cast(m_view);
   auto depth  = view2d->widgetDepth();
 
-  repositionActor(m_cActor, depth, m_planeIndex);
-  repositionActor(m_eActor, depth, m_planeIndex);
+  repositionActor(m_actor, depth, m_planeIndex);
 }
 
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::updateActor(const Nm slice)
 {
-  m_cPoints->Reset();
-  m_ePoints->Reset();
+  m_points->Reset();
 
   if (!m_connections.isEmpty())
   {
@@ -351,29 +291,13 @@ void ConnectionPointsTemporalRepresentation2D::updateActor(const Nm slice)
     {
       if (point[m_planeIndex] == slice)
       {
-        m_cPoints->InsertNextPoint(point[0], point[1], point[2]);
+        m_points->InsertNextPoint(point[0], point[1], point[2]);
       }
     }
   }
 
-  m_cPoints->Modified();
-  m_cPolyData->Modified();
-  m_cGlyphMapper->Update();
-  m_cActor->Modified();
-
-  if (!m_entryPoints.empty())
-  {
-    for (auto point : m_entryPoints)
-    {
-      if (point[m_planeIndex] == slice)
-      {
-        m_ePoints->InsertNextPoint(point[0], point[1], point[2]);
-      }
-    }
-  }
-
-  m_ePoints->Modified();
-  m_ePolyData->Modified();
-  m_eGlyphMapper->Update();
-  m_eActor->Modified();
+  m_points->Modified();
+  m_polyData->Modified();
+  m_glyphMapper->Update();
+  m_actor->Modified();
 }

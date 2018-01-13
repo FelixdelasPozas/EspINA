@@ -147,8 +147,8 @@ namespace ESPINA
               virtual void setSceneResolution(const NmVector3 &resolution)
               {}
 
-              vtkSmartPointer<vtkSkeletonWidget> m_widget;     /** vtk widget.                                              */
-              RenderView                        *m_view;       /** view of the widget.                                      */
+              vtkSmartPointer<vtkSkeletonWidget> m_widget; /** vtk widget.         */
+              RenderView                        *m_view;   /** view of the widget. */
             signals:
               void modified(vtkSmartPointer<vtkPolyData> polydata);
               void updateWidgets();

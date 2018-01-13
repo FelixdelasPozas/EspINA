@@ -200,13 +200,35 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
           }
           break;
         default:
-          s_skeleton.count[stroke]++;
+        {
+          unsigned int prioritary = 0;
+          int prioritaryIndex = 0;
+          for(auto edgeIndex: s_currentVertex->connections)
+          {
+            auto stroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
+            if(stroke.useMeasure)
+            {
+              ++prioritary;
+              prioritaryIndex = edgeIndex;
+              if(prioritary > 1) break;
+            }
+          }
 
-          edge.strokeIndex  = m_currentStrokeIndex;
-          edge.strokeNumber = s_skeleton.count[stroke];
-          s_skeleton.edges << edge;
+          if(prioritary == 1)
+          {
+            m_currentEdgeIndex = prioritaryIndex;
+          }
+          else
+          {
+            s_skeleton.count[stroke]++;
 
-          m_currentEdgeIndex = s_skeleton.edges.indexOf(edge);
+            edge.strokeIndex  = m_currentStrokeIndex;
+            edge.strokeNumber = s_skeleton.count[stroke];
+            s_skeleton.edges << edge;
+
+            m_currentEdgeIndex = s_skeleton.edges.indexOf(edge);
+          }
+        }
           break;
       }
 
@@ -652,8 +674,16 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   double worldPos[3];
 
   s_skeletonMutex.lock();
-  for (auto node : s_skeleton.nodes)
+
+  for(int i = 0; i < s_skeleton.nodes.size(); ++i)
   {
+    auto node = s_skeleton.nodes.at(i);
+
+    for(auto other: node->connections.keys())
+    {
+      if(other == node) node->connections.remove(other);
+    }
+
     // we only want "some" points in the screen representation and want all the representation to be visible.
     if (areEqual(node->position[planeIndex], m_slice))
     {
@@ -1070,13 +1100,9 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidgetRepresentation::GetWorldPositionFromDisplayPosition(int displayPos[2], double worldPos[3]) const
+void vtkSkeletonWidgetRepresentation::GetWorldPositionFromDisplayPosition(const int displayPos[2], double worldPos[3]) const
 {
-  double pos[4];
-  pos[0] = displayPos[0];
-  pos[1] = displayPos[1];
-  pos[2] = 1.0;
-  pos[3] = 1.0;
+  double pos[4]{ static_cast<double>(displayPos[0]), static_cast<double>(displayPos[1]), 1.0, 1.0};
 
   Renderer->SetDisplayPoint(pos);
   Renderer->DisplayToWorld();
@@ -1086,6 +1112,20 @@ void vtkSkeletonWidgetRepresentation::GetWorldPositionFromDisplayPosition(int di
   worldPos[1] = pos[1];
   worldPos[2] = pos[2];
   worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::GetDisplayPositionFromWorldPosition(const double worldPos[3], int displayPos[2]) const
+{
+  double pos[4]{worldPos[0], worldPos[1], worldPos[2], 1.0};
+  pos[normalCoordinateIndex(m_orientation)] = m_slice;
+
+  Renderer->SetWorldPoint(pos);
+  Renderer->WorldToDisplay();
+  Renderer->GetDisplayPoint(pos);
+
+  displayPos[0] = pos[0];
+  displayPos[1] = pos[1];
 }
 
 //-----------------------------------------------------------------------------
@@ -1371,6 +1411,84 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
   }
 
   return true;
+}
+
+//--------------------------------------------------------------------
+bool vtkSkeletonWidgetRepresentation::isStartNode(const NmVector3 &point)
+{
+  if(GetNumberOfNodes() == 0) return true;
+
+  QMutexLocker lock(&s_skeletonMutex);
+
+  int node_i, node_j;
+  double unused[3];
+
+  double pos[3];
+  for(int i: {0,1,2}) pos[i] = std::round(point[i]/m_spacing[i]) * m_spacing[i];
+
+  auto distance = Core::closestDistanceAndNode(pos, s_skeleton.nodes, node_i, node_j, unused);
+
+  Q_ASSERT(node_i < s_skeleton.nodes.size());
+
+  if(m_tolerance <= distance * distance) return true; // far from the skeleton.
+
+  bool veryCloseToNode = true;
+  for(auto i: {0,1,2})
+  {
+    if(i == normalCoordinateIndex(m_orientation)) continue;
+    veryCloseToNode &= distance <= 2*m_spacing[i];
+  }
+
+  if(veryCloseToNode)
+  {
+    unsigned int prioritary = 0;
+    for(auto edgeIndex: s_skeleton.nodes.at(node_i)->connections)
+    {
+      auto stroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
+      if(stroke.useMeasure) ++prioritary;
+    }
+
+    if(prioritary > 1) return true;
+    return false;
+  }
+
+  if(node_i != node_j) return true; // node in middle of a segment
+
+  return false;
+}
+
+//--------------------------------------------------------------------
+bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke& stroke)
+{
+  if(GetNumberOfNodes() < 2 || !s_currentVertex) return false;
+
+  QMutexLocker lock(&s_skeletonMutex);
+
+  setStroke(stroke);
+
+  s_skeleton.count[stroke]++;
+
+  SkeletonEdge edge;
+  edge.strokeIndex  = s_skeleton.strokes.indexOf(stroke);
+  edge.strokeNumber = s_skeleton.count[stroke];
+  s_skeleton.edges << edge;
+
+  double pos[3];
+  for(int i: {0,1,2}) pos[i] = std::round(s_currentVertex->position[i]/m_spacing[i]) * m_spacing[i];
+
+  auto newNode = new SkeletonNode{pos};
+  s_skeleton.nodes << newNode;
+
+  auto edgeIndex = s_skeleton.edges.indexOf(edge);
+
+  newNode->connections.insert(s_currentVertex, edgeIndex);
+  s_currentVertex->connections.insert(newNode, edgeIndex);
+
+  m_currentEdgeIndex = edgeIndex;
+
+  s_currentVertex = newNode;
+
+  return false;
 }
 
 //--------------------------------------------------------------------

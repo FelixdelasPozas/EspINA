@@ -48,14 +48,28 @@ namespace ESPINA
       virtual ~SkeletonToolWidget2D()
       {};
 
+      /** \brief Returns true if the given point can be the start of a stroke and does not connect with any other point of a stroke.
+       * \param[in] point Point 3d coodinates.
+       *
+       */
+      bool isStartNode(const NmVector3 &point);
+
     public slots:
       /** \brief Modifies the current skeleton to build a connection of the given stroke.
        * \param[in] category Stroke category in the strokes list.
        * \param[in] strokeIndex Index in the stroke list for building the connection.
-       * \param[in] plane Plane of the connection event.
+       * \param[in] plane Plane of the event.
        *
        */
       void onConnectionSignaled(const QString &category, const int strokeIndex, const Plane plane);
+
+      /** \brief Modifies the current skeleton to change stroke type after the next point.
+       * \param[in] category Stroke category in the strokes list.
+       * \param[in] strokeIndex Index in the stroke list for stroke to change to.
+       * \param[in] plane Plane of the event.
+       *
+       */
+      void onStrokeChangeSignaled(const QString &category, const int strokeIndex, const Plane plane);
 
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
