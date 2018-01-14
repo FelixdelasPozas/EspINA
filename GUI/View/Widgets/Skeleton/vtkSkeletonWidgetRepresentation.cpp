@@ -1090,9 +1090,11 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationPolyData() const
+vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationPolyData()
 {
   QMutexLocker lock(&s_skeletonMutex);
+
+  performSpineSplitting();
 
   adjustStrokeNumbers(s_skeleton);
 
@@ -1498,3 +1500,135 @@ Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 
   return s_skeleton.strokes.at(m_currentStrokeIndex);
 }
+
+//--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::performSpineSplitting()
+{
+  bool foundSpineStroke    = false;
+  bool foundSubspineStroke = false;
+  int spineIndex    = -1;
+  int subspineIndex = -1;
+  for(int i = 0; i < s_skeleton.strokes.size(); ++i)
+  {
+    auto stroke = s_skeleton.strokes.at(i);
+    if (stroke.name == "Spine")
+    {
+      spineIndex = i;
+      foundSpineStroke = true;
+    }
+
+    if (stroke.name == "Subspine")
+    {
+      subspineIndex = i;
+      foundSubspineStroke = true;
+    }
+
+    if(foundSpineStroke && foundSubspineStroke) break;
+  }
+
+  if(!foundSpineStroke) return; // doesn't have spines.
+
+  auto intersect = [](Path one, Path two)
+  {
+    SkeletonNode *result = nullptr;
+    for(auto node: two.seen)
+    {
+      if(one.seen.contains(node))
+      {
+        result = node;
+        break;
+      }
+    }
+
+    return result;
+  };
+
+  PathList spinePaths, subspinePaths, visited;
+  for(auto path: Core::paths(s_skeleton.nodes, s_skeleton.edges, s_skeleton.strokes))
+  {
+    if(path.stroke == spineIndex) spinePaths << path;
+    if(path.stroke == subspineIndex) subspinePaths << path;
+  }
+
+  // fix spine to spine
+  for(auto path1: spinePaths)
+  {
+    if(visited.contains(path1)) continue;
+
+    for(auto path2: spinePaths)
+    {
+      if(path1 == path2 || visited.contains(path2)) continue;
+
+      auto commonNode = intersect(path1, path2);
+
+      if(!commonNode) continue;
+
+      visited << path1 << path2;
+
+      SkeletonEdge edge1, edge2;
+
+      if(!foundSubspineStroke)
+      {
+        SkeletonStroke subspineStroke = s_skeleton.strokes.at(spineIndex);
+        subspineStroke.name = "Subspine";
+
+        s_skeleton.strokes << subspineStroke;
+        s_skeleton.count.insert(subspineStroke, 0);
+        subspineIndex = s_skeleton.strokes.indexOf(subspineStroke);
+      }
+
+      edge1.strokeIndex = subspineIndex;
+      edge1.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+
+      edge2.strokeIndex = subspineIndex;
+      edge2.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+
+      s_skeleton.edges << edge1 << edge2;
+
+      auto edgeIndex = s_skeleton.edges.indexOf(edge1);
+      for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
+      {
+        if(i+1 == path1.seen.size()) break;
+
+        path1.seen.at(i)->connections[path1.seen.at(i+1)] = edgeIndex;
+        path1.seen.at(i+1)->connections[path1.seen.at(i)] = edgeIndex;
+      }
+
+      edgeIndex = s_skeleton.edges.indexOf(edge2);
+      for(int i = path2.seen.indexOf(commonNode); i < path2.seen.size(); ++i)
+      {
+        if(i+1 == path2.seen.size()) break;
+
+        path2.seen.at(i)->connections[path2.seen.at(i+1)] = edgeIndex;
+        path2.seen.at(i+1)->connections[path2.seen.at(i)] = edgeIndex;
+      }
+    }
+
+    // fix subspine to spine
+    for(auto path2: subspinePaths)
+    {
+      auto commonNode = intersect(path1, path2);
+
+      if(!commonNode) continue;
+
+      if(commonNode != path1.end && commonNode != path1.begin)
+      {
+        SkeletonEdge edge;
+        edge.strokeIndex = subspineIndex;
+        edge.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+
+        s_skeleton.edges << edge;
+        auto edgeIndex = s_skeleton.edges.indexOf(edge);
+
+        for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
+        {
+          if(i+1 == path1.seen.size()) break;
+
+          path1.seen.at(i)->connections[path1.seen.at(i+1)] = edgeIndex;
+          path1.seen.at(i+1)->connections[path1.seen.at(i)] = edgeIndex;
+        }
+      }
+    }
+  }
+}
+

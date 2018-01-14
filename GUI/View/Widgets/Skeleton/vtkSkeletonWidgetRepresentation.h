@@ -277,7 +277,7 @@ namespace ESPINA
               /** \brief Returns the current representation data as a vtkPolyData smart pointer.
                *
                */
-              vtkSmartPointer<vtkPolyData> GetRepresentationPolyData() const;
+              vtkSmartPointer<vtkPolyData> GetRepresentationPolyData();
 
               /** \brief Sets the slice of the representation.
                * \param[in] value slice value.
@@ -401,6 +401,11 @@ namespace ESPINA
                *
                */
               double FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const;
+
+              /** \brief Replaces some Spine strokes with SubSpine if necessary.
+               *
+               */
+              void performSpineSplitting();
 
               // Not implemented.
               vtkSkeletonWidgetRepresentation(const vtkSkeletonWidgetRepresentation&);

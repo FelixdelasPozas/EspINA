@@ -547,6 +547,12 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
       path.note += "(Malformed)";
     }
 
+    if((path.begin->connections.size()) == 1 && (path.end->connections.size() != 1))
+    {
+      std::reverse(path.seen.begin(), path.seen.end());
+      std::swap(path.begin, path.end);
+    }
+
     result << path;
   }
 
