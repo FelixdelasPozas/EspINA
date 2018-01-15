@@ -255,6 +255,12 @@ namespace ESPINA
        *
        */
       bool operator==(const Path &other) const;
+
+      /** \brief Operator < for paths, rather arbitrary.
+       * \param[in] other other path for comparison.
+       *
+       */
+      bool operator<(const Path &other) const;
     };
 
     using PathList = QList<Path>;

@@ -1434,7 +1434,7 @@ bool vtkSkeletonWidgetRepresentation::isStartNode(const NmVector3 &point)
 
   if(m_tolerance <= distance * distance) return true; // far from the skeleton.
 
-  bool veryCloseToNode = true;
+  bool veryCloseToNode = (node_i == node_j);
   for(auto i: {0,1,2})
   {
     if(i == normalCoordinateIndex(m_orientation)) continue;

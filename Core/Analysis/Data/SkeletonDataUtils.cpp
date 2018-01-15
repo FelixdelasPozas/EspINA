@@ -441,6 +441,27 @@ bool Core::Path::operator==(const Core::Path &other) const
 }
 
 //--------------------------------------------------------------------
+bool Core::Path::operator<(const Core::Path &other) const
+{
+  auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
+
+  if(this->seen.size() != other.seen.size()) return this->seen.size() < other.seen.size();
+
+  auto seen1 = seen;
+  auto seen2 = other.seen;
+
+  qSort(seen1.begin(), seen1.end(), lessThan);
+  qSort(seen2.begin(), seen2.end(), lessThan);
+
+  for(int i = 0; i < seen1.size(); ++i)
+  {
+    if(seen1.at(i) < seen2.at(i)) return true;
+  }
+
+  return false;
+}
+
+//--------------------------------------------------------------------
 ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
 {
   PathList result, stack;

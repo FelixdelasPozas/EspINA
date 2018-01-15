@@ -74,6 +74,9 @@ SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
           this                , SLOT(onModifierPressed(bool)));
 
   initParametersWidgets();
+
+  connect(m_eventHandler.get(), SIGNAL(selectedStroke(int)),
+          m_strokeCombo,        SLOT(setCurrentIndex(int)), Qt::DirectConnection);
 }
 
 //--------------------------------------------------------------------
