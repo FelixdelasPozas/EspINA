@@ -30,22 +30,22 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
-OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentationSPtr region)
+OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentationSPtr region, QWidget *parent)
 : m_representation(region)
 , m_view          {nullptr}
 , m_plane         {Plane::UNDEFINED}
-, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
-, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "")}
+, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "Set lower slice of range", parent)}
+, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "Set upper slice of range", parent)}
 {
 }
 
 //----------------------------------------------------------------------------
-OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalSliceSelector &selector)
+OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalSliceSelector &selector, QWidget *parent)
 : m_representation(selector.m_representation)
 , m_view          {selector.m_view}
 , m_plane         {selector.m_plane}
-, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "")}
-, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "")}
+, m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "Set lower slice of range", parent)}
+, m_upperWidget   {RenderView::createButton(":/espina/to_slice.svg",   "Set upper slice of range", parent)}
 , m_label         {selector.m_label}
 {
 }
@@ -64,7 +64,7 @@ QWidget* OrthogonalSliceSelector::lowerWidget() const
 }
 
 //----------------------------------------------------------------------------
-QWidget* OrthogonalSliceSelector::rightWidget() const
+QWidget* OrthogonalSliceSelector::upperWidget() const
 {
   return m_upperWidget;
 }
@@ -72,7 +72,7 @@ QWidget* OrthogonalSliceSelector::rightWidget() const
 //----------------------------------------------------------------------------
 SliceSelectorSPtr OrthogonalSliceSelector::clone(RenderView *view, Plane plane)
 {
-  auto selector = std::make_shared<OrthogonalSliceSelector>(*this);
+  auto selector = std::make_shared<OrthogonalSliceSelector>(*this, view);
 
   selector->m_view  = view;
   selector->m_plane = plane;

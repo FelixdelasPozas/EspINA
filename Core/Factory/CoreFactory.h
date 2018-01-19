@@ -183,11 +183,11 @@ namespace ESPINA
     SchedulerSPtr scheduler() const
     { return m_scheduler; }
 
-  private:
     /** \brief Returns the default temporal storage for the factory.
      *
      */
     TemporalStorageSPtr defaultStorage() const;
+  private:
 
     SchedulerSPtr               m_scheduler;           /** task scheduler.                   */
     mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */

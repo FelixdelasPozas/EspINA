@@ -39,6 +39,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QApplication>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace std::chrono;
@@ -57,12 +58,14 @@ void Scheduler::TaskQueue::orderedInsert(TaskSPtr worker)
 
   while (!found && w < size())
   {
-    found = at(w).Task->id() > worker->id();
+//    found = at(w).Task->id() > worker->id();
+    found = at(w)->id() > worker->id();
 
     if (!found) ++w;
   }
 
-  insert(w, ScheduledTask(worker));
+//  insert(w, ScheduledTask(worker));
+  insert(w, worker);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,12 +102,14 @@ Scheduler::Scheduler(int period, QObject* parent)
 //-----------------------------------------------------------------------------
 Scheduler::~Scheduler()
 {
-  abortExecutingTasks();
+  abort();
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(TaskSPtr task)
 {
+  if(m_abort) return;
+
   QMutexLocker lock(&m_insertionMutex);
 
   task->setId(m_lastId++);
@@ -118,18 +123,31 @@ void Scheduler::addTask(TaskSPtr task)
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::abortExecutingTasks()
+void Scheduler::abort()
 {
   m_abort = true;
+
+  // wait for the scheduler thread to end scheduleTask() method. Period is microsec so its converted to millisec.
+  m_waitMutex.lock();
+  m_wait.wait(&m_waitMutex, 3 * m_period/1000);
+  m_waitMutex.unlock();
+
+  {
+    QMutexLocker priorityLock(&m_priorityMutex);
+    m_priorityBuffer.clear();
+  }
+
+  {
+    QMutexLocker insertionLock(&m_insertionMutex);
+    m_insertionBuffer.clear();
+  }
 
   QMutexLocker lock(&m_mutex);
 
   for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
   {
-    for (auto scheduledTask : m_scheduledTasks[priority])
+    for (auto task : m_scheduledTasks[priority])
     {
-      auto task = scheduledTask.Task;
-
       QMutexLocker lock(&task->m_submissionMutex);
       task->m_submitted = false;
 
@@ -142,6 +160,7 @@ void Scheduler::abortExecutingTasks()
     }
     m_scheduledTasks[priority].clear();
   }
+  m_scheduledTasks.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -211,9 +230,11 @@ void Scheduler::scheduleTasks()
   //       std::cout << "Updating Priority " << priority << std::endl;
         QList<TaskSPtr> deferredDeletionTaskList;
 
-        for (auto scheduledTask : m_scheduledTasks[priority])
+        for(auto task: m_scheduledTasks[priority])
         {
-          auto task = scheduledTask.Task;
+//        for (auto scheduledTask : m_scheduledTasks[priority])
+//        {
+//          auto task = scheduledTask.Task;
 
           bool is_thread_attached = task->isExecutingOnThread();
 
@@ -311,11 +332,15 @@ void Scheduler::scheduleTasks()
 
     usleep(std::max(0, m_period - lastSchedulingTime));
   }
+
+  m_wait.wakeAll();
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::proccessTaskInsertion()
 {
+  if(m_abort) return;
+
   QMutexLocker insertionLock(&m_insertionMutex);
   QMutexLocker priorityLock(&m_priorityMutex);
 
@@ -345,12 +370,15 @@ void Scheduler::proccessPriorityChanges()
   {
     auto prevPriority = m_priorityBuffer[task];
 
-    for (auto scheduledTask : m_scheduledTasks[prevPriority])
+    for (auto prevTask : m_scheduledTasks[prevPriority])
     {
-      auto prevTask = scheduledTask.Task;
+//    for (auto scheduledTask : m_scheduledTasks[prevPriority])
+//    {
+//      auto prevTask = scheduledTask.Task;
       if (prevTask.get() == task)
       {
-        m_scheduledTasks[prevPriority].removeOne(scheduledTask);
+//        m_scheduledTasks[prevPriority].removeOne(scheduledTask);
+        m_scheduledTasks[prevPriority].removeOne(prevTask);
         m_scheduledTasks[task->priority()].orderedInsert(prevTask);
         break;
       }
@@ -363,36 +391,36 @@ void Scheduler::proccessPriorityChanges()
 //-----------------------------------------------------------------------------
 void Scheduler::roundRobinShift()
 {
-  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
-  {
-    QList<ScheduledTask> rescheduleList;
-
-    auto &taskQueue = m_scheduledTasks[priority];
-
-    for (auto &scheduledTask : taskQueue)
-    {
-      auto task = scheduledTask.Task;
-      if (!task->isDispatcherPaused() && task->isRunning() && !scheduledTask.consumeCicle())
-      {
+  return;
+//  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
+//  {
+//    QList<ScheduledTask> rescheduleList;
+//
+//    auto &taskQueue = m_scheduledTasks[priority];
+//
+//    for (auto &scheduledTask : taskQueue)
+//    {
+//      auto task = scheduledTask.Task;
+//      if (!task->isDispatcherPaused() && task->isRunning() && !scheduledTask.consumeCicle())
+//      {
 //         printTask(task, "used all its cicles");
-        scheduledTask.restoreCicles();
-        rescheduleList << scheduledTask;
-      }
+//        scheduledTask.restoreCicles();
+//        rescheduleList << scheduledTask;
+//      }
 //       else
 //       {
 //         printTask(task, QString("has %1 remaining cicles").arg(scheduledTask.Cicles));
 //       }
-    }
-
-    for (auto &scheduledTask : rescheduleList)
-    {
-      taskQueue.removeOne(scheduledTask);
-      taskQueue << scheduledTask;
-    }
-  }
+//    }
+//
+//    for (auto &scheduledTask : rescheduleList)
+//    {
+//      taskQueue.removeOne(scheduledTask);
+//      taskQueue << scheduledTask;
+//    }
+//  }
 }
 
-#include <QDebug>
 //-----------------------------------------------------------------------------
 void Scheduler::removeTask(Priority priority, TaskSPtr task)
 {

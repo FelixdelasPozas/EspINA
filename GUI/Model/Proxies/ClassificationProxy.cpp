@@ -1040,9 +1040,9 @@ void ClassificationProxy::processConsecutiveCategoryChanges(ItemAdapterList    s
                                                             const QModelIndex& proxySource,
                                                             const QModelIndex& proxyDestination)
 {
-  int start;
-  int end;
-  int next;
+  int start = 0;
+  int end   = 0;
+  int next  = 0;
   ItemAdapterList consecutiveItems;
 
   for (int i = 0; i <= sourceItems.size(); ++i)
@@ -1090,8 +1090,8 @@ void ClassificationProxy::processConsecutiveCategoryChanges(ItemAdapterList    s
 void ClassificationProxy::processConsecutiveDataChanges(ItemAdapterList    sourceItems,
                                                         CategoryAdapterPtr currentCategory)
 {
-  int end;
-  int next;
+  int end  = 0;
+  int next = 0;
   ItemAdapterList consecutiveItems;
 
   for (int i = 0; i <= sourceItems.size(); ++i)

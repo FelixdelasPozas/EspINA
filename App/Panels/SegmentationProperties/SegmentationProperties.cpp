@@ -18,12 +18,12 @@
  */
 
 // ESPINA
+#include "ui_SegmentationProperties.h"
 #include "SegmentationProperties.h"
 #include <App/Utils/TagUtils.h>
 #include <Core/Analysis/Segmentation.h>
 #include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
-#include "ui_SegmentationProperties.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
@@ -54,8 +54,8 @@ class SegmentationProperties::UI
 };
 
 //----------------------------------------------------------------------------
-SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context)
-: Panel         {tr("Segmentation Properties"), context}
+SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefiners, Context &context, QWidget *parent)
+: Panel         {tr("Segmentation Properties"), context, parent}
 , m_register    (filterRefiners)
 , m_segmentation{nullptr}
 , m_gui         {new UI(this)}
@@ -65,6 +65,7 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
   setWidget(m_gui);
 
   m_gui->issuesGroup->hide();
+  m_gui->connectionsGroup->hide();
 
   connect(m_gui->manageTags, SIGNAL(clicked(bool)), this, SLOT(manageTags()));
 }
@@ -130,6 +131,10 @@ void SegmentationProperties::onOutputModified()
     removeRefineWidget();
     addRefineWidget();
   }
+  else
+  {
+    showConnections();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -153,6 +158,7 @@ void SegmentationProperties::onNotesModified()
   {
     auto note = m_gui->notes->toPlainText();
 
+    // not using the undo command because in this case the QTextEdit provides its own undo/redo.
     if (note.isEmpty())
     {
       safeDeleteExtension<SegmentationNotes>(m_segmentation);
@@ -183,6 +189,7 @@ void SegmentationProperties::showInformation(SegmentationAdapterPtr segmentation
       showTags();
       showNotes();
       showIssues();
+      showConnections();
 
       connect(m_segmentation, SIGNAL(outputModified()),
               this,           SLOT(onOutputModified()));
@@ -209,6 +216,7 @@ void SegmentationProperties::hideInformation()
     clearTags();
     clearNotes();
     clearIssues();
+    clearConnections();
 
     m_segmentation = nullptr;
     m_filter.reset();
@@ -235,17 +243,14 @@ void SegmentationProperties::addRefineWidget()
   Q_ASSERT(m_segmentation);
   Q_ASSERT(m_filter);
 
-  QWidget *widget = nullptr;
   try
   {
-    widget = m_register.createRefineWidget(m_segmentation, getContext());
+    m_gui->refineGroup->layout()->addWidget(m_register.createRefineWidget(m_segmentation, getContext(), m_gui->refineGroup));
   }
   catch (...)
   {
-    widget = new NoFilterRefiner();
+    m_gui->refineGroup->layout()->addWidget(new NoFilterRefiner(m_gui->refineGroup));
   }
-
-  m_gui->refineGroup->layout()->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
@@ -370,4 +375,56 @@ void SegmentationProperties::clearIssues()
   }
 
   m_gui->issuesGroup->hide();
+}
+
+//----------------------------------------------------------------------------
+void SegmentationProperties::showConnections()
+{
+  clearConnections();
+
+  auto segmentation = getModel()->smartPointer(m_segmentation);
+  auto connections  = getModel()->connections(segmentation);
+
+  if(!connections.isEmpty())
+  {
+    auto layout = m_gui->connectionsGroup->layout();
+    for(auto connection: connections)
+    {
+      auto text = tr("<b>%1</b> at point <a href=""%2"">%2</a>").arg(connection.item2->data().toString()).arg(connection.point.toString());
+      auto label = new QLabel{text};
+      label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+      label->setOpenExternalLinks(false);
+      label->setTextFormat(Qt::RichText);
+      connect(label, SIGNAL(linkActivated(const QString &)), this, SLOT(onLinkActivated(const QString &)));
+
+      layout->addWidget(label);
+    }
+
+    m_gui->connectionsGroup->show();
+  }
+}
+
+//----------------------------------------------------------------------------
+void SegmentationProperties::clearConnections()
+{
+  auto layout = m_gui->connectionsGroup->layout();
+  while (layout->count() != 0)
+  {
+    auto widget = layout->itemAt(0)->widget();
+
+    Q_ASSERT(widget);
+    layout->removeWidget(widget);
+
+    delete widget;
+  }
+
+  if(m_gui->connectionsGroup->isVisible()) m_gui->connectionsGroup->hide();
+}
+
+//--------------------------------------------------------------------
+void SegmentationProperties::onLinkActivated(const QString &link)
+{
+  NmVector3 point{link};
+
+  getViewState().focusViewOn(point);
 }

@@ -41,7 +41,10 @@ class RenderView;
   };
   Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
 
-
+  /** class SliceSelector
+   * \brief Slice selector widgets to select a slice range.
+   *
+   */
   class EspinaGUI_EXPORT SliceSelector
   : public QObject
   {
@@ -52,17 +55,19 @@ class RenderView;
     virtual ~SliceSelector()
     {}
 
-    /** \brief Returns the left widget raw pointer.
+    /** \brief Returns the lower widget raw pointer.
      *
      */
-    virtual QWidget *lowerWidget () const = 0;
+    virtual QWidget *lowerWidget() const = 0;
 
-    /** \brief Returns the right widget raw pointer.
+    /** \brief Returns the upper widget raw pointer.
      *
      */
-    virtual QWidget *rightWidget() const = 0;
+    virtual QWidget *upperWidget() const = 0;
 
     /** \brief Returns a raw pointer to a new instance of the class.
+     * \param[in] view view that will contain the selectors.
+     * \param[in] plane plane of the selectors.
      *
      */
     virtual SliceSelectorSPtr clone(RenderView *view, Plane plane) = 0;

@@ -72,11 +72,8 @@ void Widget2D::Command::setWidget(vtkWidget2D *widget)
 //----------------------------------------------------------------------------
 void Widget2D::Command::Execute(vtkObject *caller, long unsigned int eventId, void *callData)
 {
-  if(strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0)
+  if(caller && (strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0))
   {
-    auto camera = dynamic_cast<vtkCamera *>(caller);
-    Q_ASSERT(camera);
-
     m_widget->drawActors();
   }
 }

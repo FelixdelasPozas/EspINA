@@ -77,7 +77,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
     auto smoothValue = state.getValue<int>(SegmentationMeshPoolSettings::SMOOTH_KEY);
     auto ratio       = smoothValue/100.0;
     auto iterations  = static_cast<int>(15*(ratio+1.0));
-    auto data        = readLockMesh(segmentation->output());
+    auto meshBounds  = readLockMesh(segmentation->output())->bounds();
 
     auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
     decimate->ReleaseDataFlagOn();
@@ -85,7 +85,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
     decimate->SetTargetReduction(ratio);
     decimate->PreserveTopologyOn();
     decimate->SplittingOff();
-    decimate->SetInputData(data->mesh());
+    decimate->SetInputData(readLockMesh(segmentation->output())->mesh());
 
     auto smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
     smoother->ReleaseDataFlagOn();
@@ -104,7 +104,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->ReleaseDataFlagOn();
-    mapper->ImmediateModeRenderingOn();
+    mapper->ImmediateModeRenderingOff();
     mapper->ScalarVisibilityOff();
     mapper->SetInputConnection(normals->GetOutputPort());
     mapper->Update();
@@ -117,7 +117,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
 
     // the smoothing process produces a shift in place and a reduction of the
     // actor towards the centroid, we'll try to fix it.
-    auto center = centroid(data->bounds());
+    auto center = centroid(meshBounds);
     double position[3];
     double bounds[6];
     actor->GetBounds(bounds);

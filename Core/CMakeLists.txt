@@ -33,12 +33,14 @@ set (CORE_SOURCES
   Analysis/Analysis.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
+  Analysis/Connections.cpp
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
   Analysis/Data/Mesh/RawMesh.cpp
   Analysis/Data/Mesh/MarchingCubesMesh.cpp
-#  Analysis/Data/SkeletonData.cpp
-#  Analysis/Data/Skeleton/RawSkeleton.cpp
+  Analysis/Data/SkeletonData.cpp
+  Analysis/Data/SkeletonDataUtils.cpp
+  Analysis/Data/Skeleton/RawSkeleton.cpp
   Analysis/Data/VolumetricData.cpp
   Analysis/Data/Volumetric/ROI.cpp
   Analysis/Filter.cpp
@@ -76,7 +78,6 @@ set (CORE_SOURCES
   Utils/VolumeBounds.cpp
   Utils/vtkPolyDataUtils.cpp
   Utils/vtkVoxelContour2D.cpp  
-  Utils/BlockTimer.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

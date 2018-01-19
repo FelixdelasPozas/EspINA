@@ -88,6 +88,11 @@ namespace ESPINA
        */
       void EspinaCore_EXPORT backtrace_stack_print(QTextStream &stream);
 
+      /** \brief Installs the VTK error logger.
+       *
+       */
+      void EspinaCore_EXPORT installVTKErrorLogger();
+
       extern const int STACK_SIZE;
       extern uint8_t alternate_stack[];
 

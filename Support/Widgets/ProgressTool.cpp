@@ -94,12 +94,20 @@ ProgressTool::ProgressTool(const QString &id, const QIcon &icon, const QString &
   connect(&m_taskProgress, SIGNAL(progress(int)),
           m_action,        SLOT(setProgress(int)));
 
+  auto selection = getSelection().get();
+
+  connect(selection, SIGNAL(selectionStateChanged()),
+          this,      SLOT(updateStatus()));
+
   m_settings->setVisible(false);
 }
 
 //----------------------------------------------------------------------------
 ProgressTool::~ProgressTool()
 {
+  m_action->disconnect();
+  m_taskProgress.disconnect();
+
   abortOperation();
 
   delete m_action;
@@ -302,19 +310,7 @@ void ProgressTool::onEventHandlerInUse(bool isUsed)
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::restoreSettings(std::shared_ptr<QSettings> settings)
-{
-  restoreCheckedState(settings);
-}
-
-//----------------------------------------------------------------------------
-void ProgressTool::saveSettings(std::shared_ptr<QSettings> settings)
-{
-  saveCheckedState(settings);
-}
-
-//----------------------------------------------------------------------------
-const QString ProgressTool::id() const
+const QString &ProgressTool::id() const
 {
   return m_id;
 }

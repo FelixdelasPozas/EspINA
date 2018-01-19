@@ -8,28 +8,31 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View::Widgets;
 
 //-----------------------------------------------------------------------------
-EspinaWidget::EspinaWidget()
-{
-}
-
-//-----------------------------------------------------------------------------
-EspinaWidget::~EspinaWidget()
-{
-}
-
-//-----------------------------------------------------------------------------
 void EspinaWidget::initializeWidget(RenderView *view)
 {
-  auto widget     = vtkWidget();
-  auto renderer   = view->mainRenderer();
-  auto interactor = renderer->GetRenderWindow()->GetInteractor();
+  if(!view) return;
+
+  vtkRenderWindowInteractor *interactor = nullptr;
+
+  auto widget   = vtkWidget();
+  auto renderer = view->mainRenderer();
+
+  if(renderer)
+  {
+    auto renderWindow = renderer->GetRenderWindow();
+
+    if(renderWindow)
+    {
+      interactor = renderWindow->GetInteractor();
+    }
+  }
 
   widget->SetCurrentRenderer(renderer);
   widget->SetInteractor(interactor);
 
   initializeImplementation(view);
 
-  widget->On();
+  if(renderer && interactor) widget->On();
 }
 
 //-----------------------------------------------------------------------------
@@ -49,7 +52,7 @@ void EspinaWidget::showWidget()
 {
   auto widget = vtkWidget();
 
-  if(!widget->GetEnabled())
+  if(!widget->GetEnabled() && widget->GetCurrentRenderer() && widget->GetInteractor())
   {
     widget->On();
   }

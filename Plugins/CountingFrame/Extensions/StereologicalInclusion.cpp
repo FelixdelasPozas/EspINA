@@ -26,7 +26,7 @@
 // ESPINA
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
@@ -47,13 +47,9 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
+using namespace ESPINA::GUI::Utils::Format;
 
 const SegmentationExtension::Type StereologicalInclusion::TYPE = "StereologicalInclusion";
-const SegmentationExtension::InformationKey  StereologicalInclusion::TOUCH_EDGES(StereologicalInclusion::TYPE, "Touch Edge");
-
-const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
-
-const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 1.0\n";
 
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFrame *cf) const
@@ -64,14 +60,8 @@ SegmentationExtension::InformationKey StereologicalInclusion::cfKey(CountingFram
 //------------------------------------------------------------------------
 StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::InfoCache& infoCache)
 : SegmentationExtension{infoCache}
-, m_isInitialized      {false}
 , m_isUpdated          {false}
 , m_isExcluded         {false}
-{
-}
-
-//------------------------------------------------------------------------
-StereologicalInclusion::~StereologicalInclusion()
 {
 }
 
@@ -100,29 +90,15 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 //------------------------------------------------------------------------
 SegmentationExtension::InformationKeyList StereologicalInclusion::availableInformation() const
 {
-  InformationKeyList keys;
+  QMutexLocker lock(&m_mutex);
 
-  keys << TOUCH_EDGES;
-
-  for (auto cf : m_exclusionCFs.keys())
-  {
-    keys << cfKey(cf);
-  }
-
-  return keys;
+  return m_keys;
 }
 
 //------------------------------------------------------------------------
 QVariant StereologicalInclusion::cacheFail(const InformationKey& key) const
 {
-  if (TOUCH_EDGES == key)
-  {
-    isOnEdge();
-  }
-  else
-  {
-    //evaluateCountingFrames();
-  }
+  //evaluateCountingFrames();
 
   return cachedInfo(key);
 }
@@ -139,18 +115,21 @@ QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
 
-  if (isReady(TOUCH_EDGES) && isOnEdge())
   {
-    QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
-    tooltip = tooltip.append(condition(":/apply.svg", description));
-  }
+    InformationKeyList keys;
+    {
+      QMutexLocker lock(&m_mutex);
+      keys = m_keys;
+      keys.detach();
+    }
 
-  for(auto cf : m_exclusionCFs.keys())
-  {
-    QString description = information(cfKey(cf)).toBool()?
-    "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(cf->id()) + "</font>":
-    "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(cf->id()) + "</font>";
-    tooltip = tooltip.append(condition(":/apply.svg", description));
+    for(auto key: keys)
+    {
+      QString description = cachedInfo(key).toBool()?
+      "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(key.value()) + "</font>":
+      "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(key.value()) + "</font>";
+      tooltip = tooltip.append(createTable(":/apply.svg", description));
+    }
   }
 
   return tooltip;
@@ -161,14 +140,26 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
   QMutexLocker lock(&m_mutex);
 
-  if (!m_exclusionCFs.contains(cf))
+  auto channels = QueryContents::channels(m_extendedItem);
+  bool validChannel = false;
+  for(auto channel: channels)
+  {
+    if(channel.get() == cf->channel())
+    {
+      validChannel = true;
+      break;
+    }
+  }
+
+  if (!m_exclusionCFs.contains(cf) && validChannel)
   {
     m_exclusionCFs[cf] = false;
-    m_cfIds[cf] = cf->id();
-    m_isUpdated = false;
+    m_cfIds[cf]        = cf->id();
+    m_isUpdated        = false;
+    m_keys            << cfKey(cf);
 
     connect(cf,   SIGNAL(modified(CountingFrame *)),
-            this, SLOT(onCountingFrameModified(CountingFrame *)), Qt::DirectConnection);
+            this, SLOT(onCountingFrameModified(CountingFrame *)));
   }
 }
 
@@ -181,6 +172,7 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
   {
     m_exclusionCFs.remove(cf);
     m_cfIds.remove(cf);
+    m_keys.removeOne(cfKey(cf));
 
     disconnect(cf,   SIGNAL(modified(CountingFrame *)),
                this, SLOT(onCountingFrameModified(CountingFrame *)));
@@ -201,7 +193,13 @@ bool StereologicalInclusion::isExcluded()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  // NOTE: this method could trigger a modification in the output of the extended item, causing an endless loop.
+  // Disconnecting signals fixes that.
+
   Q_ASSERT(m_extendedItem);
+
+  disconnect(m_extendedItem, SIGNAL(outputModified()),
+             this,           SLOT(onOutputModified()));
 
   checkSampleCountingFrames();
 
@@ -212,14 +210,18 @@ void StereologicalInclusion::evaluateCountingFrames()
       evaluateCountingFrame(cf);
     }
 
-    m_isInitialized = true;
     m_isUpdated = true;
   }
+
+  connect(m_extendedItem, SIGNAL(outputModified()),
+          this,           SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
+  if(!m_exclusionCFs.keys().contains(cf)) return;
+
   auto key = cfKey(cf);
 
   updateInfoCache(key.value(), QVariant());
@@ -378,57 +380,6 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::isOnEdge() const
-{
-  bool isOnEdge  = false;
-
-  if (cachedInfo(TOUCH_EDGES).isValid())
-  {
-    isOnEdge = cachedInfo(TOUCH_EDGES).toBool();
-  }
-  else
-  {
-    Nm threshold = 1.0;
-
-    auto channels = QueryRelations::channels(m_extendedItem);
-
-    if(channels.empty())
-    {
-      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any channel, cannot get edges information.";
-    }
-
-    if (channels.size() > 1)
-    {
-      qWarning() << "Tiling not supported by Stereological Inclusion Extension";
-    }
-    else if (channels.size() == 1)
-    {
-      auto channel        = channels.first();
-      auto edgesExtension = retrieveExtension<ChannelEdges>(channel->readOnlyExtensions());
-
-      Nm distances[6];
-      if (edgesExtension->useDistanceToBounds())
-      {
-        edgesExtension->distanceToBounds(m_extendedItem, distances);
-      }
-      else
-      {
-        edgesExtension->distanceToEdges(m_extendedItem, distances);
-      }
-
-      for(int i = 0; i < 6; ++i)
-      {
-        isOnEdge |= distances[i] < threshold;
-      }
-    }
-
-    updateInfoCache(TOUCH_EDGES.value(), isOnEdge?1:0);
-  }
-
-  return isOnEdge;
-}
-
-//------------------------------------------------------------------------
 bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 {
   using ImageIterator = itk::ImageRegionConstIterator<itkVolumeType>;
@@ -437,23 +388,28 @@ bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
 
   if (hasVolumetricData(output))
   {
-    auto volume = readLockVolume(output);
-
-    if(intersect(volume->bounds(), collisionBounds, volume->bounds().spacing()))
+    VolumeBounds bounds;
+    unsigned char bgValue = SEG_BG_VALUE;
     {
-      auto bounds = intersection(volume->bounds(), collisionBounds, volume->bounds().spacing());
+      auto volume = readLockVolume(output);
+      bounds      = volume->bounds();
+      bgValue     = volume->backgroundValue();
+    }
 
-      if (bounds.areValid())
+    if(intersect(bounds, collisionBounds, bounds.spacing()))
+    {
+      auto intersectionBounds = intersection(bounds, collisionBounds, bounds.spacing());
+
+      if (intersectionBounds.areValid())
       {
         try
         {
-          auto image  = volume->itkImage(bounds);
-
-          auto it = ImageIterator(image, image->GetLargestPossibleRegion());
+          auto image = readLockVolume(output)->itkImage(bounds);
+          auto it    = ImageIterator(image, image->GetLargestPossibleRegion());
           it.GoToBegin();
           while (!it.IsAtEnd())
           {
-            if (it.Get() != volume->backgroundValue()) return true;
+            if (it.Get() != bgValue) return true;
             ++it;
           }
         }
@@ -518,10 +474,13 @@ void StereologicalInclusion::checkSampleCountingFrames()
 //------------------------------------------------------------------------
 void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 {
-  if(m_exclusionCFs.keys().contains(cf) && (m_cfIds[cf] != cf->id()))
+  QMutexLocker lock(&m_mutex);
+
+  if(m_exclusionCFs.keys().contains(cf))
   {
     auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
     auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
+
     m_cfIds[cf] = cf->id();
 
     if(m_infoCache.keys().contains(oldIdKey))
@@ -529,6 +488,9 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
       m_infoCache.insert(newIdKey, m_infoCache[oldIdKey]);
       m_infoCache.remove(oldIdKey);
     }
+
+    m_keys.removeOne(createKey(oldIdKey));
+    m_keys << createKey(newIdKey);
   }
 }
 
@@ -536,5 +498,34 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 void StereologicalInclusion::onOutputModified()
 {
   m_isUpdated = false;
+
   evaluateCountingFrames();
+}
+
+//------------------------------------------------------------------------
+bool StereologicalInclusion::validData(const OutputSPtr output) const
+{
+  return true;
+}
+
+//------------------------------------------------------------------------
+SegmentationExtension::InformationKeyList StereologicalInclusion::readyInformation() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  InformationKeyList keys;
+
+  for (auto key : SegmentationExtension::readyInformation())
+  {
+    if(!m_keys.contains(key))
+    {
+      m_infoCache.remove(key);
+    }
+    else
+    {
+      keys << key;
+    }
+  }
+
+  return keys;
 }

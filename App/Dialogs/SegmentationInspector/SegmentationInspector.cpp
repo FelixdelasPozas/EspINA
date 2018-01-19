@@ -26,6 +26,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Settings/Settings.h>
@@ -42,22 +43,25 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Support;
+using namespace ESPINA::Support::Widgets;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::Support::Representations::Utils;
 
-const QString SegmentationInspector::GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
-const QString SegmentationInspector::INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
+const QString GEOMETRY_SETTINGS_KEY             = QString("Segmentation Inspector Window Geometry");
+const QString INFORMATION_SPLITTER_SETTINGS_KEY = QString("Segmentation Inspector Splitter State");
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segmentations,
                                              Support::Context              &context)
-: QWidget               (nullptr)
+: QDialog               {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext           (context)
-, m_selectedSegmentation(nullptr)
+, m_selectedSegmentation{nullptr}
 , m_channelSources      (getViewState())
 , m_segmentationSources (getViewState())
-, m_view                (context.viewState(), true)
+, m_toolbar             {new QToolBar(this)}
+, m_view                {context.viewState(), true, this}
 , m_tabularReport       (context)
 {
   setupUi(this);
@@ -291,7 +295,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
 
   QList<ItemData>         draggedItems;
   SegmentationAdapterList categorySegmentations;
-
+  const auto segmentationsNum = m_segmentations.size();
 
   while (!stream.atEnd())
   {
@@ -356,13 +360,20 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   m_view.resetCamera();
   m_view.refresh();
 
+  if(m_segmentations.size() != segmentationsNum)
+  {
+    updateWindowTitle();
+
+    emit segmentationsUpdated();
+  }
+
   event->acceptProposedAction();
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::configureLayout()
 {
-  layout()->setMenuBar(&m_toolbar);
+  layout()->setMenuBar(m_toolbar);
 
   m_viewport   ->setLayout(createViewLayout());
   m_information->setLayout(createReportLayout());
@@ -395,19 +406,15 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
   m_view.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view.setMinimumWidth(250);
 
+  RepresentationSwitchSList switches;
+
   for (auto factory : representations)
   {
     auto representation = factory->createRepresentation(getContext(), ViewType::VIEW_3D);
 
     m_representations << representation;
 
-    for (auto repSwitch : representation.Switches)
-    {
-      for (auto action : repSwitch->actions())
-      {
-        m_toolbar.addAction(action);
-      }
-    }
+    switches << representation.Switches;
 
     for (auto manager : representation.Managers)
     {
@@ -429,6 +436,17 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
       }
     }
   }
+
+  auto comparisonOp = [] (const RepresentationSwitchSPtr &left, const RepresentationSwitchSPtr &right) { if(left == nullptr || right == nullptr) return false; return left->groupWith() < right->groupWith(); };
+  std::sort(switches.begin(), switches.end(), comparisonOp);
+
+  for(auto repSwitch: switches)
+  {
+    for (auto action : repSwitch->actions())
+    {
+      m_toolbar->addAction(action);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -437,8 +455,8 @@ void SegmentationInspector::initReport()
   SegmentationExtension::KeyList tags;
   tags << tr("Name") << tr("Category");
 
-  m_tabularReport.setModel(getModel());
   m_tabularReport.setFilter(m_segmentations);
+  m_tabularReport.setModel(getModel());
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport.setMinimumHeight(0);
 }
@@ -482,6 +500,8 @@ void SegmentationInspector::connectSignals()
 //------------------------------------------------------------------------
 void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
 {
+  const auto segmentationsNum = m_segmentations.size();
+
   for(auto seg: segmentations)
   {
     auto segPtr = segmentationPtr(seg.get());
@@ -489,7 +509,16 @@ void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmenta
     {
       removeSegmentation(segPtr);
 
-      if(m_segmentations.isEmpty()) break; // Wait for the close event
+      if(m_segmentations.isEmpty()) return; // Wait for the close event
     }
+  }
+
+  if(m_segmentations.size() != segmentationsNum)
+  {
+    m_view.refresh();
+
+    updateWindowTitle();
+
+    emit segmentationsUpdated();
   }
 }

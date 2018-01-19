@@ -62,4 +62,3 @@ bool Selector::IsValid(NeuroItemAdapterPtr item, Selector::SelectionFlags flags)
 
   return false;
 }
-

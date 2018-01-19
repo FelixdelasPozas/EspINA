@@ -56,6 +56,12 @@ namespace ESPINA
            */
           explicit CrosshairManager(ViewTypeFlags supportedViews);
 
+          /** \brief CrosshairManager class virtual destructor.
+           *
+           */
+          virtual ~CrosshairManager()
+          {};
+
           virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
         private:

@@ -80,7 +80,10 @@ namespace ESPINA
         virtual TypeList dependencies() const override
         { return TypeList(); }
 
-        virtual bool validCategory(const QString& classificationName) const override
+        virtual bool validCategory(const QString& classificationName) const
+        { return true; }
+
+        virtual bool validData(const OutputSPtr output) const
         { return true; }
 
         virtual InformationKeyList availableInformation() const override;

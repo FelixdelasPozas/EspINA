@@ -105,6 +105,10 @@ namespace ESPINA
      */
     virtual ~AppositionSurfaceFilter();
 
+    virtual bool hasErrors() const override;
+
+    virtual const QStringList errors() const override;
+
   protected:
     virtual void restoreState(const State& state)
     {};
@@ -178,6 +182,8 @@ namespace ESPINA
 
     bool m_alreadyFetchedData;
     TimeStamp m_lastModifiedMesh;
+
+    QStringList m_errorMessages;
 
     friend class SASDataFactory;
   };

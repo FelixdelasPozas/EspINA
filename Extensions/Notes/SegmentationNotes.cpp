@@ -27,11 +27,12 @@
 
 // ESPINA
 #include "SegmentationNotes.h"
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Utils::Format;
 
 const QString SegmentationNotes::TYPE  = "SegmentationNotes";
 
@@ -40,12 +41,6 @@ const SegmentationExtension::InformationKey  SegmentationNotes::NOTES(Segmentati
 //------------------------------------------------------------------------
 SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
 : SegmentationExtension(infoCache)
-{
-}
-
-
-//------------------------------------------------------------------------
-SegmentationNotes::~SegmentationNotes()
 {
 }
 
@@ -72,7 +67,7 @@ QString SegmentationNotes::toolTipText() const
     QString firstLine = notes().left(20);
     if (firstLine.length() == 20)
       firstLine = firstLine.replace(17, 3, "...");
-    toolTip = condition(":/espina/note.svg", firstLine);
+    toolTip = createTable(":/espina/note.svg", firstLine);
   }
 
   return toolTip;

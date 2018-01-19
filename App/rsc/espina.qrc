@@ -18,6 +18,8 @@
     <file>color_engine_switch_category.svg</file>
     <file>color_engine_switch_number.svg</file>
     <file>color_engine_switch_property.svg</file>
+    <file>connection.svg</file>
+    <file>connectionTool.svg</file>
     <file>create_category.svg</file>
     <file>create_seg_from_parts.svg</file>
     <file>create_subcategory.svg</file>
@@ -25,6 +27,7 @@
     <file>cross-minus.png</file>
     <file>cross-plus.png</file>
     <file>crossRegion.svg</file>
+    <file>dashed-line.svg</file>
     <file>database.png</file>
     <file>display_crosshairs.svg</file>
     <file>display_segmentation_contours.svg</file>
@@ -36,6 +39,7 @@
     <file>display_stacks.svg</file>
     <file>display_view_thumbnail.svg</file>
     <file>display_view_scalebar.svg</file>
+    <file>display_volume.svg</file>
     <file>down.svg</file>
     <file>drawing_contour.svg</file>
     <file>edges-image.png</file>
@@ -57,11 +61,14 @@
     <file>fill_holes.svg</file>
     <file>fill_holes_2D.svg</file>
     <file>from_slice.svg</file>
+    <file>fullscreen.svg</file>
     <file>grey_level_segmentation.svg</file>
+    <file>GPU.svg</file>
     <file>hide_all.svg</file>
     <file>info.svg</file>
     <file>leftIn.png</file>
     <file>leftOut.png</file>
+    <file>line.svg</file>
     <file>logical_union.svg</file>
     <file>logical_difference.svg</file>
     <file>logical_difference_erase.svg</file>
@@ -75,6 +82,7 @@
     <file>morphological_open.svg</file>
     <file>multi_stroke.svg</file>
     <file>next_segmentation.svg</file>
+    <file>next_tubular.svg</file>
     <file>note.svg</file>
     <file>panel_3d.svg</file>
     <file>panel_xz.svg</file>
@@ -107,8 +115,7 @@
     <file>show_partially.svg</file>
     <file>show_planes.svg</file>
     <file>single_stroke.svg</file>
-    <file>skelCreate.png</file>
-    <file>skelModify.png</file>
+    <file>skeletonInspector.svg</file>
     <file>slice_interpolation.svg</file>
     <file>snapshot_scene.svg</file>
     <file>tag.svg</file>
@@ -123,6 +130,8 @@
     <file>toolgroup_visualize.svg</file>
     <file>trash-full.svg</file>
     <file>tubular.svg</file>
+    <file>tubular_id.svg</file>
+    <file>tubular_move.svg</file>
     <file>up.svg</file>
     <file>upm.gif</file>
     <file>view-refresh.svg</file>

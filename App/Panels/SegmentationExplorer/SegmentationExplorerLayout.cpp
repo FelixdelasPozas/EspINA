@@ -128,6 +128,9 @@ void SegmentationExplorer::Layout::showSegmentationProperties(SegmentationAdapte
       connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
               this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
 
+      connect(inspector, SIGNAL(segmentationsUpdated()),
+              this,      SLOT(onInspectorUpdated()));
+
       m_inspectors.insert(toKey(segmentations), inspector);
     }
     inspector->show();
@@ -242,47 +245,14 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
+void SegmentationExplorer::Layout::onInspectorUpdated()
 {
-  if(!left) return true;
-  if(!right) return false;
+  auto inspector = qobject_cast<SegmentationInspector *>(sender());
 
-  auto leftSeg  = segmentationPtr(left);
-  auto rightSeg = segmentationPtr(right);
-
-  if(!leftSeg) return true;
-  if(!rightSeg) return false;
-
-  if (leftSeg->category()->name() == rightSeg->category()->name())
+  if(inspector)
   {
-    QRegExp numExtractor("(\\d+)");
-    numExtractor.setMinimal(false);
-
-    auto stringLeft  = leftSeg ->data(Qt::DisplayRole).toString();
-    auto stringRight = rightSeg->data(Qt::DisplayRole).toString();
-
-    if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
-    {
-      return stringLeft < stringRight;
-    }
-
-    numExtractor.indexIn(stringLeft);
-    auto numLeft = numExtractor.cap(1).toInt();
-
-    numExtractor.indexIn(stringRight);
-    auto numRight = numExtractor.cap(1).toInt();
-
-    if (numLeft == numRight)
-    {
-      return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
-    }
-    else
-    {
-      return numLeft < numRight;
-    }
-  }
-  else
-  {
-    return leftSeg->category()->name() < rightSeg->category()->name();
+    auto iKey = m_inspectors.key(inspector);
+    m_inspectors.remove(iKey);
+    m_inspectors.insert(toKey(inspector->segmentations()), inspector);
   }
 }

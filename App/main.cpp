@@ -58,12 +58,13 @@ int main(int argc, char **argv)
   app.installTranslator(&translator);
 
   QDir pluginsDir = QDir(app.applicationDirPath());
+  pluginsDir.cd("plugins");
+
   qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
   installExceptionHandler();
   installSignalHandler();
-
-  pluginsDir.cd("plugins");
+  installVTKErrorLogger();
 
   QList<QPluginLoader *> loaders;
   QList<QObject *>       plugins;
@@ -108,6 +109,7 @@ int main(int argc, char **argv)
     res = app.exec();
   }
 
+  // plugins must be deleted after EspINA application has been destroyed.
   for(auto plugin: loaders)
   {
     plugin->unload();

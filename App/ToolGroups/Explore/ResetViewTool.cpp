@@ -30,8 +30,8 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ResetViewTool::ResetViewTool(Support::Context &context)
-: ProgressTool("ResetView", ":/espina/reset_view.svg", tr("Reset View"), context)
-, m_viewState(context.viewState())
+: ProgressTool{"ResetView", ":/espina/reset_view.svg", tr("Reset View"), context}
+, m_viewState (context.viewState())
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(resetViews()));
@@ -40,6 +40,7 @@ ResetViewTool::ResetViewTool(Support::Context &context)
 //----------------------------------------------------------------------------
 ResetViewTool::~ResetViewTool()
 {
+  disconnect();
 }
 
 //----------------------------------------------------------------------------

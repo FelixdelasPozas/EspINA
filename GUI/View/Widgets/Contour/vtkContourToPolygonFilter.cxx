@@ -194,7 +194,6 @@ typedef std::vector<vtkIdType> vtkCTPFPolyEdges;
 // Tolerances are relative to polygon size
 #define VTK_CCS_POLYGON_TOLERANCE 1e-5
 
-int vtkCTPFDegenerateCheck(vtkCTPFPoly &poly, vtkPoints *points);
 // Take a set of lines, join them tip-to-tail to create polygons
 static void vtkCTPFMakePolysFromLines(
   vtkPolyData *data, vtkIdType firstLine, vtkIdType numLines,

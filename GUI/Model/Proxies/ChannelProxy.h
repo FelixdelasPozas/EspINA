@@ -48,7 +48,8 @@ namespace ESPINA
       /** \brief ChannelProxy class destructor.
        *
        */
-      virtual ~ChannelProxy();
+      virtual ~ChannelProxy()
+      {}
 
       virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 

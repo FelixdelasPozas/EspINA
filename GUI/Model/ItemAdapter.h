@@ -25,6 +25,7 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <Core/Analysis/Persistent.h>
 #include <Core/Utils/EspinaException.h>
 
 // Qt
@@ -149,6 +150,16 @@ namespace ESPINA
        */
       virtual ItemAdapter::Type type() const = 0;
 
+      /** \brief Returns the unique id for this object.
+       *
+       * NOTE: it should return the persistent uuid() that, while internal to the Core lib,
+       * it's needed to identify the object from external programs that do not have
+       * access to the adapter or the adapted pointer, like the ZeroEQ plugin.
+       *
+       */
+      Persistent::Uuid uuid() const
+      { return m_analysisItem->uuid(); }
+
     public slots:
       /** \brief Signals when the item has been modified.
        *
@@ -160,7 +171,6 @@ namespace ESPINA
       void modified(ItemAdapterPtr);
 
     protected:
-
       PersistentSPtr m_analysisItem; /** adapted item. */
 
       friend class ModelAdapter;

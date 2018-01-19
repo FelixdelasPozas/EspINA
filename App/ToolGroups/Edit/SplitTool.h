@@ -26,7 +26,6 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitEventHandler.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
-#include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/EditTool.h>
 #include <Support/Context.h>
 
@@ -38,9 +37,6 @@
 
 class QAction;
 class vtkPlane;
-
-using namespace ESPINA::GUI::Representations::Managers;
-using namespace ESPINA::GUI::View::Widgets;
 
 namespace ESPINA
 {
@@ -76,7 +72,7 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      SplitTool(Support::Context &context);
+      explicit SplitTool(Support::Context &context);
 
       /** \brief SplitTool class virtual destructor.
        *
@@ -107,13 +103,13 @@ namespace ESPINA
        * \param[in] widget created 2D widget.
        *
        */
-      void onWidgetCreated(TemporalRepresentation2DSPtr widget);
+      void onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation2DSPtr widget);
 
       /** \brief Helper method called by the 3D widgets on creation.
        * \param[in] widget created 3D widget.
        *
        */
-      void onWidgetCreated(TemporalRepresentation3DSPtr widget);
+      void onWidgetCreated(GUI::Representations::Managers::TemporalRepresentation3DSPtr widget);
 
       /** \brief Helper method called by the widgets on destruction.
        * \param[in] object pointer to the destroyed QObject.
@@ -122,9 +118,10 @@ namespace ESPINA
       void onWidgetDestroyed(QObject *object);
 
       /** \brief Helper method called by the widget that has finished defining the splitting plane.
+       * \param[in] widget planer split widget with the defined splitting plane.
        *
        */
-      void onSplittingPlaneDefined(PlanarSplitWidgetPtr widget);
+      void onSplittingPlaneDefined(GUI::View::Widgets::PlanarSplitWidgetPtr widget);
 
       /** \brief Disables the widget when the selection changes.
        *
@@ -132,6 +129,10 @@ namespace ESPINA
       void onSelectionChanged();
 
     private slots:
+      /** \brief Shows/hides the splitting widget.
+       * \param[in] enable true to enable and make visible and false otherwise.
+       *
+       */
       void toggleWidgetsVisibility(bool enable);
 
       /** \brief Splits the segmentation using the current state of the tool.
@@ -155,8 +156,14 @@ namespace ESPINA
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations);
 
+      /** \brief Aborts the currently executing tasks.
+       *
+       */
+      void abortTasks();
+
     private:
       using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using PlanarSplitEventHandlerSPtr = GUI::View::Widgets::PlanarSplitEventHandlerSPtr;
 
       /** \struct Data
        * \brief Split filters required data for execution and results return.
@@ -164,7 +171,7 @@ namespace ESPINA
        */
       struct Data
       {
-        FilterSPtr              adapter;      /** filter . */
+        FilterSPtr              filter;       /** filter . */
         SegmentationAdapterSPtr segmentation; /** segmentation to cut. */
 
         /** \brief Data constructor.
@@ -172,14 +179,15 @@ namespace ESPINA
          * \param[in] segmentation segmentation to cut.
          *
          */
-        Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
-        : adapter{adapterP}, segmentation{segmentationP}
+        Data(FilterSPtr filterP, SegmentationAdapterSPtr segmentationP)
+        : filter{filterP}, segmentation{segmentationP}
         {};
 
         /** \brief Data empty constructor.
          *
          */
-        Data(): adapter{nullptr}, segmentation{nullptr}
+        Data()
+        : filter{nullptr}, segmentation{nullptr}
         {};
       };
 

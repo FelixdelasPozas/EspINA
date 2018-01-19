@@ -46,6 +46,10 @@ namespace ESPINA
       {
         namespace ROI
         {
+          /** \class ROIWidget
+           * \brief Interactive widget for the representation of regions of interest.
+           *
+           */
           class EspinaGUI_EXPORT ROIWidget
           : public Representations::Managers::TemporalRepresentation2D
           {
@@ -110,19 +114,16 @@ namespace ESPINA
               void onROIChanged();
 
             private:
-              bool    m_active; /** true if visible and false otherwise. */
-              ROISPtr m_ROI;    /** ROI object to represent.             */
-              QColor  m_color;  /** color of the representation.         */
-
-              Nm        m_depth;        /** distance from the current slice where the representations must be shown. */
-              Nm        m_reslicePoint; /** current representation's reslicing position.                             */
-              int       m_index;        /** represenation's plane index.                                             */
-
-              vtkSmartPointer<vtkVoxelContour2D> m_contour; /** voxel contour filter.    */
-              vtkSmartPointer<vtkPolyDataMapper> m_mapper;  /** representation's mapper. */
-              vtkSmartPointer<vtkActor>          m_actor;   /** representation's actor.  */
-
-              RenderView *m_view; /** view where the representations will be shown. */
+              bool                               m_active;       /** true if visible and false otherwise.                                     */
+              ROISPtr                            m_ROI;          /** ROI object to represent.                                                 */
+              QColor                             m_color;        /** color of the representation.                                             */
+              Nm                                 m_depth;        /** distance from the current slice where the representations must be shown. */
+              Nm                                 m_reslicePoint; /** current representation's reslicing position.                             */
+              int                                m_index;        /** represenation's plane index.                                             */
+              vtkSmartPointer<vtkVoxelContour2D> m_contour;      /** voxel contour filter.                                                    */
+              vtkSmartPointer<vtkPolyDataMapper> m_mapper;       /** representation's mapper.                                                 */
+              vtkSmartPointer<vtkActor>          m_actor;        /** representation's actor.                                                  */
+              RenderView                        *m_view;         /** view where the representations will be shown.                            */
           };
         }
       }

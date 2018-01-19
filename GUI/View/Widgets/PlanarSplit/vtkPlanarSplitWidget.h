@@ -48,6 +48,10 @@ namespace ESPINA
         class vtkPlanarSplitRepresentation2D;
         class vtkPlanarSplitWidgetCallback;
 
+        /** \class vtkPlanarSplitWidget
+         * \brief Implements planar widget for split tool in VTK.
+         *
+         */
         class EspinaGUI_EXPORT vtkPlanarSplitWidget
         : public vtkAbstractWidget
         {
@@ -167,26 +171,35 @@ namespace ESPINA
           virtual ~vtkPlanarSplitWidget();
 
           // The state of the widget
-          int    WidgetState;
-          int    CurrentHandle;
-          double m_segmentationBounds[6];
-          Plane  m_plane;
-          Nm     m_slice;
-          Nm     m_depth;
+          int    WidgetState;             /** current state of the widget.          */
+          int    CurrentHandle;           /** index of current interaction handle.  */
+          double m_segmentationBounds[6]; /** bounds of the segmentation to split.  */
+          Plane  m_plane;                 /** representation's orientation plane.   */
+          Nm     m_slice;                 /** representation's current slice point. */
+          Nm     m_depth;                 /** representation's depth in the view.   */
 
-          /** \brief Callback interface to capture events when
-           * placing the widget.
+          /** \brief Callback when adding a point.
+           * \param[in] w calling widget.
            *
            */
-          static void AddPointAction(vtkAbstractWidget*);
-          static void MoveAction(vtkAbstractWidget*);
-          static void EndSelectAction(vtkAbstractWidget*);
+          static void AddPointAction(vtkAbstractWidget *w);
 
-          // The positioning handle widgets
-          vtkHandleWidget              *m_point1Widget;
-          vtkHandleWidget              *m_point2Widget;
-          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1;
-          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2;
+          /** \brief Callback when moving a point.
+           * \param[in] w calling widget.
+           *
+           */
+          static void MoveAction(vtkAbstractWidget *w);
+
+          /** \brief Callback when ending a interaction.
+           * \param[in] w calling widget.
+           *
+           */
+          static void EndSelectAction(vtkAbstractWidget *w);
+
+          vtkHandleWidget              *m_point1Widget;               /** handle 1 widget.       */
+          vtkHandleWidget              *m_point2Widget;               /** handle 2 widget.       */
+          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1; /** callback for handle 1. */
+          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2; /** callback for handle 2. */
 
           /** \brief Method invoked when the handles at the
            * end points of the widget are manipulated
@@ -201,9 +214,10 @@ namespace ESPINA
           bool m_permanentlyDisabled;
         };
 
-        /** \brief Class vtkPlanarSplitWidgetCallback : The vtkPlanarSplitWidget class
-         *         observes it's two handles. Here we create the command/observer classes
-         *         to respond to the handle widgets.
+        /** \class vtkPlanarSplitWidgetCallback
+         * \brief The vtkPlanarSplitWidget class observes it's two handles.
+         *        Here we create the command/observer classes to respond to the handle widgets.
+         *
          */
         class EspinaGUI_EXPORT vtkPlanarSplitWidgetCallback
         : public vtkCommand
@@ -235,8 +249,8 @@ namespace ESPINA
               }
             }
 
-            int                   m_handleNumber;
-            vtkPlanarSplitWidget *m_widget;
+            int                   m_handleNumber; /** handler number.       */
+            vtkPlanarSplitWidget *m_widget;       /** widget to respond to. */
         };
 
       } // namespace Widgets

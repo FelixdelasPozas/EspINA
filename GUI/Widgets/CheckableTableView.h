@@ -33,24 +33,28 @@
 // Qt
 #include <QTableView>
 
+/** \class CheckableTableView
+ * \brief Table view with checkable items.
+ *
+ */
 class EspinaGUI_EXPORT CheckableTableView
 : public QTableView
 {
-  Q_OBJECT
-public:
-  /** \brief CheckableTableView class constructor.
-   * \param[in] parent, raw pointer of the QWidget parent of this one.
-   *
-   */
-  explicit CheckableTableView(QWidget *parent = 0);
+    Q_OBJECT
+  public:
+    /** \brief CheckableTableView class constructor.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     *
+     */
+    explicit CheckableTableView(QWidget *parent = 0);
 
-  /** \brief Overrides QAbstractItemView::mouseReleaseEvent().
-   *
-   */
-  virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    /** \brief Overrides QAbstractItemView::mouseReleaseEvent().
+     *
+     */
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
-signals:
-  void itemStateChanged(const QModelIndex &);
+  signals:
+    void itemStateChanged(const QModelIndex &);
 };
 
 #endif // CHECKABLETABLEVIEW_H

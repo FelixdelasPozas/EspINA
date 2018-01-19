@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "SegmentationExplorer.h"
-#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
 #include "Panels/SegmentationExplorer/SegmentationExplorerLayout.h"
 #include "Layouts/ClassificationLayout.h"
 #include <Extensions/Tags/SegmentationTags.h>
@@ -73,10 +72,11 @@ public:
 
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filterRefiners,
-                                           Support::Context &context)
+                                           Support::Context &context,
+                                           QWidget *parent)
 : Panel(tr("Segmentation Explorer"), context)
 , SelectableView(context.viewState())
-, m_gui   {new GUI()}
+, m_gui   {new SegmentationExplorer::GUI()}
 , m_layout{nullptr}
 {
   setObjectName("SegmentationExplorer");
@@ -250,7 +250,7 @@ void SegmentationExplorer::showSelectedItemsInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ItemAdapterPtr item;
+  ItemAdapterPtr item = nullptr;
 
   if(m_layout)
   {
@@ -294,8 +294,6 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSearchFilter()
 {
-  m_gui->clearSearch->setEnabled(!m_gui->searchText->text().isEmpty());
-
   m_layout->setFilterRegExp(m_gui->searchText->text());
 }
 

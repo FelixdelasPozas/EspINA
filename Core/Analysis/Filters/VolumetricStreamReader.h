@@ -33,7 +33,7 @@ namespace ESPINA
   namespace Core
   {
     /** \class VolumetricStreamReader
-     * \brief Read a volume on demand from disk.
+     * \brief Read a stack from disk (totally or on demand).
      *
      */
     class EspinaCore_EXPORT VolumetricStreamReader
@@ -48,6 +48,12 @@ namespace ESPINA
          */
         explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
+        /** \brief VolumetricStreamReader class virtual destructor.
+         *
+         */
+        virtual ~VolumetricStreamReader()
+        {}
+
         virtual void restoreState(const State& state) override;
 
         virtual State state() const override;
@@ -56,6 +62,18 @@ namespace ESPINA
          * \param[in] filename QFileInfo object.
          */
         void setFileName(const QFileInfo& fileName);
+
+        /** \brief Sets stack streaming.
+         * \param[in] value true to set stack streaming from disk and false to read all stack to memory.
+         *
+         */
+        void setStreaming(bool value);
+
+        /** \brief Returns the state of the streaming parameter.
+         *
+         */
+        const bool streamingEnabled() const
+        { return m_streaming; }
 
       protected:
         virtual Snapshot saveFilterSnapshot() const override
@@ -69,7 +87,11 @@ namespace ESPINA
         { return false; }
 
       private:
-        QFileInfo m_fileName; /** image file filename. */
+        QFileInfo           m_fileName;         /** image file filename.                                                         */
+        bool                m_streaming;        /** true if the stack is streamed from file, false for read all stack to memory. */
+        TemporalStorageSPtr m_streamingStorage; /** storage for streaming data.                                                  */
+        QFileInfo           m_streamingFile;    /** streaming image file info. Need one different for the one used by analysis.  */
+        bool                m_changedStreaming; /** true if the streaming mode has changed and needs update, false otherwise.    */
     };
   } // namespace Core
 }// namespace ESPINA

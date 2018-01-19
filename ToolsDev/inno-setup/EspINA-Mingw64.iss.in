@@ -1,0 +1,157 @@
+; ESPINA Mingw64 Distribution Inno Setup File
+; 
+; WARNING: For internal use, not intended for public distribution of ESPINA
+;
+; NOTES: Assumes that the user has compiled all the library dependencies, not 
+; installed precompiled libraries.
+
+[Setup]
+AppName=EspINA
+AppVersion=@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
+DefaultDirName={pf64}\EspINA
+DefaultGroupName=EspINA
+OutputDir=@CMAKE_CURRENT_BINARY_DIR@
+AlwaysShowComponentsList=yes
+AppComments=EspINA Interactive Neuron Analizer
+AppContact=CesViMa/UPM
+AppCopyright=(c)2013-2017 CesViMA/UPM
+AppPublisher=CesViMA/UPM
+ArchitecturesAllowed=x64
+Compression=lzma2/ultra64
+CreateUninstallRegKey=yes
+Uninstallable=yes
+ChangesAssociations=yes
+CloseApplications=yes
+UninstallDisplayIcon={app}\espina.exe
+UninstallDisplayName=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
+SourceDir=@CMAKE_CURRENT_BINARY_DIR@\App
+SetupIconFile=@CMAKE_CURRENT_SOURCE_DIR@\App\rsc\espina.ico
+OutputBaseFilename=EspINA_v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@_Setup
+WizardImageFile=@CMAKE_CURRENT_SOURCE_DIR@\ToolsDev\inno-setup\image.bmp
+WizardSmallImageFile=@CMAKE_CURRENT_SOURCE_DIR@\ToolsDev\inno-setup\smallimage.bmp
+
+[Types]
+Name: "full"; Description: "Full installation"
+Name: "custom"; Description: "Custom installation"; Flags: iscustom
+
+[Components]
+Name: "program"; Description: "ESPINA Program Files"; Types: full custom; Flags: fixed
+Name: "plugins"; Description: "ESPINA Plugins"; Types: full custom
+Name: "plugins\ASurface"; Description: "Apposition Surface Plugin"; Types: full custom
+Name: "plugins\CFrame"; Description: "Counting Frame Plugin"; Types: full custom
+Name: "plugins\Segmha"; Description: "SEGMHA Importer Plugin"; Types: full custom
+;Name: "plugins\AutoSeg"; Description: "AutoSegmenter Plugin"; Types: full custom
+
+[Dirs]
+Name: "{app}\plugins"
+
+[Files]
+; EspINA FILES
+Source: "espina.exe"; DestDir: "{app}"; Components: program
+Source: "libEspinaCore.dll"; DestDir: "{app}"; Components: program
+Source: "libEspinaExtensions.dll"; DestDir: "{app}"; Components: program
+Source: "libEspinaFilters.dll"; DestDir: "{app}"; Components: program
+Source: "libEspinaGUI.dll"; DestDir: "{app}"; Components: program
+Source: "libEspinaSupport.dll"; DestDir: "{app}"; Components: program
+Source: "libEspinaUndo.dll"; DestDir: "{app}"; Components: program
+
+; EspINA PLUGINS
+Source: "plugins\libAppositionSurfacePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\ASurface
+Source: "plugins\libCountingFramePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\CFrame
+Source: "plugins\libSegmhaImporterPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\Segmha
+;Source: "plugins\libAutoSegmentPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\AutoSeg
+
+; COMPILER FILES- TODO: Requires the detection of directory to fully automate the script
+Source: "D:\Desarrollo\Mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
+
+; VTK FILES
+Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
+
+; ITK FILES
+Source: "@ITK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
+
+; QT FILES
+Source: "@QT_BINARY_DIR@\Qt*.dll"; DestDir: "{app}"; Components: program
+Source: "@QT_PLUGINS_DIR@\iconengines\*.dll"; DestDir: "{app}\iconengines\"; Components: program
+Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}\imageformats\"; Components: program
+Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystems\"; Components: program
+Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
+
+; QUAZIP  (Comment if static lib)
+Source: "@QUAZIP_LIBRARIES@"; DestDir: "{app}"; Components: program
+
+; BOOST (Comment if static lib)
+Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
+Source: "@Boost_REGEX_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
+
+[Icons]
+Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"
+Name: "{commondesktop}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"
+
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\.seg"; Flags: uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\Classes\.seg"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.seg\OpenWithProgids"; ValueType: string; ValueName: "EspINA"; ValueData: ""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.seg\shell"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA"; ValueType: string; ValueName: "FriendlyTypeName"; ValueData: "EspINA Segmentation File"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\DefaultIcon"; ValueType: string; ValueData: "{app}\ESPINA.exe,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\shell\open"; ValueType: string; ValueData: "Open using EspINA"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EspINA\shell\open\command"; ValueType: string; ValueData: "{app}\ESPINA.exe ""%1"""; Flags: uninsdeletekey
+
+[Run]
+Filename: "{app}\ESPINA.EXE"; Description: "Launch EspINA application"; Flags: postinstall nowait skipifsilent unchecked
+
+[Code]
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\EspINA_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+function IsUpgrade(): Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+function UnInstallOldVersion(): Integer;
+var
+  sUnInstallString: String;
+  iResultCode: Integer;
+begin
+// Return Values:
+// 1 - uninstall string is empty
+// 2 - error executing the UnInstallString
+// 3 - successfully executed the UnInstallString
+
+  // default return value
+  Result := 0;
+
+  // get the uninstall string of the old app
+  sUnInstallString := GetUninstallString();
+  if sUnInstallString <> '' then begin
+    sUnInstallString := RemoveQuotes(sUnInstallString);
+    if Exec(sUnInstallString, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES','', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      Result := 3
+    else
+      Result := 2;
+  end else
+    Result := 1;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep=ssInstall) then
+  begin
+    if (IsUpgrade()) then
+    begin
+      UnInstallOldVersion();
+    end;
+  end;
+end;

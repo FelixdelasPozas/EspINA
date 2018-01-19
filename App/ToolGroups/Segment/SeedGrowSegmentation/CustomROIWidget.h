@@ -32,7 +32,10 @@
 
 namespace ESPINA
 {
-
+  /** \class CustomROIWidget
+   * \brief Implements a custom widget for the seedgrow segmentation tool to handle ROI values.
+   *
+   */
   class CustomROIWidget
   : public QWidget
   {
@@ -55,12 +58,13 @@ namespace ESPINA
      * \param[in] axis, axis for the value.
      * \param[in] value, size value.
      */
-    void setValue(Axis axis, unsigned int value);
+    void setValue(Axis axis, long long value);
 
     /** \brief Returns the value of the ROI for a specified axis.
      * \param[in] axis for the value.
+     *
      */
-    unsigned int value(Axis axis) const
+    long long value(Axis axis) const
     { return m_values[idx(axis)]; }
 
     /** \brief Enables/Disables the use of the ROI.
@@ -77,19 +81,22 @@ namespace ESPINA
     void onApplyROIChanged(bool val);
 
     /** \brief Updates the value of the ROI on the X axis.
+     * \param[in] value type double.
      *
      */
-    void onXSizeChanged(int value);
+    void onXSizeChanged(double value);
 
     /** \brief Updates the value of the ROI on the Y axis.
+     * \param[in] value type double.
      *
      */
-    void onYSizeChanged(int value);
+    void onYSizeChanged(double value);
 
     /** \brief Updates the value of the ROI on the Z axis.
+     * \param[in] value type double.
      *
      */
-    void onZSizeChanged(int value);
+    void onZSizeChanged(double value);
 
   signals:
     void useROI(bool);
@@ -97,9 +104,9 @@ namespace ESPINA
   private:
     bool m_useROI;
 
-    unsigned int m_values    [3];
-    QLabel      *m_labelROI  [3];
-    QSpinBox    *m_spinBoxROI[3];
+    long long       m_values    [3]; /** ROI size values in each axis. */
+    QLabel         *m_labelROI  [3]; /** label widgets.                */
+    QDoubleSpinBox *m_spinBoxROI[3]; /** spinbox widgets.              */
   };
 
 } // namespace ESPINA

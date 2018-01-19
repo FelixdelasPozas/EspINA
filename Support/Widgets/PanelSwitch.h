@@ -51,6 +51,12 @@ namespace ESPINA
            */
           explicit PanelSwitch(const QString &id, Panel *dock, const QString &icon, const QString &tooltip, Context &context);
 
+          /** \brief PanelSwitch class virtual destructor.
+           *
+           */
+          virtual ~PanelSwitch()
+          {}
+
           virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
           virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
@@ -66,7 +72,7 @@ namespace ESPINA
           virtual void abortOperation() override;
 
         private:
-          Panel *m_dock;
+          Panel *m_dock; /** dock of the tool button. */
       };
     }
   }

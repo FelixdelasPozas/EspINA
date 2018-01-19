@@ -21,47 +21,47 @@
 #ifndef ESPINA_SEGMENTATION_SKELETON_2D_PIPELINE_H_
 #define ESPINA_SEGMENTATION_SKELETON_2D_PIPELINE_H_
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
-#include <Core/Utils/Spatial.h>
-#include <GUI/Types.h>
-#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
-#include <GUI/Representations/RepresentationPipeline.h>
+#include <GUI/Representations/Pipelines/SegmentationSkeletonPipelineBase.h>
 
 namespace ESPINA
 {
-  class SegmentationSkeleton2DPipeline
-  : public RepresentationPipeline
+  namespace GUI
   {
-    public:
-      /** \brief SegmentationSkeleton2DPipeline class constructor.
-       * \param[in] plane Representation orientation plane.
-       * \param[in] colorEngine color engine smart pointer.
+    namespace Representations
+    {
+      /** \class SegmentationSkeleton2DPipeline
+       * \brief Two dimensional representation for Skeletons.
        *
        */
-      explicit SegmentationSkeleton2DPipeline(Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
+      class EspinaGUI_EXPORT SegmentationSkeleton2DPipeline
+      : public SegmentationSkeletonPipelineBase
+      {
+        public:
+          /** \brief SegmentationSkeleton2DPipeline class constructor.
+           * \param[in] plane Representation orientation plane.
+           * \param[in] colorEngine color engine smart pointer.
+           *
+           */
+          explicit SegmentationSkeleton2DPipeline(Plane plane, GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
-      /** \brief SegmentationSkeleton2DPipeline class virtual destructor.
-       *
-       */
-      virtual ~SegmentationSkeleton2DPipeline()
-      {};
+          /** \brief SegmentationSkeleton2DPipeline class virtual destructor.
+           *
+           */
+          virtual ~SegmentationSkeleton2DPipeline()
+          {};
 
-      virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
-                                                      const RepresentationState &settings);
+          virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
+                                                                 const RepresentationState &state) override;
 
-      virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
-                                                             const RepresentationState &state);
+        private:
+          Plane m_plane; /** orientation of the representation. */
+      };
 
-    virtual void updateColors(ActorList& actors, ConstViewItemAdapterPtr    item, const RepresentationState& state) {}
-      virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const;
-
-    private:
-      Plane           m_plane;
-      GUI::ColorEngines::ColorEngineSPtr m_colorEngine;
-
-      static GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
-  };
-
+    } // namespace Representations
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // GUI_REPRESENTATIONS_PIPELINES_SEGMENTATIONSKELETON2DPIPELINE_H_

@@ -215,7 +215,7 @@ namespace ESPINA
           /** \brief iterator class constructor.
            * \param[in] mask, mask to iterate.
            */
-          iterator(BinaryMask<T> *mask)
+          explicit iterator(BinaryMask<T> *mask)
           : m_mask(mask)
           , m_pos(0)
           , m_bitPos(0)
@@ -438,7 +438,7 @@ namespace ESPINA
           /** \brief const_iterator class constructor.
            * \param[in] mask, mask to iterate.
            */
-          const_iterator(BinaryMask<T>* mask)
+          explicit const_iterator(BinaryMask<T>* mask)
           : iterator(mask)
           {};
 

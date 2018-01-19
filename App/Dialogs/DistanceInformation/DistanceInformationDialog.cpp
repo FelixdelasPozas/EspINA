@@ -39,10 +39,10 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
                                                      const DistanceInformationDialog::DistancesMap distances,
                                                      const DistanceInformationOptionsDialog::Options &options,
                                                      Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget())
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
   setWindowTitle(tr("Distance Information Report"));
-  setWindowIconText(":/espina/Espina.svg");
+  setWindowIconText(":/espina/espina.svg");
   setLayout(new QVBoxLayout());
 
   auto report = new DistanceInformationTabularReport(context, segmentations, options, distances);
@@ -52,7 +52,7 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
   auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
 
   connect(acceptButton, SIGNAL(accepted()),
-          this,         SLOT(accept()));
+          this,         SLOT(close()));
 
   layout()->addWidget(acceptButton);
 

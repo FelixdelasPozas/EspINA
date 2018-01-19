@@ -81,6 +81,7 @@ namespace ESPINA
 
     SegmentationAdapterSList m_segmentations;
     RelationList             m_relations;
+    ConnectionList           m_connections;
   };
 
 } // namespace ESPINA

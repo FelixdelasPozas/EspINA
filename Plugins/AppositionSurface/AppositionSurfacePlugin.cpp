@@ -35,8 +35,8 @@
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Utils/SelectionUtils.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
 #include <Undo/AddCategoryCommand.h>
@@ -59,6 +59,7 @@ const QString SAS_PREFIX = QObject::tr("SAS ");
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Settings;
@@ -113,9 +114,7 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 //-----------------------------------------------------------------------------
 AppositionSurfacePlugin::~AppositionSurfacePlugin()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Apposition Surface Plugin";
-//   qDebug() << "********************************************************";
+  abortTasks();
 }
 
 //-----------------------------------------------------------------------------
@@ -281,6 +280,7 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
     inputs << seg->asInput();
 
     auto filter = factory->createFilter<AppositionSurfaceFilter>(inputs, ASFilterFactory::AS_FILTER);
+    filter->setDescription(tr("SAS for %1").arg(seg->data().toString()));
 
     struct Data data(filter, model->smartPointer(seg));
     m_executingTasks.insert(filter.get(), data);
@@ -295,10 +295,6 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::finishedTask()
 {
-  auto model     = m_context->model();
-  auto factory   = m_context->factory();
-  auto undoStack = m_context->undoStack();
-
   auto filter = dynamic_cast<FilterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
@@ -313,6 +309,10 @@ void AppositionSurfacePlugin::finishedTask()
 
   // maybe all tasks have been aborted.
   if(m_finishedTasks.empty()) return;
+
+  auto model     = m_context->model();
+  auto factory   = m_context->factory();
+  auto undoStack = m_context->undoStack();
 
   undoStack->beginMacro("Create Synaptic Apposition Surfaces");
 
@@ -336,9 +336,16 @@ void AppositionSurfacePlugin::finishedTask()
 
   RelationList createdRelations;
   ViewItemAdapterList segmentationsToUpdate;
+  QString errorMessage;
 
   for(auto filter: m_finishedTasks.keys())
   {
+    if(filter->hasErrors())
+    {
+      errorMessage += tr("- %1\n").arg(m_finishedTasks.value(filter).segmentation->data().toString());
+      continue;
+    }
+
     auto segmentation = factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
     segmentation->setCategory(category);
     segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
@@ -383,22 +390,37 @@ void AppositionSurfacePlugin::finishedTask()
     segmentationsToUpdate << segmentation.get();
   }
 
+  if(!errorMessage.isEmpty())
+  {
+    auto title   = tr("Apposition Surface Plugin");
+    auto message = tr("Some apposition surfaces couldn't be created because the origin segmentations are too small or invalid.");
+    auto details = tr("The following segmentations are invalid:\n%1").arg(errorMessage);
+
+    DefaultDialogs::ErrorMessage(message, title, details);
+  }
+
   // add segmentations by their related sample list
   for(index = 0; index < usedSamples.size(); ++index)
   {
     undoStack->push(new AddSegmentations(createdSegmentations[index], usedSamples[index], model));
   }
 
-  m_finishedTasks.clear();
-
   // add relations
   undoStack->push(new AddRelationsCommand(createdRelations, model));
   undoStack->endMacro();
+
+  m_finishedTasks.clear();
 
   m_context->viewState().invalidateRepresentations(segmentationsToUpdate);
 
   m_context->viewState().selection()->clear();
   m_context->viewState().selection()->set(segmentationsToUpdate);
+}
+
+//-----------------------------------------------------------------------------
+void ESPINA::AppositionSurfacePlugin::onAnalysisClosed()
+{
+  abortTasks();
 }
 
 //-----------------------------------------------------------------------------
@@ -432,6 +454,20 @@ SegmentationAdapterPtr AppositionSurfacePlugin::segmentationSAS(SegmentationAdap
   }
 
   return sas;
+}
+
+//-----------------------------------------------------------------------------
+void AppositionSurfacePlugin::abortTasks()
+{
+  for(auto task: m_executingTasks)
+  {
+    disconnect(task.adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+
+    task.adapter.get()->abort();
+  }
+
+  m_executingTasks.clear();
+  m_finishedTasks.clear();
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)

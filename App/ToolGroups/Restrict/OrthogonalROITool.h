@@ -39,6 +39,10 @@ namespace ESPINA
   class ROISettings;
   class RestrictToolGroup;
 
+  /** \class OrthogonalROITool
+   * \brief Tool for the orthogonal ROI creator.
+   *
+   */
   class OrthogonalROITool
   : public Support::Widgets::ProgressTool
   {
@@ -115,12 +119,9 @@ namespace ESPINA
        */
       void onEventHandlerChanged();
 
-
-
       /** \brief Sets the operation mode of the Orthogonal ROI
-       *
-       *   \param[in] resizable true value allows ROI modification using a widget,
-       *                        false value only diplays the ROI on the views
+       * \param[in] resizable true value allows ROI modification using a widget,
+       *            false value only diplays the ROI on the views
        */
       void setResizable(bool resizable);
 
@@ -148,8 +149,9 @@ namespace ESPINA
       using RepresentationSPtr     = GUI::View::Widgets::OrthogonalRegion::OrthogonalRepresentationSPtr;
 
     private:
-      virtual void onToolGroupActivated();
-
+      /** \brief Helper method to create the buttons and connect the signals.
+       *
+       */
       void initControls();
 
       /** \brief Creates the rectangular region widget for the current roi
@@ -162,35 +164,53 @@ namespace ESPINA
        */
       void destroyOrthogonalWidget();
 
+      /** \brief Disables the interaction of the widget.
+       *
+       */
       void disableOrthogonalWidget();
 
+      /** \brief Returns true if the widget is interactive.
+       *
+       */
       bool isResizable() const;
 
+      /** \brief Enables/disables the interaction of the widget.
+       * \param[in] value true to enable and false otherwise.
+       *
+       */
       void setRepresentationResizable(const bool value);
 
+      /** \brief Returns true if any of the current ROI settings are invalid.
+       *
+       */
       bool invalidSettings() const;
 
+      /** \brief Shows the slice selectors in the orthogonal views.
+       *
+       */
       void showSliceSelectors();
 
+      /** \brief Hides the slice selectors from the orthogonal views.
+       *
+       */
       void hideSliceSelectors();
 
+      /** \brief Helper method that creates and returns the temporal representations prototypes.
+       *
+       */
       TemporalPrototypesSPtr createTemporalRepresentationPrototype() const;
 
     private:
-      QPushButton *m_resizeROI;
-      QPushButton *m_applyROI;
-
-      bool m_visible;
-
-      ROISPtr                m_roi;
-      RepresentationSPtr     m_roiRepresentation;
-      TemporalPrototypesSPtr m_prototype;
-
-      EventHandlerSPtr   m_resizeHandler;
-      PixelSelectorSPtr  m_defineHandler;
-
-      OrthogonalSelectorSPtr m_sliceSelector;
-      ROISettings           *m_settings;
+      QPushButton           *m_resizeROI;         /** resize ROI button.                                                  */
+      QPushButton           *m_applyROI;          /** apply ROI buttton.                                                  */
+      bool                   m_visible;           /** true if the temporal representation is visible and false otherwise. */
+      ROISPtr                m_roi;               /** current ROI.                                                        */
+      RepresentationSPtr     m_roiRepresentation; /** Orthogonal representation widget.                                   */
+      TemporalPrototypesSPtr m_prototype;         /** temporal representation prototypes.                                 */
+      EventHandlerSPtr       m_resizeHandler;     /** event handler for resize operation.                                 */
+      PixelSelectorSPtr      m_defineHandler;     /** event handler for orthogonal ROI definition.                        */
+      OrthogonalSelectorSPtr m_sliceSelector;     /** slice selector widget.                                              */
+      ROISettings           *m_settings;          /** Orthogonal ROI settings object pointer.                             */
   };
 
   using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;

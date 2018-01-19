@@ -45,39 +45,47 @@ namespace ESPINA
     private:
       /** \brief Creates the segmentation representations.
        * \param[in] context application context.
-       * \param[in] supportedViews view flags of the vies the representations will be shown.
+       * \param[in] supportedViews view flags of the views the representations will be shown.
        *
        */
-      virtual Representation doCreateRepresentation ( Support::Context& context, ViewTypeFlags supportedViews ) const;
+      virtual Representation doCreateRepresentation(Support::Context& context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the slice representations for segmentations.
        * \param[out] representation Representation object.
        * \param[in] context application context.
-       * \param[in] supportedViews view flags of the vies the representations will be shown.
+       * \param[in] supportedViews view flags of the views the representations will be shown.
        *
        */
-      void createSliceRepresentation     (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
+      void createSliceRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the slice contour representation.
        * \param[out] representation Representation object.
        * \param[in] context application context.
        *
        */
-      void createContourRepresentation   (Representation &representation, Support::Context &context) const;
+      void createContourRepresentation(Representation &representation, Support::Context &context) const;
 
       /** \brief Creates the skeleton representation and adds it to the Representation object.
        * \param[out] representation Representation object.
        * \param[in] context application context.
+       * \param[in] supportedViews view flags of the views the representations will be shown.
        *
        */
-      void createSkeletonRepresentation  (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
+      void createSkeletonRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
       /** \brief Creates the mesh representation and adds it to the Representation object.
        * \param[out] representation Representation object.
        * \param[in] context application context.
        *
        */
-      void createMeshRepresentation      (Representation &representation, Support::Context &context) const;
+      void createMeshRepresentation(Representation &representation, Support::Context &context) const;
+
+      /** \brief Creates the volumetric representation and adds it to the representation object.
+       * \param[out] representation Representation object.
+       * \param[in] context application context.
+       *
+       */
+      void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;
 
       /** \brief Sets the order of the representation for the given tool.
        * \param[in] order order string id.
@@ -85,6 +93,14 @@ namespace ESPINA
        *
        */
       void groupSwitch(const QString &order, Support::Widgets::ToolSPtr tool) const;
+
+      /** \brief Creates the managers related to segmentation representations.
+       * \param[out] representation Representation object.
+       * \param[in] context application context.
+       * \param[in] supportedViews view flags of the vies the representations will be shown.
+       *
+       */
+      void createMiscellaneousManagers(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
 
     private:
       static const unsigned int WINDOW_SIZE; /** window size for buffered representations. */

@@ -181,10 +181,11 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
 
   // LEFT
   this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
+
+  vtkIdType previous_id = 0;
   for(int slice = FrontSlice; slice <= BackSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id;
 
     Region->GetPoint(slice*4+0, point);
     point[0] += InclusionOffset[0];
@@ -231,10 +232,10 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p1));
   this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p2));
 
+  previous_id = 0;
   for(int slice = FrontSlice; slice <= BackSlice; ++slice)
   {
     double point[3];
-    vtkIdType previous_id;
 
     Region->GetPoint(slice*4+3, point);
     point[0] -= ExclusionOffset[0];

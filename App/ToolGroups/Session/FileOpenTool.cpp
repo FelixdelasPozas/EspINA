@@ -41,12 +41,19 @@ using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
 FileOpenTool::FileOpenTool(const QString& id, const QString& icon, const QString& tooltip, Support::Context& context, EspinaErrorHandlerSPtr handler)
-: ProgressTool(id, icon, tooltip, context)
-, m_errorHandler{handler}
-, m_closeCallaback{nullptr}
+: ProgressTool   {id, icon, tooltip, context}
+, m_errorHandler {handler}
+, m_closeCallback{nullptr}
 {
   connect(this, SIGNAL(triggered(bool)),
           this, SLOT(onTriggered()));
+}
+
+//----------------------------------------------------------------------------
+FileOpenTool::~FileOpenTool()
+{
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(onTriggered()));
 }
 
 //----------------------------------------------------------------------------
@@ -58,7 +65,7 @@ QStringList FileOpenTool::loadedFiles() const
 //----------------------------------------------------------------------------
 void FileOpenTool::setCloseCallback(EspinaMainWindow *callback)
 {
-  m_closeCallaback = callback;
+  m_closeCallback = callback;
 }
 
 //----------------------------------------------------------------------------
@@ -73,7 +80,7 @@ void FileOpenTool::onTriggered()
 
   if (!files.isEmpty())
   {
-    if (m_closeCallaback && !m_closeCallaback->closeCurrentAnalysis())
+    if (m_closeCallback && !m_closeCallback->closeCurrentAnalysis())
     {
       return;
     }
@@ -118,14 +125,15 @@ void FileOpenTool::load(const QStringList &files)
 
   for (auto file : files)
   {
-    m_errorHandler->setDefaultDir(QFileInfo(file).dir());
+    auto fileInfo = QFileInfo{file};
+    m_errorHandler->setDefaultDir(fileInfo.dir());
 
-    auto readers = getContext().factory()->readers(file);
+    auto readers = getContext().factory()->readers(fileInfo);
 
     if (readers.isEmpty())
     {
       auto title = tr("File Extension is not supported");
-      DefaultDialogs::InformationMessage(file, title);
+      DefaultDialogs::InformationMessage(fileInfo.fileName(), title);
 
       continue;
     }
@@ -139,7 +147,7 @@ void FileOpenTool::load(const QStringList &files)
 
     try
     {
-      analyses << factory->read(reader, file, &reporter, m_errorHandler);
+      analyses << factory->read(reader, fileInfo, &reporter, m_errorHandler);
 
       m_loadedFiles << file;
 
@@ -156,8 +164,8 @@ void FileOpenTool::load(const QStringList &files)
       qWarning() << e.what();
       qWarning() << e.details();
 
-      failedFiles << file;
-      failDetails.append(QObject::tr("File %1 error: %2").arg(file.split(QDir::separator()).last()).arg(QString(e.what())));
+      failedFiles << fileInfo.fileName();
+      failDetails.append(QObject::tr("File %1 error: %2").arg(fileInfo.fileName()).arg(QString(e.what())));
     }
     catch(const itk::ExceptionObject &e)
     {
@@ -166,14 +174,14 @@ void FileOpenTool::load(const QStringList &files)
       qWarning() << "File:" << e.GetFile() << "Line: " << e.GetLine();
       qWarning() << "Location:" << e.GetLocation();
 
-      failedFiles << file;
-      failDetails.append(QObject::tr("File %1 error: %2").arg(file.split(QDir::separator()).last()).arg(QString(e.what())));
+      failedFiles << fileInfo.fileName();
+      failDetails.append(QObject::tr("File %1 error: %2").arg(fileInfo.fileName()).arg(QString(e.what())));
     }
     catch(...)
     {
       qWarning() << QString("EXCEPTION: unspecified error loading file: %1").arg(file);
 
-      failedFiles << file;
+      failedFiles << fileInfo.fileName();
     }
   }
 
@@ -185,7 +193,7 @@ void FileOpenTool::load(const QStringList &files)
 
     for(auto file: failedFiles)
     {
-      message.append(QString("%1\n").arg(file.split(QDir::separator()).last()));
+      message.append(QString("%1\n").arg(file));
     }
 
     auto number = (failedFiles.size() > 1) ? QString("them") : QString("it");

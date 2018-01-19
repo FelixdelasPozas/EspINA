@@ -26,6 +26,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Factory/CoreFactory.h>
+#include <GUI/Utils/Format.h>
 
 // Qt
 #include <QDebug>
@@ -42,6 +43,7 @@ const SegmentationExtension::Key EdgeDistance::FRONT_DISTANCE  = "Front Distance
 const SegmentationExtension::Key EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
 const SegmentationExtension::Key EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
 const SegmentationExtension::Key EdgeDistance::BACK_DISTANCE   = "Back Distance";
+const SegmentationExtension::Key EdgeDistance::TOUCH_EDGES     = "Touch Edge";
 
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance(CoreFactory *factory, const SegmentationExtension::InfoCache& cache, const State& state)
@@ -49,11 +51,6 @@ EdgeDistance::EdgeDistance(CoreFactory *factory, const SegmentationExtension::In
 , m_factory            {factory}
 {
   Q_ASSERT(factory);
-}
-
-//-----------------------------------------------------------------------------
-EdgeDistance::~EdgeDistance()
-{
 }
 
 //-----------------------------------------------------------------------------
@@ -79,6 +76,7 @@ SegmentationExtension::InformationKeyList EdgeDistance::availableInformation() c
   keys << createKey(BOTTOM_DISTANCE);
   keys << createKey(FRONT_DISTANCE);
   keys << createKey(BACK_DISTANCE);
+  keys << createKey(TOUCH_EDGES);
 
   return keys;
 }
@@ -91,7 +89,14 @@ void EdgeDistance::onExtendedItemSet(Segmentation* segmentation)
 //------------------------------------------------------------------------
 QVariant EdgeDistance::cacheFail(const InformationKey& key) const
 {
-  updateDistances();
+  if(key.value() == TOUCH_EDGES)
+  {
+    isOnEdge();
+  }
+  else
+  {
+    updateDistances();
+  }
 
   return cachedInfo(key);
 }
@@ -161,4 +166,70 @@ void EdgeDistance::updateDistances() const
       updateInfoCache(BACK_DISTANCE  , text);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+QString EdgeDistance::toolTipText() const
+{
+  QString tooltip;
+
+  if (m_infoCache.contains(TOUCH_EDGES) && isOnEdge())
+  {
+    QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
+    tooltip = tooltip.append(GUI::Utils::Format::createTable(":/touchStackEdge.svg", description));
+  }
+
+  return tooltip;
+}
+
+//-----------------------------------------------------------------------------
+bool EdgeDistance::isOnEdge() const
+{
+  bool isOnEdge  = false;
+
+  if (m_infoCache.contains(TOUCH_EDGES) && m_infoCache[TOUCH_EDGES].isValid())
+  {
+    isOnEdge = m_infoCache[TOUCH_EDGES].toBool();
+  }
+  else
+  {
+    auto channels = QueryRelations::channels(m_extendedItem);
+
+    if(channels.empty())
+    {
+      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
+    }
+
+    if (channels.size() > 1)
+    {
+      qWarning() << "Tiling not supported by Stereological Inclusion Extension";
+    }
+    else if (channels.size() == 1)
+    {
+      auto channel        = channels.first();
+      auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, m_factory);
+      auto spacing        = channel->output()->spacing();
+      const NmVector3 DELTA{ 0.5 * spacing[0], 0.5 * spacing[1], 0.5 * spacing[2] };
+
+      Nm distances[6];
+      if (edgesExtension->useDistanceToBounds())
+      {
+        edgesExtension->distanceToBounds(m_extendedItem, distances);
+      }
+      else
+      {
+        edgesExtension->distanceToEdges(m_extendedItem, distances);
+      }
+
+      for(int i = 0; i < 3; ++i)
+      {
+        isOnEdge |= (distances[2*i]     < DELTA[i]);
+        isOnEdge |= (distances[(2*i)+1] < DELTA[i]);
+      }
+    }
+
+    updateInfoCache(TOUCH_EDGES, isOnEdge ? 1 : 0);
+  }
+
+  return isOnEdge;
 }

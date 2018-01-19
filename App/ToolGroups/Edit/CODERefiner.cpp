@@ -29,7 +29,7 @@ CODERefiner::CODERefiner(const QString& title)
 }
 
 //-----------------------------------------------------------------------------
-QWidget* CODERefiner::createWidget(SegmentationAdapterPtr segmentation, Support::Context& context)
+QWidget* CODERefiner::createWidget(SegmentationAdapterPtr segmentation, Support::Context& context, QWidget *parent)
 {
-  return new CODERefineWidget(m_title, segmentation, context);
+  return new CODERefineWidget(m_title, segmentation, context, parent);
 }

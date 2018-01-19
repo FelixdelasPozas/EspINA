@@ -29,6 +29,9 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Extensions.h>
 
+// C++
+#include <atomic>
+
 class vtkPoints;
 class vtkPolyData;
 
@@ -46,20 +49,17 @@ namespace ESPINA
     : public Core::SegmentationExtension
     {
         Q_OBJECT
-
-        static const QString FILE;
-
       public:
-        static const Type           TYPE;
-        static const InformationKey TOUCH_EDGES;
+        static const Type TYPE;
 
-        InformationKey cfKey(CountingFrame *cf) const;
+        inline InformationKey cfKey(CountingFrame *cf) const;
 
       public:
         /** \brief StereologicalInclusion class virtual destructor.
          *
          */
-        virtual ~StereologicalInclusion();
+        virtual ~StereologicalInclusion()
+        {}
 
         virtual Type type() const
         { return TYPE; }
@@ -75,6 +75,8 @@ namespace ESPINA
 
         virtual bool validCategory(const QString& classificationName) const
         { return true; }
+
+        virtual bool validData(const OutputSPtr output) const;
 
         virtual InformationKeyList availableInformation() const;
 
@@ -102,10 +104,10 @@ namespace ESPINA
          */
         bool isExcluded();
 
-        /** \brief Returns true if the segmentation is at the edge of the channel.
+        /** \brief NOTE: Fixes old SEG files that carry incorrect cache values that prevents the file from being saved later.
          *
          */
-        bool isOnEdge() const;
+        virtual InformationKeyList readyInformation() const override;
 
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;
@@ -162,13 +164,12 @@ namespace ESPINA
          */
         explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
 
-        bool m_isInitialized;                              /** true if the extension has been initialized.              */
-        bool m_isUpdated;                                  /** true if the extension data is up to date.                */
-
-        QMutex m_mutex;                                    /** lock for extension data computation.                     */
-        bool   m_isExcluded;                               /** true if the segmentation is excluded by at least one CF. */
-        QMap<CountingFrame *, bool> m_exclusionCFs;        /** maps CF pointer - exclusion information.                 */
-        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;  /** maps CF with CF::id for key invalidation.                */
+        std::atomic<bool>                        m_isUpdated;     /** true if the extension data is up to date.                */
+        mutable QMutex                           m_mutex;         /** lock for extension data computation.                     */
+        std::atomic<bool>                        m_isExcluded;    /** true if the segmentation is excluded by at least one CF. */
+        QMap<CountingFrame *, bool>              m_exclusionCFs;  /** maps CF pointer - exclusion information.                 */
+        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;         /** maps CF with CF::id for key invalidation.                */
+        InformationKeyList                       m_keys;          /** informatio keys in this extension.                       */
 
         friend class CFSegmentationExtensionFactory;
     };

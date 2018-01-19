@@ -17,11 +17,12 @@
  *
  */
 
+// ESPINA
 #include "ReportsTool.h"
-
 #include "ReportSelectorDialog.h"
 #include "RawInformationReport.h"
 #include "DistanceInformationReport.h"
+#include "AdjacencyMatrixReport.h"
 
 using namespace ESPINA;
 
@@ -34,6 +35,13 @@ ReportsTool::ReportsTool(Support::Context &context)
 
   registerReport(std::make_shared<RawInformationReport>(context));
   registerReport(std::make_shared<DistanceInformationReport>(context));
+  registerReport(std::make_shared<AdjacencyMatrixReport>(context));
+}
+
+//----------------------------------------------------------------------------
+ReportsTool::~ReportsTool()
+{
+  disconnect();
 }
 
 //----------------------------------------------------------------------------
@@ -49,3 +57,4 @@ void ReportsTool::registerReport(Support::ReportSPtr report)
 {
   m_reports << report;
 }
+

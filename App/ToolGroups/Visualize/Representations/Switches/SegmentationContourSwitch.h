@@ -35,6 +35,9 @@ class QComboBox;
 
 namespace ESPINA
 {
+  /** \class SegmentationContourSwitch
+   * \brief Tool switch for segmentation contour representation.
+   */
   class SegmentationContourSwitch
   : public BasicRepresentationSwitch
   {
@@ -88,10 +91,10 @@ namespace ESPINA
        */
       void initWidgets();
 
-      std::shared_ptr<SegmentationContourPoolSettings> m_settings;
-      GUI::Widgets::NumericalInput                    *m_opacityWidget;
-      QComboBox                                       *m_width;
-      QComboBox                                       *m_pattern;
+      std::shared_ptr<SegmentationContourPoolSettings> m_settings;      /** contour representation settings. */
+      GUI::Widgets::NumericalInput                    *m_opacityWidget; /** opacity selection widget.        */
+      QComboBox                                       *m_width;         /** width selection widget.          */
+      QComboBox                                       *m_pattern;       /** pattern selection widget.        */
   };
 
 } // namespace ESPINA

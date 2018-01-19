@@ -35,7 +35,6 @@ namespace ESPINA
   {
     namespace Widgets
     {
-
       class EspinaGUI_EXPORT NumericalInput
       : public QWidget
       {
@@ -74,10 +73,22 @@ namespace ESPINA
          */
         void setLabelText(const QString &label);
 
+        /** \brief Modifies the label visibility.
+         * \param[in] value true to set visible and false otherwise.
+         *
+         */
         void setLabelVisibility(bool value);
 
+        /** \brief Modifies the slider visibility.
+         * \param[in] value true to set visible and false otherwise.
+         *
+         */
         void setSliderVisibility(bool value);
 
+        /** \brief Modifies the spinbox visibility.
+         * \param[in] value true to set visible and false otherwise.
+         *
+         */
         void setSpinBoxVisibility(bool value);
 
         /** \brief Enables/disables slider tracking (emit valueChanged(int) when the slider changes
@@ -86,6 +97,11 @@ namespace ESPINA
          *
          */
         void setSliderTracking(bool enabled);
+
+        /** \brief Sets the tooltip of the widgets.
+         * \param[in] tooltip tooltip text.
+         */
+        void setWidgetsToolTip(const QString &tooltip);
 
       public slots:
         /** \brief change slider value

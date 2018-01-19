@@ -47,6 +47,8 @@ void ToolGroup::addTool(ToolSPtr tool)
 
   auto group = tool->groupWith();
 
+  if(group.isEmpty()) group = tr("Ungrouped");
+
   m_tools[group] << tool;
 
   auto &tools = m_tools[group];
@@ -112,7 +114,7 @@ void ESPINA::populateToolBar(QToolBar *bar, ToolGroup::GroupedTools tools)
     {
       for(auto action: tool->actions())
       {
-        bar->addAction(action);
+        if(!bar->actions().contains(action)) bar->addAction(action);
       }
     }
   }

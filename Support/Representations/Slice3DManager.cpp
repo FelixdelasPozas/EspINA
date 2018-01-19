@@ -123,17 +123,19 @@ void Slice3DManager::onHide(const FrameCSPtr frame)
 RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
 {
   auto actors = std::make_shared<RepresentationPipeline::ActorsData>();
+  RepresentationPipeline::ActorsLocker returnActors(actors);
 
   for (auto pool : m_pools)
   {
-    auto poolActors = pool->actors(time);
+    auto frameActors = pool->actors(time);
 
-    if(poolActors.get() != nullptr)
+    if(frameActors)
     {
-      QMutexLocker lock(&poolActors->lock);
-      for(auto it = poolActors->actors.begin(); it != poolActors->actors.end(); ++it)
+      RepresentationPipeline::ActorsLocker poolActors(frameActors);
+
+      for(auto it = poolActors.get().begin(); it != poolActors.get().end(); ++it)
       {
-        actors->actors[it.key()] << it.value();
+        returnActors.get()[it.key()] << it.value();
       }
     }
   }
@@ -183,9 +185,7 @@ void Slice3DManager::disconnectPools()
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
-  auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
-
-  return clone;
+  return std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
 }
 
 //----------------------------------------------------------------------------

@@ -20,8 +20,16 @@
 
 // ESPINA
 #include "SegmentationUtils.h"
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
+
+// VTK
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
+#include <vtkDoubleArray.h>
 
 using namespace ESPINA;
 
@@ -56,4 +64,41 @@ const QString ESPINA::GUI::Model::Utils::categoricalName(SegmentationAdapterPtr 
                               .arg(segmentation->number());
 
   return name;
+}
+
+//------------------------------------------------------------------------
+ConnectionList ESPINA::GUI::Model::Utils::connections(vtkSmartPointer<vtkPolyData> polyData, const ModelAdapterSPtr model)
+{
+  ConnectionList connections;
+  auto terminal = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetAbstractArray("TerminalNodes"));
+
+  if(terminal)
+  {
+    for(int i = 0; i < terminal->GetNumberOfTuples(); ++i)
+    {
+      double value[3];
+      terminal->GetTuple(i, value);
+
+      NmVector3 point{value};
+
+      for(auto candidate: model->contains(point))
+      {
+        auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(candidate);
+
+        if(!seg || !seg->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive) || !hasVolumetricData(seg->output())) continue;
+
+        if(isSegmentationVoxel(readLockVolume(seg->output()), point))
+        {
+          Connection connection;
+          connection.item1 = nullptr;
+          connection.item2 = seg;
+          connection.point = point;
+
+          connections << connection;
+        }
+      }
+    }
+  }
+
+  return connections;
 }

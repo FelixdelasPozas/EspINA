@@ -60,8 +60,8 @@ namespace ESPINA
       void leftPress(QPoint point, RenderView *view);
       void leftRelease(QPoint point, RenderView *view);
 
-  private:
-    bool m_inClick;
+    private:
+      bool m_isDragging; /** true if there has been a mouse button down event but not a mouse button release event. */
   };
 
   using ZoomEventHandlerSPtr = std::shared_ptr<ZoomEventHandler>;

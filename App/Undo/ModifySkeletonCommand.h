@@ -22,12 +22,12 @@
 #define APP_UNDO_MODIFY_SKELETON_COMMAND_H_
 
 // ESPINA
-#include <Core/Analysis/Data/SkeletonData.h>
-#include <Core/Types.h>
 #include <Core/Utils/Bounds.h>
+#include <GUI/Types.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 // Qt
 #include <QUndoStack>
@@ -36,7 +36,9 @@ class vtkPolyData;
 
 namespace ESPINA
 {
-  
+  /** \class ModifySkeletonCommand
+   * \brief Undo/redo class for skeleton data modifications.
+   */
   class ModifySkeletonCommand
   : public QUndoCommand
   {
@@ -44,9 +46,10 @@ namespace ESPINA
       /** \brief ModifySkeletonCommand class constructor.
        * \param[in] output output smart pointer with the skeleton data to be modified.
        * \param[in] sleleton SkeletonData smart pointer of the new skeleton.
+       * \param[in] connections list of segmentation connections by this segmentation.
        *
        */
-      explicit ModifySkeletonCommand(SkeletonDataSPtr data, vtkSmartPointer<vtkPolyData> skeleton);
+      explicit ModifySkeletonCommand(SegmentationAdapterSPtr segmentation, vtkSmartPointer<vtkPolyData> skeleton, ConnectionList connections = ConnectionList());
 
       /** \brief ModifySkeletonCommand class virtual destructor.
        *
@@ -57,10 +60,12 @@ namespace ESPINA
       void redo() override;
 
     private:
-      SkeletonDataSPtr             m_skeletonData;
+      SegmentationAdapterSPtr      m_segmentation;
       vtkSmartPointer<vtkPolyData> m_newSkeleton;
       vtkSmartPointer<vtkPolyData> m_oldSkeleton;
       BoundsList                   m_editedRegions;
+      ConnectionList               m_connections;
+      ConnectionList               m_oldConnections;
   };
 
 } // namespace ESPINA

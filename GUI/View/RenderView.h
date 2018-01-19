@@ -97,17 +97,17 @@ namespace ESPINA
      * \param[out] y coordinate.
      *
      */
-    void eventPosition(int &x, int &y);
+    void eventPosition(int &x, int &y) const;
 
     /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    NmVector3 worldEventPosition();
+    NmVector3 worldEventPosition() const;
 
     /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    NmVector3 worldEventPosition(const QPoint &pos);
+    NmVector3 worldEventPosition(const QPoint &pos) const;
 
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
      * \param[in] flags view item types to be selected.
@@ -184,9 +184,10 @@ namespace ESPINA
     /** \brief Helper method to create a render view action buttons
      * \param[in] icon of the button.
      * \param[in] tooltip of the button.
+     * \param[in] parent QWidget parent of the button.
      *
      */
-    static QPushButton *createButton(const QString& icon, const QString& tooltip);
+    static QPushButton *createButton(const QString& icon, const QString& tooltip, QWidget *parent = nullptr);
 
     /** \brief Returns the name of the view, for debugging purposes.
      *
@@ -228,12 +229,22 @@ namespace ESPINA
      */
     void onRenderRequest();
 
-  protected:
-    /** \brief RenderView class constructor.
-     * \param[in] parent raw pointer of the QWidget parent of this one.
+    /** \brief Updates the view cursor when the event hander changes its cursor.
      *
      */
-    explicit RenderView(GUI::View::ViewState &state, ViewType type);
+    void onCursorChanged();
+
+  protected:
+    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
+
+    /** \brief RenderView class constructor.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
+     * \param[in] type type of view 2D or 3D
+     * \param[in] parent QWidget parent of this one.
+     *
+     */
+    explicit RenderView(GUI::View::ViewState &state, ViewType type, QWidget *parent = nullptr);
 
     /** \brief Returns the point world coordinates corresponding to the given ones in the given renderer.
      * \param[in] renderer vtkRenderer used for transformation.
@@ -248,7 +259,7 @@ namespace ESPINA
      * \param[in] selection new selection.
      *
      */
-    virtual void onSelectionSet(SelectionSPtr selection);
+    virtual void onSelectionSet(GUI::View::SelectionSPtr selection);
 
     /** \brief Updates the selection of items.
      * \param[in] append if true the elements picked will be merged with the ones currently
@@ -339,29 +350,26 @@ namespace ESPINA
     void delayedWidgetsShow();
 
   protected:
-    using TemporalPrototypesSPtr     = GUI::Representations::Managers::TemporalPrototypesSPtr;
-    using RepresentationManagerSPtr  = GUI::Representations::RepresentationManagerSPtr;
-    using RepresentationManagerSList = GUI::Representations::RepresentationManagerSList;
-
-    ContextualMenuSPtr         m_contextMenu;
-    QVTKWidget                *m_view;
-    RepresentationManagerSList m_managers;
-    unsigned int m_lastFrameActiveManagers;
+    ContextualMenuSPtr                               m_contextMenu;
+    QVTKWidget                                      *m_view;
+    GUI::Representations::RepresentationManagerSList m_managers;
+    unsigned int                                     m_lastFrameActiveManagers;
 
   private:
+    using TempPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    using ReprManagerSPtr    = GUI::Representations::RepresentationManagerSPtr;
+
     /** \brief vtkImageData to QImage conversion.
      * \param[in] image vtkImageData object pointer.
      *
      */
     QImage vtkImageDataToQImage(vtkImageData* image) const;
 
-    GUI::View::ViewState &m_state;
-    SelectionSPtr         m_selection;
-
-    QElapsedTimer m_timer;
-    ViewType      m_type;
-    GUI::Representations::FrameCSPtr m_latestFrame;
-    QMap<TemporalPrototypesSPtr, RepresentationManagerSPtr> m_temporalManagers;
+    GUI::View::ViewState                     &m_state;            /** current state of the views.             */
+    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                 */
+    ViewType                                  m_type;             /** type of view: 2D/3D.                    */
+    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                  */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations. */
   };
 
 } // namespace ESPINA

@@ -206,13 +206,19 @@ void FakeStacks::parseStacks(const QByteArray& data)
 
     if(idStart != -1 && idEnd != -1)
     {
-      auto file = QString::fromAscii(data.mid(begin, end-begin)).split('/').last();
+      auto fileState = QString::fromAscii(data.mid(begin, end-begin));
+      auto stateParts = fileState.split(';');
+      stateParts = stateParts.first().split('=');
 
-      if(!file.contains("segmha", Qt::CaseInsensitive))
+      auto filename = stateParts.at(1);
+      QFileInfo file{filename};
+      filename = file.fileName();
+
+      if(!filename.contains("segmha", Qt::CaseInsensitive))
       {
-        auto id   = QString::fromAscii(data.mid(idStart, idEnd-idStart+1));
-        m_ids.insert(file, id);
-        writeInfo(tr("Found file '%1' with id '%2'").arg(file).arg(id));
+        auto id = QString::fromAscii(data.mid(idStart, idEnd-idStart+1));
+        m_ids.insert(filename, id);
+        writeInfo(tr("Found file '%1' with id '%2'").arg(filename).arg(id));
       }
     }
 
@@ -428,7 +434,8 @@ void FakeStacks::generateStacks(const QString &path)
     auto spacing = m_spacing[file];
     auto bounds  = m_stacks[file];
 
-    auto fileName = path + QDir::separator() + file.remove(' ');
+    auto fileName = path + '/' + file.simplified();
+    fileName = QDir::toNativeSeparators(fileName);
 
     auto region = equivalentRegion<ESPINA::itkVolumeType>(NmVector3{}, spacing, bounds);
 

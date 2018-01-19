@@ -32,10 +32,11 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 FreehandROITool::FreehandROITool(Support::Context  &context,
                                  RestrictToolGroup *toolGroup)
-: ProgressTool("FreehandROI", ":espina/roi_freehand_roi.svg", tr("Freehand 2D/3D ROI"), context)
+: ProgressTool   {"FreehandROI", ":espina/roi_freehand_roi.svg", tr("Freehand 2D/3D ROI"), context}
 , m_undoStack    {context.undoStack()}
 , m_toolGroup    {toolGroup}
 , m_drawingWidget{context.viewState(), context.model()}
+, m_selection    {getSelection()}
 {
   setCheckable(true);
   setExclusive(true);
@@ -44,8 +45,8 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 
   configureDrawingTools();
 
-  connect(getSelection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this,                 SLOT(updateReferenceItem(ChannelAdapterPtr)));
+  connect(m_selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,              SLOT(updateReferenceItem(ChannelAdapterPtr)));
 
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
@@ -53,8 +54,8 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
 
-  connect(toolGroup, SIGNAL(roiChanged(ROISPtr)),
-          this,      SLOT(ROIChanged(ROISPtr)));
+  connect(m_toolGroup, SIGNAL(ROIChanged(ROISPtr)),
+          this,        SLOT(ROIChanged(ROISPtr)));
 
   onPainterChanged(m_drawingWidget.painter());
 }
@@ -62,11 +63,25 @@ FreehandROITool::FreehandROITool(Support::Context  &context,
 //-----------------------------------------------------------------------------
 FreehandROITool::~FreehandROITool()
 {
+  abortOperation();
+
+  disconnect(m_selection.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+             this,              SLOT(updateReferenceItem(ChannelAdapterPtr)));
+
+  disconnect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
+             this,             SLOT(onPainterChanged(MaskPainterSPtr)));
+
+  disconnect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
+             this,             SIGNAL(roiDefined(BinaryMaskSPtr<unsigned char>)));
 }
 
 //-----------------------------------------------------------------------------
 void FreehandROITool::abortOperation()
 {
+  if(isChecked())
+  {
+    setChecked(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -89,12 +104,6 @@ void FreehandROITool::ROIChanged(ROISPtr roi)
     
     m_drawingWidget.setMaskProperties(spacing, origin);
   }
-}
-
-//-----------------------------------------------------------------------------
-void FreehandROITool::cancelROI()
-{
-//   m_currentSelector->abortOperation();
 }
 
 //-----------------------------------------------------------------------------
@@ -131,13 +140,17 @@ void FreehandROITool::updateReferenceItem(ChannelAdapterPtr channel)
 //-----------------------------------------------------------------------------
 void FreehandROITool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
+  settings->beginGroup("DrawingWidget");
   m_drawingWidget.restoreSettings(settings);
+  settings->endGroup();
 }
 
 //-----------------------------------------------------------------------------
 void FreehandROITool::saveSettings(std::shared_ptr<QSettings> settings)
 {
+  settings->beginGroup("DrawingWidget");
   m_drawingWidget.saveSettings(settings);
+  settings->endGroup();
 }
 
 //-----------------------------------------------------------------------------

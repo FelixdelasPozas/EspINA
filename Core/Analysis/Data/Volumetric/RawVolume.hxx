@@ -40,8 +40,6 @@
 
 // ITK
 #include <itkImageRegionIterator.h>
-#include <itkMetaImageIO.h>
-#include <itkImageFileReader.h>
 
 // VTK
 #include <vtkImplicitFunction.h>
@@ -80,6 +78,10 @@ namespace ESPINA
      */
     explicit RawVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
+    /** \brief RawVolume class cosntructor.
+     * \param[in] volume itk volume pointer.
+     *
+     */
     explicit RawVolume(const typename T::Pointer volume);
 
     /** \brief RawVolume class destructor.
@@ -88,13 +90,20 @@ namespace ESPINA
     virtual ~RawVolume()
     {}
 
+    /** \brief Returns the memory used by the volume in bytes.
+     *
+     */
     virtual size_t memoryUsage() const override;
 
     /** \brief Sets the origin of the volume.
+     * \param[in] origin origin point in Nm.
      *
      */
     virtual void setOrigin(const NmVector3& origin) override;
 
+    /** \brief Sets the space of the volume.
+     * \param[in] spacing spacing in Nm.
+     */
     virtual void setSpacing(const NmVector3& spacing) override;
 
     /** \brief Returns the equivalent itk image of the volume.
@@ -358,7 +367,6 @@ namespace ESPINA
   {
     bool dataFetched = false;
     bool error       = false;
-
 
     return dataFetched && !error;
   }

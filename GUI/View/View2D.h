@@ -63,17 +63,18 @@ namespace ESPINA
 
   public:
     /** \brief View2D class constructor.
+     * \param[in] state application's view state.
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      */
-    explicit View2D(GUI::View::ViewState &state, Plane plane = Plane::XY);
+    explicit View2D(GUI::View::ViewState &state, Plane plane = Plane::XY, QWidget *parent = nullptr);
 
     /** \brief View2D class virtual destructor.
      *
      */
     virtual ~View2D();
 
-    /** \brief Reverses the efect of the mouse wheel on the view.
+    /** \brief Reverses the effect of the mouse wheel on the view.
      * \param[in] value true to reverse the movement of the wheel, false otherwise.
      *
      */
@@ -107,8 +108,7 @@ namespace ESPINA
     /** \brief Returns scale of the view given by world position / display pixels
      *
      */
-    double scale() const
-    { return m_scaleValue; }
+    double scale();
 
     /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *

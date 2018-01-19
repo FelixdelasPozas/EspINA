@@ -18,13 +18,13 @@
 
 // ESPINA
 #include "CODERefineWidget.h"
+#include <Core/Utils/SignalBlocker.h>
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 
 #include "ui_CODERefineWidget.h"
 #include <QMessageBox>
 #include <QUndoStack>
-#include <QToolBar>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets::Styles;
@@ -100,8 +100,10 @@ void CODEModification::invalidateRepresentations()
 //----------------------------------------------------------------------------
 CODERefineWidget::CODERefineWidget(const QString                 &title,
                                    SegmentationAdapterPtr         segmentation,
-                                   Support::Context              &context)
-: WithContext   (context)
+                                   Support::Context              &context,
+                                   QWidget                       *parent)
+: QWidget       {parent}
+, WithContext   (context)
 , m_gui         {new Ui::CODERefineWidget()}
 , m_title       {title}
 , m_segmentation{segmentation}
@@ -111,6 +113,7 @@ CODERefineWidget::CODERefineWidget(const QString                 &title,
 
   m_gui->titleLabel->setText(m_title + ":");
   m_gui->radius->setValue(m_filter->radius());
+  m_gui->apply->setEnabled(false);
 
   connect(m_gui->apply,  SIGNAL(clicked(bool)),
           this,          SLOT(refineFilter()));
@@ -122,18 +125,32 @@ CODERefineWidget::CODERefineWidget(const QString                 &title,
 //----------------------------------------------------------------------------
 CODERefineWidget::~CODERefineWidget()
 {
+  if(m_gui->apply->isEnabled())
+  {
+    auto answer = GUI::DefaultDialogs::UserQuestion(tr("The properties of the segmentation '%1' have been modified but haven't been applied, do you want to discard them?").arg(m_segmentation->data().toString()),
+                                                    QMessageBox::Apply|QMessageBox::Discard,
+                                                    m_title);
+
+    if(answer == QMessageBox::Apply)
+    {
+      refineFilter();
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void CODERefineWidget::onRadiusModified(int value)
 {
   m_gui->radius->setValue(value);
+  m_gui->apply->setEnabled(value == static_cast<int>(m_filter->radius()));
 }
 
 //----------------------------------------------------------------------------
 void CODERefineWidget::refineFilter()
 {
   auto output = m_filter->output(0);
+
+  SignalBlocker<OutputSPtr> blocker(output);
 
   if (output->isEdited())
   {
@@ -151,4 +168,6 @@ void CODERefineWidget::refineFilter()
     undoStack->push(new CODEModification(m_segmentation, static_cast<unsigned int>(m_gui->radius->value())));
   }
   undoStack->endMacro();
+
+  m_gui->apply->setEnabled(false);
 }

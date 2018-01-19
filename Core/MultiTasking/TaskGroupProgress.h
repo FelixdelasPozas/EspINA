@@ -38,31 +38,46 @@ namespace ESPINA
       class EspinaCore_EXPORT TaskGroupProgress
       : public QObject
       {
-        Q_OBJECT
-      public:
-        /** \brief Adds a task to the group of monitorized tasks.
-         * \param[in] task task object.
-         *
-         */
-        void showTaskProgress(TaskSPtr task);
+          Q_OBJECT
+        public:
+          /** \brief TaskGroupProgress class constructor.
+           *
+           */
+          explicit TaskGroupProgress()
+          : QObject   {nullptr}
+          , m_finished{0}
+          {}
 
-      signals:
-        void progress(int value);
+          /** \brief TaskGroupProgress class virtual destructor.
+           *
+           */
+          virtual ~TaskGroupProgress()
+          {};
 
-      private slots:
-        /** \brief Updates the progress value and emits the progress signal.
-         *
-         */
-        void updateProgress();
+          /** \brief Adds a task to the group of monitorized tasks.
+           * \param[in] task task object.
+           *
+           */
+          void showTaskProgress(TaskSPtr task);
 
-        /** \brief Updates the group of monitorized tasks once a task has finished.
-         *
-         */
-        void onTaskFinished();
+        signals:
+          void progress(int value);
 
-      private:
-        QList<TaskSPtr> m_tasks; /** group of tasks whose progress is being monitorized. */
-        QMutex          m_mutex; /** protects task group.                                */
+        private slots:
+          /** \brief Updates the progress value and emits the progress signal.
+           *
+           */
+          void updateProgress();
+
+          /** \brief Updates the group of monitorized tasks once a task has finished.
+           *
+           */
+          void onTaskFinished();
+
+        private:
+          QList<TaskSPtr> m_tasks;    /** group of tasks whose progress is being monitorized.     */
+          QMutex          m_mutex;    /** protects task group.                                    */
+          int             m_finished; /** number of currently finished tasks from original group. */
       };
     }
   }

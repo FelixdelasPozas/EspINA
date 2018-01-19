@@ -33,18 +33,38 @@ namespace ESPINA
     {
       namespace Format
       {
-        /** \brief Returns a link for the given label.
-         * \param[in] label text.
+        /** \brief Returns the tooltip text for the given icon and description.
+         * \param[in] icon of the condition
+         * \param[in] description of the condition
          *
          */
-        QString EspinaGUI_EXPORT createLink(const QString &label);
+        inline QString createTable(const QString &icon, const QString &description)
+        {
+          return QString("<table cellspacing='0' cellpadding='0' border-spacing='0' style=\"margin:0;border:0;padding:0\">"
+                         " <tr>"
+                         " <td valign=\"top\"><img src='%1' width=16 height=16></td> <td valign=\"center\" height=0>: %2</td>"
+                         " </tr>"
+                         "</table>").arg(icon).arg(description);
+        }
 
         /** \brief Returns a link to the given reference for the given label.
          * \param[in] label text.
          * \param[in] reference destination of the link.
          *
          */
-        QString EspinaGUI_EXPORT createLink(const QString &label, const QString &reference);
+        inline QString createLink(const QString &label, const QString &reference)
+        {
+          return QString("<a href=\"%1\">%2</a> ").arg(reference).arg(label);
+        }
+
+        /** \brief Returns a link for the given label.
+         * \param[in] label text.
+         *
+         */
+        inline QString createLink(const QString &label)
+        {
+          return createLink(label, label);
+        }
       };
     }
   }

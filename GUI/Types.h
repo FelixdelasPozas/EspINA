@@ -56,6 +56,9 @@ namespace ESPINA
 
   class Panel;
 
+  struct Connection;
+  using ConnectionList = QList<Connection>;
+
   namespace GUI
   {
     namespace ColorEngines

@@ -194,12 +194,15 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
 //----------------------------------------------------------------------------
 bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
 {
-  for (auto segmentation : segmentations)
+  bool result = true;
+
+  for(auto i = 0; i < segmentations.size() && result; ++i)
   {
-    if (extension->validCategory(segmentation->category()->classificationName())) return true;
+    result &= (extension->validCategory(segmentations.at(i)->category()->classificationName())) &&
+              (extension->validData(segmentations.at(i)->output()));
   }
 
-  return false;
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -239,7 +242,8 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
 
   for (auto segmentation : segmentations)
   {
-    for(auto extension: segmentation->readOnlyExtensions())
+    auto extensions = segmentation->readOnlyExtensions();
+    for(auto extension: extensions)
     {
       if(!info.keys().contains(extension->type()))
       {
@@ -250,7 +254,7 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
       }
       else
       {
-        // fix for extensions with variable keys like stereological inclusion.
+        // fix for extensions with variable keys like stereological inclusion (variable number of counting frames).
         for(auto key: extension->availableInformation())
         {
           if(!info[key.extension()].contains(key))

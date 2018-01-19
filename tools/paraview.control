@@ -1,8 +1,0 @@
-Package: paraview
-Section: Science & Math
-Priority: optional
-Version: 3.14.1
-Architecture: amd64
-Maintainer: CeSViMa
-Depends: vtk-paraview (>= 5.8)
-Description: Paraview 3.14.1

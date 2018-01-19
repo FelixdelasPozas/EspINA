@@ -21,10 +21,10 @@
 
 // ESPINA
 #include "ZoomRegionTool.h"
-
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget2D.h>
 #include <GUI/View/Widgets/Zoom/ZoomWidget3D.h>
+#include <GUI/View/ViewState.h>
 #include <Support/Context.h>
 
 using namespace ESPINA::GUI::Representations::Managers;
@@ -36,7 +36,6 @@ using namespace ESPINA;
 //----------------------------------------------------------------------------
 ZoomRegionTool::ZoomRegionTool(Support::Context &context)
 : ProgressTool("ZoomRegion", ":/espina/zoom_region.svg", tr("Zoom Region"), context)
-, m_viewState(context.viewState())
 , m_handler  {new ZoomEventHandler()}
 , m_factory  {std::make_shared<TemporalPrototypes>(std::make_shared<ZoomWidget2D>(m_handler.get()), std::make_shared<ZoomWidget3D>(m_handler.get()), id())}
 {
@@ -51,6 +50,10 @@ ZoomRegionTool::ZoomRegionTool(Support::Context &context)
 //----------------------------------------------------------------------------
 ZoomRegionTool::~ZoomRegionTool()
 {
+  setChecked(false);
+
+  disconnect(this, SIGNAL(toggled(bool)),
+             this, SLOT(onToolActivated(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -64,10 +67,10 @@ void ZoomRegionTool::onToolActivated(bool value)
 {
   if (value)
   {
-    m_viewState.addTemporalRepresentations(m_factory);
+    if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
   }
   else
   {
-    m_viewState.removeTemporalRepresentations(m_factory);
+    if(getViewState().hasTemporalRepresentation(m_factory)) getViewState().removeTemporalRepresentations(m_factory);
   }
 }

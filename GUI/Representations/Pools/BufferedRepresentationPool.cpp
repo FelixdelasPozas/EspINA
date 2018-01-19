@@ -28,11 +28,14 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
                                                        const Plane                plane,
                                                        RepresentationPipelineSPtr pipeline,
                                                        SchedulerSPtr              scheduler,
-                                                       unsigned                   windowSize)
-: RepresentationPool(type)
-, m_normalIdx{normalCoordinateIndex(plane)}
-, m_updateWindow{scheduler, pipeline, windowSize}
-, m_normalRes{0}
+                                                       unsigned                   windowSize,
+                                                       SegmentationLocatorSPtr    locator)
+: RepresentationPool{type}
+, m_normalIdx       {normalCoordinateIndex(plane)}
+, m_updateWindow    {scheduler, pipeline, windowSize}
+, m_normalRes       {0}
+, m_pipeline        {pipeline}
+, m_locator         {locator}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(GUI::Representations::FrameCSPtr,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -40,17 +43,73 @@ BufferedRepresentationPool::BufferedRepresentationPool(const ItemAdapter::Type  
 
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point,
-                                                     vtkProp *actor) const
+ViewItemAdapterList BufferedRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
 {
-  ViewItemAdapterList pickedItems;
+  ViewItemAdapterList result;
 
-  if (m_updateWindow.current()->hasFinished())
+  auto lastActors = actors(lastUpdateTimeStamp());
+  if(lastActors.get())
   {
-    pickedItems = m_updateWindow.current()->pick(point, actor);
+    RepresentationPipeline::ActorsLocker actors(lastActors, true);
+    if(actors.isLocked())
+    {
+      // Test the fast method with the locator
+      if(m_locator && (type() == ItemAdapter::Type::SEGMENTATION))
+      {
+        ViewItemAdapterSList candidates{m_locator->contains(point)};
+
+        if(!candidates.isEmpty())
+        {
+          for (auto item : candidates)
+          {
+            if (actors.get().keys().contains(item.get()) && m_pipeline->pick(item.get(), point))
+            {
+              result << item.get();
+            }
+          }
+        }
+
+        if(!result.isEmpty()) return result;
+      }
+
+      // If none found check with the old linear iteration method.
+      ViewItemAdapterPtr pickedItem = nullptr;
+
+      if(actors.isLocked())
+      {
+        if (actor)
+        {
+          auto it = actors.get().begin();
+
+          while (it != actors.get().end() && !pickedItem)
+          {
+            for (auto itemActor : it.value())
+            {
+              if (itemActor.GetPointer() == actor)
+              {
+                result << it.key();
+                return result;
+              }
+            }
+
+            ++it;
+          }
+        }
+        else
+        {
+          for (auto item : actors.get().keys())
+          {
+            if (m_pipeline->pick(item, point))
+            {
+              result << item;
+            }
+          }
+        }
+      }
+    }
   }
 
-  return pickedItems;
+  return result;
 }
 
 //-----------------------------------------------------------------------------

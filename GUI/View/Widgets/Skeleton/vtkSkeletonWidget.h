@@ -24,8 +24,11 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
+
+// VTK
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -34,180 +37,257 @@
 #include <QCursor>
 #include <QColor>
 
-using namespace std;
-
 namespace ESPINA
 {
-  class SkeletonWidget;
-
-  class EspinaGUI_EXPORT vtkSkeletonWidget
-  : public vtkAbstractWidget
+  namespace GUI
   {
-    public:
-      /** \brief Creates a new instance.
-       *
-       */
-      static vtkSkeletonWidget *New();
-
-      vtkTypeMacro(vtkSkeletonWidget,vtkAbstractWidget);
-
-      virtual void SetEnabled(int) override;
-
-      void CreateDefaultRepresentation() override;
-
-      virtual void PrintSelf(ostream &os, vtkIndent indent) override;
-
-      /** \brief Convenient method to change what state the widget is in.
-       * \param[in] state enumerated state of the widget.
-       *
-       */
-      void SetWidgetState(int state);
-
-      /** \brief Convenient method to determine the state of the method.
-       *
-       */
-      int GetWidgetState()
-      { return m_widgetState; }
-
-      /** \brief Initialize the skeleton widget from a user supplied vtkPolyData.
-       * \param[in] pd vtkPolyData raw pointer.
-       *
-       */
-      virtual void Initialize(vtkSmartPointer<vtkPolyData> pd);
-
-      /** \brief Initialize the skeleton with empty data.
-       *
-       */
-      virtual void Initialize()
-      { this->Initialize(nullptr); }
-
-      /** \brief Sets the orientation of the widget.
-       * \param[in] plane orientation plane.
-       *
-       */
-      virtual void SetOrientation(Plane plane);
-
-      /** \brief Returns the orientation of the widget.
-       *
-       */
-      virtual Plane GetOrientation();
-
-      /** \brief Sets the parent SkeletonWidget for this vtk widget.
-       * \param[in] parent SkeletonWidget raw pointer.
-       *
-       * Parent needed to signal start/end of a contour.
-       *
-       */
-      void setParentWidget(SkeletonWidget *parent)
-      { m_parent = parent; }
-
-      /** \brief Sets the slice for the representation of the widget if it's from the same orientation.
-       * \param[in] plane orientation plane.
-       * \param[in] value slice value.
-       *
-       */
-      void changeSlice(Plane plane, Nm value);
-
-      /** \brief Returns the skeleton.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> getSkeleton();
-
-      /** \brief Sets the tolerance value of the widget.
-       * \param[in] tolerance tolerance value.
-       *
-       */
-      void SetTolerance(const double tolerance);
-
-      /** \brief Sets the spacing of the view in the Z coordinate to draw the representation correctly.
-       *
-       */
-      void SetShift(const Nm spacing);
-
-      /** \brief Sets the spacing of the representation to make the position of all nodes of the
-       * representation centered on voxel center.
-       * \param[in] spacing Spacing vector.
-       *
-       */
-      void SetSpacing(const NmVector3 &spacing);
-
-      /** \brief Sets the color of the representation.
-       * \param[in] color QColor object.
-       *
-       */
-      void setRepresentationColor(const QColor &color);
-
-      /** \brief Updates the representation.
-       *
-       */
-      void UpdateRepresentation();
-
-      /** \brief Returns true if the last event has resulted in data modification.
-       *  Used to signal modifications to the parent tool.
-       *
-       */
-      bool eventModifiedData() const
-      { return m_modified; }
-
-      /** \brief Deactivated the modified flag.
-       *
-       */
-      void resetModifiedFlag()
-      { m_modified = false; }
-
-      enum
+    namespace View
+    {
+      namespace Widgets
       {
-        Start, Define, Manipulate
-      };
+        namespace Skeleton
+        {
+          /** \class vtkSkeletonWidget
+           * \brief VTK widget for skeleton interactions.
+           *
+           */
+          class EspinaGUI_EXPORT vtkSkeletonWidget
+          : public vtkAbstractWidget
+          {
+            public:
+              /** \brief Creates a new instance.
+               *
+               */
+              static vtkSkeletonWidget *New();
 
-    protected:
-      int       m_widgetState;
-      int       m_currentHandle;
-      Plane     m_orientation;
-      double    m_drawTolerance;
-      Nm        m_slice;
-      Nm        m_shift;
-      QColor    m_color;
-      NmVector3 m_spacing;
+              vtkTypeMacro(vtkSkeletonWidget,vtkAbstractWidget);
 
-      /** \brief Callback interface to capture events when placing the widget.
-       *
-       */
-      static void StopAction(vtkAbstractWidget*);
-      static void MoveAction(vtkAbstractWidget*);
-      static void KeyPressAction(vtkAbstractWidget *);
-      static void ReleaseKeyPressAction(vtkAbstractWidget *);
-      static void TranslateAction(vtkAbstractWidget *);
+              virtual void SetEnabled(int) override;
 
-      /** \brief Overrides vtkAbstractWidget::cursor().
-       *
-       */
-      virtual void SetCursor(int State) override;
+              void CreateDefaultRepresentation() override;
 
-    protected:
-      /** \brief vtkSkeletonWidget class constructor.
-       *
-       */
-      vtkSkeletonWidget();
+              virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
-      /** \brief vtkSkeletonWidget class virtual destructor.
-       *
-       */
-      virtual ~vtkSkeletonWidget();
+              /** \brief Convenient method to determine the state of the method.
+               *
+               */
+              int GetWidgetState()
+              { return m_widgetState; }
 
-    private:
-      vtkSkeletonWidget(const vtkSkeletonWidget&);
+              /** \brief Initialize the skeleton widget from a user supplied vtkPolyData.
+               * \param[in] pd vtkPolyData raw pointer.
+               *
+               */
+              virtual void Initialize(vtkSmartPointer<vtkPolyData> pd);
 
-      /** \brief Assignment operator not implemented.
-       *
-       */
-      void operator=(const vtkSkeletonWidget&);
+              /** \brief Initialize the skeleton with empty data.
+               *
+               */
+              virtual void Initialize()
+              { this->Initialize(nullptr); }
 
-      QCursor         m_crossMinusCursor, m_crossPlusCursor, m_crossCheckCursor;
-      SkeletonWidget *m_parent;
-      bool            m_modified;
-  };
+              /** \brief Sets the orientation of the widget.
+               * \param[in] plane orientation plane.
+               *
+               */
+              virtual void SetOrientation(Plane plane);
 
+              /** \brief Returns the widget planar orientation.
+               *
+               */
+              const Plane &orientation() const
+              { return m_orientation; }
+
+              /** \brief Sets the slice for the representation of the widget if it's from the same orientation.
+               * \param[in] plane orientation plane.
+               * \param[in] value slice value.
+               *
+               */
+              void changeSlice(Plane plane, Nm value);
+
+              /** \brief Returns the skeleton.
+               *
+               */
+              vtkSmartPointer<vtkPolyData> getSkeleton();
+
+              /** \brief Sets the spacing of the view in the Z coordinate to draw the representation correctly.
+               * \param[in] shift distance in Nm.
+               *
+               */
+              void SetShift(const Nm shift);
+
+              /** \brief Returns the spacing of the view in the Z coordinate to draw the representation correctly.
+               *
+               */
+              const Nm shift() const
+              { return m_shift; }
+
+              /** \brief Sets the spacing of the representation to make the position of all nodes of the
+               * representation centered on voxel center.
+               * \param[in] spacing Spacing vector.
+               *
+               */
+              void SetSpacing(const NmVector3 &spacing);
+
+              /** \brief Returns the spacing of the widget.
+               *
+               */
+              const NmVector3 &spacing() const
+              { return m_spacing; }
+
+              /** \brief Updates the representation.
+               *
+               */
+              void UpdateRepresentation();
+
+              /** \brief Operation modes. */
+              enum { Define = 0, Delete = 1, Manipulate = 2 };
+
+              /** \brief Adds a point to the skeleton in the event coordinates position.
+               *
+               */
+              void addPoint();
+
+              /** \brief Moves the currently selected node to the given event coordinates position.
+               *
+               */
+              void movePoint();
+
+              /** \brief Stops the current operation.
+               *
+               */
+              void stop();
+
+              /** \brief Removes the current node or does nothing if there is no node selected. Returns true if a node was delete and false otherwise.
+               *
+               */
+              bool deletePoint();
+
+              /** \brief Selects the closest node to the given mouse coordinates if is between tolerance values.
+               * Returns true on success and false otherwise.
+               *
+               */
+              bool selectNode();
+
+              /** \brief Returns the number of nodes in the current representation.
+               *
+               */
+              const unsigned int numberOfPoints() const;
+
+              /** \brief Sets the value of the "ignore cursor" flag.
+               * \param[in] value true to ignore the cursor in distances computations and false otherwise.
+               *
+               */
+              void setIgnoreCursor(bool value)
+              { m_ignoreCursor = value; }
+
+              /** \brief Returns the value of the "ignore cursor flag". If true means that a create operation is not finished.
+               *
+               */
+              bool ignoreCursor() const
+              { return m_ignoreCursor; }
+
+              /** \brief Removes all the nodes.
+               *
+               */
+              void cleanup();
+
+              /** \brief Sets the current operation mode of the widget.
+               * \param[in] mode integer of operation mode.
+               *
+               */
+              void setCurrentOperationMode(const int mode);
+
+              /** \brief Returns the integer of the current operation mode of the widget.
+               *
+               */
+              const int currentOperationMode() const;
+
+              /** \brief Computes the interaction state and updates the mouse cursor.
+               *
+               */
+              void updateCursor();
+
+              /** \brief Callback method to rebuild the representation when a change occurs in the representation.
+               *
+               */
+              void BuildRepresentation();
+
+              /** \brief Sets the stroke of the next points.
+               * \param[in] stroke skeleton stroke struct.
+               *
+               */
+              void setStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Using the last three points connects the first and last with the current stroke and creates
+               *  a connection using the given stroke, the second point and the closest point to the first-last segment.
+               *  Returns true on success and false if a connection cannot be created (less than three nodes in the skeleton).
+               *  \param[in] stroke Stroke of the connection.
+               *
+               */
+              void createConnection(const Core::SkeletonStroke &stroke);
+
+              /** \brief Changes the stroke to the given one after adding a new point.
+               *  \param[in] stroke New stroke.
+               *
+               */
+              void changeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Returns true if the given point will be considered collision with an existing stroke.
+               * \param[in] point 3D point coordinates.
+               *
+               */
+              bool isStartNode(const NmVector3 &point) const;
+
+            protected:
+              int       m_widgetState;   /** widget operation state.                */
+              Plane     m_orientation;   /** orthogonal plane of the widget.        */
+              Nm        m_slice;         /** current slice position in Nm.          */
+              Nm        m_shift;         /** actor's shift over the slice position. */
+              NmVector3 m_spacing;       /** representation's spacing.              */
+
+              /** \brief Overrides vtkAbstractWidget::cursor().
+               *
+               */
+              virtual void SetCursor(int State) override;
+
+            protected:
+              /** \brief vtkSkeletonWidget class constructor.
+               *
+               */
+              vtkSkeletonWidget();
+
+              /** \brief vtkSkeletonWidget class virtual destructor.
+               *
+               */
+              virtual ~vtkSkeletonWidget();
+
+            private:
+              /** \brief Helper method to create the cursors for this widget.
+               *
+               */
+              void createCursors();
+
+              /** \brief vtkSkeletonWidget class copy constructor (not implemented).
+               *
+               */
+              vtkSkeletonWidget(const vtkSkeletonWidget&);
+
+              /** \brief Assignment operator not implemented.
+               *
+               */
+              void operator=(const vtkSkeletonWidget&);
+
+              QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                                         */
+              QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes.                     */
+              QCursor m_crossCheckCursor; /** cross check cursor shown when connecting two strokes.                                 */
+              bool    m_ignoreCursor;     /** true to ignore the current cursor node in distances computations and false otherwise. */
+          };
+
+        } // namespace Skeleton
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_VTK_SKELETON_WIDGET_H_

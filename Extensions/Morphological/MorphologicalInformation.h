@@ -25,6 +25,8 @@
 
 // ESPINA
 #include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -37,8 +39,8 @@ namespace ESPINA
     class EspinaExtensions_EXPORT MorphologicalInformation
     : public Core::SegmentationExtension
     {
-        using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
-        using LabelMapType    = itk::LabelMap<LabelObjectType>;
+        using LabelObjectType       = itk::StatisticsLabelObject<unsigned int, 3>;
+        using LabelMapType          = itk::LabelMap<LabelObjectType>;
         using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 
       public:
@@ -67,6 +69,9 @@ namespace ESPINA
 
         virtual bool validCategory(const QString& classificationName) const
         { return true;}
+
+        virtual bool validData(const OutputSPtr output) const
+        { return hasVolumetricData(output) && hasMeshData(output); }
 
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;

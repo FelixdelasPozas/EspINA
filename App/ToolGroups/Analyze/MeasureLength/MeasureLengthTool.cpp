@@ -35,8 +35,8 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 
 //----------------------------------------------------------------------------
 MeasureLengthTool::MeasureLengthTool(Support::Context &context)
-: ProgressTool("MeasureLength", ":/espina/measure_length.svg", tr("Measure Length"), context)
-, m_viewState(context.viewState())
+: ProgressTool{"MeasureLength", ":/espina/measure_length.svg", tr("Measure Length"), context}
+, m_viewState (context.viewState())
 , m_handler   {std::make_shared<MeasureEventHandler>()}
 , m_prototypes{std::make_shared<TemporalPrototypes>(std::make_shared<MeasureWidget>(m_handler.get()), TemporalRepresentation3DSPtr(), id())}
 {
@@ -51,6 +51,13 @@ MeasureLengthTool::MeasureLengthTool(Support::Context &context)
 //----------------------------------------------------------------------------
 MeasureLengthTool::~MeasureLengthTool()
 {
+  if(isChecked())
+  {
+    setChecked(false);
+  }
+
+  disconnect(this, SIGNAL(triggered(bool)),
+             this, SLOT(onToolActivated(bool)));
 }
 
 //----------------------------------------------------------------------------

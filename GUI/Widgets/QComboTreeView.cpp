@@ -22,9 +22,6 @@
 #include "QComboTreeView.h"
 #include <GUI/Utils/QtModelUtils.h>
 
-// Qt
-#include <QLineEdit>
-
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
 : QComboBox        {parent}

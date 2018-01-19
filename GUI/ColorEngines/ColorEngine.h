@@ -41,6 +41,10 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
+      /** \class ColorEngine
+       * \brief Base class for the classes that implement the algorithms for coloring the segmentations.
+       *
+       */
       class EspinaGUI_EXPORT ColorEngine
       : public QObject
       {
@@ -61,11 +65,12 @@ namespace ESPINA
         /** \brief Color Engine constructor
          * \param[in] id must be unique. It is used to store and retrieve information used
          * \param[in] tootip description of the color engine
+         *
          */
         explicit ColorEngine(const QString &id, const QString &tooltip)
-        : m_id(id)
-        , m_tooltip(tooltip)
-        , m_active(false)
+        : m_id     {id}
+        , m_tooltip{tooltip}
+        , m_active {false}
         {}
 
         /** \brief Returns the id of the Color Engine
@@ -110,9 +115,12 @@ namespace ESPINA
          */
         void setActive(bool active)
         {
-          m_active = active;
+          if(m_active != active)
+          {
+            m_active = active;
 
-          emit activated(active);
+            emit activated(active);
+          }
         }
 
       signals:
@@ -123,9 +131,9 @@ namespace ESPINA
         void lutModified();
 
       private:
-        QString m_id;
-        QString m_tooltip;
-        bool    m_active;
+        QString m_id;      /** color engine identifier.            */
+        QString m_tooltip; /** engine tooltip text.                */
+        bool    m_active;  /** true if in use and false otherwise. */
       };
 
       Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)

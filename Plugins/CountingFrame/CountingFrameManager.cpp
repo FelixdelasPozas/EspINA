@@ -97,7 +97,7 @@ void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
 }
 
 //-----------------------------------------------------------------------------
-CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
+CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id &id) const
 {
   return SuggestId(id, m_countingFrames.keys());
 }

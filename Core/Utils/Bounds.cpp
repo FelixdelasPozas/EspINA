@@ -30,8 +30,7 @@
 #include "Bounds.h"
 #include <Core/Utils/EspinaException.h>
 
-// C++
-#include <tgmath.h>
+// Qt
 #include <QStringList>
 
 using namespace ESPINA;
@@ -62,7 +61,8 @@ bool lowerBoundsInclusion(double value)
 }
 
 //-----------------------------------------------------------------------------
-bool upperBoundsInclusion(double value) {
+bool upperBoundsInclusion(double value)
+{
   if (value == ']') return true;
   if (value == ')') return false;
 
@@ -258,7 +258,6 @@ bool ESPINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
   return overlap;
 }
 
-
 //-----------------------------------------------------------------------------
 Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
@@ -343,12 +342,11 @@ Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 
   if(!res.areValid())
   {
-    // TODO: use EspinaException.
-    qWarning() << "Bounds::intersection() resulted in invalid bounds: " << res;
+    qWarning() << QObject::tr("Intersection resulted in invalid bounds.");
+    qWarning() << QObject::tr("Bounds::intersection(b1,b2) -> b1 = %1, b2 = %2, result = %3").arg(b1.toString()).arg(b2.toString()).arg(res.toString());
   }
 
   return res;
-
 }
 
 //-----------------------------------------------------------------------------
@@ -388,7 +386,7 @@ NmVector3 ESPINA::lowerPoint(const Bounds& bounds)
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 ESPINA::upperrPoint(const Bounds& bounds)
+NmVector3 ESPINA::upperPoint(const Bounds& bounds)
 {
   return NmVector3{bounds[1], bounds[3], bounds[5]};
 }
@@ -531,7 +529,6 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
   }
 
   return true;
-
 }
 
 //-----------------------------------------------------------------------------
@@ -595,4 +592,16 @@ bool ESPINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
   }
 
   return ((coincident == 2) && (adjacent == 1));
+}
+
+//-----------------------------------------------------------------------------
+const float ESPINA::surfaceArea(const Bounds &bounds)
+{
+  return 2.0 * ((bounds.lenght(Axis::X) * bounds.lenght(Axis::Y)) + (bounds.lenght(Axis::X) * bounds.lenght(Axis::Z)) + (bounds.lenght(Axis::Y) * bounds.lenght(Axis::Z)));
+}
+
+//-----------------------------------------------------------------------------
+const float ESPINA::enclosingVolume(const Bounds& bounds)
+{
+  return bounds.lenght(Axis::X)*bounds.lenght(Axis::Y)*bounds.lenght(Axis::Z);
 }

@@ -67,7 +67,6 @@ AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, S
 , m_alreadyFetchedData{false}
 , m_lastModifiedMesh  {0}
 {
-  setDescription(tr("Compute SAS"));
 }
 
 //----------------------------------------------------------------------------
@@ -127,7 +126,7 @@ void AppositionSurfaceFilter::execute()
 
   itkVolumeType::SizeType padding;
   padding.Fill(1);
-  PadFilterType::Pointer padder = PadFilterType::New();
+  auto padder = PadFilterType::New();
   padder->SetInput(input);
   padder->SetPadLowerBound(padding);
   padder->SetPadUpperBound(padding);
@@ -144,10 +143,10 @@ void AppositionSurfaceFilter::execute()
   region.SetIndex(region.GetIndex() + padding);
   paddedImage->SetRegions(region);
 
-  ItkToVtkFilterType::Pointer itk2vtk_filter = ItkToVtkFilterType::New();
+  auto itk2vtk_filter = ItkToVtkFilterType::New();
   itk2vtk_filter->SetInput(paddedImage);
   itk2vtk_filter->Update();
-  vtkSmartPointer<vtkImageData> vtk_padImage = itk2vtk_filter->GetOutput();
+  auto vtk_padImage = itk2vtk_filter->GetOutput();
 
   double spacing[3];
   vtk_padImage->GetSpacing(spacing);
@@ -157,10 +156,10 @@ void AppositionSurfaceFilter::execute()
   //qDebug() << points->GetNumberOfPoints() << " segmentation points");
 
   double corner[3], max[3], mid[3], min[3], size[3];
-  OBBTreeType obbTree = OBBTreeType::New();
+  auto obbTree = OBBTreeType::New();
   obbTree->ComputeOBB(points, corner, max, mid, min, size);
-  Points obbCorners = corners(corner, max, mid, min);
-  DistanceMapType::Pointer distanceMap = computeDistanceMap(paddedImage, DISTANCESMOOTHSIGMAFACTOR);
+  auto obbCorners = corners(corner, max, mid, min);
+  auto distanceMap = computeDistanceMap(paddedImage, DISTANCESMOOTHSIGMAFACTOR);
 
   //   qDebug() << "Build and move the plane to Avg Max Distance";
   double avgMaxDistPoint[3];
@@ -172,7 +171,7 @@ void AppositionSurfaceFilter::execute()
 
   computeResolution(max, mid, vtk_padImage->GetSpacing(), xResolution, yResolution);
 
-  PlaneSourceType planeSource = PlaneSourceType::New();
+  auto planeSource = PlaneSourceType::New();
   planeSource->SetOrigin(obbCorners->GetPoint(0));
   planeSource->SetPoint1(obbCorners->GetPoint(1));
   planeSource->SetPoint2(obbCorners->GetPoint(2));
@@ -185,8 +184,8 @@ void AppositionSurfaceFilter::execute()
   reportProgress(40);
   if (!canExecute()) return;
 
-  vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
-  vtkSmartPointer<vtkDoubleArray> normalArray = vtkSmartPointer<vtkDoubleArray>::New();
+  auto originArray = vtkSmartPointer<vtkDoubleArray>::New();
+  auto normalArray = vtkSmartPointer<vtkDoubleArray>::New();
 
   originArray->SetName(MESH_ORIGIN);
   originArray->SetNumberOfValues(3);
@@ -204,16 +203,20 @@ void AppositionSurfaceFilter::execute()
   project(v, normal, displacement);
 
   if (vtkMath::Dot(displacement, normal) > 0)
+  {
     planeSource->Push(vtkMath::Norm(displacement));
+  }
   else
+  {
     planeSource->Push(- vtkMath::Norm(displacement));
+  }
 
-  PolyData sourcePlane = planeSource->GetOutput();
+  auto sourcePlane = planeSource->GetOutput();
 
   // Plane is only transformed in its normal direction
   //   qDebug() << "Compute transformation matrix from distance map gradient";
 
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  auto gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(distanceMap);
   gradientFilter->SetUseImageSpacingOn();
   gradientFilter->Update();
@@ -221,19 +224,19 @@ void AppositionSurfaceFilter::execute()
   reportProgress(60);
   if (!canExecute()) return;
 
-  vtkSmartPointer<vtkImageData> gradientVectorGrid = vtkSmartPointer<vtkImageData>::New();
+  auto gradientVectorGrid = vtkSmartPointer<vtkImageData>::New();
   vectorImageToVTKImage(gradientFilter->GetOutput(), gradientVectorGrid);
   //gradientVectorGrid->Print(std::cout);
 
   projectVectors(gradientVectorGrid, normal);
 
-  GridTransform grid_transform = GridTransform::New();
+  auto grid_transform = GridTransform::New();
   grid_transform->SetDisplacementGridData(gradientVectorGrid);
   grid_transform->SetInterpolationModeToCubic();
   grid_transform->SetDisplacementScale(DISPLACEMENTSCALE);
 
-  TransformPolyDataFilter transformer = TransformPolyDataFilter::New();
-  PolyData auxPlane = sourcePlane;
+  auto transformer = TransformPolyDataFilter::New();
+  auto auxPlane = sourcePlane;
 
   int numIterations = m_iterations;
   double thresholdError = 0;
@@ -273,54 +276,62 @@ void AppositionSurfaceFilter::execute()
   reportProgress(80);
   if (!canExecute()) return;
 
-  PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
+  auto clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
   //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
 
   /**
    * Traslate
    */
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Translate (-spacing[0]*padding[0], -spacing[1]*padding[0], -spacing[2]*padding[0]);
+  auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  auto transform       = vtkSmartPointer<vtkTransform>::New();
+  transform->Translate(-spacing[0]*padding[0], -spacing[1]*padding[0], -spacing[2]*padding[0]);
   transformFilter->SetTransform(transform);
   transformFilter->SetInputData(clippedPlane);
   transformFilter->Update();
 
-  PolyData appositionSurface = transformFilter->GetOutput();
+  auto appositionSurface = transformFilter->GetOutput();
   // PolyData appositionSurface = clippedPlane;
   //ESPINA_DEBUG(appositionSurface->GetNumberOfCells() << " cells in apppositionPlane");
 
   // qDebug() << "Create Mesh";
   //m_ap->DeepCopy(appositionSurface);
-  m_ap = PolyData::New();
-  m_ap->Initialize();
-  m_ap->SetPoints(appositionSurface->GetPoints());
-  m_ap->SetPolys(appositionSurface->GetPolys());
-  m_ap->SetLines(appositionSurface->GetLines());
-  m_ap->GetPointData()->AddArray(originArray);
-  m_ap->GetPointData()->AddArray(normalArray);
-  m_ap->Modified();
 
-  auto outpuSpacing = ToNmVector3<itkVolumeType>(input->GetSpacing());
-  auto meshOutput   = std::make_shared<RawMesh>(m_ap, outpuSpacing);
-
-  m_lastModifiedMesh = meshOutput->lastModified();
-
-  double meshVTKBounds[6];
-  m_ap->GetBounds(meshVTKBounds);
-
-  Bounds meshBounds{meshVTKBounds};
-
-  if(!m_outputs.contains(0))
+  if(appositionSurface->GetNumberOfPoints() == 0 || appositionSurface->GetNumberOfCells() == 0 || appositionSurface->GetNumberOfPolys() == 0)
   {
-    m_outputs[0] = std::make_shared<Output>(this, 0, outpuSpacing);
+    m_errorMessages << tr("Origin segmentation is too small or invalid to produce a SAS.");
   }
+  else
+  {
+    m_ap = PolyData::New();
+    m_ap->Initialize();
+    m_ap->SetPoints(appositionSurface->GetPoints());
+    m_ap->SetPolys(appositionSurface->GetPolys());
+    m_ap->SetLines(appositionSurface->GetLines());
+    m_ap->GetPointData()->AddArray(originArray);
+    m_ap->GetPointData()->AddArray(normalArray);
+    m_ap->Modified();
 
-  m_outputs[0]->setData(meshOutput);
-  auto volume = std::make_shared<RasterizedVolume<itkVolumeType>>(m_outputs[0].get(), meshBounds, outpuSpacing);
-  volume->rasterize();
-  m_outputs[0]->setData(volume);
-  m_outputs[0]->setSpacing(outpuSpacing);
+    auto outpuSpacing = ToNmVector3<itkVolumeType>(input->GetSpacing());
+    auto meshOutput   = std::make_shared<RawMesh>(m_ap, outpuSpacing);
+
+    m_lastModifiedMesh = meshOutput->lastModified();
+
+    double meshVTKBounds[6];
+    m_ap->GetBounds(meshVTKBounds);
+
+    Bounds meshBounds{meshVTKBounds};
+
+    if(!m_outputs.contains(0))
+    {
+      m_outputs[0] = std::make_shared<Output>(this, 0, outpuSpacing);
+    }
+
+    m_outputs[0]->setData(meshOutput);
+    auto volume = std::make_shared<RasterizedVolume<itkVolumeType>>(m_outputs[0].get(), meshBounds, outpuSpacing);
+    volume->rasterize();
+    m_outputs[0]->setData(volume);
+    m_outputs[0]->setSpacing(outpuSpacing);
+  }
 
   reportProgress(100);
 }
@@ -704,4 +715,16 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData 
 void AppositionSurfaceFilter::inputModified()
 {
   run();
+}
+
+//----------------------------------------------------------------------------
+bool AppositionSurfaceFilter::hasErrors() const
+{
+  return !m_errorMessages.isEmpty();
+}
+
+//----------------------------------------------------------------------------
+const QStringList AppositionSurfaceFilter::errors() const
+{
+  return m_errorMessages;
 }

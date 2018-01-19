@@ -21,7 +21,11 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
-  Dialogs/ChannelInspector/ChannelInspector.h
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
+  Dialogs/ConnectionCount/ConnectionCountDialog.h
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.h
+  Dialogs/CustomFileOpenDialog/OptionsPanel.h
+  Dialogs/StackInspector/StackInspector.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
@@ -29,6 +33,9 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/IssueList/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
+  Dialogs/SkeletonInspector/SkeletonInspector.h
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -41,10 +48,12 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/GeneralSettings/GeneralSettingsPanel.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.h
   ToolGroups/Analyze/Reports/ReportSelectorDialog.h
   ToolGroups/Analyze/Reports/DistanceInformationReport.h
   ToolGroups/Analyze/Reports/ReportsTool.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.h
   ToolGroups/Explore/ResetViewTool.h
   ToolGroups/Explore/PositionMarksTool.h
   ToolGroups/Explore/ZoomRegionTool.h
@@ -57,6 +66,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/ManualEditionTool.h
   ToolGroups/Edit/EditToolGroup.h
   ToolGroups/Edit/SplitTool.h
+  ToolGroups/Edit/SkeletonEditionTool.h
   ToolGroups/Edit/SliceInterpolationTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
@@ -68,18 +78,23 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/Manual/ManualSegmentTool.h
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.h
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-#  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
   ToolGroups/ToolGroup.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
+  ToolGroups/Visualize/FullscreenTool.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
-#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
-  ToolGroups/Visualize/VisualizeToolGroup.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
@@ -91,13 +106,17 @@ qt4_wrap_cpp (ESPINA_MOC
 qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
-  Dialogs/ChannelInspector/ChannelInspector.ui
+  Dialogs/ConnectionCount/ConnectionCountDialog.ui
+  Dialogs/CustomFileOpenDialog/OptionsPanel.ui
+  Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/IssueList/IssueListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
+  Dialogs/SkeletonInspector/SkeletonInspector.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/IssueProperty.ui
@@ -126,7 +145,12 @@ set (ESPINA_SOURCES
   AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
-  Dialogs/ChannelInspector/ChannelInspector.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
+  Dialogs/ConnectionCount/ConnectionCountDialog.cpp
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
+  Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
+  Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
@@ -137,6 +161,9 @@ set (ESPINA_SOURCES
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
   Dialogs/Dialog3D/Dialog3D.cpp
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.cpp
+  Dialogs/SkeletonInspector/SkeletonInspector.cpp
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -156,12 +183,15 @@ set (ESPINA_SOURCES
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
   Settings/Utils.cpp
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.cpp
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
   ToolGroups/Analyze/Reports/DistanceInformationReport.cpp
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
   ToolGroups/Edit/CODERefineWidget.cpp
   ToolGroups/Edit/CODERefiner.cpp
   ToolGroups/Edit/CODETool.cpp
@@ -173,6 +203,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/SliceEditionPipeline.cpp
   ToolGroups/Edit/SliceInterpolationTool.cpp
   ToolGroups/Edit/SplitTool.cpp
+  ToolGroups/Edit/SkeletonEditionTool.cpp
   ToolGroups/Explore/PositionMarksTool.cpp
   ToolGroups/Explore/ResetViewTool.cpp
   ToolGroups/Explore/ZoomRegionTool.cpp
@@ -183,26 +214,32 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/Manual/ManualSegmentTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.cpp
-  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefiner.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-#  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.cpp
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp
   ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
+  ToolGroups/Visualize/FullscreenTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp
-  ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
-#  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
-  ToolGroups/Visualize/VisualizeToolGroup.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
   Undo/ChangeCategoryColorCommand.cpp
   Undo/DragChannelsCommand.cpp
   Undo/DrawUndoCommand.cpp

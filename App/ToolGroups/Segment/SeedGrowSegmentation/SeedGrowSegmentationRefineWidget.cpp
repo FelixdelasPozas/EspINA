@@ -18,9 +18,11 @@
 
 // ESPINA
 #include "SeedGrowSegmentationRefineWidget.h"
+#include "SeedTemporalPrototype.h"
 #include "ui_SeedGrowSegmentationRefineWidget.h"
-#include <ToolGroups/Restrict/RestrictToolGroup.h>
-#include <Settings/ROI/ROISettings.h>
+#include <Core/Utils/SignalBlocker.h>
+#include <App/ToolGroups/Restrict/RestrictToolGroup.h>
+#include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 
@@ -31,6 +33,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 // BEGIN DEBUG Only
 bool SeedGrowSegmentationRefineWidget::s_exists = false;
@@ -154,13 +157,13 @@ void SGSFilterModification::invalidateRepresentations()
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationAdapterPtr segmentation,
-                                                                   RestrictToolGroupSPtr  roiTools,
-                                                                   Support::Context      &context)
-: WithContext   (context)
+                                                                   Support::Context      &context,
+                                                                   QWidget               *parent)
+: QWidget       {parent}
+, WithContext   (context)
 , m_segmentation{segmentation}
 , m_gui         {new Ui::SeedGrowSegmentationRefineWidget()}
 , m_filter      {std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter())}
-, m_roiTools    {roiTools}
 {
   s_mutex.lock();
   Q_ASSERT(!s_exists);
@@ -169,15 +172,28 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 
   m_gui->setupUi(this);
 
-  auto toolbar = new QToolBar();
+  auto toolbar = new QToolBar(m_gui->roiFrame);
   toolbar->setMinimumHeight(Styles::CONTEXTUAL_BAR_HEIGHT);
 
+  m_roiTools = std::make_shared<RestrictToolGroup>(new ROISettings(), context, toolbar);
+
   populateToolBar(toolbar, m_roiTools->groupedTools());
+
+  QColor sgsROIColor{Qt::yellow};
+  sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
+  m_roiTools->setColor(sgsROIColor);
 
   m_gui->roiFrame->layout()->addWidget(toolbar);
 
   auto seed = m_filter->seed();
-  m_gui->seed->setText(QString("(%1, %2, %3)").arg(seed[0]).arg(seed[1]).arg(seed[2]));
+
+  auto text = tr("<a href=""%1"">%1</a>").arg(seed.toString());
+  m_gui->seed->setText(text);
+  m_gui->seed->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+  m_gui->seed->setOpenExternalLinks(false);
+  m_gui->seed->setTextFormat(Qt::RichText);
+  connect(m_gui->seed, SIGNAL(linkActivated(const QString &)), this, SLOT(onLinkActivated(const QString &)));
+
   m_gui->threshold->setMaximum(255);
   m_gui->threshold->setValue(m_filter->lowerThreshold());
   m_gui->closingRadius->setValue(m_filter->closingRadius());
@@ -196,6 +212,10 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
     m_roiTools->setVisible(true);
   }
 
+  auto prototype2D = std::make_shared<SeedTemporalRepresentation>(m_filter.get());
+  m_seedPrototypes = std::make_shared<TemporalPrototypes>(prototype2D, TemporalRepresentation3DSPtr(), tr("SeedTempRep"));
+  context.viewState().addTemporalRepresentations(m_seedPrototypes);
+
   connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
           this,                           SLOT(onThresholdChanged(int)));
   connect(m_gui->applyClosing,            SIGNAL(toggled(bool)),
@@ -206,7 +226,7 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
           this,                           SLOT(onDiscardROIModifications()));
   connect(m_gui->apply,                   SIGNAL(clicked(bool)),
           this,                           SLOT(modifyFilter()));
-  connect(m_roiTools.get(),               SIGNAL(roiChanged(ROISPtr)),
+  connect(m_roiTools.get(),               SIGNAL(ROIChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
 
   connect(m_filter.get(), SIGNAL(thresholdModified(int, int)),
@@ -237,6 +257,8 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
   s_exists = false;
   s_mutex.unlock();
 
+  getContext().viewState().removeTemporalRepresentations(m_seedPrototypes);
+
   if(m_roiTools->currentROI() != nullptr)
   {
     m_roiTools->setCurrentROI(nullptr);
@@ -246,7 +268,7 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onFilterThresholdModified(int lower, int upper)
 {
-  // NOTE: assuming simmetric threshold.
+  // NOTE: assuming symmetric threshold.
   m_gui->threshold->setValue(lower);
 }
 
@@ -318,45 +340,54 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
 {
   auto output = m_filter->output(0);
 
-  if (!output->isEdited() || discardChangesConfirmed())
+  SignalBlocker<OutputSPtr> blocker(output);
+
+  if (output->isEdited())
   {
-    auto volume = readLockVolume(output);
+    auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
+    auto message = tr("Filter contains segmentations that have been manually modified by the user."
+                  "Updating this filter will result in losing user modifications."
+                  "Do you want to proceed?");
 
-    auto spacing = volume->bounds().spacing();
-    auto roi     = m_roiTools->currentROI();
-    auto seed    = m_filter->seed();
+    if (GUI::DefaultDialogs::UserQuestion(message, buttons, dialogTitle()) == QMessageBox::Cancel) return;
+  }
 
-    if (!roi || contains(roi.get(), seed, spacing))
+  auto volume = readLockVolume(output);
+
+  auto spacing = volume->bounds().spacing();
+  auto roi = m_roiTools->currentROI();
+  auto seed = m_filter->seed();
+
+  if (!roi || contains(roi.get(), seed, spacing))
+  {
+    auto undoStack = getUndoStack();
+    auto threshold = m_gui->threshold->value();
+    auto radius = m_gui->closingRadius->value();
+
+    undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
+    undoStack->push(new SGSFilterModification(m_segmentation, roi, threshold, radius));
+    undoStack->endMacro();
+
+    if (m_filter->isTouchingROI())
     {
-      auto undoStack = getUndoStack();
-      auto threshold = m_gui->threshold->value();
-      auto radius    = m_gui->closingRadius->value();
-
-      undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
-      undoStack->push(new SGSFilterModification(m_segmentation, roi, threshold, radius));
-      undoStack->endMacro();
-
-      m_gui->apply->setEnabled(false);
-
-      if (m_filter->isTouchingROI())
-      {
-        auto message = tr("New segmentation may be incomplete due to ROI restriction.");
-
-        GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
-      }
-
-      auto currentFilterROI = m_filter->roi();
-      if (currentFilterROI)
-      {
-        m_roiTools->setCurrentROI(currentFilterROI->clone());
-      }
-    }
-    else
-    {
-      auto message = tr("Segmentation couldn't be modified. Selected voxel is outside ROI");
+      auto message = tr("New segmentation may be incomplete due to ROI restriction.");
 
       GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
     }
+
+    auto currentFilterROI = m_filter->roi();
+    if (currentFilterROI)
+    {
+      m_roiTools->setCurrentROI(currentFilterROI->clone());
+    }
+
+    m_gui->apply->setEnabled(false);
+  }
+  else
+  {
+    auto message = tr("Segmentation couldn't be modified because the ROI doesn't contain the <b>seed point</b>.");
+
+    GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
   }
 }
 
@@ -366,13 +397,10 @@ QString SeedGrowSegmentationRefineWidget::dialogTitle() const
   return tr("Grey Level Segmentation");
 }
 
-//----------------------------------------------------------------------------
-bool SeedGrowSegmentationRefineWidget::discardChangesConfirmed() const
+//--------------------------------------------------------------------
+void SeedGrowSegmentationRefineWidget::onLinkActivated(const QString &link)
 {
-  auto buttons = QMessageBox::Yes|QMessageBox::Cancel;
-  auto message = tr("Filter contains segmentations that have been manually modified by the user."
-                    "Updating this filter will result in losing user modifications."
-                    "Do you want to proceed?");
+  NmVector3 point{link};
 
-  return (GUI::DefaultDialogs::UserQuestion(message, buttons, dialogTitle()) == QMessageBox::Yes);
+  getViewState().focusViewOn(point);
 }

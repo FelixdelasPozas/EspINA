@@ -49,7 +49,10 @@ bool RepresentationState::hasPendingChanges() const
 //----------------------------------------------------------------------------
 void RepresentationState::apply(const RepresentationState &state)
 {
+  if(this == &state) return;
+
   QMutexLocker lock(&m_mutex);
+  QMutexLocker lockOther(&state.m_mutex);
 
   for (auto key : state.m_properties.keys())
   {
@@ -174,6 +177,8 @@ bool ESPINA::isVisible(const RepresentationState &state)
 //----------------------------------------------------------------------------
 QDebug ESPINA::operator<<(QDebug debug, const RepresentationState &state)
 {
+  QMutexLocker lock(&state.m_mutex);
+
   debug << "\n---RepresentationState---\n";
   for(auto key: state.m_properties.keys())
   {

@@ -20,11 +20,11 @@
 
 // ESPINA
 #include "SeedGrowSegmentationFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/StatePair.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // C++
 #include <unistd.h>
@@ -65,11 +65,6 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, const 
 , m_prevROI    {nullptr}
 , m_touchesROI {false}
 , m_forceUpdate{false}
-{
-}
-
-//------------------------------------------------------------------------
-SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
 }
 

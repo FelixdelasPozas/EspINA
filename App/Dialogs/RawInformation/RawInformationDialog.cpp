@@ -22,7 +22,6 @@
 #include "RawInformationDialog.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/Settings.h>
-#include <Support/Utils/SelectionUtils.h>
 #include <Support/Widgets/TabularReport.h>
 #include <QSettings>
 #include <QDialogButtonBox>
@@ -36,15 +35,15 @@ const QString SETTINGS_GROUP = "Raw Information Report";
 
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
-: QDialog(DefaultDialogs::defaultParentWidget())
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
   setObjectName("Raw Information Report");
 
   setWindowTitle(tr("Raw Information Report"));
 
   auto report = new TabularReport(context, this);
-  report->setModel(context.model());
   report->setFilter(input);
+  report->setModel(context.model());
 
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);

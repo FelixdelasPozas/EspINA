@@ -20,8 +20,10 @@
 
 // ESPINA
 #include "InformationProxy.h"
-
 #include <GUI/Model/Utils/SegmentationUtils.h>
+
+// Qt
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -38,13 +40,7 @@ InformationProxy::InformationProxy(SchedulerSPtr scheduler)
 //------------------------------------------------------------------------
 InformationProxy::~InformationProxy()
 {
-  for (auto task : m_pendingInformation)
-  {
-    if (!task->hasFinished())
-    {
-      task->abort();
-    }
-  }
+  abortTasks();
 }
 
 //------------------------------------------------------------------------
@@ -145,7 +141,7 @@ QModelIndex InformationProxy::parent(const QModelIndex& child) const
   if (!child.isValid()) return QModelIndex();
 
   auto childItem = itemAdapter(child);
-  Q_ASSERT(isSegmentation(childItem));
+  if(!childItem || !isSegmentation(childItem)) return QModelIndex();
 
   return mapFromSource(m_model->segmentationRoot());
 }
@@ -191,6 +187,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   if (!isSegmentation(proxyItem)) return QVariant();
 
   auto segmentation = segmentationPtr(proxyItem);
+
+  if(!acceptSegmentation(segmentation)) return QVariant();
 
   if (role == Qt::TextAlignmentRole) return Qt::AlignRight;
 
@@ -249,10 +247,9 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
         {
           connect(task.get(), SIGNAL(progress(int)),
-                  this,       SLOT(onProgessReported(int)));
+                  this,       SLOT(onProgressReported(int)));
           connect(task.get(), SIGNAL(finished()),
                   this,       SLOT(onTaskFininished()));
-          //qDebug() << "Launching Task";
           Task::submit(task);
         }
         else // we avoid overloading the scheduler
@@ -307,12 +304,7 @@ void InformationProxy::setInformationTags(const SegmentationExtension::Informati
 {
   beginResetModel();
 
-  for (auto task : m_pendingInformation)
-  {
-    task->abort();
-  }
-
-  m_pendingInformation.clear();
+  abortTasks();
 
   m_keys = keys;
 
@@ -436,7 +428,7 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 
 
 //------------------------------------------------------------------------
-void InformationProxy::onProgessReported(int progress)
+void InformationProxy::onProgressReported(int progress)
 {
   emit informationProgress();
 }
@@ -470,4 +462,29 @@ QModelIndex InformationProxy::index(const ItemAdapterPtr segmentation, int col)
   int row = m_elements.indexOf(segmentation);
 
   return index(row, col);
+}
+
+//------------------------------------------------------------------------
+void InformationProxy::abortTasks()
+{
+  for (auto task : m_pendingInformation)
+  {
+    disconnect(task.get(), SIGNAL(progress(int)),
+               this,       SLOT(onProgressReported(int)));
+
+    disconnect(task.get(), SIGNAL(finished()),
+               this,       SLOT(onTaskFininished()));
+
+    if (!task->hasFinished())
+    {
+      task->abort();
+
+      if(!task->thread()->wait(100))
+      {
+        task->thread()->terminate();
+      }
+    }
+  }
+
+  m_pendingInformation.clear();
 }

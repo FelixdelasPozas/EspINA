@@ -39,6 +39,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QReadWriteLock>
+#include <QStringList>
 
 // C++
 #include <cstdint>
@@ -140,6 +141,20 @@ namespace ESPINA
      *
      */
     bool hasFinished() const;
+
+    /** \brief Returns true if the task encountered any error in it's execution.
+     *         Override it if your task can or should report errors.
+     *
+     */
+    virtual bool hasErrors() const
+    { return false; }
+
+    /** \brief Returns the list of errors the task encountered during it's execution.
+     *         Override it if your task can or should report errors.
+     *
+     */
+    virtual const QStringList errors() const
+    { return QStringList(); }
 
     /** \brief Returns task priority.
      *

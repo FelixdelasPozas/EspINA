@@ -94,7 +94,7 @@ AnalysisSPtr SegFile::load(const QFileInfo  &file,
 class TmpSegFile
 {
 public:
-  TmpSegFile(QDir& tmpDir) :
+  explicit TmpSegFile(QDir& tmpDir) :
   File { tmpDir.absoluteFilePath(QUuid::createUuid().toString()) }, m_tmpDir { tmpDir }
   {}
 

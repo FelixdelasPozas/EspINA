@@ -46,21 +46,17 @@ namespace ESPINA
       namespace Widgets
       {
         /** \class EspinaWidget
-         * \brief Super class for Espina interactive widgets.
+         * \brief Base class for EspINA interactive widgets.
          *
          */
         class EspinaGUI_EXPORT EspinaWidget
         {
           public:
-            /** \brief Default constructor.
+            /** \brief EspinaWidget class virtual destructor.
              *
              */
-            explicit EspinaWidget();
-
-            /** \brief Virtual destructor.
-             *
-             */
-            virtual ~EspinaWidget();
+            virtual ~EspinaWidget()
+            {}
 
             /** \brief Initializes the widget for the given view.
              * \param[in] view Espina view.
@@ -105,6 +101,10 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget() = 0;
         };
 
+        /** \class EspinaWidget2D
+         * \brief Implements an interactive widget for 2D views.
+         *
+         */
         class EspinaGUI_EXPORT EspinaWidget2D
         : public Representations::Managers::TemporalRepresentation2D
         , public EspinaWidget
@@ -123,6 +123,10 @@ namespace ESPINA
             { hideWidget(); }
         };
 
+        /** \class EspinaWidget3D
+         * \brief Implements an interactive widget for 3D views.
+         *
+         */
         class EspinaGUI_EXPORT EspinaWidget3D
         : public Representations::Managers::TemporalRepresentation3D
         , public EspinaWidget

@@ -28,30 +28,34 @@
 
 namespace ESPINA
 {
+  /** \class ErodeFilter
+   * \brief Implements morphological erode operation.
+   */
   class EspinaFilters_EXPORT ErodeFilter
   : public MorphologicalEditionFilter
   {
-  public:
-    /** \brief EroreFilter class constructor.
-     * \param[in] inputs    list of input smart pointers.
-     * \param[in] type      ErodeFilter type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit ErodeFilter(InputSList          inputs,
-                         const Filter::Type &type,
-                         SchedulerSPtr       scheduler);
+    public:
+      /** \brief EroreFilter class constructor.
+       * \param[in] inputs    list of input smart pointers.
+       * \param[in] type      ErodeFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit ErodeFilter(InputSList          inputs,
+                           const Filter::Type &type,
+                           SchedulerSPtr       scheduler);
 
-    /** \brief ErodeFilter class virtual destructor.
-     *
-     */
-    virtual ~ErodeFilter();
+      /** \brief ErodeFilter class virtual destructor.
+       *
+       */
+      virtual ~ErodeFilter()
+      {}
 
-  protected:
-    virtual void execute()
-    { execute(0); }
+    protected:
+      virtual void execute()
+      { execute(0); }
 
-    virtual void execute(Output::Id id);
+      virtual void execute(Output::Id id);
   };
 
 } // namespace ESPINA

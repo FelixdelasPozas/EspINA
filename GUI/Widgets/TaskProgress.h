@@ -45,6 +45,10 @@ namespace ESPINA
 {
   class Task;
 
+  /** \class TaskProgress
+   * \brief Implements a progress widget for a task.
+   *
+   */
   class EspinaGUI_EXPORT TaskProgress
   : public QWidget
   , public Ui::TaskProgress

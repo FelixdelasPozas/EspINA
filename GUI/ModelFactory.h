@@ -219,6 +219,12 @@ namespace ESPINA
      */
     TemporalStorageSPtr createTemporalStorage();
 
+    /** \brief Returns the core default storage for filters.
+     *
+     */
+    TemporalStorageSPtr defaultStorage() const
+    { return m_factory->defaultStorage(); }
+
   private:
     template<typename Factory, typename ... Args>
     friend Core::StackExtensionFactorySPtr createStackExtensionFactory(ModelFactorySPtr factory, Args ... args);

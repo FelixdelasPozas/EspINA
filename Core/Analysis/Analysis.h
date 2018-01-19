@@ -18,7 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_ANALYSIS_H
 #define ESPINA_ANALYSIS_H
 
@@ -28,12 +27,14 @@
 #include "Core/Types.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
 #include "Category.h"
+#include "Connections.h"
 #include "ViewItem.h"
 
 namespace ESPINA
 {
   /** \class Analysis
-   * \brief Contains all
+   * \brief Contains all data and relations.
+   *
    */
   class EspinaCore_EXPORT Analysis
   {
@@ -75,7 +76,7 @@ namespace ESPINA
        *
        */
       ClassificationSPtr classification() const
-      {return m_classification;}
+      { return m_classification; }
 
       /** \brief Adds a sample to the analysis.
        * \param[in] sample sample smart pointer.
@@ -175,9 +176,7 @@ namespace ESPINA
        * \param[in] relation relation key.
        *
        */
-      void addRelation(PersistentSPtr    ancestor,
-                       PersistentSPtr    succesor,
-                       const RelationName& relation);
+      void addRelation(PersistentSPtr ancestor, PersistentSPtr succesor, const RelationName& relation);
 
       /** \brief Removes a relation between to Persistent objects in the analysis.
        * \param[in] ancestor Persistent object smart pointer, origin of the relation.
@@ -185,22 +184,74 @@ namespace ESPINA
        * \param[in] relation relation key.
        *
        */
-      void deleteRelation(PersistentSPtr    ancestor,
-                          PersistentSPtr    succesor,
-                          const RelationName& relation);
+      void deleteRelation(const PersistentSPtr ancestor, const PersistentSPtr succesor, const RelationName& relation);
+
+      /** \brief Adds a connection between the given segmentations in the given point.
+       * \param[in] segmentation1 segmentation object.
+       * \param[in] segmentation2 segmentation object.
+       * \param[in] point connection point.
+       *
+       */
+      void addConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point);
+
+      /** \brief Removes a connection between the given segmentations in the given point.
+       * \param[in] segmentation1 segmentation object.
+       * \param[in] segmentation2 segmentation object.
+       * \param[in] point connection point.
+       *
+       */
+      void removeConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point);
+
+      /** \brief Removes all connections between the given segmentations.
+       * \param[in] segmentation1 segmentation object.
+       * \param[in] segmentation2 segmentation object.
+       *
+       */
+      void removeConnections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2);
+
+      /** \brief Removes all connections between the given segmentation and others.
+       * \param[in] segmentation segmentation object.
+       *
+       */
+      void removeConnections(const PersistentSPtr segmentation);
+
+      /** \brief Returns the list of connections between the given segmentations.
+       * \param[in] segmentation1 segmentation object.
+       * \param[in] segmentation2 segmentation object.
+       *
+       */
+      Core::Connections connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2) const;
+
+      /** \brief Returns the list of connections between the given segmentations and others.
+       * \param[in] segmentation segmentation object.
+       *
+       */
+      Core::Connections connections(const PersistentSPtr segmentation) const;
+
+      /** \brief Saves the connections to the temporal storage directory.
+       *   Returns true if data was saved to disk and false if session has no connections.
+       *
+       */
+      bool saveConnections() const;
+
+      /** \brief Loads the connections map from the temporal storage directory.
+       *   Returns true if data was loaded from disk and false if there is no connection data on disk.
+       *
+       */
+      bool loadConnections();
 
       /** \brief Return the relations graph of the analysis.
        * The relationship graph expresses the concept relations between persistent objects in the analysis.
        *
        */
-      const DirectedGraphSPtr relationships()
+      const DirectedGraphSPtr relationships() const
       { return m_relations; }
 
       /** \brief Returns the content graph of the analysis.
        * The content graph expresses dependencies between persistent objects in the analysis.
        *
        */
-      const DirectedGraphSPtr content()
+      const DirectedGraphSPtr content() const
       { return m_content; }
 
     private:
@@ -215,7 +266,7 @@ namespace ESPINA
        * \param[in] item item to check.
        *
        */
-      bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
+      bool removeIfIsolated(DirectedGraphSPtr graph, PersistentSPtr item);
 
       /** \brief Adds a filter to the analysis only if it doesn't exist in the analysis.
        * \param[in] filter smart pointer of the filter to check.
@@ -263,21 +314,18 @@ namespace ESPINA
        * \param[in] relation relation key.
        *
        */
-      bool findRelation(PersistentSPtr      ancestor,
-                        PersistentSPtr      succesor,
-                        const RelationName& relation);
+      bool findRelation(PersistentSPtr ancestor, PersistentSPtr succesor, const RelationName& relation);
 
     private:
-      ClassificationSPtr  m_classification; /** analysis classification for the segmentations. */
-      DirectedGraphSPtr   m_relations;      /** relationship graph. */
-      DirectedGraphSPtr   m_content;        /** contents graph (filters relations). */
-
-      ChannelSList        m_channels;       /** list of channels in the analysis. */
-      FilterSList         m_filters;        /** list of filters in the analysis, NOTE: Could be removed. */
-      SampleSList         m_samples;        /** list of samples in the analysis. */
-      SegmentationSList   m_segmentations;  /** list of segmentations in the analysis. */
-
-      TemporalStorageSPtr m_storage;        /** storage for analysis files. */
+      ClassificationSPtr      m_classification; /** analysis classification for the segmentations. */
+      DirectedGraphSPtr       m_relations;      /** relationship graph.                            */
+      DirectedGraphSPtr       m_content;        /** contents graph (filters relations).            */
+      ChannelSList            m_channels;       /** list of channels in the analysis.              */
+      FilterSList             m_filters;        /** list of filters in the analysis,               */
+      SampleSList             m_samples;        /** list of samples in the analysis.               */
+      SegmentationSList       m_segmentations;  /** list of segmentations in the analysis.         */
+      Core::ConnectionStorage m_connections;    /** segmentation connections storage object.       */
+      TemporalStorageSPtr     m_storage;        /** storage for analysis files.                    */
 
       friend class ViewItem;
   };

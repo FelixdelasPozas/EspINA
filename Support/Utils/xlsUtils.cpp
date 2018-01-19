@@ -37,7 +37,7 @@ xlslib_core::cell_t * createCell(xlslib_core::worksheet *sheet, int row, int col
   // formula "=number" but it doesn't work with xlslib? To review further.
   using boost::numeric_cast;
 
-  xlslib_core::cell_t *cell;
+  xlslib_core::cell_t *cell = nullptr;
 
   try
   {

@@ -35,8 +35,8 @@ AboutDialog::AboutDialog()
   setWindowTitle(tr("About ESPINA"));
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
 
-  // Adjust label pixmaps. If the ui file is modified those values need to be modified to be in sync. Don'tlike it but it does the job scaling
-  // the bitmap and SVG graphics without pixelating.
+  // Adjust label pixmaps. If the ui file is modified those values need to be modified to be in sync. Don't like it but it does the job scaling
+  // the bitmap and SVG graphics without pixelating them.
   constexpr auto fixedWidth = 158;
   constexpr auto fixedHeight = 104;
 

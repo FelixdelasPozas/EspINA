@@ -35,31 +35,30 @@ using namespace ESPINA::Support::Widgets;
 const QString GEOMETRY_SETTINGS_KEY = "View3D geometry";
 
 //------------------------------------------------------------------------
-Dialog3D::Dialog3D(Support::Context   &context)
-: QDialog          {DefaultDialogs::defaultParentWidget()}
+Dialog3D::Dialog3D(Support::Context &context)
+: QDialog          {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , WithContext      (context)
+, m_representations(":/espina/toolgroup_visualize.svg", tr("Visualize Dialog3D"))
 , m_view3D         {context.viewState(), true}
-, m_representations("", "")
-, m_toolsSettings  {std::make_shared<QSettings>()}
 {
+  // Maintaining a different group of settings requires a file on disk. A temporary one will do.
+  // Could do with the session settings file (from temp storage), but prefer to maintain the state in different one.
+  m_iniFile.open();
+  m_toolsSettings = std::make_shared<QSettings>(m_iniFile.fileName(), QSettings::IniFormat);
+
   setupUi(this);
 
   setAttribute(Qt::WA_DeleteOnClose, false);
-  setWindowModality(Qt::WindowModality::NonModal);
   setWindowTitle("View 3D");
 
-  m_toolbar.setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
-  m_toolbar.setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
-  layout()->setMenuBar(&m_toolbar);
+  m_toolbar = new QToolBar(this);
+  m_toolbar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_toolbar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
+  layout()->setMenuBar(m_toolbar);
 
   initView3D();
 
   restoreGeometryState();
-}
-
-//------------------------------------------------------------------------
-Dialog3D::~Dialog3D()
-{
 }
 
 //------------------------------------------------------------------------
@@ -87,7 +86,9 @@ QAction *Dialog3D::toggleViewAction()
 //------------------------------------------------------------------------
 void Dialog3D::showEvent(QShowEvent* event)
 {
-  populateToolBar(&m_toolbar, m_representations.groupedTools());
+  populateToolBar(m_toolbar, m_representations.groupedTools());
+
+  restoreToolsSettings();
 
   QDialog::showEvent(event);
 }
@@ -96,6 +97,7 @@ void Dialog3D::showEvent(QShowEvent* event)
 void Dialog3D::closeEvent(QCloseEvent *event)
 {
   saveGeometryState();
+  saveToolsSettings();
 
   emit dialogVisible(false);
 
@@ -151,16 +153,13 @@ std::shared_ptr<ProgressTool> Dialog3D::tool()
 //------------------------------------------------------------------------
 void Dialog3D::onToggled(bool checked)
 {
-  if(checked)
+  if(checked && !this->isVisible())
   {
-    restoreToolsSettings();
-
     this->show();
   }
-  else
-  {
-    saveToolsSettings();
 
+  if(!checked && this->isVisible())
+  {
     this->hide();
   }
 
@@ -229,7 +228,7 @@ void Dialog3D::saveToolsSettings()
 
 //------------------------------------------------------------------------
 Dialog3DTool::Dialog3DTool(Support::Context &context, Dialog3D* dialog)
-: ProgressTool("Dialog3DTool", ":espina/panel_3d.svg", tr("Display 3D View"), context)
+: ProgressTool{"Dialog3DTool", ":espina/panel_3d.svg", tr("Display 3D View"), context}
 , m_dialog    {dialog}
 {
 }

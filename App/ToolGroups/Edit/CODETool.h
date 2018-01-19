@@ -25,79 +25,135 @@
 // ESPINA
 #include <Support/Widgets/EditTool.h>
 
+#include <Filters/MorphologicalEditionFilter.h>
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Widgets/NumericalInput.h>
-#include <Filters/MorphologicalEditionFilter.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/ModelFactory.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class CODEToolBase
+   * \brief Base class for morphological tool buttons
+   * .
+   */
   class CODEToolBase
   : public Support::Widgets::EditTool
   {
-    Q_OBJECT
+      Q_OBJECT
+    public:
+      /** \brief CODEToolBase class constructor.
+       * \param[in] type morphological filter type.
+       * \param[in] toolId tool's id.
+       * \param[in] name tool's name.
+       * \param[in] icon tool's icon id from resources.
+       * \param[in] tooltip tool's default tooltip.
+       * \param[in] context application context.
+       *
+       */
+      explicit CODEToolBase(const Filter::Type type, const QString &toolId, const QString &name, const QString& icon, const QString& tooltip, Support::Context& context);
 
-  public:
-    explicit CODEToolBase(const Filter::Type type, const QString &toolId, const QString &name, const QString& icon, const QString& tooltip, Support::Context& context);
+      /** \brief CODEToolBase class virtual destructor.
+       *
+       */
+      virtual ~CODEToolBase();
 
-    /** \brief Sets the radius value.
-     * \param[in] value value of the radius.
-     */
-    void setRadius(int value)
-    { m_radius->setValue(value); }
+      /** \brief Sets the radius value.
+       * \param[in] value value of the radius.
+       *
+       */
+      void setRadius(int value)
+      { m_radius->setValue(value); }
 
-    /** \brief Returns the value of the radius.
-     *
-     */
-    int radius() const
-    { return m_radius->value(); }
+      /** \brief Returns the value of the radius.
+       *
+       */
+      int radius() const
+      { return m_radius->value(); }
 
-    virtual void abortOperation() override;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+    private:
+      /** \brief Helper method to initiate the configuration widgets.
+       *
+       */
+      void initOptionWidgets();
 
-  private:
-    void initOptionWidgets();
+      virtual bool acceptsNInputs(int n) const override;
 
-    virtual bool acceptsNInputs(int n) const override;
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
 
-    virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type& type) = 0;
+      /** \brief Helper method to create and return the morphological filter.
+       * \param[in] inputs filter's inputs.
+       * \param[in] type filter's type.
+       *
+       */
+      virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type& type) = 0;
 
-  private slots:
-    void onApplyClicked();
+    private slots:
+      /** \brief Launches the operation.
+       *
+       */
+      void onApplyClicked();
 
-    void onTaskFinished();
+      /** \brief Gets the results of the finished filter.
+       *
+       */
+      void onTaskFinished();
 
-  private:
-    struct TaskContext
-    {
-      MorphologicalEditionFilterSPtr Task;
-      SegmentationAdapterPtr         Segmentation;
-      QString                        Operation;
-    };
+    private:
+      /** \brief Aborts currently executing tasks.
+       *
+       */
+      void abortTasks();
 
-    Filter::Type  m_type;
-    const QString m_name;
+      /** \struct TaskContext
+       * \brief Data from a currently running tasks.
+       */
+      struct TaskContext
+      {
+        MorphologicalEditionFilterSPtr Task;         /** running task.            */
+        SegmentationAdapterPtr         Segmentation; /** input segmentation.      */
+        QString                        Operation;    /** morphological operation. */
+      };
 
-    QMap<MorphologicalEditionFilterPtr, TaskContext> m_executingTasks;
-    GUI::Widgets::NumericalInput *m_radius;
+      Filter::Type  m_type; /** morphological filter type. */
+      const QString m_name; /** morphological filter name. */
+
+      QMap<MorphologicalEditionFilterPtr, TaskContext> m_executingTasks; /** maps filter<->context. */
+      GUI::Widgets::NumericalInput                    *m_radius;         /** radius widget.         */
+      GUI::Widgets::ToolButton                        *m_apply;          /** apply button widget.   */
   };
 
+  /** \class CODETool
+   * \brief Implements a CODE morphological tool (Close-Open-Dilate-Erode) templated over type.
+   *
+   */
   template<typename T>
   class CODETool
   : public CODEToolBase
   {
-  public:
-    explicit CODETool(const Filter::Type type, const QString &toolId, const QString& name, const QString& icon, const QString& tooltip, Support::Context& context)
-    : CODEToolBase(type, toolId, name, icon, tooltip, context) {}
+    public:
+      /** \brief CODETool class constructor.
+       * \param[in] type morphological filter type.
+       * \param[in] toolId tool's id.
+       * \param[in] name tool's name.
+       * \param[in] icon tool's icon id from resources.
+       * \param[in] tooltip tool's default tooltip.
+       * \param[in] context application context.
+       *
+       */
+      explicit CODETool(const Filter::Type type, const QString &toolId, const QString& name, const QString& icon, const QString& tooltip, Support::Context& context)
+      : CODEToolBase(type, toolId, name, icon, tooltip, context)
+      {}
 
-  private:
-    virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type &type) override
-    {
-      return this->getFactory()->template createFilter<T>(inputs, type);
-    }
+    private:
+      virtual MorphologicalEditionFilterSPtr createFilter(InputSList inputs, const Filter::Type &type) override
+      {
+        return this->getFactory()->template createFilter<T>(inputs, type);
+      }
   };
 
 

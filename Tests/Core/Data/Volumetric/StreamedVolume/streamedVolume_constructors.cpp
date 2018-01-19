@@ -25,7 +25,6 @@
 
 // ITK
 #include <itkImage.h>
-#include <itkImageFileReader.h>
 
 #include <typeinfo>
 

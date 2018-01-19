@@ -22,9 +22,7 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
-#include "SeedGrowSegmentationRefineWidget.h"
 #include "CustomROIWidget.h"
-#include "SeedGrowSegmentationRefiner.h"
 #include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
@@ -49,6 +47,7 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QThread>
 
 #include "GUI/Model/ViewItemAdapter.h"
 using namespace ESPINA;
@@ -146,6 +145,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
+  abortTasks();
+
   delete m_categorySelector;
   delete m_seedThreshold;
   delete m_roi;
@@ -219,6 +220,8 @@ void SeedGrowSegmentationTool::initSettingsWidgets()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initCategorySelector()
 {
+  m_categorySelector->setToolTip(tr("Segmentation category."));
+
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
 
@@ -228,6 +231,7 @@ void SeedGrowSegmentationTool::initCategorySelector()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::initROISelector()
 {
+  m_roi->setToolTip(tr("Region of interest for the tool."));
   m_roi->setValue(Axis::X, m_settings->xSize());
   m_roi->setValue(Axis::Y, m_settings->ySize());
   m_roi->setValue(Axis::Z, m_settings->zSize());
@@ -245,13 +249,17 @@ void SeedGrowSegmentationTool::initBestPixelWidgets()
 
   m_useBestPixel->setCheckable(true);
   m_useBestPixel->setChecked(enabled);
+  m_useBestPixel->setToolTip(tr("Use the nearest pixel with the specified color as seed."));
 
   connect(m_useBestPixel, SIGNAL(toggled(bool)),
           this,           SLOT(useBestPixelSelector(bool)));
 
   m_colorLabel->setVisible(enabled);
+  m_colorLabel->setToolTip(tr("Seed color."));
 
   m_colorSelector->setVisible(enabled);
+  m_colorSelector->setToolTip(tr("Seed color."));
+
   Styles::setBarStyle(m_colorSelector);
 
   connect(m_colorSelector, SIGNAL(newValue(int)),
@@ -271,6 +279,7 @@ void SeedGrowSegmentationTool::initCloseWidgets()
 
   m_applyClose->setCheckable(true);
   m_applyClose->setChecked(enabled);
+  m_applyClose->setToolTip(tr("Apply a morphological close algorithm after the reconstruction."));
 
   connect(m_applyClose, SIGNAL(toggled(bool)),
           this,         SLOT(onCloseStateChanged(bool)));
@@ -280,6 +289,7 @@ void SeedGrowSegmentationTool::initCloseWidgets()
   m_close->setSliderVisibility(false);
   m_close->setMinimum(1);
   m_close->setMaximum(10);
+  m_close->setToolTip(tr("Close algorithm radius."));
 
   addSettingsWidget(m_applyClose);
   addSettingsWidget(m_close);
@@ -320,9 +330,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (!currentROI && m_roi->applyROI())
   {
     // Create default ROI
-    auto xSize = std::max(m_roi->value(Axis::X), (unsigned int) 2);
-    auto ySize = std::max(m_roi->value(Axis::Y), (unsigned int) 2);
-    auto zSize = std::max(m_roi->value(Axis::Z), (unsigned int) 2);
+    auto xSize = std::max(m_roi->value(Axis::X), (long long) 2);
+    auto ySize = std::max(m_roi->value(Axis::Y), (long long) 2);
+    auto zSize = std::max(m_roi->value(Axis::Z), (long long) 2);
 
     auto bounds  = OrthogonalROITool::createRegion(seed, xSize, ySize, zSize);
     auto spacing = channel->output()->spacing();
@@ -346,32 +356,33 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if (validSeed)
   {
-    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    struct Data data;
+    data.Filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    data.Category = m_categorySelector->selectedCategory();
 
-    filter->setSeed(seed);
-    filter->setUpperThreshold(m_seedThreshold->upperThreshold());
-    filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
-    filter->setDescription(tr("Grey Level Segmentation"));
+    data.Filter->setSeed(seed);
+    data.Filter->setUpperThreshold(m_seedThreshold->upperThreshold());
+    data.Filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
+    data.Filter->setDescription(tr("Grey Level Segmentation"));
 
     if(m_applyClose->isChecked())
     {
-      filter->setClosingRadius(m_close->value());
+      data.Filter->setClosingRadius(m_close->value());
     }
 
     if(currentROI)
     {
-      filter->setROI(currentROI->clone());
+      data.Filter->setROI(currentROI->clone());
     }
 
-    m_executingTasks[filter.get()]   = filter;
-    m_executingFilters[filter.get()] = filter;
+    m_tasks[data.Filter.get()] = data;
 
-    showTaskProgress(filter);
+    showTaskProgress(data.Filter);
 
-    connect(filter.get(), SIGNAL(finished()),
-            this,         SLOT(createSegmentation()));
+    connect(data.Filter.get(), SIGNAL(finished()),
+            this,              SLOT(createSegmentation()));
 
-    Task::submit(filter);
+    Task::submit(data.Filter);
 
     if (currentROI == m_context.roiProvider()->currentROI())
     {
@@ -394,7 +405,7 @@ void SeedGrowSegmentationTool::createSegmentation()
 
   if (!filter->isAborted())
   {
-    auto adapter = m_executingTasks[filter];
+    auto data = m_tasks[filter];
 
     if (filter->numberOfOutputs() != 1)
     {
@@ -402,12 +413,8 @@ void SeedGrowSegmentationTool::createSegmentation()
       throw EspinaException(message, message);
     }
 
-    auto segmentation = m_context.factory()->createSegmentation(adapter, 0);
-
-    auto category = m_categorySelector->selectedCategory();
-    Q_ASSERT(category);
-
-    segmentation->setCategory(category);
+    auto segmentation = m_context.factory()->createSegmentation(data.Filter, 0);
+    segmentation->setCategory(data.Category);
 
     SampleAdapterSList samples;
     samples << QueryAdapter::sample(inputChannel());
@@ -418,7 +425,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
     undoStack->endMacro();
 
-    auto sgsFilter = m_executingFilters[filter];
+    auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(data.Filter);
     if(sgsFilter->isTouchingROI())
     {
       auto message = tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString());
@@ -431,8 +438,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     getSelection()->set(toViewItemList(segmentation.get()));
   }
 
-  m_executingFilters.remove(filter);
-  m_executingTasks.remove(filter);
+  m_tasks.remove(filter);
 }
 
 //-----------------------------------------------------------------------------
@@ -449,14 +455,14 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
       ESPINA_SETTINGS(settings);
       settings.beginGroup(ROI_SETTINGS_GROUP);
 
-      xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toInt();
-      ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toInt();
-      zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toInt();
+      xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toLongLong();
+      ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toLongLong();
+      zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toLongLong();
     }
 
-    m_roi->setValue(Axis::X, xSize.toInt());
-    m_roi->setValue(Axis::Y, ySize.toInt());
-    m_roi->setValue(Axis::Z, zSize.toInt());
+    m_roi->setValue(Axis::X, xSize.toLongLong());
+    m_roi->setValue(Axis::Y, ySize.toLongLong());
+    m_roi->setValue(Axis::Z, zSize.toLongLong());
   }
 }
 
@@ -466,15 +472,15 @@ void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settin
   m_seedThreshold->setUpperThreshold(settings->value(UPPER_THRESHOLD, 30).toInt());
   m_seedThreshold->setLowerThreshold(settings->value(LOWER_THRESHOLD, 30).toInt());
 
-  auto roiX = settings->value(XSIZE,500).toInt();
+  auto roiX = settings->value(XSIZE,500).toLongLong();
   m_roi->setValue(Axis::X, roiX);
   m_settings->setXSize(roiX);
 
-  auto roiY = settings->value(YSIZE,500).toInt();
+  auto roiY = settings->value(YSIZE,500).toLongLong();
   m_roi->setValue(Axis::Y, roiY);
   m_settings->setYSize(roiY);
 
-  auto roiZ = settings->value(ZSIZE,500).toInt();
+  auto roiZ = settings->value(ZSIZE,500).toLongLong();
   m_roi->setValue(Axis::Z, roiZ);
   m_settings->setZSize(roiZ);
 
@@ -561,4 +567,22 @@ void SeedGrowSegmentationTool::onCloseStateChanged(bool value)
 {
   m_settings->setApplyClose(value);
   m_close->setVisible(value);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::abortTasks()
+{
+  for(auto task: m_tasks)
+  {
+    disconnect(task.Filter.get(), SIGNAL(finished()),
+               this,              SLOT(createSegmentation()));
+
+    task.Filter->abort();
+    if(!task.Filter->thread()->wait(500))
+    {
+      task.Filter->thread()->terminate();
+    }
+  }
+
+  m_tasks.clear();
 }

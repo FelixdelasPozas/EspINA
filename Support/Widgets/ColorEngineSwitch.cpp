@@ -28,7 +28,7 @@ using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon, Context &context)
-: ColorEngineSwitch(engine, QIcon(icon), context)
+: ColorEngineSwitch{engine, QIcon(icon), context}
 {
 }
 

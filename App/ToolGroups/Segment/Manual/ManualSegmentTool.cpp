@@ -121,9 +121,6 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
   connect(getSelection().get(), SIGNAL(selectionChanged()),
           this,                 SLOT(onSelectionChanged()));
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(onToolToggled(bool)));
-
   connect(&m_drawingWidget, SIGNAL(painterChanged(MaskPainterSPtr)),
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
@@ -212,9 +209,10 @@ void ManualSegmentTool::setInitialStroke()
 
   auto brushColor = m_drawingWidget.selectedCategory()->color();
 
-  m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
+  m_drawingWidget.clearBrushImage();
   m_drawingWidget.setDrawingColor(brushColor);
   m_drawingWidget.setCanErase(false);
+  m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
 
   auto output  = m_referenceItem->output();
   auto origin  = readLockVolume(output)->bounds().origin();
@@ -392,19 +390,6 @@ void ManualSegmentTool::onPainterChanged(MaskPainterSPtr painter)
 }
 
 //------------------------------------------------------------------------
-void ManualSegmentTool::onToolToggled(bool toggled)
-{
-  if (toggled)
-  {
-    setInitialStroke();
-  }
-  else
-  {
-    m_drawingWidget.abortOperation();
-  }
-}
-
-//------------------------------------------------------------------------
 void ManualSegmentTool::onStrokeModeToggled(bool toggled)
 {
   auto button = static_cast<QPushButton *>(sender());
@@ -459,6 +444,11 @@ void ManualSegmentTool::onEventHandlerActivated(bool inUse)
   if(inUse)
   {
     onSelectionChanged();
+  }
+  else
+  {
+    m_drawingWidget.stopDrawing();
+    m_referenceItem = nullptr;
   }
 }
 

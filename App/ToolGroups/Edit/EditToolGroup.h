@@ -99,31 +99,31 @@ namespace ESPINA
        * \param[in] type filter type.
        *
        */
-      bool isCloseFilter       (const Filter::Type &type) const;
+      bool isCloseFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a opend filter and false otherwise.
        * \param[in] type filter type.
        *
        */
-      bool isOpenFilter        (const Filter::Type &type) const;
+      bool isOpenFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a dilate filter and false otherwise.
        * \param[in] type filter type.
        *
        */
-      bool isDilateFilter      (const Filter::Type &type) const;
+      bool isDilateFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a erode filter and false otherwise.
        * \param[in] type filter type.
        *
        */
-      bool isErodeFilter       (const Filter::Type &type) const;
+      bool isErodeFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a fill holes filter and false otherwise.
        * \param[in] type filter type.
        *
        */
-      bool isFillHolesFilter   (const Filter::Type &type) const;
+      bool isFillHolesFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a fill holes filter and false otherwise.
        *
@@ -134,7 +134,7 @@ namespace ESPINA
        * \param[in] type filter type.
        *
        */
-      bool isAdditionFilter    (const Filter::Type &type) const;
+      bool isAdditionFilter(const Filter::Type &type) const;
 
       /** \brief Returns true if the given filter type corresponds to a subtraction filter and false otherwise.
        * \param[in] type filter type.
@@ -161,15 +161,18 @@ namespace ESPINA
     /** \brief EditionToolGroup class constructor.
      * \param[in] filterRefiners filter refiners factory.
      * \param[in] context application context
+     * \param[in] parent QWidget parent of this one.
      *
      */
     explicit EditToolGroup(Support::FilterRefinerFactory &filterRefiners,
-                           Support::Context               &context);
+                           Support::Context               &context,
+                           QWidget                        *parent = nullptr);
 
     /** \brief EditionToolGroup class virtual destructor.
      *
      */
-    virtual ~EditToolGroup();
+    virtual ~EditToolGroup()
+    {}
 
   private:
     /** \brief Registers the refiners in the factory.
@@ -178,35 +181,40 @@ namespace ESPINA
      */
     void registerFilterRefiners(Support::FilterRefinerFactory& filterRefiner);
 
-    /** \brief Modifies the gui and tool paramenters when the manual edition is activated.
+    /** \brief Modifies the GUI and tool parameters when the manual edition is activated.
      *
      */
     void initManualEditionTool();
 
-    /** \brief Modifies the gui and tool parameters when any of the morphological tools is activated.
-     *
-     */
-    void initCODETools();
-
-    /** \brief Modifies the gui and tool parameters when any of the fill holes tools is activated.
-     *
-     */
-    void initFillHolesTools();
-
-    /** \brief Modifies the gui and tool parameters when a logic operation tool is activated.
-     *
-     */
-    void initImageLogicTools();
-
-    /** \brief Modifies the gui and tool parameters when the split tool is activated.
+    /** \brief Modifies the GUI and tool parameters when the split tool is activated.
      *
      */
     void initSplitTool();
 
-    /** \brief Modifies the gui and tool parameters when a interpolation operation tool is activated.
+    /** \brief Modifies the GUI and tool parameters when any of the morphological tools is activated.
+     *
+     */
+    void initCODETools();
+
+    /** \brief Modifies the GUI and tool parameters when any of the fill holes tools is activated.
+     *
+     */
+    void initFillHolesTools();
+
+    /** \brief Modifies the GUI and tool parameters when a logic operation tool is activated.
+     *
+     */
+    void initImageLogicTools();
+
+    /** \brief Modifies the GUI and tool parameters when a interpolation operation tool is activated.
      *
      */
     void initSliceInterpolationTool();
+
+    /** \brief Modifies the GUI and tool parameters when the skeleton tool is activated.
+     *
+     */
+    void initSkeletonTools();
   };
 
 } // namespace ESPINA

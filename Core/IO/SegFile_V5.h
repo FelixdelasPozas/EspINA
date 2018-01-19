@@ -123,10 +123,15 @@ namespace ESPINA
              */
             void loadContent();
 
-            /** \brief Creates the relationship graph of an anlysis.
+            /** \brief Creates the relationship graph of an analysis.
              *
              */
             void loadRelations();
+
+            /** \brief Loads the connections information from the temporal storage.
+             *
+             */
+            void loadConnections();
 
             /** \brief Creates a channel extension.
              * \param[in] channel, smart pointer of the channel that has the extension.

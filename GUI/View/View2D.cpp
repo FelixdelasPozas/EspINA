@@ -85,13 +85,14 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-View2D::View2D(GUI::View::ViewState &state, Plane plane)
-: RenderView        {state, ViewType::VIEW_2D}
+View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
+: RenderView        {state, ViewType::VIEW_2D, parent}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -140,7 +141,7 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane)
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_renderer->GetActiveCamera()->SetThickness(2000);
-  m_renderer->SetNearClippingPlaneTolerance(0.01);
+  m_renderer->SetNearClippingPlaneTolerance(0.001);
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
@@ -197,9 +198,10 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  m_renderer->RemoveViewProp(m_scale);
+  m_renderer->RemoveAllViewProps();
+  m_thumbnail->RemoveAllViewProps();
 
-  m_state2D.reset();
+  m_state2D = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -407,11 +409,11 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"));
+  m_cameraReset = createButton(":/espina/reset_view.svg", tr("Reset View"), this);
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(resetCamera()));
 
-  m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
+  m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"), this);
   connect(m_snapshot, SIGNAL(clicked(bool)),
           this,       SLOT(onTakeSnapshot()));
 
@@ -530,8 +532,6 @@ void View2D::resetCameraImplementation()
   m_thumbnail->ResetCamera();
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
-
-  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
@@ -561,6 +561,7 @@ void View2D::refreshViewImplementation()
 {
   updateScale();
   updateThumbnail();
+  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
@@ -663,13 +664,13 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       // get the focus this very moment
       setFocus(Qt::OtherFocusReason);
 
-      if (eventHandler() && !m_inThumbnail)
+      if (m_inThumbnail)
       {
-        m_view->setCursor(eventHandler()->cursor());
+        m_view->setCursor(Qt::ArrowCursor);
       }
       else
       {
-        m_view->setCursor(Qt::ArrowCursor);
+        onCursorChanged();
       }
 
       e->accept();
@@ -717,11 +718,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           // the drag movement though.
           m_inThumbnailClick = false;
 
-          if (me->button() == Qt::RightButton)
-          {
-            updateScaleValue();
-          }
-          else if (me->button() == Qt::LeftButton)
+          if (me->button() == Qt::LeftButton)
           {
             if ((e->type() == QEvent::MouseButtonPress))
             {
@@ -737,14 +734,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             }
           }
           // to avoid interfering with ctrl use in the event handler/selector
-          if (eventHandler())
-          {
-            m_view->setCursor(eventHandler()->cursor());
-          }
-          else
-          {
-            m_view->setCursor(Qt::ArrowCursor);
-          }
+          onCursorChanged();
         }
 
         updateScale();
@@ -1008,16 +998,9 @@ void View2D::onCrosshairChanged(const FrameCSPtr frame)
 //-----------------------------------------------------------------------------
 void View2D::moveCamera(const NmVector3 &point)
 {
-  double fp[3];
-  m_renderer->GetActiveCamera()->GetFocalPoint(fp);
-  NmVector3 focalPoint{fp};
+  m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
 
-  if(point != focalPoint)
-  {
-    m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
-
-    refresh();
-  }
+  refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -1057,7 +1040,7 @@ void View2D::addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType ty
   auto sliceSelector = selector->clone(this, m_plane);
 
   auto fromWidget = sliceSelector->lowerWidget();
-  auto toWidget   = sliceSelector->rightWidget();
+  auto toWidget   = sliceSelector->upperWidget();
 
   fromWidget->setVisible(type.testFlag(SliceSelectionTypes::From));
   toWidget  ->setVisible(type.testFlag(SliceSelectionTypes::To));
@@ -1165,44 +1148,43 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
-  auto picker      = vtkSmartPointer<vtkPropPicker>::New();
+  auto picker = vtkSmartPointer<vtkPropPicker>::New();
   picker->PickFromListOn();
 
   auto sceneActors = rendererUnderCursor()->GetViewProps();
+  const auto worldPoint  = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
   NeuroItemAdapterList pickedItems;
-
-  vtkProp *pickedProp;
-  auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
+  QList<vtkProp *> pickedProps;
 
   bool finished = false;
-  bool picked   = false;
+  bool picked = false;
 
   do
   {
-    picked     = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
-    pickedProp = picker->GetViewProp();
+    picked = picker->PickProp(x, y, rendererUnderCursor(), sceneActors);
+    auto pickedProp = picker->GetViewProp();
 
     if (pickedProp && pickedProp->GetVisibility())
     {
-      pickedProps->AddItem(pickedProp);
+      pickedProps << pickedProp;
       sceneActors->RemoveItem(pickedProp);
     }
 
-    auto worldPoint = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
-
-    for(auto manager: m_managers)
+    for (auto manager : m_managers)
     {
+      if(!manager->isActive()) continue;
+
       auto items = manager->pick(worldPoint, pickedProp);
 
-      for(auto item: items)
+      for (auto item : items)
       {
-        if(!pickedItems.contains(item))
+        if (!pickedItems.contains(item))
         {
           if (Selector::IsValid(item, flags))
           {
-            NeuroItemAdapterPtr neuroItem = item;
-            if(flags.testFlag(Selector::SAMPLE) && isChannel(item))
+            auto neuroItem = dynamic_cast<NeuroItemAdapterPtr>(item);
+            if (flags.testFlag(Selector::SAMPLE) && isChannel(item))
             {
               neuroItem = QueryAdapter::sample(channelPtr(item)).get();
             }
@@ -1211,18 +1193,17 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
           }
 
           pickedItems << item;
-          picked |= true;
+          picked = true;
         }
       }
     }
   }
-  while(picked && !finished);
+  while (picked && !finished);
 
-  pickedProps->InitTraversal();
-
-  while ((pickedProp = pickedProps->GetNextProp()))
+  for (auto prop : pickedProps)
   {
-    sceneActors->AddItem(pickedProp);
+    sceneActors->AddItem(prop);
+    prop->VisibilityOn();
   }
   sceneActors->Modified();
 
@@ -1239,4 +1220,12 @@ void View2D::incrementSlice()
 void View2D::decrementSlice()
 {
   m_scrollBar->triggerAction(QScrollBar::SliderSingleStepSub);
+}
+
+//-----------------------------------------------------------------------------
+double View2D::scale()
+{
+  updateScaleValue();
+
+  return m_scaleValue;
 }

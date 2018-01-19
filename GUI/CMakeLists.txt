@@ -20,13 +20,16 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
+  Model/Utils/DBVH.h
   Representations/ModelSources.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
+  Representations/Managers/ConnectionsManager.h
   Representations/Managers/PoolManager.h
   Representations/Managers/PassiveActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
+  Representations/RepresentationParallelUpdater.h
   Representations/RepresentationWindow.h
   Representations/Managers/TemporalManager.h
   Selectors/Selector.h
@@ -52,8 +55,8 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/OrthogonalRegion/OrthogonalRepresentation.h
   View/Widgets/OrthogonalRegion/OrthogonalSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
-#  View/Widgets/Skeleton/SkeletonWidget.h
-#  View/Widgets/Skeleton/SkeletonPointTracker.h
+  View/Widgets/Skeleton/SkeletonWidget2D.h
+  View/Widgets/Skeleton/SkeletonEventHandler.h
   View/CoordinateSystem.h
   View/Widgets/SelectionMeasure/Widget2D.h
   View/Widgets/SelectionMeasure/Widget3D.h
@@ -61,8 +64,6 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/Zoom/ZoomWidget2D.h
   View/Widgets/Zoom/ZoomWidget3D.h  
   View/Widgets/Zoom/ZoomEventHandler.h  
-  Widgets/ActionSelector.h
-  Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
@@ -71,6 +72,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
+  Widgets/LineEditWithClear.h
   Widgets/NoteEditor.h
   Widgets/ProgressAction.h
   Widgets/PixelValueSelector.h
@@ -87,9 +89,6 @@ qt4_wrap_cpp(GUI_MOC
 qt4_wrap_ui (GUI_UI
   Dialogs/CategorySelectorDialog.ui
   Dialogs/ImageResolutionDialog.ui
-  Representations/RepresentationEmptySettings.ui
-  Representations/SliceRepresentationSettings.ui
-  Representations/ContourRepresentationSettings.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
@@ -121,7 +120,9 @@ set (GUI_SOURCES
   Model/Proxies/InformationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
+  Model/Utils/DBVH.cpp
   Model/Utils/ModelUtils.cpp
+  Model/Utils/SegmentationLocator.cpp
   Model/Utils/SegmentationUtils.cpp
   Model/Utils/QueryAdapter.cpp
   Model/ViewItemAdapter.cpp
@@ -132,17 +133,18 @@ set (GUI_SOURCES
   Representations/Pipelines/SegmentationMeshPipeline.cpp
   Representations/Pipelines/SegmentationSmoothedMeshPipeline.cpp
   Representations/Pipelines/SegmentationContourPipeline.cpp
-#  Representations/Pipelines/SegmentationSkeleton2DPipeline.cpp
-#  Representations/Pipelines/SegmentationSkeleton3DPipeline.cpp
+  Representations/Pipelines/SegmentationSkeletonPipelineBase.cpp
+  Representations/Pipelines/SegmentationSkeleton2DPipeline.cpp
+  Representations/Pipelines/SegmentationSkeleton3DPipeline.cpp
   Representations/Pipelines/SegmentationVolumetricCPUPipeline.cpp
   Representations/Pipelines/SegmentationVolumetricGPUPipeline.cpp
   Representations/Settings/PipelineStateUtils.cpp
   Representations/Settings/SegmentationSlicePoolSettings.cpp
   Representations/Settings/SegmentationContourPoolSettings.cpp
   Representations/Settings/SegmentationMeshPoolSettings.cpp
-#  Representations/Settings/SegmentationSkeletonPoolSettings.cpp
+  Representations/Settings/SegmentationSkeletonPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
-  Representations/Pools/BasicRepresentationPool.cpp
+  Representations/Managers/ConnectionsManager.cpp
   Representations/Managers/CrosshairManager.cpp 
   Representations/Managers/TemporalManager.cpp
   Representations/ModelSources.cpp
@@ -151,20 +153,20 @@ set (GUI_SOURCES
   Representations/RepresentationManager.cpp
   Representations/Managers/PoolManager.cpp
   Representations/Managers/PassiveActorManager.cpp
-  Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
+  Representations/RepresentationParallelUpdater.cpp
   Representations/RepresentationWindow.cpp
   Representations/Frame.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/ColorRange.cpp
   Utils/DefaultIcons.cpp
-  Utils/Format.cpp
   Utils/QtModelUtils.cpp
   Utils/RepresentationUtils.cpp
   Utils/Timer.cpp
+  Utils/EventUtils.cpp
   EventHandlers/Brush.cpp
   EventHandlers/CircularBrush.cpp
   EventHandlers/SphericalBrush.cpp
@@ -210,13 +212,11 @@ set (GUI_SOURCES
   View/Widgets/SelectionMeasure/Widget3D.cpp
   View/Widgets/SelectionMeasure/vtkWidget2D.cpp
   View/Widgets/SelectionMeasure/vtkWidget3D.cpp
-#  View/Widgets/Skeleton/SkeletonWidget.cpp
-#  View/Widgets/Skeleton/vtkSkeletonWidget.cpp
-#  View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
-#  View/Widgets/Skeleton/SkeletonPointTracker.cpp
+  View/Widgets/Skeleton/SkeletonWidget2D.cpp
+  View/Widgets/Skeleton/SkeletonEventHandler.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidget.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
-  Widgets/ActionSelector.cpp
-  Widgets/ActionSelectorWidget.cpp
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
@@ -225,6 +225,7 @@ set (GUI_SOURCES
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
+  Widgets/LineEditWithClear.cpp
   Widgets/NoteEditor.cpp 
   Widgets/ProgressAction.cpp
   Widgets/PixelValueSelector.cpp

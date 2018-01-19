@@ -28,44 +28,49 @@
 
 class QAction;
 
-using namespace ESPINA::GUI::View::Widgets::Measures;
-
 namespace ESPINA
 {
+  /** \class MeasureLengthTool
+   * \brief Tool button for the measurement tool.
+   *
+   */
   class MeasureLengthTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    /** \brief MeasureLengthTool class constructor.
-     * \param[in] viewState
-     *
-     */
-    explicit MeasureLengthTool(Support::Context &context);
+    public:
+      /** \brief MeasureLengthTool class constructor.
+       * \param[in] viewState
+       *
+       */
+      explicit MeasureLengthTool(Support::Context &context);
 
-    /** \brief MeasureLengthTool class destructor.
-     *
-     */
-    virtual ~MeasureLengthTool();
+      /** \brief MeasureLengthTool class destructor.
+       *
+       */
+      virtual ~MeasureLengthTool();
 
-    virtual void abortOperation();
+      virtual void abortOperation();
 
-  signals:
-    void stopMeasuring();
+    signals:
+      void stopMeasuring();
 
-  private slots:
-    virtual void onToolEnabled(bool enabled) {}
+    private slots:
+      /** \brief Shows/hides the tool's temporal representations.
+       * \param[in] value true to show the tool's temporal representations and false otherwise.
+       *
+       */
+      void onToolActivated(bool value);
 
-    void onToolActivated(bool value);
+    private:
+      using ViewState               = GUI::View::ViewState;
+      using TemporalPrototypesSPtr  = GUI::Representations::Managers::TemporalPrototypesSPtr;
+      using MeasureEventHandlerSPtr = GUI::View::Widgets::Measures::MeasureEventHandlerSPtr;
 
-  private:
-    using ViewState              = GUI::View::ViewState;
-    using TemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
-
-    ViewState              &m_viewState;
-    MeasureEventHandlerSPtr m_handler;
-    TemporalPrototypesSPtr  m_prototypes;
+      ViewState              &m_viewState;  /** application view state.    */
+      MeasureEventHandlerSPtr m_handler;    /** tool's event handler.      */
+      TemporalPrototypesSPtr  m_prototypes; /** representation prototypes. */
   };
 
   using MeasureToolPtr  = MeasureLengthTool *;

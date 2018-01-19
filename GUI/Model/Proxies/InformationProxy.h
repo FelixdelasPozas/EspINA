@@ -70,15 +70,15 @@ namespace ESPINA
            * \param[in] scheduler scheduler smart pointer.
            *
            */
-          InformationFetcher(SegmentationAdapterPtr segmentation,
-                             const Core::SegmentationExtension::InformationKeyList &keys,
-                             SchedulerSPtr scheduler)
-          : Task        {scheduler}
-          , Segmentation{segmentation}
-          , m_keys      {keys}
-          , m_progress  {0}
+          explicit InformationFetcher(SegmentationAdapterPtr segmentation,
+                                      const Core::SegmentationExtension::InformationKeyList &keys,
+                                      SchedulerSPtr scheduler)
+          : Task          {scheduler}
+          , m_segmentation{segmentation}
+          , m_keys        {keys}
+          , m_progress    {0}
           {
-            auto id = Segmentation->data(Qt::DisplayRole).toString();
+            auto id = m_segmentation->data(Qt::DisplayRole).toString();
             setDescription(tr("%1 information").arg(id));
             setHidden(true);
             setPriority(Priority::LOW);
@@ -90,7 +90,7 @@ namespace ESPINA
 
             for (auto key : m_keys)
             {
-              ready &= Segmentation->isReady(key);
+              ready &= m_segmentation->isReady(key);
 
               if (!ready) break;
             }
@@ -116,9 +116,9 @@ namespace ESPINA
 
               if (key != NameKey() && key != CategoryKey())
               {
-                if (!Segmentation->isReady(key))
+                if (!m_segmentation->isReady(key))
                 {
-                  Segmentation->information(key);
+                  m_segmentation->information(key);
 
                   if (!canExecute()) break;
                 }
@@ -130,10 +130,9 @@ namespace ESPINA
           }
 
         protected:
-          SegmentationAdapterPtr Segmentation;
-          Core::SegmentationExtension::InformationKeyList m_keys;
-
-          int   m_progress;
+          SegmentationAdapterPtr                          m_segmentation; /** segmentation with the information. */
+          Core::SegmentationExtension::InformationKeyList m_keys;         /** information keys to obtain values. */
+          int                                             m_progress;     /** [0-100] % of obtained values.      */
       };
 
       using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
@@ -182,6 +181,9 @@ namespace ESPINA
 
       /** \brief Sets the segmentations to show.
        * \param[in] filter, list of segmentation adapter raw pointers.
+       *
+       * NOTE: It's recommended to put the filter before the model in the class to avoid
+       * triggering unnecessary computations.
        *
        */
       void setFilter(const SegmentationAdapterList *filter);
@@ -244,7 +246,7 @@ namespace ESPINA
       /** \brief Reports progress.
        *
        */
-      void onProgessReported(int progress);
+      void onProgressReported(int progress);
 
       /** \brief Reports progress.
        *
@@ -263,6 +265,11 @@ namespace ESPINA
        *
        */
       QModelIndex index(const ItemAdapterPtr segmentation, int col = 0);
+
+      /** \brief Aborts all tasks currently running.
+       *
+       */
+      void abortTasks();
 
     protected:
       Core::SegmentationExtension::InformationKeyList m_keys;

@@ -47,8 +47,7 @@ LUTSPtr CategoryColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
-  if (seg && seg->category())
-    lutName = seg->category()->classificationName();
+  if (seg && seg->category()) lutName = seg->category()->classificationName();
 
   LUTSPtr seg_lut = nullptr;
 
@@ -69,8 +68,10 @@ LUTSPtr CategoryColorEngine::lut(ConstSegmentationAdapterPtr seg)
 
     // TODO 2015-04-20: Check signals
     if (lutName != "")
+    {
       connect(seg->category().get(), SIGNAL(colorChanged(CategoryElementPtr)),
               this,                  SLOT(updateCategoryColor(CategoryElementPtr)));
+    }
   }
   else
   {
@@ -87,7 +88,9 @@ LUTSPtr CategoryColorEngine::lut(ConstSegmentationAdapterPtr seg)
       auto segColor = seg->category()->color();
 
       if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+      {
         m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+      }
 
       seg_lut = m_LUT[lutName];
     }
@@ -102,16 +105,14 @@ void CategoryColorEngine::updateCategoryColor(CategoryAdapterSPtr category)
   auto lutName = category->classificationName();
   auto c = category->color();
 
-  if (!m_LUT.contains(lutName))
-    return;
+  if (!m_LUT.contains(lutName)) return;
 
   m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), UNSELECTED_ALPHA);
   m_LUT[lutName]->Modified();
 
   lutName.append("_selected");
 
-  if (!m_LUT.contains(lutName))
-    return;
+  if (!m_LUT.contains(lutName)) return;
 
   m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), SELECTED_ALPHA);
   m_LUT[lutName]->Modified();

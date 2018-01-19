@@ -45,6 +45,8 @@
 #include <vtkRenderer.h>
 
 // Qt
+#include <QEvent>
+#include <QKeyEvent>
 #include <QApplication>
 #include <QDialog>
 #include <QMessageBox>
@@ -64,9 +66,10 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(ViewState &state, ViewType type)
-: SelectableView           (state)
-, m_view                   {new QVTKWidget()}
+RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
+: QWidget                  {parent}
+, SelectableView           (state)
+, m_view                   {new QVTKWidget()} // WARNING parenting this crashes 3D, fix in VTK 7.x
 , m_lastFrameActiveManagers{0}
 , m_state                  (state)
 , m_selection              {state.selection()}
@@ -77,7 +80,7 @@ RenderView::RenderView(ViewState &state, ViewType type)
 
   if(!state.activeWidgets().isEmpty())
   {
-    // needs the object to be fully constructed, so well put the action on the event queue.
+    // needs the object to be fully constructed, so we'll put the action on the event queue.
     QTimer::singleShot(10, this, SLOT(delayedWidgetsShow()));
   }
 }
@@ -85,6 +88,8 @@ RenderView::RenderView(ViewState &state, ViewType type)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
+  disconnect();
+
   m_managers.clear();
   m_temporalManagers.clear();
 
@@ -154,7 +159,7 @@ void RenderView::selectPickedItems(int x, int y, bool append)
   }
 
   auto flags = Selector::SelectionFlags(Selector::CHANNEL | Selector::SEGMENTATION);
-  auto pickedItems = pick(flags, x, y);
+  auto pickedItems = pick(flags, x, y, append);
 
   ViewItemAdapterList channels;
   ViewItemAdapterList segmentations;
@@ -327,7 +332,7 @@ const NmVector3 RenderView::crosshair() const
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::eventPosition(int& x, int& y)
+void RenderView::eventPosition(int& x, int& y) const
 {
   x = y = -1;
 
@@ -340,7 +345,7 @@ void RenderView::eventPosition(int& x, int& y)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RenderView::worldEventPosition()
+NmVector3 RenderView::worldEventPosition() const
 {
   int x, y;
   eventPosition(x, y);
@@ -359,7 +364,7 @@ NmVector3 RenderView::worldEventPosition()
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 RenderView::worldEventPosition(const QPoint &pos)
+NmVector3 RenderView::worldEventPosition(const QPoint &pos) const
 {
   renderWindow()->GetInteractor()->SetEventPositionFlipY(pos.x(), pos.y());
 
@@ -384,14 +389,14 @@ void RenderView::resetCamera()
 {
   resetCameraImplementation();
 
-  refreshViewImplementation();
-
-  m_view->update();
+  refresh();
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
+  refreshViewImplementation();
+
   m_view->update();
 }
 
@@ -411,10 +416,23 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
-    const int x, const int y, bool multiselection) const
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  return pickImplementation(flags, x, y, multiselection);
+  // NOTE: segmentations must have higher priority than stacks.
+  Selector::Selection pickedItems;
+  if(flags.testFlag(Selector::SEGMENTATION))
+  {
+    pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);
+  }
+
+  if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+
+  if(flags.testFlag(Selector::CHANNEL) || flags.testFlag(Selector::SAMPLE))
+  {
+    pickedItems << pickImplementation(flags & ~Selector::SEGMENTATION, x, y, multiselection);
+  }
+
+  return pickedItems;
 }
 
 //-----------------------------------------------------------------------------
@@ -455,6 +473,9 @@ void RenderView::connectSignals()
 
   connect(m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
           this,                             SLOT(onSceneBoundsChanged(Bounds)));
+
+  connect(&m_state, SIGNAL(cursorChanged()),
+          this,     SLOT(onCursorChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -469,9 +490,9 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
 
       addRepresentationManager(manager);
 
-      manager->show(frame);
-
       m_temporalManagers[prototypes] = manager;
+
+      manager->show(frame);
     }
     else
     {
@@ -541,8 +562,7 @@ void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Repres
 
   if (hasVisibleRepresentations())
   {
-    if (requiresReset(frame)
-        || (m_lastFrameActiveManagers == 0 && numManagers != 0))
+    if (requiresReset(frame) || (m_lastFrameActiveManagers == 0 && numManagers != 0))
     {
       resetCameraImplementation();
     }
@@ -567,12 +587,12 @@ const Bounds RenderView::sceneBounds() const
 }
 
 //-----------------------------------------------------------------------------
-QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
+QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip, QWidget *parent)
 {
   const int BUTTON_SIZE = 22;
   const int ICON_SIZE = 20;
 
-  auto button = new QPushButton();
+  auto button = new QPushButton(parent);
 
   button->setIcon(QIcon(icon));
   button->setToolTip(tooltip);
@@ -720,14 +740,15 @@ void RenderView::showSegmentationTooltip(const int x, const int y)
 {
   auto segmentations = pick(Selector::SEGMENTATION, x, y);
 
-  QString toopTip;
+  QString toolTip;
 
   for (auto segmentation : segmentations)
   {
-    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+    toolTip = toolTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+    if(segmentation != segmentations.last()) toolTip = toolTip.append(QString("<hr>"));
   }
 
-  m_view->setToolTip(toopTip);
+  m_view->setToolTip(toolTip);
 }
 
 //-----------------------------------------------------------------------------
@@ -749,4 +770,31 @@ void RenderView::delayedWidgetsShow()
   {
     onWidgetsAdded(factory, m_state.createFrame());
   }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onCursorChanged()
+{
+  if (eventHandler() && eventHandler()->isInUse())
+  {
+    m_view->setCursor(eventHandler()->cursor());
+  }
+  else
+  {
+    m_view->setCursor(Qt::CrossCursor);
+  }
+
+  m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyPressEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyPressEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::keyReleaseEvent(QKeyEvent* event)
+{
+  if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
 }

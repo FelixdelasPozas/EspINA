@@ -73,7 +73,7 @@ namespace ESPINA
             }
 
           signals:
-            void planeDefined(PlanarSplitWidgetPtr widget);
+            void planeDefined(GUI::View::Widgets::PlanarSplitWidgetPtr widget);
         };
 
         using PlanarSplitEventHandlerPtr  = PlanarSplitEventHandler *;

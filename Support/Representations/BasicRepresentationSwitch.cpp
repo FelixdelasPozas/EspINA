@@ -32,9 +32,9 @@ BasicRepresentationSwitch::BasicRepresentationSwitch(const QString            &i
                                                      RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews,
                                                      Support::Context         &context)
-: RepresentationSwitch(id, manager->icon(), manager->description(), context)
-, m_manager(manager)
-, m_flags(supportedViews)
+: RepresentationSwitch{id, manager->icon(), manager->description(), context}
+, m_manager           {manager}
+, m_flags             {supportedViews}
 {
   setChecked(m_manager->representationsVisibility());
 }
@@ -65,4 +65,16 @@ void BasicRepresentationSwitch::invalidateRepresentationsImplementation(ViewItem
   {
     pool->invalidateRepresentations(items, frame);
   }
+}
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  restoreCheckedState(settings);
+}
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  saveCheckedState(settings);
 }

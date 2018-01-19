@@ -21,12 +21,17 @@
 #ifndef ESPINA_SKELETON_TOOL_H_
 #define ESPINA_SKELETON_TOOL_H_
 
-#include "GUI/EspinaGUI_Export.h"
-
 // ESPINA
+#include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/EventHandlers/PointTracker.h>
+#include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
+#include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <Support/Context.h>
 
@@ -42,138 +47,213 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  namespace GUI
-  {
-    namespace Widgets
-    {
-      class CategorySelector;
-    }
-  }
   class DoubleSpinBoxAction;
-  class SkeletonToolStatusAction;
 
-  class SourceFilterFactory
+  /** \class ManualFilterFactory
+   * \brief Factory for SourceFilter filters.
+   *
+   */
+  class SkeletonFilterFactory
   : public FilterFactory
   {
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-    virtual FilterTypeList providedFilters() const;
+    public:
+      static const Filter::Type SKELETON_FILTER;
 
-  private:
-    mutable DataFactorySPtr m_fetchBehaviour;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type &filter, SchedulerSPtr scheduler) const override;
+
+      virtual FilterTypeList providedFilters() const override;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this factory. */
   };
 
-  class EspinaGUI_EXPORT SkeletonTool
+  /** \class SkeletonTool
+   * \brief Tool for skeleton segmentation creation
+   *
+   */
+  class SkeletonTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief SkeletonTool class constructor.
-     * \param[in] context ESPINA context
-     *
-     */
-    SkeletonTool(Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief SkeletonTool class constructor.
+       * \param[in] context application context
+       *
+       */
+      SkeletonTool(Support::Context &context);
 
-    /** \brief SkeletonTool class virtual destructor.
-     *
-     */
-    virtual ~SkeletonTool();
+      /** \brief SkeletonTool class virtual destructor.
+       *
+       */
+      virtual ~SkeletonTool();
 
-    virtual QList<QAction *> actions() const;
+      virtual void abortOperation() override
+      { deactivateEventHandler(); };
 
-    /** \brief Returns the category of the category selector of the tool.
-     *
-     */
-    CategoryAdapterSPtr getSelectedCategory()
-    { return m_itemCategory; }
+    private slots:
+      /** \brief Performs tool initialization/de-initialization.
+       * \param[in] value, true to initialize and false otherwise.
+       *
+       */
+      void initTool(bool value);
 
-    /** \brief Returns the item the skeleton has been created for or a nullptr
-     *  if there is no item (created a new one).
-     */
-    SegmentationAdapterPtr getSelectedItem()
-    { return m_item; }
+      /** \brief Updates the widget with the new category properties.
+       * \param[in] category CategoryAdapter smart pointer.
+       *
+       */
+      void onCategoryChanged(CategoryAdapterSPtr category);
 
-    /** \brief Aborts the current operation.
-     *
-     */
-    void abortOperation()
-    { initTool(false); };
+      /** \brief Updates the minimum point distance value in the widget when the value in the spinbox changes.
+       * \param[in] value new minimum distance value.
+       *
+       */
+      void onMinimumDistanceChanged(double value);
 
-  public slots:
-    /** \brief Helper method to modify an existing skeleton of a segmentation.
-     * \param[in] polyData smart pointer of the new vtkPolyData.
-     *
-     */
-    void skeletonModification(vtkSmartPointer<vtkPolyData> polyData);
+      /** \brief Updates the maximum point distance value in the widget when the value in the spinbox changes.
+       * \param[in] value new maximum distance value.
+       *
+       */
+      void onMaximumDistanceChanged(double value);
 
-    /** \brief Helper method to update the representation in the widget if the data
-     *  being edited changes (by undo/redo).
-     *
-     */
-    void updateWidgetRepresentation();
+      /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
+       * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
+       *
+       */
+      void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
 
-  private slots:
-    /** \brief Performs tool initialization/de-initialization.
-     * \param[in] value, true to initialize and false otherwise.
-     *
-     */
-    void initTool(bool value);
+      /** \brief Updates the minimum value of the tolerance widget.
+       *
+       */
+      void onResolutionChanged();
 
-    /** \brief Updates the state of the tool depending on the current selection.
-     *
-     */
-    void updateState();
+      /** \brief Helper method to mark the tool un-initialized on model reset.
+       *
+       */
+      void onModelReset();
 
-    /** \brief Updates the widget with the new category properties.
-     * \param[in] category CategoryAdapter smart pointer.
-     *
-     */
-    void categoryChanged(CategoryAdapterSPtr category);
+      /** \brief Adds the cloned widget to the list of cloned and sets the parameters.
+       * \param[in] clone cloned widget.
+       *
+       */
+      void onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
-    /** \brief Removes the widget when the event handler is turned off
-     * by another event handler.
-     *
-     */
-    void eventHandlerToogled(bool toggled);
+      /** \brief Adds the cloned point representation widget to the list of cloned.
+       * \param[in] clone cloned widget.
+       *
+       */
+      void onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
-    /** \brief Updates the tolerance value in the widgets when the value in the spinbox changes.
-     * \param[in] value new tolerance value.
-     *
-     */
-    void toleranceValueChanged(double value);
+      /** \brief Updates the created segmentation.
+       * \param[in] polydata skeleton data.
+       *
+       */
+      void onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata);
 
-    /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
-     * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
-     *
-     */
-    void checkItemRemoval(SegmentationAdapterSList segmentations);
+      /** \brief Ends the current skeleton and starts a new one.
+       *
+       */
+      void onNextButtonPressed();
 
-  private:
-    virtual void onToolGroupActivated();
+      /** \brief Updates the stroke type of the widget when the stroke type changes.
+       * \param[in] index current type combo box index.
+       *
+       */
+      void onStrokeTypeChanged(int index);
 
-    /** \brief Helper method to manage the visibility of widgets.
-     * \param[in] value true to set visible false otherwise.
-     *
-     */
-    void setControlsVisibility(bool value);
+      /** \brief Shows the stroke type definition dialog.
+       *
+       */
+      void onStrokeConfigurationPressed();
 
-    /** \brief Updates the ViewItem selected to use the spacing and set the tolerance.
-     *
-     */
-    void updateReferenceItem();
+      /** \brief Performs a point check requested by the event handler.
+       * \param[in] point Point 3D coordinates.
+       *
+       */
+      void onPointCheckRequested(const NmVector3 &point);
 
-  private:
-    GUI::Widgets::CategorySelector *m_categorySelector;
-    DoubleSpinBoxAction      *m_toleranceWidget;
-    SkeletonToolStatusAction *m_toolStatus;
-    EventHandlerSPtr          m_handler;
-    QAction                  *m_action;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
-    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-    //EspinaWidgetSPtr          m_widget;
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
 
-    // widget's return values
-    SegmentationAdapterPtr       m_item;
-    CategoryAdapterSPtr          m_itemCategory;
+    private:
+      /** \brief Initializes the filter factory.
+       *
+       */
+      void initFilterFactory();
+
+      /** \brief Initializes and connects the representation factories.
+       *
+       */
+      void initRepresentationFactories();
+
+      /** \brief Initializes and connects the parameters widgets.
+       *
+       */
+      void initParametersWidgets();
+
+      /** \brief Helper method to configure the event handler for the tool.
+       *
+       */
+      void initEventHandler();
+
+      /** \brief Updates the list of strokes in the strokes combobox.
+       *
+       */
+      void updateStrokes();
+
+    private:
+      /** \class NullRepresentationPipeline
+       * \brief Implements an empty representation.
+       *
+       */
+      class NullRepresentationPipeline
+      : public RepresentationPipeline
+      {
+        public:
+          /** \brief NullRepresentationPipeline class constructor.
+           *
+           */
+          explicit NullRepresentationPipeline()
+          : RepresentationPipeline("SegmentationSkeleton2D")
+          { /* representation type must be the same as the default one. */ }
+
+          /** \brief NullRepresentationPipeline class virtual destructor.
+           *
+           */
+          virtual ~NullRepresentationPipeline()
+          {};
+
+          virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
+                                                                 const RepresentationState &state)
+          { return RepresentationPipeline::ActorList(); }
+
+          virtual  void updateColors(RepresentationPipeline::ActorList &actors,
+                                     ConstViewItemAdapterPtr            item,
+                                     const RepresentationState         &state)
+          {}
+
+          virtual bool pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
+          { return false; }
+
+          virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
+                                                          const RepresentationState &settings)
+          { return RepresentationState(); }
+      };
+
+    private:
+      bool                                                      m_init;             /** true if the tool has been initialized.            */
+      GUI::Widgets::CategorySelector                           *m_categorySelector; /** category selector widget.                         */
+      DoubleSpinBoxAction                                      *m_minWidget;        /** min distance between points widget.               */
+      DoubleSpinBoxAction                                      *m_maxWidget;        /** max distance between points widget.               */
+      GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
+      QComboBox                                                *m_strokeCombo;      /** stroke type combo box.                            */
+      GUI::Widgets::ToolButton                                 *m_strokeButton;     /** stroke configuration dialog.                      */
+      SkeletonToolsEventHandlerSPtr                             m_eventHandler;     /** tool's event handler.                             */
+      ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
+      GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** skeleton representation prototypes.               */
+      GUI::Representations::Managers::TemporalPrototypesSPtr    m_pointsFactory;    /** points representation prototypes.                 */
+      QList<GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr> m_skeletonWidgets;  /** list of skeleton widgets currently on views.      */
+      QList<ConnectionPointsTemporalRepresentation2DSPtr>       m_pointWidgets;     /** list of point representations currently on views. */
   };
 
   using SkeletonToolPtr  = SkeletonTool *;

@@ -26,6 +26,9 @@
 #include <GUI/Widgets/ToolButton.h>
 #include <Undo/ReplaceOutputCommand.h>
 
+// Qt
+#include <QThread>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
@@ -43,6 +46,11 @@ FillHoles2DTool::FillHoles2DTool(Support::Context &context)
 //------------------------------------------------------------------------
 ESPINA::FillHoles2DTool::~FillHoles2DTool()
 {
+  disconnect(m_applyButton, SIGNAL(clicked(bool)),
+             this,          SLOT(applyFilter()));
+
+  abortTasks();
+
 	delete m_directionLabel;
 	delete m_directionComboBox;
 	delete m_applyButton;
@@ -51,13 +59,21 @@ ESPINA::FillHoles2DTool::~FillHoles2DTool()
 }
 
 //------------------------------------------------------------------------
-void FillHoles2DTool::abortOperation()
+void FillHoles2DTool::abortTasks()
 {
-  for(auto task: m_executingTasks.keys())
+  for(auto task: m_executingTasks)
   {
-    disconnect(task, SIGNAL(finished()),
-            this,    SLOT(onTaskFinished()));
-    task->abort();
+    disconnect(task.Filter.get(), SIGNAL(finished()),
+               this,              SLOT(onTaskFinished()));
+
+    task.Filter->abort();
+
+    markAsBeingModified(task.Segmentation, false);
+
+    if(!task.Filter->thread()->wait(500))
+    {
+      task.Filter->thread()->terminate();
+    }
   }
   m_executingTasks.clear();
 }

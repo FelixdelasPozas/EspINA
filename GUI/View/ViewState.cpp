@@ -36,9 +36,10 @@ const int FRAME_LIMIT = 20;
 
 //----------------------------------------------------------------------------
 ViewState::ViewState()
-: m_fitToSlices{true}
-, m_coordinateSystem(std::make_shared<CoordinateSystem>())
-, m_selection(new Selection())
+: m_fitToSlices     {true}
+, m_coordinateSystem{std::make_shared<CoordinateSystem>()}
+, m_selection       {new Selection()}
+, m_eventHandler    {nullptr}
 {
   connect(m_selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this,              SLOT(selectionChanged(SegmentationAdapterList)));
@@ -76,6 +77,9 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
   {
     if (m_eventHandler)
     {
+      disconnect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+                 this,                 SIGNAL(cursorChanged()));
+
       m_eventHandler->setInUse(false);
     }
 
@@ -83,6 +87,9 @@ void ViewState::setEventHandler(EventHandlerSPtr handler)
 
     if (m_eventHandler)
     {
+      connect(m_eventHandler.get(), SIGNAL(cursorChanged()),
+              this,                 SIGNAL(cursorChanged()));
+
       m_eventHandler->setInUse(true);
     }
 
@@ -218,25 +225,37 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 //----------------------------------------------------------------------------
 void ViewState::addTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame(m_crosshair);
+  if(!hasTemporalRepresentation(factory))
+  {
+    auto frame = createFrame(m_crosshair);
 
-  if(!m_activeWidgets.contains(factory)) m_activeWidgets << factory;
+    m_activeWidgets << factory;
 
-  emit widgetsAdded(factory, frame);
+    emit widgetsAdded(factory, frame);
 
-  emitFrameChanged(frame);
+    emitFrameChanged(frame);
+  }
 }
 
 //----------------------------------------------------------------------------
 void ViewState::removeTemporalRepresentations(Representations::Managers::TemporalPrototypesSPtr factory)
 {
-  auto frame = createFrame(m_crosshair);
+  if(hasTemporalRepresentation(factory))
+  {
+    auto frame = createFrame(m_crosshair);
 
-  emit widgetsRemoved(factory, frame);
+    emit widgetsRemoved(factory, frame);
 
-  if(m_activeWidgets.contains(factory)) m_activeWidgets.removeAll(factory);
+    m_activeWidgets.removeAll(factory);
 
-  emitFrameChanged(frame);
+    emitFrameChanged(frame);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool ViewState::hasTemporalRepresentation(const Representations::Managers::TemporalPrototypesSPtr factory) const
+{
+  return m_activeWidgets.contains(factory);
 }
 
 //----------------------------------------------------------------------------

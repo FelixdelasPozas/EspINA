@@ -175,13 +175,17 @@ namespace ESPINA
          */
         virtual InformationKeyList availableInformation() const = 0;
 
+        /** \brief Returns true if the extension has the given information key.
+         * \param[in] key extension information key.
+         *
+         */
         bool hasInformation(const InformationKey &key) const
         { return (key.extension() == type()) && (availableInformation().contains(key)); }
 
         /** \brief Returns the list of keys whose information is ready
          *
          */
-        InformationKeyList readyInformation() const
+        virtual InformationKeyList readyInformation() const
         {
           QReadLocker locker(&m_lock);
 
@@ -199,8 +203,8 @@ namespace ESPINA
         {
           if (key.extension() != type())
           {
-            auto what = QObject::tr("Invalid extension key, key: %1.").arg(key);
-            auto details = QObject::tr("Extension::isReady(key) -> Invalid extension key, key: %1.").arg(key);
+            auto what = QObject::tr("Invalid %1 extension key, key: %2.").arg(type()).arg(key);
+            auto details = QObject::tr("Extension::isReady(key) -> Invalid %1 extension key, key: %2.").arg(type()).arg(key);
 
             throw Core::Utils::EspinaException(what, details);
           }
@@ -216,8 +220,8 @@ namespace ESPINA
         {
           if (!hasInformation(key))
           {
-            auto what = QObject::tr("Unknown extension key, key: %1.").arg(key);
-            auto details = QObject::tr("Extension::information(key) -> Unknown extension key, key: %1.").arg(key);
+            auto what = QObject::tr("Unknown %1 extension key, key: %2.").arg(type()).arg(key);
+            auto details = QObject::tr("Extension::information(key) -> Unknown %1 extension key, key: %2.").arg(type()).arg(key);
 
             throw Core::Utils::EspinaException(what, details);
           }
@@ -312,7 +316,7 @@ namespace ESPINA
           m_infoCache.clear();
         }
 
-        InformationKey createKey(const Key &value) const
+        inline InformationKey createKey(const Key &value) const
         { return InformationKey(type(), value); }
 
       protected:

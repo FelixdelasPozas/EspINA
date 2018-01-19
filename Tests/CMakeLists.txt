@@ -1,3 +1,6 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 enable_testing()
 
 set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
@@ -23,7 +26,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
   )
-
+  
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -48,17 +51,19 @@ set (CORE_SOURCES
   ${CORE_RCCS}
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
-#   ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonDataUtils.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Connections.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/MarchingCubesMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
-#   ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Filters/SourceFilter.cpp
   ${CORE_DIR}/Analysis/Filters/VolumetricStreamReader.cpp
@@ -91,6 +96,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/SupportedFormats.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+message("External libs")
 target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
@@ -129,6 +135,7 @@ qt4_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
+  ${GUI_DIR}/Model/Utils/DBVH.h
   ${GUI_DIR}/Utils/Timer.h
   ${GUI_DIR}/View/ViewState.h
   ${GUI_DIR}/View/CoordinateSystem.h
@@ -154,6 +161,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/Model/Utils/QueryAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Model/Utils/DBVH.cpp
   ${GUI_DIR}/Representations/Frame.cpp
   ${GUI_DIR}/Utils/Timer.cpp
   ${GUI_DIR}/View/CoordinateSystem.cpp
@@ -189,7 +197,7 @@ set (TESTING_SOURCES
   ModelProfiler.cpp
   ModelTest.cpp
   ModelTestUtils.cpp
-#   SkeletonTestingUtils.cpp
+  SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})

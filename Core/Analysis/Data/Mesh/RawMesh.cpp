@@ -48,12 +48,8 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  const NmVector3             &origin)
 : m_mesh{mesh}
 {
-  if(mesh && mesh.Get())
-  {
-    m_bounds = polyDataVolumeBounds(mesh, spacing, origin);
-  }
+  m_bounds = polyDataVolumeBounds(mesh, spacing, origin);
 }
-
 
 //----------------------------------------------------------------------------
 void RawMesh::setSpacing(const NmVector3 &spacing)
@@ -95,7 +91,7 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify)
   else
   {
     m_mesh = nullptr;
-    m_bounds = VolumeBounds();
+    m_bounds = VolumeBounds(Bounds(), m_bounds.spacing(), m_bounds.origin());
   }
 
   // only add as an edited region if there was a previous mesh.

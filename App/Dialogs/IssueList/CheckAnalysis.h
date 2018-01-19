@@ -30,9 +30,6 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Support/Context.h>
 
-// Qt
-#include <QDialog>
-
 namespace ESPINA
 {
   /** \class CheckTask
@@ -264,6 +261,11 @@ namespace ESPINA
        *
        */
       void checkIsInsideChannel(ChannelAdapterPtr stack) const;
+
+      /** \brief Checks for problems in the skeleton not related to the data but to itself, like loops or connections.
+       *
+       */
+      void checkSkeletonProblems() const;
 
     private:
       SegmentationAdapterSPtr m_segmentation; /** segmentation to check. */

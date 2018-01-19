@@ -38,10 +38,12 @@ namespace ESPINA
       /** \brief SegmentationProperties class constructor.
        * \param[in] filterRefiners refine widgets factory.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
       explicit SegmentationProperties(Support::FilterRefinerFactory &filterRefiners,
-                                      Support::Context               &context);
+                                      Support::Context               &context,
+                                      QWidget                        *parent = nullptr);
 
       /** \brief SegmentationProperties class virtual destructor.
        *
@@ -75,6 +77,12 @@ namespace ESPINA
        *
        */
       void onNotesModified();
+
+      /** \brief Centers the view on the connection when a link in the connection group is activated.
+       * \param[in] link connection point in string form.
+       *
+       */
+      void onLinkActivated(const QString &link);
 
     private:
       /** \brief Creates or replaces the current refine widget for the given segmentation's refine widget.
@@ -137,6 +145,16 @@ namespace ESPINA
        *
        */
       void clearIssues();
+
+      /** \brief Shows the segmentation connections, to and where.
+       *
+       */
+      void showConnections();
+
+      /** \brief Clears the connections group.
+       *
+       */
+      void clearConnections();
 
     private:
       class UI;

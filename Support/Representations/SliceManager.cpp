@@ -33,12 +33,12 @@ SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
                            RepresentationPoolSPtr poolXZ,
                            RepresentationPoolSPtr poolYZ,
                            ManagerFlags           flags)
-: PoolManager(ViewType::VIEW_2D, flags)
-, m_plane{Plane::UNDEFINED}
-, m_depth{0}
-, m_XY{poolXY}
-, m_XZ{poolXZ}
-, m_YZ{poolYZ}
+: PoolManager{ViewType::VIEW_2D, flags}
+, m_plane    {Plane::UNDEFINED}
+, m_depth    {0}
+, m_XY       {poolXY}
+, m_XZ       {poolXZ}
+, m_YZ       {poolYZ}
 {
 }
 
@@ -143,12 +143,12 @@ void SliceManager::invalidatePreviousActors(TimeStamp time)
 //----------------------------------------------------------------------------
 void SliceManager::onShow(const FrameCSPtr frame)
 {
-  connectPools();
-
   auto pool = planePool();
 
   GUI::RepresentationUtils::setPlane(pool, m_plane);
   GUI::RepresentationUtils::setSegmentationDepth(pool, m_depth);
+
+  connectPools();
 }
 
 //----------------------------------------------------------------------------

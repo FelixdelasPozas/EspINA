@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "Channel.h"
+#include <Core/Utils/StatePair.h>
 
 // VTK
 #include <vtkImageAlgorithm.h>
@@ -128,19 +129,13 @@ State Channel::state() const
   State state;
 
   auto  spacing = output()->spacing();
-  state += QString("Spacing=%1,%2,%3;").arg(spacing[0])
-                                       .arg(spacing[1])
-                                       .arg(spacing[2]);
 
-  state += QString("Brightness=%1;").arg(m_brightness);
-
-  state += QString("Contrast=%1;").arg(m_contrast);
-
-  state += QString("Hue=%1;").arg(m_hue);
-
-  state += QString("Saturation=%1;").arg(m_saturation);
-
-  state += QString("Opacity=%1;").arg(m_opacity);
+  state += StatePair("Spacing",    spacing);
+  state += StatePair("Brightness", m_brightness);
+  state += StatePair("Contrast",   m_contrast);
+  state += StatePair("Hue",        m_hue);
+  state += StatePair("Saturation", m_saturation);
+  state += StatePair("Opacity",    m_opacity);
 
   return state;
 }
@@ -251,7 +246,9 @@ void Channel::setHue(double hue)
 void Channel::setOpacity(double opacity)
 {
   if (opacity == -1.0)
+  {
     opacity = 1.0; // Fix for older espina seg files.
+  }
 
   if (opacity < MIN_OPACITY)
   {
@@ -346,4 +343,3 @@ QString Channel::metadata() const
 
   return m_metadata;
 }
-

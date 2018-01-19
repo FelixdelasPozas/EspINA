@@ -21,12 +21,13 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
-//#include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Extensions/Issues/SegmentationIssues.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -353,11 +354,11 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
       }
     }
 
-//    if (hasSkeletonData(output))
-//    {
-//      checkSkeletonIsEmpty();
-//      ++numberOfDatas;
-//    }
+    if (hasSkeletonData(output))
+    {
+      checkSkeletonIsEmpty();
+      ++numberOfDatas;
+    }
 
     if (numberOfDatas == 0)
     {
@@ -365,7 +366,6 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
-
 
     auto spacing = output->spacing();
     if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
@@ -403,6 +403,10 @@ void CheckSegmentationTask::run()
     checkHasChannel();
     if(!canExecute()) return;
     checkRelations();
+    if(!canExecute()) return;
+    checkExtensionsValidity();
+    if(!canExecute()) return;
+    checkSkeletonProblems();
   }
   catch(const EspinaException &e)
   {
@@ -446,14 +450,18 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkSkeletonIsEmpty() const
 {
-//  auto skeleton = readLockSkeleton(m_segmentation->output());
-//
-//  if (!skeleton->isValid())
-//  {
-//    auto description = tr("Segmentation has a skeleton associated but is empty");
-//
-//    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
-//  }
+  auto skeleton = readLockSkeleton(m_segmentation->output());
+
+  if (!skeleton->isValid())
+  {
+    auto description = tr("Segmentation has a skeleton associated but is empty");
+
+    reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+  else
+  {
+    checkDataBounds(skeleton);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -531,6 +539,51 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
     auto description = tr("Segmentation is partially outside its stack");
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+  }
+}
+
+//------------------------------------------------------------------------
+void CheckSegmentationTask::checkSkeletonProblems() const
+{
+  if(m_segmentation->output()->hasData(SkeletonData::TYPE))
+  {
+    auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
+    auto definition = Core::toSkeletonDefinition(skeleton);
+    auto nodes      = definition.nodes;
+    auto components = Core::connectedComponents(nodes);
+
+    if(components.size() != 1)
+    {
+      auto description = tr("Segmentation is not fully connected, has %1 components.").arg(components.size());
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+    }
+
+    int numLoops = 0;
+    for(auto component: components)
+    {
+      numLoops += Core::loops(component).size();
+    }
+
+    if(numLoops != 0)
+    {
+      auto description = tr("Segmentation has %1 loop%2.").arg(numLoops).arg(numLoops > 1 ? "s" : "");
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+    }
+
+    int isolated = 0;
+    for(auto node: nodes)
+    {
+      if(node->connections.size() == 0) ++isolated;
+    }
+
+    if(isolated != 0)
+    {
+      auto description = tr("Segmentation has %1 isolated node%2.").arg(isolated).arg(isolated > 1 ? "s" : "");
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+    }
   }
 }
 
@@ -644,11 +697,13 @@ void CheckDuplicatedSegmentationsTask::run()
   for (int i = 0; i < m_segmentations.size(); ++i)
   {
     auto seg_i    = m_segmentations[i].get();
+    if(!hasVolumetricData(seg_i->output())) continue;
     auto bounds_i = readLockVolume(seg_i->output())->bounds();
 
     for (int j = i + 1; j < m_segmentations.size(); ++j)
     {
       auto seg_j    = m_segmentations[j].get();
+      if(!hasVolumetricData(seg_j->output())) continue;
       auto bounds_j = readLockVolume(seg_j->output())->bounds();
 
       if(!canExecute()) return;

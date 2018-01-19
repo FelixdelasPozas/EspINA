@@ -190,9 +190,8 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 }
 
 //-----------------------------------------------------------------------------
-RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
-                                     Support::Context &context)
-: ToolGroup      {":/espina/toolgroup_restrict.svg", tr("ROI")}
+RestrictToolGroup::RestrictToolGroup(ROISettings *settings, Support::Context &context, QWidget *parent)
+: ToolGroup      {":/espina/toolgroup_restrict.svg", tr("ROI"), parent}
 , m_context      (context)
 , m_freehandROI  {new FreehandROITool(context, this)}
 , m_orthogonalROI{new OrthogonalROITool(settings, context, this)}
@@ -234,6 +233,9 @@ RestrictToolGroup::~RestrictToolGroup()
   m_orthogonalROI->disconnect();
 
   setCurrentROI(nullptr);
+
+  m_orthogonalROI = nullptr;
+  m_freehandROI = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,7 +243,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    if(m_visible)
+    if(m_context.viewState().hasTemporalRepresentation(m_roiPrototypes))
     {
       m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
     }
@@ -274,7 +276,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
     }
   }
 
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -349,7 +351,7 @@ void RestrictToolGroup::onManualROIDefined(BinaryMaskSPtr<unsigned char> roi)
 
   m_context.roiProvider()->setProvider(this);
 
-  emit roiChanged(currentROI());
+  emit ROIChanged(currentROI());
 }
 
 //-----------------------------------------------------------------------------
@@ -359,13 +361,13 @@ void RestrictToolGroup::onOrthogonalROIDefined(ROISPtr roi)
 
   m_context.roiProvider()->setProvider(this);
 
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::onOrthogonalROIModified(ROISPtr roi)
 {
-  emit roiChanged(roi);
+  emit ROIChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -415,7 +417,6 @@ void RestrictToolGroup::addOrthogonalROI(const VolumeBounds& bounds)
 
     setCurrentROI(roi);
   }
-
 }
 
 //-----------------------------------------------------------------------------

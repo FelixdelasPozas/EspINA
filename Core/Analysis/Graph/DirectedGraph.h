@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
 #ifndef ESPINA_DIRECTED_GRAPH_H
 #define ESPINA_DIRECTED_GRAPH_H
 

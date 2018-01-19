@@ -32,8 +32,12 @@
 #include <QScrollArea>
 #include <ui_SchedulerProgress.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class SchedulerProgress
+   * \brief Implements a  widget that shows the progress of tasks running in the application sheduler.
+   *
+   */
   class EspinaGUI_EXPORT SchedulerProgress
   : public QWidget
   , private Ui::SchedulerProgress
@@ -41,12 +45,13 @@ namespace ESPINA {
       Q_OBJECT
     public:
       /** \brief SchedulerProgree class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] parent, raw pointer of the QWidget parent of this one.
+       * \param[in] scheduler application task scheduler.
+       * \param[in] parent QWidget parent of this one.
+       * \param[in] flags window flags.
        */
       explicit SchedulerProgress(SchedulerSPtr   scheduler,
                                  QWidget        *parent = nullptr,
-                                 Qt::WindowFlags f = 0);
+                                 Qt::WindowFlags flags = Qt::WindowFlags());
 
       /** \brief SchedulerProgress class virtual destructor.
        *
@@ -92,15 +97,14 @@ namespace ESPINA {
     private:
       SchedulerSPtr m_scheduler;
 
-      QMutex                           m_mutex;
-      QMap<TaskSPtr, TaskProgressSPtr> m_tasks;
-      QWidget                         *m_notification;
-      std::shared_ptr<QScrollArea>     m_notificationArea;
-
-      int m_width;
-      int m_height;
-      unsigned int m_taskProgress;
-      unsigned int m_taskTotal;
+      QMutex                           m_mutex;             /** task data mutex.               */
+      QMap<TaskSPtr, TaskProgressSPtr> m_tasks;             /** registered tasks to watch.     */
+      QWidget                         *m_notification;      /** notification widget.           */
+      std::shared_ptr<QScrollArea>     m_notificationArea;  /** notification area.             */
+      int                              m_width;             /** notification area width.       */
+      int                              m_height;            /** notification area max height.  */
+      unsigned int                     m_taskProgress;      /** last task progress on removal. */
+      unsigned int                     m_taskTotal;         /** number of watched tasks.       */
   };
 
   using SchedulerProgressSPtr = std::shared_ptr<SchedulerProgress>;

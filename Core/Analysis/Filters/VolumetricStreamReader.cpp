@@ -21,20 +21,25 @@
 // ESPINA
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
+#include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/EspinaException.h>
-
-// ITK
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
+#include <Core/Utils/StatePair.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 
+const QString STREAM_FILENAME = "streamingData.mhd";
+
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
+: Filter            {inputs, type, scheduler}
+, m_streaming       {false}
+, m_streamingStorage{nullptr}
+, m_changedStreaming{false}
 {
 }
 
@@ -46,7 +51,22 @@ void VolumetricStreamReader::restoreState(const State& state)
     auto tokens = element.split("=");
     if ("File" == tokens[0])
     {
-      m_fileName = QFileInfo(tokens[1].trimmed());
+      auto filename = tokens[1].simplified();
+      auto file = QFileInfo(filename);
+
+      if(handler() && (handler()->defaultDir() != QDir()))
+      {
+        m_fileName = QFileInfo(handler()->defaultDir().filePath(file.fileName()));
+      }
+      else
+      {
+        m_fileName = QFileInfo(file.fileName());
+      }
+    }
+
+    if("Streaming" == tokens[0])
+    {
+      m_streaming = (tokens[1].simplified() == "true");
     }
   }
 }
@@ -56,7 +76,16 @@ State VolumetricStreamReader::state() const
 {
   State state;
 
-  state += QString("File=%1").arg(m_fileName.absoluteFilePath());
+  if(!m_fileName.exists() || !m_fileName.isReadable())
+  {
+    auto message = QObject::tr("Can't find image file or can't read it. File name: %1").arg(m_fileName.fileName());
+    auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  state += StatePair("File", m_fileName.absoluteFilePath());
+  state += StatePair("Streaming", (m_streaming ? "true" : "false"));
 
   return state;
 }
@@ -68,15 +97,27 @@ void VolumetricStreamReader::setFileName(const QFileInfo& fileName)
 }
 
 //----------------------------------------------------------------------------
+void VolumetricStreamReader::setStreaming(bool value)
+{
+  if(value != m_streaming)
+  {
+    m_streaming = value;
+    m_changedStreaming = true;
+  }
+}
+
+//----------------------------------------------------------------------------
 bool VolumetricStreamReader::needUpdate() const
 {
-  return m_outputs.isEmpty() || !validOutput(0);
+  return m_outputs.isEmpty() || !validOutput(0) || m_changedStreaming;
 }
 
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
-  if (!m_fileName.exists())
+  m_changedStreaming = false;
+
+  if (!m_fileName.exists() || !m_fileName.isReadable())
   {
     auto stackFilename = m_fileName;
 
@@ -85,51 +126,109 @@ void VolumetricStreamReader::execute()
       m_fileName = m_handler->fileNotFound(m_fileName, QDir(), IO::ErrorHandler::SameFormat(m_fileName));
     }
 
-    if (!m_fileName.exists())
+    if (!m_fileName.exists() || !m_fileName.isReadable())
     {
-      auto message = QObject::tr("Can't find image file, file name: %1").arg(stackFilename.fileName());
+      auto message = QObject::tr("Can't find image file or can't read it. File name: %1").arg(stackFilename.fileName());
       auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
 
       throw EspinaException(message, details);
     }
   }
 
-  auto mhdFile = QFileInfo{m_fileName};
-  auto fileName = mhdFile.absoluteFilePath().toUtf8();
-  fileName.detach();
-  auto mhdName = fileName.constData();
+  DataSPtr volume              = nullptr;
+  itkVolumeType::Pointer image = nullptr;
 
-  auto imageIO = itk::ImageIOFactory::CreateImageIO(mhdName, itk::ImageIOFactory::ReadMode);
-  imageIO->SetGlobalWarningDisplay(false);
-  imageIO->SetFileName(mhdName);
-  imageIO->ReadImageInformation();
+  if(!canExecute()) return;
 
-  if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
+  if(m_streaming)
   {
-    auto message = QObject::tr("Can't read image file, file name: %1. Pixel type is not 8-bits.").arg(m_fileName.absoluteFilePath());
-    auto details = QObject::tr("VolumetricStreamReader::execute() -> ") + message;
+    if(!m_fileName.fileName().endsWith(".mhd", Qt::CaseInsensitive))
+    {
+      // needs conversion and temporal storage, tiff is not an streamable format: http://www.awaresystems.be/imaging/tiff/faq.html#q7
+      // we can't stream tiff files because trying to do so will kill the application due to excessive memory use by libtiff.
+      if(!m_streamingStorage)
+      {
+        m_streamingStorage = std::make_shared<TemporalStorage>(&storage()->rootDirectory());
 
-    throw EspinaException(message, details);
+        bool needRead = false;
+
+        if(m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
+        {
+          // take advantage of whats in memory before deleting it.
+          image = readLockVolume(m_outputs[0])->itkImage();
+        }
+        else
+        {
+          needRead = true;
+
+          auto fileName = m_fileName.absoluteFilePath().toUtf8();
+          fileName.detach();
+          auto filename = fileName.constData();
+
+          try
+          {
+            image = readVolumeWithProgress<itkVolumeType>(filename, this, 0, 50);
+          }
+          catch(const itk::ExceptionObject &e)
+          {
+            auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
+            auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
+
+            throw EspinaException(what, details);
+          }
+        }
+
+        if(!canExecute()) return;
+
+        try
+        {
+          exportVolumeWithProgress<itkVolumeType>(image, m_streamingStorage->absoluteFilePath(STREAM_FILENAME), this, (needRead ? 50 : 0), 100);
+        }
+        catch(const itk::ExceptionObject &e)
+        {
+          auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
+          auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
+
+          throw EspinaException(what, details);
+        }
+
+        if(!canExecute()) return;
+
+        m_streamingFile = QFileInfo(m_streamingStorage->absoluteFilePath(STREAM_FILENAME));
+      }
+    }
+    else
+    {
+      // mhd files are streamable
+      m_streamingFile = m_fileName;
+    }
+
+    volume = std::make_shared<StreamedVolume<itkVolumeType>>(m_streamingFile);
+  }
+  else
+  {
+    if(!canExecute()) return;
+
+    auto fileName = m_fileName.absoluteFilePath().toUtf8();
+    fileName.detach();
+    auto filename = fileName.constData();
+
+    try
+    {
+      image = readVolumeWithProgress<itkVolumeType>(filename, this);
+      if(!canExecute()) return;
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto what    = QObject::tr("Error in itk, exception message: %1. Filename: %2").arg(QString(e.what())).arg(m_fileName.absoluteFilePath());
+      auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
+
+      throw EspinaException(what, details);
+    }
+
+    volume  = std::make_shared<RawVolume<itkVolumeType>>(image);
   }
 
-  auto reader  = itk::ImageFileReader<itkVolumeType>::New();
-  reader->SetGlobalWarningDisplay(false);
-  reader->SetFileName(mhdName);
-  reader->SetUseStreaming(false);
-  reader->SetNumberOfThreads(1);
-  try
-  {
-    reader->Update();
-  }
-  catch(const itk::ExceptionObject &e)
-  {
-    auto what    = QObject::tr("Error in itk, exception message: %1").arg(QString(e.what()));
-    auto details = QObject::tr("VolumetricStreamReader::execute() -> Error in itk, exception message: %1").arg(QString(e.what()));
-
-    throw EspinaException(what, details);
-  }
-
-  auto volume  = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
   auto spacing = volume->bounds().spacing();
 
   if (!m_outputs.contains(0))
@@ -148,5 +247,5 @@ void VolumetricStreamReader::execute()
     volume->setSpacing(m_outputs[0]->spacing());
   }
 
-  qDebug() << "Loading Channel with Spacing" << volume->bounds().spacing() << "output spacing" << m_outputs[0]->spacing();
+  reportProgress(100);
 }

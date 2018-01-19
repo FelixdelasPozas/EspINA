@@ -61,12 +61,6 @@ namespace ESPINA
 
     void addRepresentation(const Representation &representation);
 
-    /** \brief Fill the view menu.
-     * \param[inout] menu to modify.
-     *
-     */
-    void createViewMenu(QMenu *menu);
-
     /** \brief Returns a reference to the XZ panel
      *
      */
@@ -125,19 +119,18 @@ namespace ESPINA
     void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
   private:
-    ModelSources   m_sources;
-    RepresentationPoolSList m_pools;
+    ModelSources                                     m_sources;         /** items sources list.                          */
+    RepresentationPoolSList                          m_pools;           /** list of pools in the view.                   */
+    GUI::Representations::RepresentationManagerSList m_repManagers;     /** list of representation managers in the view. */
+    View2D                                          *m_viewXY;          /** XY view.                                     */
+    View2D                                          *m_viewYZ;          /** YZ view.                                     */
+    View2D                                          *m_viewXZ;          /** XZ view.                                     */
+    Panel                                           *m_panelYZ;         /** panel of YZ view.                            */
+    Panel                                           *m_panelXZ;         /** panel of XZ view.                            */
+    Dialog3D                                        *m_dialog3D;        /** pointer to 3D view dialog.                   */
 
-    GUI::Representations::RepresentationManagerSList m_repManagers;
-
-    View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
-
-    QList<RenderView *> m_views;
-
-    Panel *m_panelYZ, *m_panelXZ;
-    Dialog3D *m_dialog3D;
+    QList<RenderView *>                              m_views;           /** list of views.                               */
   };
-
 
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 

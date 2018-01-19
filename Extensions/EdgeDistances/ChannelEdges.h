@@ -138,6 +138,19 @@ namespace ESPINA
        */
       bool useDistanceToBounds() const;
 
+      /** \brief Returns true if the given point is near the edge given the tolerance distance.
+       * \param[in] point Point 3D coordinates.
+       * \param[in] tolerance Maximum distance from the edge to consider the point near it.
+       *
+       */
+      bool isPointOnEdge(const NmVector3 point, const Nm tolerance);
+
+      /** \brief Returns true if the edges have been computed and are available.
+       *
+       */
+      bool areEdgesAvailable() const
+      { return m_hasCreatedEdges; }
+
     protected:
       virtual void onExtendedItemSet(Channel* item);
 

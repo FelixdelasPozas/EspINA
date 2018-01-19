@@ -18,18 +18,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "Core/Analysis/Data/Skeleton/RawSkeleton.h"
 #include <Core/Utils/Spatial.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
+
+// Testing
 #include <Tests/testing_support_dummy_filter.h>
-
-
 #include "SkeletonTestingUtils.h"
 
+// Qt
 #include <QList>
 
-using ESPINA::Testing::DummyFilter;
+// C++
+#include <memory>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Testing;
 
 int raw_skeleton_constructor( int argc, char** argv )
 {
@@ -53,12 +59,6 @@ int raw_skeleton_constructor( int argc, char** argv )
   if (defaultBounds != Bounds{-0.5, 1.5, -0.5, 1.5, -0.5, 1.5})
   {
     std::cerr << "Constructed skeleton bounds: " << defaultBounds << ". Expected different bounds." << std::endl;
-    error = true;
-  }
-
-  if(skeleton->spacing() != NmVector3{1,1,1})
-  {
-    std::cerr << "Unexpected skeleton spacing." << std::endl;
     error = true;
   }
 
@@ -120,10 +120,64 @@ int raw_skeleton_constructor( int argc, char** argv )
   }
 
   auto skeletondata = readLockSkeleton(output);
-  if(skeletondata->skeleton() != skeleton->skeleton())
+  auto inOutput     = toSkeletonDefinition(skeleton->skeleton());
+  auto outOutput    = toSkeletonDefinition(skeletondata->skeleton());
+
+  if(inOutput.strokes != outOutput.strokes)
   {
-    std::cerr << "Unexpected SkeletonData in output." << std::endl;
+    std::cerr << "Strokes are different." << std::endl;
     error = true;
+  }
+
+  if(inOutput.edges != outOutput.edges)
+  {
+    std::cerr << "Edges are different." << std::endl;
+    error = true;
+  }
+
+  if(inOutput.nodes.size() != outOutput.nodes.size())
+  {
+    std::cerr << "Different number of nodes." << std::endl;
+    error = true;
+  }
+
+  for(int i = 0; i < inOutput.nodes.size(); ++i)
+  {
+    auto nodeIn = inOutput.nodes.at(i);
+    auto nodeOut = outOutput.nodes.at(i);
+    if(memcmp(nodeIn->position, nodeOut->position, 3*sizeof(double)) != 0)
+    {
+      std::cerr << "Different nodes position." << std::endl;
+      error = true;
+      break;
+    }
+
+    if(nodeIn->connections.size() != nodeOut->connections.size())
+    {
+      std::cerr << "Different number of connections." << std::endl;
+      error = true;
+      break;
+    }
+
+    for(int j = 0; j < nodeIn->connections.size(); ++j)
+    {
+      auto connIn = nodeIn->connections.keys().at(j);
+      auto connOut = nodeOut->connections.keys().at(j);
+
+      if(memcmp(connIn->position, connOut->position, 3*sizeof(double)) != 0)
+      {
+        std::cerr << "Different connected nodes position." << std::endl;
+        error = true;
+        break;
+      }
+
+      if(nodeIn->connections[connIn] != nodeOut->connections[connOut])
+      {
+        std::cerr << "Different edge value in connection." << std::endl;
+        error = true;
+        break;
+      }
+    }
   }
 
   return error;

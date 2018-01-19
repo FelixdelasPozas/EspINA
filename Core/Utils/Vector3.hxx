@@ -271,6 +271,19 @@ namespace ESPINA
             (lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] < rhs[2]));
   }
 
+  /** \brief Returns true if the given vector is valid as a spacing vector.
+   *
+   */
+  template<typename T>
+  bool isValidSpacing(const Vector3<T> &spacing)
+  {
+    for(int i: {0,1,2})
+    {
+      if(spacing[i] <= 0) return false;
+    }
+
+    return true;
+  }
 
   using Nm         = double;
   using NmVector3  = Vector3<Nm>;

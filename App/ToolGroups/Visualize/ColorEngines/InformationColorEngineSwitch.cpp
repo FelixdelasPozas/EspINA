@@ -32,10 +32,10 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLayout>
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
-using namespace ESPINA::Core::Analysis;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
@@ -130,9 +130,23 @@ InformationColorEngineSwitch::InformationColorEngineSwitch(Context& context)
 }
 
 //-----------------------------------------------------------------------------
+InformationColorEngineSwitch::~InformationColorEngineSwitch()
+{
+  disconnect(m_property, SIGNAL(linkActivated(QString)),
+             this,       SLOT(changeProperty()));
+
+  disconnect(this, SIGNAL(toggled(bool)),
+             this, SLOT(onToolToggled(bool)));
+
+  if(isChecked()) onToolToggled(false);
+
+  abortTask();
+}
+
+//-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > settings)
 {
-  ColorEngineSwitch::restoreSettings(settings);
+  restoreCheckedState(settings);
 
   auto extension = settings->value(EXTENSION_KEY,   "MorphologicalInformation").toString();
   auto key       = settings->value(INFORMATION_KEY, "Size").toString();
@@ -150,12 +164,11 @@ void InformationColorEngineSwitch::restoreSettings(std::shared_ptr< QSettings > 
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::saveSettings(std::shared_ptr< QSettings > settings)
 {
-  ColorEngineSwitch::saveSettings(settings);
+  saveCheckedState(settings);
 
   settings->setValue(EXTENSION_KEY,   m_key.extension());
   settings->setValue(INFORMATION_KEY, m_key.value());
 }
-
 
 //-----------------------------------------------------------------------------
 void InformationColorEngineSwitch::createPropertySelector()
@@ -293,5 +306,23 @@ void InformationColorEngineSwitch::onToolToggled(bool checked)
 
     disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                this,             SLOT(updateRange()));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void InformationColorEngineSwitch::abortTask()
+{
+  if(m_task != nullptr)
+  {
+    disconnect(m_task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()));
+
+    m_task->abort();
+
+    if(!m_task->thread()->wait(100))
+    {
+      m_task->thread()->terminate();
+    }
+
+    m_task = nullptr;
   }
 }

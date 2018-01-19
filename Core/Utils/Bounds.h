@@ -63,14 +63,14 @@ namespace ESPINA
        * Create Bounds from an initial list of values
        *
        *  There are three formats to initialize Bounds instances:
-       *  - {min_x, max_x, min_y, max_y, min_z, max_z} \n
-       *    Lower values are inlcuded.\n
-       *    Uppaer values are excluded.\n
+       *  - {min_x, max_x, min_y, max_y, min_z, max_z}
+       *    Lower values are included.
+       *    Upper values are excluded.
        *  - {'LI',min_x, max_x, min_y, max_y, min_z, max_z,'UI'}.
-       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.\n
-       *    Lower values are included or not according to LI value.\n
-       *    '[' includes values and '(' excludes them.\n
-       *    Upper values are included or not according to UI value.\n
+       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.
+       *    Lower values are included or not according to LI value.
+       *    '[' includes values and '(' excludes them.
+       *    Upper values are included or not according to UI value.
        *    ']' includes values and ')' excludes them.
        */
       Bounds(std::initializer_list<double> bounds);
@@ -243,7 +243,7 @@ namespace ESPINA
    *
    *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
    */
-  NmVector3 EspinaCore_EXPORT upperrPoint(const Bounds &bounds);
+  NmVector3 EspinaCore_EXPORT upperPoint(const Bounds &bounds);
 
   /** \brief Add bounds to boundingBox
    * \param[in] boundingBox to be updated
@@ -310,6 +310,18 @@ namespace ESPINA
    * third side.
    */
   bool EspinaCore_EXPORT areAdjacent(const Bounds &lhs, const Bounds &rhs);
+
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  const float EspinaCore_EXPORT surfaceArea(const Bounds &bounds);
+
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  const float EspinaCore_EXPORT enclosingVolume(const Bounds &bounds);
 }
 
 #endif // ESPINA_BOUNDS_H

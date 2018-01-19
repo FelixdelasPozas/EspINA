@@ -18,6 +18,9 @@
     <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
@@ -25,6 +28,15 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
@@ -34,8 +46,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>444</width>
-        <height>617</height>
+        <width>464</width>
+        <height>637</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -44,7 +56,7 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,1,0">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,1,0,0">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
@@ -188,6 +200,18 @@
           <string>Issues</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>1</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="connectionsGroup">
+         <property name="title">
+          <string>Connections</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
           <property name="spacing">
            <number>1</number>
           </property>

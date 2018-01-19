@@ -32,8 +32,6 @@
 // VTK
 #include <vtkSmartPointer.h>
 
-using namespace ESPINA::GUI::Representations::Managers;
-
 namespace ESPINA
 {
   namespace GUI
@@ -44,6 +42,10 @@ namespace ESPINA
       {
         class vtkZoomSelectionWidget;
         
+        /** \class ZoomWidget2D
+         * \brief 2D interactive representation for the zoom tool widget.
+         *
+         */
         class EspinaGUI_EXPORT ZoomWidget2D
         : public EspinaWidget2D
         {
@@ -103,13 +105,13 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget();
 
           private:
-            virtual TemporalRepresentation2DSPtr cloneImplementation();
+            virtual ESPINA::GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
           private:
-            ZoomEventHandler                       *m_eventHandler;
-            vtkSmartPointer<vtkZoomSelectionWidget> m_widget;
-            Plane                                   m_plane;
-            RenderView                             *m_view;
+            ZoomEventHandler                       *m_eventHandler; /** tool's event handler.                              */
+            vtkSmartPointer<vtkZoomSelectionWidget> m_widget;       /** vtk widget with the representation implementation. */
+            Plane                                   m_plane;        /** Plane of the representation.                       */
+            RenderView                             *m_view;         /** view where the representation will be shown.       */
         };
 
       } // namespace Widgets

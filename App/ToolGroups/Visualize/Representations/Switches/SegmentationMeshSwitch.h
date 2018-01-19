@@ -34,6 +34,10 @@ namespace ESPINA
 {
   class SegmentationMeshPoolSettings;
   
+  /** \class SegmentationMeshSwitch
+   * \brief Swith for segmentation mesh representations.
+   *
+   */
   class SegmentationMeshSwitch
   : public RepresentationSwitch
   {
@@ -44,7 +48,6 @@ namespace ESPINA
        * \param[in] smoothedMeshManager manager of smoothed mesh representations.
        * \param[in] settings representation settings.
        * \param[in] supportedViews flags of the supported views of the manager.
-       * \param[in] timer view states' timer.
        * \param[in] context session context.
        *
        */
@@ -87,15 +90,35 @@ namespace ESPINA
        */
       void switchManagers();
 
+      /** \brief Connects the mesh manager pools to the button progress.
+       *
+       */
+      void connectMeshManagersPools();
+
+      /** \brief Disconnects the mesh manager pools from the button progress.
+       *
+       */
+      void disconnectMeshManagersPools();
+
+      /** \brief Helper method to connect the smooth mesh manager's pools to the button progress.
+       *
+       */
+      void connectSmoothMeshManagersPools();
+
+      /** \brief Helper method to disconnect the smooth mesh manager's pools from the button progress.
+       *
+       */
+      void disconnectSmoothMeshManagersPools();
+
       virtual void invalidateRepresentationsImplementation(ViewItemAdapterList items, const GUI::Representations::FrameCSPtr frame) override;
 
     private:
-      GUI::Representations::RepresentationManagerSPtr m_meshManager;
-      GUI::Representations::RepresentationManagerSPtr m_smoothedMeshManager;
-      std::shared_ptr<SegmentationMeshPoolSettings>   m_settings;
-      ViewTypeFlags                                   m_flags;
-      GUI::Widgets::NumericalInput                   *m_smooth;
-      bool                                            m_smoothEnabled;
+      GUI::Representations::RepresentationManagerSPtr m_meshManager;         /** simple mesh representation manager.                     */
+      GUI::Representations::RepresentationManagerSPtr m_smoothedMeshManager; /** smoothed mesh representatio manager.                    */
+      std::shared_ptr<SegmentationMeshPoolSettings>   m_settings;            /** mesh representation settings.                           */
+      ViewTypeFlags                                   m_flags;               /** supported views flags.                                  */
+      GUI::Widgets::NumericalInput                   *m_smooth;              /** smooth value selector widget.                           */
+      bool                                            m_smoothEnabled;       /** true if smooth manager is selected and false othrewise. */
   };
 
 } // namespace ESPINA

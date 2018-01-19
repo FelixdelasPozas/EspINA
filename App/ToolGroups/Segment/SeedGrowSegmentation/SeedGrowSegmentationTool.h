@@ -25,10 +25,10 @@
 // ESPINA
 #include "SeedThreshold.h"
 #include "CustomROIWidget.h"
+#include "SeedGrowSegmentationRefineWidget.h"
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/ProgressTool.h>
 #include <GUI/Types.h>
 #include <Support/Factory/FilterRefinerFactory.h>
@@ -40,8 +40,24 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
 
+  /** \class SeedGrowSegmentationRefiner
+   * \brief Filter refiner widget factory for SGS filters.
+   *
+   */
+  class SeedGrowSegmentationRefiner
+  : public FilterRefiner
+  {
+    Q_OBJECT
+    public:
+      virtual QWidget* createWidget(SegmentationAdapterPtr segmentation, Support::Context& context, QWidget *parent = nullptr)
+      {
+        return new SeedGrowSegmentationRefineWidget(segmentation, context, parent);
+      }
+  };
+
   /** \class SeedGrowSegmentationFactory
    * \brief Factory for seed grow segmentation filters.
+   *
    */
   class SeedGrowSegmentationFilterFactory
   : public FilterFactory
@@ -65,115 +81,162 @@ namespace ESPINA
   class SeedGrowSegmentationTool
   : public Support::Widgets::ProgressTool
   {
-    Q_OBJECT
-  public:
-    /** \brief SeedGrowSegmentationTool class constructor.
-     * \param[in] settings raw pointer to a SeedGrowSegmentationSettings object.
-     * \param[in] filterRefiners register of filter refiners
-     * \param[in] context of current session
-     */
-    explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings   *settings,
-                                      Support::FilterRefinerFactory &filterRefiners,
-                                      Support::Context               &context);
+      Q_OBJECT
+    public:
+      /** \brief SeedGrowSegmentationTool class constructor.
+       * \param[in] settings raw pointer to a SeedGrowSegmentationSettings object.
+       * \param[in] filterRefiners register of filter refiners
+       * \param[in] context of current session
+       */
+      explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings   *settings,
+                                        Support::FilterRefinerFactory &filterRefiners,
+                                        Support::Context               &context);
 
-    /** \brief SeedGrowSegmentation class virtual destructor.
-     *
-     */
-    virtual ~SeedGrowSegmentationTool();
+      /** \brief SeedGrowSegmentation class virtual destructor.
+       *
+       */
+      virtual ~SeedGrowSegmentationTool();
 
-    virtual void abortOperation() override;
+      virtual void abortOperation() override;
 
-    virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override final;
 
-    virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override final;
 
-  private:
-    void initPixelSelectors();
+    private:
+      /** \brief Helper to initialize both pixel selectors.
+       *
+       */
+      void initPixelSelectors();
 
-    void initPixelSelector();
+      /** \brief Helper method to initalize the normal pixel selector.
+       *
+       */
+      void initPixelSelector();
 
-    void initBestPixelSelector();
+      /** \brief Helper method to initalize the best pixel selector.
+       *
+       */
+      void initBestPixelSelector();
 
-    void initSelector(SelectorSPtr selector);
+      /** \brief Helper method to configure a selector and connect it's signals.
+       *
+       */
+      void initSelector(SelectorSPtr selector);
 
-    void initSettingsWidgets();
+      /** \brief Helper method to initialize the settings widgets.
+       *
+       */
+      void initSettingsWidgets();
 
-    void initCategorySelector();
+      /** \brief Helper method to initialize the category selector widget.
+       *
+       */
+      void initCategorySelector();
 
-    void initROISelector();
+      /** \brief Helper method to initialize the ROI widgets.
+       *
+       */
+      void initROISelector();
 
-    void initBestPixelWidgets();
+      /** \brief Helper method to initialize the best pixel range selector.
+       *
+       */
+      void initBestPixelWidgets();
 
-    void initCloseWidgets();
+      /** \brief Helper method to initialize the close morphological operation widget.
+       *
+       */
+      void initCloseWidgets();
 
-    ChannelAdapterPtr inputChannel() const;
+      /** \brief Returns the input channel for the tool.
+       *
+       */
+      ChannelAdapterPtr inputChannel() const;
 
-    SelectorSPtr activeSelector() const;
+      /** \brief Returns the current active pixel selector.
+       *
+       */
+      SelectorSPtr activeSelector() const;
 
-  private slots:
-    /** \brief Launches a seedgrow segmentation task based on the current selection.
-     * \pararm[in] selectedItems, current selection.
-     *
-     */
-    void launchTask(Selector::Selection selectedItems);
+      /** \brief Aborts all executing tasks.
+       *
+       */
+      void abortTasks();
 
-    /** \brief After the filter has finished adds the segmentation to the model.
-     *
-     */
-    void createSegmentation();
+    private slots:
+      /** \brief Launches a seedgrow segmentation task based on the current selection.
+       * \pararm[in] selectedItems, current selection.
+       *
+       */
+      void launchTask(Selector::Selection selectedItems);
 
-    /** \brief Updates the ROI values when the category changes.
-     * \param[in] category current category.
-     *
-     */
-    void onCategoryChanged(CategoryAdapterSPtr category);
+      /** \brief After the filter has finished adds the segmentation to the model.
+       *
+       */
+      void createSegmentation();
 
-    /** \brief Updates ROI values.
-     * \param[in] update true if category ROI values have to be applied.
-     *
-     */
-    void updateCurrentCategoryROIValues(bool update);
+      /** \brief Updates the ROI values when the category changes.
+       * \param[in] category current category.
+       *
+       */
+      void onCategoryChanged(CategoryAdapterSPtr category);
 
-    void useBestPixelSelector(bool value);
+      /** \brief Updates ROI values.
+       * \param[in] update true if category ROI values have to be applied.
+       *
+       */
+      void updateCurrentCategoryROIValues(bool update);
 
-    /** \brief Updated the best pixel value.
-     * \param[in] value integer value in range [0-254]
-     *
-     */
-    void onNewPixelValue(int value);
+      void useBestPixelSelector(bool value);
 
-    /** \brief Updates the UI when the close check changes value.
-     * \param[in] value boolean value.
-     *
-     */
-    void onCloseStateChanged(bool value);
+      /** \brief Updated the best pixel value.
+       * \param[in] value integer value in range [0-254]
+       *
+       */
+      void onNewPixelValue(int value);
 
-  private:
-    using CategorySelector   = GUI::Widgets::CategorySelector;
-    using PixelValueSelector = GUI::Widgets::PixelValueSelector;
-    using NumericalInput     = GUI::Widgets::NumericalInput;
+      /** \brief Updates the UI when the close check changes value.
+       * \param[in] value boolean value.
+       *
+       */
+      void onCloseStateChanged(bool value);
 
-    Support::Context &m_context;
+    private:
+      using CategorySelector   = GUI::Widgets::CategorySelector;
+      using PixelValueSelector = GUI::Widgets::PixelValueSelector;
+      using NumericalInput     = GUI::Widgets::NumericalInput;
 
-    CategorySelector   *m_categorySelector;
-    SeedThreshold      *m_seedThreshold;
-    QPushButton        *m_useBestPixel;
-    QLabel             *m_colorLabel;
-    PixelValueSelector *m_colorSelector;
-    CustomROIWidget    *m_roi;
-    QPushButton        *m_applyClose;
-    NumericalInput     *m_close;
+      Support::Context &m_context;
 
-    SeedGrowSegmentationSettings* m_settings;
+      CategorySelector   *m_categorySelector; /** category selector widget.     */
+      SeedThreshold      *m_seedThreshold;    /** seed threshold input widget.  */
+      QPushButton        *m_useBestPixel;     /** best pixel selection button.  */
+      QLabel             *m_colorLabel;       /** best pixel color label.       */
+      PixelValueSelector *m_colorSelector;    /** best pixel color selector.    */
+      CustomROIWidget    *m_roi;              /** ROI widget.                   */
+      QPushButton        *m_applyClose;       /** appy close selection button.  */
+      NumericalInput     *m_close;            /** close radius selector button. */
 
-    SelectorSPtr m_bestPixelSelector;
-    SelectorSPtr m_pixelSelector;
-    SelectorSPtr m_activeSelector;
+      SeedGrowSegmentationSettings* m_settings; /** tool's settings. */
 
-    std::shared_ptr<SeedGrowSegmentationFilterFactory>  m_sgsFactory;
+      SelectorSPtr m_bestPixelSelector; /** best pixel selector.         */
+      SelectorSPtr m_pixelSelector;     /** normal pixel selector.       */
+      SelectorSPtr m_activeSelector;    /** currently selected selector. */
 
-    QMap<FilterPtr, FilterSPtr> m_executingTasks;
-    QMap<FilterPtr, SeedGrowSegmentationFilterSPtr> m_executingFilters;
+      std::shared_ptr<SeedGrowSegmentationFilterFactory>  m_sgsFactory; /** tool's filter factory. */
+
+      /** \struct Data
+       * \brief Context data for tool execution.
+       *
+       */
+      struct Data
+      {
+        SeedGrowSegmentationFilterSPtr Filter;   /** SGS filter.                      */
+        CategoryAdapterSPtr            Category; /** created segmentation's category. */
+      };
+
+      QMap<FilterPtr, struct Data> m_tasks; /** maps filter<->data. */
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

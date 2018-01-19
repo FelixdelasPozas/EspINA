@@ -80,7 +80,7 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      DistanceInformationOptionsDialog(Support::Context &context);
+      explicit DistanceInformationOptionsDialog(Support::Context &context);
 
       /** \brief DistanceInformationOptionsDialog class virtual destructor.
        *

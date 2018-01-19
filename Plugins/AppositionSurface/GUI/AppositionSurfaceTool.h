@@ -42,7 +42,10 @@ namespace ESPINA
 {
   class AppositionSurfacePlugin;
 
-  //-----------------------------------------------------------------------------
+  /** \class AppositionSurfaceTool
+   * \brief Implementation of the apposition surface plugin tool.
+   *
+   */
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceTool
   : public Support::Widgets::ProgressTool
   {
@@ -72,10 +75,13 @@ namespace ESPINA
     void createSAS();
 
   private:
+    /** \brief Returnst the default tooltip for the tool.
+     *
+     */
     const QString defaultTooltip() const;
 
   private:
-    AppositionSurfacePlugin *m_plugin;
+    AppositionSurfacePlugin *m_plugin; /** apposition surface plugin for SAS creation. */
   };
 
   using SASToolPtr   = AppositionSurfaceTool *;

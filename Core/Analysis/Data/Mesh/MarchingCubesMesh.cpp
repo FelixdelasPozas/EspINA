@@ -151,10 +151,11 @@ VolumeBounds MarchingCubesMesh::bounds() const
 //----------------------------------------------------------------------------
 const bool MarchingCubesMesh::needsUpdate() const
 {
-  TimeStamp time;
+  TimeStamp time = std::numeric_limits<TimeStamp>::max();
+
+  if(m_output)
   {
-    auto volume = readLockVolume(m_output, DataUpdatePolicy::Ignore);
-    time = volume->lastModified();
+    time = readLockVolume(m_output, DataUpdatePolicy::Ignore)->lastModified();
   }
 
   QMutexLocker lock(&m_lock);

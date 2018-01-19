@@ -20,8 +20,6 @@
 
 // ESPINA
 #include "MorphologicalInformation.h"
-#include <Core/Analysis/Data/MeshData.h>
-#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Segmentation.h>
 
 // ITK

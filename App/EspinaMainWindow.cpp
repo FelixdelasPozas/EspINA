@@ -17,47 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "EspinaMainWindow.h"
 
 // ESPINA
-#include <Core/Analysis/Channel.h>
-#include "Dialogs/About/AboutDialog.h"
-#include "Dialogs/Settings/GeneralSettingsDialog.h"
-#include "Dialogs/RawInformation/RawInformationDialog.h"
-#include <Dialogs/Dialog3D/Dialog3D.h>
-#include "Panels/StackExplorer/StackExplorer.h"
-#include "Panels/SegmentationExplorer/SegmentationExplorer.h"
-#include "Panels/SegmentationProperties/SegmentationProperties.h"
-#include "IO/SegFileReader.h"
-#include "Menus/ColorEngineMenu.h"
-#include "Settings/GeneralSettings/GeneralSettingsPanel.h"
-#include <App/Settings/ROI/ROISettings.h>
-#include <App/Settings/ROI/ROISettingsPanel.h>
-#include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
-#include <App/Settings/Utils.h>
+#include "EspinaMainWindow.h"
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/ListUtils.hxx>
-#include <Dialogs/IssueList/CheckAnalysis.h>
-#include "ToolGroups/ToolGroup.h"
-#include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
-#include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
-#include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
-#include "ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h"
-#include "ToolGroups/Visualize/GenericTogglableTool.h"
-#include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
-#include <ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
-#include <ToolGroups/Segment/Manual/ManualSegmentTool.h>
-//#include <ToolGroups/Segment/Skeleton/SkeletonTool.h>
-#include <ToolGroups/Explore/ResetViewTool.h>
-#include <ToolGroups/Explore/ZoomRegionTool.h>
-#include <ToolGroups/Explore/PositionMarksTool.h>
-#include <ToolGroups/Session/FileOpenTool.h>
-#include <ToolGroups/Session/FileSaveTool.h>
-#include <ToolGroups/Session/UndoRedoTools.h>
-#include "RecentDocuments.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -71,6 +38,39 @@
 #include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <Support/Widgets/PanelSwitch.h>
+#include <Core/Analysis/Channel.h>
+#include <App/Dialogs/About/AboutDialog.h>
+#include <App/Dialogs/Settings/GeneralSettingsDialog.h>
+#include <App/Dialogs/RawInformation/RawInformationDialog.h>
+#include <App/Dialogs/Dialog3D/Dialog3D.h>
+#include <App/Dialogs/IssueList/CheckAnalysis.h>
+#include <App/Panels/StackExplorer/StackExplorer.h>
+#include <App/Panels/SegmentationExplorer/SegmentationExplorer.h>
+#include <App/Panels/SegmentationProperties/SegmentationProperties.h>
+#include <App/Settings/GeneralSettings/GeneralSettingsPanel.h>
+#include <App/Settings/ROI/ROISettings.h>
+#include <App/Settings/ROI/ROISettingsPanel.h>
+#include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
+#include <App/Settings/Utils.h>
+#include <App/IO/SegFileReader.h>
+#include <App/ToolGroups/ToolGroup.h>
+#include <App/ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/Representations/StackRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h>
+#include <App/ToolGroups/Visualize/GenericTogglableTool.h>
+#include <App/ToolGroups/Visualize/FullscreenTool.h>
+#include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
+#include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Explore/ResetViewTool.h>
+#include <App/ToolGroups/Explore/ZoomRegionTool.h>
+#include <App/ToolGroups/Explore/PositionMarksTool.h>
+#include <App/ToolGroups/Session/FileOpenTool.h>
+#include <App/ToolGroups/Session/FileSaveTool.h>
+#include <App/ToolGroups/Session/UndoRedoTools.h>
+#include <App/RecentDocuments.h>
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -144,7 +144,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   restoreGeometry();
 
-  statusBar()->addPermanentWidget(m_schedulerProgress.get());
+  statusBar()->addPermanentWidget(m_schedulerProgress.get(), 1);
   statusBar()->clearMessage();
 
   m_sessionToolGroup->setChecked(true);
@@ -420,6 +420,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
   m_view.reset();
 
   removeTemporalDirectory(m_settings->temporalPath());
+
+  m_context.scheduler()->abort();
 }
 
 //------------------------------------------------------------------------
@@ -430,7 +432,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   {
     auto message = tr("Current session has not been saved. Do you want to save it now?");
     auto buttons = QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel;
-    auto title   = windowTitle().split(QDir::separator()).last();
+    auto title   = windowTitle();
     auto answer  = DefaultDialogs::UserQuestion(message, buttons, title);
 
     switch(answer)
@@ -460,12 +462,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   enableWidgets(false);
   enableToolShortcuts(false);
-
-  auto &viewState = m_context.viewState();
-
-  updateSceneState(NmVector3{0,0,0}, viewState, ViewItemAdapterSList());
-
-  viewState.resetCamera();
 
   setWindowTitle(tr("ESPINA Interactive Neuron Analyzer"));
 
@@ -553,16 +549,16 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   auto files = m_openFileTool->loadedFiles();
 
   Q_ASSERT(!files.isEmpty());
-  auto referenceFile = files.first();
+  auto referenceFile = QFileInfo{files.first()};
 
-  setWindowTitle(referenceFile);
+  setWindowTitle(referenceFile.fileName());
 
   updateUndoStackIndex();
 
-  m_saveTool->setSaveFilename(referenceFile);
-  m_saveTool->setEnabled(files.size() == 1 && referenceFile.endsWith(".seg", Qt::CaseInsensitive));
+  m_saveTool->setSaveFilename(referenceFile.absoluteFilePath());
+  m_saveTool->setEnabled(files.size() == 1 && referenceFile.fileName().endsWith(".seg", Qt::CaseInsensitive));
 
-  m_saveAsTool->setSaveFilename(referenceFile);
+  m_saveAsTool->setSaveFilename(referenceFile.absoluteFilePath());
 
   m_autoSave.resetCountDown();
 
@@ -572,6 +568,8 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   }
 
   emit analysisChanged();
+
+  m_context.viewState().refresh();
 }
 
 //------------------------------------------------------------------------
@@ -766,7 +764,7 @@ void EspinaMainWindow::registerColorEngine(ColorEngineSwitchSPtr colorEngineSwit
 void EspinaMainWindow::initRepresentations()
 {
   registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
-  registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
+  registerRepresentationFactory(std::make_shared<StackRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }
 
@@ -863,6 +861,9 @@ void EspinaMainWindow::createSessionToolGroup()
   connect(m_saveTool.get(), SIGNAL(sessionSaved(const QString &, bool)),
           this,             SLOT(onSessionSaved(const QString &, bool)));
 
+  connect(this,             SIGNAL(analysisAboutToBeClosed()),
+          m_saveTool.get(), SLOT(abortTask()));
+
   m_saveAsTool = std::make_shared<FileSaveTool>("FileSaveAs",  ":/espina/file_save_as.svg", tr("Save File As"), m_context, m_analysis, m_errorHandler);
   m_saveAsTool->setOrder("1-1", "1_FileGroup");
   m_saveAsTool->setAlwaysAskUser(true);
@@ -945,28 +946,28 @@ void EspinaMainWindow::createExploreToolGroup()
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
 
   auto stackExplorerSwitch = std::make_shared<PanelSwitch>("StackExplorer",
-                                                           new StackExplorer(m_context),
+                                                           new StackExplorer(m_context, this),
                                                            ":espina/display_stack_explorer.svg",
                                                            tr("Stack Explorer"),
                                                            m_context);
-  stackExplorerSwitch->setOrder("0-0"); // Explorers-Channels
+  stackExplorerSwitch->setOrder("0-0", "0-Panels"); // Explorers-Channels
 
   auto segmentationExplorerSwitch = std::make_shared<PanelSwitch>("SegmentationExplorer",
-                                                                  new SegmentationExplorer(m_filterRefiners, m_context),
+                                                                  new SegmentationExplorer(m_filterRefiners, m_context, this),
                                                                   ":espina/display_segmentation_explorer.svg",
                                                                   tr("Segmentation Explorer"),
                                                                   m_context);
-  segmentationExplorerSwitch->setOrder("0-1"); // Explorers-Segmetnations
+  segmentationExplorerSwitch->setOrder("0-1", "0-Panels"); // Explorers-Segmentations
 
   auto zoomRegion = std::make_shared<ZoomRegionTool>(m_context);
   auto resetView  = std::make_shared<ResetViewTool>(m_context);
 
-  zoomRegion->setOrder("1-0");
-  resetView->setOrder("1-1");
+  zoomRegion->setOrder("1-0", "1-ViewTools");
+  resetView->setOrder("1-1", "1-ViewTools");
 
   auto bookmarksTool = std::make_shared<PositionMarksTool>(m_context, m_view->renderviews());
 
-  bookmarksTool->setOrder("2");
+  bookmarksTool->setOrder("2", "1-ViewTools");
 
   connect(this,                SIGNAL(analysisClosed()),
           bookmarksTool.get(), SLOT(clear()));
@@ -983,7 +984,7 @@ void EspinaMainWindow::createExploreToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createRestrictToolGroup()
 {
-  m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);
+  m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context, this);
 
   registerToolGroup(m_restrictToolGroup);
 }
@@ -996,12 +997,15 @@ void EspinaMainWindow::createSegmentToolGroup()
   m_segmentToolGroup->setToolTip(tr("Create New Segmentations"));
 
   auto manualSegment = std::make_shared<ManualSegmentTool>(m_context);
+  manualSegment->setOrder("1-0", "1-SEGMENT");
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
-//  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  sgsSegment->setOrder("1-1", "1-SEGMENT");
+  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  skeleton->setOrder("1-2", "1-SEGMENT");
 
   m_segmentToolGroup->addTool(manualSegment);
   m_segmentToolGroup->addTool(sgsSegment);
-//  m_segmentToolGroup->addTool(skeleton);
+  m_segmentToolGroup->addTool(skeleton);
 
   registerToolGroup(m_segmentToolGroup);
 }
@@ -1009,7 +1013,7 @@ void EspinaMainWindow::createSegmentToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createEditToolGroup()
 {
-  m_refineToolGroup = new EditToolGroup(m_filterRefiners, m_context);
+  m_refineToolGroup = new EditToolGroup(m_filterRefiners, m_context, this);
 
   registerToolGroup(m_refineToolGroup);
 }
@@ -1033,8 +1037,7 @@ void EspinaMainWindow::createEditToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createVisualizeToolGroup()
 {
-  m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
-
+  m_visualizeToolGroup = createToolGroup(":/espina/toolgroup_visualize.svg", tr("Visualize"));
 
   auto scalebar = std::make_shared<GenericTogglableTool>("Scalebar",
                                                          ":/espina/display_view_scalebar.svg",
@@ -1077,10 +1080,15 @@ void EspinaMainWindow::createVisualizeToolGroup()
   panelSwitchYZ->setOrder("1","3-Views");
   m_visualizeToolGroup->addTool(panelSwitchYZ);
 
-  auto dialogSwith3D = m_view->dialog3D()->tool();
-  dialogSwith3D->setOrder("2","3-Views");
+  auto dialogSwitch3D = m_view->dialog3D()->tool();
+  dialogSwitch3D->setOrder("2","3-Views");
 
-  m_visualizeToolGroup->addTool(dialogSwith3D);
+  m_visualizeToolGroup->addTool(dialogSwitch3D);
+
+  auto fullscreenSwitch = std::make_shared<FullscreenTool>(m_context, *this);
+  fullscreenSwitch->setOrder("0", "4-MainWindow");
+
+  m_visualizeToolGroup->addTool(fullscreenSwitch);
 
   registerToolGroup(m_visualizeToolGroup);
 }
@@ -1088,7 +1096,7 @@ void EspinaMainWindow::createVisualizeToolGroup()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createAnalyzeToolGroup()
 {
-  m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
+  m_analyzeToolGroup = new AnalyzeToolGroup(m_context, this);
 
   registerToolGroup(m_analyzeToolGroup);
 }
@@ -1102,7 +1110,7 @@ ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QStrin
 //------------------------------------------------------------------------
 void EspinaMainWindow::createDefaultPanels()
 {
-  auto segmentationProperties       = new SegmentationProperties(m_filterRefiners, m_context);
+  auto segmentationProperties = new SegmentationProperties(m_filterRefiners, m_context, this);
 
   connect(this,                   SIGNAL(analysisAboutToBeClosed()),
           segmentationProperties, SLOT(reset()));
@@ -1112,7 +1120,7 @@ void EspinaMainWindow::createDefaultPanels()
                                                                     ":espina/display_segmentation_properties.svg",
                                                                     tr("Segmentation Properties"),
                                                                     m_context);
-  segmentationPropertiesSwitch->setOrder("0");
+  segmentationPropertiesSwitch->setOrder("0", "0-PROPERTIES");
 
   m_refineToolGroup->addTool(segmentationPropertiesSwitch);
 }
@@ -1199,7 +1207,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
   {
     if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
     {
-      m_visualizeToolGroup->addRepresentationSwitch(repSwitch);
+      m_visualizeToolGroup->addTool(repSwitch);
     }
   }
 

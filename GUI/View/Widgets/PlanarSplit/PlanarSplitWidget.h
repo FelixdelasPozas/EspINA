@@ -36,8 +36,6 @@
 // Qt
 #include <QMap>
 
-using namespace ESPINA::GUI::Representations::Managers;
-
 class vtkAbstractWidget;
 class vtkPoints;
 class vtkPlane;
@@ -51,8 +49,6 @@ namespace ESPINA
 {
   namespace GUI
   {
-    class View2D;
-
     namespace View
     {
       namespace Widgets

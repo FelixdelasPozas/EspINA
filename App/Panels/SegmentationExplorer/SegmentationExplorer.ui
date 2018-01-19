@@ -17,6 +17,9 @@
    <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="topMargin">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="groupLayout">
      <item>
@@ -45,71 +48,14 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLineEdit" name="searchText">
-       <property name="inputMethodHints">
-        <set>Qt::ImhNone</set>
-       </property>
-       <property name="placeholderText">
-        <string>Search . . .</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="clearSearch">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="baseSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Clear filters</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../../rsc/espina.qrc">
-         <normaloff>:/espina/cancel.png</normaloff>:/espina/cancel.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>22</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="shortcut">
-        <string>Del</string>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="ESPINA::GUI::Widgets::LineEditWithClear" name="searchText">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="placeholderText">
+      <string>Search . . .</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="CheckableTreeView" name="view">
@@ -386,26 +332,14 @@ QTreeView::indicator:unchecked {
    <extends>QTreeView</extends>
    <header>GUI/Widgets/CheckableTreeView.h</header>
   </customwidget>
+  <customwidget>
+   <class>ESPINA::GUI::Widgets::LineEditWithClear</class>
+   <extends>QLineEdit</extends>
+   <header>GUI/Widgets/LineEditWithClear.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../../rsc/espina.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>clearSearch</sender>
-   <signal>clicked()</signal>
-   <receiver>searchText</receiver>
-   <slot>clear()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>271</x>
-     <y>37</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>220</x>
-     <y>41</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

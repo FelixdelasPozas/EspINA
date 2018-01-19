@@ -26,6 +26,10 @@
 
 namespace ESPINA
 {
+  /** \class FillHolesTool
+   * \brief Tool for fill holes filter.
+   *
+   */
   class FillHolesTool
   : public Support::Widgets::EditTool
   {
@@ -42,8 +46,6 @@ namespace ESPINA
        */
       virtual ~FillHolesTool()
       {};
-
-      virtual void abortOperation() override;
 
     private:
       virtual bool acceptsNInputs(int n) const;
@@ -62,11 +64,21 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      /** \brief Aborts all executing tasks.
+       *
+       */
+      void abortTasks();
+
+      /** \struct TaskContext
+       * \brief Executing task context.
+       *
+       */
       struct TaskContext
       {
         FillHolesFilterSPtr    Filter;       /** filter in execution. */
         SegmentationAdapterPtr Segmentation; /** segmentation.        */
       };
+
       QMap<TaskPtr, TaskContext> m_executingTasks; /** map filter<->context of currently executing filters. */
   };
 }

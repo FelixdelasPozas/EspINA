@@ -28,6 +28,10 @@ namespace ESPINA
   {
     enum class STATUS: std::int8_t {	SUCCESS = 1, FILE_NOT_FOUND = 2, INVALID_VERSION = 3, IO_ERROR = 4 };
 
+    /** \class ErrorHandler
+     * \brief Base class to manage errors during SEG file loading.
+     *
+     */
     class EspinaCore_EXPORT ErrorHandler
     {
       public:
@@ -36,6 +40,19 @@ namespace ESPINA
          */
         virtual ~ErrorHandler()
         {}
+
+        /** \brief Sets the default directory.
+         * \param[in] dir QDir const reference.
+         *
+         */
+        void setDefaultDir(const QDir &dir)
+        { m_defaultDir = dir; }
+
+        /** \brief Returns the default directory.
+         *
+         */
+        const QDir defaultDir() const
+        { return m_defaultDir; }
 
         /** \brief Message to show in case of a warning.
          * \param[in] msg warning message.
@@ -72,6 +89,9 @@ namespace ESPINA
 
           return format;
         }
+
+      private:
+        QDir m_defaultDir; /** default directory to show in file dialog. */
     };
 
   } // namespace IO

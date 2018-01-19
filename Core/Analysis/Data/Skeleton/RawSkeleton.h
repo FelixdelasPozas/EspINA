@@ -61,11 +61,9 @@ namespace ESPINA
       virtual ~RawSkeleton()
       {};
 
-      virtual bool isValid() const override
-      { return (m_skeleton.Get() != nullptr); }
+      virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton);
 
-      virtual bool isEmpty() const override
-      { return !isValid(); }
+      virtual vtkSmartPointer<vtkPolyData> skeleton() const;
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { return SkeletonData::snapshot(storage, path, id); }
@@ -73,15 +71,14 @@ namespace ESPINA
       virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override
       { return snapshot(storage, path, id); }
 
+      virtual bool isValid() const;
+
+      virtual bool isEmpty() const;
+
       virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
-      { fetchDataImplementation(storage, path, id, VolumeBounds(bounds(), m_spacing, m_origin)); }
+      { fetchDataImplementation(storage, path, id, m_bounds); }
 
-      virtual vtkSmartPointer<vtkPolyData> skeleton() const override
-      { return m_skeleton; }
-
-      virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override;
-
-      void setSpacing(const NmVector3 &spacing) override;
+      void setSpacing(const NmVector3 &spacing);
 
       size_t memoryUsage() const override;
 
@@ -94,9 +91,8 @@ namespace ESPINA
       { return QList<Data::Type>(); }
 
     private:
-      vtkSmartPointer<vtkPolyData> m_skeleton;
-      NmVector3 m_spacing;
-      NmVector3 m_origin;
+      vtkSmartPointer<vtkPolyData> m_skeleton; /** skeleton data           */
+      mutable QMutex               m_lock;     /** protects skeleton data. */
   };
 
   using RawSkeletonPtr  = RawSkeleton *;

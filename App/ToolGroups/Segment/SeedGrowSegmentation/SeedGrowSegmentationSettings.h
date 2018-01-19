@@ -27,6 +27,10 @@
 
 namespace ESPINA
 {
+  /** \class SeedGrowSegmentationSettings
+   * \brief Implements seed grow segmentation tool settins storage.
+   *
+   */
   class SeedGrowSegmentationSettings
   : public QObject
   {
@@ -45,36 +49,36 @@ namespace ESPINA
     /** \brief Sets X size.
      * \param[in] value size value.
      */
-    void setXSize(int value);
+    void setXSize(long long value);
 
     /** \brief Returns X size value.
      *
      */
-    int xSize() const
+    long long xSize() const
     {return m_xSize;}
 
     /** \brief Sets Y size.
      * \param[in] value size value.
      *
      */
-    void setYSize(int value);
+    void setYSize(long long value);
 
     /** \brief Returns Y size value.
      *
      */
-    int ySize() const
+    long long ySize() const
     {return m_ySize;}
 
     /** \brief Sets Z size.
      * \param[in] value size value.
      *
      */
-    void setZSize(int value);
+    void setZSize(long long value);
 
     /** \brief Returns Z size value.
      *
      */
-    int zSize() const
+    long long zSize() const
     {return m_zSize;}
 
     /** \brief Sets apply category flag.
@@ -128,13 +132,22 @@ namespace ESPINA
     void bestValueChanged(int value);
 
   private:
-    static const QString SGS_GROUP;
+    static const QString SGS_GROUP;                             /** SeedGrowSegmentation group id. */
+
+    /** \brief Helper method to modify the settings.
+     * \param[in] key key id.
+     * \param[in] value key value.
+     *
+     */
     template<typename T> void set(const QString &key, T value);
 
-    int  m_xSize, m_ySize, m_zSize, m_radius;
-    int  m_bestValue;
-    bool m_applyCategoryROI;
-    bool m_applyClose;
+    long long m_xSize;            /** size of ROI in the X axis.                                              */
+    long long m_ySize;            /** size of ROI in the Y axis.                                              */
+    long long m_zSize;            /** size of ROI in the Z axis.                                              */
+    int       m_radius;           /** close radius value.                                                     */
+    int       m_bestValue;        /** best pixel value.                                                       */
+    bool      m_applyCategoryROI; /** true to apply ROI values and false otherwise.                           */
+    bool      m_applyClose;       /** true to apply a morphological close after seedgrow and false otherwise. */
   };
 
 } // namespace ESPINA

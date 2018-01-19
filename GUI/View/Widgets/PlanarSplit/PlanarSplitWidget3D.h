@@ -34,8 +34,6 @@
 class vtkPlane;
 class vtkPoints;
 
-using namespace ESPINA::GUI::Representations::Managers;
-
 namespace ESPINA
 {
   class RenderView;
@@ -49,7 +47,7 @@ namespace ESPINA
         class PlanarSplitEventHandler;
 
         /** \class PlanarSplitWidget3D
-         * \brief Implements 3d segmentation planar split widget
+         * \brief Interactive widget for planar split operation in 3D views.
          *
          */
         class EspinaGUI_EXPORT PlanarSplitWidget3D
@@ -96,7 +94,7 @@ namespace ESPINA
             virtual vtkAbstractWidget *vtkWidget() override;
 
           private:
-            virtual TemporalRepresentation3DSPtr cloneImplementation() override;
+            virtual GUI::Representations::Managers::TemporalRepresentation3DSPtr cloneImplementation() override;
 
           private:
             vtkSmartPointer<vtkImplicitPlaneWidget2> m_widget;  /** vtk widgets.                  */

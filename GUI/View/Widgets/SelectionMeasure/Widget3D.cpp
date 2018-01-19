@@ -44,11 +44,6 @@ Widget3D::Widget3D(SelectionSPtr selection)
 }
 
 //----------------------------------------------------------------------------
-Widget3D:: ~Widget3D()
-{
-}
-
-//----------------------------------------------------------------------------
 TemporalRepresentation3DSPtr Widget3D::cloneImplementation()
 {
   return std::make_shared<Widget3D>(m_selection);

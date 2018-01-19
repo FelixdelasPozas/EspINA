@@ -37,32 +37,44 @@
 
 using namespace ESPINA;
 
+/** \class ModifyOrthogonalRegion
+ * \brief QUndoCommand for orthogonal ROI modifications.
+ *
+ */
 class ModifyOrthogonalRegion
 : public QUndoCommand
 {
-public:
-  ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
-  : m_roi(roi)
-  , m_swap(bounds)
-  {}
+  public:
+    /** \brief ModifyOrthogonalRegion class constructor.
+     * \param[in] roi ROI being modified.
+     * \param[in] bounds new bounds.
+     *
+     */
+    ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
+    : m_roi {roi}
+    , m_swap{bounds}
+    {}
 
-  virtual void redo()
-  { swapBounds(); }
+    virtual void redo()
+    { swapBounds(); }
 
-  virtual void undo()
-  { swapBounds(); }
+    virtual void undo()
+    { swapBounds(); }
 
-private:
-  void swapBounds()
-  {
-    Bounds tmp = m_roi->bounds();
-    m_roi->resize(m_swap);
-    m_swap = tmp;
-  }
+  private:
+    /** \brief Swaps the old and new bounds.
+     *
+     */
+    void swapBounds()
+    {
+      Bounds tmp = m_roi->bounds();
+      m_roi->resize(m_swap);
+      m_swap = tmp;
+    }
 
-private:
-  ROISPtr m_roi;
-  Bounds  m_swap;
+  private:
+    ROISPtr m_roi;  /** ROI being modified. */
+    Bounds  m_swap; /** old/new bounds      */
 };
 
 using namespace ESPINA::GUI;
@@ -98,7 +110,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
 //-----------------------------------------------------------------------------
 OrthogonalROITool::~OrthogonalROITool()
 {
-  disconnect();
   m_resizeROI->disconnect();
   m_applyROI->disconnect();
 
@@ -174,11 +185,6 @@ Bounds OrthogonalROITool::createRegion(const NmVector3 &centroid, const Nm xSize
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::onToolGroupActivated()
-{
-}
-
-//-----------------------------------------------------------------------------
 void OrthogonalROITool::initControls()
 {
   m_resizeROI = Styles::createToolButton(":/espina/resize_roi.svg", tr("Resize Orthogonal ROI"));
@@ -188,9 +194,12 @@ void OrthogonalROITool::initControls()
   m_applyROI ->setCheckable(true);
   m_resizeROI->setEnabled(false);
 
-  m_defineHandler->setMultiSelection(false);
+  m_defineHandler->setMultiSelection(true);
   m_defineHandler->setSelectionTag(Selector::CHANNEL, true);
   m_defineHandler->setCursor(QCursor(QPixmap(":/espina/roi_define_cursor.svg").scaled(32,32)));
+
+  connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
+          this,                  SLOT(defineROI(Selector::Selection)));
 
   connect(m_resizeROI, SIGNAL(clicked(bool)),
           this,        SLOT(setResizable(bool)));
@@ -269,14 +278,10 @@ void OrthogonalROITool::setDefinitionMode(bool value)
     if (viewState.eventHandler() != m_defineHandler)
     {
       viewState.setEventHandler(m_defineHandler);
-      connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
-              this,                  SLOT(defineROI(Selector::Selection)));
     }
   }
   else
   {
-    disconnect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
-               this,                  SLOT(defineROI(Selector::Selection)));
     viewState.unsetEventHandler(m_defineHandler);
   }
 }

@@ -45,14 +45,12 @@ namespace ESPINA
        * \param[in] context application context.
        *
        */
-      FillHoles2DTool(Support::Context &context);
+      explicit FillHoles2DTool(Support::Context &context);
 
       /** \brief FillHoles2DTool class virtual destructor.
        *
        */
       virtual ~FillHoles2DTool();
-
-      virtual void abortOperation() override;
 
     private:
       virtual bool acceptsNInputs(int n) const;
@@ -76,6 +74,11 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      /** \brief Aborts currently executing tasks.
+       *
+       */
+      void abortTasks();
+
       struct TaskContext
       {
           FillHoles2DFilterSPtr  Filter;       /** filter being executed. */

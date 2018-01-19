@@ -71,12 +71,6 @@ int raw_skeleton_set_skeleton( int argc, char** argv )
 
   skeleton.setSkeleton(newPolyData);
 
-  if(skeleton.skeleton() != newPolyData)
-  {
-    std::cerr << "Unexpected polydata in skeleton." << std::endl;
-    error = true;
-  }
-
   if(skeleton.skeleton()->GetPoints()->GetNumberOfPoints() != newNumberOfNodes)
   {
     std::cerr << "Unexpected number of points of test skeleton." << std::endl;

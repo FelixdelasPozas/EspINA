@@ -22,6 +22,7 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <Core/Utils/Locker.h>
 #include <Core/Utils/EspinaException.h>
 
 // Qt
@@ -33,15 +34,21 @@ namespace ESPINA
 {
   namespace Core
   {
-    namespace Analysis
+    /** \class Extensions
+     * \brief Manages item extensions. Class is templated over extended item T and extensions type E.
+     *
+     */
+    template<typename E, typename T>
+    class Extensions
     {
-      template<typename E, typename T>
-      class Extensions
-      {
       public:
         using ExtensionSPtr  = std::shared_ptr<E>;
         using ExtensionSList = QList<ExtensionSPtr>;
 
+        /** \class Iterator
+         * \brief Item extensions iterator.
+         *
+         */
         class Iterator
         {
           public:
@@ -52,7 +59,7 @@ namespace ESPINA
              */
             Iterator(const Extensions<E, T> *container, unsigned index)
             : m_container(container)
-            , m_index(index)
+            , m_index    (index)
             {}
 
             /** \brief Operator not equal.
@@ -82,7 +89,7 @@ namespace ESPINA
 
           private:
             const Extensions<E, T> *m_container; /** extensions container map. */
-            unsigned m_index;                    /** current iterator index.   */
+            unsigned                m_index;     /** current iterator index.   */
         };
 
       public:
@@ -91,7 +98,8 @@ namespace ESPINA
          *
          */
         Extensions(T *item)
-        : m_item(item)
+        : m_lock{ QReadWriteLock::NonRecursive }
+        , m_item(item)
         {}
 
         /** \brief Extensions class virtual destructor.
@@ -145,7 +153,7 @@ namespace ESPINA
         {
           Q_ASSERT(hasExtension(Extension::TYPE));
 
-          auto base      = operator[](Extension::TYPE);
+          auto base = operator[](Extension::TYPE);
           auto extension = std::dynamic_pointer_cast<Extension>(base);
 
           Q_ASSERT(extension);
@@ -170,7 +178,7 @@ namespace ESPINA
          */
         virtual typename E::InformationKeyList availableInformation() const;
 
-        /** \brief Returns true if any of the extensions has an information corrending to the given key.
+        /** \brief Returns true if any of the extensions has an information corresponding to the given key.
          * \param[in] key information key.
          *
          */
@@ -216,289 +224,302 @@ namespace ESPINA
       private:
         using ExtensionSMap = QMap<typename E::Type, ExtensionSPtr>;
 
-        QReadWriteLock m_lock;        /** access lock. */
-        ExtensionSMap  m_extensions;  /** extensions map. */
+        QReadWriteLock m_lock;       /** access lock.    */
+        ExtensionSMap  m_extensions; /** extensions map. */
 
-        T             *m_item;        /** extended item. */
+        T *m_item; /** extended item. */
 
         template<typename U, typename V> friend class ReadLockExtensions;
         template<typename U, typename V> friend class WriteLockExtensions;
-      };
+    };
 
+    /** \class ReadLockExtensions
+     * \brief Locks extensions class for reading. Templated over extended item T and extension type E.
+     *
+     */
+    template<typename E, typename T>
+    class ReadLockExtensions: private Core::Utils::ReadLocker
+    {
+      public:
+        /** \brief ReadLockExtensions class constructor.
+         * \param[in] extensions extensions class object.
+         *
+         */
+        ReadLockExtensions(const Extensions<E, T> &extensions)
+        : Core::Utils::ReadLocker(const_cast<Extensions<E, T> *>(&extensions)->m_lock)
+        , m_extensions           (extensions)
+        {}
 
-      template<typename E, typename T>
-      class ReadLockExtensions
+        /** \brief ReadLockExtensions class destructor.
+         *
+         */
+        virtual ~ReadLockExtensions()
+        {}
+
+        /** \brief Extensions Iterator begin.
+         *
+         */
+        typename Extensions<E, T>::Iterator begin() const
+        { return m_extensions.begin(); }
+
+        /** \brief Extensions Iterator end.
+         *
+         */
+        typename Extensions<E, T>::Iterator end() const
+        { return m_extensions.end(); }
+
+        /** \brief Extensions operator []
+         * \param[in] type extension type.
+         *
+         */
+        typename Extensions<E, T>::ExtensionSPtr operator[](const typename E::Type &type) const
+        { return m_extensions[type]; }
+
+        /** \brief Extensions indirection operator.
+         *
+         */
+        const Extensions<E, T> * operator ->() const
+        { return &m_extensions; }
+
+      private:
+        const Extensions<E, T> &m_extensions; /** extensions map. */
+    };
+
+    /** \class WriteLockExtensions
+     * \brief Locks extensions class for writing. Templated over extended item T and extension type E.
+     *
+     */
+    template<typename E, typename T>
+    class WriteLockExtensions
+    : private Core::Utils::WriteLocker
+    {
+      public:
+        /** \brief WriteLockExtensions class constructor.
+         * \param[in] extensions extensions class object.
+         *
+         */
+        WriteLockExtensions(Extensions<E, T> &extensions)
+        : Core::Utils::WriteLocker(extensions.m_lock)
+        , m_extensions            (extensions)
+        {}
+
+        /** \brief WriteLockExtensions class destructor.
+         *
+         */
+        virtual ~WriteLockExtensions()
+        {}
+
+        /** \brief Extensions Iterator begin.
+         *
+         */
+        typename Extensions<E, T>::Iterator begin() const
+        { return m_extensions.begin(); }
+
+        /** \brief Extensions Iterator end.
+         *
+         */
+        typename Extensions<E, T>::Iterator end() const
+        { return m_extensions.end(); }
+
+        /** \brief Extensions operator []
+         * \param[in] type extension type.
+         *
+         */
+        typename Extensions<E, T>::ExtensionSPtr operator[](const typename E::Type &type)
+        { return m_extensions[type]; }
+
+        /** \brief Extensions indirection operator.
+         *
+         */
+        Extensions<E, T> * operator ->() const
+        { return &m_extensions; }
+
+      private:
+        Extensions<E, T> &m_extensions; /** extensions map. */
+    };
+
+    /** \class Extensible
+     * \brief Defines an extensible class T extended by a group of extensions of type E.
+     *
+     */
+    template<typename E, typename T>
+    class Extensible
+    {
+      public:
+        /** \brief Extensible class constructor.
+         * \param[in] item model item to be extended.
+         *
+         */
+        Extensible(T *item)
+        : m_extensions(item)
+        {}
+
+        /** \brief Extensible class virtual destructor.
+         *
+         */
+        virtual ~Extensible()
+        {}
+
+        /** \brief Returns the map of extensions in read-only mode. Locks extensions map for reading.
+         *
+         */
+        const ReadLockExtensions<E, T> readOnlyExtensions() const
+        { return ReadLockExtensions<E, T>(m_extensions); }
+
+        /** \brief Returns the map of extensions in write mode. Locks extensions map for writing.
+         *
+         */
+        WriteLockExtensions<E, T> extensions()
+        { return WriteLockExtensions<E, T>(m_extensions); }
+
+        /** \brief Returns the value of the specified information key.
+         * \param[in] key information key.
+         *
+         * NOTE: Do not use this method if you are already accessing via Read/WriteLockExtensions
+         *
+         */
+        virtual QVariant information(const typename E::InformationKey& key) const;
+
+      private:
+        Extensions<E, T> m_extensions; /** extensions map. */
+    };
+
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    void Extensions<E, T>::add(ExtensionSPtr extension)
+    {
+      if (hasExtension(extension))
       {
-        public:
-          /** \brief ReadLockExtensions class constructor.
-           * \param[in] extensions extensions class object.
-           *
-           */
-          ReadLockExtensions(const Extensions<E, T> &extensions)
-          : m_extensions(extensions)
-          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.lockForRead(); }
+        auto what = QObject::tr("Attempt to add an existing extension, type: %1").arg(extension->type());
+        auto details = QObject::tr("Extensions::add() -> Attempt to add an existing extension, type: %1").arg(extension->type());
 
-          /** \brief ReadLockExtensions class destructor.
-           *
-           */
-          ~ReadLockExtensions()
-          { const_cast<Extensions<E, T> *>(&m_extensions)->m_lock.unlock(); }
+        throw Core::Utils::EspinaException(what, details);
+      }
 
-          /** \brief Extensions Iterator begin.
-           *
-           */
-          typename Extensions<E, T>::Iterator begin() const
-          { return m_extensions.begin(); }
+      extension->setExtendedItem(m_item);
 
-          /** \brief Extensions Iterator end.
-           *
-           */
-          typename Extensions<E, T>::Iterator end() const
-          { return m_extensions.end(); }
+      m_extensions.insert(extension->type(), extension);
+    }
 
-          /** \brief Extensions operator []
-           * \param[in] type extension type.
-           *
-           */
-          typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type) const
-          { return m_extensions[type]; }
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    void Extensions<E, T>::remove(ExtensionSPtr extension)
+    {
+      remove(extension->type());
+    }
 
-          /** \brief Extensions indirection operator.
-           *
-           */
-          const Extensions<E, T> * operator ->() const
-          { return &m_extensions; }
-
-        private:
-          const Extensions<E, T> &m_extensions; /** extensions map. */
-      };
-
-      template<typename E, typename T>
-      class WriteLockExtensions
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    void Extensions<E, T>::remove(const typename E::Type &extension)
+    {
+      if (!hasExtension(extension))
       {
-        public:
-          /** \brief WriteLockExtensions class constructor.
-           * \param[in] extensions extensions class object.
-           *
-           */
-          WriteLockExtensions(Extensions<E, T> &extensions)
-          : m_extensions(extensions)
-          { m_extensions.m_lock.lockForWrite(); }
+        auto what = QObject::tr("Attempt to remove an unregistered extension, type: %1").arg(extension);
+        auto details = QObject::tr("Extensions::remove() -> Attempt to obtain an unregistered extension, type: %1").arg(extension);
 
-          /** \brief WriteLockExtensions class destructor.
-           *
-           */
-          ~WriteLockExtensions()
-          { m_extensions.m_lock.unlock(); }
+        throw Core::Utils::EspinaException(what, details);
+      }
 
-          /** \brief Extensions Iterator begin.
-           *
-           */
-          typename Extensions<E, T>::Iterator begin() const
-          { return m_extensions.begin(); }
+      m_extensions.remove(extension);
+    }
 
-          /** \brief Extensions Iterator end.
-           *
-           */
-          typename Extensions<E, T>::Iterator end() const
-          { return m_extensions.end(); }
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    bool Extensions<E, T>::hasExtension(const typename E::Type& extension) const
+    {
+      return m_extensions.keys().contains(extension);
+    }
 
-          /** \brief Extensions operator []
-           * \param[in] type extension type.
-           *
-           */
-          typename Extensions<E, T>::ExtensionSPtr operator[] (const typename E::Type &type)
-          { return m_extensions[type]; }
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    bool Extensions<E, T>::hasExtension(const std::shared_ptr<E>& extension) const
+    {
+      return hasExtension(extension->type());
+    }
 
-          /** \brief Extensions indirection operator.
-           *
-           */
-          Extensions<E, T> * operator ->() const
-          { return &m_extensions; }
-
-        private:
-          Extensions<E, T> &m_extensions; /** extensions map. */
-      };
-
-      template<typename E, typename T>
-      class Extensible
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    typename Extensions<E, T>::ExtensionSPtr Extensions<E, T>::operator[](const typename E::Type& type) const
+    {
+      if (!hasExtension(type))
       {
-        public:
-          /** \brief Extensible class constructor.
-           * \param[in] item model item to be extended.
-           *
-           */
-          Extensible(T *item)
-          : m_extensions(item)
-          {}
+        auto what = QObject::tr("Attempt to obtain an unregistered extension, type: %1").arg(type);
+        auto details = QObject::tr("Extensions::operator[] -> Attempt to obtain an unregistered extension, type: %1").arg(type);
 
-          /** \brief Extensible class virtual destructor.
-           *
-           */
-          virtual ~Extensible()
-          {}
+        throw Core::Utils::EspinaException(what, details);
+      }
 
-          /** \brief Returns the map of extensions in read-only mode. Locks extensions map for reading.
-           *
-           */
-          const ReadLockExtensions<E, T> readOnlyExtensions() const
-          { return ReadLockExtensions<E, T>(m_extensions); }
+      return m_extensions[type];
+    }
 
-          /** \brief Returns the map of extensions in write mode. Locks extensions map for writing.
-           *
-           */
-          WriteLockExtensions<E, T> extensions()
-          { return WriteLockExtensions<E, T>(m_extensions); }
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    typename E::InformationKeyList Extensions<E, T>::availableInformation() const
+    {
+      typename E::InformationKeyList list;
 
-          /** \brief Returns the value of the specified information key.
-           * \param[in] key information key.
-           *
-           * NOTE: Do not use this method if you are already accessing via Read/WriteLockExtensions
-           *
-           */
-          virtual QVariant information(const typename E::InformationKey& key) const;
-
-        private:
-          Extensions<E, T> m_extensions;
-      };
-
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      void Extensions<E, T>::add(ExtensionSPtr extension)
+      for (auto extension : m_extensions.values())
       {
-        if (hasExtension(extension))
+        list << extension->availableInformation();
+      }
+
+      return list;
+    }
+
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    QVariant Extensions<E, T>::information(const typename E::InformationKey& key) const
+    {
+      if (hasExtension(key.extension()))
+      {
+        auto extension = m_extensions[key.extension()];
+
+        if (extension->hasInformation(key))
         {
-          auto what    = QObject::tr("Attempt to add an existing extension, type: %1").arg(extension->type());
-          auto details = QObject::tr("Extensions::add() -> Attempt to add an existing extension, type: %1").arg(extension->type());
-
-          throw Core::Utils::EspinaException(what, details);
+          return extension->information(key);
         }
-
-        extension->setExtendedItem(m_item);
-
-        m_extensions.insert(extension->type(), extension);
       }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      void Extensions<E, T>::remove(ExtensionSPtr extension)
-      {
-        remove(extension->type());
-      }
+      return QVariant();
+    }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      void Extensions<E, T>::remove(const typename E::Type &extension)
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    bool Extensions<E, T>::isReady(const typename E::InformationKey& key) const
+    {
+      for (auto extension : m_extensions.values())
       {
-        if (!hasExtension(extension))
+        if (extension->hasInformation(key))
         {
-          auto what    = QObject::tr("Attempt to remove an unregistered extension, type: %1").arg(extension);
-          auto details = QObject::tr("Extensions::remove() -> Attempt to obtain an unregistered extension, type: %1").arg(extension);
-
-          throw Core::Utils::EspinaException(what, details);
+          return extension->isReady(key);
         }
-
-        m_extensions.remove(extension);
       }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      bool Extensions<E, T>::hasExtension(const typename E::Type& extension) const
-      {
-        return m_extensions.keys().contains(extension);
-      }
+      return false;
+    }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      bool Extensions<E, T>::hasExtension(const std::shared_ptr<E>& extension) const
+    //------------------------------------------------------------------
+    template<typename E, typename T>
+    QVariant Extensible<E, T>::information(const typename E::InformationKey& key) const
+    {
+      typename Extensions<E, T>::ExtensionSPtr extension;
       {
-        return hasExtension(extension->type());
-      }
+        auto extensions = readOnlyExtensions();
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      typename Extensions<E, T>::ExtensionSPtr Extensions<E, T>::operator[](const typename E::Type& type) const
-      {
-        if (!hasExtension(type))
+        if (extensions->hasExtension(key.extension()))
         {
-          auto what    = QObject::tr("Attempt to obtain an unregistered extension, type: %1").arg(type);
-          auto details = QObject::tr("Extensions::operator[] -> Attempt to obtain an unregistered extension, type: %1").arg(type);
-
-          throw Core::Utils::EspinaException(what, details);
+          extension = extensions[key.extension()];
         }
-
-        return m_extensions[type];
       }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      typename E::InformationKeyList Extensions<E, T>::availableInformation() const
+      QVariant information;
+
+      if (extension && extension->hasInformation(key))
       {
-        typename E::InformationKeyList list;
-
-        for (auto extension : m_extensions.values())
-        {
-          list << extension->availableInformation();
-        }
-
-        return list;
+        information = extension->information(key);
       }
 
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      QVariant Extensions<E, T>::information(const typename E::InformationKey& key) const
-      {
-        if (hasExtension(key.extension()))
-        {
-          auto extension = m_extensions[key.extension()];
-
-          if (extension->hasInformation(key))
-          {
-            return extension->information(key);
-          }
-        }
-
-        return QVariant();
-      }
-
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      bool Extensions<E, T>::isReady(const typename E::InformationKey& key) const
-      {
-        for(auto extension: m_extensions.values())
-        {
-          if (extension->hasInformation(key))
-          {
-            return extension->isReady(key);
-          }
-        }
-
-        return false;
-      }
-
-      //------------------------------------------------------------------
-      template<typename E, typename T>
-      QVariant Extensible<E, T>::information(const typename E::InformationKey& key) const
-      {
-        typename Extensions<E, T>::ExtensionSPtr extension;
-        {
-          auto extensions = readOnlyExtensions();
-
-          if (extensions->hasExtension(key.extension()))
-          {
-            extension = extensions[key.extension()];
-          }
-        }
-
-        QVariant information;
-
-        if (extension && extension->hasInformation(key))
-        {
-          information = extension->information(key);
-        }
-
-        return information;
-      }
+      return information;
     }
   }
 }

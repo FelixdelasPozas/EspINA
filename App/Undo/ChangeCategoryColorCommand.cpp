@@ -25,61 +25,53 @@
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/View/ViewState.h>
 
+using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI::View;
 
-namespace ESPINA
+//------------------------------------------------------------------------
+ChangeCategoryColorCommand::ChangeCategoryColorCommand(ModelAdapterSPtr      model,
+                                                       GUI::View::ViewState &viewState,
+                                                       CategoryAdapterPtr    category,
+                                                       Hue                   hueValue)
+: m_model    {model}
+, m_viewState(viewState)
+, m_category {category}
+, m_hueValue {hueValue}
 {
-  //------------------------------------------------------------------------
-  ChangeCategoryColorCommand::ChangeCategoryColorCommand(ModelAdapterSPtr model,
-                                                         GUI::View::ViewState &viewState,
-                                                         CategoryAdapterPtr category,
-                                                         Hue hueValue)
-  : m_model{model}
-  , m_viewState(viewState)
-  , m_category{category}
-  , m_hueValue{hueValue}
+}
+
+//------------------------------------------------------------------------
+void ChangeCategoryColorCommand::redo()
+{
+  auto actualHue = m_category->color().hue();
+  auto color = selectedColor(m_hueValue);
+  m_hueValue = actualHue;
+  m_category->setData(color, Qt::DecorationRole);
+
+  invalidateDependentSegmentations();
+}
+
+//------------------------------------------------------------------------
+void ChangeCategoryColorCommand::undo()
+{
+  redo();
+}
+
+//------------------------------------------------------------------------
+void ChangeCategoryColorCommand::invalidateDependentSegmentations() const
+{
+  SegmentationAdapterList segmentations;
+
+  for (auto segmentation : m_model->segmentations())
   {
-  }
-
-  //------------------------------------------------------------------------
-  ChangeCategoryColorCommand::~ChangeCategoryColorCommand()
-  {
-  }
-
-  //------------------------------------------------------------------------
-  void ChangeCategoryColorCommand::redo()
-  {
-    auto actualHue = m_category->color().hue();
-    auto color = selectedColor(m_hueValue);
-    m_hueValue = actualHue;
-    m_category->setData(color, Qt::DecorationRole);
-
-    invalidateDependentSegmentations();
-  }
-
-  //------------------------------------------------------------------------
-  void ChangeCategoryColorCommand::undo()
-  {
-    redo();
-  }
-
-  //------------------------------------------------------------------------
-  void ChangeCategoryColorCommand::invalidateDependentSegmentations() const
-  {
-    SegmentationAdapterList segmentations;
-
-    for(auto segmentation: m_model->segmentations())
+    if (segmentation->category().get() == m_category)
     {
-      if(segmentation->category().get() == m_category)
-      {
-        segmentations << segmentation.get();
-      }
+      segmentations << segmentation.get();
     }
-
-    auto itemList = toList<ViewItemAdapter, SegmentationAdapter>(segmentations);
-    m_viewState.invalidateRepresentations(itemList);
   }
 
-    
-} // namespace ESPINA
+  auto itemList = toList<ViewItemAdapter, SegmentationAdapter>(segmentations);
+  m_viewState.invalidateRepresentations(itemList);
+}

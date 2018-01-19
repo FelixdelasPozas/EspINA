@@ -45,15 +45,15 @@ namespace ESPINA
             /** \brief OrthogonalSliceSelector constructor.
              *
              */
-            explicit OrthogonalSliceSelector(OrthogonalRepresentationSPtr region);
+            explicit OrthogonalSliceSelector(OrthogonalRepresentationSPtr region, QWidget *parent = nullptr);
 
-            explicit OrthogonalSliceSelector(OrthogonalSliceSelector &selector);
+            explicit OrthogonalSliceSelector(OrthogonalSliceSelector &selector, QWidget *parent = nullptr);
 
             virtual ~OrthogonalSliceSelector();
 
-            virtual QWidget *lowerWidget () const;
+            virtual QWidget *lowerWidget() const;
 
-            virtual QWidget *rightWidget() const;
+            virtual QWidget *upperWidget() const;
 
             /** \brief Sets the widget tooltiptext label.
              * \param[in] label title of the tooltiptext
@@ -61,7 +61,7 @@ namespace ESPINA
             void setLabel (const QString &label)
             { m_label  = label; update();}
 
-            virtual SliceSelectorSPtr clone(RenderView *view, Plane plane );
+            virtual SliceSelectorSPtr clone(RenderView *view, Plane plane);
 
           protected slots:
             /** \brief Update the widgets.

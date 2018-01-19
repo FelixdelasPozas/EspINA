@@ -22,11 +22,15 @@
 // ESPINA
 #include "Segmentation.h"
 #include "Category.h"
+#include "Data/SkeletonData.h"
 
 // VTK
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkImageData.h>
+#include <vtkIntArray.h>
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
 
 // Qt
 #include <QPainter>
@@ -195,5 +199,26 @@ void Segmentation::unload()
 //------------------------------------------------------------------------
 void Segmentation::setCategory(CategorySPtr category)
 {
+  auto oldCategory = m_category;
   m_category = category;
+
+  if(oldCategory && m_category && hasSkeletonData(output()))
+  {
+    auto oldHue = oldCategory->color();
+    auto newHue = m_category->color();
+
+    auto data     = writeLockSkeleton(output());
+    auto skeleton = data->skeleton();
+
+    auto strokeColors = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeColor"));
+    for(int i = 0; i < strokeColors->GetNumberOfTuples(); ++i)
+    {
+      if(strokeColors->GetValue(i) == oldHue)
+      {
+        strokeColors->SetValue(i, newHue);
+      }
+    }
+
+    data->setSkeleton(skeleton);
+  }
 }

@@ -40,6 +40,14 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, Manag
 }
 
 //-----------------------------------------------------------------------------
+RepresentationManager::~RepresentationManager()
+{
+  emit terminated(this);
+
+  if(m_view) shutdown();
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::setName(const QString &name)
 {
   m_name = name;
@@ -106,12 +114,12 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 
   if (isActive())
   {
+    onShow(frame);
+
     if (hasRepresentations())
     {
       updateRepresentations(frame);
     }
-
-    onShow(frame);
   }
 }
 
@@ -120,9 +128,14 @@ void RepresentationManager::show(const GUI::Representations::FrameCSPtr frame)
 {
   m_isActive = true;
 
-  if (isActive() && hasRepresentations())
+  if(m_view)
   {
-    updateRepresentations(frame);
+    onShow(frame);
+
+    if (isActive() && hasRepresentations())
+    {
+      updateRepresentations(frame);
+    }
   }
 
   for (auto child : m_childs)
@@ -145,8 +158,6 @@ void RepresentationManager::hide(const GUI::Representations::FrameCSPtr frame)
       waitForDisplay(frame);
 
       emitRenderRequest(frame);
-
-      updateRepresentations(frame);
     }
   }
 
@@ -194,7 +205,7 @@ FrameCSPtr RepresentationManager::lastFrame() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::display(TimeStamp time)
 {
-  Q_ASSERT(m_view);
+  if(!m_view) return;
 
   if(m_frames.value(time, Frame::InvalidFrame()) == Frame::InvalidFrame())
   {
@@ -237,7 +248,10 @@ RepresentationManagerSPtr RepresentationManager::clone()
   child->m_description = m_description;
   child->m_isActive    = m_isActive;
 
-  m_childs << child;
+  m_childs << child.get();
+
+  connect(child.get(), SIGNAL(terminated(RepresentationManager *)),
+          this,        SLOT(onChildTerminated(RepresentationManager *)));
 
   return child;
 }
@@ -396,8 +410,6 @@ bool RepresentationManager::waitingNewerFrames(TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationManager::updateRepresentations(const GUI::Representations::FrameCSPtr frame)
 {
-  onShow(frame);
-
   if (hasRepresentations())
   {
     waitForDisplay(frame);
@@ -454,4 +466,32 @@ void RepresentationManager::invalidateFrames(const FrameCSPtr frame)
 //  qDebug() << debugName() << "invalidates frames on" << frame->time;
   m_lastInvalidationFrame = frame->time;
   m_frames.invalidate();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::shutdown()
+{
+  setView(nullptr, Frame::InvalidFrame());
+
+  disconnect();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::onChildTerminated(RepresentationManager *sender)
+{
+  auto manager = dynamic_cast<RepresentationManager *>(sender);
+
+  if(manager)
+  {
+    for(auto child: m_childs)
+    {
+      if(manager == child)
+      {
+        m_childs.removeOne(child);
+        return;
+      }
+    }
+  }
+
+  qWarning() << __FILE__ << __LINE__ << "Received object but couldn't identify it.";
 }

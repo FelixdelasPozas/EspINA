@@ -32,6 +32,7 @@ PointTracker::PointTracker()
 , m_interpolation     {true}
 , m_maxDistance2      {10}
 , m_distanceHasBeenSet{false}
+, m_reportPosition    {false}
 , m_view              {nullptr}
 {
 }
@@ -53,13 +54,31 @@ bool PointTracker::filterEvent(QEvent *e, RenderView *view)
           startTrack(me->pos(), view);
           return true;
         }
+
+        if (m_reportPosition && !m_track.isEmpty() && me && (me->button() == Qt::RightButton))
+        {
+          emit endStroke();
+          m_track.clear();
+          return true;
+        }
       }
       break;
     case QEvent::MouseMove:
-      if (me && m_tracking)
+      if (me)
       {
-        updateTrack(me->pos());
-        return true;
+        if(m_tracking)
+        {
+          updateTrack(me->pos());
+          return true;
+        }
+        else
+        {
+          if(m_reportPosition && !m_track.isEmpty())
+          {
+            emit cursorPosition(me->pos());
+            return true;
+          }
+        }
       }
       break;
     case QEvent::MouseButtonRelease:
@@ -180,6 +199,18 @@ PointTracker::Track PointTracker::interpolate(const NmVector3 &point1, const NmV
   track << point2;
 
   return track;
+}
+
+//------------------------------------------------------------------------
+void PointTracker::emitCursorPosition(bool value)
+{
+  m_reportPosition = value;
+}
+
+//------------------------------------------------------------------------
+bool PointTracker::emitsCursorPosition() const
+{
+  return m_reportPosition;
 }
 
 //------------------------------------------------------------------------

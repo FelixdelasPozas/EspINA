@@ -33,37 +33,44 @@ namespace ESPINA
 {
   namespace CF
   {
+    /** \class ColorEngine
+     * \brief Implements the coloring engine for the plugin.
+     *
+     */
     class CountingFramePlugin_EXPORT ColorEngine
     : public GUI::ColorEngines::ColorEngine
     {
-      Q_OBJECT
-    public:
-      explicit ColorEngine();
+        Q_OBJECT
+      public:
+        /** \brief ColorEngine class constructor.
+         *
+         */
+        explicit ColorEngine();
 
-      virtual QColor color(ConstSegmentationAdapterPtr seg);
+        virtual QColor color(ConstSegmentationAdapterPtr seg);
 
-      virtual LUTSPtr lut(ConstSegmentationAdapterPtr seg);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr seg);
 
-      virtual ColorEngine::Composition supportedComposition() const
-      { return ColorEngine::Transparency; }
+        virtual ColorEngine::Composition supportedComposition() const
+        { return ColorEngine::Transparency; }
 
-      /** \brief Returns the opacity for excluded segmentations
-       *
-       *  Opactity range is [0, 1]
-       */
-      double exlcusionOpacity() const;
+        /** \brief Returns the opacity for excluded segmentations
+         *
+         *  Opactity range is [0, 1]
+         */
+        double exlcusionOpacity() const;
 
-    public slots:
-      /** \brief Sets the opacity for excluded segmentations
-       *
-       *  \param value for the exclusion opacity in the range [0, 1]
-       */
-      void setExclusionOpacity(const double value);
+      public slots:
+        /** \brief Sets the opacity for excluded segmentations
+         *
+         *  \param value for the exclusion opacity in the range [0, 1]
+         */
+        void setExclusionOpacity(const double value);
 
-    private:
-      double  m_exclusionOpacity;
-      LUTSPtr m_excludedLUT;
-      LUTSPtr m_includedLUT;
+      private:
+        double  m_exclusionOpacity; /** opacity of the excluded segmentations.  */
+        LUTSPtr m_excludedLUT;      /** color table for excluded segmentations. */
+        LUTSPtr m_includedLUT;      /** color table for included segmentations. */
     };
 
     using CountingFrameColorEngineSPtr = std::shared_ptr<ColorEngine>;

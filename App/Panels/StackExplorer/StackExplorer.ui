@@ -87,6 +87,12 @@ QTreeView::indicator:unchecked {
          <height>32</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Stack information</string>
+       </property>
+       <property name="statusTip">
+        <string>Stack information</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -132,7 +138,10 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Mark selected channel as active channel</string>
+        <string>Mark selected stack as the active one</string>
+       </property>
+       <property name="statusTip">
+        <string>Mark selected stack as the active one</string>
        </property>
        <property name="text">
         <string/>
@@ -179,7 +188,10 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Unload selected channels</string>
+        <string>Unload selected stacks</string>
+       </property>
+       <property name="statusTip">
+        <string>Unload selected stacks</string>
        </property>
        <property name="text">
         <string/>

@@ -35,15 +35,6 @@ using namespace ESPINA::Support::Widgets;
 EditTool::EditTool(const QString &id, const QString& icon, const QString& tooltip, Support::Context& context)
 : ProgressTool(id, icon, tooltip, context)
 {
-  auto selection = getSelection().get();
-
-  connect(selection, SIGNAL(selectionStateChanged()),
-          this,      SLOT(updateStatus()));
-}
-
-//------------------------------------------------------------------------
-EditTool::~EditTool()
-{
 }
 
 //------------------------------------------------------------------------

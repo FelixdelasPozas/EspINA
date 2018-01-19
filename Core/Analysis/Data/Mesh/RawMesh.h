@@ -33,6 +33,10 @@
 
 namespace ESPINA
 {
+  /** \class RawMesh
+   * \brief Implements a raw mesh data.
+   *
+   */
   class EspinaCore_EXPORT RawMesh
   : public MeshData
   {
@@ -60,36 +64,40 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) override;
 
-    virtual bool isValid() const override;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
-    virtual bool isEmpty() const override;
+    virtual bool isValid() const;
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
     { fetchDataImplementation(storage, path, id, m_bounds); }
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
+    virtual bool isEmpty() const;
 
-    void setSpacing(const NmVector3 &spacing) override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
+    { return MeshData::snapshot(storage, path, id); }
 
-    size_t memoryUsage() const override;
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will cause fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
+    { return MeshData::snapshot(storage, path, id); };
 
-  private:
-    virtual QList<Data::Type> updateDependencies() const override
-    { return QList<Data::Type>(); }
+    void setSpacing(const NmVector3 &spacing);
 
-  private:
-    QString snapshotFilename(const QString &path, const QString &id) const
-    { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
+    size_t memoryUsage() const;
 
-    QString oldSnapshotFilename(const QString &path, const QString &id) const
-    { return path + QString("%1_%2.vtp").arg(type()).arg(id); }
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+      { return MeshData::fetchDataImplementation(storage, path, id, bounds); }
 
-    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
-    { return snapshotFilename(path, id); }
+    private:
+      virtual QList<Data::Type> updateDependencies() const
+      { return QList<Data::Type>(); }
 
-  private:
-    vtkSmartPointer<vtkPolyData> m_mesh;
-    mutable QMutex m_lock;
+    private:
+      vtkSmartPointer<vtkPolyData> m_mesh; /** mesh data. */
+      mutable QMutex               m_lock; /** data lock. */
   };
 }
 

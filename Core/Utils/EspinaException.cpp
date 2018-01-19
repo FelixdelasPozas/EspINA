@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "EspinaException.h"
+#include "EspinaConfig.h"
 
 // QT
 #include <QObject>
@@ -38,12 +39,22 @@
 #include <cstring>
 #include <string>
 
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkFileOutputWindow.h>
+
 using namespace ESPINA::Core::Utils;
 
 static int const STACK_FRAMES = 40;
 
 const int ESPINA::Core::Utils::STACK_SIZE = 8192;
 uint8_t ESPINA::Core::Utils::alternate_stack[ESPINA::Core::Utils::STACK_SIZE];
+
+#ifdef __linux__
+#define OS_STRING "Linux"
+#elif __WIN64__
+#define OS_STRING "Windows"
+#endif
 
 #ifdef __linux__
 
@@ -150,6 +161,8 @@ void signalHandler(int signal, siginfo_t *siginfo, void *context)
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     ESPINA::Core::Utils::backtrace_stack_print(out);
@@ -220,6 +233,8 @@ void win_sig_action(int signal)
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "SIGNAL: " << signal_text << "\n";
     out.flush();
@@ -472,6 +487,8 @@ void exceptionHandler()
   {
     QTextStream out(&file);
     out << "-- ESPINA CRASH ------------------------------------------\n";
+    out << "VERSION: " << ESPINA_VERSION << "\n";
+    out << "OS: " << OS_STRING << "\n";
     out << "WHEN: " << date.toString() << " " << time.toString() << "\n";
     out << "EXCEPTION MESSAGE: " << message << "\n";
     if(details) out << "EXCEPTION DETAILS: " << details << "\n";
@@ -667,10 +684,9 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
 
     auto module_base = SymGetModuleBase(process, frame.AddrPC.Offset);
 
-    const char * module_name = "[unknown module]";
-    if (module_base && GetModuleFileNameA(reinterpret_cast<HMODULE>(module_base), module_name_raw,MAX_PATH))
+    if (module_base && GetModuleFileNameA(reinterpret_cast<HMODULE>(module_base), module_name_raw, MAX_PATH))
     {
-      module_name = module_name_raw;
+      const char * module_name = module_name_raw;
       bc = get_bc(set, module_name, &err);
     }
 
@@ -726,18 +742,21 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
     stream << file << " (" << (func ? func : bfd_errors[err]) << ":" << dec << static_cast<int>(line) << ") " << hex << "Addr: " <<  frame.AddrPC.Offset << "\n";
   }
 
-  // release set
-  while(set)
-  {
-    auto temp = set->next;
-    free(set->name);
-    close_bfd_ctx(set->bc);
-    free(set);
-    set = temp;
-  }
-
-  // symbols clean-up
+  release_set(set);
   SymCleanup(GetCurrentProcess());
 
 #endif // Windows
+}
+
+//--------------------------------------------------------------------
+void ESPINA::Core::Utils::installVTKErrorLogger()
+{
+  auto name = QString("VTKErrors.txt");
+  auto filename = QDir::home().filePath(name);
+
+  auto VTKlogger = vtkSmartPointer<vtkFileOutputWindow>::New();
+  VTKlogger->SetAppend(false);
+  VTKlogger->SetFileName(filename.toStdString().c_str());
+
+  vtkOutputWindow::SetInstance(VTKlogger);
 }

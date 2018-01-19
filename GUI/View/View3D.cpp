@@ -37,7 +37,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QScrollBar>
-#include <QDebug>
+#include <QFont>
 
 // VTK
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -59,6 +59,7 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
+#include <vtkVolumePicker.h>
 
 // C++
 #include <clocale>
@@ -71,8 +72,8 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //-----------------------------------------------------------------------------
-View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
-: RenderView                   {state, ViewType::VIEW_3D}
+View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QWidget *parent)
+: RenderView                   {state, ViewType::VIEW_3D, parent}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
 , m_cameraCommand              {vtkSmartPointer<vtkCameraCommand>::New()}
@@ -88,9 +89,7 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)
 //-----------------------------------------------------------------------------
 View3D::~View3D()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Volume View";
-//   qDebug() << "********************************************************";
+  mainRenderer()->RemoveAllViewProps();
 }
 
 //-----------------------------------------------------------------------------
@@ -99,15 +98,15 @@ void View3D::buildViewActionsButtons()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"));
+  m_cameraReset = createButton(QString(":/espina/reset_view.svg"), tr("Reset View"), this);
   connect(m_cameraReset, SIGNAL(clicked()),
           this,          SLOT(resetCamera()));
 
-  m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
+  m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"), this);
   connect(m_snapshot,  SIGNAL(clicked()),
           this,        SLOT(onTakeSnapshot()));
 
-  m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
+  m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"), this);
   connect(m_export,    SIGNAL(clicked()),
           this,        SLOT(exportScene()));
 
@@ -188,12 +187,16 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
-  auto picker      = vtkSmartPointer<vtkPropPicker>::New();
-  auto sceneActors = m_renderer->GetViewProps();
+  // don't do anything if not properly configured.
+  if(m_managers.isEmpty()) return finalSelection;
+
+  auto meshPicker   = vtkSmartPointer<vtkPropPicker>::New();
+  auto volumePicker = vtkSmartPointer<vtkVolumePicker>::New();
+  auto sceneActors  = m_renderer->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
 
-  vtkProp *pickedProp;
+  vtkProp *pickedProp = nullptr;
   auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
 
   bool finished = false;
@@ -201,18 +204,25 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
 
   do
   {
-    picked = picker->PickProp(x,y, m_renderer, sceneActors);
-    pickedProp = picker->GetViewProp();
+    double pickPoint[3];
+
+    picked = meshPicker->PickProp(x,y, m_renderer, sceneActors);
+    pickedProp = meshPicker->GetViewProp();
+    meshPicker->GetPickPosition(pickPoint);
+
+    if(!pickedProp)
+    {
+      picked = volumePicker->Pick(x,y,0, m_renderer);
+      pickedProp = volumePicker->GetVolume();
+      volumePicker->GetPickPosition(pickPoint);
+    }
 
     if(pickedProp)
     {
       sceneActors->RemoveItem(pickedProp);
       pickedProps->AddItem(pickedProp);
 
-      NmVector3 worldPoint;
-      double point[3];
-      picker->GetPickPosition(point);
-      worldPoint = NmVector3{point};
+      auto worldPoint = NmVector3{pickPoint};
 
       for(auto manager: m_managers)
       {
@@ -234,7 +244,7 @@ Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags fl
             }
 
             pickedItems << item;
-            picked |= true;
+            picked = true;
           }
         }
       }
@@ -270,12 +280,19 @@ void View3D::setupUI()
   {
     m_additionalGUI  = new QHBoxLayout();
     m_axialScrollBar = new QScrollBar(Qt::Horizontal);
-
     m_axialScrollBar->setEnabled(false);
     m_axialScrollBar->setFixedHeight(15);
     m_axialScrollBar->setToolTip(tr("Axial scroll bar"));
     connect(m_axialScrollBar, SIGNAL(valueChanged(int)),
             this,             SLOT(scrollBarMoved(int)));
+
+    auto axialLabel = new QLabel("XY");
+    auto font = axialLabel->font();
+    font.setBold(true);
+    axialLabel->setFont(font);
+    auto axialLayout = new QHBoxLayout();
+    axialLayout->insertWidget(0, axialLabel, 0);
+    axialLayout->insertWidget(1, m_axialScrollBar, 1);
 
     m_coronalScrollBar = new QScrollBar(Qt::Vertical);
     m_coronalScrollBar->setEnabled(false);
@@ -284,6 +301,12 @@ void View3D::setupUI()
     connect(m_coronalScrollBar, SIGNAL(valueChanged(int)),
             this,               SLOT(scrollBarMoved(int)));
 
+    auto coronalLabel = new QLabel("XZ");
+    coronalLabel->setFont(font);
+    auto coronalLayout = new QVBoxLayout();
+    coronalLayout->insertWidget(0, coronalLabel, 0);
+    coronalLayout->insertWidget(1, m_coronalScrollBar, 1);
+
     m_sagittalScrollBar = new QScrollBar(Qt::Vertical);
     m_sagittalScrollBar->setEnabled(false);
     m_sagittalScrollBar->setFixedWidth(15);
@@ -291,14 +314,20 @@ void View3D::setupUI()
     connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)),
             this,                SLOT(scrollBarMoved(int)));
 
+    auto sagittalLabel = new QLabel("YZ");
+    sagittalLabel->setFont(font);
+    auto sagittalLayout = new QVBoxLayout();
+    sagittalLayout->insertWidget(0, sagittalLabel, 0);
+    sagittalLayout->insertWidget(1, m_sagittalScrollBar, 1);
+
     updateScrollBarsLimits();
 
-    m_additionalGUI->insertWidget(0, m_coronalScrollBar,0);
+    m_additionalGUI->insertLayout(0, coronalLayout,0);
     m_additionalGUI->insertWidget(1, m_view,1);
-    m_additionalGUI->insertWidget(2, m_sagittalScrollBar,0);
+    m_additionalGUI->insertLayout(2, sagittalLayout,0);
 
     m_mainLayout->insertLayout(0, m_additionalGUI, 1);
-    m_mainLayout->insertWidget(1, m_axialScrollBar, 0);
+    m_mainLayout->insertLayout(1, axialLayout, 0);
   }
   else
   {

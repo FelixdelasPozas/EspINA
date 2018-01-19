@@ -34,6 +34,8 @@
 #include "Tags/SegmentationTags.h"
 #include "Tags/SegmentationTagsFactory.h"
 #include <Core/Utils/EspinaException.h>
+#include "SkeletonInformation/SkeletonInformation.h"
+#include "SkeletonInformation/SkeletonInformationFactory.h"
 
 // C++
 #include <memory>
@@ -99,6 +101,7 @@ LibrarySegmentationExtensionFactory::LibrarySegmentationExtensionFactory(CoreFac
   m_factories.insert(MorphologicalInformation::TYPE, std::make_shared<MorphologicalInformationFactory>(factory));
   m_factories.insert(SegmentationNotes::TYPE,        std::make_shared<SegmentationNotesFactory>(factory));
   m_factories.insert(SegmentationTags::TYPE,         std::make_shared<SegmentationTagsFactory>(factory));
+  m_factories.insert(SkeletonInformation::TYPE,      std::make_shared<SkeletonInformationFactory>(factory));
 }
 
 //-----------------------------------------------------------------------

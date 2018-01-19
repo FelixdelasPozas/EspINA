@@ -85,7 +85,7 @@ void AutoSave::setInterval(const unsigned int minutes)
 }
 
 //------------------------------------------------------------------------
-const int AutoSave::interval() const
+const unsigned int AutoSave::interval() const
 {
   return m_timer.interval()/60/1000;
 }

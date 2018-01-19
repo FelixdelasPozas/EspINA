@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2016 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+1 Copyright (C) 2016 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -23,14 +23,18 @@
 #define CORE_ANALYSIS_DATA_VOLUMETRIC_WRITABLESTREAMEDVOLUME_HXX_
 
 // ESPINA
-#include <Core/Utils/BinaryMask.hxx>
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
+#include <Core/Utils/BinaryMask.hxx>
+#include <Core/Utils/SpatialUtils.hxx>
 
 // VTK
 #include <vtkImplicitFunction.h>
 
 // ITK
 #include <itkImage.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkMetaImageIO.h>
 #include <itkNumericTraitsVectorPixel.h>
 #include <itkVectorImage.h>
 
@@ -177,7 +181,7 @@ namespace ESPINA
         // discards region, spacing and length parameters
         auto reader = itk::ImageFileReader<T>::New();
         reader->ReleaseDataFlagOn();
-        reader->SetFileName(this->m_fileName.toStdString());
+        reader->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
         reader->SetNumberOfThreads(1);
         reader->UpdateOutputInformation();
 
@@ -196,7 +200,7 @@ namespace ESPINA
 
         if(image->GetNumberOfComponentsPerPixel() != this->m_vectorLength)
         {
-          auto message = QObject::tr("Invalid number of components per pixel (vector size). File: %1").arg(this->m_fileName);
+          auto message = QObject::tr("Invalid number of components per pixel (vector size). File: %1").arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -213,7 +217,7 @@ namespace ESPINA
 
         if(this->m_spacing == typename T::SpacingType())
         {
-          auto message = QObject::tr("Invalid parameters: emtpy spacing. File: %1").arg(this->m_fileName);
+          auto message = QObject::tr("Invalid parameters: emtpy spacing. File: %1").arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -221,7 +225,7 @@ namespace ESPINA
 
         if(this->m_region == typename T::RegionType())
         {
-          auto message = QObject::tr("Invalid parameters: empty region. File: %1").arg(this->m_fileName);
+          auto message = QObject::tr("Invalid parameters: empty region. File: %1").arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -229,7 +233,7 @@ namespace ESPINA
 
         if(this->m_vectorLength == 0)
         {
-          auto message = QObject::tr("Invalid parameters: invalid vector length. File: %1").arg(this->m_fileName);
+          auto message = QObject::tr("Invalid parameters: invalid vector length. File: %1").arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -253,15 +257,15 @@ namespace ESPINA
         image->Update();
 
         auto writer = itk::ImageFileWriter<T>::New();
-        writer->SetFileName(this->m_fileName.toStdString());
+        writer->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
         writer->SetInput(image);
         writer->SetImageIO(itk::MetaImageIO::New());
         writer->Update();
 
-        QFile headerFile{this->m_fileName};
+        QFile headerFile{this->m_fileName.absoluteFilePath()};
         if(!headerFile.open(QIODevice::ReadWrite))
         {
-          auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+          auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -284,7 +288,7 @@ namespace ESPINA
 
         if(headerFile.error() != QFile::NoError)
         {
-          auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+          auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -337,11 +341,13 @@ namespace ESPINA
       // use of NmVector3 limits to 3 dimensions.
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedFileBase::setOrigin() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
+
+      QWriteLocker lock(&this->m_lock);
 
       for(unsigned int i = 0; i < T::GetImageDimension(); ++i)
       {
@@ -349,10 +355,10 @@ namespace ESPINA
         this->m_region.SetIndex(i, vtkMath::Round(origin[i]/this->m_spacing.GetElement(i)));
       }
 
-      QFile headerFile{this->m_fileName};
+      QFile headerFile{this->m_fileName.absoluteFilePath()};
       if (!headerFile.open(QIODevice::ReadWrite))
       {
-        auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+        auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
         auto details = QObject::tr("WritableStreamedFileBase::setOrigin() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -376,7 +382,7 @@ namespace ESPINA
 
       if (headerFile.error() != QFile::NoError)
       {
-        auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+        auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
         auto details = QObject::tr("WritableStreamedFileBase::setOrigin() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -390,20 +396,22 @@ namespace ESPINA
       // use of NmVector3 limits to 3 dimensions.
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedFileBase::setSpacing() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
+      QWriteLocker lock(&this->m_lock);
+
       this->m_spacing.SetElement(0, spacing[0]);
       this->m_spacing.SetElement(1, spacing[1]);
       this->m_spacing.SetElement(2, spacing[2]);
 
-      QFile headerFile{this->m_fileName};
+      QFile headerFile{this->m_fileName.absoluteFilePath()};
       if (!headerFile.open(QIODevice::ReadWrite))
       {
-        auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+        auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
         auto details = QObject::tr("WritableStreamedFileBase::setSpacing() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -427,7 +435,7 @@ namespace ESPINA
 
       if (headerFile.error() != QFile::NoError)
       {
-        auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName).arg(headerFile.errorString());
+        auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
         auto details = QObject::tr("WritableStreamedFileBase::setSpacing() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -457,8 +465,14 @@ namespace ESPINA
     template<typename T>
     void WritableStreamedFileBase<T>::draw(const typename T::Pointer volume, const Bounds& bounds)
     {
-      NmVector3 origin{this->m_origin[0], this->m_origin[1], this->m_origin[2]};
-      NmVector3 spacing{this->m_spacing[0], this->m_spacing[1], this->m_spacing[2]};
+      NmVector3 origin, spacing;
+
+      {
+        QReadLocker lock(&this->m_lock);
+
+        origin  = NmVector3{this->m_origin[0], this->m_origin[1], this->m_origin[2]};
+        spacing = NmVector3{this->m_spacing[0], this->m_spacing[1], this->m_spacing[2]};
+      }
 
       auto volumeRegion = equivalentRegion<T>(origin, spacing, bounds);
       auto drawVolume   = extract_image<T>(volume, volumeRegion);
@@ -478,8 +492,14 @@ namespace ESPINA
     template<typename T>
     void WritableStreamedFileBase<T>::draw(const Bounds &bounds, const typename T::PixelType value)
     {
-      NmVector3 origin{this->m_origin[0], this->m_origin[1], this->m_origin[2]};
-      NmVector3 spacing{this->m_spacing[0], this->m_spacing[1], this->m_spacing[2]};
+      NmVector3 origin, spacing;
+
+      {
+        QReadLocker lock(&this->m_lock);
+
+        origin  = NmVector3{this->m_origin[0], this->m_origin[1], this->m_origin[2]};
+        spacing = NmVector3{this->m_spacing[0], this->m_spacing[1], this->m_spacing[2]};
+      }
 
       auto volumeRegion = equivalentRegion<T>(origin, spacing, bounds);
 
@@ -489,7 +509,7 @@ namespace ESPINA
         qWarning() << "WritableStreamedFileBase::draw(bounds, pixelValue) -> Region partially outside the image region.\n";
       }
 
-      auto volume  = T::New();
+      auto volume = T::New();
       volume->SetRegions(volumeRegion);
       volume->SetSpacing(this->m_spacing);
       volume->SetNumberOfComponentsPerPixel(this->m_vectorLength);
@@ -512,7 +532,10 @@ namespace ESPINA
 
       auto volume = T::New();
       volume->SetRegions(pixelRegion);
-      volume->SetSpacing(this->m_spacing);
+      {
+        QReadLocker lock(&this->m_lock);
+        volume->SetSpacing(this->m_spacing);
+      }
       volume->SetNumberOfComponentsPerPixel(this->m_vectorLength);
       volume->Allocate();
       volume->FillBuffer(value);
@@ -523,13 +546,13 @@ namespace ESPINA
     //-----------------------------------------------------------------------------
     template<typename T>
     void WritableStreamedFileBase<T>::draw(vtkImplicitFunction*        brush,
-                                               const Bounds&               bounds,
-                                               const typename T::ValueType value)
+                                           const Bounds&               bounds,
+                                           const typename T::ValueType value)
     {
       // use of bounds limited to 3 dimensions
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedFileBase::draw(implicit, bounds, value) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -558,19 +581,19 @@ namespace ESPINA
     //-----------------------------------------------------------------------------
     template<typename T>
     void WritableStreamedFileBase<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                                               const typename T::ValueType                 value)
+                                           const typename T::ValueType                 value)
     {
       // use of bounds and binary mask limited to 3 dimensions
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedFileBase::draw(mask, value) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
       auto bounds = mask->bounds().bounds();
-      auto image  = this->itkImage(bounds);
+      auto image = this->itkImage(bounds);
 
       itk::ImageRegionIteratorWithIndex<T> iit(image, image->GetLargestPossibleRegion());
       typename BinaryMask<typename T::ValueType>::const_region_iterator mit(mask.get(), bounds);
@@ -603,12 +626,14 @@ namespace ESPINA
     template<class T>
     inline void WritableStreamedVolume<T>::write(const typename T::Pointer &image)
     {
+      QWriteLocker lock(&this->m_lock);
+
       auto volumeRegion = image->GetLargestPossibleRegion();
       auto volumeOrigin = image->GetOrigin();
 
       if(!this->m_region.IsInside(volumeRegion))
       {
-        auto message = QObject::tr("Image region partially or completely outside of the large image region. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image region partially or completely outside of the large image region. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -616,7 +641,7 @@ namespace ESPINA
 
       if(image->GetNumberOfComponentsPerPixel() != 1)
       {
-        auto message = QObject::tr("Image pixel value vector size different from streamed file vector size. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image pixel value vector size different from streamed file vector size. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVolume::write() -> %1 != 1.").arg(image->GetNumberOfComponentsPerPixel()) + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -630,12 +655,10 @@ namespace ESPINA
         origin.SetElement(i, 0);
       }
 
-      QMutexLocker lock(&this->m_lock);
-
       image->SetOrigin(origin);
       image->SetRegions(region);
 
-      auto dataFile = this->m_fileName;
+      auto dataFile = this->m_fileName.absoluteFilePath();
       dataFile = dataFile.replace(".mhd", ".raw");
 
       QFile file{dataFile};
@@ -669,7 +692,7 @@ namespace ESPINA
         typename T::PixelType value = it.Get();
         if(!file.seek(position))
         {
-          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName);
+          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -677,7 +700,7 @@ namespace ESPINA
 
         if(dataSize != file.write(reinterpret_cast<const char *>(&value), dataSize))
         {
-          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName);
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -688,7 +711,7 @@ namespace ESPINA
 
       if(!file.flush() || (file.error() != QFile::NoError))
       {
-        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName);
+        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -717,12 +740,14 @@ namespace ESPINA
     template<class T>
     inline void WritableStreamedVectorVolume<T>::write(const typename T::Pointer &image)
     {
+      QWriteLocker lock(&this->m_lock);
+
       auto volumeRegion = image->GetLargestPossibleRegion();
       auto volumeOrigin = image->GetOrigin();
 
       if(!this->m_region.IsInside(volumeRegion))
       {
-        auto message = QObject::tr("Image region partially or completely outside of the large image region. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image region partially or completely outside of the large image region. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVectorVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -730,7 +755,7 @@ namespace ESPINA
 
       if(image->GetNumberOfComponentsPerPixel() != this->m_vectorLength)
       {
-        auto message = QObject::tr("Image pixel value vector size different from streamed file vector size. File: %1").arg(this->m_fileName);
+        auto message = QObject::tr("Image pixel value vector size different from streamed file vector size. File: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVectorVolume::write() -> %1 != %2.").arg(image->GetNumberOfComponentsPerPixel()).arg(this->m_vectorLength) + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -744,12 +769,10 @@ namespace ESPINA
         origin.SetElement(i, 0);
       }
 
-      QMutexLocker lock(&this->m_lock);
-
       image->SetOrigin(origin);
       image->SetRegions(region);
 
-      auto dataFile = this->m_fileName;
+      auto dataFile = this->m_fileName.absoluteFilePath();
       dataFile = dataFile.replace(".mhd", ".raw");
 
       QFile file{dataFile};
@@ -784,7 +807,7 @@ namespace ESPINA
         typename T::PixelType value = it.Get();
         if(!file.seek(position))
         {
-          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName);
+          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedVectorVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -792,7 +815,7 @@ namespace ESPINA
 
         if(dataSize != file.write(reinterpret_cast<const char *>(value.GetDataPointer()), dataSize))
         {
-          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName);
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
           auto details = QObject::tr("WritableStreamedVectorVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -803,7 +826,7 @@ namespace ESPINA
 
       if(!file.flush() || (file.error() != QFile::NoError))
       {
-        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName);
+        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVectorVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);

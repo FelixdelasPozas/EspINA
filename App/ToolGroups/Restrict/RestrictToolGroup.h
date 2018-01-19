@@ -51,10 +51,12 @@ namespace ESPINA
       /** \brief RestrictToolGroup class constructor.
        * \param[in] settings application ROI settings.
        * \param[in] context application context.
+       * \param[in] parent QWidget parent of this one.
        *
        */
-      RestrictToolGroup(ROISettings*      settings,
-                        Support::Context &context);
+      explicit RestrictToolGroup(ROISettings*      settings,
+                                 Support::Context &context,
+                                 QWidget          *parent = nullptr);
 
       /** \brief RestrictToolGroup class virtual destructor.
        *
@@ -92,7 +94,7 @@ namespace ESPINA
       { return m_visible; }
 
     signals:
-      void roiChanged(ROISPtr);
+      void ROIChanged(ROISPtr);
 
     private slots:
       /** \brief Updates ROI accumulator when a new ROI is defined and signals the modification.

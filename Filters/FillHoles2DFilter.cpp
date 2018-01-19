@@ -20,10 +20,10 @@
 
 // ESPINA
 #include "FillHoles2DFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkBinaryFillholeImageFilter.h>

@@ -52,17 +52,19 @@ int HueSelector::val2x(int v)
 HueSelector::HueSelector(QWidget* parent)
 : QWidget(parent)
 , m_reserveInitialValue{true}
+, m_enabled            {true}
+, m_needsRepaint       {false}
 {
-  hue = 0;
-  val = 255;
-  sat = 255;
-  pix = 0;
+  m_hue = 0;
+  m_val = 255;
+  m_sat = 255;
+  m_pix = 0;
 }
 
 //------------------------------------------------------------------------
 HueSelector::~HueSelector()
 {
-  delete pix;
+  delete m_pix;
 }
 
 //------------------------------------------------------------------------
@@ -80,25 +82,24 @@ void HueSelector::mousePressEvent(QMouseEvent *m)
 //------------------------------------------------------------------------
 void HueSelector::setVal(int v)
 {
-  if (this->hue == v)
-    return;
+  if (m_hue == v) return;
 
-  this->hue = qMax(0, qMin(v, 360));
-  delete pix;
-  pix = 0;
+  m_hue = qMax(0, qMin(v, m_reserveInitialValue ? 360 : 359));
+  delete m_pix;
+  m_pix = 0;
   repaint();
-  emit newHsv(this->hue, this->sat, this->val);
+  emit newHsv(m_hue, m_sat, m_val);
 }
 
 //------------------------------------------------------------------------
-void HueSelector::paintEvent(QPaintEvent *)
+void HueSelector::paintEvent(QPaintEvent *event)
 {
   QRect rect(0, 7, width(), height());
   int wi = rect.width();
   int hi = rect.height();
-  if (!pix || pix->height() != hi || pix->width() != wi)
+  if (!m_pix || m_pix->height() != hi || m_pix->width() != wi || m_needsRepaint)
   {
-    delete pix;
+    delete m_pix;
     QImage img(wi, hi, QImage::Format_RGB32);
 
     for (int X = 0; X < wi; X++)
@@ -107,23 +108,31 @@ void HueSelector::paintEvent(QPaintEvent *)
       for (int Y = 0; Y < hi; Y++)
       {
         if ((0 == value) && m_reserveInitialValue)
+        {
           img.setPixel(X, Y, QColor(0,0,0).rgb());
+        }
         else
         {
           QColor col;
           col.setHsv(value, 255, 255);
+          if(!m_enabled)
+          {
+            auto gray = qGray(col.red(), col.green(), col.blue());
+            col = QColor(gray, gray, gray);
+          }
           img.setPixel(X, Y, col.rgb());
         }
       }
     }
-    pix = new QPixmap;
-    pix->convertFromImage(img);
+    m_pix = new QPixmap;
+    m_pix->convertFromImage(img);
+    m_needsRepaint = false;
   }
 
   QPainter p(this);
-  p.drawPixmap(0, 10, *pix);
+  p.drawPixmap(0, 10, *m_pix);
   QPoint arrow[3];
-  int x = val2x(hue);
+  int x = val2x(m_hue);
   arrow[0] = QPoint(x,10);
   arrow[1] = QPoint(x-10, 0);
   arrow[2] = QPoint(x+10, 0);
@@ -133,16 +142,36 @@ void HueSelector::paintEvent(QPaintEvent *)
   p.setBrush(brush);
   p.setBackground(Qt::black);
   p.drawPolygon(arrow,3, Qt::WindingFill);
+
+  QWidget::paintEvent(event);
 }
 
 //------------------------------------------------------------------------
 void HueSelector::setHueValue(int h)
 {
-  h = qMax(0, qMin(h, 360));
+  m_hue = qMax(0, qMin(h, m_reserveInitialValue ? 360 : 359));
 
-  this->hue = h;
-  delete pix;
-  pix = 0;
+  delete m_pix;
+  m_pix = 0;
   repaint();
-  emit newHsv(h,this->sat, this->val);
+  emit newHsv(m_hue,m_sat, m_val);
+}
+
+//------------------------------------------------------------------------
+void HueSelector::setEnabled(bool value)
+{
+  if(m_enabled != value)
+  {
+    m_enabled = value;
+    m_needsRepaint = true; // false after a repaint.
+
+    // NOTE: a disabled widget doesn't receive events from a repaint(), so we need to force a repaint.
+    if(!value) repaint();
+
+    QWidget::setEnabled(value);
+
+    if(value) repaint();
+
+    update();
+  }
 }

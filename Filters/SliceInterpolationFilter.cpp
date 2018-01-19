@@ -20,12 +20,12 @@
 
 // ESPINA
 #include "SliceInterpolationFilter.h"
-#include "Utils/ItkProgressReporter.h"
+//#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/SpatialUtils.hxx>
-#include <Core/Utils/BlockTimer.h>
+#include <Core/Utils/BlockTimer.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 // QT
@@ -39,7 +39,7 @@ using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SliceInterpolationFilter::SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler), m_errorMessage("")
+    : Filter(inputs, type, scheduler), m_errorMessage("")
 {
 }
 
@@ -52,7 +52,7 @@ bool SliceInterpolationFilter::needUpdate() const
 //------------------------------------------------------------------------
 void SliceInterpolationFilter::execute()
 {
-  BlockTimer timer0("Whole filter execution");
+  BlockTimer<> timer0("Whole filter execution");
 
   qDebug() << "Number of inputs: " << m_inputs.size();
   if (m_inputs.size() != 2)
@@ -141,10 +141,10 @@ void SliceInterpolationFilter::execute()
   itkVolumeType::IndexValueType currentSizeOffset;
   itkVolumeType::Pointer stackImg, auxImg, prevMask;
   SizeValueType bufferSize;
-  unsigned char* auxImgBuf, * prevMaskBuf, * stackImgBuf;
+  unsigned char* auxImgBuf, *prevMaskBuf, *stackImgBuf;
   ContourInfo cInfo;
   {
-    BlockTimer timer1("Processing time");
+    BlockTimer<> timer1("Processing time");
     while (sloList.size() > 1)
     {
       sloSource = sloList.takeFirst();
@@ -156,7 +156,7 @@ void SliceInterpolationFilter::execute()
       currentSizeOffset = 2 * (tarRegion.GetIndex(dir) - srcRegion.GetIndex(dir) + 1);
       currentRegion = calculateRoi(maxRegion, srcRegion, tarRegion, direction, currentSizeOffset);
       currentRegion.SetIndex(dir, srcRegion.GetIndex(dir));
-      currentRegion.SetSize(dir,1);
+      currentRegion.SetSize(dir, 1);
 
       stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
       bufferSize = currentRegion.GetSize(0) * currentRegion.GetSize(1) * currentRegion.GetSize(2);
@@ -165,7 +165,8 @@ void SliceInterpolationFilter::execute()
 
       cInfo = getContourInfo(stackImg, sloImg, direction, bufferSize);
 
-      while (currentRegion.GetIndex(dir) < tarRegion.GetIndex(dir)){//TODO change algorithm
+      while (currentRegion.GetIndex(dir) < tarRegion.GetIndex(dir))
+      { //TODO change algorithm
         prevMask = cInfo.getContourMask();
         prevMaskBuf = prevMask->GetBufferPointer();
 
@@ -177,16 +178,18 @@ void SliceInterpolationFilter::execute()
         auxImg->Allocate();
         auxImgBuf = auxImg->GetBufferPointer();
 
-        for (SizeValueType i = 0; i < bufferSize; ++i){
-          switch (prevMaskBuf[i]) {
+        for (SizeValueType i = 0; i < bufferSize; ++i)
+        {
+          switch (prevMaskBuf[i])
+          {
             case 255:
               auxImgBuf[i] = SEG_VOXEL_VALUE;
               break;
             case 2:
-              auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getBeachMode() > cInfo.getInlandMode() - stackImgBuf[i] )? SEG_VOXEL_VALUE : SEG_BG_VALUE;
+              auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getBeachMode() > cInfo.getInlandMode() - stackImgBuf[i]) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
               break;
             case 3:
-              auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getCoastMode() > cInfo.getInlandMode() - stackImgBuf[i] )? SEG_VOXEL_VALUE : SEG_BG_VALUE;
+              auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getCoastMode() > cInfo.getInlandMode() - stackImgBuf[i]) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
               break;
             default:
               auxImgBuf[i] = SEG_BG_VALUE;
@@ -215,9 +218,10 @@ void SliceInterpolationFilter::execute()
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(const itkVolumeType::Pointer stackImg, const itkVolumeType::Pointer continentImg, const Axis direction, const SizeValueType bufferSize) const
+SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(const itkVolumeType::Pointer stackImg, const itkVolumeType::Pointer continentImg,
+                                                                               const Axis direction, const SizeValueType bufferSize) const
 {
-  const auto RADIUS = 5;//TODO
+  const auto RADIUS = 5; //TODO
 
   /* inland = erode(continent);
    * beach = continent - inland;
@@ -266,8 +270,9 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(c
   auto seaHist = Histogram(256);
 
   // Filling return mask with: inland = 255, beach = 2, coast = 1  and sea = 0
-  for (SizeValueType i = 0; i < bufferSize; ++i){
-    if(inlandImgBuf[i])
+  for (SizeValueType i = 0; i < bufferSize; ++i)
+  {
+    if (inlandImgBuf[i])
     {
       maskBuf[i] = 255;
       ++inlandHist[stackImgBuf[i]];
@@ -290,32 +295,40 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(c
   }
 
   PixelCounterType inlandMode = 0, beachMode = 0, coastMode = 0, seaMode = 0;
-  for (unsigned int i = 0; i < 256;++i){
-    if(inlandHist[i] > inlandHist[inlandMode]) inlandMode = i;
-    if(beachHist[i] > beachHist[beachMode]) beachMode = i;
-    if(coastHist[i] > coastHist[coastMode]) coastMode = i;
-    if(seaHist[i] > seaHist[seaMode]) seaMode = i;
+  for (unsigned int i = 0; i < 256; ++i)
+  {
+    if (inlandHist[i] > inlandHist[inlandMode])
+      inlandMode = i;
+    if (beachHist[i] > beachHist[beachMode])
+      beachMode = i;
+    if (coastHist[i] > coastHist[coastMode])
+      coastMode = i;
+    if (seaHist[i] > seaHist[seaMode])
+      seaMode = i;
   }
 
   return ContourInfo(inlandMode, beachMode, coastMode, seaMode, mask);
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::RegionType SliceInterpolationFilter::calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction, const int extraOffset)
+SliceInterpolationFilter::RegionType SliceInterpolationFilter::calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion,
+                                                                            const RegionType& tarRegion, const Axis direction, const int extraOffset)
 {
   auto dir = idx(direction);
 
   auto region = RegionType();
 
   auto dirAux = dir;
-  for (unsigned char i = 0; i < 2; ++i){
+  for (unsigned char i = 0; i < 2; ++i)
+  {
     dirAux = (dirAux + 1) % 3;
     auto srcOrigin = srcRegion.GetIndex(dirAux);
     auto tarOrigin = tarRegion.GetIndex(dirAux);
 
     auto minIndex = (srcOrigin < tarOrigin) ? srcOrigin : tarOrigin;
     minIndex -= extraOffset;
-    if (minIndex < 0) minIndex = 0;
+    if (minIndex < 0)
+      minIndex = 0;
 
     auto srcEnd = srcOrigin + srcRegion.GetSize(dirAux);
     auto tarEnd = tarOrigin + tarRegion.GetSize(dirAux);
@@ -323,7 +336,8 @@ SliceInterpolationFilter::RegionType SliceInterpolationFilter::calculateRoi(cons
 
     auto maxRegionSize = maxRegion.GetSize(dirAux);
     maxSize += 2 * extraOffset;
-    if (minIndex + maxSize > maxRegionSize) maxSize = maxRegionSize - minIndex;
+    if (minIndex + maxSize > maxRegionSize)
+      maxSize = maxRegionSize - minIndex;
 
     region.SetIndex(dirAux, minIndex);
     region.SetSize(dirAux, maxSize);
@@ -334,21 +348,14 @@ SliceInterpolationFilter::RegionType SliceInterpolationFilter::calculateRoi(cons
 
 //------------------------------------------------------------------------
 SliceInterpolationFilter::ContourInfo::ContourInfo()
-    : m_inland_mode { 0 }
-    , m_beach_mode { 0 }
-    , m_coast_mode { 0 }
-    , m_sea_mode { 0 }
-    , m_contour_mask { nullptr }
+    : m_inland_mode { 0 }, m_beach_mode { 0 }, m_coast_mode { 0 }, m_sea_mode { 0 }, m_contour_mask { nullptr }
 {
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo::ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode, PixelCounterType seaMode, itkVolumeType::Pointer contourMask)
-    : m_inland_mode { inlandMode }
-    , m_beach_mode { beachMode }
-    , m_coast_mode { coastMode }
-    , m_sea_mode { seaMode }
-    , m_contour_mask { contourMask }
+SliceInterpolationFilter::ContourInfo::ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode,
+                                                   PixelCounterType seaMode, itkVolumeType::Pointer contourMask)
+    : m_inland_mode { inlandMode }, m_beach_mode { beachMode }, m_coast_mode { coastMode }, m_sea_mode { seaMode }, m_contour_mask { contourMask }
 {
 }
 
@@ -436,7 +443,8 @@ void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image,
       index[0] = i;
       index[1] = j;
       it.SetIndex(index);
-      switch (it.Value()) {
+      switch (it.Value())
+      {
         case SEG_VOXEL_VALUE:
           std::cout << "I";
           break;

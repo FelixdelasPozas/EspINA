@@ -86,9 +86,9 @@ class EspinaGUI_EXPORT QComboTreeView
     void activated(const QModelIndex &index);
 
   private:
-    QModelIndex m_rootModelIndex;
-    QModelIndex m_currentModelIndex;
-    QTreeView  *m_treeView;
+    QModelIndex m_rootModelIndex;    /** root node of the model. */
+    QModelIndex m_currentModelIndex; /** current model index.    */
+    QTreeView  *m_treeView;          /** tree view.              */
 
     bool m_usePressedIndex;
 };

@@ -35,40 +35,34 @@ class QWidget;
 
 namespace ESPINA
 {
-
+  /** \class EspinaErrorHandler
+   * \brief Implements the error handler for opening SEG files for the application.
+   *
+   */
   class EspinaErrorHandler
   : public IO::ErrorHandler
   {
-  public:
-    /** \brief EspinaErrorHandler class constructor.
-     * \param[in] parent QWidget raw pointer of the parent of this object.
-     *
-     */
-    EspinaErrorHandler(QWidget *parent = nullptr)
-    : m_parent(parent)
-    {};
+    public:
+      /** \brief EspinaErrorHandler class constructor.
+       * \param[in] parent QWidget raw pointer of the parent of this object.
+       *
+       */
+      explicit EspinaErrorHandler(QWidget *parent = nullptr)
+      : m_parent(parent)
+      {};
 
-    /** \brief Sets the default directory.
-     * \param[in] dir QDir const reference.
-     *
-     */
-    void setDefaultDir(const QDir &dir)
-    { m_defaultDir = dir; }
+      virtual void warning(const QString &message);
 
-    virtual void warning(const QString &msg);
+      virtual void error(const QString &message);
 
-    virtual void error(const QString &msg);
+      virtual QFileInfo fileNotFound(const QFileInfo                     &file,
+                                     QDir                                 dir     = QDir(),
+                                     const Core::Utils::SupportedFormats &filters = Core::Utils::SupportedFormats().addAllFormat(),
+                                     const QString                       &hint    = QString());
 
-    virtual QFileInfo fileNotFound(const QFileInfo                     &file,
-                                   QDir                                 dir     = QDir(),
-                                   const Core::Utils::SupportedFormats &filters = Core::Utils::SupportedFormats().addAllFormat(),
-                                   const QString                       &hint    = QString());
-
-  private:
-    QWidget *m_parent;
-    QDir     m_defaultDir;
-
-    QMap<QString, QFileInfo> m_files;
+    private:
+      QWidget                 *m_parent; /** parent for the file open dialog. */
+      QMap<QString, QFileInfo> m_files;  /** cache of found files.            */
   };
 
   using EspinaErrorHandlerSPtr = std::shared_ptr<EspinaErrorHandler>;

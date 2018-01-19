@@ -34,11 +34,6 @@ CheckableTreeView::CheckableTreeView(QWidget* parent)
 }
 
 //------------------------------------------------------------------------
-CheckableTreeView::~CheckableTreeView()
-{
-}
-
-//------------------------------------------------------------------------
 void CheckableTreeView::mouseReleaseEvent(QMouseEvent* event)
 {
   QTreeView::mouseReleaseEvent(event);

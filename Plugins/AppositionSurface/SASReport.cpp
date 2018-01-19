@@ -22,7 +22,6 @@
 #include "GUI/Analysis/SASReportDialog.h"
 
 #include <Core/Analysis/Segmentation.h>
-#include <Support/Utils/SelectionUtils.h>
 #include <Undo/AddCategoryCommand.h>
 
 using namespace ESPINA;

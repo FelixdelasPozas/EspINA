@@ -41,8 +41,8 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
-    using ReadLockExtensions  = Core::Analysis::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
-    using WriteLockExtensions = Core::Analysis::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using ReadLockExtensions  = Core::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using WriteLockExtensions = Core::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
 
   public:
     /** \brief SegmentationAdapter class virtual destructor.
@@ -136,8 +136,8 @@ namespace ESPINA
     QPixmap appendImage(const QPixmap& original, const QString& image, bool slim = false) const;
 
   private:
-    SegmentationSPtr    m_segmentation;
-    CategoryAdapterSPtr m_category;
+    SegmentationSPtr    m_segmentation; /** adapted segmentation object.          */
+    CategoryAdapterSPtr m_category;     /** adapted category of the segmentation. */
 
     friend class ModelFactory;
     friend class ModelAdapter;

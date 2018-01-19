@@ -46,11 +46,6 @@ ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
 }
 
 //------------------------------------------------------------------------
-ChannelProxy::~ChannelProxy()
-{
-}
-
-//------------------------------------------------------------------------
 void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
   if (m_model)
@@ -112,9 +107,9 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     if (Qt::DisplayRole == role)
     {
-      auto sample = samplePtr(item);
+      auto sample  = samplePtr(item);
       auto numSegs = numChannels(sample);
-      auto suffix = (numSegs > 0) ? QString(" (%1)").arg(numChannels(sample)) : QString();
+      auto suffix  = (numSegs > 0) ? QString(" (%1)").arg(numChannels(sample)) : QString();
 
       return item->data(role).toString() + suffix;
     }
@@ -135,7 +130,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     if (Qt::DecorationRole == role)
     {
-      return channelPtr(item)->data(role);;
+      return channelPtr(item)->data(role);
     }
     else
     {

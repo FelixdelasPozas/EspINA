@@ -21,17 +21,24 @@
 #ifndef ESPINA_TESTING_SKELETON_TESTING_UTILS_H
 #define ESPINA_TESTING_SKELETON_TESTING_UTILS_H
 
+// VTK
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
-namespace ESPINA {
-  namespace Testing {
-
-    // number of nodes must be >= 2
+namespace ESPINA
+{
+  namespace Testing
+  {
+    /** \brief Creates and returns a random skeleton with the given nodes.
+     * \param[in] numberOfNodes Number of nodes of the returned skeleton.
+     *
+     */
     vtkSmartPointer<vtkPolyData> createRandomTestSkeleton(int numberOfNodes = 2);
 
+    /** \brief Creates a simple skeleton with one stroke and 4 points.
+     *
+     */
     vtkSmartPointer<vtkPolyData> createSimpleTestSkeleton();
-
   } // Testing
 } // ESPINA
 

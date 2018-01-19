@@ -75,7 +75,7 @@ FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type
   if (m_filterFactories.contains(type))
   {
     filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
-    filter->setStorage(m_defaultStorage);
+    filter->setStorage(defaultStorage());
   }
   else
   {
@@ -95,7 +95,7 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
   auto input = getInput(filter, id);
 
   auto channel = std::make_shared<Channel>(input);
-  channel->setStorage(m_defaultStorage);
+  channel->setStorage(defaultStorage());
 
   return channel;
 }
@@ -151,7 +151,6 @@ SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id i
   auto input = getInput(filter, id);
 
   auto segmentation = std::make_shared<Segmentation>(input);
-
   segmentation->setStorage(defaultStorage());
 
   return segmentation;
@@ -217,7 +216,7 @@ void CoreFactory::setTemporalDirectory(const QDir &directory)
   {
     for(auto storage: TemporalStorage::s_Storages)
     {
-      auto baseDirectory = storage->baseDirectory();
+      auto baseDirectory = storage->rootDirectory();
       if((baseDirectory.absolutePath() != newDirectory.absolutePath()) && !storage->move(newDirectory.absolutePath(), false))
       {
         auto what = QObject::tr("Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());

@@ -80,7 +80,7 @@ namespace ESPINA
       /** \brief Suggest a counting frame id for a new counting frame taking into account the existing counting frames' ids.
        *
        */
-      CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
+      CountingFrame::Id suggestedId(const CountingFrame::Id &id) const;
 
     signals:
       void countingFrameCreated(CountingFrame *cf);

@@ -20,19 +20,21 @@
 
 // Plugin
 #include "ColorEngine.h"
-
 #include "Extensions/StereologicalInclusion.h"
 
 // ESPINA
 #include <Extensions/ExtensionUtils.h>
+
+// C++
+#include <algorithm>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 ColorEngine::ColorEngine()
-: GUI::ColorEngines::ColorEngine("CountingFrameColorEngine", tr("Counting Frame"))
-, m_exclusionOpacity(0.5)
+: GUI::ColorEngines::ColorEngine{"CountingFrameColorEngine", tr("Counting Frame")}
+, m_exclusionOpacity            {0.5}
 {
   m_excludedLUT = LUTSPtr::New();
   m_excludedLUT->Allocate();
@@ -94,6 +96,7 @@ LUTSPtr ColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
       res = m_excludedLUT;
     }
   }
+
   return res;
 }
 
@@ -107,5 +110,5 @@ double ColorEngine::exlcusionOpacity() const
 //-----------------------------------------------------------------------------
 void ColorEngine::setExclusionOpacity(const double value)
 {
-  m_exclusionOpacity = qMax(0.0, qMin(1.0, value));
+  m_exclusionOpacity = std::max(0.0, std::min(1.0, value));
 }

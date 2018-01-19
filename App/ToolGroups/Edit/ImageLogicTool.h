@@ -25,6 +25,10 @@
 
 namespace ESPINA
 {
+  /** \class ImageLogicTool
+   * \brief Tool for logical operation filters.
+   *
+   */
   class ImageLogicTool
   : public Support::Widgets::EditTool
   {
@@ -39,13 +43,16 @@ namespace ESPINA
        */
       explicit ImageLogicTool(const QString &id, const QString &icon, const QString &tooltip, Support::Context &context);
 
+      /** \brief ImageLogicTool class virtual destructor.
+       *
+       */
+      virtual ~ImageLogicTool();
+
       /** \brief Sets the logic operation of the tool
        * \param[in] operation logic operation of the tool.
        *
        */
       void setOperation(ImageLogicFilter::Operation operation);
-
-      virtual void abortOperation();
 
       /** \brief Sets if the segmentations of a substract operation should be removed after finishing.
        * \param[in] value true to remove and false otherwise.
@@ -72,6 +79,11 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      /** \brief Aborts the currently executing tasks.
+       *
+       */
+      void abortTasks();
+
       /** context of the operation task. */
       struct TaskContext
       {

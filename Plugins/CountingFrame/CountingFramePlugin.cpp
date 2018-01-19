@@ -9,6 +9,7 @@
 #include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
@@ -30,11 +31,6 @@ CountingFramePlugin::CountingFramePlugin()
 }
 
 //------------------------------------------------------------------------
-CountingFramePlugin::~CountingFramePlugin()
-{
-}
-
-//------------------------------------------------------------------------
 void CountingFramePlugin::init(Support::Context &context)
 {
   m_scheduler   = context.scheduler();
@@ -43,7 +39,7 @@ void CountingFramePlugin::init(Support::Context &context)
 
   m_manager     = std::make_shared<CountingFrameManager>(context);
 
-  m_dockWidget  = new Panel(m_manager.get(), context);
+  m_dockWidget  = new Panel(m_manager.get(), context, DefaultDialogs::defaultParentWidget());
   m_colorEngine = std::make_shared<CF::ColorEngine>();
 
   m_representationFactory        = std::make_shared<RepresentationFactory>(m_manager.get());

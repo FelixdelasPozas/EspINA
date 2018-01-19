@@ -36,7 +36,7 @@ namespace ESPINA
     namespace Widgets
     {
       /** \class EditTool
-       * \brief Super class for tools that edit segmentations.
+       * \brief Base class for tools that edit segmentations.
        *
        */
       class EspinaSupport_EXPORT EditTool
@@ -56,7 +56,8 @@ namespace ESPINA
           /** \brief EditTools class destructor.
            *
            */
-          virtual ~EditTool();
+          virtual ~EditTool()
+          {}
 
           virtual void onToolGroupActivated() override;
 
@@ -74,11 +75,11 @@ namespace ESPINA
            */
           void markAsBeingModified(SegmentationAdapterPtr segmentation, bool value);
 
-        private slots:
+        protected slots:
           /** \brief Enables/Disables the tool depending on the current segmentation selection.
            *
            */
-          void updateStatus();
+          virtual void updateStatus() override;
 
         private:
           /** \brief Returns true if the tool accepts the given number of inputs and false otherwise.
@@ -96,7 +97,7 @@ namespace ESPINA
            * \param[in] segmentations list of segmentations.
            *
            */
-          bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
+          virtual bool selectionIsNotBeingModified(SegmentationAdapterList segmentations);
      };
     }
   }

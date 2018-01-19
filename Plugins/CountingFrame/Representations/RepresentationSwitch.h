@@ -50,7 +50,7 @@ namespace ESPINA
          *
          */
         explicit CFRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
-                                      Support::Context                               &context);
+                                      Support::Context                                 &context);
 
         /** \brief RepresentationSwitch class virtual destructor.
          *
@@ -60,9 +60,6 @@ namespace ESPINA
         virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
         virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
-
-      signals:
-        void opacityChanged(float);
 
       private slots:
         /** \brief Propagates changes in opacity to the widgets.
@@ -76,7 +73,7 @@ namespace ESPINA
          */
         void initWidget();
 
-        GUI::Widgets::NumericalInput *m_opacityWidget;
+        GUI::Widgets::NumericalInput *m_opacityWidget; /** opacity selector widget. */
     };
   
   } // namespace CF

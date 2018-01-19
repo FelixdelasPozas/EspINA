@@ -34,14 +34,22 @@
 
 namespace ESPINA
 {
-
+  /** \brief Helper method to create a string in the form "key=value;".
+   * \param[in] id Key.
+   * \param[in] value Value.
+   *
+   */
   template<class T>
   QString StatePair(const QString &id, const T &value)
   { return QString("%1=%2;").arg(id).arg(value); }
 
-  QString StatePair(const QString &id, const NmVector3 &value)
+  /** \brief Helper method to create a string in the form "key=a,b,c;" from NmVector3 values.
+   * \param[in] id Key.
+   * \param[in] value NmVector3 object.
+   *
+   */
+  inline QString StatePair(const QString &id, const NmVector3 &value)
   { return QString("%1=%2,%3,%4;").arg(id).arg(value[0]).arg(value[1]).arg(value[2]); }
-
 }
 
 

@@ -19,211 +19,267 @@
  */
 
 // ESPINA
+#include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Analysis/Output.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
-#include <Filters/SourceFilter.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
+#include <Extensions/SkeletonInformation/SkeletonInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
-//#include <GUI/Representations/SkeletonRepresentation.h>
-#include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
-#include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include "SkeletonToolStatusAction.h"
+#include "SkeletonToolsUtils.h"
 
 // VTK
 #include <vtkIdList.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
 #include <vtkLine.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
 
 // Qt
 #include <QUndoStack>
+#include <QBitmap>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets::Skeleton;
+using namespace ESPINA::SkeletonToolsUtils;
 
-const Filter::Type SOURCE_FILTER = "SourceFilter";
+const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SourceFilterFactory::providedFilters() const
+FilterTypeList SkeletonFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << SOURCE_FILTER;
+  filters << SKELETON_FILTER;
 
   return filters;
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
-                                             const Filter::Type& filter,
-                                             SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
+FilterSPtr SkeletonFilterFactory::createFilter(InputSList          inputs,
+                                               const Filter::Type& filter,
+                                               SchedulerSPtr       scheduler) const
 {
-  if (SOURCE_FILTER != filter)
+  if (SKELETON_FILTER != filter)
   {
-    throw Unknown_Filter_Exception();
+    auto message = QObject::tr("Unknown filter type: %1.").arg(filter);
+    auto details = QObject::tr("SkeletonFilterFactory::createFilter() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
-  auto sFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
-  if (!m_fetchBehaviour)
+  auto sFilter = std::make_shared<SourceFilter>(inputs, SKELETON_FILTER, scheduler);
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = DataFactorySPtr{new RawDataFactory()};
+    m_dataFactory = std::make_shared<RawDataFactory>();
   }
-  sFilter->setDataFactory(m_fetchBehaviour);
+  sFilter->setDataFactory(m_dataFactory);
 
   return sFilter;
 }
 
 //-----------------------------------------------------------------------------
-SkeletonTool::SkeletonTool(Support::Context &context)
-: ProgressTool("SkeletonTool", ":/espina/pencil.png", tr("Manual creation of skeletons.") , context)
-, m_categorySelector{new CategorySelector(context.model())}
-, m_toleranceWidget {new DoubleSpinBoxAction(this)}
-, m_toolStatus      {new SkeletonToolStatusAction(this)}
+SkeletonTool::SkeletonTool(Support::Context& context)
+: ProgressTool      ("SkeletonTool", ":/espina/tubular.svg", tr("Manual creation of skeletons."), context)
+, m_init            {false}
+, m_item            {nullptr}
 {
-  this->getFactory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
+  initFilterFactory();
+  initEventHandler();
+  initRepresentationFactories();
 
   setCheckable(true);
+  setExclusive(true);
 
-  connect(this, SIGNAL(triggered(bool)),
-          this, SLOT(initTool(bool)));
+  initParametersWidgets();
 
-  connect(getSelection().get(), SIGNAL(selectionChanged()),
-          this,                 SLOT(updateState()));
+  connect(m_eventHandler.get(), SIGNAL(eventHandlerInUse(bool)),
+          this                , SLOT(initTool(bool)));
 
-  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
+  connect(m_eventHandler.get(), SIGNAL(selectedStroke(int)),
+          m_strokeCombo,        SLOT(setCurrentIndex(int)), Qt::DirectConnection);
 
-  m_categorySelector->setVisible(false);
-
-  m_toleranceWidget->setLabelText(tr("Points Tolerance"));
-  m_toleranceWidget->setSuffix(tr(" nm"));
-  m_toleranceWidget->setVisible(false);
-
-  connect(m_toleranceWidget, SIGNAL(valueChanged(double)),
-          this,              SLOT(toleranceValueChanged(double)));
-
-  m_toolStatus->reset();
-  m_toolStatus->setVisible(false);
+  registerSkeletonDataOperators();
 }
 
 //-----------------------------------------------------------------------------
 SkeletonTool::~SkeletonTool()
 {
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if(m_widget)
-//  {
-//    m_widget->setEnabled(false);
-//    m_widget = nullptr;
-//  }
+  if(m_item != nullptr) initTool(false);
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::updateState()
+void SkeletonTool::initParametersWidgets()
 {
-  if(!isEnabled()) return;
+  m_categorySelector = new CategorySelector(getModel());
+  m_categorySelector->setToolTip(tr("Category of the segmentation to be created."));
 
-  auto selection = getSelectedSegmentations();
-  auto validItem = (selection.size() <= 1);
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
 
-  m_action->setEnabled(validItem);
-  m_categorySelector->setEnabled(validItem);
-  m_toleranceWidget->setEnabled(validItem);
+  connect(this, SIGNAL(toggled(bool)), m_categorySelector, SLOT(setVisible(bool)));
 
-  NmVector3 spacing;
+  addSettingsWidget(m_categorySelector);
 
-  if(validItem && !selection.empty())
+  auto label = new QLabel("Points distance:");
+  label->setToolTip(tr("Manage distance between points"));
+
+  connect(this, SIGNAL(toggled(bool)), label, SLOT(setVisible(bool)));
+
+  addSettingsWidget(label);
+
+  m_minWidget = new DoubleSpinBoxAction(this);
+  m_minWidget->setToolTip(tr("Minimum distance between points."));
+
+  m_minWidget->setLabelText(tr("Minimum"));
+  m_minWidget->setSuffix(tr(" nm"));
+  m_minWidget->setValue(0.0);
+
+  connect(m_minWidget, SIGNAL(valueChanged(double)),
+          this,        SLOT(onMinimumDistanceChanged(double)));
+
+  connect(this, SIGNAL(toggled(bool)), m_minWidget, SLOT(setVisible(bool)));
+
+  addSettingsWidget(m_minWidget->createWidget(nullptr));
+
+  m_maxWidget = new DoubleSpinBoxAction(this);
+  m_maxWidget->setToolTip(tr("Maximum distance between points."));
+
+  m_maxWidget->setLabelText(tr("Maximum"));
+  m_maxWidget->setSuffix(tr(" nm"));
+  m_maxWidget->setValue(0.0);
+
+  connect(m_maxWidget, SIGNAL(valueChanged(double)),
+          this,        SLOT(onMaximumDistanceChanged(double)));
+
+  connect(this, SIGNAL(toggled(bool)), m_maxWidget, SLOT(setVisible(bool)));
+
+  addSettingsWidget(m_maxWidget->createWidget(nullptr));
+
+  auto strokeLabel = new QLabel{tr("Stroke type:")};
+  strokeLabel->setToolTip(tr("Select stroke type."));
+
+  addSettingsWidget(strokeLabel);
+
+  m_strokeCombo = new QComboBox();
+  m_strokeCombo->setEditable(false);
+  m_strokeCombo->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
+  m_strokeCombo->setToolTip(tr("Select stroke type."));
+
+  connect(m_strokeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onStrokeTypeChanged(int)));
+
+  addSettingsWidget(m_strokeCombo);
+
+  m_strokeButton = createToolButton(":/espina/tag.svg", tr("Define the stroke types."));
+  connect(m_strokeButton, SIGNAL(pressed()), this, SLOT(onStrokeConfigurationPressed()));
+
+  addSettingsWidget(m_strokeButton);
+
+  m_nextButton = createToolButton(":/espina/next_tubular.svg", tr("Start a new skeleton."));
+  m_nextButton->setCheckable(false);
+
+  connect(m_nextButton, SIGNAL(pressed()), this, SLOT(onNextButtonPressed()));
+
+  connect(this, SIGNAL(toggled(bool)), m_nextButton, SLOT(setVisible(bool)));
+
+  addSettingsWidget(m_nextButton);
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonTool::onResolutionChanged()
+{
+  auto channel = getActiveChannel();
+
+  if(channel)
   {
-    spacing = m_item->output()->spacing();
-    m_item = selection.first();
-    m_itemCategory = m_item->category();
-  }
-  else
-  {
-    auto activeChannel = getActiveChannel();
+    auto minimumValue = m_minWidget->value();
+    auto maximumValue = m_maxWidget->value();
 
-    if(activeChannel)
+    auto spacing = channel->output()->spacing();
+    auto minValue = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    if(minValue == 0) minValue = 1;
+
+    if(minimumValue == 0)
     {
-      spacing = activeChannel->output()->spacing();
+      minimumValue = minValue * 5;
+      maximumValue = minimumValue * 5;
     }
     else
     {
-      spacing = NmVector3{1,1,1};
+      // assume maximumValue != 0
+      if(minimumValue < minValue)
+      {
+        minimumValue = minValue;
+      }
     }
 
-    m_item = nullptr;
-    m_itemCategory = m_categorySelector->selectedCategory();
+    m_minWidget->setValue(minimumValue);
+    m_minWidget->setSpinBoxMinimum(minValue);
+    m_minWidget->setSpinBoxMaximum(maximumValue);
+    m_minWidget->setStepping(minValue);
 
-    //TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//    if(m_widget)
-//    {
-//      initTool(false);
-//    }
-    m_toleranceWidget->setSpinBoxMinimum(1);
+    m_maxWidget->setValue(maximumValue);
+    m_maxWidget->setSpinBoxMinimum(minimumValue);
+    m_maxWidget->setSpinBoxMaximum(maximumValue*10);
+    m_maxWidget->setStepping(minValue);
+
+    m_eventHandler->setMinimumPointDistance(m_minWidget->value());
+    m_eventHandler->setMaximumPointDistance(m_maxWidget->value());
+
+    if(m_skeletonWidgets.empty())
+    {
+      m_init = true;
+    }
+    else
+    {
+      for(auto widget: m_skeletonWidgets)
+      {
+        widget->setSpacing(spacing);
+      }
+    }
   }
-
-  m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
-  m_categorySelector->selectCategory(m_itemCategory);
 }
 
 //-----------------------------------------------------------------------------
-QList<QAction*> SkeletonTool::actions() const
+void SkeletonTool::onModelReset()
 {
-  QList<QAction *> actions;
-
-  actions << m_action;
- // TODO actions << m_categorySelector;
-  actions << m_toleranceWidget;
-  actions << m_toolStatus;
-
-  return actions;
-}
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::updateReferenceItem()
-{
-  auto selectedSegs = getSelectedSegmentations();
-
-  if (selectedSegs.size() != 1)
+  if(isChecked())
   {
-    m_item = nullptr;
-    m_itemCategory = m_categorySelector->selectedCategory();
-    m_toleranceWidget->setSpinBoxMinimum(1);
+    setChecked(false);
   }
-  else
-  {
-    m_item = selectedSegs.first();
-    m_itemCategory = m_item->category();
 
-    auto spacing = m_item->output()->spacing();
-    m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
-  }
-}
+  disconnect(getContext().viewState().coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
+             this,                                              SLOT(onResolutionChanged()));
+  disconnect(getModel().get(), SIGNAL(aboutToBeReset()),
+             this,             SLOT(onModelReset()));
 
-//-----------------------------------------------------------------------------
-void SkeletonTool::updateWidgetRepresentation()
-{
-  auto skeleton = dynamic_cast<SkeletonData *>(sender());
-
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if(!m_widget)
-//  {
-//    disconnect(skeleton, SIGNAL(dataChanged()),
-//               this       , SLOT(updateWidgetRepresentation()));
-//  }
-//  else
-//  {
-//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-//    widget->initialize(skeleton->skeleton());
-//  }
+  m_init = false;
+  STROKES.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -231,325 +287,425 @@ void SkeletonTool::initTool(bool value)
 {
   if (value)
   {
-    auto activeChannel = getActiveChannel();
-
-    if(!activeChannel) return;
-
-    updateReferenceItem();
-    auto spacing = activeChannel->output()->spacing();
-    if(m_item)
+    if(!m_init)
     {
-      spacing = m_item->output()->spacing();
+      onResolutionChanged();
 
-      if(hasSkeletonData(m_item->output()))
-      {
-//         auto skeleton = readLockSkeleton(m_item->output());
-//         connect(skeleton->get(), SIGNAL(dataChanged()),
-//                 this           , SLOT(updateWidgetRepresentation()));
-      }
+      connect(getContext().viewState().coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
+              this,                                              SLOT(onResolutionChanged()));
+      connect(getModel().get(), SIGNAL(aboutToBeReset()),
+              this,             SLOT(onModelReset()));
     }
 
-    auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+    getSelection()->clear();
+    m_item = getActiveChannel();
 
-    auto selection = getSelectedSegmentations();
-    auto color     = m_categorySelector->selectedCategory()->color();
-    if(selection.size() == 1)
+    if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
+    if(!getViewState().hasTemporalRepresentation(m_pointsFactory)) getViewState().addTemporalRepresentations(m_pointsFactory);
+
+    connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+            this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+
+    for(auto widget: m_skeletonWidgets)
     {
-      color = getContext().colorEngine()->color(selection.first());
+      widget->initialize(nullptr);
     }
 
-    auto widget = new SkeletonWidget();
-    connect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
-            this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
-
-    connect(widget,       SIGNAL(status(SkeletonWidget::Status)),
-            m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
-
-    m_toleranceWidget->setSpinBoxMinimum(minimumDistance);
-    m_toleranceWidget->setStepping(minimumDistance);
-    widget->setTolerance(minimumDistance);
-
-    // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//    m_widget.reset(widget);
-//
-//    m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-//    m_handler->setCursor(Qt::CrossCursor);
-
-    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-            this,            SLOT(eventHandlerToogled(bool)));
-
-    getViewState().setEventHandler(m_handler);
-    //TODO m_vm->setSelectionEnabled(false);
-    // TODO URGENT m_vm->addWidget(m_widget);
-    widget->setSpacing(spacing);
-    widget->setRepresentationColor(color);
-
-    if(m_item)
-    {
-      if(hasSkeletonData(m_item->output()))
-      {
-        Q_ASSERT(false);//TODO: disable item skeleton representation.
-        //           auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        //           if(rep)
-        //           {
-        //             rep->setVisible(false);
-        //           }
-
-        widget->initialize(readLockSkeleton(m_item->output())->skeleton());
-      }
-    }
-
-//    m_widget->setEnabled(true);
-
-    connect(getModel().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
-            this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
-
+    updateStrokes();
+    onStrokeTypeChanged(m_strokeCombo->currentIndex());
   }
   else
   {
-//    if(!m_widget) return; // can be called twice on undo/redo action combinations.
-
-    m_action->blockSignals(true);
-    m_action->setChecked(false);
-    m_action->blockSignals(false);
-
-    disconnect(getModel().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
-               this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
-
-    disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-               this,            SLOT(eventHandlerToogled(bool)));
-
-//    m_widget->setEnabled(false);
-    //TODO URGENT m_vm->removeWidget(m_widget);
-
-//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-//    Q_ASSERT(widget);
-//    disconnect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
-//               this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
-//
-//    disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
-//               m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
-    m_toolStatus->reset();
-
-    getViewState().unsetEventHandler(m_handler);
-    m_handler.reset();
-    //TODO m_vm->setSelectionEnabled(true);
-    //m_widget.reset();
-
-    if(m_item)
+    if(m_init)
     {
-      if(hasSkeletonData(m_item->output()))
+      for(auto widget: m_skeletonWidgets)
       {
-        Q_ASSERT(false);
-        //           auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        //           if(rep)
-        //           {
-        //             rep->setVisible(true);
-        //           }
-
-//         auto skeleton = readLockSkeleton(m_item->output());
-//         disconnect(skeleton.get(), SIGNAL(dataChanged()),
-//                    this          , SLOT(updateWidgetRepresentation()));
-
-        SegmentationAdapterList selection;
-        selection << m_item;
-
-        m_item->invalidateRepresentations();
-        getSelection()->set(selection);
+        disconnect(widget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+                   this,         SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)));
       }
+
+      m_skeletonWidgets.clear();
+      m_pointWidgets.clear();
+
+      if(getViewState().hasTemporalRepresentation(m_factory)) getViewState().removeTemporalRepresentations(m_factory);
+      if(getViewState().hasTemporalRepresentation(m_pointsFactory)) getViewState().removeTemporalRepresentations(m_pointsFactory);
+
+      if(m_item && m_item != getActiveChannel())
+      {
+        m_item->setBeingModified(false);
+        m_item->clearTemporalRepresentation();
+        m_item->invalidateRepresentations();
+      }
+      m_item = nullptr;
+
+      disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
+                 this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+
+      vtkSkeletonWidgetRepresentation::cleanup();
     }
   }
 
-  setControlsVisibility(value);
-}
-
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::onToolGroupActivated()
-{
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if (m_widget)
-//  {
-//    m_widget->setEnabled(enabled);
-//  }
-
-  bool enabled = true;
-  m_action->setEnabled(enabled);
-  m_categorySelector->setEnabled(enabled);
-  m_toleranceWidget->setEnabled(enabled);
-  m_toolStatus->setEnabled(enabled);
+  getViewState().refresh();
+  m_nextButton->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::setControlsVisibility(bool value)
+void SkeletonTool::initRepresentationFactories()
 {
-  m_categorySelector->setVisible(value);
-  m_toleranceWidget->setVisible(value);
-  m_toolStatus->setVisible(value);
+  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler);
+
+  connect(representation2D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
+          this,                   SLOT(onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+
+  m_factory = std::make_shared<TemporalPrototypes>(representation2D, TemporalRepresentation3DSPtr(), tr("%1 - Skeleton Widget 2D").arg(id()));
+
+  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+
+  connect(pointsRepresentation.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
+          this,                       SLOT(onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+
+  m_pointsFactory = std::make_shared<TemporalPrototypes>(pointsRepresentation, TemporalRepresentation3DSPtr(), tr("%1 - Points representations").arg(id()));
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::toleranceValueChanged(double value)
+void SkeletonTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr clone)
 {
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if(m_widget)
-//  {
-//    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-//    widget->setTolerance(value);
-//  }
+  auto skeletonWidget = std::dynamic_pointer_cast<SkeletonWidget2D>(clone);
+
+  if(skeletonWidget)
+  {
+    auto stroke = STROKES[m_categorySelector->selectedCategory()->classificationName()].at(m_strokeCombo->currentIndex());
+    skeletonWidget->setStroke(stroke);
+    skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
+
+    connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+            this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
+
+    m_skeletonWidgets << skeletonWidget;
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
+{
+  auto pointWidget = std::dynamic_pointer_cast<ConnectionPointsTemporalRepresentation2D>(clone);
+
+  if(pointWidget)
+  {
+    connect(m_eventHandler.get(), SIGNAL(addConnectionPoint(const NmVector3)),
+            pointWidget.get(),    SLOT(onConnectionPointAdded(const NmVector3)));
+
+    connect(m_eventHandler.get(), SIGNAL(removeConnectionPoint(const NmVector3)),
+            pointWidget.get(),    SLOT(onConnectionPointRemoved(const NmVector3)));
+
+    connect(m_eventHandler.get(), SIGNAL(clearConnections()),
+            pointWidget.get(),    SLOT(clearPoints()));
+
+    m_pointWidgets << pointWidget;
+  }
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::checkItemRemoval(SegmentationAdapterSList segmentations)
+void SkeletonTool::initFilterFactory()
 {
-  if(!m_item) return;
+  getFactory()->registerFilterFactory(std::make_shared<SkeletonFilterFactory>());
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonTool::onMinimumDistanceChanged(double value)
+{
+  m_eventHandler->setMinimumPointDistance(value);
+  m_maxWidget->setSpinBoxMinimum(value);
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonTool::onMaximumDistanceChanged(double value)
+{
+  m_eventHandler->setMaximumPointDistance(value);
+  m_minWidget->setSpinBoxMaximum(value);
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonTool::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
+{
+  if(!m_init) return;
 
   for(auto seg: segmentations)
   {
     if(seg.get() == m_item)
     {
-      // need to activate the representation because the removal can be undoed.
-      Q_ASSERT(false);//TODO
-      //         auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-      //         if(rep)
-      //         {
-      //           rep->setVisible(true);
-      //         }
-
-//       auto skeleton = readLockSkeleton(m_item->output());
-//       disconnect(skeleton.get(), SIGNAL(dataChanged()),
-//                  this          , SLOT(updateWidgetRepresentation()));
-
-      m_item = nullptr;
       initTool(false);
-      return;
+      break;
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
+void SkeletonTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if(m_widget)
-//  {
-//    dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
-//  }
-}
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::eventHandlerToogled(bool toggled)
-{
-  // TODO: 27-05-2015 SkeletonTool/Widget refactorization
-//  if (!toggled && m_widget)
-//  {
-//    initTool(false);
-//  }
-}
-
-//-----------------------------------------------------------------------------
-void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
-{
-  auto undoStack = getUndoStack();
-  auto model       = getModel();
-
-  if(m_item)
+  if(m_item && m_item != getActiveChannel())
   {
-    if(hasSkeletonData(m_item->output()))
+    onNextButtonPressed();
+  }
+
+  if(category)
+  {
+    if(!STROKES.contains(category->classificationName()))
     {
+      STROKES[category->classificationName()] = defaultStrokes(category);
+    }
 
-      if(polyData->GetNumberOfLines() == 0)
+    updateStrokes();
+
+    onStrokeTypeChanged(0);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
+{
+  auto widget = dynamic_cast<SkeletonWidget2D *>(sender());
+
+  if(widget)
+  {
+    Q_ASSERT(polydata->GetNumberOfLines() != 0);
+
+    auto undoStack = getUndoStack();
+    auto model     = getModel();
+
+    ConnectionList connections;
+
+    if(m_item != getActiveChannel())
+    {
+      // modification
+      auto segmentation       = model->smartPointer(segmentationPtr(m_item));
+      auto classificationName = segmentation->category()->classificationName();
+
+      // insert connections if it's a dendrite or axon
+      if(classificationName.startsWith("Dendrite") || classificationName.startsWith("Axon"))
       {
-        if(m_item->output()->numberOfDatas() == 1)
+        connections = GUI::Model::Utils::connections(polydata, model);
+        for(auto &connection: connections)
         {
-          undoStack->beginMacro(tr("Remove Segmentation"));
-          undoStack->push(new RemoveSegmentations(m_item, model));
-          undoStack->endMacro();
-
-          m_item = nullptr;
-          initTool(false);
-        }
-        else
-        {
-          undoStack->beginMacro(tr("Remove Skeleton from segmentation"));
-          undoStack->push(new RemoveDataCommand(m_item->output(), SkeletonData::TYPE));
-          undoStack->endMacro();
+          connection.item1 = segmentation;
+          Q_ASSERT(connection.item1);
         }
       }
-      else
-      {
-//        auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
 
-//         m_undoStack->beginMacro(tr("Modify segmentation's skeleton"));
-//         m_undoStack->push(new ModifySkeletonCommand(readLockSkeleton(m_item->output()), widget->getSkeleton()));
-//         m_undoStack->endMacro();
-      }
+      undoStack->beginMacro(tr("Modify skeleton"));
+      undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton(), connections));
+      undoStack->endMacro();
     }
     else
     {
-      if(polyData->GetNumberOfLines() == 0) return;
+      // creation
+      auto activeChannel = getActiveChannel();
+      InputSList inputList;
+      inputList << activeChannel->asInput();
 
-//      auto widget    = dynamic_cast<SkeletonWidget *>(m_widget.get());
-//      auto itemOuput = m_item->output();
-//      auto data      = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing());
+      auto spacing  = activeChannel->output()->spacing();
+      auto filter   = getFactory()->createFilter<SourceFilter>(inputList, SkeletonFilterFactory::SKELETON_FILTER);
+      auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
+      auto skeleton = std::make_shared<RawSkeleton>(polydata, spacing);
+      output->setData(skeleton);
 
-//      m_undoStack->beginMacro(tr("Add Skeleton to segmentation"));
-//      m_undoStack->push(new AddDataCommand(itemOuput, data));
-//      m_undoStack->endMacro();
+      filter->addOutput(0, output);
+      auto segmentation = getFactory()->createSegmentation(filter, 0);
+      auto category = m_categorySelector->selectedCategory();
+      Q_ASSERT(category);
+
+      segmentation->setCategory(category);
+      segmentation->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
+
+      SampleAdapterSList samples;
+      samples << QueryAdapter::sample(activeChannel);
+      Q_ASSERT(samples.size() == 1);
+
+      if(category->classificationName().startsWith("Dendrite") || category->classificationName().startsWith("Axon"))
+      {
+        connections = GUI::Model::Utils::connections(polydata, model);
+        for(auto &connection: connections)
+        {
+          connection.item1 = segmentation;
+        }
+      }
+
+      undoStack->beginMacro(tr("Add Segmentation"));
+      undoStack->push(new AddSegmentations(segmentation, samples, model, connections));
+      undoStack->endMacro();
+
+      m_item = segmentation.get();
+      m_item->setBeingModified(true);
+
+      // SkeletonInformation extension has dynamic keys so it needs to be created in advance in case
+      // raw information asks for keys later.
+      auto informationExtension = getFactory()->createSegmentationExtension(SkeletonInformation::TYPE);
+      segmentation->extensions()->add(informationExtension);
+
+      SegmentationAdapterList selection;
+      selection << segmentation.get();
+
+      getSelection()->set(selection);
     }
+
+    m_nextButton->setEnabled(m_item != getActiveChannel());
+
+    for(auto widget: m_pointWidgets) widget->clearPoints();
   }
   else
   {
-    if(polyData->GetNumberOfLines() == 0) return;
+    qWarning() << "onSkeletonModified received signal but couldn't identify the sender." << __FILE__ << __LINE__;
+  }
 
-    auto activeChannel = getActiveChannel();
+  getViewState().refresh();
+}
 
-    auto spacing  = activeChannel->output()->spacing();
-    auto filter   = getFactory()->createFilter<SourceFilter>(activeChannel, SOURCE_FILTER);
-    auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
-    auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
-    output->setData(skeleton);
-
-    filter->addOutput(0, output);
-    auto segmentation = getFactory()->createSegmentation(filter, 0);
-    auto category = m_categorySelector->selectedCategory();
-    Q_ASSERT(category);
-
-    segmentation->setCategory(category);
-
-    SampleAdapterSList samples;
-    samples << QueryAdapter::sample(activeChannel);
-    Q_ASSERT(samples.size() == 1);
-
-    undoStack->beginMacro(tr("Add Segmentation"));
-    undoStack->push(new AddSegmentations(segmentation, samples, model));
-    undoStack->endMacro();
-
-    m_item = segmentation.get();
-
-    connect(skeleton.get(), SIGNAL(dataChanged()),
-            this          , SLOT(updateWidgetRepresentation()));
-
-    //TODO:
+//--------------------------------------------------------------------
+void SkeletonTool::onNextButtonPressed()
+{
+  if(m_item && m_item != getActiveChannel())
+  {
+    for(auto widget: m_skeletonWidgets)
     {
-      Q_ASSERT(false);
+      widget->stop();
+      widget->initialize(nullptr);
+    }
 
-      //       auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-      //       if(rep)
-      //       {
-      //         rep->setVisible(false);
-      //       }
+    for(auto widget: m_pointWidgets)
+    {
+      widget->clearPoints();
+    }
+
+    m_item->setBeingModified(false);
+    m_item->clearTemporalRepresentation();
+    m_item->invalidateRepresentations();
+
+    m_item = getActiveChannel();
+    m_nextButton->setEnabled(false);
+
+    getViewState().refresh();
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onStrokeTypeChanged(int index)
+{
+  auto category = m_categorySelector->selectedCategory();
+
+  if(category)
+  {
+    auto name = category->classificationName();
+
+    index = std::min(std::max(0,index), STROKES[name].size() - 1);
+    Q_ASSERT(index >= 0);
+
+    auto stroke = STROKES[name].at(index);
+
+    for(auto widget: m_skeletonWidgets)
+    {
+      widget->setStroke(stroke);
+      m_eventHandler->setStroke(stroke);
     }
   }
+}
 
-  if(m_item)
+//--------------------------------------------------------------------
+void SkeletonTool::initEventHandler()
+{
+  m_eventHandler = std::make_shared<SkeletonToolsEventHandler>(getContext());
+  m_eventHandler->setInterpolation(true);
+  m_eventHandler->setCursor(Qt::CrossCursor);
+
+  connect(m_eventHandler.get(), SIGNAL(checkStartNode(const NmVector3 &)),
+          this,                 SLOT(onPointCheckRequested(const NmVector3 &)), Qt::DirectConnection);
+
+  setEventHandler(m_eventHandler);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onStrokeConfigurationPressed()
+{
+  auto category = m_categorySelector->selectedCategory();
+  if(category)
   {
-    SegmentationAdapterList selection;
-    selection << m_item;
+    auto index = m_strokeCombo->currentIndex();
+    auto name  = category->classificationName();
 
-    getSelection()->set(selection);
-    m_item->invalidateRepresentations();
+    StrokeDefinitionDialog dialog(STROKES[name], category);
+    dialog.exec();
+
+    updateStrokes();
+    index = std::min(index, STROKES[name].size() - 1);
+    m_strokeCombo->setCurrentIndex(index);
+    onStrokeTypeChanged(index);
   }
+}
 
-  //TODO m_vm->updateViews();
+//--------------------------------------------------------------------
+void SkeletonTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  // used only to load SkeletonToolsUtils::STROKE values.
+  loadStrokes(settings);
+
+  updateStrokes();
+  onStrokeTypeChanged(0);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  // used only to save SkeletonToolsUtils::STROKE values.
+  if(!STROKES.isEmpty()) saveStrokes(settings);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::updateStrokes()
+{
+  auto currentCategory = m_categorySelector->selectedCategory();
+
+  if(currentCategory)
+  {
+    auto categoryName = currentCategory->classificationName();
+
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->clear();
+
+    auto strokes = STROKES[categoryName];
+
+    // can happen if a category has been created
+    if(strokes.size() == 0)
+    {
+      STROKES[categoryName] = defaultStrokes(currentCategory);
+    }
+
+    for(int i = 0; i < strokes.size(); ++i)
+    {
+      auto stroke = strokes.at(i);
+
+      QPixmap original(ICONS.at(stroke.type));
+      QPixmap copy(original.size());
+      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      copy.setMask(original.createMaskFromColor(Qt::transparent));
+
+      m_strokeCombo->insertItem(i, QIcon(copy), stroke.name);
+    }
+
+    m_strokeCombo->blockSignals(false);
+
+    m_eventHandler->setStrokesCategory(categoryName);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onPointCheckRequested(const NmVector3 &point)
+{
+  if(!m_skeletonWidgets.isEmpty())
+  {
+    auto skeletonWidget = std::dynamic_pointer_cast<SkeletonToolWidget2D>(m_skeletonWidgets.first());
+
+    if(skeletonWidget)
+    {
+      m_eventHandler->setIsStartNode(skeletonWidget->isStartNode(point));
+    }
+  }
 }

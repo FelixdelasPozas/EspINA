@@ -41,10 +41,6 @@
 
 // ITK
 #include <itkImageRegionIterator.h>
-#include <itkImageFileReader.h>
-#include <itkExceptionObject.h>
-#include <itkNumericTraitsVectorPixel.h>
-#include <itkMetaImageIO.h>
 
 // Qt
 #include <QMutex>
@@ -189,15 +185,14 @@ namespace ESPINA
         typename T::SpacingType m_spacing;      /** spacing of the image.                                                               */
         typename T::RegionType  m_region;       /** region index and size. Index can be different from {0,0,0} in EspINA files.         */
         unsigned int            m_vectorLength; /** length (or number of components per pixel) of the pixel value vector.               */
-
-        QString        m_fileName; /** file name of the MHD header file on disk. */
-        mutable QMutex m_lock;     /** lock for read/write ordered access.       */
+        QFileInfo               m_fileName;     /** file name of the file on disk.                                                      */
+        mutable QReadWriteLock  m_lock;         /** lock for read/write ordered access.                                                 */
     };
 
     //-----------------------------------------------------------------------------
     template<typename T>
     StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
-    : m_fileName{fileName.absoluteFilePath()}
+    : m_fileName{fileName}
     {
       if(!fileName.exists())
       {
@@ -209,11 +204,12 @@ namespace ESPINA
 
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.toStdString());
+      reader->SetFileName(m_fileName.absoluteFilePath().toUtf8().data());
+      reader->UseStreamingOff();
       reader->SetNumberOfThreads(1);
       reader->UpdateOutputInformation();
 
-      typename T::Pointer image = reader->GetOutput();
+      auto image = reader->GetOutput();
 
       m_vectorLength = image->GetNumberOfComponentsPerPixel();
       if(m_vectorLength == 0)
@@ -248,7 +244,7 @@ namespace ESPINA
     template<typename T>
     inline void StreamedVolume<T>::resize(const Bounds &bounds)
     {
-      auto message = QObject::tr("Attempt to resize an static volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to resize an static volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume::resize() -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -258,20 +254,18 @@ namespace ESPINA
     template<typename T>
     void StreamedVolume<T>::setOrigin(const NmVector3& origin)
     {
-      auto message = QObject::tr("Attempt to change origin of an static volume. File: %1").arg(m_fileName);
-      auto details = QObject::tr("StreamedVolume::setOrigin() -> ") + message;
+      QWriteLocker lock(&this->m_lock);
 
-      throw Core::Utils::EspinaException(message, details);
+      m_origin = ItkPoint<T>(origin);
     }
 
     //-----------------------------------------------------------------------------
     template<typename T>
     void StreamedVolume<T>::setSpacing(const NmVector3& spacing)
     {
-      auto message = QObject::tr("Attempt to change spacing of an static volume. File: %1").arg(m_fileName);
-      auto details = QObject::tr("StreamedVolume::setSpacing() -> ") + message;
+      QWriteLocker lock(&this->m_lock);
 
-      throw Core::Utils::EspinaException(message, details);
+      m_spacing = ItkSpacing<T>(spacing);
     }
 
     //-----------------------------------------------------------------------------
@@ -280,7 +274,7 @@ namespace ESPINA
     {
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::bounds() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -288,18 +282,16 @@ namespace ESPINA
 
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::bounds() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
-      QMutexLocker lock(&m_lock);
+      QReadLocker lock(&this->m_lock);
 
-      NmVector3 origin{0, 0, 0};
-      NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
-
-      auto bounds = equivalentBounds<T>(origin, spacing, m_region);
+      NmVector3 origin{0, 0, 0}, spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
+      auto bounds  = equivalentBounds<T>(origin, spacing, m_region);
 
       return VolumeBounds(bounds, spacing, origin);
     }
@@ -310,17 +302,17 @@ namespace ESPINA
     {
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkImage() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
-      QMutexLocker lock(&m_lock);
+      QReadLocker lock(&this->m_lock);
 
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.toStdString());
+      reader->SetFileName(m_fileName.absoluteFilePath().toStdString());
       reader->SetUseStreaming(false);
       reader->SetNumberOfThreads(1);
       reader->Update();
@@ -348,7 +340,7 @@ namespace ESPINA
     {
       if(T::GetImageDimension() != 3)
       {
-        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Image dimension is not 3. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -365,7 +357,7 @@ namespace ESPINA
                                  const Bounds&               bounds,
                                  const typename T::ValueType value)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absolutePath());
       auto details = QObject::tr("StreamedVolume<>::draw(brush, bounds, value) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -375,7 +367,7 @@ namespace ESPINA
     template<typename T>
     void StreamedVolume<T>::draw(const typename T::Pointer volume)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::draw(volume) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -386,7 +378,7 @@ namespace ESPINA
     void StreamedVolume<T>::draw(const typename T::Pointer volume,
                                  const Bounds&             bounds)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::draw(volume, bounds) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -397,7 +389,7 @@ namespace ESPINA
     void StreamedVolume<T>::draw(const typename T::IndexType &index,
                                  const typename T::PixelType  value)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::draw(index, value) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -408,7 +400,7 @@ namespace ESPINA
     void StreamedVolume<T>::draw(const Bounds               &bounds,
                                  const typename T::PixelType value)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::draw(bounds, value) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -419,7 +411,7 @@ namespace ESPINA
     void StreamedVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                                  const typename T::ValueType value)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::draw(mask, value) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -429,9 +421,11 @@ namespace ESPINA
     template<typename T>
     const typename T::Pointer StreamedVolume<T>::read(const typename T::RegionType &region) const
     {
+      QReadLocker lock(&this->m_lock);
+
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkImage(bounds) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -439,7 +433,7 @@ namespace ESPINA
 
       if(!m_region.IsInside(region))
       {
-        auto message = QObject::tr("Requested region is totally/partially outside the image region. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Requested region is totally/partially outside the image region. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::read(region) -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -452,11 +446,9 @@ namespace ESPINA
         requestedRegion.SetIndex(i, requestedRegion.GetIndex(i)-m_region.GetIndex(i));
       }
 
-      QMutexLocker lock(&m_lock);
-
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.toStdString());
+      reader->SetFileName(m_fileName.absoluteFilePath().toStdString());
       reader->SetNumberOfThreads(1);
       reader->UpdateOutputInformation();
 
@@ -487,7 +479,7 @@ namespace ESPINA
     template<typename T>
     inline void StreamedVolume<T>::write(const typename T::Pointer &image)
     {
-      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName);
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
       auto details = QObject::tr("StreamedVolume<>::write(image) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -499,13 +491,11 @@ namespace ESPINA
     {
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkRegion() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
-
-      QMutexLocker lock(&m_lock);
 
       return m_region;
     }
@@ -516,13 +506,13 @@ namespace ESPINA
     {
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkSpacing() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
-      QMutexLocker lock(&m_lock);
+      QReadLocker lock(&this->m_lock);
 
       return m_spacing;
     }
@@ -533,13 +523,13 @@ namespace ESPINA
     {
       if (!isValid())
       {
-        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName);
+        auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
         auto details = QObject::tr("StreamedVolume::itkOrigin() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
       }
 
-      QMutexLocker lock(&m_lock);
+      QReadLocker lock(&this->m_lock);
 
       return m_origin;
     }

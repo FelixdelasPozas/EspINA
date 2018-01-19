@@ -109,13 +109,6 @@ namespace ESPINA
        */
       void invalidate();
 
-      /** \brief Returns the list of items whose representation occupies the given point.
-       * \param[in] point pick point.
-       * \param[in] actor if not null is an actor picked in the view to check it's belonging to this updater.
-       *
-       */
-      ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const;
-
       /** \brief Returns the latest actors computed by the task
        *
        */
@@ -127,21 +120,16 @@ namespace ESPINA
     protected:
       virtual void run();
 
-    private:
+    public:
       using UpdateRequest     = QPair<ViewItemAdapterPtr, bool>;
       using UpdateRequestList = QList<UpdateRequest>;
 
+    private:
       /** \brief Returns the current pipeline for the given item.
        * \param[in] item view item.
        *
        */
       RepresentationPipelineSPtr sourcePipeline(ViewItemAdapterPtr item) const;
-
-      /** \brief Returns the item that corresponds with the given actor.
-       * \param[in] actor vtk actor.
-       *
-       */
-      ViewItemAdapterPtr findActorItem(vtkProp *actor) const;
 
       /** \brief Adds the sources for being updated in the next execution.
        * \param[in] sources items to update.
@@ -160,19 +148,18 @@ namespace ESPINA
        */
       static void removeUpdateRequest(UpdateRequestList &list, ViewItemAdapterPtr item);
 
-    private:
-      GUI::Representations::FrameCSPtr m_frame;
+    protected:
+      GUI::Representations::FrameCSPtr m_frame;            /** frame of the actors.                                       */
+      RepresentationPipelineSPtr       m_pipeline;         /** actor creation pipeline and pick resolver.                 */
 
-      RepresentationPipelineSPtr m_pipeline;
+      UpdateRequestList                m_requestedSources; /** list of requested to update sources.                       */
+      UpdateRequestList                m_sources;          /** items to create or update.                                 */
+      UpdateRequestList               *m_updateList;       /** pointer to the list to update during the updater run.      */
 
-      mutable QMutex m_mutex;
+      RepresentationState              m_settings;         /** representation's settings.                                 */
+      RepresentationPipeline::Actors   m_actors;           /** list of actors of the frame.                               */
 
-      UpdateRequestList  m_requestedSources;
-      UpdateRequestList  m_sources;
-      UpdateRequestList *m_updateList;
-
-      RepresentationState            m_settings;
-      RepresentationPipeline::Actors m_actors;
+      mutable QReadWriteLock           m_dataLock;         /** protects the execution data.                               */
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;

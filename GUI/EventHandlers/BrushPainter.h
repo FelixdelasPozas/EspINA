@@ -59,8 +59,7 @@ namespace ESPINA
       /** \brief Implements Brush::setBorderColor().
        *
        */
-      void setBorderColor(const QColor borderColor)
-      { m_brush->setBorderColor(borderColor); }
+      void setBorderColor(const QColor borderColor);
 
       /** \brief Implements Brush::borderColor().
        *
@@ -71,20 +70,17 @@ namespace ESPINA
       /** \brief Implements Brush::setImage().
        *
        */
-      void setImage(const QImage &image)
-      { m_brush->setImage(image); }
+      void setImage(const QImage &image);
 
       /** \brief Implements Brush::clearImage().
        *
        */
-      void clearImage()
-      { m_brush->clearImage(); }
+      void clearImage();
 
       /** \brief Implements Brush::setRadius().
        *
        */
-      void setRadius(const int value)
-      { m_brush->setRadius(value); }
+      void setRadius(const int value);
 
       /** \brief Implements Brush::radius().
        *
@@ -92,6 +88,10 @@ namespace ESPINA
       int radius() const
       { return m_brush->radius(); }
 
+      /** \brief Sets if the erase strokes must show the stroke voxels or not.
+       * \brief value true to show the stroke voxels and false otherwise.
+       *
+       */
       void showEraseStrokes(bool value)
       { m_showEraseStrokes = value; }
 
@@ -118,11 +118,11 @@ namespace ESPINA
                                                const NmVector3     &origin) const;
 
     private:
-      BrushSPtr         m_brush;
-      StrokePainterSPtr m_strokePainter;
-      bool              m_manageActors;
-      bool              m_showEraseStrokes;
-      DrawingMode       m_actualStrokeMode;
+      BrushSPtr         m_brush;            /** brush that manages the brush shape and properties.                  */
+      StrokePainterSPtr m_strokePainter;    /** stroke painter object for painting the voxels.                      */
+      bool              m_manageActors;     /** true to let the brush manage the stroke actors and false otherwise. */
+      bool              m_showEraseStrokes; /** true to show stroke voxels on erase and false otherwise.            */
+      DrawingMode       m_actualStrokeMode; /** current brush stroke mode (paint or erase).                         */
   };
 
   using BrushPainterSPtr = std::shared_ptr<BrushPainter>;

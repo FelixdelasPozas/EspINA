@@ -28,6 +28,10 @@
 
 namespace ESPINA
 {
+  /** \class SASInformationProxy
+   * \brief Implements the InformationProxy for SAS reports.
+   *
+   */
   class AppositionSurfacePlugin_EXPORT SASInformationProxy
   : public InformationProxy
   {
@@ -35,6 +39,9 @@ namespace ESPINA
 
   public:
     /** \brief SASInformationProxy class constructor.
+     * \param[in] model application model adapter.
+     * \param[in] sasTags information tags of a SAS.
+     * \param[in] scheduler application task scheduler.
      *
      */
     explicit SASInformationProxy(ModelAdapterSPtr model, Core::SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
@@ -57,8 +64,8 @@ namespace ESPINA
                          Core::SegmentationExtension::InformationKey& key) const;
 
   protected:
-    ModelAdapterSPtr m_model;
-    Core::SegmentationExtension::InformationKeyList m_sasTags;
+    ModelAdapterSPtr                                m_model;   /** model adapter object.      */
+    Core::SegmentationExtension::InformationKeyList m_sasTags; /** information tags of a SAS. */
   };
 
 } // namespace ESPINA

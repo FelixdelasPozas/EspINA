@@ -33,6 +33,10 @@ namespace ESPINA
 {
   class RestrictToolGroup;
 
+  /** \class DeleteROITool
+   * \brief Implements the tool to clear the current ROI.
+   *
+   */
   class DeleteROITool
   : public Support::Widgets::ProgressTool
   {
@@ -51,15 +55,19 @@ namespace ESPINA
     virtual ~DeleteROITool();
 
   protected slots:
+    /** \brief Enables the tool when the ROI changes and is valid.
+     *
+     */
     void onROIChanged();
+
+    /** \brief Removes the ROI.
+     *
+     */
     void cancelROI();
 
   private:
-    virtual void onToolEnabled(bool enabled);
-
-  private:
-    Support::Context &m_context;
-    RestrictToolGroup *m_toolGroup;
+    Support::Context  &m_context;   /** application context.            */
+    RestrictToolGroup *m_toolGroup; /** toolgroup this tool belongs to. */
   };
 
   using CleanROIToolSPtr = std::shared_ptr<DeleteROITool>;

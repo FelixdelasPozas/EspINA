@@ -57,6 +57,8 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg,
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
+  m_segmentation->setBeingModified(true);
+
   auto output = m_segmentation->output();
   SignalBlocker<OutputSPtr> blocker(output);
 
@@ -79,12 +81,16 @@ void DrawUndoCommand::redo()
     output->setData(mesh);
   }
 
+  m_segmentation->setBeingModified(false);
+
   m_segmentation->invalidateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
+  m_segmentation->setBeingModified(true);
+
   auto output = m_segmentation->output();
   SignalBlocker<OutputSPtr> blocker(output);
 
@@ -93,6 +99,7 @@ void DrawUndoCommand::undo()
     {
       auto volume = writeLockVolume(output);
       volume->resize(m_bounds);
+
       if(m_image != nullptr)
       {
         volume->draw(m_image);
@@ -103,12 +110,18 @@ void DrawUndoCommand::undo()
       auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
       output->setData(mesh);
     }
+
+    auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
+    output->setData(mesh);
+    mesh->mesh();
   }
   else
   {
     output->removeData(VolumetricData<itkVolumeType>::TYPE);
     output->removeData(MarchingCubesMesh::TYPE);
   }
+
+  m_segmentation->setBeingModified(false);
 
   m_segmentation->invalidateRepresentations();
 }

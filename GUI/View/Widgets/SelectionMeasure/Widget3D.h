@@ -48,9 +48,17 @@ namespace ESPINA
           {
             Q_OBJECT
           public:
+            /** \brief Widget3D class constructor.
+             * \param[in] selection application selection object.
+             *
+             */
             explicit Widget3D(SelectionSPtr selection);
 
-            virtual ~Widget3D();
+            /** \brief Widget3D class virtual destructor.
+             *
+             */
+            virtual ~Widget3D()
+            {};
 
           protected:
             virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
@@ -70,20 +78,31 @@ namespace ESPINA
           private:
             virtual Representations::Managers::TemporalRepresentation3DSPtr cloneImplementation();
 
+            /** \brief Connects the selection objects to modify this widget when ony of them changes.
+             *
+             */
             void synchronizeSelectionChanges();
 
+            /** \brief Disconnects the selection objects to modify this widget when ony of them changes.
+             *
+             */
             void desynchronizeSelectionChanges();
 
           private slots:
+            /** \brief Updates the widget when the group of selected objects change.
+             *
+             */
             void onSelectionChanged();
 
+            /** \brief Updates the widget size according to currently selected items.
+             *
+             */
             void updateSelectionMeasure();
 
           private:
-            SelectionSPtr                m_selection;
-            vtkSmartPointer<vtkWidget3D> m_widget;
-
-            SegmentationAdapterList m_selectedSegmentations;
+            SelectionSPtr                m_selection;             /** application selection object.              */
+            vtkSmartPointer<vtkWidget3D> m_widget;                /** vtk widget.                                */
+            SegmentationAdapterList      m_selectedSegmentations; /** group of currently selected segmentations. */
           };
         }
       }

@@ -105,12 +105,19 @@ namespace ESPINA
      */
     void finishedTask();
 
+    virtual void onAnalysisClosed() override final;
+
   private:
     /** \brief Returs true if the given item is a SAS.
      * \param[in] item view item to check.
      *
      */
     static bool isSAS(ItemAdapterSPtr item);
+
+    /** \brief Aborts all executing tasks and clears the finished and executing lists.
+     *
+     */
+    void abortTasks();
 
   private:
     /** \struct Data
@@ -137,7 +144,6 @@ namespace ESPINA
       Data(): adapter{nullptr}, segmentation{nullptr}
       {};
     };
-
 
   private:
     Support::Context                      *m_context;          /** application context.             */

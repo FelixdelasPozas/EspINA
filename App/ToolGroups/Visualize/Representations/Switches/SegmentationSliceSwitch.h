@@ -32,7 +32,10 @@
 
 namespace ESPINA
 {
-  
+  /** \class SegmentationSliceSwitch
+   * \brief Switch for segmentation slice representation.
+   *
+   */
   class SegmentationSliceSwitch
   : public BasicRepresentationSwitch
   {
@@ -79,8 +82,8 @@ namespace ESPINA
        */
       void initWidgets();
 
-      std::shared_ptr<SegmentationSlicePoolSettings> m_settings;
-      GUI::Widgets::NumericalInput                  *m_opacityWidget;
+      std::shared_ptr<SegmentationSlicePoolSettings> m_settings;      /** slice representation settings. */
+      GUI::Widgets::NumericalInput                  *m_opacityWidget; /** opacity selector widget.       */
   };
 
 } // namespace ESPINA

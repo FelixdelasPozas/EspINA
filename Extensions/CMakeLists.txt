@@ -5,14 +5,21 @@ include_directories(
 
 include (GenerateExportHeader)
 
+# Add Qt Resource files
+qt4_add_resources(EXTENSIONS_RCC
+  EdgeDistances/rsc/EdgeDistances.qrc
+  )
+
 qt4_wrap_cpp(EXTENSIONS_MOC
   EdgeDistances/ChannelEdges.h
+  SkeletonInformation/SkeletonInformation.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
+  ${EXTENSIONS_RCC}
   EdgeDistances/ChannelEdges.cpp
   EdgeDistances/ChannelEdgesFactory.cpp
   Issues/Issues.cpp
@@ -28,6 +35,8 @@ set (EXTENSIONS_SOURCES
   Notes/SegmentationNotesFactory.cpp
   Tags/SegmentationTags.cpp
   Tags/SegmentationTagsFactory.cpp
+  SkeletonInformation/SkeletonInformation.cpp
+  SkeletonInformation/SkeletonInformationFactory.cpp
   LibraryExtensionFactory.cpp
   )
 

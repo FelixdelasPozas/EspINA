@@ -24,6 +24,9 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include "EditToolGroup.h"
 
+// Qt
+#include <QThread>
+
 using namespace ESPINA;
 using namespace ESPINA::Support::Widgets;
 
@@ -38,14 +41,15 @@ ImageLogicTool::ImageLogicTool(const QString &id, const QString &icon, const QSt
 }
 
 //------------------------------------------------------------------------
-void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)
+ImageLogicTool::~ImageLogicTool()
 {
-  m_operation = operation;
+  abortTasks();
 }
 
 //------------------------------------------------------------------------
-void ImageLogicTool::abortOperation()
+void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)
 {
+  m_operation = operation;
 }
 
 //------------------------------------------------------------------------
@@ -161,4 +165,28 @@ void ImageLogicTool::onTaskFinished()
   }
 
   m_executingTasks.remove(filter);
+}
+
+//------------------------------------------------------------------------
+void ImageLogicTool::abortTasks()
+{
+  for(auto data: m_executingTasks)
+  {
+    disconnect(data.Task.get(), SIGNAL(finished()),
+               this,            SLOT(onTaskFinished()));
+
+    data.Task->abort();
+
+    for(auto segmentation: data.Segmentations)
+    {
+      markAsBeingModified(segmentation, false);
+    }
+
+    if(!data.Task->thread()->wait(500))
+    {
+      data.Task->thread()->terminate();
+    }
+  }
+
+  m_executingTasks.clear();
 }
