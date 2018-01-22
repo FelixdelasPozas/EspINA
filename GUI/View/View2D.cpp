@@ -169,8 +169,6 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
   m_renderer->AddViewProp(m_scale);
 
   auto interactor = View2DInteractor::New();
-  interactor->AutoAdjustCameraClippingRangeOff();
-  interactor->KeyPressActivationOff();
   renderWindow->AddRenderer(m_renderer);
   renderWindow->AddRenderer(m_thumbnail);
   m_view->GetInteractor()->SetInteractorStyle(interactor);

@@ -238,8 +238,16 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
   switch (m_mode)
   {
     case Mode::CREATE:
-      m_widget->setIgnoreCursor(true);
-      m_widget->addPoint();
+      {
+        m_widget->setIgnoreCursor(true);
+        auto previousStroke = m_widget->stroke();
+        m_widget->addPoint();
+        auto stroke = m_widget->stroke();
+        if(previousStroke != stroke)
+        {
+          emit strokeChanged(stroke);
+        }
+      }
       break;
     case Mode::MODIFY:
       if(m_moving)
@@ -267,7 +275,15 @@ void SkeletonWidget2D::onTrackUpdated(Track track, RenderView *view)
     switch(m_mode)
     {
       case Mode::CREATE:
-        m_widget->addPoint();
+        {
+          auto previousStroke = m_widget->stroke();
+          m_widget->addPoint();
+          auto stroke = m_widget->stroke();
+          if(previousStroke != stroke)
+          {
+            emit strokeChanged(stroke);
+          }
+        }
         break;
       case Mode::MODIFY:
         if(m_moving)

@@ -41,7 +41,7 @@ SegmentationConnectionsSwitch::SegmentationConnectionsSwitch(GUI::Representation
 //--------------------------------------------------------------------
 void SegmentationConnectionsSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
-  auto sizeValue = settings->value(SIZE_KEY, 4).toInt();
+  auto sizeValue = settings->value(SIZE_KEY, 5).toInt();
   m_sizeWidget->setValue(sizeValue);
 
   restoreCheckedState(settings);
@@ -69,8 +69,8 @@ void SegmentationConnectionsSwitch::initializeParameterWidgets()
   m_sizeWidget->setSpinBoxVisibility(false);
   m_sizeWidget->setSliderVisibility(true);
   m_sizeWidget->setMinimum(1);
-  m_sizeWidget->setMaximum(15);
-  m_sizeWidget->setValue(4);
+  m_sizeWidget->setMaximum(30);
+  m_sizeWidget->setValue(5);
 
   connect(m_sizeWidget, SIGNAL(valueChanged(int)), this, SLOT(onSizeValueChanged(int)));
 

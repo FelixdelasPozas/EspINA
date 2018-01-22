@@ -270,6 +270,9 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
       connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
               this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
 
+      connect(skeletonWidget.get(), SIGNAL(strokeChanged(const Core::SkeletonStroke)),
+              this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
+
       m_widgets << skeletonWidget;
     }
   }
@@ -606,6 +609,20 @@ bool SkeletonEditionTool::selectionIsNotBeingModified(SegmentationAdapterList se
   }
 
   return true;
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeChanged(const Core::SkeletonStroke stroke)
+{
+  if(m_item)
+  {
+    auto segmentation = segmentationPtr(m_item);
+    auto name         = segmentation->category()->classificationName();
+
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
+    m_strokeCombo->blockSignals(false);
+  }
 }
 
 //--------------------------------------------------------------------

@@ -197,6 +197,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
           {
             auto otherNode = s_currentVertex->connections.keys().first();
             m_currentEdgeIndex = s_currentVertex->connections[otherNode];
+            m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
           }
           break;
         default:
@@ -216,7 +217,11 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
 
           if(prioritary == 1)
           {
-            m_currentEdgeIndex = prioritaryIndex;
+            if(!stroke.useMeasure)
+            {
+              m_currentEdgeIndex = prioritaryIndex;
+              m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
+            }
           }
           else
           {

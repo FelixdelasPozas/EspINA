@@ -152,6 +152,12 @@ namespace ESPINA
        */
       void onPointCheckRequested(const NmVector3 &point);
 
+      /** \brief Updates the UI when the stroke is changed by the widget.
+       * \param[in] stroke Current stroke definition.
+       *
+       */
+      void onStrokeChanged(const Core::SkeletonStroke stroke);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 

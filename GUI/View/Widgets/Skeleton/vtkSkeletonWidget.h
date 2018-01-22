@@ -219,6 +219,11 @@ namespace ESPINA
                */
               void setStroke(const Core::SkeletonStroke &stroke);
 
+              /** \brief Returns the current stroke definition used.
+               *
+               */
+              const Core::SkeletonStroke stroke() const;
+
               /** \brief Using the last three points connects the first and last with the current stroke and creates
                *  a connection using the given stroke, the second point and the closest point to the first-last segment.
                *  Returns true on success and false if a connection cannot be created (less than three nodes in the skeleton).

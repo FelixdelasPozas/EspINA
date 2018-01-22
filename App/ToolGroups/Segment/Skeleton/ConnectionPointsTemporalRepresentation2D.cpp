@@ -47,13 +47,13 @@ ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation
 : m_points     {nullptr}
 , m_polyData   {nullptr}
 , m_glyphMapper{nullptr}
-, m_glyph2D     {nullptr}
+, m_glyph2D    {nullptr}
 , m_actor      {nullptr}
-, m_scale       {9}
-, m_view        {nullptr}
-, m_planeIndex  {-1}
-, m_lastSlice   {-std::numeric_limits<Nm>::max()}
-, m_active      {false}
+, m_scale      {10}
+, m_view       {nullptr}
+, m_planeIndex {-1}
+, m_lastSlice  {-std::numeric_limits<Nm>::max()}
+, m_active     {false}
 {
 }
 
@@ -66,7 +66,7 @@ ConnectionPointsTemporalRepresentation2D::~ConnectionPointsTemporalRepresentatio
   }
 
   m_actor       = nullptr;
-  m_glyph2D      = nullptr;
+  m_glyph2D     = nullptr;
   m_glyphMapper = nullptr;
   m_polyData    = nullptr;
   m_points      = nullptr;
@@ -79,7 +79,23 @@ void ConnectionPointsTemporalRepresentation2D::setRepresentationSize(const int s
   {
     m_scale = size;
 
-    if(m_view) m_view->refresh();
+    if(m_view)
+    {
+      auto spacing = m_view->sceneResolution();
+      auto minSpacing = std::numeric_limits<double>::max();
+      for(auto i: {0,1,2})
+      {
+        if(i == m_planeIndex) continue;
+        minSpacing = std::min(minSpacing, spacing[i]);
+      }
+
+      m_glyph2D->SetScale(m_scale*minSpacing);
+      m_glyph2D->Update();
+
+      updateActor(m_lastSlice);
+
+      m_view->refresh();
+    }
   }
 }
 
@@ -184,7 +200,15 @@ void ConnectionPointsTemporalRepresentation2D::onConnectionPointAdded(const NmVe
 {
   if(!m_connections.contains(point))
   {
-    m_connections << point;
+    auto spacing = m_view->sceneResolution();
+
+    NmVector3 adjustedPoint;
+    for(auto i: {0,1,2})
+    {
+      auto half = spacing[i]/2.;
+      adjustedPoint[i] = std::round((point[i]+half)/spacing[i])*spacing[i] - half;
+    }
+    m_connections << adjustedPoint;
 
     updateActor(m_lastSlice);
 
@@ -228,17 +252,22 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
   m_glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
   m_glyphMapper->SetScalarVisibility(false);
   m_glyphMapper->SetStatic(false);
+  m_glyphMapper->ScalingOff();
   m_glyphMapper->SetInputData(m_polyData);
 
   auto spacing = m_view->sceneResolution();
-  spacing[m_planeIndex] = spacing[(m_planeIndex + 1) % 3];
-  auto multiplier = 2 * std::min(spacing[0], std::min(spacing[1], spacing[2]));
+  auto minSpacing = std::numeric_limits<double>::max();
+  for(auto i: {0,1,2})
+  {
+    if(i == m_planeIndex) continue;
+    minSpacing = std::min(minSpacing, spacing[i]);
+  }
 
   m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
   m_glyph2D->SetGlyphTypeToCircle();
   m_glyph2D->SetFilled(false);
   m_glyph2D->SetCenter(0, 0, 0);
-  m_glyph2D->SetScale(m_scale*multiplier);
+  m_glyph2D->SetScale(m_scale*minSpacing);
   m_glyph2D->SetColor(1, 1, 1);
   m_glyph2D->Update();
 
@@ -270,9 +299,6 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 
   m_actor = vtkSmartPointer<vtkFollower>::New();
   m_actor->SetMapper(m_glyphMapper);
-  m_actor->GetProperty()->SetColor(1,1,1);
-  m_actor->GetProperty()->SetLineWidth(2);
-  m_actor->GetProperty()->Modified();
 
   auto view2d = view2D_cast(m_view);
   auto depth  = view2d->widgetDepth();
@@ -283,21 +309,24 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::updateActor(const Nm slice)
 {
-  m_points->Reset();
-
-  if (!m_connections.isEmpty())
+  if(m_view)
   {
-    for (auto point : m_connections)
+    m_points->Reset();
+
+    if (!m_connections.isEmpty())
     {
-      if (point[m_planeIndex] == slice)
+      for (auto point : m_connections)
       {
-        m_points->InsertNextPoint(point[0], point[1], point[2]);
+        if (point[m_planeIndex] == slice)
+        {
+          m_points->InsertNextPoint(point[0], point[1], point[2]);
+        }
       }
     }
-  }
 
-  m_points->Modified();
-  m_polyData->Modified();
-  m_glyphMapper->Update();
-  m_actor->Modified();
+    m_points->Modified();
+    m_polyData->Modified();
+    m_glyphMapper->Update();
+    m_actor->Modified();
+  }
 }

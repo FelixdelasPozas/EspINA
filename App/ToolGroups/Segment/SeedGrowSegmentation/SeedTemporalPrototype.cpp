@@ -226,6 +226,13 @@ void SeedTemporalRepresentation::buildVTKPipeline()
   auto spacing = m_view->sceneResolution();
   if(!isValidSpacing(spacing)) return;
 
+  auto minSpacing = std::numeric_limits<double>::max();
+  for(auto i: {0,1,2})
+  {
+    if(i == m_planeIndex) continue;
+    minSpacing = std::min(minSpacing, spacing[i]);
+  }
+
   m_points = vtkSmartPointer<vtkPoints>::New();
 
   auto point = m_view->crosshair();
@@ -240,13 +247,15 @@ void SeedTemporalRepresentation::buildVTKPipeline()
 
   m_glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
   m_glyphMapper->SetScalarVisibility(false);
+  m_glyphMapper->ScalingOff();
   m_glyphMapper->SetInputData(m_polyData);
 
   m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
+  m_glyph2D->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
   m_glyph2D->SetGlyphTypeToCross();
-  m_glyph2D->SetFilled(false);
+  m_glyph2D->SetFilled(true);
   m_glyph2D->SetCenter(0,0,0);
-  m_glyph2D->SetScale(5);
+  m_glyph2D->SetScale(minSpacing*2.5); // two pixels and half in the shortest spacing.
   m_glyph2D->SetColor(1,1,1);
   m_glyph2D->Update();
 
@@ -259,8 +268,8 @@ void SeedTemporalRepresentation::buildVTKPipeline()
         transform->RotateWXYZ(90, (m_planeIndex == 0 ? 0 : 1), (m_planeIndex == 1 ? 0 : 1), 0);
 
         auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-        transformFilter->SetTransform(transform);
         transformFilter->SetInputData(m_glyph2D->GetOutput());
+        transformFilter->SetTransform(transform);
         transformFilter->Update();
 
         m_glyphMapper->SetSourceData(transformFilter->GetOutput());
@@ -274,6 +283,4 @@ void SeedTemporalRepresentation::buildVTKPipeline()
 
   m_actor = vtkSmartPointer<vtkFollower>::New();
   m_actor->SetMapper(m_glyphMapper);
-  m_actor->GetProperty()->SetColor(1,1,1);
-  m_actor->GetProperty()->SetLineWidth(3);
 }

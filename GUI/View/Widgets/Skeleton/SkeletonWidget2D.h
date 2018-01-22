@@ -149,9 +149,11 @@ namespace ESPINA
 
               vtkSmartPointer<vtkSkeletonWidget> m_widget; /** vtk widget.         */
               RenderView                        *m_view;   /** view of the widget. */
+
             signals:
               void modified(vtkSmartPointer<vtkPolyData> polydata);
               void updateWidgets();
+              void strokeChanged(const Core::SkeletonStroke stroke);
 
             private:
               using Track = SkeletonEventHandler::Track;
