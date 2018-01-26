@@ -24,6 +24,7 @@
 
 // Qt
 #include <QString>
+#include <QDebug>
 
 // C++
 #include <chrono>
@@ -125,7 +126,7 @@ namespace ESPINA
             return "unknown units";
           }
 
-          QString m_id;                                               /** timer id.            */
+          QString                                        m_id;        /** timer id.            */
           std::chrono::high_resolution_clock::time_point m_startTime; /** timer creation time. */
       };
     

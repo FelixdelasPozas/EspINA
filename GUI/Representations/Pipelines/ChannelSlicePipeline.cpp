@@ -20,6 +20,7 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/BlockTimer.hxx>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
@@ -35,13 +36,8 @@
 #include <vtkLookupTable.h>
 #include <vtkAlgorithmOutput.h>
 
-// C++
-#include <chrono>
-
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 ChannelSlicePipeline::ChannelSlicePipeline(const Plane plane)
@@ -72,7 +68,8 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
   auto planeIndex = normalCoordinateIndex(m_plane);
 
   ActorList actors;
-  //  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+  // BlockTimer<> timer("Channel representation pipeline");
 
   if (isVisible(state) && hasVolumetricData(channel->output()))
   {
@@ -132,9 +129,6 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
       actors << actor;
     }
   }
-
-//   std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-//   qDebug() << type() << s_plane << "Execution Time" <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   return actors;
 }

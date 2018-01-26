@@ -18,6 +18,7 @@
  */
 
 // ESPINA
+#include <Core/Utils/BlockTimer.hxx>
 #include <GUI/Representations/Pipelines/SegmentationSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/View/Utils.h>
@@ -34,6 +35,7 @@
 #include <vtkAlgorithmOutput.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
@@ -75,7 +77,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
   auto planeIndex   = normalCoordinateIndex(m_plane);
 
   ActorList actors;
-//   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+  // BlockTimer<> timer("Segmentation slice representation pipeline");
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
