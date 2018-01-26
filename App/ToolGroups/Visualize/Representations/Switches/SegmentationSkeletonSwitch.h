@@ -27,6 +27,7 @@
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Widgets/ToolButton.h>
+#include <GUI/Widgets/NumericalInput.h>
 #include <Support/Context.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 
@@ -34,6 +35,8 @@
 #include <QSettings>
 
 class QComboBox;
+class QSlider;
+class QLabel;
 
 namespace ESPINA
 {
@@ -85,6 +88,12 @@ namespace ESPINA
        */
       void onSettingsModified();
 
+      /** \brief Propagates changes in the annotations text size widget to the settings and the representation.
+       * \param[in] value New text size value.
+       *
+       */
+      void onAnnotationsSizeChanged(int value);
+
     private:
       /** \brief Initializes the settings widgets of the switch.
        *
@@ -93,8 +102,9 @@ namespace ESPINA
 
       std::shared_ptr<GUI::Representations::SegmentationSkeletonPoolSettings> m_settings; /** settings object. */
 
-      QComboBox                    *m_widthWidget;        /** representation's width widget.                  */
-      GUI::Widgets::ToolButton     *m_annotationsWidget;  /** representation's annotations visibility widget. */
+      QComboBox                    *m_widthWidget;           /** representation's width widget.                  */
+      GUI::Widgets::ToolButton     *m_annotationsWidget;     /** representation's annotations visibility widget. */
+      GUI::Widgets::NumericalInput *m_annotationsTextWidget; /** representation's annotations' text size widget. */
   };
 
 } // namespace ESPINA

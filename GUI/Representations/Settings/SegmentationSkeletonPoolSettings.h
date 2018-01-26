@@ -85,6 +85,17 @@ namespace ESPINA
            */
           bool showAnnotations() const;
 
+          /** \brief Sets the size of the annotations' text.
+           * \param[in] size Font size.
+           *
+           */
+          void setAnnotationsSize(int size);
+
+          /** \brief Returns the annotations size value.
+           *
+           */
+          int annotationsSize() const;
+
           /** \brief Helper method to get the skeleton width value from a representation state object.
            * \param[in] state representation state object.
            *
@@ -103,10 +114,17 @@ namespace ESPINA
            */
           static bool getShowAnnotations(const RepresentationState &state);
 
+          /** \brief Helper method to get the annotations' text from a representation state object.
+           * \param[in] state representation state object.
+           *
+           */
+          static int getAnnotationsSize(const RepresentationState &state);
+
         private:
           static const QString WIDTH;   /** width setting identifier                   */
-          static const QString SHOWIDS; /** anootations visibility setting identifier. */
+          static const QString SHOWIDS; /** annotations visibility setting identifier. */
           static const QString OPACITY; /** opacity setting identifier.                */
+          static const QString IDSSIZE; /** annotations' text size.                    */
       };
 
     } // namespace Representations

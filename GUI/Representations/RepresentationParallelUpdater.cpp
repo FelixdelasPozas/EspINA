@@ -205,6 +205,8 @@ void RepresentationParallelUpdater::onTaskFinished(ParallelUpdaterTask* task)
 {
   QMutexLocker lock(&m_dataMutex);
 
+  if(!m_tasks.contains(task)) return;
+
   if(!canExecute())
   {
     m_condition.wakeAll();
@@ -271,6 +273,8 @@ void RepresentationParallelUpdater::createTask(const RepresentationPipeline::Act
 void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, int progress)
 {
   QMutexLocker lock(&m_dataMutex);
+
+  if(!m_tasks.contains(task)) return;
 
   m_tasks[task].Progress = progress;
 

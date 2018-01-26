@@ -27,6 +27,7 @@ using namespace ESPINA::GUI::Representations;
 
 const QString SegmentationSkeletonPoolSettings::WIDTH   = "Width";
 const QString SegmentationSkeletonPoolSettings::SHOWIDS = "Show Id";
+const QString SegmentationSkeletonPoolSettings::IDSSIZE = "Id text size";
 const QString SegmentationSkeletonPoolSettings::OPACITY = "Opacity";
 
 //--------------------------------------------------------------------
@@ -35,6 +36,7 @@ SegmentationSkeletonPoolSettings::SegmentationSkeletonPoolSettings()
   setOpacity(0.6);
   setWidth(2);
   setShowAnnotations(false);
+  setAnnotationsSize(15);
 }
 
 //--------------------------------------------------------------------
@@ -74,6 +76,18 @@ double SegmentationSkeletonPoolSettings::opacity() const
 }
 
 //--------------------------------------------------------------------
+void SegmentationSkeletonPoolSettings::setAnnotationsSize(int size)
+{
+  set<int>(IDSSIZE, size);
+}
+
+//--------------------------------------------------------------------
+int SegmentationSkeletonPoolSettings::annotationsSize() const
+{
+  return get<int>(IDSSIZE);
+}
+
+//--------------------------------------------------------------------
 int SegmentationSkeletonPoolSettings::getWidth(const RepresentationState& state)
 {
   if(!state.hasValue(WIDTH)) return 1;
@@ -95,4 +109,12 @@ bool SegmentationSkeletonPoolSettings::getShowAnnotations(const RepresentationSt
   if(!state.hasValue(SHOWIDS)) return false;
 
   return state.getValue<bool>(SHOWIDS);
+}
+
+//--------------------------------------------------------------------
+int SegmentationSkeletonPoolSettings::getAnnotationsSize(const RepresentationState& state)
+{
+  if(!state.hasValue(IDSSIZE)) return 15;
+
+  return state.getValue<int>(IDSSIZE);
 }

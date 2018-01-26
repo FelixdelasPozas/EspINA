@@ -306,7 +306,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       auto property = vtkSmartPointer<vtkTextProperty>::New();
       property->SetBold(true);
       property->SetFontFamilyToArial();
-      property->SetFontSize(15);
+      property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
       property->SetJustificationToCentered();
 
       for(auto input: {labelsDataGreen, labelsDataBlue, labelsDataRed})

@@ -216,7 +216,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     auto property = vtkSmartPointer<vtkTextProperty>::New();
     property->SetBold(true);
     property->SetFontFamilyToArial();
-    property->SetFontSize(15);
+    property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
     property->SetJustificationToCentered();
 
     auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
