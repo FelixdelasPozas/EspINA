@@ -79,12 +79,6 @@ namespace ESPINA
        */
       void onCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
 
-      /** \brief Centers the view when the user clicks on a connection label link.
-       *  \param[in] link Text of the link that contains the connection point.
-       *
-       */
-      void onLinkActivated(const QString &link);
-
       /** \brief Invalidates the representations of the given segmentations.
        * \param[in] segmentations list of segmentation adapter pointers.
        *
@@ -135,17 +129,6 @@ namespace ESPINA
        *
        */
       void connectSignals();
-
-      /** \brief Sets the default values for the stroke information fields.
-       *
-       */
-      void clearInformationLabels();
-
-      /** \brief Fills the values of the information labels with the information of the given stroke.
-       * \param[in] stroke Stroke information struct.
-       *
-       */
-      void setStrokeInformation(const struct StrokeInfo &stroke);
 
     private:
       /** \class SkeletonInspectorPipeline

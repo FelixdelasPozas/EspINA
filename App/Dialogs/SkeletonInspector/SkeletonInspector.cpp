@@ -402,9 +402,6 @@ void SkeletonInspector::connectSignals()
   connect(m_treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
           this,                         SLOT(onCurrentChanged(const QModelIndex &, const QModelIndex &)));
 
-  connect(m_connections, SIGNAL(linkActivated(const QString &)),
-         this,           SLOT(onLinkActivated(const QString &)));
-
   connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
           this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
 }
@@ -467,7 +464,6 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
         case 0:
           {
             m_strokes[previous.row()].selected = false;
-            clearInformationLabels();
           }
           break;
         default:
@@ -484,7 +480,6 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
       if(current.row() == 0)
       {
         getSelection()->set(toViewItemList(m_segmentation.get()));
-        clearInformationLabels();
         for(auto &stroke: m_strokes)
         {
           stroke.selected = true;
@@ -500,7 +495,6 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
             getSelection()->set(toViewItemList(m_segmentation.get()));
 
             m_strokes[current.row()].selected = true;
-            setStrokeInformation(m_strokes.at(current.row()));
           }
           break;
         default:
@@ -512,40 +506,6 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
 
   m_segmentation->invalidateRepresentations();
   m_view.refresh();
-}
-
-//--------------------------------------------------------------------
-void SkeletonInspector::clearInformationLabels()
-{
-  m_strokeName->setText(tr("None selected."));
-  m_length->setText(tr("0 nm"));
-  m_branchNumber->setText(tr("Does not apply"));
-  m_branchDistances->setText(tr("Does not apply"));
-  m_branchAngles->setText(tr("Does not apply"));
-  m_used->setText(tr("Does not apply"));
-  m_connectionsNumber->setText(tr("0"));
-  m_connections->setText(tr("None"));
-}
-
-//--------------------------------------------------------------------
-void SkeletonInspector::setStrokeInformation(const struct StrokeInfo& stroke)
-{
-  m_strokeName->setText(stroke.name);
-  m_length->setText(tr("%1 nm").arg(stroke.length));
-  m_branchNumber->setText(tr("%1").arg(stroke.numBranches == 0 ? "Does not apply" : QString("%1 branch%2").arg(stroke.numBranches).arg(stroke.numBranches == 1 ? "":"es")));
-  m_branchDistances->setText(tr("%1").arg(stroke.branchDistances.isEmpty() ? "Does not apply" : stroke.branchDistances));
-  m_branchAngles->setText(tr("%1").arg(stroke.branchAngles.isEmpty() ? "Does not apply" : stroke.branchAngles));
-  m_used->setText(tr("%1").arg(stroke.used ? "Yes":"No"));
-  m_connectionsNumber->setText(tr("%1").arg(stroke.connectionNum));
-  m_connections->setText(tr("%1").arg(stroke.connections.isEmpty() ? "None" : stroke.connections));
-}
-
-//--------------------------------------------------------------------
-void SkeletonInspector::onLinkActivated(const QString &link)
-{
-  NmVector3 point{link};
-
-  getViewState().focusViewOn(point);
 }
 
 //--------------------------------------------------------------------
