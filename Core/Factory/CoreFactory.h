@@ -38,6 +38,9 @@
 
 namespace ESPINA
 {
+  /** \class CoreFactory
+   * \brief Factory for core model objects.
+   */
   class EspinaCore_EXPORT CoreFactory
   {
   public:
@@ -218,7 +221,17 @@ namespace ESPINA
 
       if(extension->validCategory(item->category()->classificationName()))
       {
-        extensions->add(extension);
+        if (extension->validData(item->output()))
+        {
+          extensions->add(extension);
+        }
+        else
+        {
+          auto message = QObject::tr("Segmentation %1 supports but can't make use of %2 extension.").arg(item->number()).arg(type);
+          auto details = QObject::tr("CoreFactory::retrieveOrCreateSegmentationExtension() -> ") + message;
+
+          throw Core::Utils::EspinaException(message, details);
+        }
       }
       else
       {

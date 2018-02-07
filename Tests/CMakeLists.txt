@@ -29,6 +29,7 @@ include_directories(
   
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
+  Qt4::QtTest
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${QUAZIP_LIBRARIES}
