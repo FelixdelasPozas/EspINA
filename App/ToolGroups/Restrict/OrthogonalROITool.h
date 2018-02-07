@@ -174,12 +174,6 @@ namespace ESPINA
        */
       bool isResizable() const;
 
-      /** \brief Enables/disables the interaction of the widget.
-       * \param[in] value true to enable and false otherwise.
-       *
-       */
-      void setRepresentationResizable(const bool value);
-
       /** \brief Returns true if any of the current ROI settings are invalid.
        *
        */

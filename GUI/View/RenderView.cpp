@@ -61,6 +61,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Dialogs;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -459,14 +460,14 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
           this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
-          this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
+  connect(&m_state, SIGNAL(sliceSelectorAdded(GUI::Widgets::SliceSelectorSPtr,GUI::Widgets::SliceSelectionType)),
+          this,     SLOT(addSliceSelectors(GUI::Widgets::SliceSelectorSPtr,GUI::Widgets::SliceSelectionType)));
 
   connect(&m_state, SIGNAL(resetViewCamera()),
           this,     SLOT(resetCamera()));
 
-  connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
-          this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
+  connect(&m_state, SIGNAL(sliceSelectorRemoved(GUI::Widgets::SliceSelectorSPtr)),
+          this,     SLOT(removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr)));
 
   connect(m_state.coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                             SLOT(onSceneResolutionChanged(NmVector3)));

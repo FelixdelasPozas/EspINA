@@ -84,6 +84,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Model::Utils;
@@ -1054,7 +1055,7 @@ void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
 {
   SliceSelectorPair requestedsliceSelectors;
 
-  for (auto sliceSelectors : m_sliceSelectors)
+  for (auto sliceSelectors: m_sliceSelectors)
   {
     if (sliceSelectors.first == widget)
     {

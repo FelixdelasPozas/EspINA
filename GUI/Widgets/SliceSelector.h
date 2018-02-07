@@ -30,58 +30,60 @@
 
 namespace ESPINA
 {
+  class RenderView;
 
-class RenderView;
-  class SliceSelector;
-  using SliceSelectorSPtr = std::shared_ptr<SliceSelector>;
-
-  enum SliceSelectionTypes
+  namespace GUI
   {
-    None=0x0, From = 0x1, To = 0x2
-  };
-  Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
+    namespace Widgets
+    {
+      class SliceSelector;
+      using SliceSelectorSPtr = std::shared_ptr<SliceSelector>;
 
-  /** class SliceSelector
-   * \brief Slice selector widgets to select a slice range.
-   *
-   */
-  class EspinaGUI_EXPORT SliceSelector
-  : public QObject
-  {
-  public:
-    /** \brief SliceSelectorWidget class constructor.
-     *
-     */
-    virtual ~SliceSelector()
-    {}
+      enum SliceSelectionTypes { None=0x0, From = 0x1, To = 0x2 };
+      Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
 
-    /** \brief Returns the lower widget raw pointer.
-     *
-     */
-    virtual QWidget *lowerWidget() const = 0;
+      /** class SliceSelector
+       * \brief Slice selector widgets to select a slice range.
+       *
+       */
+      class EspinaGUI_EXPORT SliceSelector
+      : public QObject
+      {
+        public:
+          /** \brief SliceSelectorWidget class constructor.
+           *
+           */
+          virtual ~SliceSelector()
+          {}
 
-    /** \brief Returns the upper widget raw pointer.
-     *
-     */
-    virtual QWidget *upperWidget() const = 0;
+          /** \brief Returns the lower widget raw pointer.
+           *
+           */
+          virtual QWidget *lowerWidget() const = 0;
 
-    /** \brief Returns a raw pointer to a new instance of the class.
-     * \param[in] view view that will contain the selectors.
-     * \param[in] plane plane of the selectors.
-     *
-     */
-    virtual SliceSelectorSPtr clone(RenderView *view, Plane plane) = 0;
+          /** \brief Returns the upper widget raw pointer.
+           *
+           */
+          virtual QWidget *upperWidget() const = 0;
 
-  protected:
-    /** \brief SliceSelectorWidget class constructor.
-     *
-     */
-    explicit SliceSelector()
-    {}
-  };
+          /** \brief Returns a raw pointer to a new instance of the class.
+           * \param[in] view view that will contain the selectors.
+           * \param[in] plane plane of the selectors.
+           *
+           */
+          virtual SliceSelectorSPtr clone(RenderView *view, Plane plane) = 0;
 
+        protected:
+          /** \brief SliceSelectorWidget class constructor.
+           *
+           */
+          explicit SliceSelector()
+          {}
+      };
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(SliceSelectionType)
+      Q_DECLARE_OPERATORS_FOR_FLAGS(SliceSelectionType)
+    } // namespace Widgets
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_SLICE_SELECTOR_WIDGET_H

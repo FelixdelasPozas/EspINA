@@ -38,7 +38,7 @@ namespace ESPINA
         namespace OrthogonalRegion
         {
           class EspinaGUI_EXPORT OrthogonalSliceSelector
-          : public SliceSelector
+          : public GUI::Widgets::SliceSelector
           {
             Q_OBJECT
           public:
@@ -61,7 +61,7 @@ namespace ESPINA
             void setLabel (const QString &label)
             { m_label  = label; update();}
 
-            virtual SliceSelectorSPtr clone(RenderView *view, Plane plane);
+            virtual GUI::Widgets::SliceSelectorSPtr clone(RenderView *view, Plane plane);
 
           protected slots:
             /** \brief Update the widgets.
@@ -117,10 +117,10 @@ namespace ESPINA
             QString m_label;
           };
 
-        }
-      }
-    }
-  }
+        } // namespace OrthogonalRegion
+      } // namespace Widges
+    } // namespace View
+  } // namespace GUI
 }// namespace ESPINA
 
 

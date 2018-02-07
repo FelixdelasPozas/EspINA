@@ -44,63 +44,63 @@ namespace ESPINA
     class EspinaGUI_EXPORT InformationSelector
     : public QDialog
     {
-      Q_OBJECT
+        Q_OBJECT
 
-    public:
-      using GroupedInfo = QMap<QString, QStringList>;
+      public:
+        using GroupedInfo = QMap<QString, QStringList>;
 
-    public:
-      /** \brief InformationSelector class constructor.
-       * \param[in] availableGroups map of available title-tags groups.
-       * \param[in] selection map of checked title-tags groups.
-       * \param[in] title title of the dialog.
-       * \param[in] exclusive true to make the item selecion exclusive and false otherwise.
-       * \param[in] parent raw pointer of the QWidget parent of this one.
-       *
-       */
-      explicit InformationSelector(const GroupedInfo &availableGroups,
-                                   GroupedInfo       &selection,
-                                   const QString     &title,
-                                   const bool         exclusive,
-                                   QWidget           *parent = GUI::DefaultDialogs::defaultParentWidget());
+      public:
+        /** \brief InformationSelector class constructor.
+         * \param[in] availableGroups map of available title-tags groups.
+         * \param[in] selection map of checked title-tags groups.
+         * \param[in] title title of the dialog.
+         * \param[in] exclusive true to make the item selecion exclusive and false otherwise.
+         * \param[in] parent raw pointer of the QWidget parent of this one.
+         *
+         */
+        explicit InformationSelector(const GroupedInfo &availableGroups,
+                                     GroupedInfo       &selection,
+                                     const QString     &title,
+                                     const bool         exclusive,
+                                     QWidget           *parent = GUI::DefaultDialogs::defaultParentWidget());
 
-      /** \brief InformationSelector class virtual destructor.
-       *
-       */
-      virtual ~InformationSelector();
+        /** \brief InformationSelector class virtual destructor.
+         *
+         */
+        virtual ~InformationSelector();
 
-    protected slots:
-      void accept();
+      protected slots:
+        void accept();
 
-    private slots:
-      /** \brief Updates the state of the tree widget.
-       * \param[in] item tree item.
-       * \param[in] column column of the item.
-       *
-       */
-      void onItemClicked(QTreeWidgetItem *item, int column);
+      private slots:
+        /** \brief Updates the state of the tree widget.
+         * \param[in] item tree item.
+         * \param[in] column column of the item.
+         *
+         */
+        void onItemClicked(QTreeWidgetItem *item, int column);
 
-    private:
-      /** \brief Updates the state of the tree widget.
-       * \param[in] item tree item.
-       * \param[in] column column of the item.
-       * \param[in] updateParent true to update the parent state, false otherwise.
-       *
-       */
-      void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
+      private:
+        /** \brief Updates the state of the tree widget.
+         * \param[in] item tree item.
+         * \param[in] column column of the item.
+         * \param[in] updateParent true to update the parent state, false otherwise.
+         *
+         */
+        void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
-      /** \brief De-selects all the items.
-       *
-       */
-      void unselectItems();
+        /** \brief De-selects all the items.
+         *
+         */
+        void unselectItems();
 
-    private:
-      class UI;
+      private:
+        class UI;
 
-    private:
-      UI          *m_gui;       /** chessire cat GUI implementation.                              */
-      bool         m_exclusive; /** true if the selection is exclusive (only one item selection). */
-      GroupedInfo &m_selection; /** selected tag group.                                           */
+      private:
+        UI          *m_gui;       /** chessire cat GUI implementation.                              */
+        bool         m_exclusive; /** true if the selection is exclusive (only one item selection). */
+        GroupedInfo &m_selection; /** selected tag group.                                           */
     };
 
     InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(ModelFactorySPtr factory);
