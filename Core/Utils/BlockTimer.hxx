@@ -1,22 +1,21 @@
 /*
-
- Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
-
- This file is part of ESPINA.
-
- ESPINA is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+ * Copyright (C) 2018, Rafael Juan Vicente Garcia <rafaelj.vicente@gmail.com>
+ *
+ * This file is part of ESPINA.
+ *
+ * ESPINA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 #ifndef CORE_UTILS_BLOCKTIMER_HXX_
@@ -34,101 +33,157 @@ namespace ESPINA
   {
     namespace Utils
     {
-      /** \class BlockTimer
-       * \brief Timer for the execution of source code blocks. Counts milliseconds from object creation to
-       * destruction.
+      /** \class HMS
+       * \brief Class equivalent to std::chrono::seconds to format BlockTimer as "X hours, Y minutes, Z seconds".
+       *
        */
-      template<typename T = std::chrono::milliseconds>
+      using HMS = std::chrono::duration<int, std::chrono::seconds::period>;
+
+      /** \class BlockTimer
+       * \brief Timer for the execution of source code blocks.
+       *
+       * \tparam TimeUnits std::chrono units (example: std::chrono::milliseconds).
+       */
+      template<typename TimeUnits = HMS>
       class BlockTimer
       {
         public:
           /** \brief BlockTimer class constructor.
+           *
            * \param[in] name timer id.
            */
-          BlockTimer(const QString &name)
-          : m_id       {name}
-          , m_startTime{std::chrono::high_resolution_clock::now()}
-          {}
+          BlockTimer(const QString &name);
 
           /** \brief BlockTimer class destructor.
            *
            */
-          ~BlockTimer()
-          {
-            auto endTime = std::chrono::high_resolution_clock::now();
-
-            qDebug() << m_id << "execution time" << std::chrono::duration_cast<T>(endTime - m_startTime).count() << printUnits();
-          }
+          ~BlockTimer();
 
           /** \brief Returns the elapsed time from the object creation in the specified units.
            *
            */
-          int elapsed() const
-          {
-            auto nowTime = std::chrono::high_resolution_clock::now();
+          int elapsed() const;
 
-            return std::chrono::duration_cast<T>(nowTime - m_startTime).count();
-          }
+          /** \brief Sets the initial time to current time
+           *
+           */
+          void reset();
+
+          /** \brief Returns the adequate string for the templated time.
+           *
+           */
+          QString printElapsed() const;
 
         private:
           /** \brief Returns the adequate string for the templated time units.
            *
            */
-          const QString printUnits()
-          {
-            if(T::period::num == 1)
-            {
-              if(T::period::den == std::nano::den)
-              {
-                return "nanoseconds";
-              }
-              else
-              {
-                if(T::period::den == std::micro::den)
-                {
-                  return "microseconds";
-                }
-                else
-                {
-                  if(T::period::den == std::milli::den)
-                  {
-                    return "milliseconds";
-                  }
-                  else
-                  {
-                    if(T::period::den == 1)
-                    {
-                      return "seconds";
-                    }
-                  }
-                }
-              }
-            }
-            else
-            {
-              if(T::period::den == 1)
-              {
-                if(T::period::num == 60)
-                {
-                  return "minutes";
-                }
-                else
-                {
-                  if(T::period::num == 3600)
-                  {
-                    return "hours";
-                  }
-                }
-              }
-            }
+          QString printUnits() const;
 
-            return "unknown units";
-          }
+          /** \brief Returns "X hours, Y minutes, Z seconds" formated time units.
+           *
+           * \param[in] time current time.
+           */
+          QString printHMS(std::chrono::high_resolution_clock::time_point time) const;
 
-          QString m_id;                                               /** timer id.            */
-          std::chrono::high_resolution_clock::time_point m_startTime; /** timer creation time. */
+        private:
+          const QString m_id; /** Timer identifier */
+          std::chrono::high_resolution_clock::time_point m_startTime; /** Timer creation time. */
       };
-    
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline BlockTimer<TimeUnits>::BlockTimer(const QString &name)
+          : m_id { name }, m_startTime { std::chrono::high_resolution_clock::now() }
+      {
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline BlockTimer<TimeUnits>::~BlockTimer()
+      {
+        qDebug() << printElapsed();
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline int BlockTimer<TimeUnits>::elapsed() const
+      {
+        auto nowTime = std::chrono::high_resolution_clock::now();
+
+        return std::chrono::duration_cast<TimeUnits>(nowTime - m_startTime).count();
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline void BlockTimer<TimeUnits>::reset()
+      {
+        m_startTime = std::chrono::high_resolution_clock::now();
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline QString BlockTimer<TimeUnits>::printElapsed() const
+      {
+        auto endTime = std::chrono::high_resolution_clock::now();
+
+        QString message = m_id + " execution time: ";
+        if (std::is_same<TimeUnits, HMS>::value)
+        {
+          message += printHMS(endTime);
+        }
+        else
+        {
+          auto number = std::chrono::duration_cast<TimeUnits>(endTime - m_startTime).count();
+          message += QString::number(number) + ' ' + printUnits();
+        }
+
+        return message;
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline QString BlockTimer<TimeUnits>::printUnits() const
+      {
+        if (std::is_same<typename TimeUnits::period, std::chrono::nanoseconds::period>::value)
+          return "nanoseconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::microseconds::period>::value)
+          return "microseconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::milliseconds::period>::value)
+          return "milliseconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::seconds::period>::value)
+          return "seconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::minutes::period>::value)
+          return "minutes";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::hours::period>::value)
+          return "hours";
+
+        return "unknown units";
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline QString BlockTimer<TimeUnits>::printHMS(std::chrono::high_resolution_clock::time_point time) const
+      {
+        auto timeSeconds = std::chrono::duration_cast<std::chrono::seconds>(time - m_startTime).count();
+
+        auto hours = timeSeconds / 3600;
+        auto minutes = timeSeconds % 3600 / 60;
+        auto seconds = timeSeconds % 60; //= timeSeconds % 3600 % 60
+
+        QString message;
+        message.append(hours ? (QString::number(hours) + " hours, ") : "");
+        message.append(minutes ? (QString::number(minutes) + " minutes, ") : "");
+        message.append(QString::number(seconds) + " seconds");
+
+        return message;
+      }
+
     } // namespace Utils
   } // namespace Core
 } // namespace ESPINA
