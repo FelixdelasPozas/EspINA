@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018, Rafael Juan Vicente Garcia <rafaelj.vicente@gmail.com>
+ * Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
  *
  * This file is part of ESPINA.
  *
@@ -21,11 +21,11 @@
 #ifndef CORE_UTILS_BLOCKTIMER_HXX_
 #define CORE_UTILS_BLOCKTIMER_HXX_
 
-// Qt
-#include <QString>
-
 // C++
 #include <chrono>
+
+// Qt
+#include <QString>
 
 namespace ESPINA
 {
@@ -33,18 +33,12 @@ namespace ESPINA
   {
     namespace Utils
     {
-      /** \class HMS
-       * \brief Class equivalent to std::chrono::seconds to format BlockTimer as "X hours, Y minutes, Z seconds".
-       *
-       */
-      using HMS = std::chrono::duration<int, std::chrono::seconds::period>;
-
       /** \class BlockTimer
        * \brief Timer for the execution of source code blocks.
        *
-       * \tparam TimeUnits std::chrono units (example: std::chrono::milliseconds).
+       * \tparam TimeUnits std::chrono units (milliseconds is pretty formated).
        */
-      template<typename TimeUnits = HMS>
+      template<typename TimeUnits = std::chrono::milliseconds>
       class BlockTimer
       {
         public:
@@ -84,7 +78,7 @@ namespace ESPINA
            *
            * \param[in] time current time.
            */
-          QString printHMS(std::chrono::high_resolution_clock::time_point time) const;
+          QString prettyPrint(std::chrono::high_resolution_clock::time_point time) const;
 
         private:
           const QString m_id; /** Timer identifier */
@@ -128,9 +122,9 @@ namespace ESPINA
         auto endTime = std::chrono::high_resolution_clock::now();
 
         QString message = m_id + " execution time: ";
-        if (std::is_same<TimeUnits, HMS>::value)
+        if (std::is_same<TimeUnits, std::chrono::milliseconds>::value)
         {
-          message += printHMS(endTime);
+          message += prettyPrint(endTime);
         }
         else
         {
@@ -145,41 +139,37 @@ namespace ESPINA
       template<typename TimeUnits>
       inline QString BlockTimer<TimeUnits>::printUnits() const
       {
-        if (std::is_same<typename TimeUnits::period, std::chrono::nanoseconds::period>::value)
-          return "nanoseconds";
+        if (std::is_same<typename TimeUnits::period, std::chrono::nanoseconds::period>::value) return "nanoseconds";
 
-        if (std::is_same<typename TimeUnits::period, std::chrono::microseconds::period>::value)
-          return "microseconds";
+        if (std::is_same<typename TimeUnits::period, std::chrono::microseconds::period>::value) return "microseconds";
 
-        if (std::is_same<typename TimeUnits::period, std::chrono::milliseconds::period>::value)
-          return "milliseconds";
+        if (std::is_same<typename TimeUnits::period, std::chrono::seconds::period>::value) return "seconds";
 
-        if (std::is_same<typename TimeUnits::period, std::chrono::seconds::period>::value)
-          return "seconds";
+        if (std::is_same<typename TimeUnits::period, std::chrono::minutes::period>::value) return "minutes";
 
-        if (std::is_same<typename TimeUnits::period, std::chrono::minutes::period>::value)
-          return "minutes";
-
-        if (std::is_same<typename TimeUnits::period, std::chrono::hours::period>::value)
-          return "hours";
+        if (std::is_same<typename TimeUnits::period, std::chrono::hours::period>::value) return "hours";
 
         return "unknown units";
       }
 
       //------------------------------------------------------------------------
       template<typename TimeUnits>
-      inline QString BlockTimer<TimeUnits>::printHMS(std::chrono::high_resolution_clock::time_point time) const
+      inline QString BlockTimer<TimeUnits>::prettyPrint(std::chrono::high_resolution_clock::time_point time) const
       {
-        auto timeSeconds = std::chrono::duration_cast<std::chrono::seconds>(time - m_startTime).count();
+        auto timeMilis = std::chrono::duration_cast<std::chrono::milliseconds>(time - m_startTime).count();
+        auto timeSeconds = timeMilis/1000;
 
         auto hours = timeSeconds / 3600;
         auto minutes = timeSeconds % 3600 / 60;
         auto seconds = timeSeconds % 60; //= timeSeconds % 3600 % 60
+        auto milliseconds = timeMilis % 1000;
 
         QString message;
         message.append(hours ? (QString::number(hours) + " hours, ") : "");
         message.append(minutes ? (QString::number(minutes) + " minutes, ") : "");
-        message.append(QString::number(seconds) + " seconds");
+        message.append(seconds ? (QString::number(seconds) + " seconds, ") : "");
+        message.append((message.isEmpty() || milliseconds) ? QString::number(milliseconds) + " milliseconds" : "");
+        if (message.endsWith(", ")) message.chop(2);
 
         return message;
       }
