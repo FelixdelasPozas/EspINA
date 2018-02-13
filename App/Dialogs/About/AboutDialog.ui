@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>505</width>
+    <width>650</width>
     <height>273</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>505</width>
+    <width>650</width>
     <height>273</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>505</width>
+    <width>650</width>
     <height>273</height>
    </size>
   </property>
@@ -42,7 +42,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="espinaLogo">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -67,7 +67,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="espinaText">
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600; color:#00c0c0;&quot;&gt;Esp&lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600;&quot;&gt;ina &lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600; color:#00c0c0;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600;&quot;&gt;nteractive &lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600; color:#00c0c0;&quot;&gt;N&lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600;&quot;&gt;euron &lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600; color:#00c0c0;&quot;&gt;A&lt;/span&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:14pt; font-weight:600;&quot;&gt;nalyzer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -111,7 +111,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1,1">
      <item>
       <widget class="QLabel" name="logoUPM">
        <property name="toolTip">
@@ -151,6 +151,13 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="logoURJC">
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>

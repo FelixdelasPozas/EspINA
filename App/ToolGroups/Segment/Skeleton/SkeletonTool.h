@@ -171,6 +171,12 @@ namespace ESPINA
        */
       void onPointCheckRequested(const NmVector3 &point);
 
+      /** \brief Updates the UI when the widget changes the stroke.
+       * \param[in] stroke Current stroke definition.
+       *
+       */
+      void onStrokeChanged(const Core::SkeletonStroke stroke);
+
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;

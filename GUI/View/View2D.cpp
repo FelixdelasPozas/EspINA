@@ -84,6 +84,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Model::Utils;
@@ -169,8 +170,6 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
   m_renderer->AddViewProp(m_scale);
 
   auto interactor = View2DInteractor::New();
-  interactor->AutoAdjustCameraClippingRangeOff();
-  interactor->KeyPressActivationOff();
   renderWindow->AddRenderer(m_renderer);
   renderWindow->AddRenderer(m_thumbnail);
   m_view->GetInteractor()->SetInteractorStyle(interactor);
@@ -1056,7 +1055,7 @@ void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
 {
   SliceSelectorPair requestedsliceSelectors;
 
-  for (auto sliceSelectors : m_sliceSelectors)
+  for (auto sliceSelectors: m_sliceSelectors)
   {
     if (sliceSelectors.first == widget)
     {

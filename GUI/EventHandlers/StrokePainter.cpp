@@ -30,9 +30,6 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 
-// C++
-#include <chrono>
-
 using namespace ESPINA;
 
 //------------------------------------------------------------------------

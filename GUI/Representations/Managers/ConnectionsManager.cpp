@@ -194,9 +194,14 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+    auto minSpacing = std::numeric_limits<double>::max();
+    for(auto i: {0,1,2})
+    {
+      if(i == planeIndex) continue;
+      minSpacing = std::min(minSpacing, spacing[i]);
+    }
 
-    m_glyph2D->SetScale(m_scale*max);
+    m_glyph2D->SetScale(m_scale*minSpacing);
     m_glyph2D->Update();
 
     if(m_transformFilter)
@@ -215,9 +220,9 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   }
   else
   {
-    auto min = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    auto minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
 
-    m_glyph3D->SetRadius(m_scale*min);
+    m_glyph3D->SetRadius(m_scale*minSpacing);
     m_glyph3D->Update();
 
     for(auto connection: m_connections)
@@ -235,7 +240,7 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 void ConnectionsManager::setRepresentationSize(int size)
 {
-  size = std::min(std::max(1, size), 15);
+  size = std::min(std::max(1, size), 30);
 
   for(auto child: m_childs)
   {
@@ -335,14 +340,18 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    spacing[planeIndex] = spacing[(planeIndex+1) % 3];
-    auto max = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    auto minSpacing = std::numeric_limits<double>::max();
+    for(auto i: {0,1,2})
+    {
+      if(i == planeIndex) continue;
+      minSpacing = std::min(minSpacing, spacing[i]);
+    }
 
     m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
     m_glyph2D->SetGlyphTypeToCircle();
     m_glyph2D->SetFilled(false);
     m_glyph2D->SetCenter(0,0,0);
-    m_glyph2D->SetScale(m_scale*2*max);
+    m_glyph2D->SetScale(m_scale*minSpacing);
     m_glyph2D->SetColor(1,1,1);
     m_glyph2D->Update();
 
@@ -382,6 +391,4 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
 
   m_actor = vtkSmartPointer<vtkFollower>::New();
   m_actor->SetMapper(m_glyph);
-  m_actor->GetProperty()->SetColor(1,1,1);
-  m_actor->GetProperty()->SetLineWidth(2);
 }

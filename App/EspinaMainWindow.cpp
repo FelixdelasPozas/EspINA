@@ -551,14 +551,26 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
   Q_ASSERT(!files.isEmpty());
   auto referenceFile = QFileInfo{files.first()};
 
-  setWindowTitle(referenceFile.fileName());
-
   updateUndoStackIndex();
 
-  m_saveTool->setSaveFilename(referenceFile.absoluteFilePath());
-  m_saveTool->setEnabled(files.size() == 1 && referenceFile.fileName().endsWith(".seg", Qt::CaseInsensitive));
+  if(!m_autoSave.isAutoSaveFile(referenceFile.absoluteFilePath()))
+  {
+    setWindowTitle(referenceFile.fileName());
 
-  m_saveAsTool->setSaveFilename(referenceFile.absoluteFilePath());
+    m_saveTool->setSaveFilename(referenceFile.absoluteFilePath());
+    m_saveTool->setEnabled(files.size() == 1 && referenceFile.fileName().endsWith(".seg", Qt::CaseInsensitive));
+
+    m_saveAsTool->setSaveFilename(referenceFile.absoluteFilePath());
+  }
+  else
+  {
+    setWindowTitle("New unsaved session");
+
+    m_saveTool->setEnabled(false);
+    m_saveTool->setSaveFilename("");
+
+    m_saveAsTool->setSaveFilename("");
+  }
 
   m_autoSave.resetCountDown();
 

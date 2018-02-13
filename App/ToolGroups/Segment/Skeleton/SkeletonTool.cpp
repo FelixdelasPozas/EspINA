@@ -381,6 +381,9 @@ void SkeletonTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr clone)
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
             this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
 
+    connect(skeletonWidget.get(), SIGNAL(strokeChanged(const Core::SkeletonStroke)),
+            this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
+
     m_skeletonWidgets << skeletonWidget;
   }
 }
@@ -656,6 +659,19 @@ void SkeletonTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   // used only to save SkeletonToolsUtils::STROKE values.
   if(!STROKES.isEmpty()) saveStrokes(settings);
+}
+
+//--------------------------------------------------------------------
+void SkeletonTool::onStrokeChanged(const Core::SkeletonStroke stroke)
+{
+  if(m_item)
+  {
+    auto name = m_categorySelector->selectedCategory()->classificationName();
+
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
+    m_strokeCombo->blockSignals(false);
+  }
 }
 
 //--------------------------------------------------------------------

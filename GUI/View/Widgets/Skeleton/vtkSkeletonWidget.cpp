@@ -570,6 +570,20 @@ void vtkSkeletonWidget::setStroke(const Core::SkeletonStroke& stroke)
 }
 
 //-----------------------------------------------------------------------------
+const Core::SkeletonStroke vtkSkeletonWidget::stroke() const
+{
+  auto stroke = Core::SkeletonStroke();
+
+  if(WidgetRep)
+  {
+    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+    stroke = rep->currentStroke();
+  }
+
+  return stroke;
+}
+
+//-----------------------------------------------------------------------------
 void vtkSkeletonWidget::createCursors()
 {
   QPixmap crossMinusPixmap, crossPlusPixmap, crossCheckPixmap;

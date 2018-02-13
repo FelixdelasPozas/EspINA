@@ -31,7 +31,7 @@ OrthogonalRepresentation::OrthogonalRepresentation()
 
 //----------------------------------------------------------------------------
 OrthogonalRepresentation::OrthogonalRepresentation(const NmVector3 &resolution, const Bounds &bounds)
-: m_mode(Mode::RESIZABLE)
+: m_mode(Mode::FIXED)
 , m_resolution(resolution)
 , m_bounds(bounds)
 , m_color(Qt::yellow)

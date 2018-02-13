@@ -52,6 +52,9 @@ namespace ESPINA
   class EspinaWidget;
   class ViewRendererMenu;
 
+  /** \class View2D
+   * \brief Implements an interactive orthogonal 2D view.
+   */
   class EspinaGUI_EXPORT View2D
   : public RenderView
   {
@@ -270,9 +273,9 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) override;
 
-    virtual void addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type) override;
+    virtual void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector, GUI::Widgets::SliceSelectionType type) override;
 
-    virtual void removeSliceSelectors(SliceSelectorSPtr selector) override;
+    virtual void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector) override;
 
     /** \brief Updates the view when the scroll widget changes its value.
      * \param[in] value new value.
@@ -308,9 +311,8 @@ namespace ESPINA
     vtkSmartPointer<vtkRenderer>     m_thumbnail;
     std::unique_ptr<PlanarBehaviour> m_state2D;
 
-
     // Slice Selectors
-    using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
+    using SliceSelectorPair = QPair<GUI::Widgets::SliceSelectorSPtr, GUI::Widgets::SliceSelectorSPtr>;
     QList<SliceSelectorPair> m_sliceSelectors;
 
     // Thumbnail

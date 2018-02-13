@@ -339,9 +339,9 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
 
-    virtual void addSliceSelectors(SliceSelectorSPtr  widget, SliceSelectionType selector) {};
+    virtual void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget, GUI::Widgets::SliceSelectionType selector) {};
 
-    virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
+    virtual void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget) {};
 
     void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 

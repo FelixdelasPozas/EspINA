@@ -21,9 +21,13 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
+// ESPINA
+#include "ui_AboutDialog.h"
+
 // Qt
 #include <QDialog>
-#include "ui_AboutDialog.h"
+
+class QEvent;
 
 namespace ESPINA
 {
@@ -40,6 +44,14 @@ namespace ESPINA
        *
        */
       explicit AboutDialog();
+
+      /** \brief AboutDialog class virtual destructor.
+       *
+       */
+      virtual ~AboutDialog()
+      {};
+
+      virtual bool eventFilter(QObject *object, QEvent *event) override;
   };
 }
 #endif // ABOUTDIALOG_H

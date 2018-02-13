@@ -85,7 +85,9 @@ const QString FileSaveTool::saveFilename() const
 
   if (!filename.endsWith(".seg") || m_askAlways)
   {
-    QFileInfo file = filename;
+    if(filename.isEmpty()) filename = QDir::home().absoluteFilePath("New EspINA session.seg");
+
+    QFileInfo file{filename};
 
     if(!filename.endsWith(".seg"))
     {

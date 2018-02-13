@@ -316,6 +316,7 @@ void OrthogonalROITool::setResizable(bool resizable)
   if (resizable)
   {
     m_roiRepresentation->setRepresentationPattern(0xFFF0);
+    m_roiRepresentation->setMode(OrthogonalRepresentation::Mode::RESIZABLE);
 
     showSliceSelectors();
 
@@ -323,14 +324,13 @@ void OrthogonalROITool::setResizable(bool resizable)
   }
   else
   {
-    m_roiRepresentation->setRepresentationPattern(0xFFFF);
+    viewState->unsetEventHandler(m_resizeHandler);
 
     hideSliceSelectors();
 
-    viewState->unsetEventHandler(m_resizeHandler);
+    m_roiRepresentation->setRepresentationPattern(0xFFFF);
+    m_roiRepresentation->setMode(OrthogonalRepresentation::Mode::FIXED);
   }
-
-  setRepresentationResizable(resizable);
 
   getViewState().refresh();
 
@@ -406,14 +406,6 @@ void OrthogonalROITool::updateRegionRepresentation()
   m_roiRepresentation->blockSignals(true);
   m_roiRepresentation->setBounds(m_roi->bounds());
   m_roiRepresentation->blockSignals(false);
-}
-
-//-----------------------------------------------------------------------------
-void OrthogonalROITool::setRepresentationResizable(const bool value)
-{
-  auto mode = value?Representation::Mode::RESIZABLE:Representation::Mode::FIXED;
-
-  m_roiRepresentation->setMode(mode);
 }
 
 //-----------------------------------------------------------------------------

@@ -21,7 +21,13 @@
 #include "AboutDialog.h"
 #include "EspinaConfig.h"
 #include <GUI/Dialogs/DefaultDialogs.h>
+
+// Qt
 #include <QDebug>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QLabel>
+#include <QDesktopServices>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -41,8 +47,74 @@ AboutDialog::AboutDialog()
   constexpr auto fixedHeight = 104;
 
   logoUPM->setPixmap(QIcon(":/espina/upm.gif").pixmap(fixedHeight).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoUPM->setToolTip(trUtf8("Universidad Politécnica de Madrid"));
+  logoUPM->setAlignment(Qt::AlignCenter);
+  logoUPM->installEventFilter(this);
+
   logoCeSViMa->setPixmap(QIcon(":/espina/cesvima.svg").pixmap(fixedWidth).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCeSViMa->setToolTip(trUtf8("Centro de Supercomputación y Visualización de Madrid"));
+  logoCeSViMa->setAlignment(Qt::AlignCenter);
+  logoCeSViMa->installEventFilter(this);
+
   logoCBBP->setPixmap(QIcon(":/espina/cajalbbp.svg").pixmap(fixedWidth).scaled(fixedWidth,fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCBBP->setToolTip(trUtf8("Cajal Blue Brain Project"));
+  logoCBBP->setAlignment(Qt::AlignCenter);
+  logoCBBP->installEventFilter(this);
+
+  logoURJC->setPixmap(QIcon(":/espina/Logo_URJC.svg").pixmap(fixedWidth).scaled(fixedWidth,fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoURJC->setToolTip(trUtf8("Universidad Rey Juan Carlos"));
+  logoURJC->setAlignment(Qt::AlignCenter);
+  logoURJC->installEventFilter(this);
+
+  espinaLogo->installEventFilter(this);
+  espinaText->installEventFilter(this);
+  version->installEventFilter(this);
 }
 
+//-----------------------------------------------------------------------------
+bool AboutDialog::eventFilter(QObject* object, QEvent* event)
+{
+  if(event->type() == QEvent::MouseButtonPress)
+  {
+    auto label = qobject_cast<QLabel *>(object);
+    if(label)
+    {
+      auto me = static_cast<const QMouseEvent*>(event);
 
+      if(me->button() == Qt::LeftButton)
+      {
+        if(label == logoUPM)
+        {
+          QDesktopServices::openUrl(QUrl("http://www.upm.es/"));
+          return true;
+        }
+
+        if(label == logoCeSViMa)
+        {
+          QDesktopServices::openUrl(QUrl("http://www.cesvima.upm.es/"));
+          return true;
+        }
+
+        if(label == logoCBBP)
+        {
+          QDesktopServices::openUrl(QUrl("http://cajalbbp.cesvima.upm.es/"));
+          return true;
+        }
+
+        if(label == logoURJC)
+        {
+          QDesktopServices::openUrl(QUrl("https://www.urjc.es/"));
+          return true;
+        }
+
+        if(label == version || label == espinaLogo || label == espinaText)
+        {
+          QDesktopServices::openUrl(QUrl("http://cajalbbp.cesvima.upm.es/espina/"));
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
