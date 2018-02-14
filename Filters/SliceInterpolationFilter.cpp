@@ -133,11 +133,11 @@ void SliceInterpolationFilter::execute()
   std::sort(sloList.begin(), sloList.end(), lessThan);
 
   // Process for each pair of pieces
-  SLOSptr sloSource, sloTarget;
+  SLOSptr sourceSLO, targetSLO;
   RegionType sloTargetReg;
   auto stackVolume = readLockVolume(m_inputs.at(1)->output());
   auto maxRegion = equivalentRegion<itkVolumeType>(stackVolume->bounds());
-  RegionType currentRegion, srcRegion, tarRegion;
+  RegionType currentRegion, sourceRegion, targetRegion;
   itkVolumeType::IndexValueType currentSizeOffset;
   itkVolumeType::Pointer stackImg, auxImg, prevMask;
   SizeValueType bufferSize;
@@ -147,25 +147,25 @@ void SliceInterpolationFilter::execute()
     BlockTimer<> timer1("Processing time");
     while (sloList.size() > 1)
     {
-      sloSource = sloList.takeFirst();
-      sloTarget = sloList.first();
+      sourceSLO = sloList.takeFirst();
+      targetSLO = sloList.first();
 
-      srcRegion = sloSource->GetBoundingBox();
-      tarRegion = sloTarget->GetBoundingBox();
+      sourceRegion = sourceSLO->GetBoundingBox();
+      targetRegion = targetSLO->GetBoundingBox();
 
-      currentSizeOffset = 2 * (tarRegion.GetIndex(dir) - srcRegion.GetIndex(dir) + 1);
-      currentRegion = calculateRoi(maxRegion, srcRegion, tarRegion, direction, currentSizeOffset);
-      currentRegion.SetIndex(dir, srcRegion.GetIndex(dir));
+      currentSizeOffset = 2 * (targetRegion.GetIndex(dir) - sourceRegion.GetIndex(dir) + 1);
+      currentRegion = calculateRoi(maxRegion, sourceRegion, targetRegion, direction, currentSizeOffset);
+      currentRegion.SetIndex(dir, sourceRegion.GetIndex(dir));
       currentRegion.SetSize(dir, 1);
 
       stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
       bufferSize = currentRegion.GetSize(0) * currentRegion.GetSize(1) * currentRegion.GetSize(2);
 
-      auto sloImg = sloToImage(sloSource, currentRegion);
+      auto sloImg = sloToImage(sourceSLO, currentRegion);
 
       cInfo = getContourInfo(stackImg, sloImg, direction, bufferSize);
 
-      while (currentRegion.GetIndex(dir) < tarRegion.GetIndex(dir))
+      while (currentRegion.GetIndex(dir) < targetRegion.GetIndex(dir))
       { //TODO change algorithm
         prevMask = cInfo.getContourMask();
         prevMaskBuf = prevMask->GetBufferPointer();
@@ -467,5 +467,4 @@ void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image,
     }
   }
   std::cout << std::endl << std::endl;
-
 }

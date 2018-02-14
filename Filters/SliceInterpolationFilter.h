@@ -39,9 +39,8 @@
 
 namespace ESPINA
 {
-  class EspinaFilters_EXPORT SliceInterpolationFilter
-  : public Filter
-{
+  class EspinaFilters_EXPORT SliceInterpolationFilter: public Filter
+  {
     private:
       using RegionType = itkVolumeType::RegionType;
       using SizeValueType = itkVolumeType::SizeValueType;
@@ -61,7 +60,8 @@ namespace ESPINA
       {
         public:
           ContourInfo();
-          ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode, PixelCounterType seaMode, itkVolumeType::Pointer contourMask);
+          ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode, PixelCounterType seaMode,
+                      itkVolumeType::Pointer contourMask);
           PixelCounterType getInlandMode() const;
           PixelCounterType getBeachMode() const;
           PixelCounterType getCoastMode() const;
@@ -80,8 +80,6 @@ namespace ESPINA
           itkVolumeType::Pointer m_contour_mask;
       };
 
-      //using ContourInfoSptr = itk::SmartPointer<ContourInfo>;
-
     public:
       /** \brief SliceInterpolationFilter class constructor.
        * \param[in] inputs list of input smart pointers.
@@ -95,29 +93,39 @@ namespace ESPINA
        *
        */
       virtual ~SliceInterpolationFilter()
-      {}
+      {
+      }
 
       virtual void restoreState(const State& state)
-      {}
+      {
+      }
 
       virtual State state() const
-      { return State(); }
+      {
+        return State();
+      }
 
     protected:
       virtual Snapshot saveFilterSnapshot() const
-      { return Snapshot(); }
+      {
+        return Snapshot();
+      }
 
       virtual bool needUpdate() const;
 
       virtual bool ignoreStorageContent() const
-      { return false; }
+      {
+        return false;
+      }
 
       virtual void execute();
 
     private:
-      ContourInfo getContourInfo(const itkVolumeType::Pointer stackImage, const itkVolumeType::Pointer sloImage, const Axis direction, const SizeValueType bufferSize) const;
+      ContourInfo getContourInfo(const itkVolumeType::Pointer stackImage, const itkVolumeType::Pointer sloImage, const Axis direction,
+                                 const SizeValueType bufferSize) const;
       itkVolumeType::Pointer sloToImage(const SLOSptr slObject, RegionType region);
-      RegionType calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction, const int extraOffset = 0);
+      RegionType calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction,
+                              const int extraOffset = 0);
 
       void printRegion(const RegionType region) const;
       void printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ = 0) const;
