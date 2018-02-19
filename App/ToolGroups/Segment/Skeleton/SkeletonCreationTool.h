@@ -18,8 +18,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_SKELETON_TOOL_H_
-#define ESPINA_SKELETON_TOOL_H_
+#ifndef ESPINA_SKELETON_CREATION_TOOL_H_
+#define ESPINA_SKELETON_CREATION_TOOL_H_
 
 // ESPINA
 #include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
@@ -71,21 +71,21 @@ namespace ESPINA
    * \brief Tool for skeleton segmentation creation
    *
    */
-  class SkeletonTool
+  class SkeletonCreationTool
   : public Support::Widgets::ProgressTool
   {
       Q_OBJECT
     public:
-      /** \brief SkeletonTool class constructor.
+      /** \brief SkeletonCreationTool class constructor.
        * \param[in] context application context
        *
        */
-      SkeletonTool(Support::Context &context);
+      SkeletonCreationTool(Support::Context &context);
 
-      /** \brief SkeletonTool class virtual destructor.
+      /** \brief SkeletonCreationTool class virtual destructor.
        *
        */
-      virtual ~SkeletonTool();
+      virtual ~SkeletonCreationTool();
 
       virtual void abortOperation() override
       { deactivateEventHandler(); };
@@ -262,9 +262,9 @@ namespace ESPINA
       QList<ConnectionPointsTemporalRepresentation2DSPtr>       m_pointWidgets;     /** list of point representations currently on views. */
   };
 
-  using SkeletonToolPtr  = SkeletonTool *;
-  using SkeletonToolSPtr = std::shared_ptr<SkeletonTool>;
+  using SkeletonToolPtr  = SkeletonCreationTool *;
+  using SkeletonToolSPtr = std::shared_ptr<SkeletonCreationTool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_SKELETON_TOOL_H_
+#endif // ESPINA_SKELETON_CREATION_TOOL_H_

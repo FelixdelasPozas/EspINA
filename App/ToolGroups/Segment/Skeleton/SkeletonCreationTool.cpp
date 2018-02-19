@@ -20,7 +20,7 @@
 
 // ESPINA
 #include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
-#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonCreationTool.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
@@ -104,10 +104,10 @@ FilterSPtr SkeletonFilterFactory::createFilter(InputSList          inputs,
 }
 
 //-----------------------------------------------------------------------------
-SkeletonTool::SkeletonTool(Support::Context& context)
-: ProgressTool      ("SkeletonTool", ":/espina/tubular.svg", tr("Manual creation of skeletons."), context)
-, m_init            {false}
-, m_item            {nullptr}
+SkeletonCreationTool::SkeletonCreationTool(Support::Context& context)
+: ProgressTool("SkeletonTool", ":/espina/tubular.svg", tr("Manual creation of skeletons."), context)
+, m_init      {false}
+, m_item      {nullptr}
 {
   initFilterFactory();
   initEventHandler();
@@ -128,13 +128,13 @@ SkeletonTool::SkeletonTool(Support::Context& context)
 }
 
 //-----------------------------------------------------------------------------
-SkeletonTool::~SkeletonTool()
+SkeletonCreationTool::~SkeletonCreationTool()
 {
   if(m_item != nullptr) initTool(false);
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::initParametersWidgets()
+void SkeletonCreationTool::initParametersWidgets()
 {
   m_categorySelector = new CategorySelector(getModel());
   m_categorySelector->setToolTip(tr("Category of the segmentation to be created."));
@@ -211,7 +211,7 @@ void SkeletonTool::initParametersWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onResolutionChanged()
+void SkeletonCreationTool::onResolutionChanged()
 {
   auto channel = getActiveChannel();
 
@@ -266,7 +266,7 @@ void SkeletonTool::onResolutionChanged()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onModelReset()
+void SkeletonCreationTool::onModelReset()
 {
   if(isChecked())
   {
@@ -283,7 +283,7 @@ void SkeletonTool::onModelReset()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::initTool(bool value)
+void SkeletonCreationTool::initTool(bool value)
 {
   if (value)
   {
@@ -350,7 +350,7 @@ void SkeletonTool::initTool(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::initRepresentationFactories()
+void SkeletonCreationTool::initRepresentationFactories()
 {
   auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler);
 
@@ -368,7 +368,7 @@ void SkeletonTool::initRepresentationFactories()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr clone)
+void SkeletonCreationTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr clone)
 {
   auto skeletonWidget = std::dynamic_pointer_cast<SkeletonWidget2D>(clone);
 
@@ -389,7 +389,7 @@ void SkeletonTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr clone)
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
+void SkeletonCreationTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
 {
   auto pointWidget = std::dynamic_pointer_cast<ConnectionPointsTemporalRepresentation2D>(clone);
 
@@ -409,27 +409,27 @@ void SkeletonTool::onPointWidgetCloned(GUI::Representations::Managers::TemporalR
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::initFilterFactory()
+void SkeletonCreationTool::initFilterFactory()
 {
   getFactory()->registerFilterFactory(std::make_shared<SkeletonFilterFactory>());
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onMinimumDistanceChanged(double value)
+void SkeletonCreationTool::onMinimumDistanceChanged(double value)
 {
   m_eventHandler->setMinimumPointDistance(value);
   m_maxWidget->setSpinBoxMinimum(value);
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onMaximumDistanceChanged(double value)
+void SkeletonCreationTool::onMaximumDistanceChanged(double value)
 {
   m_eventHandler->setMaximumPointDistance(value);
   m_minWidget->setSpinBoxMaximum(value);
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
+void SkeletonCreationTool::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
 {
   if(!m_init) return;
 
@@ -444,7 +444,7 @@ void SkeletonTool::onSegmentationsRemoved(ViewItemAdapterSList segmentations)
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onCategoryChanged(CategoryAdapterSPtr category)
+void SkeletonCreationTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
   if(m_item && m_item != getActiveChannel())
   {
@@ -465,7 +465,7 @@ void SkeletonTool::onCategoryChanged(CategoryAdapterSPtr category)
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
+void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 {
   auto widget = dynamic_cast<SkeletonWidget2D *>(sender());
 
@@ -564,7 +564,7 @@ void SkeletonTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onNextButtonPressed()
+void SkeletonCreationTool::onNextButtonPressed()
 {
   if(m_item && m_item != getActiveChannel())
   {
@@ -591,7 +591,7 @@ void SkeletonTool::onNextButtonPressed()
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onStrokeTypeChanged(int index)
+void SkeletonCreationTool::onStrokeTypeChanged(int index)
 {
   auto category = m_categorySelector->selectedCategory();
 
@@ -613,7 +613,7 @@ void SkeletonTool::onStrokeTypeChanged(int index)
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::initEventHandler()
+void SkeletonCreationTool::initEventHandler()
 {
   m_eventHandler = std::make_shared<SkeletonToolsEventHandler>(getContext());
   m_eventHandler->setInterpolation(true);
@@ -626,7 +626,7 @@ void SkeletonTool::initEventHandler()
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onStrokeConfigurationPressed()
+void SkeletonCreationTool::onStrokeConfigurationPressed()
 {
   auto category = m_categorySelector->selectedCategory();
   if(category)
@@ -645,7 +645,7 @@ void SkeletonTool::onStrokeConfigurationPressed()
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::restoreSettings(std::shared_ptr<QSettings> settings)
+void SkeletonCreationTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   // used only to load SkeletonToolsUtils::STROKE values.
   loadStrokes(settings);
@@ -655,14 +655,14 @@ void SkeletonTool::restoreSettings(std::shared_ptr<QSettings> settings)
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::saveSettings(std::shared_ptr<QSettings> settings)
+void SkeletonCreationTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   // used only to save SkeletonToolsUtils::STROKE values.
   if(!STROKES.isEmpty()) saveStrokes(settings);
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onStrokeChanged(const Core::SkeletonStroke stroke)
+void SkeletonCreationTool::onStrokeChanged(const Core::SkeletonStroke stroke)
 {
   if(m_item)
   {
@@ -675,7 +675,7 @@ void SkeletonTool::onStrokeChanged(const Core::SkeletonStroke stroke)
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::updateStrokes()
+void SkeletonCreationTool::updateStrokes()
 {
   auto currentCategory = m_categorySelector->selectedCategory();
 
@@ -713,7 +713,7 @@ void SkeletonTool::updateStrokes()
 }
 
 //--------------------------------------------------------------------
-void SkeletonTool::onPointCheckRequested(const NmVector3 &point)
+void SkeletonCreationTool::onPointCheckRequested(const NmVector3 &point)
 {
   if(!m_skeletonWidgets.isEmpty())
   {

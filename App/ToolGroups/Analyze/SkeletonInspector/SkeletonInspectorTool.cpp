@@ -46,11 +46,19 @@ void SkeletonInspectorTool::onPressed(bool unused)
 //--------------------------------------------------------------------
 void SkeletonInspectorTool::onSelectionChanged(SegmentationAdapterList selectedSegs)
 {
-  auto enabled = selectedSegs.size() == 1 && hasSkeletonData(selectedSegs.first()->output());
+  auto enabled = (selectedSegs.size() == 1) && hasSkeletonData(selectedSegs.first()->output());
 
   if(enabled)
   {
-    setToolTip(tr("Inspect %1").arg(selectedSegs.first()->data().toString()));
+    if(selectedSegs.first()->isBeingModified())
+    {
+      setToolTip(tr("Cannot inspect '%1' because is being edited by another tool.").arg(selectedSegs.first()->data().toString()));
+      enabled = false;
+    }
+    else
+    {
+      setToolTip(tr("Inspect '%1'").arg(selectedSegs.first()->data().toString()));
+    }
   }
   else
   {

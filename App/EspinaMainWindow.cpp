@@ -63,7 +63,7 @@
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
-#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonCreationTool.h>
 #include <App/ToolGroups/Explore/ResetViewTool.h>
 #include <App/ToolGroups/Explore/ZoomRegionTool.h>
 #include <App/ToolGroups/Explore/PositionMarksTool.h>
@@ -1012,7 +1012,7 @@ void EspinaMainWindow::createSegmentToolGroup()
   manualSegment->setOrder("1-0", "1-SEGMENT");
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
   sgsSegment->setOrder("1-1", "1-SEGMENT");
-  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  auto skeleton      = std::make_shared<SkeletonCreationTool>(m_context);
   skeleton->setOrder("1-2", "1-SEGMENT");
 
   m_segmentToolGroup->addTool(manualSegment);

@@ -104,7 +104,7 @@ void SkeletonEditionTool::initTool(bool value)
 
     if(m_item->isBeingModified())
     {
-      auto message = tr("The segmentation %1 can't be edited right now because it's currently being modified by another operation.").arg(m_item->data().toString());
+      auto message = tr("The segmentation %1 can't be edited right now because it's currently being modified by another tool.").arg(m_item->data().toString());
       auto title   = tr("Edit skeleton");
       DefaultDialogs::ErrorMessage(message, title);
 

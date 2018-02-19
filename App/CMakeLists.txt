@@ -81,7 +81,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.h
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
   ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
@@ -216,7 +216,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp
