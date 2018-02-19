@@ -43,6 +43,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr model)
 : RepresentationManager{flags, flags.testFlag(ESPINA::VIEW_2D) ? RepresentationManager::NEEDS_ACTORS : RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 , m_model              {model}
+, m_object             {nullptr}
 , m_points             {nullptr}
 , m_polyData           {nullptr}
 , m_transformFilter    {nullptr}
@@ -56,9 +57,7 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
   setName("ConnectionsManager");
   setDescription("Displays a representation of connection points.");
 
-  connectSignals();
-
-  getConnectionData();
+  setConnectionsObject(model.get());
 }
 
 //--------------------------------------------------------------------
@@ -173,7 +172,10 @@ void ConnectionsManager::onShow(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 RepresentationManagerSPtr ConnectionsManager::cloneImplementation()
 {
-  return std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  auto clone = std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  clone->setConnectionsObject(m_object);
+
+  return clone;
 }
 
 //--------------------------------------------------------------------
@@ -263,18 +265,37 @@ void ConnectionsManager::setRepresentationSize(int size)
 //--------------------------------------------------------------------
 void ConnectionsManager::connectSignals()
 {
-  connect(m_model.get(), SIGNAL(connectionAdded(Connection)),
-          this,          SLOT(onConnectionAdded(Connection)));
+  if(m_object)
+  {
+    connect(m_object, SIGNAL(connectionAdded(Connection)),
+            this,     SLOT(onConnectionAdded(Connection)));
 
-  connect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
-          this,          SLOT(onConnectionRemoved(Connection)));
+    connect(m_object, SIGNAL(connectionRemoved(Connection)),
+            this,     SLOT(onConnectionRemoved(Connection)));
 
-  connect(m_model.get(), SIGNAL(aboutToBeReset()),
-          this,          SLOT(resetConnections()));
+    connect(m_object, SIGNAL(aboutToBeReset()),
+            this,     SLOT(resetConnections()));
+  }
 }
 
 //--------------------------------------------------------------------
-void ConnectionsManager::getConnectionData()
+void ConnectionsManager::disconnectSignals()
+{
+  if(m_object)
+  {
+    disconnect(m_object, SIGNAL(connectionAdded(Connection)),
+               this,     SLOT(onConnectionAdded(Connection)));
+
+    disconnect(m_object, SIGNAL(connectionRemoved(Connection)),
+               this,     SLOT(onConnectionRemoved(Connection)));
+
+    disconnect(m_object, SIGNAL(aboutToBeReset()),
+               this,     SLOT(resetConnections()));
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::getModelConnectionData()
 {
   for(auto seg: m_model->segmentations())
   {
@@ -304,16 +325,7 @@ void ConnectionsManager::resetConnections()
 //--------------------------------------------------------------------
 void ConnectionsManager::shutdown()
 {
-  disconnect(m_model.get(), SIGNAL(connectionAdded(Connection)),
-             this,          SLOT(onConnectionAdded(Connection)));
-
-  disconnect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
-             this,          SLOT(onConnectionRemoved(Connection)));
-
-  disconnect(m_model.get(), SIGNAL(aboutToBeReset()),
-             this,          SLOT(resetConnections()));
-
-  resetConnections();
+  setConnectionsObject(nullptr);
 
   RepresentationManager::shutdown();
 }
@@ -391,4 +403,27 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
 
   m_actor = vtkSmartPointer<vtkFollower>::New();
   m_actor->SetMapper(m_glyph);
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::setConnectionsObject(QObject* object)
+{
+  disconnectSignals();
+
+  resetConnections();
+
+  m_object = object;
+
+  if(m_object == m_model.get())
+  {
+    getModelConnectionData();
+  }
+
+  connectSignals();
+
+  for(auto child: m_childs)
+  {
+    auto clone = dynamic_cast<ConnectionsManager *>(child);
+    if(clone) clone->setConnectionsObject(object);
+  }
 }

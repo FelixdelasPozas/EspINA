@@ -61,6 +61,11 @@ namespace ESPINA
       virtual ~SkeletonInspector()
       {};
 
+    signals:
+      void connectionAdded(Connection connection);
+      void connectionRemoved(Connection connection);
+      void aboutToBeReset();
+
     protected:
       void showEvent(QShowEvent *event) override;
       void closeEvent(QCloseEvent *event) override;
@@ -129,6 +134,11 @@ namespace ESPINA
        *
        */
       void connectSignals();
+
+      /** \brief Helper method that emits all the connections for the ConnectionManager.
+       *
+       */
+      void emitSegmentationConnectionSignals();
 
     private:
       /** \class SkeletonInspectorPipeline

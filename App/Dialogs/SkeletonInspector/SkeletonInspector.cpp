@@ -28,6 +28,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Representations/Managers/ConnectionsManager.h>
 #include <GUI/Representations/Pipelines/SegmentationMeshPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
@@ -60,6 +61,7 @@
 // Qt
 #include <QToolBar>
 #include <QListWidgetItem>
+#include <QApplication>
 
 using namespace ESPINA;
 using namespace Core;
@@ -67,6 +69,7 @@ using namespace GUI;
 using namespace GUI::Model::Utils;
 using namespace GUI::ColorEngines;
 using namespace GUI::Representations;
+using namespace GUI::Representations::Managers;
 using namespace Support::Representations::Utils;
 
 const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
@@ -251,6 +254,8 @@ void SkeletonInspector::showEvent(QShowEvent* event)
   QDialog::showEvent(event);
 
   m_view.resetCamera();
+
+  emitSegmentationConnectionSignals();
 }
 
 //--------------------------------------------------------------------
@@ -300,6 +305,12 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
       {
         pool->setPipelineSources(&m_segmentationSources);
       }
+
+      if(manager->name() == "DisplayConnections")
+      {
+        auto conManager = std::dynamic_pointer_cast<ConnectionsManager>(manager);
+        conManager->setConnectionsObject(this);
+      }
     }
   }
 
@@ -340,12 +351,12 @@ void SkeletonInspector::addSegmentations()
   auto selection = getSelection()->segmentations();
   Q_ASSERT(selection.size() == 1);
 
-  auto model        = getModel();
-  m_segmentation    = model->smartPointer(selection.first());
+  auto model     = getModel();
+  m_segmentation = model->smartPointer(selection.first());
 
   createSkeletonActors(m_segmentation);
 
-  auto connections  = model->connections(m_segmentation);
+  auto connections = model->connections(m_segmentation);
 
   ViewItemAdapterList segmentations;
   segmentations << m_segmentation.get();
@@ -678,4 +689,20 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   }
 
   return actors;
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::emitSegmentationConnectionSignals()
+{
+  emit aboutToBeReset();
+
+  QApplication::processEvents();
+
+  for(auto segmentation: m_segmentations)
+  {
+    auto segmentationSPtr = getModel()->smartPointer(segmentation);
+    auto connections = getModel()->connections(segmentationSPtr);
+
+    for(auto connection: connections) emit connectionAdded(connection);
+  }
 }

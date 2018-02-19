@@ -27,6 +27,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Representations/Managers/ConnectionsManager.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Settings/Settings.h>
@@ -104,6 +105,11 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
   {
     m_segmentations << segmentation;
     
+    for(auto connection: getModel()->connections(getModel()->smartPointer(segmentation)))
+    {
+      emit connectionAdded(connection);
+    }
+
     auto frame = getViewState().createFrame();
     m_segmentationSources.addSource(toViewItemList(segmentation), frame);
 
@@ -129,6 +135,11 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentation)
 {
   if (!m_segmentations.contains(segmentation)) return;
+
+  for(auto connection: getModel()->connections(getModel()->smartPointer(segmentation)))
+  {
+    emit connectionRemoved(connection);
+  }
 
   auto frame = getViewState().createFrame();
   m_segmentationSources.removeSource(toViewItemList(segmentation), frame);
@@ -255,6 +266,8 @@ void SegmentationInspector::updateWindowTitle()
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
+
+  emitConnectionSignals();
 
   m_tabularReport.updateSelection(getSelectedSegmentations());
 }
@@ -420,6 +433,12 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
     {
       m_view.addRepresentationManager(manager);
 
+      if(manager->name() == "DisplayConnections")
+      {
+        auto conManager = std::dynamic_pointer_cast<ConnectionsManager>(manager);
+        if(conManager) conManager->setConnectionsObject(this);
+      }
+
       for(auto pool: manager->pools())
       {
         if (isChannelRepresentation(representation))
@@ -493,8 +512,32 @@ void SegmentationInspector::saveGeometryState()
 //------------------------------------------------------------------------
 void SegmentationInspector::connectSignals()
 {
-  connect(getContext().model().get(), SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
-          this,                       SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+  connect(getModel().get(), SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
+          this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+
+  connect(getModel().get(), SIGNAL(connectionAdded(Connection)),
+          this,             SLOT(onConnectionAdded(Connection)));
+
+  connect(getModel().get(), SIGNAL(connectionRemoved(Connection)),
+          this,             SLOT(onConnectionRemoved(Connection)));
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::onConnectionAdded(Connection connection)
+{
+  if(m_segmentations.contains(connection.item1.get()) || m_segmentations.contains(connection.item2.get()))
+  {
+    emit connectionAdded(connection);
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::onConnectionRemoved(Connection connection)
+{
+  if(m_segmentations.contains(connection.item1.get()) || m_segmentations.contains(connection.item2.get()))
+  {
+    emit connectionRemoved(connection);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -520,5 +563,18 @@ void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmenta
     updateWindowTitle();
 
     emit segmentationsUpdated();
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::emitConnectionSignals()
+{
+  for(auto segmentation: m_segmentations)
+  {
+    auto segSPtr = getModel()->smartPointer(segmentation);
+    for(auto connection: getModel()->connections(segSPtr))
+    {
+      emit connectionAdded(connection);
+    }
   }
 }

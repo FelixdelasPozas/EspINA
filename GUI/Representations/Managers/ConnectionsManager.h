@@ -76,6 +76,13 @@ namespace ESPINA
              */
             void setRepresentationSize(int size);
 
+            /** \brief Sets the object to listen for added/removed connections. If set to null the context model will be the default
+             * object to listen.
+             * \param[in] object QObject pointer that emits the signals of the connection events.
+             *
+             */
+            void setConnectionsObject(QObject *object);
+
           private slots:
             /** \brief Updates the internal data adding the connection information.
              * \param[in] connection added connection.
@@ -125,15 +132,20 @@ namespace ESPINA
              */
             void updateActor(const FrameCSPtr frame);
 
-            /** \brief Helper method to connect model signals.
+            /** \brief Helper method to connect connection slots to the object that emits the connection signals.
              *
              */
             void connectSignals();
 
-            /** \brief Fills the connections data map, needed for switches created mid-session (like segmentation inspector).
+            /** \brief Helper method to disconnect connection slots to the object that emits the connection signals.
              *
              */
-            void getConnectionData();
+            void disconnectSignals();
+
+            /** \brief Fills the connections data map from the data in the model.
+             *
+             */
+            void getModelConnectionData();
 
             /** \brief Builds the actor pipeline using the information from the given frame.
              *
@@ -142,6 +154,7 @@ namespace ESPINA
 
           private:
             ModelAdapterSPtr                            m_model;           /** model with the connection information.         */
+            QObject                                    *m_object;          /** connection signals emitter.                    */
             vtkSmartPointer<vtkPoints>                  m_points;          /** connection points.                             */
             vtkSmartPointer<vtkPolyData>                m_polyData;        /** polydata.                                      */
             vtkSmartPointer<vtkTransformPolyDataFilter> m_transformFilter; /** transformed polydata filter for XZ & YZ views. */
