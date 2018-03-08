@@ -70,6 +70,7 @@ using namespace GUI::Model::Utils;
 using namespace GUI::ColorEngines;
 using namespace GUI::Representations;
 using namespace GUI::Representations::Managers;
+using namespace GUI::Representations::Settings;
 using namespace Support::Representations::Utils;
 
 const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
@@ -291,7 +292,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
   {
     auto representation = factory->createRepresentation(getContext(), ViewType::VIEW_3D);
 
-    if(isChannelRepresentation(representation)) continue;
+    if(isStackRepresentation(representation)) continue;
 
     m_representations << representation;
 
