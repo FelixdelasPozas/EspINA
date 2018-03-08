@@ -53,9 +53,9 @@ namespace ESPINA
       public:
         enum Components
         {
-          None         = 0x0,
-          Color        = 0x1,
-          Transparency = 0x2
+          None         = 0,
+          Color        = 1 << 0,
+          Transparency = 1 << 1
         };
         Q_DECLARE_FLAGS(Composition, Components)
 

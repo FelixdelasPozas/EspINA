@@ -463,7 +463,7 @@ void RepresentationManager::reuseTimeValue(TimeStamp t)
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateFrames(const FrameCSPtr frame)
 {
-//  qDebug() << debugName() << "invalidates frames on" << frame->time;
+  // qDebug() << debugName() << "invalidates frames on" << frame->time;
   m_lastInvalidationFrame = frame->time;
   m_frames.invalidate();
 }

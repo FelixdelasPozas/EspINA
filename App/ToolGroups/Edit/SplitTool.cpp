@@ -104,7 +104,6 @@ SplitTool::SplitTool(Support::Context &context)
 , m_handler{std::make_shared<PlanarSplitEventHandler>()}
 , m_splitPlane{nullptr}
 {
-
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
   setCheckable(true);
@@ -152,12 +151,15 @@ SplitTool::~SplitTool()
 //-----------------------------------------------------------------------------
 void SplitTool::initSplitWidgets()
 {
-  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
+  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("A cutting plane must be defined in 2D or 3D widgets before it can to applied."));
 
   connect(m_apply, SIGNAL(clicked(bool)),
           this,  SLOT(applyCurrentState()));
 
   addSettingsWidget(m_apply);
+
+  // not enabled until a valid cutting plane has been defined.
+  m_apply->setEnabled(false);
 }
 
 //------------------------------------------------------------------------
@@ -299,6 +301,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
   auto valid = widget->planeIsValid();
 
   m_apply->setEnabled(valid);
+  m_apply->setToolTip(tr("Cut segmentation using the defined cutting plane."));
 
   if(valid)
   {
@@ -398,7 +401,7 @@ void SplitTool::abortTasks()
 
     data.segmentation->setBeingModified(false);
 
-    if(!data.filter->thread()->wait(500))
+    if(data.filter->thread() && !data.filter->thread()->wait(500))
     {
       data.filter->thread()->terminate();
     }

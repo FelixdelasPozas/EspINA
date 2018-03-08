@@ -527,11 +527,11 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-//  auto senderObj = dynamic_cast<RepresentationManager *>(sender());
+  // auto senderObj = dynamic_cast<RepresentationManager *>(sender());
   auto managers = pendingManagers();
   auto frame = latestReadyFrame(managers);
 
-//   qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
+  // qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
   if (isValid(frame) && m_latestFrame->time < frame->time)
   {
     renderFrame(frame, managers);
@@ -548,13 +548,13 @@ void RenderView::onRenderRequest()
   }
 
   m_view->update();
-//   qDebug() << "------------------------------------------";
+  // qDebug() << "------------------------------------------";
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
 {
-//   qDebug() << "display" << frame->time;
+  // qDebug() << "display" << frame->time;
   display(managers, frame->time);
 
   deleteInactiveWidgetManagers();

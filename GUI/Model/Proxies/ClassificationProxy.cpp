@@ -32,13 +32,14 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 
-typedef QSet<ItemAdapterPtr > SegmentationSet;
+using SegmentationSet = QSet<ItemAdapterPtr>;
 
-enum DragSourceEnum {
-  NoSource           = 0x0,
-  SegmentationSource = 0x1,
-  CategorySource     = 0x2,
-  InvalidSource      = 0x3
+enum DragSourceEnum
+{
+  NoSource           = 0,
+  SegmentationSource = 1 << 0,
+  CategorySource     = 1 << 1,
+  InvalidSource      = SegmentationSource|CategorySource
 };
 Q_DECLARE_FLAGS(DragSource, DragSourceEnum);
 
