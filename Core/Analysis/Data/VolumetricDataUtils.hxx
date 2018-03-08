@@ -238,11 +238,19 @@ namespace ESPINA
    *
    */
   template<typename T>
-  Snapshot createSnapshot(typename T::Pointer   volume,
-                          TemporalStorageSPtr   storage,
-                          const QString        &path,
-                          const QString        &id)
+  Snapshot createVolumeSnapshot(typename T::Pointer   volume,
+                                TemporalStorageSPtr   storage,
+                                const QString        &path,
+                                const QString        &id)
   {
+    if(!id.endsWith(".mhd", Qt::CaseInsensitive))
+    {
+      auto message = QObject::tr("Specified filename doesn't end in mhd.").arg(id);
+      auto details = QObject::tr("VolumetricDataUtils::createVolumeSnapshot() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
     Snapshot snapshot;
 
     storage->makePath(path);
