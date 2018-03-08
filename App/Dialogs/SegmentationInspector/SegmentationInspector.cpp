@@ -146,11 +146,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
 
   m_segmentations.removeOne(segmentation);
 
-  if (m_segmentations.size() == 0)
-  {
-    close();
-    return;
-  }
+  if (m_segmentations.isEmpty()) return;
 
   auto channels = QueryAdapter::channels(segmentation);
 
@@ -441,7 +437,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
       for(auto pool: manager->pools())
       {
-        if (isChannelRepresentation(representation))
+        if (isStackRepresentation(representation))
         {
           pool->setPipelineSources(&m_channelSources);
         }
@@ -552,17 +548,21 @@ void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmenta
     {
       removeSegmentation(segPtr);
 
-      if(m_segmentations.isEmpty()) return; // Wait for the close event
+      if(m_segmentations.isEmpty())
+      {
+        close();
+        return;
+      }
     }
   }
 
   if(m_segmentations.size() != segmentationsNum)
   {
-    m_view.refresh();
+    emit segmentationsUpdated();
 
     updateWindowTitle();
 
-    emit segmentationsUpdated();
+    m_view.refresh();
   }
 }
 

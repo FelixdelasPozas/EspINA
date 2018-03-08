@@ -181,11 +181,6 @@ namespace ESPINA
        */
       void releaseInspectorResources(SegmentationInspector *inspector);
 
-      /** \brief Closes the inspector dialogs of the segmentation and/or removes the segmentation from the opened inspectors.
-       *
-       */
-      void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
-
       /** \brief Updates the inspector key when it changes the segmentations being inspected.
        *
        */

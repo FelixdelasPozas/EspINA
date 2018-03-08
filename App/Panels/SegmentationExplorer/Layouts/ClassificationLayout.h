@@ -249,9 +249,7 @@ namespace ESPINA
     private:
       std::shared_ptr<ClassificationProxy> m_proxy;                 /** proxy model.                              */
       std::shared_ptr<SortFilter>          m_sort;                  /** model filter and sorter.                  */
-
       CategoryItemDelegate                *m_delegate;              /** delegate item for categories.             */
-
       CategoryAdapterList                  m_selectedCategories;    /** list of currently selected categories.    */
       SegmentationAdapterList              m_selectedSegmentations; /** list of currently selected segmentations. */
   };
