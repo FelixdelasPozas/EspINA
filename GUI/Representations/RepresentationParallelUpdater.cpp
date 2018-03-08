@@ -140,8 +140,6 @@ void RepresentationParallelUpdater::run()
     m_requestedSources.clear();
   }
 
-  if(updateList.isEmpty()) return;
-
   auto size     = updateList.size();
   auto maxTasks = static_cast<int>(Scheduler::maxRunningTasks());
 

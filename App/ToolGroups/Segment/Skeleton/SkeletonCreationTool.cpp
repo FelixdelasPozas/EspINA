@@ -38,6 +38,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
+#include <Support/Representations/RepresentationUtils.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
@@ -65,7 +66,9 @@ using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
+using namespace ESPINA::Support::Representations::Utils;
 using namespace ESPINA::SkeletonToolsUtils;
 
 const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
@@ -106,8 +109,8 @@ FilterSPtr SkeletonFilterFactory::createFilter(InputSList          inputs,
 //-----------------------------------------------------------------------------
 SkeletonCreationTool::SkeletonCreationTool(Support::Context& context)
 : ProgressTool("SkeletonTool", ":/espina/tubular.svg", tr("Manual creation of skeletons."), context)
-, m_init      {false}
-, m_item      {nullptr}
+, m_init              {false}
+, m_item              {nullptr}
 {
   initFilterFactory();
   initEventHandler();
@@ -341,7 +344,7 @@ void SkeletonCreationTool::initTool(bool value)
       disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                  this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-      vtkSkeletonWidgetRepresentation::cleanup();
+      vtkSkeletonWidgetRepresentation::ClearRepresentation();
     }
   }
 
@@ -352,14 +355,19 @@ void SkeletonCreationTool::initTool(bool value)
 //-----------------------------------------------------------------------------
 void SkeletonCreationTool::initRepresentationFactories()
 {
-  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler);
+
+  auto settingsList     = getPoolSettings<SegmentationSkeletonPoolSettings>(getContext());
+  auto skeletonSettings = std::dynamic_pointer_cast<SegmentationSkeletonPoolSettings>(settingsList.first());
+  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler, skeletonSettings);
 
   connect(representation2D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
           this,                   SLOT(onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
 
   m_factory = std::make_shared<TemporalPrototypes>(representation2D, TemporalRepresentation3DSPtr(), tr("%1 - Skeleton Widget 2D").arg(id()));
 
-  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+  settingsList              = getPoolSettings<ConnectionPoolSettings>(getContext());
+  auto connectionSettings   = std::dynamic_pointer_cast<ConnectionPoolSettings>(settingsList.first());
+  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>(connectionSettings);
 
   connect(pointsRepresentation.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
           this,                       SLOT(onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));

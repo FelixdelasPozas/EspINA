@@ -27,6 +27,7 @@
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidget.h>
@@ -59,13 +60,15 @@ namespace ESPINA
           {
             Q_OBJECT
             public:
-              enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, ERASE = 2 };
+              enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, ERASE = 2, MARK = 3 };
 
               /** \brief SkeletonWidget class constructor.
-               * \brief handler handler for this widget.
+               * \param[in] handler handler for this widget.
+               * \param[in] settings Skeleton representation settings object.
                *
                */
-              explicit SkeletonWidget2D(SkeletonEventHandlerSPtr handler);
+              explicit SkeletonWidget2D(SkeletonEventHandlerSPtr handler,
+                                        GUI::Representations::Settings::SkeletonPoolSettingsSPtr settings);
 
               /** \brief SkeletonWidget class virtual destructor.
                *
@@ -110,13 +113,19 @@ namespace ESPINA
                */
               void stop();
 
-              /** \brief Orders the vtkWidget to clean the statis skeleton representation.
+              /** \brief Orders the vtkWidget to clean the static skeleton representation.
                *
                */
-              void cleanup()
-              { m_widget->cleanup(); }
+              void ClearRepresentation()
+              { m_widget->ClearRepresentation(); }
 
               virtual void setPlane(Plane plane);
+
+              /** \brief Sets the color of the text labels of the representation.
+               * \param[in] color QColor object.
+               *
+               */
+              void setRepresentationTextColor(const QColor &color);
 
               virtual void setRepresentationDepth(Nm depth);
 
@@ -130,6 +139,14 @@ namespace ESPINA
 
               virtual void display(const GUI::Representations::FrameCSPtr &frame);
 
+              /** \brief Sets the connection points to check for some operations.
+               * \param[in] points List of connection points of the segmentation.
+               *
+               */
+              void setConnectionPoints(QList<NmVector3> &points)
+              { m_points = points; }
+
+            public slots:
               /** \brief Updates the vtk widget representation.
                *
                */
@@ -184,10 +201,14 @@ namespace ESPINA
               virtual vtkAbstractWidget *vtkWidget()
               { return m_widget; }
 
-              Nm                                 m_position;   /** position of the actors over the segmentations.           */
-              SkeletonEventHandlerSPtr           m_handler;    /** event handler for the widget.                            */
-              Mode                               m_mode;       /** current operation mode.                                  */
-              bool                               m_moving;     /** true when translating a node, false otherwise.           */
+              using RepresentationSettings = GUI::Representations::Settings::SkeletonPoolSettingsSPtr;
+
+              Nm                       m_position; /** position of the actors over the segmentations. */
+              SkeletonEventHandlerSPtr m_handler;  /** event handler for the widget.                  */
+              Mode                     m_mode;     /** current operation mode.                        */
+              bool                     m_moving;   /** true when translating a node, false otherwise. */
+              RepresentationSettings   m_settings; /** skeleton representation settings.              */
+              QList<NmVector3>         m_points;   /** skeleton connection points.                    */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;

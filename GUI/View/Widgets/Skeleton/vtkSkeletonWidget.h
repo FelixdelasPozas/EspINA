@@ -141,7 +141,7 @@ namespace ESPINA
               void UpdateRepresentation();
 
               /** \brief Operation modes. */
-              enum { Define = 0, Delete = 1, Manipulate = 2 };
+              enum { Define = 0, Delete = 1, Manipulate = 2, Mark = 3 };
 
               /** \brief Adds a point to the skeleton in the event coordinates position.
                *
@@ -190,7 +190,7 @@ namespace ESPINA
               /** \brief Removes all the nodes.
                *
                */
-              void cleanup();
+              void ClearRepresentation();
 
               /** \brief Sets the current operation mode of the widget.
                * \param[in] mode integer of operation mode.
@@ -244,6 +244,40 @@ namespace ESPINA
                */
               bool isStartNode(const NmVector3 &point) const;
 
+              /** \brief Returns true if the branch of the current node could be marked as truncated, false otherwise.
+               *
+               */
+              bool markAsTruncated();
+
+              /** \brief Sets the width of the skeleton representation.
+               * \param[in] width Integer value.
+               *
+               */
+              void setRepresentationWidth(int width);
+
+              /** \brief Enables/disables the annotations of the skeleton.
+               * \param[in] value true to enable and false to disable.
+               *
+               */
+              void setRepresentationShowText(bool value);
+
+              /** \brief Sets the size of the skeleton annotations.
+               * \param[in] size Integer value.
+               *
+               */
+              void setRepresentationTextSize(int size);
+
+              /** \brief Sets the color of the text labels background.
+               * \param[in] color QColor object.
+               *
+               */
+              void setRepresentationTextColor(const QColor &color);
+
+              /** \brief Returns the paths that contains the currently selected node.
+               *
+               */
+              const Core::PathList selectedPaths() const;
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */
@@ -286,6 +320,7 @@ namespace ESPINA
               QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                                         */
               QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes.                     */
               QCursor m_crossCheckCursor; /** cross check cursor shown when connecting two strokes.                                 */
+              QCursor m_truncateCursor;   /** cursor for mark stroke operation.                                                     */
               bool    m_ignoreCursor;     /** true to ignore the current cursor node in distances computations and false otherwise. */
           };
 

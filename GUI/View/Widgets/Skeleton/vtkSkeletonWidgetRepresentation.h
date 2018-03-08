@@ -44,6 +44,15 @@ class vtkGlyph3D;
 class vtkPoints;
 class vtkSphereSource;
 class vtkUnsignedCharArray;
+class vtkStringArray;
+class vtkTextProperty;
+class vtkPointSetToLabelHierarchy;
+class vtkLabelPlacementMapper;
+class vtkActor2D;
+class vtkTransformPolyDataFilter;
+class vtkGlyphSource2D;
+class vtkFollower;
+class vtkGlyph3DMapper;
 
 namespace ESPINA
 {
@@ -198,11 +207,6 @@ namespace ESPINA
                */
               bool DeleteCurrentNode();
 
-              /** \brief Deletes all nodes.
-               *
-               */
-              virtual void ClearAllNodes();
-
               /** \brief Given a specific X, Y pixel location, add a new node
                * at this location. Returns true on success and false otherwise.
                * \param[in] X x display coordinate.
@@ -325,10 +329,57 @@ namespace ESPINA
               bool ignoresCursor() const
               { return m_ignoreCursor; }
 
+              /** \brief Sets the color of the representation labels.
+               * \param[in] color QColor object.
+               *
+               */
+              void setLabelsColor(const QColor &color);
+
+              /** \brief Returns the color of the representation labels.
+               *
+               */
+              const QColor &labelsColor() const
+              { return m_labelColor; }
+
+              /** \brief Sets the text size of the representations labels.
+               * \param[in] size Text size in (3-15)
+               *
+               */
+              void setLabelsSize(unsigned int size);
+
+              /** \brief Returns the text size of the labels.
+               *
+               */
+              const unsigned int labelsTextSize() const
+              { return m_labelSize; }
+
+              /** \brief Enables/disables showing the labels.
+               * \param[in] value True to make labels visible and false otherwise.
+               *
+               */
+              void setShowLabels(const bool value);
+
+              /** \brief Returns true if the representations shows the skeleton labels and false otherwise.
+               *
+               */
+              const bool showLabels() const
+              { return m_showLabels; }
+
+              /** \brief Sets the width of the skeleton lines.
+               *
+               */
+              void setWidth(const int width);
+
+              /** \brief Returns the width of the skeleton representation.
+               *
+               */
+              const int width() const
+              { return m_width; }
+
               /** \brief Removes all nodes from the static skeleton representation.
                *
                */
-              static void cleanup();
+              static void ClearRepresentation();
 
               /** \brief Using the last three points connects the first and last with the current stroke and creates
                *  a connection using the given stroke, the second point and the closest point to the first-last segment.
@@ -350,6 +401,12 @@ namespace ESPINA
                *
                */
               bool isStartNode(const NmVector3 &point);
+
+              /** \brief Adds a property to the stroke of the current node or removes it if present.
+               * \param[in] property Node property to toggle in the stroke.
+               *
+               */
+              bool ToggleStrokeProperty(const Core::SkeletonNodeProperty property);
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
@@ -407,6 +464,22 @@ namespace ESPINA
                */
               void performSpineSplitting();
 
+              /** \brief Removes nodes from the list of nodes if they have no connections.
+               *
+               */
+              void removeIsolatedNodes();
+
+              /** \brief Helper method to obtain the paths of a given node.
+               * \param[in] node Skeleton node.
+               *
+               */
+              const Core::PathList pathsOfNode(Core::SkeletonNode *node) const;
+
+              /** \brief Helper method that returns the paths of the current selected node.
+               *
+               */
+              const Core::PathList currentSelectedPaths() const;
+
               // Not implemented.
               vtkSkeletonWidgetRepresentation(const vtkSkeletonWidgetRepresentation&);
               void operator=(const vtkSkeletonWidgetRepresentation&);
@@ -450,6 +523,26 @@ namespace ESPINA
               vtkSmartPointer<vtkPolyData>          m_dashedLines;
               vtkSmartPointer<vtkPolyDataMapper>    m_dashedLinesMapper;
               vtkSmartPointer<vtkActor>             m_dashedLinesActor;
+
+              vtkSmartPointer<vtkPoints>                  m_truncatedPoints; /** truncated points.                              */
+              vtkSmartPointer<vtkPolyData>                m_truncatedData;   /** truncated polydata.                            */
+              vtkSmartPointer<vtkTransformPolyDataFilter> m_transformFilter; /** transformed polydata filter for XZ & YZ views. */
+              vtkSmartPointer<vtkGlyph3DMapper>           m_glyphMapper;     /** glyph mapper filter.                           */
+              vtkSmartPointer<vtkGlyphSource2D>           m_glyph2D;         /** glyph source for 2D views.                     */
+              vtkSmartPointer<vtkFollower>                m_truncatedActor;  /** truncated points representation actor.         */
+
+              bool                                         m_showLabels;
+              vtkSmartPointer<vtkPoints>                   m_labelPoints;
+              vtkSmartPointer<vtkStringArray>              m_labels;
+              vtkSmartPointer<vtkPolyData>                 m_labelData;
+              vtkSmartPointer<vtkTextProperty>             m_labelProperty;
+              vtkSmartPointer<vtkPointSetToLabelHierarchy> m_labelFilter;
+              vtkSmartPointer<vtkLabelPlacementMapper>     m_labelPlacer;
+              vtkSmartPointer<vtkActor2D>                  m_labelActor;
+              QColor                                       m_labelColor;
+              unsigned int                                 m_labelSize;
+
+              int                                          m_width;
 
               int m_currentStrokeIndex; /** index of current stroke in s_skeleton.strokes. */
               int m_currentEdgeIndex;   /** index of current edge in s_skeleton.edges.     */

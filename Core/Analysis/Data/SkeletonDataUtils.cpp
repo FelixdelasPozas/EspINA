@@ -31,6 +31,7 @@
 #include <QtGlobal>
 #include <QMap>
 #include <QSet>
+#include <QStack>
 
 // VTK
 #include <vtkPolyData.h>
@@ -50,7 +51,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 
 //--------------------------------------------------------------------
-Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
+const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
 {
   if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonDefinition();
 
@@ -76,6 +77,7 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
   auto strokeTypes  = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeType"));
   auto strokeUses   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeUse"));
   auto numbers      = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Numbers"));
+  auto flags        = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Flags"));
   Q_ASSERT(strokeNames && strokeColors && strokeTypes && strokeUses && numbers);
   Q_ASSERT(strokeNames->GetNumberOfValues() == strokeColors->GetNumberOfTuples());
   Q_ASSERT(strokeNames->GetNumberOfValues() == strokeTypes->GetNumberOfTuples());
@@ -101,6 +103,11 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
   for(int i = 0; i < points->GetNumberOfPoints(); ++i)
   {
     SkeletonNode *node = new SkeletonNode{points->GetPoint(i)};
+
+    if(flags)
+    {
+      node->flags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
+    }
 
     result.nodes << node;
   }
@@ -130,7 +137,7 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
 }
 
 //--------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
+const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
 {
   // saves stroke information.
   auto strokeNames = vtkSmartPointer<vtkStringArray>::New();
@@ -201,15 +208,23 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   auto points = vtkSmartPointer<vtkPoints>::New();
   points->SetNumberOfPoints(skeleton.nodes.size());
 
+  // saves nodes flags
+  auto flags = vtkSmartPointer<vtkIntArray>::New();
+  flags->SetName("Flags");
+  flags->SetNumberOfComponents(1);
+  flags->SetNumberOfValues(skeleton.nodes.size());
+
   // save node information.
   QMap<SkeletonNode *, vtkIdType> locator;
   for(vtkIdType i = 0; i < skeleton.nodes.size(); ++i)
   {
     auto node = skeleton.nodes.at(static_cast<int>(i));
+
     points->SetPoint(i, node->position);
+    flags->SetValue(i, static_cast<int>(node->flags));
 
     locator.insert(node, i);
-    if(node->connections.size() == 1) terminal->InsertNextTuple(node->position);
+    if(node->isTerminal()) terminal->InsertNextTuple(node->position);
   }
 
   QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
@@ -256,6 +271,7 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   polyData->GetPointData()->AddArray(strokeUses);
   polyData->GetPointData()->AddArray(numbers);
   polyData->GetPointData()->AddArray(terminal);
+  polyData->GetPointData()->AddArray(flags);
   polyData->GetPointData()->AddArray(edgeIndexes);
   polyData->GetPointData()->AddArray(edgeNumbers);
   polyData->GetCellData()->AddArray(cellIndexes);
@@ -264,7 +280,7 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
 }
 
 //--------------------------------------------------------------------
-int Core::closestNode(const double position[3], const SkeletonNodes nodes)
+const int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 {
   double distance = VTK_DOUBLE_MAX;
   int closestNode = VTK_INT_MAX;
@@ -283,7 +299,7 @@ int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 }
 
 //--------------------------------------------------------------------
-double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
+const double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
 {
   node_i = node_j = VTK_INT_MAX;
 
@@ -369,7 +385,7 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
-double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
+const double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
 {
   double result = -1;
 
@@ -416,7 +432,8 @@ double Core::closestPointToSegment(const double position[3], const SkeletonNode 
 bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 {
   return ((::memcmp(position, other.position, 3*sizeof(double))) &&
-          (connections == other.connections));
+          (connections == other.connections) &&
+          (flags == other.flags));
 }
 
 //--------------------------------------------------------------------
@@ -462,11 +479,11 @@ bool Core::Path::operator<(const Core::Path &other) const
 }
 
 //--------------------------------------------------------------------
-ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
+const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
 {
   PathList result, stack;
 
-  // remove loops to itself
+  // remove loops to itself.
   for(auto node: nodes)
   {
     if(node->connections.contains(node))
@@ -565,13 +582,19 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
 
     if(path.seen.size() != group.size())
     {
-      path.note += "(Malformed)";
+      path.note += " (Malformed)";
     }
 
-    if((path.begin->connections.size()) == 1 && (path.end->connections.size() != 1))
+    if(path.begin->isTerminal() && !path.end->isTerminal())
     {
       std::reverse(path.seen.begin(), path.seen.end());
       std::swap(path.begin, path.end);
+    }
+
+    if(path.begin->flags.testFlag(SkeletonNodeProperty::TRUNCATED) ||
+       path.end->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
+    {
+      path.note += " (Truncated)";
     }
 
     result << path;
@@ -611,16 +634,16 @@ QDebug Core::operator <<(QDebug stream, const SkeletonDefinition& skeleton)
   }
 
   QStringList nodeNames;
-  int count = 0;
+  int terminal  = 0;
+  int truncated = 0;
   for(auto node: skeleton.nodes)
   {
-    if(node->connections.size() == 1)
-    {
-      ++count;
-    }
+    if(node->isTerminal()) ++terminal;
+    if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED)) ++truncated;
   }
 
-  stream << "\n- relevant nodes number:" << count;
+  stream << "\n- terminal nodes number:" << terminal;
+  stream << "\n- truncated nodes number:" << truncated;
 
   return stream;
 }
@@ -642,7 +665,7 @@ QDebug Core::operator <<(QDebug stream, const struct Path& path)
 }
 
 //--------------------------------------------------------------------
-QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skeleton)
+const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skeleton)
 {
   QSet<SkeletonNode *> visited;
   QSet<SkeletonNode *> visitedTotal;
@@ -694,7 +717,7 @@ QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skelet
 }
 
 //--------------------------------------------------------------------
-QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
+const QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
 {
   QList<SkeletonNodes> result;
   if(skeleton.isEmpty()) return result;
@@ -857,7 +880,7 @@ const QString ESPINA::Core::strokeName(const Core::SkeletonEdge& edge, const Cor
 }
 
 //--------------------------------------------------------------------
-double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
+const double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
 {
   double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
   double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
@@ -866,4 +889,56 @@ double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
   vtkMath::Cross(vector1, vector2, cross);
   auto angle = std::atan2(vtkMath::Norm(cross), vtkMath::Dot(vector1, vector2));
   return vtkMath::DegreesFromRadians(angle);
+}
+
+//--------------------------------------------------------------------
+QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const SkeletonDefinition &skeleton)
+{
+  QList<PathHierarchyNode *> allNodes, final;
+
+  for(auto path: paths(skeleton))
+  {
+    auto node = new PathHierarchyNode(path);
+
+    if((path.begin->isTerminal() && path.end->isTerminal()) || path.note.startsWith("Loop"))
+    {
+      final  << node;
+    }
+
+    allNodes << node;
+  }
+
+  for(int i = 0; i < allNodes.size(); ++i)
+  {
+    bool progressed = false;
+    const auto path = allNodes.at(i);
+    if(final.contains(path)) continue;
+
+    const auto beginNode = path->path.begin;
+    const auto endNode   = path->path.end;
+
+    for(int j = 0; j < allNodes.size(); ++j)
+    {
+      if(path == allNodes.at(j)) continue;
+
+      const auto otherPath = allNodes.at(j);
+      const auto &seen = otherPath->path.seen;
+
+      if(seen.contains(beginNode) || seen.contains(endNode))
+      {
+        path->parent = otherPath;
+        otherPath->children << path;
+
+        progressed = true;
+        break;
+      }
+    }
+
+    if(!progressed) // do not starts or ends in any other path?
+    {
+      final << path;
+    }
+  }
+
+  return final;
 }

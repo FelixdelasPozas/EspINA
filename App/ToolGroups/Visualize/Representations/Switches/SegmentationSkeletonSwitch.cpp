@@ -33,6 +33,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Representations;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 const QString SEGMENTATION_SKELETON_WIDTH_KEY   = "Width";
@@ -42,7 +43,7 @@ const QString SEGMENTATION_SKELETON_IDS_SIZE    = "IdsSize";
 //---------------------------------------------------------------------
 SegmentationSkeletonSwitch::SegmentationSkeletonSwitch(const QString &id,
                                                        RepresentationManagerSPtr manager,
-                                                       std::shared_ptr<SegmentationSkeletonPoolSettings> settings,
+                                                       SkeletonPoolSettingsSPtr settings,
                                                        ViewTypeFlags supportedViews,
                                                        Support::Context& context)
 : BasicRepresentationSwitch{id, manager, supportedViews, context}

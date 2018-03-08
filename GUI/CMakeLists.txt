@@ -143,6 +143,7 @@ set (GUI_SOURCES
   Representations/Settings/SegmentationContourPoolSettings.cpp
   Representations/Settings/SegmentationMeshPoolSettings.cpp
   Representations/Settings/SegmentationSkeletonPoolSettings.cpp
+  Representations/Settings/ConnectionPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Managers/ConnectionsManager.cpp
   Representations/Managers/CrosshairManager.cpp 

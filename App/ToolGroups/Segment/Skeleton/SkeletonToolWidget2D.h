@@ -25,6 +25,7 @@
 // ESPINA
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 
 namespace ESPINA
 {
@@ -39,8 +40,9 @@ namespace ESPINA
     public:
       /** \brief SkeletonToolWidget2D class constructor.
        * \param[in] handler SkeletonHandler for this widget.
+       * \param[in] settings Skeleton representation settings.
        */
-      explicit SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler);
+      explicit SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler, GUI::Representations::Settings::SkeletonPoolSettingsSPtr settings);
 
       /** \brief SkeletonToolWidget2D class virtual destructor.
        *
@@ -74,7 +76,8 @@ namespace ESPINA
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
 
     private:
-      SkeletonToolsEventHandlerSPtr m_toolHandler; /** handler for this tool. */
+      SkeletonToolsEventHandlerSPtr                            m_toolHandler; /** handler for this tool.   */
+      GUI::Representations::Settings::SkeletonPoolSettingsSPtr m_settings;    /** representation settings. */
   };
 
 } // namespace ESPINA

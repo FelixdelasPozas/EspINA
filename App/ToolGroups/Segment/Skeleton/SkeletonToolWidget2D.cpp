@@ -26,11 +26,13 @@
 
 using namespace ESPINA;
 using namespace ESPINA::SkeletonToolsUtils;
+using namespace ESPINA::GUI::Representations::Settings;
 
 //--------------------------------------------------------------------
-SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler)
-: SkeletonWidget2D{handler}
+SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler, SkeletonPoolSettingsSPtr settings)
+: SkeletonWidget2D{handler, settings}
 , m_toolHandler   {handler}
+, m_settings      {settings}
 {
   connect(handler.get(), SIGNAL(signalConnection(const QString, const int, const Plane)),
           this,          SLOT(onConnectionSignaled(const QString, const int, const Plane)), Qt::DirectConnection);
@@ -68,7 +70,7 @@ bool SkeletonToolWidget2D::isStartNode(const NmVector3 &point)
 }
 
 //--------------------------------------------------------------------
-GUI::Representations::Managers::TemporalRepresentation2DSPtr ESPINA::SkeletonToolWidget2D::cloneImplementation()
+GUI::Representations::Managers::TemporalRepresentation2DSPtr SkeletonToolWidget2D::cloneImplementation()
 {
-  return std::make_shared<SkeletonToolWidget2D>(m_toolHandler);
+  return std::make_shared<SkeletonToolWidget2D>(m_toolHandler, m_settings);
 }

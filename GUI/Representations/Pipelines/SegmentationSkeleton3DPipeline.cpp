@@ -20,6 +20,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
@@ -43,13 +44,18 @@
 #include <vtkLine.h>
 #include <vtkStringArray.h>
 #include <vtkIntArray.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkGlyphSource2D.h>
+#include <vtkFollower.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -190,6 +196,22 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       return actors;
     }
 
+    auto flags = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Flags"));
+    auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
+
+    if(flags)
+    {
+      for(auto i = 0; i < flags->GetNumberOfTuples(); ++i)
+      {
+        auto nodeFlags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
+        if(nodeFlags.testFlag(SkeletonNodeProperty::TRUNCATED))
+        {
+          truncatedPoints->InsertNextPoint(data->GetPoint(i));
+        }
+      }
+      truncatedPoints->Modified();
+    }
+
     auto labelPoints = vtkSmartPointer<vtkPoints>::New();
     auto labelText   = vtkSmartPointer<vtkStringArray>::New();
     labelText->SetName("Labels");
@@ -229,6 +251,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelMapper->SetInputConnection(labelFilter->GetOutputPort());
     labelMapper->SetGeneratePerturbedLabelSpokes(true);
     labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetBackgroundOpacity(0.5);
     labelMapper->SetPlaceAllLabels(true);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();
@@ -238,6 +261,33 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelActor->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
 
     actors << labelActor;
+
+    if(flags)
+    {
+      auto truncatedData = vtkSmartPointer<vtkPolyData>::New();
+      truncatedData->SetPoints(truncatedPoints);
+      truncatedData->Modified();
+
+      auto glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
+      glyph2D->SetGlyphTypeToSquare();
+      glyph2D->SetFilled(false);
+      glyph2D->SetCenter(0,0,0);
+      glyph2D->SetScale(35);
+      glyph2D->SetColor(1,0,0);
+      glyph2D->Update();
+
+      auto glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+      glyphMapper->SetScalarVisibility(false);
+      glyphMapper->SetStatic(true);
+      glyphMapper->SetInputData(truncatedData);
+      glyphMapper->SetSourceData(glyph2D->GetOutput());
+      glyphMapper->Update();
+
+      auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
+      truncatedActor->SetMapper(glyphMapper);
+
+      actors << truncatedActor;
+    }
   }
 
   return actors;

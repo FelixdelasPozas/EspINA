@@ -41,20 +41,23 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
+using namespace ESPINA::GUI::Representations::Settings;
 
 //--------------------------------------------------------------------
-ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation2D()
+ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation2D(ConnectionSettingsSPtr settings)
 : m_points     {nullptr}
 , m_polyData   {nullptr}
 , m_glyphMapper{nullptr}
 , m_glyph2D    {nullptr}
 , m_actor      {nullptr}
-, m_scale      {10}
+, m_scale      {4}
 , m_view       {nullptr}
 , m_planeIndex {-1}
 , m_lastSlice  {-std::numeric_limits<Nm>::max()}
 , m_active     {false}
+, m_settings   {settings}
 {
+  connect(m_settings.get(), SIGNAL(modified()), this, SLOT(onRepresentationModified()));
 }
 
 //--------------------------------------------------------------------
@@ -73,8 +76,10 @@ ConnectionPointsTemporalRepresentation2D::~ConnectionPointsTemporalRepresentatio
 }
 
 //--------------------------------------------------------------------
-void ConnectionPointsTemporalRepresentation2D::setRepresentationSize(const int size)
+void ConnectionPointsTemporalRepresentation2D::onRepresentationModified()
 {
+  auto size = m_settings->connectionSize();
+
   if(m_scale != size)
   {
     m_scale = size;
@@ -108,6 +113,7 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
   m_view       = view;
   m_planeIndex = normalCoordinateIndex(view2d->plane());
   m_lastSlice  = m_view->crosshair()[m_planeIndex]-1; // to force initialization.
+  m_scale      = m_settings->connectionSize();
 
   buildPipeline();
 
@@ -192,7 +198,7 @@ void ConnectionPointsTemporalRepresentation2D::display(const GUI::Representation
 //--------------------------------------------------------------------
 GUI::Representations::Managers::TemporalRepresentation2DSPtr ConnectionPointsTemporalRepresentation2D::cloneImplementation()
 {
-  return std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+  return std::make_shared<ConnectionPointsTemporalRepresentation2D>(m_settings);
 }
 
 //--------------------------------------------------------------------

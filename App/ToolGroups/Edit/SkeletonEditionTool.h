@@ -241,6 +241,7 @@ namespace ESPINA
       GUI::Widgets::ToolButton                           *m_moveButton;    /** Move nodes button.                                */
       QComboBox                                          *m_strokeCombo;   /** stroke type combobox.                             */
       GUI::Widgets::ToolButton                           *m_strokeButton;  /** stroke configuration dialog button.               */
+      GUI::Widgets::ToolButton                           *m_truncateButton;/** Mark truncated branch button.                     */
       ViewItemAdapterPtr                                  m_item;          /** current element being created or channel in init. */
       TemporalRepresentationsSPtr                         m_factory;       /** representation prototypes.                        */
       TemporalRepresentationsSPtr                         m_pointsFactory; /** representation prototypes.                        */
