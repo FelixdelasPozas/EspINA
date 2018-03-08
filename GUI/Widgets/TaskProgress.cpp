@@ -64,17 +64,19 @@ void TaskProgress::showEvent(QShowEvent *event)
 //------------------------------------------------------------------------
 void TaskProgress::updateProgress(int value)
 {
+  QString text;
   if(m_task->isAborted())
   {
     emit aborted();
-    return;
+    text = tr("Stopping: ");
   }
 
-  QString text = m_task->description();
-
+  text += m_task->description();
   int valueWidth = m_progressBar->fontMetrics().width(": 100%");
   int charWidht  = m_progressBar->fontMetrics().width("A");
   int maxLength  = (m_progressBar->width() - valueWidth) / charWidht;
+
+  m_progressBar->setToolTip(text);
 
   if (text.length() > maxLength)
   {
@@ -98,6 +100,6 @@ void TaskProgress::updateProgress(int value)
 void TaskProgress::onCancel()
 {
   m_task->abort();
-
-  emit aborted();
+  m_cancelButton->setEnabled(false);
+  updateProgress(m_task->progress());
 }

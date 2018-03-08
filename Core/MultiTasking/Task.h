@@ -280,6 +280,7 @@ namespace ESPINA
     void resumed();
     void paused();
     void finished();
+    void aborted();
 
   protected:
     SchedulerSPtr m_scheduler;

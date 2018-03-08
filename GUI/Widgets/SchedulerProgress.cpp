@@ -31,6 +31,7 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QScrollBar>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -77,6 +78,8 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
           this, SLOT(onTaskRemoved(TaskSPtr)), Qt::QueuedConnection);
   connect(m_showTasks, SIGNAL(toggled(bool)),
           this, SLOT(showTaskProgress(bool)));
+  connect(m_stopTasks, SIGNAL(pressed()),
+          this, SLOT(abortAllTasks()));
 }
 
 //------------------------------------------------------------------------
@@ -224,4 +227,13 @@ void SchedulerProgress::updateNotificationWidget()
   int yShift = -m_notificationArea->height();
 
   m_notificationArea->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));
+}
+
+//------------------------------------------------------------------------
+void SchedulerProgress::abortAllTasks()
+{
+  for(auto widget: m_tasks.values())
+  {
+    widget->onCancel();
+  }
 }
