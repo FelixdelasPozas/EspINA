@@ -23,7 +23,7 @@
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 
 using namespace ESPINA;
-using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 
 const QString SegmentationSkeletonPoolSettings::WIDTH   = "Width";
 const QString SegmentationSkeletonPoolSettings::SHOWIDS = "Show Id";
