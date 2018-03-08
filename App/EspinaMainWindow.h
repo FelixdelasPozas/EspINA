@@ -203,37 +203,96 @@ namespace ESPINA
     void stopAnalysisConsistencyCheck();
 
   private:
+    /** \brief Helper method to initialize the available color engines.
+     *
+     */
     void initColorEngines();
 
+    /** \brief Helper method to create and register the given color engine with the given icon.
+     * \param[in] engine Color engine object.
+     * \param[in] icon Qicon object.
+     *
+     */
     void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
 
+    /** \brief Registers the given color engine in the current context and adds it switch to the UI.
+     * \param[in] colorEngineSwitch Color engine switch button.
+     *
+     */
     void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
+    /** \brief Helper method to initialize and register the available representations.
+     *
+     */
     void initRepresentations();
 
+    /** \brief Helper method to create the GUI toolbars.
+     *
+     */
     void createToolbars();
 
+    /** \brief Helper method to create the GUI tool groups.
+     *
+     */
     void createToolGroups();
 
+    /** \brief Helper method to register the tool shorcuts.
+     *
+     */
     void createToolShortcuts();
 
+    /** \brief Helper method to create the Session tool group.
+     *
+     */
     void createSessionToolGroup();
 
+    /** \brief Helper method to create the Explore tool group.
+     *
+     */
     void createExploreToolGroup();
 
+    /** \brief Helper method to create the Restrict tool group.
+     *
+     */
     void createRestrictToolGroup();
 
+    /** \brief Helper method to create the Segment tool group.
+     *
+     */
     void createSegmentToolGroup();
 
+    /** \brief Helper method to create the Edit tool group.
+     *
+     */
     void createEditToolGroup();
 
+    /** \brief Helper method to create the Visualize tool group.
+     *
+     */
     void createVisualizeToolGroup();
 
+    /** \brief Helper method to create the Analyze tool group.
+     *
+     */
     void createAnalyzeToolGroup();
 
+    /** \brief Helper method to create a ToolGroup object.
+     * \param[in] icon Toolgroup icon.
+     * \param[in] title Toolgroup name.
+     *
+     */
     ToolGroupPtr createToolGroup(const QString &icon, const QString &title);
 
+    /** \brief Helper method to create the application default panels.
+     *
+     */
     void createDefaultPanels();
+
+    /** \brief Helper method to register the switches of a representation.
+     * \param[in] representation Representation struct.
+     *
+     */
+    void registerRepresentationSwitches(const Representation &representation);
 
     void saveGeometry();
 
@@ -249,6 +308,9 @@ namespace ESPINA
      */
     void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
+    /** \brief Asks the user if the autosave must be loaded.
+     *
+     */
     void checkAutoSavedAnalysis();
 
     /** \brief Adds a tool group to the application.
@@ -279,11 +341,20 @@ namespace ESPINA
      */
     void updateStatus(QString msg);
 
+    /** \brief Updates the value of the undo stack index backup.
+     *
+     */
     void updateUndoStackIndex();
 
-    void assignActiveChannel();
+    /** \brief Assigns the active stack for segmentation operations.
+     *
+     */
+    void assignActiveStack();
 
-    void analyzeChannelEdges();
+    /** \brief Launches the stack edges analyzer.
+     *
+     */
+    void analyzeStackEdges();
 
     /** \brief Updates the configuration of all the tools.
      *
@@ -295,10 +366,19 @@ namespace ESPINA
      */
     void saveToolsSettings();
 
+    /** \brief Helper method that returns the list of toolgroups in the UI.
+     *
+     */
     const QList<ToolGroupPtr> toolGroups() const;
 
+    /** \brief Returns the list of available tools.
+     *
+     */
     Support::Widgets::ToolSList availableTools() const;
 
+    /** \brief Helper method to initialize the crosshair.
+     *
+     */
     void initializeCrosshair();
 
   private:

@@ -27,6 +27,12 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include <Support/Representations/RepresentationFactory.h>
 
+// C++
+#include <memory>
+
+// Qt
+#include <QList>
+
 namespace ESPINA
 {
   namespace Support
@@ -35,14 +41,42 @@ namespace ESPINA
     {
       namespace Utils
       {
-        const RepresentationGroup CHANNELS_GROUP      = "Channel";
+        const RepresentationGroup STACKS_GROUP        = "Stack";
         const RepresentationGroup SEGMENTATIONS_GROUP = "Segmentation";
 
-        inline bool isChannelRepresentation(const Representation &representation)
-        { return CHANNELS_GROUP == representation.Group; }
+        /** \brief Returns true if the given representation is for stacks.
+         * \param[in] representation Representation struct.
+         *
+         */
+        inline bool isStackRepresentation(const Representation &representation)
+        { return STACKS_GROUP == representation.Group; }
 
+        /** \brief Returns true if the given representation is for segmentations.
+         * \param[in] representation Representation struct.
+         *
+         */
         inline bool isSegmentationRepresentation(const Representation &representation)
         { return SEGMENTATIONS_GROUP == representation.Group; }
+
+        /** \brief Returns a list of settings of the templated type present in the given context.
+         * \param[in] context Application context data.
+         *
+         */
+        template<class T>
+        PoolSettingsSList getPoolSettings(const Support::Context & context)
+        {
+          PoolSettingsSList result;
+
+          for (auto representation : context.representations())
+          {
+            for (auto settings : representation.Settings)
+            {
+              if (std::dynamic_pointer_cast<T>(settings)) result << settings;
+            }
+          }
+
+          return result;
+        }
       }
     }
   } // namespace GUI

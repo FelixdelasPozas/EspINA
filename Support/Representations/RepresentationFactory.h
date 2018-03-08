@@ -42,6 +42,7 @@ namespace ESPINA
     RepresentationPoolSList                          Pools;    /** List of pools of the representation.    */
     GUI::Representations::RepresentationManagerSList Managers; /** List of managers of the representation. */
     RepresentationSwitchSList                        Switches; /** List of switches of the representation. */
+    PoolSettingsSList                                Settings; /** List of settings of the representation. */
   };
 
   using RepresentationList = QList<Representation>;
