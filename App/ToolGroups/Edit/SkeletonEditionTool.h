@@ -158,6 +158,12 @@ namespace ESPINA
        */
       void onStrokeChanged(const Core::SkeletonStroke stroke);
 
+      /** \brief Changed the segmentation being edited or deactivates tool depeding on the current selection.
+       * \param[in] segmentations Currently selected segmentations list.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 

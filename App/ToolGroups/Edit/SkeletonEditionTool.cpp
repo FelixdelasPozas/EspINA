@@ -93,6 +93,9 @@ void SkeletonEditionTool::initTool(bool value)
 {
   if(value)
   {
+    connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+            this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(!m_init)
     {
       onResolutionChanged();
@@ -139,6 +142,9 @@ void SkeletonEditionTool::initTool(bool value)
   }
   else
   {
+    disconnect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+               this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(m_init)
     {
       for(auto widget: m_widgets)
@@ -655,6 +661,52 @@ void SkeletonEditionTool::onStrokeChanged(const Core::SkeletonStroke stroke)
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
     m_strokeCombo->blockSignals(false);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  if(!isChecked()) return;
+
+  if(segmentations.size() != 1)
+  {
+    abortOperation();
+  }
+  else
+  {
+    auto seg = segmentationPtr(m_item);
+    auto selectedSeg = segmentations.first();
+
+    if(!seg || selectedSeg == seg || selectedSeg->isBeingModified() || !hasSkeletonData(selectedSeg->output()))
+    {
+      abortOperation();
+    }
+    else
+    {
+      m_item->clearTemporalRepresentation();
+      m_item->invalidateRepresentations();
+      m_item->setBeingModified(false);
+
+      m_item = selectedSeg;
+
+      m_item->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
+      m_item->setBeingModified(true);
+
+      updateStrokes();
+
+      for(auto widget: m_widgets)
+      {
+        widget->initialize(readLockSkeleton(m_item->output())->skeleton());
+      }
+
+      onStrokeTypeChanged(m_strokeCombo->currentIndex());
+
+      updateWidgetsMode();
+      m_item->invalidateRepresentations();
+
+      getViewState().refresh();
+    }
   }
 }
 
