@@ -290,6 +290,9 @@ void SkeletonCreationTool::initTool(bool value)
 {
   if (value)
   {
+    connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+            this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(!m_init)
     {
       onResolutionChanged();
@@ -319,6 +322,9 @@ void SkeletonCreationTool::initTool(bool value)
   }
   else
   {
+    disconnect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+               this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(m_init)
     {
       for(auto widget: m_skeletonWidgets)
@@ -382,9 +388,12 @@ void SkeletonCreationTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr c
 
   if(skeletonWidget)
   {
-    auto stroke = STROKES[m_categorySelector->selectedCategory()->classificationName()].at(m_strokeCombo->currentIndex());
+    auto category = m_categorySelector->selectedCategory();
+    auto stroke = STROKES[category->classificationName()].at(m_strokeCombo->currentIndex());
     skeletonWidget->setStroke(stroke);
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
+    skeletonWidget->setRepresentationTextColor(category->color());
+    skeletonWidget->updateRepresentation();
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
             this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
@@ -469,6 +478,11 @@ void SkeletonCreationTool::onCategoryChanged(CategoryAdapterSPtr category)
     updateStrokes();
 
     onStrokeTypeChanged(0);
+
+    for(auto widget: m_skeletonWidgets)
+    {
+      widget->setRepresentationTextColor(category->color());
+    }
   }
 }
 
@@ -679,6 +693,27 @@ void SkeletonCreationTool::onStrokeChanged(const Core::SkeletonStroke stroke)
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
     m_strokeCombo->blockSignals(false);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonCreationTool::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  if(!isChecked()) return;
+
+  if(segmentations.size() != 1)
+  {
+    abortOperation();
+  }
+  else
+  {
+    auto seg = segmentations.first();
+    auto segItem = segmentationPtr(m_item);
+
+    if(!segItem || !seg || seg != segItem)
+    {
+      abortOperation();
+    }
   }
 }
 

@@ -177,6 +177,12 @@ namespace ESPINA
        */
       void onStrokeChanged(const Core::SkeletonStroke stroke);
 
+      /** \brief Deactivates the tool if another segmentation is selected.
+       * \param[in] segmentations Currently selected segmentations list.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;

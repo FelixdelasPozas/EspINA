@@ -965,7 +965,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   {
     for(auto node: m_visiblePoints.keys())
     {
-      if(node->isBranching()) continue;
+      if(node->isBranching() || node == s_currentVertex) continue;
 
       for(auto edge: node->connections.values())
       {
