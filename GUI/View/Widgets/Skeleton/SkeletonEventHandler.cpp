@@ -62,7 +62,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
 
         if (me && (me->button() == Qt::LeftButton))
         {
-          m_tracking = true;
+          if(m_mode == Mode::CREATE) m_tracking = true;
           m_view = view;
           startTrack(me->pos(), view);
 
@@ -116,7 +116,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       {
         m_tracking = false;
         m_view = nullptr;
-        updateTrack(me->pos(), view);
+        if(me) updateTrack(me->pos(), view);
 
         m_track.clear();
         emit stopped(view);
