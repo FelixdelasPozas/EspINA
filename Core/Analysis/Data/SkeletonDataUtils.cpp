@@ -179,26 +179,6 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
     numbers->SetValue(i, skeleton.count[stroke]);
   }
 
-  // save edge numbers
-  auto edgeNumbers = vtkSmartPointer<vtkIntArray>::New();
-  edgeNumbers->SetName("EdgeNumbers");
-  edgeNumbers->SetNumberOfComponents(1);
-  edgeNumbers->SetNumberOfValues(skeleton.edges.size());
-
-  // save edge indexes
-  auto edgeIndexes = vtkSmartPointer<vtkIntArray>::New();
-  edgeIndexes->SetName("EdgeIndexes");
-  edgeIndexes->SetNumberOfComponents(1);
-  edgeIndexes->SetNumberOfValues(skeleton.edges.size());
-
-  for(int i = 0; i < skeleton.edges.size(); ++i)
-  {
-    auto edge = skeleton.edges.at(i);
-
-    edgeIndexes->SetValue(i, edge.strokeIndex);
-    edgeNumbers->SetValue(i, edge.strokeNumber);
-  }
-
   // save terminal points
   auto terminal = vtkSmartPointer<vtkDoubleArray>::New();
   terminal->SetNumberOfComponents(3);
@@ -233,14 +213,17 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
   cellIndexes->SetNumberOfComponents(1);
 
   // build locator to avoid changing the nodes data.
+  QSet<int> truncatedEdges;
   for(auto node: skeleton.nodes)
   {
     relationsLocator.insert(locator[node], QList<vtkIdType>());
+    auto truncated = node->flags.testFlag(SkeletonNodeProperty::TRUNCATED);
 
     for(auto connectedNode: node->connections.keys())
     {
       if(connectedNode == node) continue;
       relationsLocator[locator[node]] << locator[connectedNode];
+      if(truncated) truncatedEdges << node->connections[connectedNode];
     }
   }
 
@@ -262,6 +245,33 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
     }
   }
 
+  // save edge numbers
+  auto edgeNumbers = vtkSmartPointer<vtkIntArray>::New();
+  edgeNumbers->SetName("EdgeNumbers");
+  edgeNumbers->SetNumberOfComponents(1);
+  edgeNumbers->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge indexes
+  auto edgeIndexes = vtkSmartPointer<vtkIntArray>::New();
+  edgeIndexes->SetName("EdgeIndexes");
+  edgeIndexes->SetNumberOfComponents(1);
+  edgeIndexes->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge truncated
+  auto edgeTruncated = vtkSmartPointer<vtkIntArray>::New();
+  edgeTruncated->SetName("EdgeTruncated");
+  edgeTruncated->SetNumberOfComponents(1);
+  edgeTruncated->SetNumberOfValues(skeleton.edges.size());
+
+  for(int i = 0; i < skeleton.edges.size(); ++i)
+  {
+    auto edge = skeleton.edges.at(i);
+
+    edgeIndexes->SetValue(i, edge.strokeIndex);
+    edgeNumbers->SetValue(i, edge.strokeNumber);
+    edgeTruncated->SetValue(i, truncatedEdges.contains(i) ? 1 : 0);
+  }
+
   auto polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->SetPoints(points);
   polyData->SetLines(lines);
@@ -274,6 +284,7 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
   polyData->GetPointData()->AddArray(flags);
   polyData->GetPointData()->AddArray(edgeIndexes);
   polyData->GetPointData()->AddArray(edgeNumbers);
+  polyData->GetPointData()->AddArray(edgeTruncated);
   polyData->GetCellData()->AddArray(cellIndexes);
 
   return polyData;

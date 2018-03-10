@@ -42,28 +42,24 @@ namespace ESPINA
    */
   struct StrokeInfo
   {
-     QString                   name;              /** stroke name.                       */
-     double                    length;            /** stroke length.                     */
-     int                       numBranches;       /** number of branches.                */
-     QString                   branchDistances;   /** distance between branches.         */
-     QString                   branchAngles;      /** angles of branches.                */
-     bool                      used;              /** used in total length.              */
-     int                       connectionNum;     /** number of connections in stroke.   */
-     QString                   connections;       /** connection points text.            */
-     vtkSmartPointer<vtkActor> actor;             /** stroke actors.                     */
-     bool                      selected;          /** true if selected, false otherwise. */
-     int                       hue;               /** hue color of the stroke.           */
+     QString                          name;              /** stroke name.                       */
+     double                           length;            /** stroke length.                     */
+     bool                             used;              /** used in total length.              */
+     QList<vtkSmartPointer<vtkActor>> actors;            /** stroke actors.                     */
+     bool                             selected;          /** true if selected, false otherwise. */
+     int                              hue;               /** hue color of the stroke.           */
+     int                              randomHue;         /** random color.                      */
 
      /** \brief StrokeInfo struct empty constructor.
       *
       */
-     StrokeInfo(): length{0}, numBranches{0}, used{false}, connectionNum{0}, selected{false}, hue{0} {};
+     StrokeInfo(): length{0}, used{false}, selected{false}, hue{0}, randomHue{0} {};
 
      /** \brief Operator < for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.
       *
       */
-     bool operator<(const StrokeInfo &other) const { return name < other.name; };
+     bool operator<(const StrokeInfo &other) const { if(name.length() < other.name.length()) return true; else return name < other.name; };
 
      /** \brief Operator == for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.

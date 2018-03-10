@@ -423,6 +423,13 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
                   break;
                 }
 
+                if((!path.seen.first()->isTerminal()) && (!path.seen.last()->isTerminal()))
+                {
+                  auto details = tr("Stroke has no terminal points.");
+                  DefaultDialogs::InformationMessage(message, title, details);
+                  break;
+                }
+
                 if((path.seen.first()->isBranching()) && (path.seen.last()->isBranching()))
                 {
                   auto details = tr("Stroke has not a terminal node to toggle as truncated.");

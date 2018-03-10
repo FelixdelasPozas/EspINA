@@ -146,7 +146,7 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
           {
             for(auto stroke: m_strokes)
             {
-              if(stroke.actor->GetVisibility()) ++count;
+              if(stroke.actors.first()->GetVisibility()) ++count;
             }
 
             if(count == m_strokes.size()) return Qt::Checked;
@@ -168,7 +168,7 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
         {
           if(index.parent().row() == 0)
           {
-            return (m_strokes.at(index.row()).actor->GetVisibility() ? Qt::Checked : Qt::Unchecked);
+            return (m_strokes.at(index.row()).actors.first()->GetVisibility() ? Qt::Checked : Qt::Unchecked);
           }
           else
           {
@@ -292,7 +292,7 @@ bool SkeletonInspectorTreeModel::setData(const QModelIndex& modelIndex, const QV
       case 0:
         for(auto stroke: m_strokes)
         {
-          stroke.actor->SetVisibility(state == true);
+          for(auto actor: stroke.actors) actor->SetVisibility(state == true);
           auto newIndex = index(m_strokes.indexOf(stroke),0, modelIndex);
           emit dataChanged(newIndex, newIndex);
         }
@@ -315,7 +315,7 @@ bool SkeletonInspectorTreeModel::setData(const QModelIndex& modelIndex, const QV
     switch(modelIndex.parent().row())
     {
       case 0:
-        m_strokes.at(modelIndex.row()).actor->SetVisibility(state == true);
+        for(auto actor: m_strokes.at(modelIndex.row()).actors) actor->SetVisibility(state == true);
         toInvalidate << m_segmentation.get();
         break;
       default:

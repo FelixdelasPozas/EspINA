@@ -33,6 +33,7 @@
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Representations/RepresentationUtils.h>
@@ -57,11 +58,20 @@
 #include <vtkPointSetToLabelHierarchy.h>
 #include <vtkLabelPlacementMapper.h>
 #include <vtkActor2D.h>
+#include <vtkGlyphSource2D.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkTransform.h>
+#include <vtkFollower.h>
 
 // Qt
 #include <QToolBar>
 #include <QListWidgetItem>
 #include <QApplication>
+
+// C++
+#include <random>
+#include <chrono>
 
 using namespace ESPINA;
 using namespace Core;
@@ -71,6 +81,7 @@ using namespace GUI::ColorEngines;
 using namespace GUI::Representations;
 using namespace GUI::Representations::Managers;
 using namespace GUI::Representations::Settings;
+using namespace GUI::Widgets;
 using namespace Support::Representations::Utils;
 
 const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
@@ -81,6 +92,7 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
 , Support::WithContext (context)
 , m_view               {getViewState(), false, nullptr}
 , m_segmentationSources(getViewState())
+, m_temporalPipeline   {nullptr}
 {
   setupUi(this);
 
@@ -110,7 +122,7 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   QDialog::closeEvent(event);
 
   m_segmentation->clearTemporalRepresentation();
-  for(auto stroke: m_strokes) stroke.actor = nullptr;
+  for(auto stroke: m_strokes) stroke.actors.clear();
   m_strokes.clear();
 }
 
@@ -124,83 +136,19 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
   auto pathList    = paths(definition.nodes, definition.edges, definition.strokes);
   auto connections = getModel()->connections(segmentation);
 
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::minstd_rand0 rngenerator(seed);
+
   for(auto i = 0; i < pathList.size(); ++i)
   {
     auto path = pathList.at(i);
 
     struct StrokeInfo info;
-    info.name   = path.note;
-    info.length = path.length();
-    info.used   = definition.strokes.at(path.stroke).useMeasure;
-    info.hue    = definition.strokes.at(path.stroke).colorHue;
-
-    double distance = 0;
-    QString branchName;
-    for(int i = 0; i < path.seen.size(); ++i)
-    {
-      auto node = path.seen.at(i);
-      if(i != 0) distance += std::sqrt(vtkMath::Distance2BetweenPoints(node->position, path.seen.at(i-1)->position));
-
-      switch(node->connections.size())
-      {
-        case 1:
-          {
-            for(auto connection: connections)
-            {
-              auto point = connection.point;
-              if(node->position[0] == point[0] && node->position[1] == point[1] && node->position[2] == point[2])
-              {
-                ++info.connectionNum;
-                auto text = tr("<b>%1</b> at point <a href=""%2"">%2</a>. ").arg(connection.item2->data().toString()).arg(connection.point.toString());
-                info.connections += text;
-              }
-            }
-          }
-          break;
-        case 2:
-          continue;
-          break;
-        default:
-          {
-            int count = 0;
-            for(auto value: node->connections.values())
-            {
-              if(value == path.edge) ++count;
-            }
-            if(count != 2) continue;
-
-            for(auto connection: node->connections.keys())
-            {
-              auto otherEdgeIndex = node->connections[connection];
-              if(otherEdgeIndex != path.edge)
-              {
-                ++info.numBranches;
-                auto otherEdgeInfo = definition.edges.at(otherEdgeIndex);
-                auto name = QString("%1 %2").arg(definition.strokes.at(otherEdgeInfo.strokeIndex).name).arg(otherEdgeInfo.strokeNumber);
-
-                if(!branchName.isEmpty())
-                {
-                  info.branchDistances += QString("%1<->%2 = %3 nm. ").arg(branchName).arg(name).arg(distance);
-                }
-
-                branchName = name;
-                distance = 0;
-
-                double branchAngle = 181.0;
-                for(auto otherConnection: node->connections.keys())
-                {
-                  if(node->connections[otherConnection] != path.edge) continue;
-                  auto otherBranchAngle = Core::angle(node, connection, otherConnection);
-                  if(otherBranchAngle < branchAngle) branchAngle = otherBranchAngle;
-                }
-
-                info.branchAngles += QString("%1 = %2 degrees. ").arg(name).arg(branchAngle);
-              }
-            }
-          }
-          break;
-      }
-    }
+    info.name      = path.note;
+    info.length    = path.length();
+    info.used      = definition.strokes.at(path.stroke).useMeasure;
+    info.hue       = definition.strokes.at(path.stroke).colorHue;
+    info.randomHue = rngenerator() % 360;
 
     auto points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(path.seen.size());
@@ -231,14 +179,51 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
 
     auto hue   = definition.strokes.at(path.stroke).colorHue;
     auto color = QColor::fromHsv(hue, 255,255);
-    info.actor = vtkSmartPointer<vtkActor>::New();
-    info.actor->SetMapper(mapper);
-    info.actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-    info.actor->GetProperty()->SetLineWidth(1);
-    info.actor->SetPickable(false);
+    auto actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+    actor->GetProperty()->SetLineWidth(1);
+    actor->SetPickable(false);
     if(definition.strokes.at(path.stroke).type != 0)
     {
-      info.actor->GetProperty()->SetLineStipplePattern(0xFF00);
+      actor->GetProperty()->SetLineStipplePattern(0xFF00);
+    }
+
+    info.actors << actor;
+
+    for(auto node: {path.begin, path.end})
+    {
+      if(node->isTerminal() && node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
+      {
+        auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
+        truncatedPoints->InsertNextPoint(node->position);
+
+        truncatedPoints->Modified();
+        auto truncatedData = vtkSmartPointer<vtkPolyData>::New();
+        truncatedData->SetPoints(truncatedPoints);
+        truncatedData->Modified();
+
+        auto glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
+        glyph2D->SetGlyphTypeToSquare();
+        glyph2D->SetFilled(false);
+        glyph2D->SetCenter(0,0,0);
+        glyph2D->SetScale(35);
+        glyph2D->SetColor(1,0,0);
+        glyph2D->Update();
+
+        auto glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+        glyphMapper->SetScalarVisibility(false);
+        glyphMapper->SetStatic(true);
+        glyphMapper->SetInputData(truncatedData);
+        glyphMapper->SetSourceData(glyph2D->GetOutput());
+        glyphMapper->Update();
+
+        auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
+        truncatedActor->SetMapper(glyphMapper);
+
+        info.actors << truncatedActor;
+        break;
+      }
     }
 
     m_strokes << info;
@@ -294,9 +279,11 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
 
     if(isStackRepresentation(representation)) continue;
 
-    m_representations << representation;
-
-    switches << representation.Switches;
+    for(auto repSwitch: representation.Switches)
+    {
+      if(repSwitch->id() == "Skeleton3DSwitch") continue;
+      switches << repSwitch;
+    }
 
     for (auto manager : representation.Managers)
     {
@@ -312,7 +299,25 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
         auto conManager = std::dynamic_pointer_cast<ConnectionsManager>(manager);
         conManager->setConnectionsObject(this);
       }
+
+      if(manager->name() == "DisplaySkeleton3DRepresentation")
+      {
+        SkeletonPoolSettingsSPtr skeletonSettings = nullptr;
+        for (auto settings : representation.Settings)
+        {
+          if (std::dynamic_pointer_cast<SegmentationSkeletonPoolSettings>(settings)) skeletonSettings = settings;
+        }
+        Q_ASSERT(skeletonSettings);
+        auto skeletonSwitch = std::make_shared<SkeletonInspectorRepresentationSwitch>(manager, skeletonSettings, getContext());
+        switches << skeletonSwitch;
+        representation.Switches << skeletonSwitch;
+
+        connect(skeletonSwitch.get(), SIGNAL(coloringEnabled(bool)),
+                this,                 SLOT(onColoringEnabled(bool)));
+      }
     }
+
+    m_representations << representation;
   }
 
   auto comparisonOp = [] (const RepresentationSwitchSPtr &left, const RepresentationSwitchSPtr &right) { if(left == nullptr || right == nullptr) return false; return left->groupWith() < right->groupWith(); };
@@ -323,7 +328,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
   {
     auto id = repSwitch->id();
 
-    if(id == "Skeleton3DSwitch" || id == "SegmentationMeshSwitch" || id == "ConnectionsSwitch")
+    if(id == "SegmentationMeshSwitch" || id == "ConnectionsSwitch" || id == "SkeletonInspectorRepresentationSwitch")
     {
       toEnable << repSwitch;
     }
@@ -389,7 +394,8 @@ void SkeletonInspector::addSegmentations()
 
   qSort(m_segmentations.begin(), m_segmentations.end(), Core::Utils::lessThan<SegmentationAdapterPtr>);
 
-  m_segmentation->setTemporalRepresentation(std::make_shared<SkeletonInspectorPipeline>(m_strokes));
+  m_temporalPipeline = std::make_shared<SkeletonInspectorPipeline>(m_strokes);
+  m_segmentation->setTemporalRepresentation(m_temporalPipeline);
 }
 
 //--------------------------------------------------------------------
@@ -431,7 +437,7 @@ void SkeletonInspector::focusOnActor(QModelIndex index)
       if(parent.row() == 0)
       {
         double bounds[6];
-        m_strokes.at(index.row()).actor->GetBounds(bounds);
+        m_strokes.at(index.row()).actors.first()->GetBounds(bounds);
         point = NmVector3{(bounds[1]+bounds[0])/2, (bounds[3]+bounds[2])/2, (bounds[5]+bounds[4])/2};
       }
       else
@@ -549,9 +555,22 @@ void SkeletonInspector::onSelectionChanged(SegmentationAdapterList segmentations
 }
 
 //--------------------------------------------------------------------
+void SkeletonInspector::onColoringEnabled(bool value)
+{
+  if(m_temporalPipeline)
+  {
+    m_temporalPipeline->setRandomColors(value);
+
+    m_segmentation->invalidateRepresentations();
+    m_view.refresh();
+  }
+}
+
+//--------------------------------------------------------------------
 SkeletonInspector::SkeletonInspectorPipeline::SkeletonInspectorPipeline(QList<struct StrokeInfo>& strokes)
 : SegmentationSkeleton3DPipeline(std::make_shared<CategoryColorEngine>())
 , m_strokes(strokes)
+, m_randomColoring{false}
 {
 }
 
@@ -577,18 +596,27 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
 
   for(auto stroke: m_strokes)
   {
-    auto color = m_colorEngine->color(segmentation);
-    if(color.hue() != stroke.hue)
+    QColor color;
+    if(!m_randomColoring)
     {
-      color = QColor::fromHsv(stroke.hue, 255,255);
+      color = m_colorEngine->color(segmentation);
+      if(color.hue() != stroke.hue)
+      {
+        color = QColor::fromHsv(stroke.hue, 255,255);
+      }
+    }
+    else
+    {
+      color = QColor::fromHsv(stroke.randomHue, 255,255);
     }
 
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
     double factor = stroke.selected ? 1.0 : 0.65;
-    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
-    stroke.actor->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
-    stroke.actor->Modified();
+    auto actor = stroke.actors.first();
+    actor->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
+    actor->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
+    actor->Modified();
   }
 }
 
@@ -610,18 +638,26 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   for(auto stroke: m_strokes)
   {
     double factor = stroke.selected ? 1.0 : 0.65;
-    auto   color  = m_colorEngine->color(segmentation);
-    if(color.hue() != stroke.hue)
+    QColor color;
+    if(!m_randomColoring)
     {
-      color = QColor::fromHsv(stroke.hue, 255, 255);
+      color = m_colorEngine->color(segmentation);
+      if(color.hue() != stroke.hue)
+      {
+        color = QColor::fromHsv(stroke.hue, 255,255);
+      }
+    }
+    else
+    {
+      color = QColor::fromHsv(stroke.randomHue, 255,255);
     }
 
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
-    stroke.actor->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
-    stroke.actor->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
+    stroke.actors.first()->GetProperty()->SetLineWidth(stroke.selected ? width + 2 : width);
+    stroke.actors.first()->GetProperty()->SetColor(rgba[0]*factor, rgba[1]*factor, rgba[2]*factor);
 
-    actors << stroke.actor;
+    actors << stroke.actors.first();
   }
 
   if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
@@ -629,10 +665,11 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     auto data = readLockSkeleton(segmentation->output())->skeleton();
     auto color = m_colorEngine->color(segmentation);
     QStringList ids;
-    auto edgeNumbers  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
-    auto strokeNames  = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
-    auto cellIndexes  = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("LineIndexes"));
-    auto edgeIndexes  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeIndexes"));
+    auto edgeNumbers   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
+    auto strokeNames   = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
+    auto cellIndexes   = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("LineIndexes"));
+    auto edgeIndexes   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeIndexes"));
+    auto edgeTruncated = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeTruncated"));
 
     if(!edgeNumbers || !strokeNames || !cellIndexes || !edgeIndexes)
     {
@@ -651,6 +688,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
       auto index = cellIndexes->GetValue(i);
       auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str()) + " " + QString::number(edgeNumbers->GetValue(index));
+      if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
       if(ids.contains(text)) continue;
       ids << text;
 
@@ -689,6 +727,14 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     actors << labelActor;
   }
 
+  for(auto stroke: m_strokes)
+  {
+    if(stroke.actors.size() > 1)
+    {
+      actors << stroke.actors.last();
+    }
+  }
+
   return actors;
 }
 
@@ -706,4 +752,19 @@ void SkeletonInspector::emitSegmentationConnectionSignals()
 
     for(auto connection: connections) emit connectionAdded(connection);
   }
+}
+
+//--------------------------------------------------------------------
+SkeletonInspector::SkeletonInspectorRepresentationSwitch::SkeletonInspectorRepresentationSwitch(RepresentationManagerSPtr manager, SkeletonPoolSettingsSPtr settings, Support::Context &context)
+: SegmentationSkeletonSwitch{"SkeletonInspectorRepresentationSwitch", manager, settings, ViewType::VIEW_3D, context}
+{
+  m_coloring = Styles::createToolButton(":/espina/skeletonColors.svg", QObject::tr("Enable/Disable stroke random coloring."));
+  m_coloring->setCheckable(true);
+  m_coloring->setChecked(false);
+
+  connect(m_coloring, SIGNAL(toggled(bool)), this, SIGNAL(coloringEnabled(bool)));
+
+  addSettingsWidget(m_coloring);
+
+  setOrder("1-2","0-Representations");
 }

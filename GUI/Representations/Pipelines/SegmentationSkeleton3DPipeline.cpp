@@ -185,8 +185,9 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     actors << solidActor << dashedActor;
 
     QStringList ids;
-    auto edgeNumbers  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
-    auto strokeNames  = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
+    auto edgeNumbers   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
+    auto edgeTruncated = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeTruncated"));
+    auto strokeNames   = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
 
     if(!edgeNumbers || !strokeNames)
     {
@@ -224,6 +225,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
       auto index = cellIndexes->GetValue(i);
       auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str()) + " " + QString::number(edgeNumbers->GetValue(index));
+      if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
+
       if(ids.contains(text)) continue;
       ids << text;
 
@@ -253,6 +256,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
     labelMapper->SetBackgroundOpacity(0.5);
     labelMapper->SetPlaceAllLabels(true);
+    labelMapper->SetMaximumLabelFraction(1);
+    labelMapper->SetUseDepthBuffer(false);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();
 

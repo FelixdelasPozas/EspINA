@@ -25,9 +25,12 @@
 // ESPINA
 #include "ui_SkeletonInspector.h"
 #include "SkeletonInspectorTreeModel.h"
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/View/View3D.h>
+#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <Support/Context.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Types.h>
@@ -96,6 +99,12 @@ namespace ESPINA
        */
       void onSelectionChanged(SegmentationAdapterList segmentations);
 
+      /** \brief Changes the coloring of strokes from stroke color to random.
+       * \param[in] value True to display the strokes in random colors and false to use stroke color.
+       *
+       */
+      void onColoringEnabled(bool value);
+
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
        * \param[in] segmentation Skeleton segmentation object.
@@ -141,6 +150,8 @@ namespace ESPINA
       void emitSegmentationConnectionSignals();
 
     private:
+      class SkeletonInspectorRepresentationSwitch;
+
       /** \class SkeletonInspectorPipeline
        * \brief Custom skeleton 3D representation pipeline for the skeleton inspector.
        *
@@ -171,10 +182,25 @@ namespace ESPINA
           virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
                                                                  const RepresentationState &state) override final;
 
+          /** \brief Enables/Disables random coloring.
+           * \param[in] value True to enable random coloring and false to use stroke colors.
+           *
+           */
+          void setRandomColors(const bool value)
+          { m_randomColoring = value; }
+
+          /** \brief Returns true if random coloring is enabled and false if the stroke colors are being used.
+           *
+           */
+          const bool randomColors() const
+          { return m_randomColoring; }
+
         private:
-          QList<struct StrokeInfo> &m_strokes; /** stroke information structs list. */
+          QList<struct StrokeInfo> &m_strokes;        /** stroke information structs list.                          */
+          bool                      m_randomColoring; /** true to use random colors and false to use stroke colors. */
       };
 
+      using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;
 
       SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                             */
       SegmentationAdapterList  m_segmentations;       /** list of segmentations in the view.                                 */
@@ -182,7 +208,41 @@ namespace ESPINA
       ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.                         */
       RepresentationList       m_representations;     /** list of view's representations factories and switches.             */
       QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                                        */
+      TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation. */
   };
+
+  /** \class SkeletonInspectorRepresentationSwitch
+   * \brief Switch that inherits from the skeleton switch just to add a new coloring switch that is exclusive to the inspector.
+   *
+   */
+  class SkeletonInspector::SkeletonInspectorRepresentationSwitch
+  : public SegmentationSkeletonSwitch
+  {
+      Q_OBJECT
+    public:
+      /** \brief SkeletonInspectorRepresentationSwitch class constructor.
+       * \param[in] manager Manager associated with this switch.
+       * \param[in] settings Skeleton representation settings.
+       * \param[in] context Application context.
+       *
+       */
+      explicit SkeletonInspectorRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                                     GUI::Representations::Settings::SkeletonPoolSettingsSPtr settings,
+                                                     Support::Context& context);
+
+      /** \brief SkeletonInspectorRepresentationSwitch class virtual destructor.
+       *
+       */
+      virtual ~SkeletonInspectorRepresentationSwitch()
+      {}
+
+    signals:
+      void coloringEnabled(bool value);
+
+    private:
+      GUI::Widgets::ToolButton *m_coloring; /** random coloring enable/disable button. */
+  };
+
 
 } // namespace ESPINA
 

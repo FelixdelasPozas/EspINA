@@ -261,8 +261,9 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       actors << solidActor << dashedActor;
 
       QStringList ids;
-      auto edgeNumbers = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
-      auto strokeNames = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeName"));
+      auto edgeNumbers   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
+      auto edgeTruncated = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeTruncated"));
+      auto strokeNames   = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeName"));
 
       if(!edgeNumbers || !strokeNames)
       {
@@ -283,6 +284,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         auto number = edgeNumbers->GetValue(index);
         auto text = QString("%1 %2").arg(strokeNames->GetValue(edgeIndex).c_str()).arg(number);
 
+        if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
+
         if(ids.contains(text)) continue;
 
         ids << text;
@@ -294,12 +297,15 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       auto labelsData = vtkSmartPointer<vtkPolyData>::New();
       labelsData->SetPoints(labelPoints);
       labelsData->GetPointData()->AddArray(labelText);
+      labelsData->Modified();
 
       auto property = vtkSmartPointer<vtkTextProperty>::New();
       property->SetBold(true);
       property->SetFontFamilyToArial();
       property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
       property->SetJustificationToCentered();
+      property->SetVerticalJustificationToCentered();
+      property->Modified();
 
       auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
       labelFilter->SetInputData(labelsData);
@@ -310,12 +316,14 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       auto hueColor = QColor::fromHsv(hue, 255,255);
       auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
       labelMapper->SetInputConnection(labelFilter->GetOutputPort());
-      labelMapper->SetGeneratePerturbedLabelSpokes(true);
-      labelMapper->SetBackgroundColor(hueColor.redF() * 0.6, hueColor.greenF() * 0.6, hueColor.blueF() * 0.6);
-      labelMapper->SetBackgroundOpacity(0.5);
       labelMapper->SetPlaceAllLabels(true);
+      labelMapper->SetBackgroundColor(hueColor.redF() * 0.6, hueColor.greenF() * 0.6, hueColor.blueF() * 0.6);
       labelMapper->SetShapeToRoundedRect();
+      labelMapper->SetMaximumLabelFraction(1);
+      labelMapper->SetUseDepthBuffer(false);
+      labelMapper->SetBackgroundOpacity(0.5);
       labelMapper->SetStyleToFilled();
+      labelMapper->Update();
 
       auto labelActor = vtkSmartPointer<vtkActor2D>::New();
       labelActor->SetMapper(labelMapper);

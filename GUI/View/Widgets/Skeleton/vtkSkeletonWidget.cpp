@@ -670,7 +670,7 @@ bool vtkSkeletonWidget::markAsTruncated()
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidget::setRepresentationWidth(int width)
+void vtkSkeletonWidget::setRepresentationWidth(const int width)
 {
   if(!WidgetRep) CreateDefaultRepresentation();
 

@@ -509,40 +509,39 @@ namespace ESPINA
               double m_interactionOffset[2]; // distance between the mouse event and where the widget is focused (distance to maintain between interaction).
 
               // VTK data;
-              vtkSmartPointer<vtkUnsignedCharArray> m_colors;
-              vtkSmartPointer<vtkGlyph3D>           m_pointer;
-              vtkSmartPointer<vtkActor>             m_pointerActor;
-              vtkSmartPointer<vtkPoints>            m_points;
-              vtkSmartPointer<vtkPolyData>          m_pointsData;
-              vtkSmartPointer<vtkGlyph3D>           m_glypher;
-              vtkSmartPointer<vtkPolyDataMapper>    m_mapper;
-              vtkSmartPointer<vtkActor>             m_actor;
-              vtkSmartPointer<vtkPolyData>          m_lines;
-              vtkSmartPointer<vtkPolyDataMapper>    m_linesMapper;
-              vtkSmartPointer<vtkActor>             m_linesActor;
-              vtkSmartPointer<vtkPolyData>          m_dashedLines;
-              vtkSmartPointer<vtkPolyDataMapper>    m_dashedLinesMapper;
-              vtkSmartPointer<vtkActor>             m_dashedLinesActor;
+              vtkSmartPointer<vtkUnsignedCharArray>        m_colors;            /** node colors.                                   */
+              vtkSmartPointer<vtkGlyph3D>                  m_pointer;           /** current node glyph.                            */
+              vtkSmartPointer<vtkActor>                    m_pointerActor;      /** current node actor.                            */
+              vtkSmartPointer<vtkPoints>                   m_points;            /** node locations.                                */
+              vtkSmartPointer<vtkPolyData>                 m_pointsData;        /** points data.                                   */
+              vtkSmartPointer<vtkGlyph3D>                  m_glypher;           /** nodes glyph                                    */
+              vtkSmartPointer<vtkPolyDataMapper>           m_mapper;            /** nodes mapper.                                  */
+              vtkSmartPointer<vtkActor>                    m_actor;             /** nodes actor.                                   */
+              vtkSmartPointer<vtkPolyData>                 m_lines;             /** solid lines data.                              */
+              vtkSmartPointer<vtkPolyDataMapper>           m_linesMapper;       /** solid lines mapper.                            */
+              vtkSmartPointer<vtkActor>                    m_linesActor;        /** solid lines actor.                             */
+              vtkSmartPointer<vtkPolyData>                 m_dashedLines;       /** dashed lines data.                             */
+              vtkSmartPointer<vtkPolyDataMapper>           m_dashedLinesMapper; /** dashed lines mapper.                           */
+              vtkSmartPointer<vtkActor>                    m_dashedLinesActor;  /** dashed lines actor.                            */
 
-              vtkSmartPointer<vtkPoints>                  m_truncatedPoints; /** truncated points.                              */
-              vtkSmartPointer<vtkPolyData>                m_truncatedData;   /** truncated polydata.                            */
-              vtkSmartPointer<vtkTransformPolyDataFilter> m_transformFilter; /** transformed polydata filter for XZ & YZ views. */
-              vtkSmartPointer<vtkGlyph3DMapper>           m_glyphMapper;     /** glyph mapper filter.                           */
-              vtkSmartPointer<vtkGlyphSource2D>           m_glyph2D;         /** glyph source for 2D views.                     */
-              vtkSmartPointer<vtkFollower>                m_truncatedActor;  /** truncated points representation actor.         */
+              vtkSmartPointer<vtkPoints>                   m_truncatedPoints;   /** truncated points.                              */
+              vtkSmartPointer<vtkPolyData>                 m_truncatedData;     /** truncated polydata.                            */
+              vtkSmartPointer<vtkTransformPolyDataFilter>  m_transformFilter;   /** transformed polydata filter for XZ & YZ views. */
+              vtkSmartPointer<vtkGlyph3DMapper>            m_glyphMapper;       /** glyph mapper filter.                           */
+              vtkSmartPointer<vtkGlyphSource2D>            m_glyph2D;           /** glyph source for 2D views.                     */
+              vtkSmartPointer<vtkFollower>                 m_truncatedActor;    /** truncated points representation actor.         */
 
-              bool                                         m_showLabels;
-              vtkSmartPointer<vtkPoints>                   m_labelPoints;
-              vtkSmartPointer<vtkStringArray>              m_labels;
-              vtkSmartPointer<vtkPolyData>                 m_labelData;
-              vtkSmartPointer<vtkTextProperty>             m_labelProperty;
-              vtkSmartPointer<vtkPointSetToLabelHierarchy> m_labelFilter;
-              vtkSmartPointer<vtkLabelPlacementMapper>     m_labelPlacer;
-              vtkSmartPointer<vtkActor2D>                  m_labelActor;
-              QColor                                       m_labelColor;
-              unsigned int                                 m_labelSize;
-
-              int                                          m_width;
+              bool                                         m_showLabels;        /** true to show labels actor, false otherwise.    */
+              vtkSmartPointer<vtkPoints>                   m_labelPoints;       /** points where to show the labels.               */
+              vtkSmartPointer<vtkStringArray>              m_labels;            /** label points text.                             */
+              vtkSmartPointer<vtkPolyData>                 m_labelData;         /** polydata with the points and text array.       */
+              vtkSmartPointer<vtkTextProperty>             m_labelProperty;     /** label visual properties.                       */
+              vtkSmartPointer<vtkPointSetToLabelHierarchy> m_labelFilter;       /** points to labels filter                        */
+              vtkSmartPointer<vtkLabelPlacementMapper>     m_labelPlacer;       /** labels mapper.                                 */
+              vtkSmartPointer<vtkActor2D>                  m_labelActor;        /** labels actor.                                  */
+              QColor                                       m_labelColor;        /** color of the labels.                           */
+              unsigned int                                 m_labelSize;         /** labels text size.                              */
+              int                                          m_width;             /** skeleton lines width.                          */
 
               int m_currentStrokeIndex; /** index of current stroke in s_skeleton.strokes. */
               int m_currentEdgeIndex;   /** index of current edge in s_skeleton.edges.     */

@@ -22,6 +22,7 @@
 #include "vtkSkeletonWidgetRepresentation.h"
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/View/View2D.h>
+#include <GUI/View/Utils.h>
 
 // VTK
 #include <vtkObjectFactory.h>
@@ -61,6 +62,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
+using namespace ESPINA::GUI::View::Utils;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
 vtkStandardNewMacro(vtkSkeletonWidgetRepresentation);
@@ -75,7 +77,7 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 : m_orientation       {Plane::UNDEFINED}
 , m_tolerance         {std::sqrt(20)}
 , m_slice             {-1}
-, m_shift             {-1}
+, m_shift             {0}
 , m_labelColor        {QColor::fromRgbF(1,1,1)}
 , m_labelSize         {5}
 , m_width             {1}
@@ -199,25 +201,29 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_labelProperty->SetFontFamilyToArial();
   m_labelProperty->SetFontSize(m_labelSize);
   m_labelProperty->SetJustificationToCentered();
+  m_labelProperty->SetVerticalJustificationToCentered();
+  m_labelProperty->Modified();
 
   m_labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
   m_labelFilter->SetInputData(m_labelData);
   m_labelFilter->SetLabelArrayName("Labels");
   m_labelFilter->SetTextProperty(m_labelProperty);
-  m_labelFilter->Update();
 
   m_labelPlacer = vtkSmartPointer<vtkLabelPlacementMapper>::New();
   m_labelPlacer->SetInputConnection(m_labelFilter->GetOutputPort());
-  m_labelPlacer->SetGeneratePerturbedLabelSpokes(true);
+  m_labelPlacer->SetPlaceAllLabels(true);
   m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
   m_labelPlacer->SetBackgroundOpacity(0.5);
-  m_labelPlacer->SetPlaceAllLabels(true);
   m_labelPlacer->SetShapeToRoundedRect();
+  m_labelPlacer->SetMaximumLabelFraction(0.9);
+  m_labelPlacer->SetUseDepthBuffer(false);
   m_labelPlacer->SetStyleToFilled();
-  m_labelPlacer->Update();
 
   m_labelActor = vtkSmartPointer<vtkActor2D>::New();
   m_labelActor->SetMapper(m_labelPlacer);
+  m_labelActor->SetDragable(false);
+  m_labelActor->SetPickable(false);
+  m_labelActor->SetUseBounds(false);
 
   m_interactionOffset[0] = 0.0;
   m_interactionOffset[1] = 0.0;
@@ -753,14 +759,13 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_colors->Reset();
 
   m_visiblePoints.clear();
-  QMap<int, QString> visibleEdges;
+  QSet<int> truncatedStrokes, visibleStrokes;
   double worldPos[3];
 
   s_skeletonMutex.lock();
 
   for(int i = 0; i < s_skeleton.nodes.size(); ++i)
   {
-    bool truncated = false;
     auto node = s_skeleton.nodes.at(i);
 
     for(auto other: node->connections.keys())
@@ -769,6 +774,14 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     }
 
     if(node->connections.isEmpty()) continue;
+
+    if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
+    {
+      for(auto edgeIndex: node->connections.values())
+      {
+        truncatedStrokes << edgeIndex;
+      }
+    }
 
     // we only want "some" points in the screen representation and want all the representation to be visible.
     if (areEqual(node->position[planeIndex], m_slice))
@@ -784,7 +797,6 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
         if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
         {
           m_truncatedPoints->InsertNextPoint(worldPos);
-          truncated = true;
         }
       }
 
@@ -815,7 +827,6 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           if(connectedNode->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
           {
             m_truncatedPoints->InsertNextPoint(worldPos);
-            truncated = true;
           }
         }
 
@@ -826,12 +837,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
         auto edgeIndex = node->connections[connectedNode];
         auto edge      = edges.at(edgeIndex);
         auto stroke    = strokes.at(edge.strokeIndex);
-
-        if(!visibleEdges.keys().contains(edgeIndex))
-        {
-          visibleEdges.insert(edgeIndex, strokeName(edge, s_skeleton.strokes));
-          if(truncated) visibleEdges[edgeIndex] += QString("\n(Truncated)");
-        }
+        visibleStrokes << edgeIndex;
 
         vtkSmartPointer<vtkUnsignedCharArray> currentCellsColors = nullptr;
         if(stroke.type == 0)
@@ -875,7 +881,6 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
             if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
             {
               m_truncatedPoints->InsertNextPoint(worldPos);
-              truncated = true;
             }
           }
 
@@ -904,7 +909,6 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
             if(connectedNode->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
             {
               m_truncatedPoints->InsertNextPoint(worldPos);
-              truncated = true;
             }
           }
 
@@ -915,12 +919,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           auto edgeIndex = node->connections[connectedNode];
           auto edge      = edges.at(edgeIndex);
           auto stroke    = strokes.at(edge.strokeIndex);
-
-          if(!visibleEdges.keys().contains(edgeIndex))
-          {
-            visibleEdges.insert(edgeIndex, strokeName(edge, s_skeleton.strokes));
-            if(truncated) visibleEdges[edgeIndex] += QString("\n(Truncated)");
-          }
+          visibleStrokes << edgeIndex;
 
           vtkSmartPointer<vtkUnsignedCharArray> currentCellsColors = nullptr;
           if(stroke.type == 0)
@@ -963,21 +962,30 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   // labels
   if(m_showLabels && !m_visiblePoints.empty())
   {
-    for(auto node: m_visiblePoints.keys())
+    bool firstPass = true;
+    while(!visibleStrokes.isEmpty())
     {
-      if(node->isBranching() || node == s_currentVertex) continue;
-
-      for(auto edge: node->connections.values())
+      for(auto node: m_visiblePoints.keys())
       {
-        if(visibleEdges.contains(edge))
-        {
-          m_labelPoints->InsertNextPoint(node->position);
-          m_labels->InsertNextValue(visibleEdges[edge].toStdString().c_str());
+        if(firstPass && (node->isBranching() || node == s_currentVertex)) continue;
 
-          visibleEdges.remove(edge);
-          break;
+        for(auto edge: node->connections.values())
+        {
+          if(visibleStrokes.contains(edge))
+          {
+            m_labelPoints->InsertNextPoint(node->position);
+
+            auto text = strokeName(s_skeleton.edges.at(edge), s_skeleton.strokes);
+            visibleStrokes.remove(edge);
+            if(truncatedStrokes.contains(edge)) text += " (Truncated)";
+            m_labels->InsertNextValue(text.toStdString().c_str());
+
+            break;
+          }
         }
       }
+
+      firstPass = false;
     }
   }
 
@@ -1018,8 +1026,8 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_truncatedData->GetPointData()->Modified();
   m_glyphMapper->SetScaleFactor(distance * HandleSize);
   m_glyphMapper->Update();
-  m_truncatedActor->Modified();
   m_truncatedActor->SetVisibility(m_truncatedPoints->GetNumberOfPoints() != 0);
+  m_truncatedActor->Modified();
 
   m_labelProperty->SetFontSize(m_labelSize);
   m_labelPoints->Modified();
@@ -1027,6 +1035,10 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_labelData->Modified();
   m_labelFilter->Update();
   m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
+  m_labelPlacer->SetUpdateExtentToWholeExtent();
+  m_labelPlacer->RemoveAllClippingPlanes();
+  m_labelPlacer->Update();
+  m_labelActor->SetVisibility(m_showLabels);
   m_labelActor->Modified();
 
   m_pointer->SetScaleFactor(distance * HandleSize);
@@ -1261,7 +1273,7 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
 
   if (m_pointerActor->GetVisibility())
   {
-    result += m_pointerActor->HasTranslucentPolygonalGeometry();
+    result |= m_pointerActor->HasTranslucentPolygonalGeometry();
   }
 
   if (m_linesActor->GetVisibility())
@@ -1744,6 +1756,7 @@ void vtkSkeletonWidgetRepresentation::setLabelsSize(unsigned int size)
   {
     m_labelSize = size;
 
+    m_labelProperty->SetLineOffset(m_labelSize);
     m_labelProperty->SetFontSize(m_labelSize);
     m_labelProperty->Modified();
     m_labelFilter->Update();
