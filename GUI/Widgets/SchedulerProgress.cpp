@@ -232,6 +232,8 @@ void SchedulerProgress::updateNotificationWidget()
 //------------------------------------------------------------------------
 void SchedulerProgress::abortAllTasks()
 {
+  QMutexLocker lock(&m_mutex);
+
   for(auto widget: m_tasks.values())
   {
     widget->onCancel();
