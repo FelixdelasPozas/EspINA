@@ -101,7 +101,7 @@ void DefaultContextualMenu::addNote()
 
     NoteEditor editor(segmentation->data().toString(), previousNotes);
 
-    if (editor.exec())
+    if (QDialog::Accepted == editor.exec())
     {
       commands << new ChangeSegmentationNotes(segmentation, editor.text(), getContext().factory().get());
     }

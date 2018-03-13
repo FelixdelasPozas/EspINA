@@ -23,6 +23,7 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -72,6 +73,13 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
           acceptRows = tags[i].contains(filterRegExp());
           ++i;
         }
+      }
+
+      if(!acceptRows && extensions->hasExtension(SegmentationNotes::TYPE))
+      {
+        auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+
+        acceptRows = notesExtension->notes().contains(filterRegExp());
       }
     }
   }
