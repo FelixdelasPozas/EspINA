@@ -170,6 +170,31 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
       }
     }
 
+    Q_ASSERT(!path.begin->connections.isEmpty());
+    auto otherNode = path.seen.at(1);
+    info.labelPoint = NmVector3{(path.begin->position[0]+otherNode->position[0])/2.0,
+                                (path.begin->position[1]+otherNode->position[1])/2.0,
+                                (path.begin->position[2]+otherNode->position[2])/2.0};
+
+    for(auto node: {path.end, path.begin})
+    {
+      if (node->isTerminal())
+      {
+        if(!node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
+        {
+          info.labelPoint = NmVector3{node->position};
+        }
+        else
+        {
+          Q_ASSERT(!node->connections.isEmpty());
+          otherNode = node->connections.keys().first();
+          info.labelPoint = NmVector3{(node->position[0]+otherNode->position[0])/2.0,
+                                      (node->position[1]+otherNode->position[1])/2.0,
+                                      (node->position[2]+otherNode->position[2])/2.0};
+        }
+      }
+    }
+
     auto polyData = vtkSmartPointer<vtkPolyData>::New();
     polyData->SetPoints(points);
     polyData->SetLines(lines);
@@ -635,8 +660,12 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   double rgba[4];
 
   RepresentationPipeline::ActorList actors;
+
+  // line actors.
   for(auto stroke: m_strokes)
   {
+    if(!stroke.actors.first()->GetVisibility()) continue;
+
     double factor = stroke.selected ? 1.0 : 0.65;
     QColor color;
     if(!m_randomColoring)
@@ -660,41 +689,24 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     actors << stroke.actors.first();
   }
 
+  // truncated points actors.
+  for(auto stroke: m_strokes)
+  {
+    if(!stroke.actors.first()->GetVisibility()) continue;
+
+    if(stroke.actors.size() > 1)
+    {
+      actors << stroke.actors.last();
+    }
+  }
+
+  // label actors
   if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
   {
-    auto data = readLockSkeleton(segmentation->output())->skeleton();
-    auto color = m_colorEngine->color(segmentation);
-    QStringList ids;
-    auto edgeNumbers   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
-    auto strokeNames   = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
-    auto cellIndexes   = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("LineIndexes"));
-    auto edgeIndexes   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeIndexes"));
-    auto edgeTruncated = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeTruncated"));
-
-    if(!edgeNumbers || !strokeNames || !cellIndexes || !edgeIndexes)
-    {
-      return actors;
-    }
-
+    auto color       = m_colorEngine->color(segmentation);
     auto labelPoints = vtkSmartPointer<vtkPoints>::New();
     auto labelText   = vtkSmartPointer<vtkStringArray>::New();
     labelText->SetName("Labels");
-
-    data->GetLines()->InitTraversal();
-    for(int i = 0; i < data->GetNumberOfLines(); ++i)
-    {
-      auto idList = vtkSmartPointer<vtkIdList>::New();
-      data->GetLines()->GetNextCell(idList);
-
-      auto index = cellIndexes->GetValue(i);
-      auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str()) + " " + QString::number(edgeNumbers->GetValue(index));
-      if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
-      if(ids.contains(text)) continue;
-      ids << text;
-
-      labelPoints->InsertNextPoint(data->GetPoint(idList->GetId(1)));
-      labelText->InsertNextValue(text.toStdString().c_str());
-    }
 
     auto labelsData = vtkSmartPointer<vtkPolyData>::New();
     labelsData->SetPoints(labelPoints);
@@ -724,14 +736,21 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     labelActor->SetMapper(labelMapper);
     labelActor->SetVisibility(true);
 
-    actors << labelActor;
-  }
-
-  for(auto stroke: m_strokes)
-  {
-    if(stroke.actors.size() > 1)
+    for(auto stroke: m_strokes)
     {
-      actors << stroke.actors.last();
+      if(!stroke.actors.first()->GetVisibility()) continue;
+
+      labelPoints->InsertNextPoint(stroke.labelPoint[0], stroke.labelPoint[1], stroke.labelPoint[2]);
+      labelText->InsertNextValue(stroke.name.toStdString().c_str());
+    }
+
+    if(labelPoints->GetNumberOfPoints() > 0)
+    {
+      labelsData->Modified();
+      labelFilter->Update();
+      labelMapper->Update();
+      labelActor->Modified();
+      actors << labelActor;
     }
   }
 

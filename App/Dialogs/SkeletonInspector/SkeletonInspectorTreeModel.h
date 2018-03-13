@@ -42,13 +42,14 @@ namespace ESPINA
    */
   struct StrokeInfo
   {
-     QString                          name;              /** stroke name.                       */
-     double                           length;            /** stroke length.                     */
-     bool                             used;              /** used in total length.              */
-     QList<vtkSmartPointer<vtkActor>> actors;            /** stroke actors.                     */
-     bool                             selected;          /** true if selected, false otherwise. */
-     int                              hue;               /** hue color of the stroke.           */
-     int                              randomHue;         /** random color.                      */
+     QString                          name;       /** stroke name.                       */
+     double                           length;     /** stroke length.                     */
+     bool                             used;       /** used in total length.              */
+     QList<vtkSmartPointer<vtkActor>> actors;     /** stroke actors.                     */
+     bool                             selected;   /** true if selected, false otherwise. */
+     int                              hue;        /** hue color of the stroke.           */
+     int                              randomHue;  /** random color.                      */
+     NmVector3                        labelPoint; /** point of the label.                */
 
      /** \brief StrokeInfo struct empty constructor.
       *
