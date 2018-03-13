@@ -191,6 +191,10 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     if (segmentation->hasInformation(key) || isSASInformation(key))
     {
       auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
+      if(!sas && isSASInformation(key))
+      {
+        return tr("No SAS has been created for %1.").arg(segmentation->data().toString());
+      }
 
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {

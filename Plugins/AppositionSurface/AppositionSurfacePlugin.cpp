@@ -231,8 +231,17 @@ SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 //-----------------------------------------------------------------------------
 bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
-  bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool isValidCategory = segmentation->category()->classificationName().startsWith(tr("Synapse"));
   bool hasRequiredData = hasVolumetricData(segmentation->output());
+
+  return (isValidCategory && hasRequiredData);
+}
+
+//-----------------------------------------------------------------------------
+bool AppositionSurfacePlugin::isValidSAS(SegmentationAdapterPtr segmentation)
+{
+  bool isValidCategory = segmentation->category()->classificationName().startsWith(tr("SAS"));
+  bool hasRequiredData = hasMeshData(segmentation->output());
 
   return (isValidCategory && hasRequiredData);
 }
