@@ -151,6 +151,7 @@ namespace ESPINA
       using CheckList = QList<std::shared_ptr<CheckTask>>;
 
       QMutex    m_progressMutex; /** mutex to protect the progression value. */
+      int       m_tasksNum;      /** total number of task to run.            */
       CheckList m_checkList;     /** list of check tasks.                    */
       int       m_finishedTasks; /** number of finished check tasks.         */
 
