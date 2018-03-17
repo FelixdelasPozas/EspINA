@@ -480,6 +480,12 @@ namespace ESPINA
                */
               const Core::PathList currentSelectedPaths() const;
 
+              /** \brief Deletes the given node and the connected ones if not connected to anyone else.
+               * \param[in] node Skeleton node struct.
+               *
+               */
+              void deleteNode(Core::SkeletonNode *node);
+
               // Not implemented.
               vtkSkeletonWidgetRepresentation(const vtkSkeletonWidgetRepresentation&);
               void operator=(const vtkSkeletonWidgetRepresentation&);

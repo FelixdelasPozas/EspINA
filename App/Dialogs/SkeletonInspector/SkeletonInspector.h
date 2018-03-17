@@ -93,17 +93,22 @@ namespace ESPINA
        */
       void onRepresentationsInvalidated(ViewItemAdapterList segmentations);
 
-      /** \brief Updates the selected items in the tree depending on the current selection.
-       * \param[in] segmentations Currently selected segmentations.
-       *
-       */
-      void onSelectionChanged(SegmentationAdapterList segmentations);
-
       /** \brief Changes the coloring of strokes from stroke color to random.
        * \param[in] value True to display the strokes in random colors and false to use stroke color.
        *
        */
       void onColoringEnabled(bool value);
+
+      /** \brief Updates the model and expands the connections subtree.
+       * \param[in] distance Connections distance new value.
+       */
+      void onDistanceChanged(int distance);
+
+      /** \brief Updates the view sources and connections when the segmentations distance changes in the model.
+       * \param[in] segmentations List of segmentations in the distance minus the source one.
+       *
+       */
+      void onSegmentationsShown(const SegmentationAdapterList segmentations);
 
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
@@ -134,15 +139,16 @@ namespace ESPINA
        */
       void initTreeView();
 
-      /** \brief Adds the currently selected segmentations and it's connected ones to the view and the sources.
+      /** \brief Adds the currently selected segmentation and it's connected ones at a distance 1 to the view and the sources.
        *
        */
-      void addSegmentations();
+      void addInitialSegmentations();
 
-      /** \brief Helper method to connect signals to its respective slots.
+      /** \brief Adds the given segmentations to the view's sources.
+       * \param[in] segmentations Segmentations list.
        *
        */
-      void connectSignals();
+      void addSegmentations(const SegmentationAdapterList &segmentations);
 
       /** \brief Helper method that emits all the connections for the ConnectionManager.
        *
@@ -202,13 +208,12 @@ namespace ESPINA
 
       using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;
 
-      SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                             */
-      SegmentationAdapterList  m_segmentations;       /** list of segmentations in the view.                                 */
-      View3D                   m_view;                /** 3D view.                                                           */
-      ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.                         */
-      RepresentationList       m_representations;     /** list of view's representations factories and switches.             */
-      QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                                        */
-      TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation. */
+      SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                 */
+      View3D                   m_view;                /** 3D view.                                               */
+      ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.             */
+      RepresentationList       m_representations;     /** list of view's representations factories and switches. */
+      QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                            */
+      TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation.                  */
   };
 
   /** \class SkeletonInspectorRepresentationSwitch

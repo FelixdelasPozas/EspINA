@@ -74,15 +74,16 @@
 #include <chrono>
 
 using namespace ESPINA;
-using namespace Core;
-using namespace GUI;
-using namespace GUI::Model::Utils;
-using namespace GUI::ColorEngines;
-using namespace GUI::Representations;
-using namespace GUI::Representations::Managers;
-using namespace GUI::Representations::Settings;
-using namespace GUI::Widgets;
-using namespace Support::Representations::Utils;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::ColorEngines;
+using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
+using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::Support::Representations::Utils;
 
 const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
 
@@ -96,15 +97,13 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
 {
   setupUi(this);
 
-  addSegmentations();
+  addInitialSegmentations();
 
   initView3D(context.availableRepresentations());
 
   initTreeView();
 
   restoreGeometry();
-
-  connectSignals();
 }
 
 //--------------------------------------------------------------------
@@ -139,16 +138,29 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::minstd_rand0 rngenerator(seed);
 
+  auto assignRandomFromHue = [&rngenerator](const int hue)
+  {
+    auto value = hue;
+    while(hue-20 < value && value < hue+20)
+    {
+      value = rngenerator() % 360;
+    }
+
+    return value;
+  };
+
   for(auto i = 0; i < pathList.size(); ++i)
   {
     auto path = pathList.at(i);
 
     struct StrokeInfo info;
     info.name      = path.note;
+    info.path      = path;
+    info.selected  = true;
     info.length    = path.length();
     info.used      = definition.strokes.at(path.stroke).useMeasure;
     info.hue       = definition.strokes.at(path.stroke).colorHue;
-    info.randomHue = rngenerator() % 360;
+    info.randomHue = assignRandomFromHue(info.hue);
 
     auto points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(path.seen.size());
@@ -377,7 +389,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
 }
 
 //--------------------------------------------------------------------
-void SkeletonInspector::addSegmentations()
+void SkeletonInspector::addInitialSegmentations()
 {
   auto selection = getSelection()->segmentations();
   Q_ASSERT(selection.size() == 1);
@@ -397,7 +409,6 @@ void SkeletonInspector::addSegmentations()
     if(!segmentations.contains(connection.item2.get()))
     {
       segmentations << connection.item2.get();
-      m_segmentations << connection.item2.get();
     }
 
     for(auto secondLevelConnection: model->connections(connection.item2))
@@ -407,7 +418,6 @@ void SkeletonInspector::addSegmentations()
       if(!segmentations.contains(secondLevelConnection.item2.get()))
       {
         segmentations << secondLevelConnection.item2.get();
-        m_segmentations << secondLevelConnection.item2.get();
       }
     }
   }
@@ -417,8 +427,6 @@ void SkeletonInspector::addSegmentations()
   auto frame = getViewState().createFrame();
   m_segmentationSources.addSource(segmentations, frame);
 
-  qSort(m_segmentations.begin(), m_segmentations.end(), Core::Utils::lessThan<SegmentationAdapterPtr>);
-
   m_temporalPipeline = std::make_shared<SkeletonInspectorPipeline>(m_strokes);
   m_segmentation->setTemporalRepresentation(m_temporalPipeline);
 }
@@ -426,19 +434,25 @@ void SkeletonInspector::addSegmentations()
 //--------------------------------------------------------------------
 void SkeletonInspector::initTreeView()
 {
-  auto model = new SkeletonInspectorTreeModel(m_segmentation, m_segmentations, m_strokes, m_treeView);
+  auto model = new SkeletonInspectorTreeModel(m_segmentation, getModel(), m_strokes, m_treeView);
   m_treeView->setModel(model);
   m_treeView->setHeaderHidden(true);
   m_treeView->update();
   m_treeView->expandAll();
 
+  m_treeView->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
+  m_treeView->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  m_treeView->setCurrentIndex(model->index(0,0));
+
   connect(model, SIGNAL(invalidate(ViewItemAdapterList)),
           this,  SLOT(onRepresentationsInvalidated(ViewItemAdapterList)));
-}
 
-//--------------------------------------------------------------------
-void SkeletonInspector::connectSignals()
-{
+  connect(model, SIGNAL(segmentationsShown(const SegmentationAdapterList)),
+          this,  SLOT(onSegmentationsShown(const SegmentationAdapterList)));
+
+  connect(m_conDistance, SIGNAL(valueChanged(int)),
+          this,          SLOT(onDistanceChanged(int)));
+
   connect(m_treeView, SIGNAL(doubleClicked(QModelIndex)),
           this,       SLOT(focusOnActor(QModelIndex)));
 
@@ -446,7 +460,7 @@ void SkeletonInspector::connectSignals()
           this,                         SLOT(onCurrentChanged(const QModelIndex &, const QModelIndex &)));
 
   connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
-          this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+          model,                SLOT(onSelectionChanged(SegmentationAdapterList)));
 }
 
 //--------------------------------------------------------------------
@@ -454,31 +468,30 @@ void SkeletonInspector::focusOnActor(QModelIndex index)
 {
   if(index.isValid())
   {
-    auto parent = index.parent();
-    NmVector3 point;
+    auto dataNode = static_cast<SkeletonInspectorTreeModel::TreeNode *>(index.internalPointer());
 
-    if(parent.isValid())
+    Bounds focusBounds;
+
+    switch(dataNode->type)
     {
-      if(parent.row() == 0)
-      {
-        double bounds[6];
-        m_strokes.at(index.row()).actors.first()->GetBounds(bounds);
-        point = NmVector3{(bounds[1]+bounds[0])/2, (bounds[3]+bounds[2])/2, (bounds[5]+bounds[4])/2};
-      }
-      else
-      {
-        point = centroid(m_segmentations.at(index.row())->bounds());
-      }
-
-      getViewState().focusViewOn(point);
+      case SkeletonInspectorTreeModel::TreeNode::Type::SEGMENTATION:
+        focusBounds = dataNode->connection()->bounds();
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::STROKE:
+        {
+          auto stroke = dataNode->stroke();
+          focusBounds = Bounds{stroke->actors.first()->GetBounds()};
+        }
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
+      default:
+        // nothing to be done
+        break;
     }
-    else
+
+    if(focusBounds.areValid())
     {
-      if(index.row() == 0)
-      {
-        point = centroid(m_segmentation->bounds());
-        getViewState().focusViewOn(point);
-      }
+      getViewState().focusViewOn(centroid(focusBounds));
     }
   }
 }
@@ -486,68 +499,71 @@ void SkeletonInspector::focusOnActor(QModelIndex index)
 //--------------------------------------------------------------------
 void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QModelIndex& previous)
 {
+  auto selection = getSelection()->segmentations();
+  bool invalidated = false;
+
   if(previous.isValid())
   {
-    if(!previous.parent().isValid())
-    {
-      if(previous.row() == 0)
-      {
-        getSelection()->clear();
+    auto dataNode = static_cast<SkeletonInspectorTreeModel::TreeNode *>(previous.internalPointer());
 
-        for(auto &stroke: m_strokes)
-        {
-          stroke.selected = false;
-        }
-      }
-    }
-    else
+    switch(dataNode->type)
     {
-      switch(previous.parent().row())
-      {
-        case 0:
-          {
-            m_strokes[previous.row()].selected = false;
-          }
-          break;
-        default:
-          getSelection()->clear();
-          break;
-      }
+      case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
+        if(previous.row() == 0)
+        {
+          for(auto stroke: m_strokes) stroke.selected = false;
+          invalidated = true;
+          selection.removeAll(m_segmentation.get());
+        }
+        else
+        {
+          for(auto item: m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION)) selection.removeAll(segmentationPtr(item));
+        }
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::STROKE:
+        dataNode->stroke()->selected = false;
+        invalidated = true;
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::SEGMENTATION:
+        selection.removeAll(dataNode->connection());
+        break;
+      default:
+        break;
     }
   }
 
   if(current.isValid())
   {
-    if(!current.parent().isValid())
-    {
-      if(current.row() == 0)
-      {
-        getSelection()->set(toViewItemList(m_segmentation.get()));
-        for(auto &stroke: m_strokes)
-        {
-          stroke.selected = true;
-        }
-      }
-    }
-    else
-    {
-      switch(current.parent().row())
-      {
-        case 0:
-          {
-            getSelection()->set(toViewItemList(m_segmentation.get()));
+    auto dataNode = static_cast<SkeletonInspectorTreeModel::TreeNode *>(current.internalPointer());
 
-            m_strokes[current.row()].selected = true;
-          }
-          break;
-        default:
-          getSelection()->set(toViewItemList(m_segmentations.at(current.row())));
-          break;
-      }
+    switch(dataNode->type)
+    {
+      case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
+        if(current.row() == 0)
+        {
+          for(auto stroke: m_strokes) stroke.selected = true;
+          invalidated = true;
+          selection << m_segmentation.get();
+        }
+        else
+        {
+          for(auto item: m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION))  selection << segmentationPtr(item);
+        }
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::STROKE:
+        dataNode->stroke()->selected = true;
+        invalidated = true;
+        break;
+      case SkeletonInspectorTreeModel::TreeNode::Type::SEGMENTATION:
+        selection << dataNode->connection();
+        break;
+      default:
+        break;
     }
   }
 
-  m_segmentation->invalidateRepresentations();
+  if(!selection.isEmpty()) getSelection()->set(selection);
+  if(invalidated) m_segmentation->invalidateRepresentations();
   m_view.refresh();
 }
 
@@ -555,28 +571,6 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
 void SkeletonInspector::onRepresentationsInvalidated(ViewItemAdapterList segmentations)
 {
   getViewState().invalidateRepresentations(segmentations);
-}
-
-//--------------------------------------------------------------------
-void SkeletonInspector::onSelectionChanged(SegmentationAdapterList segmentations)
-{
-  QModelIndex selectedIndex;
-
-  for(int i = 0; i < m_segmentations.size(); ++i)
-  {
-    auto segmentation = m_segmentations.at(i);
-    if(segmentations.contains(segmentation))
-    {
-      auto parent = m_treeView->model()->index(1,0, QModelIndex());
-      selectedIndex = m_treeView->model()->index(i, 0, parent);
-      break;
-    }
-  }
-
-  if(selectedIndex.isValid())
-  {
-    m_treeView->selectionModel()->setCurrentIndex(selectedIndex, QItemSelectionModel::ClearAndSelect);
-  }
 }
 
 //--------------------------------------------------------------------
@@ -589,6 +583,9 @@ void SkeletonInspector::onColoringEnabled(bool value)
     m_segmentation->invalidateRepresentations();
     m_view.refresh();
   }
+
+  auto treeModel = dynamic_cast<SkeletonInspectorTreeModel *>(m_treeView->model());
+  if(treeModel) treeModel->setRandomTreeColoring(value);
 }
 
 //--------------------------------------------------------------------
@@ -764,8 +761,9 @@ void SkeletonInspector::emitSegmentationConnectionSignals()
 
   QApplication::processEvents();
 
-  for(auto segmentation: m_segmentations)
+  for(auto item: m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION))
   {
+    auto segmentation = segmentationPtr(item);
     auto segmentationSPtr = getModel()->smartPointer(segmentation);
     auto connections = getModel()->connections(segmentationSPtr);
 
@@ -786,4 +784,54 @@ SkeletonInspector::SkeletonInspectorRepresentationSwitch::SkeletonInspectorRepre
   addSettingsWidget(m_coloring);
 
   setOrder("1-2","0-Representations");
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onDistanceChanged(int distance)
+{
+  auto model = dynamic_cast<SkeletonInspectorTreeModel *>(m_treeView->model());
+
+  if(model)
+  {
+    model->computeConnectionDistances(distance);
+
+    m_treeView->expand(model->index(1,0, QModelIndex()));
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onSegmentationsShown(const SegmentationAdapterList segmentations)
+{
+  addSegmentations(segmentations);
+
+  m_view.refresh();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::addSegmentations(const SegmentationAdapterList &segmentations)
+{
+  auto currentSources = m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION);
+  currentSources.removeOne(m_segmentation.get());
+
+  ViewItemAdapterList addedSegmentations;
+
+  for(auto segmentation: segmentations)
+  {
+    if(currentSources.contains(segmentation))
+    {
+      currentSources.removeOne(segmentation);
+    }
+    else
+    {
+      addedSegmentations << segmentation;
+    }
+  }
+
+  if(!addedSegmentations.isEmpty()) m_segmentationSources.addSource(addedSegmentations, getViewState().createFrame());
+  if(!currentSources.isEmpty())     m_segmentationSources.removeSource(currentSources, getViewState().createFrame());
+
+  if(!addedSegmentations.isEmpty() || !currentSources.isEmpty())
+  {
+    emitSegmentationConnectionSignals();
+  }
 }

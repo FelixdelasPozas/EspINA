@@ -279,11 +279,24 @@ namespace ESPINA
         return total;
       }
 
+      /** \brief Returns true if the path connects with the given one. Implies direction, so not reflexive.
+       * \param[in] path Path object.
+       *
+       */
+      bool connectsTo(const Path &path);
+
       /** \brief Operator == for paths.
        * \param[in] other other path for comparison.
        *
        */
       bool operator==(const Path &other) const;
+
+      /** \brief Operator == for paths.
+       * \param[in] other other path for comparison.
+       *
+       */
+      bool operator!=(const Path &other) const
+      { return !(*this == other); }
 
       /** \brief Operator < for paths, rather arbitrary.
        * \param[in] other other path for comparison.
@@ -432,11 +445,16 @@ namespace ESPINA
         ~PathHierarchyNode() { for(auto child: children) delete child; };
     };
 
-    /** \brief Returns the path hierarchy of the given skeleton. The root node has an empty path and null parent.
-     * \param[in] skeleton Skeleton definition object.
+    /** \brief Returns the path hierarchy of the given skeleton. The root node has an empty path and null parent. If the edges
+     * or strokes is empty then there won't be applied any stroke priority.
+     * \param[in] paths Skeleton path list.
+     * \param[in] edges Skeleton edges list.
+     * \param[in] strokes Skeleton strokes list.
      *
      */
-    QList<PathHierarchyNode *> EspinaCore_EXPORT pathHierarchy(const SkeletonDefinition &skeleton);
+    QList<PathHierarchyNode *> EspinaCore_EXPORT pathHierarchy(const PathList              &paths,
+                                                               const Core::SkeletonEdges   &edges   = Core::SkeletonEdges(),
+                                                               const Core::SkeletonStrokes &strokes = Core::SkeletonStrokes());
 
   } // namespace Core
 } // namespace ESPINA

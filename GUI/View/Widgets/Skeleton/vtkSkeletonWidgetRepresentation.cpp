@@ -503,25 +503,37 @@ bool vtkSkeletonWidgetRepresentation::DeleteCurrentNode()
 
     if (s_currentVertex == nullptr) return false;
 
-    s_skeleton.nodes.removeAll(s_currentVertex);
+    deleteNode(s_currentVertex);
 
-    for(auto connection: s_currentVertex->connections.keys())
-    {
-      connection->connections.remove(s_currentVertex);
-      if(connection->connections.isEmpty())
-      {
-        s_skeleton.nodes.removeAll(connection);
-        delete connection;
-      }
-    }
-
-    delete s_currentVertex;
     s_currentVertex = nullptr;
   }
 
   BuildRepresentation();
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::deleteNode(SkeletonNode *node)
+{
+  SkeletonNodes toDelete;
+
+  if (!node) return;
+
+  auto connections = node->connections.keys();
+  connections.removeAll(node);
+
+  s_skeleton.nodes.removeAll(node);
+
+  delete node;
+  node = nullptr;
+
+  for (auto connection : connections)
+  {
+    if (connection->connections.isEmpty()) toDelete << connection;
+  }
+
+  for (auto otherNode : toDelete) deleteNode(otherNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -1724,13 +1736,13 @@ void vtkSkeletonWidgetRepresentation::removeIsolatedNodes()
   SkeletonNodes toRemove;
   for(auto node: s_skeleton.nodes)
   {
+    if(node->connections.keys().contains(node)) node->connections.remove(node);
     if(node->connections.isEmpty()) toRemove << node;
   }
 
   for(auto node: toRemove)
   {
-    s_skeleton.nodes.removeAll(node);
-    delete node;
+    deleteNode(node);
   }
 }
 

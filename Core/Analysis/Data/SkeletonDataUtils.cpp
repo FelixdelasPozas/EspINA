@@ -448,6 +448,12 @@ bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 }
 
 //--------------------------------------------------------------------
+bool Core::Path::connectsTo(const Path &path)
+{
+  return path.seen.contains(end) || path.seen.contains(begin);
+}
+
+//--------------------------------------------------------------------
 bool Core::Path::operator==(const Core::Path &other) const
 {
   auto lessThan = [](const SkeletonNode *left, const SkeletonNode *right) { return left < right; };
@@ -676,18 +682,18 @@ QDebug Core::operator <<(QDebug stream, const struct Path& path)
 }
 
 //--------------------------------------------------------------------
-const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skeleton)
+const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& nodes)
 {
   QSet<SkeletonNode *> visited;
   QSet<SkeletonNode *> visitedTotal;
 
-  std::function<void(SkeletonNode*)> visit = [&visited, &visitedTotal, &visit] (SkeletonNode *visitor)
+  std::function<void(SkeletonNode*)> visit = [&visited, &visitedTotal, &visit] (SkeletonNode *node)
   {
-    if(!visited.contains(visitor))
+    if(!visited.contains(node))
     {
-      visited.insert(visitor);
-      visitedTotal.insert(visitor);
-      for(auto connection: visitor->connections.keys())
+      visited.insert(node);
+      visitedTotal.insert(node);
+      for(auto connection: node->connections.keys())
       {
         visit(connection);
       }
@@ -695,33 +701,21 @@ const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& 
   };
 
   QList<SkeletonNodes> result;
-  if(skeleton.isEmpty()) return result;
+  if(nodes.isEmpty()) return result;
 
-  bool visitedAll = false;
-  auto node = skeleton.first();
-
-  while(!visitedAll)
+  while(visitedTotal.size() != nodes.size())
   {
-    visit(node);
+    for(auto skeletonNode: nodes)
+    {
+      if(!visitedTotal.contains(skeletonNode))
+      {
+        visit(skeletonNode);
+        break;
+      }
+    }
 
     result << visited.toList();
     visited.clear();
-
-    if(visitedTotal.size() == skeleton.size())
-    {
-      visitedAll = true;
-    }
-    else
-    {
-      for(auto skeletonNode: skeleton)
-      {
-        if(!visitedTotal.contains(skeletonNode))
-        {
-          node = skeletonNode;
-          break;
-        }
-      }
-    }
   }
 
   return result;
@@ -903,11 +897,20 @@ const double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNo
 }
 
 //--------------------------------------------------------------------
-QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const SkeletonDefinition &skeleton)
+QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, const Core::SkeletonEdges &edges, const Core::SkeletonStrokes &strokes)
 {
-  QList<PathHierarchyNode *> allNodes, final;
+  QList<PathHierarchyNode *> allNodes, pending, final;
+  auto checkPriorities = !edges.isEmpty() && !strokes.isEmpty();
 
-  for(auto path: paths(skeleton))
+  auto assignTo = [&pending](PathHierarchyNode *node1, PathHierarchyNode *node2)
+  {
+    node1->parent = node2;
+    node2->children << node1;
+
+    pending.removeOne(node1);
+  };
+
+  for(auto path: paths)
   {
     auto node = new PathHierarchyNode(path);
 
@@ -915,40 +918,55 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const SkeletonDefinition &
     {
       final  << node;
     }
+    else
+    {
+      pending << node;
+    }
 
     allNodes << node;
   }
 
-  for(int i = 0; i < allNodes.size(); ++i)
+  while(!pending.isEmpty())
   {
-    bool progressed = false;
-    const auto path = allNodes.at(i);
-    if(final.contains(path)) continue;
+    int pendingStrokes   = pending.size();
+    const auto stroke    = pending.first();
 
-    const auto beginNode = path->path.begin;
-    const auto endNode   = path->path.end;
-
-    for(int j = 0; j < allNodes.size(); ++j)
+    for (auto otherStroke : allNodes)
     {
-      if(path == allNodes.at(j)) continue;
+      if (otherStroke->path == stroke->path) continue;
 
-      const auto otherPath = allNodes.at(j);
-      const auto &seen = otherPath->path.seen;
-
-      if(seen.contains(beginNode) || seen.contains(endNode))
+      if (stroke->path.connectsTo(otherStroke->path))
       {
-        path->parent = otherPath;
-        otherPath->children << path;
+        if (otherStroke->path.connectsTo(stroke->path) && !otherStroke->parent && checkPriorities)
+        {
+          auto strokeUse = strokes.at(edges.at(stroke->path.edge).strokeIndex).useMeasure;
+          auto otherStrokeUse = strokes.at(edges.at(otherStroke->path.edge).strokeIndex).useMeasure;
 
-        progressed = true;
-        break;
+          if ((strokeUse != otherStrokeUse) && strokeUse == false)
+          {
+            assignTo(stroke, otherStroke);
+            break;
+          }
+        }
+        else
+        {
+          assignTo(stroke, otherStroke);
+          break;
+        }
       }
     }
 
-    if(!progressed) // do not starts or ends in any other path?
+    if(pendingStrokes == pending.size()) // have not progressed
     {
-      final << path;
+      final << stroke;
+      pending.removeOne(stroke);
     }
+  }
+
+  // depending on the order we can have some orphans.
+  for(auto node: allNodes)
+  {
+    if(!node->parent && !final.contains(node)) final << node;
   }
 
   return final;

@@ -678,7 +678,9 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
     auto seg = segmentationPtr(m_item);
     auto selectedSeg = segmentations.first();
 
-    if(!seg || selectedSeg == seg || selectedSeg->isBeingModified() || !hasSkeletonData(selectedSeg->output()))
+    if(selectedSeg == seg) return;
+
+    if(selectedSeg->isBeingModified() || !hasSkeletonData(selectedSeg->output()))
     {
       abortOperation();
     }
