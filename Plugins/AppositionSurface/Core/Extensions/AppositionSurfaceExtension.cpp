@@ -117,11 +117,18 @@ QVariant AppositionSurfaceExtension::cacheFail(const InformationKey &key) const
 {
   QVariant result;
 
-  if(availableInformation().contains(key))
+  if(key == createKey(SYNAPSE))
   {
-    computeInformation();
+    result = (m_extendedItem->name().isEmpty() ? m_extendedItem->alias() : m_extendedItem->name());
+  }
+  else
+  {
+    if(availableInformation().contains(key))
+    {
+      computeInformation();
 
-    result = information(key);
+      result = information(key);
+    }
   }
 
   return result;
@@ -157,6 +164,14 @@ void AppositionSurfaceExtension::onExtendedItemSet(Segmentation *item)
 {
   connect(item, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
+
+  // NOTE: Synapse key is generated on request in cacheFail() method, never saved to cache. That means it's "udpated"
+  // when the user changes the origin segmentation name or category.  Need to clear it because previously it was
+  // saved to cache.
+  if(m_infoCache.keys().contains(SYNAPSE))
+  {
+    m_infoCache.remove(SYNAPSE);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -452,51 +467,10 @@ bool AppositionSurfaceExtension::computeInformation() const
     updateInfoCache(MEAN_MAX_CURVATURE, meanMaxCurvature);
     updateInfoCache(STD_DEV_MAX_CURVATURE, stdDev(maxCurvature, meanMaxCurvature));
 
-    auto origin = cachedInfo(createKey(SYNAPSE)).toString();
-
-    if(origin.isEmpty())
-    {
-      bool found = false;
-      auto ancestors = m_extendedItem->analysis()->relationships()->ancestors(m_extendedItem, tr("SAS"));
-
-      if(!ancestors.isEmpty())
-      {
-        auto segmentation = std::dynamic_pointer_cast<Segmentation>(ancestors.first());
-        if(segmentation)
-        {
-          auto name = segmentation->name().isEmpty() ? segmentation->alias() : segmentation->name();
-
-          if(!name.isEmpty())
-          {
-            updateInfoCache(SYNAPSE, name);
-            found = true;
-          }
-        }
-      }
-
-      if(!found)
-      {
-        updateInfoCache(SYNAPSE, tr("Unknown"));
-      }
-    }
-
     validInformation = true;
   }
 
   return validInformation;
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::setOriginSegmentation(SegmentationAdapterSPtr segmentation)
-{
-  if(segmentation != nullptr)
-  {
-    updateInfoCache(SYNAPSE, segmentation->data().toString());
-  }
-  else
-  {
-    updateInfoCache(SYNAPSE, tr("Unknown"));
-  }
 }
 
 //------------------------------------------------------------------------

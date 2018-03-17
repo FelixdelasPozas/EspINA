@@ -76,11 +76,6 @@ namespace ESPINA
 
       virtual bool validData(const OutputSPtr output) const;
 
-      /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
-       * other way to inject that information to the SAS extension.
-       */
-      void setOriginSegmentation(SegmentationAdapterSPtr segmentation);
-
       /** \brief Helper method that adds the SAS prefix to the given key.
        * \param[in] value segmentation extension key.
        *

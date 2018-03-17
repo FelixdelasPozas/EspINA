@@ -363,7 +363,6 @@ void AppositionSurfacePlugin::finishedTask()
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
     auto sasExtension = std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
 
-    sasExtension->setOriginSegmentation(m_finishedTasks[filter].segmentation);
     extensions->add(sasExtension);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
