@@ -133,11 +133,6 @@ namespace ESPINA
          */
         bool isExcludedByCountingFrame(CountingFrame *cf);
 
-        /** \brief Returns true if the segmentation collides with the given bounds.
-         *
-         */
-        bool isRealCollision(const Bounds& collisionBounds);
-
         /** \brief Returns the list of CFs defined for the segmentation's sample.
          *
          */

@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="m_message">
      <property name="text">
-      <string>There are problems pending to be solved in the current session. You won't be able to save the session until those problems have been solved.</string>
+      <string>There are problems pending to be solved in the current session.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
