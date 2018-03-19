@@ -236,11 +236,11 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     // std::cout << "Edges: " << graph->GetNumberOfEdges() << std::endl;
     // std::cout << "Pedigree: " << pedigree->GetNumberOfTuples() << std::endl;
 
-    BoostConnectedComponents connectedComponents = BoostConnectedComponents::New();
+    auto connectedComponents = BoostConnectedComponents::New();
     connectedComponents->SetInputData(graph);
     connectedComponents->Update();
-    vtkGraph *outputGraph = connectedComponents->GetOutput();
-    vtkIntArray *components = vtkIntArray::SafeDownCast( outputGraph->GetVertexData()->GetArray("component"));
+    auto outputGraph = connectedComponents->GetOutput();
+    auto components = vtkIntArray::SafeDownCast( outputGraph->GetVertexData()->GetArray("component"));
 
     double *range = components->GetRange(0);
     // std::cout << "components: " << range[0] << " to "<< range[1] << std::endl;
@@ -248,12 +248,12 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     std::vector<double> perimeters;
     perimeters.resize(range[1]+1);
 
-    EdgeListIterator edgeListIterator = EdgeListIterator::New();
+    auto edgeListIterator = EdgeListIterator::New();
     graph->GetEdges(edgeListIterator);
 
     while(edgeListIterator->HasNext())
     {
-      vtkEdgeType edge = edgeListIterator->Next();
+      auto edge = edgeListIterator->Next();
 
       if (components->GetValue(edge.Source) != components->GetValue(edge.Target) )
       {
@@ -301,8 +301,8 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
   double origin[3];
   double normal[3]; // Normal's magnitude is 1
 
-  vtkDoubleArray *originArray = dynamic_cast<vtkDoubleArray *>(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
-  vtkDoubleArray *normalArray = dynamic_cast<vtkDoubleArray *>(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_NORMAL));
+  auto originArray = dynamic_cast<vtkDoubleArray *>(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
+  auto normalArray = dynamic_cast<vtkDoubleArray *>(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_NORMAL));
 
   for (int i = 0; i < 3; ++i)
   {
@@ -310,7 +310,7 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
     normal[i] = normalArray->GetValue(i);
   }
 
-  vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+  auto plane = vtkSmartPointer<vtkPlane>::New();
   plane->SetOrigin(origin);
   plane->SetNormal(normal);
 
@@ -323,21 +323,22 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
 
   pointsCount = pointsIn->GetNumberOfPoints();
   pointsOut->SetNumberOfPoints(pointsCount);
-  for (int i = 0; i < pointsCount; i++) {
+  for (int i = 0; i < pointsCount; i++)
+  {
     pointsIn->GetPoint(i, p);
     plane->ProjectPoint(p, projected);
     pointsOut->SetPoint(i, projected);
   }
-  vtkSmartPointer<vtkPolyData> auxMesh = vtkSmartPointer<vtkPolyData>::New();
+  auto auxMesh = vtkSmartPointer<vtkPolyData>::New();
   auxMesh->DeepCopy(mesh);
   auxMesh->SetPoints(pointsOut);
 
-  PolyDataNormals normals = PolyDataNormals::New();
+  auto normals = PolyDataNormals::New();
   normals->SetInputData(auxMesh);
   normals->SplittingOff();
   normals->Update();
 
-  vtkSmartPointer<vtkPolyData> projection = vtkSmartPointer<vtkPolyData>::New();
+  auto projection = vtkSmartPointer<vtkPolyData>::New();
   projection->ShallowCopy(normals->GetOutput());
 
   return projection;
@@ -346,7 +347,7 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
 //------------------------------------------------------------------------
 double AppositionSurfaceExtension::computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, Nm asArea) const
 {
-  vtkSmartPointer<vtkPolyData> projectedAS = projectPolyDataToPlane(asMesh);
+  auto projectedAS = projectPolyDataToPlane(asMesh);
 
   double referenceArea = computeArea(projectedAS);
 
@@ -360,10 +361,10 @@ void AppositionSurfaceExtension::computeCurvatures(const vtkSmartPointer<vtkPoly
 						                                       vtkSmartPointer<vtkDoubleArray> minCurvature,
 						                                       vtkSmartPointer<vtkDoubleArray> maxCurvature) const
 {
-	vtkSmartPointer<vtkCurvatures> curvatures_fliter = vtkSmartPointer<vtkCurvatures>::New();
+	auto curvatures_fliter = vtkSmartPointer<vtkCurvatures>::New();
 	curvatures_fliter->SetInputData(asMesh);
 
-	vtkPolyData * output = curvatures_fliter->GetOutput();
+	auto output = curvatures_fliter->GetOutput();
 
 	curvatures_fliter->SetCurvatureTypeToGaussian();
 	curvatures_fliter->Update();

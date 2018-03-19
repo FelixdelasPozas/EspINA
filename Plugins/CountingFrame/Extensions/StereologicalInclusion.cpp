@@ -293,6 +293,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   }
 
   // NOTE: CF slices != stack slices.
+  bool isExcluded = true;
   for (vtkIdType i = 0; i < regionPoints->GetNumberOfPoints(); i += 4)
   {
     auto slicePoints = vtkSmartPointer<vtkPoints>::New();
@@ -303,16 +304,25 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       slicePoints->InsertNextPoint(point);
     }
 
+    // slice bounds of CF, needs to be corrected.
     auto sliceBounds = pointBounds(slicePoints);
-    if(i == 0) sliceBounds[4] -= (spacing[2]/2.0);
-    if(i == 0) sliceBounds[5] += (spacing[2]/2.0);
-    else       sliceBounds[5] += spacing[2];
+    sliceBounds[0] -= spacing[0]/2.0;
+    sliceBounds[1] += spacing[0]/2.0;
+    sliceBounds[2] -= spacing[1]/2.0;
+    sliceBounds[3] += spacing[1]/2.0;
+
+    if(i == 0 || i == regionPoints->GetNumberOfPoints() - 4)
+    {
+      sliceBounds[4] -= (spacing[2]/2.0);
+      sliceBounds[5] += (spacing[2]/2.0);
+    }
+    else
+    {
+      sliceBounds[5] += spacing[2];
+    }
 
     if(sliceBounds.areValid())
     {
-      sliceBounds.setLowerInclusion(true);
-      sliceBounds.setUpperInclusion(true);
-
       if (intersect(inputBB, sliceBounds, spacing))
       {
         itkVolumeType::Pointer sliceImage = nullptr;
@@ -326,28 +336,30 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
         }
         catch(Core::Utils::EspinaException &e)
         {
-
+          qWarning() << "Stereological Inclusion at " << m_extendedItem->alias() << "can't get slice intersection.";
           continue;
         }
 
         auto minBounds = minimalBounds<itkVolumeType>(sliceImage, SEG_BG_VALUE);
         if(!minBounds.areValid()) continue; // means that the part inside the CF slice is empty (no voxels == SEG_VOXEL_VALUE)
 
+        isExcluded = false;
+        if(i == 0) return false;
+        if(i == regionPoints->GetNumberOfPoints() -4) return true;
+
         for(auto i: {1,3})
         {
           // segmentation can have several "parts" and if one is outside then is out
-          if(minBounds[i] == sliceBounds[i])
+          if(minBounds[i] >= sliceBounds[i])
           {
             return true;
           }
         }
-
-        return false; // intersection has voxels and doesn't touch red faces, is completely inside or touches green faces.
       }
     }
   }
 
-  return true;
+  return isExcluded;
 }
 
 //------------------------------------------------------------------------

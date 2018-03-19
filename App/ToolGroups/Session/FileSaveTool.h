@@ -96,7 +96,7 @@ namespace ESPINA
       /** \brief Saves the analysis to the given file.
        *
        */
-      void saveAnalysis(const QString &fileName);
+      bool saveAnalysis(const QString &fileName);
 
       /** \brief Handles the save thread result.
        *
