@@ -155,11 +155,20 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     return progress;
   }
 
-  if (role == Qt::BackgroundRole)
+  if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
-    auto disabled = m_pendingInformation.contains(segmentation) && !m_pendingInformation[segmentation]->hasFinished();
+    if(!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
+    {
+      return Qt::lightGray;
+    }
 
-    return disabled?Qt::lightGray:QAbstractProxyModel::data(proxyIndex, role);
+    auto info = data(proxyIndex, Qt::DisplayRole);
+    if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
+    {
+      return role == Qt::ForegroundRole ? Qt::white : Qt::red;
+    }
+
+    return QAbstractProxyModel::data(proxyIndex, role);
   }
 
   if(role == Qt::ToolTipRole)
