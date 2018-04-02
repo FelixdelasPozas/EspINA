@@ -157,9 +157,11 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
+    if(proxyIndex.column() == 0) return QAbstractProxyModel::data(proxyIndex, role);
+
     if(!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
     {
-      return Qt::lightGray;
+      return role == Qt::ForegroundRole ? Qt::black : Qt::lightGray;
     }
 
     auto info = data(proxyIndex, Qt::DisplayRole);
