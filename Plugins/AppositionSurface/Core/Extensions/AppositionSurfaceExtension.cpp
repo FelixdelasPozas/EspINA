@@ -1,10 +1,10 @@
 /*
  *    
-o *    Copyright (C) 2014  Juan Morales del Olmo <juan.morales@upm.es>
+ *    Copyright (C) 2014  Juan Morales del Olmo <juan.morales@upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -362,58 +362,68 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
   double origin[3];
   double normal[3]; // Normal's magnitude is 1
 
-  if(!mesh)
+  if(!mesh || !mesh->GetPointData() || !mesh->GetPoints())
   {
     m_hasErrors = true;
     return nullptr;
   }
 
-  auto originArray = vtkDoubleArray::SafeDownCast(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
-  auto normalArray = vtkDoubleArray::SafeDownCast(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_NORMAL));
+  try
+  {
+    auto originArray = vtkDoubleArray::SafeDownCast(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
+    auto normalArray = vtkDoubleArray::SafeDownCast(mesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_NORMAL));
 
-  if(!originArray || !normalArray)
+    if(!originArray || !normalArray)
+    {
+      m_hasErrors = true;
+      return nullptr;
+    }
+
+    for (int i = 0; i < 3; ++i)
+    {
+      origin[i] = originArray->GetValue(i);
+      normal[i] = normalArray->GetValue(i);
+    }
+
+    auto plane = vtkSmartPointer<vtkPlane>::New();
+    plane->SetOrigin(origin);
+    plane->SetNormal(normal);
+
+    int pointsCount = 0;
+    double projected[3], p[3];
+
+    auto pointsIn  = mesh->GetPoints();
+    auto pointsOut = vtkSmartPointer<vtkPoints>::New();
+    pointsCount = pointsIn->GetNumberOfPoints();
+    pointsOut->SetNumberOfPoints(pointsCount);
+    for (int i = 0; i < pointsCount; i++)
+    {
+      pointsIn->GetPoint(i, p);
+      plane->ProjectPoint(p, projected);
+      pointsOut->SetPoint(i, projected);
+    }
+
+    auto auxMesh = vtkSmartPointer<vtkPolyData>::New();
+    auxMesh->DeepCopy(mesh);
+    auxMesh->SetPoints(pointsOut);
+
+    auto normals = PolyDataNormals::New();
+    normals->SetInputData(auxMesh);
+    normals->SplittingOff();
+    normals->Update();
+
+    auto projection = vtkSmartPointer<vtkPolyData>::New();
+    projection->ShallowCopy(normals->GetOutput());
+
+    return projection;
+  }
+  catch(...)
   {
     m_hasErrors = true;
     return nullptr;
   }
 
-  for (int i = 0; i < 3; ++i)
-  {
-    origin[i] = originArray->GetValue(i);
-    normal[i] = normalArray->GetValue(i);
-  }
-
-  auto plane = vtkSmartPointer<vtkPlane>::New();
-  plane->SetOrigin(origin);
-  plane->SetNormal(normal);
-
-  int pointsCount = 0;
-  double projected[3], p[3];
-
-  auto pointsIn  = mesh->GetPoints();
-  auto pointsOut = vtkSmartPointer<vtkPoints>::New();
-  pointsCount = pointsIn->GetNumberOfPoints();
-  pointsOut->SetNumberOfPoints(pointsCount);
-  for (int i = 0; i < pointsCount; i++)
-  {
-    pointsIn->GetPoint(i, p);
-    plane->ProjectPoint(p, projected);
-    pointsOut->SetPoint(i, projected);
-  }
-
-  auto auxMesh = vtkSmartPointer<vtkPolyData>::New();
-  auxMesh->DeepCopy(mesh);
-  auxMesh->SetPoints(pointsOut);
-
-  auto normals = PolyDataNormals::New();
-  normals->SetInputData(auxMesh);
-  normals->SplittingOff();
-  normals->Update();
-
-  auto projection = vtkSmartPointer<vtkPolyData>::New();
-  projection->ShallowCopy(normals->GetOutput());
-
-  return projection;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------
