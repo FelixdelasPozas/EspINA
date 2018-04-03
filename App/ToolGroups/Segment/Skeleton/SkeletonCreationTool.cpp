@@ -29,7 +29,6 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
-#include <Extensions/SkeletonInformation/SkeletonInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/Styles.h>
@@ -561,11 +560,6 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
 
       m_item = segmentation.get();
       m_item->setBeingModified(true);
-
-      // SkeletonInformation extension has dynamic keys so it needs to be created in advance in case
-      // raw information asks for keys later.
-      auto informationExtension = getFactory()->createSegmentationExtension(SkeletonInformation::TYPE);
-      segmentation->extensions()->add(informationExtension);
 
       SegmentationAdapterList selection;
       selection << segmentation.get();

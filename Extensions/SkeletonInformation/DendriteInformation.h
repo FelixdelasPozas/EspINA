@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2018 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -19,8 +19,8 @@
  
  */
 
-#ifndef EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
-#define EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
+#ifndef EXTENSIONS_DENDRITE_INFORMATION_H_
+#define EXTENSIONS_DENDRITE_INFORMATION_H_
 
 #include <Extensions/EspinaExtensions_Export.h>
 
@@ -34,21 +34,20 @@ namespace ESPINA
   {
     class SkeletonInformationFactory;
 
-    /** \class SkeletonInformation
-     * \brief Extension that provides information about a skeleton.
+    /** \class DendriteSkeletonInformation
+     * \brief Extension that provides information about skeletal dendrites.
      *
      */
-    class EspinaExtensions_EXPORT SkeletonInformation
+    class EspinaExtensions_EXPORT DendriteSkeletonInformation
     : public Core::SegmentationExtension
     {
-        Q_OBJECT
       public:
         static const Type TYPE;
 
-        /** \brief SkeletonInformation class virtual destructor.
+        /** \brief DendriteSkeletonInformation class virtual destructor.
          *
          */
-        virtual ~SkeletonInformation();
+        virtual ~DendriteSkeletonInformation();
 
         virtual QString type() const
         { return TYPE; }
@@ -66,7 +65,7 @@ namespace ESPINA
         virtual InformationKeyList availableInformation() const;
 
         virtual bool validCategory(const QString& classificationName) const
-        { return true;}
+        { return classificationName.startsWith("Dendrite"); }
 
         virtual bool validData(const OutputSPtr output) const
         { return hasSkeletonData(output); }
@@ -74,15 +73,8 @@ namespace ESPINA
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;
 
-        virtual void onExtendedItemSet(Segmentation* item);
-
-        virtual void invalidateImplementation() override;
-
-      private slots:
-        /** \brief Generates the keys for this segmentation.
-         *
-         */
-        void updateKeys();
+        virtual void onExtendedItemSet(Segmentation* item)
+        {};
 
       private:
         /** \brief Computes information values.
@@ -90,14 +82,14 @@ namespace ESPINA
          */
         void updateInformation() const;
 
-        /** \brief SkeletonInformation class constructor.
+        /** \brief DendriteSkeletonInformation class constructor.
          * \param[in] infoCache cache object.
          *
          */
-        explicit SkeletonInformation(const InfoCache& infoCache = InfoCache());
+        explicit DendriteSkeletonInformation(const InfoCache& infoCache = InfoCache());
 
         mutable QReadWriteLock     m_mutex; /** data protection mutex for concurrent access. */
-        mutable InformationKeyList m_keys;  /** informatio keys in this extension.           */
+        mutable InformationKeyList m_keys;  /** information keys in this extension.           */
 
         friend class SkeletonInformationFactory;
     };
@@ -105,4 +97,4 @@ namespace ESPINA
   } // namespace Extensions
 } // namespace ESPINA
 
-#endif // EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
+#endif // EXTENSIONS_DENDRITE_INFORMATION_H_

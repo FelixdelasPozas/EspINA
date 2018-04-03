@@ -448,9 +448,18 @@ bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 }
 
 //--------------------------------------------------------------------
-bool Core::Path::connectsTo(const Path &path)
+bool Core::Path::connectsTo(const Path &path) const
 {
   return path.seen.contains(end) || path.seen.contains(begin);
+}
+
+//--------------------------------------------------------------------
+bool Core::Path::hasEndingPoint(const NmVector3 &point) const
+{
+  if(end->isTerminal() && NmVector3{end->position} == point) return true;
+  if(begin->isTerminal() && NmVector3{begin->position} == point) return true;
+
+  return false;
 }
 
 //--------------------------------------------------------------------
@@ -950,8 +959,11 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
         }
         else
         {
-          assignTo(stroke, otherStroke);
-          break;
+          if(otherStroke->parent != stroke)
+          {
+            assignTo(stroke, otherStroke);
+            break;
+          }
         }
       }
     }
@@ -968,6 +980,8 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
   {
     if(!node->parent && !final.contains(node)) final << node;
   }
+
+  Q_ASSERT(allNodes.size() == paths.size());
 
   return final;
 }

@@ -237,7 +237,8 @@ namespace ESPINA
        */
       bool isBranching() const
       {
-        return this->connections.size() > 2 && !this->connections.keys().contains(const_cast<SkeletonNode *>(this));
+        auto connectionsSet = this->connections.values().toSet(); // unique edges only
+        return this->connections.size() > 2 && !this->connections.keys().contains(const_cast<SkeletonNode *>(this)) && connectionsSet.size() >= 2;
       }
 
       /** \brief Operator == for skeleton nodes.
@@ -266,7 +267,7 @@ namespace ESPINA
       /** \brief Returns the length of the path.
        *
        */
-      double length()
+      double length() const
       {
         double total = 0;
         if(seen.size() == 1) return 0;
@@ -283,7 +284,13 @@ namespace ESPINA
        * \param[in] path Path object.
        *
        */
-      bool connectsTo(const Path &path);
+      bool connectsTo(const Path &path) const;
+
+      /** \brief Returns true if the given point is an ending of the path.
+       * \param[in] point Point coordinates
+       *
+       */
+      bool hasEndingPoint(const NmVector3 &point) const;
 
       /** \brief Operator == for paths.
        * \param[in] other other path for comparison.
