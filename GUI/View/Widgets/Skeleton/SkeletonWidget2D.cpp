@@ -273,7 +273,6 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
     default:
       m_widget->updateCursor();
       break;
-      break;
   }
 }
 

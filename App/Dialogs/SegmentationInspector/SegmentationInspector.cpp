@@ -467,9 +467,6 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 //------------------------------------------------------------------------
 void SegmentationInspector::initReport()
 {
-  SegmentationExtension::KeyList tags;
-  tags << tr("Name") << tr("Category");
-
   m_tabularReport.setFilter(m_segmentations);
   m_tabularReport.setModel(getModel());
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
