@@ -125,7 +125,7 @@ QVariant AppositionSurfaceExtension::cacheFail(const InformationKey &key) const
     {
       obtainOriginSynapse();
 
-      if(!m_synapse) result = tr("Unknown Synapse");
+      if(!m_synapse) result = tr("Failed to identify");
     }
     else
     {
