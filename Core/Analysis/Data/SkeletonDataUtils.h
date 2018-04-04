@@ -463,6 +463,31 @@ namespace ESPINA
                                                                const Core::SkeletonEdges   &edges   = Core::SkeletonEdges(),
                                                                const Core::SkeletonStrokes &strokes = Core::SkeletonStrokes());
 
+    /** \brief Returns the node containing the given path in the given hierarchy or nullptr if not found in the hierarchy of nodes.
+     * \param[in] path Path to search.
+     * \param[in] hierarchy List of nodes.
+     *
+     */
+    PathHierarchyNode * locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy);
+
+    /** \brief Returns true if the node or any of its children is trucated.
+     *
+     */
+    const bool isTruncated(const PathHierarchyNode *node);
+
+    /** \brief Returns the length of the node and its subnodes if the paths are 'Spine' or 'Subspine'.
+     * \param[in] node Hierarchy node.
+     *
+     */
+    const double length(const PathHierarchyNode *node);
+
+    /** \brief Returns the points of connections in the given node and its children from the connectionPoints list.
+     * \param[in] node Hierarchy node.
+     * \param[in] connectionsPoints List of connection points.
+     *
+     */
+    const QList<NmVector3> connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
+
   } // namespace Core
 } // namespace ESPINA
 

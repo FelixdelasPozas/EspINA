@@ -80,6 +80,12 @@ namespace ESPINA
        */
       void focusOnActor(QModelIndex index);
 
+      /** \brief Focus the view on the actor belonging to the given table index.
+       * \param[in] row Table row position.
+       *
+       */
+      void focusOnActor(int row);
+
       /** \brief Updates the actor selection on the view depeding on the currently selected item.
        * \param[in] current index of the currently selected item.
        * \param[in] previous index of the previously selected item.
@@ -110,6 +116,17 @@ namespace ESPINA
        */
       void onSegmentationsShown(const SegmentationAdapterList segmentations);
 
+      /** \brief Shows/hides the spine table when the button is clicked.
+       * \param[in] checked true if checked and false otherwise.
+       */
+      void onSpinesButtonClicked(bool checked);
+
+      /** \brief Selects the selected spine on the view.
+       * \param[in] index Modelindex of the table.
+       *
+       */
+      void onSpineSelected(const QModelIndex &index);
+
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
        * \param[in] segmentation Skeleton segmentation object.
@@ -138,6 +155,11 @@ namespace ESPINA
        *
        */
       void initTreeView();
+
+      /** \brief Initializes the spines table.
+       *
+       */
+      void initSpinesTable();
 
       /** \brief Adds the currently selected segmentation and it's connected ones at a distance 1 to the view and the sources.
        *

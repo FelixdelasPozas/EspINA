@@ -25,8 +25,10 @@
 #include <Extensions/EspinaExtensions_Export.h>
 
 // ESPINA
+#include <Core/Analysis/Connections.h>
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 
 namespace ESPINA
 {
@@ -42,12 +44,35 @@ namespace ESPINA
     : public Core::SegmentationExtension
     {
       public:
+        struct SpineInformation
+        {
+          QString name;               /** spine name.                                               */
+          QString parentName;         /** name of the dendrite of the spine.                        */
+          bool    complete;           /** true if not truncated.                                    */
+          bool    branched;           /** true if branched.                                         */
+          double  length;             /** complete length in nanometers.                            */
+          int     numSynapses;        /** number of connections.                                    */
+          int     numAsymmetric;      /** number of connections to asymmetric synapses.             */
+          int     numAsymmetricHead;  /** number of connections to asymmetric synapses on the head. */
+          int     numAsymmetricNeck;  /** number of connections to asymmetric synapses on the neck. */
+          int     numSymmetric;       /** number of connections to symmetric synapses.              */
+          int     numSymmetricHead;   /** number of connections to symmetric synapses on the head.  */
+          int     numSymmetricNeck;   /** number of connections to symmetric synapses on the neck.  */
+          int     numAxons;           /** number of axons contacted.                                */
+          int     numAxonsInhibitory; /** number of inhibitory axons contacted.                     */
+          int     numAxonsExcitatory; /** number of excitatory axons contacted.                     */
+
+          SpineInformation(): complete{false}, branched{false}, length{0.0}, numSynapses{0}, numAsymmetric{0}, numAsymmetricHead{0}, numAsymmetricNeck{0},
+                              numSymmetric{0}, numSymmetricHead{0}, numSymmetricNeck{0}, numAxons{0}, numAxonsInhibitory{0}, numAxonsExcitatory{0} {};
+        };
+
         static const Type TYPE;
 
         /** \brief DendriteSkeletonInformation class virtual destructor.
          *
          */
-        virtual ~DendriteSkeletonInformation();
+        virtual ~DendriteSkeletonInformation()
+        {};
 
         virtual QString type() const
         { return TYPE; }
@@ -70,17 +95,29 @@ namespace ESPINA
         virtual bool validData(const OutputSPtr output) const
         { return hasSkeletonData(output); }
 
+        const QList<struct SpineInformation> spinesInformation() const;
+
       protected:
+        static const QString SPINE_SNAPSHOT_FILE;
+
         virtual QVariant cacheFail(const InformationKey& tag) const;
 
-        virtual void onExtendedItemSet(Segmentation* item)
-        {};
+        virtual void onExtendedItemSet(Segmentation* item);
+
+        virtual void invalidateImplementation() override;
 
       private:
-        /** \brief Computes information values.
+        /** \brief Computes information values and spine information.
          *
          */
         void updateInformation() const;
+
+        /** \brief Computes spines information.
+         *
+         */
+        void updateSpineInformation(const Core::PathList                   &paths,
+                                    const QList<Core::PathHierarchyNode *> &hierarchy,
+                                    const Core::Connections                &connections) const;
 
         /** \brief DendriteSkeletonInformation class constructor.
          * \param[in] infoCache cache object.
@@ -88,8 +125,9 @@ namespace ESPINA
          */
         explicit DendriteSkeletonInformation(const InfoCache& infoCache = InfoCache());
 
-        mutable QReadWriteLock     m_mutex; /** data protection mutex for concurrent access. */
-        mutable InformationKeyList m_keys;  /** information keys in this extension.           */
+        mutable QReadWriteLock                 m_mutex;  /** data protection mutex for concurrent access.                          */
+        mutable InformationKeyList             m_keys;   /** information keys in this extension.                                   */
+        mutable QList<struct SpineInformation> m_spines; /** spine information cache, invalidated with the rest & lazy generation. */
 
         friend class SkeletonInformationFactory;
     };

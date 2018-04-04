@@ -47,8 +47,6 @@ SkeletonInspectorTreeModel::SkeletonInspectorTreeModel(const SegmentationAdapter
 , m_useRandomColoring{false}
 , m_connectionLevel  {0}
 {
-  connectSignals();
-
   computeStrokesTree();
 
   computeConnectionDistances(2);
@@ -563,9 +561,4 @@ void SkeletonInspectorTreeModel::onSelectionChanged(SegmentationAdapterList segm
   toInvalidate << m_segmentation.get();
 
   emit invalidate(toInvalidate);
-}
-
-//--------------------------------------------------------------------
-void SkeletonInspectorTreeModel::connectSignals()
-{
 }

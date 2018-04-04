@@ -985,3 +985,78 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
 
   return final;
 }
+
+//--------------------------------------------------------------------
+ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy)
+{
+  PathHierarchyNode *result = nullptr;
+
+  for(auto node: hierarchy)
+  {
+    if(node->path == path) return node;
+
+    auto child = locatePathHierarchyNode(path, node->children);
+
+    if(child) return child;
+  }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
+{
+  if(node->path.begin->isTerminal() && node->path.begin->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
+    return true;
+
+  if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
+    return true;
+
+  for(auto child: node->children)
+  {
+    if(isTruncated(child)) return true;
+  }
+
+  return false;
+}
+
+//--------------------------------------------------------------------
+const double ESPINA::Core::length(const PathHierarchyNode *node)
+{
+  double result = 0;
+
+  if(node->path.note.startsWith("Subspine", Qt::CaseInsensitive) || node->path.note.startsWith("Spine", Qt::CaseInsensitive))
+  {
+    result += node->path.length();
+
+    for(auto child: node->children)
+    {
+      result += length(child);
+    }
+  }
+
+  return result;
+};
+
+//--------------------------------------------------------------------
+const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints)
+{
+  QList<NmVector3> points;
+
+  auto beginPoint = NmVector3{node->path.begin->position};
+  auto endPoint   = NmVector3{node->path.end->position};
+
+  if(node->path.begin->isTerminal() && connectionPoints.contains(beginPoint))
+    points << beginPoint;
+
+  if(node->path.end->isTerminal() && connectionPoints.contains(endPoint))
+    points << endPoint;
+
+  for(const auto child: node->children)
+  {
+    points << connectionsInNode(child, connectionPoints);
+  }
+
+  return points;
+}
+

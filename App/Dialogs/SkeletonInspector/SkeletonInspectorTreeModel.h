@@ -205,11 +205,6 @@ namespace ESPINA
       inline TreeNode *dataNode(const QModelIndex &index) const
       { return static_cast<TreeNode *>(index.internalPointer()); }
 
-      /** \brief Helper method to connect signals.
-       *
-       */
-      void connectSignals();
-
     private:
       TreeNode                     *m_StrokesTree;       /** strokes tree structure.                                               */
       TreeNode                     *m_ConnectTree;       /** connections tree.                                                     */

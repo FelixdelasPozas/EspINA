@@ -25,16 +25,20 @@
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
+#include <Core/Utils/AnalysisUtils.h>
 #include <Extensions/SkeletonInformation/DendriteInformation.h>
 
 // Qt
 #include <QObject>
+#include <QFileInfo>
+#include <QByteArray>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;
 
 const SegmentationExtension::Type EspinaExtensions_EXPORT DendriteSkeletonInformation::TYPE = "DendriteInformation";
+const QString DendriteSkeletonInformation::SPINE_SNAPSHOT_FILE = "SpineInformation.csv";
 
 const SegmentationExtension::Key DENDRITE_SHAFT_LENGTH             = QObject::tr("Shaft Length (Nm)");
 const SegmentationExtension::Key DENDRITE_CONTACTED_AXONS_NUM      = QObject::tr("Num of axons contacted");
@@ -68,11 +72,6 @@ DendriteSkeletonInformation::DendriteSkeletonInformation(const InfoCache& infoCa
 }
 
 //--------------------------------------------------------------------
-DendriteSkeletonInformation::~DendriteSkeletonInformation()
-{
-}
-
-//--------------------------------------------------------------------
 State DendriteSkeletonInformation::state() const
 {
   return State();
@@ -81,7 +80,53 @@ State DendriteSkeletonInformation::state() const
 //--------------------------------------------------------------------
 Snapshot DendriteSkeletonInformation::snapshot() const
 {
-  return Snapshot();
+  Snapshot result;
+
+  if(!m_spines.isEmpty())
+  {
+    QByteArray buffer;
+
+    const QChar SEPARATOR{','};
+    const QChar NEWLINE  {'\n'};
+
+    for(auto spine: m_spines)
+    {
+      buffer.append(spine.name);
+      buffer.append(SEPARATOR);
+      buffer.append(spine.parentName);
+      buffer.append(SEPARATOR);
+      buffer.append(spine.complete ? "true":"false");
+      buffer.append(SEPARATOR);
+      buffer.append(spine.branched ? "true":"false");
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.length));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numSynapses));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAsymmetric));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAsymmetricHead));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAsymmetricNeck));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numSymmetric));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numSymmetricHead));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numSymmetricNeck));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAxons));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAxonsExcitatory));
+      buffer.append(SEPARATOR);
+      buffer.append(QString::number(spine.numAxonsInhibitory));
+      buffer.append(NEWLINE);
+    }
+
+    result << SnapshotData(snapshotName(SPINE_SNAPSHOT_FILE), buffer);
+  }
+
+  return result;
 }
 
 //--------------------------------------------------------------------
@@ -141,6 +186,119 @@ QVariant DendriteSkeletonInformation::cacheFail(const InformationKey& key) const
 }
 
 //--------------------------------------------------------------------
+void DendriteSkeletonInformation::updateSpineInformation(const Core::PathList &paths, const QList<Core::PathHierarchyNode *> &hierarchy, const Core::Connections &connections) const
+{
+  m_spines.clear();
+
+  // Returns true if any of the given node has branches. Must be called with the children of a spine node.
+  std::function<bool(QList<PathHierarchyNode *>)> hasBranches = [&hasBranches](QList<PathHierarchyNode *> nodes)
+  {
+    for(auto node: nodes)
+    {
+      auto name = node->path.note;
+      if(name.startsWith("Spine", Qt::CaseInsensitive) || name.startsWith("Subspine", Qt::CaseInsensitive) || hasBranches(node->children))
+        return true;
+    }
+
+    return false;
+  };
+
+  // Returns the connections number and the type in the given parameters of the connections of the given node.
+  std::function<const Connections(const PathHierarchyNode *, int&, int&, int&)> connectionsNumber = [&connectionsNumber, &connections](const PathHierarchyNode *node, int &number, int &asymNumber, int &symNumber)
+  {
+    Connections result;
+    auto beginPoint = NmVector3{node->path.begin->position};
+    auto endPoint   = NmVector3{node->path.end->position};
+
+    for(auto connection: connections)
+    {
+      if((node->path.begin->isTerminal() && beginPoint == connection.point) || (node->path.end->isTerminal() && endPoint == connection.point))
+      {
+        ++number;
+        auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+        if(seg->category()->name().startsWith("Asy", Qt::CaseInsensitive)) ++asymNumber;
+        else                                                               ++symNumber;
+
+        result << connection;
+      }
+    }
+
+    for(const auto child: node->children)
+    {
+      result << connectionsNumber(child, number, asymNumber, symNumber);
+    }
+
+    return result;
+  };
+
+  // Classifies the connections in the passed parameters for the given node.
+  std::function<void(const PathHierarchyNode *, const Connections, int&, int&)> classifyConnections = [&classifyConnections] (const PathHierarchyNode *node, const Connections &points, int &numANeck, int &numSNeck)
+  {
+    for(auto connection: points)
+    {
+      for(auto child: node->children)
+      {
+        if(child->path.hasEndingPoint(connection.point))
+        {
+          if(child->path.note.startsWith("Synapse on neck", Qt::CaseInsensitive))
+          {
+            auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+            if(seg->category()->name().startsWith("Asy", Qt::CaseInsensitive)) ++numANeck;
+            else                                                               ++numSNeck;
+          }
+          continue;
+        }
+      }
+    }
+  };
+
+
+  QList<NmVector3> pointList;
+  for(auto connection: connections)
+  {
+    pointList << connection.point;
+  }
+
+  for(auto &path: paths)
+  {
+    if(!path.note.startsWith("Spine")) continue;
+
+    auto pathNode = locatePathHierarchyNode(path, hierarchy);
+    Q_ASSERT(pathNode);
+
+    SpineInformation info;
+    info.name = path.note;
+    info.parentName = m_extendedItem->alias().isEmpty() ? m_extendedItem->name() : m_extendedItem->alias();
+    info.complete = !isTruncated(pathNode);
+    info.branched = hasBranches(pathNode->children);
+    info.length  = length(pathNode);
+    auto points = connectionsInNode(pathNode, pointList);
+
+    auto connected = connectionsNumber(pathNode, info.numSynapses, info.numAsymmetric, info.numSymmetric);
+    Q_ASSERT((connected.size() == info.numSynapses) && (info.numSynapses == info.numAsymmetric + info.numSymmetric));
+
+    classifyConnections(pathNode, connected, info.numAsymmetricNeck, info.numSymmetricNeck);
+    info.numAsymmetricHead = info.numAsymmetric - info.numAsymmetricNeck;
+    info.numSymmetricHead  = info.numSymmetric - info.numSymmetricNeck;
+
+    for(auto connection: connected)
+    {
+      auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+      auto axon = axonOf(seg.get());
+      if(axon)
+      {
+        ++info.numAxons;
+        auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+        if(seg->category()->name().startsWith("Asy", Qt::CaseInsensitive)) ++info.numAxonsExcitatory;
+        else                                                               ++info.numAxonsInhibitory;
+      }
+    }
+
+    m_spines << info;
+  }
+}
+
+//--------------------------------------------------------------------
 void DendriteSkeletonInformation::updateInformation() const
 {
   QWriteLocker lock(&m_mutex);
@@ -158,78 +316,7 @@ void DendriteSkeletonInformation::updateInformation() const
     auto hierarchy   = pathHierarchy(pathList, edges, strokes);
     auto connections = m_extendedItem->analysis()->connections(m_extendedItem);
 
-    QList<NmVector3> conPoints;
-    for(auto connection: connections) conPoints << connection.point;
-
-    // finds the path node in the hierarchy of the given path in the given node list or any child.
-    std::function<Core::PathHierarchyNode*(const Core::Path &, const QList<Core::PathHierarchyNode *>)> locateHNode = [&locateHNode](const Core::Path &path, const QList<Core::PathHierarchyNode *> nodes)
-    {
-      PathHierarchyNode *result = nullptr;
-
-      for(auto node: nodes)
-      {
-        if(node->path == path) return node;
-
-        auto child = locateHNode(path, node->children);
-
-        if(child) return child;
-      }
-
-      return result;
-    };
-
-    // returns true if the given node or any children is truncated.
-    std::function<bool(const PathHierarchyNode *)> isTruncated = [&isTruncated](const PathHierarchyNode *node)
-    {
-      if(node->path.begin->isTerminal() && node->path.begin->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
-        return true;
-
-      if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
-        return true;
-
-      for(auto child: node->children)
-      {
-        if(isTruncated(child)) return true;
-      }
-
-      return false;
-    };
-
-    // returns the total length of the given node and children, to be called from spine paths.
-    std::function<double(const PathHierarchyNode *)> childLength = [&childLength](const PathHierarchyNode *node)
-    {
-      double result = 0;
-      if(node->path.note.startsWith("Subspine", Qt::CaseInsensitive))
-      {
-        result += node->path.length();
-      }
-
-      for(auto child: node->children)
-      {
-        result += childLength(child);
-      }
-
-      return result;
-    };
-
-    // returns the number of connections of the given node and children.
-    std::function<int(const PathHierarchyNode *)> connectionsNum = [&connectionsNum, &conPoints](const PathHierarchyNode *node)
-    {
-      int result = 0;
-
-      if(node->path.begin->isTerminal() && conPoints.contains(NmVector3{node->path.begin->position}))
-        ++result;
-
-      if(node->path.end->isTerminal() && conPoints.contains(NmVector3{node->path.end->position}))
-        ++result;
-
-      for(auto child: node->children)
-      {
-        result += connectionsNum(child);
-      }
-
-      return result;
-    };
+    updateSpineInformation(pathList, hierarchy, connections);
 
     // follows the path to the end in the given direction, needs 2 nodes in seen list.
     auto followPath = [&edges, &strokes](Core::Path &path)
@@ -269,7 +356,7 @@ void DendriteSkeletonInformation::updateInformation() const
 
     double shaftLength = 0;
     double completeSpinesLength = 0;
-    unsigned int spinesNum = 0;
+    unsigned int spinesNum = m_spines.size();
     unsigned int truncated = 0;
     unsigned int branched = 0;
     unsigned int none = 0;
@@ -277,6 +364,35 @@ void DendriteSkeletonInformation::updateInformation() const
     unsigned int multi = 0;
     unsigned int connectionsOnSpine = 0;
     QList<double> spineDistances;
+
+    for(auto spine: m_spines)
+    {
+      if(!spine.complete)
+      {
+        ++truncated;
+      }
+      else
+      {
+        completeSpinesLength += spine.length;
+      }
+
+      if(spine.branched) ++branched;
+
+      switch(spine.numSynapses)
+      {
+        case 0:
+          ++none;
+          break;
+        case 1:
+          ++mono;
+          break;
+        default:
+          ++multi;
+          break;
+      }
+
+      connectionsOnSpine += spine.numSynapses;
+    }
 
     for(auto path: pathList)
     {
@@ -288,42 +404,8 @@ void DendriteSkeletonInformation::updateInformation() const
 
       if(path.note.startsWith("Spine", Qt::CaseInsensitive))
       {
-        ++spinesNum;
-
-        auto node = locateHNode(path, hierarchy);
-        auto spineLength = childLength(node);
-
-        if(isTruncated(node))
-        {
-          ++truncated;
-        }
-        else
-        {
-          completeSpinesLength += path.length() + spineLength;
-        }
-
-        if(spineLength != 0)
-        {
-          ++branched;
-        }
-
-        auto numberOfConnections = connectionsNum(node);
-        switch(numberOfConnections)
-        {
-          case 0:
-            ++none;
-            break;
-          case 1:
-            ++mono;
-            break;
-          default:
-            ++multi;
-            break;
-        }
-
-        connectionsOnSpine += numberOfConnections;
-
         auto distanceToNext = std::numeric_limits<double>::max();
+        auto node = locatePathHierarchyNode(path, hierarchy);
         if(node->parent && node->parent->path.note.startsWith("Shaft", Qt::CaseInsensitive))
         {
           auto connectionNode = node->parent->path.seen.contains(node->path.begin) ? node->path.begin : node->path.end;
@@ -419,4 +501,55 @@ void DendriteSkeletonInformation::updateInformation() const
   }
 }
 
+//-------------------------------------------------------- ------------
+const QList<struct DendriteSkeletonInformation::SpineInformation> DendriteSkeletonInformation::spinesInformation() const
+{
+  if(m_extendedItem && !isReady(createKey(DENDRITE_SHAFT_LENGTH)))
+  {
+    updateInformation();
+  }
 
+  return m_spines;
+}
+
+//--------------------------------------------------------------------
+void DendriteSkeletonInformation::invalidateImplementation()
+{
+  m_spines.clear();
+}
+
+//--------------------------------------------------------------------
+void DendriteSkeletonInformation::onExtendedItemSet(Segmentation* item)
+{
+  if(item && item->storage()->exists(snapshotName(SPINE_SNAPSHOT_FILE)))
+  {
+    auto buffer = item->storage()->snapshot(snapshotName(SPINE_SNAPSHOT_FILE));
+    const QChar SEPARATOR{','};
+    const QChar NEWLINE  {'\n'};
+
+    for(auto spineInfoLine: QString{buffer}.split(NEWLINE))
+    {
+      auto parts = spineInfoLine.split(SEPARATOR);
+      Q_ASSERT(parts.size() == 15);
+
+      struct SpineInformation spineInfo;
+      spineInfo.name               = parts.at(0);
+      spineInfo.parentName         = parts.at(1);
+      spineInfo.complete           = (parts.at(2) == "true");
+      spineInfo.branched           = (parts.at(3) == "true");
+      spineInfo.length             = parts.at(4).toDouble();
+      spineInfo.numSynapses        = parts.at(5).toInt();
+      spineInfo.numAsymmetric      = parts.at(6).toInt();
+      spineInfo.numAsymmetricHead  = parts.at(7).toInt();
+      spineInfo.numAsymmetricNeck  = parts.at(8).toInt();
+      spineInfo.numSymmetric       = parts.at(9).toInt();
+      spineInfo.numSymmetricHead   = parts.at(10).toInt();
+      spineInfo.numSymmetricNeck   = parts.at(11).toInt();
+      spineInfo.numAxons           = parts.at(12).toInt();
+      spineInfo.numAxonsInhibitory = parts.at(13).toInt();
+      spineInfo.numAxonsExcitatory = parts.at(14).toInt();
+
+      m_spines << spineInfo;
+    }
+  }
+}

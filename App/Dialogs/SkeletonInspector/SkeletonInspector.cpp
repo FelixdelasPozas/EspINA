@@ -25,6 +25,7 @@
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Extensions/SkeletonInformation/DendriteInformation.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
@@ -76,6 +77,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
@@ -102,6 +104,8 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
   initView3D(context.availableRepresentations());
 
   initTreeView();
+
+  initSpinesTable();
 
   restoreGeometry();
 }
@@ -156,7 +160,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     struct StrokeInfo info;
     info.name      = path.note;
     info.path      = path;
-    info.selected  = true;
+    info.selected  = false;
     info.length    = path.length();
     info.used      = definition.strokes.at(path.stroke).useMeasure;
     info.hue       = definition.strokes.at(path.stroke).colorHue;
@@ -442,6 +446,7 @@ void SkeletonInspector::initTreeView()
 
   m_treeView->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   m_treeView->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  m_treeView->setExpandsOnDoubleClick(false);
   m_treeView->setCurrentIndex(model->index(0,0));
 
   connect(model, SIGNAL(invalidate(ViewItemAdapterList)),
@@ -493,6 +498,27 @@ void SkeletonInspector::focusOnActor(QModelIndex index)
     {
       getViewState().focusViewOn(centroid(focusBounds));
     }
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::focusOnActor(int row)
+{
+  Bounds focusBounds;
+  auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
+
+  for(auto stroke: m_strokes)
+  {
+    if(stroke.name == name)
+    {
+      focusBounds = Bounds{stroke.actors.first()->GetBounds()};
+      break;
+    }
+  }
+
+  if(focusBounds.areValid())
+  {
+    getViewState().focusViewOn(centroid(focusBounds));
   }
 }
 
@@ -551,8 +577,21 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
         }
         break;
       case SkeletonInspectorTreeModel::TreeNode::Type::STROKE:
-        dataNode->stroke()->selected = true;
-        invalidated = true;
+        {
+          dataNode->stroke()->selected = true;
+          auto name = dataNode->stroke()->name;
+          m_table->blockSignals(true);
+          for(int i = 0; i < m_table->rowCount(); ++i)
+          {
+            if(m_table->item(i,0)->data(Qt::DisplayRole) == name)
+            {
+              m_table->selectRow(i);
+              break;
+            }
+          }
+          m_table->blockSignals(false);
+          invalidated = true;
+        }
         break;
       case SkeletonInspectorTreeModel::TreeNode::Type::SEGMENTATION:
         selection << dataNode->connection();
@@ -755,6 +794,29 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 }
 
 //--------------------------------------------------------------------
+void SkeletonInspector::onSpinesButtonClicked(bool checked)
+{
+  m_table->setVisible(checked);
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onSpineSelected(const QModelIndex& index)
+{
+  if(!index.isValid()) return;
+
+  auto row = index.row();
+  auto name = m_table->item(row, 0)->data(Qt::DisplayRole).toString();
+
+  for(auto &stroke: m_strokes)
+  {
+    stroke.selected = (stroke.name == name);
+  }
+
+  m_segmentation->invalidateRepresentations();
+  m_view.refresh();
+}
+
+//--------------------------------------------------------------------
 void SkeletonInspector::emitSegmentationConnectionSignals()
 {
   emit aboutToBeReset();
@@ -834,4 +896,64 @@ void SkeletonInspector::addSegmentations(const SegmentationAdapterList &segmenta
   {
     emitSegmentationConnectionSignals();
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::initSpinesTable()
+{
+  if(!m_segmentation->category()->classificationName().startsWith("Dendrite"))
+  {
+    m_spinesButton->setVisible(false);
+    m_table->setVisible(false);
+    m_table->setRowCount(0);
+    m_table->setColumnCount(0);
+    return;
+  }
+
+  m_spinesButton->setChecked(false);
+
+  connect(m_spinesButton, SIGNAL(clicked(bool)), this, SLOT(onSpinesButtonClicked(bool)));
+  connect(m_table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(focusOnActor(int)));
+
+  auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(m_segmentation, getFactory());
+
+  auto spines = extension->spinesInformation();
+
+  auto headers = QString("Name;Complete;Branched;Length (Nm);Num of synapses;Num asymmetric;Num asymmetric on head;Num asymmetric on neck;");
+  headers     += QString("Num symmetric;Num symmetric on head;Num symmetric on neck;Num of contacted axons;Num of inhibitory axons;Num of excitatory axons");
+
+  m_table->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+  m_table->setColumnCount(14);
+  m_table->setRowCount(spines.size());
+  m_table->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+  m_table->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+  m_table->setHorizontalHeaderLabels(headers.split(";"));
+
+  for(int i = 0; i < spines.size(); ++i)
+  {
+    auto spine = spines.at(i);
+    m_table->setItem(i, 0,new QTableWidgetItem(spine.name));
+    m_table->setItem(i, 1,new QTableWidgetItem(spine.complete ? "yes":"no"));
+    m_table->setItem(i, 2,new QTableWidgetItem(spine.branched ? "yes":"no"));
+    m_table->setItem(i, 3,new QTableWidgetItem(QString::number(spine.length)));
+    m_table->setItem(i, 4,new QTableWidgetItem(QString::number(spine.numSynapses)));
+    m_table->setItem(i, 5,new QTableWidgetItem(QString::number(spine.numAsymmetric)));
+    m_table->setItem(i, 6,new QTableWidgetItem(QString::number(spine.numAsymmetricHead)));
+    m_table->setItem(i, 7,new QTableWidgetItem(QString::number(spine.numAsymmetricNeck)));
+    m_table->setItem(i, 8,new QTableWidgetItem(QString::number(spine.numSymmetric)));
+    m_table->setItem(i, 9,new QTableWidgetItem(QString::number(spine.numSymmetricHead)));
+    m_table->setItem(i,10,new QTableWidgetItem(QString::number(spine.numSymmetricNeck)));
+    m_table->setItem(i,11,new QTableWidgetItem(QString::number(spine.numAxons)));
+    m_table->setItem(i,12,new QTableWidgetItem(QString::number(spine.numAxonsInhibitory)));
+    m_table->setItem(i,13,new QTableWidgetItem(QString::number(spine.numAxonsExcitatory)));
+  }
+
+  connect(m_table->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
+          this,                      SLOT(onSpineSelected(const QModelIndex &)));
+
+  m_table->resizeColumnsToContents();
+  m_table->adjustSize();
+  m_table->setVisible(false);
+  m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  m_table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 }
