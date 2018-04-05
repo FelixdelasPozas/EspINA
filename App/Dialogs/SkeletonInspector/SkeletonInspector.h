@@ -127,6 +127,11 @@ namespace ESPINA
        */
       void onSpineSelected(const QModelIndex &index);
 
+      /** \brief Shows the save data dialog and saves the table data to disk in the choosed format.
+       *
+       */
+      void onSaveButtonPressed();
+
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
        * \param[in] segmentation Skeleton segmentation object.
@@ -176,6 +181,18 @@ namespace ESPINA
        *
        */
       void emitSegmentationConnectionSignals();
+
+      /** \brief Saves the spine table contents to the given file on disk in CSV format.
+       * \param[in] filename Name of the file on disk.
+       *
+       */
+      void saveToCSV(const QString &filename) const;
+
+      /** \brief Saves the spine table contents to the given file on disk in Excel format.
+       * \param[in] filename Name of the file on disk.
+       *
+       */
+      void saveToXLS(const QString &filename) const;
 
     private:
       class SkeletonInspectorRepresentationSwitch;

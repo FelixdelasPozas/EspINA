@@ -38,6 +38,7 @@
 #include <Support/Settings/Settings.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <Support/Utils/xlsUtils.h>
 
 // VTK
 #include <vtkActor.h>
@@ -85,7 +86,9 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Representations::Utils;
+using namespace xlslib_core;
 
 const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
 
@@ -120,6 +123,7 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   settings.setValue("pos", pos());
   settings.setValue("size1", m_splitter->sizes().at(0));
   settings.setValue("size2", m_splitter->sizes().at(1));
+  settings.setValue("tableEnabled", m_spinesButton->isChecked());
   settings.endGroup();
 
   QDialog::closeEvent(event);
@@ -302,6 +306,9 @@ void SkeletonInspector::restoreGeometry()
   QList<int> pixelSizes;
   pixelSizes << settings.value("size1", 300).toInt() << settings.value("size2", 800).toInt();
   m_splitter->setSizes(pixelSizes);
+  auto spinesTableVisible = settings.value("tableEnabled", false).toBool();
+  m_spinesButton->setChecked(spinesTableVisible);
+  m_tabWidget->setVisible(spinesTableVisible);
   settings.endGroup();
 }
 
@@ -796,7 +803,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 //--------------------------------------------------------------------
 void SkeletonInspector::onSpinesButtonClicked(bool checked)
 {
-  m_table->setVisible(checked);
+  m_tabWidget->setVisible(checked);
 }
 
 //--------------------------------------------------------------------
@@ -814,6 +821,49 @@ void SkeletonInspector::onSpineSelected(const QModelIndex& index)
 
   m_segmentation->invalidateRepresentations();
   m_view.refresh();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onSaveButtonPressed()
+{
+  auto dendriteName = m_segmentation->data().toString();
+  auto title        = tr("Export %1's spines sata").arg(dendriteName);
+  auto suggestion   = QString("%1-spines.xls").arg(dendriteName).replace(' ','_');
+  auto formats      = SupportedFormats().addExcelFormat().addCSVFormat();
+  auto fileName     = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
+
+  if (fileName.isEmpty()) return;
+
+  // some users are used to not enter an extension, and expect a default xls output.
+  if(!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    fileName += tr(".xls");
+  }
+
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
+  {
+    try
+    {
+      saveToCSV(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Couldn't export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
+    }
+  }
+  else if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    try
+    {
+      saveToXLS(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Couldn't export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
+    }
+  }
 }
 
 //--------------------------------------------------------------------
@@ -901,12 +951,20 @@ void SkeletonInspector::addSegmentations(const SegmentationAdapterList &segmenta
 //--------------------------------------------------------------------
 void SkeletonInspector::initSpinesTable()
 {
+  m_tabWidget->setTabText(0, tr("%1's spines").arg(m_segmentation->data().toString()));
+
+  auto iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  m_saveButton->setIcon(iconSave);
+  m_saveButton->setIconSize(QSize(iconSize(), iconSize()));
+  m_saveButton->setMaximumSize(buttonSize(), buttonSize());
+  m_saveButton->setMinimumSize(buttonSize()*0.66, buttonSize()*0.66);
+
+  connect(m_saveButton, SIGNAL(pressed()), this, SLOT(onSaveButtonPressed()));
+
   if(!m_segmentation->category()->classificationName().startsWith("Dendrite"))
   {
     m_spinesButton->setVisible(false);
-    m_table->setVisible(false);
-    m_table->setRowCount(0);
-    m_table->setColumnCount(0);
+    m_tabWidget->setVisible(false);
     return;
   }
 
@@ -953,7 +1011,75 @@ void SkeletonInspector::initSpinesTable()
 
   m_table->resizeColumnsToContents();
   m_table->adjustSize();
-  m_table->setVisible(false);
   m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   m_table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+  m_tabWidget->setVisible(false);
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::saveToCSV(const QString& filename) const
+{
+  QFile file(filename);
+
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
+  {
+    auto what    = tr("exportToCSV: can't save file '%1'.").arg(filename);
+    auto details = tr("Cause of failure: %1").arg(file.errorString());
+
+    throw EspinaException(what, details);
+  }
+
+  QTextStream out(&file);
+
+  for (int c = 0; c < m_table->columnCount(); c++)
+  {
+    out << m_table->horizontalHeaderItem(c)->data(Qt::DisplayRole).toString() << ",";
+  }
+  out << "Parent dendrite\n";
+
+  auto dendriteName = m_segmentation->data().toString();
+  for (int r = 0; r < m_table->rowCount(); r++)
+  {
+    for (int c = 0; c < m_table->columnCount(); c++)
+    {
+      out << m_table->item(r, c)->data(Qt::DisplayRole).toString().remove('\'') << ",";
+    }
+    out << dendriteName << "\n";
+  }
+  file.close();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::saveToXLS(const QString& filename) const
+{
+  workbook wb;
+
+  auto excelSheet = wb.sheet(m_segmentation->data().toString().replace(' ','_').toStdString());
+
+  for (int c = 0; c < m_table->columnCount(); ++c)
+  {
+    createCell(excelSheet, 0, c, m_table->horizontalHeaderItem(c)->data(Qt::DisplayRole).toString());
+  }
+  createCell(excelSheet, 0, m_table->columnCount(), tr("Parent dendrite"));
+
+  auto dendriteName = m_segmentation->data().toString();
+  for (int r = 0; r < m_table->rowCount(); ++r)
+  {
+    for (int c = 0; c < m_table->columnCount(); ++c)
+    {
+      createCell(excelSheet, r+1, c, m_table->item(r, c)->data(Qt::DisplayRole).toString().remove('\''));
+    }
+    createCell(excelSheet, r+1, m_table->columnCount(), dendriteName);
+  }
+
+  auto result = wb.Dump(filename.toStdString());
+
+  if(result != NO_ERRORS)
+  {
+    auto what    = tr("exportToXLS: can't save file '%1'.").arg(filename);
+    auto details = tr("Cause of failure: %1").arg(result == FILE_ERROR ? "file error" : "general error");
+
+    throw EspinaException(what, details);
+  }
 }
