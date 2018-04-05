@@ -186,9 +186,23 @@ QVariant DendriteSkeletonInformation::cacheFail(const InformationKey& key) const
 }
 
 //--------------------------------------------------------------------
-void DendriteSkeletonInformation::updateSpineInformation(const Core::PathList &paths, const QList<Core::PathHierarchyNode *> &hierarchy, const Core::Connections &connections) const
+void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinition               &definition,
+                                                         const Core::PathList                   &paths,
+                                                         const QList<Core::PathHierarchyNode *> &hierarchy,
+                                                         const Core::Connections                &connections) const
 {
   m_spines.clear();
+
+  int edgeStrokeIndex = -1;
+  for(int i = 0; i < definition.strokes.size(); ++i)
+  {
+    if(definition.strokes.at(i).name == "Spine")
+    {
+      edgeStrokeIndex = i;
+      break;
+    }
+  }
+  Q_ASSERT(edgeStrokeIndex != -1);
 
   // Returns true if any of the given node has branches. Must be called with the children of a spine node.
   std::function<bool(QList<PathHierarchyNode *>)> hasBranches = [&hasBranches](QList<PathHierarchyNode *> nodes)
@@ -262,6 +276,7 @@ void DendriteSkeletonInformation::updateSpineInformation(const Core::PathList &p
   for(auto &path: paths)
   {
     if(!path.note.startsWith("Spine")) continue;
+    if(path.stroke != edgeStrokeIndex) continue;
 
     auto pathNode = locatePathHierarchyNode(path, hierarchy);
     Q_ASSERT(pathNode);
@@ -296,6 +311,9 @@ void DendriteSkeletonInformation::updateSpineInformation(const Core::PathList &p
 
     m_spines << info;
   }
+
+  auto lessThan = [](const struct SpineInformation &rhs, const struct SpineInformation &lhs) { return rhs.name < lhs.name; };
+  qSort(m_spines.begin(), m_spines.end(), lessThan);
 }
 
 //--------------------------------------------------------------------
@@ -316,7 +334,7 @@ void DendriteSkeletonInformation::updateInformation() const
     auto hierarchy   = pathHierarchy(pathList, edges, strokes);
     auto connections = m_extendedItem->analysis()->connections(m_extendedItem);
 
-    updateSpineInformation(pathList, hierarchy, connections);
+    updateSpineInformation(definition, pathList, hierarchy, connections);
 
     // follows the path to the end in the given direction, needs 2 nodes in seen list.
     auto followPath = [&edges, &strokes](Core::Path &path)

@@ -113,9 +113,14 @@ namespace ESPINA
         void updateInformation() const;
 
         /** \brief Computes spines information.
+         * \param[in] definition Skeleton definition struct.
+         * \param[in] paths Skeleton paths.
+         * \param[in] hierarchy Skeleton paths hierarchy nodes.
+         * \param[in] connections Dendrite connections.
          *
          */
-        void updateSpineInformation(const Core::PathList                   &paths,
+        void updateSpineInformation(const Core::SkeletonDefinition         &definition,
+                                    const Core::PathList                   &paths,
                                     const QList<Core::PathHierarchyNode *> &hierarchy,
                                     const Core::Connections                &connections) const;
 
