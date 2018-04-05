@@ -123,6 +123,12 @@ namespace ESPINA
       virtual ~CheckAnalysis()
       {};
 
+      /** NOTE: task pauses itself waiting for its children to finish execution.
+       *
+       */
+      virtual bool isRunning() const override
+      { return !hasFinished(); }
+
     signals:
       void issuesFound(Extensions::IssueList issues);
 

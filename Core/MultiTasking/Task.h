@@ -130,7 +130,7 @@ namespace ESPINA
     /** \brief Returns true if the task is running.
      *
      */
-    bool isRunning() const;
+    virtual bool isRunning() const;
 
     /** \brief Returns true if the task has been aborted.
      *
