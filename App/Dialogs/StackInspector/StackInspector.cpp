@@ -32,6 +32,7 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/SLIC/StackSLIC.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -142,6 +143,11 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
   {
     changeEdgeDetectorBgColor(m_backgroundColor);
   }
+
+  /// SLIC TAB
+  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(channel, context.factory());
+  connect(testRunSlic, SIGNAL(released()), slicExtension.get(), SLOT(onComputeSLIC()));
+  //connect(testRunSlic, SIGNAL(clicked()), this, SLOT(slicStarted()));
 
   tabWidget->setCurrentIndex(0);
 

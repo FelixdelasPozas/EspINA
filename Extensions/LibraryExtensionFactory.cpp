@@ -36,6 +36,8 @@
 #include <Core/Utils/EspinaException.h>
 #include "SkeletonInformation/SkeletonInformation.h"
 #include "SkeletonInformation/SkeletonInformationFactory.h"
+#include "SLIC/StackSLIC.h"
+#include "SLIC/StackSLICFactory.h"
 
 // C++
 #include <memory>
@@ -50,6 +52,7 @@ LibraryStackExtensionFactory::LibraryStackExtensionFactory(CoreFactory* factory)
 : StackExtensionFactory{factory}
 {
   m_factories.insert(ChannelEdges::TYPE, std::make_shared<ChannelEdgesFactory>(factory));
+  m_factories.insert(StackSLIC::TYPE, std::make_shared<StackSLICFactory>(factory));
 }
 
 //-----------------------------------------------------------------------

@@ -21,46 +21,104 @@
 #ifndef EXTENSIONS_SLIC_STACKSLIC_H_
 #define EXTENSIONS_SLIC_STACKSLIC_H_
 
+#include <Extensions/EspinaExtensions_Export.h>
+
+// ESPINA
 #include <Core/Analysis/Extensions.h>
-#include <Core/Analysis/Persistent.h>
-#include <Core/Utils/TemporalStorage.h>
+#include <Core/MultiTasking/Task.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
 namespace ESPINA
 {
-
-class StackSLIC: public ESPINA::Core::StackExtension
+  namespace Extensions
   {
-    public:
-      StackSLIC(const State &state);
-      virtual ~StackSLIC();
-      static const Type TYPE;
-      virtual QString type() const
-      {
-        return TYPE;
-      }
-      virtual State state() const;
+    class EspinaExtensions_EXPORT StackSLIC
+    : public ESPINA::Core::StackExtension
+    {
+      Q_OBJECT
 
-      virtual Snapshot snapshot() const;
+      public:
+        /** \brief StackSLIC class constructor.
+         * \param[in] cache Extension cache data.
+         *
+         */
+        StackSLIC(SchedulerSPtr scheduler, const InfoCache &cache);
+        virtual ~StackSLIC();
 
-      virtual bool invalidateOnChange() const
-      {
-        return false;
-      }
+        typedef enum SLICVariant {
+          SLIC,
+          SLICO,
+          ASLIC
+        } SLICVariant;
 
-      virtual TypeList dependencies() const
-      {
-        Extension::TypeList deps;
-        deps << Extensions::ChannelEdges::TYPE;
-        return deps;
-      }
+        static const Type TYPE;
+        virtual QString type() const
+        {
+          return TYPE;
+        }
+        virtual State state() const;
 
-      virtual InformationKeyList availableInformation() const;
+        virtual Snapshot snapshot() const;
 
-    protected:
+        virtual bool invalidateOnChange() const
+        {
+          return false;
+        }
 
-  };
+        virtual void invalidate() {}
 
+        virtual QString toolTipText() const
+              { return tr("SLIC Algorithm"); }
+
+        virtual TypeList dependencies() const
+        {
+          Extension::TypeList deps;
+          deps << Extensions::ChannelEdges::TYPE;
+          return deps;
+        }
+
+        virtual InformationKeyList availableInformation() const;
+
+      protected:
+        virtual void onExtendedItemSet(Channel* item) {}
+
+        virtual QVariant cacheFail(const InformationKey& tag) const
+        { return QVariant(); }
+
+      protected slots:
+        void onComputeSLIC();
+
+      signals:
+        void computeFinished();
+
+      private:
+        class SLICComputeTask;
+        SchedulerSPtr m_scheduler; /** application scheduler. */
+        uint16_t parameter_m_s;
+        uint16_t parameter_m_c;
+        SLICVariant variant;
+
+        typedef struct Label {
+          itk::Image<unsigned char, 3>::IndexType center;
+          int m_c;
+          int m_s;
+          double norm_quotient;
+        } Label;
+
+        typedef struct Voxel {
+          unsigned int label;
+          double distance;
+        } Voxel;
+    };
+
+    class StackSLIC::SLICComputeTask
+    : public ESPINA::Task
+    {
+      public:
+        explicit SLICComputeTask();
+        virtual ~SLICComputeTask();
+    };
+  }
 }
 
 #endif /* EXTENSIONS_SLIC_STACKSLIC_H_ */
