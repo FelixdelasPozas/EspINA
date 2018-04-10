@@ -23,6 +23,7 @@
 #include "RawInformationReport.h"
 #include "DistanceInformationReport.h"
 #include "AdjacencyMatrixReport.h"
+#include "SpineInformationReport.h"
 
 using namespace ESPINA;
 
@@ -36,6 +37,7 @@ ReportsTool::ReportsTool(Support::Context &context)
   registerReport(std::make_shared<RawInformationReport>(context));
   registerReport(std::make_shared<DistanceInformationReport>(context));
   registerReport(std::make_shared<AdjacencyMatrixReport>(context));
+  registerReport(std::make_shared<SpineInformationReport>(context));
 }
 
 //----------------------------------------------------------------------------

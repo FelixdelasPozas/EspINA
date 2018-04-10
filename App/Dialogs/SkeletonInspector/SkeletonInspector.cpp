@@ -827,7 +827,7 @@ void SkeletonInspector::onSpineSelected(const QModelIndex& index)
 void SkeletonInspector::onSaveButtonPressed()
 {
   auto dendriteName = m_segmentation->data().toString();
-  auto title        = tr("Export %1's spines sata").arg(dendriteName);
+  auto title        = tr("Export %1's spines information").arg(dendriteName);
   auto suggestion   = QString("%1-spines.xls").arg(dendriteName).replace(' ','_');
   auto formats      = SupportedFormats().addExcelFormat().addCSVFormat();
   auto fileName     = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);

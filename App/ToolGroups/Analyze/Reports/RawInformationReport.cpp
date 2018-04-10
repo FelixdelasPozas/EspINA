@@ -58,7 +58,7 @@ SegmentationAdapterList RawInformationReport::acceptedInput(SegmentationAdapterL
 //----------------------------------------------------------------------------
 QString RawInformationReport::requiredInputDescription() const
 {
-  return QString();
+  return tr("Current report input doesn't contain segmentations.");
 }
 
 //----------------------------------------------------------------------------

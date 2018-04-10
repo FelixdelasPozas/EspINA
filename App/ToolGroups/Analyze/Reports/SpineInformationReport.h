@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2018 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -19,8 +19,8 @@
  
  */
 
-#ifndef APP_TOOLGROUPS_ANALYZE_REPORTS_ADJACENCYMATRIXREPORT_H_
-#define APP_TOOLGROUPS_ANALYZE_REPORTS_ADJACENCYMATRIXREPORT_H_
+#ifndef APP_TOOLGROUPS_ANALYZE_REPORTS_SPINEINFORMATIONREPORT_H_
+#define APP_TOOLGROUPS_ANALYZE_REPORTS_SPINEINFORMATIONREPORT_H_
 
 // ESPINA
 #include <Support/Context.h>
@@ -28,26 +28,26 @@
 
 namespace ESPINA
 {
-  /** \class AdjacencyMatrixReport
-   * \brief Adjacency matrix report.
+  /** \class SpineInformationReport
+   * \brief Dendrites spine information report.
    *
    */
-  class AdjacencyMatrixReport
+  class SpineInformationReport
   : public Support::Report
   , public Support::WithContext
   {
     public:
-      /** \brief AdjacencyMatrixReport class constructor.
-       * \param[in] context application context
+      /** \brief SpineInformationReport class constructor.
+       * \param[in] context Application context.
        *
        */
-      explicit AdjacencyMatrixReport(Support::Context &context);
+      explicit SpineInformationReport(Support::Context &context);
 
-      /** \brief AdjacencyMatrixReport class virtual destructor.
+      /** \brief SpineInformationReport class virtual destructor.
        *
        */
-      virtual ~AdjacencyMatrixReport()
-      {}
+      virtual ~SpineInformationReport()
+      {};
 
       virtual QString name() const override;
 
@@ -62,4 +62,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // APP_TOOLGROUPS_ANALYZE_REPORTS_ADJACENCYMATRIXREPORT_H_
+#endif // APP_TOOLGROUPS_ANALYZE_REPORTS_SPINEINFORMATIONREPORT_H_
