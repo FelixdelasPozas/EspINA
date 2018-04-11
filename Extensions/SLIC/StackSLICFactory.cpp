@@ -35,20 +35,15 @@ StackSLICFactory::StackSLICFactory(CoreFactory *factory)
 }
 
 //-----------------------------------------------------------------------
-StackSLICFactory::~StackSLICFactory()
-{
-}
-
-//-----------------------------------------------------------------------
 StackExtensionSPtr StackSLICFactory::createExtension(const Core::StackExtension::Type      &type,
-                                                            const Core::StackExtension::InfoCache &cache,
-                                                            const State                           &state) const
+                                                     const Core::StackExtension::InfoCache &cache,
+                                                     const State                           &state) const
 {
   StackExtensionSPtr extension = nullptr;
 
   if(type == StackSLIC::TYPE)
   {
-    extension = StackExtensionSPtr{new StackSLIC(m_factory->scheduler(), cache)};
+    extension = StackExtensionSPtr{new StackSLIC(m_factory->scheduler(), m_factory, cache)};
   }
 
   if(!extension || !extension.get())

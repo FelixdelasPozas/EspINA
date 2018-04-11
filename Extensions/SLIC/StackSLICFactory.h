@@ -36,6 +36,7 @@ namespace ESPINA
   {
     /** \class StackSLICFactory
      * \brief Factory for the StackSLIC stack extension.
+     *
      */
     class EspinaExtensions_EXPORT StackSLICFactory
     : public Core::StackExtensionFactory
@@ -50,7 +51,8 @@ namespace ESPINA
         /** \brief StackSLICFactory class virtual destructor.
          *
          */
-        virtual ~StackSLICFactory();
+        virtual ~StackSLICFactory()
+        {};
 
         virtual Core::StackExtensionSPtr createExtension(const Core::StackExtension::Type      &type,
                                                          const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache() ,

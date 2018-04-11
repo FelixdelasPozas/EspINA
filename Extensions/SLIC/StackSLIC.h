@@ -35,15 +35,19 @@ namespace ESPINA
     class EspinaExtensions_EXPORT StackSLIC
     : public ESPINA::Core::StackExtension
     {
-      Q_OBJECT
-
+        Q_OBJECT
       public:
         /** \brief StackSLIC class constructor.
          * \param[in] cache Extension cache data.
          *
          */
-        StackSLIC(SchedulerSPtr scheduler, const InfoCache &cache);
-        virtual ~StackSLIC();
+        explicit StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache);
+
+        /** \brief StackSLIC class virtual destructor.
+         *
+         */
+        virtual ~StackSLIC()
+        {};
 
         typedef enum SLICVariant {
           SLIC,
@@ -52,23 +56,24 @@ namespace ESPINA
         } SLICVariant;
 
         static const Type TYPE;
+
         virtual QString type() const
         {
           return TYPE;
         }
+
         virtual State state() const;
 
         virtual Snapshot snapshot() const;
 
         virtual bool invalidateOnChange() const
-        {
-          return false;
-        }
+        { return false; }
 
-        virtual void invalidate() {}
+        virtual void invalidate()
+        {};
 
-        virtual QString toolTipText() const
-              { return tr("SLIC Algorithm"); }
+        virtual QString toolTipText() const override
+        { return tr("SLIC Algorithm"); }
 
         virtual TypeList dependencies() const
         {
@@ -87,6 +92,7 @@ namespace ESPINA
 
       protected slots:
         void onComputeSLIC();
+        void onSLICComputed();
 
       signals:
         void computeFinished();
@@ -94,29 +100,41 @@ namespace ESPINA
       private:
         class SLICComputeTask;
         SchedulerSPtr m_scheduler; /** application scheduler. */
-        uint16_t parameter_m_s;
-        uint16_t parameter_m_c;
+        CoreFactory  *m_factory;   /** core factory.          */
+    };
+
+    class StackSLIC::SLICComputeTask
+    : public Task
+    {
+        Q_OBJECT
+      public:
+        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory);
+        virtual ~SLICComputeTask()
+        {};
+
+      private:
+        virtual void run();
+
+        ChannelPtr m_stack;
+        CoreFactory *m_factory;
+
+        unsigned int parameter_m_s;
+        unsigned int parameter_m_c;
         SLICVariant variant;
 
-        typedef struct Label {
+        typedef struct Label
+        {
           itk::Image<unsigned char, 3>::IndexType center;
           int m_c;
           int m_s;
           double norm_quotient;
         } Label;
 
-        typedef struct Voxel {
+        typedef struct Voxel
+        {
           unsigned int label;
           double distance;
         } Voxel;
-    };
-
-    class StackSLIC::SLICComputeTask
-    : public ESPINA::Task
-    {
-      public:
-        explicit SLICComputeTask();
-        virtual ~SLICComputeTask();
     };
   }
 }

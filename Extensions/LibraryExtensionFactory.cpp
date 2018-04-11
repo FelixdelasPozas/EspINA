@@ -94,7 +94,6 @@ StackExtension::TypeList ESPINA::LibraryStackExtensionFactory::providedExtension
   return list;
 }
 
-
 //-----------------------------------------------------------------------
 LibrarySegmentationExtensionFactory::LibrarySegmentationExtensionFactory(CoreFactory* factory)
 : SegmentationExtensionFactory{factory}
