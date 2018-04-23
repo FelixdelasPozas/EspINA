@@ -125,16 +125,16 @@ namespace ESPINA
         typedef struct Label
         {
           itk::Image<unsigned char, 3>::IndexType center;
-          int m_c;
-          int m_s;
+          float m_c;
+          float m_s;
           double norm_quotient;
         } Label;
 
-        typedef struct Voxel
+        /*typedef struct Voxel
         {
-          unsigned int label;
+          unsigned long int label;
           double distance;
-        } Voxel;
+        } Voxel;*/
     };
   }
 }
