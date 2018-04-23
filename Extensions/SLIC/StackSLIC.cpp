@@ -317,7 +317,7 @@ void StackSLIC::SLICComputeTask::run()
 
             //Check if voxel is closer to this supervoxel than to its current paired supervoxel
             voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
-            if(voxels[voxel_index] == ULONG_MAX) {
+            if(voxels[voxel_index] == ULONG_MAX || voxels[voxel_index] == label_index) {
               //First iteration, voxels not assigned yet
               distance_old = DBL_MAX;
             } else {
