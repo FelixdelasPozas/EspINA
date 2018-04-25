@@ -126,8 +126,11 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::uninitialize()
 {
-  m_view->removeActor(m_actor);
-  m_view = nullptr;
+  if(m_view)
+  {
+    if(m_actor) m_view->removeActor(m_actor);
+    m_view = nullptr;
+  }
 }
 
 //--------------------------------------------------------------------
