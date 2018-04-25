@@ -58,7 +58,7 @@ namespace ESPINA
           class EspinaGUI_EXPORT SkeletonWidget2D
           : public EspinaWidget2D
           {
-            Q_OBJECT
+              Q_OBJECT
             public:
               enum class Mode : std::int8_t { CREATE = 0, MODIFY = 1, ERASE = 2, MARK = 3 };
 

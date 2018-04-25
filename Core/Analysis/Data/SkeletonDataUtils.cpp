@@ -60,13 +60,17 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
   // edges information
   auto edgeIndexes = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeIndexes"));
   auto edgeNumbers = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
-  Q_ASSERT(edgeIndexes && edgeNumbers && (edgeIndexes->GetNumberOfTuples() == edgeNumbers->GetNumberOfTuples()));
+  auto edgeParents = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeParents"));
+  Q_ASSERT(edgeIndexes && edgeNumbers && edgeParents);
+  Q_ASSERT(edgeIndexes->GetNumberOfTuples() == edgeNumbers->GetNumberOfTuples());
+  Q_ASSERT(edgeIndexes->GetNumberOfTuples() == edgeParents->GetNumberOfTuples());
 
   for(int i = 0; i < edgeIndexes->GetNumberOfTuples(); ++i)
   {
     SkeletonEdge edge;
-    edge.strokeIndex = edgeIndexes->GetValue(i);
+    edge.strokeIndex  = edgeIndexes->GetValue(i);
     edge.strokeNumber = edgeNumbers->GetValue(i);
+    edge.parentEdge   = edgeParents->GetValue(i);
 
     result.edges << edge;
   }
@@ -257,11 +261,18 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
   edgeIndexes->SetNumberOfComponents(1);
   edgeIndexes->SetNumberOfValues(skeleton.edges.size());
 
-  // save edge truncated
+  // save if edge is truncated, this is not restored in toSkeletonDefinition, it's only used in representation pipelines
+  // to avoid computing it.
   auto edgeTruncated = vtkSmartPointer<vtkIntArray>::New();
   edgeTruncated->SetName("EdgeTruncated");
   edgeTruncated->SetNumberOfComponents(1);
   edgeTruncated->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge parents
+  auto edgeParents = vtkSmartPointer<vtkIntArray>::New();
+  edgeParents->SetName("EdgeParents");
+  edgeParents->SetNumberOfComponents(1);
+  edgeParents->SetNumberOfValues(skeleton.edges.size());
 
   for(int i = 0; i < skeleton.edges.size(); ++i)
   {
@@ -269,6 +280,7 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
 
     edgeIndexes->SetValue(i, edge.strokeIndex);
     edgeNumbers->SetValue(i, edge.strokeNumber);
+    edgeParents->SetValue(i, edge.parentEdge);
     edgeTruncated->SetValue(i, truncatedEdges.contains(i) ? 1 : 0);
   }
 
@@ -284,6 +296,7 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
   polyData->GetPointData()->AddArray(flags);
   polyData->GetPointData()->AddArray(edgeIndexes);
   polyData->GetPointData()->AddArray(edgeNumbers);
+  polyData->GetPointData()->AddArray(edgeParents);
   polyData->GetPointData()->AddArray(edgeTruncated);
   polyData->GetCellData()->AddArray(cellIndexes);
 
@@ -592,13 +605,13 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
 
     if(path.begin != nullptr)
     {
-      path.note = strokeName(edges.at(key), strokes);
+      path.note = strokeName(edges.at(key), strokes, edges);
     }
     else
     {
       path.begin = (*group.begin());
       path.end   = path.begin;
-      path.note  = "Loop " + strokeName(edges.at(key), strokes);
+      path.note  = "Loop " + strokeName(edges.at(key), strokes, edges);
     }
 
     path.edge   = key;
@@ -824,59 +837,38 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
     }
   }
 
-  auto maximum = [](QSet<int> set)
+  auto substitute = [&skeleton](const int strokeIndex, const int previous, const int value)
   {
-    int result = -1;
-    for(auto element: set)
+    for(auto &edge: skeleton.edges)
     {
-      if(result < element) result = element;
-    }
-
-    return result;
-  };
-
-  auto firstMissing = [maximum](QSet<int> set)
-  {
-    for(int i = 1; i <= maximum(set); ++i)
-    {
-      if(!set.contains(i)) return i;
-    }
-
-    return -1;
-  };
-
-  auto nextAfterMissing = [maximum](QSet<int> set, const int element)
-  {
-    if(element == -1) return element;
-
-    for(int i = element + 1; i <= maximum(set); ++i)
-    {
-      if(set.contains(i)) return i;
-    }
-
-    return -1;
-  };
-
-  for(auto index: recount.keys())
-  {
-    auto missing = firstMissing(recount[index]);
-    while(missing != -1)
-    {
-      const auto element = nextAfterMissing(recount[index], missing);
-
-      for(auto &edge: skeleton.edges)
+      if(edge.strokeIndex == strokeIndex && edge.strokeNumber == previous)
       {
-        if(edge.strokeIndex == index && edge.strokeNumber == element)
+        edge.strokeNumber = value;
+        return;
+      }
+    }
+
+    Q_ASSERT(false); // this should be dead code.
+  };
+
+  for(auto value: recount.keys())
+  {
+    auto valueList = recount[value].toList();
+    qSort(valueList.begin(), valueList.end());
+
+    // are there gaps? size is const, last value is not.
+    Q_ASSERT(valueList.last() >= valueList.size());
+    while(valueList.size() != valueList.last())
+    {
+      // identify and substitute gap.
+      for(int i = 1; i < valueList.last(); ++i)
+      {
+        if(!valueList.contains(i))
         {
-          edge.strokeNumber = missing;
-          break;
+          substitute(value, valueList.takeLast(), i);
+          valueList.insert(i-1, i);
         }
       }
-
-      recount[index] << missing;
-      recount[index].remove(element);
-
-      missing = firstMissing(recount[index]);
     }
   }
 
@@ -888,9 +880,22 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 }
 
 //--------------------------------------------------------------------
-const QString ESPINA::Core::strokeName(const Core::SkeletonEdge& edge, const Core::SkeletonStrokes& strokes)
+const QString ESPINA::Core::strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges)
 {
-  return QString("%1 %2").arg(strokes.at(edge.strokeIndex).name).arg(edge.strokeNumber);
+  auto number = QString::number(edge.strokeNumber);
+  auto name   = strokes.at(edge.strokeIndex).name;
+  auto parent = edge.parentEdge;
+  QSet<int> visited;
+
+  while((parent != -1) && !visited.contains(parent))
+  {
+    visited << parent;
+    const auto &otherEdge = edges.at(parent);
+    number = QString("%1.%2").arg(otherEdge.strokeNumber).arg(number);
+    parent = otherEdge.parentEdge;
+  }
+
+  return QString("%1 %2").arg(name).arg(number);
 }
 
 //--------------------------------------------------------------------

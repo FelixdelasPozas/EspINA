@@ -112,14 +112,6 @@ namespace ESPINA
           return *this;
         }
 
-        /** \brief Operator < for skeleton strokes. Needed for using it in a QMap.
-         *
-         */
-        bool operator<(const SkeletonStroke &other)
-        {
-          return (name < other.name);
-        }
-
         /** \brief Returns true if the stroke is not defined and false otherwise.
          *
          */
@@ -141,34 +133,44 @@ namespace ESPINA
      */
     struct EspinaCore_EXPORT SkeletonEdge
     {
-      int strokeIndex;  /** index to stroke list. */
-      int strokeNumber; /** number of the stroke. */
+      int strokeIndex;  /** index to stroke list.                    */
+      int strokeNumber; /** number of the stroke.                    */
+      int parentEdge;   /** number of the parent edge, -1 if orphan. */
 
       /** \brief SkeletonEdge struct constructor.
        *
        */
-      SkeletonEdge(): strokeIndex{-1}, strokeNumber{-1} {};
+      explicit SkeletonEdge(): strokeIndex{-1}, strokeNumber{-1}, parentEdge{-1} {};
 
       /** \brief SkeletonEdge struct constructor.
-       * \param[in] index Indes in the stroke list.
+       * \param[in] index Index in the stroke list.
        * \param[in] number number of stroke.
+       * \param[in] parent Index of the parent stroke in the stroke list.
        *
        */
-      SkeletonEdge(int index, int number): strokeIndex{index}, strokeNumber{number} {};
+      explicit SkeletonEdge(int index, int number, int parent): strokeIndex{index}, strokeNumber{number}, parentEdge{parent} {};
 
       /** \brief Operator == for SkeletonEdge struct.
        * \param[in] other SkeletonEdge struct reference to compare.
        *
        */
-      bool operator==(const SkeletonEdge &other)
-      { return (strokeIndex == other.strokeIndex) && (strokeNumber == other.strokeNumber); }
+      bool operator==(const SkeletonEdge &other) const
+      { return (strokeIndex  == other.strokeIndex)  &&
+               (strokeNumber == other.strokeNumber) &&
+               (parentEdge   == other.parentEdge); }
 
       /** \brief Operator < for SkeletonEdge struct.
        * \param[in] other SkeletonEdge struct reference to compare.
        *
        */
-      bool operator<(const SkeletonEdge &other)
+      bool operator<(const SkeletonEdge &other) const
       { return strokeIndex < other.strokeIndex; }
+
+      /** \brief Returns true if the edge has no parent.
+       *
+       */
+      bool isOrphan() const
+      { return parentEdge == -1; }
     };
 
     using SkeletonEdges = QList<struct SkeletonEdge>;
@@ -199,7 +201,7 @@ namespace ESPINA
        * \param[in] worldPos pointer to values.
        *
        */
-      SkeletonNode(const double worldPos[3])
+      explicit SkeletonNode(const double worldPos[3])
       {
         ::memcpy(position, worldPos, 3*sizeof(double));
       }
@@ -207,7 +209,7 @@ namespace ESPINA
       /** \brief SkeletonNode struct constructor with initializer list.
        * \param[in] list list of values.
        */
-      SkeletonNode(std::initializer_list<double> list)
+      explicit SkeletonNode(std::initializer_list<double> list)
       {
         Q_ASSERT(list.size() == 3);
         std::copy(list.begin(), list.end(), position);
@@ -262,7 +264,7 @@ namespace ESPINA
       /** \brief Path struct constructor.
        *
        */
-      Path(): begin{nullptr}, end{nullptr}, edge{-1}, stroke{-1} {};
+      explicit Path(): begin{nullptr}, end{nullptr}, edge{-1}, stroke{-1} {};
 
       /** \brief Returns the length of the path.
        *
@@ -414,9 +416,10 @@ namespace ESPINA
     /** \brief Returns the full name of the stroke.
      * \param[in] edge Edge of the stroke..
      * \param[in] strokes SkeletonStroke list.
+     * \param[in] edges SkeletonEdge list.
      *
      */
-    const QString EspinaCore_EXPORT strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes);
+    const QString EspinaCore_EXPORT strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges);
 
     /** \brief Adjusts the node stroke numbers to miminize stroke count.
      * \param[in] skeleleton Skeleton definition reference.
@@ -444,7 +447,7 @@ namespace ESPINA
          * \param[in] path Path struct.
          *
          */
-        PathHierarchyNode(const Path path) : path{path}, parent{nullptr} {};
+        explicit PathHierarchyNode(const Path &path) : path{path}, parent{nullptr} {};
 
         /** \brief PathHierarchyNode struct destructor.
          *

@@ -263,13 +263,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       QStringList ids;
       auto edgeNumbers   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
       auto edgeTruncated = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeTruncated"));
+      auto edgeParents   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeParents"));
       auto strokeNames   = vtkStringArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeName"));
 
-      if(!edgeNumbers || !strokeNames)
+      if(!edgeNumbers || !strokeNames || !edgeParents || !edgeTruncated)
       {
         qWarning() << "Bad polydata for" << segmentation->data().toString();
         qWarning() << "Could extract array for edgeNumbers: " << (edgeNumbers == nullptr ? "false" : "true");
         qWarning() << "Could extract array for strokeNames: " << (strokeNames == nullptr ? "false" : "true");
+        qWarning() << "Could extract array for edgeParents: " << (edgeParents == nullptr ? "false" : "true");
+        qWarning() << "Could extract array for edgeTruncated: " << (edgeTruncated == nullptr ? "false" : "true");
         return actors;
       }
 
@@ -279,11 +282,18 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
       for(auto id: insertedLines.keys())
       {
-        auto index = insertedLines[id];
-        auto edgeIndex = edgeIndexes->GetValue(index);
-        auto number = edgeNumbers->GetValue(index);
-        auto text = QString("%1 %2").arg(strokeNames->GetValue(edgeIndex).c_str()).arg(number);
-
+        auto index  = insertedLines[id];
+        auto text   = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str());
+        auto number = QString::number(edgeNumbers->GetValue(index));
+        auto otherIndex = edgeParents->GetValue(index);
+        QSet<int> visited;
+        while((otherIndex != -1) && !visited.contains(otherIndex))
+        {
+          visited << otherIndex;
+          number = QString("%1.%2").arg(edgeNumbers->GetValue(otherIndex)).arg(number);
+          otherIndex = edgeParents->GetValue(otherIndex);
+        }
+        text += QString(" %1").arg(number);
         if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
 
         if(ids.contains(text)) continue;
