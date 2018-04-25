@@ -347,12 +347,12 @@ void DendriteSkeletonInformation::updateInformation() const
       {
         auto node = path.seen.last();
         auto size = path.seen.size();
+        SkeletonNode *next = nullptr;
 
         for(auto connection: node->connections.keys())
         {
           if(path.seen.contains(connection)) continue;
           auto otherEdgeIndex = node->connections[connection];
-
           if(otherEdgeIndex != edgeIndex)
           {
             auto stroke = strokes.at(edges.at(otherEdgeIndex).strokeIndex);
@@ -361,9 +361,16 @@ void DendriteSkeletonInformation::updateInformation() const
               finished = true;
             }
           }
+          else
+          {
+            Q_ASSERT(!next);
+            next = connection;
+          }
+        }
 
-          path.seen.push_back(connection);
-          break;
+        if(next)
+        {
+          path.seen.push_back(next);
         }
 
         if(size == path.seen.size() && !finished) return 0.0; // we added nothing to the path so it's an ending.
@@ -474,9 +481,26 @@ void DendriteSkeletonInformation::updateInformation() const
     updateInfoCache(DENDRITE_NONSYNAPTIC_SPINES, none);
     updateInfoCache(DENDRITE_BRANCHES_SPINES, branched);
 
-    updateInfoCache(DENDRITE_SPINES_LD, static_cast<double>(spinesNum)/shaftLength);
+    auto markAsInvalid = [this](const QString &key) { updateInfoCache(key, tr("Failed to compute")); };
+
+    if(shaftLength != 0)
+    {
+      updateInfoCache(DENDRITE_SPINES_LD, static_cast<double>(spinesNum)/shaftLength);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SPINES_LD);
+    }
     updateInfoCache(DENDRITE_SPINES_LENGTH, completeSpinesLength);
-    updateInfoCache(DENDRITE_SPINES_LENGTH_MEAN, completeSpinesLength/(spinesNum-truncated));
+
+    if (spinesNum - truncated != 0)
+    {
+      updateInfoCache(DENDRITE_SPINES_LENGTH_MEAN, completeSpinesLength / (spinesNum - truncated));
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SPINES_LENGTH_MEAN);
+    }
 
     auto toDouble = [](unsigned int number) { return static_cast<double>(number); };
 
@@ -484,15 +508,55 @@ void DendriteSkeletonInformation::updateInformation() const
     updateInfoCache(DENDRITE_SYNAPSES_NUM, totalConnections);
     updateInfoCache(DENDRITE_SYNAPSES_ON_SPINES, connectionsOnSpine);
     updateInfoCache(DENDRITE_SYNAPSES_ON_SHAFT, totalConnections - connectionsOnSpine);
-    updateInfoCache(DENDRITE_SYNAPSES_LOCATION_RATIO, toDouble(totalConnections-connectionsOnSpine)/connectionsOnSpine);
-    updateInfoCache(DENDRITE_SYNAPSES_LD, toDouble(totalConnections)/shaftLength);
-    updateInfoCache(DENDRITE_SYNAPSES_SHAFT_LD, toDouble(totalConnections-connectionsOnSpine)/shaftLength);
-    updateInfoCache(DENDRITE_SYNAPSES_SPINE_LD, toDouble(connectionsOnSpine)/shaftLength);
-    updateInfoCache(DENDRITE_SYNAPSES_PER_SPINE_MEAN, toDouble(connectionsOnSpine)/toDouble(spinesNum-truncated));
+
+    if(connectionsOnSpine != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_LOCATION_RATIO, toDouble(totalConnections-connectionsOnSpine)/connectionsOnSpine);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_LOCATION_RATIO);
+    }
+
+    if(shaftLength != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_LD, toDouble(totalConnections)/shaftLength);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_LD);
+    }
+
+    if(shaftLength != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_SHAFT_LD, toDouble(totalConnections-connectionsOnSpine)/shaftLength);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_SHAFT_LD);
+    }
+
+    if(shaftLength != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_SPINE_LD, toDouble(connectionsOnSpine)/shaftLength);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_SPINE_LD);
+    }
+
+    if(spinesNum-truncated != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_PER_SPINE_MEAN, toDouble(connectionsOnSpine)/toDouble(spinesNum-truncated));
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_PER_SPINE_MEAN);
+    }
 
     if(!spineDistances.isEmpty())
     {
-      double meanNearest = std::accumulate(spineDistances.begin(), spineDistances.end(), 0)/spineDistances.size();
+      double meanNearest = std::accumulate(spineDistances.begin(), spineDistances.end(), 0.0)/spineDistances.size();
       updateInfoCache(DENDRITE_NEAREAST_NEIGHTBOUR_MEAN, meanNearest);
     }
     else
@@ -515,7 +579,15 @@ void DendriteSkeletonInformation::updateInformation() const
     updateInfoCache(DENDRITE_CONTACTED_AXONS_NUM, totalConnections);
     updateInfoCache(DENDRITE_EXCITATORY_AXONS_NUM, totalConnections - symmetric);
     updateInfoCache(DENDRITE_INHIBITORY_AXONS_NUM, symmetric);
-    updateInfoCache(DENDRITE_SYNAPSES_RATIO, toDouble(totalConnections-symmetric)/symmetric);
+
+    if(symmetric != 0)
+    {
+      updateInfoCache(DENDRITE_SYNAPSES_RATIO, toDouble(totalConnections-symmetric)/symmetric);
+    }
+    else
+    {
+      markAsInvalid(DENDRITE_SYNAPSES_RATIO);
+    }
   }
 }
 
