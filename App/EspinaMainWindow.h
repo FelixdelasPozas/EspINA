@@ -45,6 +45,7 @@
 #include <App/AutoSave.h>
 
 // Qt
+#include <QApplication>
 #include <QMainWindow>
 #include <QShortcut>
 
@@ -60,6 +61,51 @@ class QShortcut;
 
 namespace ESPINA
 {
+  /** \class EspinaApplication
+   * \brief QApplication subclass to catch exceptions from slots/signals.
+   *  Bugged in Qt 4.x but apparently works in Qt 5.x kept here for future releases.
+   */
+  class EspinaApplication: public QApplication
+  {
+    public:
+      /** \brief EspinaApplication class constructor.
+       * \param[in] argc Number of parameters including application name and path.
+       * \param[in] argv Parameter buffers.
+       *
+       */
+      explicit EspinaApplication(int &argc, char **argv)
+      : QApplication{argc, argv}
+      {};
+
+      virtual bool notify(QObject *receiver, QEvent *e) override
+      {
+        try
+        {
+          return QApplication::notify(receiver, e);
+        }
+        catch(ESPINA::Core::Utils::EspinaException &e)
+        {
+          std::cout << "ESPINA EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << e.details() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(std::exception& e)
+        {
+          std::cout << "C++ EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(...)
+        {
+          std::cout << "UNKNOWN EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << std::flush;
+        }
+
+        return true;
+      }
+  };
+
   class SeedGrowSegmentationSettings;
   class ROISettings;
   class FileSaveTool;

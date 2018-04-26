@@ -23,7 +23,6 @@
 #include <Core/Utils/EspinaException.h>
 
 // Qt
-#include <QApplication>
 #include <QPluginLoader>
 #include <QTranslator>
 #include <QSharedMemory>
@@ -35,7 +34,7 @@ using namespace ESPINA::Core::Utils;
 
 int main(int argc, char **argv)
 {
-  QApplication app(argc, argv);
+  EspinaApplication app(argc, argv);
 
   // allow only one instance
 //  QSharedMemory guard;
