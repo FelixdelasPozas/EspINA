@@ -664,9 +664,12 @@ bool vtkSkeletonWidget::markAsTruncated()
 {
   if(!WidgetRep) return false;
 
+  int X,Y;
+  Interactor->GetEventPosition(X,Y);
+
   auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
 
-  return rep->ToggleStrokeProperty(Core::SkeletonNodeProperty::TRUNCATED);
+  return rep->ToggleStrokeProperty(Core::SkeletonNodeProperty::TRUNCATED, X,Y);
 }
 
 //-----------------------------------------------------------------------------
@@ -708,7 +711,10 @@ const Core::PathList vtkSkeletonWidget::selectedPaths() const
 
   if(WidgetRep)
   {
-    result = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->currentSelectedPaths();
+    int X,Y;
+    Interactor->GetEventPosition(X,Y);
+
+    result = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->currentSelectedPaths(X,Y);
   }
 
   return result;

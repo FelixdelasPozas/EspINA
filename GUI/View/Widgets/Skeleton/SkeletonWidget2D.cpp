@@ -379,77 +379,74 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
       if (button == Qt::LeftButton)
       {
         m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
-        if(m_widget->selectNode())
+        auto paths = m_widget->selectedPaths();
+
+        switch(paths.size())
         {
-          auto paths = m_widget->selectedPaths();
+          case 0:
+            {
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot mark stroke as truncated");
+              auto details = tr("No selected strokes.");
+              DefaultDialogs::InformationMessage(message, title, details);
+            }
+            break;
+          case 1:
+            {
+              auto path = paths.first();
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot toggle selected stroke as truncated");
 
-          switch(paths.size())
-          {
-            case 0:
+              if(!path.note.startsWith("Spine", Qt::CaseInsensitive) &&
+                 !path.note.startsWith("Subspine", Qt::CaseInsensitive))
               {
-                auto title   = tr("Skeleton edition tool");
-                auto message = tr("Cannot mark stroke as truncated");
-                auto details = tr("No selected strokes.");
+                auto details = tr("Stroke is not a spine or subspine.");
                 DefaultDialogs::InformationMessage(message, title, details);
+                break;
               }
-              break;
-            case 1:
+
+              if(m_points.contains(NmVector3{path.seen.first()->position}) ||
+                 m_points.contains(NmVector3{path.seen.last()->position}))
               {
-                auto path = paths.first();
-                auto title   = tr("Skeleton edition tool");
-                auto message = tr("Cannot toggle selected stroke as truncated");
-
-                if(!path.note.startsWith("Spine", Qt::CaseInsensitive) &&
-                   !path.note.startsWith("Subspine", Qt::CaseInsensitive))
-                {
-                  auto details = tr("Stroke is not a spine or subspine.");
-                  DefaultDialogs::InformationMessage(message, title, details);
-                  break;
-                }
-
-                if(m_points.contains(NmVector3{path.seen.first()->position}) ||
-                   m_points.contains(NmVector3{path.seen.last()->position}))
-                {
-                  auto details = tr("Stroke has a connection and can't be truncated.");
-                  DefaultDialogs::InformationMessage(message, title, details);
-                  break;
-                }
-
-                if((path.seen.first()->isTerminal()) && (path.seen.last()->isTerminal()))
-                {
-                  auto details = tr("Stroke is not connected.");
-                  DefaultDialogs::InformationMessage(message, title, details);
-                  break;
-                }
-
-                if((!path.seen.first()->isTerminal()) && (!path.seen.last()->isTerminal()))
-                {
-                  auto details = tr("Stroke has no terminal points.");
-                  DefaultDialogs::InformationMessage(message, title, details);
-                  break;
-                }
-
-                if((path.seen.first()->isBranching()) && (path.seen.last()->isBranching()))
-                {
-                  auto details = tr("Stroke has not a terminal node to toggle as truncated.");
-                  DefaultDialogs::InformationMessage(message, title, details);
-                  break;
-                }
-
-                m_widget->markAsTruncated();
-                emit modified(m_widget->getSkeleton());
-                emit updateWidgets();
-              }
-              break;
-            default:
-              {
-                auto title   = tr("Skeleton edition tool");
-                auto message = tr("Cannot mark stroke as truncated");
-                auto details = tr("The selected node belongs to more than one stroke.");
+                auto details = tr("Stroke has a connection and can't be truncated.");
                 DefaultDialogs::InformationMessage(message, title, details);
+                break;
               }
-              break;
-          }
+
+              if((path.seen.first()->isTerminal()) && (path.seen.last()->isTerminal()))
+              {
+                auto details = tr("Stroke is not connected.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if((!path.seen.first()->isTerminal()) && (!path.seen.last()->isTerminal()))
+              {
+                auto details = tr("Stroke has no terminal points.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if((path.seen.first()->isBranching()) && (path.seen.last()->isBranching()))
+              {
+                auto details = tr("Stroke has not a terminal node to toggle as truncated.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              m_widget->markAsTruncated();
+              emit modified(m_widget->getSkeleton());
+              emit updateWidgets();
+            }
+            break;
+          default:
+            {
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot mark stroke as truncated");
+              auto details = tr("The selected node (or the closest one to the clicked point) belongs to more than one stroke.");
+              DefaultDialogs::InformationMessage(message, title, details);
+            }
+            break;
         }
       }
       break;

@@ -1377,7 +1377,7 @@ void vtkSkeletonWidgetRepresentation::GetDisplayPositionFromWorldPosition(const 
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double worldPos[3], int &closestNode) const
+void vtkSkeletonWidgetRepresentation::FindClosestNode(const int X, const int Y, double worldPos[3], int &closestNode) const
 {
   double distance = VTK_DOUBLE_MAX;
   auto planeIndex = normalCoordinateIndex(m_orientation);
@@ -1485,7 +1485,7 @@ void vtkSkeletonWidgetRepresentation::ClearRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const
+double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(const int X, const int Y, double worldPos[3], int &node_i, int &node_j) const
 {
   if (!Renderer) return VTK_DOUBLE_MAX;
 
@@ -1939,15 +1939,28 @@ const Core::PathList vtkSkeletonWidgetRepresentation::pathsOfNode(Core::Skeleton
 }
 
 //--------------------------------------------------------------------
-const Core::PathList vtkSkeletonWidgetRepresentation::currentSelectedPaths() const
+const Core::PathList vtkSkeletonWidgetRepresentation::currentSelectedPaths(const int &x, const int &y) const
 {
   SkeletonNode *node = nullptr;
 
   {
     QMutexLocker lock(&s_skeletonMutex);
 
-    if(!s_currentVertex) return PathList();
-    node = s_currentVertex;
+    if(!s_currentVertex)
+    {
+      double worldPos[3]{0.0, 0.0, 0.0};
+      int node_i = VTK_INT_MAX;
+      int node_j = VTK_INT_MAX;
+      auto distance = FindClosestDistanceAndNode(x, y, worldPos, node_i, node_j);
+
+      if(distance > m_tolerance) return PathList();
+
+      node = s_skeleton.nodes[node_i];
+    }
+    else
+    {
+      node = s_currentVertex;
+    }
   }
 
   return pathsOfNode(node);
@@ -2104,15 +2117,40 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
 }
 
 //--------------------------------------------------------------------
-bool vtkSkeletonWidgetRepresentation::ToggleStrokeProperty(const Core::SkeletonNodeProperty property)
+bool vtkSkeletonWidgetRepresentation::ToggleStrokeProperty(const Core::SkeletonNodeProperty property, const int &x, const int &y)
 {
+  SkeletonNode *node = nullptr;
+
   {
     QMutexLocker lock(&s_skeletonMutex);
 
-    if(!s_currentVertex || s_currentVertex->connections.size() > 2) return false;
+    if(!s_currentVertex)
+    {
+      double worldPos[3]{0,0,0};
+      int node_i = VTK_INT_MAX;
+      int node_j = VTK_INT_MAX;
+      auto distance = FindClosestDistanceAndNode(x, y, worldPos, node_i, node_j);
+
+      if(distance > m_tolerance) return false;
+
+      for(auto index: {node_i, node_j})
+      {
+        if(s_skeleton.nodes[index]->connections.size() > 2) continue;
+        node = s_skeleton.nodes[index];
+        break;
+      }
+    }
+    else
+    {
+      if(s_currentVertex->connections.size() > 2) return false;
+
+      node = s_currentVertex;
+    }
   }
 
-  auto paths = pathsOfNode(s_currentVertex);
+  if(!node) return false;
+
+  auto paths = pathsOfNode(node);
   if(paths.size() > 1) return false;
 
   {

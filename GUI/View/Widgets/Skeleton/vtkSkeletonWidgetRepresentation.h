@@ -404,9 +404,11 @@ namespace ESPINA
 
               /** \brief Adds a property to the stroke of the current node or removes it if present.
                * \param[in] property Node property to toggle in the stroke.
+               * \param[in] x Event 2d x coordinate reference.
+               * \param[in] y Event 2d y coordinate reference.
                *
                */
-              bool ToggleStrokeProperty(const Core::SkeletonNodeProperty property);
+              bool ToggleStrokeProperty(const Core::SkeletonNodeProperty property, const int &x, const int &y);
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
@@ -441,7 +443,7 @@ namespace ESPINA
                * \param[out] nodeIndex position index of the closest node in s_skeleton
                *
                */
-              void FindClosestNode(int X, int Y, double worldPos[3], int &nodeIndex) const;
+              void FindClosestNode(const int X, const int Y, double worldPos[3], int &nodeIndex) const;
 
               /** \brief Build a skeleton representation from externally supplied PolyData.
                * \param[in] data vtkPolyData smart pointer.
@@ -457,7 +459,7 @@ namespace ESPINA
                * \param[out] node_j position index of the j node in s_skeleton
                *
                */
-              double FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const;
+              double FindClosestDistanceAndNode(const int X, const int Y, double worldPos[3], int &node_i, int &node_j) const;
 
               /** \brief Replaces some Spine strokes with SubSpine if necessary.
                *
@@ -476,9 +478,11 @@ namespace ESPINA
               const Core::PathList pathsOfNode(Core::SkeletonNode *node) const;
 
               /** \brief Helper method that returns the paths of the current selected node.
+               * \param[in] x View 2d event x coordinate reference.
+               * \param[in] y View 2d event y coordinate reference.
                *
                */
-              const Core::PathList currentSelectedPaths() const;
+              const Core::PathList currentSelectedPaths(const int &x, const int &y) const;
 
               /** \brief Deletes the given node and the connected ones if not connected to anyone else.
                * \param[in] node Skeleton node struct.
