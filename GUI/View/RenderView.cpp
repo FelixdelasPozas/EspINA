@@ -497,7 +497,9 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
     }
     else
     {
-      qWarning() << "Tried to add already present prototypes.";
+      // qWarning() << "Tried to add already present prototypes. Maybe marked for removal on next (still not rendered) frame?";
+      auto manager = m_temporalManagers[prototypes];
+      manager->show(frame); // re-activate again to avoid being deleted on next frame render.
     }
   }
 }
