@@ -63,16 +63,7 @@ ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation
 //--------------------------------------------------------------------
 ConnectionPointsTemporalRepresentation2D::~ConnectionPointsTemporalRepresentation2D()
 {
-  if(m_view)
-  {
-    m_view->removeActor(m_actor);
-  }
-
-  m_actor       = nullptr;
-  m_glyph2D     = nullptr;
-  m_glyphMapper = nullptr;
-  m_polyData    = nullptr;
-  m_points      = nullptr;
+  uninitialize();
 }
 
 //--------------------------------------------------------------------
@@ -126,11 +117,12 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::uninitialize()
 {
-  if(m_view)
-  {
-    if(m_actor) m_view->removeActor(m_actor);
-    m_view = nullptr;
-  }
+  m_actor       = nullptr;
+  m_glyph2D     = nullptr;
+  m_glyphMapper = nullptr;
+  m_polyData    = nullptr;
+  m_points      = nullptr;
+  m_view        = nullptr;
 }
 
 //--------------------------------------------------------------------

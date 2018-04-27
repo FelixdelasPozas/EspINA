@@ -112,7 +112,7 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
   m_view = view;
 
-  if (isActive())
+  if (m_view && isActive())
   {
     onShow(frame);
 

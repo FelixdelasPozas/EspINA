@@ -93,6 +93,7 @@ RenderView::~RenderView()
 
   m_managers.clear();
   m_temporalManagers.clear();
+  m_inactiveManagers.clear();
 
   delete m_view;
 }
@@ -497,9 +498,7 @@ void RenderView::onWidgetsAdded(TemporalPrototypesSPtr                 prototype
     }
     else
     {
-      // qWarning() << "Tried to add already present prototypes. Maybe marked for removal on next (still not rendered) frame?";
-      auto manager = m_temporalManagers[prototypes];
-      manager->show(frame); // re-activate again to avoid being deleted on next frame render.
+      qWarning() << "Tried to add already present prototypes.";
     }
   }
 }
@@ -515,6 +514,9 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
       auto manager = m_temporalManagers[prototypes];
 
       manager->hide(frame);
+
+      m_inactiveManagers.insert(prototypes, manager);
+      m_temporalManagers.remove(prototypes);
 
       //NOTE: managers should be removed from m_temporalManagers after processing render
       //      request of so they can hide its representations
@@ -723,19 +725,14 @@ RepresentationManager::ManagerFlags RenderView::managerFlags() const
 //-----------------------------------------------------------------------------
 void RenderView::deleteInactiveWidgetManagers()
 {
-  auto factories = m_temporalManagers.keys();
-
-  for (auto factory : factories)
+  for (auto factory : m_inactiveManagers.keys())
   {
-    if (!m_temporalManagers[factory]->isActive())
-    {
-      auto manager = m_temporalManagers[factory];
+    auto manager = m_inactiveManagers[factory];
 
-      removeRepresentationManager(manager);
-
-      m_temporalManagers.remove(factory);
-    }
+    removeRepresentationManager(manager);
   }
+
+  m_inactiveManagers.clear();
 }
 
 //-----------------------------------------------------------------------------
