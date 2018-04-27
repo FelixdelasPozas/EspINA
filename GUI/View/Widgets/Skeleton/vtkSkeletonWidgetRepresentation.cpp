@@ -2031,7 +2031,7 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
     if(path.stroke == subspineIndex) subspinePaths << path;
   }
 
-  // fix spine to spine
+  // fix spine to spine, we won't do a thing with subspine to spine.
   for(auto &path1: spinePaths)
   {
     if(visited.contains(path1)) continue;
@@ -2072,44 +2072,49 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
       for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
       {
         if(i+1 == path1.seen.size()) break;
+        auto node = path1.seen.at(i);
+        auto next = path1.seen.at(i+1);
+        auto oldEdge = node->connections[next];
 
-        path1.seen.at(i)->connections[path1.seen.at(i+1)] = edgeIndex;
-        path1.seen.at(i+1)->connections[path1.seen.at(i)] = edgeIndex;
+        node->connections[next] = edgeIndex;
+        next->connections[node] = edgeIndex;
+
+        if(next->isBranching())
+        {
+          for(auto connection: next->connections.values())
+          {
+            if(connection == edgeIndex) continue;
+
+            if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+            {
+              const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+            }
+          }
+        }
       }
 
       edgeIndex = s_skeleton.edges.indexOf(edge2);
       for(int i = path2.seen.indexOf(commonNode); i < path2.seen.size(); ++i)
       {
         if(i+1 == path2.seen.size()) break;
+        auto node = path2.seen.at(i);
+        auto next = path2.seen.at(i+1);
+        auto oldEdge = node->connections[next];
 
-        path2.seen.at(i)->connections[path2.seen.at(i+1)] = edgeIndex;
-        path2.seen.at(i+1)->connections[path2.seen.at(i)] = edgeIndex;
-      }
-    }
+        node->connections[next] = edgeIndex;
+        next->connections[node] = edgeIndex;
 
-    // fix subspine to spine
-    for(auto &path2: subspinePaths)
-    {
-      auto commonNode = intersect(path1, path2);
-
-      if(!commonNode) continue;
-
-      if(commonNode != path1.end && commonNode != path1.begin)
-      {
-        SkeletonEdge edge;
-        edge.strokeIndex  = subspineIndex;
-        edge.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
-        edge.parentEdge   = path1.edge;
-
-        s_skeleton.edges << edge;
-        auto edgeIndex = s_skeleton.edges.indexOf(edge);
-
-        for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
+        if(next->isBranching())
         {
-          if(i+1 == path1.seen.size()) break;
+          for(auto connection: next->connections.values())
+          {
+            if(connection == edgeIndex) continue;
 
-          path1.seen.at(i)->connections[path1.seen.at(i+1)] = edgeIndex;
-          path1.seen.at(i+1)->connections[path1.seen.at(i)] = edgeIndex;
+            if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+            {
+              const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+            }
+          }
         }
       }
     }
