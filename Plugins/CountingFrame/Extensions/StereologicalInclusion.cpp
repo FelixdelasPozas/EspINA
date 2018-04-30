@@ -33,6 +33,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Category.h>
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkCellArray.h>
@@ -266,23 +267,15 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     return true;
   }
 
-  auto output  = m_extendedItem->output();
-  auto inputBB = output->bounds();
-  auto spacing = output->spacing();
-
+  auto output       = m_extendedItem->output();
+  auto inputBB      = output->bounds();
+  auto spacing      = output->spacing();
   auto region       = cf->innerFramePolyData();
   auto regionPoints = region->GetPoints();
 
   auto pointBounds = [] (vtkPoints *points)
   {
-    Bounds bounds;
-    double values[6];
-    points->GetBounds(values);
-    for (int i = 0; i < 6; ++i)
-    {
-      bounds[i] = values[i];
-    }
-    return bounds;
+    return Bounds{points->GetBounds()};
   };
 
   Bounds regionBB = pointBounds(regionPoints);
@@ -293,15 +286,14 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     return true;
   }
 
-  // Fast check of outside sides
+  // Fast check of outside sides (outer cf sides that extends to infinite)
   for(auto i: {1,3,5})
   {
     if(inputBB[i] > regionBB[i]) return true;
   }
 
-  // If no collision was detected we have to check for exclusion slice by slice
-  Bounds sliceBounds;
-  bool collisionDetected = false;
+  // NOTE: CF slices != stack slices.
+  bool isExcluded = true;
   for (vtkIdType i = 0; i < regionPoints->GetNumberOfPoints(); i += 4)
   {
     auto slicePoints = vtkSmartPointer<vtkPoints>::New();
@@ -312,124 +304,62 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       slicePoints->InsertNextPoint(point);
     }
 
-    auto pointsBB = pointBounds(slicePoints);
+    // slice bounds of CF, needs to be corrected.
+    auto sliceBounds = pointBounds(slicePoints);
+    sliceBounds[0] -= spacing[0]/2.0;
+    sliceBounds[1] += spacing[0]/2.0;
+    sliceBounds[2] -= spacing[1]/2.0;
+    sliceBounds[3] += spacing[1]/2.0;
+
+    if(i == 0 || i == regionPoints->GetNumberOfPoints() - 4)
+    {
+      sliceBounds[4] -= (spacing[2]/2.0);
+      sliceBounds[5] += (spacing[2]/2.0);
+    }
+    else
+    {
+      sliceBounds[5] += spacing[2];
+    }
+
     if(sliceBounds.areValid())
     {
-      auto sliceBB = boundingBox(pointsBB, sliceBounds);
-      sliceBB.setLowerInclusion(true);
-      sliceBB.setUpperInclusion(true);
-
-      if (intersect(inputBB, sliceBB, spacing))
+      if (intersect(inputBB, sliceBounds, spacing))
       {
+        itkVolumeType::Pointer sliceImage = nullptr;
+
+        auto sliceIntersection = intersection(inputBB, sliceBounds);
+        Q_ASSERT(sliceIntersection.areValid());
+
+        try
+        {
+          sliceImage = readLockVolume(m_extendedItem->output())->itkImage(sliceIntersection);
+        }
+        catch(Core::Utils::EspinaException &e)
+        {
+          qWarning() << "Stereological Inclusion at " << m_extendedItem->alias() << "can't get slice intersection.";
+          continue;
+        }
+
+        auto minBounds = minimalBounds<itkVolumeType>(sliceImage, SEG_BG_VALUE);
+        if(!minBounds.areValid()) continue; // means that the part inside the CF slice is empty (no voxels == SEG_VOXEL_VALUE)
+
+        isExcluded = false;
+        if(i == 0) return false;
+        if(i == regionPoints->GetNumberOfPoints() -4) return true;
+
         for(auto i: {1,3})
         {
-          // segmentation can have several "parts" and if one is outside then is out (by minimal seg bounds assertion)
-          if(inputBB[i] >= sliceBB[i])
+          // segmentation can have several "parts" and if one is outside then is out
+          if(minBounds[i] >= sliceBounds[i])
           {
             return true;
           }
         }
-
-        // then is completely or partly inside, but we must check real collision with voxel values.
-        if(!collisionDetected && isRealCollision(intersection(inputBB, sliceBB, spacing)))
-        {
-          collisionDetected = true;
-        }
-      }
-    }
-
-    sliceBounds = pointsBB;
-  }
-
-  if(!collisionDetected) return true;
-
-  // included or colliding with side, we have to test all faces collisions
-  region            = cf->countingFramePolyData();
-  regionPoints      = region->GetPoints();
-  auto regionFaces  = region->GetPolys();
-  auto faceData     = region->GetCellData();
-
-  auto numOfCells   = regionFaces->GetNumberOfCells();
-  vtkIdType cellLocation = 0;
-  for(vtkIdType f = 0; f < numOfCells; ++f)
-  {
-    vtkIdType numPoints, *pointIds;
-    regionFaces->GetCell(cellLocation, numPoints, pointIds);
-    cellLocation += 1 + numPoints;
-
-    auto facePoints = vtkSmartPointer<vtkPoints>::New();
-    for (vtkIdType i = 0; i < numPoints; ++i)
-    {
-      double point[3];
-      regionPoints->GetPoint(pointIds[i], point);
-      facePoints->InsertNextPoint(point);
-    }
-
-    auto faceBB = VolumeBounds(pointBounds(facePoints), spacing);
-    if (intersect(inputBB, faceBB, spacing) && isRealCollision(intersection(inputBB, faceBB, spacing)))
-    {
-      if (faceData->GetScalars()->GetComponent(f,0) == cf->EXCLUSION_FACE)
-      {
-        return true;
       }
     }
   }
 
-  // If no internal collision was detected, then the input was indeed inside our bounding region or touches a green face
-  return false;
-}
-
-//------------------------------------------------------------------------
-bool StereologicalInclusion::isRealCollision(const Bounds& collisionBounds)
-{
-  using ImageIterator = itk::ImageRegionConstIterator<itkVolumeType>;
-
-  auto output = m_extendedItem->output();
-
-  if (hasVolumetricData(output))
-  {
-    VolumeBounds bounds;
-    unsigned char bgValue = SEG_BG_VALUE;
-    {
-      auto volume = readLockVolume(output);
-      bounds      = volume->bounds();
-      bgValue     = volume->backgroundValue();
-    }
-
-    if(intersect(bounds, collisionBounds, bounds.spacing()))
-    {
-      auto intersectionBounds = intersection(bounds, collisionBounds, bounds.spacing());
-
-      if (intersectionBounds.areValid())
-      {
-        try
-        {
-          auto image = readLockVolume(output)->itkImage(bounds);
-          auto it    = ImageIterator(image, image->GetLargestPossibleRegion());
-          it.GoToBegin();
-          while (!it.IsAtEnd())
-          {
-            if (it.Get() != bgValue) return true;
-            ++it;
-          }
-        }
-        catch (...)
-        {
-          return false;
-        }
-      }
-    }
-  }
-  else
-  {
-    // TODO: Detect collision using other techniques
-    //       (possibly collision detection should be part of the data API)
-    // @felix: vtkDistancePolyDataFilter computes signed distances between polydatas
-    //         but only VERTEX to VERTEX distances so we can't use that. We'll need to
-    //         implement our own face to face intersection/distance solution.
-  }
-
-  return false;
+  return isExcluded;
 }
 
 //------------------------------------------------------------------------

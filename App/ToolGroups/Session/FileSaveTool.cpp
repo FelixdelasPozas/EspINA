@@ -111,8 +111,10 @@ void FileSaveTool::setAlwaysAskUser(bool value)
 }
 
 //----------------------------------------------------------------------------
-void FileSaveTool::saveAnalysis(const QString &filename)
+bool FileSaveTool::saveAnalysis(const QString &filename)
 {
+  auto successValue = false;
+
   if (!filename.isEmpty())
   {
     auto isAutoSave = filename.endsWith("espina-autosave.seg");
@@ -127,7 +129,7 @@ void FileSaveTool::saveAnalysis(const QString &filename)
         DefaultDialogs::ErrorMessage(message, title);
       }
 
-      return;
+      return false;
     }
 
     emit aboutToSaveSession();
@@ -154,7 +156,6 @@ void FileSaveTool::saveAnalysis(const QString &filename)
     else
     {
       WaitingCursor cursor;
-      auto successValue = false;
 
       try
       {
@@ -175,6 +176,8 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 
     setProgress(100);
   }
+
+  return successValue;
 }
 
 //----------------------------------------------------------------------------

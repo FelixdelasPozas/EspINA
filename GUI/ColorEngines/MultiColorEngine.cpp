@@ -35,51 +35,56 @@ QColor MultiColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
   QColor color(Qt::red);
 
-  if (m_activeEngines.size() == 1)
+  switch(m_activeEngines.size())
   {
-    color = m_activeEngines.first()->color(seg);
-  }
-  else if (m_activeEngines.size() > 1)
-  {
-    int r=0, g=0, b=0, a=0;
-    int rgbComponents=0, alphaComponents=0;
-
-    for(auto engine: m_activeEngines)
-    {
-      auto c = engine->color(seg);
-      if (engine->supportedComposition().testFlag(Color))
+    case 0:
+      break;
+    case 1:
+      color = m_activeEngines.first()->color(seg);
+      break;
+    default:
       {
-        r += c.red();
-        g += c.green();
-        b += c.blue();
-        rgbComponents++;
+        int r=0, g=0, b=0, a=0;
+        int rgbComponents=0, alphaComponents=0;
+
+        for(auto engine: m_activeEngines)
+        {
+          auto c = engine->color(seg);
+          if (engine->supportedComposition().testFlag(Color))
+          {
+            r += c.red();
+            g += c.green();
+            b += c.blue();
+            rgbComponents++;
+          }
+
+          if (engine->supportedComposition().testFlag(Transparency))
+          {
+            a += c.alpha();
+            alphaComponents++;
+          }
+        }
+
+        if (rgbComponents > 0)
+        {
+          r /= rgbComponents;
+          g /= rgbComponents;
+          b /= rgbComponents;
+        }
+
+        if (alphaComponents > 0)
+        {
+          a /= alphaComponents;
+        }
+        else
+        {
+          // Prevent transparent color if no engine supports deals transparency
+          a = 255;
+        }
+
+        color = QColor(r,g,b,a);
       }
-
-      if (engine->supportedComposition().testFlag(Transparency))
-      {
-        a += c.alpha();
-        alphaComponents++;
-      }
-    }
-
-    if (rgbComponents > 0)
-    {
-      r /= rgbComponents;
-      g /= rgbComponents;
-      b /= rgbComponents;
-    }
-
-    if (alphaComponents > 0)
-    {
-      a /= alphaComponents;
-    }
-    else
-    {
-      // Prevent transparent color if no engine supports deals transparency
-      a = 255;
-    }
-
-    color = QColor(r,g,b,a);
+      break;
   }
 
   return color;

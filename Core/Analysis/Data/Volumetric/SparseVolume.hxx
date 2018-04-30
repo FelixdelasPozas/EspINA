@@ -761,7 +761,7 @@ namespace ESPINA
 
       auto filename = multiBlockPath(id, i++);
 
-      snapshot << createSnapshot<T>(it.value(), storage, path, filename);
+      snapshot << createVolumeSnapshot<T>(it.value(), storage, path, filename);
     }
 
     return snapshot;
@@ -783,7 +783,7 @@ namespace ESPINA
       if (editedBounds.areValid())
       {
         auto snapshotId    = editedRegionSnapshotId(id, regionId);
-        regionsSnapshot << createSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        regionsSnapshot << createVolumeSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
         ++regionId;
       }
     }

@@ -68,7 +68,7 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
                                                     const RepresentationState&         state)
 {
   auto segmentation = segmentationPtr(item);
-  if(!segmentation) return;
+  if(!segmentation || !m_colorEngine) return;
   auto color = m_colorEngine->color(segmentation);
 
   for(auto actor: actors)

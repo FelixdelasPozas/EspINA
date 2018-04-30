@@ -22,6 +22,8 @@
 #ifndef ESPINA_SEGMENTATION_ADAPTER_H
 #define ESPINA_SEGMENTATION_ADAPTER_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
 #include <GUI/Model/ViewItemAdapter.h>
 #include <Core/Analysis/Extensible.hxx>

@@ -339,8 +339,6 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
 {
   QWidget::showEvent(event);
 
-  m_minimizedStatus = false;
-
   ESPINA_SETTINGS(settings);
   settings.beginGroup("MainWindow");
   auto firstRun = !settings.childKeys().contains("size"); // absent in first run of the application.
@@ -383,6 +381,8 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
 
     showMaximized();
   }
+
+  m_minimizedStatus = false;
 }
 
 //------------------------------------------------------------------------
@@ -1242,7 +1242,9 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
 {
   if (m_autoSave.canRestore())
   {
-    auto msg = tr("ESPINA closed unexpectedly. Do you want to load the auto-saved analysis?");
+    auto msg = tr("ESPINA closed unexpectedly but there is an auto-save. "
+                  "If you choose to restore the auto-saved version you will be forced immediately to save it in another file. "
+                  "Do you want to load the auto-saved analysis?\n");
     auto dateString = m_autoSave.autoSaveDate();
     auto timeString = m_autoSave.autoSaveTime();
     if(!dateString.isEmpty() && !timeString.isEmpty())
@@ -1253,6 +1255,25 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
     if (QMessageBox::Yes == DefaultDialogs::UserQuestion(msg))
     {
       m_autoSave.restore();
+
+      // force saving in another file.
+      auto saved = false;
+
+      while(!saved)
+      {
+        m_saveAsTool->setSaveFilename(QDir::home().filePath("EspINA restored session.seg"));
+        auto fileName = m_saveAsTool->saveFilename();
+        auto fileInfo = QFileInfo{fileName};
+
+        while(m_autoSave.isAutoSaveFile(fileName) || (fileInfo.exists() && !fileInfo.isWritable()))
+        {
+          fileName = m_saveAsTool->saveFilename();
+          fileInfo = QFileInfo{fileName};
+        }
+
+        m_saveAsTool->setSaveFilename(fileName);
+        saved = m_saveAsTool->saveAnalysis(fileName);
+      }
     }
     else
     {
