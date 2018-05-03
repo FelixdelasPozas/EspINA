@@ -33,6 +33,8 @@
 #include <QFileInfo>
 #include <QByteArray>
 
+#include <numeric>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Extensions;

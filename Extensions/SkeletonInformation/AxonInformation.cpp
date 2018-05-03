@@ -40,7 +40,7 @@ const SegmentationExtension::Key AXON_SYNAPSES_TERMINALS    = QObject::tr("Num o
 const SegmentationExtension::Key AXON_SYNAPSES_LD           = QObject::tr("Linear density of synapses");
 const SegmentationExtension::Key AXON_SYNAPSES_ON_SPINE_NUM = QObject::tr("Num of synapses on dendritic spines");
 const SegmentationExtension::Key AXON_SYNAPSES_ON_SHAFT_NUM = QObject::tr("Num of synapses on dendritic shafts");
-const SegmentationExtension::Key AXON_SYNAPSES_RATIO        = QObject::tr ("Ratio of synapses on spines and shafts");
+const SegmentationExtension::Key AXON_SYNAPSES_RATIO        = QObject::tr("Ratio of synapses on spines and shafts");
 
 //--------------------------------------------------------------------
 AxonSkeletonInformation::AxonSkeletonInformation(const InfoCache& infoCache)

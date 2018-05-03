@@ -353,7 +353,12 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
         SkeletonPoolSettingsSPtr skeletonSettings = nullptr;
         for (auto settings : representation.Settings)
         {
-          if (std::dynamic_pointer_cast<SegmentationSkeletonPoolSettings>(settings)) skeletonSettings = settings;
+          auto repSettings =  std::dynamic_pointer_cast<SegmentationSkeletonPoolSettings>(settings);
+          if (repSettings)
+          {
+            skeletonSettings = repSettings;
+            break;
+          }
         }
         Q_ASSERT(skeletonSettings);
         auto skeletonSwitch = std::make_shared<SkeletonInspectorRepresentationSwitch>(manager, skeletonSettings, getContext());

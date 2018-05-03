@@ -396,7 +396,7 @@ namespace ESPINA
      * \param[in] skeleton Skeleton definition data.
      *
      */
-    inline const PathList EspinaCore_EXPORT paths(const SkeletonDefinition &skeleton)
+    inline const PathList paths(const SkeletonDefinition &skeleton)
     { return paths(skeleton.nodes, skeleton.edges, skeleton.strokes); };
 
     /** \brief Returns the loops in the given skeleton.
@@ -471,25 +471,25 @@ namespace ESPINA
      * \param[in] hierarchy List of nodes.
      *
      */
-    PathHierarchyNode * locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy);
+    PathHierarchyNode * EspinaCore_EXPORT locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy);
 
-    /** \brief Returns true if the node or any of its children is trucated.
+    /** \brief Returns true if the node or any of its children is truncated.
      *
      */
-    const bool isTruncated(const PathHierarchyNode *node);
+    const bool EspinaCore_EXPORT isTruncated(const PathHierarchyNode *node);
 
     /** \brief Returns the length of the node and its subnodes if the paths are 'Spine' or 'Subspine'.
      * \param[in] node Hierarchy node.
      *
      */
-    const double length(const PathHierarchyNode *node);
+    const double EspinaCore_EXPORT length(const PathHierarchyNode *node);
 
     /** \brief Returns the points of connections in the given node and its children from the connectionPoints list.
      * \param[in] node Hierarchy node.
      * \param[in] connectionsPoints List of connection points.
      *
      */
-    const QList<NmVector3> connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
+    const QList<NmVector3> EspinaCore_EXPORT connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
 
   } // namespace Core
 } // namespace ESPINA
