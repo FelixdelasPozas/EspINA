@@ -91,8 +91,18 @@ RenderView::~RenderView()
 {
   disconnect();
 
+  for(auto manager: m_managers)
+  {
+    if(manager->isActive()) manager->shutdown();
+  }
   m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    if(manager->isActive()) manager->shutdown();
+  }
   m_temporalManagers.clear();
+
   m_inactiveManagers.clear();
 
   delete m_view;

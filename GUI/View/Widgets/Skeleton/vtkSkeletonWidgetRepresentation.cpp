@@ -232,20 +232,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::~vtkSkeletonWidgetRepresentation()
 {
-  if(s_skeletonMutex.tryLock())
-  {
-    for (auto node : s_skeleton.nodes)
-    {
-      delete node;
-    }
-
-    s_skeleton.nodes.clear();
-    s_skeleton.edges.clear();
-    s_skeleton.strokes.clear();
-    s_skeleton.count.clear();
-
-    s_skeletonMutex.unlock();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1480,6 +1466,8 @@ void vtkSkeletonWidgetRepresentation::ClearRepresentation()
 
   s_skeleton.nodes.clear();
   s_skeleton.count.clear();
+  s_skeleton.edges.clear();
+  s_skeleton.strokes.clear();
 
   s_currentVertex = nullptr;
 }
@@ -1538,6 +1526,8 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::setStroke(const Core::SkeletonStroke &stroke)
 {
+  QMutexLocker lock(&s_skeletonMutex);
+
   if(!s_skeleton.strokes.contains(stroke))
   {
     s_skeleton.strokes << stroke;
@@ -1739,12 +1729,14 @@ bool vtkSkeletonWidgetRepresentation::isStartNode(const NmVector3 &point)
 //--------------------------------------------------------------------
 bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke& stroke)
 {
-  if(GetNumberOfNodes() < 2 || !s_currentVertex) return false;
-
-  QMutexLocker lock(&s_skeletonMutex);
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+    if(GetNumberOfNodes() < 2 || !s_currentVertex) return false;
+  }
 
   setStroke(stroke);
 
+  QMutexLocker lock(&s_skeletonMutex);
   s_skeleton.count[stroke]++;
 
   SkeletonEdge edge;

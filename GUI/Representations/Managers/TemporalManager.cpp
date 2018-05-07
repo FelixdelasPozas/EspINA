@@ -84,8 +84,11 @@ TemporalManager::~TemporalManager()
   {
     m_representation->uninitialize();
 
-    disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
-               this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+    if(m_view)
+    {
+      disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
+                 this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
+    }
   }
 }
 

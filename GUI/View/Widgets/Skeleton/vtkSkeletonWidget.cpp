@@ -602,7 +602,7 @@ const Core::SkeletonStroke vtkSkeletonWidget::stroke() const
 {
   auto stroke = Core::SkeletonStroke();
 
-  if(WidgetRep)
+  if(WidgetRep && numberOfPoints() != 0)
   {
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
     stroke = rep->currentStroke();

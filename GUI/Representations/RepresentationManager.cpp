@@ -473,7 +473,11 @@ void RepresentationManager::shutdown()
 {
   setView(nullptr, Frame::InvalidFrame());
 
-  disconnect();
+  for(auto child: m_childs)
+  {
+    disconnect(child, SIGNAL(terminated(RepresentationManager *)),
+               this,  SLOT(onChildTerminated(RepresentationManager *)));
+  }
 }
 
 //-----------------------------------------------------------------------------

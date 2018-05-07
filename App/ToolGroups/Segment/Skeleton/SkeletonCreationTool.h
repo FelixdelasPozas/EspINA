@@ -154,12 +154,6 @@ namespace ESPINA
        */
       void onNextButtonPressed();
 
-      /** \brief Updates the stroke type of the widget when the stroke type changes.
-       * \param[in] index current type combo box index.
-       *
-       */
-      void onStrokeTypeChanged(int index);
-
       /** \brief Shows the stroke type definition dialog.
        *
        */
@@ -175,7 +169,13 @@ namespace ESPINA
        * \param[in] stroke Current stroke definition.
        *
        */
-      void onStrokeChanged(const Core::SkeletonStroke stroke);
+      void onStrokeChangedByWidget(const Core::SkeletonStroke stroke);
+
+      /** \brief Updates the UI when the user selects an stroke using the menu from the handler or the combobox.
+       * \param[in] index Index of the selected stroke in the STROKES variable.
+       *
+       */
+      void onStrokeChanged(int index);
 
       /** \brief Deactivates the tool if another segmentation is selected.
        * \param[in] segmentations Currently selected segmentations list.

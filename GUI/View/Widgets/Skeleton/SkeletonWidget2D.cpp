@@ -526,13 +526,19 @@ void SkeletonWidget2D::uninitializeImplementation()
   {
     disconnectSignals();
 
-    m_widget->EnabledOff();
-    m_widget->SetCurrentRenderer(nullptr);
-    m_widget->SetInteractor(nullptr);
+    if(m_widget)
+    {
+      m_widget->EnabledOff();
+      m_widget->SetCurrentRenderer(nullptr);
+      m_widget->SetInteractor(nullptr);
+    }
 
     disconnect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
 
-    m_handler->removeWidget(this);
+    if(m_handler)
+    {
+      m_handler->removeWidget(this);
+    }
 
     m_view = nullptr;
   }
