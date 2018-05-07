@@ -98,7 +98,7 @@ void ConnectionsManager::onConnectionRemoved(Connection connection)
 //--------------------------------------------------------------------
 bool ConnectionsManager::hasRepresentations() const
 {
-  return !m_connections.isEmpty();
+  return true;
 }
 
 //--------------------------------------------------------------------
@@ -136,7 +136,7 @@ void ConnectionsManager::displayRepresentations(const FrameCSPtr frame)
 {
   updateActor(frame);
 
-  if (!hasActors() && hasRepresentations() && m_actor)
+  if (!hasActors() && m_actor)
   {
     setFlag(HAS_ACTORS, true);
     m_view->addActor(m_actor);
@@ -237,6 +237,7 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   m_polyData->Modified();
   m_glyph->Update();
   m_actor->Modified();
+  m_actor->SetVisibility(m_points->GetNumberOfPoints() != 0);
 }
 
 //--------------------------------------------------------------------

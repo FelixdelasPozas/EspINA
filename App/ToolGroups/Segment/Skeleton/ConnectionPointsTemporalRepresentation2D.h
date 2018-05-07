@@ -110,11 +110,10 @@ namespace ESPINA
        */
       void buildPipeline();
 
-      /** \brief Updates the actor for the given slice if different from the current one.
-       * \param[in] slice Slice position in Nm.
+      /** \brief Updates the actor.
        *
        */
-      void updateActor(const Nm slice);
+      void updateActor();
 
       using ConnectionSettings = GUI::Representations::Settings::ConnectionSettingsSPtr;
 
@@ -126,7 +125,7 @@ namespace ESPINA
       int                               m_scale;       /** representation's scale value.                                  */
       RenderView                       *m_view;        /** view of the representation.                                    */
       int                               m_planeIndex;  /** views plane index.                                             */
-      Nm                                m_lastSlice;   /** last represented slice value.                                  */
+      Nm                                m_slice;       /** last represented slice value.                                  */
       bool                              m_active;      /** true if representation is active and visible, false otherwise. */
       QList<NmVector3>                  m_connections; /** connection points list.                                        */
       ConnectionSettings                m_settings;    /** connection representation settings.                            */

@@ -982,6 +982,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     {
       for(auto node: m_visiblePoints.keys())
       {
+        // avoid branches is possible
         if(firstPass && (node->isBranching() || node == s_currentVertex)) continue;
 
         for(auto edge: node->connections.values())
@@ -1731,7 +1732,7 @@ bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke&
 {
   {
     QMutexLocker lock(&s_skeletonMutex);
-    if(GetNumberOfNodes() < 2 || !s_currentVertex) return false;
+    if(s_skeleton.nodes.size() < 2 || !s_currentVertex) return false;
   }
 
   setStroke(stroke);
@@ -2028,6 +2029,16 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
   {
     if(visited.contains(path1)) continue;
 
+    auto alreadySplitted = false;
+    for(auto &subSpinePath: subspinePaths)
+    {
+      if(intersect(path1, subSpinePath))
+      {
+        alreadySplitted = true;
+        break;
+      }
+    }
+
     for(auto &path2: spinePaths)
     {
       if(path1 == path2 || visited.contains(path2)) continue;
@@ -2037,8 +2048,6 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
       if(!commonNode) continue;
 
       visited << path1 << path2;
-
-      SkeletonEdge edge1, edge2;
 
       if(!foundSubspineStroke)
       {
@@ -2050,42 +2059,49 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
         subspineIndex = s_skeleton.strokes.indexOf(subspineStroke);
       }
 
-      edge1.strokeIndex  = subspineIndex;
-      edge1.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
-      edge1.parentEdge   = path1.edge;
-
-      edge2.strokeIndex  = subspineIndex;
-      edge2.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
-      edge2.parentEdge   = path1.edge;
-
-      s_skeleton.edges << edge1 << edge2;
-
-      auto edgeIndex = s_skeleton.edges.indexOf(edge1);
-      for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
+      if(!alreadySplitted)
       {
-        if(i+1 == path1.seen.size()) break;
-        auto node = path1.seen.at(i);
-        auto next = path1.seen.at(i+1);
-        auto oldEdge = node->connections[next];
+        SkeletonEdge edge1;
+        edge1.strokeIndex  = subspineIndex;
+        edge1.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+        edge1.parentEdge   = path1.edge;
+        s_skeleton.edges << edge1;
 
-        node->connections[next] = edgeIndex;
-        next->connections[node] = edgeIndex;
-
-        if(next->isBranching())
+        auto edgeIndex = s_skeleton.edges.indexOf(edge1);
+        for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
         {
-          for(auto connection: next->connections.values())
-          {
-            if(connection == edgeIndex) continue;
+          if(i+1 == path1.seen.size()) break;
+          auto node = path1.seen.at(i);
+          auto next = path1.seen.at(i+1);
+          auto oldEdge = node->connections[next];
 
-            if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+          node->connections[next] = edgeIndex;
+          next->connections[node] = edgeIndex;
+
+          if(next->isBranching())
+          {
+            for(auto connection: next->connections.values())
             {
-              const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+              if(connection == edgeIndex) continue;
+
+              if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+              {
+                const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+              }
             }
           }
         }
       }
 
-      edgeIndex = s_skeleton.edges.indexOf(edge2);
+      SkeletonEdge edge2;
+      edge2.strokeIndex  = subspineIndex;
+      edge2.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+      edge2.parentEdge   = path1.edge;
+      s_skeleton.edges << edge2;
+
+      auto edgeIndex = s_skeleton.edges.indexOf(edge2);
+      // reverse seen nodes if created from connection to branching node by the user
+      if(commonNode == path2.seen.last()) std::reverse(path2.seen.begin(), path2.seen.end());
       for(int i = path2.seen.indexOf(commonNode); i < path2.seen.size(); ++i)
       {
         if(i+1 == path2.seen.size()) break;
