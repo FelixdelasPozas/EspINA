@@ -2039,6 +2039,8 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
       }
     }
 
+    visited << path1;
+
     for(auto &path2: spinePaths)
     {
       if(path1 == path2 || visited.contains(path2)) continue;
@@ -2047,7 +2049,7 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
 
       if(!commonNode) continue;
 
-      visited << path1 << path2;
+      visited << path2;
 
       if(!foundSubspineStroke)
       {
@@ -2121,6 +2123,51 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
             if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
             {
               const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  visited.clear();
+  for(auto &subPath: subspinePaths)
+  {
+    if(visited.contains(subPath)) continue;
+
+    visited << subPath;
+
+    for(auto spinePath: spinePaths)
+    {
+      if(spinePath.connectsTo(subPath) && !subPath.connectsTo(spinePath))
+      {
+        SkeletonEdge edge;
+        edge.strokeIndex  = subspineIndex;
+        edge.strokeNumber = 1 + s_skeleton.count[s_skeleton.strokes.at(subspineIndex)]++;
+        edge.parentEdge   = subPath.edge;
+        s_skeleton.edges << edge;
+
+        auto edgeIndex = s_skeleton.edges.indexOf(edge);
+        for(int i = 0; i < spinePath.seen.size(); ++i)
+        {
+          if(i+1 == spinePath.seen.size()) break;
+          auto node = spinePath.seen.at(i);
+          auto next = spinePath.seen.at(i+1);
+          auto oldEdge = node->connections[next];
+
+          node->connections[next] = edgeIndex;
+          next->connections[node] = edgeIndex;
+
+          if(next->isBranching())
+          {
+            for(auto connection: next->connections.values())
+            {
+              if(connection == edgeIndex) continue;
+
+              if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+              {
+                const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+              }
             }
           }
         }
