@@ -461,6 +461,11 @@ namespace ESPINA
                */
               double FindClosestDistanceAndNode(const int X, const int Y, double worldPos[3], int &node_i, int &node_j) const;
 
+              /** \brief Merges paths whose common node is terminal without the connection to the other path.
+               *
+               */
+              void performPathsMerge();
+
               /** \brief Replaces some Spine strokes with SubSpine if necessary.
                *
                */

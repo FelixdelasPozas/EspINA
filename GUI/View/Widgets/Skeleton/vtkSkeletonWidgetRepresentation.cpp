@@ -1327,6 +1327,8 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 
   removeIsolatedNodes();
 
+  performPathsMerge();
+
   performSpineSplitting();
 
   adjustStrokeNumbers(s_skeleton);
@@ -1598,6 +1600,7 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       int nonPrioritary = -1;
       for(auto connection: closestNode->connections.values())
       {
+        if(connection == m_currentEdgeIndex) continue; // cannot be parent of itself
         const auto &otherEdge = s_skeleton.edges.at(connection);
         const auto &stroke    = s_skeleton.strokes.at(otherEdge.strokeIndex);
         if(stroke.useMeasure)
@@ -1613,8 +1616,9 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       s_skeleton.edges[m_currentEdgeIndex].parentEdge = (candidate != -1 ? candidate : nonPrioritary);
     }
   }
+
   s_currentVertex->connections.clear();
-  s_currentVertex->connections.insert(closestNode, m_currentStrokeIndex);
+  s_currentVertex->connections.insert(closestNode, m_currentEdgeIndex);
 
   return true;
 }
@@ -1703,10 +1707,12 @@ bool vtkSkeletonWidgetRepresentation::isStartNode(const NmVector3 &point)
   if(m_tolerance <= distance * distance) return true; // far from the skeleton.
 
   bool veryCloseToNode = (node_i == node_j);
-  for(auto i: {0,1,2})
+
+  // needs correction if very close to node i
+  if(!veryCloseToNode && (vtkMath::Distance2BetweenPoints(pos, s_skeleton.nodes[node_i]->position) <= m_tolerance))
   {
-    if(i == normalCoordinateIndex(m_orientation)) continue;
-    veryCloseToNode &= distance <= 2*m_spacing[i];
+    node_j = node_i;
+    veryCloseToNode = true;
   }
 
   if(veryCloseToNode)
@@ -1968,6 +1974,92 @@ Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 }
 
 //--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::performPathsMerge()
+{
+  auto intersect = [](Path one, Path two)
+  {
+    SkeletonNode *result = nullptr;
+
+    if(!one.seen.isEmpty() && !two.seen.isEmpty())
+    {
+      if(one.seen.contains(two.begin))
+      {
+        return two.begin;
+      }
+
+      if(one.seen.contains(two.end))
+      {
+        return two.end;
+      }
+    }
+
+    return result;
+  };
+
+  QMap<int, PathList> paths;
+
+  // group paths by stroke (same path type).
+  for(auto &path: Core::paths(s_skeleton.nodes, s_skeleton.edges, s_skeleton.strokes))
+  {
+    paths[s_skeleton.edges[path.edge].strokeIndex] << path;
+  }
+
+  for(auto pathList: paths.values())
+  {
+    PathList visited;
+    for(auto &path1: pathList)
+    {
+      if(visited.contains(path1)) continue;
+
+      visited << path1;
+
+      for(auto &path2: pathList)
+      {
+        if(path1 == path2 || visited.contains(path2)) continue;
+
+        auto commonNode = intersect(path1, path2);
+
+        if(!commonNode) continue;
+
+        if((path1.begin == commonNode || path1.end == commonNode) &&
+           (path2.begin == commonNode || path2.end == commonNode) &&
+           (commonNode->connections.size() - 2 == 0))
+        {
+          for (int i = 0; i < path2.seen.size() - 1; ++i)
+          {
+            auto node = path2.seen.at(i);
+            auto next = path2.seen.at(i + 1);
+            node->connections[next] = path1.edge;
+            next->connections[node] = path1.edge;
+          }
+
+          auto &edge1 = s_skeleton.edges[path1.edge];
+          auto &edge2 = s_skeleton.edges[path2.edge];
+          if (edge1.parentEdge != -1) edge1.parentEdge = edge2.parentEdge;
+
+          for (auto &edge : s_skeleton.edges)
+          {
+            if (edge.parentEdge == path2.edge) edge.parentEdge = path1.edge;
+          }
+
+          if(path1.begin == commonNode) std::reverse(path1.seen.begin(), path1.seen.end());
+          if(path2.end == commonNode)   std::reverse(path2.seen.begin(), path2.seen.end());
+          path2.seen.takeFirst(); // to avoid duplicating commonNode in the path.
+
+          path1.seen  = path1.seen + path2.seen;
+          path1.begin = path1.seen.first();
+          path1.end   = path1.seen.last();
+
+          path2.begin = nullptr;
+          path2.end   = nullptr;
+          path2.seen.clear(); // to avoid merging it with anything else.
+        }
+      }
+    }
+  }
+}
+
+//--------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::performSpineSplitting()
 {
   bool foundSpineStroke    = false;
@@ -2166,7 +2258,7 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
 
               if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
               {
-                const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+                s_skeleton.edges[connection].parentEdge = edgeIndex;
               }
             }
           }

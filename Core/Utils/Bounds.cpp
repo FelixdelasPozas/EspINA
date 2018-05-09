@@ -450,9 +450,9 @@ QDebug ESPINA::operator<< (QDebug d, const Bounds &bounds)
 bool ESPINA::contains(const Bounds& container, const Bounds& contained, const NmVector3& spacing)
 {
   int i = 0;
-  for (Axis dir : { Axis::X, Axis::Y, Axis::Z })
+  for (auto dir : { Axis::X, Axis::Y, Axis::Z })
   {
-    if (areEqual(contained[i], container[i], spacing[i / 2]))
+    if (areEqual(contained[i], container[i], spacing[idx(dir)]))
     {
       if (!container.areLowerIncluded(dir) && contained.areLowerIncluded(dir))
       {
@@ -469,7 +469,7 @@ bool ESPINA::contains(const Bounds& container, const Bounds& contained, const Nm
 
     ++i;
 
-    if (areEqual(contained[i], container[i], spacing[i / 2]))
+    if (areEqual(contained[i], container[i], spacing[idx(dir)]))
     {
       if (!container.areUpperIncluded(dir) && contained.areUpperIncluded(dir))
       {
@@ -494,10 +494,9 @@ bool ESPINA::contains(const Bounds& container, const Bounds& contained, const Nm
 bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVector3& spacing)
 {
   int i = 0;
-  int j = 0;
-
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z})
   {
+    const auto j = idx(dir);
     if (point[j] < bounds[i])
     {
       return false;
@@ -525,7 +524,6 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
     }
 
     ++i;
-    ++j;
   }
 
   return true;
@@ -534,7 +532,7 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
 //-----------------------------------------------------------------------------
 bool ESPINA::contains(const Bounds &bounds, const Axis dir, const Nm pos)
 {
-  auto index = idx(dir);
+  const auto index = idx(dir);
 
   auto lowerContained = bounds.areLowerIncluded(dir)? [](double a, double b){return a <= b;}
                                                     : [](double a, double b){return a <  b;};
@@ -549,11 +547,12 @@ bool ESPINA::contains(const Bounds &bounds, const Axis dir, const Nm pos)
 //-----------------------------------------------------------------------------
 bool ESPINA::operator==(const Bounds &lhs, const Bounds &rhs)
 {
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 6; ++i)
+  {
     if (!areEqual(lhs[i], rhs[i])) return false;
   }
 
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z})
   {
     if (lhs.areLowerIncluded(dir) != rhs.areLowerIncluded(dir) || lhs.areUpperIncluded(dir) != rhs.areUpperIncluded(dir))
     {
@@ -576,7 +575,7 @@ bool ESPINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
   int coincident = 0;
   int adjacent = 0;
 
-  for (int i = 0; i < 3; ++i)
+  for (auto i: {0,1,2})
   {
     if (areEqual(lhs[2 * i], rhs[2 * i + 1]) || areEqual(lhs[2 * i + 1], rhs[2 * i]))
     {
