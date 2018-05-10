@@ -42,6 +42,15 @@ SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler
 }
 
 //--------------------------------------------------------------------
+SkeletonToolWidget2D::~SkeletonToolWidget2D()
+{
+  disconnect(m_toolHandler.get(), SIGNAL(signalConnection(const QString, const int, const Plane)),
+             this,                SLOT(onConnectionSignaled(const QString, const int, const Plane)));
+
+  disconnect(m_toolHandler.get(), SIGNAL(changeStrokeTo(const QString, const int, const Plane)),
+             this,                SLOT(onStrokeChangeSignaled(const QString, const int, const Plane)));
+}
+//--------------------------------------------------------------------
 void SkeletonToolWidget2D::onConnectionSignaled(const QString &category, const int strokeIndex, const Plane plane)
 {
   if(!m_widget || !m_view) return;

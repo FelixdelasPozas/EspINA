@@ -471,7 +471,7 @@ namespace ESPINA
      * \param[in] hierarchy List of nodes.
      *
      */
-    PathHierarchyNode * EspinaCore_EXPORT locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy);
+    PathHierarchyNode * EspinaCore_EXPORT locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> &hierarchy);
 
     /** \brief Returns true if the node or any of its children is truncated.
      *

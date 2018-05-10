@@ -47,8 +47,7 @@ namespace ESPINA
       /** \brief SkeletonToolWidget2D class virtual destructor.
        *
        */
-      virtual ~SkeletonToolWidget2D()
-      {};
+      virtual ~SkeletonToolWidget2D();
 
       /** \brief Returns true if the given point can be the start of a stroke and does not connect with any other point of a stroke.
        * \param[in] point Point 3d coodinates.

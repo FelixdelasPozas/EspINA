@@ -553,7 +553,7 @@ void SkeletonInspectorTreeModel::onSelectionChanged(SegmentationAdapterList segm
   ViewItemAdapterList toInvalidate;
 
   auto segSelected = segmentations.contains(m_segmentation.get());
-  for(auto stroke: m_strokes)
+  for(auto &stroke: m_strokes)
   {
     stroke.selected = segSelected;
   }

@@ -175,7 +175,7 @@ namespace ESPINA
      */
     virtual void addActor(vtkProp *actor) = 0;
 
-    /** \brief Removes an actor to the vtkRenderer.
+    /** \brief Removes an actor from the vtkRenderer.
      * \param[in] actor vtkProp raw pointer.
      *
      */

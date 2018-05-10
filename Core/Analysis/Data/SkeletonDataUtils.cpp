@@ -992,7 +992,7 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
 }
 
 //--------------------------------------------------------------------
-ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> hierarchy)
+ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> &hierarchy)
 {
   PathHierarchyNode *result = nullptr;
 

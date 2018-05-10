@@ -63,6 +63,14 @@ using namespace ESPINA::GUI::Model::Utils;
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
 : SegmentationSkeletonPipelineBase{"SegmentationSkeleton3D", colorEngine}
 {
+  m_truncatedGlyph = vtkSmartPointer<vtkGlyphSource2D>::New();
+  m_truncatedGlyph->SetGlyphTypeToSquare();
+  m_truncatedGlyph->SetFilled(false);
+  m_truncatedGlyph->SetCenter(0,0,0);
+  m_truncatedGlyph->SetScale(30);
+  m_truncatedGlyph->SetColor(1,0,0);
+  m_truncatedGlyph->Update();
+
 }
 
 //----------------------------------------------------------------------------
@@ -279,33 +287,44 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
     actors << labelActor;
 
-    if(flags)
+    if(flags && truncatedPoints->GetNumberOfPoints() > 0)
     {
-      auto truncatedData = vtkSmartPointer<vtkPolyData>::New();
-      truncatedData->SetPoints(truncatedPoints);
-      truncatedData->Modified();
-
-      auto glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
-      glyph2D->SetGlyphTypeToSquare();
-      glyph2D->SetFilled(false);
-      glyph2D->SetCenter(0,0,0);
-      glyph2D->SetScale(35);
-      glyph2D->SetColor(1,0,0);
-      glyph2D->Update();
-
-      auto glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
-      glyphMapper->SetScalarVisibility(false);
-      glyphMapper->SetStatic(true);
-      glyphMapper->SetInputData(truncatedData);
-      glyphMapper->SetSourceData(glyph2D->GetOutput());
-      glyphMapper->Update();
-
-      auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
-      truncatedActor->SetMapper(glyphMapper);
-
-      actors << truncatedActor;
+      for(int i = 0; i < truncatedPoints->GetNumberOfPoints(); ++i)
+      {
+        actors << createTruncatedPointActor(truncatedPoints->GetPoint(i));
+      }
     }
   }
 
   return actors;
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkFollower> SegmentationSkeleton3DPipeline::createTruncatedPointActor(const double* point) const
+{
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetNumberOfPoints(1);
+  points->SetPoint(0, point);
+  points->Modified();
+
+  auto data = vtkSmartPointer<vtkPolyData>::New();
+  data->SetPoints(points);
+  data->Modified();
+
+  auto mapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+  mapper->SetScalarVisibility(false);
+  mapper->SetSourceIndexing(false);
+  mapper->SetStatic(true);
+  mapper->SetInputData(data);
+  mapper->SetSourceData(m_truncatedGlyph->GetOutput());
+  mapper->Update();
+
+  auto actor = vtkSmartPointer<vtkFollower>::New();
+  actor->SetMapper(mapper);
+  actor->SetDragable(false);
+  actor->SetPickable(false);
+  actor->SetOrigin(point);
+  actor->SetPosition(0,0,0);
+
+  return actor;
 }

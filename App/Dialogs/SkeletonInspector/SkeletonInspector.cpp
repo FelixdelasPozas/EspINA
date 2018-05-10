@@ -96,7 +96,7 @@ const QString SETTINGS_GROUP = "Skeleton Inspector Dialog";
 SkeletonInspector::SkeletonInspector(Support::Context& context)
 : QDialog              {DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint}}
 , Support::WithContext (context)
-, m_view               {getViewState(), false, nullptr}
+, m_view               {getViewState(), false, this}
 , m_segmentationSources(getViewState())
 , m_temporalPipeline   {nullptr}
 {
@@ -129,7 +129,7 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   QDialog::closeEvent(event);
 
   m_segmentation->clearTemporalRepresentation();
-  for(auto stroke: m_strokes) stroke.actors.clear();
+  for(auto &stroke: m_strokes) stroke.actors.clear();
   m_strokes.clear();
 }
 
@@ -164,7 +164,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     struct StrokeInfo info;
     info.name      = path.note;
     info.path      = path;
-    info.selected  = false;
+    info.selected  = true;
     info.length    = path.length();
     info.used      = definition.strokes.at(path.stroke).useMeasure;
     info.hue       = definition.strokes.at(path.stroke).colorHue;
@@ -241,9 +241,10 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
       if(node->isTerminal() && node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
       {
         auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
-        truncatedPoints->InsertNextPoint(node->position);
-
+        truncatedPoints->SetNumberOfPoints(1);
+        truncatedPoints->SetPoint(0, node->position);
         truncatedPoints->Modified();
+
         auto truncatedData = vtkSmartPointer<vtkPolyData>::New();
         truncatedData->SetPoints(truncatedPoints);
         truncatedData->Modified();
@@ -252,12 +253,13 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
         glyph2D->SetGlyphTypeToSquare();
         glyph2D->SetFilled(false);
         glyph2D->SetCenter(0,0,0);
-        glyph2D->SetScale(35);
+        glyph2D->SetScale(30);
         glyph2D->SetColor(1,0,0);
         glyph2D->Update();
 
         auto glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
         glyphMapper->SetScalarVisibility(false);
+        glyphMapper->SetSourceIndexing(false);
         glyphMapper->SetStatic(true);
         glyphMapper->SetInputData(truncatedData);
         glyphMapper->SetSourceData(glyph2D->GetOutput());
@@ -265,6 +267,10 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
 
         auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
         truncatedActor->SetMapper(glyphMapper);
+        truncatedActor->SetDragable(false);
+        truncatedActor->SetPickable(false);
+        truncatedActor->SetOrigin(node->position);
+        truncatedActor->SetPosition(0,0,0);
 
         info.actors << truncatedActor;
         break;
@@ -519,7 +525,7 @@ void SkeletonInspector::focusOnActor(int row)
   Bounds focusBounds;
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
 
-  for(auto stroke: m_strokes)
+  for(auto &stroke: m_strokes)
   {
     if(stroke.name == name)
     {
@@ -549,7 +555,7 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
       case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
         if(previous.row() == 0)
         {
-          for(auto stroke: m_strokes) stroke.selected = false;
+          for(auto &stroke: m_strokes) stroke.selected = false;
           invalidated = true;
           selection.removeAll(m_segmentation.get());
         }
@@ -579,7 +585,7 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
       case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
         if(current.row() == 0)
         {
-          for(auto stroke: m_strokes) stroke.selected = true;
+          for(auto &stroke: m_strokes) stroke.selected = true;
           invalidated = true;
           selection << m_segmentation.get();
         }
@@ -667,7 +673,7 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
     }
   }
 
-  for(auto stroke: m_strokes)
+  for(auto &stroke: m_strokes)
   {
     QColor color;
     if(!m_randomColoring)
@@ -710,7 +716,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   RepresentationPipeline::ActorList actors;
 
   // line actors.
-  for(auto stroke: m_strokes)
+  for(auto &stroke: m_strokes)
   {
     if(!stroke.actors.first()->GetVisibility()) continue;
 
@@ -738,7 +744,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   }
 
   // truncated points actors.
-  for(auto stroke: m_strokes)
+  for(auto &stroke: m_strokes)
   {
     if(!stroke.actors.first()->GetVisibility()) continue;
 
@@ -784,7 +790,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     labelActor->SetMapper(labelMapper);
     labelActor->SetVisibility(true);
 
-    for(auto stroke: m_strokes)
+    for(auto &stroke: m_strokes)
     {
       if(!stroke.actors.first()->GetVisibility()) continue;
 
