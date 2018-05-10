@@ -58,6 +58,14 @@ namespace ESPINA
       explicit Bounds();
 
       /** \brief Bounds class constructor.
+       * \param[in] bounds values in a dim 6 array.
+       *
+       * Constructs the bounds of a point.
+       *
+       */
+      explicit Bounds(Nm *bounds);
+
+      /** \brief Bounds class constructor.
        * \param[in] bounds initial list of values.
        *
        * Create Bounds from an initial list of values
@@ -82,15 +90,6 @@ namespace ESPINA
        *
        */
       explicit Bounds(const NmVector3 &point);
-
-
-      /** \brief Bounds class constructor.
-       * \param[in] bounds values in a dim 6 array.
-       *
-       * Constructs the bounds of a point.
-       *
-       */
-      explicit Bounds(Nm *bounds);
 
       /** \brief Bounds class constructor.
        * \param[in] strimg bounds serialization

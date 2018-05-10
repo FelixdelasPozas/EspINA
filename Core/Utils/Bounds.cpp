@@ -30,6 +30,9 @@
 #include "Bounds.h"
 #include <Core/Utils/EspinaException.h>
 
+// C++
+#include <cstring> // memset
+
 // Qt
 #include <QStringList>
 
@@ -71,6 +74,16 @@ bool upperBoundsInclusion(double value)
   auto details   = QObject::tr("Bounds() -> Invalid bounds final token, token: %1").arg(charValue);
 
   throw EspinaException(what, details);
+}
+
+//-----------------------------------------------------------------------------
+Bounds::Bounds(Nm *bounds)
+: Bounds{}
+{
+  if(bounds != nullptr)
+  {
+    std::memcpy(m_bounds, bounds, 6*sizeof(Nm));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -155,12 +168,6 @@ Bounds::Bounds(const NmVector3& point)
     m_lowerInclusion[idx(dir)] = true;
     m_upperInclusion[idx(dir)] = true;
   }
-}
-
-//-----------------------------------------------------------------------------
-Bounds::Bounds(Nm *bounds)
-: Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]}
-{
 }
 
 //-----------------------------------------------------------------------------
