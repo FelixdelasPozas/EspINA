@@ -45,6 +45,7 @@ StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCa
 : StackExtension{cache}
 , m_scheduler{scheduler}
 , m_factory  {factory}
+, task(NULL)
 {
   //Bounds bounds = m_extendedItem->bounds();
   //qDebug() << bounds.toString();
@@ -73,9 +74,11 @@ StackExtension::InformationKeyList StackSLIC::availableInformation() const
 }
 
 //--------------------------------------------------------------------
-void StackSLIC::onComputeSLIC()
+void StackSLIC::onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance)
 {
-  auto task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory);
+  if(task != NULL)
+    return;
+  /*auto */task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, parameter_m_s, parameter_m_c, variant, max_iterations, tolerance);
 
   connect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
 
@@ -86,17 +89,32 @@ void StackSLIC::onComputeSLIC()
 void StackSLIC::onSLICComputed()
 {
   qDebug() << "finished";
+  if(task != NULL) {
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
+    task = NULL;
+  }
+}
+
+void StackSLIC::onAbortSLIC() {
+  if(task != NULL) {
+    task->abort();
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
+    task = NULL;
+  }
 }
 
 
 //--------------------------------------------------------------------
-StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory)
+StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance)
 : Task(scheduler)
 , m_stack{stack}
 , m_factory{factory}
-, parameter_m_s(0)
-, parameter_m_c(20)
-, variant(SLICVariant::SLIC)
+, parameter_m_s(parameter_m_s)
+, parameter_m_c(parameter_m_c)
+, variant(variant)
+, max_iterations(max_iterations)
+, tolerance(tolerance)
+, voxels(NULL)
 {
 }
 
@@ -136,15 +154,15 @@ void StackSLIC::SLICComputeTask::run()
   parameter_m_s = 10;
   parameter_m_c = 20;
   variant = ASLIC;
-  int max_iterations = 10;
-  int tolerance = 0;
+  max_iterations = 10;
+  tolerance = 0;
 
   //Square tolerance to avoid having to calculate roots later
   if(tolerance>0) tolerance *= tolerance;
 
   QList<Label> labels;
   //unsigned long int *voxels = (unsigned long int*) calloc(n_voxels, sizeof(unsigned long int));
-  unsigned long int *voxels = (unsigned long int*) malloc(n_voxels * sizeof(unsigned long int));
+  voxels = (unsigned long int*) malloc(n_voxels * sizeof(unsigned long int));
   memset(voxels, ULONG_MAX, n_voxels);
   auto image = inputVolume->itkImage();
   typedef itk::Image<unsigned char, 3> ImageType;
@@ -392,6 +410,13 @@ void StackSLIC::SLICComputeTask::run()
   //TODO: Enforce connectivity
 
   //TODO: Save to stack
+  if(voxels != NULL)
+    delete voxels;
+}
+
+//--------------------------------------------------------------------
+void StackSLIC::SLICComputeTask::onAbort()
+{
   if(voxels != NULL)
     delete voxels;
 }

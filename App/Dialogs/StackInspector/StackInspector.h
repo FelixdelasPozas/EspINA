@@ -30,6 +30,7 @@
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <Support/Context.h>
+#include <Extensions/SLIC/StackSLIC.h>
 
 class QCloseEvent;
 
@@ -72,6 +73,7 @@ namespace ESPINA
 
   signals:
     void spacingUpdated();
+    void computeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, enum Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
 
   private slots:
     /** \brief Manages the change of units from the UI.
@@ -165,6 +167,10 @@ namespace ESPINA
      *
      */
     void onStreamingChanged(int state);
+
+    /** \brief Starts the SLIC task with the selected parameters
+     */
+    void onComputeSLIC();
 
   private:
     /** \brief Helper method to update views after changes to the stack.

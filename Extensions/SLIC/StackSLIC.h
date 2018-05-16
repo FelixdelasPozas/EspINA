@@ -91,8 +91,9 @@ namespace ESPINA
         { return QVariant(); }
 
       protected slots:
-        void onComputeSLIC();
+        void onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
         void onSLICComputed();
+        void onAbortSLIC();
 
       signals:
         void computeFinished();
@@ -101,6 +102,7 @@ namespace ESPINA
         class SLICComputeTask;
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
+        std::shared_ptr<SLICComputeTask> task;
     };
 
     class StackSLIC::SLICComputeTask
@@ -108,12 +110,13 @@ namespace ESPINA
     {
         Q_OBJECT
       public:
-        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory);
+        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
         virtual ~SLICComputeTask()
         {};
 
       private:
         virtual void run();
+        virtual void onAbort();
 
         ChannelPtr m_stack;
         CoreFactory *m_factory;
@@ -121,6 +124,10 @@ namespace ESPINA
         unsigned int parameter_m_s;
         unsigned int parameter_m_c;
         SLICVariant variant;
+        unsigned int max_iterations;
+        double tolerance;
+
+        unsigned long int *voxels;
 
         typedef struct Label
         {

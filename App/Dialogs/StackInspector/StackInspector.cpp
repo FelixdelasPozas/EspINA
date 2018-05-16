@@ -146,7 +146,9 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 
   /// SLIC TAB
   auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(channel, context.factory());
-  connect(testRunSlic, SIGNAL(released()), slicExtension.get(), SLOT(onComputeSLIC()));
+  //connect(testRunSlic, SIGNAL(released()), slicExtension.get(), SLOT(onComputeSLIC()));
+  connect(testRunSlic, SIGNAL(released()), this, SLOT(onComputeSLIC()));
+  connect(this, SIGNAL(computeSLIC(unsigned int, unsigned int, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned int, unsigned int, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
   //connect(testRunSlic, SIGNAL(clicked()), this, SLOT(slicStarted()));
 
   tabWidget->setCurrentIndex(0);
@@ -790,4 +792,24 @@ void StackInspector::initMiscSettings()
     m_miscBox->setEnabled(false);
     dataStreaming->setChecked(false);
   }
+}
+
+//------------------------------------------------------------------------
+void StackInspector::onComputeSLIC()
+{
+  Extensions::StackSLIC::SLICVariant variant = Extensions::StackSLIC::SLICVariant::SLIC;
+  int spatial_distance = 10;
+  int color_distance = 20;
+  int iterations = 10;
+  double tolerance = 0;
+  //Get parameters and start task
+  if(slicoRadio->isChecked())
+    variant = Extensions::StackSLIC::SLICVariant::SLICO;
+  else if(aslicRadio->isChecked())
+    variant = Extensions::StackSLIC::SLICVariant::ASLIC;
+  spatial_distance = spatialDistanceBox->value();
+  color_distance = colorDistanceBox->value();
+  iterations = maxIterationsBox->value();
+  tolerance = toleranceBox->value();
+  emit computeSLIC(spatial_distance, color_distance, variant, iterations, tolerance);
 }
