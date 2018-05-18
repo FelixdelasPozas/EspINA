@@ -91,7 +91,7 @@ namespace ESPINA
         { return QVariant(); }
 
       protected slots:
-        void onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
+        void onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
         void onSLICComputed();
         void onAbortSLIC();
 
@@ -132,6 +132,7 @@ namespace ESPINA
         typedef struct Label
         {
           itk::Image<unsigned char, 3>::IndexType center;
+          unsigned char color;
           float m_c;
           float m_s;
           double norm_quotient;

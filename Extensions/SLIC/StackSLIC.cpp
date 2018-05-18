@@ -33,6 +33,9 @@
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageRegion.h"
 
+#include <limits>
+#include <math.h>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -49,6 +52,7 @@ StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCa
 {
   //Bounds bounds = m_extendedItem->bounds();
   //qDebug() << bounds.toString();
+  qDebug() << "Constructor StackSLIC";
 }
 
 //--------------------------------------------------------------------
@@ -74,7 +78,7 @@ StackExtension::InformationKeyList StackSLIC::availableInformation() const
 }
 
 //--------------------------------------------------------------------
-void StackSLIC::onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance)
+void StackSLIC::onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance)
 {
   if(task != NULL)
     return;
@@ -138,7 +142,13 @@ void StackSLIC::SLICComputeTask::run()
   unsigned long long n_voxels = max_x*max_y*max_z;
   unsigned long long voxel_index;
 
+  //Used to avoid dividing when switching from grayscale space (0-255)
+  //to CIELab intensity (0-100)
+  double color_normalization_constant = 100/255;
+
   qDebug() << QString("Size: %1 %2 %3").arg(max_x).arg(max_y).arg(max_z);
+
+  qDebug() << QString("Spatial: %1 - Color: %2 - Iterations: %3 - Tolerance: %4").arg(parameter_m_s).arg(parameter_m_c).arg(max_iterations).arg(tolerance);
 
   //Get ITK image from extended item
   auto inputVolume = readLockVolume(output);
@@ -151,11 +161,11 @@ void StackSLIC::SLICComputeTask::run()
   }
 
   //Testing parameters
-  parameter_m_s = 10;
+  /*parameter_m_s = 10;
   parameter_m_c = 20;
   variant = ASLIC;
   max_iterations = 10;
-  tolerance = 0;
+  tolerance = 0;*/
 
   //Square tolerance to avoid having to calculate roots later
   if(tolerance>0) tolerance *= tolerance;
@@ -163,7 +173,7 @@ void StackSLIC::SLICComputeTask::run()
   QList<Label> labels;
   //unsigned long int *voxels = (unsigned long int*) calloc(n_voxels, sizeof(unsigned long int));
   voxels = (unsigned long int*) malloc(n_voxels * sizeof(unsigned long int));
-  memset(voxels, ULONG_MAX, n_voxels);
+  memset(voxels, std::numeric_limits<unsigned long int>::max(), n_voxels);
   auto image = inputVolume->itkImage();
   typedef itk::Image<unsigned char, 3> ImageType;
   typedef ImageType::IndexType IndexType;
@@ -190,6 +200,7 @@ void StackSLIC::SLICComputeTask::run()
         }
         //TODO: Check lowest gradient voxel in a 3x3x3 area around voxel
 
+        //Following code discarded as SLIC's original implementation doesn't set this up, it is done during the first iteration:
         //Assign voxels in a m_s*m_s*m_s area to this supervoxel to start a grid in the first iteration
         //Attempt to prevent first iteration max distance issues, not working
         /*for(int it_x=x-parameter_m_s*2;it_x<x+parameter_m_s&&it_x<=max_x;it_x++)
@@ -201,8 +212,8 @@ void StackSLIC::SLICComputeTask::run()
               if(voxels[v_index] == ULONG_MAX)
                 voxels[v_index] = labels.size();
             }*/
-
-        labels.append((Label) {{x,y,z}, parameter_m_c, parameter_m_s, parameter_m_c / parameter_m_s});
+        cur_index = {x,y,z};
+        labels.append((Label) {{x,y,z}, image->GetPixel(cur_index), parameter_m_c, parameter_m_s, pow(parameter_m_c,2) / pow(parameter_m_s,2)});
       }
     }
   }
@@ -215,7 +226,7 @@ void StackSLIC::SLICComputeTask::run()
   ImageRegion region;
   Label *label, *label_old;
   unsigned char center_color, voxel_color;
-  bool converged=false, cropped = false;;
+  bool converged = false, cropped = false;
   qDebug() << "start: max iterations" << max_iterations;
   int progress = 0;
   try
@@ -226,6 +237,7 @@ void StackSLIC::SLICComputeTask::run()
       if(newProgress != progress) qDebug() << "progress" << newProgress;
       progress = newProgress;
 
+      int region_x, region_y, region_z, region_size_x, region_size_y, region_size_z;
       for(unsigned long long int label_index=0;label_index<labels.size();label_index++)
       {
         //qDebug() << QString("Starting iteration: %1").arg(iteration);
@@ -238,11 +250,10 @@ void StackSLIC::SLICComputeTask::run()
           qDebug() << QString("M_S: %1").arg(label->m_s);
           qDebug() << QString("M_C: %1").arg(label->m_c);
         }*/
-
-        int region_x, region_y, region_z, region_size_x = region_size, region_size_y = region_size, region_size_z = region_size;
-        region_x = label->center.m_Index[0] - label->m_s;
-        region_y = label->center.m_Index[1] - label->m_s;
-        region_z = label->center.m_Index[2] - label->m_s;
+        region_size_x = region_size_y = region_size_z = region_size;
+        region_x = label->center[0] - label->m_s;
+        region_y = label->center[1] - label->m_s;
+        region_z = label->center[2] - label->m_s;
         //Make sure that the region is inside the bounds of the image
         if(region_x<0)
         {
@@ -273,21 +284,30 @@ void StackSLIC::SLICComputeTask::run()
           case ASLIC:
             //label->norm_quotient = label->m_c/(label->m_s<1?1:label->m_s);
             //Squared constants to prevent having to use expensive roots
-            label->norm_quotient = label->m_c*label->m_c/(label->m_s<1?1:label->m_s*label->m_s);
-            label->m_s = 0;
-            label->m_c = 0;
+            label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
+            //First iteration keeps original parameter values to avoid overextending
+            if(iteration == 0) {
+              label->m_s = parameter_m_s;
+              label->m_c = parameter_m_c;
+            } else {
+              label->m_s = 0;
+              label->m_c = 0;
+            }
             break;
           case SLICO:
             //label->norm_quotient = label->m_c/(label->m_s<1?1:label->m_s);
-            label->norm_quotient = label->m_c*label->m_c/(label->m_s<1?1:label->m_s*label->m_s);
-            label->m_s = 0;
-            break;
+            label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
           case SLIC:
-            label->m_s = 0;
+            if(iteration == 0) {
+              label->m_s = parameter_m_s;
+            } else {
+              label->m_s = 0;
+            }
             break;
         }
 
-        center_color = image->GetPixel(label->center);
+        //center_color = image->GetPixel(label->center);
+        center_color = label->color;
 
         //Iterate over the slices
         for(int current_slice = region_z; current_slice < region_z + region_size_z; current_slice++) {
@@ -329,27 +349,29 @@ void StackSLIC::SLICComputeTask::run()
 
             //Calculate distance between current voxel and supervoxel center
             color_distance = voxel_color-center_color;
+            color_distance *= color_normalization_constant;
             color_distance *= color_distance;
             spatial_distance = pow(cur_index[0]-label->center[0],2) + pow(cur_index[1]-label->center[1],2) + pow(cur_index[2]-label->center[2],2);
             distance = color_distance + label->norm_quotient * spatial_distance;
 
             //Check if voxel is closer to this supervoxel than to its current paired supervoxel
             voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
-            if(voxels[voxel_index] == ULONG_MAX || voxels[voxel_index] == label_index) {
-              //First iteration, voxels not assigned yet
-              distance_old = DBL_MAX;
+            if(voxels[voxel_index] == std::numeric_limits<unsigned long int>::max() || voxels[voxel_index] == label_index) {
+              //First iteration (voxels not assigned yet) or voxel belongs to label already
+              distance_old = std::numeric_limits<double>::max();
             } else {
               label_old = &labels[voxels[voxel_index]];
-              distance_old = (voxel_color - image->GetPixel(label_old->center))*(voxel_color - image->GetPixel(label_old->center)) + label_old->norm_quotient *
+              distance_old = pow((voxel_color - image->GetPixel(label_old->center))*color_normalization_constant,2) + label_old->norm_quotient *
                             (pow(cur_index[0]-label_old->center[0],2) + pow(cur_index[1]-label_old->center[1],2) + pow(cur_index[2]-label_old->center[2],2));
             }
             if(distance < distance_old) {
+              //if(iteration > 0 && voxels[voxel_index] != label_index) qDebug() << QString("Old: %1 New: %2").arg(distance_old).arg(distance);
               voxels[voxel_index] = label_index;
-              //qDebug() << QString("Old: %1 New: %2").arg(distance_old).arg(distance);
             }
 
             //Update maximum distances if voxel is asigned to label
-            if(label_index == voxels[voxel_index]) {
+            //Skip in first iteration to avoid overextending to previously unassigned voxels
+            if(iteration > 0 && label_index == voxels[voxel_index]) {
               switch(variant) {
                 case ASLIC:
                   if(label->m_c < color_distance)
@@ -365,36 +387,96 @@ void StackSLIC::SLICComputeTask::run()
             ++it;
           } //RegionIterator
         }//current_slice
+
+        if(iteration > 0) {
+          switch(variant) {
+            case ASLIC:
+              //Update max. distances calculating their roots as we were
+              //using squared distances for the simplified equations
+              label->m_c = std::sqrt(label->m_c);
+            case SLICO:
+              label->m_s = std::sqrt(label->m_s);
+            case SLIC:
+              break;
+          }
+        }
       } //label
 
-      //Recalculate centers, check convergence
-      IndexType newCenter;
-
       //If convergence test is enabled, assume it converged until proven otherwise
-      if(tolerance > 0) converged = true;
+      if(tolerance > 0)
+        converged = true;
+
+      //Recalculate centers, check convergence
+      qDebug() << "Recalculating centers";
       for(unsigned long long int label_index=0;label_index<labels.size();label_index++)
       {
+        if(label_index%5000 == 0)
+          qDebug() << QString("Label %1: %2s").arg(label_index).arg(timer.elapsed()/1000);
         label=&labels[label_index];
-        //TODO: Recalculate centers skipping unassigned voxels (label == ULONG_MAX)
-        //maximum area for assigned voxels = m_s*m_s
-        newCenter = label->center;
-        //If convergence test is enabled, check for convergence
-        if(tolerance > 0 && converged)
+        //region_size = 2.5*label->m_s;
+        region_size = label->m_s;
+        region_size_x = region_size_y = region_size_z = region_size;
+        region_x = label->center.m_Index[0] - label->m_s;
+        region_y = label->center.m_Index[1] - label->m_s;
+        region_z = label->center.m_Index[2] - label->m_s;
+        if(region_x<0)
         {
-          spatial_distance = pow(newCenter[0]-label->center[0],2) + pow(newCenter[1]-label->center[1],2) + pow(newCenter[2]-label->center[2],2);
-          if(spatial_distance > tolerance) converged = false;
+          region_size_x+=region_x;
+          region_x=0;
+        }
+        if(region_y<0)
+        {
+          region_size_y+=region_y;
+          region_y=0;
+        }
+        if(region_z<0)
+        {
+          region_size_z+=region_z;
+          region_z=0;
+        }
+        if(region_x+region_size_x > max_x) region_size_x = max_x-region_x;
+        if(region_y+region_size_y > max_y) region_size_y = max_y-region_y;
+        if(region_z+region_size_z > max_z) region_size_z = max_z-region_z;
+
+        region_size_x += region_x;
+        region_size_y += region_y;
+        region_size_z += region_z;
+
+        unsigned long long int sum_x = 0, sum_y = 0, sum_z = 0, sum_color = 0, sum_voxels = 0;
+        for(int z = region_z; z < region_size_z; z++) {
+          for(int y = region_y; y < region_size_y; y++) {
+            voxel_index = region_x-1+y*max_x+z*max_x*max_y;
+            for(int x = region_x; x < region_size_x; x++) {
+              //voxel_index = x+y*max_x+z*max_x*max_y;
+              voxel_index++;
+              if(label_index == voxels[voxel_index]) {
+                sum_voxels++;
+                sum_x += x;
+                sum_y += y;
+                sum_z += z;
+                cur_index = {x,y,z};
+                sum_color += image->GetPixel(cur_index);
+              }
+            }
+          }
         }
 
-        //Square root of squared maximum distances saved
-        switch(variant) {
-          case ASLIC:
-            //Update max. distances calculating their roots as we were
-            //using squared distances for the simplified equations
-            label->m_c = std::sqrt(label->m_c);
-          case SLICO:
-            label->m_s = std::sqrt(label->m_s);
-          case SLIC:
-            break;
+        if(sum_voxels > 0) {
+          //Calculate averaged coordinates
+          sum_x = round(sum_x/sum_voxels);
+          sum_y = round(sum_y/sum_voxels);
+          sum_z = round(sum_z/sum_voxels);
+          //Calculate displacement for the tolerance test
+          if(tolerance > 0 && converged) {
+            spatial_distance = pow(label->center[0]-sum_x,2)+pow(label->center[1]-sum_y,2)+pow(label->center[2]-sum_z,2);
+            if(spatial_distance > tolerance)
+              converged = false;
+          }
+          //DEBUG
+          spatial_distance = pow(label->center[0]-sum_x,2)+pow(label->center[1]-sum_y,2)+pow(label->center[2]-sum_z,2);
+          if (spatial_distance != 27) qDebug() << QString("%1 displacement: %2 ( %3 , %4 , %5 )").arg(label_index).arg(spatial_distance).arg(label->center[0]-sum_x).arg(label->center[1]-sum_y).arg(label->center[2]-sum_z);
+          label->center = {sum_x, sum_y, sum_z};
+          label->color = sum_color/sum_voxels;
         }
       } //label
 
@@ -406,6 +488,8 @@ void StackSLIC::SLICComputeTask::run()
      std::cerr << e.what() << std::endl << std::flush;
      exit(1);
   }
+
+  qDebug() << QString("Finished computing SLIC in %1s").arg(timer.elapsed()/1000);
 
   //TODO: Enforce connectivity
 
