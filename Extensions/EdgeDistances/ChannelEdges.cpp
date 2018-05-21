@@ -90,13 +90,13 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                    scheduler,
   {
     //State: UseDistanceToBounds,BackgroundColor,Threshold
     auto values = state.split(",");
-    bool ok{false}, result;
+    bool ok{false};
     m_useDistanceToBounds = values[0].toInt(&ok);
-    result = ok;
+    bool result = ok;
     m_backgroundColor     = values[1].toInt(&ok);
-    result |= ok;
+    result &= ok;
     m_threshold           = values[2].toInt(&ok);
-    result |= ok;
+    result &= ok;
 
     if(result)
     {
