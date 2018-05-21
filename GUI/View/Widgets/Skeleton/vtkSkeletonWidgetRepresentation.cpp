@@ -1741,6 +1741,7 @@ bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke&
     if(s_skeleton.nodes.size() < 2 || !s_currentVertex) return false;
   }
 
+  auto oldEdgeIndex = m_currentEdgeIndex;
   setStroke(stroke);
 
   QMutexLocker lock(&s_skeletonMutex);
@@ -1751,6 +1752,12 @@ bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke&
   edge.strokeNumber = s_skeleton.count[stroke];
   edge.parentEdge   = m_currentEdgeIndex;
   s_skeleton.edges << edge;
+
+  if(s_skeleton.edges.size() > oldEdgeIndex && oldEdgeIndex >= 0)
+  {
+    auto &oldEdge = s_skeleton.edges[oldEdgeIndex];
+    if(oldEdge.parentEdge == -1) oldEdge.parentEdge = s_skeleton.edges.indexOf(edge);
+  }
 
   double pos[3];
   for(int i: {0,1,2}) pos[i] = std::round(s_currentVertex->position[i]/m_spacing[i]) * m_spacing[i];
