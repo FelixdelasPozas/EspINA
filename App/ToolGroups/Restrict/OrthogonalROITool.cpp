@@ -35,48 +35,50 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 
-using namespace ESPINA;
-
-/** \class ModifyOrthogonalRegion
- * \brief QUndoCommand for orthogonal ROI modifications.
- *
- */
-class ModifyOrthogonalRegion
-: public QUndoCommand
+namespace ESPINA
 {
-  public:
-    /** \brief ModifyOrthogonalRegion class constructor.
-     * \param[in] roi ROI being modified.
-     * \param[in] bounds new bounds.
-     *
-     */
-    ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
-    : m_roi {roi}
-    , m_swap{bounds}
-    {}
+  /** \class ModifyOrthogonalRegion
+   * \brief QUndoCommand for orthogonal ROI modifications.
+   *
+   */
+  class ModifyOrthogonalRegion
+  : public QUndoCommand
+  {
+    public:
+      /** \brief ModifyOrthogonalRegion class constructor.
+       * \param[in] roi ROI being modified.
+       * \param[in] bounds new bounds.
+       *
+       */
+      ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
+      : m_roi {roi}
+      , m_swap{bounds}
+      {}
 
-    virtual void redo()
-    { swapBounds(); }
+      virtual void redo()
+      { swapBounds(); }
 
-    virtual void undo()
-    { swapBounds(); }
+      virtual void undo()
+      { swapBounds(); }
 
-  private:
-    /** \brief Swaps the old and new bounds.
-     *
-     */
-    void swapBounds()
-    {
-      Bounds tmp = m_roi->bounds();
-      m_roi->resize(m_swap);
-      m_swap = tmp;
-    }
+    private:
+      /** \brief Swaps the old and new bounds.
+       *
+       */
+      void swapBounds()
+      {
+        Bounds tmp = m_roi->bounds();
+        m_roi->resize(m_swap);
+        m_swap = tmp;
+      }
 
-  private:
-    ROISPtr m_roi;  /** ROI being modified. */
-    Bounds  m_swap; /** old/new bounds      */
-};
+    private:
+      ROISPtr m_roi;  /** ROI being modified. */
+      Bounds  m_swap; /** old/new bounds      */
+  };
+}
 
+using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Widgets;

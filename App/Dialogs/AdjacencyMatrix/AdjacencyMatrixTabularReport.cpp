@@ -40,7 +40,6 @@ using namespace ESPINA::GUI;
 //--------------------------------------------------------------------
 AdjacencyMatrixTabularReport::AdjacencyMatrixTabularReport(SegmentationAdapterList segmentations, Support::Context& context)
 : TabularReport  (context)
-, m_segmentations{segmentations}
 {
   createEntry(segmentations, context.model());
 

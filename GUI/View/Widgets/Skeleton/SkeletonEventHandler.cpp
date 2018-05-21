@@ -62,7 +62,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
 
         if (me && (me->button() == Qt::LeftButton))
         {
-          m_tracking = true;
+          if(m_mode == Mode::CREATE) m_tracking = true;
           m_view = view;
           startTrack(me->pos(), view);
 
@@ -116,7 +116,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       {
         m_tracking = false;
         m_view = nullptr;
-        updateTrack(me->pos(), view);
+        if(me) updateTrack(me->pos(), view);
 
         m_track.clear();
         emit stopped(view);
@@ -180,7 +180,7 @@ bool SkeletonEventHandler::isTracking() const
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::startTrack(const QPoint &pos, RenderView *view)
+void SkeletonEventHandler::startTrack(const QPoint pos, RenderView *view)
 {
   if(view)
   {
@@ -210,13 +210,13 @@ void SkeletonEventHandler::startTrack(const QPoint &pos, RenderView *view)
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::updateTrack(const QPoint &pos, RenderView *view)
+void SkeletonEventHandler::updateTrack(const QPoint pos, RenderView *view)
 {
   if(view)
   {
     m_updatedTrack.clear();
 
-    if(pos == m_track.last()) return;
+    if((m_track.isEmpty()) || (pos == m_track.last())) return;
 
     auto viewPoint1 = view->worldEventPosition(pos);
     auto viewPoint2 = view->worldEventPosition(m_track.last());
@@ -244,7 +244,7 @@ void SkeletonEventHandler::updateTrack(const QPoint &pos, RenderView *view)
 }
 
 //------------------------------------------------------------------------
-SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint &point1, const QPoint &point2, RenderView *view)
+SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint point1, const QPoint point2, RenderView *view)
 {
   Track track;
 
@@ -296,7 +296,7 @@ void SkeletonEventHandler::removeWidget(SkeletonWidget2D *widget)
 }
 
 //------------------------------------------------------------------------
-Nm SkeletonEventHandler::distance2(const NmVector3 &p1, const NmVector3 &p2)
+Nm SkeletonEventHandler::distance2(const NmVector3 p1, const NmVector3 p2)
 {
   double point1[3] = { p1[0], p1[1], p1[2] };
   double point2[3] = { p2[0], p2[1], p2[2] };

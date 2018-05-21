@@ -1883,7 +1883,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
   for(auto channel: m_channels)
   {
     if(channel->data().toString().compare(primary->data().toString()) == 0) continue;
-
     auto filter = channel->filter();
 
     DirectedGraph::Edges toChange;
@@ -1912,21 +1911,20 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
     }
   }
 
+  SampleSPtr mainSample = nullptr;
+  for(auto channel: m_analysis->channels())
+  {
+    if(channel->filter() == active)
+    {
+      mainSample = QueryContents::sample(channel);
+      break;
+    }
+  }
+  Q_ASSERT(mainSample != nullptr);
+
   if (m_samples.size() != 1)
   {
     // segmentations can be associated to wrong sample with relation Sample::CONTAINS.
-    SampleSPtr mainSample = nullptr;
-    for(auto channel: m_analysis->channels())
-    {
-      if(channel->filter() == active)
-      {
-        mainSample = QueryContents::sample(channel);
-        break;
-      }
-    }
-
-    Q_ASSERT(mainSample != nullptr);
-
     int changed = 0;
     for(auto sample: m_analysis->samples())
     {
@@ -1939,6 +1937,16 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
         m_analysis->deleteRelation(sample, seg, Sample::CONTAINS);
         m_analysis->addRelation(mainSample, seg, Sample::CONTAINS);
       }
+    }
+  }
+
+  // segmentations can have no sample at all, and we must fix it.
+  for(auto seg: m_analysis->segmentations())
+  {
+    auto samples = QueryRelations::samples(seg);
+    if(samples.isEmpty())
+    {
+      m_analysis->addRelation(mainSample, seg, Sample::CONTAINS);
     }
   }
 }

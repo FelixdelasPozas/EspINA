@@ -196,8 +196,13 @@ void AppositionSurfaceExtension::onExtendedItemSet(Segmentation *item)
   connect(item, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
 
-  // old EspINA versions can have the value cached, we just remove it and never store it in the cache.
-  if(m_infoCache.contains(SYNAPSE)) m_infoCache.remove(SYNAPSE);
+  // NOTE: Synapse key is generated on request in cacheFail() method, never saved to cache. That means it's "udpated"
+  // when the user changes the origin segmentation name or category.  Need to clear it because previously it was
+  // saved to cache.
+  if(m_infoCache.keys().contains(SYNAPSE))
+  {
+    m_infoCache.remove(SYNAPSE);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -180,9 +180,14 @@ void Task::submit(TaskSPtr task)
 //-----------------------------------------------------------------------------
 void Task::abort()
 {
-  m_isAborted = true;
+  if(!m_isAborted)
+  {
+    m_isAborted = true;
 
-  onAbort();
+    onAbort();
+
+    emit aborted();
+  }
 }
 
 //-----------------------------------------------------------------------------

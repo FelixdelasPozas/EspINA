@@ -115,12 +115,6 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                    scheduler,
 ChannelEdges::~ChannelEdges()
 {
   invalidateResults();
-
-  m_analisysWait.wakeAll();
-  m_edgesTask.wakeAll();
-
-  if(m_edgesAnalyzer->isRunning()) m_edgesAnalyzer->abort();
-  if(m_edgesCreator->isRunning()) m_edgesCreator->abort();
 }
 
 //-----------------------------------------------------------------------------
@@ -406,7 +400,7 @@ void ChannelEdges::invalidate()
 void ChannelEdges::invalidateResults()
 {
   QWriteLocker lock(&m_dataMutex);
-  if(!m_edgesAnalyzer->hasFinished())
+  if(m_edgesAnalyzer->isRunning() && !m_edgesAnalyzer->hasFinished())
   {
     m_edgesAnalyzer->abort();
 
@@ -414,9 +408,11 @@ void ChannelEdges::invalidateResults()
     {
       m_edgesAnalyzer->thread()->terminate();
     }
+
+    m_analisysWait.wakeAll();
   }
 
-  if(!m_edgesCreator->hasFinished())
+  if(m_edgesCreator->isRunning() && !m_edgesCreator->hasFinished())
   {
     m_edgesCreator->abort();
 
@@ -424,6 +420,8 @@ void ChannelEdges::invalidateResults()
     {
       m_edgesCreator->thread()->terminate();
     }
+
+    m_edgesTask.wakeAll();
   }
 
   m_edges = nullptr;

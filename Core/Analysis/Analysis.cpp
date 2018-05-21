@@ -93,6 +93,9 @@ void Analysis::add(SampleSPtr sample)
   m_content->add(sample);
   m_relations->add(sample);
 
+  m_itemPointers.insert(sample, sample.get());
+  m_itemUUids.insert(sample, sample->uuid());
+
   sample->setAnalysis(this);
 }
 
@@ -130,6 +133,9 @@ void Analysis::add(ChannelSPtr channel)
 
   m_relations->add(channel);
 
+  m_itemPointers.insert(channel, channel.get());
+  m_itemUUids.insert(channel, channel->uuid());
+
   channel->setAnalysis(this);
 }
 
@@ -165,6 +171,9 @@ void Analysis::add(SegmentationSPtr segmentation)
 
   m_relations->add(segmentation);
 
+  m_itemPointers.insert(segmentation, segmentation.get());
+  m_itemUUids.insert(segmentation, segmentation->uuid());
+
   segmentation->setAnalysis(this);
 }
 
@@ -193,6 +202,8 @@ void Analysis::remove(SampleSPtr sample)
 
   m_content->remove(sample);
   m_relations->remove(sample);
+  m_itemPointers.remove(sample);
+  m_itemUUids.remove(sample);
 }
 
 //------------------------------------------------------------------------
@@ -221,6 +232,8 @@ void Analysis::remove(ChannelSPtr channel)
 
   m_content->remove(channel);
   m_relations->remove(channel);
+  m_itemPointers.remove(channel);
+  m_itemUUids.remove(channel);
 
   removeIfIsolated(channel->filter());
 }
@@ -251,6 +264,8 @@ void Analysis::remove(SegmentationSPtr segmentation)
   m_content->remove(segmentation);
   m_relations->remove(segmentation);
   m_connections.removeSegmentation(segmentation);
+  m_itemPointers.remove(segmentation);
+  m_itemUUids.remove(segmentation);
 
   removeIfIsolated(segmentation->filter());
 }
@@ -546,22 +561,13 @@ Core::Connections Analysis::connections(const PersistentSPtr segmentation) const
 {
   Core::Connections result;
 
-  auto getSegmentationSPtr = [this] (const QString &uuid)
-  {
-    for(auto seg: this->m_segmentations)
-    {
-      if(uuid == seg->uuid()) return seg;
-    }
-    Q_ASSERT(false);
-    return m_segmentations.first(); // so the lambda has a consistent return type.
-  };
-
   for(auto connection: m_connections.connections(segmentation))
   {
     Core::Connection coreConnection;
     coreConnection.segmentation1 = segmentation;
-    coreConnection.segmentation2 = getSegmentationSPtr(connection.segmentation2);
+    coreConnection.segmentation2 = m_itemUUids.key(connection.segmentation2);
     coreConnection.point         = connection.point;
+    Q_ASSERT(coreConnection.segmentation2);
 
     result << coreConnection;
   }
@@ -579,4 +585,21 @@ bool Analysis::saveConnections() const
 bool Analysis::loadConnections()
 {
   return m_connections.load();
+}
+
+//------------------------------------------------------------------------
+Core::Connections ESPINA::Analysis::connections(const PersistentPtr segmentation) const
+{
+  auto segSPtr = m_itemPointers.key(segmentation);
+  Q_ASSERT(segSPtr);
+  return connections(segSPtr);
+}
+
+//------------------------------------------------------------------------
+PersistentSPtr ESPINA::Analysis::smartPointer(PersistentPtr item)
+{
+  auto itemSPtr = m_itemPointers.key(item);
+  Q_ASSERT(itemSPtr);
+
+  return itemSPtr;
 }

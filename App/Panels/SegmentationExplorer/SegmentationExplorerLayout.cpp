@@ -23,6 +23,7 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -73,6 +74,13 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
           ++i;
         }
       }
+
+      if(!acceptRows && extensions->hasExtension(SegmentationNotes::TYPE))
+      {
+        auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+
+        acceptRows = notesExtension->notes().contains(filterRegExp());
+      }
     }
   }
 
@@ -92,8 +100,6 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
 : WithContext      (context)
 , m_view           (view)
 {
-  connect(context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this,                  SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
 //------------------------------------------------------------------------
@@ -166,45 +172,6 @@ void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspect
   auto key = m_inspectors.key(inspector);
   m_inspectors[key] = nullptr;
   m_inspectors.remove(key);
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
-{
-  if (getModel()->segmentationRoot() == parent)
-  {
-    for(int row = start; row <= end; row++)
-    {
-      auto child = parent.child(row, 0);
-      auto item = itemAdapter(child);
-      if (isSegmentation(item))
-      {
-        auto segKey = toKey(segmentationPtr(item));
-
-        for(auto key : m_inspectors.keys())
-        {
-          if (key.contains(segKey))
-          {
-            auto inspector = m_inspectors[key];
-            if (key == segKey)
-            {
-              m_inspectors.remove(key);
-              inspector->close();
-            }
-            else
-            {
-              QString newKey(key);
-
-              m_inspectors.remove(key);
-              m_inspectors.insert(newKey.remove(segKey), inspector);
-
-              inspector->removeSegmentation(segmentationPtr(item));
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 //------------------------------------------------------------------------

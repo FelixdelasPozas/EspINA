@@ -20,7 +20,6 @@
 // ESPINA
 #include "FileOpenTool.h"
 #include "ChunkReporter.h"
-
 #include "AutoSave.h"
 #include "RecentDocuments.h"
 #include <Core/IO/ProgressReporter.h>
@@ -31,6 +30,7 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 
+// Qt
 #include <QElapsedTimer>
 
 using namespace ESPINA;

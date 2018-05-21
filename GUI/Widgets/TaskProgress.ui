@@ -45,6 +45,12 @@ border-color: black;
        <height>32</height>
       </size>
      </property>
+     <property name="toolTip">
+      <string>Abort task</string>
+     </property>
+     <property name="statusTip">
+      <string>Abort task</string>
+     </property>
      <property name="text">
       <string/>
      </property>

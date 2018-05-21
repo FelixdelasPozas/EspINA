@@ -28,6 +28,9 @@
 #include <GUI/Representations/RepresentationState.h>
 #include <GUI/Types.h>
 
+class vtkFollower;
+class vtkGlyphSource2D;
+
 namespace ESPINA
 {
   namespace GUI
@@ -56,6 +59,15 @@ namespace ESPINA
 
           virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
                                                                  const RepresentationState &state) override;
+
+        private:
+          /** \brief Returns a truncated point actor that will follow the camera.
+           * \param[in] point Point coordinates vector pointer.
+           *
+           */
+          vtkSmartPointer<vtkFollower> createTruncatedPointActor(const double *point) const;
+
+          vtkSmartPointer<vtkGlyphSource2D> m_truncatedGlyph;
       };
 
     } // namespace Representations

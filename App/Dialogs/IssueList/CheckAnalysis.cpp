@@ -172,6 +172,7 @@ QString CheckTask::editOrDeleteHint(NeuroItemAdapterSPtr item) const
 //------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(Support::Context &context)
 : Task{context.scheduler()}
+, m_tasksNum     {0}
 , m_finishedTasks{0}
 {
   auto model = context.model();
@@ -205,7 +206,11 @@ CheckAnalysis::CheckAnalysis(Support::Context &context)
 //------------------------------------------------------------------------
 void CheckAnalysis::run()
 {
-  for(auto task: m_checkList)
+  m_tasksNum = m_checkList.size();
+
+  auto taskList = m_checkList;
+  taskList.detach();
+  for(auto task: taskList)
   {
     // needs to be direct connection because the mutexes.
     connect(task.get(), SIGNAL(finished()),
@@ -224,26 +229,48 @@ void CheckAnalysis::run()
 //------------------------------------------------------------------------
 void CheckAnalysis::finishedTask()
 {
+  auto task = qobject_cast<CheckTask *>(sender());
+
+  if(task && !task->isAborted())
+  {
+    // needs to be direct connection because the mutexes.
+    disconnect(task, SIGNAL(finished()),
+               this, SLOT(finishedTask()));
+
+    disconnect(task, SIGNAL(issueFound(Extensions::IssueSPtr)),
+               this, SLOT(addIssue(Extensions::IssueSPtr)));
+
+    QMutexLocker lock(&m_progressMutex);
+
+    for(auto taskSPtr: m_checkList)
+    {
+      if(task == taskSPtr.get())
+      {
+        m_checkList.removeOne(taskSPtr);
+        break;
+      }
+    }
+  }
+
   QMutexLocker lock(&m_progressMutex);
 
   ++m_finishedTasks;
 
-  auto tasksNum = m_checkList.size();
-  auto progressValue = m_finishedTasks * 100 / tasksNum;
+  auto progressValue = m_finishedTasks * 100 / m_tasksNum;
   reportProgress(progressValue);
 
   if(isAborted())
   {
     for(auto task: m_checkList)
     {
-      task->abort();
+      if(!task->hasFinished()) task->abort();
     }
 
     resume();
     return;
   }
 
-  if(tasksNum - m_finishedTasks == 0)
+  if(m_tasksNum - m_finishedTasks == 0 || m_checkList.isEmpty())
   {
     if(!m_issues.empty())
     {

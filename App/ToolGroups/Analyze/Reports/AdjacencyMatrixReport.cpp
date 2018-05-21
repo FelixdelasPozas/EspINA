@@ -59,7 +59,7 @@ SegmentationAdapterList AdjacencyMatrixReport::acceptedInput(SegmentationAdapter
 //--------------------------------------------------------------------
 QString AdjacencyMatrixReport::requiredInputDescription() const
 {
-  return QString();
+  return tr("Current report input does not contain any segmentations.");
 }
 
 //--------------------------------------------------------------------

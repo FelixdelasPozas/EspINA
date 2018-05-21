@@ -56,6 +56,7 @@
 #include <vtkMath.h>
 #include <vtkCubeAxesActor2D.h>
 #include <vtkAxisActor2D.h>
+#include <vtkFollower.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
@@ -383,7 +384,16 @@ bool View3D::isCrosshairPointVisible() const
 //-----------------------------------------------------------------------------
 void View3D::addActor(vtkProp *actor)
 {
-  m_renderer->AddActor(actor);
+  if(actor)
+  {
+    auto follower = dynamic_cast<vtkFollower *>(actor);
+    if(follower)
+    {
+      follower->SetCamera(mainRenderer()->GetActiveCamera());
+    }
+
+    m_renderer->AddActor(actor);
+  }
 }
 
 //-----------------------------------------------------------------------------

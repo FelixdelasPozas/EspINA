@@ -25,17 +25,22 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
 
 const QString SIZE_KEY = "Connections Representation Size";
 
 //--------------------------------------------------------------------
-SegmentationConnectionsSwitch::SegmentationConnectionsSwitch(GUI::Representations::RepresentationManagerSPtr manager, Support::Context& context)
+SegmentationConnectionsSwitch::SegmentationConnectionsSwitch(RepresentationManagerSPtr manager, ConnectionSettingsSPtr settings, Support::Context& context)
 : BasicRepresentationSwitch{"ConnectionsSwitch", manager, manager->supportedViews(), context}
+, m_settings{settings}
 {
+  connect(m_settings.get(), SIGNAL(modified()), this, SLOT(onSettingsModified()));
+
   initializeParameterWidgets();
 
-  onSizeValueChanged(4);
+  onSizeValueChanged(m_settings->connectionSize());
 }
 
 //--------------------------------------------------------------------
@@ -43,6 +48,7 @@ void SegmentationConnectionsSwitch::restoreSettings(std::shared_ptr<QSettings> s
 {
   auto sizeValue = settings->value(SIZE_KEY, 5).toInt();
   m_sizeWidget->setValue(sizeValue);
+  m_settings->setConnectionSize(sizeValue);
 
   restoreCheckedState(settings);
 }
@@ -52,13 +58,33 @@ void SegmentationConnectionsSwitch::saveSettings(std::shared_ptr<QSettings> sett
 {
   saveCheckedState(settings);
 
-  settings->setValue(SIZE_KEY, m_sizeWidget->value());
+  settings->setValue(SIZE_KEY, m_settings->connectionSize());
 }
 
 //--------------------------------------------------------------------
 void SegmentationConnectionsSwitch::onSizeValueChanged(int value)
 {
-  std::dynamic_pointer_cast<ConnectionsManager>(m_manager)->setRepresentationSize(value);
+  if(value != m_settings->connectionSize())
+  {
+    m_settings->setConnectionSize(value);
+
+    std::dynamic_pointer_cast<ConnectionsManager>(m_manager)->setRepresentationSize(value);
+  }
+}
+
+//--------------------------------------------------------------------
+void SegmentationConnectionsSwitch::onSettingsModified()
+{
+  auto size = m_settings->connectionSize();
+
+  if(size != m_sizeWidget->value())
+  {
+    m_sizeWidget->blockSignals(true);
+    m_sizeWidget->setValue(size);
+    m_sizeWidget->blockSignals(false);
+
+    std::dynamic_pointer_cast<ConnectionsManager>(m_manager)->setRepresentationSize(size);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -70,7 +96,7 @@ void SegmentationConnectionsSwitch::initializeParameterWidgets()
   m_sizeWidget->setSliderVisibility(true);
   m_sizeWidget->setMinimum(1);
   m_sizeWidget->setMaximum(30);
-  m_sizeWidget->setValue(5);
+  m_sizeWidget->setValue(m_settings->connectionSize());
 
   connect(m_sizeWidget, SIGNAL(valueChanged(int)), this, SLOT(onSizeValueChanged(int)));
 

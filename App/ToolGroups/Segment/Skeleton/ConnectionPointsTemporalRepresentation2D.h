@@ -24,6 +24,7 @@
 
 // ESPINA
 #include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/Representations/Settings/ConnectionPoolSettings.h>
 
 class vtkGlyph3DMapper;
 class vtkFollower;
@@ -45,20 +46,15 @@ namespace ESPINA
       Q_OBJECT
     public:
       /** \brief ConnectionPointsTemporalRepresentation2D class constructor.
+       * \param[in] settings Connection representation settings.
        *
        */
-      explicit ConnectionPointsTemporalRepresentation2D();
+      explicit ConnectionPointsTemporalRepresentation2D(GUI::Representations::Settings::ConnectionSettingsSPtr settings);
 
       /** \brief ConnectionPointsTemporalRepresentation2D class virtual destructor.
        *
        */
       virtual ~ConnectionPointsTemporalRepresentation2D();
-
-      /** \brief Sets the size of the point's representation.
-       * \param[in] size Integer value [3-15].
-       *
-       */
-      void setRepresentationSize(const int size);
 
       virtual void initialize(RenderView *view);
 
@@ -100,6 +96,12 @@ namespace ESPINA
        */
       void clearPoints();
 
+    private slots:
+      /** \brief Updates the representation size when the settings change.
+       *
+       */
+      void onRepresentationModified();
+
     private:
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
@@ -108,11 +110,12 @@ namespace ESPINA
        */
       void buildPipeline();
 
-      /** \brief Updates the actor for the given slice if different from the current one.
-       * \param[in] slice Slice position in Nm.
+      /** \brief Updates the actor.
        *
        */
-      void updateActor(const Nm slice);
+      void updateActor();
+
+      using ConnectionSettings = GUI::Representations::Settings::ConnectionSettingsSPtr;
 
       vtkSmartPointer<vtkPoints>        m_points;      /** connection points.                                             */
       vtkSmartPointer<vtkPolyData>      m_polyData;    /** connections polydata.                                          */
@@ -122,9 +125,10 @@ namespace ESPINA
       int                               m_scale;       /** representation's scale value.                                  */
       RenderView                       *m_view;        /** view of the representation.                                    */
       int                               m_planeIndex;  /** views plane index.                                             */
-      Nm                                m_lastSlice;   /** last represented slice value.                                  */
+      Nm                                m_slice;       /** last represented slice value.                                  */
       bool                              m_active;      /** true if representation is active and visible, false otherwise. */
       QList<NmVector3>                  m_connections; /** connection points list.                                        */
+      ConnectionSettings                m_settings;    /** connection representation settings.                            */
   };
 
   using ConnectionPointsTemporalRepresentation2DSPtr = std::shared_ptr<ConnectionPointsTemporalRepresentation2D>;

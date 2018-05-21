@@ -44,6 +44,15 @@ class vtkGlyph3D;
 class vtkPoints;
 class vtkSphereSource;
 class vtkUnsignedCharArray;
+class vtkStringArray;
+class vtkTextProperty;
+class vtkPointSetToLabelHierarchy;
+class vtkLabelPlacementMapper;
+class vtkActor2D;
+class vtkTransformPolyDataFilter;
+class vtkGlyphSource2D;
+class vtkFollower;
+class vtkGlyph3DMapper;
 
 namespace ESPINA
 {
@@ -198,11 +207,6 @@ namespace ESPINA
                */
               bool DeleteCurrentNode();
 
-              /** \brief Deletes all nodes.
-               *
-               */
-              virtual void ClearAllNodes();
-
               /** \brief Given a specific X, Y pixel location, add a new node
                * at this location. Returns true on success and false otherwise.
                * \param[in] X x display coordinate.
@@ -325,10 +329,57 @@ namespace ESPINA
               bool ignoresCursor() const
               { return m_ignoreCursor; }
 
+              /** \brief Sets the color of the representation labels.
+               * \param[in] color QColor object.
+               *
+               */
+              void setLabelsColor(const QColor &color);
+
+              /** \brief Returns the color of the representation labels.
+               *
+               */
+              const QColor &labelsColor() const
+              { return m_labelColor; }
+
+              /** \brief Sets the text size of the representations labels.
+               * \param[in] size Text size in (3-15)
+               *
+               */
+              void setLabelsSize(unsigned int size);
+
+              /** \brief Returns the text size of the labels.
+               *
+               */
+              const unsigned int labelsTextSize() const
+              { return m_labelSize; }
+
+              /** \brief Enables/disables showing the labels.
+               * \param[in] value True to make labels visible and false otherwise.
+               *
+               */
+              void setShowLabels(const bool value);
+
+              /** \brief Returns true if the representations shows the skeleton labels and false otherwise.
+               *
+               */
+              const bool showLabels() const
+              { return m_showLabels; }
+
+              /** \brief Sets the width of the skeleton lines.
+               *
+               */
+              void setWidth(const int width);
+
+              /** \brief Returns the width of the skeleton representation.
+               *
+               */
+              const int width() const
+              { return m_width; }
+
               /** \brief Removes all nodes from the static skeleton representation.
                *
                */
-              static void cleanup();
+              static void ClearRepresentation();
 
               /** \brief Using the last three points connects the first and last with the current stroke and creates
                *  a connection using the given stroke, the second point and the closest point to the first-last segment.
@@ -350,6 +401,14 @@ namespace ESPINA
                *
                */
               bool isStartNode(const NmVector3 &point);
+
+              /** \brief Adds a property to the stroke of the current node or removes it if present.
+               * \param[in] property Node property to toggle in the stroke.
+               * \param[in] x Event 2d x coordinate reference.
+               * \param[in] y Event 2d y coordinate reference.
+               *
+               */
+              bool ToggleStrokeProperty(const Core::SkeletonNodeProperty property, const int &x, const int &y);
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
@@ -384,7 +443,7 @@ namespace ESPINA
                * \param[out] nodeIndex position index of the closest node in s_skeleton
                *
                */
-              void FindClosestNode(int X, int Y, double worldPos[3], int &nodeIndex) const;
+              void FindClosestNode(const int X, const int Y, double worldPos[3], int &nodeIndex) const;
 
               /** \brief Build a skeleton representation from externally supplied PolyData.
                * \param[in] data vtkPolyData smart pointer.
@@ -400,12 +459,41 @@ namespace ESPINA
                * \param[out] node_j position index of the j node in s_skeleton
                *
                */
-              double FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const;
+              double FindClosestDistanceAndNode(const int X, const int Y, double worldPos[3], int &node_i, int &node_j) const;
+
+              /** \brief Merges paths whose common node is terminal without the connection to the other path.
+               *
+               */
+              void performPathsMerge();
 
               /** \brief Replaces some Spine strokes with SubSpine if necessary.
                *
                */
               void performSpineSplitting();
+
+              /** \brief Removes nodes from the list of nodes if they have no connections.
+               *
+               */
+              void removeIsolatedNodes();
+
+              /** \brief Helper method to obtain the paths of a given node.
+               * \param[in] node Skeleton node.
+               *
+               */
+              const Core::PathList pathsOfNode(Core::SkeletonNode *node) const;
+
+              /** \brief Helper method that returns the paths of the current selected node.
+               * \param[in] x View 2d event x coordinate reference.
+               * \param[in] y View 2d event y coordinate reference.
+               *
+               */
+              const Core::PathList currentSelectedPaths(const int &x, const int &y) const;
+
+              /** \brief Deletes the given node and the connected ones if not connected to anyone else.
+               * \param[in] node Skeleton node struct.
+               *
+               */
+              void deleteNode(Core::SkeletonNode *node);
 
               // Not implemented.
               vtkSkeletonWidgetRepresentation(const vtkSkeletonWidgetRepresentation&);
@@ -436,20 +524,39 @@ namespace ESPINA
               double m_interactionOffset[2]; // distance between the mouse event and where the widget is focused (distance to maintain between interaction).
 
               // VTK data;
-              vtkSmartPointer<vtkUnsignedCharArray> m_colors;
-              vtkSmartPointer<vtkGlyph3D>           m_pointer;
-              vtkSmartPointer<vtkActor>             m_pointerActor;
-              vtkSmartPointer<vtkPoints>            m_points;
-              vtkSmartPointer<vtkPolyData>          m_pointsData;
-              vtkSmartPointer<vtkGlyph3D>           m_glypher;
-              vtkSmartPointer<vtkPolyDataMapper>    m_mapper;
-              vtkSmartPointer<vtkActor>             m_actor;
-              vtkSmartPointer<vtkPolyData>          m_lines;
-              vtkSmartPointer<vtkPolyDataMapper>    m_linesMapper;
-              vtkSmartPointer<vtkActor>             m_linesActor;
-              vtkSmartPointer<vtkPolyData>          m_dashedLines;
-              vtkSmartPointer<vtkPolyDataMapper>    m_dashedLinesMapper;
-              vtkSmartPointer<vtkActor>             m_dashedLinesActor;
+              vtkSmartPointer<vtkUnsignedCharArray>        m_colors;            /** node colors.                                   */
+              vtkSmartPointer<vtkGlyph3D>                  m_pointer;           /** current node glyph.                            */
+              vtkSmartPointer<vtkActor>                    m_pointerActor;      /** current node actor.                            */
+              vtkSmartPointer<vtkPoints>                   m_points;            /** node locations.                                */
+              vtkSmartPointer<vtkPolyData>                 m_pointsData;        /** points data.                                   */
+              vtkSmartPointer<vtkGlyph3D>                  m_glypher;           /** nodes glyph                                    */
+              vtkSmartPointer<vtkPolyDataMapper>           m_mapper;            /** nodes mapper.                                  */
+              vtkSmartPointer<vtkActor>                    m_actor;             /** nodes actor.                                   */
+              vtkSmartPointer<vtkPolyData>                 m_lines;             /** solid lines data.                              */
+              vtkSmartPointer<vtkPolyDataMapper>           m_linesMapper;       /** solid lines mapper.                            */
+              vtkSmartPointer<vtkActor>                    m_linesActor;        /** solid lines actor.                             */
+              vtkSmartPointer<vtkPolyData>                 m_dashedLines;       /** dashed lines data.                             */
+              vtkSmartPointer<vtkPolyDataMapper>           m_dashedLinesMapper; /** dashed lines mapper.                           */
+              vtkSmartPointer<vtkActor>                    m_dashedLinesActor;  /** dashed lines actor.                            */
+
+              vtkSmartPointer<vtkPoints>                   m_truncatedPoints;   /** truncated points.                              */
+              vtkSmartPointer<vtkPolyData>                 m_truncatedData;     /** truncated polydata.                            */
+              vtkSmartPointer<vtkTransformPolyDataFilter>  m_transformFilter;   /** transformed polydata filter for XZ & YZ views. */
+              vtkSmartPointer<vtkGlyph3DMapper>            m_glyphMapper;       /** glyph mapper filter.                           */
+              vtkSmartPointer<vtkGlyphSource2D>            m_glyph2D;           /** glyph source for 2D views.                     */
+              vtkSmartPointer<vtkFollower>                 m_truncatedActor;    /** truncated points representation actor.         */
+
+              bool                                         m_showLabels;        /** true to show labels actor, false otherwise.    */
+              vtkSmartPointer<vtkPoints>                   m_labelPoints;       /** points where to show the labels.               */
+              vtkSmartPointer<vtkStringArray>              m_labels;            /** label points text.                             */
+              vtkSmartPointer<vtkPolyData>                 m_labelData;         /** polydata with the points and text array.       */
+              vtkSmartPointer<vtkTextProperty>             m_labelProperty;     /** label visual properties.                       */
+              vtkSmartPointer<vtkPointSetToLabelHierarchy> m_labelFilter;       /** points to labels filter                        */
+              vtkSmartPointer<vtkLabelPlacementMapper>     m_labelPlacer;       /** labels mapper.                                 */
+              vtkSmartPointer<vtkActor2D>                  m_labelActor;        /** labels actor.                                  */
+              QColor                                       m_labelColor;        /** color of the labels.                           */
+              unsigned int                                 m_labelSize;         /** labels text size.                              */
+              int                                          m_width;             /** skeleton lines width.                          */
 
               int m_currentStrokeIndex; /** index of current stroke in s_skeleton.strokes. */
               int m_currentEdgeIndex;   /** index of current edge in s_skeleton.edges.     */

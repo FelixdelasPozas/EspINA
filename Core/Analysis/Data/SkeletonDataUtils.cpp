@@ -31,6 +31,7 @@
 #include <QtGlobal>
 #include <QMap>
 #include <QSet>
+#include <QStack>
 
 // VTK
 #include <vtkPolyData.h>
@@ -50,7 +51,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 
 //--------------------------------------------------------------------
-Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
+const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
 {
   if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonDefinition();
 
@@ -59,13 +60,17 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
   // edges information
   auto edgeIndexes = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeIndexes"));
   auto edgeNumbers = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeNumbers"));
-  Q_ASSERT(edgeIndexes && edgeNumbers && (edgeIndexes->GetNumberOfTuples() == edgeNumbers->GetNumberOfTuples()));
+  auto edgeParents = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeParents"));
+  Q_ASSERT(edgeIndexes && edgeNumbers && edgeParents);
+  Q_ASSERT(edgeIndexes->GetNumberOfTuples() == edgeNumbers->GetNumberOfTuples());
+  Q_ASSERT(edgeIndexes->GetNumberOfTuples() == edgeParents->GetNumberOfTuples());
 
   for(int i = 0; i < edgeIndexes->GetNumberOfTuples(); ++i)
   {
     SkeletonEdge edge;
-    edge.strokeIndex = edgeIndexes->GetValue(i);
+    edge.strokeIndex  = edgeIndexes->GetValue(i);
     edge.strokeNumber = edgeNumbers->GetValue(i);
+    edge.parentEdge   = edgeParents->GetValue(i);
 
     result.edges << edge;
   }
@@ -76,6 +81,7 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
   auto strokeTypes  = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeType"));
   auto strokeUses   = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeUse"));
   auto numbers      = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Numbers"));
+  auto flags        = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("Flags"));
   Q_ASSERT(strokeNames && strokeColors && strokeTypes && strokeUses && numbers);
   Q_ASSERT(strokeNames->GetNumberOfValues() == strokeColors->GetNumberOfTuples());
   Q_ASSERT(strokeNames->GetNumberOfValues() == strokeTypes->GetNumberOfTuples());
@@ -101,6 +107,11 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
   for(int i = 0; i < points->GetNumberOfPoints(); ++i)
   {
     SkeletonNode *node = new SkeletonNode{points->GetPoint(i)};
+
+    if(flags)
+    {
+      node->flags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
+    }
 
     result.nodes << node;
   }
@@ -130,7 +141,7 @@ Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPol
 }
 
 //--------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
+const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
 {
   // saves stroke information.
   auto strokeNames = vtkSmartPointer<vtkStringArray>::New();
@@ -172,26 +183,6 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
     numbers->SetValue(i, skeleton.count[stroke]);
   }
 
-  // save edge numbers
-  auto edgeNumbers = vtkSmartPointer<vtkIntArray>::New();
-  edgeNumbers->SetName("EdgeNumbers");
-  edgeNumbers->SetNumberOfComponents(1);
-  edgeNumbers->SetNumberOfValues(skeleton.edges.size());
-
-  // save edge indexes
-  auto edgeIndexes = vtkSmartPointer<vtkIntArray>::New();
-  edgeIndexes->SetName("EdgeIndexes");
-  edgeIndexes->SetNumberOfComponents(1);
-  edgeIndexes->SetNumberOfValues(skeleton.edges.size());
-
-  for(int i = 0; i < skeleton.edges.size(); ++i)
-  {
-    auto edge = skeleton.edges.at(i);
-
-    edgeIndexes->SetValue(i, edge.strokeIndex);
-    edgeNumbers->SetValue(i, edge.strokeNumber);
-  }
-
   // save terminal points
   auto terminal = vtkSmartPointer<vtkDoubleArray>::New();
   terminal->SetNumberOfComponents(3);
@@ -201,15 +192,23 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   auto points = vtkSmartPointer<vtkPoints>::New();
   points->SetNumberOfPoints(skeleton.nodes.size());
 
+  // saves nodes flags
+  auto flags = vtkSmartPointer<vtkIntArray>::New();
+  flags->SetName("Flags");
+  flags->SetNumberOfComponents(1);
+  flags->SetNumberOfValues(skeleton.nodes.size());
+
   // save node information.
   QMap<SkeletonNode *, vtkIdType> locator;
   for(vtkIdType i = 0; i < skeleton.nodes.size(); ++i)
   {
     auto node = skeleton.nodes.at(static_cast<int>(i));
+
     points->SetPoint(i, node->position);
+    flags->SetValue(i, static_cast<int>(node->flags));
 
     locator.insert(node, i);
-    if(node->connections.size() == 1) terminal->InsertNextTuple(node->position);
+    if(node->isTerminal()) terminal->InsertNextTuple(node->position);
   }
 
   QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
@@ -218,14 +217,17 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   cellIndexes->SetNumberOfComponents(1);
 
   // build locator to avoid changing the nodes data.
+  QSet<int> truncatedEdges;
   for(auto node: skeleton.nodes)
   {
     relationsLocator.insert(locator[node], QList<vtkIdType>());
+    auto truncated = node->flags.testFlag(SkeletonNodeProperty::TRUNCATED);
 
     for(auto connectedNode: node->connections.keys())
     {
       if(connectedNode == node) continue;
       relationsLocator[locator[node]] << locator[connectedNode];
+      if(truncated) truncatedEdges << node->connections[connectedNode];
     }
   }
 
@@ -247,6 +249,41 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
     }
   }
 
+  // save edge numbers
+  auto edgeNumbers = vtkSmartPointer<vtkIntArray>::New();
+  edgeNumbers->SetName("EdgeNumbers");
+  edgeNumbers->SetNumberOfComponents(1);
+  edgeNumbers->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge indexes
+  auto edgeIndexes = vtkSmartPointer<vtkIntArray>::New();
+  edgeIndexes->SetName("EdgeIndexes");
+  edgeIndexes->SetNumberOfComponents(1);
+  edgeIndexes->SetNumberOfValues(skeleton.edges.size());
+
+  // save if edge is truncated, this is not restored in toSkeletonDefinition, it's only used in representation pipelines
+  // to avoid computing it.
+  auto edgeTruncated = vtkSmartPointer<vtkIntArray>::New();
+  edgeTruncated->SetName("EdgeTruncated");
+  edgeTruncated->SetNumberOfComponents(1);
+  edgeTruncated->SetNumberOfValues(skeleton.edges.size());
+
+  // save edge parents
+  auto edgeParents = vtkSmartPointer<vtkIntArray>::New();
+  edgeParents->SetName("EdgeParents");
+  edgeParents->SetNumberOfComponents(1);
+  edgeParents->SetNumberOfValues(skeleton.edges.size());
+
+  for(int i = 0; i < skeleton.edges.size(); ++i)
+  {
+    auto edge = skeleton.edges.at(i);
+
+    edgeIndexes->SetValue(i, edge.strokeIndex);
+    edgeNumbers->SetValue(i, edge.strokeNumber);
+    edgeParents->SetValue(i, edge.parentEdge);
+    edgeTruncated->SetValue(i, truncatedEdges.contains(i) ? 1 : 0);
+  }
+
   auto polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->SetPoints(points);
   polyData->SetLines(lines);
@@ -256,15 +293,18 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   polyData->GetPointData()->AddArray(strokeUses);
   polyData->GetPointData()->AddArray(numbers);
   polyData->GetPointData()->AddArray(terminal);
+  polyData->GetPointData()->AddArray(flags);
   polyData->GetPointData()->AddArray(edgeIndexes);
   polyData->GetPointData()->AddArray(edgeNumbers);
+  polyData->GetPointData()->AddArray(edgeParents);
+  polyData->GetPointData()->AddArray(edgeTruncated);
   polyData->GetCellData()->AddArray(cellIndexes);
 
   return polyData;
 }
 
 //--------------------------------------------------------------------
-int Core::closestNode(const double position[3], const SkeletonNodes nodes)
+const int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 {
   double distance = VTK_DOUBLE_MAX;
   int closestNode = VTK_INT_MAX;
@@ -283,7 +323,7 @@ int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 }
 
 //--------------------------------------------------------------------
-double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
+const double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
 {
   node_i = node_j = VTK_INT_MAX;
 
@@ -369,7 +409,7 @@ double Core::closestDistanceAndNode(const double position[3], const SkeletonNode
 }
 
 //--------------------------------------------------------------------
-double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
+const double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
 {
   double result = -1;
 
@@ -416,7 +456,23 @@ double Core::closestPointToSegment(const double position[3], const SkeletonNode 
 bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 {
   return ((::memcmp(position, other.position, 3*sizeof(double))) &&
-          (connections == other.connections));
+          (connections == other.connections) &&
+          (flags == other.flags));
+}
+
+//--------------------------------------------------------------------
+bool Core::Path::connectsTo(const Path &path) const
+{
+  return path.seen.contains(end) || path.seen.contains(begin);
+}
+
+//--------------------------------------------------------------------
+bool Core::Path::hasEndingPoint(const NmVector3 &point) const
+{
+  if(end->isTerminal() && NmVector3{end->position} == point) return true;
+  if(begin->isTerminal() && NmVector3{begin->position} == point) return true;
+
+  return false;
 }
 
 //--------------------------------------------------------------------
@@ -462,11 +518,11 @@ bool Core::Path::operator<(const Core::Path &other) const
 }
 
 //--------------------------------------------------------------------
-ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
+const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
 {
   PathList result, stack;
 
-  // remove loops to itself
+  // remove loops to itself.
   for(auto node: nodes)
   {
     if(node->connections.contains(node))
@@ -549,13 +605,13 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
 
     if(path.begin != nullptr)
     {
-      path.note = strokeName(edges.at(key), strokes);
+      path.note = strokeName(edges.at(key), strokes, edges);
     }
     else
     {
       path.begin = (*group.begin());
       path.end   = path.begin;
-      path.note  = "Loop " + strokeName(edges.at(key), strokes);
+      path.note  = "Loop " + strokeName(edges.at(key), strokes, edges);
     }
 
     path.edge   = key;
@@ -565,13 +621,19 @@ ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdg
 
     if(path.seen.size() != group.size())
     {
-      path.note += "(Malformed)";
+      path.note += " (Malformed)";
     }
 
-    if((path.begin->connections.size()) == 1 && (path.end->connections.size() != 1))
+    if(path.begin->isTerminal() && !path.end->isTerminal())
     {
       std::reverse(path.seen.begin(), path.seen.end());
       std::swap(path.begin, path.end);
+    }
+
+    if(path.begin->flags.testFlag(SkeletonNodeProperty::TRUNCATED) ||
+       path.end->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
+    {
+      path.note += " (Truncated)";
     }
 
     result << path;
@@ -611,16 +673,16 @@ QDebug Core::operator <<(QDebug stream, const SkeletonDefinition& skeleton)
   }
 
   QStringList nodeNames;
-  int count = 0;
+  int terminal  = 0;
+  int truncated = 0;
   for(auto node: skeleton.nodes)
   {
-    if(node->connections.size() == 1)
-    {
-      ++count;
-    }
+    if(node->isTerminal()) ++terminal;
+    if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED)) ++truncated;
   }
 
-  stream << "\n- relevant nodes number:" << count;
+  stream << "\n- terminal nodes number:" << terminal;
+  stream << "\n- truncated nodes number:" << truncated;
 
   return stream;
 }
@@ -642,18 +704,18 @@ QDebug Core::operator <<(QDebug stream, const struct Path& path)
 }
 
 //--------------------------------------------------------------------
-QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skeleton)
+const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& nodes)
 {
   QSet<SkeletonNode *> visited;
   QSet<SkeletonNode *> visitedTotal;
 
-  std::function<void(SkeletonNode*)> visit = [&visited, &visitedTotal, &visit] (SkeletonNode *visitor)
+  std::function<void(SkeletonNode*)> visit = [&visited, &visitedTotal, &visit] (SkeletonNode *node)
   {
-    if(!visited.contains(visitor))
+    if(!visited.contains(node))
     {
-      visited.insert(visitor);
-      visitedTotal.insert(visitor);
-      for(auto connection: visitor->connections.keys())
+      visited.insert(node);
+      visitedTotal.insert(node);
+      for(auto connection: node->connections.keys())
       {
         visit(connection);
       }
@@ -661,40 +723,28 @@ QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& skelet
   };
 
   QList<SkeletonNodes> result;
-  if(skeleton.isEmpty()) return result;
+  if(nodes.isEmpty()) return result;
 
-  bool visitedAll = false;
-  auto node = skeleton.first();
-
-  while(!visitedAll)
+  while(visitedTotal.size() != nodes.size())
   {
-    visit(node);
+    for(auto skeletonNode: nodes)
+    {
+      if(!visitedTotal.contains(skeletonNode))
+      {
+        visit(skeletonNode);
+        break;
+      }
+    }
 
     result << visited.toList();
     visited.clear();
-
-    if(visitedTotal.size() == skeleton.size())
-    {
-      visitedAll = true;
-    }
-    else
-    {
-      for(auto skeletonNode: skeleton)
-      {
-        if(!visitedTotal.contains(skeletonNode))
-        {
-          node = skeletonNode;
-          break;
-        }
-      }
-    }
   }
 
   return result;
 }
 
 //--------------------------------------------------------------------
-QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
+const QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
 {
   QList<SkeletonNodes> result;
   if(skeleton.isEmpty()) return result;
@@ -787,59 +837,38 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
     }
   }
 
-  auto maximum = [](QSet<int> set)
+  auto substitute = [&skeleton](const int strokeIndex, const int previous, const int value)
   {
-    int result = -1;
-    for(auto element: set)
+    for(auto &edge: skeleton.edges)
     {
-      if(result < element) result = element;
-    }
-
-    return result;
-  };
-
-  auto firstMissing = [maximum](QSet<int> set)
-  {
-    for(int i = 1; i <= maximum(set); ++i)
-    {
-      if(!set.contains(i)) return i;
-    }
-
-    return -1;
-  };
-
-  auto nextAfterMissing = [maximum](QSet<int> set, const int element)
-  {
-    if(element == -1) return element;
-
-    for(int i = element + 1; i <= maximum(set); ++i)
-    {
-      if(set.contains(i)) return i;
-    }
-
-    return -1;
-  };
-
-  for(auto index: recount.keys())
-  {
-    auto missing = firstMissing(recount[index]);
-    while(missing != -1)
-    {
-      const auto element = nextAfterMissing(recount[index], missing);
-
-      for(auto &edge: skeleton.edges)
+      if(edge.strokeIndex == strokeIndex && edge.strokeNumber == previous)
       {
-        if(edge.strokeIndex == index && edge.strokeNumber == element)
+        edge.strokeNumber = value;
+        return;
+      }
+    }
+
+    Q_ASSERT(false); // this should be dead code.
+  };
+
+  for(auto value: recount.keys())
+  {
+    auto valueList = recount[value].toList();
+    qSort(valueList.begin(), valueList.end());
+
+    // are there gaps? size is const, last value is not.
+    Q_ASSERT(valueList.last() >= valueList.size());
+    while(valueList.size() != valueList.last())
+    {
+      // identify and substitute gap.
+      for(int i = 1; i < valueList.last(); ++i)
+      {
+        if(!valueList.contains(i))
         {
-          edge.strokeNumber = missing;
-          break;
+          substitute(value, valueList.takeLast(), i);
+          valueList.insert(i-1, i);
         }
       }
-
-      recount[index] << missing;
-      recount[index].remove(element);
-
-      missing = firstMissing(recount[index]);
     }
   }
 
@@ -851,13 +880,26 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 }
 
 //--------------------------------------------------------------------
-const QString ESPINA::Core::strokeName(const Core::SkeletonEdge& edge, const Core::SkeletonStrokes& strokes)
+const QString ESPINA::Core::strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges)
 {
-  return QString("%1 %2").arg(strokes.at(edge.strokeIndex).name).arg(edge.strokeNumber);
+  auto number = QString::number(edge.strokeNumber);
+  auto name   = strokes.at(edge.strokeIndex).name;
+  auto parent = edge.parentEdge;
+  QSet<int> visited;
+
+  while((parent != -1) && !visited.contains(parent))
+  {
+    visited << parent;
+    const auto &otherEdge = edges.at(parent);
+    number = QString("%1.%2").arg(otherEdge.strokeNumber).arg(number);
+    parent = otherEdge.parentEdge;
+  }
+
+  return QString("%1 %2").arg(name).arg(number);
 }
 
 //--------------------------------------------------------------------
-double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
+const double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
 {
   double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
   double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
@@ -867,3 +909,159 @@ double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
   auto angle = std::atan2(vtkMath::Norm(cross), vtkMath::Dot(vector1, vector2));
   return vtkMath::DegreesFromRadians(angle);
 }
+
+//--------------------------------------------------------------------
+QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, const Core::SkeletonEdges &edges, const Core::SkeletonStrokes &strokes)
+{
+  QList<PathHierarchyNode *> allNodes, pending, final;
+  auto checkPriorities = !edges.isEmpty() && !strokes.isEmpty();
+
+  auto assignTo = [&pending](PathHierarchyNode *node1, PathHierarchyNode *node2)
+  {
+    node1->parent = node2;
+    node2->children << node1;
+
+    pending.removeOne(node1);
+  };
+
+  for(auto path: paths)
+  {
+    auto node = new PathHierarchyNode(path);
+
+    if((path.begin->isTerminal() && path.end->isTerminal()) || path.note.startsWith("Loop"))
+    {
+      final  << node;
+    }
+    else
+    {
+      pending << node;
+    }
+
+    allNodes << node;
+  }
+
+  while(!pending.isEmpty())
+  {
+    int pendingStrokes   = pending.size();
+    const auto stroke    = pending.first();
+
+    for (auto otherStroke : allNodes)
+    {
+      if (otherStroke->path == stroke->path) continue;
+
+      if (stroke->path.connectsTo(otherStroke->path))
+      {
+        if (otherStroke->path.connectsTo(stroke->path) && !otherStroke->parent && checkPriorities)
+        {
+          auto strokeUse = strokes.at(edges.at(stroke->path.edge).strokeIndex).useMeasure;
+          auto otherStrokeUse = strokes.at(edges.at(otherStroke->path.edge).strokeIndex).useMeasure;
+
+          if ((strokeUse != otherStrokeUse) && strokeUse == false)
+          {
+            assignTo(stroke, otherStroke);
+            break;
+          }
+        }
+        else
+        {
+          if(otherStroke->parent != stroke)
+          {
+            assignTo(stroke, otherStroke);
+            break;
+          }
+        }
+      }
+    }
+
+    if(pendingStrokes == pending.size()) // have not progressed
+    {
+      final << stroke;
+      pending.removeOne(stroke);
+    }
+  }
+
+  // depending on the order we can have some orphans.
+  for(auto node: allNodes)
+  {
+    if(!node->parent && !final.contains(node)) final << node;
+  }
+
+  Q_ASSERT(allNodes.size() == paths.size());
+
+  return final;
+}
+
+//--------------------------------------------------------------------
+ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Path &path, const QList<PathHierarchyNode *> &hierarchy)
+{
+  PathHierarchyNode *result = nullptr;
+
+  for(auto node: hierarchy)
+  {
+    if(node->path == path) return node;
+
+    auto child = locatePathHierarchyNode(path, node->children);
+
+    if(child) return child;
+  }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
+{
+  if(node->path.begin->isTerminal() && node->path.begin->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
+    return true;
+
+  if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
+    return true;
+
+  for(auto child: node->children)
+  {
+    if(isTruncated(child)) return true;
+  }
+
+  return false;
+}
+
+//--------------------------------------------------------------------
+const double ESPINA::Core::length(const PathHierarchyNode *node)
+{
+  double result = 0;
+
+  if(node->path.note.startsWith("Subspine", Qt::CaseInsensitive) || node->path.note.startsWith("Spine", Qt::CaseInsensitive))
+  {
+    result += node->path.length();
+
+    for(auto child: node->children)
+    {
+      result += length(child);
+    }
+  }
+
+  return result;
+};
+
+//--------------------------------------------------------------------
+const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints)
+{
+  QList<NmVector3> points;
+
+  auto beginPoint = NmVector3{node->path.begin->position};
+  auto endPoint   = NmVector3{node->path.end->position};
+
+  if(node->path.begin->isTerminal() && connectionPoints.contains(beginPoint))
+    points << beginPoint;
+
+  if(node->path.end->isTerminal() && connectionPoints.contains(endPoint))
+    points << endPoint;
+
+  for(const auto child: node->children)
+  {
+    points << connectionsInNode(child, connectionPoints);
+  }
+
+  return points;
+}
+

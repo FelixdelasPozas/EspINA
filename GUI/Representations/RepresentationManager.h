@@ -61,9 +61,9 @@ namespace ESPINA
 
         enum FlagValue
         {
-          HAS_ACTORS   = 0x1,
-          EXPORTS_3D   = 0x2,
-          NEEDS_ACTORS = 0x4
+          HAS_ACTORS   = 1 << 0,
+          EXPORTS_3D   = 1 << 1,
+          NEEDS_ACTORS = 1 << 2
         };
 
         Q_DECLARE_FLAGS(ManagerFlags, FlagValue)

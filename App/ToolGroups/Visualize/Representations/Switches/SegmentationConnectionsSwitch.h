@@ -23,6 +23,7 @@
 #define APP_TOOLGROUPS_VISUALIZE_REPRESENTATIONS_SWITCHES_SEGMENTATIONCONNECTIONSSWITCH_H_
 
 // ESPINA
+#include <GUI/Representations/Settings/ConnectionPoolSettings.h>
 #include <GUI/Widgets/NumericalInput.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 
@@ -43,6 +44,7 @@ namespace ESPINA
        *
        */
       explicit SegmentationConnectionsSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                             GUI::Representations::Settings::ConnectionSettingsSPtr settings,
                                              Support::Context &context);
 
       /** \brief SegmentationConnectionSwith class virtual destructor.
@@ -62,13 +64,19 @@ namespace ESPINA
        */
       void onSizeValueChanged(int value);
 
+      /** \brief Updates the widgets when the settings change.
+       *
+       */
+      void onSettingsModified();
+
     private:
       /** \brief Helper method to initialize and connect parameter widgets.
        *
        */
       void initializeParameterWidgets();
 
-      GUI::Widgets::NumericalInput  *m_sizeWidget;  /** size parameter widget. */
+      GUI::Widgets::NumericalInput                          *m_sizeWidget; /** size parameter widget.      */
+      GUI::Representations::Settings::ConnectionSettingsSPtr m_settings;   /** connection settings object. */
   };
 
 } // namespace ESPINA

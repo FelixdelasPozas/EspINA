@@ -402,8 +402,7 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
 //------------------------------------------------------------------------
 void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  Q_ASSERT(sourceTopLeft == sourceBottomRight);
-  if (sourceTopLeft.parent() == m_model->segmentationRoot())
+  if (sourceTopLeft.parent() == m_model->segmentationRoot() && (sourceTopLeft == sourceBottomRight))
   {
     auto item = itemAdapter(sourceTopLeft);
     auto segmentation = segmentationPtr(item);
@@ -415,8 +414,8 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
       beginRemoveRows(QModelIndex(), row, row);
       m_elements.removeAt(row);
       endRemoveRows();
-
-    } else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
+    }
+    else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
     {
       int row = m_elements.size();
 
@@ -424,7 +423,8 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
       m_elements << item;
       endInsertRows();
 
-    } else
+    }
+    else
     {
       emit dataChanged(mapFromSource(sourceTopLeft), mapFromSource(sourceBottomRight));
     }

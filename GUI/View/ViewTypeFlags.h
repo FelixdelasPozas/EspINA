@@ -26,8 +26,8 @@ namespace ESPINA
 {
   enum ViewType
   {
-    VIEW_2D = 0x1,
-    VIEW_3D = 0x2
+    VIEW_2D = 1 << 0,
+    VIEW_3D = 1 << 1
   };
 
   Q_DECLARE_FLAGS(ViewTypeFlags, ViewType)

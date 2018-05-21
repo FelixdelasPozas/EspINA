@@ -145,5 +145,9 @@
     <file>dashed-line.svg</file>
     <file>skeletonInspector.svg</file>
     <file>Logo_URJC.svg</file>
+    <file>truncate.svg</file>
+    <file>cross-scissors.png</file>
+    <file>domains.svg</file>
+    <file>skeletonColors.svg</file>
   </qresource>
 </RCC>

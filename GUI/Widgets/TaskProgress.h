@@ -80,6 +80,12 @@ namespace ESPINA
     signals:
       void aborted();
 
+    public slots:
+      /** \brief Aborts the task.
+       *
+       */
+      void onCancel();
+
     protected:
       /** \brief Overrides QWidget::showEvent().
        *
@@ -92,11 +98,6 @@ namespace ESPINA
        *
        */
       void updateProgress(int value);
-
-      /** \brief Aborts the task.
-       *
-       */
-      void onCancel();
 
     private:
       TaskSPtr m_task;

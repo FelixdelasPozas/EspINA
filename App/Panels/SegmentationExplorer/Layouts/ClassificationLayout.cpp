@@ -43,51 +43,56 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
-//------------------------------------------------------------------------
-class RenameCategoryCommand
-: public QUndoCommand
+namespace ESPINA
 {
-  public:
-    /** \brief RenameCategoryCommand class constructor.
-     * \param[in] categoryItem category adapter raw pointer of the element to rename.
-     * \param[in] name string reference to the new name.
-     * \param[in] model model adapter smart pointer of the model containing the category.
-     * \param[in] parent parent QUndoCommand raw pointer.
-     *
-     */
-    explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
-                                   const QString      &name,
-                                   ModelAdapterSPtr   model,
-                                   QUndoCommand      *parent = 0)
-    : QUndoCommand  {parent}
-    , m_model       {model}
-    , m_categoryItem{categoryItem}
-    , m_name        {name}
-    {}
+  //------------------------------------------------------------------------
+  class RenameCategoryCommand
+  : public QUndoCommand
+  {
+    public:
+      /** \brief RenameCategoryCommand class constructor.
+       * \param[in] categoryItem category adapter raw pointer of the element to rename.
+       * \param[in] name string reference to the new name.
+       * \param[in] model model adapter smart pointer of the model containing the category.
+       * \param[in] parent parent QUndoCommand raw pointer.
+       *
+       */
+      explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
+                                     const QString      &name,
+                                     ModelAdapterSPtr   model,
+                                     QUndoCommand      *parent = 0)
+      : QUndoCommand  {parent}
+      , m_model       {model}
+      , m_categoryItem{categoryItem}
+      , m_name        {name}
+      {}
 
-    virtual void redo() override
-    { swapName(); }
+      virtual void redo() override
+      { swapName(); }
 
-    virtual void undo() override
-    { swapName(); }
+      virtual void undo() override
+      { swapName(); }
 
-  private:
-    void swapName()
-    {
-      QString     tmp   = m_categoryItem->name();
-      QModelIndex index = m_model->categoryIndex(m_categoryItem);
+    private:
+      /** \brief Helper method to swap the old and new name.
+       *
+       */
+      void swapName()
+      {
+        QString     tmp   = m_categoryItem->name();
+        QModelIndex index = m_model->categoryIndex(m_categoryItem);
 
-      m_model->setData(index, m_name, Qt::EditRole);
+        m_model->setData(index, m_name, Qt::EditRole);
 
-      m_name = tmp;
-    }
+        m_name = tmp;
+      }
 
-  private:
-    ModelAdapterSPtr   m_model;
-    CategoryAdapterPtr m_categoryItem;
-    QString            m_name;
-};
-
+    private:
+      ModelAdapterSPtr   m_model;        /** model containing the classification.        */
+      CategoryAdapterPtr m_categoryItem; /** category to modify.                         */
+      QString            m_name;         /** buffer that contains the new and old names. */
+  };
+}
 
 //------------------------------------------------------------------------
 void CategoryItemDelegate::setModelData(QWidget            *editor,

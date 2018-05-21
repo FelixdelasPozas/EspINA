@@ -81,7 +81,7 @@ bool AboutDialog::eventFilter(QObject* object, QEvent* event)
     {
       auto me = static_cast<const QMouseEvent*>(event);
 
-      if(me->button() == Qt::LeftButton)
+      if(me && me->button() == Qt::LeftButton)
       {
         if(label == logoUPM)
         {

@@ -23,6 +23,8 @@
 #define APP_DIALOGS_SKELETONINSPECTOR_SKELETONINSPECTORTREEMODEL_H_
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
+#include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ViewItemAdapter.h>
 #include <GUI/Types.h>
 
@@ -42,34 +44,32 @@ namespace ESPINA
    */
   struct StrokeInfo
   {
-     QString                   name;              /** stroke name.                       */
-     double                    length;            /** stroke length.                     */
-     int                       numBranches;       /** number of branches.                */
-     QString                   branchDistances;   /** distance between branches.         */
-     QString                   branchAngles;      /** angles of branches.                */
-     bool                      used;              /** used in total length.              */
-     int                       connectionNum;     /** number of connections in stroke.   */
-     QString                   connections;       /** connection points text.            */
-     vtkSmartPointer<vtkActor> actor;             /** stroke actors.                     */
-     bool                      selected;          /** true if selected, false otherwise. */
-     int                       hue;               /** hue color of the stroke.           */
+     QString                          name;       /** stroke name.                       */
+     Core::Path                       path;       /** stroke path.                       */
+     double                           length;     /** stroke length.                     */
+     bool                             used;       /** used in total length.              */
+     QList<vtkSmartPointer<vtkActor>> actors;     /** stroke actors.                     */
+     bool                             selected;   /** true if selected, false otherwise. */
+     int                              hue;        /** hue color of the stroke.           */
+     int                              randomHue;  /** random color.                      */
+     NmVector3                        labelPoint; /** point of the label.                */
 
      /** \brief StrokeInfo struct empty constructor.
       *
       */
-     StrokeInfo(): length{0}, numBranches{0}, used{false}, connectionNum{0}, selected{false}, hue{0} {};
+     StrokeInfo(): length{0}, used{false}, selected{false}, hue{0}, randomHue{0} {};
 
      /** \brief Operator < for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.
       *
       */
-     bool operator<(const StrokeInfo &other) const { return name < other.name; };
+     bool operator<(const StrokeInfo &other) const { if(name.length() < other.name.length()) return true; else return name < other.name; };
 
      /** \brief Operator == for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.
       *
       */
-     bool operator==(const StrokeInfo &other) const { return name == other.name; };
+     bool operator==(const StrokeInfo &other) const { return path == other.path; };
   };
 
   /** class SkeletonInspectorTreeModel
@@ -81,23 +81,28 @@ namespace ESPINA
   {
       Q_OBJECT
     public:
-      /** \bried SkeletonInspectorTreeModel class constructor.
+      /** \brief SkeletonInspectorTreeModel class constructor.
        * \param[in] parent raw pointer to the QObject owner of this one.
        * \param[in] segmentation Segmentation adapter of the main segmentation of the tree.
        * \param[in] segmentations List of segmentation adapters of the direct and indirect connections.
        * \param[in] strokes List of stroke information structs.
        *
        */
-      explicit SkeletonInspectorTreeModel(const SegmentationAdapterSPtr   segmentation,
-                                          const SegmentationAdapterList  &segmentations,
-                                          const QList<struct StrokeInfo> &strokes,
-                                          QObject                        *parent = nullptr);
+      explicit SkeletonInspectorTreeModel(const SegmentationAdapterSPtr segmentation,
+                                          ModelAdapterSPtr              model,
+                                          QList<struct StrokeInfo>     &strokes,
+                                          QObject                      *parent = nullptr);
 
       /** \brief SkeletonInspectorTreeModel class virtual destructor.
        *
        */
-      virtual ~SkeletonInspectorTreeModel()
-      {};
+      virtual ~SkeletonInspectorTreeModel();
+
+      /** \brief Displays the strokes with the normal color or with the random coloring.
+       * \param[in] enabled True to use random coloring and false to use stroke color.
+       *
+       */
+      void setRandomTreeColoring(const bool enabled);
 
       QVariant data(const QModelIndex &index, int role) const override;
 
@@ -115,13 +120,99 @@ namespace ESPINA
 
       bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 
+      /** \brief Computes the connections part of the model given the adjacency distance.
+       * \param[in] distance Distance in connections.
+       *
+       */
+      void computeConnectionDistances(int distance);
+
+      /** \struct SkeletonInspectorTreeModel::TreeNode
+       * \brief Node of the internal data structure of the SkeletonInspectorTreeModel.
+       *
+       */
+      struct TreeNode
+      {
+          enum class Type: char { STROKE = 0, SEGMENTATION, ROOT };
+
+          Type              type;     /** type of node.                          */
+          TreeNode         *parent;   /** parent of the node or nullptr if root. */
+          void             *data;     /** data of the node or nullptr if root.   */
+          QList<TreeNode *> children; /** list of children of the node.          */
+
+          /** \brief TreeNode struct constructor.
+           *
+           */
+          TreeNode(): type{Type::ROOT}, parent{nullptr}, data{nullptr} {}
+
+          /** \brief TreeNode struct destructor.
+           *
+           */
+          ~TreeNode()
+          { for(auto node: children) delete node; }
+
+          /** \brief Helper method that returns true if the node is a connection node.
+           *
+           */
+          inline SegmentationAdapterPtr connection() const
+          { Q_ASSERT(type != Type::STROKE); return static_cast<SegmentationAdapterPtr>(data); }
+
+          /** \brief Helper method that returns true if the node is a stroke node.
+           *
+           */
+          inline StrokeInfo *stroke() const
+          { Q_ASSERT(type != Type::SEGMENTATION); return static_cast<StrokeInfo *>(data); }
+      };
+
+    public slots:
+      /** \brief Updates the selected segmentations.
+       * \param[in] segmentations Selected segmentations list.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
     signals:
       void invalidate(ViewItemAdapterList segmentations);
+      void segmentationsShown(SegmentationAdapterList segmentations);
 
     private:
-      const SegmentationAdapterSPtr   m_segmentation; /** Segmentation adapter of the main segmentation of the tree.            */
-      const SegmentationAdapterList  &m_connections;  /** List of segmentation adapters of the direct and indirect connections. */
-      const QList<struct StrokeInfo> &m_strokes;      /** List of stroke information structs.                                   */
+      /** \brief Helper method to compute the hierarchy of strokes.
+       *
+       */
+      void computeStrokesTree();
+
+      /** \brief Helper method to return the list of segmentations that connect to the given one.
+       * \param[in] segmentation Segmentation smartpointer.
+       *
+       */
+      SegmentationAdapterSList connections(const SegmentationAdapterPtr segmentation) const;
+
+    private:
+      /** \brief Changes the visibility of the data of the node and all its children, recursive.
+       * \param[in] node Tree node.
+       * \param[in] visible True to set visible false otherwise.
+       */
+      const SegmentationAdapterList setVisibility(TreeNode *node, bool visible);
+
+      /** \brief Returns true if all nodes and subnodes are visible, and false otherwise.
+       * \param[in] node Tree node.
+       *
+       */
+      const bool getVisibility(TreeNode *node) const;
+
+      /** \brief Helper method to obtain the tree node out of a QModelIndex.
+       * \param[in] index Model index object.
+       */
+      inline TreeNode *dataNode(const QModelIndex &index) const
+      { return static_cast<TreeNode *>(index.internalPointer()); }
+
+    private:
+      TreeNode                     *m_StrokesTree;       /** strokes tree structure.                                               */
+      TreeNode                     *m_ConnectTree;       /** connections tree.                                                     */
+      const SegmentationAdapterSPtr m_segmentation;      /** Segmentation adapter of the main segmentation of the tree.            */
+      ModelAdapterSPtr              m_model;             /** Application model adapter.                                            */
+      QList<struct StrokeInfo>     &m_strokes;           /** List of stroke information structs.                                   */
+      bool                          m_useRandomColoring; /** true to color strokes with random color, false to use stroke color.   */
+      unsigned int                  m_connectionLevel;   /** Connection level.                                                     */
   };
 
 } // namespace ESPINA

@@ -223,10 +223,16 @@ namespace ESPINA
       Core::Connections connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2) const;
 
       /** \brief Returns the list of connections between the given segmentations and others.
-       * \param[in] segmentation segmentation object.
+       * \param[in] segmentation segmentation smartpointer.
        *
        */
       Core::Connections connections(const PersistentSPtr segmentation) const;
+
+      /** \brief Returns the list of connections between the given segmentations and others.
+       * \param[in] segmentation segmentation raw pointer.
+       *
+       */
+      Core::Connections connections(const PersistentPtr segmentation) const;
 
       /** \brief Saves the connections to the temporal storage directory.
        *   Returns true if data was saved to disk and false if session has no connections.
@@ -253,6 +259,12 @@ namespace ESPINA
        */
       const DirectedGraphSPtr content() const
       { return m_content; }
+
+      /** \brief Returns the model smartpointer of the given item. Useful when dealing with extensions.
+       * \param[in] item Model item pointer.
+       *
+       */
+      PersistentSPtr smartPointer(PersistentPtr item);
 
     private:
       /** \brief Removes a filter of the analysis if its isolated.
@@ -326,6 +338,9 @@ namespace ESPINA
       SegmentationSList       m_segmentations;  /** list of segmentations in the analysis.         */
       Core::ConnectionStorage m_connections;    /** segmentation connections storage object.       */
       TemporalStorageSPtr     m_storage;        /** storage for analysis files.                    */
+
+      QMap<PersistentSPtr, PersistentPtr> m_itemPointers; /** fast smartpointer resolve map. */
+      QMap<PersistentSPtr, QString>       m_itemUUids;    /** fast uuid resolve map.         */
 
       friend class ViewItem;
   };

@@ -36,6 +36,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
   Dialogs/SkeletonInspector/SkeletonInspector.h
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
+  Dialogs/SpinesInformation/SpinesInformationDialog.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
@@ -81,7 +82,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.h
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
   ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
@@ -163,6 +164,7 @@ set (ESPINA_SOURCES
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.cpp
   Dialogs/SkeletonInspector/SkeletonInspector.cpp
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
+  Dialogs/SpinesInformation/SpinesInformationDialog.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -188,6 +190,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/Reports/SpineInformationReport.cpp
   ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
@@ -216,7 +219,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp

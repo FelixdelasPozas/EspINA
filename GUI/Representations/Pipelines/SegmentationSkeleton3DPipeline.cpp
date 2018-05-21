@@ -20,6 +20,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
@@ -43,13 +44,18 @@
 #include <vtkLine.h>
 #include <vtkStringArray.h>
 #include <vtkIntArray.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkGlyphSource2D.h>
+#include <vtkFollower.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
@@ -57,6 +63,14 @@ using namespace ESPINA::GUI::Model::Utils;
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
 : SegmentationSkeletonPipelineBase{"SegmentationSkeleton3D", colorEngine}
 {
+  m_truncatedGlyph = vtkSmartPointer<vtkGlyphSource2D>::New();
+  m_truncatedGlyph->SetGlyphTypeToSquare();
+  m_truncatedGlyph->SetFilled(false);
+  m_truncatedGlyph->SetCenter(0,0,0);
+  m_truncatedGlyph->SetScale(30);
+  m_truncatedGlyph->SetColor(1,0,0);
+  m_truncatedGlyph->Update();
+
 }
 
 //----------------------------------------------------------------------------
@@ -179,15 +193,35 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     actors << solidActor << dashedActor;
 
     QStringList ids;
-    auto edgeNumbers  = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
-    auto strokeNames  = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
+    auto edgeNumbers   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeNumbers"));
+    auto strokeNames   = vtkStringArray::SafeDownCast(data->GetPointData()->GetAbstractArray("StrokeName"));
+    auto edgeTruncated = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeTruncated"));
+    auto edgeParents   = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("EdgeParents"));
 
-    if(!edgeNumbers || !strokeNames)
+    if(!edgeNumbers || !strokeNames || !edgeParents || !edgeTruncated)
     {
       qWarning() << "Bad polydata for" << segmentation->data().toString();
       qWarning() << "Could extract array for edgeNumbers: " << (edgeNumbers == nullptr ? "false" : "true");
       qWarning() << "Could extract array for strokeNames: " << (strokeNames == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for edgeParents: " << (edgeParents == nullptr ? "false" : "true");
+      qWarning() << "Could extract array for edgeTruncated: " << (edgeTruncated == nullptr ? "false" : "true");
       return actors;
+    }
+
+    auto flags = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Flags"));
+    auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
+
+    if(flags)
+    {
+      for(auto i = 0; i < flags->GetNumberOfTuples(); ++i)
+      {
+        auto nodeFlags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
+        if(nodeFlags.testFlag(SkeletonNodeProperty::TRUNCATED))
+        {
+          truncatedPoints->InsertNextPoint(data->GetPoint(i));
+        }
+      }
+      truncatedPoints->Modified();
     }
 
     auto labelPoints = vtkSmartPointer<vtkPoints>::New();
@@ -200,8 +234,19 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       auto idList = vtkSmartPointer<vtkIdList>::New();
       data->GetLines()->GetNextCell(idList);
 
-      auto index = cellIndexes->GetValue(i);
-      auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str()) + " " + QString::number(edgeNumbers->GetValue(index));
+      auto index  = cellIndexes->GetValue(i);
+      auto text   = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str());
+      auto number = QString::number(edgeNumbers->GetValue(index));
+      auto otherIndex = edgeParents->GetValue(index);
+      QSet<int> visited;
+      while((otherIndex != -1) && !visited.contains(otherIndex))
+      {
+        number = QString("%1.%2").arg(edgeNumbers->GetValue(otherIndex)).arg(number);
+        otherIndex = edgeParents->GetValue(otherIndex);
+      }
+      text += QString(" %1").arg(number);
+      if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
+
       if(ids.contains(text)) continue;
       ids << text;
 
@@ -216,7 +261,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     auto property = vtkSmartPointer<vtkTextProperty>::New();
     property->SetBold(true);
     property->SetFontFamilyToArial();
-    property->SetFontSize(15);
+    property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
     property->SetJustificationToCentered();
 
     auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
@@ -229,7 +274,10 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelMapper->SetInputConnection(labelFilter->GetOutputPort());
     labelMapper->SetGeneratePerturbedLabelSpokes(true);
     labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetBackgroundOpacity(0.5);
     labelMapper->SetPlaceAllLabels(true);
+    labelMapper->SetMaximumLabelFraction(1);
+    labelMapper->SetUseDepthBuffer(false);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();
 
@@ -238,7 +286,45 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelActor->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
 
     actors << labelActor;
+
+    if(flags && truncatedPoints->GetNumberOfPoints() > 0)
+    {
+      for(int i = 0; i < truncatedPoints->GetNumberOfPoints(); ++i)
+      {
+        actors << createTruncatedPointActor(truncatedPoints->GetPoint(i));
+      }
+    }
   }
 
   return actors;
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkFollower> SegmentationSkeleton3DPipeline::createTruncatedPointActor(const double* point) const
+{
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetNumberOfPoints(1);
+  points->SetPoint(0, point);
+  points->Modified();
+
+  auto data = vtkSmartPointer<vtkPolyData>::New();
+  data->SetPoints(points);
+  data->Modified();
+
+  auto mapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+  mapper->SetScalarVisibility(false);
+  mapper->SetSourceIndexing(false);
+  mapper->SetStatic(true);
+  mapper->SetInputData(data);
+  mapper->SetSourceData(m_truncatedGlyph->GetOutput());
+  mapper->Update();
+
+  auto actor = vtkSmartPointer<vtkFollower>::New();
+  actor->SetMapper(mapper);
+  actor->SetDragable(false);
+  actor->SetPickable(false);
+  actor->SetOrigin(point);
+  actor->SetPosition(0,0,0);
+
+  return actor;
 }

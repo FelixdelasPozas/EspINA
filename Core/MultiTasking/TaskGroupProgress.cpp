@@ -40,6 +40,9 @@ void TaskGroupProgress::showTaskProgress(TaskSPtr task)
 
   connect(task.get(), SIGNAL(finished()),
           this,       SLOT(onTaskFinished()));
+
+  connect(task.get(), SIGNAL(aborted()),
+          this,       SLOT(onTaskFinished()));
 }
 
 //----------------------------------------------------------------------------
@@ -72,6 +75,16 @@ void TaskGroupProgress::updateProgress()
 void TaskGroupProgress::onTaskFinished()
 {
   auto finishedTask = static_cast<TaskPtr>(sender());
+  if(!finishedTask) return;
+
+  disconnect(finishedTask, SIGNAL(progress(int)),
+             this,         SLOT(updateProgress()));
+
+  disconnect(finishedTask, SIGNAL(finished()),
+             this,         SLOT(onTaskFinished()));
+
+  disconnect(finishedTask, SIGNAL(aborted()),
+             this,         SLOT(onTaskFinished()));
 
   {
     QMutexLocker lock(&m_mutex);

@@ -175,7 +175,7 @@ namespace ESPINA
      */
     virtual void addActor(vtkProp *actor) = 0;
 
-    /** \brief Removes an actor to the vtkRenderer.
+    /** \brief Removes an actor from the vtkRenderer.
      * \param[in] actor vtkProp raw pointer.
      *
      */
@@ -365,11 +365,12 @@ namespace ESPINA
      */
     QImage vtkImageDataToQImage(vtkImageData* image) const;
 
-    GUI::View::ViewState                     &m_state;            /** current state of the views.             */
-    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                 */
-    ViewType                                  m_type;             /** type of view: 2D/3D.                    */
-    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                  */
-    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations. */
+    GUI::View::ViewState                     &m_state;            /** current state of the views.                     */
+    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                         */
+    ViewType                                  m_type;             /** type of view: 2D/3D.                            */
+    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                          */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations.         */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_inactiveManagers; /** factory<->managers to be removed on next frame. */
   };
 
 } // namespace ESPINA

@@ -252,3 +252,55 @@ unsigned int ESPINA::firstUnusedSegmentationNumber(const AnalysisSPtr analysis)
 
   return ++number;
 }
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr ESPINA::axonOf(const SegmentationPtr synapse)
+{
+  SegmentationSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->analysis();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        auto candidate = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+
+        if(candidate && candidate->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
+        {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr ESPINA::dendriteOf(const SegmentationPtr synapse)
+{
+  SegmentationSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->analysis();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        auto candidate = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+
+        if(candidate && candidate->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
+        {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return result;
+}

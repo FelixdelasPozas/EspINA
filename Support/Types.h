@@ -29,6 +29,9 @@ namespace ESPINA
   using RepresentationFactorySPtr  = std::shared_ptr<RepresentationFactory>;
   using RepresentationFactorySList = QList<RepresentationFactorySPtr>;
   
+  struct Representation;
+  using RepresentationList = QList<Representation>;
+
   namespace Support
   {
     class Context;

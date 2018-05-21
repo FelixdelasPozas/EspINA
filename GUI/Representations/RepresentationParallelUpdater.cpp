@@ -140,8 +140,6 @@ void RepresentationParallelUpdater::run()
     m_requestedSources.clear();
   }
 
-  if(updateList.isEmpty()) return;
-
   auto size     = updateList.size();
   auto maxTasks = static_cast<int>(Scheduler::maxRunningTasks());
 
@@ -204,6 +202,8 @@ void RepresentationParallelUpdater::run()
 void RepresentationParallelUpdater::onTaskFinished(ParallelUpdaterTask* task)
 {
   QMutexLocker lock(&m_dataMutex);
+
+  if(!m_tasks.contains(task)) return;
 
   if(!canExecute())
   {
@@ -271,6 +271,8 @@ void RepresentationParallelUpdater::createTask(const RepresentationPipeline::Act
 void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, int progress)
 {
   QMutexLocker lock(&m_dataMutex);
+
+  if(!m_tasks.contains(task)) return;
 
   m_tasks[task].Progress = progress;
 

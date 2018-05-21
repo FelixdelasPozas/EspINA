@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2018 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -19,14 +19,16 @@
  
  */
 
-#ifndef EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
-#define EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
+#ifndef EXTENSIONS_SYNAPSE_INFORMATION_H_
+#define EXTENSIONS_SYNAPSE_INFORMATION_H_
 
 #include <Extensions/EspinaExtensions_Export.h>
 
 // ESPINA
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Extensions/SkeletonInformation/AxonInformation.h>
+#include <Extensions/SkeletonInformation/DendriteInformation.h>
 
 namespace ESPINA
 {
@@ -34,21 +36,20 @@ namespace ESPINA
   {
     class SkeletonInformationFactory;
 
-    /** \class SkeletonInformation
-     * \brief Extension that provides information about a skeleton.
+    /** \class SynapseConnectionInformation
+     * \brief Extension that provides information about skeletal axons.
      *
      */
-    class EspinaExtensions_EXPORT SkeletonInformation
+    class EspinaExtensions_EXPORT SynapseConnectionInformation
     : public Core::SegmentationExtension
     {
-        Q_OBJECT
       public:
         static const Type TYPE;
 
-        /** \brief SkeletonInformation class virtual destructor.
+        /** \brief SynapseConnectionInformation class virtual destructor.
          *
          */
-        virtual ~SkeletonInformation();
+        virtual ~SynapseConnectionInformation();
 
         virtual QString type() const
         { return TYPE; }
@@ -58,7 +59,7 @@ namespace ESPINA
         virtual Snapshot snapshot() const;
 
         virtual TypeList dependencies() const
-        { return TypeList(); }
+        { return TypeList{AxonSkeletonInformation::TYPE, DendriteSkeletonInformation::TYPE};}
 
         virtual bool invalidateOnChange() const
         { return true; }
@@ -66,23 +67,16 @@ namespace ESPINA
         virtual InformationKeyList availableInformation() const;
 
         virtual bool validCategory(const QString& classificationName) const
-        { return true;}
+        { return classificationName.startsWith("Synapse"); }
 
         virtual bool validData(const OutputSPtr output) const
-        { return hasSkeletonData(output); }
+        { return true; }
 
       protected:
         virtual QVariant cacheFail(const InformationKey& tag) const;
 
-        virtual void onExtendedItemSet(Segmentation* item);
-
-        virtual void invalidateImplementation() override;
-
-      private slots:
-        /** \brief Generates the keys for this segmentation.
-         *
-         */
-        void updateKeys();
+        virtual void onExtendedItemSet(Segmentation* item)
+        {};
 
       private:
         /** \brief Computes information values.
@@ -90,14 +84,14 @@ namespace ESPINA
          */
         void updateInformation() const;
 
-        /** \brief SkeletonInformation class constructor.
+        /** \brief SynapseConnectionInformation class constructor.
          * \param[in] infoCache cache object.
          *
          */
-        explicit SkeletonInformation(const InfoCache& infoCache = InfoCache());
+        explicit SynapseConnectionInformation(const InfoCache& infoCache = InfoCache());
 
         mutable QReadWriteLock     m_mutex; /** data protection mutex for concurrent access. */
-        mutable InformationKeyList m_keys;  /** informatio keys in this extension.           */
+        mutable InformationKeyList m_keys;  /** information keys in this extension.           */
 
         friend class SkeletonInformationFactory;
     };
@@ -105,4 +99,4 @@ namespace ESPINA
   } // namespace Extensions
 } // namespace ESPINA
 
-#endif // EXTENSIONS_SKELETONINFORMATION_SKELETONINFORMATION_H_
+#endif // EXTENSIONS_SYNAPSE_INFORMATION_H_

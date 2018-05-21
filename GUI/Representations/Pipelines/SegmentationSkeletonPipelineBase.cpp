@@ -48,6 +48,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::RepresentationUtils;
@@ -77,17 +78,7 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
     if(actor2D)
     {
       actor2D->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
-
-      // 3D representation has 3 actors.
-      if(actors.size() == 3)
-      {
-        auto mapper = vtkLabelPlacementMapper::SafeDownCast(actor2D->GetMapper());
-
-        if(mapper)
-        {
-          mapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
-        }
-      }
+      actor2D->Modified();
     }
 
     auto actorVTK = vtkActor::SafeDownCast(actor.Get());
@@ -98,13 +89,7 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
       auto colors      = vtkUnsignedCharArray::SafeDownCast(data->GetCellData()->GetScalars());
       auto cellChanges = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("ChangeColor"));
 
-      if(!colors || !cellChanges)
-      {
-        qWarning() << "Bad polydata for" << segmentation->data().toString();
-        qWarning() << "Could extract array for cellChanges: " << (cellChanges == nullptr ? "false" : "true");
-        qWarning() << "Could extract array for colors: " << (colors == nullptr ? "false" : "true");
-        return;
-      }
+      if(!colors || !cellChanges) return;
 
       data->GetLines()->InitTraversal();
       for(int i = 0; i < data->GetNumberOfLines(); ++i)

@@ -25,6 +25,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Analysis/Channel.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -38,7 +39,6 @@
 #include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <Support/Widgets/PanelSwitch.h>
-#include <Core/Analysis/Channel.h>
 #include <App/Dialogs/About/AboutDialog.h>
 #include <App/Dialogs/Settings/GeneralSettingsDialog.h>
 #include <App/Dialogs/RawInformation/RawInformationDialog.h>
@@ -63,7 +63,7 @@
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
-#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonCreationTool.h>
 #include <App/ToolGroups/Explore/ResetViewTool.h>
 #include <App/ToolGroups/Explore/ZoomRegionTool.h>
 #include <App/ToolGroups/Explore/PositionMarksTool.h>
@@ -87,6 +87,7 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
@@ -126,13 +127,13 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   setContextMenuPolicy(Qt::NoContextMenu);
 
+  initRepresentations();
+
   createToolbars();
 
   createToolGroups();
 
   createDefaultPanels();
-
-  initRepresentations();
 
   initColorEngines();
 
@@ -273,6 +274,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       {
         qDebug() << plugin << "- Representation Factory  ...... OK";
         registerRepresentationFactory(factory);
+        registerRepresentationSwitches(m_context.representation(factory));
       }
     }
   }
@@ -542,9 +544,9 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   enableToolShortcuts(true);
 
-  assignActiveChannel();
+  assignActiveStack();
 
-  analyzeChannelEdges();
+  analyzeStackEdges();
 
   auto files = m_openFileTool->loadedFiles();
 
@@ -599,7 +601,7 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 
   m_analysis = mergedAnalysis;
 
-  assignActiveChannel();
+  assignActiveStack();
 
   updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
 
@@ -1012,7 +1014,7 @@ void EspinaMainWindow::createSegmentToolGroup()
   manualSegment->setOrder("1-0", "1-SEGMENT");
   auto sgsSegment    = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterRefiners, m_context);
   sgsSegment->setOrder("1-1", "1-SEGMENT");
-  auto skeleton      = std::make_shared<SkeletonTool>(m_context);
+  auto skeleton      = std::make_shared<SkeletonCreationTool>(m_context);
   skeleton->setOrder("1-2", "1-SEGMENT");
 
   m_segmentToolGroup->addTool(manualSegment);
@@ -1101,6 +1103,11 @@ void EspinaMainWindow::createVisualizeToolGroup()
   fullscreenSwitch->setOrder("0", "4-MainWindow");
 
   m_visualizeToolGroup->addTool(fullscreenSwitch);
+
+  for(auto representation: m_context.representations())
+  {
+    registerRepresentationSwitches(representation);
+  }
 
   registerToolGroup(m_visualizeToolGroup);
 }
@@ -1213,19 +1220,21 @@ void EspinaMainWindow::restoreGeometry()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
-  auto representation = factory->createRepresentation(m_context, ViewType::VIEW_2D|ViewType::VIEW_3D);
+  auto representation = m_context.addRepresentation(factory);
 
-  for (auto repSwitch : representation.Switches)
+  m_view->addRepresentation(representation);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerRepresentationSwitches(const Representation &representation)
+{
+  for(auto repSwitch : representation.Switches)
   {
     if(repSwitch->supportedViews().testFlag(ViewType::VIEW_2D))
     {
       m_visualizeToolGroup->addTool(repSwitch);
     }
   }
-
-  m_view->addRepresentation(representation);
-
-  m_context.availableRepresentations() << factory;
 }
 
 //------------------------------------------------------------------------
@@ -1320,7 +1329,7 @@ void EspinaMainWindow::checkAnalysisConsistency()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::assignActiveChannel()
+void EspinaMainWindow::assignActiveStack()
 {
   auto model = m_context.model();
 
@@ -1333,7 +1342,7 @@ void EspinaMainWindow::assignActiveChannel()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::analyzeChannelEdges()
+void EspinaMainWindow::analyzeStackEdges()
 {
   for (auto channel : m_context.model()->channels())
   {

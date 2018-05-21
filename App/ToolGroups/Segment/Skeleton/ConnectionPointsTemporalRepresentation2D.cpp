@@ -41,40 +41,37 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
+using namespace ESPINA::GUI::Representations::Settings;
 
 //--------------------------------------------------------------------
-ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation2D()
+ConnectionPointsTemporalRepresentation2D::ConnectionPointsTemporalRepresentation2D(ConnectionSettingsSPtr settings)
 : m_points     {nullptr}
 , m_polyData   {nullptr}
 , m_glyphMapper{nullptr}
 , m_glyph2D    {nullptr}
 , m_actor      {nullptr}
-, m_scale      {10}
+, m_scale      {4}
 , m_view       {nullptr}
 , m_planeIndex {-1}
-, m_lastSlice  {-std::numeric_limits<Nm>::max()}
+, m_slice      {-std::numeric_limits<Nm>::max()}
 , m_active     {false}
+, m_settings   {settings}
 {
+
+  connect(m_settings.get(), SIGNAL(modified()), this, SLOT(onRepresentationModified()));
 }
 
 //--------------------------------------------------------------------
 ConnectionPointsTemporalRepresentation2D::~ConnectionPointsTemporalRepresentation2D()
 {
-  if(m_view)
-  {
-    m_view->removeActor(m_actor);
-  }
-
-  m_actor       = nullptr;
-  m_glyph2D     = nullptr;
-  m_glyphMapper = nullptr;
-  m_polyData    = nullptr;
-  m_points      = nullptr;
+  uninitialize();
 }
 
 //--------------------------------------------------------------------
-void ConnectionPointsTemporalRepresentation2D::setRepresentationSize(const int size)
+void ConnectionPointsTemporalRepresentation2D::onRepresentationModified()
 {
+  auto size = m_settings->connectionSize();
+
   if(m_scale != size)
   {
     m_scale = size;
@@ -92,7 +89,7 @@ void ConnectionPointsTemporalRepresentation2D::setRepresentationSize(const int s
       m_glyph2D->SetScale(m_scale*minSpacing);
       m_glyph2D->Update();
 
-      updateActor(m_lastSlice);
+      updateActor();
 
       m_view->refresh();
     }
@@ -107,7 +104,8 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
   auto view2d  = view2D_cast(view);
   m_view       = view;
   m_planeIndex = normalCoordinateIndex(view2d->plane());
-  m_lastSlice  = m_view->crosshair()[m_planeIndex]-1; // to force initialization.
+  m_slice      = m_view->crosshair()[m_planeIndex];
+  m_scale      = m_settings->connectionSize();
 
   buildPipeline();
 
@@ -120,8 +118,12 @@ void ConnectionPointsTemporalRepresentation2D::initialize(RenderView* view)
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::uninitialize()
 {
-  m_view->removeActor(m_actor);
-  m_view = nullptr;
+  m_actor       = nullptr;
+  m_glyph2D     = nullptr;
+  m_glyphMapper = nullptr;
+  m_polyData    = nullptr;
+  m_points      = nullptr;
+  m_view        = nullptr;
 }
 
 //--------------------------------------------------------------------
@@ -153,64 +155,53 @@ void ConnectionPointsTemporalRepresentation2D::hide()
 //--------------------------------------------------------------------
 bool ConnectionPointsTemporalRepresentation2D::acceptCrosshairChange(const NmVector3& crosshair) const
 {
-  if(!m_view) return false;
-
-  return m_lastSlice != crosshair[m_planeIndex];
+  return m_view && m_slice != crosshair[m_planeIndex];
 }
 
 //--------------------------------------------------------------------
 bool ConnectionPointsTemporalRepresentation2D::acceptSceneResolutionChange(const NmVector3& resolution) const
 {
-  return true;
+  return m_view;
 }
 
 //--------------------------------------------------------------------
 bool ConnectionPointsTemporalRepresentation2D::acceptSceneBoundsChange(const Bounds& bounds) const
 {
-  return true;
+  return m_view;
 }
 
 //--------------------------------------------------------------------
 bool ConnectionPointsTemporalRepresentation2D::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
 {
-  return false;
+  return m_view;
 }
 
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  if(!m_points) buildPipeline();
-
-  auto slice = frame->crosshair[m_planeIndex];
-  if(m_lastSlice != slice)
+  if(m_view)
   {
-    updateActor(slice);
-    m_lastSlice = slice;
+    if(!m_points) buildPipeline();
+
+    m_slice = frame->crosshair[m_planeIndex];
+    updateActor();
   }
 }
 
 //--------------------------------------------------------------------
 GUI::Representations::Managers::TemporalRepresentation2DSPtr ConnectionPointsTemporalRepresentation2D::cloneImplementation()
 {
-  return std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+  return std::make_shared<ConnectionPointsTemporalRepresentation2D>(m_settings);
 }
 
 //--------------------------------------------------------------------
 void ConnectionPointsTemporalRepresentation2D::onConnectionPointAdded(const NmVector3 point)
 {
-  if(!m_connections.contains(point))
+  if(m_view && !m_connections.contains(point))
   {
-    auto spacing = m_view->sceneResolution();
+    m_connections << point;
 
-    NmVector3 adjustedPoint;
-    for(auto i: {0,1,2})
-    {
-      auto half = spacing[i]/2.;
-      adjustedPoint[i] = std::round((point[i]+half)/spacing[i])*spacing[i] - half;
-    }
-    m_connections << adjustedPoint;
-
-    updateActor(m_lastSlice);
+    updateActor();
 
     if(m_view) m_view->mainRenderer()->Render();
   }
@@ -223,7 +214,7 @@ void ConnectionPointsTemporalRepresentation2D::onConnectionPointRemoved(const Nm
   {
     m_connections.removeAll(point);
 
-    updateActor(m_lastSlice);
+    updateActor();
 
     if(m_view) m_view->mainRenderer()->Render();
   }
@@ -234,7 +225,7 @@ void ConnectionPointsTemporalRepresentation2D::clearPoints()
 {
   m_connections.clear();
 
-  updateActor(m_lastSlice);
+  updateActor();
 
   if(m_view) m_view->mainRenderer()->Render();
 }
@@ -251,8 +242,7 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 
   m_glyphMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
   m_glyphMapper->SetScalarVisibility(false);
-  m_glyphMapper->SetStatic(false);
-  m_glyphMapper->ScalingOff();
+  m_glyphMapper->SetStatic(true);
   m_glyphMapper->SetInputData(m_polyData);
 
   auto spacing = m_view->sceneResolution();
@@ -307,7 +297,7 @@ void ConnectionPointsTemporalRepresentation2D::buildPipeline()
 }
 
 //--------------------------------------------------------------------
-void ConnectionPointsTemporalRepresentation2D::updateActor(const Nm slice)
+void ConnectionPointsTemporalRepresentation2D::updateActor()
 {
   if(m_view)
   {
@@ -317,7 +307,7 @@ void ConnectionPointsTemporalRepresentation2D::updateActor(const Nm slice)
     {
       for (auto point : m_connections)
       {
-        if (point[m_planeIndex] == slice)
+        if (point[m_planeIndex] == m_slice)
         {
           m_points->InsertNextPoint(point[0], point[1], point[2]);
         }
