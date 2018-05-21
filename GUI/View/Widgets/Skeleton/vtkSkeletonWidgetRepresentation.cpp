@@ -989,7 +989,9 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
         {
           if(visibleStrokes.contains(edge))
           {
-            m_labelPoints->InsertNextPoint(node->position);
+            double visiblePos[3];
+            m_points->GetPoint(m_visiblePoints[node], visiblePos);
+            m_labelPoints->InsertNextPoint(visiblePos);
 
             auto text = strokeName(s_skeleton.edges.at(edge), s_skeleton.strokes, s_skeleton.edges);
             visibleStrokes.remove(edge);
