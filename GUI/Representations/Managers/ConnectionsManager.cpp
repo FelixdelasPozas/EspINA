@@ -27,13 +27,13 @@
 #include <vtkGlyphSource2D.h>
 #include <vtkSphereSource.h>
 #include <vtkPolyData.h>
-#include <vtkFollower.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkPoints.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkActor.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -402,7 +402,7 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
     m_glyph->SetSourceData(m_glyph3D->GetOutput());
   }
 
-  m_actor = vtkSmartPointer<vtkFollower>::New();
+  m_actor = vtkSmartPointer<vtkActor>::New();
   m_actor->SetMapper(m_glyph);
 }
 

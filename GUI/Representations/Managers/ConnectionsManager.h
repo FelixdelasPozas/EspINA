@@ -32,12 +32,12 @@
 #include <vtkSmartPointer.h>
 
 class vtkGlyph3DMapper;
-class vtkFollower;
 class vtkPoints;
 class vtkPolyData;
 class vtkGlyphSource2D;
 class vtkSphereSource;
 class vtkTransformPolyDataFilter;
+class vtkActor;
 
 namespace ESPINA
 {
@@ -161,7 +161,7 @@ namespace ESPINA
             vtkSmartPointer<vtkGlyph3DMapper>           m_glyph;           /** glyph filter.                                  */
             vtkSmartPointer<vtkGlyphSource2D>           m_glyph2D;         /** glyph source for 2D views, a circle.           */
             vtkSmartPointer<vtkSphereSource>            m_glyph3D;         /** glyph source for 3D views, a sphere.           */
-            vtkSmartPointer<vtkFollower>                m_actor;           /** representation actor.                          */
+            vtkSmartPointer<vtkActor>                   m_actor;           /** representation actor.                          */
             ConnectionList                              m_connections;     /** list of connections                            */
             int                                         m_scale;           /** representation's scale value.                  */
         };
