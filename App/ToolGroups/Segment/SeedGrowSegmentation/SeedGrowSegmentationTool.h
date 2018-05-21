@@ -202,6 +202,11 @@ namespace ESPINA
        */
       void onCloseStateChanged(bool value);
 
+      /** \brief Updates the settings when the user changes the close radius value.
+       * \param[in] value New radius value.
+       */
+      void onRadiusValueChanged(int value);
+
     private:
       using CategorySelector   = GUI::Widgets::CategorySelector;
       using PixelValueSelector = GUI::Widgets::PixelValueSelector;

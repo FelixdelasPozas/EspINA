@@ -69,6 +69,7 @@ const QString APPLY_CLOSE     = "Apply close";
 const QString CLOSE_RADIUS    = "Close radius";
 const QString BEST_VALUE      = "Best value";
 const QString CATEGORY        = "Category selected";
+const QString USE_BEST_PIXEL  = "Use best pixel selector";
 
 //-----------------------------------------------------------------------------
 FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
@@ -291,8 +292,23 @@ void SeedGrowSegmentationTool::initCloseWidgets()
   m_close->setMaximum(10);
   m_close->setToolTip(tr("Close algorithm radius."));
 
+  connect(m_close, SIGNAL(valueChanged(int)),
+          this,    SLOT(onRadiusValueChanged(int)));
+
   addSettingsWidget(m_applyClose);
   addSettingsWidget(m_close);
+
+  connect(m_settings,   SIGNAL(applyCloseChanged(bool)),
+          m_applyClose, SLOT(setChecked(bool)));
+
+  connect(m_settings, SIGNAL(closeRadiusChanged(int)),
+          m_close,    SLOT(setValue(int)));
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onRadiusValueChanged(int value)
+{
+  if(value != m_settings->closeRadius()) m_settings->setCloseRadius(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -489,12 +505,18 @@ void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settin
   m_settings->setApplyCategoryROI(applyROI);
 
   auto applyClose = settings->value(APPLY_CLOSE, false).toBool();
-  m_settings->setApplyClose(applyClose);
+  if(applyClose != m_applyClose->isChecked()) m_applyClose->setChecked(applyClose);
 
-  auto radius = settings->value(CLOSE_RADIUS, 0).toInt();
-  m_settings->setCloseRadius(radius);
+  auto radius = settings->value(CLOSE_RADIUS, 1).toInt();
+  m_close->setValue(radius);
 
-  m_settings->setBestPixelValue(settings->value(BEST_VALUE, 0).toInt());
+  auto value = settings->value(BEST_VALUE, 0).toInt();
+  m_settings->setBestPixelValue(value);
+  m_colorSelector->setValue(value);
+
+  auto useBest = settings->value(USE_BEST_PIXEL, true).toBool();
+  if(useBest != m_useBestPixel->isChecked()) m_useBestPixel->setChecked(useBest);
+
   m_categorySelector->setCurrentIndex(settings->value(CATEGORY, 0).toInt());
 }
 
@@ -503,14 +525,15 @@ void SeedGrowSegmentationTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   settings->setValue(UPPER_THRESHOLD, m_seedThreshold->upperThreshold());
   settings->setValue(LOWER_THRESHOLD, m_seedThreshold->lowerThreshold());
-  settings->setValue(XSIZE, m_settings->xSize());
-  settings->setValue(YSIZE, m_settings->ySize());
-  settings->setValue(ZSIZE, m_settings->zSize());
-  settings->setValue(APPLY_ROI, m_settings->applyCategoryROI());
-  settings->setValue(APPLY_CLOSE, m_settings->applyClose());
-  settings->setValue(CLOSE_RADIUS, m_settings->closeRadius());
-  settings->setValue(BEST_VALUE, m_settings->bestPixelValue());
-  settings->setValue(CATEGORY, m_categorySelector->currentIndex());
+  settings->setValue(XSIZE,           m_settings->xSize());
+  settings->setValue(YSIZE,           m_settings->ySize());
+  settings->setValue(ZSIZE,           m_settings->zSize());
+  settings->setValue(APPLY_ROI,       m_settings->applyCategoryROI());
+  settings->setValue(APPLY_CLOSE,     m_settings->applyClose());
+  settings->setValue(CLOSE_RADIUS,    m_settings->closeRadius());
+  settings->setValue(BEST_VALUE,      m_settings->bestPixelValue());
+  settings->setValue(CATEGORY,        m_categorySelector->currentIndex());
+  settings->setValue(USE_BEST_PIXEL,  m_useBestPixel->isChecked());
 }
 
 //-----------------------------------------------------------------------------
