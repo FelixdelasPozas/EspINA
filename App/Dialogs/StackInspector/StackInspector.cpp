@@ -38,12 +38,14 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/View/View2D.h>
 #include <GUI/Widgets/PixelValueSelector.h>
 #include <GUI/Widgets/Styles.h>
 #include <Support/Representations/SliceManager.h>
+#include "SLICRepresentation2D.h"
 
 #if USE_METADONA
   #include <Producer.h>
@@ -76,6 +78,7 @@ using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 
@@ -91,6 +94,7 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 , m_stack           {channel}
 , m_sources           {m_viewState}
 , m_view              {new View2D(m_viewState, Plane::XY)}
+, m_slicRepresentation{std::make_shared<TemporalPrototypes>(std::make_shared<SLICRepresentation2D>(), TemporalRepresentation3DSPtr(), "SLIC Representation")}
 {
   setupUi(this);
 
@@ -156,6 +160,9 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 #if USE_METADONA
   tabWidget->addTab(new MetadataViewer(channel.get(), getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
+
+  connect(tabWidget, SIGNAL(currentChanged(int)),
+          this,      SLOT(onCurrentTabChanged(int)));
 }
 
 //------------------------------------------------------------------------
@@ -736,6 +743,33 @@ void StackInspector::initPixelValueSelector()
   layout->setMargin(0);
   layout->addWidget(m_pixelSelector);
   m_colorFrame->setLayout(layout);
+}
+
+//------------------------------------------------------------------------
+void StackInspector::onCurrentTabChanged(int index)
+{
+  switch(index)
+  {
+    case 0:
+      if(mainLayout->indexOf(m_view.get()) == -1)
+      {
+        m_viewState.removeTemporalRepresentations(m_slicRepresentation);
+        slicTabLayout->removeWidget(m_view.get());
+        mainLayout->insertWidget(0, m_view.get(), 1);
+      }
+      break;
+    case 2:
+      if(slicTabLayout->indexOf(m_view.get()) == -1)
+      {
+        m_viewState.addTemporalRepresentations(m_slicRepresentation);
+        mainLayout->removeWidget(m_view.get());
+        slicTabLayout->insertWidget(0, m_view.get(), 1);
+      }
+      break;
+    default:
+      // nothing
+      break;
+  }
 }
 
 //------------------------------------------------------------------------

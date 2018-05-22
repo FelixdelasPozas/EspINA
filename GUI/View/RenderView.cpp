@@ -91,9 +91,6 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  m_managers.clear();
-  m_temporalManagers.clear();
-
   delete m_view;
 }
 

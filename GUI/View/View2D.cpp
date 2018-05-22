@@ -197,6 +197,19 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
+
+  for(auto manager: m_managers)
+  {
+    manager->shutdown();
+  }
+  m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    manager->shutdown();
+  }
+  m_temporalManagers.clear();
+
   m_renderer->RemoveAllViewProps();
   m_thumbnail->RemoveAllViewProps();
 

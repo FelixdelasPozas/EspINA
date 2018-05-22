@@ -26,11 +26,11 @@
 
 // ESPINA
 #include <Core/Types.h>
+#include <Extensions/SLIC/StackSLIC.h>
 #include <GUI/Types.h>
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <Support/Context.h>
-#include <Extensions/SLIC/StackSLIC.h>
 
 class QCloseEvent;
 
@@ -49,212 +49,221 @@ namespace ESPINA
   , private Ui::StackInspector
   , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    /** \brief StackInspector class constructor.
-     * \param[in] channel channel adapter raw pointer.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] scheduler scheduler smart pointer.
-     * \param[in] parent parent widget.
-     */
-    explicit StackInspector(ChannelAdapterSPtr channel, Support::Context &context);
+      Q_OBJECT
+    public:
+      /** \brief StackInspector class constructor.
+       * \param[in] channel channel adapter raw pointer.
+       * \param[in] model model adapter smart pointer.
+       * \param[in] scheduler scheduler smart pointer.
+       * \param[in] parent parent widget.
+       */
+      explicit StackInspector(ChannelAdapterSPtr channel, Support::Context &context);
 
-    /** \brief StackInspector class destructor.
-     *
-     */
-    virtual ~StackInspector();
+      /** \brief StackInspector class destructor.
+       *
+       */
+      virtual ~StackInspector();
 
-    /** \brief Manages dialog close event.
-     * Re-implemented from base class because we need to reset stack
-     * properties before the dialog gets destroyed.
-     *
-     */
-    void closeEvent(QCloseEvent *event) override;
+      /** \brief Manages dialog close event.
+       * Re-implemented from base class because we need to reset stack
+       * properties before the dialog gets destroyed.
+       *
+       */
+      void closeEvent(QCloseEvent *event) override;
 
-  signals:
-    void spacingUpdated();
-    void computeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, enum Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
+    signals:
+      void spacingUpdated();
+      void computeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, enum Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
 
-  private slots:
-    /** \brief Manages the change of units from the UI.
-     */
-    void unitsChanged();
+    private slots:
+      /** \brief Manages the change of units from the UI.
+       */
+      void unitsChanged();
 
-    /** \brief Keeps track of the changes in spacing.
-     */
-    void onSpacingChanged();
+      /** \brief Keeps track of the changes in spacing.
+       */
+      void onSpacingChanged();
 
-    /** \brief Manages the change of state of opacity checkbox.
-     * \param[in] value state of the checkbox.
-     *
-     */
-    void onOpacityCheckChanged(int value);
+      /** \brief Manages the change of state of opacity checkbox.
+       * \param[in] value state of the checkbox.
+       *
+       */
+      void onOpacityCheckChanged(int value);
 
-    /** \brief Manages the change of value of the opacity slider.
-     * \param[in] value value of the slider.
-     *
-     */
-    void onOpacityChanged(int value);
+      /** \brief Manages the change of value of the opacity slider.
+       * \param[in] value value of the slider.
+       *
+       */
+      void onOpacityChanged(int value);
 
-    /** \brief Changes the HUE value of the stack based on h,s,v values
-     *        returned by HueSelector.
-     * \param[in] h hue value
-     * \param[in] s saturation value (unused)
-     * \param[in] v color value (unused)
-     *
-     */
-    void newHSV(int h,int s,int v);
+      /** \brief Changes the HUE value of the stack based on h,s,v values
+       *        returned by HueSelector.
+       * \param[in] h hue value
+       * \param[in] s saturation value (unused)
+       * \param[in] v color value (unused)
+       *
+       */
+      void newHSV(int h,int s,int v);
 
-    /** \brief Changes the HUE value of the stack based on the
-     *        value of the spinbox of the UI.
-     * \param[in] value hue value.
-     */
-    void newHSV(int value);
+      /** \brief Changes the HUE value of the stack based on the
+       *        value of the spinbox of the UI.
+       * \param[in] value hue value.
+       */
+      void newHSV(int value);
 
-    /** \brief Changes the saturation of the stack.
-     * \param[in] value value of the saturation slider.
-     *
-     */
-    void saturationChanged(int value);
+      /** \brief Changes the saturation of the stack.
+       * \param[in] value value of the saturation slider.
+       *
+       */
+      void saturationChanged(int value);
 
-    /** \brief Changes the contrast of the stack.
-     * \param[in] value value of the contrast slider.
-     */
-    void contrastChanged(int value);
+      /** \brief Changes the contrast of the stack.
+       * \param[in] value value of the contrast slider.
+       */
+      void contrastChanged(int value);
 
-    /** \brief Changes the brightness of the stack.
-     * \param[in] value value of the brigthness slider.
-     */
-    void brightnessChanged(int value);
+      /** \brief Changes the brightness of the stack.
+       * \param[in] value value of the brigthness slider.
+       */
+      void brightnessChanged(int value);
 
-    /** \brief Apply the changes of the UI to the stack.
-     *
-     */
-    void onChangesAccepted();
+      /** \brief Apply the changes of the UI to the stack.
+       *
+       */
+      void onChangesAccepted();
 
-    /** \brief Resets the stack to previous values.
-     *
-     */
-    void onChangesRejected();
+      /** \brief Resets the stack to previous values.
+       *
+       */
+      void onChangesRejected();
 
-    /** \brief
-     * \param[in] value
-     */
-    void radioEdgesChanged(bool value);
+      /** \brief
+       * \param[in] value
+       */
+      void radioEdgesChanged(bool value);
 
-    /** \brief Applies edges changes to the stack.
-     *
-     */
-    void applyEdgesChanges();
+      /** \brief Applies edges changes to the stack.
+       *
+       */
+      void applyEdgesChanges();
 
-    /** \brief Manages the changes in the background color value of the UI spinbox.
-     * \param[in] value, value of the color spinbox.
-     */
-    void changeEdgeDetectorBgColor(int value);
+      /** \brief Manages the changes in the background color value of the UI spinbox.
+       * \param[in] value, value of the color spinbox.
+       */
+      void changeEdgeDetectorBgColor(int value);
 
-    /** \brief Manages the changes in the threshold value of the UI spinbox.
-     * \param[in] value value of the threshold spinbox.
-     */
-    void changeEdgeDetectorThreshold(int value);
+      /** \brief Manages the changes in the threshold value of the UI spinbox.
+       * \param[in] value value of the threshold spinbox.
+       */
+      void changeEdgeDetectorThreshold(int value);
 
-    /** \brief Updates the GUI when the optimal checkbox state changed.
-     * \param[in] unused unused value.
-     */
-    void onOptimalStateChanged(int unused);
+      /** \brief Updates the GUI when the optimal checkbox state changed.
+       * \param[in] unused unused value.
+       */
+      void onOptimalStateChanged(int unused);
 
-    /** \brief Updates the stack filter on change.
-     * \param[in] state checkbox state.
-     *
-     */
-    void onStreamingChanged(int state);
+      /** \brief Updates the stack filter on change.
+       * \param[in] state checkbox state.
+       *
+       */
+      void onStreamingChanged(int state);
 
-    /** \brief Starts the SLIC task with the selected parameters
-     */
-    void onComputeSLIC();
+      /** \brief Starts the SLIC task with the selected parameters
+       */
+      void onComputeSLIC();
 
-  private:
-    /** \brief Helper method to update views after changes to the stack.
-     *
-     */
-    void applyModifications();
+      /** \brief Updates the main and slic tabs moving the view.
+       * \param[in] index Current tab index.
+       *
+       */
+      void onCurrentTabChanged(int index);
 
-    /** \brief Helper method to initialize the properties tab.
-     *
-     */
-    void initPropertiesTab();
+    private:
+      /** \brief Helper method to update views after changes to the stack.
+       *
+       */
+      void applyModifications();
 
-    /** \brief Helper method to initialize the view in properties tab.
-     *
-     */
-    void initSliceView();
+      /** \brief Helper method to initialize the properties tab.
+       *
+       */
+      void initPropertiesTab();
 
-    /** \brief Helper method to initialize the spacing values.
-     *
-     */
-    void initSpacingSettings();
+      /** \brief Helper method to initialize the view in properties tab.
+       *
+       */
+      void initSliceView();
 
-    /** \brief Helper method to initialize the opacity values.
-     *
-     */
-    void initOpacitySettings();
+      /** \brief Helper method to initialize the spacing values.
+       *
+       */
+      void initSpacingSettings();
 
-    /** \brief Helper method to initalize the coloring values.
-     *
-     */
-    void initColorSettings();
+      /** \brief Helper method to initialize the opacity values.
+       *
+       */
+      void initOpacitySettings();
 
-    /** \brief Helper method to initialize the stack miscellaneous settings.
-     *
-     */
-    void initMiscSettings();
+      /** \brief Helper method to initalize the coloring values.
+       *
+       */
+      void initColorSettings();
 
-    /** \breif Helper method to invalidate the stack representations.
-     *
-     */
-    void invalidateStackRepresentation();
+      /** \brief Helper method to initialize the stack miscellaneous settings.
+       *
+       */
+      void initMiscSettings();
 
-    /** \brief Changes the spacing of the stack and associated segmentations.
-     *
-     */
-    void updateStackPreview();
+      /** \breif Helper method to invalidate the stack representations.
+       *
+       */
+      void invalidateStackRepresentation();
 
-    /** \brief Helper method to change the spacing of the stack .
-     *
-     */
-    void changeStackSpacing();
+      /** \brief Changes the spacing of the stack and associated segmentations.
+       *
+       */
+      void updateStackPreview();
 
-    /** \brief Initializes the pixel value selector widget.
-     *
-     */
-    void initPixelValueSelector();
+      /** \brief Helper method to change the spacing of the stack .
+       *
+       */
+      void changeStackSpacing();
 
-    /** \brief Returns the current spacing of the stack.
-     *
-     */
-    NmVector3 currentSpacing() const;
+      /** \brief Initializes the pixel value selector widget.
+       *
+       */
+      void initPixelValueSelector();
 
-  private:
-    using BackgroundSelector = GUI::Widgets::PixelValueSelector;
+      /** \brief Returns the current spacing of the stack.
+       *
+       */
+      NmVector3 currentSpacing() const;
 
-    GUI::View::ViewState      m_viewState;          /** state of the view in the properties tab.                                               */
-    bool                      m_spacingModified;    /** true if the spacing has been modified, false otherwise.                                */
-    bool                      m_edgesModified;      /** true if the edges have been modified, false otherwise.                                 */
-    BackgroundSelector       *m_pixelSelector;      /** pixel value selector widget for edges tab.                                             */
-    ChannelAdapterSPtr        m_stack;              /** stack.                                                                                 */
-    ManualPipelineSources     m_sources;            /** manual sources for the view in the properties tab.                                     */
-    std::shared_ptr<View2D>   m_view;               /** view in the properties tab.                                                            */
-    HueSelector              *m_hueSelector;        /** hue selector widget in the properties tab.                                             */
-    bool                      m_useDistanceToEdges; /** true to use the distance to edges to compute segmentations distances, false otherwise. */
-    int                       m_backgroundColor;    /** edge background color.                                                                 */
-    int                       m_threshold;          /** threshold to compute edge voxels (background color +/- threshold).                     */
+    private:
+      using BackgroundSelector = GUI::Widgets::PixelValueSelector;
 
-    // properties backup
-    NmVector3 m_spacing;    /** stack spacing.    */
-    double    m_opacity;    /** stack opacity.    */
-    double    m_hue;        /** stack hue.        */
-    double    m_saturation; /** stack saturation. */
-    double    m_brightness; /** stack brightness. */
-    double    m_contrast;   /** stack contrast.   */
+      GUI::View::ViewState      m_viewState;          /** state of the view in the properties tab.                                               */
+      bool                      m_spacingModified;    /** true if the spacing has been modified, false otherwise.                                */
+      bool                      m_edgesModified;      /** true if the edges have been modified, false otherwise.                                 */
+      BackgroundSelector       *m_pixelSelector;      /** pixel value selector widget for edges tab.                                             */
+      ChannelAdapterSPtr        m_stack;              /** stack.                                                                                 */
+      ManualPipelineSources     m_sources;            /** manual sources for the view in the properties tab.                                     */
+      std::shared_ptr<View2D>   m_view;               /** view in the properties tab.                                                            */
+      HueSelector              *m_hueSelector;        /** hue selector widget in the properties tab.                                             */
+      bool                      m_useDistanceToEdges; /** true to use the distance to edges to compute segmentations distances, false otherwise. */
+      int                       m_backgroundColor;    /** edge background color.                                                                 */
+      int                       m_threshold;          /** threshold to compute edge voxels (background color +/- threshold).                     */
+
+      // properties backup
+      NmVector3 m_spacing;    /** stack spacing.    */
+      double    m_opacity;    /** stack opacity.    */
+      double    m_hue;        /** stack hue.        */
+      double    m_saturation; /** stack saturation. */
+      double    m_brightness; /** stack brightness. */
+      double    m_contrast;   /** stack contrast.   */
+
+      // slic representation manager
+      ESPINA::GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation;
   };
 
 } // namespace ESPINA

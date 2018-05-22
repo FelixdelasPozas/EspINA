@@ -350,15 +350,16 @@ namespace ESPINA
     void delayedWidgetsShow();
 
   protected:
-    ContextualMenuSPtr                               m_contextMenu;
-    QVTKWidget                                      *m_view;
-    GUI::Representations::RepresentationManagerSList m_managers;
-    unsigned int                                     m_lastFrameActiveManagers;
-
-  private:
     using TempPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
     using ReprManagerSPtr    = GUI::Representations::RepresentationManagerSPtr;
 
+    ContextualMenuSPtr                               m_contextMenu;             /** contextual menu.                         */
+    QVTKWidget                                      *m_view;                    /** vtk view.                                */
+    GUI::Representations::RepresentationManagerSList m_managers;                /** representation managers in the view.     */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_temporalManagers;        /** factory<->managers for representations.  */
+    unsigned int                                     m_lastFrameActiveManagers; /** number of active managers in last frame. */
+
+  private:
     /** \brief vtkImageData to QImage conversion.
      * \param[in] image vtkImageData object pointer.
      *
@@ -369,7 +370,6 @@ namespace ESPINA
     GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                 */
     ViewType                                  m_type;             /** type of view: 2D/3D.                    */
     GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                  */
-    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations. */
   };
 
 } // namespace ESPINA
