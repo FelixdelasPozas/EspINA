@@ -73,7 +73,7 @@ namespace ESPINA
 
     signals:
       void spacingUpdated();
-      void computeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, enum Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
+      void computeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
 
     private slots:
       /** \brief Manages the change of units from the UI.

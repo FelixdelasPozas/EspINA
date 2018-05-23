@@ -46,8 +46,7 @@ namespace ESPINA
         /** \brief StackSLIC class virtual destructor.
          *
          */
-        virtual ~StackSLIC()
-        {};
+        virtual ~StackSLIC();
 
         typedef enum SLICVariant {
           SLIC,
@@ -84,6 +83,19 @@ namespace ESPINA
 
         virtual InformationKeyList availableInformation() const;
 
+        unsigned long int getSupervoxel(unsigned int x, unsigned int y, unsigned int z);
+        unsigned char getSupervoxelColor(unsigned int supervoxel);
+        itk::Image<unsigned char, 3>::IndexType getSupervoxelCenter(unsigned int supervoxel);
+
+        typedef struct Label
+        {
+          double norm_quotient;
+          float m_s;
+          itk::Image<unsigned char, 3>::IndexType center;
+          unsigned char color;
+          unsigned char m_c;
+        } Label;
+
       protected:
         virtual void onExtendedItemSet(Channel* item) {}
 
@@ -91,7 +103,7 @@ namespace ESPINA
         { return QVariant(); }
 
       protected slots:
-        void onComputeSLIC(unsigned int parameter_m_s, unsigned int parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
+        void onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
         void onSLICComputed();
         void onAbortSLIC();
 
@@ -100,9 +112,28 @@ namespace ESPINA
 
       private:
         class SLICComputeTask;
+        typedef struct SuperVoxel
+        {
+          itk::Image<unsigned char, 3>::IndexType center;
+          unsigned char color;
+        } SuperVoxel;
+
+        typedef struct SLICResult
+        {
+            QList<SuperVoxel> supervoxels;
+            unsigned int supervoxel_count = 0;
+            QByteArray voxels;
+            unsigned int slice_count = 0;
+            unsigned int* slice_offset;
+            bool computed = false;
+            Bounds bounds;
+        } SLICResult;
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
         std::shared_ptr<SLICComputeTask> task;
+        SLICResult result;
+
+        friend SLICComputeTask;
     };
 
     class StackSLIC::SLICComputeTask
@@ -110,9 +141,8 @@ namespace ESPINA
     {
         Q_OBJECT
       public:
-        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
-        virtual ~SLICComputeTask()
-        {};
+        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, SLICResult *result, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
+        virtual ~SLICComputeTask() {};
 
       private:
         virtual void run();
@@ -121,22 +151,16 @@ namespace ESPINA
         ChannelPtr m_stack;
         CoreFactory *m_factory;
 
-        unsigned int parameter_m_s;
-        unsigned int parameter_m_c;
+        SLICResult* result;
+
+        unsigned char parameter_m_s;
+        unsigned char parameter_m_c;
         SLICVariant variant;
         unsigned int max_iterations;
         double tolerance;
 
-        unsigned long int *voxels;
+        unsigned int *voxels;
 
-        typedef struct Label
-        {
-          itk::Image<unsigned char, 3>::IndexType center;
-          unsigned char color;
-          float m_c;
-          float m_s;
-          double norm_quotient;
-        } Label;
 
         /*typedef struct Voxel
         {
@@ -144,7 +168,9 @@ namespace ESPINA
           double distance;
         } Voxel;*/
     };
+
   }
+
 }
 
 #endif /* EXTENSIONS_SLIC_STACKSLIC_H_ */

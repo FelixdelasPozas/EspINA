@@ -152,7 +152,7 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
   auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(channel, context.factory());
   //connect(testRunSlic, SIGNAL(released()), slicExtension.get(), SLOT(onComputeSLIC()));
   connect(testRunSlic, SIGNAL(released()), this, SLOT(onComputeSLIC()));
-  connect(this, SIGNAL(computeSLIC(unsigned int, unsigned int, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned int, unsigned int, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
+  connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
   //connect(testRunSlic, SIGNAL(clicked()), this, SLOT(slicStarted()));
 
   tabWidget->setCurrentIndex(0);
@@ -832,8 +832,8 @@ void StackInspector::initMiscSettings()
 void StackInspector::onComputeSLIC()
 {
   Extensions::StackSLIC::SLICVariant variant = Extensions::StackSLIC::SLICVariant::SLIC;
-  int spatial_distance = 10;
-  int color_distance = 20;
+  char spatial_distance = 10;
+  char color_distance = 20;
   int iterations = 10;
   double tolerance = 0;
   //Get parameters and start task
