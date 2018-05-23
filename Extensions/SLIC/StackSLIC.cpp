@@ -153,6 +153,7 @@ void StackSLIC::SLICComputeTask::run()
   OutputSPtr output = m_stack->output();
   NmVector3 spacing = output->spacing();
   //Calculate dimensions using voxels as unit
+  //qDebug() << QString("Image dimensions: %1 , %2 , %3").arg(image->GetLargestPossibleRegion().GetSize()[0]).arg(image->GetLargestPossibleRegion().GetSize()[1]).arg(image->GetLargestPossibleRegion().GetSize()[2]);
   unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
   unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
   unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
@@ -196,16 +197,17 @@ void StackSLIC::SLICComputeTask::run()
   typedef itk::Image<unsigned char, 3> ImageType;
   typedef ImageType::IndexType IndexType;
 
+
   //Find centers for the supervoxels
   IndexType cur_index;
-  for(unsigned int z=parameter_m_s/2;z<max_z;z+=parameter_m_s)
+  for(unsigned int z=parameter_m_s/2;z<max_z;z+=parameter_m_s/spacing[2])
   {
     sliceRegion = edgesExtension->sliceRegion(z);
     /*top_left = sliceRegion.GetIndex();
     size = sliceRegion.GetSize();*/
-    for(unsigned int y=parameter_m_s/2;y<max_y;y+=parameter_m_s)
+    for(unsigned int y=parameter_m_s/2;y<max_y;y+=parameter_m_s/spacing[1])
     {
-      for(unsigned int x=parameter_m_s/2;x<max_x;x+=parameter_m_s)
+      for(unsigned int x=parameter_m_s/2;x<max_x;x+=parameter_m_s/spacing[0])
       {
         //Check if inside bounds using ChannelEdges, else skip this label
         cur_index[0] = x;
@@ -269,10 +271,13 @@ void StackSLIC::SLICComputeTask::run()
           qDebug() << QString("M_S: %1").arg(label->m_s);
           qDebug() << QString("M_C: %1").arg(label->m_c);
         }*/
-        region_size_x = region_size_y = region_size_z = region_size;
-        region_x = label->center[0] - parameter_m_s;
-        region_y = label->center[1] - parameter_m_s;
-        region_z = label->center[2] - parameter_m_s;
+        //region_size_x = region_size_y = region_size_z = region_size;
+        region_size_x = region_size / spacing[0];
+        region_size_y = region_size / spacing[1];
+        region_size_z = region_size / spacing[2];
+        region_x = label->center[0] - region_size_x/2;
+        region_y = label->center[1] - region_size_y/2;
+        region_z = label->center[2] - region_size_z/2;
         //Make sure that the region is inside the bounds of the image
         if(region_x<0)
         {
@@ -371,7 +376,7 @@ void StackSLIC::SLICComputeTask::run()
             color_distance = voxel_color-center_color;
             color_distance *= color_normalization_constant;
             color_distance *= color_distance;
-            spatial_distance = pow(cur_index[0]-label->center[0],2) + pow(cur_index[1]-label->center[1],2) + pow(cur_index[2]-label->center[2],2);
+            spatial_distance = pow((cur_index[0]-label->center[0])*spacing[0],2) + pow((cur_index[1]-label->center[1])*spacing[1],2) + pow((cur_index[2]-label->center[2])*spacing[2],2);
             distance = color_distance + label->norm_quotient * spatial_distance;
 
             //Check if voxel is closer to this supervoxel than to its current paired supervoxel
@@ -382,7 +387,7 @@ void StackSLIC::SLICComputeTask::run()
             } else {
               label_old = &labels[voxels[voxel_index]];
               distance_old = pow((voxel_color - image->GetPixel(label_old->center))*color_normalization_constant,2) + label_old->norm_quotient *
-                            (pow(cur_index[0]-label_old->center[0],2) + pow(cur_index[1]-label_old->center[1],2) + pow(cur_index[2]-label_old->center[2],2));
+                            (pow((cur_index[0]-label_old->center[0])*spacing[0],2) + pow((cur_index[1]-label_old->center[1])*spacing[1],2) + pow((cur_index[2]-label_old->center[2])*spacing[2],2));
             }
             if(distance < distance_old) {
               //if(iteration > 0 && voxels[voxel_index] != label_index) qDebug() << QString("Old: %1 New: %2").arg(distance_old).arg(distance);
@@ -438,10 +443,12 @@ void StackSLIC::SLICComputeTask::run()
         label=&labels[label_index];
         //region_size = 2.5*label->m_s;
         region_size = 2*parameter_m_s;
-        region_size_x = region_size_y = region_size_z = region_size;
-        region_x = label->center[0] - parameter_m_s;
-        region_y = label->center[1] - parameter_m_s;
-        region_z = label->center[2] - parameter_m_s;
+        region_size_x = region_size / spacing[0];
+        region_size_y = region_size / spacing[1];
+        region_size_z = region_size / spacing[2];
+        region_x = label->center[0] - region_size_x/2;
+        region_y = label->center[1] - region_size_y/2;
+        region_z = label->center[2] - region_size_z/2;
         if(region_x<0)
         {
           region_size_x+=region_x;
@@ -492,7 +499,7 @@ void StackSLIC::SLICComputeTask::run()
           sum_z = round(sum_z/sum_voxels);
           //Calculate displacement for the tolerance test
           if(tolerance > 0 && converged) {
-            spatial_distance = pow(label->center[0]-sum_x,2)+pow(label->center[1]-sum_y,2)+pow(label->center[2]-sum_z,2);
+            spatial_distance = pow((label->center[0]-sum_x)*spacing[0],2)+pow((label->center[1]-sum_y)*spacing[1],2)+pow((label->center[2]-sum_z)*spacing[2],2);
             if(spatial_distance > tolerance)
               converged = false;
           }
