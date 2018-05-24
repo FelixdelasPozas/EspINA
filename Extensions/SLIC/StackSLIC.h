@@ -28,6 +28,8 @@
 #include <Core/MultiTasking/Task.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
+class vtkUnsignedCharArray;
+
 namespace ESPINA
 {
   namespace Extensions
@@ -86,6 +88,7 @@ namespace ESPINA
         unsigned long int getSupervoxel(unsigned int x, unsigned int y, unsigned int z);
         unsigned char getSupervoxelColor(unsigned int supervoxel);
         itk::Image<unsigned char, 3>::IndexType getSupervoxelCenter(unsigned int supervoxel);
+        vtkSmartPointer<vtkUnsignedCharArray> getSliceData(unsigned int z);
 
         typedef struct Label
         {

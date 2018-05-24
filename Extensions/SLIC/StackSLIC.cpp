@@ -32,6 +32,7 @@
 #include <itkEuclideanDistanceMetric.h>
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageRegion.h"
+#include "vtkUnsignedCharArray.h"
 
 #include <limits>
 #include <math.h>
@@ -688,6 +689,30 @@ itk::Image<unsigned char, 3>::IndexType StackSLIC::getSupervoxelCenter(unsigned 
       return {0,0,0};
 
   return result.supervoxels[supervoxel].center;
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkUnsignedCharArray> StackSLIC::getSliceData(unsigned int z) {
+  //TODO: Check if SLIC is computed
+  /*if(supervoxels == NULL || supervoxel > supervoxels_size)
+    return std::numeric_limits<unsigned long int>::max();
+  //Return supervoxel center coordinates
+  return supervoxels[supervoxel*sizeof(SuperVoxel)].center;*/
+  if(!result.computed)
+    return NULL;
+
+  vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  array->SetNumberOfComponents(1);
+  array->SetNumberOfTuples(699*536*115);
+  for(int z = 0; z < 115; z++) {
+    for(int y = 0; y < 536; y++) {
+      for(int x = 0; x < 699; x++) {
+        array->SetValue(699*536*z + 699*y + x, ((x+y)%2)*255);
+      }
+    }
+  }
+
+  return array;
 }
 
 /*//--------------------------------------------------------------------

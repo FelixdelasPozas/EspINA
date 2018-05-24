@@ -29,13 +29,19 @@
 #include <vtkTextProperty.h>
 #include <vtkRenderer.h>
 #include <vtkCoordinate.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapToColors.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkPointData.h>
+#include <vtkLookupTable.h>
+#include <vtkImageMapper3D.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
 
 //--------------------------------------------------------------------
 SLICRepresentation2D::SLICRepresentation2D()
-: m_actor     {nullptr}
+: m_textActor     {nullptr}
 , m_view      {nullptr}
 , m_active    {false}
 , m_lastSlice {std::numeric_limits<double>::max()}
@@ -46,9 +52,9 @@ SLICRepresentation2D::SLICRepresentation2D()
 //--------------------------------------------------------------------
 SLICRepresentation2D::~SLICRepresentation2D()
 {
-  if(m_view) m_view->removeActor(m_actor);
+  if(m_view) m_view->removeActor(m_textActor);
 
-  m_actor = nullptr;
+  m_textActor = nullptr;
 }
 
 //--------------------------------------------------------------------
@@ -71,8 +77,9 @@ void SLICRepresentation2D::initialize(RenderView* view)
   buildVTKPipeline();
 
   // TODO: this will be needed when the real actor is computed.
-  // repositionActor(m_actor, view2d->widgetDepth(), 2);
+  repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
 
+  m_view->addActor(m_textActor);
   m_view->addActor(m_actor);
   m_view->refresh();
 }
@@ -83,7 +90,9 @@ void SLICRepresentation2D::uninitialize()
   if(m_view)
   {
     if(m_actor) m_view->removeActor(m_actor);
+    if(m_textActor) m_view->removeActor(m_textActor);
     m_view = nullptr;
+    m_textActor = nullptr;
     m_actor = nullptr;
   }
 }
@@ -96,6 +105,8 @@ void SLICRepresentation2D::show()
   if(!m_active)
   {
     m_active = true;
+    m_textActor->SetVisibility(true);
+    m_textActor->Modified();
     m_actor->SetVisibility(true);
     m_actor->Modified();
   }
@@ -109,6 +120,8 @@ void SLICRepresentation2D::hide()
   if(m_active)
   {
     m_active = false;
+    m_textActor->SetVisibility(false);
+    m_textActor->Modified();
     m_actor->SetVisibility(false);
     m_actor->Modified();
   }
@@ -159,12 +172,21 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
   // Compute SLIC for given frame and update the actor built in buildVTKPipeline...
   std::stringstream ss;
   ss << "SLIC Representation\nFrame: " << frame->crosshair[m_planeIndex] << " nanometers";
-  m_actor->SetInput(ss.str().c_str());
+  m_textActor->SetInput(ss.str().c_str());
 
-  m_actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+  m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+  m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
+  m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
+
+  m_textActor->Modified();
+
+  /*m_actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   m_actor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
-  m_actor->GetPositionCoordinate()->SetValue(.5, .5);
-
+  m_actor->GetPositionCoordinate()->SetValue(.5, .5);*/
+  m_actor->GetMapper()->BorderOn();
+  m_actor->SetOpacity(0.6);
+  m_actor->GetMapper()->SetNumberOfThreads(1);
+  m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Modified();
 }
 
@@ -176,12 +198,51 @@ void SLICRepresentation2D::buildVTKPipeline()
   // edges, and then display that data on-screen. If there is no SLIC data, build the pipeline
   // with no dada, do not update actor or enter it in the view.
 
-  m_actor = vtkSmartPointer<vtkTextActor>::New();
-  m_actor->SetPosition2(10, 40);
-  m_actor->GetTextProperty()->SetBold(true);
-  m_actor->GetTextProperty()->SetFontFamilyToArial();
-  m_actor->GetTextProperty()->SetJustificationToCentered();
-  m_actor->GetTextProperty()->SetVerticalJustificationToCentered();
-  m_actor->GetTextProperty()->SetFontSize(24);
-  m_actor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+  m_textActor = vtkSmartPointer<vtkTextActor>::New();
+  m_textActor->SetPosition2(10, 40);
+  m_textActor->GetTextProperty()->SetBold(true);
+  m_textActor->GetTextProperty()->SetFontFamilyToArial();
+  m_textActor->GetTextProperty()->SetJustificationToCentered();
+  m_textActor->GetTextProperty()->SetVerticalJustificationToCentered();
+  m_textActor->GetTextProperty()->SetFontSize(24);
+  m_textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+
+  vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  array->SetNumberOfComponents(1);
+  array->SetNumberOfTuples(699*536*115);
+  for(int z = 0; z < 115; z++) {
+    for(int y = 0; y < 536; y++) {
+      for(int x = 0; x < 699; x++) {
+        array->SetValue(699*536*z + 699*y + x, ((x+y)%2)*255);
+      }
+    }
+  }
+  vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
+  data->SetOrigin(0,0,0);
+  data->SetSpacing(1,1,2);
+  data->SetDimensions(699,536,115);
+  data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  data->GetPointData()->SetScalars(array.GetPointer());
+  auto lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetTableRange(0,255);
+  lut->SetValueRange(0.0, 1.0);
+  lut->SetAlphaRange(1.0,1.0);
+  lut->SetNumberOfColors(256);
+  lut->SetRampToLinear();
+  //lut->SetHueRange(color.hueF(), color.hueF());
+  //lut->SetSaturationRange(0.0, color.saturationF());
+  lut->Build();
+  m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_mapper->SetInputData(data);
+  m_mapper->SetLookupTable(lut);
+  m_mapper->UpdateWholeExtent();
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  m_actor->SetInterpolate(false);
+  m_actor->GetMapper()->BorderOn();
+  m_actor->GetMapper()->SetInputConnection(m_mapper->GetOutputPort());
+  m_actor->GetMapper()->SetNumberOfThreads(1);
+  m_actor->SetOpacity(0.6);
+  m_actor->GetMapper()->UpdateWholeExtent();
+  m_actor->Update();
 }

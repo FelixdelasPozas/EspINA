@@ -29,6 +29,8 @@
 #include <vtkSmartPointer.h>
 
 class vtkTextActor;
+class vtkImageActor;
+class vtkImageMapToColors;
 
 namespace ESPINA
 {
@@ -95,7 +97,9 @@ namespace ESPINA
       void buildVTKPipeline();
 
     private:
-      vtkSmartPointer<vtkTextActor> m_actor;      /** representation actor.                         */
+      vtkSmartPointer<vtkTextActor> m_textActor;  /** text representation actor.                    */
+      vtkSmartPointer<vtkImageActor> m_actor;      /** slice representation actor.                   */
+      vtkSmartPointer<vtkImageMapToColors> m_mapper;
       RenderView                   *m_view;       /** view where the representations will be shown. */
       bool                          m_active;     /** true if visible and false otherwise.          */
       Nm                            m_lastSlice;  /** position of the last slice rendered.          */
