@@ -267,37 +267,37 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
           }
           break;
         default:
-        {
-          unsigned int prioritary = 0;
-          int prioritaryIndex = -1;
-          for(auto edgeIndex: s_currentVertex->connections)
           {
-            auto otherStroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
-            if(otherStroke.useMeasure)
+            unsigned int prioritary = 0;
+            int prioritaryIndex = -1;
+            for(auto edgeIndex: s_currentVertex->connections)
             {
-              ++prioritary;
-              prioritaryIndex = edgeIndex;
-              if(prioritary > 1) break;
+              auto otherStroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
+              if(otherStroke.useMeasure)
+              {
+                ++prioritary;
+                prioritaryIndex = edgeIndex;
+                if(prioritary > 1) break;
+              }
+            }
+
+            if(prioritary == 1 && (!stroke.useMeasure || s_currentVertex->connections.size() == 2))
+            {
+              m_currentEdgeIndex = prioritaryIndex;
+              m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
+            }
+            else
+            {
+              s_skeleton.count[stroke]++;
+
+              edge.strokeIndex  = m_currentStrokeIndex;
+              edge.strokeNumber = s_skeleton.count[stroke];
+              edge.parentEdge   = prioritaryIndex;
+              s_skeleton.edges << edge;
+
+              m_currentEdgeIndex = s_skeleton.edges.indexOf(edge);
             }
           }
-
-          if(prioritary == 1 && !stroke.useMeasure)
-          {
-            m_currentEdgeIndex = prioritaryIndex;
-            m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
-          }
-          else
-          {
-            s_skeleton.count[stroke]++;
-
-            edge.strokeIndex  = m_currentStrokeIndex;
-            edge.strokeNumber = s_skeleton.count[stroke];
-            edge.parentEdge   = prioritaryIndex;
-            s_skeleton.edges << edge;
-
-            m_currentEdgeIndex = s_skeleton.edges.indexOf(edge);
-          }
-        }
           break;
       }
 
@@ -785,9 +785,11 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 
     for(auto other: node->connections.keys())
     {
+      // remove self-cycles.
       if(other == node) node->connections.remove(other);
     }
 
+    // isolated nodes to be removed.
     if(node->connections.isEmpty()) continue;
 
     if(node->flags.testFlag(SkeletonNodeProperty::TRUNCATED))
@@ -982,7 +984,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     {
       for(auto node: m_visiblePoints.keys())
       {
-        // avoid branches is possible
+        // avoid branches & current vertex if possible
         if(firstPass && (node->isBranching() || node == s_currentVertex)) continue;
 
         for(auto edge: node->connections.values())
@@ -991,7 +993,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           {
             double visiblePos[3];
             m_points->GetPoint(m_visiblePoints[node], visiblePos);
-            m_labelPoints->InsertNextPoint(visiblePos);
+            m_labelPoints->InsertNextPoint(visiblePos[0], visiblePos[1], visiblePos[2]);
 
             auto text = strokeName(s_skeleton.edges.at(edge), s_skeleton.strokes, s_skeleton.edges);
             visibleStrokes.remove(edge);
@@ -1129,8 +1131,7 @@ int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int v
   else
   {
     double worldPos[3];
-    int unused1 = 0;
-    int unused2 = 0;
+    int unused1, unused2;
     if (GetNumberOfNodes() != 0 && (FindClosestDistanceAndNode(X, Y, worldPos, unused1, unused2) <= m_tolerance))
     {
       InteractionState = vtkSkeletonWidgetRepresentation::NearContour;
@@ -1329,9 +1330,9 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 
   removeIsolatedNodes();
 
-  performPathsMerge();
-
   performSpineSplitting();
+
+  performPathsMerge();
 
   adjustStrokeNumbers(s_skeleton);
 
@@ -1985,7 +1986,7 @@ Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 //--------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::performPathsMerge()
 {
-  auto intersect = [](Path one, Path two)
+  auto intersect = [](const Path &one, const Path &two)
   {
     SkeletonNode *result = nullptr;
 
@@ -2030,16 +2031,24 @@ void vtkSkeletonWidgetRepresentation::performPathsMerge()
 
         if(!commonNode) continue;
 
+        const auto edges = commonNode->connections.values();
+
         if((path1.begin == commonNode || path1.end == commonNode) &&
            (path2.begin == commonNode || path2.end == commonNode) &&
-           (commonNode->connections.size() - 2 == 0))
+           (edges.count(path1.edge) == 1) && (edges.count(path2.edge) == 1) &&
+           (s_skeleton.edges.at(path1.edge).parentEdge != s_skeleton.edges.at(path2.edge).parentEdge))
         {
-          for (int i = 0; i < path2.seen.size() - 1; ++i)
+          for (int i = 0; i < path2.seen.size(); ++i)
           {
             auto node = path2.seen.at(i);
-            auto next = path2.seen.at(i + 1);
-            node->connections[next] = path1.edge;
-            next->connections[node] = path1.edge;
+
+            for(auto next: node->connections.keys())
+            {
+              if(node->connections[next] == path2.edge)
+              {
+                node->connections[next] = path1.edge;
+              }
+            }
           }
 
           auto &edge1 = s_skeleton.edges[path1.edge];
@@ -2122,7 +2131,10 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
       continue;
     }
 
-    if(path.stroke == subspineIndex) subspinePaths << path;
+    if(path.stroke == subspineIndex)
+    {
+      subspinePaths << path;
+    }
   }
 
   // fix spine to spine, we won't do a thing with subspine to spine.
@@ -2171,25 +2183,25 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
         s_skeleton.edges << edge1;
 
         auto edgeIndex = s_skeleton.edges.indexOf(edge1);
-        for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size(); ++i)
+        for(int i = path1.seen.indexOf(commonNode); i < path1.seen.size() - 1; ++i)
         {
-          if(i+1 == path1.seen.size()) break;
           auto node = path1.seen.at(i);
           auto next = path1.seen.at(i+1);
-          auto oldEdge = node->connections[next];
-
           node->connections[next] = edgeIndex;
-          next->connections[node] = edgeIndex;
 
-          if(next->isBranching())
+          for(auto other: next->connections.keys())
           {
-            for(auto connection: next->connections.values())
+            auto otherEdge = next->connections[other];
+            if(otherEdge == edgeIndex) continue;
+            if(otherEdge == path1.edge)
             {
-              if(connection == edgeIndex) continue;
-
-              if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+              next->connections[other] = edgeIndex;
+            }
+            else
+            {
+              if(s_skeleton.edges.at(otherEdge).parentEdge == path1.edge)
               {
-                const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+                s_skeleton.edges[otherEdge].parentEdge = edgeIndex;
               }
             }
           }
@@ -2205,25 +2217,25 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
       auto edgeIndex = s_skeleton.edges.indexOf(edge2);
       // reverse seen nodes if created from connection to branching node by the user
       if(commonNode == path2.seen.last()) std::reverse(path2.seen.begin(), path2.seen.end());
-      for(int i = path2.seen.indexOf(commonNode); i < path2.seen.size(); ++i)
+      for(int i = path2.seen.indexOf(commonNode); i < path2.seen.size() - 1; ++i)
       {
-        if(i+1 == path2.seen.size()) break;
         auto node = path2.seen.at(i);
         auto next = path2.seen.at(i+1);
-        auto oldEdge = node->connections[next];
-
         node->connections[next] = edgeIndex;
-        next->connections[node] = edgeIndex;
 
-        if(next->isBranching())
+        for(auto other: next->connections.keys())
         {
-          for(auto connection: next->connections.values())
+          auto otherEdge = next->connections[other];
+          if(otherEdge == edgeIndex) continue;
+          if(otherEdge == path2.edge)
           {
-            if(connection == edgeIndex) continue;
-
-            if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+            next->connections[other] = edgeIndex;
+          }
+          else
+          {
+            if(s_skeleton.edges.at(otherEdge).parentEdge == path2.edge)
             {
-              const_cast<SkeletonEdge &>(s_skeleton.edges.at(connection)).parentEdge = edgeIndex;
+              s_skeleton.edges[otherEdge].parentEdge = edgeIndex;
             }
           }
         }
@@ -2231,6 +2243,7 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
     }
   }
 
+  // fix spine to subspines
   visited.clear();
   for(auto &subPath: subspinePaths)
   {
@@ -2251,23 +2264,19 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
         auto edgeIndex = s_skeleton.edges.indexOf(edge);
         for(int i = 0; i < spinePath.seen.size(); ++i)
         {
-          if(i+1 == spinePath.seen.size()) break;
           auto node = spinePath.seen.at(i);
-          auto next = spinePath.seen.at(i+1);
-          auto oldEdge = node->connections[next];
-
-          node->connections[next] = edgeIndex;
-          next->connections[node] = edgeIndex;
-
-          if(next->isBranching())
+          for(auto next: node->connections.keys())
           {
-            for(auto connection: next->connections.values())
+            auto otherEdge = node->connections[next];
+            if(otherEdge == spinePath.edge)
             {
-              if(connection == edgeIndex) continue;
-
-              if(s_skeleton.edges.at(connection).parentEdge == oldEdge)
+              node->connections[next] = edgeIndex;
+            }
+            else
+            {
+              if(s_skeleton.edges.at(otherEdge).parentEdge == spinePath.edge)
               {
-                s_skeleton.edges[connection].parentEdge = edgeIndex;
+                s_skeleton.edges[otherEdge].parentEdge = edgeIndex;
               }
             }
           }

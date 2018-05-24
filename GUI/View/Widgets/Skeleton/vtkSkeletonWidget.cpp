@@ -656,7 +656,38 @@ void vtkSkeletonWidget::changeStroke(const Core::SkeletonStroke& stroke)
 {
   if(!WidgetRep) CreateDefaultRepresentation();
 
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->switchToStroke(stroke);
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+
+  int X,Y;
+  Interactor->GetEventPosition(X,Y);
+  rep->setIgnoreCursorNode(true);
+  rep->ComputeInteractionState(X,Y);
+  auto State = rep->GetInteractionState();
+  rep->setIgnoreCursorNode(false);
+
+  bool result = false;
+  switch(State)
+  {
+    case vtkSkeletonWidgetRepresentation::NearContour:
+      result = rep->AddNodeOnContour(X, Y);
+      break;
+    case vtkSkeletonWidgetRepresentation::NearPoint:
+      result = rep->TryToJoin(X, Y);
+      break;
+    default:
+      break;
+  }
+
+  if(!result)
+  {
+    rep->switchToStroke(stroke);
+  }
+
+  if (WidgetRep->GetNeedToRender())
+  {
+    Render();
+    WidgetRep->NeedToRenderOff();
+  }
 }
 
 //-----------------------------------------------------------------------------
