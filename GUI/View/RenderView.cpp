@@ -808,3 +808,25 @@ void RenderView::keyReleaseEvent(QKeyEvent* event)
 {
   if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
 }
+
+//-----------------------------------------------------------------------------
+void RenderView::shutdownAndRemoveManagers()
+{
+  for(auto manager: m_managers)
+  {
+    manager->shutdown();
+  }
+  m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    manager->shutdown();
+  }
+  m_temporalManagers.clear();
+
+  for(auto manager: m_inactiveManagers)
+  {
+    manager->shutdown();
+  }
+  m_inactiveManagers.clear();
+}

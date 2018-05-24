@@ -419,6 +419,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     return;
   }
 
+  cancelOperation();
+
   m_view.reset();
 
   removeTemporalDirectory(m_settings->temporalPath());

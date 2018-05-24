@@ -292,6 +292,8 @@ namespace ESPINA
 
     bool eventHandlerFilterEvent(QEvent *event);
 
+    virtual void shutdownAndRemoveManagers();
+
   private:
     /** \brief Renders the last frame in all the managers.
      * \param[in] frame frame to render
@@ -350,15 +352,17 @@ namespace ESPINA
     void delayedWidgetsShow();
 
   protected:
-    ContextualMenuSPtr                               m_contextMenu;
-    QVTKWidget                                      *m_view;
-    GUI::Representations::RepresentationManagerSList m_managers;
-    unsigned int                                     m_lastFrameActiveManagers;
-
-  private:
     using TempPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
     using ReprManagerSPtr    = GUI::Representations::RepresentationManagerSPtr;
 
+    ContextualMenuSPtr                               m_contextMenu;             /** context menu or nullptr if none.                 */
+    QVTKWidget                                      *m_view;                    /** VTK view.                                        */
+    GUI::Representations::RepresentationManagerSList m_managers;                /** factory<->managers for representations.          */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_temporalManagers;        /** factory<->managers for temporal representations. */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_inactiveManagers;        /** factory<->managers to be removed on next frame.  */
+    unsigned int                                     m_lastFrameActiveManagers; /** number of active managers last frame.            */
+
+  private:
     /** \brief vtkImageData to QImage conversion.
      * \param[in] image vtkImageData object pointer.
      *
@@ -369,8 +373,6 @@ namespace ESPINA
     GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                         */
     ViewType                                  m_type;             /** type of view: 2D/3D.                            */
     GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                          */
-    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations.         */
-    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_inactiveManagers; /** factory<->managers to be removed on next frame. */
   };
 
 } // namespace ESPINA

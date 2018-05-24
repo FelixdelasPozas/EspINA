@@ -90,6 +90,8 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QW
 //-----------------------------------------------------------------------------
 View3D::~View3D()
 {
+  shutdownAndRemoveManagers();
+
   mainRenderer()->RemoveAllViewProps();
 }
 
