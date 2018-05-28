@@ -190,8 +190,11 @@ namespace ESPINA
     bool releaseFlag = volume->GetReleaseDataFlag();
     volume->ReleaseDataFlagOff();
 
+    const QString utfFilename = filename.toUtf8();
+    const QString asciiFilename = utfFilename.toAscii();
+
     auto writer = itk::ImageFileWriter<T>::New();
-    writer->SetFileName(filename.toUtf8().data());
+    writer->SetFileName(asciiFilename.toStdString());
     writer->SetInput(volume);
     writer->Write();
     volume->SetReleaseDataFlag(releaseFlag);
@@ -216,8 +219,11 @@ namespace ESPINA
     bool releaseFlag = volume->GetReleaseDataFlag();
     volume->ReleaseDataFlagOff();
 
+    const QString utfFilename = path.toUtf8();
+    const QString asciiFilename = utfFilename.toAscii();
+
     auto writer = itk::ImageFileWriter<T>::New();
-    writer->SetFileName(path.toUtf8().data());
+    writer->SetFileName(asciiFilename.toStdString());
     writer->SetInput(volume);
 
     if(task != nullptr)
@@ -274,9 +280,11 @@ namespace ESPINA
   template<typename T>
   typename T::Pointer readVolume(const QString &filename)
   {
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(filename.toUtf8().constData(), itk::ImageIOFactory::ReadMode);
+    const QString utfFilename = filename.toUtf8();
+    const QString asciiFilename = utfFilename.toAscii();
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(filename.toUtf8().constData());
+    imageIO->SetFileName(asciiFilename.toStdString());
     imageIO->ReadImageInformation();
 
     if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
@@ -289,7 +297,7 @@ namespace ESPINA
 
     auto reader = itk::ImageFileReader<T>::New();
     reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(filename.toUtf8().data());
+    reader->SetFileName(asciiFilename.toStdString());
     reader->SetImageIO(imageIO);
     reader->UseStreamingOff();
     reader->SetNumberOfThreads(1);
@@ -313,9 +321,11 @@ namespace ESPINA
 
     std::shared_ptr<ReporterType> reporter = nullptr;
 
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(filename.toUtf8().constData(), itk::ImageIOFactory::ReadMode);
+    const QString utfFilename = filename.toUtf8();
+    const QString asciiFilename = utfFilename.toAscii();
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(filename.toUtf8().constData());
+    imageIO->SetFileName(asciiFilename.toStdString());
     imageIO->ReadImageInformation();
 
     if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
@@ -328,7 +338,7 @@ namespace ESPINA
 
     auto reader = ReaderType::New();
     reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(filename.toUtf8().constData());
+    reader->SetFileName(asciiFilename.toStdString());
     reader->SetImageIO(imageIO);
     reader->UseStreamingOff();
     reader->SetNumberOfThreads(1);

@@ -403,12 +403,15 @@ void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
-  auto undoStack = getUndoStack();
-  undoStack->beginMacro(tr("Delete Segmentations"));
-  undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
-  undoStack->endMacro();
+  if(!m_segmentations.isEmpty())
+  {
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro(tr("Delete Segmentations"));
+    undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
+    undoStack->endMacro();
 
-  emit deleteSegmentations();
+    emit deleteSegmentations();
+  }
 }
 
 //------------------------------------------------------------------------

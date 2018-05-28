@@ -187,10 +187,13 @@ namespace ESPINA
 
       if(fileName.exists())
       {
+        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
+        const QString asciiFilename = utfFilename.toAscii();
+
         // discards region, spacing and length parameters
         auto reader = itk::ImageFileReader<T>::New();
         reader->ReleaseDataFlagOn();
-        reader->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
+        reader->SetFileName(asciiFilename.toStdString());
         reader->SetNumberOfThreads(1);
         reader->UpdateOutputInformation();
 
@@ -265,8 +268,11 @@ namespace ESPINA
         image->Allocate();
         image->Update();
 
+        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
+        const QString asciiFilename = utfFilename.toAscii();
+
         auto writer = itk::ImageFileWriter<T>::New();
-        writer->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
+        writer->SetFileName(asciiFilename.toStdString());
         writer->SetInput(image);
         writer->SetImageIO(itk::MetaImageIO::New());
         writer->Update();

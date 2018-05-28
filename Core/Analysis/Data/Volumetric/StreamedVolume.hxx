@@ -202,9 +202,12 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
+      const QString utfFilename = fileName.absoluteFilePath().toUtf8();
+      const QString asciiFilename = utfFilename.toAscii();
+
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.absoluteFilePath().toUtf8().data());
+      reader->SetFileName(asciiFilename.toStdString());
       reader->UseStreamingOff();
       reader->SetNumberOfThreads(1);
       reader->UpdateOutputInformation();
@@ -308,11 +311,14 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
+      const QString utfFilename = m_fileName.absoluteFilePath().toUtf8();
+      const QString asciiFilename = utfFilename.toAscii();
+
       QReadLocker lock(&this->m_lock);
 
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.absoluteFilePath().toStdString());
+      reader->SetFileName(asciiFilename.toStdString());
       reader->SetUseStreaming(false);
       reader->SetNumberOfThreads(1);
       reader->Update();
@@ -446,9 +452,12 @@ namespace ESPINA
         requestedRegion.SetIndex(i, requestedRegion.GetIndex(i)-m_region.GetIndex(i));
       }
 
+      const QString utfFilename = m_fileName.absoluteFilePath().toUtf8();
+      const QString asciiFilename = utfFilename.toAscii();
+
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
-      reader->SetFileName(m_fileName.absoluteFilePath().toStdString());
+      reader->SetFileName(asciiFilename.toStdString());
       reader->SetNumberOfThreads(1);
       reader->UpdateOutputInformation();
 

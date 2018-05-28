@@ -64,10 +64,13 @@ QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
 }
 
 //------------------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName)
+vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const QString &fileName)
 {
+  const QString utfFilename = fileName.toUtf8();
+  const QString asciiFilename = utfFilename.toAscii();
+
   auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-  reader->SetFileName(fileName.toUtf8());
+  reader->SetFileName(asciiFilename.toStdString().c_str());
   reader->SetReadAllFields(true);
   reader->Update();
 
