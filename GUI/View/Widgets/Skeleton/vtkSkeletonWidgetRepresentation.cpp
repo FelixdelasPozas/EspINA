@@ -1978,7 +1978,7 @@ const Core::PathList vtkSkeletonWidgetRepresentation::currentSelectedPaths(const
 //--------------------------------------------------------------------
 Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 {
-  Q_ASSERT(m_currentStrokeIndex >= 0);
+  Q_ASSERT(m_currentStrokeIndex >= 0 && !s_skeleton.strokes.isEmpty());
 
   return s_skeleton.strokes.at(m_currentStrokeIndex);
 }

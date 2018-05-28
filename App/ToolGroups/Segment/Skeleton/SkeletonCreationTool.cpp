@@ -585,10 +585,14 @@ void SkeletonCreationTool::onNextButtonPressed()
 {
   if(m_item && m_item != getActiveChannel())
   {
+    auto category = m_categorySelector->selectedCategory();
+    auto stroke = STROKES[category->classificationName()].at(m_strokeCombo->currentIndex());
+
     for(auto widget: m_skeletonWidgets)
     {
       widget->stop();
       widget->initialize(nullptr);
+      widget->setStroke(stroke);
     }
 
     for(auto widget: m_pointWidgets)
