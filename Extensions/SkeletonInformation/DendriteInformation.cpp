@@ -256,7 +256,7 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
       {
         if(child->path.hasEndingPoint(connection.point))
         {
-          if(child->path.note.startsWith("Synapse on neck", Qt::CaseInsensitive))
+          if(child->path.note.startsWith("Synapse on spine neck", Qt::CaseInsensitive))
           {
             auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
             if(seg->category()->name().startsWith("Asy", Qt::CaseInsensitive)) ++numANeck;
