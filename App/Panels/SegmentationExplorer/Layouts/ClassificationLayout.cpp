@@ -20,7 +20,10 @@
 
 // ESPINA
 #include <Dialogs/HueSelector/HueSelector.h>
+#include <Dialogs/CreateCategoryDialog/CreateCategoryDialog.h>
 #include "ClassificationLayout.h"
+#include <Core/Utils/Vector3.hxx>
+#include <Core/Analysis/Category.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
@@ -39,7 +42,13 @@
 #include <QColorDialog>
 #include <QItemDelegate>
 
+// C++
+#include <random>
+#include <chrono>
+
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
@@ -113,6 +122,12 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
       m_undoStack->beginMacro(tr("Rename Category"));
       m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
       m_undoStack->endMacro();
+    }
+    else
+    {
+      auto message = tr("There is already a category at the same level with the name '%1'").arg(name);
+      auto title   = tr("Rename Category");
+      GUI::DefaultDialogs::ErrorMessage(message, title);
     }
   }
 }
@@ -456,46 +471,29 @@ QItemDelegate *ClassificationLayout::itemDelegate() const
 //------------------------------------------------------------------------
 void ClassificationLayout::createCategory()
 {
-  ItemAdapterPtr categoryItem = nullptr;
+  auto model          = getModel();
+  auto parentCategory = toCategoryAdapterPtr(model->classification()->root().get());
 
-  auto model        = getModel();
-  auto currentIndex = m_view->currentIndex();
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::minstd_rand0 rngenerator(seed);
+  auto color = QColor::fromHsv(rngenerator() % 360, 255,255);
 
-  if (currentIndex.isValid())
+  auto name = uniqueCategoryName(parentCategory, "New Category");
+
+  CreateCategoryDialog dialog;
+  dialog.setWindowTitle(tr("Create New Category"));
+  dialog.setOperationText(tr("Create a new root category:"));
+  dialog.setCategoryName(name);
+  dialog.setColor(color);
+  dialog.setROI(Vector3<long long>{500,500,500});
+
+  if(QDialog::Accepted == dialog.exec())
   {
-    categoryItem = item(currentIndex);
-  }
-  else
-  {
-    Q_ASSERT(model->classification());
-    Q_ASSERT(model->classification()->root());
-    categoryItem = model->classification()->root().get();
-  }
-
-  Q_ASSERT(categoryItem);
-
-  if (isCategory(categoryItem))
-  {
-    auto selectedCategory = toCategoryAdapterPtr(categoryItem);
-    auto parentCategory   = selectedCategory->parent();
-
-    // Check if we are adding a first level category
-    if (!parentCategory)
-    {
-      parentCategory = selectedCategory;
-    }
-
-    QString name = tr("New Category");
-    int i = 1;
-
-    while(parentCategory->subCategory(name))
-    {
-      name = tr("New Category-%1").arg(++i);
-    }
+    name = uniqueCategoryName(parentCategory, dialog.categoryName());
 
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Create Category"));
-    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
+    undoStack->beginMacro(tr("Create Category %1").arg(name));
+    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
     undoStack->endMacro();
   }
 }
@@ -511,21 +509,39 @@ void ClassificationLayout::createSubCategory()
 
   if (isCategory(categorytItem))
   {
-    QString name = tr("New Category");
-    int i = 1;
-
     auto category = toCategoryAdapterPtr(categorytItem);
+    auto name     = uniqueCategoryName(category, tr("New Category"));
+    auto model    = getModel();
 
-    while(category->subCategory(name) != nullptr)
+    CreateCategoryDialog dialog;
+    dialog.setWindowTitle(tr("Create New Sub-category"));
+    dialog.setOperationText(tr("Create a new sub-category of '%1':").arg(category->name()));
+    dialog.setCategoryName(name);
+    dialog.setColor(category->color());
+
+    bool ok1, ok2, ok3;
+    long long xSize = category->property(Category::DIM_X()).toLongLong(&ok1);
+    long long ySize = category->property(Category::DIM_Y()).toLongLong(&ok2);
+    long long zSize = category->property(Category::DIM_Z()).toLongLong(&ok3);
+
+    if (ok1 && ok2 && ok3 && (xSize > 0) && (ySize > 0) && (zSize > 0))
     {
-      name = tr("New Category-%1").arg(++i);
+      dialog.setROI(Vector3<long long>{xSize,ySize,zSize});
+    }
+    else
+    {
+      dialog.setROI(Vector3<long long>{500,500,500});
     }
 
-    auto undoStack = getUndoStack();
+    if(QDialog::Accepted == dialog.exec())
+    {
+      name = uniqueCategoryName(category, dialog.categoryName());
 
-    undoStack->beginMacro(tr("Create Category"));
-    undoStack->push(new AddCategoryCommand(getModel()->smartPointer(category), name, getModel(), category->color()));
-    undoStack->endMacro();
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Create Sub-category %1 of category %2").arg(name).arg(category->name()));
+      undoStack->push(new AddCategoryCommand(model->smartPointer(category), name, model, dialog.categoryColor(), dialog.ROI()));
+      undoStack->endMacro();
+    }
   }
 }
 
@@ -851,4 +867,19 @@ void ClassificationLayout::displayCurrentIndex()
   {
     selectionModel->setCurrentIndex(selection.first(), QItemSelectionModel::Select);
   }
+}
+
+//------------------------------------------------------------------------
+const QString ClassificationLayout::uniqueCategoryName(const CategoryAdapterPtr category, const QString& suggested)
+{
+  Q_ASSERT(category);
+
+  int i = 1;
+  auto unique = suggested;
+  while (category->subCategory(unique))
+  {
+    unique = suggested + tr("-%1").arg(++i);
+  }
+
+  return unique;
 }

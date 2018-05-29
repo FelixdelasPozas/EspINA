@@ -213,7 +213,9 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
     {
       auto name = node->path.note;
       if(name.startsWith("Spine", Qt::CaseInsensitive) || name.startsWith("Subspine", Qt::CaseInsensitive) || hasBranches(node->children))
+      {
         return true;
+      }
     }
 
     return false;
@@ -593,7 +595,7 @@ void DendriteSkeletonInformation::updateInformation() const
   }
 }
 
-//-------------------------------------------------------- ------------
+//---------------------------------------------------------------------
 const QList<struct DendriteSkeletonInformation::SpineInformation> DendriteSkeletonInformation::spinesInformation() const
 {
   if(m_extendedItem && !isReady(createKey(DENDRITE_SHAFT_LENGTH)))

@@ -247,6 +247,13 @@ namespace ESPINA
       void displayCurrentIndex();
 
     private:
+      /** \brief Helper method that returns a name with no collisions in the parent sub-categories.
+       * \param[in] category Category adapter pointer.
+       * \param[in] suggested Suggested category name.
+       *
+       */
+      const QString uniqueCategoryName(const CategoryAdapterPtr category, const QString &suggested);
+
       std::shared_ptr<ClassificationProxy> m_proxy;                 /** proxy model.                              */
       std::shared_ptr<SortFilter>          m_sort;                  /** model filter and sorter.                  */
       CategoryItemDelegate                *m_delegate;              /** delegate item for categories.             */

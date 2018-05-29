@@ -23,6 +23,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
   Dialogs/ConnectionCount/ConnectionCountDialog.h
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.h
   Dialogs/CustomFileOpenDialog/CustomFileDialog.h
   Dialogs/CustomFileOpenDialog/OptionsPanel.h
   Dialogs/StackInspector/StackInspector.h
@@ -107,6 +108,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ConnectionCount/ConnectionCountDialog.ui
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.ui
   Dialogs/CustomFileOpenDialog/OptionsPanel.ui
   Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
@@ -148,6 +150,7 @@ set (ESPINA_SOURCES
   Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
   Dialogs/ConnectionCount/ConnectionCountDialog.cpp
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.cpp
   Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
   Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
   Dialogs/StackInspector/StackInspector.cpp
