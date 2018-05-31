@@ -30,22 +30,6 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::ROI;
 
-class RestrictToolGroup::DefineOrthogonalROICommand
-: public QUndoCommand
-{
-public:
-  explicit DefineOrthogonalROICommand(ROISPtr roi, RestrictToolGroup *tool);
-
-  virtual void redo() override;
-
-  virtual void undo() override;
-
-private:
-  ROISPtr            m_ROI;
-  RestrictToolGroup *m_tool;
-  ROISPtr            m_prevROI;
-};
-
 //-----------------------------------------------------------------------------
 RestrictToolGroup::DefineOrthogonalROICommand::DefineOrthogonalROICommand(ROISPtr roi, RestrictToolGroup* tool)
 : m_ROI(roi)
@@ -196,7 +180,6 @@ RestrictToolGroup::RestrictToolGroup(ROISettings *settings, Support::Context &co
 , m_freehandROI  {new FreehandROITool(context, this)}
 , m_orthogonalROI{new OrthogonalROITool(settings, context, this)}
 , m_deleteROI    {new DeleteROITool(context, this)}
-, m_enabled      {true}
 , m_visible      {true}
 , m_color        {Qt::yellow}
 {
@@ -377,11 +360,11 @@ void RestrictToolGroup::undoStackPush(QUndoCommand *command)
 
   if(hasValidROI())
   {
-    undoStack->beginMacro(tr("Modify ROI"));
+    undoStack->beginMacro(tr("Modify ROI."));
   }
   else
   {
-    undoStack->beginMacro(tr("Create ROI"));
+    undoStack->beginMacro(tr("Create ROI."));
   }
   undoStack->push(command);
   undoStack->endMacro();

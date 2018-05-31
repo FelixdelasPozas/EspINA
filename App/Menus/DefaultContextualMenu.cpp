@@ -26,6 +26,7 @@
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/ChangeSegmentationNotes.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
@@ -55,6 +56,7 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
@@ -110,8 +112,9 @@ void DefaultContextualMenu::addNote()
   if (!commands.isEmpty())
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(m_segmentations);
 
-    undoStack->beginMacro(tr("Add Notes"));
+    undoStack->beginMacro(tr("Add notes to %1.").arg(names));
     for (auto command : commands)
     {
       undoStack->push(command);
@@ -130,10 +133,10 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
    CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
 
    auto undoStack = getUndoStack();
-   undoStack->beginMacro(tr("Change Category"));
-   {
-     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, getContext()));
-   }
+   auto names     = segmentationListNames(m_segmentations);
+
+   undoStack->beginMacro(tr("Change segmentations to category '%1': %2.").arg(categoryAdapter->name()).arg(names));
+   undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, getContext()));
    undoStack->endMacro();
 
    emit changeCategory(categoryAdapter);
@@ -154,15 +157,15 @@ void DefaultContextualMenu::resetRootItem()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
-  auto renameTitle = tr("Rename Segmentation");
-
   QMap<SegmentationAdapterPtr, QString> renames;
+  QString names;
 
   for (auto segmentation : m_segmentations)
   {
     bool result = false;
-    QString oldName = segmentation->data().toString();
-    QString newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, renameTitle, QLineEdit::Normal, oldName, &result);
+    auto oldName = segmentation->data().toString();
+    auto newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, tr("Rename segmentation"), QLineEdit::Normal, oldName, &result);
+    QString prefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
 
     if(!result) continue;
 
@@ -174,7 +177,7 @@ void DefaultContextualMenu::renameSegmentation()
 
     if (exists)
     {
-      auto title   = tr("Alias duplicated");
+      auto title   = tr("Name duplicated");
       auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
       auto buttons = QMessageBox::Abort|QMessageBox::Discard;
 
@@ -188,6 +191,7 @@ void DefaultContextualMenu::renameSegmentation()
       if(oldName != newName)
       {
         renames[segmentation] = newName;
+        names += tr("%1'%2' to '%3'").arg(prefix).arg(oldName).arg(newName);
       }
     }
   }
@@ -195,7 +199,7 @@ void DefaultContextualMenu::renameSegmentation()
   if (renames.size() != 0)
   {
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(renameTitle);
+    undoStack->beginMacro(tr("Rename segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
   }
@@ -204,8 +208,7 @@ void DefaultContextualMenu::renameSegmentation()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentationGroup()
 {
-  auto renameTitle = tr("Rename Segmentations Group");
-
+  QString names;
   QMap<SegmentationAdapterPtr, QString> renames;
   auto hint = m_segmentations.first()->data().toString();
 
@@ -225,9 +228,10 @@ void DefaultContextualMenu::renameSegmentationGroup()
 
   for (auto segmentation : m_segmentations)
   {
-    QString oldName = segmentation->data().toString();
-    auto numIndex = regExpr.indexIn(oldName);
-    auto newName = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    QString oldName  = segmentation->data().toString();
+    auto numIndex    = regExpr.indexIn(oldName);
+    auto newName     = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    auto namesPrefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
@@ -249,13 +253,14 @@ void DefaultContextualMenu::renameSegmentationGroup()
     else
     {
       renames.insert(segmentation, newName);
+      names += tr("%1'%2' to '%3'").arg(namesPrefix).arg(segmentation->data().toString()).arg(newName);
     }
   }
 
   if (renames.size() != 0)
   {
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(renameTitle);
+    undoStack->beginMacro(tr("Rename segmentations group: %1.").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
   }
@@ -406,7 +411,8 @@ void DefaultContextualMenu::deleteSelectedSementations()
   if(!m_segmentations.isEmpty())
   {
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Delete Segmentations"));
+    auto names     = segmentationListNames(m_segmentations);
+    undoStack->beginMacro(tr("Delete segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
     undoStack->endMacro();
 

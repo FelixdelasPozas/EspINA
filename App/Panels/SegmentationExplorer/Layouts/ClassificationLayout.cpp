@@ -28,13 +28,14 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
 #include <Undo/ChangeCategoryColorCommand.h>
-#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <Undo/RemoveSegmentations.h>
 
 // Qt
 #include <QMessageBox>
@@ -119,7 +120,7 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
 
     if (!category->parent()->subCategory(name))
     {
-      m_undoStack->beginMacro(tr("Rename Category"));
+      m_undoStack->beginMacro(tr("Rename category '%1' to '%2'.").arg(category->name()).arg(name));
       m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
       m_undoStack->endMacro();
     }
@@ -336,6 +337,17 @@ void ClassificationLayout::deleteSelectedItems()
 
     categories << additionalCategories;
 
+    QString categoriesNameListText;
+    for(int i = 0; i < categories.size(); ++i)
+    {
+      if(i != 0)
+      {
+        categoriesNameListText += (i != categories.size() -1 ? ", ": " and ");
+      }
+      categoriesNameListText += "'" + categories.at(i)->name() + "'";
+    }
+
+    auto model = getModel();
     if (!segmentations.isEmpty())
     {
       QMessageBox msg;
@@ -371,10 +383,9 @@ void ClassificationLayout::deleteSelectedItems()
       if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
       {
         auto undoStack = getUndoStack();
-        undoStack->beginMacro(tr("Remove Categories"));
+        undoStack->beginMacro(tr("Remove categor%1 %2.").arg(categories.size() > 1 ? "ies":"y").arg(categoriesNameListText));
         for(auto category : categories)
         {
-          auto model = getModel();
           if (model->classification()->category(category->classificationName()))
           {
             undoStack->push(new RemoveCategoryCommand(category, model));
@@ -388,15 +399,15 @@ void ClassificationLayout::deleteSelectedItems()
     auto undoStack = getUndoStack();
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    undoStack->beginMacro(tr("Remove Categories and Segmentations"));
+    auto macroText = tr("Remove categor%1 %2 and its segmentations.").arg(categories.size() > 1 ? "ies":"y").arg(categoriesNameListText);
+    undoStack->beginMacro(macroText);
     if(!segmentations.empty())
     {
-      deleteSegmentations(segmentations.toList());
+      undoStack->push(new RemoveSegmentations(segmentations.toList(), model));
     }
 
     for(auto category : categories)
     {
-      auto model = getModel();
       if (model->classification()->category(category->classificationName()))
       {
         undoStack->push(new RemoveCategoryCommand(category, model));
@@ -492,7 +503,7 @@ void ClassificationLayout::createCategory()
     name = uniqueCategoryName(parentCategory, dialog.categoryName());
 
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Create Category %1").arg(name));
+    undoStack->beginMacro(tr("Create category '%1'.").arg(name));
     undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
     undoStack->endMacro();
   }
@@ -538,7 +549,7 @@ void ClassificationLayout::createSubCategory()
       name = uniqueCategoryName(category, dialog.categoryName());
 
       auto undoStack = getUndoStack();
-      undoStack->beginMacro(tr("Create Sub-category %1 of category %2").arg(name).arg(category->name()));
+      undoStack->beginMacro(tr("Create sub-category '%1' of category '%2'.").arg(name).arg(category->name()));
       undoStack->push(new AddCategoryCommand(model->smartPointer(category), name, model, dialog.categoryColor(), dialog.ROI()));
       undoStack->endMacro();
     }
@@ -552,8 +563,9 @@ void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmen
   if(!segmentations.empty() && category != nullptr)
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(segmentations);
 
-    undoStack->beginMacro(tr("Change Segmentation's Category"));
+    undoStack->beginMacro(tr("Change segmentation%1 category to '%2': %3.").arg(segmentations.size() > 1 ? "s":"").arg(category->name()).arg(names));
     undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
     undoStack->endMacro();
   }
@@ -586,8 +598,18 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 
   if (!validSubCategories.isEmpty())
   {
+    QString categoryNames;
+    for(auto cat: validSubCategories)
+    {
+      if(cat != validSubCategories.first())
+      {
+        categoryNames += (cat != validSubCategories.last() ? ", ":" and ");
+      }
+      categoryNames += "'" + cat->name() + "'";
+    }
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Modify Classification"));
+    undoStack->beginMacro(tr("Re-parent categor%1 to category '%2': %3.").arg(validSubCategories.size() > 1 ? "ies":"y").arg(category->name()).arg(categoryNames));
     undoStack->push(new ReparentCategoryCommand(validSubCategories, category, getModel()));
     undoStack->endMacro();
   }
@@ -631,7 +653,8 @@ void ClassificationLayout::changeCategoryColor()
     if(hueSelector.exec() == QDialog::Accepted)
     {
       auto undoStack = getUndoStack();
-      undoStack->beginMacro(tr("Change category color"));
+      auto hueValue  = hueSelector.hueValue();
+      undoStack->beginMacro(tr("Change category '%1' color to RGB %2.").arg(category->name()).arg(QColor::fromHsv(hueValue,255,255).name()));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
                                                      getViewState(),
                                                      category,

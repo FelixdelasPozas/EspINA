@@ -19,15 +19,17 @@
 
 // ESPINA
 #include "ImageLogicTool.h"
-#include <Undo/RemoveSegmentations.h>
-#include <Undo/AddSegmentations.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
 #include "EditToolGroup.h"
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/ModelUtils.h>
+#include <Undo/AddSegmentations.h>
+#include <Undo/RemoveSegmentations.h>
 
 // Qt
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
@@ -72,13 +74,13 @@ void ImageLogicTool::applyFilter()
   Q_ASSERT(segmentations.size() > 1);
 
   auto type        = EditionFilterFactory::ADDITION_FILTER;
-  auto description = tr("Segmentation addition");
+  auto description = tr("Segmentation addition.");
   auto remove      = true;
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
     type        = EditionFilterFactory::SUBTRACTION_FILTER;
-    description = tr("Segmentation subtraction");
+    description = tr("Segmentation subtraction.");
     remove      = m_removeOnSubtract;
   }
 
@@ -130,17 +132,22 @@ void ImageLogicTool::onTaskFinished()
     auto segmentation = getFactory()->createSegmentation(taskContext.Task, 0);
 
     segmentation->setCategory(taskContext.Segmentations.first()->category());
+    segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
 
-    undoStack->beginMacro(filter->description());
-    undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
-
     SegmentationAdapterList segmentationList;
+    QString opSegmentations;
 
     for(auto item: taskContext.Segmentations)
     {
       item->setBeingModified(false);
+
+      if(item != taskContext.Segmentations.first())
+      {
+        opSegmentations += (item == taskContext.Segmentations.last() ? " and ": ", ");
+      }
+      opSegmentations += "'" + item->data().toString() + "'";
 
       if(!taskContext.Remove && (item != taskContext.Segmentations.first()))
       {
@@ -150,6 +157,12 @@ void ImageLogicTool::onTaskFinished()
       segmentationList << item;
     }
 
+    auto macroText = tr("Add segmentation '%1' from the %2 of %3.").arg(segmentation->data().toString())
+                     .arg(taskContext.Operation == ImageLogicFilter::Operation::SUBTRACTION ? "subtraction" : "addition")
+                     .arg(opSegmentations);
+
+    undoStack->beginMacro(macroText);
+    undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
     undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
     undoStack->endMacro();
 

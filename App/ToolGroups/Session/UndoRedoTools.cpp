@@ -27,6 +27,8 @@
 
 using namespace ESPINA;
 
+const QString ELLIPSIS{"..."};
+
 //----------------------------------------------------------------------------
 UndoRedoTool::UndoRedoTool(Support::Context &context, const QString &id, const QIcon &icon, const QString &tooltip)
 : ProgressTool   (id, icon, tooltip, context)
@@ -48,7 +50,10 @@ void UndoRedoTool::stateChanged(bool value)
 //----------------------------------------------------------------------------
 void UndoRedoTool::textChanged(const QString &text)
 {
-  setToolTip(m_tooltipPrefix + text);
+  auto tooltip = m_tooltipPrefix + text;
+  if(tooltip.length() > 150) tooltip = tooltip.left(147) + ELLIPSIS;
+
+  setToolTip(tooltip);
 }
 
 //----------------------------------------------------------------------------

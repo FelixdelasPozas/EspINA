@@ -25,6 +25,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <Filters/SplitFilter.h>
 #include <Filters/Utils/Stencil.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
@@ -55,6 +56,7 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Filters::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
@@ -336,8 +338,10 @@ void SplitTool::createSegmentations()
   {
     if (filter->numberOfOutputs() == 2)
     {
-      auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
+      auto sample   = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
       auto category = m_executingTasks.value(filter).segmentation->category();
+      auto model    = getModel();
+      auto number   = firstUnusedSegmentationNumber(model);
 
       SegmentationAdapterList  segmentations;
       SegmentationAdapterSList segmentationsList;
@@ -346,15 +350,19 @@ void SplitTool::createSegmentations()
       {
         auto segmentation  = getFactory()->createSegmentation(m_executingTasks[filter].filter, i);
         segmentation->setCategory(category);
+        segmentation->setNumber(number++);
 
         segmentationsList << segmentation;
         segmentations << segmentation.get();
       }
 
-      auto undoStack = getUndoStack();
-      undoStack->beginMacro("Split Segmentation");
-      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), getModel()));
-      undoStack->push(new AddSegmentations(segmentationsList, sample, getModel()));
+      auto undoStack        = getUndoStack();
+      auto segmentation     = m_executingTasks[filter].segmentation.get();
+      auto newSegmentation1 = segmentationsList.first()->data().toString();
+      auto newSegmentation2 = segmentationsList.last()->data().toString();
+      undoStack->beginMacro(tr("Split segmentation '%1' into '%2' and '%3'.").arg(segmentation->data().toString()).arg(newSegmentation1).arg(newSegmentation2));
+      undoStack->push(new RemoveSegmentations(segmentation, model));
+      undoStack->push(new AddSegmentations(segmentationsList, sample, model));
       undoStack->endMacro();
 
       deactivateEventHandler();

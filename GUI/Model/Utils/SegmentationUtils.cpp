@@ -32,6 +32,7 @@
 #include <vtkDoubleArray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ItemAdapterPtr item)
@@ -151,4 +152,27 @@ SegmentationAdapterSPtr ESPINA::GUI::Model::Utils::dendriteOf(const Segmentation
   }
 
   return result;
+}
+
+//------------------------------------------------------------------------
+const QString ESPINA::GUI::Model::Utils::segmentationListNames(const SegmentationAdapterList& list)
+{
+  QString result;
+  for(auto segmentation: list)
+  {
+    if(segmentation != list.first())
+    {
+      result += (segmentation != list.last() ? ", ":" and ");
+    }
+
+    result += "'" + segmentation->data(Qt::DisplayRole).toString() + "'";
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+const QString ESPINA::GUI::Model::Utils::segmentationListNames(const SegmentationAdapterSList& list)
+{
+  return segmentationListNames(rawList(list));
 }

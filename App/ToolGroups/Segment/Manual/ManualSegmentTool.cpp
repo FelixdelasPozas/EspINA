@@ -29,6 +29,7 @@
 #include <Core/Analysis/Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -50,6 +51,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Model::Utils;
@@ -256,7 +258,9 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   filter->addOutputData(0, mesh);
 
   auto segmentation = m_factory->createSegmentation(filter, 0);
-  segmentation->setCategory(m_drawingWidget.selectedCategory());
+  auto category     = m_drawingWidget.selectedCategory();
+  segmentation->setCategory(category);
+  segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
   SampleAdapterSList samples;
   samples << QueryAdapter::sample(channel);
@@ -264,7 +268,7 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 
   auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Add Segmentation"));
+  undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
   undoStack->push(new AddSegmentations(segmentation, samples, m_model));
   undoStack->endMacro();
 
@@ -279,9 +283,12 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   clearTemporalPipeline();
 
-  auto undoStack = getUndoStack();
-  undoStack->beginMacro(tr("Modify Segmentation"));
-  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
+  auto undoStack    = getUndoStack();
+  auto segmentation = referenceSegmentation();
+  auto bounds       = mask->bounds().bounds().toString();
+  auto mode         = mask->foregroundValue() == SEG_VOXEL_VALUE ? "Paint":"Erase";
+  undoStack->beginMacro(tr("%1 segmentation '%2' in bounds %3.").arg(mode).arg(segmentation->data().toString()).arg(bounds));
+  undoStack->push(new DrawUndoCommand(segmentation, mask));
   undoStack->endMacro();
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
@@ -488,7 +495,7 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
     undoStack->undo();
     undoStack->blockSignals(false);
 
-    undoStack->beginMacro(tr("Remove Segmentation"));
+    undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(name));
     undoStack->push(new RemoveSegmentations(segmentation, getModel()));
     undoStack->endMacro();
   }

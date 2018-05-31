@@ -212,8 +212,6 @@ namespace ESPINA
       using PixelValueSelector = GUI::Widgets::PixelValueSelector;
       using NumericalInput     = GUI::Widgets::NumericalInput;
 
-      Support::Context &m_context;
-
       CategorySelector   *m_categorySelector; /** category selector widget.     */
       SeedThreshold      *m_seedThreshold;    /** seed threshold input widget.  */
       QPushButton        *m_useBestPixel;     /** best pixel selection button.  */

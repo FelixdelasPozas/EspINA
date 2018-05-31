@@ -339,14 +339,19 @@ void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyda
       }
 
       // modification
-      undoStack->beginMacro(tr("Modify skeleton"));
+      QString mode{"adding"};
+      if(m_eraseButton->isChecked())         mode = "erasing";
+      else if(m_moveButton->isChecked())     mode = "moving";
+      else if(m_truncateButton->isChecked()) mode = "marking";
+
+      undoStack->beginMacro(tr("Modify skeleton of '%1' by %2 points.").arg(segmentationSPtr->data().toString()).arg(mode));
       undoStack->push(new ModifySkeletonCommand(segmentationSPtr, widget->getSkeleton(), connections));
       undoStack->endMacro();
     }
     else
     {
       // removal
-      undoStack->beginMacro(tr("Remove Segmentation"));
+      undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(segmentation->data().toString()));
       undoStack->push(new RemoveSegmentations(segmentation, getModel()));
       undoStack->endMacro();
 

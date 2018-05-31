@@ -395,7 +395,7 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 
   auto undoStack = getUndoStack();
 
-  undoStack->beginMacro(tr("Resize ROI"));
+  undoStack->beginMacro(tr("Resize ROI."));
   undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
   undoStack->endMacro();
 

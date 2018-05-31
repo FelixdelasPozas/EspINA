@@ -33,7 +33,6 @@ using namespace ESPINA;
 DeleteROITool::DeleteROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
 : ProgressTool{"DeleteROI", ":/espina/roi_delete_roi.svg", tr("Delete Current ROI"), context}
-, m_context   (context)
 , m_toolGroup {toolGroup}
 {
   connect(m_toolGroup, SIGNAL(ROIChanged(ROISPtr)),
@@ -52,9 +51,8 @@ DeleteROITool::~DeleteROITool()
 //-----------------------------------------------------------------------------
 void DeleteROITool::cancelROI()
 {
-  auto undoStack = m_context.undoStack();
-
-  undoStack->beginMacro("Delete ROI");
+  auto undoStack = getUndoStack();
+  undoStack->beginMacro("Delete ROI.");
   undoStack->push(new ClearROIUndoCommand{m_toolGroup});
   undoStack->endMacro();
 }

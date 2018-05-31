@@ -69,6 +69,7 @@
 #include <App/ToolGroups/Explore/PositionMarksTool.h>
 #include <App/ToolGroups/Session/FileOpenTool.h>
 #include <App/ToolGroups/Session/FileSaveTool.h>
+#include <App/ToolGroups/Session/LogTool.h>
 #include <App/ToolGroups/Session/UndoRedoTools.h>
 #include <App/RecentDocuments.h>
 
@@ -910,8 +911,13 @@ void EspinaMainWindow::createSessionToolGroup()
   m_sessionToolGroup->addTool(undo);
   m_sessionToolGroup->addTool(redo);
 
+  auto log = std::make_shared<LogTool>(m_context, this);
+  log->setOrder("3-0", "3-Settings");
+
+  m_sessionToolGroup->addTool(log);
+
   m_checkTool = std::make_shared<ProgressTool>("CheckAnalysis", ":/espina/checklist.svg", tr("Check session for issues"), m_context);
-  m_checkTool->setOrder("3-0", "3-Settings");
+  m_checkTool->setOrder("3-1", "3-Settings");
 
   connect(m_checkTool.get(), SIGNAL(triggered(bool)),
           this,              SLOT(checkAnalysisConsistency()));

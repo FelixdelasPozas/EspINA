@@ -89,6 +89,20 @@ namespace ESPINA
          *
          */
         SegmentationAdapterSPtr EspinaGUI_EXPORT dendriteOf(const SegmentationAdapterPtr synapse);
+
+        /** \brief Returns the concatenation of segmentation names separated by commas and 'and' for last
+         * item.
+         * \param[in] list List of segmentations.
+         *
+         */
+        const QString EspinaGUI_EXPORT segmentationListNames(const SegmentationAdapterList &list);
+
+        /** \brief Returns the concatenation of segmentation names separated by commas and 'and' for last
+         * item.
+         * \param[in] list List of segmentations.
+         *
+         */
+        const QString EspinaGUI_EXPORT segmentationListNames(const SegmentationAdapterSList &list);
       }
     }
   }

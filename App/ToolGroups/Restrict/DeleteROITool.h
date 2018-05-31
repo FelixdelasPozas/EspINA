@@ -66,7 +66,6 @@ namespace ESPINA
     void cancelROI();
 
   private:
-    Support::Context  &m_context;   /** application context.            */
     RestrictToolGroup *m_toolGroup; /** toolgroup this tool belongs to. */
   };
 

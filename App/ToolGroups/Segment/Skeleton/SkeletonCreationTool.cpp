@@ -34,6 +34,7 @@
 #include <GUI/Widgets/Styles.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
@@ -490,15 +491,14 @@ void SkeletonCreationTool::onCategoryChanged(CategoryAdapterSPtr category)
 void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polydata)
 {
   auto widget = dynamic_cast<SkeletonWidget2D *>(sender());
+  auto model  = getModel();
 
   if(widget)
   {
     Q_ASSERT(polydata->GetNumberOfLines() != 0);
 
-    auto undoStack = getUndoStack();
-    auto model     = getModel();
-
     ConnectionList connections;
+    auto undoStack = getUndoStack();
 
     if(m_item != getActiveChannel())
     {
@@ -517,7 +517,7 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
         }
       }
 
-      undoStack->beginMacro(tr("Modify skeleton"));
+      undoStack->beginMacro(tr("Modify skeleton '%1' by adding points.").arg(segmentation->data().toString()));
       undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton(), connections));
       undoStack->endMacro();
     }
@@ -540,6 +540,7 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
       Q_ASSERT(category);
 
       segmentation->setCategory(category);
+      segmentation->setNumber(firstUnusedSegmentationNumber(model));
       segmentation->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
 
       SampleAdapterSList samples;
@@ -555,7 +556,7 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
         }
       }
 
-      undoStack->beginMacro(tr("Add Segmentation"));
+      undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
       undoStack->push(new AddSegmentations(segmentation, samples, model, connections));
       undoStack->endMacro();
 

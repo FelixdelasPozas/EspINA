@@ -32,6 +32,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
+  Dialogs/LogDialog/LogDialog.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
@@ -71,6 +72,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/SkeletonEditionTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
+  ToolGroups/Session/LogTool.h
   ToolGroups/Session/UndoRedoTools.h
   ToolGroups/Restrict/DeleteROITool.h
   ToolGroups/Restrict/FreehandROITool.h
@@ -115,6 +117,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/IssueList/IssueListDialog.ui
+  Dialogs/LogDialog/LogDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
@@ -157,6 +160,7 @@ set (ESPINA_SOURCES
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
+  Dialogs/LogDialog/LogDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
@@ -230,6 +234,7 @@ set (ESPINA_SOURCES
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp
+  ToolGroups/Session/LogTool.cpp
   ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp

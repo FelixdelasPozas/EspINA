@@ -124,8 +124,7 @@ void FillHolesTool::onTaskFinished()
 
       auto undoStack = getUndoStack();
 
-      auto operation = QString("Fill " + taskContext.Segmentation->data().toString() + " Holes");
-      undoStack->beginMacro(operation);
+      undoStack->beginMacro(tr("Fill holes 3D of '%1'.").arg(taskContext.Segmentation->data().toString()));
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Filter, 0)));
       undoStack->endMacro();
     }

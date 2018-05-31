@@ -3,7 +3,6 @@
     <file>accept.png</file>
     <file>active_stack.svg</file>
     <file>add.svg</file>
-    <file>add_child.svg</file>
     <file>apposition_surface.svg</file>
     <file>best_pixel_selector.svg</file>
     <file>brush_2D.svg</file>
@@ -149,5 +148,7 @@
     <file>cross-scissors.png</file>
     <file>domains.svg</file>
     <file>skeletonColors.svg</file>
+    <file>log.svg</file>
+    <file>clipboard_copy.svg</file>
   </qresource>
 </RCC>

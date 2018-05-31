@@ -315,6 +315,8 @@ bool RepresentationPool::isEnabled() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::actorsChanged(RepresentationPipeline::Actors actors) const
 {
+  if(!actors) return false;
+
   RepresentationPipeline::ActorsLocker actorsData(actors);
 
   if(m_validActors.isEmpty())

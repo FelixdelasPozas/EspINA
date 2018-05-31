@@ -23,10 +23,8 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Model/Utils/ModelUtils.h>
 
 using namespace ESPINA;
-using namespace ESPINA::GUI::Model::Utils;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
@@ -59,13 +57,6 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 //----------------------------------------------------------------------------
 void AddSegmentations::redo()
 {
-  unsigned int number = firstUnusedSegmentationNumber(m_model);
-
-  for(auto segmentation : m_segmentations)
-  {
-    segmentation->setNumber(number++);
-  }
-
   m_model->beginBatchMode();
   m_model->add(m_segmentations);
 

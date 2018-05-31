@@ -94,11 +94,18 @@ void ESPINA::manageTagsDialog(SegmentationAdapterList segmentations, QUndoStack 
 
     QList<QUndoCommand *> commands;
 
+    QString opSegmentations;
     TagSelector tagSelector(dialogTitle(segmentations), tags);
     if (tagSelector.exec())
     {
       for(auto segmentation : segmentations)
       {
+        if(segmentation != segmentations.first())
+        {
+          opSegmentations += (segmentation != segmentations.last() ? ", ": " and ");
+        }
+        opSegmentations += "'" + segmentation->data().toString() + "'";
+
         QStringList currentTags, previousTags;
 
         {
@@ -144,7 +151,7 @@ void ESPINA::manageTagsDialog(SegmentationAdapterList segmentations, QUndoStack 
 
     if (!commands.isEmpty())
     {
-      undoStack->beginMacro(QObject::tr("Change Segmentation Tags"));
+      undoStack->beginMacro(QObject::tr("Change tags of segmentations %1.").arg(opSegmentations));
       for (auto command : commands)
       {
         undoStack->push(command);

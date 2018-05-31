@@ -28,6 +28,7 @@
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/PixelValueSelector.h>
@@ -53,6 +54,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
@@ -107,10 +109,9 @@ FilterSPtr SeedGrowSegmentationFilterFactory::createFilter(InputSList          i
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                                   FilterRefinerFactory        &filterRefiners,
+                                                   FilterRefinerFactory         &filterRefiners,
                                                    Support::Context             &context)
 : ProgressTool("1-GreyLevelSegmentation", ":/espina/grey_level_segmentation.svg", tr("Grey Level Segmentation"), context)
-, m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_useBestPixel    {Styles::createToolButton(":espina/best_pixel_selector.svg", tr("Apply on best pixel"))}
@@ -125,7 +126,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
   setCheckable(true);
   setExclusive(true);
 
-  m_context.factory()->registerFilterFactory(m_sgsFactory);
+  getFactory()->registerFilterFactory(m_sgsFactory);
 
   auto sgsRefiner = std::make_shared<SeedGrowSegmentationRefiner>();
 
@@ -341,7 +342,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  auto currentROI = m_context.roiProvider()->currentROI();
+  auto currentROI = getContext().roiProvider()->currentROI();
 
   if (!currentROI && m_roi->applyROI())
   {
@@ -373,7 +374,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (validSeed)
   {
     struct Data data;
-    data.Filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    data.Filter = getFactory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
     data.Category = m_categorySelector->selectedCategory();
 
     data.Filter->setSeed(seed);
@@ -400,9 +401,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     Task::submit(data.Filter);
 
-    if (currentROI == m_context.roiProvider()->currentROI())
+    if (currentROI == getContext().roiProvider()->currentROI())
     {
-      m_context.roiProvider()->clear();
+      getContext().roiProvider()->clear();
     }
   }
   else
@@ -421,7 +422,8 @@ void SeedGrowSegmentationTool::createSegmentation()
 
   if (!filter->isAborted())
   {
-    auto data = m_tasks[filter];
+    auto data  = m_tasks[filter];
+    auto model = getModel();
 
     if (filter->numberOfOutputs() != 1)
     {
@@ -429,16 +431,17 @@ void SeedGrowSegmentationTool::createSegmentation()
       throw EspinaException(message, message);
     }
 
-    auto segmentation = m_context.factory()->createSegmentation(data.Filter, 0);
+    auto segmentation = getFactory()->createSegmentation(data.Filter, 0);
     segmentation->setCategory(data.Category);
+    segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
     SampleAdapterSList samples;
     samples << QueryAdapter::sample(inputChannel());
     Q_ASSERT(samples.size() == 1);
 
-    auto undoStack = m_context.undoStack();
-    undoStack->beginMacro(tr("Add Segmentation"));
-    undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+    undoStack->push(new AddSegmentations(segmentation, samples, model));
     undoStack->endMacro();
 
     auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(data.Filter);

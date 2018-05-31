@@ -114,8 +114,9 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
   if(!segmentations.empty())
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(segmentations);
 
-    undoStack->beginMacro(tr("Delete Segmentations"));
+    undoStack->beginMacro(tr("Delete segmentation%1 %2.").arg(segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RemoveSegmentations(segmentations, getModel()));
     undoStack->endMacro();
   }

@@ -384,7 +384,7 @@ void StackExplorer::unloadStack()
     auto smartChannel = model->smartPointer(channel);
     auto undoStack    = getUndoStack();
 
-    undoStack->beginMacro("Unload Channel");
+    undoStack->beginMacro(tr("Unload channel '%1'").arg(smartChannel->data().toString()));
     undoStack->push(new RemoveChannel(smartChannel, getContext()));
     undoStack->endMacro();
   }
@@ -451,8 +451,18 @@ void StackExplorer::stacksDragged(ChannelAdapterList channels, SampleAdapterPtr 
 
   if(!filteredChannels.empty())
   {
+    QString channelNames;
+    for(auto channel: filteredChannels)
+    {
+      if(channel != filteredChannels.first())
+      {
+        channelNames += (channel != filteredChannels.last() ? ", ":" and ");
+      }
+      channelNames += "'" + channel->data().toString() + "'";
+    }
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro("Move Channels to Sample");
+    undoStack->beginMacro(tr("Move channel%1 to sample '%2': %3.").arg(filteredChannels.size() > 1 ? "s":"").arg(newSample->data().toString()).arg(channelNames));
     undoStack->push(new DragChannelsCommand(getModel(), filteredChannels, newSample, m_stackProxy.get()));
     undoStack->endMacro();
   }

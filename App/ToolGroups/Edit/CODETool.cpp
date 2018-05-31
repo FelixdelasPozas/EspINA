@@ -164,7 +164,8 @@ void CODEToolBase::onTaskFinished()
 
       if (DefaultDialogs::UserQuestion(message, buttons, title) == QMessageBox::Yes)
       {
-        undoStack->beginMacro(taskContext.Operation);
+        auto macroText = tr("Remove segmentation '%1' by %2 operation with radius of %3.").arg(taskContext.Segmentation->data().toString()).arg(taskContext.Operation).arg(filter->radius());
+        undoStack->beginMacro(macroText);
         undoStack->push(new RemoveSegmentations(taskContext.Segmentation, getModel()));
         undoStack->endMacro();
       }
@@ -178,7 +179,8 @@ void CODEToolBase::onTaskFinished()
         throw EspinaException(what, details);
       }
 
-      undoStack->beginMacro(taskContext.Operation);
+      auto macroText = tr("%1 '%2' with radius of %3.").arg(taskContext.Operation).arg(taskContext.Segmentation->data().toString()).arg(filter->radius());
+      undoStack->beginMacro(macroText);
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
       undoStack->endMacro();
     }

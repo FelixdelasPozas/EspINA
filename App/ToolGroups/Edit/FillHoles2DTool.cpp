@@ -104,7 +104,7 @@ void FillHoles2DTool::applyFilter()
 
     auto filter = getFactory()->createFilter<FillHoles2DFilter>(inputs, EditionFilterFactory::FILL_HOLES2D_FILTER);
 
-    filter->setDescription(tr("Fill %1 Holes in %2 direction").arg(segmentation->data().toString()).arg(toText(direction)));
+    filter->setDescription(tr("Fill holes 2D of '%1' in %2 direction.").arg(segmentation->data().toString()).arg(toText(direction)));
     filter->setDirection(direction);
 
     TaskContext taskContext;
