@@ -1965,19 +1965,6 @@ void ModelAdapter::queueAddConnectionCommand(const Connection &connection)
 }
 
 //--------------------------------------------------------------------
-void ModelAdapter::queueRemoveConnectionCommand(const Connection &connection)
-{
-  auto command = [this, connection]()
-  {
-    m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
-
-    emit connectionRemoved(connection);
-  };
-
-  queueUpdateCommand(connection.item1, std::make_shared<Command<decltype(command)>>(command));
-}
-
-//--------------------------------------------------------------------
 void ModelAdapter::addConnection(const Connection &connection)
 {
   queueAddConnectionCommand(connection);
@@ -1997,9 +1984,9 @@ void ModelAdapter::addConnections(const ConnectionList &connections)
 //--------------------------------------------------------------------
 void ModelAdapter::deleteConnection(const Connection &connection)
 {
-  queueRemoveConnectionCommand(connection);
+  m_analysis->removeConnection(connection.item1->m_analysisItem, connection.item2->m_analysisItem, connection.point);
 
-  executeCommandsIfNoBatchMode();
+  emit connectionRemoved(connection);
 }
 
 //--------------------------------------------------------------------

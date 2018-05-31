@@ -676,8 +676,6 @@ namespace ESPINA
 
       void queueAddConnectionCommand(const Connection &connection);
 
-      void queueRemoveConnectionCommand(const Connection &connection);
-
       void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 
       void queueUpdateCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
