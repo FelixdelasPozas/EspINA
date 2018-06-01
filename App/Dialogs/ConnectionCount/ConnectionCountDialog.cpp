@@ -141,7 +141,7 @@ void ConnectionCountDialog::addSegmentationToLists(const SegmentationAdapterSPtr
     default:
       // more than 2 connections? show the error.
       {
-        item->setIcon(QIcon("./espina/warning.svg"));
+        item->setIcon(QIcon(":/espina/warning.svg"));
         auto text = tr("%1 has more than two connections!").arg(name);
         for(auto connection: connections)
         {
