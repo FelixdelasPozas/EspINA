@@ -142,6 +142,8 @@ void ConnectionCountDialog::addSegmentationToLists(const SegmentationAdapterSPtr
       // more than 2 connections? show the error.
       {
         item->setIcon(QIcon(":/espina/warning.svg"));
+        item->setBackgroundColor(Qt::red);
+        item->setTextColor(Qt::white);
         auto text = tr("%1 has more than two connections!").arg(name);
         for(auto connection: connections)
         {
