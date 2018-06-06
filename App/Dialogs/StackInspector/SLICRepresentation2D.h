@@ -31,9 +31,13 @@
 class vtkTextActor;
 class vtkImageActor;
 class vtkImageMapToColors;
+class vtkImageData;
 
 namespace ESPINA
 {
+  namespace Extensions {
+    class StackSLIC;
+  }
   /** \class SLICRepresentation2D
    * \brief Representation prototype for SLIC extension data.
    *
@@ -46,7 +50,7 @@ namespace ESPINA
       /** \brief SLICRepresentation2D class constructor.
        *
        */
-      explicit SLICRepresentation2D();
+      explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension);
 
       /** \brief SLICRepresentation2D class virtual destructor.
        *
@@ -58,7 +62,7 @@ namespace ESPINA
        * TODO
        *
        */
-      void setSLICData();
+      void setSLICExtension(std::shared_ptr<Extensions::StackSLIC> extension);
 
       virtual void initialize(RenderView *view);
 
@@ -97,13 +101,15 @@ namespace ESPINA
       void buildVTKPipeline();
 
     private:
-      vtkSmartPointer<vtkTextActor> m_textActor;  /** text representation actor.                    */
-      vtkSmartPointer<vtkImageActor> m_actor;      /** slice representation actor.                   */
-      vtkSmartPointer<vtkImageMapToColors> m_mapper;
-      RenderView                   *m_view;       /** view where the representations will be shown. */
-      bool                          m_active;     /** true if visible and false otherwise.          */
-      Nm                            m_lastSlice;  /** position of the last slice rendered.          */
-      int                           m_planeIndex; /** index of the view's plane.                    */
+      vtkSmartPointer<vtkTextActor>         m_textActor;  /** text representation actor.                    */
+      vtkSmartPointer<vtkImageActor>        m_actor;      /** slice representation actor.                   */
+      vtkSmartPointer<vtkImageMapToColors>  m_mapper;     /** mapper used for slic slices                   */
+      vtkSmartPointer<vtkImageData>         m_data;       /** image data holding slice information          */
+      RenderView                           *m_view;       /** view where the representations will be shown. */
+      bool                                  m_active;     /** true if visible and false otherwise.          */
+      Nm                                    m_lastSlice;  /** position of the last slice rendered.          */
+      int                                   m_planeIndex; /** index of the view's plane.                    */
+      std::shared_ptr<Extensions::StackSLIC>m_extension;  /** slic extension instance                       */
   };
 } // ESPINA
 

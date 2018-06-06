@@ -94,7 +94,6 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 , m_stack           {channel}
 , m_sources           {m_viewState}
 , m_view              {new View2D(m_viewState, Plane::XY)}
-, m_slicRepresentation{std::make_shared<TemporalPrototypes>(std::make_shared<SLICRepresentation2D>(), TemporalRepresentation3DSPtr(), "SLIC Representation")}
 {
   setupUi(this);
 
@@ -154,6 +153,9 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
   connect(testRunSlic, SIGNAL(released()), this, SLOT(onComputeSLIC()));
   connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
   //connect(testRunSlic, SIGNAL(clicked()), this, SLOT(slicStarted()));
+  auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension);
+  m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, TemporalRepresentation3DSPtr(), "SLIC Representation");
+  //representation2d->setSLICExtension(slicExtension);
 
   tabWidget->setCurrentIndex(0);
 

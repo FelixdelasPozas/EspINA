@@ -88,7 +88,9 @@ namespace ESPINA
         unsigned long int getSupervoxel(unsigned int x, unsigned int y, unsigned int z);
         unsigned char getSupervoxelColor(unsigned int supervoxel);
         itk::Image<unsigned char, 3>::IndexType getSupervoxelCenter(unsigned int supervoxel);
-        vtkSmartPointer<vtkUnsignedCharArray> getSliceData(unsigned int z);
+        bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
+        bool isComputed();
+        double getSliceSpacing();
 
         typedef struct Label
         {

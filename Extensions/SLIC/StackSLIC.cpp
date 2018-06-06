@@ -33,6 +33,8 @@
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageRegion.h"
 #include "vtkUnsignedCharArray.h"
+#include "vtkImageData.h"
+#include "vtkPointData.h"
 
 #include <limits>
 #include <math.h>
@@ -114,6 +116,7 @@ void StackSLIC::onSLICComputed()
   }
 }
 
+//--------------------------------------------------------------------
 void StackSLIC::onAbortSLIC() {
   if(task != NULL) {
     if(task->isRunning())
@@ -164,7 +167,7 @@ void StackSLIC::SLICComputeTask::run()
 
   //Used to avoid dividing when switching from grayscale space (0-255)
   //to CIELab intensity (0-100)
-  double color_normalization_constant = 100/255;
+  double color_normalization_constant = 100.0/255.0;
 
   qDebug() << QString("Size: %1 %2 %3").arg(max_x).arg(max_y).arg(max_z);
 
@@ -305,6 +308,8 @@ void StackSLIC::SLICComputeTask::run()
         region.SetSize(1, region_size_y);
         region.SetSize(2, region_size_z);*/
 
+        //qDebug() << QString("Quotient: %1^2 / %2^2 =").arg(label->m_c).arg(label->m_s);
+
         switch(variant) {
           case ASLIC:
             //label->norm_quotient = label->m_c/(label->m_s<1?1:label->m_s);
@@ -331,6 +336,8 @@ void StackSLIC::SLICComputeTask::run()
             }
             break;
         }
+
+        //qDebug() << QString("\t= %1").arg(label->norm_quotient)
 
         //center_color = image->GetPixel(label->center);
         center_color = label->color;
@@ -558,9 +565,10 @@ void StackSLIC::SLICComputeTask::run()
   unsigned int current_label;
 
   QDataStream stream(&result->voxels, QIODevice::WriteOnly);
+  stream.setVersion(QDataStream::Qt_4_0);
 
   for(unsigned int z = 0; z < max_z; z++) {
-    result->slice_offset[z] = result->supervoxels.size();
+    result->slice_offset[z] = result->voxels.size();
     for(unsigned int y = 0; y < max_y; y++) {
       voxel_index = y*max_x+z*max_x*max_y;
       for(unsigned int x = 0; x < max_x; x++) {
@@ -580,7 +588,7 @@ void StackSLIC::SLICComputeTask::run()
         }
         voxel_index++;
       }
-      //Write RLE
+      //Write last supervoxel in row
       stream << current_label;
       stream << same_label_count;
     }
@@ -639,6 +647,7 @@ unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsig
     return 0;
 
   QDataStream stream(&result.voxels, QIODevice::ReadOnly);
+  stream.setVersion(QDataStream::Qt_4_0);
   if(stream.skipRawData(result.slice_offset[z]) != result.slice_offset[z]) {
     //TODO: Exception
     return 0;
@@ -692,28 +701,74 @@ itk::Image<unsigned char, 3>::IndexType StackSLIC::getSupervoxelCenter(unsigned 
 }
 
 //--------------------------------------------------------------------
-vtkSmartPointer<vtkUnsignedCharArray> StackSLIC::getSliceData(unsigned int z) {
+bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data) {
   //TODO: Check if SLIC is computed
   /*if(supervoxels == NULL || supervoxel > supervoxels_size)
     return std::numeric_limits<unsigned long int>::max();
   //Return supervoxel center coordinates
   return supervoxels[supervoxel*sizeof(SuperVoxel)].center;*/
   if(!result.computed)
-    return NULL;
+    return false;
+
+  Bounds bounds = m_extendedItem->bounds();
+  OutputSPtr output = m_extendedItem->output();
+  NmVector3 spacing = output->spacing();
+  unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+  unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+  unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
+  unsigned long long int pixel_count = max_x*max_y;
+  unsigned long long int pixel = 0;
+
+  data->SetDimensions(max_x, max_y, 1);
+  data->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
   vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
   array->SetNumberOfComponents(1);
-  array->SetNumberOfTuples(699*536*115);
-  for(int z = 0; z < 115; z++) {
-    for(int y = 0; y < 536; y++) {
-      for(int x = 0; x < 699; x++) {
-        array->SetValue(699*536*z + 699*y + x, ((x+y)%2)*255);
-      }
-    }
+  array->SetNumberOfTuples(pixel_count);
+
+  QDataStream stream(&result.voxels, QIODevice::ReadOnly);
+  if(stream.skipRawData(result.slice_offset[slice]) != result.slice_offset[slice]) {
+    return false;
   }
 
-  return array;
+  unsigned int label;
+  unsigned short voxel_count;
+  unsigned char color;
+
+  while(pixel < pixel_count) {
+    stream >> label;
+    stream >> voxel_count;
+    color = result.supervoxels[label].color;
+    for(int i = 0; i < voxel_count; i++) {
+      array->SetValue(pixel+i, color);
+    }
+    pixel += voxel_count;
+  }
+
+  data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  data->GetPointData()->SetScalars(array.GetPointer());
+
+  /*for(int z = 0; z < max_z; z++) {
+    for(int y = 0; y < max_y; y++) {
+      for(int x = 0; x < max_x; x++) {
+        array->SetValue(max_x*max_y*z + max_x*y + x, ((x+y)%2)*255);
+      }
+    }
+  }*/
+
+  return true;
 }
+
+//--------------------------------------------------------------------
+bool StackSLIC::isComputed() {
+  return result.computed;
+}
+
+//--------------------------------------------------------------------
+double StackSLIC::getSliceSpacing() {
+  return m_extendedItem->output()->spacing()[2];
+}
+
 
 /*//--------------------------------------------------------------------
 StackSLIC::SLICResult::SLICResult()

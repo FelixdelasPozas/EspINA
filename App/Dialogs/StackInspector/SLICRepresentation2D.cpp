@@ -23,6 +23,7 @@
 #include <Dialogs/StackInspector/SLICRepresentation2D.h>
 #include <GUI/View/Utils.h>
 #include <GUI/View/View2D.h>
+#include <Extensions/SLIC/StackSLIC.h>
 
 // VTK
 #include <vtkTextActor.h>
@@ -40,12 +41,13 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
 
 //--------------------------------------------------------------------
-SLICRepresentation2D::SLICRepresentation2D()
+SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension)
 : m_textActor     {nullptr}
 , m_view      {nullptr}
 , m_active    {false}
 , m_lastSlice {std::numeric_limits<double>::max()}
 , m_planeIndex{-1}
+, m_extension {extension}
 {
 }
 
@@ -58,11 +60,9 @@ SLICRepresentation2D::~SLICRepresentation2D()
 }
 
 //--------------------------------------------------------------------
-void SLICRepresentation2D::setSLICData()
+void SLICRepresentation2D::setSLICExtension(std::shared_ptr<Extensions::StackSLIC> extension)
 {
-  // TODO: depends on how the SLIC data is stored and interpreted.
-  // The manager shouldn't be able to shwo anything if there is no SLIC data,
-  // maybe show a text saying that SLIC is not computed yet.
+  m_extension = extension;
 }
 
 //--------------------------------------------------------------------
@@ -162,31 +162,55 @@ void SLICRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame
 //--------------------------------------------------------------------
 GUI::Representations::Managers::TemporalRepresentation2DSPtr SLICRepresentation2D::cloneImplementation()
 {
-  return std::make_shared<SLICRepresentation2D>();
+  return std::make_shared<SLICRepresentation2D>(m_extension);
 }
 
 //--------------------------------------------------------------------
 void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr frame)
 {
-  // TODO: change the actor to show the slic for the given frame.
-  // Compute SLIC for given frame and update the actor built in buildVTKPipeline...
-  std::stringstream ss;
-  ss << "SLIC Representation\nFrame: " << frame->crosshair[m_planeIndex] << " nanometers";
-  m_textActor->SetInput(ss.str().c_str());
+  bool computed = (m_extension != NULL && m_extension->isComputed());
 
-  m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-  m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
-  m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
+  if(!computed) {
+    std::stringstream ss;
+    ss << "SLIC not computed!\nRun it first.";
+    m_textActor->SetInput(ss.str().c_str());
 
-  m_textActor->Modified();
+    m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+    m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
+    m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
 
-  /*m_actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-  m_actor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
-  m_actor->GetPositionCoordinate()->SetValue(.5, .5);*/
-  m_actor->GetMapper()->BorderOn();
+    m_textActor->SetVisibility(true);
+    m_actor->SetVisibility(false);
+    m_textActor->Modified();
+    m_actor->Modified();
+    return;
+  }
+
+  computed = m_extension->drawSliceInImageData(frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing(), m_data);
+
+  if(!computed) {
+    std::stringstream ss;
+    ss << "Results couldn't be previewed";
+    m_textActor->SetInput(ss.str().c_str());
+
+    m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+    m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
+    m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
+
+    m_textActor->SetVisibility(true);
+    m_actor->SetVisibility(false);
+    m_textActor->Modified();
+    m_actor->Modified();
+    return;
+  }
+
   m_actor->SetOpacity(0.6);
-  m_actor->GetMapper()->SetNumberOfThreads(1);
   m_actor->GetMapper()->UpdateWholeExtent();
+  m_actor->Update();
+
+  m_textActor->SetVisibility(false);
+  m_actor->SetVisibility(true);
+  m_textActor->Modified();
   m_actor->Modified();
 }
 
@@ -209,32 +233,34 @@ void SLICRepresentation2D::buildVTKPipeline()
 
   vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
   array->SetNumberOfComponents(1);
-  array->SetNumberOfTuples(699*536*115);
+  array->SetNumberOfTuples(1);
+  array->SetValue(0, 0);
+  /*array->SetNumberOfTuples(699*536*115);
   for(int z = 0; z < 115; z++) {
     for(int y = 0; y < 536; y++) {
       for(int x = 0; x < 699; x++) {
         array->SetValue(699*536*z + 699*y + x, ((x+y)%2)*255);
       }
     }
-  }
-  vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
-  data->SetOrigin(0,0,0);
-  data->SetSpacing(1,1,2);
-  data->SetDimensions(699,536,115);
-  data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  data->GetPointData()->SetScalars(array.GetPointer());
+  }*/
+  m_data = vtkSmartPointer<vtkImageData>::New();
+  m_data->SetOrigin(0,0,0);
+  m_data->SetSpacing(1,1,1);
+  m_data->SetDimensions(1,1,1);
+  m_data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  m_data->GetPointData()->SetScalars(array.GetPointer());
   auto lut = vtkSmartPointer<vtkLookupTable>::New();
   lut->Allocate();
   lut->SetTableRange(0,255);
   lut->SetValueRange(0.0, 1.0);
-  lut->SetAlphaRange(1.0,1.0);
+  lut->SetAlphaRange(0.5,0.5);
   lut->SetNumberOfColors(256);
   lut->SetRampToLinear();
-  //lut->SetHueRange(color.hueF(), color.hueF());
-  //lut->SetSaturationRange(0.0, color.saturationF());
+  lut->SetHueRange(0, 0);
+  lut->SetSaturationRange(0, 0);
   lut->Build();
   m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapper->SetInputData(data);
+  m_mapper->SetInputData(m_data);
   m_mapper->SetLookupTable(lut);
   m_mapper->UpdateWholeExtent();
   m_actor = vtkSmartPointer<vtkImageActor>::New();
