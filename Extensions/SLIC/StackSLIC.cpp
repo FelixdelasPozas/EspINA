@@ -194,9 +194,6 @@ void StackSLIC::SLICComputeTask::run()
   if(tolerance>0) tolerance *= tolerance;
 
   QList<Label> labels;
-  //unsigned long int *voxels = (unsigned long int*) calloc(n_voxels, sizeof(unsigned long int));
-  voxels = (unsigned int*) malloc(n_voxels * sizeof(unsigned int));
-  memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels);
   auto image = inputVolume->itkImage();
   typedef itk::Image<unsigned char, 3> ImageType;
   typedef ImageType::IndexType IndexType;
@@ -238,11 +235,15 @@ void StackSLIC::SLICComputeTask::run()
             }*/
         cur_index = {x,y,z};
         //labels.append((Label) {{x,y,z}, image->GetPixel(cur_index), parameter_m_c, parameter_m_s, pow(parameter_m_c,2) / pow(parameter_m_s,2)});
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), parameter_m_s, {x,y,z}, image->GetPixel(cur_index), parameter_m_c });
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), static_cast<float>(parameter_m_s), {x,y,z}, image->GetPixel(cur_index), parameter_m_c });
       }
     }
   }
   qDebug() << QString("Created %1 labels").arg(labels.size());
+
+  //Reserve enough memory for all voxels
+  voxels = (unsigned int*) malloc(n_voxels * sizeof(unsigned int));
+  memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels * sizeof(unsigned int));
 
   typedef itk::ImageRegionConstIteratorWithIndex<ImageType> RegionIterator;
   typedef itk::ImageRegion<3> ImageRegion;
@@ -254,16 +255,25 @@ void StackSLIC::SLICComputeTask::run()
   bool converged = false, cropped = false;
   qDebug() << "start: max iterations" << max_iterations;
   int progress = 0;
+  int current_slice = 0;
+  unsigned int label_index = 0;
+
+  //Heap allocations to prevent allocating in loops
+  long long int sum_x = 0, sum_y = 0, sum_z = 0;
+  unsigned long long int sum_color = 0, sum_voxels = 0;
+  unsigned int x, y, z;
+  double newProgress = 0;
+  int region_x, region_y, region_z, region_size_x, region_size_y, region_size_z;
+
   try
   {
     for(int iteration = 0; iteration<max_iterations && !converged; iteration++)
     {
-      auto newProgress = (iteration * 100.0) / max_iterations;
+      newProgress = (iteration * 100.0) / max_iterations;
       if(newProgress != progress) qDebug() << "progress" << newProgress;
       progress = newProgress;
 
-      int region_x, region_y, region_z, region_size_x, region_size_y, region_size_z;
-      for(unsigned int label_index=0;label_index<labels.size();label_index++)
+      for(label_index=0;label_index<labels.size();label_index++)
       {
         //qDebug() << QString("Starting iteration: %1").arg(iteration);
         if(label_index%5000 == 0)
@@ -343,7 +353,7 @@ void StackSLIC::SLICComputeTask::run()
         center_color = label->color;
 
         //Iterate over the slices
-        for(int current_slice = region_z; current_slice < region_z + region_size_z; current_slice++) {
+        for(current_slice = region_z; current_slice < region_z + region_size_z; current_slice++) {
           //Get slice edges
           sliceRegion = edgesExtension->sliceRegion(current_slice);
           //qDebug() << QString("Edge: %1 %2 %3 / %4 %5 %6").arg(sliceRegion.GetIndex()[0]).arg(sliceRegion.GetIndex()[1]).arg(sliceRegion.GetIndex()[2])
@@ -369,8 +379,9 @@ void StackSLIC::SLICComputeTask::run()
           /*qDebug() << QString("Edge: %1 %2 %3 / %4 %5 %6").arg(region.GetIndex()[0]).arg(region.GetIndex()[1]).arg(region.GetIndex()[2])
                                                                     .arg(region.GetSize()[0]).arg(region.GetSize()[1]).arg(region.GetSize()[2]);*/
 
-          image->SetRequestedRegion(region);
-          RegionIterator it(image, image->GetRequestedRegion());
+          /*image->SetRequestedRegion(region);
+          RegionIterator it(image, image->GetRequestedRegion());*/
+          RegionIterator it(image, region);
           //qDebug() << QString("Created RegionIterator");
           //RegionIterator it(image, region);
           it.GoToBegin();
@@ -444,7 +455,7 @@ void StackSLIC::SLICComputeTask::run()
 
       //Recalculate centers, check convergence
       qDebug() << "Recalculating centers";
-      for(unsigned int label_index=0;label_index<labels.size();label_index++)
+      for(label_index=0;label_index<labels.size();label_index++)
       {
         if(label_index%5000 == 0)
           qDebug() << QString("Label %1: %2s").arg(label_index).arg(timer.elapsed()/1000);
@@ -480,12 +491,11 @@ void StackSLIC::SLICComputeTask::run()
         region_size_y += region_y;
         region_size_z += region_z;
 
-        long long int sum_x = 0, sum_y = 0, sum_z = 0;
-        unsigned long long int sum_color = 0, sum_voxels = 0;
-        for(unsigned int z = region_z; z < region_size_z; z++) {
-          for(unsigned int y = region_y; y < region_size_y; y++) {
+        sum_color = sum_voxels = sum_x = sum_y = sum_z = 0;
+        for(z = region_z; z < region_size_z; z++) {
+          for(y = region_y; y < region_size_y; y++) {
             voxel_index = region_x-1+y*max_x+z*max_x*max_y;
-            for(unsigned int x = region_x; x < region_size_x; x++) {
+            for(x = region_x; x < region_size_x; x++) {
               //voxel_index = x+y*max_x+z*max_x*max_y;
               voxel_index++;
               if(label_index == voxels[voxel_index]) {
@@ -520,7 +530,7 @@ void StackSLIC::SLICComputeTask::run()
         }
       } //label
 
-      qDebug() << QString("Finishing iteration: %1").arg(iteration);
+      qDebug() << QString("Finishing iteration: %1").arg(iteration+1);
     } //iteration
   }
   catch(std::exception &e)
@@ -554,7 +564,7 @@ void StackSLIC::SLICComputeTask::run()
     delete result->slice_offset;
   result->slice_offset = (unsigned int*) malloc(max_z * sizeof(unsigned int));
 
-  for(unsigned int label_index=0;label_index<labels.size();label_index++)
+  for(label_index=0;label_index<labels.size();label_index++)
   {
     label=&labels[label_index];
     result->supervoxels.append({label->center, label->color});
@@ -727,6 +737,7 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   array->SetNumberOfTuples(pixel_count);
 
   QDataStream stream(&result.voxels, QIODevice::ReadOnly);
+  stream.setVersion(QDataStream::Qt_4_0);
   if(stream.skipRawData(result.slice_offset[slice]) != result.slice_offset[slice]) {
     return false;
   }
@@ -738,7 +749,11 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   while(pixel < pixel_count) {
     stream >> label;
     stream >> voxel_count;
-    color = result.supervoxels[label].color;
+    //Check for voxels out of edges (no label assigned)
+    if(label == std::numeric_limits<unsigned int>::max())
+      color = 0;
+    else
+      color = result.supervoxels[label].color;
     for(int i = 0; i < voxel_count; i++) {
       array->SetValue(pixel+i, color);
     }
