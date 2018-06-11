@@ -38,6 +38,11 @@ namespace ESPINA
     : public ESPINA::Core::StackExtension
     {
         Q_OBJECT
+
+        static const QString VOXELS_FILE;
+        static const QString LABELS_FILE;
+        static const QString DATA_FILE;
+
       public:
         /** \brief StackSLIC class constructor.
          * \param[in] cache Extension cache data.
@@ -107,6 +112,13 @@ namespace ESPINA
         virtual QVariant cacheFail(const InformationKey& tag) const
         { return QVariant(); }
 
+      public:
+        typedef struct SuperVoxel
+        {
+          itk::Image<unsigned char, 3>::IndexType center;
+          unsigned char color;
+        } SuperVoxel;
+
       protected slots:
         void onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
         void onSLICComputed();
@@ -117,11 +129,7 @@ namespace ESPINA
 
       private:
         class SLICComputeTask;
-        typedef struct SuperVoxel
-        {
-          itk::Image<unsigned char, 3>::IndexType center;
-          unsigned char color;
-        } SuperVoxel;
+
 
         typedef struct SLICResult
         {
@@ -132,11 +140,14 @@ namespace ESPINA
             unsigned int* slice_offset;
             bool computed = false;
             Bounds bounds;
+            mutable QReadWriteLock m_dataMutex;
         } SLICResult;
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
         std::shared_ptr<SLICComputeTask> task;
         SLICResult result;
+        QString snapshotName(const QString& file) const;
+        bool loadFromSnapshot();
 
         friend SLICComputeTask;
     };

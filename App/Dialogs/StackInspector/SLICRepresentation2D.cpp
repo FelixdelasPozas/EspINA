@@ -168,7 +168,7 @@ GUI::Representations::Managers::TemporalRepresentation2DSPtr SLICRepresentation2
 //--------------------------------------------------------------------
 void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr frame)
 {
-  bool computed = (m_extension != NULL && m_extension->isComputed());
+  bool computed = m_extension != NULL && m_extension->drawSliceInImageData(frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing(), m_data);
 
   if(!computed) {
     std::stringstream ss;
@@ -186,25 +186,7 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
     return;
   }
 
-  computed = m_extension->drawSliceInImageData(frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing(), m_data);
-
-  if(!computed) {
-    std::stringstream ss;
-    ss << "Results couldn't be previewed";
-    m_textActor->SetInput(ss.str().c_str());
-
-    m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-    m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
-    m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
-
-    m_textActor->SetVisibility(true);
-    m_actor->SetVisibility(false);
-    m_textActor->Modified();
-    m_actor->Modified();
-    return;
-  }
-
-  m_actor->SetOpacity(0.6);
+  m_actor->SetOpacity(1);
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 
@@ -253,7 +235,7 @@ void SLICRepresentation2D::buildVTKPipeline()
   lut->Allocate();
   lut->SetTableRange(0,255);
   lut->SetValueRange(0.0, 1.0);
-  lut->SetAlphaRange(0.5,0.5);
+  lut->SetAlphaRange(0,1);
   lut->SetNumberOfColors(256);
   lut->SetRampToLinear();
   lut->SetHueRange(0, 0);
@@ -268,7 +250,7 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapper->GetOutputPort());
   m_actor->GetMapper()->SetNumberOfThreads(1);
-  m_actor->SetOpacity(0.6);
+  m_actor->SetOpacity(1);
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 }
