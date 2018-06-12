@@ -78,9 +78,14 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *p
   categorySelector->setModel(model.get());
   categorySelector->setRootModelIndex(model->classificationRoot());
 
-  for(auto channel: model->channels())
+  auto activeStack = context.viewState().selection()->activeChannel();
+  auto activeIndex = 0;
+  auto stacks      = model->channels();
+  for(int i = 0; i < stacks.size(); ++i)
   {
-    m_stackNames << channel->data().toString();
+    auto stack = stacks.at(i);
+    m_stackNames << stack->data().toString();
+    if(stack.get() == activeStack) activeIndex = i;
   }
   auto stackModel = new QStringListModel(m_stackNames);
   channelSelector->setModel(stackModel);
@@ -92,7 +97,8 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *p
           this,            SLOT(channelSelected()));
 
   // use first channel as default to force CF type selection using edges extension.
-  channelSelector->setCurrentIndex(0);
+  // 2018-06-12 Changed to active stack by default.
+  channelSelector->setCurrentIndex(std::min(activeIndex, stacks.size()-1));
   channelSelected();
 }
 
