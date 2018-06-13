@@ -391,15 +391,14 @@ QModelIndex ModelAdapter::channelIndex(ChannelAdapterPtr channel) const
 {
   QModelIndex index;
 
-  int row = 0;
-  for(auto ptr : m_channels)
+  for(int row = 0; row < m_channels.size(); ++row)
   {
-    if (ptr.get() == channel)
+    auto item = m_channels.at(row);
+    if (item.get() == channel)
     {
       ItemAdapterPtr internalPtr = channel;
       index = createIndex(row, 0, internalPtr);
     }
-    row++;
   }
 
   return index;
@@ -1925,7 +1924,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
   if (m_samples.size() != 1)
   {
     // segmentations can be associated to wrong sample with relation Sample::CONTAINS.
-    int changed = 0;
     for(auto sample: m_analysis->samples())
     {
       if(sample == mainSample) continue;
@@ -1933,7 +1931,6 @@ void ModelAdapter::fixChannels(ChannelAdapterPtr primary)
       auto segs = QueryRelations::segmentations(sample);
       for(auto seg: segs)
       {
-        ++changed;
         m_analysis->deleteRelation(sample, seg, Sample::CONTAINS);
         m_analysis->addRelation(mainSample, seg, Sample::CONTAINS);
       }

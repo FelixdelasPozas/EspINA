@@ -99,6 +99,7 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
                                      Support::Context               &context)
 : WithContext      (context)
 , m_view           (view)
+, m_active         {false}
 {
 }
 
@@ -150,17 +151,22 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 {
   QModelIndexList res;
 
-  Q_ASSERT(model() == index.model());
-
-  for(int r = 0; r < model()->rowCount(index); r++)
+  if(model() != index.model())
   {
-    auto child = index.child(r, 0);
-
-    res << child;
-
-    if (recursive)
+    qWarning() << "SegmentationExplorer::Layout::indices() -> Invalid QModelIndex model.";
+  }
+  else
+  {
+    for(int r = 0; r < model()->rowCount(index); r++)
     {
-      res << indices(child, recursive);
+      auto child = index.child(r, 0);
+
+      res << child;
+
+      if (recursive)
+      {
+        res << indices(child, recursive);
+      }
     }
   }
 
@@ -223,4 +229,12 @@ void SegmentationExplorer::Layout::onInspectorUpdated()
     m_inspectors.remove(iKey);
     m_inspectors.insert(toKey(inspector->segmentations()), inspector);
   }
+}
+
+//------------------------------------------------------------------------
+ItemAdapterPtr SegmentationExplorer::Layout::item(const QModelIndex &index) const
+{
+  if(!index.isValid() || !isActive()) return nullptr;
+
+  return itemAdapter(index);
 }

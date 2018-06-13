@@ -42,6 +42,8 @@
 #include <QUndoStack>
 #include <QColorDialog>
 #include <QItemDelegate>
+#include <QTreeView>
+#include <QWidgetAction>
 
 // C++
 #include <random>
@@ -134,7 +136,7 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
 }
 
 //------------------------------------------------------------------------
-bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
+bool ClassificationLayout::ClassificationSortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
   auto leftItem  = itemAdapter(left);
   auto rightItem = itemAdapter(right);
@@ -154,10 +156,10 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
                                            Support::Context               &context)
-: Layout               {view, context}
-, m_proxy              {new ClassificationProxy(context.model(), context.viewState())}
-, m_sort               {new SortFilter()}
-, m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}
+: Layout    {view, context}
+, m_proxy   {new ClassificationProxy(context.model(), context.viewState())}
+, m_sort    {new ClassificationSortFilter()}
+, m_delegate{new CategoryItemDelegate(context.model(), context.undoStack(), this)}
 {
   auto model = context.model();
 
@@ -183,6 +185,7 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
 //------------------------------------------------------------------------
 ClassificationLayout::~ClassificationLayout()
 {
+  delete m_delegate;
 }
 
 //------------------------------------------------------------------------
@@ -205,10 +208,6 @@ void ClassificationLayout::createSpecificControls(QHBoxLayout *specificControlLa
   addCategoryDependentButton(changeCategoryColor, specificControlLayout);
   connect(changeCategoryColor, SIGNAL(clicked(bool)),
           this,                SLOT(changeCategoryColor()));
-
-  // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
-  connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
-          this,                     SLOT(updateSelection()));
 }
 
 //------------------------------------------------------------------------
@@ -224,6 +223,8 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   if (segmentationsSelected)
   {
     contextMenu = new DefaultContextualMenu(m_selectedSegmentations, getContext());
+
+    createChangeCategoryMenu(contextMenu);
 
     contextMenu->addSeparator();
 
@@ -314,21 +315,24 @@ void ClassificationLayout::deleteSelectedItems()
       if (!index.isValid()) continue;
 
       auto item = ClassificationLayout::item(index);
-      if (isCategory(item))
+      if (item && isCategory(item))
       {
         for(auto additionalIndex : indices(index, true))
         {
           auto additionalItem = ClassificationLayout::item(additionalIndex);
-          if (isSegmentation(additionalItem))
+          if(additionalItem)
           {
-            segmentations << segmentationPtr(additionalItem);
-          }
-          else
-          {
-            auto category = toCategoryAdapterPtr(additionalItem);
-            if (!additionalCategories.contains(category))
+            if (isSegmentation(additionalItem))
             {
-              additionalCategories << category;
+              segmentations << segmentationPtr(additionalItem);
+            }
+            else
+            {
+              auto category = toCategoryAdapterPtr(additionalItem);
+              if (!additionalCategories.contains(category))
+              {
+                additionalCategories << category;
+              }
             }
           }
         }
@@ -452,13 +456,13 @@ void ClassificationLayout::showSelectedItemsInformation()
     for(QModelIndex index : selectedIndexes)
     {
       auto item = ClassificationLayout::item(index);
-      if (isCategory(item))
+      if (item && isCategory(item))
       {
         subIndexes << indices(index, true);
         for(QModelIndex subIndex : subIndexes)
         {
           auto subItem = ClassificationLayout::item(subIndex);
-          if (isSegmentation(subItem))
+          if (subItem && isSegmentation(subItem))
           {
             segmentations << segmentationPtr(subItem);
           }
@@ -516,11 +520,11 @@ void ClassificationLayout::createSubCategory()
 
   if (!currentIndex.isValid()) return;
 
-  auto categorytItem = item(currentIndex);
+  auto categoryItem = item(currentIndex);
 
-  if (isCategory(categorytItem))
+  if (categoryItem && isCategory(categoryItem))
   {
-    auto category = toCategoryAdapterPtr(categorytItem);
+    auto category = toCategoryAdapterPtr(categoryItem);
     auto name     = uniqueCategoryName(category, tr("New Category"));
     auto model    = getModel();
 
@@ -618,22 +622,25 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 //------------------------------------------------------------------------
 void ClassificationLayout::updateSelection()
 {
-  int numCategories = 0;
-
-  auto selectedIndexes = m_view->selectionModel()->selectedIndexes();
-
-  for(auto index : selectedIndexes)
+  if(isActive())
   {
-    if (isCategory(item(index)))
+    int numCategories = 0;
+
+    QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
+    for(auto index : indexList)
     {
-      numCategories++;
+      auto adapter = item(index);
+      if (adapter && isCategory(adapter))
+      {
+        numCategories++;
+      }
     }
+
+    emit canCreateCategory(hasClassification());
+    emit categorySelected(numCategories == 1);
+
+    m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
   }
-
-  emit canCreateCategory(hasClassification());
-  emit categorySelected(numCategories == 1);
-
-  m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
 }
 
 //------------------------------------------------------------------------
@@ -643,7 +650,7 @@ void ClassificationLayout::changeCategoryColor()
   QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
   auto item = ClassificationLayout::item(indexList.first());
 
-  if (indexList.size() == 1 && isCategory(item))
+  if (indexList.size() == 1 && item && isCategory(item))
   {
     auto category = toCategoryAdapterPtr(item);
 
@@ -699,7 +706,6 @@ void ClassificationLayout::selectCategorySegmentations()
   {
     m_view->selectionModel()->clearSelection();
     m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
-    m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
 
     displayCurrentIndex();
   }
@@ -743,17 +749,21 @@ bool ClassificationLayout::hasInformationToShow()
   for(auto index : selectedIndexes)
   {
     auto item = ClassificationLayout::item(index);
-    if (item && isSegmentation(item))
+    if(item)
     {
-      return true;
-    }
-    else if (item && isCategory(item))
-    {
-      for(auto subIndex : indices(index, true))
+      if (isSegmentation(item))
       {
-        if (isSegmentation(ClassificationLayout::item(subIndex)))
+        return true;
+      }
+      else if (isCategory(item))
+      {
+        for(auto subIndex : indices(index, true))
         {
-          return true;
+          auto subItem = ClassificationLayout::item(subIndex);
+          if (subItem && isSegmentation(subItem))
+          {
+            return true;
+          }
         }
       }
     }
@@ -765,21 +775,26 @@ bool ClassificationLayout::hasInformationToShow()
 //------------------------------------------------------------------------
 bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations)
 {
-  for(auto index : m_view->selectionModel()->selectedIndexes())
+  if(m_view->selectionModel()->hasSelection())
   {
-    auto item = ClassificationLayout::item(index);
-
-    if (item && isSegmentation(item))
+    for(auto index : m_view->selectionModel()->selectedIndexes())
     {
-      segmentations << segmentationPtr(item);
-    }
-    else if (item && isCategory(item))
-    {
-      categories << toCategoryAdapterPtr(item);
-    }
-    else
-    {
-      Q_ASSERT(false);
+      auto item = ClassificationLayout::item(index);
+      if(item)
+      {
+        if (isSegmentation(item))
+        {
+          segmentations << segmentationPtr(item);
+        }
+        else if (isCategory(item))
+        {
+          categories << toCategoryAdapterPtr(item);
+        }
+        else
+        {
+          Q_ASSERT(false);
+        }
+      }
     }
   }
 
@@ -795,14 +810,16 @@ void ClassificationLayout::updateSelectedItems()
   for(auto index : m_view->selectionModel()->selectedIndexes())
   {
     auto selectedItem = item(index);
-
-    if (selectedItem && isSegmentation(selectedItem))
+    if(selectedItem)
     {
-      m_selectedSegmentations << segmentationPtr(selectedItem);
-    }
-    else if (selectedItem && isCategory(selectedItem))
-    {
-      m_selectedCategories << toCategoryAdapterPtr(selectedItem);
+      if (isSegmentation(selectedItem))
+      {
+        m_selectedSegmentations << segmentationPtr(selectedItem);
+      }
+      else if (isCategory(selectedItem))
+      {
+        m_selectedCategories << toCategoryAdapterPtr(selectedItem);
+      }
     }
   }
 }
@@ -905,4 +922,72 @@ const QString ClassificationLayout::uniqueCategoryName(const CategoryAdapterPtr 
   }
 
   return unique;
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::createChangeCategoryMenu(QMenu *menu)
+{
+   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
+   auto categoryListAction = new QWidgetAction(changeCategoryMenu);
+
+   auto model = getModel();
+
+   auto classification = new QTreeView();
+   classification->header()->setVisible(false);
+   classification->setModel(model.get());
+   classification->setRootIndex(model->classificationRoot());
+   classification->expandAll();
+   classification->resize(classification->sizeHint());
+
+   connect(classification, SIGNAL(clicked(QModelIndex)),
+           this,           SLOT(changeSegmentationsCategory(QModelIndex)));
+
+   connect(classification, SIGNAL(clicked(QModelIndex)),
+           menu,           SLOT(close()));
+
+   categoryListAction->setDefaultWidget(classification);
+   changeCategoryMenu->addAction(categoryListAction);
+   menu->insertMenu(menu->actions().first(), changeCategoryMenu);
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::changeSegmentationsCategory(const QModelIndex& index)
+{
+   ItemAdapterPtr categoryItem = itemAdapter(index);
+   Q_ASSERT(isCategory(categoryItem));
+   CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
+
+   auto undoStack = getUndoStack();
+   auto names     = segmentationListNames(m_selectedSegmentations);
+
+   undoStack->beginMacro(tr("Change segmentations to category '%1': %2.").arg(categoryAdapter->name()).arg(names));
+   undoStack->push(new ChangeCategoryCommand(m_selectedSegmentations, categoryAdapter, getContext()));
+   undoStack->endMacro();
+}
+
+//------------------------------------------------------------------------
+ItemAdapterPtr ClassificationLayout::item(const QModelIndex& index) const
+{
+  if(!index.isValid() || !isActive()) return nullptr;
+
+  return itemAdapter(m_sort->mapToSource(index));
+}
+
+//------------------------------------------------------------------------
+QModelIndex ClassificationLayout::index(ItemAdapterPtr item) const
+{
+  if(item->type() == ItemAdapter::Type::CATEGORY || item->type() == ItemAdapter::Type::SEGMENTATION)
+  {
+    auto sourceIndex = Layout::index(item);
+    if(sourceIndex.isValid())
+    {
+      auto proxyIndex = m_proxy->mapFromSource(sourceIndex);
+      if(proxyIndex.isValid())
+      {
+        return m_sort->mapFromSource(proxyIndex);
+      }
+    }
+  }
+
+  return QModelIndex();
 }

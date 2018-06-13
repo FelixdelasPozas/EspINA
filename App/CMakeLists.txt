@@ -41,6 +41,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/SpinesInformation/SpinesInformationDialog.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
+  Panels/SegmentationExplorer/Layouts/LocationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
   Panels/SegmentationExplorer/SegmentationExplorerLayout.h
   Panels/SegmentationProperties/NoFilterRefiner.h
@@ -178,6 +179,7 @@ set (ESPINA_SOURCES
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Panels/SegmentationExplorer/Layouts/LocationLayout.cpp
   Panels/SegmentationExplorer/SegmentationExplorer.cpp
   Panels/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Panels/SegmentationProperties/IssueProperty.cpp
