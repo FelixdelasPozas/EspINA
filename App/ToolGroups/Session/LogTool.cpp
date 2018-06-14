@@ -30,7 +30,7 @@ const QString LOG_FILE = "Extra/operations.log";
 
 //--------------------------------------------------------------------
 LogTool::LogTool(Support::Context &context, EspinaMainWindow *window)
-: ProgressTool{tr("LogTool"), ":/espina/log.svg", tr("Log of operations done on current analysis."), context}
+: ProgressTool{tr("LogTool"), ":/espina/log.svg", tr("Log of operations done on current analysis"), context}
 , m_dialog{nullptr}
 {
   setShortcut(Qt::CTRL + Qt::Key_L);
