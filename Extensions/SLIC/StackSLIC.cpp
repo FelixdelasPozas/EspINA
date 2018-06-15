@@ -114,6 +114,8 @@ Snapshot StackSLIC::snapshot() const
   for(int i = 0; i < result.slice_count; i++)
     stream << result.slice_offset[i];
 
+  snapshot << SnapshotData(dataName, dataBuffer);
+
   return snapshot;
 }
 
@@ -139,16 +141,19 @@ bool StackSLIC::loadFromSnapshot()
   if(!voxelsFileInfo.exists() || !dataFileInfo.exists() || !labelsFileInfo.exists())
     return false;
 
-  QFile voxelsFile(voxelsFileInfo.absoluteFilePath()) ;
-  result.voxels = voxelsFile.readAll();
+  QFile voxelsFile(voxelsFileInfo.absoluteFilePath());
   QFile labelsFile(labelsFileInfo.absoluteFilePath());
+  QFile dataFile(dataFileInfo.absoluteFilePath());
+  if(!voxelsFile.open(QIODevice::ReadOnly) || !labelsFile.open(QIODevice::ReadOnly) || !dataFile.open(QIODevice::ReadOnly))
+    return false;
+
+  result.voxels = voxelsFile.readAll();
 
   QByteArray labelBuffer = labelsFile.readAll();
   QDataStream labelStream(&labelBuffer, QIODevice::ReadOnly);
   labelStream.setVersion(QDataStream::Qt_4_0);
   result.supervoxels.clear();
   labelStream >> result.supervoxels;
-  QFile dataFile(dataFileInfo.absoluteFilePath());
   QByteArray data = dataFile.readAll();
 
   QDataStream stream(&data, QIODevice::ReadOnly);
@@ -157,10 +162,9 @@ bool StackSLIC::loadFromSnapshot()
   stream >> result.supervoxel_count;
   stream >> result.slice_count;
   stream >> result.bounds[0] >> result.bounds[1] >> result.bounds[2];
-  if(result.slice_offset!=NULL) {
+  if(result.slice_offset!=NULL)
     delete result.slice_offset;
-    result.slice_offset = (unsigned int*) malloc(result.slice_count * sizeof(unsigned int));
-  }
+  result.slice_offset = (unsigned int*) malloc(result.slice_count * sizeof(unsigned int));
   for(int i = 0; i < result.slice_count; i++)
     stream >> result.slice_offset[i];
 
