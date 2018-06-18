@@ -292,6 +292,12 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     if(inputBB[i] > regionBB[i]) return true;
   }
 
+  if(cf->cfType() == CF::CFType::ORTOGONAL)
+  {
+    // enough for orthogonal, no need to check slice by slice.
+    return false;
+  }
+
   // NOTE: CF slices != stack slices.
   bool isExcluded = true;
   for (vtkIdType i = 0; i < regionPoints->GetNumberOfPoints(); i += 4)
