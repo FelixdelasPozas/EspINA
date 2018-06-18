@@ -50,13 +50,9 @@ LocationProxy::LocationProxy(ModelAdapterSPtr sourceModel, GUI::View::ViewState&
 : QAbstractProxyModel{parent}
 , m_model            {nullptr}
 , m_viewState        (viewState)
+, m_orphanVisible    {Qt::Checked}
 {
   if(sourceModel) setSourceModel(sourceModel);
-}
-
-//--------------------------------------------------------------------
-LocationProxy::~LocationProxy()
-{
 }
 
 //--------------------------------------------------------------------
@@ -146,6 +142,21 @@ QVariant LocationProxy::data(const QModelIndex &proxyIndex, int role) const
         break;
     }
   }
+  else
+  {
+    switch(role)
+    {
+      case Qt::DisplayRole:
+        return tr("Segmentations without a related stack");
+        break;
+      case Qt::CheckStateRole:
+        return m_orphanVisible;
+        break;
+      default:
+        return QVariant();
+        break;
+    }
+  }
 
   return QAbstractProxyModel::data(proxyIndex, role);
 }
@@ -177,7 +188,7 @@ bool LocationProxy::setData(const QModelIndex &index, const QVariant &value, int
 //--------------------------------------------------------------------
 bool LocationProxy::hasChildren(const QModelIndex &parent) const
 {
-  return !m_segmentations.keys().isEmpty() && (rowCount(parent) > 0) && (columnCount(parent) > 0);
+  return (!m_segmentations.keys().isEmpty() || !m_orphaned.isEmpty()) && (rowCount(parent) > 0) && (columnCount(parent) > 0);
 }
 
 //--------------------------------------------------------------------
@@ -194,9 +205,15 @@ int LocationProxy::rowCount(const QModelIndex &parent) const
         return m_segmentations[stack].size();
       }
     }
+    else
+    {
+      return m_orphaned.size();
+    }
   }
   else
   {
+    if(!m_orphaned.isEmpty()) return m_segmentations.keys().size() + 1;
+
     return m_segmentations.keys().size();
   }
 
@@ -222,6 +239,10 @@ QModelIndex LocationProxy::parent(const QModelIndex &child) const
           {
             return createIndex(pos, 0, stack);
           }
+        }
+        else
+        {
+          return orphanIndex();
         }
       }
     }
@@ -254,6 +275,10 @@ QModelIndex LocationProxy::index(int row, int column, const QModelIndex &parent)
       if(row < m_segmentations.keys().size())
       {
         return createIndex(row, column, m_segmentations.keys().at(row));
+      }
+      else
+      {
+        return createIndex(row, column, nullptr);
       }
     }
   }
@@ -310,6 +335,10 @@ QModelIndex LocationProxy::mapFromSource(const QModelIndex &sourceIndex) const
         break;
     }
   }
+  else
+  {
+    qWarning() << "LocationProxy::mapFromSource() invalid source index" << sourceIndex;
+  }
   return QModelIndex();
 }
 
@@ -359,7 +388,7 @@ Qt::ItemFlags LocationProxy::flags(const QModelIndex &index) const
   switch(parent.isValid())
   {
     case false:
-      indexFlags = indexFlags | Qt::ItemIsDropEnabled;
+      if(index.internalPointer()) indexFlags = indexFlags | Qt::ItemIsDropEnabled;
       break;
     default:
       indexFlags = indexFlags | Qt::ItemIsDragEnabled;
@@ -518,15 +547,25 @@ void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex &sourceParent, 
 
       if(sourceItem && segmentation)
       {
-        for(auto stack: m_segmentations.keys())
+        if(m_orphaned.contains(segmentation))
         {
-          if(m_segmentations[stack].contains(segmentation))
+          auto numStart    = m_orphaned.indexOf(segmentation);
+          beginRemoveRows(orphanIndex(), numStart, numStart);
+          m_orphaned.removeAll(segmentation);
+          endRemoveRows();
+        }
+        else
+        {
+          for(auto stack: m_segmentations.keys())
           {
-            auto numStart = m_segmentations[stack].indexOf(segmentation);
-            beginRemoveRows(channelIndex(stack), numStart, numStart);
-            m_segmentations[stack].removeAll(segmentation);
-            endRemoveRows();
-            break;
+            if(m_segmentations[stack].contains(segmentation))
+            {
+              auto numStart = m_segmentations[stack].indexOf(segmentation);
+              beginRemoveRows(channelIndex(stack), numStart, numStart);
+              m_segmentations[stack].removeAll(segmentation);
+              endRemoveRows();
+              break;
+            }
           }
         }
       }
@@ -629,6 +668,8 @@ void LocationProxy::sourceModelReset()
   {
     m_visible.clear();
     m_segmentations.clear();
+    m_orphaned.clear();
+    m_orphanVisible = Qt::Checked;
   }
   endResetModel();
 }
@@ -638,20 +679,32 @@ void LocationProxy::changeIndexVisibility(const QModelIndex &index, bool value)
 {
   auto item = itemAdapter(index);
 
-  if (item->type() == ItemAdapter::Type::CHANNEL)
+  if(item)
   {
-    auto stack = channelPtr(item);
-    m_visible[stack] = value ? Qt::Checked : Qt::Unchecked;
+    if (item->type() == ItemAdapter::Type::CHANNEL)
+    {
+      auto stack = channelPtr(item);
+      m_visible[stack] = value ? Qt::Checked : Qt::Unchecked;
+
+      for (int r=0; r < rowCount(index); r++)
+      {
+        changeIndexVisibility(index.child(r,0), value);
+      }
+      m_model->setData(mapToSource(index), value, Qt::CheckStateRole);
+    }
+    else if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    {
+      m_model->setData(mapToSource(index), value, Qt::CheckStateRole);
+    }
+  }
+  else
+  {
+    m_orphanVisible = value ? Qt::Checked : Qt::Unchecked;
 
     for (int r=0; r < rowCount(index); r++)
     {
       changeIndexVisibility(index.child(r,0), value);
     }
-    m_model->setData(mapToSource(index), value, Qt::CheckStateRole);
-  }
-  else if(item->type() == ItemAdapter::Type::SEGMENTATION)
-  {
-    m_model->setData(mapToSource(index), value, Qt::CheckStateRole);
   }
 }
 
@@ -683,7 +736,15 @@ void LocationProxy::changeParentCheckStateRole(const QModelIndex &index, bool va
         }
     }
 
-    m_visible[stack] = checkState;
+    if(stack)
+    {
+      m_visible[stack] = checkState;
+    }
+    else
+    {
+      m_orphanVisible = checkState;
+    }
+
     emit dataChanged(parentIndex, parentIndex);
   }
 }
@@ -695,35 +756,39 @@ void LocationProxy::notifyModifiedRepresentations(const QModelIndex &index)
 
   ViewItemAdapterList modifiedItems;
 
-  if (item->type() == ItemAdapter::Type::CHANNEL)
+  if(item)
   {
-    auto stack = channelPtr(item);
-    if(stack)
+    if (item->type() == ItemAdapter::Type::CHANNEL)
     {
-      modifiedItems << stack;
-      modifiedItems << toList<ViewItemAdapter>(m_segmentations[stack]);
+      auto stack = channelPtr(item);
+      if(stack)
+      {
+        modifiedItems << stack;
+        modifiedItems << toList<ViewItemAdapter>(m_segmentations[stack]);
+      }
     }
-  }
-  else if (item->type() == ItemAdapter::Type::SEGMENTATION)
-  {
-    auto segmentation = segmentationPtr(item);
-    if(segmentation)
+    else if (item->type() == ItemAdapter::Type::SEGMENTATION)
     {
-      modifiedItems << segmentation;
+      auto segmentation = segmentationPtr(item);
+      if(segmentation)
+      {
+        modifiedItems << segmentation;
+      }
     }
-  }
-  else
-  {
-    Q_ASSERT(false);
+    else
+    {
+      Q_ASSERT(false);
+    }
   }
 
-  m_viewState.invalidateRepresentations(modifiedItems);
+  if(!modifiedItems.isEmpty()) m_viewState.invalidateRepresentations(modifiedItems);
 }
 
 //--------------------------------------------------------------------
 const QMap<ChannelAdapterSPtr, ItemAdapterList> LocationProxy::groupSegmentationsByStack(int start, int end)
 {
   QMap<ChannelAdapterSPtr, ItemAdapterList> result;
+  SegmentationAdapterList orphaned;
 
   if(start <= end)
   {
@@ -738,7 +803,19 @@ const QMap<ChannelAdapterSPtr, ItemAdapterList> LocationProxy::groupSegmentation
       {
         result[stack] << sourceItem;
       }
+      else
+      {
+        orphaned << segmentation;
+      }
     }
+  }
+
+  if(!orphaned.isEmpty())
+  {
+    auto alreadyIn   = m_orphaned.size();
+    beginInsertRows(orphanIndex(), alreadyIn, alreadyIn + orphaned.size());
+    m_orphaned << orphaned;
+    endInsertRows();
   }
 
   return result;
@@ -771,6 +848,20 @@ const SegmentationAdapterList LocationProxy::segmentationsOf(const ChannelAdapte
 }
 
 //--------------------------------------------------------------------
+const SegmentationAdapterList LocationProxy::orphanedSegmentations() const
+{
+  SegmentationAdapterList result;
+
+  if(!m_orphaned.isEmpty())
+  {
+    result = m_orphaned;
+    result.detach();
+  }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
 const ChannelAdapterPtr LocationProxy::stackOf(const SegmentationAdapterPtr segmentation) const
 {
   ChannelAdapterPtr result = nullptr;
@@ -781,4 +872,15 @@ const ChannelAdapterPtr LocationProxy::stackOf(const SegmentationAdapterPtr segm
   }
 
   return result;
+}
+
+//--------------------------------------------------------------------
+const QModelIndex LocationProxy::orphanIndex() const
+{
+  if(!m_orphaned.isEmpty())
+  {
+    return createIndex(m_segmentations.keys().size(), 0, nullptr);
+  }
+
+  return QModelIndex();
 }

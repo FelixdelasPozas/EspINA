@@ -57,10 +57,11 @@ bool LocationLayout::LocationSortFilter::lessThan(const QModelIndex& left, const
 
 //--------------------------------------------------------------------
 LocationLayout::LocationLayout(CheckableTreeView* view, Support::Context& context)
-: Layout    {view, context}
-, m_sort    {new LocationSortFilter()}
-, m_proxy   {new LocationProxy(context.model(), context.viewState())}
-, m_delegate{new QItemDelegate()}
+: Layout          {view, context}
+, m_sort          {new LocationSortFilter()}
+, m_proxy         {new LocationProxy(context.model(), context.viewState())}
+, m_orphanSelected{false}
+, m_delegate      {new QItemDelegate()}
 {
   auto model = context.model();
 
@@ -129,7 +130,7 @@ void LocationLayout::contextMenu(const QPoint& pos)
     return -1;
   };
 
-  if (stacksSelected)
+  if (stacksSelected || m_orphanSelected)
   {
     if (!segmentationsSelected)
     {
@@ -148,9 +149,16 @@ void LocationLayout::contextMenu(const QPoint& pos)
               this,            SLOT(selectAllFromStack()));
     }
 
+    if(m_orphanSelected)
+    {
+      auto selectOrphans = contextMenu->addAction(tr("Select all segmentations without a related stack"));
+      connect(selectOrphans, SIGNAL(triggered(bool)),
+              this,          SLOT(selectOrphans()));
+    }
+
     if(modelStacks.size() > 1 && m_selectedStacks.size() == 1)
     {
-      auto moveToNewStack = contextMenu->addAction(tr("Move all segmentations to '%1'").arg(m_selectedStacks.first()->data().toString()));
+      auto moveToNewStack = contextMenu->addAction(tr("Relocate all segmentations to '%1'").arg(m_selectedStacks.first()->data().toString()));
 
       connect(moveToNewStack, SIGNAL(triggered(bool)),
               this,           SLOT(moveAllToStack()));
@@ -161,12 +169,22 @@ void LocationLayout::contextMenu(const QPoint& pos)
   {
     contextMenu->addSeparator();
 
-    auto selectSameStack = contextMenu->addAction(tr("Select all segmentations of the same stack"));
-    selectSameStack->setProperty("stackIndex", stackIndex(m_proxy->stackOf(m_selectedSegs.first())));
-    selectSameStack->setEnabled(!stacksSelected);
+    auto selectSameStack = contextMenu->addAction(tr("Select all segmentations from the same location"));
 
-    connect(selectSameStack, SIGNAL(triggered(bool)),
-            this,            SLOT(selectAllFromStack()));
+    auto stack = m_proxy->stackOf(m_selectedSegs.first());
+    if(stack)
+    {
+      selectSameStack->setProperty("stackIndex", stackIndex(stack));
+      connect(selectSameStack, SIGNAL(triggered(bool)),
+              this,            SLOT(selectAllFromStack()));
+    }
+    else
+    {
+      selectSameStack->setText(tr("Select all segmentations without a related stack"));
+      connect(selectSameStack, SIGNAL(triggered(bool)),
+              this,            SLOT(selectAllOrphans()));
+    }
+    selectSameStack->setEnabled(!stacksSelected && !m_orphanSelected);
   }
 
   if(contextMenu)
@@ -226,9 +244,10 @@ QItemDelegate *LocationLayout::itemDelegate() const
 void LocationLayout::segmentationsDropped(SegmentationAdapterList segmentations, ChannelAdapterPtr stack)
 {
   auto segmentationNames = segmentationListNames(segmentations);
-  auto undoStack = getUndoStack();
+  auto undoStack         = getUndoStack();
+  auto number            = segmentations.size() > 1 ? "s":"";
 
-  undoStack->beginMacro(tr("Change segmentations' stack to '%1': %2").arg(stack->data().toString()).arg(segmentationNames));
+  undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
   undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
   undoStack->endMacro();
 }
@@ -247,6 +266,8 @@ void LocationLayout::updateSelectedItems()
 {
   m_selectedSegs.clear();
   m_selectedStacks.clear();
+  m_orphanSelected = false;
+  auto haveOrphans = m_proxy->orphanIndex() != QModelIndex();
 
   for(auto index : m_view->selectionModel()->selectedIndexes())
   {
@@ -264,6 +285,13 @@ void LocationLayout::updateSelectedItems()
           break;
         default:
           break;
+      }
+    }
+    else
+    {
+      if(!m_orphanSelected && haveOrphans)
+      {
+        m_orphanSelected = true;
       }
     }
   }
@@ -294,9 +322,26 @@ void LocationLayout::selectAllFromStack()
         m_view->selectionModel()->clearSelection();
         m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
         m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
+        m_view->scrollTo(selection.first().topLeft(), QAbstractItemView::ScrollHint::EnsureVisible);
       }
-
     }
+  }
+}
+
+//--------------------------------------------------------------------
+void LocationLayout::selectAllOrphans()
+{
+  QItemSelection selection;
+  auto parentIndex = m_proxy->orphanIndex();
+  auto number      = m_proxy->orphanedSegmentations().size();
+  selection.merge(QItemSelection(parentIndex.child(0,0), parentIndex.child(number-1, 0)), QItemSelectionModel::Select);
+
+  if(!selection.isEmpty())
+  {
+    m_view->selectionModel()->clearSelection();
+    m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
+    m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
+    m_view->scrollTo(selection.first().topLeft(), QAbstractItemView::ScrollHint::EnsureVisible);
   }
 }
 
@@ -314,10 +359,11 @@ void LocationLayout::moveToStack()
     if(ok && stackIndex >= 0 && stackIndex < modelStacks.size())
     {
       auto segmentationNames = segmentationListNames(m_selectedSegs);
-      auto stack = modelStacks.at(stackIndex).get();
-      auto undoStack = getUndoStack();
+      auto stack             = modelStacks.at(stackIndex).get();
+      auto undoStack         = getUndoStack();
+      auto number            = m_selectedSegs.size() > 1 ? "s":"";
 
-      undoStack->beginMacro(tr("Change segmentations' stack to '%1': %2").arg(stack->data().toString()).arg(segmentationNames));
+      undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
       undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
       undoStack->endMacro();
     }
@@ -352,8 +398,9 @@ void LocationLayout::moveAllToStack()
 
       auto segmentationNames = segmentationListNames(segmentations);
       auto undoStack = getUndoStack();
+      auto number = segmentations.size() > 1 ? "s":"";
 
-      undoStack->beginMacro(tr("Change segmentations' stack to '%1': %2").arg(stack->data().toString()).arg(segmentationNames));
+      undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
       undoStack->push(new ChangeSegmentationsStack(segmentations, stack));
       undoStack->endMacro();
     }
@@ -368,16 +415,16 @@ void LocationLayout::moveAllToStack()
 void LocationLayout::createChangeStackEntry(QMenu* menu)
 {
   auto modelStacks = getModel()->channels();
-  auto changeStackMenu = new QMenu(tr("C&hange Stack"));
+  auto changeStackMenu = new QMenu(tr("&Change location to"));
 
-  if(modelStacks.size() > 1)
+  if(modelStacks.size() > 1 || (m_proxy->orphanIndex() != QModelIndex()))
   {
     ChannelAdapterList segmentationStacks;
 
     for(auto segmentation: m_selectedSegs)
     {
       auto stack = m_proxy->stackOf(segmentation);
-      if(!segmentationStacks.contains(stack)) segmentationStacks << stack;
+      if(stack && !segmentationStacks.contains(stack)) segmentationStacks << stack;
     }
 
     for(auto stack: modelStacks)
@@ -395,7 +442,8 @@ void LocationLayout::createChangeStackEntry(QMenu* menu)
         action = changeStackMenu->addAction(QIcon{icon}, tr("%1").arg(stack->data().toString()));
       }
 
-      if(segmentationStacks.size() == 1 && segmentationStacks.first() == stack.get())
+      auto enabled = (segmentationStacks.size() == 1 && segmentationStacks.first() != stack.get()) || m_orphanSelected;
+      if(!enabled)
       {
         action->setEnabled(false);
       }

@@ -56,7 +56,8 @@ namespace ESPINA
             /** \brief LocationProxy class virtual destructor.
              *
              */
-            virtual ~LocationProxy();
+            virtual ~LocationProxy()
+            {};
 
             virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
@@ -96,7 +97,15 @@ namespace ESPINA
              */
             const ChannelAdapterPtr stackOf(const SegmentationAdapterPtr segmentation) const;
 
-            void printContents();
+            /** \brief Returns the list of segmentations without an assigned stack.
+             *
+             */
+            const SegmentationAdapterList orphanedSegmentations() const;
+
+            /** \brief Returns the QModelIndex parent of all orphan segmentations.
+             *
+             */
+            const QModelIndex orphanIndex() const;
 
           signals:
             void segmentationsDropped(SegmentationAdapterList sources, ChannelAdapterPtr stack);
@@ -201,6 +210,8 @@ namespace ESPINA
             GUI::View::ViewState                            &m_viewState;     /** Applications state of the views reference.           */
             QMap<ChannelAdapterPtr, Qt::CheckState>          m_visible;       /** Maps the stack with the visibility state.            */
             QMap<ChannelAdapterPtr, SegmentationAdapterList> m_segmentations; /** Maps the stack with the segmentations located in it. */
+            SegmentationAdapterList                          m_orphaned;      /** Segmentations without a channel, should be empty.    */
+            Qt::CheckState                                   m_orphanVisible; /** Visibility status for orphan 'channel'.              */
         };
       
       } // namespace Proxy

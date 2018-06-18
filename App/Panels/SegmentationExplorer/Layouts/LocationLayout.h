@@ -113,6 +113,11 @@ namespace ESPINA
        */
       void moveAllToStack();
 
+      /** \brief Select all orphaned segmentations.
+       *
+       */
+      void selectAllOrphans();
+
     private:
       /** \brief Updates the class internal lists of selected segmentations and stacks.
        *
@@ -127,11 +132,12 @@ namespace ESPINA
 
       using LayoutProxy = ESPINA::GUI::Model::Proxy::LocationProxy;
 
-      std::shared_ptr<LocationSortFilter> m_sort;           /** model filter and sorter.                  */
-      std::shared_ptr<LayoutProxy>        m_proxy;          /** proxy model.                              */
-      SegmentationAdapterList             m_selectedSegs;   /** list of currently selected segmentations. */
-      ChannelAdapterList                  m_selectedStacks; /** list of currently selected stacks.        */
-      QItemDelegate                      *m_delegate;       /** item delegate.                            */
+      std::shared_ptr<LocationSortFilter> m_sort;           /** model filter and sorter.                                 */
+      std::shared_ptr<LayoutProxy>        m_proxy;          /** proxy model.                                             */
+      SegmentationAdapterList             m_selectedSegs;   /** list of currently selected segmentations.                */
+      ChannelAdapterList                  m_selectedStacks; /** list of currently selected stacks.                       */
+      bool                                m_orphanSelected; /** true if the orphan 'stack' is selected, false otherwise. */
+      QItemDelegate                      *m_delegate;       /** item delegate.                                           */
   };
 
 } // namespace ESPINA
