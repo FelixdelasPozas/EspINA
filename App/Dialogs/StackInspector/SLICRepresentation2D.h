@@ -32,6 +32,11 @@ class vtkTextActor;
 class vtkImageActor;
 class vtkImageMapToColors;
 class vtkImageData;
+class vtkLookupTable;
+class vtkPoints;
+class vtkFollower;
+class vtkPolyData;
+class vtkGlyph3DMapper;
 
 namespace ESPINA
 {
@@ -86,6 +91,12 @@ namespace ESPINA
 
       virtual void setRepresentationDepth(Nm depth) {};
 
+    public slots:
+      /** \brief Modifies the text onscreen when the SLIC is being computed.
+       *
+       */
+      void setSLICComputationProgress(int value);
+
     private:
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
@@ -100,16 +111,41 @@ namespace ESPINA
        */
       void buildVTKPipeline();
 
+      /** \brief Helper method that returns a grayscale LUT.
+       *
+       */
+      vtkSmartPointer<vtkLookupTable> grayscaleLUT() const;
+
+      /** \brief Helper method that returns a color LUT.
+       *
+       */
+      vtkSmartPointer<vtkLookupTable> hueRangeLUT() const;
+
+      /** \brief Helper method that returns a color LUT where consecutive values have not
+       * similar colors.
+       *
+       */
+      vtkSmartPointer<vtkLookupTable> hueNonConsecutiveLUT() const;
+
+      /** \brief Helper method that returns a LUT of random colors. Can contain duplicated colors.
+       *
+       */
+      vtkSmartPointer<vtkLookupTable> randomLUT() const;
+
     private:
-      vtkSmartPointer<vtkTextActor>         m_textActor;  /** text representation actor.                    */
-      vtkSmartPointer<vtkImageActor>        m_actor;      /** slice representation actor.                   */
-      vtkSmartPointer<vtkImageMapToColors>  m_mapper;     /** mapper used for slic slices                   */
-      vtkSmartPointer<vtkImageData>         m_data;       /** image data holding slice information          */
-      RenderView                           *m_view;       /** view where the representations will be shown. */
-      bool                                  m_active;     /** true if visible and false otherwise.          */
-      Nm                                    m_lastSlice;  /** position of the last slice rendered.          */
-      int                                   m_planeIndex; /** index of the view's plane.                    */
-      std::shared_ptr<Extensions::StackSLIC>m_extension;  /** slic extension instance                       */
+      vtkSmartPointer<vtkTextActor>         m_textActor;    /** text representation actor.                    */
+      vtkSmartPointer<vtkImageActor>        m_actor;        /** slice representation actor.                   */
+      vtkSmartPointer<vtkImageMapToColors>  m_mapper;       /** mapper used for slic slices                   */
+      vtkSmartPointer<vtkImageData>         m_data;         /** image data holding slice information          */
+      vtkSmartPointer<vtkPoints>            m_points;       /** supervoxel centers for the centers actor.     */
+      vtkSmartPointer<vtkPolyData>          m_pointsData;   /** points polydata.                              */
+      vtkSmartPointer<vtkGlyph3DMapper>     m_pointsMapper; /** points mapper.                                */
+      vtkSmartPointer<vtkFollower>          m_pointsActor;  /** points actor.                                 */
+      RenderView                           *m_view;         /** view where the representations will be shown. */
+      bool                                  m_active;       /** true if visible and false otherwise.          */
+      Nm                                    m_lastSlice;    /** position of the last slice rendered.          */
+      int                                   m_planeIndex;   /** index of the view's plane.                    */
+      std::shared_ptr<Extensions::StackSLIC>m_extension;    /** slic extension instance                       */
   };
 } // ESPINA
 

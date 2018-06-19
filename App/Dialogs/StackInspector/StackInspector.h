@@ -27,6 +27,7 @@
 // ESPINA
 #include <Core/Types.h>
 #include <Extensions/SLIC/StackSLIC.h>
+#include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/Types.h>
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
@@ -177,6 +178,16 @@ namespace ESPINA
        *
        */
       void onCurrentTabChanged(int index);
+
+      /** \brief Updates the view when the SLIC has finished computing.
+       *
+       */
+      void onSLICComputed();
+
+      /** \brief Connects the signals to the representations.
+       *
+       */
+      void onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
     private:
       /** \brief Helper method to update views after changes to the stack.

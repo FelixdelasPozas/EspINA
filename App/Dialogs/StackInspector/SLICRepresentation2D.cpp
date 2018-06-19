@@ -36,13 +36,25 @@
 #include <vtkPointData.h>
 #include <vtkLookupTable.h>
 #include <vtkImageMapper3D.h>
+#include <vtkPoints.h>
+#include <vtkFollower.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkGlyphSource2D.h>
+#include <vtkPolyData.h>
+
+// Qt
+#include <QColor>
+
+// C++
+#include <random>
+#include <chrono>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
 
 //--------------------------------------------------------------------
 SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension)
-: m_textActor     {nullptr}
+: m_textActor {nullptr}
 , m_view      {nullptr}
 , m_active    {false}
 , m_lastSlice {std::numeric_limits<double>::max()}
@@ -54,9 +66,10 @@ SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC
 //--------------------------------------------------------------------
 SLICRepresentation2D::~SLICRepresentation2D()
 {
-  if(m_view) m_view->removeActor(m_textActor);
-
-  m_textActor = nullptr;
+  if(m_view)
+  {
+    uninitialize();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -78,9 +91,9 @@ void SLICRepresentation2D::initialize(RenderView* view)
 
   // TODO: this will be needed when the real actor is computed.
   repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
+  repositionActor(m_pointsActor, view2d->widgetDepth(), m_planeIndex);
 
-  m_view->addActor(m_textActor);
-  m_view->addActor(m_actor);
+  show();
   m_view->refresh();
 }
 
@@ -89,11 +102,21 @@ void SLICRepresentation2D::uninitialize()
 {
   if(m_view)
   {
-    if(m_actor) m_view->removeActor(m_actor);
-    if(m_textActor) m_view->removeActor(m_textActor);
+    if(m_active)
+    {
+      if(m_actor) m_view->removeActor(m_actor);
+      if(m_textActor) m_view->removeActor(m_textActor);
+      if(m_pointsActor) m_view->removeActor(m_pointsActor);
+    }
     m_view = nullptr;
     m_textActor = nullptr;
     m_actor = nullptr;
+    m_mapper = nullptr;
+    m_data = nullptr;
+    m_points = nullptr;
+    m_pointsData = nullptr;
+    m_pointsMapper = nullptr;
+    m_pointsActor = nullptr;
   }
 }
 
@@ -105,10 +128,13 @@ void SLICRepresentation2D::show()
   if(!m_active)
   {
     m_active = true;
-    m_textActor->SetVisibility(true);
-    m_textActor->Modified();
-    m_actor->SetVisibility(true);
-    m_actor->Modified();
+    m_view->addActor(m_textActor);
+    m_view->addActor(m_actor);
+    m_view->addActor(m_pointsActor);
+//    m_textActor->SetVisibility(true);
+//    m_textActor->Modified();
+//    m_actor->SetVisibility(true);
+//    m_actor->Modified();
   }
 }
 
@@ -120,10 +146,13 @@ void SLICRepresentation2D::hide()
   if(m_active)
   {
     m_active = false;
-    m_textActor->SetVisibility(false);
-    m_textActor->Modified();
-    m_actor->SetVisibility(false);
-    m_actor->Modified();
+    m_view->removeActor(m_textActor);
+    m_view->removeActor(m_actor);
+    m_view->removeActor(m_pointsActor);
+//    m_textActor->SetVisibility(false);
+//    m_textActor->Modified();
+//    m_actor->SetVisibility(false);
+//    m_actor->Modified();
   }
 }
 
@@ -156,7 +185,10 @@ bool SLICRepresentation2D::acceptInvalidationFrame(const GUI::Representations::F
 //--------------------------------------------------------------------
 void SLICRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  if(m_view) updateActor(frame);
+  if(m_view)
+  {
+    updateActor(frame);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -168,32 +200,43 @@ GUI::Representations::Managers::TemporalRepresentation2DSPtr SLICRepresentation2
 //--------------------------------------------------------------------
 void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr frame)
 {
-  bool computed = m_extension != NULL && m_extension->drawSliceInImageData(frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing(), m_data);
+  auto slice = frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing();
+  bool computed = (m_extension != nullptr)                         &&
+                  m_extension->drawSliceInImageData(slice, m_data) &&
+                  m_extension->drawVoxelCenters(slice, m_points);
 
-  if(!computed) {
-    std::stringstream ss;
-    ss << "SLIC not computed!\nRun it first.";
-    m_textActor->SetInput(ss.str().c_str());
-
-    m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-    m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
-    m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
-
+  if(!computed)
+  {
     m_textActor->SetVisibility(true);
-    m_actor->SetVisibility(false);
     m_textActor->Modified();
+
+    m_actor->SetVisibility(false);
     m_actor->Modified();
+
+    m_pointsActor->SetVisibility(false);
+    m_pointsActor->Modified();
     return;
   }
 
-  m_actor->SetOpacity(1);
+  m_view->removeActor(m_actor);
+
+  m_pointsData->Modified();
+  m_pointsMapper->Update();
+
+  m_pointsActor->SetVisibility(true);
+  m_pointsActor->Modified();
+
+  m_textActor->SetVisibility(false);
+  m_textActor->Modified();
+
+  m_actor->SetVisibility(true);
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 
-  m_textActor->SetVisibility(false);
-  m_actor->SetVisibility(true);
-  m_textActor->Modified();
+  m_actor->SetOpacity(0.3);
   m_actor->Modified();
+
+  m_view->addActor(m_actor);
 }
 
 //--------------------------------------------------------------------
@@ -202,8 +245,9 @@ void SLICRepresentation2D::buildVTKPipeline()
   // TODO: build the actor for the representation.
   // Depending on the SLIC data create a slice data using the area of the channel
   // edges, and then display that data on-screen. If there is no SLIC data, build the pipeline
-  // with no dada, do not update actor or enter it in the view.
+  // with no data, do not update actor or enter it in the view.
 
+  // text actor
   m_textActor = vtkSmartPointer<vtkTextActor>::New();
   m_textActor->SetPosition2(10, 40);
   m_textActor->GetTextProperty()->SetBold(true);
@@ -213,44 +257,179 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_textActor->GetTextProperty()->SetFontSize(24);
   m_textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
 
-  vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  array->SetNumberOfComponents(1);
-  array->SetNumberOfTuples(1);
-  array->SetValue(0, 0);
-  /*array->SetNumberOfTuples(699*536*115);
-  for(int z = 0; z < 115; z++) {
-    for(int y = 0; y < 536; y++) {
-      for(int x = 0; x < 699; x++) {
-        array->SetValue(699*536*z + 699*y + x, ((x+y)%2)*255);
-      }
-    }
-  }*/
+  std::stringstream ss;
+  ss << "SLIC not computed!\nRun it first.";
+  m_textActor->SetInput(ss.str().c_str());
+
+  m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+  m_textActor->GetPositionCoordinate()->SetViewport(m_view->mainRenderer());
+  m_textActor->GetPositionCoordinate()->SetValue(.5, .5);
+
+  // slice actor
   m_data = vtkSmartPointer<vtkImageData>::New();
   m_data->SetOrigin(0,0,0);
+  m_data->SetExtent(0,1,0,1,0,1);
   m_data->SetSpacing(1,1,1);
-  m_data->SetDimensions(1,1,1);
+
+  auto info = m_data->GetInformation();
+  vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+  vtkImageData::SetNumberOfScalarComponents(1, info);
+  m_data->SetInformation(info);
   m_data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  m_data->GetPointData()->SetScalars(array.GetPointer());
-  auto lut = vtkSmartPointer<vtkLookupTable>::New();
-  lut->Allocate();
-  lut->SetTableRange(0,255);
-  lut->SetValueRange(0.0, 1.0);
-  lut->SetAlphaRange(0,1);
-  lut->SetNumberOfColors(256);
-  lut->SetRampToLinear();
-  lut->SetHueRange(0, 0);
-  lut->SetSaturationRange(0, 0);
-  lut->Build();
+  m_data->Modified();
+
+//  auto lut = hueRangeLUT();
+//  auto lut = hueNonConsecutiveLUT();
+//  auto lut = grayscaleLUT();
+  auto lut = randomLUT();
+
   m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapper->SetInputData(m_data);
   m_mapper->SetLookupTable(lut);
   m_mapper->UpdateWholeExtent();
+
   m_actor = vtkSmartPointer<vtkImageActor>::New();
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapper->GetOutputPort());
   m_actor->GetMapper()->SetNumberOfThreads(1);
-  m_actor->SetOpacity(1);
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
+
+  // points actor
+  auto spacing = m_view->sceneResolution();
+  auto minSpacing = std::numeric_limits<double>::max();
+  for(auto i: {0,1})
+  {
+    minSpacing = std::min(minSpacing, spacing[i]);
+  }
+
+  m_points = vtkSmartPointer<vtkPoints>::New();
+
+  m_pointsData = vtkSmartPointer<vtkPolyData>::New();
+  m_pointsData->SetPoints(m_points);
+
+  m_pointsMapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+  m_pointsMapper->SetScalarVisibility(false);
+  m_pointsMapper->ScalingOff();
+  m_pointsMapper->SetInputData(m_pointsData);
+
+  auto glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
+  glyph2D->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
+  glyph2D->SetGlyphTypeToCross();
+  glyph2D->SetFilled(true);
+  glyph2D->SetCenter(0,0,0);
+  glyph2D->SetScale(minSpacing*2); // two pixels in the shortest direction of X,Y.
+  glyph2D->SetColor(1,1,1);
+  glyph2D->Update();
+
+  m_pointsMapper->SetSourceData(glyph2D->GetOutput());
+
+  m_pointsActor = vtkSmartPointer<vtkFollower>::New();
+  m_pointsActor->SetMapper(m_pointsMapper);
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::grayscaleLUT() const
+{
+  auto lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetTableRange(0,255);
+  lut->SetNumberOfTableValues(256);
+  lut->SetValueRange(0.0, 1.0);
+  lut->SetAlphaRange(0,1);
+  lut->SetRampToLinear();
+  lut->SetHueRange(0, 0);
+  lut->SetSaturationRange(0, 0);
+  lut->Build();
+
+  return lut;
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::hueRangeLUT() const
+{
+  const double increment = 360./256.;
+
+  auto lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetTableRange(0,255);
+  lut->SetNumberOfTableValues(256);
+
+  for(int i = 0; i < 256; ++i)
+  {
+    auto color = QColor::fromHsv(static_cast<int>(i * increment), 255,255,255);
+    lut->SetTableValue(i, color.redF(), color.greenF(), color.blue(), 1.0);
+  }
+
+  lut->Modified();
+
+  return lut;
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::hueNonConsecutiveLUT() const
+{
+  const double increment = 360./256.;
+  int range1 = 0;
+  int range2 = range1+64;
+  int range3 = range2+64;
+  int range4 = range3+64;
+
+  auto lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetTableRange(0,255);
+  lut->SetNumberOfTableValues(256);
+
+  for(int i = 0; i < 256; i+=4)
+  {
+    auto color = QColor::fromHsv(static_cast<int>(increment * range1++), 255,255,255);
+    lut->SetTableValue(i, color.redF(), color.greenF(), color.blueF(), 1);
+    color = QColor::fromHsv(static_cast<int>(increment * range2++), 255,255,255);
+    lut->SetTableValue(i+1, color.redF(), color.greenF(), color.blueF(), 1);
+    color = QColor::fromHsv(static_cast<int>(increment * range3++), 255,255,255);
+    lut->SetTableValue(i+2, color.redF(), color.greenF(), color.blueF(), 1);
+    color = QColor::fromHsv(static_cast<int>(increment * range4++), 255,255,255);
+    lut->SetTableValue(i+3, color.redF(), color.greenF(), color.blueF(), 1);
+  }
+
+  lut->Modified();
+
+  return lut;
+}
+
+//--------------------------------------------------------------------
+void SLICRepresentation2D::setSLICComputationProgress(int value)
+{
+  if(m_view)
+  {
+    std::stringstream ss;
+    ss << "Computing...\nProgress: " << value << " %";
+    m_textActor->SetInput(ss.str().c_str());
+    m_textActor->Modified();
+
+    m_view->refresh();
+  }
+}
+
+//--------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::randomLUT() const
+{
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::mt19937 generator(seed);
+
+  auto lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetTableRange(0,255);
+  lut->SetNumberOfTableValues(256);
+
+  for(int i = 0; i < 256; ++i)
+  {
+    auto color = QColor::fromHsv(static_cast<int>(generator() % 360), 255,255,255);
+    lut->SetTableValue(i, color.redF(), color.greenF(), color.blue(), 1.0);
+  }
+
+  lut->Modified();
+
+  return lut;
 }

@@ -28,17 +28,21 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
 //ITK
-#include "itkImage.h"
-#include <itkEuclideanDistanceMetric.h>
-#include "itkImageConstIteratorWithIndex.h"
-#include "itkImageRegion.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkImageData.h"
-#include "vtkPointData.h"
+#include <itkImage.hxx>
+#include <itkEuclideanDistanceMetric.hxx>
+#include <itkImageConstIteratorWithIndex.hxx>
+#include <itkImageRegion.hxx>
+#include <vtkUnsignedCharArray.h>
+#include <vtkImageData.h>
+#include <vtkPointData.h>
 
+// C++
 #include <limits>
 #include <math.h>
 #include <memory>
+
+// Qt
+#include <QDataStream>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -50,31 +54,32 @@ const QString StackSLIC::VOXELS_FILE = "voxels.slic";
 const QString StackSLIC::LABELS_FILE = "labels.slic";
 const QString StackSLIC::DATA_FILE = "data.slic";
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache)
 : StackExtension{cache}
 , m_scheduler{scheduler}
 , m_factory  {factory}
-, task(NULL)
+, task       {nullptr}
 {
   qDebug() << "Constructor StackSLIC";
   qDebug() << QString("%1").arg(result.supervoxel_count);
 
-  result.slice_offset = NULL;
+  result.slice_offset = nullptr;
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 StackSLIC::~StackSLIC()
 {
-  if(task != NULL) {
+  if(task != nullptr)
+  {
       if(task->isRunning())
         task->abort();
   }
-  if(result.slice_offset != NULL)
+  if(result.slice_offset != nullptr)
       delete result.slice_offset;
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 State StackSLIC::state() const
 {
   //TODO: Save:
@@ -82,14 +87,14 @@ State StackSLIC::state() const
   return State();
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Snapshot StackSLIC::snapshot() const
 {
   if(!result.computed)
     return Snapshot();
 
   qDebug() << QString("Saving snapshot");
-  QWriteLocker lock(&result.m_dataMutex);
+  QReadLocker lock(&result.m_dataMutex);
 
   Snapshot snapshot;
 
@@ -111,22 +116,24 @@ Snapshot StackSLIC::snapshot() const
   stream << result.supervoxel_count;
   stream << result.slice_count;
   stream << result.bounds[0] << result.bounds[1] << result.bounds[2];
-  for(int i = 0; i < result.slice_count; i++)
+  for(unsigned int i = 0; i < result.slice_count; i++)
+  {
     stream << result.slice_offset[i];
+  }
 
   snapshot << SnapshotData(dataName, dataBuffer);
 
   return snapshot;
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool StackSLIC::loadFromSnapshot()
 {
   qDebug() << QString("Loading snapshot start");
   if(result.computed)
     return true;
 
-  QReadLocker lock(&result.m_dataMutex);
+  QWriteLocker lock(&result.m_dataMutex);
   qDebug() << QString("Loading snapshot");
 
   Snapshot snapshot;
@@ -162,72 +169,101 @@ bool StackSLIC::loadFromSnapshot()
   stream >> result.supervoxel_count;
   stream >> result.slice_count;
   stream >> result.bounds[0] >> result.bounds[1] >> result.bounds[2];
-  if(result.slice_offset!=NULL)
+  if(result.slice_offset!=nullptr)
+  {
     delete result.slice_offset;
+  }
   result.slice_offset = (unsigned int*) malloc(result.slice_count * sizeof(unsigned int));
-  for(int i = 0; i < result.slice_count; i++)
+  for(unsigned int i = 0; i < result.slice_count; i++)
+  {
     stream >> result.slice_offset[i];
+  }
 
   result.computed = true;
 
   return true;
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 StackExtension::InformationKeyList StackSLIC::availableInformation() const
 {
   return InformationKeyList();
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void StackSLIC::onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance)
 {
-  if(task != NULL)
-    return;
+  if(task != nullptr) return;
+
   /*auto */task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, &result, parameter_m_s, parameter_m_c, variant, max_iterations, tolerance);
 
   connect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
+  connect(task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
 
   Task::submit(task);
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void StackSLIC::onSLICComputed()
 {
-  qDebug() << "finished";
-  if(task != NULL) {
+  if(task != nullptr)
+  {
     disconnect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
-    task = NULL;
+    disconnect(task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
+    task = nullptr;
+  }
+
+  emit computeFinished();
+}
+
+//-----------------------------------------------------------------------------
+void StackSLIC::onAbortSLIC()
+{
+  if(task != nullptr)
+  {
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
+    disconnect(task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
+
+    if(task->isRunning()) task->abort();
+
+    task = nullptr;
   }
 }
 
-//--------------------------------------------------------------------
-void StackSLIC::onAbortSLIC() {
-  if(task != NULL) {
-    if(task->isRunning())
-      task->abort();
-    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
-    task = NULL;
-  }
-}
-
-
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, SLICResult *result, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance)
 : Task(scheduler)
 , m_stack{stack}
 , m_factory{factory}
+, result(result)
 , parameter_m_s(parameter_m_s)
 , parameter_m_c(parameter_m_c)
 , variant(variant)
 , max_iterations(max_iterations)
 , tolerance(tolerance)
-, voxels(NULL)
-, result(result)
+, voxels(nullptr)
 {
+  QString description = "Computing ";
+  switch(variant)
+  {
+    case SLICVariant::ASLIC:
+      description += "ASLIC";
+      break;
+    case SLICVariant::SLIC:
+      description += "SLIC";
+      break;
+    case SLICVariant::SLICO:
+      description += "SLICO";
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
+  setDescription(description);
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::run()
 {
   BlockTimer<std::chrono::milliseconds> timer{"SLIC"};
@@ -237,16 +273,15 @@ void StackSLIC::SLICComputeTask::run()
   auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
   auto sliceRegion = edgesExtension->sliceRegion(0);
 
-
-  Bounds bounds = m_stack->bounds();
+  const Bounds bounds = m_stack->bounds();
   OutputSPtr output = m_stack->output();
   NmVector3 spacing = output->spacing();
   //Calculate dimensions using voxels as unit
-  unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
-  unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
-  unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
+  const unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+  const unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+  const unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
   //Calculate total number of voxels
-  unsigned long int n_voxels = max_x*max_y*max_z;
+  const unsigned long int n_voxels = max_x*max_y*max_z;
   unsigned long int voxel_index;
 
   //Used to avoid dividing when switching from grayscale space (0-255)
@@ -272,14 +307,15 @@ void StackSLIC::SLICComputeTask::run()
 
   QList<Label> labels;
   auto image = inputVolume->itkImage();
-  typedef itk::Image<unsigned char, 3> ImageType;
-  typedef ImageType::IndexType IndexType;
-
+  using ImageType = itk::Image<unsigned char, 3>;
+  using IndexType = ImageType::IndexType;
 
   //Find centers for the supervoxels
   IndexType cur_index;
   for(unsigned int z=parameter_m_s/2;z<max_z;z+=parameter_m_s/spacing[2])
   {
+    if(!canExecute()) return;
+
     sliceRegion = edgesExtension->sliceRegion(z);
 
     for(unsigned int y=parameter_m_s/2;y<max_y;y+=parameter_m_s/spacing[1])
@@ -292,9 +328,8 @@ void StackSLIC::SLICComputeTask::run()
         cur_index[2] = z;
 
         //Don't create supervoxel centers outside of the calculated edges
-        if(!sliceRegion.IsInside(cur_index)) {
-          continue;
-        }
+        if(!sliceRegion.IsInside(cur_index)) continue;
+
         //TODO: Check lowest gradient voxel in a 3x3x3 area around voxel
 
         cur_index = {x,y,z};
@@ -305,19 +340,20 @@ void StackSLIC::SLICComputeTask::run()
   qDebug() << QString("Created %1 labels").arg(labels.size());
 
   //Reserve enough memory for all voxels
-  voxels = (unsigned int*) malloc(n_voxels * sizeof(unsigned int));
-  memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels * sizeof(unsigned int));
+  voxels = new unsigned int[n_voxels];
+//  voxels = (unsigned int*) malloc(n_voxels * sizeof(unsigned int));
+  std::memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels * sizeof(unsigned int));
 
   typedef itk::ImageRegionConstIteratorWithIndex<ImageType> RegionIterator;
   typedef itk::ImageRegion<3> ImageRegion;
   //ImageRegion::SizeType size;
-  double region_size, spatial_distance, color_distance, distance, distance_old;
+  double spatial_distance, color_distance, distance, distance_old;
   ImageRegion region;
   Label *label, *label_old;
   unsigned char center_color, voxel_color;
   bool converged = false, cropped = false;
   qDebug() << "start: max iterations" << max_iterations;
-  int progress = 0;
+  int progressValue = 0;
   int current_slice = 0;
   unsigned int label_index = 0;
 
@@ -328,24 +364,44 @@ void StackSLIC::SLICComputeTask::run()
   double newProgress = 0;
   int region_x, region_y, region_z, region_size_x, region_size_y, region_size_z;
 
+  // Extract constants from the loops.
+  const double region_size = 2. * parameter_m_s;
+  emit progress(0);
+
   try
   {
-    for(int iteration = 0; iteration<max_iterations && !converged; iteration++)
+    for(unsigned int iteration = 0; iteration<max_iterations && !converged; iteration++)
     {
+      if(!canExecute())
+      {
+        delete[] voxels;
+        return;
+      }
+
       newProgress = (iteration * 100.0) / max_iterations;
-      if(newProgress != progress) qDebug() << "progress" << newProgress;
-      progress = newProgress;
+      if(newProgress != progressValue)
+      {
+        qDebug() << "progress" << newProgress;
+        progressValue = newProgress;
+        emit progress(progressValue);
+      }
 
       for(label_index=0;label_index<labels.size();label_index++)
       {
+        if(!canExecute())
+        {
+          delete[] voxels;
+          return;
+        }
+
         if(label_index%5000 == 0)
           qDebug() << QString("Label %1: %2s").arg(label_index).arg(timer.elapsed()/1000);
         label=&labels[label_index];
 
-        //Set the voxel region to iterate
-        region_size = 2*parameter_m_s;
-
-        //region_size_x = region_size_y = region_size_z = region_size;
+//        //Set the voxel region to iterate
+//        region_size = 2*parameter_m_s;
+//
+//        //region_size_x = region_size_y = region_size_z = region_size;
         region_size_x = region_size / spacing[0];
         region_size_y = region_size / spacing[1];
         region_size_z = region_size / spacing[2];
@@ -372,15 +428,19 @@ void StackSLIC::SLICComputeTask::run()
         if(region_y+region_size_y > max_y) region_size_y = max_y-region_y;
         if(region_z+region_size_z > max_z) region_size_z = max_z-region_z;
 
-        switch(variant) {
+        switch(variant)
+        {
           case ASLIC:
             //Squared constants to prevent having to use expensive roots
             label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
             //First iteration keeps original parameter values to avoid overextending
-            if(iteration == 0) {
+            if(iteration == 0)
+            {
               label->m_s = parameter_m_s;
               label->m_c = parameter_m_c;
-            } else {
+            }
+            else
+            {
               label->m_s = 0;
               label->m_c = 0;
             }
@@ -390,18 +450,21 @@ void StackSLIC::SLICComputeTask::run()
             label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
           //no break
           case SLIC:
-            if(iteration == 0) {
-              label->m_s = parameter_m_s;
-            } else {
-              label->m_s = 0;
-            }
+            label->m_s = (iteration == 0) ? parameter_m_s : 0;
             break;
         }
 
         center_color = label->color;
 
         //Iterate over the slices
-        for(current_slice = region_z; current_slice < region_z + region_size_z; current_slice++) {
+        for(current_slice = region_z; current_slice < region_z + region_size_z; current_slice++)
+        {
+          if(!canExecute())
+          {
+            delete[] voxels;
+            return;
+          }
+
           //Get slice edges
           sliceRegion = edgesExtension->sliceRegion(current_slice);
           //Set region bounds around center for current slice
@@ -470,8 +533,10 @@ void StackSLIC::SLICComputeTask::run()
           } //RegionIterator
         }//current_slice
 
-        if(iteration > 0) {
-          switch(variant) {
+        if(iteration > 0)
+        {
+          switch(variant)
+          {
             case ASLIC:
               //Update max. distances calculating their roots as we were
               //using squared distances for the simplified equations
@@ -487,18 +552,23 @@ void StackSLIC::SLICComputeTask::run()
       } //label
 
       //If convergence test is enabled, assume it converged until proven otherwise
-      if(tolerance > 0)
-        converged = true;
+      if(tolerance > 0) converged = true;
 
       //Recalculate centers, check convergence
       qDebug() << "Recalculating centers";
       for(label_index=0;label_index<labels.size();label_index++)
       {
+        if(!canExecute())
+        {
+          delete[] voxels;
+          return;
+        }
+
         if(label_index%5000 == 0)
           qDebug() << QString("Label %1: %2s").arg(label_index).arg(timer.elapsed()/1000);
         label=&labels[label_index];
         //region_size = 2.5*label->m_s;
-        region_size = 2*parameter_m_s;
+//        region_size = 2*parameter_m_s;
         region_size_x = region_size / spacing[0];
         region_size_y = region_size / spacing[1];
         region_size_z = region_size / spacing[2];
@@ -529,31 +599,45 @@ void StackSLIC::SLICComputeTask::run()
         region_size_z += region_z;
 
         sum_color = sum_voxels = sum_x = sum_y = sum_z = 0;
-        for(z = region_z; z < region_size_z; z++) {
-          for(y = region_y; y < region_size_y; y++) {
-            voxel_index = region_x-1+y*max_x+z*max_x*max_y;
-            for(x = region_x; x < region_size_x; x++) {
+        for (z = region_z; z < region_size_z; z++)
+        {
+          for (y = region_y; y < region_size_y; y++)
+          {
+            voxel_index = region_x + (y * max_x) + (z * max_x * max_y);
+            if(voxel_index > n_voxels)
+            {
+              qWarning() << "invalid index" << voxel_index;
+              qWarning() << "region index" << region_x << region_y << region_z;
+              qWarning() << "region size " << region_size_x << region_size_y << region_size_z;
+              Q_ASSERT(false); // segmentation fault when indexing 'voxels' pointer.
+            }
+            for (x = region_x; x < region_size_x; x++)
+            {
               //voxel_index = x+y*max_x+z*max_x*max_y;
               voxel_index++;
-              if(label_index == voxels[voxel_index]) {
+              if (label_index == voxels[voxel_index])
+              {
                 sum_voxels++;
                 sum_x += x;
                 sum_y += y;
                 sum_z += z;
-                cur_index = {x,y,z};
+                cur_index =
+                { x,y,z};
                 sum_color += image->GetPixel(cur_index);
               }
             }
           }
         }
 
-        if(sum_voxels > 0) {
+        if(sum_voxels > 0)
+        {
           //Calculate averaged coordinates
           sum_x = round(sum_x/sum_voxels);
           sum_y = round(sum_y/sum_voxels);
           sum_z = round(sum_z/sum_voxels);
           //Calculate displacement for the tolerance test
-          if(tolerance > 0 && converged) {
+          if(tolerance > 0 && converged)
+          {
             spatial_distance = pow((label->center[0]-sum_x)*spacing[0],2)+pow((label->center[1]-sum_y)*spacing[1],2)+pow((label->center[2]-sum_z)*spacing[2],2);
             if(spatial_distance > tolerance)
               converged = false;
@@ -583,8 +667,10 @@ void StackSLIC::SLICComputeTask::run()
   result->supervoxels.clear();
   result->voxels.clear();
   result->bounds = bounds;
-  if(result->slice_offset != NULL)
+  if(result->slice_offset != nullptr)
+  {
     delete result->slice_offset;
+  }
   result->slice_offset = (unsigned int*) malloc(max_z * sizeof(unsigned int));
 
   for(label_index=0;label_index<labels.size();label_index++)
@@ -600,22 +686,31 @@ void StackSLIC::SLICComputeTask::run()
   QDataStream stream(&result->voxels, QIODevice::WriteOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
-  for(unsigned int z = 0; z < max_z; z++) {
+  for (unsigned int z = 0; z < max_z; z++)
+  {
     result->slice_offset[z] = result->voxels.size();
-    for(unsigned int y = 0; y < max_y; y++) {
-      voxel_index = y*max_x+z*max_x*max_y;
-      for(unsigned int x = 0; x < max_x; x++) {
-        if(x!=0) {
-          if(voxels[voxel_index] != current_label) {
+    for (unsigned int y = 0; y < max_y; y++)
+    {
+      voxel_index = y * max_x + z * max_x * max_y;
+      for (unsigned int x = 0; x < max_x; x++)
+      {
+        if (x != 0)
+        {
+          if (voxels[voxel_index] != current_label)
+          {
             //Write RLE
             stream << current_label;
             stream << same_label_count;
             current_label = voxels[voxel_index];
             same_label_count = 1;
-          } else {
+          }
+          else
+          {
             same_label_count++;
           }
-        } else {
+        }
+        else
+        {
           current_label = voxels[voxel_index];
           same_label_count = 1;
         }
@@ -629,19 +724,18 @@ void StackSLIC::SLICComputeTask::run()
 
   result->computed = true;
 
-  if(voxels != NULL)
-    delete voxels;
+  if(voxels != nullptr) delete[] voxels;
 }
 
-//--------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::onAbort()
 {
-  if(voxels != NULL)
-    delete voxels;
+//  if(voxels != nullptr) delete[] voxels;
 }
 
-//--------------------------------------------------------------------
-unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsigned int z) {
+//-----------------------------------------------------------------------------
+unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsigned int z)
+{
   //TODO: Check if x,y,z is in bounds
 
   if(!result.computed)
@@ -673,47 +767,72 @@ unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsig
   return label;
 }
 
-//--------------------------------------------------------------------
-unsigned char StackSLIC::getSupervoxelColor(unsigned int supervoxel) {
+//-----------------------------------------------------------------------------
+unsigned char StackSLIC::getSupervoxelColor(unsigned int supervoxel)
+{
   if(!result.computed)
       return 0;
 
   return result.supervoxels[supervoxel].color;
 }
 
-//--------------------------------------------------------------------
-itk::Image<unsigned char, 3>::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel) {
+//-----------------------------------------------------------------------------
+itk::Image<unsigned char, 3>::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel)
+{
   if(!result.computed)
       return {0,0,0};
 
   return result.supervoxels[supervoxel].center;
 }
 
-//--------------------------------------------------------------------
-bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data) {
-
+//-----------------------------------------------------------------------------
+bool StackSLIC::drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data)
+{
   loadFromSnapshot();
 
-  QWriteLocker lock(&result.m_dataMutex);
+  QReadLocker lock(&result.m_dataMutex);
 
-  if(!result.computed)
-    return false;
+  if(!result.computed) return false;
+
+  auto spacing = m_extendedItem->output()->spacing();
+
+  data->Reset();
+  for(auto superVoxel: result.supervoxels)
+  {
+    if(superVoxel.center.GetElement(2) == slice)
+    {
+      data->InsertNextPoint(superVoxel.center.GetElement(0) * spacing[0],
+                            superVoxel.center.GetElement(1) * spacing[1],
+                            superVoxel.center.GetElement(2) * spacing[2]);
+    }
+  }
+  data->Modified();
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data)
+{
+  loadFromSnapshot();
+
+  QReadLocker lock(&result.m_dataMutex);
+
+  if(!result.computed) return false;
 
   Bounds bounds = m_extendedItem->bounds();
   OutputSPtr output = m_extendedItem->output();
   NmVector3 spacing = output->spacing();
   unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
   unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
-  unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
   unsigned long long int pixel_count = max_x*max_y;
   unsigned long long int pixel = 0;
 
-  data->SetDimensions(max_x, max_y, 1);
+//  data->SetDimensions(max_x, max_y, 1);
+  data->SetExtent(0, max_x-1, 0, max_y-1, slice, slice);
   data->SetSpacing(spacing[0], spacing[1], spacing[2]);
-
-  vtkSmartPointer<vtkUnsignedCharArray> array = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  array->SetNumberOfComponents(1);
-  array->SetNumberOfTuples(pixel_count);
+  data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
 
   QDataStream stream(&result.voxels, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
@@ -725,7 +844,8 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   unsigned short voxel_count;
   unsigned char color;
 
-  while(pixel < pixel_count) {
+  while(pixel < pixel_count)
+  {
     stream >> label;
     stream >> voxel_count;
     //Check for voxels out of edges (no label assigned)
@@ -733,25 +853,26 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
       color = 0;
     else
       color = result.supervoxels[label].color;
-    for(int i = 0; i < voxel_count; i++) {
-      array->SetValue(pixel+i, color);
+    for(int i = 0; i < voxel_count; i++)
+    {
+      *buffer = color;
+      ++buffer;
     }
     pixel += voxel_count;
   }
 
-  data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  data->GetPointData()->SetScalars(array.GetPointer());
-
   return true;
 }
 
-//--------------------------------------------------------------------
-bool StackSLIC::isComputed() {
+//-----------------------------------------------------------------------------
+bool StackSLIC::isComputed()
+{
   return result.computed;
 }
 
-//--------------------------------------------------------------------
-double StackSLIC::getSliceSpacing() {
+//-----------------------------------------------------------------------------
+double StackSLIC::getSliceSpacing()
+{
   return m_extendedItem->output()->spacing()[2];
 }
 
@@ -769,7 +890,11 @@ QString StackSLIC::snapshotName(const QString& file) const
 //-----------------------------------------------------------------------------
 QDataStream &operator>>(QDataStream &in, StackSLIC::SuperVoxel &label)
 {
-  in >> label.center[0] >> label.center[1] >> label.center[2];
+  long long int center[3];
+  in >> center[0] >> center[1] >> center[2];
+  label.center[0] = static_cast<long int>(center[0]);
+  label.center[1] = static_cast<long int>(center[1]);
+  label.center[2] = static_cast<long int>(center[2]);
   in >> label.color;
   return in;
 }
@@ -777,7 +902,8 @@ QDataStream &operator>>(QDataStream &in, StackSLIC::SuperVoxel &label)
 //-----------------------------------------------------------------------------
 QDataStream &operator<<(QDataStream &out, const StackSLIC::SuperVoxel &label)
 {
-  out << label.center[0] << label.center[1] << label.center[2];
+  long long int center[3]{label.center[0], label.center[1], label.center[2]};
+  out << center[0] << center[1] << center[2];
   out << label.color;
   return out;
 }

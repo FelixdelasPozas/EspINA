@@ -29,6 +29,7 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
 class vtkUnsignedCharArray;
+class vtkPoints;
 
 namespace ESPINA
 {
@@ -94,6 +95,7 @@ namespace ESPINA
         unsigned char getSupervoxelColor(unsigned int supervoxel);
         itk::Image<unsigned char, 3>::IndexType getSupervoxelCenter(unsigned int supervoxel);
         bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
+        bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
         bool isComputed();
         double getSliceSpacing();
 
@@ -126,6 +128,7 @@ namespace ESPINA
 
       signals:
         void computeFinished();
+        void progress(int);
 
       private:
         class SLICComputeTask;

@@ -152,8 +152,10 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
   //connect(testRunSlic, SIGNAL(released()), slicExtension.get(), SLOT(onComputeSLIC()));
   connect(testRunSlic, SIGNAL(released()), this, SLOT(onComputeSLIC()));
   connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
+  connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
   //connect(testRunSlic, SIGNAL(clicked()), this, SLOT(slicStarted()));
   auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension);
+  connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
   m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, TemporalRepresentation3DSPtr(), "SLIC Representation");
   //representation2d->setSLICExtension(slicExtension);
 
@@ -772,6 +774,25 @@ void StackInspector::onCurrentTabChanged(int index)
       // nothing
       break;
   }
+}
+
+//------------------------------------------------------------------------
+void StackInspector::onSLICComputed()
+{
+  qDebug() << "called finished computing SLIC";
+  if(m_view)
+  {
+    // force a refresh.
+    m_stack->invalidateRepresentations();
+  }
+}
+
+//------------------------------------------------------------------------
+void StackInspector::onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
+{
+  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
+
+  connect(slicExtension.get(), SIGNAL(progress(int)), clone.get(), SLOT(setSLICComputationProgress(int)));
 }
 
 //------------------------------------------------------------------------
