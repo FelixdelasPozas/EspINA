@@ -43,7 +43,8 @@ bool LocationLayout::LocationSortFilter::lessThan(const QModelIndex& left, const
   auto leftItem  = itemAdapter(left);
   auto rightItem = itemAdapter(right);
 
-  if(!leftItem || !rightItem) return false;
+  if(!leftItem)  return false;
+  if(!rightItem) return true;
 
   if (leftItem->type() == rightItem->type())
   {
