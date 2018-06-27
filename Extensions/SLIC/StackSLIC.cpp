@@ -187,7 +187,7 @@ bool StackSLIC::loadFromSnapshot()
 
   int variant;
   stream >> variant;
-  result.variant = variant;
+  result.variant = (StackSLIC::SLICVariant) variant;
   stream >> result.m_s;
   stream >> result.m_c;
   stream >> result.iterations;
