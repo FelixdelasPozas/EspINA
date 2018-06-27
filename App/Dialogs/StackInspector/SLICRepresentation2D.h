@@ -57,6 +57,11 @@ namespace ESPINA
        */
       explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension);
 
+      /** \brief SLICRepresentation2D class constructor with extra parameters.
+       *
+       */
+      explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity, bool useColors);
+
       /** \brief SLICRepresentation2D class virtual destructor.
        *
        */
@@ -96,6 +101,16 @@ namespace ESPINA
        *
        */
       void setSLICComputationProgress(int value);
+
+      /** \brief Changes overlaid actor opacity.
+       *
+       */
+      void opacityChanged(int value);
+
+      /** \brief Changes how the supervoxels are colored in the preview.
+       *
+       */
+      void colorModeCheckChanged(int value);
 
     private:
       virtual GUI::Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
@@ -146,6 +161,8 @@ namespace ESPINA
       Nm                                    m_lastSlice;    /** position of the last slice rendered.          */
       int                                   m_planeIndex;   /** index of the view's plane.                    */
       std::shared_ptr<Extensions::StackSLIC>m_extension;    /** slic extension instance                       */
+      float                                 opacity;        /** preview opacity                               */
+      bool                                  useColors;      /** whether to use colors or grayscale values     */
   };
 } // ESPINA
 

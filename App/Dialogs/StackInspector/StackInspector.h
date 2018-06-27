@@ -75,6 +75,7 @@ namespace ESPINA
     signals:
       void spacingUpdated();
       void computeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
+      void abortSLIC();
 
     private slots:
       /** \brief Manages the change of units from the UI.
@@ -172,6 +173,10 @@ namespace ESPINA
       /** \brief Starts the SLIC task with the selected parameters
        */
       void onComputeSLIC();
+
+      /** \brief Stops the currently running SLIC task
+       */
+      void onAbortSLIC();
 
       /** \brief Updates the main and slic tabs moving the view.
        * \param[in] index Current tab index.

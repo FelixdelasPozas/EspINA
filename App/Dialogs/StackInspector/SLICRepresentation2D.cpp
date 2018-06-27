@@ -60,6 +60,21 @@ SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC
 , m_lastSlice {std::numeric_limits<double>::max()}
 , m_planeIndex{-1}
 , m_extension {extension}
+, opacity     {0.3}
+, useColors   {true}
+{
+}
+
+//--------------------------------------------------------------------
+SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity, bool useColors)
+: m_textActor {nullptr}
+, m_view      {nullptr}
+, m_active    {false}
+, m_lastSlice {std::numeric_limits<double>::max()}
+, m_planeIndex{-1}
+, m_extension {extension}
+, opacity     {opacity}
+, useColors   {useColors}
 {
 }
 
@@ -91,7 +106,7 @@ void SLICRepresentation2D::initialize(RenderView* view)
 
   // TODO: this will be needed when the real actor is computed.
   repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
-  repositionActor(m_pointsActor, view2d->widgetDepth(), m_planeIndex);
+  repositionActor(m_pointsActor, 2*view2d->widgetDepth(), m_planeIndex);
 
   show();
   m_view->refresh();
@@ -194,7 +209,7 @@ void SLICRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame
 //--------------------------------------------------------------------
 GUI::Representations::Managers::TemporalRepresentation2DSPtr SLICRepresentation2D::cloneImplementation()
 {
-  return std::make_shared<SLICRepresentation2D>(m_extension);
+  return std::make_shared<SLICRepresentation2D>(m_extension, opacity, useColors);
 }
 
 //--------------------------------------------------------------------
@@ -233,7 +248,7 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 
-  m_actor->SetOpacity(0.3);
+  m_actor->SetOpacity(opacity);
   m_actor->Modified();
 
   m_view->addActor(m_actor);
@@ -281,7 +296,7 @@ void SLICRepresentation2D::buildVTKPipeline()
 //  auto lut = hueRangeLUT();
 //  auto lut = hueNonConsecutiveLUT();
 //  auto lut = grayscaleLUT();
-  auto lut = randomLUT();
+  auto lut = useColors?randomLUT():grayscaleLUT();
 
   m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapper->SetInputData(m_data);
@@ -337,7 +352,7 @@ vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::grayscaleLUT() const
   lut->SetTableRange(0,255);
   lut->SetNumberOfTableValues(256);
   lut->SetValueRange(0.0, 1.0);
-  lut->SetAlphaRange(0,1);
+  lut->SetAlphaRange(1,1);
   lut->SetRampToLinear();
   lut->SetHueRange(0, 0);
   lut->SetSaturationRange(0, 0);
@@ -432,4 +447,28 @@ vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::randomLUT() const
   lut->Modified();
 
   return lut;
+}
+
+//--------------------------------------------------------------------
+void SLICRepresentation2D::opacityChanged(int value)
+{
+  opacity = value/100.0;
+  m_actor->SetOpacity(opacity);
+  if(m_view) m_view->refresh();
+}
+
+//--------------------------------------------------------------------
+void SLICRepresentation2D::colorModeCheckChanged(int value)
+{
+  if(value == Qt::Unchecked)
+  {
+    useColors = false;
+    m_mapper->SetLookupTable(grayscaleLUT());
+  }
+  else
+  {
+    useColors = true;
+    m_mapper->SetLookupTable(randomLUT());
+  }
+  if(m_view) m_view->refresh();
 }

@@ -97,6 +97,13 @@ namespace ESPINA
         bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
         bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
         bool isComputed();
+        bool isRunning();
+        StackSLIC::SLICVariant getVariant();
+        unsigned char getSupervoxelSize();
+        unsigned char getColorWeight();
+        unsigned int getIterations();
+        double getTolerance();
+        unsigned int getSupervoxelCount();
         double getSliceSpacing();
 
         typedef struct Label
@@ -128,6 +135,7 @@ namespace ESPINA
 
       signals:
         void computeFinished();
+        void computeAborted();
         void progress(int);
 
       private:
@@ -141,6 +149,11 @@ namespace ESPINA
             QByteArray voxels;
             unsigned int slice_count = 0;
             unsigned int* slice_offset;
+            double tolerance;
+            unsigned int iterations;
+            unsigned char m_s;
+            unsigned char m_c;
+            SLICVariant variant;
             bool computed = false;
             Bounds bounds;
             mutable QReadWriteLock m_dataMutex;
@@ -166,11 +179,19 @@ namespace ESPINA
       private:
         virtual void run();
         virtual void onAbort();
+        void fitRegionToBounds(int region_position[], int region_size[]);
+        void saveResults(QList<Label> labels, unsigned int *voxels);
+        void findCandidateRegion(itk::Image<unsigned char, 3>::IndexType &center, double scan_size, int region_position[], int region_size[]);
+        bool initSupervoxels(itk::Image<unsigned char, 3> *image, QList<Label> &labels, ChannelEdges *edgesExtension);
+        bool isInBounds(int x, int y, int z);
 
         ChannelPtr m_stack;
         CoreFactory *m_factory;
 
         SLICResult* result;
+        unsigned int *voxels;
+        NmVector3 spacing;
+        const Bounds bounds;
 
         unsigned char parameter_m_s;
         unsigned char parameter_m_c;
@@ -178,14 +199,9 @@ namespace ESPINA
         unsigned int max_iterations;
         double tolerance;
 
-        unsigned int *voxels;
+        unsigned int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
 
 
-        /*typedef struct Voxel
-        {
-          unsigned long int label;
-          double distance;
-        } Voxel;*/
     };
 
   }
