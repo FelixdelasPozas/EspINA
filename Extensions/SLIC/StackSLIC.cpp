@@ -406,31 +406,6 @@ void StackSLIC::SLICComputeTask::run()
         //Make sure that the region is inside the bounds of the image
         fitRegionToBounds(region_position, region_size);
 
-        switch(variant)
-        {
-          case ASLIC:
-            //Squared constants to prevent having to use expensive roots
-            label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
-            //First iteration keeps original parameter values to avoid overextending
-            if(iteration == 0)
-            {
-              label->m_s = parameter_m_s;
-              label->m_c = parameter_m_c;
-            }
-            else
-            {
-              label->m_s = 0;
-              label->m_c = 0;
-            }
-            break;
-          case SLICO:
-            label->norm_quotient = pow(label->m_c,2)/(label->m_s<1?1:pow(label->m_s,2));
-          //no break
-          case SLIC:
-            label->m_s = (iteration == 0) ? parameter_m_s : 0;
-            break;
-        }
-
         center_color = label->color;
 
         //Iterate over the slices
@@ -478,7 +453,7 @@ void StackSLIC::SLICComputeTask::run()
             //Check if voxel is closer to this supervoxel than to its current paired supervoxel
             voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
             if(voxels[voxel_index] == std::numeric_limits<unsigned int>::max() || voxels[voxel_index] == label_index) {
-              //First iteration (voxels not assigned yet) or voxel belongs to label already
+              //If voxel is unassigned or assigned to the current label, assume it's an infinite distance away
               distance_old = std::numeric_limits<double>::max();
             } else {
               label_old = &labels[voxels[voxel_index]];
@@ -487,20 +462,18 @@ void StackSLIC::SLICComputeTask::run()
             }
             if(distance < distance_old) {
               voxels[voxel_index] = label_index;
-            }
-
-            //Update maximum distances if voxel is asigned to label
-            //Skip in first iteration to avoid overextending to previously unassigned voxels
-            if(iteration > 0 && label_index == voxels[voxel_index]) {
-              switch(variant) {
+              //Update maximum distances
+              switch(variant)
+              {
                 case ASLIC:
                   if(label->m_c < color_distance)
                     label->m_c = color_distance;
                 //no break
                 case SLICO:
-                case SLIC: //update m_s in SLIC to use when recalculating centers
                   if(label->m_s < spatial_distance)
                     label->m_s = spatial_distance;
+                //no break
+                case SLIC:
                   break;
               }
             }
@@ -509,22 +482,20 @@ void StackSLIC::SLICComputeTask::run()
           } //RegionIterator
         }//current_slice
 
-        if(iteration > 0)
+        switch(variant)
         {
-          switch(variant)
-          {
-            case ASLIC:
-              //Update max. distances calculating their roots as we were
-              //using squared distances for the simplified equations
-              label->m_c = std::sqrt(label->m_c);
-            //no break
-            case SLICO:
-              label->m_s = std::sqrt(label->m_s);
-            //no break
-            case SLIC:
-              break;
-          }
+          case ASLIC:
+            //Update max. distances calculating their roots as we were
+            //using squared distances for the simplified equations
+            label->m_c = std::sqrt(label->m_c);
+          //no break
+          case SLICO:
+            label->m_s = std::sqrt(label->m_s);
+          //no break
+          case SLIC:
+            break;
         }
+
       } //label
 
       //If convergence test is enabled, assume it converged until proven otherwise
@@ -599,6 +570,24 @@ void StackSLIC::SLICComputeTask::run()
           label->center = {sum_x, sum_y, sum_z};
           label->color = sum_color/sum_voxels;
         }
+
+        //Update weights with maximum observed results and reset them
+        switch(variant)
+        {
+          case ASLIC:
+            //Squared constants to prevent having to use expensive roots
+            label->norm_quotient = pow(label->m_c,2)/pow(label->m_s,2);
+            label->m_c = 1;
+            label->m_s = 1.0;
+            break;
+          case SLICO:
+            label->norm_quotient = pow(parameter_m_c,2)/pow(label->m_s,2);
+            label->m_s = 1.0;
+            break;
+          case SLIC:
+            break;
+        }
+
       } //label
 
       qDebug() << QString("Finishing iteration: %1").arg(iteration+1);
@@ -1042,7 +1031,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
           ++it;
         }
 
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), static_cast<float>(parameter_m_s), {x,y,z}, image->GetPixel(cur_index), parameter_m_c });
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, {x,y,z}, image->GetPixel(cur_index), 1 });
       }
     }
   }
