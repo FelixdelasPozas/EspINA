@@ -27,6 +27,7 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveChannel.h>
 #include <Undo/DragChannelsCommand.h>
 
@@ -39,6 +40,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 class StackExplorer::CentralWidget
@@ -384,6 +386,8 @@ void StackExplorer::unloadStack()
     auto smartChannel = model->smartPointer(channel);
     auto undoStack    = getUndoStack();
 
+    WaitingCursor cursor;
+
     undoStack->beginMacro(tr("Unload channel '%1'").arg(smartChannel->data().toString()));
     undoStack->push(new RemoveChannel(smartChannel, getContext()));
     undoStack->endMacro();
@@ -460,6 +464,8 @@ void StackExplorer::stacksDragged(ChannelAdapterList channels, SampleAdapterPtr 
       }
       channelNames += "'" + channel->data().toString() + "'";
     }
+
+    WaitingCursor cursor;
 
     auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Move channel%1 to sample '%2': %3.").arg(filteredChannels.size() > 1 ? "s":"").arg(newSample->data().toString()).arg(channelNames));

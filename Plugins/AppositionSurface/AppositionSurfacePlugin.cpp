@@ -37,6 +37,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
@@ -62,6 +63,7 @@ using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Settings;
 
@@ -335,6 +337,8 @@ void AppositionSurfacePlugin::finishedTask()
     }
     names += data.segmentation->data().toString();
   }
+
+  WaitingCursor cursor;
 
   undoStack->beginMacro(tr("Create Synaptic Apposition Surface%1 for %2.").arg(m_finishedTasks.size() > 1 ? "s":"").arg(names));
 

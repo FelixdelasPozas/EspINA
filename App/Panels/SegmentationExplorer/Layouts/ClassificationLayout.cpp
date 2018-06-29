@@ -29,6 +29,7 @@
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
@@ -54,6 +55,7 @@ using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 namespace ESPINA
 {
@@ -122,6 +124,8 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
 
     if (!category->parent()->subCategory(name))
     {
+      WaitingCursor cursor;
+
       m_undoStack->beginMacro(tr("Rename category '%1' to '%2'.").arg(category->name()).arg(name));
       m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
       m_undoStack->endMacro();
@@ -386,6 +390,8 @@ void ClassificationLayout::deleteSelectedItems()
 
       if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
       {
+        WaitingCursor cursor;
+
         auto undoStack = getUndoStack();
         undoStack->beginMacro(tr("Remove categor%1 %2.").arg(categories.size() > 1 ? "ies":"y").arg(categoriesNameListText));
         for(auto category : categories)
@@ -399,6 +405,8 @@ void ClassificationLayout::deleteSelectedItems()
       }
       return;
     }
+
+    WaitingCursor cursor;
 
     auto undoStack = getUndoStack();
 
@@ -506,6 +514,8 @@ void ClassificationLayout::createCategory()
   {
     name = uniqueCategoryName(parentCategory, dialog.categoryName());
 
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Create category '%1'.").arg(name));
     undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
@@ -552,6 +562,8 @@ void ClassificationLayout::createSubCategory()
     {
       name = uniqueCategoryName(category, dialog.categoryName());
 
+      WaitingCursor cursor;
+
       auto undoStack = getUndoStack();
       undoStack->beginMacro(tr("Create sub-category '%1' of category '%2'.").arg(name).arg(category->name()));
       undoStack->push(new AddCategoryCommand(model->smartPointer(category), name, model, dialog.categoryColor(), dialog.ROI()));
@@ -568,6 +580,8 @@ void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmen
   {
     auto undoStack = getUndoStack();
     auto names     = segmentationListNames(segmentations);
+
+    WaitingCursor cursor;
 
     undoStack->beginMacro(tr("Change segmentation%1 category to '%2': %3.").arg(segmentations.size() > 1 ? "s":"").arg(category->name()).arg(names));
     undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
@@ -611,6 +625,8 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
       }
       categoryNames += "'" + cat->name() + "'";
     }
+
+    WaitingCursor cursor;
 
     auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Re-parent categor%1 to category '%2': %3.").arg(validSubCategories.size() > 1 ? "ies":"y").arg(category->name()).arg(categoryNames));
@@ -661,6 +677,9 @@ void ClassificationLayout::changeCategoryColor()
     {
       auto undoStack = getUndoStack();
       auto hueValue  = hueSelector.hueValue();
+
+      WaitingCursor cursor;
+
       undoStack->beginMacro(tr("Change category '%1' color to RGB %2.").arg(category->name()).arg(QColor::fromHsv(hueValue,255,255).name()));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
                                                      getViewState(),
@@ -959,6 +978,8 @@ void ClassificationLayout::changeSegmentationsCategory(const QModelIndex& index)
 
    auto undoStack = getUndoStack();
    auto names     = segmentationListNames(m_selectedSegmentations);
+
+   WaitingCursor cursor;
 
    undoStack->beginMacro(tr("Change segmentations to category '%1': %2.").arg(categoryAdapter->name()).arg(names));
    undoStack->push(new ChangeCategoryCommand(m_selectedSegmentations, categoryAdapter, getContext()));

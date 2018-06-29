@@ -106,6 +106,8 @@ void DefaultContextualMenu::addNote()
     auto undoStack = getUndoStack();
     auto names     = segmentationListNames(m_segmentations);
 
+    WaitingCursor cursor;
+
     undoStack->beginMacro(tr("Add notes to %1.").arg(names));
     for (auto command : commands)
     {
@@ -165,6 +167,8 @@ void DefaultContextualMenu::renameSegmentation()
 
   if (renames.size() != 0)
   {
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Rename segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
@@ -226,6 +230,8 @@ void DefaultContextualMenu::renameSegmentationGroup()
 
   if (renames.size() != 0)
   {
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
     undoStack->beginMacro(tr("Rename segmentations group: %1.").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
@@ -390,9 +396,14 @@ void DefaultContextualMenu::deleteSelectedSementations()
     {
       auto undoStack = getUndoStack();
       auto names     = segmentationListNames(m_segmentations);
-      undoStack->beginMacro(tr("Delete segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
-      undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
-      undoStack->endMacro();
+
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Delete segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
+        undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
+        undoStack->endMacro();
+      }
 
       emit deleteSegmentations();
     }

@@ -20,13 +20,15 @@
 
 // ESPINA
 #include "RestrictToolGroup.h"
-#include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "DeleteROITool.h"
 #include "FreehandROITool.h"
 #include "OrthogonalROITool.h"
+#include <GUI/View/Widgets/ROI/ROIWidget.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/ROIUndoCommand.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::View::Widgets::ROI;
 
@@ -356,6 +358,8 @@ void RestrictToolGroup::onOrthogonalROIModified(ROISPtr roi)
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::undoStackPush(QUndoCommand *command)
 {
+  WaitingCursor cursor;
+
   auto undoStack = m_context.undoStack();
 
   if(hasValidROI())

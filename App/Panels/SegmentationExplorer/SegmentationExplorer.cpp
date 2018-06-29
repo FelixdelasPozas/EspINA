@@ -23,13 +23,14 @@
 #include "SegmentationExplorerLayout.h"
 #include "Layouts/ClassificationLayout.h"
 #include "Layouts/LocationLayout.h"
+#include <Core/Utils/SupportedFormats.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Utils/Format.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <Core/Utils/SupportedFormats.h>
 #include <GUI/Utils/DefaultIcons.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
 #include <Undo/RemoveSegmentations.h>
@@ -46,11 +47,12 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
-using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -631,6 +633,8 @@ void SegmentationExplorer::importClassification()
 
     auto oldClassification = getModel()->classification();
     auto undoStack = getContext().undoStack();
+
+    WaitingCursor cursor;
 
     undoStack->beginMacro("Import classification from disk.");
 		addCategories(classification, oldClassification);

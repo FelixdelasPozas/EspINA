@@ -24,11 +24,13 @@
 #include <Filters/FillHolesFilter.h>
 #include <Undo/ReplaceOutputCommand.h>
 #include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <GUI/Widgets/Styles.h>
 
 // Qt
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
@@ -122,8 +124,9 @@ void FillHolesTool::onTaskFinished()
         throw EspinaException(what, details);
       }
 
-      auto undoStack = getUndoStack();
+      WaitingCursor cursor;
 
+      auto undoStack = getUndoStack();
       undoStack->beginMacro(tr("Fill holes 3D of '%1'.").arg(taskContext.Segmentation->data().toString()));
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Filter, 0)));
       undoStack->endMacro();

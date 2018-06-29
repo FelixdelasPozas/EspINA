@@ -360,10 +360,15 @@ void SplitTool::createSegmentations()
       auto segmentation     = m_executingTasks[filter].segmentation.get();
       auto newSegmentation1 = segmentationsList.first()->data().toString();
       auto newSegmentation2 = segmentationsList.last()->data().toString();
-      undoStack->beginMacro(tr("Split segmentation '%1' into '%2' and '%3'.").arg(segmentation->data().toString()).arg(newSegmentation1).arg(newSegmentation2));
-      undoStack->push(new RemoveSegmentations(segmentation, model));
-      undoStack->push(new AddSegmentations(segmentationsList, sample, model));
-      undoStack->endMacro();
+
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Split segmentation '%1' into '%2' and '%3'.").arg(segmentation->data().toString()).arg(newSegmentation1).arg(newSegmentation2));
+        undoStack->push(new RemoveSegmentations(segmentation, model));
+        undoStack->push(new AddSegmentations(segmentationsList, sample, model));
+        undoStack->endMacro();
+      }
 
       deactivateEventHandler();
 

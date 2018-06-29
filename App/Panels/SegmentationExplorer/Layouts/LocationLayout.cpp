@@ -25,6 +25,7 @@
 #include <App/Panels/SegmentationExplorer/Layouts/LocationLayout.h>
 #include <App/Menus/DefaultContextualMenu.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/ChangeSegmentationsStack.h>
 
 // Qt
@@ -35,6 +36,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model::Proxy;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Undo;
 
 //--------------------------------------------------------------------
@@ -248,6 +250,8 @@ void LocationLayout::segmentationsDropped(SegmentationAdapterList segmentations,
   auto undoStack         = getUndoStack();
   auto number            = segmentations.size() > 1 ? "s":"";
 
+  WaitingCursor cursor;
+
   undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
   undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
   undoStack->endMacro();
@@ -364,6 +368,8 @@ void LocationLayout::moveToStack()
       auto undoStack         = getUndoStack();
       auto number            = m_selectedSegs.size() > 1 ? "s":"";
 
+      WaitingCursor cursor;
+
       undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
       undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
       undoStack->endMacro();
@@ -400,6 +406,8 @@ void LocationLayout::moveAllToStack()
       auto segmentationNames = segmentationListNames(segmentations);
       auto undoStack = getUndoStack();
       auto number = segmentations.size() > 1 ? "s":"";
+
+      WaitingCursor cursor;
 
       undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
       undoStack->push(new ChangeSegmentationsStack(segmentations, stack));

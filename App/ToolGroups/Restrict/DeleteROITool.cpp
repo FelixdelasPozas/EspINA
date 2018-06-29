@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "DeleteROITool.h"
+#include <GUI/Widgets/Styles.h>
 
 #include "RestrictToolGroup.h"
 #include <Undo/ROIUndoCommand.h>
@@ -28,6 +29,7 @@
 #include <QAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //-----------------------------------------------------------------------------
 DeleteROITool::DeleteROITool(Support::Context &context,
@@ -51,6 +53,8 @@ DeleteROITool::~DeleteROITool()
 //-----------------------------------------------------------------------------
 void DeleteROITool::cancelROI()
 {
+  WaitingCursor cursor;
+
   auto undoStack = getUndoStack();
   undoStack->beginMacro("Delete ROI.");
   undoStack->push(new ClearROIUndoCommand{m_toolGroup});

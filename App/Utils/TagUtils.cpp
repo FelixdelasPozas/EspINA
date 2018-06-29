@@ -19,12 +19,14 @@
 
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Widgets/TagSelector.h>
+#include <GUI/Widgets/Styles.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Undo/ChangeSegmentationTags.h>
 #include <Utils/TagUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 QString dialogTitle(SegmentationAdapterList segmentations)
@@ -151,6 +153,8 @@ void ESPINA::manageTagsDialog(SegmentationAdapterList segmentations, QUndoStack 
 
     if (!commands.isEmpty())
     {
+      WaitingCursor cursor;
+
       undoStack->beginMacro(QObject::tr("Change tags of segmentations %1.").arg(opSegmentations));
       for (auto command : commands)
       {

@@ -25,6 +25,7 @@
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveSegmentations.h>
 
 // Qt
@@ -33,6 +34,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
 const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE     = QObject::tr("Delete %1's segmentations. "
@@ -116,6 +118,8 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
   {
     auto undoStack = getUndoStack();
     auto names     = segmentationListNames(segmentations);
+
+    WaitingCursor cursor;
 
     undoStack->beginMacro(tr("Delete segmentation%1 %2.").arg(segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RemoveSegmentations(segmentations, getModel()));

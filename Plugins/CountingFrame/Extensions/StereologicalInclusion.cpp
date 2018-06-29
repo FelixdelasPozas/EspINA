@@ -336,7 +336,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
         }
         catch(Core::Utils::EspinaException &e)
         {
-          qWarning() << "Stereological Inclusion at " << m_extendedItem->alias() << "can't get slice intersection.";
+          // Next warning can happen if slice bounds intersect the seg at the upper and lower edges, giving no intersection voxels.
+          // Suppressed for now..
+          //qWarning() << "Stereological Inclusion at " << m_extendedItem->alias() << "can't get slice intersection.";
           continue;
         }
 

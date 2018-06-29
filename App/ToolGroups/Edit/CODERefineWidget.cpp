@@ -162,13 +162,18 @@ void CODERefineWidget::refineFilter()
     if (GUI::DefaultDialogs::UserQuestion(message, buttons, m_title) == QMessageBox::Cancel) return;
   }
 
-  auto undoStack   = getUndoStack();
-  auto radiusValue = m_gui->radius->value();
-  undoStack->beginMacro(tr("Modify %1 radius of '%2' to %3.").arg(m_title).arg(m_segmentation->data().toString()).arg(radiusValue));
   {
-    undoStack->push(new CODEModification(m_segmentation, static_cast<unsigned int>(radiusValue)));
+    WaitingCursor cursor;
+
+    auto undoStack   = getUndoStack();
+    auto radiusValue = m_gui->radius->value();
+    undoStack->beginMacro(tr("Modify %1 radius of '%2' to %3.").arg(m_title).arg(m_segmentation->data().toString()).arg(radiusValue));
+    {
+      undoStack->push(new CODEModification(m_segmentation, static_cast<unsigned int>(radiusValue)));
+    }
+    undoStack->endMacro();
   }
-  undoStack->endMacro();
+
 
   m_gui->apply->setEnabled(false);
 }

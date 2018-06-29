@@ -36,6 +36,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
 
 const QString RADIUS = "Radius";
@@ -164,6 +165,8 @@ void CODEToolBase::onTaskFinished()
 
       if (DefaultDialogs::UserQuestion(message, buttons, title) == QMessageBox::Yes)
       {
+        WaitingCursor cursor;
+
         auto macroText = tr("Remove segmentation '%1' by %2 operation with radius of %3.").arg(taskContext.Segmentation->data().toString()).arg(taskContext.Operation).arg(filter->radius());
         undoStack->beginMacro(macroText);
         undoStack->push(new RemoveSegmentations(taskContext.Segmentation, getModel()));
@@ -178,6 +181,8 @@ void CODEToolBase::onTaskFinished()
         auto details = QObject::tr("CODEToolBase::onTaskFinished() -> Invalid number of outputs: %1").arg(filter->numberOfOutputs());
         throw EspinaException(what, details);
       }
+
+      WaitingCursor cursor;
 
       auto macroText = tr("%1 '%2' with radius of %3.").arg(taskContext.Operation).arg(taskContext.Segmentation->data().toString()).arg(filter->radius());
       undoStack->beginMacro(macroText);

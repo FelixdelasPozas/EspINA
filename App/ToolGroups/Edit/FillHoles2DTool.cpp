@@ -163,8 +163,9 @@ void FillHoles2DTool::onTaskFinished()
         throw EspinaException(what, details);
       }
 
-      auto undoStack = getUndoStack();
+      WaitingCursor cursor;
 
+      auto undoStack = getUndoStack();
       undoStack->beginMacro(taskContext.Filter->description());
       undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Filter, 0)));
       undoStack->endMacro();
