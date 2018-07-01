@@ -94,7 +94,6 @@ Snapshot StackSLIC::snapshot() const
   if(!result.computed)
     return Snapshot();
 
-  qDebug() << QString("Saving snapshot");
   QReadLocker lock(&result.m_dataMutex);
 
   Snapshot snapshot;
@@ -135,12 +134,10 @@ Snapshot StackSLIC::snapshot() const
 //-----------------------------------------------------------------------------
 bool StackSLIC::loadFromSnapshot()
 {
-  qDebug() << QString("Loading snapshot start");
   if(result.computed)
     return true;
 
   QWriteLocker lock(&result.m_dataMutex);
-  qDebug() << QString("Loading snapshot");
 
   Snapshot snapshot;
 
@@ -284,6 +281,7 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 void StackSLIC::SLICComputeTask::run()
 {
   BlockTimer<std::chrono::milliseconds> timer{"SLIC"};
+  emit progress(0);
 
   //Typedefs for clearer syntax
   using ImageType = itk::Image<unsigned char, 3>;
@@ -360,7 +358,6 @@ void StackSLIC::SLICComputeTask::run()
 
   //Extract constants from the loops.
   const double scan_size = 2. * parameter_m_s;
-  emit progress(0);
 
   const double iterationPercentage = 100.0 / max_iterations;
 
@@ -373,6 +370,7 @@ void StackSLIC::SLICComputeTask::run()
         delete[] voxels;
         return;
       }
+      qDebug() << QString("Starting iteration: %1").arg(iteration+1);
 
       newProgress = iterationPercentage * iteration;
       if(newProgress != progressValue)
@@ -966,15 +964,15 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
   int region_position[3];
   int region_size[3];
 
-  for(unsigned int z=parameter_m_s/2;z<max_z;z+=parameter_m_s/spacing[2])
+  for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
   {
     if(!canExecute()) return false;
 
     auto sliceRegion = edgesExtension->sliceRegion(z);
 
-    for(unsigned int y=parameter_m_s/2;y<max_y;y+=parameter_m_s/spacing[1])
+    for(unsigned int y=parameter_m_s/2+min_y;y<max_y;y+=parameter_m_s/spacing[1])
     {
-      for(unsigned int x=parameter_m_s/2;x<max_x;x+=parameter_m_s/spacing[0])
+      for(unsigned int x=parameter_m_s/2+min_x;x<max_x;x+=parameter_m_s/spacing[0])
       {
         if(!canExecute()) return false;
 
@@ -1031,7 +1029,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
           ++it;
         }
 
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, {x,y,z}, image->GetPixel(cur_index), 1 });
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, cur_index, image->GetPixel(cur_index), 1 });
       }
     }
   }

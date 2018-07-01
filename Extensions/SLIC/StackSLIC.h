@@ -199,7 +199,7 @@ namespace ESPINA
         unsigned int max_iterations;
         double tolerance;
 
-        unsigned int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
+        int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
 
 
     };
