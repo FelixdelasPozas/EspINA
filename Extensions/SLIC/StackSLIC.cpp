@@ -51,7 +51,7 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 const StackExtension::Type StackSLIC::TYPE = "StackSLIC";
-const QString StackSLIC::VOXELS_FILE = "voxels.slic";
+const QString StackSLIC::VOXELS_FILE = "voxels_%1.slic";
 const QString StackSLIC::LABELS_FILE = "labels.slic";
 const QString StackSLIC::DATA_FILE = "data.slic";
 
@@ -63,8 +63,6 @@ StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCa
 , task       {nullptr}
 {
   qDebug() << "Constructor StackSLIC";
-  qDebug() << QString("%1").arg(result.supervoxel_count);
-
   result.slice_offset = nullptr;
 }
 
@@ -83,8 +81,6 @@ StackSLIC::~StackSLIC()
 //-----------------------------------------------------------------------------
 State StackSLIC::state() const
 {
-  //TODO: Save:
-  //- Parameters used for the last computation
   return State();
 }
 
@@ -98,10 +94,13 @@ Snapshot StackSLIC::snapshot() const
 
   Snapshot snapshot;
 
-  auto voxelsName = snapshotName(VOXELS_FILE);
+  QString voxelsName;
   auto dataName = snapshotName(DATA_FILE);
   auto labelsName = snapshotName(LABELS_FILE);
-  snapshot << SnapshotData(voxelsName, result.voxels);
+  for(int i = 0; i<result.slice_count; i++) {
+    voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
+    snapshot << SnapshotData(voxelsName, result.voxels[i]);
+  }
 
   QByteArray labelBuffer;
   QDataStream labelStream(&labelBuffer, QIODevice::WriteOnly);
@@ -141,23 +140,19 @@ bool StackSLIC::loadFromSnapshot()
 
   Snapshot snapshot;
 
-  auto voxelsName = snapshotName(VOXELS_FILE);
   auto dataName = snapshotName(DATA_FILE);
   auto labelsName = snapshotName(LABELS_FILE);
-  QFileInfo voxelsFileInfo = m_extendedItem->storage()->absoluteFilePath(voxelsName);
   QFileInfo dataFileInfo = m_extendedItem->storage()->absoluteFilePath(dataName);
   QFileInfo labelsFileInfo = m_extendedItem->storage()->absoluteFilePath(labelsName);
 
-  if(!voxelsFileInfo.exists() || !dataFileInfo.exists() || !labelsFileInfo.exists())
+  if(!dataFileInfo.exists() || !labelsFileInfo.exists())
     return false;
 
-  QFile voxelsFile(voxelsFileInfo.absoluteFilePath());
   QFile labelsFile(labelsFileInfo.absoluteFilePath());
   QFile dataFile(dataFileInfo.absoluteFilePath());
-  if(!voxelsFile.open(QIODevice::ReadOnly) || !labelsFile.open(QIODevice::ReadOnly) || !dataFile.open(QIODevice::ReadOnly))
+  if(!labelsFile.open(QIODevice::ReadOnly) || !dataFile.open(QIODevice::ReadOnly))
     return false;
 
-  result.voxels = voxelsFile.readAll();
 
   QByteArray labelBuffer = labelsFile.readAll();
   QDataStream labelStream(&labelBuffer, QIODevice::ReadOnly);
@@ -189,6 +184,24 @@ bool StackSLIC::loadFromSnapshot()
   stream >> result.m_c;
   stream >> result.iterations;
   stream >> result.tolerance;
+
+  result.voxels.clear();
+  QString voxelsName;
+  for(int i = 0; i<result.slice_count; i++) {
+    voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
+    QFileInfo voxelsFileInfo = m_extendedItem->storage()->absoluteFilePath(voxelsName);
+    if(!voxelsFileInfo.exists() ) {
+      result.voxels.clear();
+      return false;
+    }
+    QFile voxelsFile(voxelsFileInfo.absoluteFilePath());
+    snapshot << SnapshotData(voxelsName, result.voxels[i]);
+    if(!voxelsFile.open(QIODevice::ReadOnly)) {
+      result.voxels.clear();
+      return false;
+    }
+    result.voxels.append(voxelsFile.readAll());
+  }
 
   result.computed = true;
 
@@ -370,7 +383,7 @@ void StackSLIC::SLICComputeTask::run()
         delete[] voxels;
         return;
       }
-      qDebug() << QString("Starting iteration: %1").arg(iteration+1);
+      qDebug() << QString("Starting iteration: %1 - %2s").arg(iteration+1).arg(timer.elapsed()/1000);
 
       newProgress = iterationPercentage * iteration;
       if(newProgress != progressValue)
@@ -588,7 +601,7 @@ void StackSLIC::SLICComputeTask::run()
 
       } //label
 
-      qDebug() << QString("Finishing iteration: %1").arg(iteration+1);
+      qDebug() << QString("Finishing iteration: %1 - %2").arg(iteration+1).arg(timer.elapsed()/1000);
     } //iteration
   }
   catch(std::exception &e)
@@ -626,11 +639,8 @@ unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsig
   if(!result.computed)
     return 0;
 
-  QDataStream stream(&result.voxels, QIODevice::ReadOnly);
+  QDataStream stream(&result.voxels[z], QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
-  if(stream.skipRawData(result.slice_offset[z]) != result.slice_offset[z]) {
-    return 0;
-  }
 
   unsigned int current_x = 0;
   unsigned int current_y = 0;
@@ -717,11 +727,8 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
 
-  QDataStream stream(&result.voxels, QIODevice::ReadOnly);
+  QDataStream stream(&result.voxels[slice], QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
-  if(stream.skipRawData(result.slice_offset[slice]) != result.slice_offset[slice]) {
-    return false;
-  }
 
   unsigned int label;
   unsigned short voxel_count;
@@ -896,12 +903,12 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
   }
   result->slice_offset = (unsigned int*) malloc(max_z * sizeof(unsigned int));
 
-  QDataStream stream(&result->voxels, QIODevice::WriteOnly);
-  stream.setVersion(QDataStream::Qt_4_0);
-
   for (unsigned int z = 0; z < max_z; z++)
   {
-    result->slice_offset[z] = result->voxels.size();
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_4_0);
+
     for (unsigned int y = 0; y < max_y; y++)
     {
       voxel_index = y * max_x + z * max_x * max_y;
@@ -933,6 +940,7 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
       stream << current_label;
       stream << same_label_count;
     }
+    result->voxels.append(data);
   }
 
   result->computed = true;

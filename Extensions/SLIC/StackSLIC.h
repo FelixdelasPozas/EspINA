@@ -146,7 +146,7 @@ namespace ESPINA
         {
             QList<SuperVoxel> supervoxels;
             unsigned int supervoxel_count = 0;
-            QByteArray voxels;
+            QList<QByteArray> voxels;
             unsigned int slice_count = 0;
             unsigned int* slice_offset;
             double tolerance;
