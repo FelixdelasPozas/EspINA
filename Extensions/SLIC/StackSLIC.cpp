@@ -63,7 +63,6 @@ StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCa
 , task       {nullptr}
 {
   qDebug() << "Constructor StackSLIC";
-  result.slice_offset = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -74,8 +73,6 @@ StackSLIC::~StackSLIC()
       if(task->isRunning())
         task->abort();
   }
-  if(result.slice_offset != nullptr)
-      delete result.slice_offset;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,10 +112,7 @@ Snapshot StackSLIC::snapshot() const
   stream << result.supervoxel_count;
   stream << result.slice_count;
   stream << result.bounds[0] << result.bounds[1] << result.bounds[2];
-  for(unsigned int i = 0; i < result.slice_count; i++)
-  {
-    stream << result.slice_offset[i];
-  }
+
   stream << (int) result.variant;
   stream << result.m_s;
   stream << result.m_c;
@@ -167,15 +161,6 @@ bool StackSLIC::loadFromSnapshot()
   stream >> result.supervoxel_count;
   stream >> result.slice_count;
   stream >> result.bounds[0] >> result.bounds[1] >> result.bounds[2];
-  if(result.slice_offset!=nullptr)
-  {
-    delete result.slice_offset;
-  }
-  result.slice_offset = (unsigned int*) malloc(result.slice_count * sizeof(unsigned int));
-  for(unsigned int i = 0; i < result.slice_count; i++)
-  {
-    stream >> result.slice_offset[i];
-  }
 
   int variant;
   stream >> variant;
@@ -192,12 +177,13 @@ bool StackSLIC::loadFromSnapshot()
     QFileInfo voxelsFileInfo = m_extendedItem->storage()->absoluteFilePath(voxelsName);
     if(!voxelsFileInfo.exists() ) {
       result.voxels.clear();
+      result.supervoxels.clear();
       return false;
     }
     QFile voxelsFile(voxelsFileInfo.absoluteFilePath());
-    snapshot << SnapshotData(voxelsName, result.voxels[i]);
     if(!voxelsFile.open(QIODevice::ReadOnly)) {
       result.voxels.clear();
+      result.supervoxels.clear();
       return false;
     }
     result.voxels.append(voxelsFile.readAll());
@@ -712,7 +698,7 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
 
   QReadLocker lock(&result.m_dataMutex);
 
-  if(!result.computed) return false;
+  if(!result.computed || slice < 0 || slice >= result.slice_count) return false;
 
   Bounds bounds = m_extendedItem->bounds();
   OutputSPtr output = m_extendedItem->output();
@@ -895,13 +881,6 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
     result->supervoxels.append({label->center, label->color});
   }
   labels.clear();
-
-
-  if(result->slice_offset != nullptr)
-  {
-    delete result->slice_offset;
-  }
-  result->slice_offset = (unsigned int*) malloc(max_z * sizeof(unsigned int));
 
   for (unsigned int z = 0; z < max_z; z++)
   {

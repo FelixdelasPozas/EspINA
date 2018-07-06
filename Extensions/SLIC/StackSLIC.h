@@ -148,7 +148,6 @@ namespace ESPINA
             unsigned int supervoxel_count = 0;
             QList<QByteArray> voxels;
             unsigned int slice_count = 0;
-            unsigned int* slice_offset;
             double tolerance;
             unsigned int iterations;
             unsigned char m_s;
