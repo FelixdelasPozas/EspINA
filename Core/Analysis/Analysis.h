@@ -287,10 +287,16 @@ namespace ESPINA
       void addIfNotExists(FilterSPtr filter);
 
       /** \brief Returns all filters which form the pipeline from filter
-       * \param[in] filter start of the pipeline sequence
+       * \param[in] filter start of the pipeline sequence down.
        *
        */
       FilterSList downStreamPipeline(FilterSPtr filter);
+
+      /** \brief Returns all filters which form the pipeline to filter
+       * \param[in] filter start of the pipeline sequence up.
+       *
+       */
+      FilterSList upStreamPipeline(FilterSPtr filter);
 
       /** \brief Adds a relation in the content graph from the filter to the item.
        * \param[in] filter filter smart pointer.

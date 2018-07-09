@@ -20,61 +20,60 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/ChangeSegmentationsStack.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Undo;
 
 //--------------------------------------------------------------------
 ChangeSegmentationsStack::ChangeSegmentationsStack(const SegmentationAdapterList& segmentations, const ChannelAdapterPtr stack, QUndoCommand* parent)
 : QUndoCommand{parent}
-, m_newStack  {stack}
-, m_newSample (QueryAdapter::sample(m_newStack))
 {
-  for(const auto segmentation: segmentations)
+  for(auto segmentation: segmentations)
   {
-    struct Data data;
-    data.segmentation = segmentation;
-    data.stacks       = QueryAdapter::channels(segmentation);
-    data.samples      = QueryAdapter::samples(segmentation);
-
-    m_segmentations << data;
+    m_map.insert(segmentation, stack);
   }
 }
 
 //--------------------------------------------------------------------
 ChangeSegmentationsStack::ChangeSegmentationsStack(const SegmentationAdapterPtr segmentation, const ChannelAdapterPtr stack, QUndoCommand* parent)
 : QUndoCommand{parent}
-, m_newStack  {stack}
-, m_newSample (QueryAdapter::sample(m_newStack))
 {
-  struct Data data;
-  data.segmentation = segmentation;
-  data.stacks       = QueryAdapter::channels(segmentation);
-  data.samples      = QueryAdapter::samples(segmentation);
-
-  m_segmentations << data;
+  m_map.insert(segmentation, stack);
 }
 
 //--------------------------------------------------------------------
 void ChangeSegmentationsStack::redo()
 {
-  for(auto &data: m_segmentations)
+  for(auto segmentation: m_map.keys())
   {
-    auto model = data.segmentation->model();
+    auto oldStacks = QueryAdapter::channels(segmentation);
+    if(oldStacks.size() != 1)
+    {
+      qWarning() << "ChangeSegmentationStack::redo() -> more than one stack for segmentation" << segmentation->data().toString();
+    }
 
-    // TODO: need to access model contents and relations.
+    auto model  = segmentation->model();
+    auto stack  = m_map[segmentation];
+
+    try
+    {
+      model->changeSegmentationStack(segmentation, stack);
+    }
+    catch(...)
+    {
+      qWarning() << "ChangeSegmentationStack::redo() -> exception caught changing segmentation" << segmentation->data().toString();
+    }
+
+    m_map[segmentation] = oldStacks.first().get();
   }
 }
 
 //--------------------------------------------------------------------
 void ChangeSegmentationsStack::undo()
 {
-  for(auto &data: m_segmentations)
-  {
-    auto model = data.segmentation->model();
-
-    // TODO: need to access model contents and relations.
-  }
+  redo();
 }

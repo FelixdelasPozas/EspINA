@@ -30,6 +30,9 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include "Utils/SegmentationUtils.h"
 
+// Qt
+#include <QStack>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -2075,4 +2078,100 @@ const ViewItemAdapterSList ModelAdapter::intersects(const Bounds& bounds) const
 void ModelAdapter::rebuildLocator()
 {
   m_dbvh.rebuild();
+}
+
+//------------------------------------------------------------------------
+bool ModelAdapter::changeSegmentationStack(SegmentationAdapterPtr segmentation, ChannelAdapterPtr stack)
+{
+  QList<PersistentSPtr> stacks;
+  QList<const DirectedGraph::Edge> toChange;
+
+  auto adaptedStacks = channels();
+  if(adaptedStacks.isEmpty() || adaptedStacks.size() == 1) return false;
+
+  for(auto stackItem: adaptedStacks)
+  {
+    if(stackItem.get() == stack) continue;
+
+    auto persistent = std::dynamic_pointer_cast<Persistent>(stackItem->filter());
+    if(persistent)
+    {
+      stacks << persistent;
+    }
+    else
+    {
+      qWarning() << "unable to cast filter" << stackItem->filter()->name() << __FILE__ << __LINE__;
+    }
+  }
+
+  if(stacks.isEmpty()) return false;
+
+  QStack<FilterSPtr> pipeline;
+  pipeline << segmentation->filter();
+
+  while(!pipeline.isEmpty())
+  {
+    auto filter = pipeline.pop();
+    for(auto ancestor: m_analysis->content()->inEdges(filter))
+    {
+      if(stacks.contains(ancestor.source))
+      {
+        if(!toChange.contains(ancestor)) toChange << ancestor;
+      }
+      else
+      {
+        auto toInsert = std::dynamic_pointer_cast<Filter>(ancestor.source);
+        if(toInsert)
+        {
+          pipeline << toInsert;
+        }
+        else
+        {
+          qWarning() << "unable to cast filter" << ancestor.source->name() << __FILE__ << __LINE__;
+        }
+      }
+    }
+  }
+
+  if(!toChange.isEmpty())
+  {
+    InputSList inputs;
+    inputs << stack->asInput();
+
+    // change contents graph relations and filter inputs.
+    for(auto edge: toChange)
+    {
+      auto relation = QString::fromStdString(edge.relationship);
+      m_analysis->content()->removeRelation(edge.source, edge.target, relation);
+      m_analysis->content()->addRelation(stack->filter(), edge.target, relation);
+      auto filter = std::dynamic_pointer_cast<Filter>(edge.target);
+      if(filter)
+      {
+        filter->setInputs(inputs);
+      }
+      else
+      {
+        qWarning() << "unable to cast filter" << edge.target->name() << __FILE__ << __LINE__;
+      }
+    }
+
+    // change relationships graph sample relations.
+    for(auto relation: relations(segmentation, RelationType::RELATION_IN, Sample::CONTAINS))
+    {
+      deleteRelation(relation);
+    }
+
+    auto stackSample = QueryAdapter::sample(stack);
+    if(stackSample)
+    {
+      addRelation(stackSample, smartPointer(segmentation), Sample::CONTAINS);
+    }
+
+    auto segIndex = segmentationIndex(segmentation);
+    emit dataChanged(segIndex, segIndex);
+
+    return true;
+  }
+
+  return false;
 }

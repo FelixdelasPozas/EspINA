@@ -509,6 +509,18 @@ namespace ESPINA
        */
       RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
+      /** \brief Helper method that returns true if able to change the input of the root filter of the segmentation
+       * given to the new given stack. Returns false on failure.
+       * \param[in] segmentation Segmentation adapter.
+       * \param[in] stack Channel adapter to change the segmentation.
+       *
+       */
+      bool changeSegmentationStack(SegmentationAdapterPtr segmentation, ChannelAdapterPtr stack);
+
+      //---------------------------------------------------------------------------
+      /************************** Connections API ********************************/
+      //---------------------------------------------------------------------------
+
       /** \brief Adds the given connection to the model.
        * \param[in] connection connection object.
        *

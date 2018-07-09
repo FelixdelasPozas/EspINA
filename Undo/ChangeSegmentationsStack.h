@@ -70,16 +70,7 @@ namespace ESPINA
         virtual void undo() override;
 
       private:
-        struct Data
-        {
-          SegmentationAdapterPtr segmentation;
-          ChannelAdapterSList    stacks;
-          SampleAdapterSList     samples;
-        };
-
-        QList<struct Data> m_segmentations; /** maps segmentation to its initial stack. */
-        ChannelAdapterPtr  m_newStack;      /** stack to change segmentations to.       */
-        SampleAdapterSPtr  m_newSample;     /** sample of the new stack.                */
+        QMap<SegmentationAdapterPtr, ChannelAdapterPtr> m_map; /* maps segmentations with the stack to change to. */
     };
   
   } // namespace Undo

@@ -630,12 +630,59 @@ void LocationProxy::sourceDataChanged(const QModelIndex &sourceTopLeft, const QM
   else
   {
     indices(sourceTopLeft, sourceBottomRight, sources);
+    QModelIndexList stackIndexes;
+
+    emit layoutAboutToBeChanged();
 
     for(auto sourceItem: sources)
     {
       auto proxyIndex = mapFromSource(sourceItem);
+      auto item       = itemAdapter(sourceItem);
+      if(item)
+      {
+        auto segmentation = segmentationPtr(item);
+        if(segmentation)
+        {
+          auto stacks = QueryAdapter::channels(segmentation);
+          if(stacks.isEmpty())
+          {
+            m_orphaned << segmentation;
+            if(!stackIndexes.contains(orphanIndex())) stackIndexes << orphanIndex();
+          }
+          else
+          {
+            auto stack = stacks.first().get();
+
+            for(auto key: m_segmentations.keys())
+            {
+              if((key != stack) && m_segmentations[key].contains(segmentation))
+              {
+                m_segmentations[key].removeAll(segmentation);
+                auto stackIndex = channelIndex(key);
+                if(!stackIndexes.contains(stackIndex)) stackIndexes << stackIndex;
+                continue;
+              }
+
+              if((key == stack) && !m_segmentations[key].contains(segmentation))
+              {
+                m_segmentations[key] << segmentation;
+                auto stackIndex = channelIndex(key);
+                if(!stackIndexes.contains(stackIndex)) stackIndexes << stackIndex;
+              }
+            }
+          }
+        }
+      }
+
       emit dataChanged(proxyIndex, proxyIndex);
+
+      for(auto stackIndex: stackIndexes)
+      {
+        emit dataChanged(stackIndex, stackIndex);
+      }
     }
+
+    emit layoutChanged();
   }
 }
 

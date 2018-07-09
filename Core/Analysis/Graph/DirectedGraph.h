@@ -59,6 +59,11 @@ namespace ESPINA
         Vertex      source;        /** origin of the relation.      */
         Vertex      target;        /** destination of the relation. */
         std::string relationship;  /** relation name.               */
+
+        bool operator==(const Edge &other)
+        {
+          return source == other.source && target == other.target && relationship == other.relationship;
+        }
       };
 
       typedef QList<Vertex> Vertices;
