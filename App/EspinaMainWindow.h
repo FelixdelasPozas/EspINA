@@ -248,6 +248,11 @@ namespace ESPINA
      */
     void stopAnalysisConsistencyCheck();
 
+    /** \brief List of actions to do after the main window have been shown on screen.
+     *
+     */
+    void delayedInitActions();
+
   private:
     /** \brief Helper method to initialize the available color engines.
      *

@@ -34,6 +34,7 @@
 
 // Qt
 #include <QThread>
+#include <QDateTime>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -85,7 +86,11 @@ const QString FileSaveTool::saveFilename() const
 
   if (!filename.endsWith(".seg") || m_askAlways)
   {
-    if(filename.isEmpty()) filename = QDir::home().absoluteFilePath("New EspINA session.seg");
+    if(filename.isEmpty())
+    {
+      auto name = tr("New EspINA session - %1 %2.seg").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+      filename = QDir::home().absoluteFilePath(name);
+    }
 
     QFileInfo file{filename};
 

@@ -120,7 +120,6 @@ void FileOpenTool::load(const QStringList &files)
 
   reporter.setProgress(0);
 
-  AutoSave autoSave;
   RecentDocuments recent;
 
   for (auto file : files)
@@ -151,7 +150,7 @@ void FileOpenTool::load(const QStringList &files)
 
       m_loadedFiles << file;
 
-      if (!autoSave.isAutoSaveFile(file))
+      if (!isAutoSaveFile(file))
       {
         recent.addDocument(file);
       }
@@ -236,4 +235,13 @@ void FileOpenTool::load(const QStringList &files)
   }
 }
 
+//----------------------------------------------------------------------------
+const bool FileOpenTool::isAutoSaveFile(const QString& fileName)
+{
+  ESPINA_SETTINGS(settings);
 
+  QDir path{settings.value(AutoSave::PATH, QDir::homePath()+"/.espina").toString()};
+  auto name = path.absoluteFilePath("espina-autosave.seg");
+
+  return (fileName.compare(name, Qt::CaseInsensitive) == 0);
+}

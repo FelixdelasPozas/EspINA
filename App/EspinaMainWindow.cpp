@@ -82,6 +82,7 @@
 
 // Qt
 #include <QtGui>
+#include <QDateTime>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -150,15 +151,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->clearMessage();
 
   m_sessionToolGroup->setChecked(true);
-
-  try
-  {
-    checkAutoSavedAnalysis();
-  }
-  catch(...)
-  {
-    // nothing
-  }
 }
 
 //------------------------------------------------------------------------
@@ -384,6 +376,9 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   }
 
   m_minimizedStatus = false;
+
+  // perform initialization actions after the show event.
+  QTimer::singleShot(0, this, SLOT(delayedInitActions()));
 }
 
 //------------------------------------------------------------------------
@@ -1265,23 +1260,57 @@ void EspinaMainWindow::checkAutoSavedAnalysis()
     {
       m_autoSave.restore();
 
+      QApplication::processEvents();
+
       // force saving in another file.
       auto saved = false;
+      auto name  = tr("EspINA restored session - %1 %2.seg").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
 
       while(!saved)
       {
-        m_saveAsTool->setSaveFilename(QDir::home().filePath("EspINA restored session.seg"));
+        m_saveAsTool->setSaveFilename(QDir::home().filePath(name));
         auto fileName = m_saveAsTool->saveFilename();
         auto fileInfo = QFileInfo{fileName};
 
-        while(m_autoSave.isAutoSaveFile(fileName) || (fileInfo.exists() && !fileInfo.isWritable()))
+        while(fileName.isEmpty() || m_autoSave.isAutoSaveFile(fileName) || (fileInfo.exists() && !fileInfo.isWritable()))
         {
+          QString message;
+          if(fileName.isEmpty())
+          {
+            message = tr("The restored session must be saved to disk. Please select a file.");
+          }
+          else
+          {
+            if(m_autoSave.isAutoSaveFile(fileName))
+            {
+              message = tr("You can't save the session in the EspINA auto-save file.\nPlease select other file.");
+            }
+            else
+            {
+              message = tr("Error saving the file '%1'. The given file name is not on a writable path.\nPlease select other file.");
+            }
+          }
+          DefaultDialogs::InformationMessage(message);
+
           fileName = m_saveAsTool->saveFilename();
           fileInfo = QFileInfo{fileName};
         }
 
-        m_saveAsTool->setSaveFilename(fileName);
-        saved = m_saveAsTool->saveAnalysis(fileName);
+        QFile::remove(fileName);
+
+        saved = QFile::copy(m_autoSave.autosaveFile(), fileName);
+
+        if(!saved)
+        {
+          auto message = tr("Couldn't save the current session to '%1'.\nPlease select other file.").arg(fileName);
+          DefaultDialogs::InformationMessage(message);
+        }
+        else
+        {
+          m_saveAsTool->setSaveFilename(fileName);
+          m_saveTool->setSaveFilename(fileName);
+          m_saveTool->setEnabled(fileName.endsWith(".seg", Qt::CaseInsensitive));
+        }
       }
     }
     else
@@ -1487,4 +1516,19 @@ void EspinaMainWindow::initializeCrosshair()
   auto bounds           = coordinateSystem->bounds();
 
   m_context.viewState().setCrosshair(lowerPoint(bounds));
+}
+
+//------------------------------------------------------------------------
+void ESPINA::EspinaMainWindow::delayedInitActions()
+{
+  try
+  {
+    checkAutoSavedAnalysis();
+  }
+  catch(...)
+  {
+    // nothing
+  }
+
+  // TODO: check espina version against a server and warn the user about a new version.
 }
