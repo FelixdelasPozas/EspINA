@@ -34,6 +34,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Category.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/ListUtils.hxx>
 
 // VTK
 #include <vtkCellArray.h>
@@ -202,6 +203,7 @@ void StereologicalInclusion::evaluateCountingFrames()
   disconnect(m_extendedItem, SIGNAL(outputModified()),
              this,           SLOT(onOutputModified()));
 
+  checkCountingFrames();
   checkSampleCountingFrames();
 
   if (!m_isUpdated && !m_exclusionCFs.isEmpty())
@@ -400,6 +402,20 @@ void StereologicalInclusion::checkSampleCountingFrames()
         }
       }
     }
+  }
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::checkCountingFrames()
+{
+  auto channels = Utils::rawList(QueryContents::channels(m_extendedItem));
+
+  auto registeredCFs = m_exclusionCFs.keys();
+  registeredCFs.detach();
+
+  for(auto cf: registeredCFs)
+  {
+    if(!channels.contains(cf->channel())) removeCountingFrame(cf);
   }
 }
 
