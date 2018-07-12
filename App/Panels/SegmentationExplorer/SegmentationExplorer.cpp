@@ -20,15 +20,17 @@
 
 // ESPINA
 #include "SegmentationExplorer.h"
-#include "Panels/SegmentationExplorer/SegmentationExplorerLayout.h"
+#include "SegmentationExplorerLayout.h"
 #include "Layouts/ClassificationLayout.h"
+#include "Layouts/LocationLayout.h"
+#include <Core/Utils/SupportedFormats.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Utils/Format.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <Core/Utils/SupportedFormats.h>
 #include <GUI/Utils/DefaultIcons.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
 #include <Undo/RemoveSegmentations.h>
@@ -45,11 +47,12 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
-using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Utils::Format;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -63,8 +66,8 @@ public:
   GUI()
   {
     setupUi(this);
-    groupLabel->setVisible(false);
-    groupList->setVisible(false);
+    groupLabel->setVisible(true);
+    groupList->setVisible(true);
     view->setSortingEnabled(true);
     view->sortByColumn(0, Qt::AscendingOrder);
   }
@@ -81,8 +84,8 @@ SegmentationExplorer::SegmentationExplorer(Support::FilterRefinerFactory &filter
 {
   setObjectName("SegmentationExplorer");
 
-  //   addLayout("Debug", new Layout(m_baseModel));
   addLayout(tr("Category"), new ClassificationLayout(m_gui->view, context));
+  addLayout(tr("Location"), new LocationLayout(m_gui->view, context));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -189,11 +192,11 @@ void SegmentationExplorer::changeLayout(int index)
                this,                          SLOT(onModelSelectionChanged(QItemSelection, QItemSelection)));
 
     disconnect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-               this,              SLOT(updateSelection()));
+               this,              SLOT(onSelectionChanged()));
     disconnect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-               this,              SLOT(updateSelection()));
+               this,              SLOT(onSelectionChanged()));
     disconnect(m_layout->model(), SIGNAL(modelReset()),
-               this,              SLOT(updateSelection()));
+               this,              SLOT(onSelectionChanged()));
 
     QLayoutItem *specificControl;
     while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
@@ -201,12 +204,16 @@ void SegmentationExplorer::changeLayout(int index)
       delete specificControl->widget();
       delete specificControl;
     }
+
+    m_layout->setActive(false);
   }
 
-  m_layout = m_layouts[index];
+  m_layout = m_layouts.at(index);
 
   if(m_layout)
   {
+    m_layout->setActive(true);
+
     m_gui->view->setModel(m_layout->model());
 
     connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
@@ -276,7 +283,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   for(auto index: indexes)
   {
     auto item = m_layout->item(index);
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       selection << viewItemAdapter(item);
     }
@@ -289,6 +296,8 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   this->blockSignals(true);
   currentSelection()->set(selection);
   this->blockSignals(false);
+
+  m_layout->updateSelection();
 }
 
 //------------------------------------------------------------------------
@@ -309,28 +318,31 @@ void SegmentationExplorer::onSelectionChanged()
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
 
-  auto selection =  currentSelection()->items();
+  QModelIndexList indexes;
+  auto selection = currentSelection()->items();
   for(auto item : selection)
   {
-    auto index = m_layout->index(item);
-
-    if (index.isValid())
+    if(item)
     {
-      m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+      auto index = m_layout->index(item);
+      if (index.isValid())
+      {
+        indexes << index;
+        m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+      }
     }
   }
   m_gui->view->selectionModel()->blockSignals(false);
   m_gui->view->blockSignals(false);
 
   // Center the view at the first selected item
-  if (!selection.isEmpty())
+  if (!indexes.isEmpty())
   {
-    QModelIndex currentIndex = m_layout->index(selection.first());
-    m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
-    m_gui->view->scrollTo(currentIndex);
+    m_gui->view->selectionModel()->setCurrentIndex(indexes.first(), QItemSelectionModel::Select);
+    m_gui->view->scrollTo(indexes.first(), QAbstractItemView::EnsureVisible);
   }
 
-  updateGUI(m_gui->view->selectionModel()->selection().indexes());
+  updateGUI(indexes);
 
   // Update all visible items
   m_gui->view->viewport()->update();
@@ -355,7 +367,7 @@ void SegmentationExplorer::updateTags(const QModelIndexList &selectedIndexes)
   for(QModelIndex index : selectedIndexes)
   {
     auto item = m_layout->item(index);
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
       auto extensions   = segmentation->extensions();
@@ -435,7 +447,8 @@ QModelIndex SegmentationExplorer::nextIndex(const QModelIndex &index, direction 
       }
       else
       {
-        if(isSegmentation(m_layout->item(result)))
+        auto itemAdapter = m_layout->item(result);
+        if(itemAdapter && isSegmentation(itemAdapter))
         {
           found = true;
         }
@@ -620,6 +633,8 @@ void SegmentationExplorer::importClassification()
 
     auto oldClassification = getModel()->classification();
     auto undoStack = getContext().undoStack();
+
+    WaitingCursor cursor;
 
     undoStack->beginMacro("Import classification from disk.");
 		addCategories(classification, oldClassification);

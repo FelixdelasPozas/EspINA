@@ -22,6 +22,7 @@
 #include "EditToolGroup.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/ModelUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -30,6 +31,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
@@ -161,10 +163,14 @@ void ImageLogicTool::onTaskFinished()
                      .arg(taskContext.Operation == ImageLogicFilter::Operation::SUBTRACTION ? "subtraction" : "addition")
                      .arg(opSegmentations);
 
-    undoStack->beginMacro(macroText);
-    undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
-    undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
-    undoStack->endMacro();
+    {
+      WaitingCursor cursor;
+
+      undoStack->beginMacro(macroText);
+      undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
+      undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
+      undoStack->endMacro();
+    }
 
     getSelection()->clear();
     getSelection()->set(toViewItemList(segmentation.get()));

@@ -54,6 +54,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 
 const Filter::Type ManualFilterFactory::SOURCE_FILTER    = "FreeFormSource";
@@ -266,11 +267,15 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   samples << QueryAdapter::sample(channel);
   Q_ASSERT(channel && (samples.size() == 1));
 
-  auto undoStack = getUndoStack();
+  {
+    WaitingCursor cursor;
 
-  undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
-  undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-  undoStack->endMacro();
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+    undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    undoStack->endMacro();
+  }
 
   getSelection()->clear();
   getSelection()->set(toViewItemList(segmentation.get()));
@@ -287,9 +292,14 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
   auto segmentation = referenceSegmentation();
   auto bounds       = mask->bounds().bounds().toString();
   auto mode         = mask->foregroundValue() == SEG_VOXEL_VALUE ? "Paint":"Erase";
-  undoStack->beginMacro(tr("%1 segmentation '%2' in bounds %3.").arg(mode).arg(segmentation->data().toString()).arg(bounds));
-  undoStack->push(new DrawUndoCommand(segmentation, mask));
-  undoStack->endMacro();
+
+  {
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("%1 segmentation '%2' in bounds %3.").arg(mode).arg(segmentation->data().toString()).arg(bounds));
+    undoStack->push(new DrawUndoCommand(segmentation, mask));
+    undoStack->endMacro();
+  }
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
@@ -489,15 +499,19 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
 
     DefaultDialogs::InformationMessage(msg, title);
 
-    auto undoStack = getUndoStack();
+    {
+      WaitingCursor cursor;
 
-    undoStack->blockSignals(true);
-    undoStack->undo();
-    undoStack->blockSignals(false);
+      auto undoStack = getUndoStack();
 
-    undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(name));
-    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
-    undoStack->endMacro();
+      undoStack->blockSignals(true);
+      undoStack->undo();
+      undoStack->blockSignals(false);
+
+      undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(name));
+      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+      undoStack->endMacro();
+    }
   }
 }
 

@@ -517,6 +517,8 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
         }
       }
 
+      WaitingCursor cursor;
+
       undoStack->beginMacro(tr("Modify skeleton '%1' by adding points.").arg(segmentation->data().toString()));
       undoStack->push(new ModifySkeletonCommand(segmentation, widget->getSkeleton(), connections));
       undoStack->endMacro();
@@ -556,9 +558,13 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
         }
       }
 
-      undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
-      undoStack->push(new AddSegmentations(segmentation, samples, model, connections));
-      undoStack->endMacro();
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+        undoStack->push(new AddSegmentations(segmentation, samples, model, connections));
+        undoStack->endMacro();
+      }
 
       m_item = segmentation.get();
       m_item->setBeingModified(true);

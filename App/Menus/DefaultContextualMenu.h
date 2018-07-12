@@ -28,7 +28,6 @@
 // Qt
 #include <QModelIndex>
 
-class QTreeView;
 class QUndoStack;
 
 namespace ESPINA
@@ -67,11 +66,6 @@ namespace ESPINA
        */
       void addNote();
 
-      /** \brief Changes the category of the selected segmentation.
-       * \param[in] index const QModelIndex referece of the item.
-       */
-      void changeSegmentationsCategory(const QModelIndex &index);
-
       /** \brief Export selected segmentations to external format
        *
        */
@@ -87,11 +81,6 @@ namespace ESPINA
        */
       void manageTags();
 
-      /** \brief Resets the root of the model.
-       *
-       */
-      void resetRootItem();
-
       /** \brief Renames selected segmentations.
        *
        */
@@ -103,7 +92,6 @@ namespace ESPINA
       void renameSegmentationGroup();
 
     signals:
-      void changeCategory(CategoryAdapterPtr);
       void renamedSegmentations();
       void deleteSegmentations();
 
@@ -112,11 +100,6 @@ namespace ESPINA
        *
        */
       void createNoteEntry();
-
-      /** \brief Creates a "change category" entry for the contextual menu.
-       *
-       */
-      void createChangeCategoryMenu();
 
       /** \brief Creates a "tags" entry for the contextual menu.
        *
@@ -149,7 +132,6 @@ namespace ESPINA
       QString dialogTitle() const;
 
     private:
-      QTreeView              *m_classification; /** classification qt model.    */
       SegmentationAdapterList m_segmentations;  /** selected segmentation list. */
   };
 } // namespace ESPINA

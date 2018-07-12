@@ -415,6 +415,34 @@ FilterSList Analysis::downStreamPipeline(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
+FilterSList Analysis::upStreamPipeline(FilterSPtr filter)
+{
+  FilterSList inFilters;
+  FilterSList outFilters;
+
+  inFilters  << filter;
+  outFilters << filter;
+
+  while (!inFilters.isEmpty())
+  {
+    auto ancestor = inFilters.takeFirst();
+
+    for(auto edge : m_content->inEdges(ancestor))
+    {
+      auto predecessor = std::dynamic_pointer_cast<Filter>(edge.target);
+
+      if (predecessor)
+      {
+        inFilters  << predecessor;
+        outFilters << predecessor;
+      }
+    }
+  }
+
+  return outFilters;
+}
+
+//------------------------------------------------------------------------
 void Analysis::addFilterContentRelation(FilterSPtr filter, ViewItem* item)
 {
   ViewItemSPtr succesor;

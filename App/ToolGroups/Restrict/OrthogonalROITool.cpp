@@ -82,6 +82,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
@@ -393,11 +394,15 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 {
   Q_ASSERT(m_roi);
 
-  auto undoStack = getUndoStack();
+  {
+    WaitingCursor cursor;
 
-  undoStack->beginMacro(tr("Resize ROI."));
-  undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
-  undoStack->endMacro();
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(tr("Resize ROI."));
+    undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
+    undoStack->endMacro();
+  }
 
   emit roiModified(m_roi);
 }

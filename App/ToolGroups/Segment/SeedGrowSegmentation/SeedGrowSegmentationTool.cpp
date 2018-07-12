@@ -54,6 +54,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
@@ -439,10 +440,14 @@ void SeedGrowSegmentationTool::createSegmentation()
     samples << QueryAdapter::sample(inputChannel());
     Q_ASSERT(samples.size() == 1);
 
-    auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
-    undoStack->push(new AddSegmentations(segmentation, samples, model));
-    undoStack->endMacro();
+    {
+      WaitingCursor cursor;
+
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+      undoStack->push(new AddSegmentations(segmentation, samples, model));
+      undoStack->endMacro();
+    }
 
     auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(data.Filter);
     if(sgsFilter->isTouchingROI())

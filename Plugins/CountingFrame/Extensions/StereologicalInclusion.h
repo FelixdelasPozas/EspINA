@@ -138,6 +138,11 @@ namespace ESPINA
          */
         void checkSampleCountingFrames();
 
+        /** \brief Checks the validity of the counting frames regarding the extended item.
+         *
+         */
+        void checkCountingFrames();
+
       private slots:
         /** \brief Updates the info cache if a Counting Frame id changes.
          *

@@ -157,7 +157,6 @@ namespace ESPINA
       return channels;
     }
 
-
     //------------------------------------------------------------------------
     SegmentationSList segmentations(SampleSPtr sample)
     {
@@ -189,8 +188,7 @@ namespace ESPINA
     {
       return segmentations(sample(channel));
     }
-
-  }
+  } // namespace QueryContents
 
   namespace QueryRelations
   {
@@ -332,5 +330,4 @@ namespace ESPINA
       return segmentations(channelSample);
     }
   } // namespace QueryRelations
-
-}
+} // namespace ESPINA
