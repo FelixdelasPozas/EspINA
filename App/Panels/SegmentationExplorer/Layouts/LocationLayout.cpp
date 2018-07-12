@@ -25,6 +25,7 @@
 #include <App/Panels/SegmentationExplorer/Layouts/LocationLayout.h>
 #include <App/Menus/DefaultContextualMenu.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
 #include <Undo/ChangeSegmentationsStack.h>
 
@@ -34,6 +35,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Proxy;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Widgets::Styles;
@@ -161,8 +163,9 @@ void LocationLayout::contextMenu(const QPoint& pos)
 
     if(modelStacks.size() > 1 && m_selectedStacks.size() == 1)
     {
-      auto moveToNewStack = contextMenu->addAction(tr("Relocate all segmentations to '%1'").arg(m_selectedStacks.first()->data().toString()));
-
+      auto stack = m_selectedStacks.first();
+      auto moveToNewStack = contextMenu->addAction(tr("Relocate all segmentations to '%1'").arg(stack->data().toString()));
+      moveToNewStack->setProperty("stackIndex", stackIndex(stack));
       connect(moveToNewStack, SIGNAL(triggered(bool)),
               this,           SLOT(moveAllToStack()));
     }
@@ -310,7 +313,7 @@ void LocationLayout::selectAllFromStack()
   if(action)
   {
     bool ok;
-    auto stackIndex = action->property("stackIndex").toInt(&ok);
+    auto stackIndex  = action->property("stackIndex").toInt(&ok);
     auto modelStacks = getModel()->channels();
 
     if(ok && stackIndex >= 0 && stackIndex < modelStacks.size())
@@ -403,15 +406,26 @@ void LocationLayout::moveAllToStack()
         segmentations << m_proxy->segmentationsOf(modelStack.get());
       }
 
-      auto segmentationNames = segmentationListNames(segmentations);
-      auto undoStack = getUndoStack();
-      auto number = segmentations.size() > 1 ? "s":"";
+      if(!segmentations.isEmpty())
+      {
+        auto number  = segmentations.size() > 1 ? "s":"";
+        auto message = tr("Do you want to move all segmentations to the stack '%1'?").arg(stack->data().toString());
+        auto details = tr("Segmentation%1 to be relocated:").arg(number);
+        for(auto seg: segmentations) details += tr("\n - %1").arg(seg->data().toString());
+        if(QMessageBox::Yes != DefaultDialogs::UserQuestion(message, QMessageBox::Yes|QMessageBox::Cancel, DefaultDialogs::DefaultTitle(), details))
+        {
+          return;
+        }
 
-      WaitingCursor cursor;
+        auto segmentationNames = segmentationListNames(segmentations);
+        auto undoStack = getUndoStack();
 
-      undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
-      undoStack->push(new ChangeSegmentationsStack(segmentations, stack));
-      undoStack->endMacro();
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
+        undoStack->push(new ChangeSegmentationsStack(segmentations, stack));
+        undoStack->endMacro();
+      }
     }
   }
   else
