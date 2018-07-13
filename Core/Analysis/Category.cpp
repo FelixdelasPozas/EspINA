@@ -2,6 +2,7 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QString>
@@ -9,6 +10,7 @@
 
 // C++
 #include <iostream>
+#include <algorithm>
 
 // VTK
 #include <vtkMath.h>
@@ -70,9 +72,12 @@ const QString Category::classificationName() const
 //------------------------------------------------------------------------
 void Category::setColor(const Hue color)
 {
-  if (m_color != color)
+  const Hue maxHue{359}, minHue{0};
+  Hue adjusted = std::min(maxHue, std::max(minHue, color));
+
+  if (m_color != adjusted)
   {
-    m_color = color;
+    m_color = adjusted;
   }
 }
 

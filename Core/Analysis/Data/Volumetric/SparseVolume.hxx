@@ -309,13 +309,21 @@ namespace ESPINA
 
     VolumeBounds expectedBounds(bounds, spacing, origin);
 
-    if (!contains(this->m_bounds, expectedBounds))
+    if(!intersect(this->m_bounds, expectedBounds))
     {
-      auto what = QObject::tr("Invalid input bounds");
+      auto what = QObject::tr("Invalid input bounds, no intersection");
       auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
 
       throw Core::Utils::EspinaException(what, details);
     }
+
+//    if (!contains(this->m_bounds, expectedBounds))
+//    {
+//      auto what = QObject::tr("Invalid input bounds");
+//      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
+//
+//      throw Core::Utils::EspinaException(what, details);
+//    }
 
     m_blockMutex.lockForRead();
 

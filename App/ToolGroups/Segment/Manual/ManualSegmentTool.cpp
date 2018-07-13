@@ -128,7 +128,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
-          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
+          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)), Qt::DirectConnection);
 
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
@@ -331,8 +331,7 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     if (intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing()))
     {
       auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
-
-      auto slice = readLockVolume(m_referenceItem->output())->itkImage(bounds);
+      auto slice  = readLockVolume(m_referenceItem->output())->itkImage(bounds);
 
       itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
       it.GoToBegin();

@@ -275,6 +275,7 @@ ROISPtr RestrictToolGroup::currentROI()
     {
       commitPendingOrthogonalROI(nullptr);
     }
+
     roi = m_accumulator;
   }
 
