@@ -593,8 +593,10 @@ namespace ESPINA
     this->m_bounds = VolumeBounds(bounds, spacing, origin);
 
     auto affectedIndexes = toBlockIndexes(bounds);
+    auto indexes = m_blocks.keys(); // to avoid deleting keys while iterating m_blocks.
+    indexes.detach();
 
-    for(auto index: m_blocks.keys())
+    for(auto index: indexes)
     {
       if(!affectedIndexes.contains(index))
       {
