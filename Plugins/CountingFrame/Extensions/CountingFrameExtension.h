@@ -64,17 +64,17 @@ namespace ESPINA
 
         virtual Snapshot snapshot() const;
 
-        virtual TypeList dependencies() const
+        virtual const TypeList dependencies() const
         {
           Extension::TypeList deps;
           deps << Extensions::ChannelEdges::TYPE;
           return deps;
         }
 
-        virtual QString toolTipText() const
+        virtual const QString toolTipText() const
         { return tr("Counting Frames: %1").arg(countingFrames().size()); }
 
-        virtual InformationKeyList availableInformation() const
+        virtual const InformationKeyList availableInformation() const
         { return InformationKeyList(); }
 
         /** \brief Creates a counting frame with the given parameters.

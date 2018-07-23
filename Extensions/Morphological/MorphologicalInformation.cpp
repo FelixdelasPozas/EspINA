@@ -96,7 +96,7 @@ Snapshot MorphologicalInformation::snapshot() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList MorphologicalInformation::availableInformation() const
+const SegmentationExtension::InformationKeyList MorphologicalInformation::availableInformation() const
 {
   InformationKeyList keys;
 

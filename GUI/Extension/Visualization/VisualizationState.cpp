@@ -41,7 +41,7 @@ VisualizationState::~VisualizationState()
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList VisualizationState::availableInformation() const
+const SegmentationExtension::InformationKeyList VisualizationState::availableInformation() const
 {
   return InformationKeyList();
 }

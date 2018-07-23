@@ -80,7 +80,7 @@ Snapshot StereologicalInclusion::snapshot() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
+const SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 {
   TypeList dependencies;
 
@@ -90,7 +90,7 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList StereologicalInclusion::availableInformation() const
+const SegmentationExtension::InformationKeyList StereologicalInclusion::availableInformation() const
 {
   QMutexLocker lock(&m_mutex);
 
@@ -113,25 +113,23 @@ void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 }
 
 //------------------------------------------------------------------------
-QString StereologicalInclusion::toolTipText() const
+const QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
+  InformationKeyList keys;
 
   {
-    InformationKeyList keys;
-    {
-      QMutexLocker lock(&m_mutex);
-      keys = m_keys;
-      keys.detach();
-    }
+    QMutexLocker lock(&m_mutex);
+    keys = m_keys;
+    keys.detach();
+  }
 
-    for(auto key: keys)
-    {
-      QString description = cachedInfo(key).toBool()?
-      "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(key.value()) + "</font>":
-      "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(key.value()) + "</font>";
-      tooltip = tooltip.append(createTable(":/apply.svg", description));
-    }
+  for(auto key: keys)
+  {
+    QString description = cachedInfo(key).toBool()?
+    "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(key.value()) + "</font>":
+    "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(key.value()) + "</font>";
+    tooltip = tooltip.append(createTable(":/apply.svg", description));
   }
 
   return tooltip;
@@ -174,7 +172,9 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
   {
     m_exclusionCFs.remove(cf);
     m_cfIds.remove(cf);
-    m_keys.removeOne(cfKey(cf));
+    auto key = cfKey(cf);
+    m_keys.removeAll(key);
+    m_infoCache.remove(key.value());
 
     disconnect(cf,   SIGNAL(modified(CountingFrame *)),
                this, SLOT(onCountingFrameModified(CountingFrame *)));
@@ -261,7 +261,6 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 {
-  //qDebug() << "Checking Counting Frame Exclusion";
   auto segmentationCategory = m_extendedItem->category()->classificationName();
 
   if (!segmentationCategory.startsWith(cf->categoryConstraint()))
@@ -273,6 +272,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   auto inputBB      = output->bounds();
   auto spacing      = output->spacing();
   auto region       = cf->innerFramePolyData();
+
+  if(!region) return true;
+
   auto regionPoints = region->GetPoints();
 
   auto pointBounds = [] (vtkPoints *points)
@@ -381,7 +383,8 @@ bool StereologicalInclusion::hasCountingFrames() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::checkSampleCountingFrames()
 {
-  auto samples = QueryContents::samples(m_extendedItem);
+  auto samples  = QueryContents::samples(m_extendedItem);
+  auto channels = QueryContents::channels(m_extendedItem);
 
   if (samples.size() > 1)
   {
@@ -395,6 +398,8 @@ void StereologicalInclusion::checkSampleCountingFrames()
 
       for(auto channel : QueryContents::channels(sample))
       {
+        if(!channels.contains(channel)) continue;
+
         auto extensions = channel->readOnlyExtensions();
 
         if (extensions->hasExtension(CountingFrameExtension::TYPE))
@@ -421,7 +426,16 @@ void StereologicalInclusion::checkCountingFrames()
 
   for(auto cf: registeredCFs)
   {
-    if(!channels.contains(cf->channel())) removeCountingFrame(cf);
+    if(!channels.contains(cf->channel()))
+    {
+      removeCountingFrame(cf);
+    }
+  }
+
+  if(m_exclusionCFs.isEmpty())
+  {
+    m_isExcluded = true;
+    m_isUpdated  = false;
   }
 }
 

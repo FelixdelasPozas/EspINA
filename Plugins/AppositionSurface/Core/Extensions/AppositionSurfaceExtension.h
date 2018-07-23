@@ -67,10 +67,10 @@ namespace ESPINA
       virtual Snapshot snapshot() const
       { return Snapshot(); }
 
-      virtual TypeList dependencies() const
+      virtual const TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InformationKeyList availableInformation() const;
+      virtual const InformationKeyList availableInformation() const;
 
       virtual bool validCategory(const QString &classificationName) const;
 

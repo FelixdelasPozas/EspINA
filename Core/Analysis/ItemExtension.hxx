@@ -140,7 +140,7 @@ namespace ESPINA
         /** \brief Returns a list of extension types this extension depends on.
          *
          */
-        virtual TypeList dependencies() const = 0;
+        virtual const TypeList dependencies() const = 0;
 
         /** \brief Sets the item this extension extends.
          *
@@ -173,7 +173,7 @@ namespace ESPINA
         /** \brief Returns a list of keys this extension have information of.
          *
          */
-        virtual InformationKeyList availableInformation() const = 0;
+        virtual const InformationKeyList availableInformation() const = 0;
 
         /** \brief Returns true if the extension has the given information key.
          * \param[in] key extension information key.
@@ -239,7 +239,7 @@ namespace ESPINA
         /** \brief Returns the tooltip text of the extension.
          *
          */
-        virtual QString toolTipText() const
+        virtual const QString toolTipText() const
         { return QString(); }
 
       protected:

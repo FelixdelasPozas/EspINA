@@ -240,7 +240,7 @@ bool SegmentationAdapter::isReady(const SegmentationExtension::InformationKey &k
 }
 
 //------------------------------------------------------------------------
-Extension< Segmentation >::InformationKeyList SegmentationAdapter::availableInformation() const
+const Extension<Segmentation>::InformationKeyList SegmentationAdapter::availableInformation() const
 {
   return m_segmentation->readOnlyExtensions()->availableInformation();
 }

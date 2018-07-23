@@ -64,7 +64,7 @@ Snapshot SynapseConnectionInformation::snapshot() const
 }
 
 //--------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SynapseConnectionInformation::availableInformation() const
+const SegmentationExtension::InformationKeyList SynapseConnectionInformation::availableInformation() const
 {
   InformationKeyList keys;
 

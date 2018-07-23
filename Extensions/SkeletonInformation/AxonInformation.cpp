@@ -66,7 +66,7 @@ Snapshot AxonSkeletonInformation::snapshot() const
 }
 
 //--------------------------------------------------------------------
-SegmentationExtension::InformationKeyList AxonSkeletonInformation::availableInformation() const
+const SegmentationExtension::InformationKeyList AxonSkeletonInformation::availableInformation() const
 {
   InformationKeyList keys;
 

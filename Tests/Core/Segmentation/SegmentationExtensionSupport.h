@@ -54,14 +54,14 @@ class DummySegmentationExtension
       return snapshot;
     }
 
-    virtual TypeList dependencies() const{ return TypeList(); }
+    virtual const TypeList dependencies() const{ return TypeList(); }
 
     virtual void onExtendedItemSet(ESPINA::Segmentation* item){}
     virtual QVariant cacheFail(const InformationKey& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
     bool validData(const OutputSPtr output) const { return true; };
 
-    virtual InformationKeyList availableInformation() const
+    const virtual InformationKeyList availableInformation() const
     {
       InformationKeyList keys;
 
@@ -70,7 +70,7 @@ class DummySegmentationExtension
       return keys;
     };
 
-    virtual QString toolTipText() const
+    virtual const QString toolTipText() const
     { return QString("ToolTip"); };
 
     virtual SegmentationExtension::Type type() const

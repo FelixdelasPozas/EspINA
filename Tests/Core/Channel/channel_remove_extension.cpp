@@ -46,9 +46,9 @@ int channel_remove_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Core::StackExtension(InfoCache()), Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
-    virtual InformationKeyList availableInformation() const { return InformationKeyList(); }
+    virtual const InformationKeyList availableInformation() const { return InformationKeyList(); }
     virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
-    virtual TypeList dependencies() const {return TypeList(); }
+    virtual const TypeList dependencies() const {return TypeList(); }
     virtual void onExtendedItemSet(Channel* item) {}
     virtual bool invalidateOnChange() const {return false;}
     virtual Snapshot snapshot() const {return Snapshot();}

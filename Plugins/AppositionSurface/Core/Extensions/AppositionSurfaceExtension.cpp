@@ -94,7 +94,7 @@ AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtensi
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList AppositionSurfaceExtension::availableInformation() const
+const SegmentationExtension::InformationKeyList AppositionSurfaceExtension::availableInformation() const
 {
   InformationKeyList keys;
 

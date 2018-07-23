@@ -176,13 +176,13 @@ namespace ESPINA
         /** \brief Returns the list of information keys provided by extensible.
          *
          */
-        virtual typename E::InformationKeyList availableInformation() const;
+        virtual const typename E::InformationKeyList availableInformation() const;
 
         /** \brief Returns true if any of the extensions has an information corresponding to the given key.
          * \param[in] key information key.
          *
          */
-        bool hasInformation(const typename E::InformationKey &key) const
+        const bool hasInformation(const typename E::InformationKey &key) const
         { return availableInformation().contains(key); }
 
         /** \brief Returns the value of the specified information key.
@@ -454,7 +454,7 @@ namespace ESPINA
 
     //------------------------------------------------------------------
     template<typename E, typename T>
-    typename E::InformationKeyList Extensions<E, T>::availableInformation() const
+    const typename E::InformationKeyList Extensions<E, T>::availableInformation() const
     {
       typename E::InformationKeyList list;
 

@@ -71,10 +71,10 @@ namespace ESPINA
 
       virtual Snapshot snapshot() const;
 
-      virtual TypeList dependencies() const
+      virtual const TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InformationKeyList availableInformation() const
+      virtual const InformationKeyList availableInformation() const
       { return InformationKeyList(); }
 
       QString snapshotName(const QString &file) const;
@@ -105,7 +105,7 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkPolyData> channelEdges();
 
-      virtual QString toolTipText() const
+      virtual const QString toolTipText() const
       { return tr("Channel Edges"); }
 
       /** \brief Return the volume un Nm^3.

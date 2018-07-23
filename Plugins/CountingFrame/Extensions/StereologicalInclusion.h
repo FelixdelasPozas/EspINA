@@ -71,16 +71,16 @@ namespace ESPINA
 
         virtual Snapshot snapshot() const;
 
-        virtual TypeList dependencies() const;
+        virtual const TypeList dependencies() const;
 
         virtual bool validCategory(const QString& classificationName) const
         { return true; }
 
         virtual bool validData(const OutputSPtr output) const;
 
-        virtual InformationKeyList availableInformation() const;
+        virtual const InformationKeyList availableInformation() const;
 
-        virtual QString toolTipText() const;
+        virtual const QString toolTipText() const;
 
         /** \brief Adds the given CF to the list of CFs to check for inclusion.
          * \param[in] cf counting frame object pointer.

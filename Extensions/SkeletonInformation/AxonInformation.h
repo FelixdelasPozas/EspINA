@@ -25,8 +25,19 @@
 #include <Extensions/EspinaExtensions_Export.h>
 
 // ESPINA
-#include <Core/Analysis/Extensions.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/ItemExtension.hxx>
+#include <Core/Analysis/Persistent.h>
+#include <Core/Utils/TemporalStorage.h>
+
+// Qt
+#include <QMap>
+#include <QReadWriteLock>
+#include <QString>
+
+class QVariant;
 
 namespace ESPINA
 {
@@ -56,13 +67,13 @@ namespace ESPINA
 
         virtual Snapshot snapshot() const;
 
-        virtual TypeList dependencies() const
+        virtual const TypeList dependencies() const
         { return TypeList(); }
 
         virtual bool invalidateOnChange() const
         { return true; }
 
-        virtual InformationKeyList availableInformation() const;
+        virtual const InformationKeyList availableInformation() const;
 
         virtual bool validCategory(const QString& classificationName) const
         { return classificationName.startsWith("Axon"); }

@@ -132,7 +132,7 @@ Snapshot DendriteSkeletonInformation::snapshot() const
 }
 
 //--------------------------------------------------------------------
-SegmentationExtension::InformationKeyList DendriteSkeletonInformation::availableInformation() const
+const SegmentationExtension::InformationKeyList DendriteSkeletonInformation::availableInformation() const
 {
   InformationKeyList keys;
 

@@ -101,7 +101,7 @@ namespace ESPINA
      /** \brief Returns the list of tags provided by the segmentation extensions of the segmentation.
       *
       */
-    virtual Core::SegmentationExtension::InformationKeyList availableInformation() const;
+    virtual const Core::SegmentationExtension::InformationKeyList availableInformation() const;
 
     bool hasInformation(const Core::SegmentationExtension::InformationKey &key) const
     { return availableInformation().contains(key); }
