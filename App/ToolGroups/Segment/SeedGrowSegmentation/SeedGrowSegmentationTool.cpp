@@ -343,7 +343,8 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  auto currentROI = getContext().roiProvider()->currentROI();
+  ROISPtr currentROI;
+  if(getContext().roiProvider()) currentROI = getContext().roiProvider()->currentROI();
 
   if (!currentROI && m_roi->applyROI())
   {
