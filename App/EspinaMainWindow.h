@@ -57,7 +57,6 @@ class QPluginLoader;
 class QAction;
 class QFrame;
 class QUndoStack;
-class QShortcut;
 
 namespace ESPINA
 {

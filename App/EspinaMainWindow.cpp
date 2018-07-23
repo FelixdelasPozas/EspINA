@@ -282,6 +282,12 @@ bool EspinaMainWindow::isModelModified()
 //------------------------------------------------------------------------
 void EspinaMainWindow::enableWidgets(bool value)
 {
+  if(m_busy)
+  {
+    // do not do anything if we're closing the application.
+    return;
+  }
+
   for (auto dock : findChildren<QDockWidget *>())
   {
     dock->setEnabled(value);
@@ -403,6 +409,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     }
   }
 
+  m_busy = true;
   if (closeCurrentAnalysis())
   {
     saveGeometry();
@@ -1163,7 +1170,7 @@ void EspinaMainWindow::createToolShortcuts()
       {
         if(!alreadyUsed.contains(sequence))
         {
-          auto shortcut = new QShortcut(sequence, this, 0, 0, Qt::ApplicationShortcut);
+          auto shortcut = new QShortcut{sequence, this, 0, 0, Qt::ApplicationShortcut};
 
           m_toolShortcuts << shortcut;
 
@@ -1456,11 +1463,12 @@ void EspinaMainWindow::saveToolsSettings()
 {
   if(!m_analysis->storage()) return;
 
-  auto settings   = m_analysis->storage()->sessionSettings();
-  auto toolgroups = QList<ToolGroupPtr>{ m_exploreToolGroup, m_restrictToolGroup, m_segmentToolGroup, m_refineToolGroup, m_visualizeToolGroup, m_analyzeToolGroup};
+  auto settings = m_analysis->storage()->sessionSettings();
 
   for(auto tool: availableTools())
   {
+    if(!tool) continue;
+
     if(!tool->id().isEmpty())
     {
       SettingsContainer container;
