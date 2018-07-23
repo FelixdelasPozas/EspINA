@@ -464,11 +464,6 @@ void SkeletonCreationTool::onSegmentationsRemoved(ViewItemAdapterSList segmentat
 //-----------------------------------------------------------------------------
 void SkeletonCreationTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-  if(m_item && m_item != getActiveChannel())
-  {
-    onNextButtonPressed();
-  }
-
   if(category)
   {
     if(!STROKES.contains(category->classificationName()))
@@ -484,6 +479,11 @@ void SkeletonCreationTool::onCategoryChanged(CategoryAdapterSPtr category)
     {
       widget->setRepresentationTextColor(category->color());
     }
+  }
+
+  if(m_item && m_item != getActiveChannel())
+  {
+    onNextButtonPressed();
   }
 }
 
@@ -590,23 +590,25 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
 //--------------------------------------------------------------------
 void SkeletonCreationTool::onNextButtonPressed()
 {
+  auto category    = m_categorySelector->selectedCategory();
+  auto strokeIndex = (STROKES[category->classificationName()].size() <= m_strokeCombo->currentIndex()) ? 0 : m_strokeCombo->currentIndex();
+  auto stroke      = STROKES[category->classificationName()].at(strokeIndex);
+
+  for(auto widget: m_skeletonWidgets)
+  {
+    widget->stop();
+    widget->initialize(nullptr);
+    widget->setStroke(stroke);
+    widget->setRepresentationTextColor(category->color());
+  }
+
+  for(auto widget: m_pointWidgets)
+  {
+    widget->clearPoints();
+  }
+
   if(m_item && m_item != getActiveChannel())
   {
-    auto category = m_categorySelector->selectedCategory();
-    auto stroke = STROKES[category->classificationName()].at(m_strokeCombo->currentIndex());
-
-    for(auto widget: m_skeletonWidgets)
-    {
-      widget->stop();
-      widget->initialize(nullptr);
-      widget->setStroke(stroke);
-    }
-
-    for(auto widget: m_pointWidgets)
-    {
-      widget->clearPoints();
-    }
-
     m_item->setBeingModified(false);
     m_item->clearTemporalRepresentation();
     m_item->invalidateRepresentations();
