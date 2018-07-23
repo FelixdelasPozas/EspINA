@@ -512,8 +512,9 @@ void CheckSegmentationTask::checkExtensionsValidity() const
     {
       types += type + (type == unavailableExtensions.last() ? "" : ", ");
     }
-    auto description = tr("Segmentation has read-only extensions: %1").arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+    auto plural      = unavailableExtensions.size() > 1 ? "s":"";
+    auto description = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
   }
@@ -657,8 +658,9 @@ void CheckStackTask::checkExtensionsValidity() const
     {
       types += type + (type == unavailableExtensions.last() ? "" : ", ");
     }
-    auto description = tr("Stack has read-only extensions: %1").arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+    auto plural      = unavailableExtensions.size() > 1 ? "s":"";
+    auto description = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
+    auto hint        = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }

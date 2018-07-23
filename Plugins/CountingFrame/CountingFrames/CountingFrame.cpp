@@ -422,7 +422,10 @@ vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
   QReadLocker lock(&m_countingFrameMutex);
 
   auto polydata = vtkSmartPointer<vtkPolyData>::New();
-  polydata->DeepCopy(m_innerFrame);
+  if(m_innerFrame)
+  {
+    polydata->DeepCopy(m_innerFrame);
+  }
 
   return polydata;
 }

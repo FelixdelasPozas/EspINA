@@ -64,7 +64,7 @@ void ApplyCountingFrame::run()
   bool validExecution = false;
 
   {
-    auto stack       = m_countingFrame->channel();
+    auto stack         = m_countingFrame->channel();
     auto segmentations = m_countingFrame->channel()->analysis()->segmentations();
 
     SegmentationSList validSegmentations;

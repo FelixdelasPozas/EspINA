@@ -69,6 +69,8 @@ void ChangeSegmentationsStack::redo()
     }
 
     m_map[segmentation] = oldStacks.first().get();
+
+    segmentation->invalidateRepresentations();
   }
 }
 

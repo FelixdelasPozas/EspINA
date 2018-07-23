@@ -118,8 +118,7 @@ namespace ESPINA
 
       if (segmentation && segmentation->analysis())
       {
-        auto analysis = segmentation->analysis();
-        auto content  = analysis->content();
+        auto content  = segmentation->analysis()->content();
 
         // Find first channel ancestors
         auto ancestors = content->ancestors(segmentation);
@@ -129,7 +128,7 @@ namespace ESPINA
           auto ancestor = ancestors.takeFirst();
           auto successors = content->successors(ancestor);
 
-          ChannelSPtr channel;
+          ChannelSPtr channel = nullptr;
           int i = 0;
           while (!channel && i < successors.size())
           {
@@ -137,9 +136,12 @@ namespace ESPINA
             ++i;
           }
 
-          if (channel && !channels.contains(channel))
+          if (channel)
           {
-            channels << channel;
+            if(!channels.contains(channel))
+            {
+              channels << channel;
+            }
           }
           else
           {

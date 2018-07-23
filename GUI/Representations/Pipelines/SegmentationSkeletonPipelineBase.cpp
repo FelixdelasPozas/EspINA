@@ -85,10 +85,11 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
     if(actorVTK)
     {
-      auto data        = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
+      auto data = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
+      if(!data) return;
+
       auto colors      = vtkUnsignedCharArray::SafeDownCast(data->GetCellData()->GetScalars());
       auto cellChanges = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("ChangeColor"));
-
       if(!colors || !cellChanges) return;
 
       data->GetLines()->InitTraversal();

@@ -125,7 +125,7 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
 
 //----------------------------------------------------------------------------
 void SegmentationVolumetricCPUPipeline::updateColors(ActorList &actors,
-                                                     const ViewItemAdapter *item,
+                                                     ConstViewItemAdapterPtr item,
                                                      const RepresentationState &state)
 {
   if (actors.size() == 1)

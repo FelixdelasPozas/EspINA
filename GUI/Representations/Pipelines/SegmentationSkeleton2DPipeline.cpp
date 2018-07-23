@@ -362,7 +362,6 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       glyphMapper->SetScalarVisibility(false);
       glyphMapper->SetStatic(true);
       glyphMapper->SetInputData(truncatedData);
-      glyphMapper->SetSourceData(glyph2D->GetOutput());
 
       if(m_plane != Plane::XY)
       {
@@ -374,6 +373,11 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
         glyphMapper->SetSourceData(transformFilter->GetOutput());
       }
+      else
+      {
+        glyphMapper->SetSourceData(glyph2D->GetOutput());
+      }
+
       glyphMapper->Update();
 
       auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
