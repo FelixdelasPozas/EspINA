@@ -33,7 +33,6 @@
 
 namespace ESPINA
 {
-
   class SegmentationInspector;
 
   /** \class SegmentationFilterProxyModel

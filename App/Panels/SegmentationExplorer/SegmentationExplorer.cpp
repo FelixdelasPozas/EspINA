@@ -229,6 +229,7 @@ void SegmentationExplorer::changeLayout(int index)
     m_layout->createSpecificControls(m_gui->specificControlLayout);
 
     m_gui->view->setItemDelegate(m_layout->itemDelegate());
+    updateSearchFilter();
   }
 
   m_gui->showInformationButton->setEnabled(false);

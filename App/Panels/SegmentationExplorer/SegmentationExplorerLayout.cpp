@@ -55,33 +55,38 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
   auto rowIndex = sourceModel()->index(source_row, 0, source_parent);
 
+  if(!rowIndex.isValid()) return false;
+
   if (!acceptRows)
   {
     auto item = itemAdapter(rowIndex);
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
-      auto extensions   = segmentation->readOnlyExtensions();
-
-      if (extensions->hasExtension(SegmentationTags::TYPE))
+      if(segmentation)
       {
-        auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+        auto extensions = segmentation->readOnlyExtensions();
 
-        QStringList tags = tagExtension->tags();
-
-        int i = 0;
-        while (!acceptRows && i < tags.size())
+        if (extensions->hasExtension(SegmentationTags::TYPE))
         {
-          acceptRows = tags[i].contains(filterRegExp());
-          ++i;
+          auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+
+          QStringList tags = tagExtension->tags();
+
+          int i = 0;
+          while (!acceptRows && i < tags.size())
+          {
+            acceptRows = tags[i].contains(filterRegExp());
+            ++i;
+          }
         }
-      }
 
-      if(!acceptRows && extensions->hasExtension(SegmentationNotes::TYPE))
-      {
-        auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+        if(!acceptRows && extensions->hasExtension(SegmentationNotes::TYPE))
+        {
+          auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
 
-        acceptRows = notesExtension->notes().contains(filterRegExp());
+          acceptRows = notesExtension->notes().contains(filterRegExp());
+        }
       }
     }
   }

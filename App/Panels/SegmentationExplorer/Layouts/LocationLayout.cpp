@@ -249,6 +249,9 @@ QItemDelegate *LocationLayout::itemDelegate() const
 //--------------------------------------------------------------------
 void LocationLayout::segmentationsDropped(SegmentationAdapterList segmentations, ChannelAdapterPtr stack)
 {
+  auto currentFilter = m_sort->filterRegExp();
+  m_sort->setFilterRegExp(QString());
+
   auto segmentationNames = segmentationListNames(segmentations);
   auto undoStack         = getUndoStack();
   auto number            = segmentations.size() > 1 ? "s":"";
@@ -258,6 +261,8 @@ void LocationLayout::segmentationsDropped(SegmentationAdapterList segmentations,
   undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
   undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
   undoStack->endMacro();
+
+  m_sort->setFilterRegExp(currentFilter);
 }
 
 //--------------------------------------------------------------------
@@ -366,6 +371,9 @@ void LocationLayout::moveToStack()
 
     if(ok && stackIndex >= 0 && stackIndex < modelStacks.size())
     {
+      auto currentFilter = m_sort->filterRegExp();
+      m_sort->setFilterRegExp(QString());
+
       auto segmentationNames = segmentationListNames(m_selectedSegs);
       auto stack             = modelStacks.at(stackIndex).get();
       auto undoStack         = getUndoStack();
@@ -376,6 +384,8 @@ void LocationLayout::moveToStack()
       undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
       undoStack->push(new ChangeSegmentationsStack(m_selectedSegs, stack));
       undoStack->endMacro();
+
+      m_sort->setFilterRegExp(currentFilter);
     }
   }
   else
@@ -408,6 +418,9 @@ void LocationLayout::moveAllToStack()
 
       if(!segmentations.isEmpty())
       {
+        auto currentFilter = m_sort->filterRegExp();
+        m_sort->setFilterRegExp(QString());
+
         auto number  = segmentations.size() > 1 ? "s":"";
         auto message = tr("Do you want to move all segmentations to the stack '%1'?").arg(stack->data().toString());
         auto details = tr("Segmentation%1 to be relocated:").arg(number);
@@ -425,6 +438,8 @@ void LocationLayout::moveAllToStack()
         undoStack->beginMacro(tr("Relocate segmentation%1 to '%2': %3").arg(number).arg(stack->data().toString()).arg(segmentationNames));
         undoStack->push(new ChangeSegmentationsStack(segmentations, stack));
         undoStack->endMacro();
+
+        m_sort->setFilterRegExp(currentFilter);
       }
     }
   }

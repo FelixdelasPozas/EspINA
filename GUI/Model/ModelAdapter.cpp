@@ -2112,6 +2112,7 @@ bool ModelAdapter::changeSegmentationStack(SegmentationAdapterPtr segmentation, 
   while(!pipeline.isEmpty())
   {
     auto filter = pipeline.pop();
+
     for(auto ancestor: m_analysis->content()->inEdges(filter))
     {
       if(stacks.contains(ancestor.source))
@@ -2167,8 +2168,11 @@ bool ModelAdapter::changeSegmentationStack(SegmentationAdapterPtr segmentation, 
       addRelation(stackSample, smartPointer(segmentation), Sample::CONTAINS);
     }
 
+    // signals extensions and others to update their data.
     auto segIndex = segmentationIndex(segmentation);
     emit dataChanged(segIndex, segIndex);
+
+    segmentation->output()->updateModificationTime();
 
     return true;
   }

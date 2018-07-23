@@ -197,7 +197,7 @@ int LocationProxy::rowCount(const QModelIndex &parent) const
   if(parent.isValid())
   {
     auto item = itemAdapter(parent);
-    if(item && item->type() == ItemAdapter::Type::CHANNEL)
+    if(item && isChannel(item))
     {
       auto stack = channelPtr(item);
       if(stack)
@@ -619,7 +619,7 @@ void LocationProxy::sourceDataChanged(const QModelIndex &sourceTopLeft, const QM
 {
   if(!sourceTopLeft.isValid() || !sourceBottomRight.isValid()) return;
 
-  QModelIndexList sources;
+  QModelIndexList sources, stackIndexes, sourceIndexes;
 
   if(sourceTopLeft.parent() != sourceBottomRight.parent() ||
      sourceTopLeft.parent() == m_model->classificationRoot() ||
@@ -630,14 +630,13 @@ void LocationProxy::sourceDataChanged(const QModelIndex &sourceTopLeft, const QM
   else
   {
     indices(sourceTopLeft, sourceBottomRight, sources);
-    QModelIndexList stackIndexes;
-
-    emit layoutAboutToBeChanged();
 
     for(auto sourceItem: sources)
     {
       auto proxyIndex = mapFromSource(sourceItem);
-      auto item       = itemAdapter(sourceItem);
+      if(!proxyIndex.isValid()) continue;
+
+      auto item = itemAdapter(sourceItem);
       if(item)
       {
         auto segmentation = segmentationPtr(item);
@@ -671,18 +670,28 @@ void LocationProxy::sourceDataChanged(const QModelIndex &sourceTopLeft, const QM
               }
             }
           }
+
+          sourceIndexes << proxyIndex;
         }
-      }
-
-      emit dataChanged(proxyIndex, proxyIndex);
-
-      for(auto stackIndex: stackIndexes)
-      {
-        emit dataChanged(stackIndex, stackIndex);
       }
     }
 
-    emit layoutChanged();
+    if(!stackIndexes.isEmpty())
+    {
+      emit layoutAboutToBeChanged();
+
+      for(auto index: stackIndexes)
+      {
+        emit dataChanged(index, index);
+      }
+
+      emit layoutChanged();
+    }
+
+    for(auto index: sourceIndexes)
+    {
+      emit dataChanged(index, index);
+    }
   }
 }
 
@@ -844,11 +853,18 @@ const QMap<ChannelAdapterSPtr, ItemAdapterList> LocationProxy::groupSegmentation
       auto sourceIndex    = m_model->index(row, 0, m_model->segmentationRoot());
       auto sourceItem     = itemAdapter(sourceIndex);
       auto segmentation   = segmentationPtr(sourceItem);
-      auto stack          = QueryAdapter::channels(segmentation).first();
-
-      if (stack && stack.get())
+      auto stacks         = QueryAdapter::channels(segmentation);
+      if(!stacks.isEmpty())
       {
-        result[stack] << sourceItem;
+        auto stack = stacks.first();
+        if (stack && stack.get())
+        {
+          result[stack] << sourceItem;
+        }
+        else
+        {
+          orphaned << segmentation;
+        }
       }
       else
       {

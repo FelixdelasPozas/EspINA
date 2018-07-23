@@ -374,6 +374,8 @@ Qt::ItemFlags ClassificationProxy::flags(const QModelIndex& index) const
   if (index.isValid())
   {
     auto sourceItem = itemAdapter(index);
+    if(!sourceItem) return Qt::ItemFlags();
+
     if (isCategory(sourceItem))
     {
       indexFlags = indexFlags | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
