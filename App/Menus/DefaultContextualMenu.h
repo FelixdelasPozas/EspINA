@@ -91,6 +91,11 @@ namespace ESPINA
        */
       void renameSegmentationGroup();
 
+      /** \brief Changes the color engine assigned to the selected segmentations.
+       *
+       */
+      void changeSegmentationsColorEngine();
+
     signals:
       void renamedSegmentations();
       void deleteSegmentations();
@@ -125,6 +130,11 @@ namespace ESPINA
        *
        */
       void createDeleteEntry();
+
+      /** \brief Created "Custom coloring" entry for the contextual menu.
+       *
+       */
+      void createColorEntry();
 
       /** \brief Helper method that generates a title for the current segmentation selection.
        *

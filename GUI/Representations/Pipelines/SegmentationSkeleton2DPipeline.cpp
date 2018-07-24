@@ -110,7 +110,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         return actors;
       }
 
-      auto color = m_colorEngine->color(segmentation);
+      QColor color;
+      if(segmentation->colorEngine())
+      {
+        color = segmentation->colorEngine()->color(segmentation);
+      }
+      else
+      {
+        color = m_colorEngine->color(segmentation);
+      }
+
       auto hue   = segmentation->category()->color().hue();
 
       auto newPoints = vtkSmartPointer<vtkPoints>::New();

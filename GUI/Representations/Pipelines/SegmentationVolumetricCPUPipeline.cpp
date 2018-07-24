@@ -88,7 +88,17 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
     mapper->SetNumberOfThreads(1);
     mapper->Update();
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
     colorFunction->AllowDuplicateScalarsOff();
@@ -132,7 +142,17 @@ void SegmentationVolumetricCPUPipeline::updateColors(ActorList &actors,
   {
     auto segmentation = segmentationPtr(item);
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto actor = dynamic_cast<vtkVolume *>(actors.first().Get());
 

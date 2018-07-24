@@ -69,7 +69,16 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 {
   auto segmentation = segmentationPtr(item);
   if(!segmentation || !m_colorEngine) return;
-  auto color = m_colorEngine->color(segmentation);
+
+  QColor color;
+  if(segmentation->colorEngine())
+  {
+    color = segmentation->colorEngine()->color(segmentation);
+  }
+  else
+  {
+    color = m_colorEngine->color(segmentation);
+  }
 
   for(auto actor: actors)
   {

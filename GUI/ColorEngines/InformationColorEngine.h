@@ -78,6 +78,9 @@ namespace ESPINA
           Utils::RangeHSV *colorRange() const
           { return m_colorRange; }
 
+          virtual ColorEngineSPtr clone()
+          { return std::make_shared<InformationColorEngine>(); }
+
         private:
           Core::SegmentationExtension::InformationKey m_key;        /** used key to get segmentation information. */
           Utils::RangeHSV                            *m_colorRange; /** used color range.                         */

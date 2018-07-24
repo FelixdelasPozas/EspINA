@@ -35,7 +35,7 @@ const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine()
-: ColorEngine("UserColorEngine", tr("User"))
+: ColorEngine("UserColorEngine", tr("Color by user that created the segmentation."))
 , m_lastColor(0)
 {
   m_colors << QColor( 31, 120, 180)
@@ -98,7 +98,9 @@ LUTSPtr UserColorEngine::lut(ConstSegmentationAdapterPtr seg)
     auto segColor = seg->category()->color();
 
     if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+    {
       m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+    }
 
     seg_lut = m_LUT.find(lutName).value();
   }

@@ -162,13 +162,22 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(Cons
 }
 
 //----------------------------------------------------------------------------
-void SegmentationContourPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr    item, const RepresentationState& state)
+void SegmentationContourPipeline::updateColors(RepresentationPipeline::ActorList& actors, ConstViewItemAdapterPtr item, const RepresentationState& state)
 {
   if (actors.size() == 1)
   {
     auto segmentation = segmentationPtr(item);
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    color = s_highlighter.color(color, item->isSelected());
 
     auto actor    = dynamic_cast<vtkActor *>(actors.first().Get());
     auto property = actor->GetProperty();

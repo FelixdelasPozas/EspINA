@@ -40,7 +40,8 @@ using namespace ESPINA::GUI::Model::Utils;
 //------------------------------------------------------------------------
 SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
 : ViewItemAdapter(segmentation)
-, m_segmentation{segmentation}
+, m_segmentation {segmentation}
+, m_colorEngine  {nullptr}
 {
   connect(m_segmentation.get(), SIGNAL(outputModified()),
           this,                 SIGNAL(outputModified()));
@@ -297,6 +298,27 @@ QPixmap SegmentationAdapter::appendImage(const QPixmap& original, const QString&
   painter.drawPixmap(original.width() + SP,0, pixmap);
 
   return tmpPixmap;
+}
+
+//------------------------------------------------------------------------
+GUI::ColorEngines::ColorEngineSPtr SegmentationAdapter::colorEngine() const
+{
+  return m_colorEngine;
+}
+
+//------------------------------------------------------------------------
+void SegmentationAdapter::setColorEngine(GUI::ColorEngines::ColorEngineSPtr engine)
+{
+  if(engine && engine != m_colorEngine)
+  {
+    m_colorEngine = engine;
+  }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::SegmentationAdapter::clearColorEngine()
+{
+  m_colorEngine = nullptr;
 }
 
 //------------------------------------------------------------------------

@@ -139,7 +139,16 @@ void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
     auto segmentation = segmentationPtr(item);
 
     auto actor = vtkImageActor::SafeDownCast(actors.first().Get());
-    auto color = m_colorEngine->color(segmentation);
+
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
 
     actor->SetOpacity(opacity(state) * color.alphaF());
 

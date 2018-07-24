@@ -24,16 +24,18 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 
+const QColor DEFAULT_COLOR{Qt::red};
+
 //-----------------------------------------------------------------------------
 MultiColorEngine::MultiColorEngine()
-: ColorEngine("MultiColorEngine", tr("Combine multiple color engines"))
+: ColorEngine("MultiColorEngine", tr("Combine multiple color engines."))
 {
 }
 
 //-----------------------------------------------------------------------------
 QColor MultiColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
-  QColor color(Qt::red);
+  QColor color = DEFAULT_COLOR;
 
   switch(m_activeEngines.size())
   {
@@ -154,18 +156,25 @@ void MultiColorEngine::add(ColorEngineSPtr engine)
 //-----------------------------------------------------------------------------
 void MultiColorEngine::remove(ColorEngineSPtr engine)
 {
-  m_availableEngines.removeOne(engine);
-  m_activeEngines   .removeOne(engine.get());
-
-  disconnect(engine.get(), SIGNAL(activated(bool)),
-             this,         SLOT(onColorEngineActivated(bool)));
-
-  disconnect(engine.get(), SIGNAL(modified()),
-             this,         SIGNAL(modified()));
-
-  if (engine->isActive())
+  if(m_availableEngines.contains(engine))
   {
-    emit modified();
+    m_availableEngines.removeOne(engine);
+
+    if(engine->isActive())
+    {
+      m_activeEngines.removeOne(engine.get());
+    }
+
+    disconnect(engine.get(), SIGNAL(activated(bool)),
+               this,         SLOT(onColorEngineActivated(bool)));
+
+    disconnect(engine.get(), SIGNAL(modified()),
+               this,         SIGNAL(modified()));
+
+    if (engine->isActive())
+    {
+      emit modified();
+    }
   }
 }
 
@@ -174,14 +183,55 @@ void MultiColorEngine::onColorEngineActivated(bool active)
 {
   auto engine = dynamic_cast<ColorEngine*>(sender());
 
-  if (active)
+  if (active && !m_activeEngines.contains(engine))
   {
     m_activeEngines << engine;
   }
   else
   {
-    m_activeEngines.removeOne(engine);
+    if(m_activeEngines.contains(engine))
+    {
+      m_activeEngines.removeOne(engine);
+    }
   }
 
   emit modified();
+}
+
+//-----------------------------------------------------------------------------
+const QList<ColorEngineSPtr> ESPINA::GUI::ColorEngines::MultiColorEngine::activeEngines() const
+{
+  QList<ColorEngineSPtr> engines;
+
+  for(auto engine: m_availableEngines)
+  {
+    if(m_activeEngines.contains(engine.get()))
+    {
+      engines << engine;
+    }
+  }
+
+  return engines;
+}
+
+//-----------------------------------------------------------------------------
+const QList<ColorEngineSPtr> ESPINA::GUI::ColorEngines::MultiColorEngine::availableEngines() const
+{
+  return m_availableEngines;
+}
+
+//-----------------------------------------------------------------------------
+const ColorEngineSPtr ESPINA::GUI::ColorEngines::MultiColorEngine::getEngine(const QString& engineId)
+{
+  ColorEngineSPtr engine = nullptr;
+
+  for(auto registeredEngine: m_availableEngines)
+  {
+    if(registeredEngine->id() == engineId)
+    {
+      return registeredEngine;
+    }
+  }
+
+  return engine;
 }

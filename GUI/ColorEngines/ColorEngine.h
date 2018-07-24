@@ -109,6 +109,11 @@ namespace ESPINA
          */
         virtual Composition supportedComposition() const = 0;
 
+        /** \brief Clones the color engine.
+         *
+         */
+        virtual ColorEngineSPtr clone() = 0;
+
       public slots:
         /** \brief Notifies Color Engine observers that it has been requested to be used
          *

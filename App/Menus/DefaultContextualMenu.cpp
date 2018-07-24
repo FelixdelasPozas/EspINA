@@ -21,7 +21,9 @@
 // ESPINA
 #include "DefaultContextualMenu.h"
 #include <App/Utils/TagUtils.h>
+#include <App/Dialogs/ColorEngineSelector/ColorEngineSelector.h>
 #include <Core/Utils/SupportedFormats.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
@@ -71,6 +73,7 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
   createGroupRenameEntry();
   createExportEntry();
   createDeleteEntry();
+  createColorEntry();
 }
 
 //------------------------------------------------------------------------
@@ -459,10 +462,51 @@ void DefaultContextualMenu::createExportEntry()
 }
 
 //------------------------------------------------------------------------
+void DefaultContextualMenu::changeSegmentationsColorEngine()
+{
+  this->hide();
+
+  auto colorEngine = std::dynamic_pointer_cast<GUI::ColorEngines::MultiColorEngine>(getContext().colorEngine());
+  if(colorEngine)
+  {
+    ColorEngineSelector dialog{colorEngine};
+    if(dialog.exec() == QDialog::Accepted)
+    {
+      auto segColorEngine = dialog.colorEngine();
+
+      for(auto segmentation: m_segmentations)
+      {
+        if(segColorEngine)
+        {
+          segmentation->setColorEngine(segColorEngine);
+        }
+        else
+        {
+          segmentation->clearColorEngine();
+        }
+
+        auto items = Core::Utils::toList<ViewItemAdapter>(m_segmentations);
+        getViewState().invalidateRepresentationColors(items);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
   auto action = addAction(tr("&Delete"));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(deleteSelectedSementations()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createColorEntry()
+{
+  auto action = addAction(tr("&Custom coloring..."));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(changeSegmentationsColorEngine()));
+
 }

@@ -61,6 +61,24 @@ namespace ESPINA
          */
         virtual void remove(ColorEngineSPtr engine);
 
+        /** \brief Returns the list of active color engines in this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> activeEngines() const;
+
+        /** \brief Returns the list of registered color engines within this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> availableEngines() const;
+
+        /** \brief Returns the engine with the given id or nullptr if not registered in this engine.
+         *
+         */
+        const ColorEngineSPtr getEngine(const QString &engineId);
+
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<MultiColorEngine>(); }
+
       private slots:
         void onColorEngineActivated(bool active);
 

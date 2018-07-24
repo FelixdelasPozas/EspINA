@@ -70,7 +70,6 @@ SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr c
   m_truncatedGlyph->SetScale(30);
   m_truncatedGlyph->SetColor(1,0,0);
   m_truncatedGlyph->Update();
-
 }
 
 //----------------------------------------------------------------------------
@@ -83,7 +82,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
   if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
-    auto color = m_colorEngine->color(segmentation);
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
     auto hue   = segmentation->category()->color().hue();
     auto data  = readLockSkeleton(segmentation->output())->skeleton();
     auto width = segmentation->isSelected() ? 2 : 0;
