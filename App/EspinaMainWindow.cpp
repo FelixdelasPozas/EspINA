@@ -419,6 +419,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
   else
   {
     event->ignore();
+    m_busy = false;
     return;
   }
 
