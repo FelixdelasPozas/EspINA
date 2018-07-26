@@ -204,7 +204,8 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
       break;
     }
   }
-  Q_ASSERT(edgeStrokeIndex != -1);
+
+  if(edgeStrokeIndex == -1) return; // No spine stroke, nothing to compute.
 
   // Returns true if any of the given node has branches. Must be called with the children of a spine node.
   std::function<bool(QList<PathHierarchyNode *>)> hasBranches = [&hasBranches](QList<PathHierarchyNode *> nodes)
