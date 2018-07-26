@@ -83,7 +83,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
   if (segmentation && isVisible(state) && hasSkeletonData(segmentation->output()))
   {
     QColor color;
-    if(segmentation->colorEngine())
+    if(segmentation->colorEngine() != nullptr)
     {
       color = segmentation->colorEngine()->color(segmentation);
     }
@@ -92,7 +92,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       color = m_colorEngine->color(segmentation);
     }
 
-    auto hue   = segmentation->category()->color().hue();
+    auto hue = segmentation->category()->color().hue();
+
     auto data  = readLockSkeleton(segmentation->output())->skeleton();
     auto width = segmentation->isSelected() ? 2 : 0;
     width += SegmentationSkeletonPoolSettings::getWidth(state) + 1;
@@ -138,8 +139,9 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       auto index = edgeIndexes->GetValue(cellIndexes->GetValue(i));
       auto lineHue = strokeColors->GetValue(index);
       double rgba[4];
+      auto colorCondition = (hue == lineHue);
 
-      if(hue == lineHue)
+      if(colorCondition)
       {
         s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
       }
@@ -157,13 +159,13 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       {
         solidColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
         solidCells->InsertNextCell(line);
-        solidChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+        solidChanges->InsertNextValue(colorCondition ? 0 : 1);
       }
       else
       {
         dashedColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
         dashedCells->InsertNextCell(line);
-        dashedChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+        dashedChanges->InsertNextValue(colorCondition ? 0 : 1);
       }
     }
 
@@ -213,6 +215,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       qWarning() << "Could extract array for strokeNames: " << (strokeNames == nullptr ? "false" : "true");
       qWarning() << "Could extract array for edgeParents: " << (edgeParents == nullptr ? "false" : "true");
       qWarning() << "Could extract array for edgeTruncated: " << (edgeTruncated == nullptr ? "false" : "true");
+
       return actors;
     }
 
@@ -249,6 +252,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       QSet<int> visited;
       while((otherIndex != -1) && !visited.contains(otherIndex))
       {
+        visited << otherIndex;
         number = QString("%1.%2").arg(edgeNumbers->GetValue(otherIndex)).arg(number);
         otherIndex = edgeParents->GetValue(otherIndex);
       }

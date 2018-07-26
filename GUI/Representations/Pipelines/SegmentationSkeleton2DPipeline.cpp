@@ -111,7 +111,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       }
 
       QColor color;
-      if(segmentation->colorEngine())
+      if(segmentation->colorEngine() != nullptr)
       {
         color = segmentation->colorEngine()->color(segmentation);
       }
@@ -120,7 +120,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         color = m_colorEngine->color(segmentation);
       }
 
-      auto hue   = segmentation->category()->color().hue();
+      auto hue = segmentation->category()->color().hue();
 
       auto newPoints = vtkSmartPointer<vtkPoints>::New();
       auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
@@ -200,8 +200,9 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
           auto index = edgeIndexes->GetValue(cellIndexes->GetValue(i));
           auto lineHue = strokeColors->GetValue(index);
           double rgba[4];
+          auto colorCondition = (hue == lineHue);
 
-          if(hue == lineHue)
+          if(colorCondition)
           {
             s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
           }
@@ -219,13 +220,13 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
           {
             solidColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
             solidLines->InsertNextCell(line);
-            solidChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+            solidChanges->InsertNextValue(colorCondition ? 0 : 1);
           }
           else
           {
             dashedColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
             dashedLines->InsertNextCell(line);
-            dashedChanges->InsertNextValue(hue == lineHue ? 0 : 1);
+            dashedChanges->InsertNextValue(colorCondition ? 0 : 1);
           }
         }
       }

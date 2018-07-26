@@ -71,7 +71,7 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
   if(!segmentation || !m_colorEngine) return;
 
   QColor color;
-  if(segmentation->colorEngine())
+  if(segmentation->colorEngine() != nullptr)
   {
     color = segmentation->colorEngine()->color(segmentation);
   }
@@ -87,6 +87,13 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
     if(actor2D)
     {
       actor2D->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
+      auto mapper = vtkLabelPlacementMapper::SafeDownCast(actor2D->GetMapper());
+      if(mapper)
+      {
+        mapper->SetBackgroundColor(color.redF(), color.greenF(), color.blueF());
+        mapper->Update();
+      }
+
       actor2D->Modified();
     }
 
@@ -99,33 +106,40 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
       auto colors      = vtkUnsignedCharArray::SafeDownCast(data->GetCellData()->GetScalars());
       auto cellChanges = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("ChangeColor"));
-      if(!colors || !cellChanges) return;
 
-      data->GetLines()->InitTraversal();
-      for(int i = 0; i < data->GetNumberOfLines(); ++i)
+      if (colors)
       {
-        double rgba[4];
-
-        if(cellChanges->GetValue(i) == 0)
+        data->GetLines()->InitTraversal();
+        for (int i = 0; i < data->GetNumberOfLines(); ++i)
         {
-          s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-        }
-        else
-        {
-          unsigned char values[3];
-          colors->GetTupleValue(i, values);
+          double rgba[4];
 
-          auto custom = QColor::fromRgb(values[0], values[1], values[2]);
-          s_highlighter.lut(custom, item->isSelected())->GetTableValue(1,rgba);
+          if (!cellChanges || cellChanges->GetValue(i) == 0)
+          {
+            s_highlighter.lut(color, item->isSelected())->GetTableValue(1, rgba);
+          }
+          else
+          {
+            unsigned char values[3];
+            colors->GetTupleValue(i, values);
+
+            auto custom = QColor::fromRgb(values[0], values[1], values[2]);
+            s_highlighter.lut(custom, item->isSelected())->GetTableValue(1, rgba);
+          }
+
+          colors->SetTuple3(i, rgba[0] * 255, rgba[1] * 255, rgba[2] * 255);
         }
 
-        colors->SetTuple3(i, rgba[0]*255, rgba[1]*255, rgba[2]*255);
+        colors->Modified();
+      }
+      else
+      {
+        actorVTK->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
       }
 
       auto width = item->isSelected() ? 2 : 0;
       width += SegmentationSkeletonPoolSettings::getWidth(state);
 
-      colors->Modified();
       actorVTK->GetMapper()->Update();
       actorVTK->GetProperty()->SetLineWidth(width);
       actorVTK->Modified();

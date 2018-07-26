@@ -97,7 +97,16 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       int extent[6];
       slice->GetExtent(extent);
 
-      auto color       = m_colorEngine->color(segmentation);
+      QColor color;
+      if(segmentation->colorEngine())
+      {
+        color = segmentation->colorEngine()->color(segmentation);
+      }
+      else
+      {
+        color = m_colorEngine->color(segmentation);
+      }
+
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
       mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));

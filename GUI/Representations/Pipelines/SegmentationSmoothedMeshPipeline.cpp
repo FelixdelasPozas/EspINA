@@ -143,7 +143,17 @@ void SegmentationSmoothedMeshPipeline::updateColors(RepresentationPipeline::Acto
   {
     auto segmentation = segmentationPtr(item);
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto actor = dynamic_cast<vtkActor *>(actors.first().Get());
 
