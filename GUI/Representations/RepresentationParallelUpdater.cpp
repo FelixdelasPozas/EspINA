@@ -55,6 +55,7 @@ void ParallelUpdaterTask::run()
   auto it   = m_updateList.begin();
   auto size = m_updateList.size();
   int i = 0;
+  int progressValue = 0;
 
   while (canExecute() && it != m_updateList.end())
   {
@@ -77,7 +78,12 @@ void ParallelUpdaterTask::run()
     ++it;
     ++i;
 
-    emit progress(this, (i * 100)/size);
+    auto value = (i * 100)/size;
+    if(value != progressValue)
+    {
+      progressValue = value;
+      emit progress(this, progressValue);
+    }
   }
 
   emit finished(this);
@@ -99,7 +105,7 @@ RepresentationPipelineSPtr ParallelUpdaterTask::sourcePipeline(ViewItemAdapterPt
 //--------------------------------------------------------------------
 RepresentationParallelUpdater::RepresentationParallelUpdater(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
 : RepresentationUpdater{scheduler, pipeline}
-, m_taskNum            {0}
+, m_taskNum            {1}
 {
   setDescription(tr("Representation Parallel Updater"));
   setHidden(true);
@@ -146,8 +152,8 @@ void RepresentationParallelUpdater::run()
   RepresentationPipeline::ActorsMap data[maxTasks];
 
   {
+    QMutexLocker lock(&m_dataMutex);
     RepresentationPipeline::ActorsLocker actors(m_actors);
-    QMutexLocker dataLock(&m_dataMutex);
 
     if(size < maxTasks)
     {
@@ -162,6 +168,7 @@ void RepresentationParallelUpdater::run()
     else
     {
       int i = 0;
+      m_taskNum = maxTasks;
 
       // partition the data.
       for(auto request: updateList)
@@ -201,29 +208,33 @@ void RepresentationParallelUpdater::run()
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::onTaskFinished(ParallelUpdaterTask* task)
 {
-  QMutexLocker lock(&m_dataMutex);
-
-  if(!m_tasks.contains(task)) return;
-
   if(!canExecute())
   {
     m_condition.wakeAll();
     return;
   }
 
+  bool isEmpty = false;
   {
-    RepresentationPipeline::ActorsLocker finalActors(m_actors);
-    auto actors = task->actors();
+    QMutexLocker lock(&m_dataMutex);
 
-    for(auto item: actors.keys())
+    if(!m_tasks.contains(task)) return;
+
     {
-      finalActors.get()[item] = actors[item];
+      RepresentationPipeline::ActorsLocker finalActors(m_actors);
+      auto actors = task->actors();
+
+      for(auto item: actors.keys())
+      {
+        finalActors.get()[item] = actors[item];
+      }
     }
+
+    m_tasks.remove(task);
+    isEmpty = m_tasks.isEmpty();
   }
 
-  m_tasks.remove(task);
-
-  if(m_tasks.isEmpty())
+  if(isEmpty)
   {
     m_condition.wakeAll();
   }
@@ -270,18 +281,21 @@ void RepresentationParallelUpdater::createTask(const RepresentationPipeline::Act
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, int progress)
 {
-  QMutexLocker lock(&m_dataMutex);
-
-  if(!m_tasks.contains(task)) return;
-
-  m_tasks[task].Progress = progress;
-
   long int totalProgress = 0;
 
-  for(auto data: m_tasks)
   {
-    totalProgress += data.Progress;
+    QMutexLocker lock(&m_dataMutex);
+    totalProgress += (m_taskNum - m_tasks.size()) * 100;
+
+    if(m_tasks.isEmpty() || !m_tasks.contains(task)) return;
+
+    m_tasks[task].Progress = progress;
+
+    for(auto data: m_tasks)
+    {
+      totalProgress += data.Progress;
+    }
   }
 
-  reportProgress(totalProgress/m_tasks.size());
+  reportProgress(totalProgress/m_taskNum);
 }
