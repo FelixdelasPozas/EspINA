@@ -49,7 +49,7 @@ int pipeline_single_filter( int argc, char** argv )
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "SGS";

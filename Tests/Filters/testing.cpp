@@ -37,7 +37,7 @@ using namespace ESPINA::Testing;
 using namespace ESPINA::Filters::Utils;
 
 //------------------------------------------------------------------------
-FilterTypeList ESPINA::TestFilterFactory::providedFilters() const
+const FilterTypeList ESPINA::TestFilterFactory::providedFilters() const
 {
   FilterTypeList list;
 

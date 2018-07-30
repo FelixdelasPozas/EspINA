@@ -84,7 +84,7 @@ namespace ESPINA
       static const Filter::Type SUBTRACTION_FILTER;     /** subtraction filter signature.      */
 
     private:
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 

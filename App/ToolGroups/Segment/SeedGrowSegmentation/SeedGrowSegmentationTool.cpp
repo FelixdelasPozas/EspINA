@@ -75,7 +75,7 @@ const QString CATEGORY        = "Category selected";
 const QString USE_BEST_PIXEL  = "Use best pixel selector";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
+const FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

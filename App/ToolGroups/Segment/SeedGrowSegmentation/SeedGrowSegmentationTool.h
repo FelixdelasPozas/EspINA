@@ -66,7 +66,7 @@ namespace ESPINA
       static const Filter::Type SGS_FILTER;    /** seed grow filter signature. */
       static const Filter::Type SGS_FILTER_V4; /** seed grow filter old signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 

@@ -45,7 +45,7 @@ namespace ESPINA
     public:
       static const Filter::Type AS_FILTER; /** apposition surface filter signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
     private:

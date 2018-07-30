@@ -64,7 +64,7 @@ using Label2VolumeFilter    = itk::LabelMapToLabelImageFilter<LabelMap, itkVolum
 static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 
 //---------------------------------------------------------------------------
-IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
+const IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 

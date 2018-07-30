@@ -52,7 +52,7 @@ namespace ESPINA
     /** \brief Returns a list types of filter this factory can create.
      *
      */
-    virtual FilterTypeList providedFilters() const = 0;
+    virtual const FilterTypeList providedFilters() const = 0;
   };
 
   using FilterFactoryPtr  = FilterFactory *;

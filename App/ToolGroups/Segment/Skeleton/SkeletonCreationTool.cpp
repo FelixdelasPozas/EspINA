@@ -74,7 +74,7 @@ using namespace ESPINA::SkeletonToolsUtils;
 const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SkeletonFilterFactory::providedFilters() const
+const FilterTypeList SkeletonFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

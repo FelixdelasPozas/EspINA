@@ -77,7 +77,7 @@ class UpdateFilterDataFactory
 };
 
 //------------------------------------------------------------------------
-FilterTypeList ChannelReader::providedFilters() const
+const FilterTypeList ChannelReader::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -105,7 +105,7 @@ FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& fi
 }
 
 //------------------------------------------------------------------------
-AnalysisReader::ExtensionList ChannelReader::supportedFileExtensions() const
+const AnalysisReader::ExtensionList ChannelReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 

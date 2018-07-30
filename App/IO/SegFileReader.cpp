@@ -27,7 +27,7 @@ using namespace ESPINA;
 using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
-AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
+const AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 

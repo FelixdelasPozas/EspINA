@@ -51,7 +51,7 @@ namespace ESPINA
       static const Filter::Type SPLIT_FILTER;    /** split filter signature. */
       static const Filter::Type SPLIT_FILTER_V4; /** split filter old signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 

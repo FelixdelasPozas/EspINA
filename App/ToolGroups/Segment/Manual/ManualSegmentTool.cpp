@@ -63,7 +63,7 @@ const Filter::Type ManualFilterFactory::SOURCE_FILTER_V4 = "::FreeFormSource";
 const QString MODE = "Stroke mode";
 
 //-----------------------------------------------------------------------------
-FilterTypeList ManualFilterFactory::providedFilters() const
+const FilterTypeList ManualFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

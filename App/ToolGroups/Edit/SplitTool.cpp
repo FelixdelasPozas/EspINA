@@ -66,7 +66,7 @@ const Filter::Type SplitFilterFactory::SPLIT_FILTER    = "SplitFilter";
 const Filter::Type SplitFilterFactory::SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SplitFilterFactory::providedFilters() const
+const FilterTypeList SplitFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

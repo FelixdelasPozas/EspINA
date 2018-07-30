@@ -70,7 +70,7 @@ using namespace ESPINA::Support::Settings;
 const Filter::Type ASFilterFactory::AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList ASFilterFactory::providedFilters() const
+const FilterTypeList ASFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
