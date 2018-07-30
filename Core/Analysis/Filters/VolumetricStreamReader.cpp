@@ -115,6 +115,8 @@ bool VolumetricStreamReader::needUpdate() const
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
+  if(!needUpdate()) return;
+
   m_changedStreaming = false;
 
   if (!m_fileName.exists() || !m_fileName.isReadable())

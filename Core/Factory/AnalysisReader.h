@@ -50,12 +50,12 @@ namespace ESPINA
       /** \brief Returns the type of analysis reader.
        *
        */
-      virtual QString type() const = 0;
+      virtual const QString type() const = 0;
 
       /** \brief Returns a list of file extensions the reader can process.
        *
        */
-      virtual ExtensionList supportedFileExtensions() const = 0;
+      virtual const ExtensionList supportedFileExtensions() const = 0;
 
       /** \brief Reads an analysis data file.
        * \param[in] file analysis data file.

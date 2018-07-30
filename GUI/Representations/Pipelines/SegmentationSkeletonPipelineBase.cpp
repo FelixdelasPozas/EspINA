@@ -152,7 +152,7 @@ bool SegmentationSkeletonPipelineBase::pick(ConstViewItemAdapterPtr item, const 
 {
   if(hasSkeletonData(item->output()))
   {
-    auto skeleton = readLockSkeleton(item->output())->skeleton();
+    auto skeleton = readLockSkeleton(item->output(), DataUpdatePolicy::Ignore)->skeleton();
     auto lines = skeleton->GetLines();
     auto spacing = item->output()->spacing();
     double projection[3];

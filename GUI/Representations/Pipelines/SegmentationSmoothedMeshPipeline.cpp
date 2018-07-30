@@ -77,7 +77,14 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
     auto smoothValue = state.getValue<int>(SegmentationMeshPoolSettings::SMOOTH_KEY);
     auto ratio       = smoothValue/100.0;
     auto iterations  = static_cast<int>(15*(ratio+1.0));
-    auto meshBounds  = readLockMesh(segmentation->output())->bounds();
+
+    VolumeBounds meshBounds;
+    vtkSmartPointer<vtkPolyData> mesh = nullptr;
+    {
+      auto data  = readLockMesh(segmentation->output(), DataUpdatePolicy::Ignore);
+      meshBounds = data->bounds();
+      mesh       = data->mesh();
+    }
 
     auto decimate = vtkSmartPointer<vtkDecimatePro>::New();
     decimate->ReleaseDataFlagOn();
@@ -85,7 +92,7 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
     decimate->SetTargetReduction(ratio);
     decimate->PreserveTopologyOn();
     decimate->SplittingOff();
-    decimate->SetInputData(readLockMesh(segmentation->output())->mesh());
+    decimate->SetInputData(mesh);
 
     auto smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
     smoother->ReleaseDataFlagOn();

@@ -94,7 +94,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
     auto hue = segmentation->category()->color().hue();
 
-    auto data  = readLockSkeleton(segmentation->output())->skeleton();
+    auto data  = readLockSkeleton(segmentation->output(), DataUpdatePolicy::Ignore)->skeleton();
     auto width = segmentation->isSelected() ? 2 : 0;
     width += SegmentationSkeletonPoolSettings::getWidth(state) + 1;
 

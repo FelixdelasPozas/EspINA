@@ -92,7 +92,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
     if (sliceBounds[2 * planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2 * planeIndex + 1])
     {
-      auto skeleton  = readLockSkeleton(segmentation->output())->skeleton();
+      auto skeleton  = readLockSkeleton(segmentation->output(), DataUpdatePolicy::Ignore)->skeleton();
 
       auto cellIndexes  = vtkIntArray::SafeDownCast(skeleton->GetCellData()->GetAbstractArray("LineIndexes"));
       auto edgeIndexes  = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("EdgeIndexes"));

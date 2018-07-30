@@ -73,7 +73,7 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
   {
     vtkSmartPointer<vtkImageData> volume = nullptr;
     {
-      auto data = readLockVolume(item->output());
+      auto data = readLockVolume(item->output(), DataUpdatePolicy::Ignore);
       volume    = vtkImage(data, data->bounds());
     }
 
