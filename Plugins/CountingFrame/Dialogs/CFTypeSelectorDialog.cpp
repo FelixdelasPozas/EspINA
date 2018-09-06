@@ -39,7 +39,7 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *parent)
 : QDialog  {parent}
-, m_type   {CF::ADAPTIVE}
+, m_type   {CFType::ADAPTIVE}
 , m_proxy  {std::make_shared<ChannelProxy>(context.model())}
 , m_stack  {nullptr}
 , m_model  {context.model()}
@@ -105,7 +105,7 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *p
 //------------------------------------------------------------------------
 void CFTypeSelectorDialog::setType(CFType type)
 {
-  if (ORTOGONAL == type)
+  if (CFType::ORTOGONAL == type)
   {
     orthogonalRadio->setChecked(true);
   }
@@ -163,11 +163,11 @@ void CFTypeSelectorDialog::channelSelected()
     auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
     if (edgesExtension->useDistanceToBounds())
     {
-      setType(CF::ORTOGONAL);
+      setType(CFType::ORTOGONAL);
     }
     else
     {
-      setType(CF::ADAPTIVE);
+      setType(CFType::ADAPTIVE);
     }
   }
 }
@@ -190,5 +190,5 @@ void CFTypeSelectorDialog::radioChanged(bool value)
   thresholdBox  ->setEnabled(adaptiveChecked);
   thresholdLabel->setEnabled(adaptiveChecked);
 
-  m_type = adaptiveRadio->isChecked()?ADAPTIVE:ORTOGONAL;
+  m_type = adaptiveRadio->isChecked()? CFType::ADAPTIVE : CFType::ORTOGONAL;
 }

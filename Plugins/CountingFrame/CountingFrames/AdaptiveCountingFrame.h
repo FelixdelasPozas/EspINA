@@ -61,7 +61,7 @@ namespace ESPINA
         virtual ~AdaptiveCountingFrame();
 
         virtual CFType cfType() const
-        { return CF::ADAPTIVE; }
+        { return CFType::ADAPTIVE; }
 
         virtual QString typeName() const { return ADAPTIVE_CF; }
 

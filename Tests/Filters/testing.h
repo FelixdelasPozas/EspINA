@@ -30,10 +30,10 @@ namespace ESPINA
   class TestFilterFactory
   : public FilterFactory
   {
-  public:
-    virtual const FilterTypeList providedFilters() const;
+    public:
+      virtual const FilterTypeList providedFilters() const;
 
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const;
   };
 
   SegmentationSPtr gls(ChannelSPtr channel);

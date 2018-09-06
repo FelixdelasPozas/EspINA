@@ -152,7 +152,7 @@ NmVector3 ChannelAdapter::position() const
 //------------------------------------------------------------------------
 void ChannelAdapter::setHue(double hue)
 {
-  return m_channel->setHue(hue);
+  m_channel->setHue(hue);
 }
 
 //------------------------------------------------------------------------

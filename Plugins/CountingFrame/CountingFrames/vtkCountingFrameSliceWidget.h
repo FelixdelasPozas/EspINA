@@ -57,6 +57,19 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceWidget
      */
     virtual void SetSlice(ESPINA::Nm pos);
 
+    /** \brief Toggles the editable/non-editable state of the widget.
+     * \param[in] value True to allow editing and false otherwise.
+     *
+     */
+    void setEditable(const bool value)
+    { this->Editable = value; };
+
+    /** \brief Returns true if the values of the representation can be manually modified and false otherwise.
+     *
+     */
+    const bool isEditable() const
+    { return this->Editable; }
+
     virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
                                   ESPINA::Nm   inclusionOffset[3],
                                   ESPINA::Nm   exclusionOffset[3],
@@ -104,6 +117,7 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceWidget
     ESPINA::Nm        Slice;
     ESPINA::NmVector3 SlicingStep;
     ESPINA::Nm        Depth;
+    bool              Editable;
 
   private:
     vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented

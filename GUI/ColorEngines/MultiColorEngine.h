@@ -28,6 +28,7 @@
 
 // Qt
 #include <QList>
+#include <QReadWriteLock>
 
 namespace ESPINA
 {
@@ -83,8 +84,10 @@ namespace ESPINA
         void onColorEngineActivated(bool active);
 
       private:
-        QList<ColorEngine *>   m_activeEngines;
-        QList<ColorEngineSPtr> m_availableEngines;
+        mutable QReadWriteLock m_lock;             /** protection mutex.               */
+
+        QList<ColorEngine *>   m_activeEngines;    /** list of active engines.         */
+        QList<ColorEngineSPtr> m_availableEngines; /** list of all registered engines. */
       };
     }
   }

@@ -83,13 +83,15 @@ namespace ESPINA
          * \param[in] exclusion exclusion margins.
          * \param[in] constraint name of the segmentations' category the counting frame will apply to.
          * \param[in] id id of the counting frame.
+         * \param[in] editable True to make the CF editable and false otherwise.
          *
          */
         void createCountingFrame(CFType type,
                                  Nm inclusion[3],
                                  Nm exclusion[3],
                                  const QString &constraint,
-                                 const CountingFrame::Id &id);
+                                 const CountingFrame::Id &id,
+                                 const bool editable);
 
         /** \brief Removes a counting frame from the counting frame manager.
          * \param[in] countingFrame counting frame to remove.
