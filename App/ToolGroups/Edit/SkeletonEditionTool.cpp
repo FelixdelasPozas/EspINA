@@ -272,7 +272,9 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
     auto segmentation = dynamic_cast<SegmentationAdapterPtr>(m_item);
     if(segmentation)
     {
-      auto stroke = STROKES[segmentation->category()->classificationName()].at(m_strokeCombo->currentIndex());
+      auto &strokes = STROKES[segmentation->category()->classificationName()];
+      auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
+      auto stroke   = strokes.at(index);
       skeletonWidget->setStroke(stroke);
       skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
       skeletonWidget->setRepresentationTextColor(segmentation->category()->color());
@@ -616,16 +618,15 @@ void SkeletonEditionTool::onStrokeTypeChanged(int index)
   if(m_item)
   {
     auto segmentation = segmentationPtr(m_item);
-    auto name = segmentation->category()->classificationName();
+    auto name         = segmentation->category()->classificationName();
+    auto &strokes     = STROKES[name];
 
-    index = std::min(std::max(0,index), STROKES[name].size() - 1);
+    index = std::min(std::max(0,index), strokes.size() - 1);
     Q_ASSERT(index >= 0);
-
-    auto stroke = STROKES[name].at(index);
 
     for(auto widget: m_widgets)
     {
-      widget->setStroke(stroke);
+      widget->setStroke(strokes.at(index));
     }
   }
 }
@@ -636,15 +637,17 @@ void SkeletonEditionTool::onStrokeConfigurationPressed()
   if(m_item)
   {
     auto segmentation = segmentationPtr(m_item);
-    auto name = segmentation->category()->classificationName();
-    auto index = m_strokeCombo->currentIndex();
+    auto name         = segmentation->category()->classificationName();
+    auto index        = m_strokeCombo->currentIndex();
 
     StrokeDefinitionDialog dialog(STROKES[name], segmentation->category());
     dialog.exec();
 
     updateStrokes();
 
-    onStrokeTypeChanged(std::min(index, STROKES[name].size() - 1));
+    index = std::min(std::max(0, index), STROKES[name].size() -1);
+
+    onStrokeTypeChanged(index);
   }
 }
 
@@ -750,6 +753,11 @@ void SkeletonEditionTool::updateStrokes()
     m_strokeCombo->blockSignals(false);
 
     m_eventHandler->setStrokesCategory(category->classificationName());
+
+    if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= strokes.size())
+    {
+      m_strokeCombo->setCurrentIndex(0);
+    }
   }
 }
 

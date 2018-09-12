@@ -57,7 +57,10 @@ void SkeletonToolWidget2D::onConnectionSignaled(const QString &category, const i
   auto view2d = view2D_cast(m_view);
   if(!view2d || view2d->plane() != plane) return;
 
-  m_widget->createConnection(STROKES[category].at(strokeIndex));
+  auto &strokes = STROKES[category];
+  auto index = std::min(std::max(0, strokeIndex), strokes.size() -1);
+
+  m_widget->createConnection(strokes.at(index));
 }
 
 //--------------------------------------------------------------------
@@ -67,7 +70,10 @@ void SkeletonToolWidget2D::onStrokeChangeSignaled(const QString &category, const
   auto view2d = view2D_cast(m_view);
   if(!view2d || view2d->plane() != plane) return;
 
-  m_widget->changeStroke(STROKES[category].at(strokeIndex));
+  auto &strokes = STROKES[category];
+  auto index = std::min(std::max(0, strokeIndex), strokes.size() -1);
+
+  m_widget->changeStroke(strokes.at(index));
 }
 
 //--------------------------------------------------------------------

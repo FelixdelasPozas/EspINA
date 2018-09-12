@@ -194,7 +194,8 @@ void SkeletonCreationTool::initParametersWidgets()
   m_strokeCombo->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
   m_strokeCombo->setToolTip(tr("Select stroke type."));
 
-  connect(m_strokeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onStrokeChanged(int)), Qt::DirectConnection);
+  connect(m_strokeCombo, SIGNAL(currentIndexChanged(int)),
+          this,          SLOT(onStrokeChanged(int)), Qt::DirectConnection);
 
   addSettingsWidget(m_strokeCombo);
 
@@ -390,8 +391,9 @@ void SkeletonCreationTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr c
   if(skeletonWidget)
   {
     auto category = m_categorySelector->selectedCategory();
-    auto stroke = STROKES[category->classificationName()].at(m_strokeCombo->currentIndex());
-    skeletonWidget->setStroke(stroke);
+    auto &strokes = STROKES[category->classificationName()];
+    auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
+    skeletonWidget->setStroke(strokes.at(index));
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
     skeletonWidget->setRepresentationTextColor(category->color());
     skeletonWidget->updateRepresentation();
@@ -590,9 +592,10 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
 //--------------------------------------------------------------------
 void SkeletonCreationTool::onNextButtonPressed()
 {
-  auto category    = m_categorySelector->selectedCategory();
-  auto strokeIndex = (STROKES[category->classificationName()].size() <= m_strokeCombo->currentIndex()) ? 0 : m_strokeCombo->currentIndex();
-  auto stroke      = STROKES[category->classificationName()].at(strokeIndex);
+  auto category = m_categorySelector->selectedCategory();
+  auto &strokes = STROKES[category->classificationName()];
+  auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
+  auto stroke   = strokes.at(index);
 
   for(auto widget: m_skeletonWidgets)
   {
@@ -646,7 +649,7 @@ void SkeletonCreationTool::onStrokeConfigurationPressed()
     dialog.exec();
 
     updateStrokes();
-    index = std::min(index, STROKES[name].size() - 1);
+    index = std::min(std::max(0,index), STROKES[name].size() - 1);
     m_strokeCombo->setCurrentIndex(index);
     onStrokeChanged(index);
   }
@@ -674,8 +677,9 @@ void SkeletonCreationTool::onStrokeChangedByWidget(const Core::SkeletonStroke st
 {
   if(m_item)
   {
-    auto name  = m_categorySelector->selectedCategory()->classificationName();
-    auto index = std::min(std::max(0, STROKES[name].indexOf(stroke)), STROKES[name].size() - 1);
+    auto name     = m_categorySelector->selectedCategory()->classificationName();
+    auto &strokes = STROKES[name];
+    auto index    = std::min(std::max(0, strokes.indexOf(stroke)), strokes.size() - 1);
 
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(index);
@@ -711,12 +715,12 @@ void SkeletonCreationTool::onStrokeChanged(int index)
 
   if(category)
   {
-    auto name = category->classificationName();
+    auto name     = category->classificationName();
+    auto &strokes = STROKES[name];
 
-    index = std::min(std::max(0,index), STROKES[name].size() - 1);
-    Q_ASSERT(index >= 0);
+    index = std::min(std::max(0,index), strokes.size() - 1);
 
-    auto stroke = STROKES[name].at(index);
+    auto stroke = strokes.at(index);
 
     for(auto widget: m_skeletonWidgets)
     {
@@ -768,6 +772,11 @@ void SkeletonCreationTool::updateStrokes()
     m_strokeCombo->blockSignals(false);
 
     m_eventHandler->setStrokesCategory(categoryName);
+
+    if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= strokes.size())
+    {
+      m_strokeCombo->setCurrentIndex(0);
+    }
   }
 }
 
