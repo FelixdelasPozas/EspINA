@@ -1159,8 +1159,10 @@ void EspinaMainWindow::createDefaultPanels()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolShortcuts()
 {
-  QList<QKeySequence> alreadyUsed;
-  alreadyUsed << Qt::Key_Escape;
+  QList<QKeySequence> forbidden;
+  forbidden << Qt::Key_Escape;
+
+  QMap<QKeySequence, QList<ToolSPtr>> shortcutMap;
 
   for (auto tool : availableTools())
   {
@@ -1169,20 +1171,28 @@ void EspinaMainWindow::createToolShortcuts()
     {
       if(!sequence.isEmpty())
       {
-        if(!alreadyUsed.contains(sequence))
+        if(!forbidden.contains(sequence))
         {
-          auto shortcut = new QShortcut{sequence, this, 0, 0, Qt::ApplicationShortcut};
-
-          m_toolShortcuts << shortcut;
-
-          connect(shortcut,   SIGNAL(activated()),
-                  tool.get(), SLOT(trigger()));
+          shortcutMap[sequence] << tool;
         }
         else
         {
-          qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use:" << sequence;
+          qWarning() << "Tool" << tool->id() << "tried to register a shortcut already in use by application:" << sequence.toString();
         }
       }
+    }
+  }
+
+  for(auto sequence: shortcutMap.keys())
+  {
+    auto shortcut = new QShortcut{sequence, this, 0, 0, Qt::ApplicationShortcut};
+
+    m_toolShortcuts << shortcut;
+
+    for(auto tool: shortcutMap[sequence])
+    {
+      connect(shortcut,   SIGNAL(activated()),
+              tool.get(), SLOT(trigger()));
     }
   }
 }
