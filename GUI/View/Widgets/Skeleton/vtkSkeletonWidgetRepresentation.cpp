@@ -2282,6 +2282,63 @@ void vtkSkeletonWidgetRepresentation::performSpineSplitting()
           }
         }
       }
+
+      // re-join isolated subspines
+      if(spinePath.connectsTo(subPath) && subPath.connectsTo(spinePath))
+      {
+        auto commonNode = intersect(spinePath, subPath);
+
+        // node goes spine to subspine without other subspine
+        if(commonNode->connections.size() == 2)
+        {
+          for(int i = 0; i < subPath.seen.size(); ++i)
+          {
+            auto node = subPath.seen.at(i);
+            for(auto next: node->connections.keys())
+            {
+              auto otherEdge = node->connections[next];
+              if(otherEdge == subPath.edge)
+              {
+                node->connections[next] = spinePath.edge;
+              }
+              else
+              {
+                auto &other = s_skeleton.edges[otherEdge];
+                if(other.parentEdge == subPath.edge)
+                {
+                  other.parentEdge = spinePath.edge;
+                }
+              }
+            }
+          }
+
+          if(spinePath.begin == commonNode)
+          {
+            if(subPath.begin == commonNode)
+            {
+              spinePath.begin = subPath.end;
+            }
+            else
+            {
+              spinePath.begin = subPath.begin;
+            }
+          }
+          else
+          {
+            if(subPath.begin == commonNode)
+            {
+              spinePath.end = subPath.end;
+            }
+            else
+            {
+              spinePath.end = subPath.begin;
+            }
+          }
+
+          spinePath.seen = spinePath.seen + subPath.seen;
+          subPath.seen.clear();
+        }
+      }
     }
   }
 }
