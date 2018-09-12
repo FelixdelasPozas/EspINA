@@ -1557,7 +1557,7 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
   SkeletonNode *closestNode;
   {
     QMutexLocker lock(&s_skeletonMutex);
-    if (s_skeleton.nodes.size() < 3) return false;
+    if (s_skeleton.nodes.size() < 2) return false;
 
     if(s_currentVertex) s_skeleton.nodes.removeAll(s_currentVertex);
     FindClosestNode(X, Y, closestNodePos, nodeIndex);

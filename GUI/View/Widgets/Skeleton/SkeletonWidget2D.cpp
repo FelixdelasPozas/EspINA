@@ -242,7 +242,7 @@ void SkeletonWidget2D::disconnectSignals()
 //--------------------------------------------------------------------
 void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
 {
-  if(view != m_view) return;
+  if(view != m_view || track.isEmpty()) return;
 
   auto point = track.first();
 

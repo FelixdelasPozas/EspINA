@@ -60,7 +60,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       {
         emit mousePress(me->button(), me->pos(), view);
 
-        if (me && (me->button() == Qt::LeftButton))
+        if(me->button() == Qt::LeftButton)
         {
           if(m_mode == Mode::CREATE) m_tracking = true;
           m_view = view;
@@ -69,7 +69,7 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
           return true;
         }
 
-        if (!m_track.isEmpty() && me && (me->button() == Qt::RightButton))
+        if(!m_track.isEmpty() && me && (me->button() == Qt::RightButton))
         {
           m_track.clear();
           if(m_mode == Mode::CREATE)
