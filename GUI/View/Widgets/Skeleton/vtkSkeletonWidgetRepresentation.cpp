@@ -868,7 +868,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           currentCellsColors = dashedCellsColors;
         }
 
-        auto qcolor = QColor::fromHsv(stroke.colorHue, 255, 255);
+        auto qcolor = computeCoincidentStrokeColor(stroke);
         unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
         currentCellsColors->InsertNextTupleValue(color);
       }
@@ -950,7 +950,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
             currentCellsColors = dashedCellsColors;
           }
 
-          auto qcolor = QColor::fromHsv(stroke.colorHue, 255, 255);
+          auto qcolor = computeCoincidentStrokeColor(stroke);
           unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
           currentCellsColors->InsertNextTupleValue(color);
 
@@ -1328,6 +1328,8 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 {
   QMutexLocker lock(&s_skeletonMutex);
 
+  Core::cleanSkeletonStrokes(s_skeleton);
+
   removeIsolatedNodes();
 
   performSpineSplitting();
@@ -1408,6 +1410,8 @@ void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd
     QMutexLocker lock(&s_skeletonMutex);
     s_skeleton = Core::toSkeletonDefinition(pd);
   }
+
+  Core::cleanSkeletonStrokes(s_skeleton);
 
   BuildRepresentation();
 }
@@ -2425,4 +2429,25 @@ void vtkSkeletonWidgetRepresentation::setWidth(const int width)
 
     NeedToRenderOn();
   }
+}
+
+//--------------------------------------------------------------------
+const QColor vtkSkeletonWidgetRepresentation::computeCoincidentStrokeColor(const Core::SkeletonStroke &stroke)
+{
+  int equalColors = 0;
+  for(int i = 0; i < s_skeleton.strokes.size(); ++i)
+  {
+    auto &otherStroke = s_skeleton.strokes.at(i);
+    if(otherStroke == stroke) continue;
+
+    // alphabetic to keep certain order, but can be altered by introducing more strokes.
+    if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++equalColors;
+  }
+
+  // 80% max reduction in hsv value, cyclic, to avoid a total reduction to black.
+  equalColors %= 5;
+
+  return QColor::fromHsv(stroke.colorHue,
+                         255 * (1.0 - (equalColors * 0.2)),
+                         255 * (1.0 - (equalColors * 0.2)));
 }

@@ -505,6 +505,13 @@ namespace ESPINA
                */
               Core::SkeletonStroke currentStroke() const;
 
+              /** \brief Helper method to compute a very close but different color than the one given
+               * for differentiating close strokes. It looks in the number of strokes with the same hue
+               * and computes a new QColor based on number of coincidences.
+               * \param[in] stroke Skeleton stroke to compute color.
+               */
+              const QColor computeCoincidentStrokeColor(const Core::SkeletonStroke &stroke);
+
               Plane     m_orientation;
               double    m_tolerance;
               Nm        m_slice;

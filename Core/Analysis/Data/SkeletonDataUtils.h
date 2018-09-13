@@ -491,6 +491,12 @@ namespace ESPINA
      */
     const QList<NmVector3> EspinaCore_EXPORT connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
 
+    /** \brief Helper method that removes unused strokes.
+     * \param[in] skeleton Skeleton definition struct.
+     *
+     */
+    void EspinaCore_EXPORT cleanSkeletonStrokes(SkeletonDefinition &skeleton);
+
   } // namespace Core
 } // namespace ESPINA
 

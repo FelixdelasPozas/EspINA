@@ -1065,3 +1065,29 @@ const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *
   return points;
 }
 
+//--------------------------------------------------------------------
+void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
+{
+  SkeletonDefinition cleanSkeleton;
+
+  for(int i = 0; i < skeleton.strokes.size(); ++i)
+  {
+    auto &stroke = skeleton.strokes[i];
+    for(int j = 0; j < skeleton.edges.size(); ++j)
+    {
+      auto &edge = skeleton.edges[j];
+      if(i == edge.strokeIndex)
+      {
+        if(!cleanSkeleton.strokes.contains(stroke))
+        {
+          cleanSkeleton.strokes << stroke;
+        }
+
+        edge.strokeIndex = cleanSkeleton.strokes.indexOf(stroke);
+        Q_ASSERT(edge.strokeIndex != -1);
+      }
+    }
+  }
+
+  skeleton.strokes = cleanSkeleton.strokes;
+}
