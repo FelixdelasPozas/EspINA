@@ -183,6 +183,8 @@ namespace ESPINA
         void findCandidateRegion(itk::Image<unsigned char, 3>::IndexType &center, double scan_size, int region_position[], int region_size[]);
         bool initSupervoxels(itk::Image<unsigned char, 3> *image, QList<Label> &labels, ChannelEdges *edgesExtension);
         bool isInBounds(int x, int y, int z);
+        float calculateDistance(itk::Image<unsigned char, 3>::IndexType &voxel_index, itk::Image<unsigned char, 3>::IndexType &center_index,
+                                                                   unsigned char voxel_color, unsigned char center_color, float norm_quotient, bool only_spatial = false);
 
         ChannelPtr m_stack;
         CoreFactory *m_factory;
@@ -200,6 +202,10 @@ namespace ESPINA
 
         int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
 
+        //Used to avoid dividing when switching from grayscale space (0-255)
+        //to CIELab intensity (0-100)
+        const double color_normalization_constant = 100.0/255.0;
+        bool use_sse = false;
 
     };
 

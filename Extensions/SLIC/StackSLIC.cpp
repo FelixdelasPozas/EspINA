@@ -45,6 +45,14 @@
 // Qt
 #include <QDataStream>
 
+//Intrinsics
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -289,9 +297,6 @@ void StackSLIC::SLICComputeTask::run()
   typedef itk::ImageRegionConstIteratorWithIndex<ImageType> RegionIterator;
   typedef itk::ImageRegion<3> ImageRegion;
 
-  //Used to avoid dividing when switching from grayscale space (0-255)
-  //to CIELab intensity (0-100)
-  const double color_normalization_constant = 100.0/255.0;
   //Square tolerance to avoid having to calculate roots later
   if(tolerance>0) tolerance *= tolerance;
 
@@ -330,7 +335,7 @@ void StackSLIC::SLICComputeTask::run()
   auto image = inputVolume->itkImage();
 
   //Variables
-  double spatial_distance, color_distance, distance, distance_old;
+  float spatial_distance, color_distance, distance, distance_old;
   ImageRegion region;
   IndexType cur_index;
   Label *label, *label_old;
@@ -359,6 +364,12 @@ void StackSLIC::SLICComputeTask::run()
   const double scan_size = 2. * parameter_m_s;
 
   const double iterationPercentage = 100.0 / max_iterations;
+
+  //Do CPU instruction set checking
+  __builtin_cpu_init();
+  use_sse = __builtin_cpu_supports("sse");
+  if(use_sse)
+    qDebug() << QString("Using SSE instructions");
 
   try
   {
@@ -440,23 +451,16 @@ void StackSLIC::SLICComputeTask::run()
             cur_index = it.GetIndex();
             voxel_color = it.Get();
 
-            //Calculate distance between current voxel and supervoxel center
-            color_distance = voxel_color-center_color;
-            color_distance *= color_normalization_constant;
-            color_distance *= color_distance;
-            spatial_distance = pow((cur_index[0]-label->center[0])*spacing[0],2) + pow((cur_index[1]-label->center[1])*spacing[1],2) + pow((cur_index[2]-label->center[2])*spacing[2],2);
-            distance = color_distance + label->norm_quotient * spatial_distance;
-
-            //Check if voxel is closer to this supervoxel than to its current paired supervoxel
+            distance = calculateDistance(cur_index, label->center, voxel_color, center_color, label->norm_quotient);
             voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
             if(voxels[voxel_index] == std::numeric_limits<unsigned int>::max() || voxels[voxel_index] == label_index) {
               //If voxel is unassigned or assigned to the current label, assume it's an infinite distance away
               distance_old = std::numeric_limits<double>::max();
             } else {
               label_old = &labels[voxels[voxel_index]];
-              distance_old = pow((voxel_color - image->GetPixel(label_old->center))*color_normalization_constant,2) + label_old->norm_quotient *
-                            (pow((cur_index[0]-label_old->center[0])*spacing[0],2) + pow((cur_index[1]-label_old->center[1])*spacing[1],2) + pow((cur_index[2]-label_old->center[2])*spacing[2],2));
+              distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient);
             }
+
             if(distance < distance_old) {
               voxels[voxel_index] = label_index;
               //Update maximum distances
@@ -509,13 +513,7 @@ void StackSLIC::SLICComputeTask::run()
         }
 
         label=&labels[label_index];
-
-        region_size[0] = scan_size / spacing[0];
-        region_size[1] = scan_size / spacing[1];
-        region_size[2] = scan_size / spacing[2];
-        region_position[0] = label->center[0] - region_size[0]/2;
-        region_position[1] = label->center[1] - region_size[1]/2;
-        region_position[2] = label->center[2] - region_size[2]/2;
+        findCandidateRegion(label->center, scan_size, region_position, region_size);
 
         //Make sure that the region is inside the bounds of the image
         fitRegionToBounds(region_position, region_size);
@@ -560,7 +558,8 @@ void StackSLIC::SLICComputeTask::run()
           //Calculate displacement for the tolerance test
           if(tolerance > 0 && converged)
           {
-            spatial_distance = pow((label->center[0]-sum_x)*spacing[0],2)+pow((label->center[1]-sum_y)*spacing[1],2)+pow((label->center[2]-sum_z)*spacing[2],2);
+            cur_index = {sum_x, sum_y, sum_z};
+            spatial_distance = calculateDistance(label->center, cur_index, 0, 0, 0, true);
             if(spatial_distance > tolerance)
               converged = false;
           }
@@ -928,12 +927,55 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::findCandidateRegion(itk::Image<unsigned char, 3>::IndexType &center, double scan_size,  int region_position[], int region_size[])
 {
-  region_size[0] = scan_size / spacing[0];
-  region_size[1] = scan_size / spacing[1];
-  region_size[2] = scan_size / spacing[2];
-  region_position[0] = center[0] - region_size[0]/2;
-  region_position[1] = center[1] - region_size[1]/2;
-  region_position[2] = center[2] - region_size[2]/2;
+  if(use_sse) {
+    union vec4f {
+      __m128 vec;
+      float f[4];
+    };
+
+    //Vector division: scan_size / spacing
+    vec4f srca, srcb;
+    //srca.f[0] = scan_size;
+    //srca.f[1] = scan_size;
+    //srca.f[2] = scan_size;
+    //srca.vec = _mm_load_ps(srca.f);
+    srca.vec = _mm_set_ps1(scan_size);
+    srcb.f[0] = spacing[0];
+    srcb.f[1] = spacing[1];
+    srcb.f[2] = spacing[2];
+    srcb.vec = _mm_load_ps(srcb.f);
+    srca.vec = _mm_div_ps(srca.vec, srcb.vec);
+    _mm_store_ps(srcb.f, srca.vec);
+
+    region_size[0] = srcb.f[0];
+    region_size[1] = srcb.f[1];
+    region_size[2] = srcb.f[2];
+
+    //Vector divide by 2
+    //srcb.f[0] = 2;
+    //srcb.vec = _mm_load1_ps(&srcb.f[0]);
+    srcb.vec = _mm_set_ps1(2);
+    srcb.vec = _mm_div_ps(srca.vec, srcb.vec);
+
+    //Substract center - previous result
+    srca.f[0] = center[0];
+    srca.f[1] = center[1];
+    srca.f[2] = center[2];
+    srcb.vec = _mm_sub_ps(srca.vec, srcb.vec);
+    _mm_store_ps(srcb.f, srcb.vec);
+
+    region_position[0] = srcb.f[0];
+    region_position[1] = srcb.f[1];
+    region_position[2] = srcb.f[2];
+
+  } else {
+    region_size[0] = scan_size / spacing[0];
+    region_size[1] = scan_size / spacing[1];
+    region_size[2] = scan_size / spacing[2];
+    region_position[0] = center[0] - region_size[0]/2;
+    region_position[1] = center[1] - region_size[1]/2;
+    region_position[2] = center[2] - region_size[2]/2;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1021,4 +1063,54 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
     }
   }
   return true;
+}
+
+//-----------------------------------------------------------------------------
+float StackSLIC::SLICComputeTask::calculateDistance(itk::Image<unsigned char, 3>::IndexType &voxel_index, itk::Image<unsigned char, 3>::IndexType &center_index,
+                                                   unsigned char voxel_color, unsigned char center_color, float norm_quotient, bool only_spatial)
+{
+  if(use_sse) {
+    union vec4f {
+      __m128 vec;
+      float f[4];
+    };
+
+    //Vector substraction of cur_index - label->center
+    vec4f srca, srcb;
+    srca.f[1] = voxel_index[0];
+    srca.f[2] = voxel_index[1];
+    srca.f[3] = voxel_index[2];
+    srca.f[0] = voxel_color;
+    srcb.f[1] = center_index[0];
+    srcb.f[2] = center_index[1];
+    srcb.f[3] = center_index[2];
+    srcb.f[0] = center_color;
+    srca.vec = _mm_load_ps(srca.f);
+    srcb.vec = _mm_load_ps(srcb.f);
+    srca.vec = _mm_sub_ps(srca.vec, srcb.vec);
+
+    //Vector multiply of previous result * axis spacing
+    srcb.f[1] = spacing[0];
+    srcb.f[2] = spacing[1];
+    srcb.f[3] = spacing[2];
+    srcb.f[0] = color_normalization_constant;
+    srcb.vec = _mm_load_ps(srcb.f);
+    srca.vec = _mm_mul_ps(srca.vec, srcb.vec);
+
+    //Calculate powers of 2 of results
+    srcb.vec = _mm_mul_ps(srca.vec, srca.vec);
+    _mm_store_ps(srcb.f, srcb.vec);
+
+    if(only_spatial)
+      //Return spatial distance squared
+      return srcb.f[1] + srcb.f[2] + srcb.f[3];
+    //Return normalized distance squared
+    return srcb.f[0] + norm_quotient * (srcb.f[1] + srcb.f[2] + srcb.f[3]);
+  } else {
+    double spatial_distance = (pow((voxel_index[0]-center_index[0])*spacing[0],2) +
+        pow((voxel_index[1]-center_index[1])*spacing[1],2) + pow((voxel_index[2]-center_index[2])*spacing[2],2));
+    if(only_spatial)
+      return spatial_distance;
+    return pow((voxel_color - center_color)*color_normalization_constant,2) + norm_quotient * spatial_distance;
+  }
 }
