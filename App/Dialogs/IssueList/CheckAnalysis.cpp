@@ -494,27 +494,17 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkExtensionsValidity() const
 {
-  auto availableExtensions = m_context.factory()->availableSegmentationExtensions();
-  QStringList unavailableExtensions;
+  const auto availableExtensions = m_context.factory()->availableSegmentationExtensions().toSet();
+  auto extensionTypes            = m_segmentation->readOnlyExtensions()->available().toSet();
+  extensionTypes.subtract(availableExtensions);
 
-  for(auto extension: m_segmentation->readOnlyExtensions())
+  if(!extensionTypes.isEmpty())
   {
-    if(!availableExtensions.contains(extension->type()))
-    {
-      unavailableExtensions << extension->type();
-    }
-  }
-
-  if(!unavailableExtensions.isEmpty())
-  {
-    QString types;
-    for(auto type: unavailableExtensions)
-    {
-      types += type + (type == unavailableExtensions.last() ? "" : ", ");
-    }
-    auto plural      = unavailableExtensions.size() > 1 ? "s":"";
-    auto description = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
+    const QStringList extensionsList{extensionTypes.toList()};
+    const auto types  = extensionsList.join(", ");
+    const auto plural = extensionTypes.size() > 1 ? "s":"";
+    auto description  = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
+    auto hint         = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
   }
@@ -640,27 +630,17 @@ void CheckStackTask::checkVolumeIsEmpty() const
 //------------------------------------------------------------------------
 void CheckStackTask::checkExtensionsValidity() const
 {
-  auto availableExtensions = m_context.factory()->availableStackExtensions();
-  QStringList unavailableExtensions;
+  const auto availableExtensions = m_context.factory()->availableStackExtensions().toSet();
+  auto extensionTypes            = m_stack->readOnlyExtensions()->available().toSet();
+  extensionTypes.subtract(availableExtensions);
 
-  for(auto extension: m_stack->readOnlyExtensions())
+  if(!extensionTypes.isEmpty())
   {
-    if(!availableExtensions.contains(extension->type()))
-    {
-      unavailableExtensions << extension->type();
-    }
-  }
-
-  if(!unavailableExtensions.isEmpty())
-  {
-    QString types;
-    for(auto type: unavailableExtensions)
-    {
-      types += type + (type == unavailableExtensions.last() ? "" : ", ");
-    }
-    auto plural      = unavailableExtensions.size() > 1 ? "s":"";
-    auto description = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
+    const QStringList extensionList{extensionTypes.toList()};
+    const auto types  = extensionList.join(", ");
+    const auto plural = extensionTypes.size() > 1 ? "s":"";
+    auto description  = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
+    auto hint         = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }
