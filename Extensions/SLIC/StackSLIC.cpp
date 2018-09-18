@@ -44,6 +44,9 @@
 
 // Qt
 #include <QDataStream>
+#include <QtCore>
+
+#include <boost/bind.hpp>
 
 //Intrinsics
 #ifdef __SSE__
@@ -262,6 +265,7 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 , tolerance(tolerance)
 , voxels(nullptr)
 , bounds(stack->bounds())
+, scan_size(0)
 {
 
   QString description = "Computing ";
@@ -289,13 +293,6 @@ void StackSLIC::SLICComputeTask::run()
 {
   BlockTimer<std::chrono::milliseconds> timer{"SLIC"};
   emit progress(0);
-
-  //Typedefs for clearer syntax
-  using ImageType = itk::Image<unsigned char, 3>;
-  using IndexType = ImageType::IndexType;
-  typedef StackSLIC::Label Label;
-  typedef itk::ImageRegionConstIteratorWithIndex<ImageType> RegionIterator;
-  typedef itk::ImageRegion<3> ImageRegion;
 
   //Square tolerance to avoid having to calculate roots later
   if(tolerance>0) tolerance *= tolerance;
@@ -361,7 +358,7 @@ void StackSLIC::SLICComputeTask::run()
   std::memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels * sizeof(unsigned int));
 
   //Extract constants from the loops.
-  const double scan_size = 2. * parameter_m_s;
+  scan_size = 2. * parameter_m_s;
 
   const double iterationPercentage = 100.0 / max_iterations;
 
@@ -389,115 +386,13 @@ void StackSLIC::SLICComputeTask::run()
         emit progress(progressValue);
       }
 
-      for(label_index=0;label_index<labels.size();label_index++)
+      QtConcurrent::blockingMap(labels, boost::bind(&SLICComputeTask::computeLabel, this, _1, edgesExtension, image, &labels));
+
+      if(!canExecute())
       {
-        if(!canExecute())
-        {
-          delete[] voxels;
-          return;
-        }
-
-        if((label_index & (unsigned int) 4095) == 0) {
-          newProgress = iterationPercentage * iteration;
-          newProgress += iterationPercentage * (double) label_index / (double) labels.size();
-          if(newProgress != progressValue)
-          {
-            progressValue = newProgress;
-            emit progress(progressValue);
-          }
-        }
-        label=&labels[label_index];
-
-        //Find the region of voxels that are in range of this supervoxel
-        findCandidateRegion(label->center, scan_size, region_position, region_size);
-
-        //Make sure that the region is inside the bounds of the image
-        fitRegionToBounds(region_position, region_size);
-
-        center_color = label->color;
-
-        //Iterate over the slices
-        for(current_slice = region_position[2]; current_slice < region_position[2] + region_size[2]; current_slice++)
-        {
-          if(!canExecute())
-          {
-            delete[] voxels;
-            return;
-          }
-
-          //Get slice edges
-          sliceRegion = edgesExtension->sliceRegion(current_slice);
-          //Set region bounds around center for current slice
-          region.SetIndex(0, region_position[0]);
-          region.SetIndex(1, region_position[1]);
-          region.SetIndex(2, current_slice);
-          region.SetSize(0, region_size[0]);
-          region.SetSize(1, region_size[1]);
-          region.SetSize(2, 1);
-
-          //Crop to region inside edges
-          cropped = region.Crop(sliceRegion);
-
-          //If the region was completely outside the edges, skip to next slice
-          //This mean either the stack was displaced too much or the z index
-          //was too high/low
-          if(!cropped)
-            continue;
-
-          RegionIterator it(image, region);
-          it.GoToBegin();
-          while(!it.IsAtEnd())
-          {
-            cur_index = it.GetIndex();
-            voxel_color = it.Get();
-
-            distance = calculateDistance(cur_index, label->center, voxel_color, center_color, label->norm_quotient);
-            voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
-            if(voxels[voxel_index] == std::numeric_limits<unsigned int>::max() || voxels[voxel_index] == label_index) {
-              //If voxel is unassigned or assigned to the current label, assume it's an infinite distance away
-              distance_old = std::numeric_limits<double>::max();
-            } else {
-              label_old = &labels[voxels[voxel_index]];
-              distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient);
-            }
-
-            if(distance < distance_old) {
-              voxels[voxel_index] = label_index;
-              //Update maximum distances
-              switch(variant)
-              {
-                case ASLIC:
-                  if(label->m_c < color_distance)
-                    label->m_c = color_distance;
-                //no break
-                case SLICO:
-                  if(label->m_s < spatial_distance)
-                    label->m_s = spatial_distance;
-                //no break
-                case SLIC:
-                  break;
-              }
-            }
-
-            ++it;
-          } //RegionIterator
-        }//current_slice
-
-        switch(variant)
-        {
-          case ASLIC:
-            //Update max. distances calculating their roots as we were
-            //using squared distances for the simplified equations
-            label->m_c = std::sqrt(label->m_c);
-          //no break
-          case SLICO:
-            label->m_s = std::sqrt(label->m_s);
-          //no break
-          case SLIC:
-            break;
-        }
-
-      } //label
+        delete[] voxels;
+        return;
+      }
 
       //If convergence test is enabled, assume it converged until proven otherwise
       if(tolerance > 0) converged = true;
@@ -538,7 +433,7 @@ void StackSLIC::SLICComputeTask::run()
             for (x = region_position[0]; x < region_size[0]; x++)
             {
               voxel_index++;
-              if (label_index == voxels[voxel_index])
+              if (label->index == voxels[voxel_index])
               {
                 sum_voxels++;
                 sum_x += x; sum_y += y; sum_z += z;
@@ -559,7 +454,7 @@ void StackSLIC::SLICComputeTask::run()
           if(tolerance > 0 && converged)
           {
             cur_index = {sum_x, sum_y, sum_z};
-            spatial_distance = calculateDistance(label->center, cur_index, 0, 0, 0, true);
+            spatial_distance = calculateDistance(label->center, cur_index, 0, 0, 0, NULL, NULL, true);
             if(spatial_distance > tolerance)
               converged = false;
           }
@@ -993,6 +888,8 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
   int region_position[3];
   int region_size[3];
 
+  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+
   for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
   {
     if(!canExecute()) return false;
@@ -1029,7 +926,6 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
 
         //Calculate gradient in area
         image->SetRequestedRegion(region);
-        GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
         gradientFilter->SetInput(image);
         gradientFilter->GetOutput()->SetRequestedRegion(region);
         gradientFilter->Update();
@@ -1058,7 +954,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
           ++it;
         }
 
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, cur_index, image->GetPixel(cur_index), 1 });
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, labels.size(), cur_index, image->GetPixel(cur_index), 1 });
       }
     }
   }
@@ -1066,8 +962,8 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
 }
 
 //-----------------------------------------------------------------------------
-float StackSLIC::SLICComputeTask::calculateDistance(itk::Image<unsigned char, 3>::IndexType &voxel_index, itk::Image<unsigned char, 3>::IndexType &center_index,
-                                                   unsigned char voxel_color, unsigned char center_color, float norm_quotient, bool only_spatial)
+float StackSLIC::SLICComputeTask::calculateDistance(IndexType &voxel_index, IndexType &center_index,
+                                                   unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial)
 {
   if(use_sse) {
     union vec4f {
@@ -1101,16 +997,141 @@ float StackSLIC::SLICComputeTask::calculateDistance(itk::Image<unsigned char, 3>
     srcb.vec = _mm_mul_ps(srca.vec, srca.vec);
     _mm_store_ps(srcb.f, srcb.vec);
 
+    double spatial = srcb.f[1] + srcb.f[2] + srcb.f[3];
     if(only_spatial)
       //Return spatial distance squared
-      return srcb.f[1] + srcb.f[2] + srcb.f[3];
+      return spatial;
     //Return normalized distance squared
-    return srcb.f[0] + norm_quotient * (srcb.f[1] + srcb.f[2] + srcb.f[3]);
+    if(color_distance != NULL)
+      *color_distance = srcb.f[0];
+    if(spatial_distance != NULL)
+      *spatial_distance = spatial;
+    return srcb.f[0] + norm_quotient * spatial;
   } else {
-    double spatial_distance = (pow((voxel_index[0]-center_index[0])*spacing[0],2) +
+    double spatial = (pow((voxel_index[0]-center_index[0])*spacing[0],2) +
         pow((voxel_index[1]-center_index[1])*spacing[1],2) + pow((voxel_index[2]-center_index[2])*spacing[2],2));
     if(only_spatial)
-      return spatial_distance;
-    return pow((voxel_color - center_color)*color_normalization_constant,2) + norm_quotient * spatial_distance;
+      return spatial;
+    double color = pow((voxel_color - center_color)*color_normalization_constant,2);
+    if(color_distance != NULL)
+      *color_distance = color;
+    if(spatial_distance != NULL)
+      *spatial_distance = spatial;
+    return color + norm_quotient * spatial;
   }
+}
+
+//-----------------------------------------------------------------------------
+void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, ImageType::Pointer image, QList<Label> *labels)
+{
+  //TODO: Add progress tracking through signals
+  //TODO: Add checks to stop executing
+
+  int region_position[3];
+  int region_size[3];
+  unsigned char center_color, voxel_color;
+  int current_slice = 0;
+  ImageRegion region;
+  bool cropped;
+  unsigned int voxel_index, label_old_index;
+  float spatial_distance, color_distance, distance, distance_old;
+  Label *label_old;
+  IndexType cur_index;
+
+  //Find the region of voxels that are in range of this supervoxel
+  findCandidateRegion(label.center, scan_size, region_position, region_size);
+
+  //Make sure that the region is inside the bounds of the image
+  fitRegionToBounds(region_position, region_size);
+  center_color = label.color;
+
+  //Iterate over the slices
+  for(current_slice = region_position[2]; current_slice < region_position[2] + region_size[2]; current_slice++)
+  {
+
+    //Get slice edges
+    auto sliceRegion = edgesExtension->sliceRegion(current_slice);
+    //Set region bounds around center for current slice
+    region.SetIndex(0, region_position[0]);
+    region.SetIndex(1, region_position[1]);
+    region.SetIndex(2, current_slice);
+    region.SetSize(0, region_size[0]);
+    region.SetSize(1, region_size[1]);
+    region.SetSize(2, 1);
+
+    //Crop to region inside edges
+    cropped = region.Crop(sliceRegion);
+
+    //If the region was completely outside the edges, skip to next slice
+    //This mean either the stack was displaced too much or the z index
+    //was too high/low
+    if(!cropped)
+      continue;
+
+    RegionIterator it(image, region);
+    it.GoToBegin();
+
+    while(!it.IsAtEnd())
+    {
+      cur_index = it.GetIndex();
+      voxel_color = it.Get();
+      distance = calculateDistance(cur_index, label.center, voxel_color, center_color, label.norm_quotient, &color_distance, &spatial_distance);
+      voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
+      label_old_index = voxels[voxel_index];
+      if(label_old_index == std::numeric_limits<unsigned int>::max() || label_old_index == label.index) {
+        //If voxel is unassigned or assigned to the current label, assume it's an infinite distance away
+        distance_old = std::numeric_limits<double>::max();
+      } else {
+        label_old = &(*labels)[label_old_index];
+        if(label_old == NULL) {
+          qDebug() << QString("Null label_old: %1/%2 labels %3").arg(label_old_index).arg((*labels).size());
+          label_old = &(*labels)[label_old_index];
+          qDebug() << QString("Label: %1").arg((*labels)[label_old_index].index);
+        }
+        distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, NULL, NULL);
+      }
+
+      if(distance < distance_old) {
+        QMutexLocker locker(&labelListMutex);
+        if(label_old_index != voxels[voxel_index]) {
+          label_old = &(*labels)[voxels[voxel_index]];
+          distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, NULL, NULL);
+        }
+        if(distance < distance_old) {
+          voxels[voxel_index] = label.index;
+          //Update maximum distances
+          switch(variant)
+          {
+            case ASLIC:
+              if(label.m_c < color_distance)
+                label.m_c = color_distance;
+            //no break
+            case SLICO:
+              if(label.m_s < spatial_distance)
+                label.m_s = spatial_distance;
+            //no break
+            case SLIC:
+              break;
+          }
+        }
+      }
+
+      ++it;
+    } //RegionIterator
+  }//current_slice
+
+  switch(variant)
+  {
+    case ASLIC:
+      //Update max. distances calculating their roots as we were
+      //using squared distances for the simplified equations
+      label.m_c = std::sqrt(label.m_c);
+    //no break
+    case SLICO:
+      label.m_s = std::sqrt(label.m_s);
+    //no break
+    case SLIC:
+      break;
+  }
+
 }
