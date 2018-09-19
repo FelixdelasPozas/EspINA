@@ -523,8 +523,12 @@ void Analysis::addConnection(const PersistentSPtr segmentation1, const Persisten
     throw Core::Utils::EspinaException(message, details);
   }
 
-  m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
-  m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  // the user is allowed to add multiple connections between the same segmentations, only add the relation once.
+  if(m_connections.connections(segmentation1, segmentation2).size() < 2)
+  {
+    m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -538,8 +542,13 @@ void Analysis::removeConnection(const PersistentSPtr segmentation1, const Persis
     throw Core::Utils::EspinaException(message, details);
   }
 
-  m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
-  m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  // the user is allowed to add multiple connections between the same segmentations, only remove the relation when
+  // there are no more connection points.
+  if(m_connections.connections(segmentation1, segmentation2).isEmpty())
+  {
+    m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
 }
 
 //------------------------------------------------------------------------
