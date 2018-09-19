@@ -46,13 +46,38 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
+      <layout class="QVBoxLayout" name="m_invalidLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
+         <item>
+          <widget class="QLabel" name="m_invalidTextLabel">
+           <property name="text">
+            <string>Invalid:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="m_invalidLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="m_invalidList"/>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Completely connected:</string>
+            <string>Connected:</string>
            </property>
           </widget>
          </item>

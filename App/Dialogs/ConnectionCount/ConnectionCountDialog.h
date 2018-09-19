@@ -89,17 +89,16 @@ namespace ESPINA
        */
       void addSegmentationToLists(const SegmentationAdapterSPtr segmentation);
 
-      /** \brief Returns the row of the segmentation in the list or -1 if not in the list widget.
-       * \param[in] list QListWidget object.
-       * \param[in] segmentation segmentation adapter object.
-       *
-       */
-      int segmentationIndexInList(QListWidget *list, const SegmentationAdapterPtr segmentation);
-
       /** \brief Helper method to update the label widgets with the segmentations count.
        *
        */
       void updateLabels();
+
+      /** \brief Set the invalid synapses group visible if there are erroneously connected synapses. If there is none
+       * the group will be invisible.
+       *
+       */
+      void updateInvalidVisibility();
   };
 
 } // namespace ESPINA
