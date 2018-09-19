@@ -434,6 +434,8 @@ void CheckSegmentationTask::run()
     checkExtensionsValidity();
     if(!canExecute()) return;
     checkSkeletonProblems();
+    if(!canExecute()) return;
+    checkConnections();
   }
   catch(const EspinaException &e)
   {
@@ -501,10 +503,10 @@ void CheckSegmentationTask::checkExtensionsValidity() const
   if(!extensionTypes.isEmpty())
   {
     const QStringList extensionsList{extensionTypes.toList()};
-    const auto types  = extensionsList.join(", ");
+    const auto types = extensionsList.join(", ");
     const auto plural = extensionTypes.size() > 1 ? "s":"";
-    auto description  = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
-    auto hint         = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
+    const auto description = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
+    const auto hint = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
   }
@@ -606,6 +608,25 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 }
 
 //------------------------------------------------------------------------
+void CheckSegmentationTask::checkConnections()
+{
+  auto category = m_segmentation->category();
+  if(category && category->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
+  {
+    auto connectionsNumber = m_segmentation->model()->connections(m_segmentation).size();
+
+    if(connectionsNumber > 2)
+    {
+      auto plural      = connectionsNumber > 3 ? "s":"";
+      auto description = tr("Segmentation is erroneously connected, it has %1 connections.").arg(connectionsNumber);
+      auto hint        = tr("Modify the involved axons/dendrites to remove the invalid synaptic connection%1.").arg(plural);
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 CheckStackTask::CheckStackTask(Support::Context &context, NeuroItemAdapterSPtr item)
 : CheckDataTask{context, item}
 , m_stack      {std::dynamic_pointer_cast<ChannelAdapter>(item)}
@@ -637,10 +658,10 @@ void CheckStackTask::checkExtensionsValidity() const
   if(!extensionTypes.isEmpty())
   {
     const QStringList extensionList{extensionTypes.toList()};
-    const auto types  = extensionList.join(", ");
+    const auto types = extensionList.join(", ");
     const auto plural = extensionTypes.size() > 1 ? "s":"";
-    auto description  = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
-    auto hint         = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
+    const auto description = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
+    const auto hint = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }

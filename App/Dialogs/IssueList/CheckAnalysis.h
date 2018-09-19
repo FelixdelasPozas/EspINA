@@ -274,6 +274,11 @@ namespace ESPINA
        */
       void checkSkeletonProblems() const;
 
+      /** \brief Checks for erroneously connected synapses (more than 2 connections).
+       *
+       */
+      void checkConnections();
+
     private:
       SegmentationAdapterSPtr m_segmentation; /** segmentation to check. */
   };
