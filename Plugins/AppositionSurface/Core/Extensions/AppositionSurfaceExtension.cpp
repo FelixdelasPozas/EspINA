@@ -343,14 +343,17 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
       //perimeters[components->GetValue(edge.Source)] += 1;
     }
 
-    double max_per = 0.0;
-    // std::cout << "myvector contains:";
-    for (unsigned int i=0;i<perimeters.size();i++)
-    {
-      // std::cout << " " << perimeters[i];
-      max_per = std::max(perimeters[i], max_per);
-    }
-    totalPerimeter = max_per;
+// @felix modified 20/09/2018 return the sum, not the max of the vector.
+//    double max_per = 0.0;
+//      // std::cout << "myvector contains:";
+//    for (unsigned int i=0;i<perimeters.size();i++)
+//    {
+//      // std::cout << " " << perimeters[i];
+//      max_per = std::max(perimeters[i], max_per);
+//    }
+//    totalPerimeter = max_per;
+
+    totalPerimeter = std::accumulate(perimeters.begin(), perimeters.end(), 0.0);
   }
   catch (...)
   {
