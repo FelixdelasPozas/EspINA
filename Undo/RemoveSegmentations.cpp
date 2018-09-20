@@ -71,7 +71,7 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     for(auto relation: m_model->relations(segmentation, ESPINA::RELATION_INOUT))
     {
-      // Connection relations are delete with the connections.
+      // Connection relations are deleted with the connections.
       if(relation.relation != Core::Connection::CONNECTS)
       {
         m_relations << relation;

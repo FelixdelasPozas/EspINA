@@ -125,7 +125,7 @@ SkeletonCreationTool::SkeletonCreationTool(Support::Context& context)
           this                , SLOT(initTool(bool)));
 
   connect(m_eventHandler.get(), SIGNAL(selectedStroke(int)),
-          m_strokeCombo,        SLOT(setCurrentIndex(int)), Qt::DirectConnection);
+          this,                 SLOT(onStrokeChanged(int)), Qt::DirectConnection);
 
   registerSkeletonDataOperators();
 }

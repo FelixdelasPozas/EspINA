@@ -942,8 +942,8 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
 
   while(!pending.isEmpty())
   {
-    int pendingStrokes   = pending.size();
-    const auto stroke    = pending.first();
+    const auto pendingStrokes = pending.size();
+    const auto stroke = pending.first();
 
     for (auto otherStroke : allNodes)
     {

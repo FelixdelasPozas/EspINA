@@ -590,11 +590,10 @@ void vtkSkeletonWidget::BuildRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setStroke(const Core::SkeletonStroke& stroke)
 {
-  if(WidgetRep)
-  {
-    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-    rep->setStroke(stroke);
-  }
+  CreateDefaultRepresentation();
+
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  rep->setStroke(stroke);
 }
 
 //-----------------------------------------------------------------------------
