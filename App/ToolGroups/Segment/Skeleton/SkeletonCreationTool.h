@@ -183,6 +183,12 @@ namespace ESPINA
        */
       void onSelectionChanged(SegmentationAdapterList segmentations);
 
+      /** \brief Enables/disables the modification of hue value for strokes of same color to facilitate visualization while segmenting.
+       * \param[in] value True to enable hue modifications and false to draw the strokes with its defined hue value.
+       *
+       */
+      void onHueModificationsButtonClicked(bool value);
+
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
@@ -260,6 +266,7 @@ namespace ESPINA
       GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
       QComboBox                                                *m_strokeCombo;      /** stroke type combo box.                            */
       GUI::Widgets::ToolButton                                 *m_strokeButton;     /** stroke configuration dialog.                      */
+      GUI::Widgets::ToolButton                                 *m_changeHueButton;  /** hue value modification for strokes with same hue. */
       SkeletonToolsEventHandlerSPtr                             m_eventHandler;     /** tool's event handler.                             */
       ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
       GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** skeleton representation prototypes.               */

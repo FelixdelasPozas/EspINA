@@ -580,3 +580,15 @@ void SkeletonWidget2D::setRepresentationTextColor(const QColor &color)
 {
   m_widget->setRepresentationTextColor(color);
 }
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setStrokeHueModification(const bool value)
+{
+  m_widget->setStrokeHueModification(value);
+}
+
+//--------------------------------------------------------------------
+const bool SkeletonWidget2D::strokeHueModification() const
+{
+  return m_widget->strokeHueModification();
+}

@@ -70,6 +70,9 @@ namespace ESPINA
       virtual void abortOperation() override
       { deactivateEventHandler(); };
 
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
     private slots:
       /** \brief Performs tool initialization/de-initialization.
        * \param[in] value true to initialize and false otherwise.
@@ -164,6 +167,13 @@ namespace ESPINA
        */
       void onSelectionChanged(SegmentationAdapterList segmentations);
 
+      /** \brief Changes the color of strokes with the same color to facilitate visualization.
+       * \param[in] value True to change the hue of strokes with the same color except the first one and false
+       *  to draw all the strokes with the given hue.
+       *
+       */
+      void onHueModificationsButtonClicked(bool value);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 
@@ -239,20 +249,21 @@ namespace ESPINA
       using TemporalRepresentationsSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
       using SkeletonWidgetSPtr          = GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr;
 
-      bool                                                m_init;          /** true if the tool has been initialized.            */
-      SkeletonToolsEventHandlerSPtr                       m_eventHandler;  /** tool's event handler.                             */
-      GUI::Widgets::ToolButton                           *m_eraseButton;   /** Paint/erase button.                               */
-      DoubleSpinBoxAction                                *m_minWidget;     /** min distance between points widget.               */
-      DoubleSpinBoxAction                                *m_maxWidget;     /** max distance between points widget.               */
-      GUI::Widgets::ToolButton                           *m_moveButton;    /** Move nodes button.                                */
-      QComboBox                                          *m_strokeCombo;   /** stroke type combobox.                             */
-      GUI::Widgets::ToolButton                           *m_strokeButton;  /** stroke configuration dialog button.               */
-      GUI::Widgets::ToolButton                           *m_truncateButton;/** Mark truncated branch button.                     */
-      ViewItemAdapterPtr                                  m_item;          /** current element being created or channel in init. */
-      TemporalRepresentationsSPtr                         m_factory;       /** representation prototypes.                        */
-      TemporalRepresentationsSPtr                         m_pointsFactory; /** representation prototypes.                        */
-      QList<SkeletonWidgetSPtr>                           m_widgets;       /** list of widgets currently on views.               */
-      QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;  /** list of point representations currently on views. */
+      bool                                                m_init;            /** true if the tool has been initialized.            */
+      SkeletonToolsEventHandlerSPtr                       m_eventHandler;    /** tool's event handler.                             */
+      GUI::Widgets::ToolButton                           *m_eraseButton;     /** Paint/erase button.                               */
+      DoubleSpinBoxAction                                *m_minWidget;       /** min distance between points widget.               */
+      DoubleSpinBoxAction                                *m_maxWidget;       /** max distance between points widget.               */
+      GUI::Widgets::ToolButton                           *m_moveButton;      /** Move nodes button.                                */
+      QComboBox                                          *m_strokeCombo;     /** stroke type combobox.                             */
+      GUI::Widgets::ToolButton                           *m_strokeButton;    /** stroke configuration dialog button.               */
+      GUI::Widgets::ToolButton                           *m_changeHueButton; /** Change coincident hue strokes during edition.     */
+      GUI::Widgets::ToolButton                           *m_truncateButton;  /** Mark truncated branch button.                     */
+      ViewItemAdapterPtr                                  m_item;            /** current element being created or channel in init. */
+      TemporalRepresentationsSPtr                         m_factory;         /** representation prototypes.                        */
+      TemporalRepresentationsSPtr                         m_pointsFactory;   /** representation prototypes.                        */
+      QList<SkeletonWidgetSPtr>                           m_widgets;         /** list of widgets currently on views.               */
+      QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;    /** list of point representations currently on views. */
   };
 
 } // namespace ESPINA

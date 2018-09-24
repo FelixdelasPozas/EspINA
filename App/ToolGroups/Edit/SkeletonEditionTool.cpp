@@ -58,6 +58,8 @@ using namespace ESPINA::GUI::View::Widgets::Skeleton;
 using namespace ESPINA::Support::Representations::Utils;
 using namespace ESPINA::SkeletonToolsUtils;
 
+const QString MODIFY_HUE_SETTINGS_KEY = QString{"Modify same-hue strokes to avoid coincidences"};
+
 //--------------------------------------------------------------------
 SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
 : EditTool("SkeletonEditionTool", ":/espina/tubular.svg", tr("Manual modification of skeletons."), context)
@@ -278,6 +280,7 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
       skeletonWidget->setStroke(stroke);
       skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
       skeletonWidget->setRepresentationTextColor(segmentation->category()->color());
+      skeletonWidget->setStrokeHueModification(m_changeHueButton->isChecked());
       skeletonWidget->updateRepresentation();
 
       connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
@@ -498,6 +501,13 @@ void SkeletonEditionTool::initParametersWidgets()
   connect(this, SIGNAL(toggled(bool)), m_truncateButton, SLOT(setVisible(bool)));
 
   addSettingsWidget(m_truncateButton);
+
+  m_changeHueButton = createToolButton(":/espina/skeletonColors.svg", tr("Modify coincident color strokes to facilitate visualization during edition."));
+  m_changeHueButton->setCheckable(true);
+  m_changeHueButton->setChecked(false);
+  connect(m_changeHueButton, SIGNAL(clicked(bool)), this, SLOT(onHueModificationsButtonClicked(bool)));
+
+  addSettingsWidget(m_changeHueButton);
 }
 
 //--------------------------------------------------------------------
@@ -773,4 +783,27 @@ void SkeletonEditionTool::onPointCheckRequested(const NmVector3 &point)
       m_eventHandler->setIsStartNode(skeletonWidget->isStartNode(point));
     }
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onHueModificationsButtonClicked(bool value)
+{
+  for(auto widget: m_widgets)
+  {
+    widget->setStrokeHueModification(value);
+  }
+
+  if(m_item) m_item->invalidateRepresentations();
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(MODIFY_HUE_SETTINGS_KEY, m_changeHueButton->isChecked());
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_changeHueButton->setChecked(settings->value(MODIFY_HUE_SETTINGS_KEY, false).toBool());
 }

@@ -146,6 +146,19 @@ namespace ESPINA
               void setConnectionPoints(QList<NmVector3> &points)
               { m_points = points; }
 
+              /** \brief Enables/disables modifications in hue for the strokes that coincide in color to facilitate skeleton
+               * visualization.
+               * \param[in] value True to modify hue value of strokes of the same color and false to draw the strokes with its assigned hue.
+               *
+               */
+              void setStrokeHueModification(const bool value);
+
+              /** \brief Returns true if the hue value of strokes coincident in color is being modified to failitate visualization. Returns
+               * false if not.
+               *
+               */
+              const bool strokeHueModification() const;
+
             public slots:
               /** \brief Updates the vtk widget representation.
                *

@@ -74,16 +74,17 @@ QMutex vtkSkeletonWidgetRepresentation::s_skeletonMutex;
 
 //-----------------------------------------------------------------------------
 vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
-: m_orientation       {Plane::UNDEFINED}
-, m_tolerance         {std::sqrt(20)}
-, m_slice             {-1}
-, m_shift             {0}
-, m_labelColor        {QColor::fromRgbF(1,1,1)}
-, m_labelSize         {5}
-, m_width             {1}
-, m_currentStrokeIndex{-1}
-, m_currentEdgeIndex  {-1}
-, m_ignoreCursor      {false}
+: m_orientation        {Plane::UNDEFINED}
+, m_tolerance          {std::sqrt(20)}
+, m_slice              {-1}
+, m_shift              {0}
+, m_labelColor         {QColor::fromRgbF(1,1,1)}
+, m_labelSize          {5}
+, m_width              {1}
+, m_currentStrokeIndex {-1}
+, m_currentEdgeIndex   {-1}
+, m_changeCoincidentHue{false}
+, m_ignoreCursor       {false}
 {
   m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   m_colors->SetName("Colors");
@@ -2461,22 +2462,53 @@ void vtkSkeletonWidgetRepresentation::setWidth(const int width)
 }
 
 //--------------------------------------------------------------------
+void ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
+{
+  if(m_changeCoincidentHue != value)
+  {
+    m_changeCoincidentHue = value;
+
+    BuildRepresentation();
+
+    NeedToRenderOn();
+  }
+}
+
+//--------------------------------------------------------------------
+const bool ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
+{
+  return m_changeCoincidentHue;
+}
+
+//--------------------------------------------------------------------
 const QColor vtkSkeletonWidgetRepresentation::computeCoincidentStrokeColor(const Core::SkeletonStroke &stroke)
 {
-  int equalColors = 0;
-  for(int i = 0; i < s_skeleton.strokes.size(); ++i)
-  {
-    auto &otherStroke = s_skeleton.strokes.at(i);
-    if(otherStroke == stroke) continue;
+  auto finalHue = stroke.colorHue;
 
-    // alphabetic to keep certain order, but can be altered by introducing more strokes.
-    if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++equalColors;
+  if(m_changeCoincidentHue)
+  {
+    int position = 0;
+    QSet<int> hueValues;
+
+    for(int i = 0; i < s_skeleton.strokes.size(); ++i)
+    {
+      auto &otherStroke = s_skeleton.strokes.at(i);
+
+      hueValues << otherStroke.colorHue;
+
+      if(otherStroke == stroke) continue;
+
+      // alphabetic to keep certain order, but can be altered by introducing more strokes.
+      if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
+    }
+
+    while((position != 0) && (position < 9) && hueValues.contains(finalHue))
+    {
+      finalHue = (stroke.colorHue + (40*position)) % 360;
+
+      ++position;
+    }
   }
 
-  // 80% max reduction in hsv value, cyclic, to avoid a total reduction to black.
-  equalColors %= 5;
-
-  return QColor::fromHsv(stroke.colorHue,
-                         255 * (1.0 - (equalColors * 0.2)),
-                         255 * (1.0 - (equalColors * 0.2)));
+  return QColor::fromHsv(finalHue, 255, 255);
 }

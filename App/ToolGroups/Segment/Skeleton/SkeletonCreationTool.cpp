@@ -73,6 +73,8 @@ using namespace ESPINA::SkeletonToolsUtils;
 
 const Filter::Type SkeletonFilterFactory::SKELETON_FILTER = "SkeletonSource";
 
+const QString MODIFY_HUE_SETTINGS_KEY = QString{"Modify same-hue strokes to avoid coincidences"};
+
 //-----------------------------------------------------------------------------
 const FilterTypeList SkeletonFilterFactory::providedFilters() const
 {
@@ -203,6 +205,13 @@ void SkeletonCreationTool::initParametersWidgets()
   connect(m_strokeButton, SIGNAL(pressed()), this, SLOT(onStrokeConfigurationPressed()));
 
   addSettingsWidget(m_strokeButton);
+
+  m_changeHueButton = createToolButton(":/espina/skeletonColors.svg", tr("Modify coincident color strokes to facilitate visualization during edition."));
+  m_changeHueButton->setCheckable(true);
+  m_changeHueButton->setChecked(false);
+  connect(m_changeHueButton, SIGNAL(clicked(bool)), this, SLOT(onHueModificationsButtonClicked(bool)));
+
+  addSettingsWidget(m_changeHueButton);
 
   m_nextButton = createToolButton(":/espina/next_tubular.svg", tr("Start a new skeleton."));
   m_nextButton->setCheckable(false);
@@ -396,6 +405,7 @@ void SkeletonCreationTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr c
     skeletonWidget->setStroke(strokes.at(index));
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
     skeletonWidget->setRepresentationTextColor(category->color());
+    skeletonWidget->setStrokeHueModification(m_changeHueButton->isChecked());
     skeletonWidget->updateRepresentation();
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
@@ -661,6 +671,8 @@ void SkeletonCreationTool::restoreSettings(std::shared_ptr<QSettings> settings)
   // used only to load SkeletonToolsUtils::STROKE values.
   loadStrokes(settings);
 
+  m_changeHueButton->setChecked(settings->value(MODIFY_HUE_SETTINGS_KEY, false).toBool());
+
   updateStrokes();
   onStrokeChanged(0);
 }
@@ -670,6 +682,8 @@ void SkeletonCreationTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   // used only to save SkeletonToolsUtils::STROKE values.
   if(!STROKES.isEmpty()) saveStrokes(settings);
+
+  settings->setValue(MODIFY_HUE_SETTINGS_KEY, m_changeHueButton->isChecked());
 }
 
 //--------------------------------------------------------------------
@@ -735,6 +749,17 @@ void SkeletonCreationTool::onStrokeChanged(int index)
       m_strokeCombo->blockSignals(false);
     }
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonCreationTool::onHueModificationsButtonClicked(bool value)
+{
+  for(auto widget: m_skeletonWidgets)
+  {
+    widget->setStrokeHueModification(value);
+  }
+
+  if(m_item) m_item->invalidateRepresentations();
 }
 
 //--------------------------------------------------------------------

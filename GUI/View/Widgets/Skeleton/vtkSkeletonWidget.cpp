@@ -749,3 +749,22 @@ const Core::PathList vtkSkeletonWidget::selectedPaths() const
 
   return result;
 }
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setStrokeHueModification(const bool value)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setChangeCoincidetHue(value);
+}
+
+//-----------------------------------------------------------------------------
+const bool vtkSkeletonWidget::strokeHueModification() const
+{
+  if(WidgetRep)
+  {
+    return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->changeCoincidentHue();
+  }
+
+  return false;
+}

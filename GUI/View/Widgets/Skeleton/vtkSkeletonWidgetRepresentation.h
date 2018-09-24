@@ -410,6 +410,18 @@ namespace ESPINA
                */
               bool ToggleStrokeProperty(const Core::SkeletonNodeProperty property, const int &x, const int &y);
 
+              /** \brief Sets that strokes with the same color must change colors to facilitate visualization.
+               * \param[in] value True to change hue of same colored strokes and false to show strokes with its defined hue.
+               *
+               */
+              void setChangeCoincidetHue(const bool value);
+
+              /** \brief Returns true if the color of strokes that are coincident in hue is changed to facilitate visualization.
+               * Returns false otherwise.
+               *
+               */
+              const bool changeCoincidentHue() const;
+
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
                *
@@ -567,6 +579,8 @@ namespace ESPINA
 
               int m_currentStrokeIndex; /** index of current stroke in s_skeleton.strokes. */
               int m_currentEdgeIndex;   /** index of current edge in s_skeleton.edges.     */
+
+              bool m_changeCoincidentHue; /** true to change the hue of strokes with the same color to facilitate visualization. */
 
             private:
               bool m_ignoreCursor; /** flag, true to ignore the cursor node (if any) in some computations, false otherwise. */
