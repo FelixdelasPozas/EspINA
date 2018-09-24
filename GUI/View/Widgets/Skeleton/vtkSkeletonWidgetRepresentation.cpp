@@ -1663,8 +1663,6 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     }
     connectionNode->connections.clear();
 
-    s_skeleton.nodes << node;
-
     // get the stroke values.
     if(!s_skeleton.strokes.contains(stroke))
     {
@@ -1682,13 +1680,44 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
 
     auto edgeIndex = s_skeleton.edges.indexOf(edge);
 
-    nodeA->connections.insert(node, m_currentEdgeIndex);
-    nodeB->connections.insert(node, m_currentEdgeIndex);
-    node->connections.insert(nodeA, m_currentEdgeIndex);
-    node->connections.insert(nodeB, m_currentEdgeIndex);
+    if(std::memcmp(nodeA->position, node->position, 3*sizeof(double)) == 0)
+    {
+      // coincident with nodeA
+      delete node;
 
-    connectionNode->connections.insert(node, edgeIndex);
-    node->connections.insert(connectionNode, edgeIndex);
+      nodeA->connections.insert(nodeB, m_currentEdgeIndex);
+      nodeB->connections.insert(nodeA, m_currentEdgeIndex);
+
+      connectionNode->connections.insert(nodeA, edgeIndex);
+      nodeA->connections.insert(connectionNode, edgeIndex);
+    }
+    else
+    {
+      if(std::memcmp(nodeB->position, node->position, 3*sizeof(double)) == 0)
+      {
+        // coincident with nodeB
+        delete node;
+
+        nodeA->connections.insert(nodeB, m_currentEdgeIndex);
+        nodeB->connections.insert(nodeA, m_currentEdgeIndex);
+
+        connectionNode->connections.insert(nodeB, edgeIndex);
+        nodeB->connections.insert(connectionNode, edgeIndex);
+      }
+      else
+      {
+        // not coincident with nodeA or nodeB
+        s_skeleton.nodes << node;
+
+        nodeA->connections.insert(node, m_currentEdgeIndex);
+        nodeB->connections.insert(node, m_currentEdgeIndex);
+        node->connections.insert(nodeA, m_currentEdgeIndex);
+        node->connections.insert(nodeB, m_currentEdgeIndex);
+
+        connectionNode->connections.insert(node, edgeIndex);
+        node->connections.insert(connectionNode, edgeIndex);
+      }
+    }
   }
 
   return true;
