@@ -446,19 +446,22 @@ void StereologicalInclusion::onCountingFrameModified(CountingFrame *cf)
 
   if(m_exclusionCFs.keys().contains(cf))
   {
-    auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
-    auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
-
-    m_cfIds[cf] = cf->id();
-
-    if(m_infoCache.keys().contains(oldIdKey))
+    if(m_cfIds.contains(cf) && (m_cfIds[cf] != cf->id()))
     {
-      m_infoCache.insert(newIdKey, m_infoCache[oldIdKey]);
-      m_infoCache.remove(oldIdKey);
-    }
+      auto oldIdKey = tr("Inc. %1 CF").arg(m_cfIds[cf]);
+      auto newIdKey = tr("Inc. %1 CF").arg(cf->id());
 
-    m_keys.removeOne(createKey(oldIdKey));
-    m_keys << createKey(newIdKey);
+      m_cfIds[cf] = cf->id();
+
+      if(m_infoCache.keys().contains(oldIdKey))
+      {
+        m_infoCache.insert(newIdKey, m_infoCache[oldIdKey]);
+        m_infoCache.remove(oldIdKey);
+      }
+
+      m_keys.removeOne(createKey(oldIdKey));
+      m_keys << createKey(newIdKey);
+    }
   }
 }
 
