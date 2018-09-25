@@ -356,7 +356,6 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
         if(!minBounds.areValid()) continue; // means that the part inside the CF slice is empty (no voxels == SEG_VOXEL_VALUE)
 
         isExcluded = false;
-        if(i == 0) return false;
         if(i == regionPoints->GetNumberOfPoints() -4) return true;
 
         for(auto i: {1,3})
